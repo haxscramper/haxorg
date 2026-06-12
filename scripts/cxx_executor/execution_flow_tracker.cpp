@@ -54,15 +54,12 @@ struct ProcSnapshot {
 
 static double now_us() {
     auto tp = std::chrono::system_clock::now().time_since_epoch();
-    return std::chrono::duration_cast<
-               std::chrono::duration<double, std::micro>>(tp)
+    return std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(tp)
         .count();
 }
 
 static void check_syscall(int rc, Str const& what) {
-    if (rc == -1) {
-        throw std::runtime_error(what + ": " + std::strerror(errno));
-    }
+    if (rc == -1) { throw std::runtime_error(what + ": " + std::strerror(errno)); }
 }
 
 static bool is_numeric(Str const& s) {
@@ -75,14 +72,9 @@ static bool is_numeric(Str const& s) {
 
 static Str trim(Str const& s) {
     int b = 0;
-    while (b < s.size()
-           && std::isspace(static_cast<unsigned char>(s[b]))) {
-        ++b;
-    }
+    while (b < s.size() && std::isspace(static_cast<unsigned char>(s[b]))) { ++b; }
     int e = s.size();
-    while (e > b && std::isspace(static_cast<unsigned char>(s[e - 1]))) {
-        --e;
-    }
+    while (e > b && std::isspace(static_cast<unsigned char>(s[e - 1]))) { --e; }
     return s.substr(b, e - b);
 }
 
@@ -96,9 +88,7 @@ static std::optional<ProcSnapshot> try_read_proc_snapshot(int pid) {
     if (line.empty()) { return std::nullopt; }
 
     auto rparen = line.rfind(')');
-    if (rparen == Str::npos || line.size() <= rparen + 2) {
-        return std::nullopt;
-    }
+    if (rparen == Str::npos || line.size() <= rparen + 2) { return std::nullopt; }
 
     std::istringstream tail(line.substr(rparen + 2).toBase());
     char               state = 0;
@@ -114,8 +104,7 @@ static std::optional<Str> try_read_cmdline(int pid) {
     if (!in) { return std::nullopt; }
 
     std::string data(
-        (std::istreambuf_iterator<char>(in)),
-        std::istreambuf_iterator<char>());
+        (std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 
     for (char& c : data) {
         if (c == '\0') { c = ' '; }
@@ -126,8 +115,7 @@ static std::optional<Str> try_read_cmdline(int pid) {
 
 static std::optional<Str> try_read_cwd(int pid) {
     std::error_code ec;
-    auto            p = std::filesystem::read_symlink(
-        "/proc/" + std::to_string(pid) + "/cwd", ec);
+    auto p = std::filesystem::read_symlink("/proc/" + std::to_string(pid) + "/cwd", ec);
     if (ec) { return std::nullopt; }
     return p.string();
 }
@@ -149,14 +137,11 @@ static StructuredValue make_proc_value(ProcInfo const& info) {
     StructuredValue ppid = make_scalar(std::to_string(info.ppid));
 
     obj.fields.push_back(
-        StructuredValue::Field{
-            "cmdline", std::make_shared<StructuredValue>(cmd)});
+        StructuredValue::Field{"cmdline", std::make_shared<StructuredValue>(cmd)});
     obj.fields.push_back(
-        StructuredValue::Field{
-            "cwd", std::make_shared<StructuredValue>(cwd)});
+        StructuredValue::Field{"cwd", std::make_shared<StructuredValue>(cwd)});
     obj.fields.push_back(
-        StructuredValue::Field{
-            "ppid", std::make_shared<StructuredValue>(ppid)});
+        StructuredValue::Field{"ppid", std::make_shared<StructuredValue>(ppid)});
 
     root.data = obj;
     return root;
@@ -201,21 +186,18 @@ class ProcTracker {
         check_syscall(sigemptyset(&mask), "sigemptyset");
         check_syscall(sigaddset(&mask, SIGINT), "sigaddset SIGINT");
         check_syscall(sigaddset(&mask, SIGTERM), "sigaddset SIGTERM");
-        check_syscall(
-            sigprocmask(SIG_BLOCK, &mask, nullptr), "sigprocmask");
+        check_syscall(sigprocmask(SIG_BLOCK, &mask, nullptr), "sigprocmask");
 
         signalFd = signalfd(-1, &mask, SFD_NONBLOCK | SFD_CLOEXEC);
         check_syscall(signalFd, "signalfd");
 
-        timerFd = timerfd_create(
-            CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+        timerFd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
         check_syscall(timerFd, "timerfd_create");
 
         itimerspec ts{};
         ts.it_value.tv_nsec    = 5'000'000;
         ts.it_interval.tv_nsec = 5'000'000;
-        check_syscall(
-            timerfd_settime(timerFd, 0, &ts, nullptr), "timerfd_settime");
+        check_syscall(timerfd_settime(timerFd, 0, &ts, nullptr), "timerfd_settime");
 
         epollFd = epoll_create1(EPOLL_CLOEXEC);
         check_syscall(epollFd, "epoll_create1");
@@ -237,8 +219,7 @@ class ProcTracker {
 
     std::unordered_map<int, ProcSnapshot> list_all_proc_snapshots() {
         std::unordered_map<int, ProcSnapshot> result;
-        for (auto const& entry :
-             std::filesystem::directory_iterator("/proc")) {
+        for (auto const& entry : std::filesystem::directory_iterator("/proc")) {
             if (!entry.is_directory()) { continue; }
             Str name = entry.path().filename().string();
             if (!is_numeric(name)) { continue; }
@@ -310,8 +291,7 @@ class ProcTracker {
         std::unordered_set<int> toTrack;
         for (int pid : newPids) {
             auto const& s = current.at(pid);
-            if (roots.find(pid) != roots.end()
-                || tracked.find(s.ppid) != tracked.end()) {
+            if (roots.find(pid) != roots.end() || tracked.find(s.ppid) != tracked.end()) {
                 toTrack.insert(pid);
             }
         }
@@ -344,16 +324,12 @@ class ProcTracker {
         }
 
         for (int pid : tracked) {
-            if (current.find(pid) != current.end()) {
-                try_enrich_info(pid);
-            }
+            if (current.find(pid) != current.end()) { try_enrich_info(pid); }
         }
 
         Vec<int> ended;
         for (int pid : tracked) {
-            if (current.find(pid) == current.end()) {
-                ended.push_back(pid);
-            }
+            if (current.find(pid) == current.end()) { ended.push_back(pid); }
         }
 
         for (int pid : ended) {
@@ -370,7 +346,7 @@ class ProcTracker {
 
     void consume_timer() {
         uint64_t expirations = 0;
-        ssize_t  rc = read(timerFd, &expirations, sizeof(expirations));
+        ssize_t  rc          = read(timerFd, &expirations, sizeof(expirations));
         if (rc == -1 && errno == EAGAIN) { return; }
         check_syscall(static_cast<int>(rc), "read timerfd");
         poll_proc_snapshot();
@@ -385,7 +361,7 @@ class ProcTracker {
                 int fd = events[i].data.fd;
                 if (fd == signalFd) {
                     signalfd_siginfo siginfo{};
-                    ssize_t rc = read(signalFd, &siginfo, sizeof(siginfo));
+                    ssize_t          rc = read(signalFd, &siginfo, sizeof(siginfo));
                     if (rc == -1 && errno == EAGAIN) { continue; }
                     check_syscall(static_cast<int>(rc), "read signalfd");
                     return;

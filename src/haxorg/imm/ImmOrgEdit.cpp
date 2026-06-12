@@ -13,8 +13,7 @@ ImmAstReplace org::imm::setSubnode(
     int                position,
     ImmAstEditContext& ctx) {
     AST_EDIT_MSG(fmt("Set {}[{}] = {}", node, position, newSubnode));
-    auto res = setSubnodes(
-        node, node->subnodes.set(position, newSubnode), ctx);
+    auto res = setSubnodes(node, node->subnodes.set(position, newSubnode), ctx);
     return res;
 }
 
@@ -41,8 +40,7 @@ ImmAstReplace org::imm::insertSubnodes(
     for (int i = 0; i < position; ++i) { u.push_back(tmp.at(i)); }
     for (auto const& a : add) { u.push_back(a); }
     for (int i = position; i < tmp.size(); ++i) { u.push_back(tmp.at(i)); }
-    return setSubnodes(
-        node, hstd::ext::ImmVec<ImmId>{u.begin(), u.end()}, ctx);
+    return setSubnodes(node, hstd::ext::ImmVec<ImmId>{u.begin(), u.end()}, ctx);
 }
 
 ImmAstReplace org::imm::appendSubnode(
@@ -87,8 +85,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
     LOGIC_ASSERTION_CHECK_FMT(node.is(OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
 
-    if (move == SubtreeMove::EnsureLevels
-        || move == SubtreeMove::ForceLevels) {
+    if (move == SubtreeMove::EnsureLevels || move == SubtreeMove::ForceLevels) {
 
         AST_EDIT_MSG(fmt("Demote subtree {}", node));
         Func<Opt<ImmAstReplace>(ImmAdapter const&)> aux;
@@ -114,10 +111,8 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
         auto adjacent = node.getAdjacentNode(-1);
 
         if (parent && adjacent && adjacent->is(OrgSemKind::Subtree)) {
-            auto adjacentTree = adjacent.value()
-                                    .as<org::imm::ImmSubtree>();
-            auto replacedTree = ctx->adapt(update.replaced)
-                                    .as<org::imm::ImmSubtree>();
+            auto adjacentTree = adjacent.value().as<org::imm::ImmSubtree>();
+            auto replacedTree = ctx->adapt(update.replaced).as<org::imm::ImmSubtree>();
             if (adjacentTree->level < replacedTree->level) {
                 // Demoting subtree caused reparenting, removing the
                 // node from the old subtree.
@@ -131,8 +126,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
                 auto __scope = ctx.debug()->begin_scope();
                 edits.incl(dropSubnode(*parent, node.id, ctx));
-                edits.incl(
-                    appendSubnode(*adjacent, update.replaced.id, ctx));
+                edits.incl(appendSubnode(*adjacent, update.replaced.id, ctx));
             } else {
                 AST_EDIT_MSG(
                     fmt("Subtree demote, no reparenting, levels are "
@@ -155,8 +149,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
         auto       tree  = node.as<org::imm::ImmSubtree>();
         int        level = tree->level;
         for (auto const& sub : tree.sub()) {
-            if (auto subtree = sub.asOpt<org::imm::ImmSubtree>();
-                subtree) {
+            if (auto subtree = sub.asOpt<org::imm::ImmSubtree>(); subtree) {
                 if (subtree.value()->level < level + 1) {
                     demotedSubnodes.push_back(subtree->id);
                 } else {
@@ -177,8 +170,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                 node, ctx, [&](org::imm::ImmSubtree value) {
                     value.subnodes = edits.newSubnodes(
                         hstd::ext::ImmVec<imm::ImmId>{
-                            demotedSubnodes.begin(),
-                            demotedSubnodes.end()});
+                            demotedSubnodes.begin(), demotedSubnodes.end()});
                     value.level += 1;
                     return value;
                 });
@@ -190,8 +182,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
                 auto parent            = tree.getParent().value();
                 auto newParentSubnodes = edits.newSubnodes(
-                    Vec<ImmId>{
-                        parent->subnodes.begin(), parent->subnodes.end()});
+                    Vec<ImmId>{parent->subnodes.begin(), parent->subnodes.end()});
                 AST_EDIT_MSG(fmt("Tree {} parent {}", tree, parent));
 
                 reparentedSubnodes = edits.newSubnodes(reparentedSubnodes);
@@ -201,9 +192,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                     reparentedSubnodes.end());
 
                 auto update = setSubnodes(
-                    parent,
-                    {newParentSubnodes.begin(), newParentSubnodes.end()},
-                    ctx);
+                    parent, {newParentSubnodes.begin(), newParentSubnodes.end()}, ctx);
                 AST_EDIT_MSG(fmt("Update subnode list {}", update));
                 edits.incl(update);
             }
@@ -370,8 +359,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
     auto __scope = ctx.sel->begin_scope();
 
     if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
-        ctx.sel->message(
-            fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth));
+        ctx.sel->message(fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth));
 
         return false;
     }
@@ -393,15 +381,13 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
             switch (condition->link->getKind()) {
                 case OrgSelectorLink::Kind::DirectSubnode: {
                     ctx.sel->message("link direct subnode");
-                    for (auto const& sub :
-                         node.getAllSubnodes(node.path)) {
+                    for (auto const& sub : node.getAllSubnodes(node.path)) {
                         if (recMatches(
                                 condition + 1,
                                 sub,
                                 depth + 1,
                                 ctx.with_max_depth(depth + 1))) {
-                            ctx.sel->message(
-                                "got match on the direct subnode");
+                            ctx.sel->message("got match on the direct subnode");
                             isMatch = true;
                         }
                     }
@@ -411,12 +397,9 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                 case OrgSelectorLink::Kind::IndirectSubnode: {
                     ctx.sel->message("link indirect subnode");
                     auto tmp = ctx.with_visited();
-                    for (auto const& sub :
-                         node.getAllSubnodesDFS(node.path)) {
-                        if (recMatches(
-                                condition + 1, sub, depth + 1, tmp)) {
-                            ctx.sel->message(
-                                "got match on indirect subnode");
+                    for (auto const& sub : node.getAllSubnodesDFS(node.path)) {
+                        if (recMatches(condition + 1, sub, depth + 1, tmp)) {
+                            ctx.sel->message("got match on indirect subnode");
                             isMatch = true;
                         }
                     }
@@ -424,16 +407,12 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                 }
 
                 case OrgSelectorLink::Kind::FieldName: {
-                    auto const&
-                        name = std::get<OrgSelectorLink::FieldName>(
-                            condition->link->data);
-                    ctx.sel->message(
-                        fmt("link field name '{}'", name.name));
+                    auto const& name = std::get<OrgSelectorLink::FieldName>(
+                        condition->link->data);
+                    ctx.sel->message(fmt("link field name '{}'", name.name));
 
-                    for (auto const& sub :
-                         node.getAllSubnodes(node.path)) {
-                        auto drop = sub.flatPath().dropPrefix(
-                            node.flatPath());
+                    for (auto const& sub : node.getAllSubnodes(node.path)) {
+                        auto drop = sub.flatPath().dropPrefix(node.flatPath());
                         ctx.sel->message(
                             fmt("Subnode {} on path {} prefix {} drop {}",
                                 sub.id,
@@ -441,12 +420,9 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                                 node.flatPath(),
                                 drop));
                         if (!drop.empty() && drop.first().isFieldName()
-                            && drop.first().getFieldName().name
-                                   == name.name) {
-                            if (recMatches(
-                                    condition + 1, sub, depth + 1, ctx)) {
-                                ctx.sel->message(
-                                    "got match on field subnode");
+                            && drop.first().getFieldName().name == name.name) {
+                            if (recMatches(condition + 1, sub, depth + 1, ctx)) {
+                                ctx.sel->message("got match on field subnode");
                                 isMatch = true;
                             }
                         }
@@ -472,9 +448,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
         bool isMatch = false;
         if (matchResult.tryNestedNodes) {
             for (auto const& sub : node.getAllSubnodes(node.path)) {
-                if (recMatches(condition, sub, depth + 1, ctx)) {
-                    isMatch = true;
-                }
+                if (recMatches(condition, sub, depth + 1, ctx)) { isMatch = true; }
             }
         }
 
@@ -483,8 +457,7 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
 }
 } // namespace
 
-Vec<ImmAdapter> OrgDocumentSelector::getMatches(
-    ImmAdapter const& node) const {
+Vec<ImmAdapter> OrgDocumentSelector::getMatches(ImmAdapter const& node) const {
     Vec<ImmAdapter> result;
     recMatches(
         path.begin(),
@@ -500,17 +473,11 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(
 Vec<Str> org::imm::flatWords(ImmAdapter const& node) {
     Vec<Str> result;
     if (auto it = node->dyn_cast<org::imm::ImmLeaf>(); it != nullptr) {
-        if (it->is(
-                SemSet{
-                    OrgSemKind::RawText,
-                    OrgSemKind::Word,
-                    OrgSemKind::BigIdent})) {
+        if (it->is(SemSet{OrgSemKind::RawText, OrgSemKind::Word, OrgSemKind::BigIdent})) {
             result.push_back(it->text);
         }
     } else {
-        for (auto const& sub : node.sub()) {
-            result.append(flatWords(sub));
-        }
+        for (auto const& sub : node.sub()) { result.append(flatWords(sub)); }
     }
     return result;
 }
@@ -521,17 +488,12 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
     Opt<OrgSelectorLink> link) {
     path.push_back(
         OrgSelectorCondition{
-            .check = [title,
-                      this](ImmAdapter const& node) -> OrgSelectorResult {
+            .check = [title, this](ImmAdapter const& node) -> OrgSelectorResult {
                 if (auto tree = node.asOpt<imm::ImmSubtree>(); tree) {
                     Vec<Str> plaintext = flatWords(tree.value().at(
-                        imm::ImmReflFieldId::FromTypeField<
-                            imm::ImmSubtree>(&imm::ImmSubtree::title)));
-                    message(
-                        fmt("{} == {} -> {}",
-                            plaintext,
-                            title,
-                            plaintext == title));
+                        imm::ImmReflFieldId::FromTypeField<imm::ImmSubtree>(
+                            &imm::ImmSubtree::title)));
+                    message(fmt("{} == {} -> {}", plaintext, title, plaintext == title));
 
                     return OrgSelectorResult{
                         .isMatching = title == plaintext,
@@ -556,8 +518,7 @@ void OrgDocumentSelector::searchSubtreeId(
     Opt<OrgSelectorLink> link) {
     path.push_back(
         OrgSelectorCondition{
-            .check = [id, maxLevel](
-                         ImmAdapter const& node) -> OrgSelectorResult {
+            .check = [id, maxLevel](ImmAdapter const& node) -> OrgSelectorResult {
                 if (node->is(OrgSemKind::Subtree)) {
                     auto const& tree = node.as<imm::ImmSubtree>();
                     if (maxLevel) {
@@ -567,10 +528,8 @@ void OrgDocumentSelector::searchSubtreeId(
                     } else {
                         return OrgSelectorResult{
                             .isMatching     = tree->treeId == id
-                                           && (tree->level
-                                               <= maxLevel.value()),
-                            .tryNestedNodes = tree->level
-                                            < maxLevel.value(),
+                                           && (tree->level <= maxLevel.value()),
+                            .tryNestedNodes = tree->level < maxLevel.value(),
                         };
                     }
 

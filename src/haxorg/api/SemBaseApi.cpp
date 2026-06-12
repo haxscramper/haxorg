@@ -34,9 +34,7 @@ std::string org::exportToJsonString(sem::SemId<sem::Org> const& node) {
     return to_string(org::algo::ExporterJson{}.evalTop(node));
 }
 
-void org::exportToJsonFile(
-    sem::SemId<sem::Org> const& node,
-    std::string                 path) {
+void org::exportToJsonFile(sem::SemId<sem::Org> const& node, std::string path) {
     writeFile(fs::path{path}, exportToJsonString(node));
 }
 
@@ -110,12 +108,10 @@ sem::SemId<sem::Document> org::readProtobufFile(std::string const& file) {
     result.ParseFromIstream(&stream);
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
         result,
-        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(
-            read_node));
+        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
     return read_node.as<sem::Document>();
 #elif ORG_BUILD_EMCC
-    throw std::logic_error(
-        "Protobuf file parsing is not supported for wasm");
+    throw std::logic_error("Protobuf file parsing is not supported for wasm");
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
@@ -123,9 +119,7 @@ sem::SemId<sem::Document> org::readProtobufFile(std::string const& file) {
 #endif
 }
 
-void org::exportToProtobufFile(
-    sem::SemId<sem::Document> doc,
-    std::string const&        file) {
+void org::exportToProtobufFile(sem::SemId<sem::Document> doc, std::string const& file) {
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     std::ofstream     stream{file};
     orgproto::AnyNode result;
@@ -133,8 +127,7 @@ void org::exportToProtobufFile(
         &result, doc.asOrg());
     result.SerializeToOstream(&stream);
 #elif ORG_BUILD_EMCC
-    throw std::logic_error(
-        "Protobuf file writing is not supported for wasm");
+    throw std::logic_error("Protobuf file writing is not supported for wasm");
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
@@ -174,9 +167,7 @@ void visitField(org::SemSubnodeVisitor const& visitor, CVec<T> value) {
 
 
 template <typename T>
-void visitField(
-    org::SemSubnodeVisitor const& visitor,
-    Opt<T> const&                 value) {
+void visitField(org::SemSubnodeVisitor const& visitor, Opt<T> const& value) {
     if (value) { visitField(visitor, *value); }
 }
 
@@ -191,13 +182,11 @@ void recVisitOrgNodesImpl(
     using Md = describe_members<T, mod_any_access>;
     mp_for_each<Bd>([&](auto Base) {
         using BaseType = typename decltype(Base)::type;
-        recVisitOrgNodesImpl<BaseType>(
-            visitor, tree.template as<BaseType>(), false);
+        recVisitOrgNodesImpl<BaseType>(visitor, tree.template as<BaseType>(), false);
     });
 
-    mp_for_each<Md>([&](auto const& field) {
-        visitField(visitor, tree.get()->*field.pointer);
-    });
+    mp_for_each<Md>(
+        [&](auto const& field) { visitField(visitor, tree.get()->*field.pointer); });
 }
 
 
@@ -206,9 +195,7 @@ void eachSubnodeRecImpl(
     SemId<Org>                    org,
     bool                          originalBase) {
     std::visit(
-        [&](auto const& node) {
-            recVisitOrgNodesImpl(visitor, node, originalBase);
-        },
+        [&](auto const& node) { recVisitOrgNodesImpl(visitor, node, originalBase); },
         asVariant(org));
 }
 } // namespace
@@ -225,13 +212,11 @@ Opt<UserTime> org::getCreationTime(SemId<Org> const& node) {
         return time.get(0);
     } else if (node->is(osk::Subtree)) {
         auto const& tree = node.as<Subtree>();
-        for (auto const& period :
-             tree->getTimePeriods({SubtreePeriod::Kind::Created})) {
+        for (auto const& period : tree->getTimePeriods({SubtreePeriod::Kind::Created})) {
             return period.from;
         }
 
-        for (auto const& period :
-             tree->getTimePeriods({SubtreePeriod::Kind::Titled})) {
+        for (auto const& period : tree->getTimePeriods({SubtreePeriod::Kind::Titled})) {
             return period.from;
         }
     }
@@ -242,10 +227,7 @@ Opt<UserTime> org::getCreationTime(SemId<Org> const& node) {
 namespace {
 
 template <sem::NotOrg T>
-void addSubnodes(
-    Vec<SemId<Org>>& result,
-    char const*      field,
-    T const&         value) {}
+void addSubnodes(Vec<SemId<Org>>& result, char const* field, T const& value) {}
 
 
 void addSubnodes(
@@ -256,10 +238,7 @@ void addSubnodes(
 }
 
 template <sem::IsOrg T>
-void addSubnodes(
-    Vec<SemId<Org>>&     result,
-    char const*          field,
-    sem::SemId<T> const& value) {
+void addSubnodes(Vec<SemId<Org>>& result, char const* field, sem::SemId<T> const& value) {
     result.push_back(value.asOrg());
 }
 
@@ -289,8 +268,7 @@ Vec<SemId<Org>> getDirectSubnodes(
 
     T const& object = *node.value;
     for_each_field_with_bases<T>([&](auto const& field) {
-        if (!targetField.has_value()
-            || targetField.value() == field.name) {
+        if (!targetField.has_value() || targetField.value() == field.name) {
             addSubnodes(result, field.name, object.*field.pointer);
         }
     });
@@ -302,10 +280,9 @@ Vec<SemId<Org>> getDirectSubnodes(
     sem::SemId<Org> node,
     Opt<Str> const& targetField = std::nullopt) {
     switch (node->getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        return getDirectSubnodes<sem::__Kind>(                            \
-            node.as<sem::__Kind>(), targetField);                         \
+#define _case(__Kind)                                                                    \
+    case OrgSemKind::__Kind: {                                                           \
+        return getDirectSubnodes<sem::__Kind>(node.as<sem::__Kind>(), targetField);      \
     }
 
 
@@ -387,8 +364,7 @@ sem::SemId<Org> org::asOneNode(org::sem::SemId<org::sem::Org> const& arg) {
 int org::getListHeaderIndex(sem::SemId<List> const& it, Str const& text) {
     for (auto const& [idx, sub] : enumerate(it->subnodes)) {
         if (auto it = sub.asOpt<sem::ListItem>();
-            it && it->isDescriptionItem()
-            && it->getCleanHeader() == text) {
+            it && it->isDescriptionItem() && it->getCleanHeader() == text) {
             return idx;
         }
     }
@@ -416,18 +392,13 @@ void org::insertDescriptionListItem(
 }
 
 
-void org::insertListItemBody(
-    sem::SemId<List>     id,
-    int                  index,
-    Vec<sem::SemId<Org>> value) {
+void org::insertListItemBody(sem::SemId<List> id, int index, Vec<sem::SemId<Org>> value) {
     auto item      = sem::SemId<sem::ListItem>::New();
     item->subnodes = value;
     id->subnodes.insert(id->subnodes.begin() + index, item);
 }
 
-void org::eachSubnodeRecSimplePath(
-    SemId<Org>                       id,
-    org::SemSubnodeVisitorSimplePath cb) {
+void org::eachSubnodeRecSimplePath(SemId<Org> id, org::SemSubnodeVisitorSimplePath cb) {
     Func<void(sem::OrgArg, OrgVecArg path)> aux;
 
     aux = [&](sem::OrgArg node, OrgVecArg path) {
@@ -449,7 +420,7 @@ AstTrackingMap org::getAstTrackingMap(Vec<sem::SemId<Org>> const& nodes) {
                 auto add_string_tracking =
                     [&](UnorderedMap<Str, AstTrackingAlternatives>& map,
                         Str const&                                  key,
-                        Vec<SemId<Org>> target) {
+                        Vec<SemId<Org>>                             target) {
                         map.get_or_insert(key, AstTrackingAlternatives{})
                             .alternatives.push_back(
                                 AstTrackingPath{.path = path + target});
@@ -457,26 +428,22 @@ AstTrackingMap org::getAstTrackingMap(Vec<sem::SemId<Org>> const& nodes) {
 
                 if (auto tree = node.asOpt<Subtree>()) {
                     if (auto id = tree->treeId) {
-                        add_string_tracking(
-                            res.subtrees, id.value(), {node});
+                        add_string_tracking(res.subtrees, id.value(), {node});
                     }
 
                     for (auto const& radio :
-                         getSubtreeProperties<sem::NamedProperty::RadioId>(
-                             tree)) {
-                        add_string_tracking(
-                            res.radioTargets, radio.words.at(0), {node});
+                         getSubtreeProperties<sem::NamedProperty::RadioId>(tree)) {
+                        add_string_tracking(res.radioTargets, radio.words.at(0), {node});
                     }
 
-                    for (auto const& tag : org::getSubtreeProperties<
-                             sem::NamedProperty::HashtagDef>(tree)) {
+                    for (auto const& tag :
+                         org::getSubtreeProperties<sem::NamedProperty::HashtagDef>(
+                             tree)) {
                         // only track fully resolved nodes, for node
                         // details see [[hashtag_track_set_minimization]]
-                        for (auto const& hashtag :
-                             tag.hashtag.getFlatHashes(false)) {
+                        for (auto const& hashtag : tag.hashtag.getFlatHashes(false)) {
                             res.hashtagDefinitions
-                                .get_or_insert(
-                                    hashtag, AstTrackingAlternatives{})
+                                .get_or_insert(hashtag, AstTrackingAlternatives{})
                                 .alternatives.push_back(
                                     AstTrackingPath{.path = path + node});
                         }
@@ -484,12 +451,10 @@ AstTrackingMap org::getAstTrackingMap(Vec<sem::SemId<Org>> const& nodes) {
 
                 } else if (auto par = node.asOpt<Paragraph>()) {
                     if (auto id = par->getFootnoteName()) {
-                        add_string_tracking(
-                            res.footnotes, id.value(), {par});
+                        add_string_tracking(res.footnotes, id.value(), {par});
                     }
 
-                    for (auto const& target :
-                         par.subAs<sem::RadioTarget>()) {
+                    for (auto const& target : par.subAs<sem::RadioTarget>()) {
                         add_string_tracking(
                             res.radioTargets,
                             target->words.at(0),
@@ -521,19 +486,16 @@ RadioTargetSearchResult tryRadioTargetSearch(
     int                     sourceOffset = 0;
     int                     radioOffset  = 0;
     RadioTargetSearchResult result;
-    while (radioOffset < words.size()
-           && (groupingIdx + sourceOffset) < sub.size()) {
+    while (radioOffset < words.size() && (groupingIdx + sourceOffset) < sub.size()) {
         auto atSource   = sub.at(groupingIdx + sourceOffset);
         auto sourceWord = atSource->dyn_cast<sem::Leaf>();
         if (sourceWord == nullptr) {
             return result;
         } else if (sourceWord->text == words.at(radioOffset)) {
             if (radioOffset == (words.size() - 1)) {
-                auto range = slice(
-                    groupingIdx, groupingIdx + sourceOffset);
+                auto range    = slice(groupingIdx, groupingIdx + sourceOffset);
                 result.target = AstTrackingGroup::RadioTarget{
-                    .target = target,
-                    .nodes  = Vec<SemIdOrg>{sub.at(range)}};
+                    .target = target, .nodes = Vec<SemIdOrg>{sub.at(range)}};
                 result.nextGroupIdx = groupingIdx + sourceOffset;
                 return result;
             } else {
@@ -568,19 +530,16 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
                 res.push_back(G{G::Single{it}});
             } else {
                 RadioTargetSearchResult search;
-                for (AstTrackingPath const& alt :
-                     radioTargets->second.alternatives) {
+                for (AstTrackingPath const& alt : radioTargets->second.alternatives) {
                     if (auto tree = alt.getNode().asOpt<Subtree>()) {
-                        for (auto const& prop : org::getSubtreeProperties<
-                                 sem::NamedProperty::RadioId>(tree)) {
-                            search = tryRadioTargetSearch(
-                                prop.words, sub, idx, alt);
+                        for (auto const& prop :
+                             org::getSubtreeProperties<sem::NamedProperty::RadioId>(
+                                 tree)) {
+                            search = tryRadioTargetSearch(prop.words, sub, idx, alt);
                             if (search.target) { goto radio_search_exit; }
                         }
-                    } else if (
-                        auto target = alt.getNode().asOpt<RadioTarget>()) {
-                        search = tryRadioTargetSearch(
-                            target->words, sub, idx, alt);
+                    } else if (auto target = alt.getNode().asOpt<RadioTarget>()) {
+                        search = tryRadioTargetSearch(target->words, sub, idx, alt);
                         if (search.target) { goto radio_search_exit; }
                     }
                 }
@@ -597,8 +556,7 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
             G::TrackedHashtag rt;
             for (auto const& flat : tag->text.getFlatHashes(false)) {
                 if (auto targets = map.hashtagDefinitions.get(flat)) {
-                    for (auto const& target :
-                         targets.value().alternatives) {
+                    for (auto const& target : targets.value().alternatives) {
                         rt.targets.insert_or_assign(flat, target);
                     }
                 }
@@ -624,7 +582,6 @@ std::shared_ptr<imm::ImmAstContext> org::initImmutableAstContext() {
 
 hstd::Vec<sem::SemId<Org>> AstTrackingAlternatives::getAllNodes() const {
     return alternatives //
-         | hstd::rv::transform(
-               [](AstTrackingPath const& p) { return p.getNode(); })
+         | hstd::rv::transform([](AstTrackingPath const& p) { return p.getNode(); })
          | hstd::rs::to<hstd::Vec>();
 }

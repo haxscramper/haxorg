@@ -25,9 +25,7 @@ bool TraceLogViewer::empty() const { return events.empty(); }
 auto TraceLogViewer::get_hierarchy() const -> EventHierarchy const& {
     static EventHierarchy hierarchy;
     hierarchy.roots        = root_events;
-    hierarchy.nestedGetter = [this](EventId id) {
-        return get_nested_events_impl(id);
-    };
+    hierarchy.nestedGetter = [this](EventId id) { return get_nested_events_impl(id); };
     return hierarchy;
 }
 
@@ -37,20 +35,15 @@ void TraceLogViewer::draw() {
         return;
     }
 
-    ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV
-                          | ImGuiTableFlags_RowBg
-                          | ImGuiTableFlags_Resizable
-                          | ImGuiTableFlags_ScrollY;
+    ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg
+                          | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY;
 
     if (ImGui::BeginTable("trace_log_table", 4, flags)) {
         ImGui::TableSetupColumn(
             "nesting", ImGuiTableColumnFlags_WidthFixed, columns.nesting);
+        ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthStretch, columns.name);
         ImGui::TableSetupColumn(
-            "name", ImGuiTableColumnFlags_WidthStretch, columns.name);
-        ImGui::TableSetupColumn(
-            "message",
-            ImGuiTableColumnFlags_WidthStretch,
-            columns.message);
+            "message", ImGuiTableColumnFlags_WidthStretch, columns.message);
         ImGui::TableSetupColumn(
             "source", ImGuiTableColumnFlags_WidthStretch, columns.source);
 
@@ -71,9 +64,7 @@ void TraceLogViewer::rebuild() {
 
 void TraceLogViewer::build_record_index() {
     record_index.clear();
-    for (int i = 0; i < records.size(); ++i) {
-        record_index.insert({records[i].id, i});
-    }
+    for (int i = 0; i < records.size(); ++i) { record_index.insert({records[i].id, i}); }
 }
 
 void TraceLogViewer::build_event_hierarchy() {
@@ -131,45 +122,35 @@ Vec<EventId> TraceLogViewer::get_nested_events_impl(EventId id) const {
 
 bool TraceLogViewer::is_begin_event(TraceEvent const& event) const {
     return std::visit(
-        [](auto const& value) {
-            return std::decay_t<decltype(value)>::ph == 'B';
-        },
+        [](auto const& value) { return std::decay_t<decltype(value)>::ph == 'B'; },
         event);
 }
 
 bool TraceLogViewer::is_end_event(TraceEvent const& event) const {
     return std::visit(
-        [](auto const& value) {
-            return std::decay_t<decltype(value)>::ph == 'E';
-        },
+        [](auto const& value) { return std::decay_t<decltype(value)>::ph == 'E'; },
         event);
 }
 
 bool TraceLogViewer::is_instant_event(TraceEvent const& event) const {
     return std::visit(
-        [](auto const& value) {
-            return std::decay_t<decltype(value)>::ph == 'I';
-        },
+        [](auto const& value) { return std::decay_t<decltype(value)>::ph == 'I'; },
         event);
 }
 
-TraceEventBase const& TraceLogViewer::get_base(
-    TraceEvent const& event) const {
+TraceEventBase const& TraceLogViewer::get_base(TraceEvent const& event) const {
     return std::visit(
-        [](auto const& value) -> TraceEventBase const& { return value; },
-        event);
+        [](auto const& value) -> TraceEventBase const& { return value; }, event);
 }
 
-CommonEventArgs const& TraceLogViewer::get_args(
-    TraceEvent const& event) const {
+CommonEventArgs const& TraceLogViewer::get_args(TraceEvent const& event) const {
     return get_base(event).args;
 }
 
 std::string TraceLogViewer::format_name(TraceEvent const& event) const {
     auto const& base = get_base(event);
     if (base.name) {
-        return std::format(
-            "{} [{}]", *base.name, format_event_kind(event));
+        return std::format("{} [{}]", *base.name, format_event_kind(event));
     } else {
         return std::format("[{}]", format_event_kind(event));
     }
@@ -190,8 +171,7 @@ std::string TraceLogViewer::format_source(TraceEvent const& event) const {
     return std::format("{}:{} {}", args.file, args.line, args.function);
 }
 
-std::string TraceLogViewer::format_event_kind(
-    TraceEvent const& event) const {
+std::string TraceLogViewer::format_event_kind(TraceEvent const& event) const {
     if (is_begin_event(event)) {
         return "Begin";
     } else if (is_end_event(event)) {
@@ -216,9 +196,7 @@ void TraceLogViewer::draw_event_row_recursive(EventId id) {
 
     draw_event_state(record);
 
-    for (EventId nested : record.nested_events) {
-        draw_event_row_recursive(nested);
-    }
+    for (EventId nested : record.nested_events) { draw_event_row_recursive(nested); }
 }
 
 void TraceLogViewer::draw_event_row(
@@ -323,16 +301,14 @@ void TraceLogViewer::draw_structured_value(
             },
             [&](StructuredValue::Enum const& data) {
                 ImGui::TextUnformatted(
-                    std::format(
-                        "{} = {} ({})", node_label, data.value, data.index)
+                    std::format("{} = {} ({})", node_label, data.value, data.index)
                         .c_str());
             },
             [&](StructuredValue::List const& data) {
                 if (ImGui::TreeNode(node_label.c_str())) {
                     for (int i = 0; i < data.values.size(); ++i) {
                         draw_structured_value(
-                            data.values[i],
-                            std::format("[{}]", i).c_str());
+                            data.values[i], std::format("[{}]", i).c_str());
                     }
                     ImGui::TreePop();
                 }
@@ -341,14 +317,10 @@ void TraceLogViewer::draw_structured_value(
                 if (ImGui::TreeNode(node_label.c_str())) {
                     for (int i = 0; i < data.pairs.size(); ++i) {
                         auto const& pair = data.pairs[i];
-                        if (ImGui::TreeNode(
-                                std::format("pair {}", i).c_str())) {
-                            if (pair.key) {
-                                draw_structured_value(*pair.key, "key");
-                            }
+                        if (ImGui::TreeNode(std::format("pair {}", i).c_str())) {
+                            if (pair.key) { draw_structured_value(*pair.key, "key"); }
                             if (pair.value) {
-                                draw_structured_value(
-                                    *pair.value, "value");
+                                draw_structured_value(*pair.value, "value");
                             }
                             ImGui::TreePop();
                         }
@@ -357,13 +329,11 @@ void TraceLogViewer::draw_structured_value(
                 }
             },
             [&](StructuredValue::Object const& data) {
-                std::string object_label = std::format(
-                    "{} <{}>", node_label, data.type);
+                std::string object_label = std::format("{} <{}>", node_label, data.type);
                 if (ImGui::TreeNode(object_label.c_str())) {
                     for (auto const& field : data.fields) {
                         if (field.value) {
-                            draw_structured_value(
-                                *field.value, field.name.c_str());
+                            draw_structured_value(*field.value, field.name.c_str());
                         }
                     }
                     ImGui::TreePop();
@@ -372,17 +342,13 @@ void TraceLogViewer::draw_structured_value(
         value.data);
 }
 
-void TraceLogViewer::draw_variables_state(
-    VariablesState const& variables) {
+void TraceLogViewer::draw_variables_state(VariablesState const& variables) {
     if (ImGui::TreeNode(
-            std::format("variables ({})", variables.variables.size())
-                .c_str())) {
+            std::format("variables ({})", variables.variables.size()).c_str())) {
         for (auto const& variable : variables.variables) {
-            std::string label = variable.type ? std::format(
-                                                    "{}: {}",
-                                                    variable.name,
-                                                    *variable.type)
-                                              : variable.name.toBase();
+            std::string label = variable.type
+                                  ? std::format("{}: {}", variable.name, *variable.type)
+                                  : variable.name.toBase();
 
             draw_structured_value(variable.value, label.c_str());
         }

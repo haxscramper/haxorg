@@ -13,11 +13,8 @@ bool org::imm::isLinkedDescriptionItemNode(ImmAdapter const& n) {
     return n.is(osk::ListItem)  //
         && isDescriptionItem(n) //
         && rs::any_of(
-               n.pass(n.as<ImmListItem>()->header.get().value())
-                   .subAs<ImmLink>(),
-               [](ImmAdapterT<ImmLink> head) -> bool {
-                   return !head->target.isRaw();
-               });
+               n.pass(n.as<ImmListItem>()->header.get().value()).subAs<ImmLink>(),
+               [](ImmAdapterT<ImmLink> head) -> bool { return !head->target.isRaw(); });
 }
 
 bool org::imm::isLinkedDescriptionItem(ImmAdapter const& n) {
@@ -26,14 +23,11 @@ bool org::imm::isLinkedDescriptionItem(ImmAdapter const& n) {
     // link descripion.
     return rs::any_of(
         n.getParentChain(/*withSelf = */ false),
-        [&](ImmAdapter parent) -> bool {
-            return isLinkedDescriptionItemNode(parent);
-        });
+        [&](ImmAdapter parent) -> bool { return isLinkedDescriptionItemNode(parent); });
 }
 
 bool org::imm::isLinkedDescriptionList(ImmAdapter const& n) {
-    return n.is(osk::List)
-        && rs::any_of(n.sub(), [&](ImmAdapter arg) -> bool {
+    return n.is(osk::List) && rs::any_of(n.sub(), [&](ImmAdapter arg) -> bool {
                return isLinkedDescriptionItem(arg);
            });
 }
@@ -46,8 +40,7 @@ bool org::imm::isInSubtreeDescriptionList(ImmAdapter const& n) {
 
 
 bool org::imm::isAttachedDescriptionList(ImmAdapter const& n) {
-    if (auto list = n.asOpt<ImmList>();
-        list && list->isDescriptionList()) {
+    if (auto list = n.asOpt<ImmList>(); list && list->isDescriptionList()) {
         auto attached = list->getListAttrs("attached");
         return attached.has(0) && attached.at(0).getString() == "subtree";
     } else {

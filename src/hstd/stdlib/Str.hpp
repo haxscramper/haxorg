@@ -9,15 +9,12 @@
 
 namespace hstd {
 
-struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str
-    : public std::string {
+struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str : public std::string {
     using std::string::operator[];
     using std::string::reserve;
 
-    explicit Str(Span<char> view)
-        : std::string(view.data(), view.size()) {}
-    explicit Str(std::string_view view)
-        : std::string(view.data(), view.size()) {}
+    explicit Str(Span<char> view) : std::string(view.data(), view.size()) {}
+    explicit Str(std::string_view view) : std::string(view.data(), view.size()) {}
     [[refl(R"({"unique-name": "StrFromCString"})")]] Str(char const* conv);
     Str(char const* conv, int size);
     Str(std::string const& it);
@@ -32,8 +29,8 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str
     Str substr(int start, int count = -1) const;
 
 
-    [[refl]] Str dropPrefix(Str const& prefix) const;
-    [[refl]] Str dropSuffix(Str const& suffix) const;
+    [[refl]] Str                                   dropPrefix(Str const& prefix) const;
+    [[refl]] Str                                   dropSuffix(Str const& suffix) const;
     [[refl(R"({"unique-name": "atIndex"})")]] char at(int pos) const;
     char&                                          at(int pos);
     Str          replaceAll(Str const& from, Str const& to) const;
@@ -60,9 +57,7 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str
     }
 
     template <typename A, typename B>
-    const std::string_view at(
-        HSlice<A, B> const& s,
-        bool                checkRange = true) const {
+    const std::string_view at(HSlice<A, B> const& s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return std::string_view(this->data() + start, end);
     }
@@ -112,8 +107,7 @@ inline hstd::Str operator+(char const* in, hstd::Str const& other) {
 
 
 template <class CharT>
-struct std::formatter<hstd::Str, CharT>
-    : std::formatter<std::string, CharT> {
+struct std::formatter<hstd::Str, CharT> : std::formatter<std::string, CharT> {
     template <typename FormatContext>
     auto format(hstd::Str const& p, FormatContext& ctx) const {
         return std::formatter<std::string, CharT>::format(p.toBase(), ctx);

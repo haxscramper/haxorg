@@ -43,9 +43,7 @@ inline void set_context_error(OrgContext* ctx, char const* msg) {
 
 
 template <typename CoreT>
-CoreT* unwrap_instance(
-    OrgContext*               ctx,
-    haxorg_ptr_payload const& payload) {
+CoreT* unwrap_instance(OrgContext* ctx, haxorg_ptr_payload const& payload) {
     if (!payload.data) {
         set_context_error(ctx, "Instance pointer is null");
         return nullptr;
@@ -73,9 +71,7 @@ void destroy_instance(void** tagged_instance_ptr, OrgContext* ctx) {
         }
 
         *tagged_instance_ptr = nullptr;
-    } catch (std::exception const& e) {
-        set_context_error(ctx, e.what());
-    } catch (...) {
+    } catch (std::exception const& e) { set_context_error(ctx, e.what()); } catch (...) {
         set_context_error(ctx, "Unknown exception during destroy");
     }
 }
@@ -150,9 +146,7 @@ struct ArgUnwrapper<CppType, CType> {
 
 template <typename CppType, typename CType>
 struct ArgUnwrapper<std::shared_ptr<CppType>, CType> {
-    static std::shared_ptr<CppType> const& unwrap(
-        OrgContext* ctx,
-        CType       val) {
+    static std::shared_ptr<CppType> const& unwrap(OrgContext* ctx, CType val) {
         return *unwrap_instance<std::shared_ptr<CppType>>(ctx, val.data);
     }
 };
@@ -160,9 +154,7 @@ struct ArgUnwrapper<std::shared_ptr<CppType>, CType> {
 
 template <typename CppType, typename CType>
 struct ArgUnwrapper<org::sem::SemId<CppType>, CType> {
-    static org::sem::SemId<CppType> const& unwrap(
-        OrgContext* ctx,
-        CType       val) {
+    static org::sem::SemId<CppType> const& unwrap(OrgContext* ctx, CType val) {
         return *unwrap_instance<org::sem::SemId<CppType>>(ctx, val.data);
     }
 };
@@ -177,9 +169,7 @@ struct ArgUnwrapper<CppType, CType> {
 
 template <hstd::IsEnum CppType, hstd::IsEnum CType>
 struct ArgUnwrapper<CppType, CType> {
-    static CppType unwrap(OrgContext*, CType val) {
-        return static_cast<CppType>(val);
-    }
+    static CppType unwrap(OrgContext*, CType val) { return static_cast<CppType>(val); }
 };
 
 template <typename T>
@@ -214,9 +204,7 @@ template <typename CType, typename CppRetT>
 struct ResultTypeBuilder<CType const*, CppRetT> {
     using CoreT = typename ExtractCoreType<std::decay_t<CppRetT>>::Type;
 
-    static CType const* build(void* t) {
-        return static_cast<CType const*>(t);
-    }
+    static CType const* build(void* t) { return static_cast<CType const*>(t); }
 
     static CType const* build_null() { return nullptr; }
 };
@@ -254,16 +242,13 @@ ResultCType execute_cpp_impl(
     CppCallable const& callable,
     OrgContext*        ctx,
     CArgs... c_args) {
-    constexpr MemoryPolicy
-        Policy = InferMemoryPolicy<ResultCppType>::value;
+    constexpr MemoryPolicy Policy = InferMemoryPolicy<ResultCppType>::value;
     clear_context(ctx);
-    constexpr bool
-        IsPassthrough = (std::is_same_v<
-                             std::remove_cvref_t<ResultCType>,
-                             std::remove_cvref_t<ResultCppType>>
-                         || std::is_enum_v<
-                             std::remove_cvref_t<ResultCppType>>)
-                     && !std::is_same_v<ResultCType, haxorg_ptr_payload>;
+    constexpr bool IsPassthrough = (std::is_same_v<
+                                        std::remove_cvref_t<ResultCType>,
+                                        std::remove_cvref_t<ResultCppType>>
+                                    || std::is_enum_v<std::remove_cvref_t<ResultCppType>>)
+                                && !std::is_same_v<ResultCType, haxorg_ptr_payload>;
     try {
         if constexpr (std::is_same_v<ResultCType, void>) {
             callable(ArgUnwrapper<CppArgs, CArgs>::unwrap(ctx, c_args)...);
@@ -277,18 +262,15 @@ ResultCType execute_cpp_impl(
                 void* raw_ptr = nullptr;
 
                 if constexpr (
-                    Policy == MemoryPolicy::Unique
-                    || Policy == MemoryPolicy::Shared) {
+                    Policy == MemoryPolicy::Unique || Policy == MemoryPolicy::Shared) {
                     using DecayedT = std::decay_t<decltype(result)>;
-                    raw_ptr        = new DecayedT(
-                        std::forward<decltype(result)>(result));
+                    raw_ptr        = new DecayedT(std::forward<decltype(result)>(result));
                 } else if constexpr (Policy == MemoryPolicy::Reference) {
                     raw_ptr = (void*)(&result);
                 }
 
                 void* tagged_ptr = tag_pointer(raw_ptr, Policy);
-                return ResultTypeBuilder<ResultCType, ResultCppType>::
-                    build(tagged_ptr);
+                return ResultTypeBuilder<ResultCType, ResultCppType>::build(tagged_ptr);
             }
         }
     } catch (std::exception const& e) {
@@ -296,16 +278,14 @@ ResultCType execute_cpp_impl(
         if constexpr (IsPassthrough) {
             return ResultCType{};
         } else if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<ResultCType, ResultCppType>::
-                build_null();
+            return ResultTypeBuilder<ResultCType, ResultCppType>::build_null();
         }
     } catch (...) {
         set_context_error(ctx, "Unknown C++ exception");
         if constexpr (IsPassthrough) {
             return ResultCType{};
         } else if constexpr (!std::is_same_v<ResultCType, void>) {
-            return ResultTypeBuilder<ResultCType, ResultCppType>::
-                build_null();
+            return ResultTypeBuilder<ResultCType, ResultCppType>::build_null();
         }
     }
 }
@@ -322,11 +302,9 @@ ResultCType execute_cpp(
     ResultCppType (*func)(CppArgs...),
     OrgContext* ctx,
     CArgs... c_args) {
-    return detail::execute_cpp_impl<
-        ResultCType,
-        ResultCppType,
-        decltype(func),
-        CppArgs...>(func, ctx, c_args...);
+    return detail::
+        execute_cpp_impl<ResultCType, ResultCppType, decltype(func), CppArgs...>(
+            func, ctx, c_args...);
 }
 
 // Non-const member function overload
@@ -343,15 +321,12 @@ ResultCType execute_cpp(
     CFirstArg   c_self,
     CArgs... c_args) {
     Class& self_ref = ArgUnwrapper<Class&, CFirstArg>::unwrap(ctx, c_self);
-    auto   bound    = [&self_ref,
-                       method](CppArgs... cpp_args) -> ResultCppType {
+    auto   bound    = [&self_ref, method](CppArgs... cpp_args) -> ResultCppType {
         return (self_ref.*method)(std::forward<CppArgs>(cpp_args)...);
     };
-    return detail::execute_cpp_impl<
-        ResultCType,
-        ResultCppType,
-        decltype(bound),
-        CppArgs...>(std::move(bound), ctx, c_args...);
+    return detail::
+        execute_cpp_impl<ResultCType, ResultCppType, decltype(bound), CppArgs...>(
+            std::move(bound), ctx, c_args...);
 }
 
 // Const member function overload
@@ -367,17 +342,13 @@ ResultCType execute_cpp(
     OrgContext* ctx,
     CFirstArg   c_self,
     CArgs... c_args) {
-    Class const& self_ref = ArgUnwrapper<const Class&, CFirstArg>::unwrap(
-        ctx, c_self);
-    auto bound = [&self_ref,
-                  method](CppArgs... cpp_args) -> ResultCppType {
+    Class const& self_ref = ArgUnwrapper<const Class&, CFirstArg>::unwrap(ctx, c_self);
+    auto         bound    = [&self_ref, method](CppArgs... cpp_args) -> ResultCppType {
         return (self_ref.*method)(std::forward<CppArgs>(cpp_args)...);
     };
-    return detail::execute_cpp_impl<
-        ResultCType,
-        ResultCppType,
-        decltype(bound),
-        CppArgs...>(std::move(bound), ctx, c_args...);
+    return detail::
+        execute_cpp_impl<ResultCType, ResultCppType, decltype(bound), CppArgs...>(
+            std::move(bound), ctx, c_args...);
 }
 
 
@@ -390,9 +361,7 @@ ResultCType get_cpp_field(
     OrgContext*   ctx,
     CRecordType   __this,
     ResultCppType CppRecordType::* field_ptr) {
-    auto lambda = [field_ptr](CppRecordType const* _class) {
-        return _class->*field_ptr;
-    };
+    auto lambda = [field_ptr](CppRecordType const* _class) { return _class->*field_ptr; };
     return detail::execute_cpp_impl<
         ResultCType,
         ResultCppType,

@@ -24,9 +24,7 @@
 template <>
 struct std::formatter<kiwi::Variable> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        kiwi::Variable const& p,
-        FormatContext&        ctx) const {
+    FormatContext::iterator format(kiwi::Variable const& p, FormatContext& ctx) const {
         return ::hstd::fmt_ctx(p.name(), ctx);
     }
 };
@@ -34,8 +32,7 @@ struct std::formatter<kiwi::Variable> : std::formatter<std::string> {
 template <>
 struct std::formatter<kiwi::Term> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(kiwi::Term const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(kiwi::Term const& p, FormatContext& ctx) const {
         return ::hstd::fmt_ctx(p.variable(), ctx);
     }
 };
@@ -50,20 +47,9 @@ DECL_DESCRIBED_ENUM_STANDALONE(Axis, X, Y);
 // tuple Axis+AnchorAxisRelative, with the AnchorAxisRelative just being a
 // convenient shorthand for the `[0, 1]` range of values.
 // <<kiwi-arbitrary-anchor-positions>>
-DECL_DESCRIBED_ENUM_STANDALONE(
-    Anchor,
-    LEFT,
-    HCENTER,
-    RIGHT,
-    TOP,
-    VCENTER,
-    BOTTOM);
+DECL_DESCRIBED_ENUM_STANDALONE(Anchor, LEFT, HCENTER, RIGHT, TOP, VCENTER, BOTTOM);
 
-DECL_DESCRIBED_ENUM_STANDALONE(
-    AnchorAxisRelative,
-    MIN_POS,
-    MID_POS,
-    MAX_POS);
+DECL_DESCRIBED_ENUM_STANDALONE(AnchorAxisRelative, MIN_POS, MID_POS, MAX_POS);
 
 DECL_DESCRIBED_ENUM_STANDALONE(
     RectAttr,
@@ -95,19 +81,14 @@ struct AnchorSpec {
     Anchor const x;
     Anchor const y;
 
-    AnchorSpec(Anchor x = Anchor::LEFT, Anchor y = Anchor::TOP)
-        : x{x}, y{y} {
+    AnchorSpec(Anchor x = Anchor::LEFT, Anchor y = Anchor::TOP) : x{x}, y{y} {
         LOGIC_ASSERTION_CHECK_FMT(anchor_axis(x) == Axis::X, "{}", x);
         LOGIC_ASSERTION_CHECK_FMT(anchor_axis(y) == Axis::Y, "{}", y);
     }
 
-    static AnchorSpec UpperLeft() {
-        return AnchorSpec(Anchor::LEFT, Anchor::TOP);
-    }
+    static AnchorSpec UpperLeft() { return AnchorSpec(Anchor::LEFT, Anchor::TOP); }
 
-    static AnchorSpec LowerRight() {
-        return AnchorSpec(Anchor::RIGHT, Anchor::BOTTOM);
-    }
+    static AnchorSpec LowerRight() { return AnchorSpec(Anchor::RIGHT, Anchor::BOTTOM); }
 
     static AnchorSpec CenterCenter() {
         return AnchorSpec(Anchor::HCENTER, Anchor::VCENTER);
@@ -150,17 +131,11 @@ struct RectSpec1Side {
 
     DESC_FIELDS(RectSpec1Side, (rect_id, anchor));
 
-    static RectSpec1Side Left(Str const& id) {
-        return RectSpec1Side(id, Anchor::LEFT);
-    }
+    static RectSpec1Side Left(Str const& id) { return RectSpec1Side(id, Anchor::LEFT); }
 
-    static RectSpec1Side Right(Str const& id) {
-        return RectSpec1Side(id, Anchor::RIGHT);
-    }
+    static RectSpec1Side Right(Str const& id) { return RectSpec1Side(id, Anchor::RIGHT); }
 
-    static RectSpec1Side Top(Str const& id) {
-        return RectSpec1Side(id, Anchor::TOP);
-    }
+    static RectSpec1Side Top(Str const& id) { return RectSpec1Side(id, Anchor::TOP); }
 
     static RectSpec1Side Bottom(Str const& id) {
         return RectSpec1Side(id, Anchor::BOTTOM);
@@ -210,14 +185,11 @@ class Expr {
         char const*                     origin_function = nullptr;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-        void writeSerial(
-            ::htsd::ext::kiwi_ir::proto::Expr::Node* n) const {
+        void writeSerial(::htsd::ext::kiwi_ir::proto::Expr::Node* n) const {
             if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
             if (rhs) { rhs->writeSerial(n->mutable_rhs()); }
             n->set_constant(constant);
-            n->set_kind(
-                static_cast<::htsd::ext::kiwi_ir::proto::Expr::Node::Kind>(
-                    kind));
+            n->set_kind(static_cast<::htsd::ext::kiwi_ir::proto::Expr::Node::Kind>(kind));
             n->set_variable(variable->name());
         }
 #    endif
@@ -225,9 +197,7 @@ class Expr {
 
     std::shared_ptr<Node> node;
 
-    Expr& loc(
-        char const* function = __builtin_FUNCTION(),
-        int         line     = __builtin_LINE()) {
+    Expr& loc(char const* function = __builtin_FUNCTION(), int line = __builtin_LINE()) {
         node->origin_line     = line;
         node->origin_function = function;
         return *this;
@@ -241,13 +211,9 @@ class Expr {
     explicit Expr(std::shared_ptr<Node> node);
 
     static std::shared_ptr<Node> make_constant(double value);
-    static std::shared_ptr<Node> make_variable(
-        kiwi::Variable const& value);
-    static std::shared_ptr<Node> make_kiwi_expr(
-        kiwi::Expression const& value);
-    static std::shared_ptr<Node> make_unary(
-        Node::Kind            kind,
-        std::shared_ptr<Node> lhs);
+    static std::shared_ptr<Node> make_variable(kiwi::Variable const& value);
+    static std::shared_ptr<Node> make_kiwi_expr(kiwi::Expression const& value);
+    static std::shared_ptr<Node> make_unary(Node::Kind kind, std::shared_ptr<Node> lhs);
     static std::shared_ptr<Node> make_binary(
         Node::Kind            kind,
         std::shared_ptr<Node> lhs,
@@ -259,10 +225,7 @@ class Expr {
 
 class Constraint {
   public:
-    Constraint(
-        Expr const&              lhs,
-        Expr const&              rhs,
-        kiwi::RelationalOperator op);
+    Constraint(Expr const& lhs, Expr const& rhs, kiwi::RelationalOperator op);
 
     kiwi::Constraint to_kiwi(hstd::Opt<double> str = std::nullopt) const;
 
@@ -288,8 +251,7 @@ class Constraint {
     }
 
   private:
-    static kiwi::Expression fold_expr(
-        std::shared_ptr<Expr::Node const> const& node);
+    static kiwi::Expression fold_expr(std::shared_ptr<Expr::Node const> const& node);
 };
 
 
@@ -326,8 +288,7 @@ struct Rect {
     Expr anchor_expr(Anchor anchor) const;
 
     geometry::Rect getGeometry() const {
-        return geometry::Rect(
-            x.value(), y.value(), width.value(), height.value());
+        return geometry::Rect(x.value(), y.value(), width.value(), height.value());
     }
 };
 
@@ -352,8 +313,7 @@ class ConstraintBase {
 
     Vec<Str> getBuildRepr(hstd::Opt<RectMap> const& rects) const;
 
-    virtual Str getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const = 0;
+    virtual Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const = 0;
 };
 
 struct ConstraintEntry {
@@ -375,8 +335,7 @@ struct AlignSpec {
 
 #    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(::htsd::ext::kiwi_ir::proto::AlignSpec* as) const {
-        as->set_anchor(
-            static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(anchor));
+        as->set_anchor(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(anchor));
         as->set_offset(offset);
     }
 #    endif
@@ -400,14 +359,11 @@ class AlignConstraint : public ConstraintBase {
     /// the reference.
     Vec<AlignItem> items;
 
-    AlignConstraint(
-        Vec<AlignItem> items,
-        Strength       strength = Strength::REQUIRED);
+    AlignConstraint(Vec<AlignItem> items, Strength strength = Strength::REQUIRED);
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Separate constraint creates to lanes of shapes (with one or more
@@ -433,8 +389,7 @@ class SeparateConstraint : public ConstraintBase {
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Positions groups of rectangles with a fixed step between
@@ -456,8 +411,7 @@ class MultiSeparateConstraint : public ConstraintBase {
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Ensure the "parent" rectangle fully covers the nested IDs.
@@ -490,8 +444,7 @@ class ParentWrapConstraint : public ConstraintBase {
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 
@@ -514,16 +467,11 @@ struct RelDimensionSpec {
     // <<configurable-offset-comparison-directions>>
     /// \brief Offset of the nested element compared to the target
     double absolute_offset = 0.0;
-    DESC_FIELDS(
-        RelDimensionSpec,
-        (size_factor, relative_offset, absolute_offset));
+    DESC_FIELDS(RelDimensionSpec, (size_factor, relative_offset, absolute_offset));
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(
-        ::htsd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
-        if (size_factor.has_value()) {
-            rd->set_size_factor(size_factor.value());
-        }
+    void writeSerial(::htsd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
+        if (size_factor.has_value()) { rd->set_size_factor(size_factor.value()); }
 
         if (relative_offset.has_value()) {
             rd->set_relative_offset(relative_offset.value());
@@ -572,8 +520,7 @@ class RelativeConstraint : public ConstraintBase {
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Equalizes the gaps between consecutive rectangles using
@@ -602,8 +549,7 @@ class EvenGapConstraint : public ConstraintBase {
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Ensure the width/height between two rectangles is matched.
@@ -631,8 +577,7 @@ class EqualSizeConstraint : public ConstraintBase {
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 /// \brief Free-form constraint between different elements on the graph.
@@ -655,8 +600,7 @@ class LinearConstraint : public ConstraintBase {
 
     Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str                      getRepr(
-        hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
 };
 
 class Layout {

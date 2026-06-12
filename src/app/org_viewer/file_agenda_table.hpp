@@ -51,9 +51,7 @@ class OrgTreeModel : public QAbstractItemModel {
         setFlatListFrom(getRoot());
     }
 
-    OrgAgendaNode* getRoot() const {
-        return focused ? focused : root_node;
-    }
+    OrgAgendaNode* getRoot() const { return focused ? focused : root_node; }
 
     void setFocused(OrgAgendaNode* node) {
         beginResetModel();
@@ -71,33 +69,27 @@ class OrgTreeModel : public QAbstractItemModel {
         return sort_column != static_cast<int>(TableColumns::TITLE);
     }
 
-    QModelIndex index(
-        int                row,
-        int                column,
-        const QModelIndex& parent = QModelIndex()) const override;
+    QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex())
+        const override;
 
     QModelIndex parent(QModelIndex const& index) const override;
 
-    int rowCount(
-        const QModelIndex& parent = QModelIndex()) const override {
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override {
         if (isFlatSorting()) {
             if (!parent.isValid()) { return flat_nodes.size(); }
             return 0;
         } else {
             if (!parent.isValid()) { return getRoot()->children.size(); }
-            auto node = static_cast<OrgAgendaNode*>(
-                parent.internalPointer());
+            auto node = static_cast<OrgAgendaNode*>(parent.internalPointer());
             return node->children.size();
         }
     }
 
-    int columnCount(
-        const QModelIndex& parent = QModelIndex()) const override {
+    int columnCount(const QModelIndex& parent = QModelIndex()) const override {
         return 8;
     }
 
-    QVariant data(QModelIndex const& index, int role = Qt::DisplayRole)
-        const override;
+    QVariant data(QModelIndex const& index, int role = Qt::DisplayRole) const override;
 
     QVariant headerData(
         int             section,
@@ -107,9 +99,7 @@ class OrgTreeModel : public QAbstractItemModel {
   private:
     void collectAllNodes(OrgAgendaNode* node) {
         if (node != getRoot()) { flat_nodes.push_back(node); }
-        for (auto const& child : node->children) {
-            collectAllNodes(child.get());
-        }
+        for (auto const& child : node->children) { collectAllNodes(child.get()); }
     }
 
   public:
@@ -156,8 +146,7 @@ class OrgTreeProxyModel : public QSortFilterProxyModel {
     bool filterAcceptsRow(int source_row, QModelIndex const& source_parent)
         const override;
 
-    bool lessThan(QModelIndex const& left, QModelIndex const& right)
-        const override;
+    bool lessThan(QModelIndex const& left, QModelIndex const& right) const override;
 
   private:
     bool isCompletedTask(std::string const& todo) const {
@@ -165,10 +154,7 @@ class OrgTreeProxyModel : public QSortFilterProxyModel {
             "done", "completed"};
         std::string lower_todo = todo;
         std::transform(
-            lower_todo.begin(),
-            lower_todo.end(),
-            lower_todo.begin(),
-            ::tolower);
+            lower_todo.begin(), lower_todo.end(), lower_todo.begin(), ::tolower);
         return completed_tasks.find(lower_todo) != completed_tasks.end();
     }
 
@@ -209,8 +195,7 @@ class CommandPalette : public QDialog {
         LOGIC_ASSERTION_CHECK(window() != nullptr, "");
         auto parent_rect   = parentWidget()->window()->geometry();
         int  palette_width = static_cast<int>(parent_rect.width() * 0.6);
-        int  x             = parent_rect.x()
-                           + (parent_rect.width() - palette_width) / 2;
+        int  x             = parent_rect.x() + (parent_rect.width() - palette_width) / 2;
         int  y             = parent_rect.y() + 50;
         setGeometry(x, y, palette_width, 400);
         _dfmt(x, y, palette_width);
@@ -251,15 +236,13 @@ class CommandPalette : public QDialog {
         if (text.trimmed().isEmpty()) {
             filtered_items = items;
         } else {
-            filtered_items = filterAndScoreItems(
-                text.toLower().toStdString());
+            filtered_items = filterAndScoreItems(text.toLower().toStdString());
         }
         updateResultsList();
     }
 
     void onItemActivated(QListWidgetItem* item) {
-        auto item_data = item->data(Qt::UserRole)
-                             .value<CommandPaletteItem*>();
+        auto item_data = item->data(Qt::UserRole).value<CommandPaletteItem*>();
         if (item_data) {
             emit itemSelected(item_data->model_index);
             accept();
@@ -292,9 +275,7 @@ class CommandPalette : public QDialog {
             auto index = model->index(row, 0, parent_index);
             if (!index.isValid()) { continue; }
 
-            auto title        = model->data(index, Qt::DisplayRole)
-                                    .toString()
-                                    .toStdString();
+            auto title = model->data(index, Qt::DisplayRole).toString().toStdString();
             auto current_path = path;
             current_path.push_back(title);
 
@@ -305,9 +286,7 @@ class CommandPalette : public QDialog {
             }
 
             auto display_index = index;
-            if (proxy_model) {
-                display_index = proxy_model->mapFromSource(index);
-            }
+            if (proxy_model) { display_index = proxy_model->mapFromSource(index); }
 
             items.emplace_back(title, full_path, display_index);
 
@@ -315,8 +294,7 @@ class CommandPalette : public QDialog {
         }
     }
 
-    std::vector<CommandPaletteItem> filterAndScoreItems(
-        std::string const& search_text);
+    std::vector<CommandPaletteItem> filterAndScoreItems(std::string const& search_text);
 
     void updateResultsList();
 
@@ -367,8 +345,7 @@ class TreeViewWithCommandPalette : public QObject {
                 &TreeViewWithCommandPalette::onItemSelected);
         }
 
-        auto source_model = proxy_model ? proxy_model->sourceModel()
-                                        : model;
+        auto source_model = proxy_model ? proxy_model->sourceModel() : model;
         command_palette->populateItems(source_model, proxy_model);
 
         command_palette->positionOverParent();
@@ -405,8 +382,7 @@ class AgendaWidget : public QWidget {
     Q_OBJECT
 
   public:
-    explicit AgendaWidget(OrgAgendaNode* root_node, QWidget* parent)
-        : QWidget{parent} {
+    explicit AgendaWidget(OrgAgendaNode* root_node, QWidget* parent) : QWidget{parent} {
         model = new OrgTreeModel{root_node};
         setupUi();
     }
@@ -428,8 +404,7 @@ class AgendaWidget : public QWidget {
             source_index = index;
         }
 
-        auto node = static_cast<OrgAgendaNode*>(
-            source_index.internalPointer());
+        auto node = static_cast<OrgAgendaNode*>(source_index.internalPointer());
         model->setFocused(node);
     }
 
@@ -468,15 +443,10 @@ class AgendaWidget : public QWidget {
         command_palette_handler = new TreeViewWithCommandPalette{
             tree_view, model, sort_model};
 
-        connect(
-            tree_view,
-            &QTreeView::doubleClicked,
-            this,
-            &AgendaWidget::onRowFocused);
+        connect(tree_view, &QTreeView::doubleClicked, this, &AgendaWidget::onRowFocused);
 
         auto header = tree_view->header();
-        for (int i = 0; i < static_cast<int>(TableColumns::TAGS) + 1;
-             ++i) {
+        for (int i = 0; i < static_cast<int>(TableColumns::TAGS) + 1; ++i) {
             header->setSectionResizeMode(i, QHeaderView::ResizeToContents);
         }
 
@@ -487,8 +457,7 @@ class AgendaWidget : public QWidget {
         configuration_widget->setLayout(configuration_layout);
 
         auto hide_tasks_without_todo_on_flat = new QCheckBox{};
-        hide_tasks_without_todo_on_flat->setText(
-            "Hide tasks without todo");
+        hide_tasks_without_todo_on_flat->setText("Hide tasks without todo");
         connect(
             hide_tasks_without_todo_on_flat,
             &QCheckBox::toggled,
@@ -511,20 +480,12 @@ class AgendaWidget : public QWidget {
 
         auto hide_nested = new QCheckBox{};
         hide_nested->setText("Hide nested");
-        connect(
-            hide_nested,
-            &QCheckBox::toggled,
-            this,
-            &AgendaWidget::onHideNested);
+        connect(hide_nested, &QCheckBox::toggled, this, &AgendaWidget::onHideNested);
         configuration_layout->addWidget(hide_nested);
 
         auto unfocus = new QPushButton{};
         unfocus->setText("Unfocus");
-        connect(
-            unfocus,
-            &QPushButton::clicked,
-            this,
-            &AgendaWidget::onFocusLifted);
+        connect(unfocus, &QPushButton::clicked, this, &AgendaWidget::onFocusLifted);
         configuration_layout->addWidget(unfocus);
 
         layout->addWidget(tree_view);

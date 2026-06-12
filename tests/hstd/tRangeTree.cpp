@@ -8,9 +8,7 @@
 
 using namespace hstd;
 
-bool operator==(Slice<int> lhs, Slice<int> rhs) {
-    return lhs.operator==(rhs);
-}
+bool operator==(Slice<int> lhs, Slice<int> rhs) { return lhs.operator==(rhs); }
 
 void PrintTo(Slice<int> const& t, std::ostream* os) { *os << fmt1(t); }
 
@@ -56,8 +54,7 @@ TEST(RangeAlgorithmsTest, Queries) {
         EXPECT_EQ(query1(tree, 12), slice(10, 12));
     }
 
-    RangeTree<int> overlapping(
-        Vec<Slice<int>>{slice(1, 5), slice(3, 8), slice(7, 12)});
+    RangeTree<int> overlapping(Vec<Slice<int>>{slice(1, 5), slice(3, 8), slice(7, 12)});
 
     // Query within range
     EXPECT_EQ(query1(overlapping, 3), slice(3, 8));
@@ -150,7 +147,7 @@ TEST(RangeAlgorithmsTest, MultipleSegmentGroups) {
     SequenceSegmentGroup group1{.kind = 1, .segments = {segment1}};
     SequenceSegment      segment2{.kind = 2, .first = 3, .last = 7};
     SequenceSegmentGroup group2{.kind = 2, .segments = {segment2}};
-    auto result = annotateSequence({group1, group2}, 0, 10);
+    auto                 result = annotateSequence({group1, group2}, 0, 10);
     // Checking annotations for segments [0, 2], [3, 5], [6, 7]
     // Expected:
     // Annotated:  |---|  |---| |---|

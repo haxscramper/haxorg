@@ -36,24 +36,19 @@ Vec<TestParams> generateTestRuns() {
 
     auto addSpecs = [&](fs::path const& path) {
         YAML::Node     group = YAML::LoadFile(path.native());
-        ParseSpecGroup parsed{
-            group, path.native(), __CURRENT_FILE_DIR__ / "corpus"};
-        for (const auto& spec : parsed.specs) {
-            results.push_back({spec, path});
-        }
+        ParseSpecGroup parsed{group, path.native(), __CURRENT_FILE_DIR__ / "corpus"};
+        for (const auto& spec : parsed.specs) { results.push_back({spec, path}); }
     };
 
-    for (fs::directory_entry const& it : fs::recursive_directory_iterator(
-             __CURRENT_FILE_DIR__ / "corpus")) {
+    for (fs::directory_entry const& it :
+         fs::recursive_directory_iterator(__CURRENT_FILE_DIR__ / "corpus")) {
         fs::path path{it.path()};
-        if (fs::is_regular_file(path)
-            && path.native().ends_with(".yaml")) {
+        if (fs::is_regular_file(path) && path.native().ends_with(".yaml")) {
             std::string p = path.native();
             if (corpusGlob.empty()) {
                 addSpecs(path);
             } else {
-                int matchRes = fnmatch(
-                    corpusGlob.c_str(), p.c_str(), FNM_EXTMATCH);
+                int matchRes = fnmatch(corpusGlob.c_str(), p.c_str(), FNM_EXTMATCH);
                 if (!(matchRes == FNM_NOMATCH)) { addSpecs(path); }
             }
         }
@@ -63,8 +58,7 @@ Vec<TestParams> generateTestRuns() {
 
     for (auto& spec : results) {
         if (spec.spec.debug.debugOutDir.size() == 0) {
-            spec.spec.debug.debugOutDir = "/tmp/corpus_runs/"
-                                        + spec.testName();
+            spec.spec.debug.debugOutDir = "/tmp/corpus_runs/" + spec.testName();
         }
 
         LOGIC_ASSERTION_CHECK_FMT(
@@ -155,9 +149,7 @@ template <DescribedEnum T>
 struct YamlSchemaBuilder<T> {
     static yaml get() {
         yaml values;
-        for (auto const& name : enumerator_names<T>()) {
-            values.push_back(name);
-        }
+        for (auto const& name : enumerator_names<T>()) { values.push_back(name); }
 
         yaml result;
         result["type"] = "str";
@@ -186,8 +178,7 @@ struct YamlSchemaBuilder<T> {
         yaml map_content;
         for_each_field_with_bases<T>([&](auto const& field) {
             map_content[field.name] = YamlSchemaBuilder<
-                std::remove_cvref_t<
-                    decltype(std::declval<T>().*field.pointer)>>::get();
+                std::remove_cvref_t<decltype(std::declval<T>().*field.pointer)>>::get();
         });
 
         yaml result;
@@ -211,9 +202,7 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 TEST_P(TestOrgParseCorpus, CorpusAll) {
     auto       testDir = getDebugDir("", false);
     TestParams params  = GetParam();
-    if (is_full_trace_on_cli_enabled()) {
-        params.spec.debug.traceAll = true;
-    }
+    if (is_full_trace_on_cli_enabled()) { params.spec.debug.traceAll = true; }
     TestResult result = gtest_run_spec(params, getDebugDir());
 
     auto add_gtest_prefix = [](hstd::Str const& text) {
@@ -225,20 +214,16 @@ TEST_P(TestOrgParseCorpus, CorpusAll) {
 
         while (
             start < lines.size()
-            && ranges::all_of(
-                lines.at(start), [](char c) { return std::isspace(c); })) {
+            && ranges::all_of(lines.at(start), [](char c) { return std::isspace(c); })) {
             ++start;
         }
 
-        while (0 <= end && ranges::all_of(lines.at(end), [](char c) {
-                   return std::isspace(c);
-               })) {
+        while (0 <= end
+               && ranges::all_of(lines.at(end), [](char c) { return std::isspace(c); })) {
             --end;
         }
 
-        for (int i = start; i <= end; ++i) {
-            filtered.push_back(lines.at(i));
-        }
+        for (int i = start; i <= end; ++i) { filtered.push_back(lines.at(i)); }
 
         // if (!filtered.empty()) { __builtin_debugtrap(); }
 

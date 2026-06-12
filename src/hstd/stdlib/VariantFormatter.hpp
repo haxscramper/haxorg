@@ -11,12 +11,10 @@ struct std::formatter<V> : std::formatter<std::string> {
         ::hstd::fmt_ctx(p.sub_variant_get_kind(), ctx);
         ::hstd::fmt_ctx("(", ctx);
         std::visit(
-            [&](auto const& t) { ::hstd::fmt_ctx(t, ctx); },
-            p.sub_variant_get_data());
+            [&](auto const& t) { ::hstd::fmt_ctx(t, ctx); }, p.sub_variant_get_data());
         ::hstd::for_each_field_value_with_bases(
             p, [&](char const* name, auto const& value) {
-                if (std::string{name}
-                    != std::string{p.sub_variant_get_name()}) {
+                if (std::string{name} != std::string{p.sub_variant_get_name()}) {
                     ::hstd::fmt_ctx(", ", ctx);
                     ::hstd::fmt_ctx(".", ctx);
                     ::hstd::fmt_ctx(name, ctx);
@@ -37,8 +35,7 @@ struct std::formatter<V> : std::formatter<std::string> {
         ::hstd::fmt_ctx("Var(", ctx);
         ::hstd::fmt_ctx(p.index(), ctx);
         ::hstd::fmt_ctx(": ", ctx);
-        std::visit(
-            [&ctx](auto const& value) { ::hstd::fmt_ctx(value, ctx); }, p);
+        std::visit([&ctx](auto const& value) { ::hstd::fmt_ctx(value, ctx); }, p);
         return ::hstd::fmt_ctx(")", ctx);
     }
 };

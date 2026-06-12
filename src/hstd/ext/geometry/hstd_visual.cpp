@@ -38,13 +38,11 @@ void applyPenAttrs(XmlNode& node, VisPen const& pen) {
     switch (pen.style) {
         case VisPen::LineStyle::Dash:
             node.set_attr(
-                "stroke-dasharray",
-                hstd::fmt("{},{}", pen.width * 4, pen.width * 2));
+                "stroke-dasharray", hstd::fmt("{},{}", pen.width * 4, pen.width * 2));
             break;
         case VisPen::LineStyle::Dot:
             node.set_attr(
-                "stroke-dasharray",
-                hstd::fmt("{},{}", pen.width, pen.width * 2));
+                "stroke-dasharray", hstd::fmt("{},{}", pen.width, pen.width * 2));
             break;
         case VisPen::LineStyle::DashDot:
             node.set_attr(
@@ -118,11 +116,7 @@ std::string pathToSvgD(Path const& path) {
                 break;
             case Path::CommandType::QuadTo:
                 d += hstd::fmt(
-                    "Q {} {} {} {} ",
-                    cmd.p1.x(),
-                    cmd.p1.y(),
-                    cmd.p2.x(),
-                    cmd.p2.y());
+                    "Q {} {} {} {} ", cmd.p1.x(), cmd.p1.y(), cmd.p2.x(), cmd.p2.y());
                 break;
             case Path::CommandType::CubicTo:
                 d += hstd::fmt(
@@ -175,9 +169,8 @@ XmlNode buildDebugMarker(
     hstd::Vec<hstd::Str> const& messages,
     DebugConf const&            conf = DebugConf{}) {
 
-    std::string const& fill_color = conf.marker_fill_attr.empty()
-                                      ? conf.color
-                                      : conf.marker_fill_attr;
+    std::string const& fill_color = conf.marker_fill_attr.empty() ? conf.color
+                                                                  : conf.marker_fill_attr;
 
     XmlNode g("g");
     g.set_attr("class", conf.node_class);
@@ -193,8 +186,7 @@ XmlNode buildDebugMarker(
     float y_offset = conf.label_offset_y;
     for (auto const& message : messages) {
         XmlNode label("text");
-        label.set_attr(
-            "x", hstd::fmt("{}", coord.x() + conf.label_offset_x));
+        label.set_attr("x", hstd::fmt("{}", coord.x() + conf.label_offset_x));
         label.set_attr("y", hstd::fmt("{}", coord.y() + y_offset));
         label.set_attr("font-family", conf.font_family);
         label.set_attr("font-size", conf.font_size);
@@ -208,9 +200,8 @@ XmlNode buildDebugMarker(
 
     if (conf.bbox.has_value()) {
         auto const&        r      = conf.bbox.value();
-        std::string const& stroke = conf.bbox_stroke.empty()
-                                      ? conf.color
-                                      : conf.bbox_stroke;
+        std::string const& stroke = conf.bbox_stroke.empty() ? conf.color
+                                                             : conf.bbox_stroke;
         XmlNode            rect("rect");
         rect.set_attr("x", hstd::fmt("{}", r.x()));
         rect.set_attr("y", hstd::fmt("{}", r.y()));
@@ -218,8 +209,7 @@ XmlNode buildDebugMarker(
         rect.set_attr("height", hstd::fmt("{}", r.height()));
         rect.set_attr("fill", conf.bbox_fill);
         rect.set_attr("stroke", stroke);
-        rect.set_attr(
-            "stroke-width", hstd::fmt("{}", conf.bbox_stroke_width));
+        rect.set_attr("stroke-width", hstd::fmt("{}", conf.bbox_stroke_width));
         g.push_back(std::move(rect));
 
         XmlNode line("line");
@@ -228,8 +218,7 @@ XmlNode buildDebugMarker(
         line.set_attr("x2", hstd::fmt("{}", coord.x()));
         line.set_attr("y2", hstd::fmt("{}", coord.y()));
         line.set_attr("stroke", stroke);
-        line.set_attr(
-            "stroke-width", hstd::fmt("{}", conf.bbox_stroke_width));
+        line.set_attr("stroke-width", hstd::fmt("{}", conf.bbox_stroke_width));
         g.push_back(std::move(line));
     }
 
@@ -339,11 +328,8 @@ struct SvgWriter {
         text.set_attr("font-size", hstd::fmt("{}", t.font.pixelSize));
         text.set_attr("font-weight", fontWeightToSvg(t.font.weight));
         text.set_attr("font-style", fontStyleToSvg(t.font.fontStyle));
-        text.set_attr(
-            "text-anchor", textAnchorToSvg(t.alignment.horizontal));
-        text.set_attr(
-            "dominant-baseline",
-            dominantBaselineToSvg(t.alignment.vertical));
+        text.set_attr("text-anchor", textAnchorToSvg(t.alignment.horizontal));
+        text.set_attr("dominant-baseline", dominantBaselineToSvg(t.alignment.vertical));
         text.set_attr("fill", colorToSvg(t.color));
         text.set_text(t.content);
 
@@ -408,8 +394,7 @@ struct SvgWriter {
         }
 
         if (!is_empty(custom.extra)) {
-            res.push_back(
-                XmlNode::comment(hstd::fmt("// {}", custom.extra)));
+            res.push_back(XmlNode::comment(hstd::fmt("// {}", custom.extra)));
         }
 
         if (custom.title) {
@@ -426,14 +411,10 @@ struct SvgWriter {
     }
 
 
-    XmlNode writeElement(
-        VisElement const&     elem,
-        hstd::Vec<int> const& path,
-        bool                  debug) {
+    XmlNode writeElement(VisElement const& elem, hstd::Vec<int> const& path, bool debug) {
         XmlNode result = std::visit(
             [&](auto const& shape) -> XmlNode {
-                auto res = writeShape(
-                    shape, elem.custom.isDebugEnabled(debug));
+                auto res = writeShape(shape, elem.custom.isDebugEnabled(debug));
                 addCustom(res, elem.custom);
                 return res;
             },
@@ -454,8 +435,7 @@ struct SvgWriter {
         XmlNode g("g");
         g.set_attr(
             "transform",
-            hstd::fmt(
-                "translate({},{})", group.offset.x(), group.offset.y()));
+            hstd::fmt("translate({},{})", group.offset.x(), group.offset.y()));
 
         addCustom(g, group.custom);
 
@@ -463,9 +443,8 @@ struct SvgWriter {
             g.push_back(writeElement(elem, path, debug));
         }
 
-        auto const& self_bounds = group.computeBounds();
-        auto const&
-            self_bounds_no_offset = group.computeBoundsNoSelfOffset();
+        auto const& self_bounds           = group.computeBounds();
+        auto const& self_bounds_no_offset = group.computeBoundsNoSelfOffset();
 
         auto bbox_fmt = hstd::fmt(
             "bbox={:.2f},{:.2f} bbox-no={:.2f},{:.2f}",
@@ -477,8 +456,7 @@ struct SvgWriter {
 
         for (int i = 0; i < group.subgroups.size(); ++i) {
             auto const& sg = group.subgroups[i];
-            g.push_back(
-                writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}, debug));
+            g.push_back(writeGroup(sg, gx, gy, path + hstd::Vec<int>{i}, debug));
         }
 
         if (group.custom.isDebugEnabled(debug)) {
@@ -495,9 +473,7 @@ struct SvgWriter {
                             mp.y(),
                             is_empty(group.custom.extra)
                                 ? ""
-                                : hstd::fmt(
-                                      " extra={}",
-                                      group.custom.extra.dump())),
+                                : hstd::fmt(" extra={}", group.custom.extra.dump())),
                         hstd::fmt("path={}", hstd::join("/", path)),
                         bbox_fmt,
                     },
@@ -519,9 +495,7 @@ struct SvgWriter {
                             op.y(),
                             is_empty(group.custom.extra)
                                 ? ""
-                                : hstd::fmt(
-                                      " extra={}",
-                                      group.custom.extra.dump())),
+                                : hstd::fmt(" extra={}", group.custom.extra.dump())),
                         hstd::fmt("path={}", hstd::join("/", path)),
                         bbox_fmt,
                     },
@@ -578,12 +552,8 @@ Rect VisGroup::computeBoundsNoSelfOffset() const {
         // HSLOG_DEPTH_SCOPE_ANON();
         std::visit(
             hstd::overloaded{
-                [&](VisElement::RectShape const& s) {
-                    expandRect(s.geometry);
-                },
-                [&](VisElement::EllipseShape const& s) {
-                    expandRect(s.geometry);
-                },
+                [&](VisElement::RectShape const& s) { expandRect(s.geometry); },
+                [&](VisElement::EllipseShape const& s) { expandRect(s.geometry); },
                 [&](VisElement::LineShape const& s) {
                     expand(s.p1.x(), s.p1.y());
                     expand(s.p2.x(), s.p2.y());
@@ -601,24 +571,16 @@ Rect VisGroup::computeBoundsNoSelfOffset() const {
                     }
                 },
                 [&](VisElement::PolygonShape const& s) {
-                    for (auto const& pt : s.points) {
-                        expand(pt.x(), pt.y());
-                    }
+                    for (auto const& pt : s.points) { expand(pt.x(), pt.y()); }
                 },
                 [&](VisElement::TextShape const& s) {
                     expand(s.anchor.x(), s.anchor.y());
                     if (s.boundingBox) { expandRect(*s.boundingBox); }
                 },
-                [&](VisElement::PixmapShape const& s) {
-                    expandRect(s.geometry);
-                },
+                [&](VisElement::PixmapShape const& s) { expandRect(s.geometry); },
                 [&](VisElement::PointShape const& s) {
-                    expand(
-                        s.position.x() - s.radius,
-                        s.position.y() - s.radius);
-                    expand(
-                        s.position.x() + s.radius,
-                        s.position.y() + s.radius);
+                    expand(s.position.x() - s.radius, s.position.y() - s.radius);
+                    expand(s.position.x() + s.radius, s.position.y() + s.radius);
                 },
             },
             elem.data);
@@ -627,9 +589,7 @@ Rect VisGroup::computeBoundsNoSelfOffset() const {
     for (auto const& sub : subgroups) {
         Rect subBounds = sub.computeBounds();
         expand(subBounds.x(), subBounds.y());
-        expand(
-            subBounds.x() + subBounds.width(),
-            subBounds.y() + subBounds.height());
+        expand(subBounds.x() + subBounds.width(), subBounds.y() + subBounds.height());
     }
 
     if (minX > maxX) { return Rect(0, 0, 0, 0); }
@@ -645,8 +605,7 @@ ColText VisGroup::treeRepr() const {
                   int                   level,
                   hstd::Vec<int> const& path) -> void {
         os.indent(level * 2);
-        os << hstd::fmt(
-            "group [{}] {}", hstd::join("/", path), group.offset);
+        os << hstd::fmt("group [{}] {}", hstd::join("/", path), group.offset);
 
         if (!is_empty(group.custom.extra)) {
             os.newline();
@@ -728,17 +687,14 @@ XmlNode toSvg(hstd::Vec<VisGroup> const& groups, bool debug) {
     XmlNode svg("svg");
     svg.set_attr("xmlns", "http://www.w3.org/2000/svg");
     svg.set_attr("xmlns:xlink", "http://www.w3.org/1999/xlink");
-    svg.set_attr(
-        "xmlns:inkscape", "http://www.inkscape.org/namespaces/inkscape");
+    svg.set_attr("xmlns:inkscape", "http://www.inkscape.org/namespaces/inkscape");
     svg.set_attr("style", "background-color: white");
-    svg.set_attr(
-        "viewBox", hstd::fmt("{} {} {} {}", viewX, viewY, viewW, viewH));
+    svg.set_attr("viewBox", hstd::fmt("{} {} {} {}", viewX, viewY, viewW, viewH));
     svg.set_attr("width", hstd::fmt("{}", viewW));
     svg.set_attr("height", hstd::fmt("{}", viewH));
 
     for (int i = 0; i < groups.size(); ++i) {
-        svg.push_back(
-            writer.writeGroup(groups[i], 0.0f, 0.0f, {i}, debug));
+        svg.push_back(writer.writeGroup(groups[i], 0.0f, 0.0f, {i}, debug));
     }
 
     return svg;

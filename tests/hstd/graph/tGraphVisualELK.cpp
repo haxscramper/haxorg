@@ -36,8 +36,7 @@ TEST_F(GraphVisualElk_Test, SimpleGraph) {
 
     run->runFullLayout();
 
-    hstd::writeFile(
-        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+    hstd::writeFile(getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto const& res = run->result;
 
@@ -92,8 +91,7 @@ TEST_F(GraphVisualElk_Test, SimpleSubGraph) {
 
     run->runFullLayout();
 
-    hstd::writeFile(
-        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+    hstd::writeFile(getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto const& res = run->result;
 
@@ -158,10 +156,8 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
     auto e_ramp1_scale1   = addEdge(ramp1_id, scale1_id, "ramp1_scale1");
     auto e_ramp1_plotter  = addEdge(ramp1_id, plotter_id, "ramp1_plotter");
     auto e_ramp1_scale2   = addEdge(ramp1_id, scale2_id, "ramp1_scale2");
-    auto e_scale1_plotter = addEdge(
-        scale1_id, plotter_id, "scale1_plotter");
-    auto e_scale2_plotter = addEdge(
-        scale2_id, plotter_id, "scale2_plotter");
+    auto e_scale1_plotter = addEdge(scale1_id, plotter_id, "scale1_plotter");
+    auto e_scale2_plotter = addEdge(scale2_id, plotter_id, "scale2_plotter");
 
     auto e_ramp2_scape2 = addEdge(ramp2_id, scale2_id, "ramp2_scape2");
 
@@ -200,23 +196,18 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
 
     // a->merge
     root->addPort(addPort(a_id, e_a_merge, true))->setSize(port_size);
-    root->addPort(addPort(merge2_id, e_a_merge, false))
-        ->setSize(port_size);
+    root->addPort(addPort(merge2_id, e_a_merge, false))->setSize(port_size);
 
     // b->merge
     root->addPort(addPort(b_id, e_b_merge, true))->setSize(port_size);
-    root->addPort(addPort(merge2_id, e_b_merge, false))
-        ->setSize(port_size);
+    root->addPort(addPort(merge2_id, e_b_merge, false))->setSize(port_size);
 
     // merge->server
-    root->addPort(addPort(merge2_id, e_merge_server, true))
-        ->setSize(port_size);
-    root->addPort(addPort(server_id, e_merge_server, false))
-        ->setSize(port_size);
+    root->addPort(addPort(merge2_id, e_merge_server, true))->setSize(port_size);
+    root->addPort(addPort(server_id, e_merge_server, false))->setSize(port_size);
 
     // server->comm_resp, only one port for the edge
-    root->addPort(addPort(server_id, e_server_comm, true))
-        ->setSize(port_size);
+    root->addPort(addPort(server_id, e_server_comm, true))->setSize(port_size);
 
     VertexIDSet all_vertices{
         a_id,
@@ -252,44 +243,39 @@ TEST_F(GraphVisualElk_Test, AspectCompositeQM) {
 
     run->runFullLayout();
 
-    hstd::writeFile(
-        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+    hstd::writeFile(getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto const& res = run->result;
 
-    EXPECT_OUTCOME_OK(checkLeftOf(
-        run->getAbsoluteBBox(merge2_id), run->getAbsoluteBBox(a_id)));
+    EXPECT_OUTCOME_OK(
+        checkLeftOf(run->getAbsoluteBBox(merge2_id), run->getAbsoluteBBox(a_id)));
 
-    EXPECT_OUTCOME_OK(checkLeftOf(
-        run->getAbsoluteBBox(merge2_id), run->getAbsoluteBBox(b_id)));
+    EXPECT_OUTCOME_OK(
+        checkLeftOf(run->getAbsoluteBBox(merge2_id), run->getAbsoluteBBox(b_id)));
 
     // source port for b->merge
     EXPECT_OUTCOME_OK(checkRightOf(
         /*stationary=*/run->getAbsoluteBBox(b_id),
         /*relative=*/run->getAbsoluteBBox(
-            run->getPorts()->getPortForConnection(
-                b_id, e_b_merge, true))));
+            run->getPorts()->getPortForConnection(b_id, e_b_merge, true))));
 
     // source port for a->merge
     EXPECT_OUTCOME_OK(checkRightOf(
         /*stationary=*/run->getAbsoluteBBox(a_id),
         /*relative=*/run->getAbsoluteBBox(
-            run->getPorts()->getPortForConnection(
-                a_id, e_a_merge, true))));
+            run->getPorts()->getPortForConnection(a_id, e_a_merge, true))));
 
     // target port for a->merge
     EXPECT_OUTCOME_OK(checkLeftOf(
         /*stationary=*/run->getAbsoluteBBox(merge2_id),
         /*relative=*/run->getAbsoluteBBox(
-            run->getPorts()->getPortForConnection(
-                merge2_id, e_a_merge, false))));
+            run->getPorts()->getPortForConnection(merge2_id, e_a_merge, false))));
 
     // target port for b->merge
     EXPECT_OUTCOME_OK(checkLeftOf(
         /*stationary=*/run->getAbsoluteBBox(merge2_id),
         /*relative=*/run->getAbsoluteBBox(
-            run->getPorts()->getPortForConnection(
-                merge2_id, e_a_merge, false))));
+            run->getPorts()->getPortForConnection(merge2_id, e_a_merge, false))));
 
 
     auto visual = run->getVisual();

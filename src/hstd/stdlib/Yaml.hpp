@@ -31,11 +31,7 @@ inline void maybe_field(yaml const& in, T& out, std::string name) {
 }
 
 template <typename E>
-inline void maybe_enum_field(
-    yaml const& in,
-    E&          out,
-    std::string name,
-    E           fallback) {
+inline void maybe_enum_field(yaml const& in, E& out, std::string name, E fallback) {
     if (in[name]) { out = to_enum<E>(in[name], fallback); }
 }
 
@@ -61,8 +57,7 @@ struct std::formatter<YAML::Mark> : std::formatter<std::string> {
 template <>
 struct std::formatter<yaml> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(yaml const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(yaml const& p, FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         std::stringstream           os;
         os << p;
@@ -109,9 +104,7 @@ struct convert<E> {
             throw hstd::BadTypeConversion(
                 in.Mark(),
                 hstd::fmt(
-                    "Could not convert {} to {}",
-                    in,
-                    hstd::demangle(typeid(E).name())));
+                    "Could not convert {} to {}", in, hstd::demangle(typeid(E).name())));
         }
     }
 };
@@ -135,8 +128,8 @@ struct variant_convert {
         CRTP_Derived::init(result, value);
         std::visit(
             [&](auto& variant) {
-                ::YAML::convert<typename std::remove_cvref_t<
-                    decltype(variant)>>::decode(variant, value);
+                ::YAML::convert<typename std::remove_cvref_t<decltype(variant)>>::decode(
+                    variant, value);
                 return 0;
             },
             result);
@@ -145,20 +138,16 @@ struct variant_convert {
 
 template <hstd::DescribedRecord T>
 struct convert<T> {
-    using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
-    using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
+    using Bd = boost::describe::describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::describe_members<T, boost::describe::mod_any_access>;
 
     static Node encode(T const& str) {
         Node in;
-        boost::mp11::mp_for_each<Md>([&](auto const& field) {
-            in[field.name] = str.*field.pointer;
-        });
+        boost::mp11::mp_for_each<Md>(
+            [&](auto const& field) { in[field.name] = str.*field.pointer; });
 
         boost::mp11::mp_for_each<Bd>([&](auto Base) {
-            Node res = ::YAML::convert<
-                typename decltype(Base)::type>::encode(str);
+            Node res = ::YAML::convert<typename decltype(Base)::type>::encode(str);
             for (auto const& item : res) {
                 in[item.first.as<std::string>()] = item.second;
             }
@@ -168,13 +157,11 @@ struct convert<T> {
     }
 
     static bool decode(Node const& in, T& out) {
-        boost::mp11::mp_for_each<Md>([&](auto const& field) {
-            out.*field.pointer = in[field.name];
-        });
+        boost::mp11::mp_for_each<Md>(
+            [&](auto const& field) { out.*field.pointer = in[field.name]; });
 
         boost::mp11::mp_for_each<Bd>([&](auto Base) {
-            ::YAML::convert<typename decltype(Base)::type>::decode(
-                in, out);
+            ::YAML::convert<typename decltype(Base)::type>::decode(in, out);
         });
 
         return true;

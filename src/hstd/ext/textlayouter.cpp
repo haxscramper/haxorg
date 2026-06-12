@@ -55,9 +55,8 @@ void Solution::add(
 
     if (knot < 0 || span < 0 || intercept < 0 || gradient < 0) {
         throw std::runtime_error(
-            ("Internal error: bad layout: (k " + fmt1(knot) + ", s "
-             + fmt1(span) + ", i " + fmt1(intercept) + ", g "
-             + fmt1(gradient) + ")"));
+            ("Internal error: bad layout: (k " + fmt1(knot) + ", s " + fmt1(span) + ", i "
+             + fmt1(intercept) + ", g " + fmt1(gradient) + ")"));
     }
 
     knots.push_back(knot);
@@ -98,34 +97,25 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
 
         int        kH = (**min).nextKnot() - 1;
         Vec<float> gradients;
-        for (const auto& s : solutions) {
-            gradients.push_back(s->curGradient());
-        }
+        for (const auto& s : solutions) { gradients.push_back(s->curGradient()); }
 
         while (true) {
             Vec<float> values;
-            for (const auto& s : solutions) {
-                values.push_back(s->curValueAt(kL));
-            }
+            for (const auto& s : solutions) { values.push_back(s->curValueAt(kL)); }
 
             auto minIt = std::min_element(
-                std::begin(values),
-                std::end(values),
-                [](float const& a, float const& b) { return a < b; });
-            int   iMinSoln    = std::distance(std::begin(values), minIt);
-            float minValue    = *minIt;
-            float minGradient = gradients[iMinSoln];
-            Solution::Ptr minSoln = solutions[iMinSoln];
+                std::begin(values), std::end(values), [](float const& a, float const& b) {
+                    return a < b;
+                });
+            int           iMinSoln    = std::distance(std::begin(values), minIt);
+            float         minValue    = *minIt;
+            float         minGradient = gradients[iMinSoln];
+            Solution::Ptr minSoln     = solutions[iMinSoln];
 
-            if (iMinSoln != lastIMinSoln
-                || minSoln->curIndex() != lastIndex) {
+            if (iMinSoln != lastIMinSoln || minSoln->curIndex() != lastIndex) {
                 // Add another piece to the new Solution
                 factory->add(
-                    kL,
-                    minSoln->curSpan(),
-                    minValue,
-                    minGradient,
-                    minSoln->curLayout());
+                    kL, minSoln->curSpan(), minValue, minGradient, minSoln->curLayout());
 
                 lastIMinSoln = iMinSoln;
                 lastIndex    = minSoln->curIndex();
@@ -134,9 +124,8 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
             Vec<int> distancesToCross;
             for (int i = 0; i < n; ++i) {
                 if (gradients[i] < minGradient) {
-                    distancesToCross.push_back(ceil(
-                        (values[i] - minValue)
-                        / (minGradient - gradients[i])));
+                    distancesToCross.push_back(
+                        ceil((values[i] - minValue) / (minGradient - gradients[i])));
                 }
             }
 
@@ -146,8 +135,7 @@ Opt<Solution::Ptr> minSolution(Vec<Solution::Ptr> solutions) {
             }
 
             if (!crossovers.empty()) { // Proceed to crossover in [kL, kH]
-                kL = *std::min_element(
-                    crossovers.begin(), crossovers.end());
+                kL = *std::min_element(crossovers.begin(), crossovers.end());
             } else { // Proceed to next piece
                 kL = kH + 1;
                 if (kL < infty) {
@@ -198,9 +186,7 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
     Solution::Ptr result = Solution::shared();
     while (true) {
         Vec<Layout::Ptr> stacked;
-        for (const auto& it : solutions) {
-            stacked.push_back(it->curLayout());
-        }
+        for (const auto& it : solutions) { stacked.push_back(it->curLayout()); }
         float curValue = std::accumulate(
             solutions.begin(),
             solutions.end(),
@@ -213,18 +199,12 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
             solutions.begin(),
             solutions.end(),
             0.0f,
-            [](float sum, Solution::Ptr const& s) {
-                return sum + s->curGradient();
-            });
+            [](float sum, Solution::Ptr const& s) { return sum + s->curGradient(); });
 
         auto curStacked = getStacked(stacked);
 
         result->add(
-            margin,
-            solutions.back()->curSpan(),
-            curValue,
-            curGradient,
-            curStacked);
+            margin, solutions.back()->curSpan(), curValue, curGradient, curStacked);
 
         // The distance to the closest next knot from the current margin.
         int  dStar      = 0;
@@ -269,10 +249,7 @@ Solution::Ptr vSumSolution(Vec<Solution::Ptr> solutions) {
 /// `s2`'s layouts may occupy multiple lines, in which case `s2`'s
 /// layout begins at the end of the last line of `s1`'s layout---the
 /// span in this case is the span of `s1`'s last line.
-Solution::Ptr hPlusSolution(
-    Solution::Ptr& s1,
-    Solution::Ptr& s2,
-    Options const& opts) {
+Solution::Ptr hPlusSolution(Solution::Ptr& s1, Solution::Ptr& s2, Options const& opts) {
     LOGIC_ASSERTION_CHECK(s1 != nullptr, "");
     LOGIC_ASSERTION_CHECK(s2 != nullptr, "");
     s1->reset();
@@ -295,9 +272,8 @@ Solution::Ptr hPlusSolution(
         int overhang1 = s2Margin - opts.rightMargin;  // s2Margin =
                                                       // rightMargin + span
                                                       // of s1
-        float gCur
-            = (g1 + g2 - (0 <= overhang0 ? opts.leftMarginCost : 0)
-               - (0 <= overhang1 ? opts.rightMarginCost : 0));
+        float
+            gCur = (g1 + g2 - (0 <= overhang0 ? opts.leftMarginCost : 0) - (0 <= overhang1 ? opts.rightMarginCost : 0));
 
         float iCur
             = (s1->curValueAt(s1Margin) + s2->curValueAt(s2Margin)
@@ -313,8 +289,7 @@ Solution::Ptr hPlusSolution(
             gCur,
             Layout::shared(
                 Vec<LayoutElement::Ptr>{
-                    LayoutElement::shared(
-                        LayoutElement::LayoutPrint({s1->curLayout()})),
+                    LayoutElement::shared(LayoutElement::LayoutPrint({s1->curLayout()})),
                     LayoutElement::shared(
                         LayoutElement::LayoutPrint({s2->curLayout()}))}));
 
@@ -362,8 +337,7 @@ Opt<Solution::Ptr> withRestOfLine(
     if (!rest.has_value()) {
         return self;
     } else {
-        return Opt<Solution::Ptr>(
-            hPlusSolution(self.value(), rest.value(), opts));
+        return Opt<Solution::Ptr>(hPlusSolution(self.value(), rest.value(), opts));
     }
 }
 
@@ -385,8 +359,7 @@ Opt<Solution::Ptr> optLayout(
     // supplied repeatedly to the same block. Without memoisation, this
     // may result in an exponential blow-up in the layout algorithm.
     if (!store.at(self).layoutCache.contains(rest)) {
-        store.at(self).layoutCache[rest] = doOptLayout(
-            store, self, rest, opts);
+        store.at(self).layoutCache[rest] = doOptLayout(store, self, rest, opts);
     }
 
     return store.at(self).layoutCache[rest];
@@ -403,8 +376,7 @@ Opt<Solution::Ptr> doOptTextLayout(
 
     Layout::Ptr layout = Layout::shared(
         Vec<LayoutElement::Ptr>{LayoutElement::shared(
-            LayoutElement::String{
-                .text = store.at(self).getText().text})});
+            LayoutElement::String{.text = store.at(self).getText().text})});
 
     // The costs associated with the layout of this block may require 1, 2
     // or 3 knots, depending on how the length of the text compares with
@@ -418,8 +390,7 @@ Opt<Solution::Ptr> doOptTextLayout(
             Vec<float>{static_cast<float>(
                 (span - opts.leftMargin) * opts.leftMarginCost
                 + (span - opts.rightMargin) * opts.rightMargin)},
-            Vec<float>{static_cast<float>(
-                opts.leftMarginCost + opts.rightMarginCost)},
+            Vec<float>{static_cast<float>(opts.leftMarginCost + opts.rightMarginCost)},
             Vec<Layout::Ptr>{layout});
 
         result = Opt<Solution::Ptr>(temp);
@@ -428,15 +399,12 @@ Opt<Solution::Ptr> doOptTextLayout(
             Vec<int>{0, opts.rightMargin - span},
             Vec<int>{span, span},
             Vec<float>{
+                static_cast<float>((span - opts.leftMargin) * opts.leftMarginCost),
                 static_cast<float>(
-                    (span - opts.leftMargin) * opts.leftMarginCost),
-                static_cast<float>(
-                    (opts.rightMargin - opts.leftMargin)
-                    * opts.leftMarginCost)},
+                    (opts.rightMargin - opts.leftMargin) * opts.leftMarginCost)},
             Vec<float>{
                 static_cast<float>(opts.leftMarginCost),
-                static_cast<float>(
-                    opts.leftMarginCost + opts.rightMarginCost)},
+                static_cast<float>(opts.leftMarginCost + opts.rightMarginCost)},
             Vec<Layout::Ptr>{layout, layout});
         result = Opt<Solution::Ptr>(temp);
     } else {
@@ -447,13 +415,11 @@ Opt<Solution::Ptr> doOptTextLayout(
                 static_cast<float>(0),
                 static_cast<float>(0),
                 static_cast<float>(
-                    (opts.rightMargin - opts.leftMargin)
-                    * opts.leftMarginCost)},
+                    (opts.rightMargin - opts.leftMargin) * opts.leftMarginCost)},
             Vec<float>{
                 static_cast<float>(0),
                 static_cast<float>(opts.leftMarginCost),
-                static_cast<float>(
-                    opts.leftMarginCost + opts.rightMarginCost)},
+                static_cast<float>(opts.leftMarginCost + opts.rightMarginCost)},
             Vec<Layout::Ptr>{layout, layout, layout});
         result = Opt<Solution::Ptr>(temp);
     }
@@ -501,15 +467,13 @@ Opt<Solution::Ptr> doOptLineLayout(
             lnLayout    = optLayout(store, elt, lnLayout, opts);
         }
 
-        if (lnLayout.has_value()) {
-            lineSolns.push_back(lnLayout.value());
-        }
+        if (lnLayout.has_value()) { lineSolns.push_back(lnLayout.value()); }
     }
 
     Solution::Ptr soln = vSumSolution(lineSolns);
 
-    return Opt<Solution::Ptr>(soln->plusConst(
-        static_cast<float>(opts.linebreakCost * (lineSolns.size() - 1))));
+    return Opt<Solution::Ptr>(
+        soln->plusConst(static_cast<float>(opts.linebreakCost * (lineSolns.size() - 1))));
 }
 
 Opt<Solution::Ptr> doOptChoiceLayout(
@@ -538,8 +502,7 @@ Opt<Solution::Ptr> doOptStackLayout(
     if (store.at(self).getStack().elements.size() == 0) { return rest; }
 
     Vec<Solution::Ptr> solnCandidates;
-    for (size_t idx = 0; idx < store.at(self).getStack().elements.size();
-         ++idx) {
+    for (size_t idx = 0; idx < store.at(self).getStack().elements.size(); ++idx) {
         auto& elem = store.at(self).getStack().elements.at(idx);
         if (idx < store.at(self).getStack().elements.size() - 1) {
             Opt<Solution::Ptr> it;
@@ -562,9 +525,7 @@ Opt<Solution::Ptr> doOptStackLayout(
         static_cast<float>(
             opts.linebreakCost * store.at(self).breakMult
             * std::max(
-                static_cast<int>(
-                    store.at(self).getStack().elements.size() - 1),
-                0))));
+                static_cast<int>(store.at(self).getStack().elements.size() - 1), 0))));
 }
 
 Opt<Solution::Ptr> doOptWrapLayout(
@@ -575,7 +536,7 @@ Opt<Solution::Ptr> doOptWrapLayout(
     /// Computing the optimum layout for this class of block involves
     /// finding the optimal packing of elements into lines, a problem
     /// which we address using dynamic programming.
-    BlockId initTextBlock_sep = store.text(store.at(self).getWrap().sep);
+    BlockId            initTextBlock_sep = store.text(store.at(self).getWrap().sep);
     Opt<Solution::Ptr> none_Solution;
     Opt<Solution::Ptr> sepLayout = optLayout(
         store, initTextBlock_sep, none_Solution, opts);
@@ -585,8 +546,7 @@ Opt<Solution::Ptr> doOptWrapLayout(
         BlockId initTextBlock_prefix = store.text(
             store.at(self).getWrap().prefix.value());
 
-        prefixLayout = doOptLayout(
-            store, initTextBlock_prefix, none_Solution, opts);
+        prefixLayout = doOptLayout(store, initTextBlock_prefix, none_Solution, opts);
     }
 
     Vec<Opt<Solution::Ptr>> eltLayouts;
@@ -597,8 +557,7 @@ Opt<Solution::Ptr> doOptWrapLayout(
 
     // Entry i in the list wrapSolutions contains the optimum layout for
     // the last n - i elements of the block.
-    Vec<Opt<Solution::Ptr>> wrapSolutions(
-        store.at(self).size(), Opt<Solution::Ptr>());
+    Vec<Opt<Solution::Ptr>> wrapSolutions(store.at(self).size(), Opt<Solution::Ptr>());
 
     // Note that we compute the entries for wrapSolutions in reverse
     // order, at each iteration considering all the elements from i ... n
@@ -619,17 +578,11 @@ Opt<Solution::Ptr> doOptWrapLayout(
         // incrementally in lineLayout.
         Opt<Solution::Ptr> lineLayout = prefixLayout.has_value()
                                           ? withRestOfLine(
-                                                prefixLayout,
-                                                eltLayouts[i],
-                                                opts)
+                                                prefixLayout, eltLayouts[i], opts)
                                           : eltLayouts[i];
 
         bool breakOut     = false;
-        bool lastBreaking = store
-                                .at(store.at(self)
-                                        .getWrap()
-                                        .wrapElements[i])
-                                .isBreaking;
+        bool lastBreaking = store.at(store.at(self).getWrap().wrapElements[i]).isBreaking;
         for (int j = i; j < store.at(self).size() - 1; ++j) {
             // Stack solutions for two lines on each other. NOTE this part
             // is different from the reference implementation, but I think
@@ -658,16 +611,12 @@ Opt<Solution::Ptr> doOptWrapLayout(
                 sepLayout, eltLayouts[j + 1], opts);
 
             lineLayout   = withRestOfLine(lineLayout, sepEltLayout, opts);
-            lastBreaking = store
-                               .at(store.at(self)
-                                       .getWrap()
-                                       .wrapElements[j + 1])
+            lastBreaking = store.at(store.at(self).getWrap().wrapElements[j + 1])
                                .isBreaking;
         }
 
         if (!breakOut) {
-            Opt<Solution::Ptr> line = withRestOfLine(
-                lineLayout, rest, opts);
+            Opt<Solution::Ptr> line = withRestOfLine(lineLayout, rest, opts);
             solutionsI.push_back(line.value());
         }
 
@@ -687,8 +636,7 @@ Opt<Solution::Ptr> doOptVerbLayout(
     // with an abberant layout calculated as follows.
     Vec<LayoutElement::Ptr> lElts;
 
-    for (size_t i = 0; i < store.at(self).getVerb().textLines.size();
-         ++i) {
+    for (size_t i = 0; i < store.at(self).getVerb().textLines.size(); ++i) {
         auto const& ln = store.at(self).getVerb().textLines[i];
         if (i < 0 || store.at(self).getVerb().firstNl) {
             lElts.push_back(LayoutElement::newline());
@@ -723,24 +671,16 @@ Opt<Solution::Ptr> doOptLayout(
     Options const&      opts) {
     switch (store.at(self).getKind()) {
         case Block::Kind::Empty: return std::nullopt;
-        case Block::Kind::Verb:
-            return doOptVerbLayout(store, self, rest, opts);
-        case Block::Kind::Wrap:
-            return doOptWrapLayout(store, self, rest, opts);
-        case Block::Kind::Line:
-            return doOptLineLayout(store, self, rest, opts);
-        case Block::Kind::Text:
-            return doOptTextLayout(store, self, rest, opts);
-        case Block::Kind::Stack:
-            return doOptStackLayout(store, self, rest, opts);
-        case Block::Kind::Choice:
-            return doOptChoiceLayout(store, self, rest, opts);
+        case Block::Kind::Verb: return doOptVerbLayout(store, self, rest, opts);
+        case Block::Kind::Wrap: return doOptWrapLayout(store, self, rest, opts);
+        case Block::Kind::Line: return doOptLineLayout(store, self, rest, opts);
+        case Block::Kind::Text: return doOptTextLayout(store, self, rest, opts);
+        case Block::Kind::Stack: return doOptStackLayout(store, self, rest, opts);
+        case Block::Kind::Choice: return doOptChoiceLayout(store, self, rest, opts);
     }
 }
 
-generator<Event> layout::formatEvents(
-    BlockStore&        store,
-    Layout::Ptr const& lyt) {
+generator<Event> layout::formatEvents(BlockStore& store, Layout::Ptr const& lyt) {
     /// Generate formatting events for the given layout. The events are
     /// backend-agnostic and can be interpreted further by the user
     /// depending on their needs.
@@ -786,9 +726,7 @@ generator<Event> layout::formatEvents(
 
                     if (elem->getKind() == lek::NewlineSpace
                         && elem->getNewlineSpace().spaceNum != 0) {
-                        co_yield Event(
-                            Event::Spaces{
-                                elem->getNewlineSpace().spaceNum});
+                        co_yield Event(Event::Spaces{elem->getNewlineSpace().spaceNum});
                         buf.hPos += elem->getNewlineSpace().spaceNum;
                     }
                     break;
@@ -845,9 +783,7 @@ void Block::add(BlockId const& other) {
             [&](Stack& w) { w.elements.push_back(other); },
             [&](Choice& w) { w.elements.push_back(other); },
             [&](Wrap& w) { w.wrapElements.push_back(other); },
-            [&](auto const&) {
-                LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG");
-            },
+            [&](auto const&) { LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG"); },
         },
         data);
 }
@@ -859,9 +795,7 @@ void Block::add(CVec<BlockId> others) {
             [&](Stack& w) { w.elements.append(others); },
             [&](Choice& w) { w.elements.append(others); },
             [&](Wrap& w) { w.wrapElements.append(others); },
-            [&](auto const&) {
-                LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG");
-            },
+            [&](auto const&) { LOGIC_ASSERTION_CHECK(false, "TODO ERRMSG"); },
         },
         data);
 }
@@ -924,14 +858,10 @@ BlockId BlockStore::choice(Vec<BlockId> const& l) {
 }
 
 BlockId BlockStore::space(int count) {
-    return store.add(
-        Block(Block::Text{.text = LytStr(LytSpacesId, count)}));
+    return store.add(Block(Block::Text{.text = LytStr(LytSpacesId, count)}));
 }
 
-BlockId BlockStore::wrap(
-    Vec<BlockId> const& elems,
-    LytStr              sep,
-    int                 breakMult) {
+BlockId BlockStore::wrap(Vec<BlockId> const& elems, LytStr sep, int breakMult) {
     auto res = store.add(Block(
         Block::Wrap{
             .wrapElements = elems,
@@ -943,10 +873,7 @@ BlockId BlockStore::wrap(
     return res;
 }
 
-BlockId BlockStore::indent(
-    int            indent,
-    BlockId const& block,
-    int            breakMult) {
+BlockId BlockStore::indent(int indent, BlockId const& block, int breakMult) {
     if (indent == 0) {
         return block;
     } else {
@@ -954,9 +881,7 @@ BlockId BlockStore::indent(
     }
 }
 
-BlockId BlockStore::vertical(
-    Vec<BlockId> const& blocks,
-    BlockId const&      sep) {
+BlockId BlockStore::vertical(Vec<BlockId> const& blocks, BlockId const& sep) {
     BlockId result = stack({});
 
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
@@ -971,9 +896,7 @@ BlockId BlockStore::vertical(
     return result;
 }
 
-BlockId BlockStore::horizontal(
-    Vec<BlockId> const& blocks,
-    BlockId const&      sep) {
+BlockId BlockStore::horizontal(Vec<BlockId> const& blocks, BlockId const& sep) {
     BlockId result = line({});
 
     for (size_t idx = 0; idx < blocks.size(); ++idx) {
@@ -991,9 +914,7 @@ Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, Options const& opts) {
     return sln.value()->layouts;
 }
 
-std::string BlockStore::toTreeRepr(
-    BlockId             root,
-    TreeReprConf const& conf) {
+std::string BlockStore::toTreeRepr(BlockId root, TreeReprConf const& conf) {
     std::stringstream               os;
     UnorderedSet<BlockId>           visited;
     Func<void(BlockId const&, int)> aux;
@@ -1025,9 +946,7 @@ std::string BlockStore::toTreeRepr(
         }
 
         if (bl.isBreaking) { os << "is-breaking "; }
-        if (bl.breakMult != 1) {
-            os << "break-mult " << fmt1(bl.breakMult);
-        }
+        if (bl.breakMult != 1) { os << "break-mult " << fmt1(bl.breakMult); }
 
         switch (bl.getKind()) {
             case Block::Kind::Line: {
@@ -1140,8 +1059,7 @@ std::string SimpleStringStore::toTreeRepr(BlockId id, bool doRecurse) {
                                 text += "〚"_ss + str(it) + "〛"_ss;
                             }
                         }
-                        return fmt(
-                            "{} size={}", escape_literal(text), size);
+                        return fmt("{} size={}", escape_literal(text), size);
                     }
                     default: {
                         return "";

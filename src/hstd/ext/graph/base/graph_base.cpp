@@ -35,8 +35,7 @@ void IGraph::delTracker(hstd::SPtr<IAttributeTracker> const& tracker) {
 
 void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
 
-    if (auto coll = collections.get(collection->getCollectionID());
-        coll.has_value()) {
+    if (auto coll = collections.get(collection->getCollectionID()); coll.has_value()) {
         collection->getCollectionID().assert_is_collection();
     }
 
@@ -49,8 +48,7 @@ void IGraph::addCollection(hstd::SPtr<IEdgeCollection> const& collection) {
             collection->getStableID());
     }
 
-    collections.insert_or_assign(
-        collection->getCollectionID(), collection);
+    collections.insert_or_assign(collection->getCollectionID(), collection);
 }
 
 void IGraph::delCollection(hstd::SPtr<IEdgeCollection> const& collection) {
@@ -80,13 +78,11 @@ void IGraph::delHierarchy(hstd::SPtr<IVertexHierarchy> const& hierarchy) {
     hierarchies.erase(hierarchy->getCollectionID());
 }
 
-void hstd::ext::graph::IGraph::delPorts(
-    hstd::SPtr<IPortCollection> const& collection) {
+void hstd::ext::graph::IGraph::delPorts(hstd::SPtr<IPortCollection> const& collection) {
     ports.erase(collection->getCollectionID());
 }
 
-void hstd::ext::graph::IGraph::addPorts(
-    hstd::SPtr<IPortCollection> const& collection) {
+void hstd::ext::graph::IGraph::addPorts(hstd::SPtr<IPortCollection> const& collection) {
     ports.insert_unqiue(collection->getCollectionID(), collection);
 }
 
@@ -101,8 +97,7 @@ bool hstd::ext::graph::IGraph::hasHierarchy(
     return hierarchies.contains(hierarchy->getCollectionID());
 }
 
-bool hstd::ext::graph::IGraph::hasPorts(
-    hstd::SPtr<IPortCollection> const& hierarchy) {
+bool hstd::ext::graph::IGraph::hasPorts(hstd::SPtr<IPortCollection> const& hierarchy) {
     return ports.contains(hierarchy->getCollectionID());
 }
 
@@ -112,17 +107,13 @@ hstd::Vec<IEdgeProvider*> IGraph::getEdgeProviders() const {
     for (auto const& [id, collection] : collections) {
         result.push_back(collection.get());
     }
-    for (auto const& [id, hierarchy] : hierarchies) {
-        result.push_back(hierarchy.get());
-    }
+    for (auto const& [id, hierarchy] : hierarchies) { result.push_back(hierarchy.get()); }
     return result;
 }
 
 EdgeID IGraph::getEdgeIDByStableId(Str const& id) const {
     for (auto const& pr : getEdgeProviders()) {
-        if (pr->hasEdgeStableId(id)) {
-            return pr->getEdgeIDByStableId(id);
-        }
+        if (pr->hasEdgeStableId(id)) { return pr->getEdgeIDByStableId(id); }
     }
     throw edge_structure_error::init(
         hstd::fmt("No edge is associated with the stable ID '{}'", id));
@@ -138,8 +129,7 @@ VertexID IGraph::getVertexIDByStableId(Str const& id) const {
     }
 }
 
-hstd::Vec<IGraph::Crossing> IGraph::getHierarchyCrossings(
-    EdgeID const& edge_id) const {
+hstd::Vec<IGraph::Crossing> IGraph::getHierarchyCrossings(EdgeID const& edge_id) const {
     hstd::Vec<Crossing> result;
 
     for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
@@ -163,12 +153,10 @@ hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
     VertexID const&         parent,
     VertexID const&         sub) {
     if (!vertexIDs.contains(parent)) {
-        throw graph_error::init(
-            std::format(vertex_not_found_msg, "parent ", parent));
+        throw graph_error::init(std::format(vertex_not_found_msg, "parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
-        throw graph_error::init(
-            std::format(vertex_not_found_msg, "sub ", sub));
+        throw graph_error::init(std::format(vertex_not_found_msg, "sub ", sub));
     }
 
     hstd::Vec<EdgeID> result;
@@ -184,10 +172,7 @@ void IGraph::untrackSubVertexRelation(
     hierarchies.at(hierarchy)->untrackSubVertexRelation(parent, sub);
 }
 
-void IGraph::validatePortArguments(
-    VertexID const& v,
-    EdgeID const&   e,
-    bool            is_start) {
+void IGraph::validatePortArguments(VertexID const& v, EdgeID const& e, bool is_start) {
     if (is_start) {
         LOGIC_ASSERTION_CHECK_FMT(
             getSource(e) == v,
@@ -207,16 +192,15 @@ void IGraph::validatePortArguments(
     }
 }
 
-hstd::ext::graph::PortCollectionID hstd::ext::graph::IGraph::
-    getPortCollectionID(PortID const& id) const {
+hstd::ext::graph::PortCollectionID hstd::ext::graph::IGraph::getPortCollectionID(
+    PortID const& id) const {
     return PortCollectionID{hstd::u16(id.getMask())};
 }
 
 
 void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
     if (vertexIDs.contains(id)) {
-        throw graph_error::init(
-            std::format("Vertex {} already registered", id));
+        throw graph_error::init(std::format("Vertex {} already registered", id));
     }
     vertexIDs.insert(id);
     stableIdMap.insert_unqiue(getVertex(id)->getStableId(), id);
@@ -224,14 +208,13 @@ void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
     for (auto& track : trackers) { track.second->trackVertex(id); }
 }
 
-hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> hstd::
-    ext::graph::IGraph::untrackVertex(VertexID const& id) {
+hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> hstd::ext::
+    graph::IGraph::untrackVertex(VertexID const& id) {
     if (!vertexIDs.contains(id)) {
         throw graph_error::init(std::format(vertex_not_found_msg, "", id));
     }
 
-    hstd::UnorderedMap<EdgeCollectionID, IEdgeProvider::DependantDeletion>
-        result;
+    hstd::UnorderedMap<EdgeCollectionID, IEdgeProvider::DependantDeletion> result;
 
     for (auto const& [hierarchy_id, hierarchy] : hierarchies) {
         auto deleted_by_provider = hierarchy->untrackVertex(id);
@@ -242,9 +225,7 @@ hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> hstd::
         collection->untrackVertex(id);
     }
 
-    for (auto& collection : getEdgeProviders()) {
-        collection->untrackVertex(id);
-    }
+    for (auto& collection : getEdgeProviders()) { collection->untrackVertex(id); }
 
     for (auto& track : trackers) { track.second->untrackVertex(id); }
 
@@ -258,14 +239,12 @@ VertexIDSet IGraph::getAllVertices() const {
     return result;
 }
 
-VertexIDSet IGraph::getRootVertices(
-    EdgeCollectionID const& hierarchy) const {
+VertexIDSet IGraph::getRootVertices(EdgeCollectionID const& hierarchy) const {
     return hierarchies.at(hierarchy)->getRootVertices();
 }
 
-VertexIDSet IGraph::getSubVertices(
-    EdgeCollectionID const& hierarchy,
-    VertexID const&         id) const {
+VertexIDSet IGraph::getSubVertices(EdgeCollectionID const& hierarchy, VertexID const& id)
+    const {
     return hierarchies.at(hierarchy)->getSubVertices(id);
 }
 
@@ -276,21 +255,18 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
 }
 
 namespace {
-auto format_collection = hstd::rv::transform(
-                             [](auto const& pair) -> std::string {
-                                 return pair.second->getStableID();
-                             })
+auto format_collection = hstd::rv::transform([](auto const& pair) -> std::string {
+                             return pair.second->getStableID();
+                         })
                        | hstd::rs::to<hstd::Vec>();
 } // namespace
 
 
-hstd::ext::graph::VertexID hstd::ext::graph::IGraph::getSource(
-    EdgeID const& id) const {
+hstd::ext::graph::VertexID hstd::ext::graph::IGraph::getSource(EdgeID const& id) const {
     return getEdgeProvider(id)->getSource(id);
 }
 
-hstd::ext::graph::VertexID hstd::ext::graph::IGraph::getTarget(
-    EdgeID const& id) const {
+hstd::ext::graph::VertexID hstd::ext::graph::IGraph::getTarget(EdgeID const& id) const {
     return getEdgeProvider(id)->getTarget(id);
 }
 
@@ -311,8 +287,7 @@ struct JsonSerdeMapApiAsObject {
         auto result = json::object();
         for (auto const& [key, val] : it) {
             result[hstd::JsonSerde<K>::to_json(key)
-                       .template get<std::string>()] = hstd::JsonSerde<V>::
-                to_json(val);
+                       .template get<std::string>()] = hstd::JsonSerde<V>::to_json(val);
         }
 
         return result;
@@ -328,10 +303,8 @@ struct JsonSerdeMapApiAsObject {
 
 template <typename V>
 struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
-    : public JsonSerdeMapApiAsObject<
-          std::string,
-          V,
-          hstd::UnorderedMap<std::string, V>> {};
+    : public JsonSerdeMapApiAsObject<std::string, V, hstd::UnorderedMap<std::string, V>> {
+};
 
 
 #if ORG_BUILD_WITH_PROTOBUF
@@ -344,8 +317,8 @@ void IGraph::writeSerial(proto::IGraphProto* out) const {
         hierarchy->writeSerial(out->add_hierarchies(), this);
     }
 
-    for (auto const& vertex : hstd::sorted(
-             hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
+    for (auto const& vertex :
+         hstd::sorted(hstd::Vec<VertexID>{vertexIDs.begin(), vertexIDs.end()})) {
         getVertex(vertex)->writeSerial(out->add_vertices(), this, vertex);
     }
 }
@@ -394,18 +367,15 @@ void IGraph::readSerial(
     // split the collection content reading and the collection object
     // construction so objects could access full set of collections if
     // necessary.
-    for (auto const& [coll, entry] :
-         hstd::rv::zip(in->collections(), collection_list)) {
+    for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
         entry->readSerial(&coll, this, factory);
     }
 
-    for (auto const& [coll, entry] :
-         hstd::rv::zip(in->hierarchies(), hierarchy_list)) {
+    for (auto const& [coll, entry] : hstd::rv::zip(in->hierarchies(), hierarchy_list)) {
         entry->readSerial(&coll, this, factory);
     }
 
-    for (auto const& [coll, entry] :
-         hstd::rv::zip(in->ports(), ports_list)) {
+    for (auto const& [coll, entry] : hstd::rv::zip(in->ports(), ports_list)) {
         entry->readSerial(&coll, this, factory);
     }
 }
@@ -419,18 +389,15 @@ std::unique_ptr<proto::IGraphProto> IGraph::get_serial() const {
 }
 #endif
 
-std::string hstd::ext::graph::IGraph::getDebug(
-    VertexIDSet const& vert) const {
+std::string hstd::ext::graph::IGraph::getDebug(VertexIDSet const& vert) const {
     return hstd::fmt1(
         hstd::own_view(hstd::sorted(vert.items()))
-        | hstd::rv::transform([&](VertexID const& id) -> std::string {
-              return getDebug(id);
-          })
+        | hstd::rv::transform(
+            [&](VertexID const& id) -> std::string { return getDebug(id); })
         | hstd::rs::to<hstd::Vec>());
 }
 
-std::string hstd::ext::graph::IGraph::getDebug(
-    VertexIDVec const& vert) const {
+std::string hstd::ext::graph::IGraph::getDebug(VertexIDVec const& vert) const {
     return hstd::fmt1(
         vert | hstd::rv::transform([&](VertexID const& id) -> std::string {
             return getDebug(id);
@@ -438,13 +405,11 @@ std::string hstd::ext::graph::IGraph::getDebug(
         | hstd::rs::to<hstd::Vec>());
 }
 
-std::string hstd::ext::graph::IGraph::getDebug(
-    EdgeIDSet const& vert) const {
+std::string hstd::ext::graph::IGraph::getDebug(EdgeIDSet const& vert) const {
     return getDebug(hstd::sorted(vert.items()));
 }
 
-std::string hstd::ext::graph::IGraph::getDebug(
-    EdgeIDVec const& vert) const {
+std::string hstd::ext::graph::IGraph::getDebug(EdgeIDVec const& vert) const {
     return hstd::fmt1(
         vert | hstd::rv::transform([&](EdgeID const& id) -> std::string {
             return getDebug(id);
@@ -453,8 +418,7 @@ std::string hstd::ext::graph::IGraph::getDebug(
 }
 
 
-std::string hstd::ext::graph::IGraph::getDebug(
-    PortIDVec const& vert) const {
+std::string hstd::ext::graph::IGraph::getDebug(PortIDVec const& vert) const {
     return hstd::fmt1(
         vert | hstd::rv::transform([&](PortID const& id) -> std::string {
             return getDebug(id);
@@ -462,15 +426,12 @@ std::string hstd::ext::graph::IGraph::getDebug(
         | hstd::rs::to<hstd::Vec>());
 }
 
-std::string hstd::ext::graph::IGraph::getDebug(
-    PortIDSet const& vert) const {
+std::string hstd::ext::graph::IGraph::getDebug(PortIDSet const& vert) const {
     return getDebug(hstd::sorted(vert.items()));
 }
 
-std::string hstd::ext::graph::IGraph::getDebug(
-    VertexID const& vert) const {
-    return hstd::fmt(
-        "vertex {} ({})", vert, getVertex(vert)->getStableId());
+std::string hstd::ext::graph::IGraph::getDebug(VertexID const& vert) const {
+    return hstd::fmt("vertex {} ({})", vert, getVertex(vert)->getStableId());
 }
 
 std::string hstd::ext::graph::IGraph::getDebug(EdgeID const& edge) const {
@@ -494,8 +455,8 @@ std::string hstd::ext::graph::IGraph::getDebug(PortID const& port) const {
 }
 
 
-hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
-    getHierarchyID(EdgeID const& id) const {
+hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::getHierarchyID(
+    EdgeID const& id) const {
     auto id1 = IEdgeProvider::hierarchyIdFromEdge(id);
     LOGIC_ASSERTION_CHECK_FMT(
         hierarchies.contains(id1),
@@ -508,8 +469,8 @@ hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
     return id1;
 }
 
-hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
-    getCollectionID(EdgeID const& id) const {
+hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::getCollectionID(
+    EdgeID const& id) const {
     auto id2 = IEdgeProvider::edgeCategoryFromEdge(id);
     LOGIC_ASSERTION_CHECK_FMT(
         collections.contains(id2),
@@ -522,8 +483,7 @@ hstd::ext::graph::EdgeCollectionID hstd::ext::graph::IGraph::
     return id2;
 }
 
-VertexID TrivialGraphBase::addVertex(
-    std::optional<std::string> const& stable_id) {
+VertexID TrivialGraphBase::addVertex(std::optional<std::string> const& stable_id) {
     return addVertex(
         TrivialVertex{
             stable_id.value_or(hstd::fmt1(vertexStore.getNextId())),

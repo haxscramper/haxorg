@@ -41,9 +41,7 @@ inline auto tmp = hstd::value_domain<AstRangeKind>::low();
 
 template <typename N>
 hstd::Str toPath(N const& ast, hstd::Vec<int> const& path) {
-    hstd::Func<hstd::Vec<hstd::Str>(
-        N const&, hstd::Span<const int> const&)>
-        aux;
+    hstd::Func<hstd::Vec<hstd::Str>(N const&, hstd::Span<const int> const&)> aux;
     aux = [&aux](N const& a, hstd::Span<const int> const& path) {
         hstd::Vec<hstd::Str> result;
         result.push_back(fmt1(a.getKind()));
@@ -93,9 +91,7 @@ struct AstRange {
         : idx(point), kind(AstRangeKind::Point), fieldName(name) {}
     /// \brief  Construct inverse point AST range
     inline AstRange(hstd::BackwardsIndex point, Name name)
-        : idx(point.value)
-        , kind(AstRangeKind::InversePoint)
-        , fieldName(name) {}
+        : idx(point.value), kind(AstRangeKind::InversePoint), fieldName(name) {}
     /// \brief Construct direct slice AST range
     inline AstRange(hstd::Slice<int> slice, Name name)
         : first(slice.first)
@@ -103,9 +99,7 @@ struct AstRange {
         , kind(AstRangeKind::DirectSlice)
         , fieldName(name) {}
     /// \brief Construct mixed slice AST range
-    inline AstRange(
-        hstd::HSlice<int, hstd::BackwardsIndex> slice,
-        Name                                    name)
+    inline AstRange(hstd::HSlice<int, hstd::BackwardsIndex> slice, Name name)
         : first(slice.first)
         , last(slice.last.value)
         , kind(AstRangeKind::MixedSlice)
@@ -123,16 +117,12 @@ struct AstRange {
         hstd::Pair<int, int> range;
         switch (kind) {
             case AstRangeKind::Point: range = {idx, idx}; break;
-            case AstRangeKind::InversePoint:
-                range = {maxLen - idx, maxLen - idx};
-                break;
+            case AstRangeKind::InversePoint: range = {maxLen - idx, maxLen - idx}; break;
             case AstRangeKind::DirectSlice: range = {first, last}; break;
             case AstRangeKind::InverseSlice:
                 range = {maxLen - first, maxLen - last};
                 break;
-            case AstRangeKind::MixedSlice:
-                range = {first, maxLen - last};
-                break;
+            case AstRangeKind::MixedSlice: range = {first, maxLen - last}; break;
         }
 
         if (range.first <= range.second && range.second <= maxLen) {
@@ -151,8 +141,7 @@ struct AstRange {
 
 
 template <typename Name>
-struct std::formatter<org::parse::AstRange<Name>>
-    : std::formatter<std::string> {
+struct std::formatter<org::parse::AstRange<Name>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
         org::parse::AstRange<Name> const& p,
@@ -224,12 +213,10 @@ struct AstCheckFail {
         using fg = hstd::TermColorFg8Bit;
         hstd::ColStream s;
 
-        hstd::Func<void(AstCheckFail<Node, Kind, Name> const&, int const&)>
-            aux;
+        hstd::Func<void(AstCheckFail<Node, Kind, Name> const&, int const&)> aux;
 
         aux = [&s, &aux, &node](
-                  AstCheckFail<Node, Kind, Name> const& fail,
-                  int const&                            level) {
+                  AstCheckFail<Node, Kind, Name> const& fail, int const& level) {
             s.indent(level);
             auto parentFailed = false;
             if (!fail.empty(false)) {
@@ -237,21 +224,17 @@ struct AstCheckFail {
                 if (!fail.msg.empty()) { s << fail.msg << " "; }
                 if (!fail.expected.empty()) {
                     if (fail.isMissing) {
-                        s << "missing subnode " << fg::Green << fail.range
-                          << s.end();
+                        s << "missing subnode " << fg::Green << fail.range << s.end();
                         // if (!fail.range.fieldName.empty()) {
-                        s << " (" << fg::Green << fail.range.fieldName
-                          << s.end() << ")";
+                        s << " (" << fg::Green << fail.range.fieldName << s.end() << ")";
                         // }
                         s << " " << fg::Red << fail.expected << s.end();
                     } else {
-                        s << "wanted " << fg::Red << fail.expected
-                          << s.end() << " in " << fg::Green << fail.range
-                          << s.end();
+                        s << "wanted " << fg::Red << fail.expected << s.end() << " in "
+                          << fg::Green << fail.range << s.end();
 
                         // if (!fail.range.fieldName.empty()) {
-                        s << " (" << fg::Green << fail.range.fieldName
-                          << s.end() << ")";
+                        s << " (" << fg::Green << fail.range.fieldName << s.end() << ")";
                         // }
 
                         if (fail.got.has_value()) {
@@ -259,26 +242,21 @@ struct AstCheckFail {
                         }
                     }
                 } else if (fail.isMissing) {
-                    s << "missing subnode " << fg::Cyan << fail.range
-                      << s.end();
+                    s << "missing subnode " << fg::Cyan << fail.range << s.end();
                     // if (!fail.range.fieldName.empty()) {
-                    s << " (" << fg::Cyan << fail.range.fieldName
-                      << s.end() << ")";
+                    s << " (" << fg::Cyan << fail.range.fieldName << s.end() << ")";
                     // }
                 }
 
                 if (!fail.path.empty()) {
-                    s << " on path " << fg::Green
-                      << toPath(node, fail.path) << s.end();
+                    s << " on path " << fg::Green << toPath(node, fail.path) << s.end();
                 } else {
-                    s << " for subnode of " << fg::Green
-                      << fmt1(fail.parent) << s.end();
+                    s << " for subnode of " << fg::Green << fmt1(fail.parent) << s.end();
                 }
 
                 if (!fail.range.fieldDoc.empty()) {
                     s << "\n"
-                      << fg::Yellow
-                      << indent(fail.range.fieldDoc, (level * 2) + 2)
+                      << fg::Yellow << indent(fail.range.fieldDoc, (level * 2) + 2)
                       << s.end();
                 }
             }
@@ -304,8 +282,7 @@ struct AstCheckError : public std::runtime_error {};
 
 /// \brief User-defined validation callback
 template <typename Node, typename Kind, typename Name>
-using AstCheckProc = hstd::Func<hstd::Opt<AstCheckFail<Node, Kind, Name>>(
-    Node)>;
+using AstCheckProc = hstd::Func<hstd::Opt<AstCheckFail<Node, Kind, Name>>(Node)>;
 
 
 template <typename Node, typename Kind, typename Name>
@@ -352,8 +329,7 @@ struct AstPattern {
     /// \brief Appent subranges to the already constructed pattern object.
     /// Used for constructing patterns that have constrained kind and
     /// pattern range.
-    AstPattern& sub(
-        hstd::Vec<AstPatternRange<Node, Kind, Name>> const& subr) {
+    AstPattern& sub(hstd::Vec<AstPatternRange<Node, Kind, Name>> const& subr) {
         ranges.append(subr);
         return *this;
     }
@@ -400,8 +376,7 @@ struct AstPattern {
                     if (arange.range.contains(idx, node.size())) {
                         altFound[rangeIdx] = true;
                         for (const auto alt : arange.alts) {
-                            auto const& n = alt.findMissing(
-                                node, path + idx);
+                            auto const& n = alt.findMissing(node, path + idx);
                             if (!n.empty()) { result.nested.push_back(n); }
                         }
                         break;
@@ -437,8 +412,7 @@ struct AstPattern {
         int const&  idx,
         int const&  maxIdx) const {
 
-        const auto fail = formatFail(
-            validateAst(node, sub, idx, maxIdx, {idx}), Node());
+        const auto fail = formatFail(validateAst(node, sub, idx, maxIdx, {idx}), Node());
 
         if (fail.empty()) {
             return std::nullopt;
@@ -451,14 +425,12 @@ struct AstPattern {
 template <typename Node, typename Kind, typename Name>
 struct AstSpec {
   private:
-    hstd::UnorderedMap<Kind, AstPattern<Node, Kind, Name>> spec;
-    hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
-        nodeRanges;
+    hstd::UnorderedMap<Kind, AstPattern<Node, Kind, Name>>             spec;
+    hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>> nodeRanges;
 
     hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>> getNodeRanges()
         const {
-        hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>>
-            result;
+        hstd::UnorderedMap<Kind, hstd::UnorderedMap<Name, AstRange<Name>>> result;
         for (const auto& [kind, pattern] : spec) {
             for (const auto& range : pattern.ranges) {
                 result[kind][range.range.fieldName] = range.range;
@@ -468,9 +440,7 @@ struct AstSpec {
     }
 
   public:
-    AstSpec(
-        hstd::Vec<hstd::Pair<Kind, AstPattern<Node, Kind, Name>>> const&
-            patterns) {
+    AstSpec(hstd::Vec<hstd::Pair<Kind, AstPattern<Node, Kind, Name>>> const& patterns) {
         for (const auto& [kind, pattern] : patterns) {
             spec.insert_or_assign(kind, pattern);
         }
@@ -485,8 +455,7 @@ struct AstSpec {
 
     hstd::ColText validateAst(Node const& node) const {
         if (spec[node.kind].has_value()) {
-            return formatFail(
-                spec[node.kind].value().findMissing(node), node);
+            return formatFail(spec[node.kind].value().findMissing(node), node);
         } else {
             return hstd::ColText{};
         }
@@ -494,8 +463,7 @@ struct AstSpec {
 
     hstd::Opt<hstd::ColText> validateSelf(Node const& node) const {
         if (spec[node.getKind()].has_value()) {
-            const auto missing = spec[node.getKind()].value().findMissing(
-                node);
+            const auto missing = spec[node.getKind()].value().findMissing(node);
             if (0 < missing.count()) {
                 const auto fail = missing.format(node);
                 if (!fail.empty()) { return fail; }
@@ -519,8 +487,7 @@ struct AstSpec {
     }
 
 
-    hstd::Opt<hstd::ColText> validateSub(Node const& node, int const& idx)
-        const {
+    hstd::Opt<hstd::ColText> validateSub(Node const& node, int const& idx) const {
         return validateSub(node, idx, node[idx]);
     }
 
@@ -528,25 +495,19 @@ struct AstSpec {
         return nodeRanges.at(kind);
     }
 
-    hstd::Vec<hstd::Pair<Name, hstd::Slice<int>>> resolveNodeFields(
-        Kind kind,
-        int  size) const {
+    hstd::Vec<hstd::Pair<Name, hstd::Slice<int>>> resolveNodeFields(Kind kind, int size)
+        const {
         hstd::Vec<hstd::Pair<Name, hstd::Slice<int>>> result;
-        if (size == 0 && nodeRanges.at(kind).size() == 0) {
-            return result;
-        }
+        if (size == 0 && nodeRanges.at(kind).size() == 0) { return result; }
 
         for (const auto& [name, range] : nodeRanges.at(kind)) {
             auto slice = range.toSlice(size);
-            if (slice.has_value()) {
-                result.push_back({name, slice.value()});
-            }
+            if (slice.has_value()) { result.push_back({name, slice.value()}); }
         }
 
         sort<hstd::Pair<Name, hstd::Slice<int>>>(
-            result, [](auto const& lhs, auto const& rhs) {
-                return lhs.first < rhs.first;
-            });
+            result,
+            [](auto const& lhs, auto const& rhs) { return lhs.first < rhs.first; });
 
         for (const auto& [lhs, rhs] : carthesian(result, result)) {
             if (lhs == rhs) { continue; }
@@ -594,10 +555,8 @@ struct AstSpec {
         return result;
     }
 
-    hstd::ColText validateAst(
-        Node const& node,
-        Node const& subnode,
-        int const&  idx) const {
+    hstd::ColText validateAst(Node const& node, Node const& subnode, int const& idx)
+        const {
         hstd::ColStream s;
         if (spec[node.getKind()].has_value()) {
             const auto fail1 = validateAst(
@@ -608,12 +567,9 @@ struct AstSpec {
                 node.size(),
                 hstd::Vec<int>({idx}));
 
-            if (0 < fail1.count()) {
-                s << formatFail(fail1, node) << "\n";
-            }
+            if (0 < fail1.count()) { s << formatFail(fail1, node) << "\n"; }
 
-            s << formatFail(
-                spec[node.getKind()].value().findMissing(node), node);
+            s << formatFail(spec[node.getKind()].value().findMissing(node), node);
         }
 
         return s.getBuffer();
@@ -624,27 +580,20 @@ struct AstSpec {
 
         hstd::ColStream s;
 
-        hstd::Func<void(AstPattern<Node, Kind, Name> const&, int const&)>
-            aux;
+        hstd::Func<void(AstPattern<Node, Kind, Name> const&, int const&)> aux;
 
-        aux = [&s, &aux](
-                  AstPattern<Node, Kind, Name> const& p,
-                  int const&                          level) {
+        aux = [&s, &aux](AstPattern<Node, Kind, Name> const& p, int const& level) {
             s.indent(level);
             if (!p.doc.empty()) {
-                s << fg::Yellow
-                  << indent(p.doc, 2 * (level + 1), ' ', "## ") << s.end();
+                s << fg::Yellow << indent(p.doc, 2 * (level + 1), ' ', "## ") << s.end();
             }
 
             if (!p.expected.empty()) { s << fmt1(p.expected); }
 
             for (const auto [idx, arange] : enumerate(p.ranges)) {
-                s << "\n"
-                  << s.indent(level + 1) << fg::Yellow << arange.range
-                  << s.end();
+                s << "\n" << s.indent(level + 1) << fg::Yellow << arange.range << s.end();
                 if (!arange.range.fieldName.empty()) {
-                    s << " " << fg::Blue << arange.range.fieldName
-                      << s.end();
+                    s << " " << fg::Blue << arange.range.fieldName << s.end();
                 }
 
                 for (const auto alt : arange.alts) {
@@ -682,12 +631,11 @@ struct AstSpec {
                 }
             } else {
                 throw UnexpectedKindError(
-                    "Cannot get single subnode index for element "
-                    + fmt1(name) + " of node kind " + fmt1(kind)
+                    "Cannot get single subnode index for element " + fmt1(name)
+                    + " of node kind " + fmt1(kind)
                     + " - field exists, but allowed AST range is of kind "
                     + hstd::enum_serde<AstRangeKind>::to_string(range.kind)
-                    + " and requires node length, but it "
-                    + "wasn't specified.");
+                    + " and requires node length, but it " + "wasn't specified.");
             }
         } else {
             throw makeMissingPositional(kind, name);
@@ -723,8 +671,7 @@ struct AstSpec {
                 hstd::fmt1(range)));
     }
 
-    FieldAccessError makeMissingPositional(Kind kind, Name const& name)
-        const {
+    FieldAccessError makeMissingPositional(Kind kind, Name const& name) const {
         hstd::Str names;
         if (nodeRanges.at(kind).empty()) {
             names = "No named subnodes specified.";
@@ -739,16 +686,14 @@ struct AstSpec {
 
         return FieldAccessError::init(
             "Cannot get positional node with name '" + hstd::fmt1(name)
-            + "' from node of kind '" + hstd::fmt1(kind) + "'. "
-            + names.toBase());
+            + "' from node of kind '" + hstd::fmt1(kind) + "'. " + names.toBase());
     }
 
     Node getSingleSubnode(Node const& node, Name const& name) const {
         return node.at(getSingleSubnodeIdx(node, name));
     }
 
-    hstd::Vec<Node> getMultipleSubnode(Node const& node, Name const& name)
-        const {
+    hstd::Vec<Node> getMultipleSubnode(Node const& node, Name const& name) const {
         if (nodeRanges.at(node.getKind()).contains(name)) {
             hstd::Vec<Node> result;
             const auto      range = nodeRanges.at(node.getKind()).at(name);
@@ -756,23 +701,18 @@ struct AstSpec {
             if (!slice.has_value()) {
                 throw makeMissingSlice(node.getKind(), name, slice, range);
             }
-            for (auto const& idx : slice.value()) {
-                result.push_back(node.at(idx));
-            }
+            for (auto const& idx : slice.value()) { result.push_back(node.at(idx)); }
             return result;
         } else {
             throw makeMissingPositional(node.getKind(), name);
         }
     }
 
-    hstd::Opt<AstRange<Name>> fieldRange(Node const& node, int const& idx)
-        const {
+    hstd::Opt<AstRange<Name>> fieldRange(Node const& node, int const& idx) const {
         if (spec.contains(node.getKind())) {
             auto const& pattern = spec.at(node.getKind());
             for (auto const& field : pattern.ranges) {
-                if (field.range.contains(idx, node.size())) {
-                    return field.range;
-                }
+                if (field.range.contains(idx, node.size())) { return field.range; }
             }
         }
         return std::nullopt;
@@ -790,8 +730,7 @@ struct AstSpec {
     bool isSingleField(Node const& node, int const& idx) const {
         const auto field = fieldRange(node, idx);
         return field.has_value()
-            && hstd::IntSet<
-                   AstRangeKind>{AstRangeKind::Point, AstRangeKind::InversePoint}
+            && hstd::IntSet<AstRangeKind>{AstRangeKind::Point, AstRangeKind::InversePoint}
                    .contains(field.value().kind);
     }
 

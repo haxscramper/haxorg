@@ -43,17 +43,14 @@ int main(int argc, char const** argv) {
     if (std::string{argv[1]}.starts_with("/")) {
         if (!hstd::fs::exists(argv[1])) {
             throw std::logic_error(
-                std::format(
-                    "Input configuration file '{}' does not exist",
-                    argv[1]));
+                std::format("Input configuration file '{}' does not exist", argv[1]));
         }
         json_parameters = hstd::readFile(argv[1]);
     } else {
         json_parameters = std::string{argv[1]};
     }
 
-    auto cli = hstd::JsonSerde<ReflectionCLI>::from_json(
-        json::parse(json_parameters));
+    auto cli = hstd::JsonSerde<ReflectionCLI>::from_json(json::parse(json_parameters));
 
     if (cli.output.empty()) {
         throw hstd::invalid_argument::init(
@@ -61,30 +58,24 @@ int main(int argc, char const** argv) {
     }
 
     if (cli.log_path) {
-        hstd::log::push_sink(
-            hstd::log::init_file_sink(cli.log_path.value()));
+        hstd::log::push_sink(hstd::log::init_file_sink(cli.log_path.value()));
         HSLOG_INFO("Log file message");
     }
 
 
 #ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
-    if (cli.perf_path) {
-        perfetto_session = StartProcessTracing("profdata_merger");
-    }
+    if (cli.perf_path) { perfetto_session = StartProcessTracing("profdata_merger"); }
 #endif
 
     switch (cli.mode) {
-        case ReflectionCLI::Mode::RunProfileMerge:
-            build_run_coverage_merge(cli);
-            break;
+        case ReflectionCLI::Mode::RunProfileMerge: build_run_coverage_merge(cli); break;
         case ReflectionCLI::Mode::BuildProfileMerge:
             build_build_coverage_merge(cli);
             break;
 
         case ReflectionCLI::Mode::AllTargetedFiles: [[fallthrough]];
-        case ReflectionCLI::Mode::AllMainSymbolsInCompilationDb:
-            [[fallthrough]];
+        case ReflectionCLI::Mode::AllMainSymbolsInCompilationDb: [[fallthrough]];
         case ReflectionCLI::Mode::AllAnotatedSymbols:
             run_semantic_symbols_collection(cli);
             break;

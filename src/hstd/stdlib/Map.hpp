@@ -14,23 +14,17 @@ namespace hstd {
 template <typename Map, typename K, typename V>
 struct MapBase : public CRTP_this_method<Map> {
     using CRTP_this_method<Map>::_this;
-    inline bool contains(K const& key) const {
-        return _this()->count(key) != 0;
-    }
+    inline bool contains(K const& key) const { return _this()->count(key) != 0; }
 
     V& get_or_insert(K const& key, V const& fallback) {
-        if (!_this()->contains(key)) {
-            _this()->insert_or_assign(key, fallback);
-        }
+        if (!_this()->contains(key)) { _this()->insert_or_assign(key, fallback); }
         return _this()->at(key);
     }
 
     void insert_unqiue(K const& key, V const& value) {
         if (contains(key)) {
             throw hstd::key_error::init(
-                hstd::fmt(
-                    "key {} already present in the map",
-                    hstd::fmt1_maybe(key)));
+                hstd::fmt("key {} already present in the map", hstd::fmt1_maybe(key)));
         } else {
             _this()->insert_or_assign(key, value);
         }
@@ -52,27 +46,21 @@ struct MapBase : public CRTP_this_method<Map> {
 
     Vec<K> keys() const {
         Vec<K> result;
-        for (const auto& [key, value] : *_this()) {
-            result.push_back(key);
-        }
+        for (const auto& [key, value] : *_this()) { result.push_back(key); }
 
         return result;
     }
 
     Vec<V> values() const {
         Vec<V> result;
-        for (const auto& [key, value] : *_this()) {
-            result.push_back(value);
-        }
+        for (const auto& [key, value] : *_this()) { result.push_back(value); }
 
         return result;
     }
 
     Vec<V const&> values_ref() const {
         Vec<V const&> result;
-        for (const auto& [key, value] : *_this()) {
-            result.push_back(value);
-        }
+        for (const auto& [key, value] : *_this()) { result.push_back(value); }
 
         return result;
     }
@@ -130,9 +118,7 @@ struct SortedMap
     , public MapBase<SortedMap<K, V, _Compare>, K, V> {
     using Base = std::map<K, V, _Compare>;
     using API  = MapBase<SortedMap<K, V, _Compare>, K, V>;
-    inline bool contains(K const& key) const {
-        return Base::find(key) != Base::end();
-    }
+    inline bool contains(K const& key) const { return Base::find(key) != Base::end(); }
 
     using API::get;
     using API::keys;
@@ -148,16 +134,13 @@ struct SortedMap
 namespace hstd {
 template <typename K, typename V>
 struct value_metadata<hstd::UnorderedMap<K, V>> {
-    static bool isEmpty(UnorderedMap<K, V> const& value) {
-        return value.empty();
-    }
+    static bool isEmpty(UnorderedMap<K, V> const& value) { return value.empty(); }
 
     static bool isNil(UnorderedMap<K, V> const& value) { return false; }
 
     static std::string typeName() {
         return std::string{"UnorderedMap<"} + value_metadata<K>::typeName()
-             + std::string{", "} + value_metadata<V>::typeName()
-             + std::string{">"};
+             + std::string{", "} + value_metadata<V>::typeName() + std::string{">"};
     }
 };
 
@@ -192,18 +175,13 @@ class SequentialKvPairContainerAdapter
     void begin_insert_impl() {}
     void end_insert_impl() {}
     void clear_impl() { const_cast<container_type*>(container)->clear(); }
-    void reserve_impl(int size) {
-        const_cast<container_type*>(container)->reserve(size);
-    }
+    void reserve_impl(int size) { const_cast<container_type*>(container)->reserve(size); }
 };
 
 
 template <typename K, typename V>
 struct SequentialContainerAdapter<std::unordered_map<K, V>>
-    : hstd::SequentialKvPairContainerAdapter<
-          K,
-          V,
-          std::unordered_map<K, V>> {};
+    : hstd::SequentialKvPairContainerAdapter<K, V, std::unordered_map<K, V>> {};
 
 template <typename K, typename V>
 struct SequentialContainerAdapter<std::map<K, V>>
@@ -212,17 +190,11 @@ struct SequentialContainerAdapter<std::map<K, V>>
 
 template <typename K, typename V>
 struct SequentialContainerAdapter<hstd::UnorderedMap<K, V>>
-    : hstd::SequentialKvPairContainerAdapter<
-          K,
-          V,
-          hstd::UnorderedMap<K, V>> {};
+    : hstd::SequentialKvPairContainerAdapter<K, V, hstd::UnorderedMap<K, V>> {};
 
 template <typename K, typename V, typename _Compare>
 struct SequentialContainerAdapter<hstd::SortedMap<K, V, _Compare>>
-    : hstd::SequentialKvPairContainerAdapter<
-          K,
-          V,
-          hstd::SortedMap<K, V, _Compare>> {};
+    : hstd::SequentialKvPairContainerAdapter<K, V, hstd::SortedMap<K, V, _Compare>> {};
 
 
 template <typename K, typename V, typename Container>
@@ -246,28 +218,18 @@ struct AssociativeKvPairContainerAdapter
     AssociativeKvPairContainerAdapter(container_type const* container)
         : SequentialContainerAdapter<Container>{container} {}
 
-    void insert_or_assign_impl(
-        pair_key_type const&   key,
-        pair_value_type const& value) {
-        const_cast<container_type*>(this->container)
-            ->insert_or_assign(key, value);
+    void insert_or_assign_impl(pair_key_type const& key, pair_value_type const& value) {
+        const_cast<container_type*>(this->container)->insert_or_assign(key, value);
     }
 
-    bool contains_impl(K const& key) const {
-        return this->container->contains(key);
-    }
+    bool contains_impl(K const& key) const { return this->container->contains(key); }
 
-    V const& at_impl(K const& key) const {
-        return this->container->at(key);
-    }
+    V const& at_impl(K const& key) const { return this->container->at(key); }
 };
 
 template <typename K, typename V>
 struct AssociativeContainerAdapter<std::unordered_map<K, V>>
-    : hstd::AssociativeKvPairContainerAdapter<
-          K,
-          V,
-          std::unordered_map<K, V>> {
+    : hstd::AssociativeKvPairContainerAdapter<K, V, std::unordered_map<K, V>> {
     using pair_key_type   = K;
     using pair_value_type = V;
 };
@@ -282,20 +244,14 @@ struct AssociativeContainerAdapter<std::map<K, V>>
 
 template <typename K, typename V>
 struct AssociativeContainerAdapter<hstd::UnorderedMap<K, V>>
-    : hstd::AssociativeKvPairContainerAdapter<
-          K,
-          V,
-          hstd::UnorderedMap<K, V>> {
+    : hstd::AssociativeKvPairContainerAdapter<K, V, hstd::UnorderedMap<K, V>> {
     using pair_key_type   = K;
     using pair_value_type = V;
 };
 
 template <typename K, typename V, typename _Compare>
 struct AssociativeContainerAdapter<hstd::SortedMap<K, V, _Compare>>
-    : hstd::AssociativeKvPairContainerAdapter<
-          K,
-          V,
-          hstd::SortedMap<K, V, _Compare>> {
+    : hstd::AssociativeKvPairContainerAdapter<K, V, hstd::SortedMap<K, V, _Compare>> {
     using pair_key_type   = K;
     using pair_value_type = V;
 };
@@ -317,9 +273,7 @@ struct std_kv_tuple_iterator_hash {
             hash_pairs.push_back(pair);
         }
         std::sort(hash_pairs.begin(), hash_pairs.end());
-        for (auto const& it : hash_pairs) {
-            hstd::hax_hash_combine(result, it);
-        }
+        for (auto const& it : hash_pairs) { hstd::hax_hash_combine(result, it); }
         return result;
     }
 };

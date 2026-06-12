@@ -39,8 +39,7 @@ struct Array : std::array<T, Size> {
     }
 
     template <typename A, typename B>
-    std::span<const T> at(HSlice<A, B> const& s, bool checkRange = true)
-        const {
+    std::span<const T> at(HSlice<A, B> const& s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
         return std::span(this->data() + start, end - start + 1);
     }
@@ -63,13 +62,9 @@ struct Array : std::array<T, Size> {
 #endif
     }
 
-    T& operator[](BackwardsIndex idx) {
-        return (*this)[this->size() - idx.value];
-    }
+    T& operator[](BackwardsIndex idx) { return (*this)[this->size() - idx.value]; }
 
-    T& at(BackwardsIndex idx) {
-        return this->at(this->size() - idx.value);
-    }
+    T& at(BackwardsIndex idx) { return this->at(this->size() - idx.value); }
 
     int high() const { return size() - 1; }
     int indexOf(T const& item) const { return index_of(*this, item); }
@@ -89,9 +84,7 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
         for (const auto& [key, val] : items) { at(key) = val; }
     }
 
-    Val& at(Key const& value) {
-        return Base::at(value_domain<Key>::ord(value));
-    }
+    Val& at(Key const& value) { return Base::at(value_domain<Key>::ord(value)); }
 
     Val const& at(Key const& value) const {
         return Base::at(value_domain<Key>::ord(value));
@@ -107,17 +100,15 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
 
 
     generator<Pair<Key, Val const*>> pairs() const {
-        for (auto i = value_domain<Key>::low();
-             i <= value_domain<Key>::high();
-             i = value_domain<Key>::succ(i)) {
+        for (auto i = value_domain<Key>::low(); i <= value_domain<Key>::high();
+             i      = value_domain<Key>::succ(i)) {
             co_yield {i, &this->operator[](i)};
         }
     }
 
     generator<Pair<Key, Val*>> pairs() {
-        for (auto i = value_domain<Key>::low();
-             i <= value_domain<Key>::high();
-             i = value_domain<Key>::succ(i)) {
+        for (auto i = value_domain<Key>::low(); i <= value_domain<Key>::high();
+             i      = value_domain<Key>::succ(i)) {
             co_yield {i, &this->operator[](i)};
         }
     }

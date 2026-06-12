@@ -24,8 +24,7 @@ int main(int argc, char* argv[]) {
     auto config = hstd::parse_json_argc<MainArgs>(argc, argv);
 
     if (config.log_path) {
-        hstd::log::push_sink(
-            hstd::log::init_file_sink(config.log_path.value()));
+        hstd::log::push_sink(hstd::log::init_file_sink(config.log_path.value()));
     }
 
     auto parse_context = org::parse::ParseContext::shared();

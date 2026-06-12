@@ -45,9 +45,7 @@ void hstd::serde::proto_serde<proto::Rect, Rect>::write(
     out->set_height(y1 - y0);
 }
 
-void hstd::serde::proto_serde<proto::Rect, Rect>::read(
-    proto::Rect const& in,
-    Rect*              out) {
+void hstd::serde::proto_serde<proto::Rect, Rect>::read(proto::Rect const& in, Rect* out) {
     *out = Rect(in.x(), in.y(), in.width(), in.height());
 }
 
@@ -77,12 +75,9 @@ void hstd::serde::proto_serde<proto::Path::Command, Path::Command>::write(
     proto::Path::Command* out,
     Path::Command const&  in) {
     out->set_type(static_cast<proto::Path_CommandType>(in.type));
-    hstd::serde::proto_serde<proto::Point, Point>::write(
-        out->mutable_p1(), in.p1);
-    hstd::serde::proto_serde<proto::Point, Point>::write(
-        out->mutable_p2(), in.p2);
-    hstd::serde::proto_serde<proto::Point, Point>::write(
-        out->mutable_p3(), in.p3);
+    hstd::serde::proto_serde<proto::Point, Point>::write(out->mutable_p1(), in.p1);
+    hstd::serde::proto_serde<proto::Point, Point>::write(out->mutable_p2(), in.p2);
+    hstd::serde::proto_serde<proto::Point, Point>::write(out->mutable_p3(), in.p3);
 }
 
 void hstd::serde::proto_serde<proto::Path::Command, Path::Command>::read(
@@ -100,20 +95,16 @@ void hstd::serde::proto_serde<proto::Path, Path>::write(
     out->clear_commands();
     for (auto const& cmd : in.commands) {
         auto* dst = out->add_commands();
-        hstd::serde::proto_serde<proto::Path::Command, Path::Command>::
-            write(dst, cmd);
+        hstd::serde::proto_serde<proto::Path::Command, Path::Command>::write(dst, cmd);
     }
 }
 
-void hstd::serde::proto_serde<proto::Path, Path>::read(
-    proto::Path const& in,
-    Path*              out) {
+void hstd::serde::proto_serde<proto::Path, Path>::read(proto::Path const& in, Path* out) {
     out->commands.clear();
     out->commands.reserve(static_cast<std::size_t>(in.commands_size()));
     for (auto const& cmd : in.commands()) {
         Path::Command dst;
-        hstd::serde::proto_serde<proto::Path::Command, Path::Command>::
-            read(cmd, &dst);
+        hstd::serde::proto_serde<proto::Path::Command, Path::Command>::read(cmd, &dst);
         out->commands.push_back(dst);
     }
 }

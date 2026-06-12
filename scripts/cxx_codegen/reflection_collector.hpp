@@ -61,10 +61,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         char const*        function = __builtin_FUNCTION());
 
 
-    explicit ReflASTVisitor(
-        clang::ASTContext*   Context,
-        TU*                  tu,
-        ReflectionCLI const& cli)
+    explicit ReflASTVisitor(clang::ASTContext* Context, TU* tu, ReflectionCLI const& cli)
         : Ctx(Context)
         , out(tu)
         , cli(cli)
@@ -81,15 +78,13 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
     clang::DiagnosticBuilder Diag(
         clang::DiagnosticsEngine::Level L,
         const char (&FormatString)[N],
-        std::optional<clang::SourceLocation> const& Loc = std::nullopt,
-        int         line                                = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
-        std::string message = std::format(
-            "from code {}:{}", function, line);
-        auto& D = Ctx->getDiagnostics();
+        std::optional<clang::SourceLocation> const& Loc      = std::nullopt,
+        int                                         line     = __builtin_LINE(),
+        char const*                                 function = __builtin_FUNCTION()) {
+        std::string message = std::format("from code {}:{}", function, line);
+        auto&       D       = Ctx->getDiagnostics();
         if (Loc) {
-            return D.Report(*Loc, D.getCustomDiagID(L, FormatString))
-                << message;
+            return D.Report(*Loc, D.getCustomDiagID(L, FormatString)) << message;
         } else {
             return D.Report(D.getCustomDiagID(L, FormatString)) << message;
         }
@@ -167,9 +162,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
     void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm);
 
-    void fillMethodDecl(
-        Record::Method*             sub,
-        clang::CXXMethodDecl const* method);
+    void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl const* method);
     void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
     void fillCxxRecordDecl(Record* rec, clang::CXXRecordDecl const* Decl);
     void fillSharedRecordData(Record* rec, clang::RecordDecl const* Decl);
@@ -245,9 +238,7 @@ class ReflASTConsumer : public clang::ASTConsumer {
     clang::CompilerInstance& CI;
     ReflectionCLI            cli;
 
-    explicit ReflASTConsumer(
-        clang::CompilerInstance& CI,
-        ReflectionCLI const&     cli);
+    explicit ReflASTConsumer(clang::CompilerInstance& CI, ReflectionCLI const& cli);
 
     virtual void HandleTranslationUnit(clang::ASTContext& Context);
 };

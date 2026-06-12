@@ -8,8 +8,7 @@ struct AutoSegmentTest {
     AutoSegmentingCollection               as;
 
     AutoSegmentTest(IGraph* g, hstd::SPtr<IVertexHierarchy> const& h)
-        : segmented_edges{std::make_shared<TrivialEdgeCollection>(
-              EdgeCollectionID{139})}
+        : segmented_edges{std::make_shared<TrivialEdgeCollection>(EdgeCollectionID{139})}
         , connection_ports{std::make_shared<TrivialPortCollection>()}
         , as{
               segmented_edges.get(),
@@ -100,8 +99,7 @@ TEST_F(GraphBase_Test, SimpleHierarchy_TwoVertices) {
 
     EXPECT_THROW_TEXT_CONTAINS(
         graph_error,
-        (g.trackSubVertexRelation(
-            h->getCollectionID(), EdgeID::Nil(), a, b)),
+        (g.trackSubVertexRelation(h->getCollectionID(), EdgeID::Nil(), a, b)),
         "parent vertex",
         "not found");
 
@@ -109,8 +107,7 @@ TEST_F(GraphBase_Test, SimpleHierarchy_TwoVertices) {
 
     EXPECT_THROW_TEXT_CONTAINS(
         graph_error,
-        (g.trackSubVertexRelation(
-            h->getCollectionID(), EdgeID::Nil(), a, b)),
+        (g.trackSubVertexRelation(h->getCollectionID(), EdgeID::Nil(), a, b)),
         "sub vertex",
         "not found");
 
@@ -119,8 +116,7 @@ TEST_F(GraphBase_Test, SimpleHierarchy_TwoVertices) {
     auto e = h->getNestingEdgeID(a, b);
     h->addEdge(e, TrivialEdge{"trivial-edge-1"});
 
-    g.trackSubVertexRelation(
-        h->getCollectionID(), e, /*parent=*/a, /*sub=*/b);
+    g.trackSubVertexRelation(h->getCollectionID(), e, /*parent=*/a, /*sub=*/b);
 
     EXPECT_THROW_TEXT_CONTAINS(
         graph_error,
@@ -247,9 +243,7 @@ TEST_F(GraphBase_Test, HierarchyCrossingEdges_FromInnermostToOutermost) {
 }
 
 
-TEST_F(
-    GraphBase_Test,
-    HierarchyCrossingEdges_FromInnerNestedToInnerNested) {
+TEST_F(GraphBase_Test, HierarchyCrossingEdges_FromInnerNestedToInnerNested) {
     // ┌────────────────────────────────┐
     // │┌────────┐       ┌──────────┐   │
     // ││ ┌───┐  │       │  ┌───┐   │   │

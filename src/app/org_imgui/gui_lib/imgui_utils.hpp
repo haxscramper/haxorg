@@ -171,51 +171,45 @@ struct ImRenderTraceRecord {
         char const*        file     = __builtin_FILE()) {
         (void)ImRenderTraceRecord::ImRenderBegin(
             true, _What.c_str(), _Msg.c_str(), function, line, file);
-        return hstd::finally_std{
-            []() { ImRenderTraceRecord::ImRenderEnd(); }};
+        return hstd::finally_std{[]() { ImRenderTraceRecord::ImRenderEnd(); }};
     }
 
     static void ImRenderEnd() { PopRecord(); }
 
     static void WriteTrace(hstd::OperationsTracer& trace);
-    void WriteRecord(hstd::OperationsTracer& trace, int level) const;
+    void        WriteRecord(hstd::OperationsTracer& trace, int level) const;
 };
 
-#define IM_SCOPE_BEGIN(_What, _Msg)                                       \
-    ImRenderTraceRecord::ImScopeRecord(_What, _Msg);
+#define IM_SCOPE_BEGIN(_What, _Msg) ImRenderTraceRecord::ImScopeRecord(_What, _Msg);
 
-#define IM_SEC_BEGIN(_Im_Func, ...)                                       \
-    (void)ImRenderTraceRecord::ImRenderBegin(true, #_Im_Func, nullptr);   \
+#define IM_SEC_BEGIN(_Im_Func, ...)                                                      \
+    (void)ImRenderTraceRecord::ImRenderBegin(true, #_Im_Func, nullptr);                  \
     ImGui::_Im_Func(__VA_ARGS__)
 
-#define IM_SEC_END(_Im_Func, ...)                                         \
-    ImREnderTraceRecord::ImRenderEnd();                                   \
+#define IM_SEC_END(_Im_Func, ...)                                                        \
+    ImREnderTraceRecord::ImRenderEnd();                                                  \
     ImGui::_Im_Func(__VA_ARGS__);
 
-#define IM_FN_BEGIN(_Im_Func, _Im_Id, ...)                                \
-    ImRenderTraceRecord::ImRenderBegin(                                   \
-        ImGui::_Im_Func((_Im_Id)__VA_OPT__(, ) __VA_ARGS__),              \
-        #_Im_Func,                                                        \
-        (_Im_Id))
+#define IM_FN_BEGIN(_Im_Func, _Im_Id, ...)                                               \
+    ImRenderTraceRecord::ImRenderBegin(                                                  \
+        ImGui::_Im_Func((_Im_Id)__VA_OPT__(, ) __VA_ARGS__), #_Im_Func, (_Im_Id))
 
-#define IM_FN_END(_Im_Func)                                               \
-    ImRenderTraceRecord::ImRenderEnd();                                   \
+#define IM_FN_END(_Im_Func)                                                              \
+    ImRenderTraceRecord::ImRenderEnd();                                                  \
     ImGui::_Im_Func();
 
-#define IM_FN_UNIT(_Im_Func, _Im_Id, ...)                                 \
-    ImRenderTraceRecord::ImRenderUnit(#_Im_Func, (_Im_Id));               \
+#define IM_FN_UNIT(_Im_Func, _Im_Id, ...)                                                \
+    ImRenderTraceRecord::ImRenderUnit(#_Im_Func, (_Im_Id));                              \
     ImGui::_Im_Func((_Im_Id)__VA_OPT__(, ) __VA_ARGS__)
 
-#define IM_FN_EXPR(_Im_Func, ...)                                         \
-    ImRenderTraceRecord::ImRenderExpr(                                    \
-        ImGui::_Im_Func(__VA_ARGS__), #_Im_Func)
+#define IM_FN_EXPR(_Im_Func, ...)                                                        \
+    ImRenderTraceRecord::ImRenderExpr(ImGui::_Im_Func(__VA_ARGS__), #_Im_Func)
 
 
-#define IM_FN_STMT(_Im_Func, ...)                                         \
-    ImRenderTraceRecord::ImRenderUnit(#_Im_Func, nullptr);                \
+#define IM_FN_STMT(_Im_Func, ...)                                                        \
+    ImRenderTraceRecord::ImRenderUnit(#_Im_Func, nullptr);                               \
     ImGui::_Im_Func(__VA_ARGS__)
 
-#define IM_FN_PRINT(_What, _Msg)                                          \
-    ImRenderTraceRecord::ImRenderUnit(_What, _Msg);
+#define IM_FN_PRINT(_What, _Msg) ImRenderTraceRecord::ImRenderUnit(_What, _Msg);
 
 #define c_fmt(__fmt_expr, ...) hstd::fmt(__fmt_expr, __VA_ARGS__).c_str()

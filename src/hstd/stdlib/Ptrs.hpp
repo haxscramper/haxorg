@@ -28,9 +28,7 @@ struct SharedPtrApi
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
 
-    std::shared_ptr<T> clone_this() {
-        return std::make_shared<T>(*_this());
-    }
+    std::shared_ptr<T> clone_this() { return std::make_shared<T>(*_this()); }
 
     using Ptr  = std::shared_ptr<T>;
     using WPtr = std::weak_ptr<T>;
@@ -87,8 +85,7 @@ constexpr auto dynamic_pointer_cast(std::unique_ptr<U, D>&& r) noexcept
     if (auto p = dynamic_cast<std::unique_ptr<T, D>::pointer>(r.get())) {
         r.release();
         return std::unique_ptr<T, D>(p, std::forward<D>(r.get_deleter()));
-    } else if constexpr (
-        !std::is_pointer_v<D> && std::is_default_constructible_v<D>) {
+    } else if constexpr (!std::is_pointer_v<D> && std::is_default_constructible_v<D>) {
         return {};
     } else if constexpr (std::is_copy_constructible_v<D>) {
         return std::unique_ptr<T, D>(nullptr, r.get_deleter());

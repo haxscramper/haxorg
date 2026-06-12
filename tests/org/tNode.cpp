@@ -43,10 +43,8 @@ TEST(GeneralNodeAPITest, SubnodeWithTwoLevelsOfNesting) {
         // Create one more nested node, stack has two elements
         NIdT sub = nodes.startTree(NodeT(NodeKind::N2));
         // Add two terminal subnodes
-        (void)nodes.token(
-            NodeT(NodeKind::N3, tokens.add(TokenT(TokenKind::T1))));
-        (void)nodes.token(
-            NodeT(NodeKind::N3, tokens.add(TokenT(TokenKind::T2))));
+        (void)nodes.token(NodeT(NodeKind::N3, tokens.add(TokenT(TokenKind::T1))));
+        (void)nodes.token(NodeT(NodeKind::N3, tokens.add(TokenT(TokenKind::T2))));
         // Close pending tree
         (void)nodes.endTree();
         // Now (sub ("K1" "K2")) have been pushed to the node store
@@ -92,20 +90,15 @@ TEST(GeneralNodeAPITest, FlatSubnodeWithNoDeepNesting) {
     NodeGroup<NodeKind, TokenKind, char, std::monostate> nodes(&tokens);
 
     NIdT top = nodes.startTree(NodeT(NodeKind::N1));
-    (void)nodes.token(
-        NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T1))));
-    (void)nodes.token(
-        NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T2))));
-    (void)nodes.token(
-        NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T3))));
+    (void)nodes.token(NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T1))));
+    (void)nodes.token(NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T2))));
+    (void)nodes.token(NodeT(NodeKind::N2, tokens.add(TokenT(TokenKind::T3))));
     (void)nodes.endTree();
     EXPECT_EQ(nodes.at(top).getExtent(), 3);
 
     auto [begin, end] = nodes.subnodesOf(top).value();
     Vec<TIdT> subtoks;
-    for (; begin != end; ++begin) {
-        subtoks.push_back(nodes.at(*begin).getToken());
-    }
+    for (; begin != end; ++begin) { subtoks.push_back(nodes.at(*begin).getToken()); }
     EXPECT_EQ(nodes.size(top), 3);
     EXPECT_EQ(subtoks.size(), 3);
     EXPECT_EQ(subtoks.at(0).getIndex(), 0);

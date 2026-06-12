@@ -17,9 +17,7 @@ class XtoYBimapBase {
   protected:
     BoostBimap bimap;
 
-    Derived const& self() const {
-        return static_cast<Derived const&>(*this);
-    }
+    Derived const& self() const { return static_cast<Derived const&>(*this); }
 
   public:
     void erase_left(L const& leftKey) { bimap.left.erase(leftKey); }
@@ -35,17 +33,13 @@ class XtoYBimapBase {
 
     Vec<L> left_keys() const {
         Vec<L> result;
-        for (const auto& pair : bimap.left) {
-            result.push_back(pair.first);
-        }
+        for (const auto& pair : bimap.left) { result.push_back(pair.first); }
         return result;
     }
 
     Vec<R> right_keys() const {
         Vec<R> result;
-        for (const auto& pair : bimap.right) {
-            result.push_back(pair.first);
-        }
+        for (const auto& pair : bimap.right) { result.push_back(pair.first); }
         return result;
     }
 
@@ -72,11 +66,7 @@ class Unordered1to1Bimap
     using BoostBimap = boost::bimap<
         boost::bimaps::unordered_set_of<L, LHash>,
         boost::bimaps::unordered_set_of<R, RHash>>;
-    using Base = XtoYBimapBase<
-        Unordered1to1Bimap<L, R, LHash, RHash>,
-        BoostBimap,
-        L,
-        R>;
+    using Base = XtoYBimapBase<Unordered1to1Bimap<L, R, LHash, RHash>, BoostBimap, L, R>;
 
   public:
     Opt<L> get_left(R const& rightKey) const {
@@ -97,8 +87,7 @@ class Unordered1to1Bimap
         } else {
             throw hstd::key_error::init(
                 hstd::fmt(
-                    "right bimap key does not exist {}",
-                    hstd::fmt1_maybe(rightKey)));
+                    "right bimap key does not exist {}", hstd::fmt1_maybe(rightKey)));
         }
     }
 
@@ -107,16 +96,13 @@ class Unordered1to1Bimap
             return this->bimap.left.at(leftKey);
         } else {
             throw hstd::key_error::init(
-                hstd::fmt(
-                    "left bimap key does not exist {}",
-                    hstd::fmt1_maybe(leftKey)));
+                hstd::fmt("left bimap key does not exist {}", hstd::fmt1_maybe(leftKey)));
         }
     }
 
     void add_unique(L const& left, R const& right) {
         if (this->contains_left(left) || this->contains_right(right)) {
-            throw hstd::runtime_error::init(
-                "add_unique failed: Keys already exist.");
+            throw hstd::runtime_error::init("add_unique failed: Keys already exist.");
         }
         this->bimap.insert({left, right});
     }
@@ -138,19 +124,13 @@ class UnorderedNto1Bimap
     using BoostBimap = boost::bimap<
         boost::bimaps::unordered_set_of<L, LHash>,
         boost::bimaps::unordered_multiset_of<R, RHash>>;
-    using Base = XtoYBimapBase<
-        UnorderedNto1Bimap<L, R, LHash, RHash>,
-        BoostBimap,
-        L,
-        R>;
+    using Base = XtoYBimapBase<UnorderedNto1Bimap<L, R, LHash, RHash>, BoostBimap, L, R>;
 
   public:
     Vec<L> get_left(R const& rightKey) const {
         Vec<L> result;
         auto [begin, end] = this->bimap.right.equal_range(rightKey);
-        for (auto it = begin; it != end; ++it) {
-            result.push_back(it->second);
-        }
+        for (auto it = begin; it != end; ++it) { result.push_back(it->second); }
         return result;
     }
 
@@ -162,15 +142,12 @@ class UnorderedNto1Bimap
 
     Vec<L> at_left(R const& rightKey) const {
         if (!this->contains_right(rightKey)) {
-            throw hstd::runtime_error::init(
-                "at_left failed: Right key not found.");
+            throw hstd::runtime_error::init("at_left failed: Right key not found.");
         }
         return get_left(rightKey);
     }
 
-    R const& at_right(L const& leftKey) const {
-        return this->bimap.left.at(leftKey);
-    }
+    R const& at_right(L const& leftKey) const { return this->bimap.left.at(leftKey); }
 
     void add_unique(L const& left, R const& right) {
         // bimap::insert natively checks duplicates on both sides:
@@ -186,8 +163,7 @@ class UnorderedNto1Bimap
     bool reassign(L const& left, R const& new_right) {
         auto it = this->bimap.left.find(left);
         if (it == this->bimap.left.end()) { return false; }
-        this->bimap.left.modify_data(
-            it, [new_right](R& val) { val = new_right; });
+        this->bimap.left.modify_data(it, [new_right](R& val) { val = new_right; });
         return true;
     }
 };
@@ -204,56 +180,47 @@ class StableNto1Bimap
     using BoostBimap = boost::bimap<
         boost::bimaps::vector_of<L>,
         boost::bimaps::unordered_multiset_of<R, RHash>>;
-    using Base = XtoYBimapBase<
-        StableNto1Bimap<L, R, RHash>,
-        BoostBimap,
-        L,
-        R>;
+    using Base = XtoYBimapBase<StableNto1Bimap<L, R, RHash>, BoostBimap, L, R>;
 
   public:
     Vec<L> get_left(R const& rightKey) const {
         Vec<L> result;
         auto [begin, end] = this->bimap.right.equal_range(rightKey);
-        for (auto it = begin; it != end; ++it) {
-            result.push_back(it->second);
-        }
+        for (auto it = begin; it != end; ++it) { result.push_back(it->second); }
         return result;
     }
 
     Opt<R> get_right(L const& leftKey) const {
         auto it = std::find_if(
-            this->bimap.left.begin(),
-            this->bimap.left.end(),
-            [&](auto const& pair) { return pair.first == leftKey; });
+            this->bimap.left.begin(), this->bimap.left.end(), [&](auto const& pair) {
+                return pair.first == leftKey;
+            });
         if (it != this->bimap.left.end()) { return it->second; }
         return std::nullopt;
     }
 
     Vec<L> at_left(R const& rightKey) const {
         if (!this->contains_right(rightKey)) {
-            throw hstd::runtime_error::init(
-                "at_left failed: Right key not found.");
+            throw hstd::runtime_error::init("at_left failed: Right key not found.");
         }
         return get_left(rightKey);
     }
 
     R const& at_right(L const& leftKey) const {
         auto it = std::find_if(
-            this->bimap.left.begin(),
-            this->bimap.left.end(),
-            [&](auto const& pair) { return pair.first == leftKey; });
+            this->bimap.left.begin(), this->bimap.left.end(), [&](auto const& pair) {
+                return pair.first == leftKey;
+            });
         if (it != this->bimap.left.end()) { return it->second; }
         throw hstd::key_error::init(
-            hstd::fmt(
-                "left bimap key does not exist {}",
-                hstd::fmt1_maybe(leftKey)));
+            hstd::fmt("left bimap key does not exist {}", hstd::fmt1_maybe(leftKey)));
     }
 
     void add_unique(L const& left, R const& right) {
         auto it = std::find_if(
-            this->bimap.left.begin(),
-            this->bimap.left.end(),
-            [&](auto const& pair) { return pair.first == left; });
+            this->bimap.left.begin(), this->bimap.left.end(), [&](auto const& pair) {
+                return pair.first == left;
+            });
         if (it != this->bimap.left.end()) {
             throw hstd::runtime_error::init(
                 "add_unique failed: Left key already exists.");
@@ -271,20 +238,19 @@ class StableNto1Bimap
 
     void erase_left(L const& leftKey) {
         auto it = std::find_if(
-            this->bimap.left.begin(),
-            this->bimap.left.end(),
-            [&](auto const& pair) { return pair.first == leftKey; });
+            this->bimap.left.begin(), this->bimap.left.end(), [&](auto const& pair) {
+                return pair.first == leftKey;
+            });
         if (it != this->bimap.left.end()) { this->bimap.left.erase(it); }
     }
 
     bool reassign(L const& left, R const& new_right) {
         auto it = std::find_if(
-            this->bimap.left.begin(),
-            this->bimap.left.end(),
-            [&](auto const& pair) { return pair.first == left; });
+            this->bimap.left.begin(), this->bimap.left.end(), [&](auto const& pair) {
+                return pair.first == left;
+            });
         if (it == this->bimap.left.end()) { return false; }
-        this->bimap.left.modify_data(
-            it, [new_right](R& val) { val = new_right; });
+        this->bimap.left.modify_data(it, [new_right](R& val) { val = new_right; });
         return true;
     }
 };
@@ -297,7 +263,7 @@ struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>>
     template <typename FormatContext>
     auto format(
         hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> const& p,
-        FormatContext& ctx) const {
+        FormatContext&                                           ctx) const {
         bool first = true;
         fmt_ctx("{", ctx);
         for (auto const& [left, right] : p.get_map()) {

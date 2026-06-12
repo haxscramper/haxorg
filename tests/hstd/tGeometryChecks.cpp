@@ -33,25 +33,17 @@ TEST(GeometryChecks, RelativeDirectionalChecksUseStationaryFirst) {
     hg::Rect relativeBelow(12, 25, 5, 5);
     hg::Rect relativeOverlap(15, 15, 5, 5);
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkLeftOf(stationary, relativeLeft)));
-    EXPECT_FALSE(
-        static_cast<bool>(hg::checkLeftOf(stationary, relativeOverlap)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkLeftOf(stationary, relativeLeft)));
+    EXPECT_FALSE(static_cast<bool>(hg::checkLeftOf(stationary, relativeOverlap)));
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkRightOf(stationary, relativeRight)));
-    EXPECT_FALSE(
-        static_cast<bool>(hg::checkRightOf(stationary, relativeOverlap)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkRightOf(stationary, relativeRight)));
+    EXPECT_FALSE(static_cast<bool>(hg::checkRightOf(stationary, relativeOverlap)));
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkAbove(stationary, relativeAbove)));
-    EXPECT_FALSE(
-        static_cast<bool>(hg::checkAbove(stationary, relativeOverlap)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkAbove(stationary, relativeAbove)));
+    EXPECT_FALSE(static_cast<bool>(hg::checkAbove(stationary, relativeOverlap)));
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkBelow(stationary, relativeBelow)));
-    EXPECT_FALSE(
-        static_cast<bool>(hg::checkBelow(stationary, relativeOverlap)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkBelow(stationary, relativeBelow)));
+    EXPECT_FALSE(static_cast<bool>(hg::checkBelow(stationary, relativeOverlap)));
 }
 
 TEST(GeometryChecks, PartiallyAboveAndCoveringChecks) {
@@ -61,16 +53,14 @@ TEST(GeometryChecks, PartiallyAboveAndCoveringChecks) {
     hg::Rect nested(10, 10, 5, 5);
 
     EXPECT_TRUE(
-        static_cast<bool>(hg::checkPartiallyAbove(
-            stationary, relativePartiallyAbove, 80.0)));
+        static_cast<bool>(
+            hg::checkPartiallyAbove(stationary, relativePartiallyAbove, 80.0)));
     EXPECT_FALSE(
-        static_cast<bool>(hg::checkPartiallyAbove(
-            stationary, relativePartiallyAbove, 79.0)));
+        static_cast<bool>(
+            hg::checkPartiallyAbove(stationary, relativePartiallyAbove, 79.0)));
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkFullyCovers(container, nested)));
-    EXPECT_FALSE(
-        static_cast<bool>(hg::checkFullyCovers(nested, container)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkFullyCovers(container, nested)));
+    EXPECT_FALSE(static_cast<bool>(hg::checkFullyCovers(nested, container)));
 }
 
 TEST(GeometryChecks, AlignmentDistanceAndSizeChecks) {
@@ -81,17 +71,13 @@ TEST(GeometryChecks, AlignmentDistanceAndSizeChecks) {
     hg::Rect cSameSize(50, 50, 10, 10);
     hg::Rect dDifferent(50, 50, 12, 9);
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkAlignedHorizontally(a, bAlignedHoriz)));
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkAlignedVertically(a, bAlignedVert)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkAlignedHorizontally(a, bAlignedHoriz)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkAlignedVertically(a, bAlignedVert)));
 
     EXPECT_TRUE(static_cast<bool>(hg::checkMinDistance(a, bFar, 20.0)));
-    EXPECT_FALSE(
-        static_cast<bool>(hg::checkMinDistance(a, bAlignedHoriz, 20.0)));
+    EXPECT_FALSE(static_cast<bool>(hg::checkMinDistance(a, bAlignedHoriz, 20.0)));
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkMaxDistance(a, bAlignedHoriz, 10.0)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkMaxDistance(a, bAlignedHoriz, 10.0)));
     EXPECT_FALSE(static_cast<bool>(hg::checkMaxDistance(a, bFar, 10.0)));
 
     EXPECT_TRUE(static_cast<bool>(hg::checkSameWidth(a, cSameSize)));
@@ -141,8 +127,6 @@ TEST(GeometryChecks, IntersectionsAndEquidistantChecks) {
         hg::Rect(20, 0, 2, 2),
     };
 
-    EXPECT_TRUE(
-        static_cast<bool>(hg::checkEquidistant(equidistantOk, 0.0)));
-    EXPECT_FALSE(
-        static_cast<bool>(hg::checkEquidistant(equidistantBad, 0.0)));
+    EXPECT_TRUE(static_cast<bool>(hg::checkEquidistant(equidistantOk, 0.0)));
+    EXPECT_FALSE(static_cast<bool>(hg::checkEquidistant(equidistantBad, 0.0)));
 }

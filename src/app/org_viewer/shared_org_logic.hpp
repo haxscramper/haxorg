@@ -18,12 +18,9 @@
 
 namespace fs = std::filesystem;
 
-std::unordered_map<std::string, double> getOrgFileTimes(
-    fs::path const& infile);
+std::unordered_map<std::string, double> getOrgFileTimes(fs::path const& infile);
 
-bool checkOrgFilesChanged(
-    fs::path const& infile,
-    fs::path const& cache_file);
+bool checkOrgFilesChanged(fs::path const& infile, fs::path const& cache_file);
 
 void writeOrgFileCache(fs::path const& infile, fs::path const& cache_file);
 
@@ -57,25 +54,21 @@ class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
         int  result  = 0;
         auto periods = getClockPeriods(recursive);
 
-        for (const auto& [from, to] : periods) {
-            result += to.time - from.time;
-        }
+        for (const auto& [from, to] : periods) { result += to.time - from.time; }
 
         return result;
     }
 
     bool isEvent() const {
-        return getScheduledTime().has_value()
-            || getDeadlineTime().has_value();
+        return getScheduledTime().has_value() || getDeadlineTime().has_value();
     }
 
     hstd::Opt<std::chrono::seconds> getDuration() const {
 
         if (auto subtree = data.asOpt<org::sem::Subtree>()) {
-            for (auto const& prop : org::getSubtreeProperties<
-                     org::sem::NamedProperty::Effort>(subtree)) {
-                return std::chrono::seconds(
-                    (prop.hours * 60 + prop.minutes) * 60);
+            for (auto const& prop :
+                 org::getSubtreeProperties<org::sem::NamedProperty::Effort>(subtree)) {
+                return std::chrono::seconds((prop.hours * 60 + prop.minutes) * 60);
             }
         }
         return std::nullopt;
@@ -84,8 +77,7 @@ class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
     hstd::Opt<org::sem::Time::Repeat> getScheduledRepeat() const {
         if (auto subtree = data.asOpt<org::sem::Subtree>()) {
             if (subtree->scheduled) {
-                return subtree->scheduled.value()->getStatic().repeat.get(
-                    0);
+                return subtree->scheduled.value()->getStatic().repeat.get(0);
             }
         }
         return std::nullopt;
@@ -94,8 +86,7 @@ class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
     hstd::Opt<org::sem::Time::Repeat> getDeadlineRepeat() const {
         if (auto subtree = data.asOpt<org::sem::Subtree>()) {
             if (subtree->deadline) {
-                return subtree->deadline.value()->getStatic().repeat.get(
-                    0);
+                return subtree->deadline.value()->getStatic().repeat.get(0);
             }
         }
         return std::nullopt;
@@ -114,26 +105,22 @@ class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
 
     hstd::Opt<hstd::UserTime> getDeadlineTime() const {
         if (auto subtree = data.asOpt<org::sem::Subtree>()) {
-            if (subtree->deadline) {
-                return subtree->deadline.value()->getStaticTime();
-            }
+            if (subtree->deadline) { return subtree->deadline.value()->getStaticTime(); }
         }
         return std::nullopt;
     }
 
     hstd::Opt<hstd::UserTime> getClosedTime() const {
         if (auto subtree = data.asOpt<org::sem::Subtree>()) {
-            if (subtree->closed) {
-                return subtree->closed.value()->getStaticTime();
-            }
+            if (subtree->closed) { return subtree->closed.value()->getStaticTime(); }
         }
         return std::nullopt;
     }
 
     hstd::Opt<hstd::UserTime> getCreatedTime() const {
         if (auto subtree = data.asOpt<org::sem::Subtree>()) {
-            for (auto const& time : subtree->getTimePeriods(
-                     {org::sem::SubtreePeriod::Kind::Created})) {
+            for (auto const& time :
+                 subtree->getTimePeriods({org::sem::SubtreePeriod::Kind::Created})) {
                 return time.from;
             }
         }
@@ -151,17 +138,16 @@ class OrgAgendaNode : public hstd::SharedPtrApi<OrgAgendaNode> {
     hstd::Pair<int, int> getRecursiveCompletion() const;
 
     int getPriorityOrder() const {
-        std::string priority = getPriority();
-        static const std::unordered_map<std::string, int>
-            priority_order = {
-                {"X", 0},
-                {"S", 1},
-                {"A", 2},
-                {"B", 3},
-                {"C", 4},
-                {"D", 5},
-                {"E", 6},
-                {"F", 7}};
+        std::string                                       priority       = getPriority();
+        static const std::unordered_map<std::string, int> priority_order = {
+            {"X", 0},
+            {"S", 1},
+            {"A", 2},
+            {"B", 3},
+            {"C", 4},
+            {"D", 5},
+            {"E", 6},
+            {"F", 7}};
 
         auto it = priority_order.find(priority);
         return it != priority_order.end() ? it->second : -1;

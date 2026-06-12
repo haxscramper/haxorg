@@ -110,21 +110,15 @@ const json& org::sem::OrgJson::getRef() const {
     }
 }
 
-std::string org::sem::OrgJson::getJsonString() const {
-    return getRef().dump();
-}
+std::string org::sem::OrgJson::getJsonString() const { return getRef().dump(); }
 
-std::string org::sem::OrgJson::getString() const {
-    return getRef().get<std::string>();
-}
+std::string org::sem::OrgJson::getString() const { return getRef().get<std::string>(); }
 
 int org::sem::OrgJson::getInt() const { return getRef().get<int>(); }
 
 bool org::sem::OrgJson::getBool() const { return getRef().get<bool>(); }
 
-std::string org::sem::OrgJson::dump(int indent) const {
-    return getRef().dump(indent);
-}
+std::string org::sem::OrgJson::dump(int indent) const { return getRef().dump(indent); }
 
 hstd::Vec<org::sem::OrgJson> org::sem::OrgJson::getArray() const {
     hstd::Vec<OrgJson> result;
@@ -136,8 +130,7 @@ org::sem::OrgJson org::sem::OrgJson::getItem(int index) const {
     return getRef().at(index);
 }
 
-org::sem::OrgJson org::sem::OrgJson::getField(
-    std::string const& name) const {
+org::sem::OrgJson org::sem::OrgJson::getField(std::string const& name) const {
     return getRef().at(name);
 }
 
@@ -145,6 +138,4 @@ org::sem::OrgJson org::sem::OrgJson::at(std::string const& name) const {
     return &getRef().at(name);
 }
 
-org::sem::OrgJson org::sem::OrgJson::at(int idx) const {
-    return &getRef().at(idx);
-}
+org::sem::OrgJson org::sem::OrgJson::at(int idx) const { return &getRef().at(idx); }

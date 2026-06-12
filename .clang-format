@@ -7,7 +7,7 @@ IndentWidth: 4
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: None
 PenaltyBreakBeforeFirstCallParameter: 10
-ColumnLimit: 75
+ColumnLimit: 90
 # PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 5000
 AccessModifierOffset: -2

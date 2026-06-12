@@ -17,9 +17,7 @@ namespace hstd::ext::graph::adapt {
 
 geometry::Point       to_hstd(Avoid::Point const& input);
 geometry::Rect        to_hstd(vpsc::Rectangle const& input);
-inline geometry::Rect to_hstd(vpsc::Rectangle const* input) {
-    return to_hstd(*input);
-}
+inline geometry::Rect to_hstd(vpsc::Rectangle const* input) { return to_hstd(*input); }
 inline geometry::Rect to_hstd(hstd::SPtr<vpsc::Rectangle> const& input) {
     return to_hstd(*input);
 }
@@ -34,30 +32,24 @@ inline Avoid::Point to_avoid(geometry::Point const& point) {
 }
 
 inline Avoid::Rectangle to_avoid(geometry::Rect const& rect) {
-    return Avoid::Rectangle{
-        to_avoid(rect.min_corner()), to_avoid(rect.max_corner())};
+    return Avoid::Rectangle{to_avoid(rect.min_corner()), to_avoid(rect.max_corner())};
 }
 
 
-inline void add_checkpoint(
-    visual::VisGroup&        g,
-    Avoid::Checkpoint const& ch) {
+inline void add_checkpoint(visual::VisGroup& g, Avoid::Checkpoint const& ch) {
     g.elements.push_back(
         visual::VisElement{visual::VisElement::EllipseShape{
-            .geometry = geometry::Rect::FromCenterWH(
-                to_hstd(ch.point), 5, 5)}});
+            .geometry = geometry::Rect::FromCenterWH(to_hstd(ch.point), 5, 5)}});
 }
 
 inline void add_rect(visual::VisGroup& g, Avoid::Polygon const& shape) {
     g.elements.push_back(
-        visual::VisElement{
-            visual::VisElement::RectShape{to_hstd_rect(shape)}});
+        visual::VisElement{visual::VisElement::RectShape{to_hstd_rect(shape)}});
 }
 
 inline void add_path(visual::VisGroup& g, Avoid::Polygon const& shape) {
     g.elements.push_back(
-        visual::VisElement{
-            visual::VisElement::PathShape{to_hstd_path(shape)}});
+        visual::VisElement{visual::VisElement::PathShape{to_hstd_path(shape)}});
 }
 
 inline void add_rect(visual::VisGroup& g, vpsc::Rectangle const& shape) {
@@ -71,9 +63,8 @@ inline void add_rect(visual::VisGroup& g, vpsc::Rectangle const& shape) {
 template <>
 struct std::formatter<vpsc::Rectangle> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        vpsc::Rectangle const& rect,
-        FormatContext&         ctx) const {
+    FormatContext::iterator format(vpsc::Rectangle const& rect, FormatContext& ctx)
+        const {
         return ::hstd::fmt_ctx(
             hstd::fmt(
                 "[{},{} + ({},{})]",

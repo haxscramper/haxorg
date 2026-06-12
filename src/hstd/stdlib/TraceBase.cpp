@@ -23,8 +23,7 @@ hstd::Opt<fs::path> OperationsTracer::getTraceFileDir() const {
     }
 }
 
-hstd::fs::path OperationsTracer::getAdjacentToTraceFile(
-    Str const& suffix) const {
+hstd::fs::path OperationsTracer::getAdjacentToTraceFile(Str const& suffix) const {
     auto outdir = getTraceFileDir();
     LOGIC_ASSERTION_CHECK(outdir.has_value(), "must be writing to file");
     auto result = outdir.value() / suffix.toBase();
@@ -41,11 +40,7 @@ void OperationsTracer::writeToTraceFile(
     char const*           file) const {
     writeFile(path, text);
     if (with_message) {
-        message(
-            hstd::fmt("wrote debug file to {}", path),
-            function,
-            line,
-            file);
+        message(hstd::fmt("wrote debug file to {}", path), function, line, file);
     }
 }
 
@@ -68,22 +63,19 @@ void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
     this->stream = stream;
 }
 
-void OperationsTracer::setTraceFile(
-    fs::path const& outfile,
-    bool            overwrite) {
+void OperationsTracer::setTraceFile(fs::path const& outfile, bool overwrite) {
     LOGIC_ASSERTION_CHECK(
-        outfile.native().size() != 0,
-        "Expected non-empty filename for the output");
+        outfile.native().size() != 0, "Expected non-empty filename for the output");
     traceFile   = outfile;
     TraceState  = true;
     traceToFile = true;
     createDirectory(outfile.parent_path(), true, true);
     if (overwrite) {
-        stream = std::make_shared<std::ofstream>(std::ofstream{
-            outfile.native(), std::ios_base::out | std::ios_base::trunc});
+        stream = std::make_shared<std::ofstream>(
+            std::ofstream{outfile.native(), std::ios_base::out | std::ios_base::trunc});
     } else {
-        stream = std::make_shared<std::ofstream>(std::ofstream{
-            outfile.native(), std::ios_base::out | std::ios_base::app});
+        stream = std::make_shared<std::ofstream>(
+            std::ofstream{outfile.native(), std::ios_base::out | std::ios_base::app});
     }
     traceColored = false;
 }
@@ -108,8 +100,7 @@ ColStream OperationsTracer::getStream() const {
 void OperationsTracer::endStream(ColStream& stream) const {
     if (traceToBuffer) {
         stream << "\n";
-        const_cast<OperationsTracer*>(this)
-            ->traceBuffer += stream.toString(traceColored);
+        const_cast<OperationsTracer*>(this)->traceBuffer += stream.toString(traceColored);
     } else {
         (*stream.ostream) << std::endl;
     }
@@ -146,26 +137,21 @@ void OperationsTracer::message(OperationsMsg const& value) const {
                 "{0}{1}{2}{3} @{4}",
                 /*0*/ Str{"  "}.repeated(value.level),
                 /*1*/ value.file
-                    ? fmt("{:_<24}",
-                          fs::path{value.file}.filename().native())
+                    ? fmt("{:_<24}", fs::path{value.file}.filename().native())
                     : "",
                 /*2*/ value.line == 0 ? "" : fmt(":{:<4}", value.line),
                 /*3*/ value.column == 0 ? "" : fmt(":{}", value.column),
-                /*4*/ value.function ? fmt("{:_<24}", value.function)
-                                     : "?");
+                /*4*/ value.function ? fmt("{:_<24}", value.function) : "?");
             os << prefix;
             if (value.msg) {
                 if (value.msg.value().find('\n') == -1) {
                     os << " " << value.msg.value();
-                    if (value.metadata) {
-                        os << " " << value.metadata->dump();
-                    }
+                    if (value.metadata) { os << " " << value.metadata->dump(); }
                 } else {
                     bool isFirst = true;
                     for (auto const& line : split(*value.msg, '\n')) {
                         if (isFirst) {
-                            if (!value.metadata
-                                || value.metadata->is_null()) {
+                            if (!value.metadata || value.metadata->is_null()) {
                                 os << " " << line;
                             } else {
                                 os << " "                              //
@@ -177,9 +163,7 @@ void OperationsTracer::message(OperationsMsg const& value) const {
                             }
                             isFirst = false;
                         } else {
-                            os << "\n"
-                               << Str(" ").repeated(prefix.size()) << " "
-                               << line;
+                            os << "\n" << Str(" ").repeated(prefix.size()) << " " << line;
                         }
                     }
                 }
@@ -255,8 +239,7 @@ hstd::OperationsTracer::ScopeHandle OperationsTracer::begin_scope(
 finally_std OperationsTracer::scopeTrace(bool state) {
     bool initialTrace = TraceState;
     TraceState        = state;
-    return finally_std{
-        [initialTrace, this]() { TraceState = initialTrace; }};
+    return finally_std{[initialTrace, this]() { TraceState = initialTrace; }};
 }
 
 void OperationsMsg::use_stacktrace_as_msg() {

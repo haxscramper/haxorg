@@ -5,8 +5,7 @@ using namespace org::parse;
 using namespace hstd;
 
 template <typename N, typename K, typename V, typename M>
-typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::endTree(
-    int offset) {
+typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::endTree(int offset) {
     LOGIC_ASSERTION_CHECK(0 < pendingTrees.size(), "");
     auto start = pendingTrees.pop_back_v();
     nodes.at(start).extend(distance(start, nodes.back()) + offset);
@@ -24,8 +23,7 @@ typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::failTree(
 
 template <typename N, typename K, typename V, typename M>
 void NodeGroup<N, K, V, M>::removeTail(Id id) {
-    nodes.content.erase(
-        nodes.content.begin() + id.getIndex(), nodes.content.end());
+    nodes.content.erase(nodes.content.begin() + id.getIndex(), nodes.content.end());
 }
 
 template <typename N, typename K, typename V, typename M>
@@ -66,8 +64,8 @@ Opt<Pair<typename NodeGroup<N, K, V, M>::iterator, typename NodeGroup<N, K, V, M
 }
 
 template <typename N, typename K, typename V, typename M>
-Opt<Slice<typename NodeGroup<N, K, V, M>::Id>> NodeGroup<N, K, V, M>::
-    allSubnodesOf(Id node) const {
+Opt<Slice<typename NodeGroup<N, K, V, M>::Id>> NodeGroup<N, K, V, M>::allSubnodesOf(
+    Id node) const {
     if (0 < at(node).getExtent()) {
         return slice<Id>(node + 1, node + at(node).getExtent());
     } else {
@@ -108,9 +106,8 @@ int NodeGroup<N, K, V, M>::size(Id node) const {
 }
 
 template <typename N, typename K, typename V, typename M>
-typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(
-    Id  node,
-    int index) const {
+typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(Id node, int index)
+    const {
     if (auto pair = subnodesOf(node)) {
         auto [begin, end] = *pair;
         int i             = 0;
@@ -126,9 +123,7 @@ typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(
                 i));
     } else {
         throw hstd::range_error::init(
-            fmt("Node {} of kind {} does not have subnode range",
-                node,
-                at(node).kind));
+            fmt("Node {} of kind {} does not have subnode range", node, at(node).kind));
     }
 }
 
@@ -173,15 +168,12 @@ void NodeGroup<N, K, V, M>::treeRepr(
         os.write_indented_after_first(split, os.position - startPosition);
     }
 
-    if (conf.withSubnodeIdx) {
-        os << os.cyan() << fmt("[{}]", subnodeIdx) << os.end();
-    }
+    if (conf.withSubnodeIdx) { os << os.cyan() << fmt("[{}]", subnodeIdx) << os.end(); }
 
     if (conf.withTreeMask) { os << fmt(" MASK:{}", node.getMask()); }
 
     if (conf.withTreeId) {
-        os << " " << os.blue() << fmt("ID:{}", node.getUnmasked())
-           << os.end();
+        os << " " << os.blue() << fmt("ID:{}", node.getUnmasked()) << os.end();
     }
 
     if (at(node).isTerminal()) {
@@ -211,8 +203,7 @@ void NodeGroup<N, K, V, M>::treeRepr(
                 auto            par = getParams(tmp);
                 par.pos             = Pos::LineEnd;
                 conf.customWrite(par);
-                os.write_indented_after_first(
-                    tmp, os.size() - startPosition);
+                os.write_indented_after_first(tmp, os.size() - startPosition);
             }
             os << "\n";
             treeRepr(os, *begin, level + 1, conf, idx, node);
@@ -244,9 +235,7 @@ void NodeGroup<N, K, V, M>::treeRepr(
 }
 
 template <typename N, typename K, typename V, typename M>
-std::string NodeGroup<N, K, V, M>::treeRepr(
-    Id                  node,
-    TreeReprConf const& conf) const {
+std::string NodeGroup<N, K, V, M>::treeRepr(Id node, TreeReprConf const& conf) const {
     std::stringstream buffer;
     ColStream         text{buffer};
     text.colored = false;

@@ -58,9 +58,7 @@ struct Cursor {
         LOGIC_ASSERTION_CHECK_FMT(get() == c, "{}", c);
         if (p.TraceState) {
             p.message(
-                fmt("skip {} at {}",
-                    escape_literal(std::string{c}),
-                    format(5)),
+                fmt("skip {} at {}", escape_literal(std::string{c}), format(5)),
                 function,
                 line);
         }
@@ -85,8 +83,7 @@ struct Cursor {
             if (first(c)) { return true; }
         } else {
             static_assert(
-                std::is_same_v<T, char>
-                    || std::is_invocable_r_v<bool, T, char>,
+                std::is_same_v<T, char> || std::is_invocable_r_v<bool, T, char>,
                 "Arguments must be either chars or char predicates");
             return false;
         }
@@ -114,8 +111,7 @@ struct Cursor {
             matches = first(text[pos + offset]);
         } else {
             static_assert(
-                std::is_same_v<T, char>
-                    || std::is_invocable_r_v<bool, T, char>,
+                std::is_same_v<T, char> || std::is_invocable_r_v<bool, T, char>,
                 "Arguments must be either chars or char predicates");
             return false;
         }
@@ -153,9 +149,7 @@ struct Cursor {
 
     bool is_at(std::string const& text, int offset = 0) const {
         for (int i = 0; i < text.size(); ++i) {
-            if (!has_pos(i + offset) || get(i + offset) != text.at(i)) {
-                return false;
-            }
+            if (!has_pos(i + offset) || get(i + offset) != text.at(i)) { return false; }
         }
 
         return true;
@@ -186,9 +180,7 @@ struct Cursor {
         int pos  = 0;
     };
 
-    Recall getRecall() const {
-        return Recall{.line = line, .col = col, .pos = pos};
-    }
+    Recall getRecall() const { return Recall{.line = line, .col = col, .pos = pos}; }
 
     void setRecall(Recall const& r) {
         this->line = r.line;
@@ -196,17 +188,12 @@ struct Cursor {
         this->pos  = r.pos;
     }
 
-    bool next(
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
+    bool next(int line = __builtin_LINE(), char const* function = __builtin_FUNCTION()) {
         if (text.size() <= pos) {
             return false;
         } else if (get() == '\n') {
             if (p.TraceState) {
-                p.message(
-                    fmt("next line over at {}", format(5)),
-                    function,
-                    line);
+                p.message(fmt("next line over at {}", format(5)), function, line);
             }
 
             this->line++;
@@ -233,9 +220,8 @@ struct Cursor {
             pos++;
             return pos < text.size();
         } else {
-            unsigned char firstByte = static_cast<unsigned char>(
-                text[pos]);
-            size_t charSize = 1;
+            unsigned char firstByte = static_cast<unsigned char>(text[pos]);
+            size_t        charSize  = 1;
 
             if (0xF0 <= firstByte) {
                 charSize = 4;
@@ -270,18 +256,16 @@ struct Cursor {
         return std::string_view{start, end};
     }
 
-    lexy::string_input<lexy::default_encoding> lexy_input(
-        int offset) const {
+    lexy::string_input<lexy::default_encoding> lexy_input(int offset) const {
         auto view = lexy_view(offset);
         return lexy::string_input{view.data(), view.size()};
     }
 
     template <auto Pattern>
     struct lexeme_completion_rule {
-        static constexpr auto value = lexy::callback<int>(
-            [](lexy::string_lexeme<> lex) {
-                return std::distance(lex.begin(), lex.end());
-            });
+        static constexpr auto value = lexy::callback<int>([](lexy::string_lexeme<> lex) {
+            return std::distance(lex.begin(), lex.end());
+        });
 
         static constexpr auto rule = dsl::capture(dsl::token(Pattern));
     };
@@ -297,20 +281,16 @@ struct Cursor {
             lexy::string_input input = lexy_input(offset);
 
             lexy::visualization_options opts{};
-            opts.flags = lexy::visualize_use_unicode
-                       | lexy::visualize_use_symbols
+            opts.flags = lexy::visualize_use_unicode | lexy::visualize_use_symbols
                        | lexy::visualize_space;
             auto view  = lexy_view(offset);
             lexy::trace_to<Rule>(
-                std::back_insert_iterator(str),
-                lexy::zstring_input(input.data()),
-                opts);
+                std::back_insert_iterator(str), lexy::zstring_input(input.data()), opts);
             p.message(
                 fmt("lexy view @ {}:{} {}",
                     line,
                     col,
-                    escape_literal(
-                        view.substr(0, std::min<int>(40, view.size())))),
+                    escape_literal(view.substr(0, std::min<int>(40, view.size())))),
                 function,
                 line);
             p.message(str, function, line);
@@ -329,8 +309,7 @@ struct Cursor {
         int         offset   = 0,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
-        return try_lexy_tok<lexeme_completion_rule<Pattern>>(
-            offset, line, function);
+        return try_lexy_tok<lexeme_completion_rule<Pattern>>(offset, line, function);
     }
 
 
@@ -348,9 +327,7 @@ struct Cursor {
 
     bool eof() const { return text.size() <= pos; }
 
-    bool is_last_line_char() const {
-        return !has_pos(+1) || is_at('\n', +1);
-    }
+    bool is_last_line_char() const { return !has_pos(+1) || is_at('\n', +1); }
 
     int position() const { return pos; }
     int getLine() const { return line; }
@@ -385,8 +362,7 @@ struct Cursor {
             line,
             pos,
             text.size(),
-            pos < text.size() ? escape_literal(text.substr(pos, end))
-                              : "<eol>");
+            pos < text.size() ? escape_literal(text.substr(pos, end)) : "<eol>");
     }
 
     void range_token(
@@ -416,9 +392,7 @@ struct Cursor {
         OrgToken const& tok,
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION()) {
-        if (p.TraceState) {
-            p.message(fmt("{} {}", tok, format(10)), function, line);
-        }
+        if (p.TraceState) { p.message(fmt("{} {}", tok, format(10)), function, line); }
         group->add(tok);
     }
 
@@ -495,9 +469,7 @@ struct Cursor {
             if (start_pos == this->pos) {
                 if (p.TraceState) {
                     p.message(
-                        fmt("No movement around pos {}: {}",
-                            start_pos,
-                            this->format()));
+                        fmt("No movement around pos {}: {}", start_pos, this->format()));
                 }
             }
 
@@ -523,10 +495,8 @@ void advance1(Cursor& c) { c.next(); }
 
 void advance_word(Cursor& c) {
     while (c.has_text() && std::isalnum(c.get())) { c.next(); }
-    while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1)
-           && std::isalnum(c.get(+1))) {
-        while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1)
-               && std::isalnum(c.get(+1))) {
+    while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1) && std::isalnum(c.get(+1))) {
+        while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1) && std::isalnum(c.get(+1))) {
             c.next();
         }
         while (c.has_text() && std::isalnum(c.get())) { c.next(); }
@@ -538,15 +508,11 @@ void advance_word(Cursor& c) {
 
 void advance_number(Cursor& c) {
     if (c.is_at('-')) { c.next(); }
-    while (c.has_text() && (std::isdigit(c.get()) || c.get() == '_')) {
-        c.next();
-    }
+    while (c.has_text() && (std::isdigit(c.get()) || c.get() == '_')) { c.next(); }
 }
 
 void advance_ident(Cursor& c) {
-    while (c.has_text() && (std::isalnum(c.get()) || c.get() == '_')) {
-        c.next();
-    }
+    while (c.has_text() && (std::isalnum(c.get()) || c.get() == '_')) { c.next(); }
 }
 
 void advance_char1(Cursor& c, char ch) {
@@ -557,7 +523,7 @@ void advace_charset(Cursor& c, CharSet const& set) {
     while (c.has_text() && set.contains(c.get())) { c.next(); }
 }
 
-#define MSG(__text)                                                       \
+#define MSG(__text)                                                                      \
     if (c.p.TraceState) { c.p.message(__text); }
 
 namespace {
@@ -595,17 +561,16 @@ void switch_cmd_argument(Cursor& c) {
             if (c.has_pos(+1) && std::isalnum(c.get(+1))) {
                 c.token0(otk::CmdColonIdent, [](Cursor& c) {
                     c.skip(':');
-                    while (c.has_text()
-                           && (std::isalnum(c.get()) || c.get() == '_'
-                               || c.get() == '-')) {
+                    while (
+                        c.has_text()
+                        && (std::isalnum(c.get()) || c.get() == '_' || c.get() == '-')) {
                         c.next();
                     }
                 });
             } else {
                 c.token0(otk::CmdRawArg, [](Cursor& c) {
                     c.next();
-                    while (!c.is_at_any_of(
-                        0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
+                    while (!c.is_at_any_of(0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
                         c.next();
                     }
                 });
@@ -615,8 +580,7 @@ void switch_cmd_argument(Cursor& c) {
         default: {
             c.token0(otk::CmdRawArg, [](Cursor& c) {
                 while (c.has_text()
-                       && !c.is_at_any_of(
-                           0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
+                       && !c.is_at_any_of(0, '(', ')', ']', '[', '=', ',', ' ', '\n')) {
                     c.next();
                 }
             });
@@ -639,95 +603,50 @@ struct CommandSpec {
 };
 
 UnorderedMap<std::string, CommandSpec> CmdSpec{
-    {"columns",
-     CommandSpec{.token = otk::CmdColumns, .type = CommandType::Raw}},
-    {"tblfm",
-     CommandSpec{.token = otk::CmdTblfm, .type = CommandType::Raw}},
-    {"options",
-     CommandSpec{.token = otk::CmdOptions, .type = CommandType::Raw}},
-    {"tags",
-     CommandSpec{.token = otk::CmdTagsRaw, .type = CommandType::Raw}},
-    {"drawers",
-     CommandSpec{.token = otk::CmdDrawersRaw, .type = CommandType::Raw}},
-    {"category",
-     CommandSpec{.token = otk::CmdCategoryRaw, .type = CommandType::Raw}},
-    {"priorities",
-     CommandSpec{
-         .token = otk::CmdPrioritiesRaw,
-         .type  = CommandType::Raw}},
-    {"htmlhead",
-     CommandSpec{.token = otk::CmdHtmlHeadRaw, .type = CommandType::Raw}},
+    {"columns", CommandSpec{.token = otk::CmdColumns, .type = CommandType::Raw}},
+    {"tblfm", CommandSpec{.token = otk::CmdTblfm, .type = CommandType::Raw}},
+    {"options", CommandSpec{.token = otk::CmdOptions, .type = CommandType::Raw}},
+    {"tags", CommandSpec{.token = otk::CmdTagsRaw, .type = CommandType::Raw}},
+    {"drawers", CommandSpec{.token = otk::CmdDrawersRaw, .type = CommandType::Raw}},
+    {"category", CommandSpec{.token = otk::CmdCategoryRaw, .type = CommandType::Raw}},
+    {"priorities", CommandSpec{.token = otk::CmdPrioritiesRaw, .type = CommandType::Raw}},
+    {"htmlhead", CommandSpec{.token = otk::CmdHtmlHeadRaw, .type = CommandType::Raw}},
     {"latexheaderextra",
-     CommandSpec{
-         .token = otk::CmdLatexHeaderExtraRaw,
-         .type  = CommandType::Raw}},
-    {"title",
-     CommandSpec{.token = otk::CmdTitle, .type = CommandType::Text}},
-    {"author",
-     CommandSpec{.token = otk::CmdAuthor, .type = CommandType::Text}},
-    {"filetags",
-     CommandSpec{.token = otk::CmdFiletags, .type = CommandType::Text}},
-    {"caption",
-     CommandSpec{.token = otk::CmdCaption, .type = CommandType::Text}},
-    {"date",
-     CommandSpec{.token = otk::CmdDateRaw, .type = CommandType::Text}},
-    {"link",
-     CommandSpec{.token = otk::CmdLinkRaw, .type = CommandType::Text}},
-    {"description",
-     CommandSpec{.token = otk::CmdDescription, .type = CommandType::Text}},
-    {"language",
-     CommandSpec{.token = otk::CmdLanguage, .type = CommandType::Text}},
-    {"creator",
-     CommandSpec{.token = otk::CmdCreator, .type = CommandType::Text}},
-    {"name",
-     CommandSpec{.token = otk::CmdName, .type = CommandType::Args}},
-    {"email",
-     CommandSpec{.token = otk::CmdEmailRaw, .type = CommandType::Raw}},
-    {"macro",
-     CommandSpec{.token = otk::CmdMacroRaw, .type = CommandType::Raw}},
-    {"bind",
-     CommandSpec{.token = otk::CmdBindRaw, .type = CommandType::Raw}},
+     CommandSpec{.token = otk::CmdLatexHeaderExtraRaw, .type = CommandType::Raw}},
+    {"title", CommandSpec{.token = otk::CmdTitle, .type = CommandType::Text}},
+    {"author", CommandSpec{.token = otk::CmdAuthor, .type = CommandType::Text}},
+    {"filetags", CommandSpec{.token = otk::CmdFiletags, .type = CommandType::Text}},
+    {"caption", CommandSpec{.token = otk::CmdCaption, .type = CommandType::Text}},
+    {"date", CommandSpec{.token = otk::CmdDateRaw, .type = CommandType::Text}},
+    {"link", CommandSpec{.token = otk::CmdLinkRaw, .type = CommandType::Text}},
+    {"description", CommandSpec{.token = otk::CmdDescription, .type = CommandType::Text}},
+    {"language", CommandSpec{.token = otk::CmdLanguage, .type = CommandType::Text}},
+    {"creator", CommandSpec{.token = otk::CmdCreator, .type = CommandType::Text}},
+    {"name", CommandSpec{.token = otk::CmdName, .type = CommandType::Args}},
+    {"email", CommandSpec{.token = otk::CmdEmailRaw, .type = CommandType::Raw}},
+    {"macro", CommandSpec{.token = otk::CmdMacroRaw, .type = CommandType::Raw}},
+    {"bind", CommandSpec{.token = otk::CmdBindRaw, .type = CommandType::Raw}},
     {"excludetags",
-     CommandSpec{
-         .token = otk::CmdExcludeTagsRaw,
-         .type  = CommandType::Raw}},
-    {"selecttags",
-     CommandSpec{
-         .token = otk::CmdSelectTagsRaw,
-         .type  = CommandType::Raw}},
-    {"keywords",
-     CommandSpec{.token = otk::CmdKeywordsRaw, .type = CommandType::Raw}},
-    {"setupfile",
-     CommandSpec{.token = otk::CmdSetupfileRaw, .type = CommandType::Raw}},
-    {"startup",
-     CommandSpec{.token = otk::CmdStartup, .type = CommandType::Raw}},
-    {"seqtodo",
-     CommandSpec{.token = otk::CmdSeqTodoRaw, .type = CommandType::Raw}},
-    {"constants",
-     CommandSpec{.token = otk::CmdConstants, .type = CommandType::Args}},
-    {"results",
-     CommandSpec{.token = otk::CmdResults, .type = CommandType::Args}},
-    {"include",
-     CommandSpec{.token = otk::CmdInclude, .type = CommandType::Args}},
-    {"header",
-     CommandSpec{.token = otk::CmdHeader, .type = CommandType::Args}},
-    {"call",
-     CommandSpec{.token = otk::CmdCall, .type = CommandType::Args}},
+     CommandSpec{.token = otk::CmdExcludeTagsRaw, .type = CommandType::Raw}},
+    {"selecttags", CommandSpec{.token = otk::CmdSelectTagsRaw, .type = CommandType::Raw}},
+    {"keywords", CommandSpec{.token = otk::CmdKeywordsRaw, .type = CommandType::Raw}},
+    {"setupfile", CommandSpec{.token = otk::CmdSetupfileRaw, .type = CommandType::Raw}},
+    {"startup", CommandSpec{.token = otk::CmdStartup, .type = CommandType::Raw}},
+    {"seqtodo", CommandSpec{.token = otk::CmdSeqTodoRaw, .type = CommandType::Raw}},
+    {"constants", CommandSpec{.token = otk::CmdConstants, .type = CommandType::Args}},
+    {"results", CommandSpec{.token = otk::CmdResults, .type = CommandType::Args}},
+    {"include", CommandSpec{.token = otk::CmdInclude, .type = CommandType::Args}},
+    {"header", CommandSpec{.token = otk::CmdHeader, .type = CommandType::Args}},
+    {"call", CommandSpec{.token = otk::CmdCall, .type = CommandType::Args}},
     {"row", CommandSpec{.token = otk::CmdRow, .type = CommandType::Args}},
-    {"cell",
-     CommandSpec{.token = otk::CmdCell, .type = CommandType::Args}},
-    {"latex_class",
-     CommandSpec{.token = otk::CmdLatexClass, .type = CommandType::Args}},
+    {"cell", CommandSpec{.token = otk::CmdCell, .type = CommandType::Args}},
+    {"latex_class", CommandSpec{.token = otk::CmdLatexClass, .type = CommandType::Args}},
     {"latex_compiler",
-     CommandSpec{
-         .token = otk::CmdLatexCompiler,
-         .type  = CommandType::Args}},
+     CommandSpec{.token = otk::CmdLatexCompiler, .type = CommandType::Args}},
     {"latex_header",
      CommandSpec{.token = otk::CmdLatexHeader, .type = CommandType::Args}},
     {"latex_class_options",
-     CommandSpec{
-         .token = otk::CmdLatexClassOptions,
-         .type  = CommandType::Args}},
+     CommandSpec{.token = otk::CmdLatexClassOptions, .type = CommandType::Args}},
 };
 
 
@@ -887,8 +806,7 @@ void switch_command(Cursor& c) {
                     c.token0(otk::SrcContent, [](Cursor& c) {
                         while (c.has_text()
                                && !(
-                                   c.is_at('\n')
-                                   || c.is_at_all_of(0, '>', '>')
+                                   c.is_at('\n') || c.is_at_all_of(0, '>', '>')
                                    || c.is_at_all_of(0, '<', '<'))) {
                             c.next();
                         }
@@ -932,14 +850,11 @@ void switch_command(Cursor& c) {
         if (span) {
             auto property_kind = normalize(Str{c.lexy_substr(0, *span)});
             c.p.message(fmt("property kind {}", property_kind));
-            if (property_kind == "description"
-                || property_kind == "created" || property_kind == "hashtag"
-                || property_kind == "hashtagdef") {
+            if (property_kind == "description" || property_kind == "created"
+                || property_kind == "hashtag" || property_kind == "hashtagdef") {
                 head.kind = otk::CmdPropertyText;
                 head_text();
-            } else if (
-                property_kind == "headerargs"
-                || property_kind == "propargs") {
+            } else if (property_kind == "headerargs" || property_kind == "propargs") {
                 head.kind = otk::CmdPropertyArgs;
                 head_args();
             } else {
@@ -961,8 +876,7 @@ void switch_subtree_head(Cursor& c) {
     __perf_trace("tokens", "subtree head");
     switch (c.get()) {
         case '[': {
-            if (c.is_at('#', +1) && c.has_pos(+2)
-                && std::isalnum(c.get(+2))) {
+            if (c.is_at('#', +1) && c.has_pos(+2) && std::isalnum(c.get(+2))) {
                 c.token0(otk::SubtreePriority, [](Cursor& c) {
                     c.skip('[');
                     c.skip('#');
@@ -1035,8 +949,7 @@ void switch_word(Cursor& c) {
                 });
 
                 c.token0(otk::LinkTarget, [](Cursor& c) {
-                    while (c.has_text()
-                           && !(c.is_at_any_of(0, ' ', ']', '\n'))) {
+                    while (c.has_text() && !(c.is_at_any_of(0, ' ', ']', '\n'))) {
                         c.next();
                     }
                 });
@@ -1053,8 +966,7 @@ void switch_word(Cursor& c) {
                 auto span = c.try_lexy_patt<
                             dsl::ascii::case_folding(LEXY_LIT("src"))
                             + dsl::opt(dsl::lit_c<'_'>)
-                            + dsl::while_one(
-                                dsl::ascii::alpha_digit_underscore)>()) {
+                            + dsl::while_one(dsl::ascii::alpha_digit_underscore)>()) {
                 c.token_adv(otk::TextSrcBegin, *span);
                 lex_inline_src();
                 return;
@@ -1160,19 +1072,15 @@ void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
         int skip = 0;
 
-        auto leading_space =
-            [&](int         line     = __builtin_LINE(),
-                char const* function = __builtin_FUNCTION()) {
-                if (0 < skip) {
-                    c.token_adv(otk::LeadingSpace, skip, line, function);
-                }
-            };
+        auto leading_space = [&](int         line     = __builtin_LINE(),
+                                 char const* function = __builtin_FUNCTION()) {
+            if (0 < skip) { c.token_adv(otk::LeadingSpace, skip, line, function); }
+        };
 
         while (c.is_at(' ', skip)) { ++skip; }
 
         auto property_subname = [&](int pos) -> int {
-            if (auto sub = c.try_lexy_patt<
-                           dsl::p<org_ident> + dsl::lit_c<':'>>(pos)) {
+            if (auto sub = c.try_lexy_patt<dsl::p<org_ident> + dsl::lit_c<':'>>(pos)) {
                 pos += *sub;
             }
             return pos;
@@ -1190,53 +1098,44 @@ void switch_regular_char(Cursor& c) {
         } else if (auto span = is_at_table_separator(c, skip)) {
             c.token_adv(otk::TableSeparator, *span + skip);
             return;
-        } else if (
-            auto span = c.try_lexy_patt<LEXY_ILIT("clock:")>(skip)) {
+        } else if (auto span = c.try_lexy_patt<LEXY_ILIT("clock:")>(skip)) {
             c.token_adv(otk::TreeClock, *span + skip);
             while (c.can_search('\n')) { switch_regular_char(c); }
             return;
         } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":end:")>(skip)) {
             c.token_adv(otk::ColonEnd, *span + skip);
             return;
-        } else if (
-            auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {
+        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {
             c.token_adv(otk::ColonProperties, *span + skip);
             return;
         } else if (
             auto span = c.try_lexy_patt<
                         dsl::digits<>
-                        + (dsl::lit_c<'.'>
-                           | dsl::lit_c<')'>)+dsl::lit_c<' '>>(skip)) {
+                        + (dsl::lit_c<'.'> | dsl::lit_c<')'>)+dsl::lit_c<' '>>(skip)) {
             c.token_adv(otk::LeadingNumber, *span - 1 + skip);
             return;
-        } else if (
-            auto span = c.try_lexy_patt<LEXY_ILIT(":logbook:")>(skip)) {
+        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":logbook:")>(skip)) {
             c.token_adv(otk::ColonLogbook, *span + skip);
             return;
         } else if (
             auto span = c.try_lexy_patt<
-                        dsl::lit_c<':'> + dsl::p<argument_properties>
-                        + dsl::lit_c<':'>>(skip)) {
-            c.token_adv(
-                otk::ColonArgumentsProperty,
-                property_subname(*span + skip));
+                        dsl::lit_c<':'> + dsl::p<argument_properties> + dsl::lit_c<':'>>(
+                skip)) {
+            c.token_adv(otk::ColonArgumentsProperty, property_subname(*span + skip));
             while (c.can_search('\n')) { switch_cmd_argument(c); }
             return;
         } else if (
             auto span = c.try_lexy_patt<
-                        dsl::lit_c<':'> + dsl::p<text_properties>
-                        + dsl::lit_c<':'>>(skip)) {
-            c.token_adv(
-                otk::ColonPropertyText, property_subname(*span + skip));
+                        dsl::lit_c<':'> + dsl::p<text_properties> + dsl::lit_c<':'>>(
+                skip)) {
+            c.token_adv(otk::ColonPropertyText, property_subname(*span + skip));
             while (c.can_search('\n')) { switch_regular_char(c); }
             return;
         } else if (
             auto span = c.try_lexy_patt<
-                        dsl::lit_c<':'> + dsl::p<org_ident>
-                        + dsl::lit_c<':'>>(skip)) {
+                        dsl::lit_c<':'> + dsl::p<org_ident> + dsl::lit_c<':'>>(skip)) {
 
-            c.token_adv(
-                otk::ColonLiteralProperty, property_subname(*span + skip));
+            c.token_adv(otk::ColonLiteralProperty, property_subname(*span + skip));
             c.token0(otk::RawText, [](Cursor& c) {
                 while (c.can_search('\n')) { c.next(); }
             });
@@ -1261,11 +1160,8 @@ void switch_regular_char(Cursor& c) {
     switch (c.get()) {
         case '*': {
             if (c.col == 0
-                && c.try_lexy_patt<
-                    dsl::while_one(dsl::lit_c<'*'>) + dsl::lit_c<' '>>()) {
-                c.token0(otk::SubtreeStars, [](Cursor& c) {
-                    advance_char1(c, '*');
-                });
+                && c.try_lexy_patt<dsl::while_one(dsl::lit_c<'*'>) + dsl::lit_c<' '>>()) {
+                c.token0(otk::SubtreeStars, [](Cursor& c) { advance_char1(c, '*'); });
             } else {
                 c.token0(otk::Asterisk, &advance1);
             }
@@ -1343,24 +1239,21 @@ void switch_regular_char(Cursor& c) {
                 LEXY_LIT("]]"), LEXY_LIT("]["));
 
             if (auto span = c.try_lexy_patt<
-                            dsl::lit_c<'['> + dsl::digits<>
-                            + dsl::lit_c<'%'> + dsl::lit_c<']'>>()) {
+                            dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'%'>
+                            + dsl::lit_c<']'>>()) {
                 c.token_adv(otk::SubtreeCompletion, *span);
 
             } else if (
                 auto span = c.try_lexy_patt<
-                            dsl::lit_c<'['> + dsl::digits<>
-                            + dsl::lit_c<'/'> + dsl::digits<>
-                            + dsl::lit_c<']'>>()) {
+                            dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'/'>
+                            + dsl::digits<> + dsl::lit_c<']'>>()) {
                 c.token_adv(otk::SubtreeCompletion, *span);
             } else if (c.is_at_all_of(0, '[', '%', '%')) {
-                c.token1(
-                    otk::InactiveDynamicTimeContent, &advance_count, 3);
+                c.token1(otk::InactiveDynamicTimeContent, &advance_count, 3);
             } else if (
                 auto span = c.try_lexy_patt<
                             dsl::lit_c<'['> + dsl::lit_c<'#'>
-                            + dsl::ascii::alpha_underscore
-                            + dsl::lit_c<']'>>()) {
+                            + dsl::ascii::alpha_underscore + dsl::lit_c<']'>>()) {
                 c.token_adv(otk::SubtreePriority, *span);
             } else if (
                 auto span = c.try_lexy_patt<
@@ -1374,16 +1267,14 @@ void switch_regular_char(Cursor& c) {
                 c.token_adv(otk::Checkbox, *span);
             } else if (
                 auto span = c.try_lexy_patt<
-                            dsl::not_followed_by(
-                                LEXY_ILIT("[fn:"), dsl::lit_c<':'>)
+                            dsl::not_followed_by(LEXY_ILIT("[fn:"), dsl::lit_c<':'>)
                             + dsl::p<org_ident> + dsl::lit_c<']'>>()) {
                 c.token_adv(otk::FootnoteLinked, *span);
             } else if (auto span = c.try_lexy_patt<LEXY_ILIT("[fn::")>()) {
                 c.token_adv(otk::FootnoteInlineBegin, *span);
             } else if (
                 auto span = c.try_lexy_patt<
-                            LEXY_LIT("[[") + dsl::p<org_ident>
-                            + dsl::lit_c<':'>>()) {
+                            LEXY_LIT("[[") + dsl::p<org_ident> + dsl::lit_c<':'>>()) {
                 c.token_adv(otk::LinkBegin, 2);
 
                 if (c.is_iat("http")) {
@@ -1406,8 +1297,7 @@ void switch_regular_char(Cursor& c) {
                     c.token_adv(otk::LinkTarget, *span - 2);
                 } else {
                     int offset = 0;
-                    while (c.has_pos(offset)
-                           && !c.is_at_any_of(offset, ']', ':', '\n')) {
+                    while (c.has_pos(offset) && !c.is_at_any_of(offset, ']', ':', '\n')) {
                         ++offset;
                     }
 
@@ -1419,42 +1309,37 @@ void switch_regular_char(Cursor& c) {
                 }
 
             } else if (
-                auto span = c.try_lexy_patt<
-                            LEXY_LIT("[[") + link_continuation
-                            + dsl::until(link_end)>()) {
+                auto
+                    span = c.try_lexy_patt<
+                           LEXY_LIT("[[") + link_continuation + dsl::until(link_end)>()) {
                 c.token_adv(otk::LinkBegin, 2);
                 switch (c.get()) {
                     case '*': {
-                        auto
-                            span = c.try_lexy_patt<dsl::until(link_end)>();
+                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkProtocolTitle, *span - 2);
 
                         break;
                     }
                     case '#': {
                         c.token_adv(otk::LinkProtocolCustomId, 1);
-                        auto
-                            span = c.try_lexy_patt<dsl::until(link_end)>();
+                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkTarget, *span - 2);
                         break;
                     }
                     case '/': {
-                        auto
-                            span = c.try_lexy_patt<dsl::until(link_end)>();
+                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkTargetFile, *span - 2);
                         break;
                     }
                     case '.': {
-                        auto
-                            span = c.try_lexy_patt<dsl::until(link_end)>();
+                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
                         c.token_adv(otk::LinkTargetFile, *span - 2);
                         break;
                     }
                     default: {
                         int offset = 0;
-                        while (
-                            c.has_pos(offset)
-                            && !c.is_at_any_of(offset, ']', ':', '\n')) {
+                        while (c.has_pos(offset)
+                               && !c.is_at_any_of(offset, ']', ':', '\n')) {
                             ++offset;
                         }
 
@@ -1509,15 +1394,13 @@ void switch_regular_char(Cursor& c) {
                 c.token1(otk::ActiveDynamicTimeContent, &advance_count, 3);
             } else if (
                 auto span = c.try_lexy_patt<
-                            dsl::lit_c<'<'>
-                            + dsl::times<4>(dsl::digit<>) + dsl::lit_c<'-'>
-                            + dsl::times<2>(dsl::digit<>) + dsl::lit_c<'-'>
-                            + dsl::times<2>(dsl::digit<>)>()) {
+                            dsl::lit_c<'<'> + dsl::times<4>(dsl::digit<>)
+                            + dsl::lit_c<'-'> + dsl::times<2>(dsl::digit<>)
+                            + dsl::lit_c<'-'> + dsl::times<2>(dsl::digit<>)>()) {
                 c.token_adv(otk::AngleBegin, 1);
             } else if (
                 auto span = c.try_lexy_patt<
-                            dsl::lit_c<'<'> + dsl::p<org_ident>
-                            + dsl::lit_c<'>'>>()) {
+                            dsl::lit_c<'<'> + dsl::p<org_ident> + dsl::lit_c<'>'>>()) {
                 c.token_adv(otk::Placeholder, *span);
             } else {
                 c.token0(otk::AngleBegin, &advance1);
@@ -1550,8 +1433,7 @@ void switch_regular_char(Cursor& c) {
             } else if (
                 auto span = c.try_lexy_patt<
                             dsl::lit_c<'@'> + dsl::lit_c<'@'>
-                            + dsl::while_one(dsl::ascii::word)
-                            + dsl::lit_c<':'>
+                            + dsl::while_one(dsl::ascii::word) + dsl::lit_c<':'>
                             + dsl::until(LEXY_LIT("@@"))>()) {
                 c.token0(otk::InlineExportBackend, [](Cursor& c) {
                     c.skip('@');
@@ -1591,8 +1473,7 @@ void switch_regular_char(Cursor& c) {
 
                     int offset = 0;
                     while (c.has_pos(offset + +1)) {
-                        if (c.is_at('~', offset)
-                            && !(std::isalnum(c.get(offset + 1)))) {
+                        if (c.is_at('~', offset) && !(std::isalnum(c.get(offset + 1)))) {
                             break;
                         } else if (c.is_at('\n', offset)) {
                             int newlineOffset = offset;
@@ -1600,13 +1481,9 @@ void switch_regular_char(Cursor& c) {
                             while (c.is_at('\n', newlineOffset)) {
                                 ++newlineCount;
                                 ++newlineOffset;
-                                while (c.is_at(' ', newlineOffset)) {
-                                    ++newlineOffset;
-                                }
+                                while (c.is_at(' ', newlineOffset)) { ++newlineOffset; }
 
-                                if (!c.is_at('\n', newlineOffset)) {
-                                    break;
-                                }
+                                if (!c.is_at('\n', newlineOffset)) { break; }
                             }
 
                             if (newlineCount == 1) {
@@ -1702,31 +1579,23 @@ void switch_regular_char(Cursor& c) {
                 switch_word(c);
             } else if (std::isdigit(c.get())) {
                 if (auto span = c.try_lexy_patt<
-                                dsl::digit<> + dsl::digit<>
-                                + dsl::lit_c<':'> + dsl::digit<>
-                                + dsl::digit<> + dsl::lit_c<':'>
+                                dsl::digit<> + dsl::digit<> + dsl::lit_c<':'>
+                                + dsl::digit<> + dsl::digit<> + dsl::lit_c<':'>
                                 + dsl::digit<> + dsl::digit<>>()) {
                     int pos = *span;
-                    if (c.is_iat("am", pos) || c.is_iat("pm", pos)) {
-                        pos += 2;
-                    }
+                    if (c.is_iat("am", pos) || c.is_iat("pm", pos)) { pos += 2; }
                     c.token_adv(otk::Time, pos);
                 } else if (
                     auto span = c.try_lexy_patt<
-                                dsl::while_one(dsl::digit<>)
-                                + dsl::lit_c<':'> + dsl::digit<>
-                                + dsl::digit<>>()) {
+                                dsl::while_one(dsl::digit<>) + dsl::lit_c<':'>
+                                + dsl::digit<> + dsl::digit<>>()) {
                     int pos = *span;
-                    if (c.is_iat("am", pos) || c.is_iat("pm", pos)) {
-                        pos += 2;
-                    }
+                    if (c.is_iat("am", pos) || c.is_iat("pm", pos)) { pos += 2; }
                     c.token_adv(otk::Time, pos);
                 } else if (
                     auto span = c.try_lexy_patt<
-                                dsl::times<4>(dsl::digit<>)
-                                + dsl::lit_c<'-'>
-                                + dsl::times<2>(dsl::digit<>)
-                                + dsl::lit_c<'-'>
+                                dsl::times<4>(dsl::digit<>) + dsl::lit_c<'-'>
+                                + dsl::times<2>(dsl::digit<>) + dsl::lit_c<'-'>
                                 + dsl::times<2>(dsl::digit<>)>()) {
                     c.token_adv(otk::Date, *span);
                 } else if (
@@ -1737,14 +1606,11 @@ void switch_regular_char(Cursor& c) {
                 } else if (
                     auto span = c.try_lexy_patt<
                                 dsl::integer<int>
-                                + dsl::while_one(
-                                    dsl::lit_c<'_'> >> dsl::digits<>)>()) {
+                                + dsl::while_one(dsl::lit_c<'_'> >> dsl::digits<>)>()) {
                     c.token_adv(otk::Word, *span);
                 } else {
                     c.token0(otk::Number, [](Cursor& c) {
-                        while (c.is_at_all_of(0, is_digit_char)) {
-                            c.next();
-                        }
+                        while (c.is_at_all_of(0, is_digit_char)) { c.next(); }
                     });
                 }
             } else {
@@ -1753,8 +1619,7 @@ void switch_regular_char(Cursor& c) {
                         while (c.is_at_unicode()) { c.nextUnicode(); }
                     });
                 } else {
-                    c.token0(
-                        otk::AnyPunct, [](Cursor& c) { c.nextUnicode(); });
+                    c.token0(otk::AnyPunct, [](Cursor& c) { c.nextUnicode(); });
                 }
             }
         }

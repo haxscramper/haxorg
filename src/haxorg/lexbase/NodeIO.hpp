@@ -41,9 +41,7 @@ yaml yamlRepr(
 
 
 template <typename N, typename K, typename V, typename M>
-json jsonRepr(
-    org::parse::NodeGroup<N, K, V, M> const& group,
-    bool                                     withStrings = true) {
+json jsonRepr(org::parse::NodeGroup<N, K, V, M> const& group, bool withStrings = true) {
     json out = json::array();
     for (const auto& [id, node] : group.nodes.pairs()) {
         json item;
@@ -77,12 +75,8 @@ struct convert<typename org::parse::Token<K, V>> {
         return result;
     }
 
-    static bool decode(
-        Node const&                       in,
-        typename org::parse::Token<K, V>& out) {
-        out.kind = hstd::enum_serde<K>::from_string(
-                       in["kind"].as<hstd::Str>())
-                       .value();
+    static bool decode(Node const& in, typename org::parse::Token<K, V>& out) {
+        out.kind = hstd::enum_serde<K>::from_string(in["kind"].as<hstd::Str>()).value();
 
         if (in["value"]) { out.value = in["value"].as<V>(); }
 
@@ -104,8 +98,7 @@ struct convert<org::parse::SourceLoc> {
         out.column  = in["column"].as<int>();
         out.line    = in["line"].as<int>();
         out.pos     = in["pos"].as<int>();
-        out.file_id = org::parse::SourceFileId::FromValue(
-            in["file_id"].as<int>());
+        out.file_id = org::parse::SourceFileId::FromValue(in["file_id"].as<int>());
         return true;
     }
 };
@@ -128,9 +121,7 @@ struct convert<org::parse::OrgFill> {
 
 template <hstd::DescribedEnum E>
 struct convert<E> {
-    static Node encode(E const& str) {
-        return hstd::enum_serde<E>::to_string(str);
-    }
+    static Node encode(E const& str) { return hstd::enum_serde<E>::to_string(str); }
     static bool decode(Node const& in, E& out) {
         auto         str  = in.as<std::string>();
         hstd::Opt<E> conv = hstd::enum_serde<E>::from_string(str);
@@ -140,9 +131,7 @@ struct convert<E> {
             throw YAML::RepresentationException(
                 in.Mark(),
                 hstd::fmt(
-                    "Could not parse {} to {}",
-                    str,
-                    hstd::demangle(typeid(E).name())));
+                    "Could not parse {} to {}", str, hstd::demangle(typeid(E).name())));
         }
 
         return true;
@@ -183,9 +172,7 @@ yaml yamlRepr(
 }
 
 template <typename K, typename V>
-yaml yamlRepr(
-    org::parse::TokenGroup<K, V> const& group,
-    bool                                withIdx = false) {
+yaml yamlRepr(org::parse::TokenGroup<K, V> const& group, bool withIdx = false) {
     yaml out;
     for (const auto& [id, token] : group.tokens.pairs()) {
         out.push_back(yamlRepr(id, *token, withIdx));
@@ -194,9 +181,7 @@ yaml yamlRepr(
 }
 
 template <typename K, typename V>
-json jsonRepr(
-    org::parse::TokenGroup<K, V> const& group,
-    bool                                withIdx = false) {
+json jsonRepr(org::parse::TokenGroup<K, V> const& group, bool withIdx = false) {
     json out = json::array();
     for (const auto& [id, token] : group.tokens.pairs()) {
         json item;
@@ -214,21 +199,18 @@ org::parse::NodeGroup<N, K, V, M> fromFlatNodes(yaml const& node) {
     result.nodes.resize(
         node.size(),
         org::parse::Node<N, K, V, M>(
-            hstd::value_domain<N>::low(),
-            org::parse::TokenId<K, V>::Nil()));
+            hstd::value_domain<N>::low(), org::parse::TokenId<K, V>::Nil()));
     int index = 0;
     for (const auto& it : node) {
-        N kind = hstd::enum_serde<N>::from_string(
-                     it["kind"].as<std::string>())
-                     .value();
+        N kind = hstd::enum_serde<N>::from_string(it["kind"].as<std::string>()).value();
         if (it["extent"]) {
-            result.at(org::parse::NodeId<N, K, V, M>(index)) = org::parse::
-                Node<N, K, V, M>(kind, it["extent"].as<int>());
+            result.at(
+                org::parse::NodeId<N, K, V, M>(
+                    index)) = org::parse::Node<N, K, V, M>(kind, it["extent"].as<int>());
         } else {
-            result.at(org::parse::NodeId<N, K, V, M>(index)) = org::parse::
-                Node<N, K, V, M>(
-                    kind,
-                    org::parse::TokenId<K, V>(it["tok_idx"].as<int>()));
+            result
+                .at(org::parse::NodeId<N, K, V, M>(index)) = org::parse::Node<N, K, V, M>(
+                kind, org::parse::TokenId<K, V>(it["tok_idx"].as<int>()));
         }
         ++index;
     }
@@ -237,9 +219,7 @@ org::parse::NodeGroup<N, K, V, M> fromFlatNodes(yaml const& node) {
 }
 
 template <typename K, typename V>
-org::parse::TokenGroup<K, V> fromFlatTokens(
-    yaml const& node,
-    hstd::Str&  buf) {
+org::parse::TokenGroup<K, V> fromFlatTokens(yaml const& node, hstd::Str& buf) {
     org::parse::TokenGroup<K, V> result;
     result.tokens.resize(node.size());
     int index = 0;

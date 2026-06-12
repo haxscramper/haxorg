@@ -39,8 +39,7 @@ int get_nesting(Str const& line) {
 
 void open_walker(git_oid& oid, walker_state& state) {
     // Read HEAD on master
-    fs::path head_filepath = state.config->repo_path()
-                           / state.config->heads_path();
+    fs::path head_filepath = state.config->repo_path() / state.config->heads_path();
     // REFACTOR this part was copied from the SO example and I'm pretty
     // sure it can be implemented in a cleaner manner, but I haven't
     // touched this part yet.
@@ -54,8 +53,7 @@ void open_walker(git_oid& oid, walker_state& state) {
 
     if (fread(head_rev.data(), 40, 1, head_fileptr) != 1) {
         throw std::system_error{
-            std::error_code{},
-            fmt("Error reading from {}", head_filepath)};
+            std::error_code{}, fmt("Error reading from {}", head_filepath)};
         fclose(head_fileptr);
     }
 
@@ -93,12 +91,7 @@ struct AddAction {
 struct FileRenameAction {
     ir::FilePathId prev_path;
     ir::FilePathId this_path;
-    BOOST_DESCRIBE_CLASS(
-        FileRenameAction,
-        (),
-        (prev_path, this_path),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(FileRenameAction, (), (prev_path, this_path), (), ());
 };
 
 struct FileDeleteAction {
@@ -110,12 +103,7 @@ struct FileModifyAction {
     ir::FilePathId path;
     int            added;
     int            removed;
-    BOOST_DESCRIBE_CLASS(
-        FileModifyAction,
-        (),
-        (path, added, removed),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(FileModifyAction, (), (path, added, removed), (), ());
 };
 
 struct NameAction {
@@ -174,8 +162,7 @@ void maybe_file_rename(
     git_diff_delta const* delta,
     CommitActionGroup&    actions) {
     auto new_path = state->content->getFilePath(delta->new_file.path);
-    if (delta->old_file.path
-        && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
+    if (delta->old_file.path && strcmp(delta->old_file.path, delta->new_file.path) != 0) {
         auto old_path = state->content->getFilePath(delta->old_file.path);
 
         if (state->should_debug()) {
@@ -202,10 +189,8 @@ void line_edit_action(
     Vec<Action>&         add_actions,
     ir::CommitId         id_commit) {
     ir::StringId string_id = state->content->add(
-        String{strip(
-            Str{line->content, static_cast<int>(line->content_len)},
-            {},
-            {'\n'})});
+        String{
+            strip(Str{line->content, static_cast<int>(line->content_len)}, {}, {'\n'})});
 
     switch (line->origin) {
         case GIT_DIFF_LINE_ADDITION: {
@@ -251,10 +236,8 @@ void file_edit_actions(
         int num_lines = git_patch_num_lines_in_hunk(patch.get(), hunk_idx);
         for (int line_idx = 0; line_idx < num_lines; ++line_idx) {
             const git_diff_line* line;
-            git_patch_get_line_in_hunk(
-                &line, patch.get(), hunk_idx, line_idx);
-            line_edit_action(
-                state, line, delete_actions, add_actions, id_commit);
+            git_patch_get_line_in_hunk(&line, patch.get(), hunk_idx, line_idx);
+            line_edit_action(state, line, delete_actions, add_actions, id_commit);
         }
     }
 
@@ -274,39 +257,29 @@ void git_tree_walk_lambda(
 
 void file_name_actions(walker_state* state, CommitActions& result) {
     git_tree_walk_lambda(
-        result.this_tree,
-        [&](char const* root, git_tree_entry const* entry) -> int {
+        result.this_tree, [&](char const* root, git_tree_entry const* entry) -> int {
             const git_object_t entry_type = git_tree_entry_type(entry);
-            auto               path = fs::path{root}
-                                    / fs::path{git_tree_entry_name(entry)};
+            auto path = fs::path{root} / fs::path{git_tree_entry_name(entry)};
             if (entry_type == GIT_OBJECT_BLOB) {
 
                 auto  track   = state->content->getFilePath(path);
                 auto& actions = result.actions[track];
                 LOGIC_ASSERTION_CHECK_FMT(!actions.leading_name, "");
-                actions.leading_name = NameAction{
-                    state->content->getFilePath(path)};
-            } else if (
-                entry_type == GIT_OBJECT_TREE
-                || entry_type == GIT_OBJECT_COMMIT) {
+                actions.leading_name = NameAction{state->content->getFilePath(path)};
+            } else if (entry_type == GIT_OBJECT_TREE || entry_type == GIT_OBJECT_COMMIT) {
                 result.directory_paths.incl(path.native());
             } else {
                 LOG(INFO) << std::format(
-                    "Commit has '{}' with type {}",
-                    path.native(),
-                    entry_type);
+                    "Commit has '{}' with type {}", path.native(), entry_type);
             }
             return 0;
         });
 }
 
-CommitActions get_commit_actions(
-    walker_state*     state,
-    CommitTask const& task) {
+CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
     CommitActions result{.id = task.id, .this_tree = task.this_tree};
     LOG_IF(INFO, state->should_debug_commit(task.id)) << std::format(
-        "[actions] Generating list of actions for commit {}",
-        state->str(task.id));
+        "[actions] Generating list of actions for commit {}", state->str(task.id));
 
     auto const&           c_diff     = state->config->cli.config.diffopts;
     git_diff_options      diffopts   = GIT_DIFF_OPTIONS_INIT;
@@ -334,8 +307,7 @@ CommitActions get_commit_actions(
     auto id_commit = task.id;
 
     for (int i = 0; i < deltas; ++i) {
-        SPtr<git_patch>       patch = git::patch_from_diff(diff.get(), i)
-                                          .value();
+        SPtr<git_patch>       patch = git::patch_from_diff(diff.get(), i).value();
         git_diff_delta const* delta = git::patch_get_delta(patch.get());
         fs::path              path{delta->new_file.path};
 
@@ -359,10 +331,8 @@ CommitActions get_commit_actions(
         ir::FilePathId path_id = state->content->getFilePath(path);
 
         if (delta->status == GIT_DELTA_DELETED) {
-            LOGIC_ASSERTION_CHECK_FMT(
-                !result.actions.contains(path_id), "");
-            result.actions[state->content->getFilePath(path)]
-                .leading_name = NameAction{
+            LOGIC_ASSERTION_CHECK_FMT(!result.actions.contains(path_id), "");
+            result.actions[state->content->getFilePath(path)].leading_name = NameAction{
                 state->content->getFilePath(path)};
         }
 
@@ -402,14 +372,11 @@ CommitActions get_commit_actions(
                         .added = (int)rs::count_if(
                             actions,
                             [](Action const& act) {
-                                return std::holds_alternative<AddAction>(
-                                    act);
+                                return std::holds_alternative<AddAction>(act);
                             }),
-                        .removed = (int)rs::count_if(
-                            actions, [](Action const& act) {
-                                return std::holds_alternative<
-                                    RemoveAction>(act);
-                            })};
+                        .removed = (int)rs::count_if(actions, [](Action const& act) {
+                            return std::holds_alternative<RemoveAction>(act);
+                        })};
                 }
                 break;
             }
@@ -528,22 +495,18 @@ struct ChangeIterationState {
 
         ir::FileTrackSection& section = state->at(section_id);
 
-        if (state->should_debug()
-            && state->should_debug_file(section.path)) {
+        if (state->should_debug() && state->should_debug_file(section.path)) {
             LOG(INFO) << std::format(
-                "[apply] {} '{}'",
-                add,
-                state->str(state->at(add.id).content));
+                "[apply] {} '{}'", add, state->str(state->at(add.id).content));
         }
 
         int to_add = add.added;
         LOG_IF(INFO, !(to_add <= section.lines.size()))
-            << "[apply] Cannot add line at index " << to_add
-            << " from section of size " << section.lines.size()
-            << " path '" << state->str(state->at(section.path).path)
-            << "' commit " << state->at(commit_id).hash << " " << fmt1(add)
-            << std::format(" on track:{}", track)
-            << format_section_lines(section_id);
+            << "[apply] Cannot add line at index " << to_add << " from section of size "
+            << section.lines.size() << " path '"
+            << state->str(state->at(section.path).path) << "' commit "
+            << state->at(commit_id).hash << " " << fmt1(add)
+            << std::format(" on track:{}", track) << format_section_lines(section_id);
 
         LOGIC_ASSERTION_CHECK_FMT(to_add <= section.lines.size(), "");
 
@@ -558,8 +521,7 @@ struct ChangeIterationState {
         RemoveAction const&    remove) {
 
         ir::FileTrackSection& section = state->at(section_id);
-        if (state->should_debug()
-            && state->should_debug_file(section.path)) {
+        if (state->should_debug() && state->should_debug_file(section.path)) {
             LOG(INFO) << std::format("[apply] {}", remove);
         }
 
@@ -578,24 +540,21 @@ struct ChangeIterationState {
             track,
             format_section_lines(section_id));
 
-        auto remove_content = state->at(section.lines.at(to_remove))
-                                  .content;
+        auto remove_content = state->at(section.lines.at(to_remove)).content;
 
         LOG_IF(INFO, remove_content != remove.id)
             << "[apply] Cannot remove line " << to_remove << " on path '"
             << state->str(state->at(section.path).path)
             << "' because string content IDs are mismatched. Current "
                "line content is "
-            << fmt1(remove_content)
-            << " and trying to remove it by a line with content "
+            << fmt1(remove_content) << " and trying to remove it by a line with content "
             << fmt1(remove.id)
             << std::format(
                    " line value compare '{}' != '{}'",
                    state->str(remove_content),
                    state->str(remove.id))
             << " commit " << state->at(commit_id).hash
-            << std::format(" on track:{}", track)
-            << format_section_lines(section_id);
+            << std::format(" on track:{}", track) << format_section_lines(section_id);
 
         LOGIC_ASSERTION_CHECK_FMT(remove_content == remove.id, "");
 
@@ -608,8 +567,7 @@ struct ChangeIterationState {
         LOGIC_ASSERTION_CHECK_FMT(!name.getPath().isNil(), "");
         ir::FileTrackId track = which_track(name.getPath());
 
-        if (state->should_debug()
-            && state->should_debug_file(name.getPath())) {
+        if (state->should_debug() && state->should_debug_file(name.getPath())) {
             LOG(INFO) << std::format(
                 "[apply] Applying name action, path name '{}' track {}",
                 state->str(name.getPath()),
@@ -636,8 +594,7 @@ struct ChangeIterationState {
                 tmp_track.sections.size() - 2);
             section.lines = state->at(prev_section).lines;
             LOGIC_ASSERTION_CHECK_FMT(
-                state->at(prev_section).track
-                    == state->at(section_id).track,
+                state->at(prev_section).track == state->at(section_id).track,
                 "[apply] New track section copied lines from the "
                 "wrong "
                 "track. Section {} is placed in track {}, but the "
@@ -658,12 +615,10 @@ auto zip_longest(R1 const& r1, R2 const& r2) {
     using OptionalT2 = Opt<rs::range_value_t<R2>>;
 
     auto pad1 = rv::repeat_n(
-        OptionalT1{},
-        std::max<int>(0, rs::distance(r2) - rs::distance(r1)));
+        OptionalT1{}, std::max<int>(0, rs::distance(r2) - rs::distance(r1)));
 
     auto pad2 = rv::repeat_n(
-        OptionalT2{},
-        std::max<int>(0, rs::distance(r1) - rs::distance(r2)));
+        OptionalT2{}, std::max<int>(0, rs::distance(r1) - rs::distance(r2)));
 
     auto padded1 = rv::concat(
         r1 | rv::transform([](auto&& v) -> OptionalT1 {
@@ -689,21 +644,19 @@ void check_tree_entry_consistency(
     const git_object_t entry_type = git_tree_entry_type(entry);
     if (entry_type != GIT_OBJECT_BLOB) { return; }
 
-    fs::path path = fs::path{root} / fs::path{git_tree_entry_name(entry)};
+    fs::path       path    = fs::path{root} / fs::path{git_tree_entry_name(entry)};
     ir::FilePathId path_id = state->content->getFilePath(path);
 
     if (!commit_actions.actions.contains(path_id)) {
-        LOG(INFO) << "[state-verify] No file actions recorded for path "
-                  << path << " on commit "
-                  << state->at(commit_actions.id).hash;
+        LOG(INFO) << "[state-verify] No file actions recorded for path " << path
+                  << " on commit " << state->at(commit_actions.id).hash;
         return;
     }
 
     if (!state->should_check_file(path.native())) { return; }
 
     ir::FileTrackId        track_id   = iter_state.which_track(path_id);
-    ir::FileTrackSectionId section_id = state->at(track_id)
-                                            .sections.back();
+    ir::FileTrackSectionId section_id = state->at(track_id).sections.back();
 
     // Get the blob from the tree entry
     git_oid const* oid  = git_tree_entry_id(entry);
@@ -731,24 +684,19 @@ void check_tree_entry_consistency(
         zip_longest(section.lines, content_lines) //
         | rv::enumerate                           //
         | rv::transform(
-            [&](auto const& line_pair)
-                -> std::tuple<int, std::string, std::string> {
+            [&](auto const& line_pair) -> std::tuple<int, std::string, std::string> {
                 return std::tuple(
                     line_pair.first,
                     line_pair.second.first
-                        ? state->str(
-                              state->at(*line_pair.second.first).content)
+                        ? state->str(state->at(*line_pair.second.first).content)
                         : "",
-                    line_pair.second.second ? *line_pair.second.second
-                                            : "");
+                    line_pair.second.second ? *line_pair.second.second : "");
             })
         | rv::transform([](auto const& line_tuple) -> std::string {
               return std::format(
                   "[{:<4}] [{}] '{:<100}' '{:<100}'",
                   std::get<0>(line_tuple),
-                  std::get<1>(line_tuple) == std::get<2>(line_tuple)
-                      ? "ok"
-                      : "er",
+                  std::get<1>(line_tuple) == std::get<2>(line_tuple) ? "ok" : "er",
                   std::get<1>(line_tuple),
                   std::get<2>(line_tuple));
           })
@@ -756,26 +704,23 @@ void check_tree_entry_consistency(
         | rv::join              //
         | rs::to<std::string>();
 
-    LOG_IF(INFO, content_lines.size() != section.lines.size())
-        << std::format(
-               "[state-verify] Section lines size and content lines size "
-               "mismatch: "
-               "commit-hash:{} section:{} "
-               "content:{} where:{}\nfull content:\n{}",
-               state->at(commit_actions.id).hash,
-               section.lines.size(),
-               content_lines.size(),
-               where,
-               concat_content);
+    LOG_IF(INFO, content_lines.size() != section.lines.size()) << std::format(
+        "[state-verify] Section lines size and content lines size "
+        "mismatch: "
+        "commit-hash:{} section:{} "
+        "content:{} where:{}\nfull content:\n{}",
+        state->at(commit_actions.id).hash,
+        section.lines.size(),
+        content_lines.size(),
+        where,
+        concat_content);
 
-    LOGIC_ASSERTION_CHECK_FMT(
-        content_lines.size() == section.lines.size(), "");
+    LOGIC_ASSERTION_CHECK_FMT(content_lines.size() == section.lines.size(), "");
 
     for (auto const& [idx, pair] :
          rv::zip(section.lines, content_lines) | rv::enumerate) {
 
-        Str const& section_line = state->str(
-            state->at(pair.first).content);
+        Str const& section_line = state->str(state->at(pair.first).content);
         Str const& content_line{pair.second};
 
         LOG_IF(INFO, section_line != content_line) << std::format(
@@ -811,23 +756,20 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
 
     auto get_tree = [&trees, state, &g](VDesc v) -> SPtr<git_tree> {
         if (trees.find(v) == trees.end()) {
-            auto commit = git::commit_lookup(state->repo.get(), &g[v].oid)
-                              .value();
+            auto commit = git::commit_lookup(state->repo.get(), &g[v].oid).value();
             trees[v]    = git::commit_tree(commit.get()).value();
         }
         return trees[v];
     };
 
-    auto make_task =
-        [&](Pair<VDesc, Opt<VDesc>> const& pair) -> Opt<CommitTask> {
+    auto make_task = [&](Pair<VDesc, Opt<VDesc>> const& pair) -> Opt<CommitTask> {
         auto [main, base] = pair;
 
         auto task = CommitTask{
             .id        = state->get_id(g[main].oid),
             .prev_tree = base ? get_tree(base.value()) : nullptr,
             .this_tree = get_tree(main),
-            .prev_hash = base ? Opt<git_oid>{g[base.value()].oid}
-                              : Opt<git_oid>{},
+            .prev_hash = base ? Opt<git_oid>{g[base.value()].oid} : Opt<git_oid>{},
             .this_hash = g[main].oid,
         };
 
@@ -850,12 +792,10 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
              // at the moment.
              | rv::transform(make_task)
              // Filter out skipped commit tasks
-             | rv::remove_if([](Opt<CommitTask> const& opt) -> bool {
-                   return !opt.has_value();
-               })
-             | rv::transform([](Opt<CommitTask> const& opt) -> CommitTask {
-                   return opt.value();
-               })
+             | rv::remove_if(
+                 [](Opt<CommitTask> const& opt) -> bool { return !opt.has_value(); })
+             | rv::transform(
+                 [](Opt<CommitTask> const& opt) -> CommitTask { return opt.value(); })
              // Expand each commit task into list of actions applied to
              // a file in this particular commit -- list of events that
              // state machine will respond to.
@@ -866,26 +806,17 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                })) {
 
         __perf_trace(
-            "repo",
-            "Actions for commit",
-            "hash",
-            state->at(commit_actions.id).hash);
+            "repo", "Actions for commit", "hash", state->at(commit_actions.id).hash);
 
-        if (state->should_debug()
-            && state->should_debug_commit(commit_actions.id)) {
+        if (state->should_debug() && state->should_debug_commit(commit_actions.id)) {
             LOG(INFO) << std::format(
-                "[mainloop] Processing commit {}",
-                state->at(commit_actions.id).hash);
+                "[mainloop] Processing commit {}", state->at(commit_actions.id).hash);
         }
 
         for (auto const& [file_id, actions] : commit_actions.actions) {
             __perf_trace(
-                "repo",
-                "Actions for file",
-                "path",
-                state->str(state->at(file_id).path));
-            if (state->should_debug()
-                && state->should_debug_file(file_id)) {
+                "repo", "Actions for file", "path", state->str(state->at(file_id).path));
+            if (state->should_debug() && state->should_debug_file(file_id)) {
                 LOG(INFO) << std::format(
                     "[mainloop] New action on file {} {}",
                     file_id,
@@ -893,18 +824,15 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             }
 
             if (actions.rename_action) {
-                iter_state.apply(
-                    commit_actions.id, *actions.rename_action);
+                iter_state.apply(commit_actions.id, *actions.rename_action);
             }
 
             if (actions.delete_action) {
-                iter_state.apply(
-                    commit_actions.id, *actions.delete_action);
+                iter_state.apply(commit_actions.id, *actions.delete_action);
             }
 
             if (actions.modify_action) {
-                iter_state.apply(
-                    commit_actions.id, *actions.modify_action);
+                iter_state.apply(commit_actions.id, *actions.modify_action);
             }
 
             auto [track_id, section_id] = iter_state.apply(
@@ -915,16 +843,14 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             rs::for_each(actions, [&](auto const& edit) {
                 std::visit(
                     [&](auto const& act) {
-                        iter_state.apply(
-                            track_id, section_id, commit_actions.id, act);
+                        iter_state.apply(track_id, section_id, commit_actions.id, act);
                     },
                     edit);
             });
         }
 
 
-        if (state->should_debug()
-            || state->should_debug_commit(commit_actions.id)) {
+        if (state->should_debug() || state->should_debug_commit(commit_actions.id)) {
             git_tree_walk_lambda(
                 commit_actions.this_tree,
                 [&](char const* root, git_tree_entry const* entry) -> int {
@@ -937,19 +863,14 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
 }
 
 CommitId process_commit(git_oid commit_oid, walker_state* state) {
-    SPtr<git_commit> commit    = git::commit_lookup(
-                                     state->repo.get(), &commit_oid)
-                                     .value();
-    auto             hash      = oid_tostr(*git_commit_id(commit.get()));
-    auto             signature = const_cast<git_signature*>(
-        git::commit_author(commit.get()));
+    SPtr<git_commit> commit = git::commit_lookup(state->repo.get(), &commit_oid).value();
+    auto             hash   = oid_tostr(*git_commit_id(commit.get()));
+    auto signature = const_cast<git_signature*>(git::commit_author(commit.get()));
 
     return state->content->add(
         Commit{
             .author = state->content->add(
-                Author{
-                    .name  = Str{signature->name},
-                    .email = Str{signature->email}}),
+                Author{.name = Str{signature->name}, .email = Str{signature->email}}),
             .time     = git::commit_time(commit.get()),
             .timezone = git::commit_time_offset(commit.get()),
             .hash     = hash,
@@ -966,11 +887,9 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
     Vec<FullCommitData> full_commits;
     while (git::revwalk_next(&oid, state->walker.get()) == 0) {
         // Get commit from the provided oid
-        SPtr<git_commit>
-            commit = git::commit_lookup(state->repo.get(), &oid).value();
+        SPtr<git_commit> commit = git::commit_lookup(state->repo.get(), &oid).value();
         // Convert from unix timestamp used by git to humane format
-        PTime date = boost::posix_time::from_time_t(
-            git::commit_time(commit.get()));
+        PTime date = boost::posix_time::from_time_t(git::commit_time(commit.get()));
 
         auto id = process_commit(oid, state);
         full_commits.push_back({oid, date, commit, id});

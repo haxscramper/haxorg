@@ -21,8 +21,7 @@ struct IAttribute {
     }
 
 #if ORG_BUILD_WITH_PROTOBUF
-    virtual void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const = 0;
+    virtual void writeSerial(proto::IAttribute* out, IGraph const* graph) const = 0;
     virtual void readSerial(
         proto::IAttribute const*   in,
         IGraph const*              graph,
@@ -43,10 +42,9 @@ class IAttributeTracker {
 
 class IAttributeObject {
   public:
-    virtual hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const = 0;
-    virtual void addAttribute(hstd::SPtr<IAttribute> const& attr)   = 0;
-    virtual void setAttributes(
-        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) = 0;
+    virtual hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const            = 0;
+    virtual void addAttribute(hstd::SPtr<IAttribute> const& attr)              = 0;
+    virtual void setAttributes(hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) = 0;
 
 
     hstd::Vec<hstd::Str> getAttributeRepr() const;
@@ -56,9 +54,7 @@ class IAttributeObject {
         requires std::derived_from<T, IAttribute>
     hstd::Opt<hstd::SPtr<T>> getOptionalAttribute() const {
         for (auto const& attr : getAttributes()) {
-            if (attr->isInstance<T>()) {
-                return std::dynamic_pointer_cast<T>(attr);
-            }
+            if (attr->isInstance<T>()) { return std::dynamic_pointer_cast<T>(attr); }
         }
 
         return std::nullopt;
@@ -88,8 +84,7 @@ class IAttributeObject {
     /// expected to be unique.
     template <typename T>
         requires std::derived_from<T, IAttribute>
-    hstd::SPtr<T> getUniqueAttribute(
-        std::string const& err_ctx = "") const {
+    hstd::SPtr<T> getUniqueAttribute(std::string const& err_ctx = "") const {
         hstd::SPtr<T> result;
         for (auto const& attr : getAttributes()) {
             if (attr->isInstance<T>()) {
@@ -122,9 +117,7 @@ class IAttributeObject {
 
     template <typename T = IAttribute>
         requires std::derived_from<T, IAttribute>
-    void addUniqueAttribute(
-        hstd::SPtr<T> const& attr,
-        std::string const&   err_ctx = "") {
+    void addUniqueAttribute(hstd::SPtr<T> const& attr, std::string const& err_ctx = "") {
         for (auto const& existing : getAttributes()) {
             if (typeid(attr.get()) == typeid(existing.get())) {
                 throw graph_error::init(
@@ -156,16 +149,15 @@ class IAttributeObject {
 
 #if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(
-        ::google::protobuf::RepeatedPtrField<
-            ::hstd::ext::graph::proto::IAttribute>* out,
-        IGraph const*                               graph) const;
+        ::google::protobuf::RepeatedPtrField<::hstd::ext::graph::proto::IAttribute>* out,
+        IGraph const* graph) const;
 
     void readSerial(
-        ::google::protobuf::RepeatedPtrField<
-            ::hstd::ext::graph::proto::IAttribute> const* in,
-        IGraph const*                                     graph,
-        IGraphSerialReaderFactory*                        factory,
-        IAttributeObject const*                           vertex);
+        ::google::protobuf::RepeatedPtrField<::hstd::ext::graph::proto::IAttribute> const*
+                                   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory,
+        IAttributeObject const*    vertex);
 #endif
 };
 
@@ -173,16 +165,13 @@ class TrivialAttributeObject : public virtual IAttributeObject {
   public:
     hstd::Vec<hstd::SPtr<IAttribute>> attrs;
 
-    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override {
-        return attrs;
-    }
+    hstd::Vec<hstd::SPtr<IAttribute>> getAttributes() const override { return attrs; }
 
     void addAttribute(hstd::SPtr<IAttribute> const& attr) override {
         attrs.push_back(attr);
     }
 
-    void setAttributes(
-        hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
+    void setAttributes(hstd::Vec<hstd::SPtr<IAttribute>> const& attrs) override {
         this->attrs = attrs;
     }
 };

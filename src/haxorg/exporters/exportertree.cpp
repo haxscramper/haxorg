@@ -8,10 +8,7 @@
 #include <haxorg/exporters/Exporter.cpp>
 template class org::algo::Exporter<ExporterTree, int>;
 
-void ExporterTree::visitField(
-    int&                 arg,
-    char const*          name,
-    sem::SemId<sem::Org> org) {
+void ExporterTree::visitField(int& arg, char const* name, sem::SemId<sem::Org> org) {
 
     __scope();
     indent();
@@ -19,19 +16,13 @@ void ExporterTree::visitField(
     Base::visitField(arg, name, org);
 }
 
-void ExporterTree::visitField(
-    int&                       i,
-    char const*                name,
-    CVec<sem::SemId<sem::Org>> org) {
+void ExporterTree::visitField(int& i, char const* name, CVec<sem::SemId<sem::Org>> org) {
     if (skipAsEmpty(org)) {
         writeSkip("empty");
         return;
     }
     if (skipAsTooNested()) {
-        writeSkip(
-            fmt("too nested stack:{} max:{}",
-                stack.size(),
-                conf.maxTreeDepth));
+        writeSkip(fmt("too nested stack:{} max:{}", stack.size(), conf.maxTreeDepth));
         return;
     }
 
@@ -53,9 +44,7 @@ ColText ExporterTree::treeRepr(sem::SemId<sem::Org> org) {
     return os.getBuffer();
 }
 
-void ExporterTree::treeRepr(
-    sem::SemId<sem::Org>         org,
-    std::filesystem::path const& path) {
+void ExporterTree::treeRepr(sem::SemId<sem::Org> org, std::filesystem::path const& path) {
     std::ofstream file{path.native()};
     if (file.is_open()) {
         ColStream os{file};
@@ -63,14 +52,11 @@ void ExporterTree::treeRepr(
         ExporterTree(os).evalTop(org);
     } else {
         throw FilesystemError::init(
-            std::format(
-                "Could not open file {} for writing tree repr", path));
+            std::format("Could not open file {} for writing tree repr", path));
     }
 }
 
-ColText ExporterTree::treeRepr(
-    sem::SemId<sem::Org> org,
-    TreeReprConf const&  conf) {
+ColText ExporterTree::treeRepr(sem::SemId<sem::Org> org, TreeReprConf const& conf) {
     ColStream    os{};
     ExporterTree exporter{os};
     exporter.conf = conf;
@@ -90,8 +76,8 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
     if (conf.withLineCol) {
         if (org->loc.has_value()) {
             auto& [line, col, pos, file_id] = org->loc.value();
-            os << " " << os.cyan() << fmt1(line) << ":" << fmt1(col) << "("
-               << fmt1(pos) << ") " << fmt1(file_id) << os.end();
+            os << " " << os.cyan() << fmt1(line) << ":" << fmt1(col) << "(" << fmt1(pos)
+               << ") " << fmt1(file_id) << os.end();
         } else {
             os << " loc=none";
         }
@@ -99,9 +85,7 @@ void ExporterTree::init(sem::SemId<sem::Org> org) {
     os << "\n";
 }
 
-bool ExporterTree::skipAsTooNested() const {
-    return conf.maxTreeDepth < stack.size();
-}
+bool ExporterTree::skipAsTooNested() const { return conf.maxTreeDepth < stack.size(); }
 
 void ExporterTree::writeSkip(
     Str const&  message,
@@ -126,8 +110,7 @@ void ExporterTree::visitField(int& arg, char const* name, T const& value) {
     indent();
     os << name << " ";
     if (conf.withTypeAnnotations) {
-        os << "(" << os.green() << hstd::value_metadata<T>::typeName()
-           << os.end() << ")";
+        os << "(" << os.green() << hstd::value_metadata<T>::typeName() << os.end() << ")";
     }
     if constexpr (std::is_same_v<T, int>) {
         os << " = " << os.cyan() << fmt1(value) << os.end() << "\n";
@@ -136,11 +119,9 @@ void ExporterTree::visitField(int& arg, char const* name, T const& value) {
     } else if constexpr (std::is_enum_v<T>) {
         os << " = " << os.green() << fmt1(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
-        os << " = " << os.yellow() << escape_literal(value) << os.end()
-           << "\n";
+        os << " = " << os.yellow() << escape_literal(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, UserTime>) {
-        os << " = " << fmt("align:{} time:{}", value.align, value.format())
-           << "\n";
+        os << " = " << fmt("align:{} time:{}", value.align, value.format()) << "\n";
     } else {
         os << "\n";
         visit(arg, value);
@@ -148,10 +129,7 @@ void ExporterTree::visitField(int& arg, char const* name, T const& value) {
 }
 
 template <typename T>
-void ExporterTree::visitField(
-    int&          arg,
-    char const*   name,
-    sem::SemId<T> org) {
+void ExporterTree::visitField(int& arg, char const* name, sem::SemId<T> org) {
     visitField(arg, name, org.asOrg());
 }
 
@@ -175,12 +153,9 @@ void ExporterTree::visit(int& arg, T const& opt) {
     if constexpr (std::is_enum<T>::value) {
         os << os.red() << std::format("{}", opt) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
-        if (conf.withTypeAnnotations) {
-            os << value_metadata<T>::typeName();
-        }
+        if (conf.withTypeAnnotations) { os << value_metadata<T>::typeName(); }
 
-        os << os.yellow() << " " << escape_literal(opt) << os.end()
-           << "\n";
+        os << os.yellow() << " " << escape_literal(opt) << os.end() << "\n";
     } else {
         if (conf.withTypeAnnotations) {
             os << os.red() << value_metadata<T>::typeName() << os.end();
@@ -223,7 +198,5 @@ void ExporterTree::visit(int& arg, Vec<T> const& value) {
 template <typename V>
 void ExporterTree::visit(int& arg, UnorderedMap<Str, V> const& opt) {
     __scope();
-    for (auto const& [key, value] : opt) {
-        visitField(arg, key.c_str(), value);
-    }
+    for (auto const& [key, value] : opt) { visitField(arg, key.c_str(), value); }
 }

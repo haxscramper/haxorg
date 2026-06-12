@@ -81,15 +81,12 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
     {
         B b;
         S s{&b};
-        EXPECT_EQ(
-            s.toString(b.indent(2, b.line({s.text("A"), s.text("B")}))),
-            "  AB");
+        EXPECT_EQ(s.toString(b.indent(2, b.line({s.text("A"), s.text("B")}))), "  AB");
     }
     {
         B    b;
         S    s{&b};
-        auto value = s.toString(
-            b.indent(2, b.stack({s.text("A"), s.text("B")})));
+        auto value = s.toString(b.indent(2, b.stack({s.text("A"), s.text("B")})));
         EXPECT_EQ(value, "  A\n  B");
     }
     {

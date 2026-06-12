@@ -14,9 +14,7 @@ template <typename T>
 struct convert<Vec<T>> {
     static Node encode(Vec<T> const& v) {
         Node res;
-        for (auto const& it : v) {
-            res.push_back(::YAML::convert<T>::encode(it));
-        }
+        for (auto const& it : v) { res.push_back(::YAML::convert<T>::encode(it)); }
         return res;
     }
 
@@ -49,22 +47,17 @@ struct convert<Mark> {
 template <DescribedRecord T>
 struct verbose_convert {
 
-    using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
-    using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
+    using Bd = boost::describe::describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::describe_members<T, boost::describe::mod_any_access>;
 
     static UnorderedMap<std::string, bool> knownFieldCache;
 
     static Node encode(T const& str) {
         Node in;
-        mp_for_each<Md>([&](auto const& field) {
-            in[field.name] = str.*field.pointer;
-        });
+        mp_for_each<Md>([&](auto const& field) { in[field.name] = str.*field.pointer; });
 
         mp_for_each<Bd>([&](auto Base) {
-            Node res = ::YAML::convert<
-                typename decltype(Base)::type>::encode(str);
+            Node res = ::YAML::convert<typename decltype(Base)::type>::encode(str);
             for (auto const& item : res) {
                 in[item.first.as<std::string>()] = item.second;
             }
@@ -81,15 +74,13 @@ struct verbose_convert {
 
             Node val = in[field.name];
             if (val && !val.IsNull()) {
-                ::YAML::convert<
-                    std::remove_cvref_t<decltype(out.*field.pointer)>>::
+                ::YAML::convert<std::remove_cvref_t<decltype(out.*field.pointer)>>::
                     decode(val, out.*field.pointer);
             }
         });
 
         boost::mp11::mp_for_each<Bd>([&](auto Base) {
-            ::YAML::convert<typename decltype(Base)::type>::decode(
-                in, out);
+            ::YAML::convert<typename decltype(Base)::type>::decode(in, out);
         });
 
         for (auto const& it : in) {
@@ -112,16 +103,14 @@ template <DescribedRecord T>
 UnorderedMap<std::string, bool> verbose_convert<T>::knownFieldCache;
 
 template <>
-struct convert<org::test::ParseSpec::Dbg>
-    : verbose_convert<org::test::ParseSpec::Dbg> {};
+struct convert<org::test::ParseSpec::Dbg> : verbose_convert<org::test::ParseSpec::Dbg> {};
 
 template <>
 struct convert<org::test::ParseSpec::Conf>
     : verbose_convert<org::test::ParseSpec::Conf> {};
 
 template <>
-struct convert<org::test::ParseSpec>
-    : verbose_convert<org::test::ParseSpec> {};
+struct convert<org::test::ParseSpec> : verbose_convert<org::test::ParseSpec> {};
 
 } // namespace YAML
 
@@ -199,9 +188,7 @@ ParseSpecGroup::ParseSpecGroup(
                 validate(spec);
 
                 if (!spec.name) {
-                    if (node["name"]) {
-                        spec.name = node["name"].as<std::string>();
-                    }
+                    if (node["name"]) { spec.name = node["name"].as<std::string>(); }
                 }
 
                 if (!it["expected"] && node["expected"]) {
@@ -286,9 +273,7 @@ yaml toYaml(json const& node) {
 
         case vt::object: {
             yaml result;
-            for (auto const& [it, value] : node.items()) {
-                result[it] = toYaml(value);
-            }
+            for (auto const& [it, value] : node.items()) { result[it] = toYaml(value); }
             return result;
         }
     }

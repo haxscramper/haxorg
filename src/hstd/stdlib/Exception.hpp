@@ -3,8 +3,7 @@
 #include <hstd/stdlib/Str.hpp>
 
 namespace hstd {
-struct logic_unhandled_kind_error
-    : CRTP_hexception<logic_unhandled_kind_error> {
+struct logic_unhandled_kind_error : CRTP_hexception<logic_unhandled_kind_error> {
 
 
     static logic_unhandled_kind_error init(
@@ -36,9 +35,7 @@ struct logic_unhandled_kind_error
 #endif
         result.msg = "Unexpected kind ";
         result.msg += hstd::enum_to_string(kind);
-        result.msg += " ("
-                    + std::to_string(
-                          static_cast<std::underlying_type_t<E>>(kind))
+        result.msg += " (" + std::to_string(static_cast<std::underlying_type_t<E>>(kind))
                     + ")";
 
         result.line     = line;
@@ -60,8 +57,7 @@ void logic_assertion_check_not_nil(
     if (hstd::value_metadata<T const*>::isNil(ptr)) {
         std::string msg = "Expected non-nullptr value for type ";
         msg += hstd::value_metadata<T>::typeName();
-        throw ::hstd::logic_assertion_error::init(
-            msg, line, function, file);
+        throw ::hstd::logic_assertion_error::init(msg, line, function, file);
     }
 }
 
@@ -89,8 +85,7 @@ void logic_assertion_check_not_nil(
     if (hstd::value_metadata<T>::isNil(ptr)) {
         std::string msg = "Expected non-nil value for type ";
         msg += hstd::value_metadata<T>::typeName();
-        throw ::hstd::logic_assertion_error::init(
-            msg, line, function, file);
+        throw ::hstd::logic_assertion_error::init(msg, line, function, file);
     }
 }
 
@@ -109,8 +104,7 @@ T const* validated_dynamic_cast(Other const* other) {
 }
 
 template <typename T, typename Other>
-std::shared_ptr<T> validated_dynamic_cast(
-    std::shared_ptr<Other> const& other) {
+std::shared_ptr<T> validated_dynamic_cast(std::shared_ptr<Other> const& other) {
     auto res = std::dynamic_pointer_cast<T>(other);
     hstd::logic_assertion_check_not_nil(res);
     return res;

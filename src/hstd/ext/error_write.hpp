@@ -156,12 +156,9 @@ class StrCache : public Cache {
     void add(Id id, std::string const& source, std::string const& name);
     Id   add_path(hstd::fs::path const& path);
 
-    inline std::shared_ptr<Source> fetch(Id const& id) override {
-        return sources.at(id);
-    }
+    inline std::shared_ptr<Source> fetch(Id const& id) override { return sources.at(id); }
 
-    inline std::optional<std::string> display(
-        Id const& id) const override {
+    inline std::optional<std::string> display(Id const& id) const override {
         return names.get_right(id);
     }
 };
@@ -251,9 +248,7 @@ struct Label {
 
     DESC_FIELDS(Label, (span, msg, color, order, priority, id));
 
-    bool operator==(Label const& other) const {
-        return this->id == other.id;
-    }
+    bool operator==(Label const& other) const { return this->id == other.id; }
 };
 
 /// \brief Metadata about the label.
@@ -416,9 +411,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     Vec<Label>                 labels   = {};
     Config                     config   = Config{};
 
-    DESC_FIELDS(
-        Report,
-        (kind, code, msg, note, help, location, labels, config));
+    DESC_FIELDS(Report, (kind, code, msg, note, help, location, labels, config));
 
 
     /// \brief Give this report a numerical code that may be used to more
@@ -461,8 +454,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     /// \brief Add multiple labels to the report.
     template <typename Container>
     void add_labels(Container const& labels) {
-        this->labels.insert(
-            this->labels.end(), labels.begin(), labels.end());
+        this->labels.insert(this->labels.end(), labels.begin(), labels.end());
     }
 
     /// \brief Add a label to the report.
@@ -484,15 +476,12 @@ class [[refl(R"({"default-constructor": false})")]] Report {
         return *this;
     }
 
-    Report(ReportKind kind, Id id, int offset)
-        : kind(kind), location({id, offset}) {}
+    Report(ReportKind kind, Id id, int offset) : kind(kind), location({id, offset}) {}
 
     Vec<SourceGroup> get_source_groups(Cache* cache) const;
 
 
-    void write(Cache& cache, std::ostream& w) {
-        write_for_stream(cache, w);
-    }
+    void write(Cache& cache, std::ostream& w) { write_for_stream(cache, w); }
 
     void write_for_stream(Cache& cache, std::ostream& stream) const {
         ColStream w{stream};

@@ -32,13 +32,13 @@ struct MockFull {
         bool               tracedParser = false,
         bool               tracedLexer  = false)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
-        spec   = getOrgSpec();
-        parser = std::make_shared<org::parse::OrgParser>(&nodes);
-        parser->TraceState = tracedParser;
-        tokenizer = std::make_shared<org::parse::OrgTokenizer>(&tokens);
+        spec                  = getOrgSpec();
+        parser                = std::make_shared<org::parse::OrgParser>(&nodes);
+        parser->TraceState    = tracedParser;
+        tokenizer             = std::make_shared<org::parse::OrgTokenizer>(&tokens);
         tokenizer->TraceState = tracedLexer;
         nodes.tokens          = &tokens;
-        parseContext = std::make_shared<org::parse::ParseContext>();
+        parseContext          = std::make_shared<org::parse::ParseContext>();
     }
 
     org::parse::OrgAdapter a(int idx) {
@@ -49,13 +49,9 @@ struct MockFull {
         return org::parse::OrgAdapter(&nodes, id);
     }
 
-    org::parse::OrgNode& n(int idx) {
-        return nodes.at(org::parse::OrgId(idx));
-    }
+    org::parse::OrgNode& n(int idx) { return nodes.at(org::parse::OrgId(idx)); }
 
-    org::parse::OrgToken& t(int idx) {
-        return tokens.at(org::parse::OrgTokenId(idx));
-    }
+    org::parse::OrgToken& t(int idx) { return tokens.at(org::parse::OrgTokenId(idx)); }
 
     OrgNodeKind k(int idx) { return n(idx).kind; }
 
@@ -82,8 +78,7 @@ struct MockFull {
     sem::SemId<sem::Org> toNode() {
         sem::OrgConverter converter{};
         return converter
-            .convertDocument(
-                org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)))
+            .convertDocument(org::parse::OrgAdapter(&nodes, org::parse::OrgId(0)))
             .unwrap();
     }
 

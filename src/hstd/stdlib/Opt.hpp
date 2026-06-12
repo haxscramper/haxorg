@@ -26,10 +26,7 @@ T opt_value(
     }
 }
 
-template <
-    typename T,
-    typename F,
-    typename Res = std::invoke_result<T(int)>::type>
+template <typename T, typename F, typename Res = std::invoke_result<T(int)>::type>
 Opt<Res> opt_map(Opt<T> const& opt, F const& cb) {
     if (opt) {
         return cb(*opt);

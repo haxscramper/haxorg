@@ -22,8 +22,7 @@ Size hstd::JsonSerde<Size>::from_json(json const& j) {
 }
 
 json hstd::JsonSerde<Size>::to_json(ext::geometry::Size const& size) {
-    return json::object(
-        {{"width", size.width()}, {"height", size.height()}});
+    return json::object({{"width", size.width()}, {"height", size.height()}});
 }
 
 Point hstd::JsonSerde<Point>::from_json(json const& j) {
@@ -38,18 +37,13 @@ json hstd::JsonSerde<Point>::to_json(ext::geometry::Point const& point) {
 
 Polygon hstd::JsonSerde<Polygon>::from_json(json const& j) {
     Polygon res;
-    for (auto const& it : j) {
-        res.push_back(JsonSerde<Point>::from_json(it));
-    }
+    for (auto const& it : j) { res.push_back(JsonSerde<Point>::from_json(it)); }
     return res;
 }
 
-json hstd::JsonSerde<Polygon>::to_json(
-    ext::geometry::Polygon const& point) {
+json hstd::JsonSerde<Polygon>::to_json(ext::geometry::Polygon const& point) {
     json result = json::array();
-    for (auto const& p : point) {
-        result.push_back(JsonSerde<Point>::to_json(p));
-    }
+    for (auto const& p : point) { result.push_back(JsonSerde<Point>::to_json(p)); }
     return result;
 }
 

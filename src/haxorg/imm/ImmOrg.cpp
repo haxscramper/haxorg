@@ -115,17 +115,16 @@ void ImmId::assertValid() const {
     }
 }
 
-#define _define_static(__Kind)                                            \
-    const OrgSemKind                                                      \
-        org::imm::Imm##__Kind::staticKind = OrgSemKind::__Kind;
+#define _define_static(__Kind)                                                           \
+    const OrgSemKind org::imm::Imm##__Kind::staticKind = OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
 
 HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmOrg)
 
-#define _register_type(__Kind)                                            \
-    HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::Imm##__Kind)                 \
+#define _register_type(__Kind)                                                           \
+    HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::Imm##__Kind)                                \
     HSTD_REGISTER_TYPE_FIELD_NAMES(org::sem::__Kind)
 
 EACH_SEM_ORG_KIND(_register_type)
@@ -152,10 +151,7 @@ const ImmOrg* ImmAstStore::at(ImmId index) const {
 }
 
 
-void org::eachSubnodeRec(
-    ImmAdapter             id,
-    bool                   withPath,
-    org::ImmSubnodeVisitor cb) {
+void org::eachSubnodeRec(ImmAdapter id, bool withPath, org::ImmSubnodeVisitor cb) {
     cb(id);
     for (auto const& sub : id.getAllSubnodes(id.path, withPath)) {
         eachSubnodeRec(sub, withPath, cb);
@@ -210,8 +206,8 @@ struct TreeReprFieldPrint<hstd::ext::ImmVec<T>> {
         os << field_name << "\n";
         for (auto const& it : hstd::enumerator(field)) {
             os.indent((ctx.level + 1) * 2);
-            os << os.cyan() << hstd::fmt("  [{}]: ", it.index())
-               << os.end() << hstd::fmt1(it.value()) << "\n";
+            os << os.cyan() << hstd::fmt("  [{}]: ", it.index()) << os.end()
+               << hstd::fmt1(it.value()) << "\n";
         }
     }
 };
@@ -234,13 +230,10 @@ struct TreeReprFieldPrint<hstd::ext::ImmVec<org::sem::NamedProperty>> {
         for (auto const& it : field) {
             os.indent((ctx.level + 1) * 2);
             os << os.green()
-               << hstd::left_aligned(
-                      hstd::fmt(":{}: ", it.getName()), prop_width + 3)
+               << hstd::left_aligned(hstd::fmt(":{}: ", it.getName()), prop_width + 3)
                << hstd::fmt1(it.getKind()) << os.end();
 
-            std::visit(
-                [&](auto const& prop) { os << hstd::fmt1(prop); },
-                it.data);
+            std::visit([&](auto const& prop) { os << hstd::fmt1(prop); }, it.data);
             os << "\n";
         }
     }
@@ -282,10 +275,7 @@ struct get_value_format<org::imm::ImmSubtree> {
 
 } // namespace
 
-void treeReprRec(
-    ImmAdapter                id,
-    ColStream&                os,
-    ImmTreeReprContext const& ctx) {
+void treeReprRec(ImmAdapter id, ColStream& os, ImmTreeReprContext const& ctx) {
     os.indent(ctx.level * 2);
     // TODO: Align the subtree kind and readable ID using fixed width
     // padding on the subtree.
@@ -293,40 +283,32 @@ void treeReprRec(
     if (!ctx.path.empty()) { os << fmt(" PATH:{}", ctx.path); }
     bool printed_field_repr    = false;
     auto print_detailed_fields = [&]() {
-        switch_node_value(
-            id.id, id.ctx.lock(), [&]<typename N>(N const& value) {
-                hstd::for_each_field_with_base_value<N>(
-                    value,
-                    [&](auto const& object_value, auto const& desc) {
-                        hstd::Pair<OrgSemKind, ImmReflFieldId> key{
-                            N::staticKind,
-                            ImmReflFieldId::FromTypeField(desc.pointer)};
-                        using F = DESC_FIELD_TYPE(desc);
-                        if (ctx.conf.withFieldSubset.contains(key)) {
-                            printed_field_repr = true;
-                            TreeReprFieldPrint<F>::format(
-                                os,
-                                ctx.addLevel(1),
-                                desc.name,
-                                object_value.*desc.pointer);
-                        }
-                    });
-            });
+        switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& value) {
+            hstd::for_each_field_with_base_value<N>(
+                value, [&](auto const& object_value, auto const& desc) {
+                    hstd::Pair<OrgSemKind, ImmReflFieldId> key{
+                        N::staticKind, ImmReflFieldId::FromTypeField(desc.pointer)};
+                    using F = DESC_FIELD_TYPE(desc);
+                    if (ctx.conf.withFieldSubset.contains(key)) {
+                        printed_field_repr = true;
+                        TreeReprFieldPrint<F>::format(
+                            os, ctx.addLevel(1), desc.name, object_value.*desc.pointer);
+                    }
+                });
+        });
     };
 
-    switch_node_value(
-        id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
-            auto s = get_value_format<N>::get(id.as<N>(), ctx);
-            if (!s.empty()) { os << " " << s; }
-        });
+    switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
+        auto s = get_value_format<N>::get(id.as<N>(), ctx);
+        if (!s.empty()) { os << " " << s; }
+    });
 
 
     if (ctx.conf.withReflFields) {
         if (ctx.conf.withAuxFields) {
-            switch_node_value(
-                id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
-                    os << " " << fmt1(node);
-                });
+            switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
+                os << " " << fmt1(node);
+            });
         }
         os << "\n";
         print_detailed_fields();
@@ -344,10 +326,9 @@ void treeReprRec(
         }
     } else {
         if (ctx.conf.withAuxFields) {
-            switch_node_value(
-                id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
-                    os << " " << fmt1(node);
-                });
+            switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
+                os << " " << fmt1(node);
+            });
         }
 
         os << "\n";
@@ -360,10 +341,7 @@ void treeReprRec(
 
         int idx = 0;
         for (auto const& it : id.sub()) {
-            treeReprRec(
-                it,
-                os,
-                ctx.addLevel(printed_field_repr ? 2 : 1).addPath(idx));
+            treeReprRec(it, os, ctx.addLevel(printed_field_repr ? 2 : 1).addPath(idx));
             ++idx;
         }
     }
@@ -377,16 +355,14 @@ Str ImmAdapter::selfSelect() const {
         if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()
             && i.at(0).getFieldName().name.getName() == "subnodes") {
             result += fmt(".at({})", i.at(1).getIndex().index);
-        } else if (
-            i.size() == 2 && i.at(0).isFieldName() && i.at(1).isAnyKey()) {
+        } else if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isAnyKey()) {
             result += fmt(
                 R"(.{}.at("{}"))",
                 i.at(0).getFieldName().name.getName(),
                 i.at(1).getAnyKey().get<Str>());
         } else if (i.size() == 1 && i.at(0).isFieldName()) {
             return fmt(".{}", i.at(0).getFieldName().name.getName());
-        } else if (
-            i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()) {
+        } else if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()) {
             result += fmt(
                 ".{}.at({})",
                 i.at(0).getFieldName().name.getName(),
@@ -458,9 +434,8 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
         [](ImmAdapter const& ad) { return ad->is(OrgSemKind::Subtree); });
 }
 
-Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
-    Opt<ImmPath> const& rootPath,
-    bool                withPath) const {
+Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> const& rootPath, bool withPath)
+    const {
     Vec<ImmAdapter>           result;
     auto const&               root = *this;
     ReflRecursiveVisitContext visitCtx;
@@ -489,8 +464,7 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
                 [&](ImmReflPathBase const& parent, ImmId const& id) {
                     add_id(parent, id);
                 },
-                [&]<typename K>(
-                    ImmReflPathBase const& parent, ImmIdT<K> const& id) {
+                [&]<typename K>(ImmReflPathBase const& parent, ImmIdT<K> const& id) {
                     add_id(parent, id.toId());
                 },
                 [&](ImmReflPathBase const& parent, auto const& other) {},
@@ -513,14 +487,11 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
             }
         }
     };
-    for (auto const& it : getAllSubnodes(rootPath, withPath)) {
-        aux(it, it.path);
-    }
+    for (auto const& it : getAllSubnodes(rootPath, withPath)) { aux(it, it.path); }
     return result;
 }
 
-Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(
-    ImmId const& subnode) const {
+Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(ImmId const& subnode) const {
     Vec<ImmPathStep> result;
     for (auto const& sub : getAllSubnodes(std::nullopt)) {
         LOGIC_ASSERTION_CHECK_FMT(sub.path.path.size() == 1, "");
@@ -548,8 +519,7 @@ ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
         return at(
             ctx.lock()->at(id)->subnodes.at(idx),
             ImmPathStep::FieldIdx(
-                ImmReflFieldId::FromTypeField<ImmOrg>(&ImmOrg::subnodes),
-                idx));
+                ImmReflFieldId::FromTypeField<ImmOrg>(&ImmOrg::subnodes), idx));
     } else {
         return ImmAdapter{ctx.lock()->at(id)->subnodes.at(idx), ctx, {}};
     }
@@ -561,9 +531,7 @@ Vec<ImmAdapter> ImmAdapter::sub(bool withPath) const {
     return result;
 }
 
-void ImmAstTrackingMapTransient::setAsParentOf(
-    ImmId const& parent,
-    ImmId const& target) {
+void ImmAstTrackingMapTransient::setAsParentOf(ImmId const& parent, ImmId const& target) {
     auto const* newParent = parents.find(target);
     if (newParent == nullptr) { parents.set(target, ImmParentIdVec{}); }
 
@@ -582,8 +550,7 @@ SemSet FastTrackNodes{
     OrgSemKind::Time,
 };
 
-void ImmAstTrackingMapTransient::removeAllSubnodesOf(
-    ImmAdapter const& parent) {
+void ImmAstTrackingMapTransient::removeAllSubnodesOf(ImmAdapter const& parent) {
     if (!isTrackingParent(parent)) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
         auto subParents = parents.find(sub.id);
@@ -598,8 +565,7 @@ void ImmAstTrackingMapTransient::removeAllSubnodesOf(
     }
 }
 
-void ImmAstTrackingMapTransient::insertAllSubnodesOf(
-    ImmAdapter const& parent) {
+void ImmAstTrackingMapTransient::insertAllSubnodesOf(ImmAdapter const& parent) {
     if (!isTrackingParent(parent)) { return; }
     for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
         if (isTrackingParent(sub)) { setAsParentOf(parent.id, sub.id); }
@@ -620,9 +586,7 @@ ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
     };
 }
 
-SPtr<ImmAstContext> ImmAstEditContext::finish() {
-    return ctx.lock()->finishEdit(*this);
-}
+SPtr<ImmAstContext> ImmAstEditContext::finish() { return ctx.lock()->finishEdit(*this); }
 
 ImmAstStore& ImmAstEditContext::store() { return *ctx.lock()->store; }
 
@@ -677,8 +641,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
 
     auto search_radio_targets = [&](ImmAdapter const& id) {
         __perf_trace("imm", "search radio targets");
-        for (auto const& target :
-             id.subAs<org::imm::ImmRadioTarget>(false)) {
+        for (auto const& target : id.subAs<org::imm::ImmRadioTarget>(false)) {
             message(fmt("Node {} contains radio target {}", node, target));
             edit_radio_targets(target->words, target.id);
         }
@@ -691,16 +654,12 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
             [&]<typename N>(N const& nodeValue)
                 requires(ProvidesImmApi<N, ImmAdapterStmtAPI>)
                         {
-                            auto adapter = ctx.lock()
-                                               ->adaptUnrooted(node)
-                                               .as<N>();
+                            auto adapter = ctx.lock()->adaptUnrooted(node).as<N>();
                             __perf_trace("imm", "track names");
                             for (auto const& name : adapter.getName()) {
                                 if (ctx.lock()->debug->TraceState) {
                                     message(fmt(
-                                        "Tracking name '{}' for node {}",
-                                        name,
-                                        node));
+                                        "Tracking name '{}' for node {}", name, node));
                                 }
                                 if (add) {
                                     transientTrack.names.set(name, node);
@@ -714,8 +673,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
             { /*_dfmt(node, nodeValue); */ },
         });
 
-    if (!SemSet{OrgSemKind::Subtree, OrgSemKind::Paragraph}.contains(
-            node.getKind())) {
+    if (!SemSet{OrgSemKind::Subtree, OrgSemKind::Paragraph}.contains(node.getKind())) {
         return;
     }
 
@@ -736,8 +694,8 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                     }
                 }
 
-                for (auto const& id : org::getSubtreeProperties<
-                         sem::NamedProperty::CustomId>(subtree)) {
+                for (auto const& id :
+                     org::getSubtreeProperties<sem::NamedProperty::CustomId>(subtree)) {
                     if (ctx.lock()->debug->TraceState) {
                         message(fmt("Subtree custom ID {}", id.value));
                     }
@@ -748,27 +706,23 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                     }
                 }
 
-                for (auto const& id : org::getSubtreeProperties<
-                         sem::NamedProperty::RadioId>(subtree)) {
+                for (auto const& id :
+                     org::getSubtreeProperties<sem::NamedProperty::RadioId>(subtree)) {
                     edit_radio_targets(id.words, node);
                 }
 
-                for (auto const& tag : org::getSubtreeProperties<
-                         sem::NamedProperty::HashtagDef>(subtree)) {
+                for (auto const& tag :
+                     org::getSubtreeProperties<sem::NamedProperty::HashtagDef>(subtree)) {
                     // only track fully resolved nodes, for node details
                     // see [[hashtag_track_set_minimization]]
-                    for (auto const& hashtag :
-                         tag.hashtag.getFlatHashes(false)) {
-                        transientTrack.hashtagDefinitions.insert(
-                            {hashtag, node});
+                    for (auto const& hashtag : tag.hashtag.getFlatHashes(false)) {
+                        transientTrack.hashtagDefinitions.insert({hashtag, node});
                     }
                 }
             },
             [&](org::imm::ImmParagraph const&) {
                 __perf_trace("imm", "track paragraph");
-                auto par = ctx.lock()
-                               ->adaptUnrooted(node)
-                               .as<org::imm::ImmParagraph>();
+                auto par = ctx.lock()->adaptUnrooted(node).as<org::imm::ImmParagraph>();
                 if (par.isFootnoteDefinition()) {
                     auto id = par.getFootnoteName().value();
                     if (ctx.lock()->debug->TraceState) {
@@ -786,9 +740,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
         });
 }
 
-hstd::SPtr<OperationsTracer> ImmAstEditContext::debug() {
-    return ctx.lock()->debug;
-}
+hstd::SPtr<OperationsTracer> ImmAstEditContext::debug() { return ctx.lock()->debug; }
 
 void ImmAstEditContext::message(
     std::string const& value,
@@ -800,17 +752,13 @@ void ImmAstEditContext::message(
 
 template <typename T>
 struct value_metadata<hstd::ext::ImmVec<T>> {
-    static bool isEmpty(hstd::ext::ImmVec<T> const& value) {
-        return value.empty();
-    }
+    static bool isEmpty(hstd::ext::ImmVec<T> const& value) { return value.empty(); }
 };
 
 
 template <typename T>
 struct value_metadata<hstd::ext::ImmSet<T>> {
-    static bool isEmpty(hstd::ext::ImmSet<T> const& value) {
-        return value.empty();
-    }
+    static bool isEmpty(hstd::ext::ImmSet<T> const& value) { return value.empty(); }
 };
 
 
@@ -835,16 +783,14 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
     ImmAstGraphvizConf const& conf) {
     // TODO: rewrite to use full IGraph API instead of NodeGroup fallback.
     using namespace hstd::ext::graph;
-    hstd::SPtr<gv::GraphGroup> g = gv::GraphGroup::newStandaloneRootGraph(
-        "g"_ss);
+    hstd::SPtr<gv::GraphGroup> g = gv::GraphGroup::newStandaloneRootGraph("g"_ss);
     g->setBackgroundColor("beige");
 
-    UnorderedSet<ImmId>                                visited;
-    UnorderedMap<ImmId, hstd::SPtr<gv::NodeAttribute>> gvNodes;
-    UnorderedMap<Pair<ImmId, ImmId>, hstd::SPtr<gv::EdgeAttribute>>
-                                    gvEdges;
-    Vec<hstd::SPtr<gv::GraphGroup>> gvClusters;
-    ImmAstContext::Ptr              ctx = history.front().context;
+    UnorderedSet<ImmId>                                             visited;
+    UnorderedMap<ImmId, hstd::SPtr<gv::NodeAttribute>>              gvNodes;
+    UnorderedMap<Pair<ImmId, ImmId>, hstd::SPtr<gv::EdgeAttribute>> gvEdges;
+    Vec<hstd::SPtr<gv::GraphGroup>>                                 gvClusters;
+    ImmAstContext::Ptr ctx = history.front().context;
 
     auto get_graph = [&](int epoch) -> hstd::SPtr<gv::GraphGroup> {
         if (conf.withEpochClusters && epoch < history.size()) {
@@ -860,8 +806,7 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
         }
     };
 
-    auto get_node = [&](ImmId id,
-                        int   idx) -> Opt<hstd::SPtr<gv::NodeAttribute>> {
+    auto get_node = [&](ImmId id, int idx) -> Opt<hstd::SPtr<gv::NodeAttribute>> {
         if (conf.skippedKinds.contains(id.getKind()) || id.isNil()) {
             return std::nullopt;
         } else {
@@ -875,18 +820,15 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
                 Vec<Str> label;
                 int      maxFieldWidth = 0;
 
-                auto field = [&]<typename T>(
-                                 Str const& name, T const& value) {
+                auto field = [&]<typename T>(Str const& name, T const& value) {
                     auto value_fmt = fmt1(value);
                     auto prefix    = left_aligned(name, maxFieldWidth);
                     if (value_fmt.contains('\n')) {
                         auto split = hstd::split(value_fmt, '\n');
-                        label.push_back(
-                            fmt("{}: {}", prefix, split.at(0)));
+                        label.push_back(fmt("{}: {}", prefix, split.at(0)));
                         for (int i = 1; i < split.size(); ++i) {
                             label.push_back(
-                                Str{" "}.repeated(prefix.size() + 2)
-                                + split.at(i));
+                                Str{" "}.repeated(prefix.size() + 2) + split.at(i));
                         }
                     } else {
                         label.push_back(fmt("{}: {}", prefix, value_fmt));
@@ -895,56 +837,41 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
 
 
                 switch_node_fields(
-                    id,
-                    ctx,
-                    [&]<typename F>(Str const& name, F const& value) {
-                        maxFieldWidth = std::max<int>(
-                            maxFieldWidth, name.size());
+                    id, ctx, [&]<typename F>(Str const& name, F const& value) {
+                        maxFieldWidth = std::max<int>(maxFieldWidth, name.size());
                     });
 
                 field("ID", id);
                 switch_node_fields(
-                    id,
-                    ctx,
-                    [&]<typename F>(Str const& name, F const& value) {
+                    id, ctx, [&]<typename F>(Str const& name, F const& value) {
                         if constexpr (
                             std::is_same_v<
-                                hstd::ext::ImmBox<
-                                    hstd::Opt<org::sem::AttrGroup>>,
+                                hstd::ext::ImmBox<hstd::Opt<org::sem::AttrGroup>>,
                                 F>) {
                             if (name == "attrs") {
                                 if (value.get()) {
-                                    org::sem::AttrGroup
-                                             group = value.get().value();
-                                    Vec<Str> attrs;
-                                    for (auto const& it : hstd::enumerator(
-                                             group.positional.items)) {
+                                    org::sem::AttrGroup group = value.get().value();
+                                    Vec<Str>            attrs;
+                                    for (auto const& it :
+                                         hstd::enumerator(group.positional.items)) {
                                         attrs.push_back(
-                                            fmt("[{}] = {}",
-                                                it.index(),
-                                                it.value()));
+                                            fmt("[{}] = {}", it.index(), it.value()));
                                     }
 
-                                    for (auto const& key :
-                                         sorted(group.named.keys())) {
-                                        for (auto const& it :
-                                             group.named.at(key).items) {
+                                    for (auto const& key : sorted(group.named.keys())) {
+                                        for (auto const& it : group.named.at(key).items) {
                                             attrs.push_back(
-                                                fmt("{} = {}",
-                                                    escape_literal(key),
-                                                    it));
+                                                fmt("{} = {}", escape_literal(key), it));
                                         }
                                     }
 
-                                    field(
-                                        "attrs", hstd::join("\n", attrs));
+                                    field("attrs", hstd::join("\n", attrs));
                                 }
                                 return;
                             }
                         }
 
-                        if (auto skipped = conf.skippedFields.get(
-                                fmt1(id.getKind()));
+                        if (auto skipped = conf.skippedFields.get(fmt1(id.getKind()));
                             skipped && skipped->contains(name)) {
                             return;
                         } else if (value_metadata<F>::isEmpty(value)) {
@@ -974,8 +901,7 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
                 if (sub_imm) {
                     Pair<ImmId, ImmId> pair{id, it.value()};
                     if (!gvEdges.contains(pair)) {
-                        auto edge = g->edge(
-                            *node.value(), *sub_imm.value());
+                        auto edge = g->edge(*node.value(), *sub_imm.value());
                         edge->setColor(conf.epochColors.at(idx));
                         edge->setLabel(fmt1(it.index()));
                         gvEdges.insert_or_assign(pair, edge);
@@ -997,8 +923,7 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
 
     if (conf.withEditHistory) {
         for (auto const& epoch : history) {
-            for (auto const& act :
-                 epoch.epoch->replaced.allReplacements()) {
+            for (auto const& act : epoch.epoch->replaced.allReplacements()) {
                 auto const& src = gvNodes.get(act.original->id);
                 auto const& dst = gvNodes.get(act.replaced.id);
                 if (src && dst) {
@@ -1019,18 +944,16 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
 template <typename T>
 struct ImmSubnodeCollectionVisitor {};
 
-#define IMM_SUBNODE_COLLECTOR(__TemplateArgs, __VisitorTypeSpecification) \
-    DEFINE_VISITOR_BASE_ALL(                                              \
-        /*Typename=*/ImmSubnodeCollectionVisitor,                         \
-        /*TemplateArgs=*/__TemplateArgs,                                  \
-        /*SharedArgs=*/(org::imm::ImmAstContext::Ptr const& ctx),         \
-        /*TypeSpecification=*/__VisitorTypeSpecification,                 \
-        /*ResultType=*/(Vec<ImmId>),                                      \
+#define IMM_SUBNODE_COLLECTOR(__TemplateArgs, __VisitorTypeSpecification)                \
+    DEFINE_VISITOR_BASE_ALL(                                                             \
+        /*Typename=*/ImmSubnodeCollectionVisitor,                                        \
+        /*TemplateArgs=*/__TemplateArgs,                                                 \
+        /*SharedArgs=*/(org::imm::ImmAstContext::Ptr const& ctx),                        \
+        /*TypeSpecification=*/__VisitorTypeSpecification,                                \
+        /*ResultType=*/(Vec<ImmId>),                                                     \
         /*MethodName=*/getSubnodes)
 
-IMM_SUBNODE_COLLECTOR((typename T), (ImmIdT<T>)) {
-    return Vec<ImmId>{arg.toId()};
-}
+IMM_SUBNODE_COLLECTOR((typename T), (ImmIdT<T>)) { return Vec<ImmId>{arg.toId()}; }
 
 IMM_SUBNODE_COLLECTOR((), (ImmId)) { return Vec<ImmId>{arg}; }
 IMM_SUBNODE_COLLECTOR((), (Str)) { return {}; }
@@ -1038,13 +961,10 @@ IMM_SUBNODE_COLLECTOR((), (bool)) { return {}; }
 IMM_SUBNODE_COLLECTOR((), (int)) { return {}; }
 IMM_SUBNODE_COLLECTOR((IsEnum E), (E)) { return {}; }
 IMM_SUBNODE_COLLECTOR((DescribedRecord R), (R)) { return {}; }
-IMM_SUBNODE_COLLECTOR(
-    (typename K, typename V),
-    (hstd::ext::ImmMap<K, V>)) {
+IMM_SUBNODE_COLLECTOR((typename K, typename V), (hstd::ext::ImmMap<K, V>)) {
     Vec<ImmId> result;
     for (auto const& [key, value] : arg) {
-        result.append(
-            ImmSubnodeCollectionVisitor<V>::getSubnodes(value, ctx));
+        result.append(ImmSubnodeCollectionVisitor<V>::getSubnodes(value, ctx));
     }
     return result;
 }
@@ -1052,8 +972,7 @@ IMM_SUBNODE_COLLECTOR(
 IMM_SUBNODE_COLLECTOR((typename T), (hstd::ext::ImmVec<T>)) {
     Vec<ImmId> result{};
     for (auto const& it : arg) {
-        result.append(
-            ImmSubnodeCollectionVisitor<T>::getSubnodes(it, ctx));
+        result.append(ImmSubnodeCollectionVisitor<T>::getSubnodes(it, ctx));
     }
     return result;
 }
@@ -1078,21 +997,18 @@ IMM_SUBNODE_COLLECTOR((typename T), (ImmBox<T>)) {
 
 IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
     if (arg) {
-        return ImmSubnodeCollectionVisitor<T>::getSubnodes(
-            arg.value(), ctx);
+        return ImmSubnodeCollectionVisitor<T>::getSubnodes(arg.value(), ctx);
     } else {
         return {};
     }
 }
 
 template <IsImmOrgValueType T>
-Vec<ImmId> imm::allSubnodes(
-    T const&                  value,
-    ImmAstContext::Ptr const& ctx) {
+Vec<ImmId> imm::allSubnodes(T const& value, ImmAstContext::Ptr const& ctx) {
     Vec<ImmId> subnodes;
     for_each_field_with_bases<T>([&](auto const& f) {
         using FieldType = DESC_FIELD_TYPE(f);
-        auto tmp = ImmSubnodeCollectionVisitor<FieldType>::getSubnodes(
+        auto tmp        = ImmSubnodeCollectionVisitor<FieldType>::getSubnodes(
             value.*f.pointer, ctx);
         subnodes.append(tmp);
     });
@@ -1100,15 +1016,12 @@ Vec<ImmId> imm::allSubnodes(
 }
 
 
-Vec<ImmId> imm::allSubnodes(
-    ImmId const&              value,
-    ImmAstContext::Ptr const& ctx) {
+Vec<ImmId> imm::allSubnodes(ImmId const& value, ImmAstContext::Ptr const& ctx) {
     value.assertValid();
     switch (value.getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        return allSubnodes(                                               \
-            ctx->value<org::imm::Imm##__Kind>(value), ctx);               \
+#define _case(__Kind)                                                                    \
+    case OrgSemKind::__Kind: {                                                           \
+        return allSubnodes(ctx->value<org::imm::Imm##__Kind>(value), ctx);               \
     }
         EACH_SEM_ORG_KIND(_case)
     }
@@ -1132,10 +1045,8 @@ ImmAstVersion ImmAstVersion::getEditVersion(
 
 void ImmAstReplaceGroup::set(ImmAstReplace const& replace) {
     LOGIC_ASSERTION_CHECK_FMT(replace.original.has_value(), "");
-    for (auto const& it :
-         Vec<ImmUniqId>{replace.original.value(), replace.replaced}) {
-        bool check = it.id.is(OrgSemKind::Document)
-                  || it.id.is(OrgSemKind::DocumentGroup)
+    for (auto const& it : Vec<ImmUniqId>{replace.original.value(), replace.replaced}) {
+        bool check = it.id.is(OrgSemKind::Document) || it.id.is(OrgSemKind::DocumentGroup)
                   || !it.path.empty();
         LOGIC_ASSERTION_CHECK_FMT(
             check,
@@ -1155,8 +1066,7 @@ void ImmAstReplaceGroup::set(ImmAstReplace const& replace) {
     replace.original->id.assertValid();
     replace.replaced.id.assertValid();
 
-    nodeReplaceMap.insert_or_assign(
-        replace.original->id, replace.replaced.id);
+    nodeReplaceMap.insert_or_assign(replace.original->id, replace.replaced.id);
     map.insert_or_assign(*replace.original, replace.replaced);
 }
 
@@ -1212,8 +1122,8 @@ ColText ImmAstTrackingMap::toString() const {
         }
     };
 
-#define __it(name)                                                        \
-    os << #name << "\n";                                                  \
+#define __it(name)                                                                       \
+    os << #name << "\n";                                                                 \
     write_map(name);
 
     __it(footnotes);
@@ -1227,8 +1137,7 @@ ColText ImmAstTrackingMap::toString() const {
     return os.getBuffer();
 }
 
-const ImmParentIdVec& ImmAstTrackingMap::getParentIds(
-    ImmId const& it) const {
+const ImmParentIdVec& ImmAstTrackingMap::getParentIds(ImmId const& it) const {
     if (parents.contains(it)) {
         return parents.at(it);
     } else {
@@ -1236,9 +1145,8 @@ const ImmParentIdVec& ImmAstTrackingMap::getParentIds(
     }
 }
 
-ParentPathMap ImmAstTrackingMap::getParentsFor(
-    ImmId const&         it,
-    ImmAstContext const* ctx) const {
+ParentPathMap ImmAstTrackingMap::getParentsFor(ImmId const& it, ImmAstContext const* ctx)
+    const {
     if (parents.contains(it)) {
         ParentPathMap result;
         for (auto const& parent : parents.at(it)) {
@@ -1258,14 +1166,12 @@ ParentPathMap ImmAstTrackingMap::getParentsFor(
     }
 }
 
-Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(
-    ImmId const&         it,
-    ImmAstContext const* ctx) const {
+Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(ImmId const& it, ImmAstContext const* ctx)
+    const {
     Func<Vec<ImmPath>(ImmId const& id)> aux;
     aux = [&](ImmId const& id) -> Vec<ImmPath> {
         Vec<ImmPath> result;
-        for (auto const& [parentId, parentPaths] :
-             getParentsFor(id, ctx)) {
+        for (auto const& [parentId, parentPaths] : getParentsFor(id, ctx)) {
             auto auxRes = aux(parentId);
             if (auxRes.empty()) {
                 for (auto const& full : parentPaths) {
@@ -1362,11 +1268,9 @@ RadioTargetSearchResult tryRadioTargetSearch(
             return result;
         } else if (sourceWord->text == words.at(radioOffset)) {
             if (radioOffset == (words.size() - 1)) {
-                auto range = slice(
-                    groupingIdx, groupingIdx + sourceOffset);
+                auto range    = slice(groupingIdx, groupingIdx + sourceOffset);
                 result.target = ImmSubnodeGroup::RadioTarget{
-                    .target = targetId,
-                    .nodes  = Vec<ImmAdapter>{sub.at(range)}};
+                    .target = targetId, .nodes = Vec<ImmAdapter>{sub.at(range)}};
                 ctx->debug->message(
                     fmt("Fully matched radio target "
                         "offset, subnode range {} is a "
@@ -1432,49 +1336,35 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
         if (auto leaf = it->dyn_cast<ImmLeaf>();
             leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
             ctx->debug->message(fmt("Subnode {} is leaf", groupingIdx));
-            Vec<ImmId> const* radioTargets = track.radioTargets.find(
-                leaf->text.get());
+            Vec<ImmId> const* radioTargets = track.radioTargets.find(leaf->text.get());
             if (radioTargets == nullptr) {
                 ctx->debug->message(
-                    fmt("No radio target starting with word '{}'",
-                        leaf->text));
-                result.push_back(
-                    ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+                    fmt("No radio target starting with word '{}'", leaf->text));
+                result.push_back(ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
             } else {
                 ctx->debug->message(fmt("Found potential radio targets"));
                 RadioTargetSearchResult searchResult;
                 for (ImmId const& radioId : *radioTargets) {
-                    ctx->debug->message(
-                        fmt("Trying radio ID {}", radioId));
+                    ctx->debug->message(fmt("Trying radio ID {}", radioId));
                     auto __scope      = ctx->debug->begin_scope();
-                    auto radioAdapter = it.ctx.lock()->adaptUnrooted(
-                        radioId);
+                    auto radioAdapter = it.ctx.lock()->adaptUnrooted(radioId);
 
                     if (radioAdapter.is(OrgSemKind::RadioTarget)) {
                         auto radio   = radioAdapter.as<ImmRadioTarget>();
                         searchResult = tryRadioTargetSearch(
                             radio->words, sub, groupingIdx, radio.id, ctx);
 
-                        if (searchResult.target) {
-                            goto radio_search_exit;
-                        }
+                        if (searchResult.target) { goto radio_search_exit; }
                     } else if (radioAdapter.is(OrgSemKind::Subtree)) {
                         auto subtree = radioAdapter.as<ImmSubtree>();
-                        for (auto const& id : org::getSubtreeProperties<
-                                 sem::NamedProperty::RadioId>(
+                        for (auto const& id :
+                             org::getSubtreeProperties<sem::NamedProperty::RadioId>(
                                  subtree.value())) {
-                            ctx->debug->message(fmt(
-                                "Searcing for radio target with words {}",
-                                id.words));
+                            ctx->debug->message(
+                                fmt("Searcing for radio target with words {}", id.words));
                             searchResult = tryRadioTargetSearch(
-                                id.words,
-                                sub,
-                                groupingIdx,
-                                subtree.id,
-                                ctx);
-                            if (searchResult.target) {
-                                goto radio_search_exit;
-                            }
+                                id.words, sub, groupingIdx, subtree.id, ctx);
+                            if (searchResult.target) { goto radio_search_exit; }
                         }
 
                     } else {
@@ -1489,13 +1379,11 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
             radio_search_exit:
                 if (searchResult.target) {
                     ctx->debug->message("Found radio ID target");
-                    result.push_back(
-                        ImmSubnodeGroup{searchResult.target.value()});
+                    result.push_back(ImmSubnodeGroup{searchResult.target.value()});
                     groupingIdx = searchResult.nextGroupIdx;
                 } else {
                     result.push_back(
-                        ImmSubnodeGroup{
-                            ImmSubnodeGroup::Single{.node = it}});
+                        ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
                 }
             }
         } else if (auto tag = it.asOpt<ImmHashTag>()) {
@@ -1508,34 +1396,28 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
             // as a group target since there can be many different trees
             // that define something like `#parent##XXXX`, and placing all of them to the target
             // map is not useful.
-            for (auto const& flat :
-                 tag->value().text.getFlatHashes(false)) {
-                if (auto target = ctx->currentTrack->hashtagDefinitions
-                                      .get(flat)) {
+            for (auto const& flat : tag->value().text.getFlatHashes(false)) {
+                if (auto target = ctx->currentTrack->hashtagDefinitions.get(flat)) {
                     rt.targets.insert_or_assign(flat, target.value());
                 }
             }
 
             if (rt.targets.empty()) {
-                result.push_back(
-                    ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+                result.push_back(ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
             } else {
                 rt.tag = it;
                 result.push_back(ImmSubnodeGroup{rt});
             }
 
         } else {
-            result.push_back(
-                ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+            result.push_back(ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
         }
     }
 
 
     {
         auto _s = ctx->debug->begin_scope("Final result grouping");
-        for (auto const& it : result) {
-            ctx->debug->message(fmt("Final {}", it));
-        }
+        for (auto const& it : result) { ctx->debug->message(fmt("Final {}", it)); }
     }
 
     int totalNodes = 0;
@@ -1546,9 +1428,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                     totalNodes += t.nodes.size();
                 },
                 [&](ImmSubnodeGroup::Single const&) { totalNodes += 1; },
-                [&](ImmSubnodeGroup::TrackedHashtag const&) {
-                    totalNodes += 1;
-                },
+                [&](ImmSubnodeGroup::TrackedHashtag const&) { totalNodes += 1; },
             },
             it.data);
     }
@@ -1569,15 +1449,9 @@ std::size_t std::hash<org::imm::ImmReflPathItemBase>::operator()(
     hstd::hax_hash_combine(result, it.getKind());
     using K = org::imm::ImmReflPathItemBase::Kind;
     switch (it.getKind()) {
-        case K::Index:
-            hstd::hax_hash_combine(result, it.getIndex().index);
-            break;
-        case K::FieldName:
-            hstd::hax_hash_combine(result, it.getFieldName().name);
-            break;
-        case K::AnyKey:
-            hstd::hax_hash_combine(result, hasher(it.getAnyKey().key));
-            break;
+        case K::Index: hstd::hax_hash_combine(result, it.getIndex().index); break;
+        case K::FieldName: hstd::hax_hash_combine(result, it.getFieldName().name); break;
+        case K::AnyKey: hstd::hax_hash_combine(result, hasher(it.getAnyKey().key)); break;
         case K::Deref: break;
     }
 

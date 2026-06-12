@@ -1,8 +1,7 @@
 #include <haxorg/exporters/Exporter.hpp>
 
 namespace org::algo {
-struct ExporterUltraplain
-    : public Exporter<ExporterUltraplain, std::string> {
+struct ExporterUltraplain : public Exporter<ExporterUltraplain, std::string> {
 #define __ExporterBase Exporter<ExporterUltraplain, std::string>
     EXPORTER_USING()
 #undef __ExporterBase
@@ -44,10 +43,8 @@ struct ExporterUltraplain
         visit(res, field);
     }
 
-#define __visit(__Kind)                                                   \
-    void visit##__Kind(std::string& res, In<sem::__Kind> leaf) {          \
-        res += leaf->text;                                                \
-    }
+#define __visit(__Kind)                                                                  \
+    void visit##__Kind(std::string& res, In<sem::__Kind> leaf) { res += leaf->text; }
 
     __visit(Word);
     __visit(Punctuation);

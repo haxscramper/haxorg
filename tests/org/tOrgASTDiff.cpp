@@ -32,8 +32,7 @@ struct SemDiffBuilder : org::algo::SemNodeDiff {
         mock->run(text);
         sem::OrgConverter converter{};
         return converter
-            .convertDocument(
-                org::parse::OrgAdapter(&mock->nodes, org::parse::OrgId(0)))
+            .convertDocument(org::parse::OrgAdapter(&mock->nodes, org::parse::OrgId(0)))
             .value();
     }
 
@@ -78,8 +77,7 @@ TEST(OrgSemAstDiff, OrgChangeNestedWord) {
     builder.setDiffTrees(Src, Dst, builder.getOptions());
     auto changes    = builder.diff->getAllChanges();
     auto change_fmt = builder.formatDiff();
-    writeDebugFile(
-        change_fmt.toString(false), "txt", true, "OrgChangeNestedWord");
+    writeDebugFile(change_fmt.toString(false), "txt", true, "OrgChangeNestedWord");
 
     EXPECT_EQ(changes.size(), 1);
     auto ch0 = changes.at(0);
@@ -116,11 +114,7 @@ word2
     builder.setDiffTrees(Src, Dst, builder.getOptions());
     auto changes    = builder.diff->getAllChanges();
     auto change_fmt = builder.formatDiff();
-    writeDebugFile(
-        change_fmt.toString(false),
-        "txt",
-        true,
-        "OrgChangeDeeplyNestedWord");
+    writeDebugFile(change_fmt.toString(false), "txt", true, "OrgChangeDeeplyNestedWord");
 
     EXPECT_EQ(changes.size(), 1);
     auto ch0 = changes.at(0);
@@ -167,10 +161,7 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
             HSLOG_DEPTH_SCOPE_ANON();
             ImmDst = context->addRoot(SemDst);
         }
-        setDiffTrees(
-            ImmSrc.getRootAdapter(),
-            ImmDst.getRootAdapter(),
-            getOptions());
+        setDiffTrees(ImmSrc.getRootAdapter(), ImmDst.getRootAdapter(), getOptions());
 
         edits = getEdits(WithKeep);
     }
@@ -181,17 +172,11 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         return edits.at(idx).getReplace();
     }
 
-    AstEdit::Keep const& getKeep(int idx) const {
-        return edits.at(idx).getKeep();
-    }
+    AstEdit::Keep const& getKeep(int idx) const { return edits.at(idx).getKeep(); }
 
-    AstEdit::Insert const& getInsert(int idx) const {
-        return edits.at(idx).getInsert();
-    }
+    AstEdit::Insert const& getInsert(int idx) const { return edits.at(idx).getInsert(); }
 
-    AstEdit::Delete const& getDelete(int idx) const {
-        return edits.at(idx).getDelete();
-    }
+    AstEdit::Delete const& getDelete(int idx) const { return edits.at(idx).getDelete(); }
 
     template <typename T>
     org::imm::ImmAdapterT<T> getReplaceSrcNode(int idx) const {
@@ -222,9 +207,7 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         std::string buffer;
         buffer += printMapping().toString(false) + "\n";
 
-        for (auto const& edit : edits) {
-            buffer += hstd::fmt1(edit) + "\n";
-        }
+        for (auto const& edit : edits) { buffer += hstd::fmt1(edit) + "\n"; }
 
         writeFile(getDebugFile("diff_builder.txt"), buffer);
 
@@ -233,10 +216,8 @@ struct ImmDiffBuilder : org::algo::ImmNodeDiff {
         imm::ImmAdapter::TreeReprConf conf;
         conf.withAuxFields  = true;
         conf.withReflFields = true;
-        writeTreeRepr(
-            ImmSrc.getRootAdapter(), getDebugFile("ImmSrc.txt"), conf);
-        writeTreeRepr(
-            ImmDst.getRootAdapter(), getDebugFile("ImmDst.txt"), conf);
+        writeTreeRepr(ImmSrc.getRootAdapter(), getDebugFile("ImmSrc.txt"), conf);
+        writeTreeRepr(ImmDst.getRootAdapter(), getDebugFile("ImmDst.txt"), conf);
     }
 };
 
@@ -244,8 +225,7 @@ class OrgImmAstDiff : public ::testing::Test {
   protected:
     void SetUp() override {
         hstd::log::push_sink(
-            hstd::log::init_file_sink(
-                getDebugFile("test_log.log").native()));
+            hstd::log::init_file_sink(getDebugFile("test_log.log").native()));
     }
 
     virtual void TearDown() override { hstd::log::clear_sink_backends(); }
@@ -260,8 +240,7 @@ TEST_F(OrgImmAstDiff, SimpleInsertWords) {
     EXPECT_EQ2(b.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
     EXPECT_EQ2(b.getKeepNode<org::imm::ImmWord>(2)->text.get(), "word"_ss);
     EXPECT_EQ2(b.getInsertNode<org::imm::ImmSpace>(3)->text.get(), " "_ss);
-    EXPECT_EQ2(
-        b.getInsertNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
+    EXPECT_EQ2(b.getInsertNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
 }
 
 
@@ -274,8 +253,7 @@ TEST_F(OrgImmAstDiff, SimpleDeleteWords) {
     EXPECT_EQ2(b.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
     EXPECT_EQ2(b.getKeepNode<org::imm::ImmWord>(2)->text.get(), "word"_ss);
     EXPECT_EQ2(b.getDeleteNode<org::imm::ImmSpace>(3)->text.get(), " "_ss);
-    EXPECT_EQ2(
-        b.getDeleteNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
+    EXPECT_EQ2(b.getDeleteNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
 }
 
 TEST_F(OrgImmAstDiff, UpdateSubtreeProperty) {
@@ -311,8 +289,7 @@ TEST_F(OrgImmAstDiff, ChangeNodeKind) {
     EXPECT_EQ2(b.getReplace(2).src.id.getKind(), OrgSemKind::Italic);
     EXPECT_EQ2(b.getReplace(2).dst.id.getKind(), OrgSemKind::Bold);
     EXPECT_EQ2(b.getKeep(3).id.id.getKind(), OrgSemKind::Word);
-    EXPECT_EQ2(
-        b.getKeepNode<org::imm::ImmWord>(3)->text.get(), "italic"_ss);
+    EXPECT_EQ2(b.getKeepNode<org::imm::ImmWord>(3)->text.get(), "italic"_ss);
 }
 
 TEST_F(OrgImmAstDiff, ListItemMove) {

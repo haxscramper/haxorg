@@ -5,11 +5,10 @@
 
 namespace org::imm {
 
-#define __declare_adapter(Derived)                                        \
-    template <>                                                           \
-    struct ImmAdapterT<org::imm::Imm##Derived>                            \
-        : public ImmAdapterTBase<Imm##Derived> {                          \
-        USE_IMM_ADAPTER_BASE(Imm##Derived);                               \
+#define __declare_adapter(Derived)                                                       \
+    template <>                                                                          \
+    struct ImmAdapterT<org::imm::Imm##Derived> : public ImmAdapterTBase<Imm##Derived> {  \
+        USE_IMM_ADAPTER_BASE(Imm##Derived);                                              \
     };
 
 __declare_adapter(Org);
@@ -56,8 +55,7 @@ struct remove_sem_org<ImmAdapterT<T>> {
 
 
 template <typename T>
-concept IsImmOrg = std::
-    derived_from<typename remove_sem_org<T>::type, ImmOrg>;
+concept IsImmOrg = std::derived_from<typename remove_sem_org<T>::type, ImmOrg>;
 
 
 /// \brief Map immutable AST type to the sem type, defines inner type
@@ -70,21 +68,19 @@ struct imm_to_sem_map {};
 template <typename Mut>
 struct sem_to_imm_map {};
 
-#define _gen_map(__Kind)                                                  \
-    template <>                                                           \
-    struct imm_to_sem_map<org::imm::Imm##__Kind> {                        \
-        using sem_type = org::sem::__Kind;                                \
-    };                                                                    \
-    template <>                                                           \
-    struct sem_to_imm_map<org::sem::__Kind> {                             \
-        using imm_type = org::imm::Imm##__Kind;                           \
+#define _gen_map(__Kind)                                                                 \
+    template <>                                                                          \
+    struct imm_to_sem_map<org::imm::Imm##__Kind> {                                       \
+        using sem_type = org::sem::__Kind;                                               \
+    };                                                                                   \
+    template <>                                                                          \
+    struct sem_to_imm_map<org::sem::__Kind> {                                            \
+        using imm_type = org::imm::Imm##__Kind;                                          \
     };
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
-sem::SemId<sem::Org> sem_from_immer(
-    org::imm::ImmId const& id,
-    ImmAstContext const&   ctx);
+sem::SemId<sem::Org> sem_from_immer(org::imm::ImmId const& id, ImmAstContext const& ctx);
 
 org::imm::ImmId immer_from_sem(
     org::sem::SemId<org::sem::Org> const& id,
@@ -94,37 +90,29 @@ org::imm::ImmId immer_from_sem(
 
 
 template <typename T>
-struct std::formatter<org::imm::ImmAdapterT<T>>
-    : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmAdapterT<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(org::imm::ImmAdapterT<T> const& p, FormatContext& ctx)
-        const {
+    auto format(org::imm::ImmAdapterT<T> const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(p.id, ctx);
     }
 };
 
 
 namespace org::details {
-inline org::imm::ImmAstContext* ___get_context(
-    org::imm::ImmAstContext::Ptr p) {
+inline org::imm::ImmAstContext* ___get_context(org::imm::ImmAstContext::Ptr p) {
     return p.get();
 }
-inline org::imm::ImmAstEditContext* ___get_context(
-    org::imm::ImmAstEditContext& p) {
+inline org::imm::ImmAstEditContext* ___get_context(org::imm::ImmAstEditContext& p) {
     return &p;
 }
 
 inline bool ___is_debug(org::imm::ImmAstEditContext& p) {
     return p.ctx.lock()->debug->TraceState;
 }
-inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) {
-    return p->debug->TraceState;
-}
+inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) { return p->debug->TraceState; }
 } // namespace org::details
 
 #define AST_EDIT_TRACE() ::org::details::___is_debug(ctx)
 
-#define AST_EDIT_MSG(...)                                                 \
-    if (AST_EDIT_TRACE()) {                                               \
-        ::org::details::___get_context(ctx)->message(__VA_ARGS__);        \
-    }
+#define AST_EDIT_MSG(...)                                                                \
+    if (AST_EDIT_TRACE()) { ::org::details::___get_context(ctx)->message(__VA_ARGS__); }

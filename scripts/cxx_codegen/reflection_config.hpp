@@ -3,8 +3,7 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 
-#define NO_COVERAGE                                                       \
-    __attribute__((no_sanitize("coverage", "address", "thread")))
+#define NO_COVERAGE __attribute__((no_sanitize("coverage", "address", "thread")))
 
 
 struct ProfdataConfig {
@@ -36,10 +35,7 @@ struct ReflectionConfig {
 
     DESC_FIELDS(
         ReflectionConfig,
-        (compilation_database,
-         toolchain_include,
-         clang_resource_dir,
-         no_std_include));
+        (compilation_database, toolchain_include, clang_resource_dir, no_std_include));
 };
 
 struct ReflectionCLI {
@@ -75,12 +71,5 @@ struct ReflectionCLI {
 
     DESC_FIELDS(
         ReflectionCLI,
-        (mode,
-         profdata,
-         reflection,
-         perf_path,
-         verbose_log,
-         log_path,
-         input,
-         output));
+        (mode, profdata, reflection, perf_path, verbose_log, log_path, input, output));
 };

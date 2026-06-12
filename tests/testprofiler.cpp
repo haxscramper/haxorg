@@ -17,9 +17,7 @@ extern "C" int  __llvm_profile_write_file(void);
 
 hstd::Vec<TestProfiler::RunRecord> TestProfiler::runRecords;
 
-json TestProfiler::getJsonRecords() {
-    return to_json_eval(TestProfiler::runRecords);
-}
+json TestProfiler::getJsonRecords() { return to_json_eval(TestProfiler::runRecords); }
 
 std::string get_current_program_name() {
     return fs::read_symlink("/proc/self/exe").filename().string();
@@ -33,8 +31,7 @@ void safe_move(fs::path const& from, fs::path const& to) {
         fs::remove(to, ec_remove);
         if (ec_remove) {
             throw std::runtime_error(
-                "Failed to remove existing destination file: "
-                + ec_remove.message());
+                "Failed to remove existing destination file: " + ec_remove.message());
         }
     }
 
@@ -45,8 +42,7 @@ void safe_move(fs::path const& from, fs::path const& to) {
         fs::copy(from, to, ec_copy);
         if (ec_copy) {
             throw std::runtime_error(
-                "Failed to copy file after rename failed: "
-                + ec_copy.message());
+                "Failed to copy file after rename failed: " + ec_copy.message());
         }
         fs::remove(from);
     }
@@ -84,8 +80,8 @@ bool move_latest_xray_log_to_path(std::string const& path) {
 
     } else {
         std::cerr
-            << ("No matching xray-log files found for program name '"
-                + program_name + "'")
+            << ("No matching xray-log files found for program name '" + program_name
+                + "'")
             << std::endl;
         return false;
     }
@@ -108,8 +104,7 @@ void TestProfiler::SetUp() {
         __perf_trace("cli", "XRay setup for test");
         {
             __perf_trace("cli", "Log select mode ");
-            XRayLogRegisterStatus select = __xray_log_select_mode(
-                "xray-fdr");
+            XRayLogRegisterStatus select = __xray_log_select_mode("xray-fdr");
             if (select != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
                 throw std::logic_error(
                     std::format(
@@ -130,8 +125,7 @@ void TestProfiler::SetUp() {
             XRayLogInitStatus init_mode_status = __xray_log_init_mode(
                 "xray-fdr", options.data());
 
-            if (init_mode_status
-                != XRayLogInitStatus::XRAY_LOG_INITIALIZED) {
+            if (init_mode_status != XRayLogInitStatus::XRAY_LOG_INITIALIZED) {
                 throw std::logic_error(
                     std::format(
                         "__xray_log_init_mode() failed, the code was '{}'",
@@ -148,8 +142,7 @@ void TestProfiler::SetUp() {
             if (patch_status != XRayPatchingStatus::SUCCESS) {
                 throw std::logic_error(
                     std::format(
-                        "__xray_patch() failed, the code was '{}'",
-                        (int)patch_status));
+                        "__xray_patch() failed, the code was '{}'", (int)patch_status));
             }
         }
     }
@@ -172,8 +165,7 @@ void TestProfiler::TearDown() {
         int profile_result = __llvm_profile_write_file();
         if (profile_result != 0) {
             throw std::logic_error(
-                std::format(
-                    "Failed to write PGO data to '{}'", pgo_path.data()));
+                std::format("Failed to write PGO data to '{}'", pgo_path.data()));
         }
     }
 #endif

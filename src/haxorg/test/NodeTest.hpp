@@ -19,10 +19,7 @@ yaml toYaml(json const& node);
 struct ParseSpec {
     std::string getLocMsg() const {
         return hstd::fmt(
-            "{} at {}:{}",
-            name ? *name : "<test>",
-            specFile,
-            specLocation.line);
+            "{} at {}:{}", name ? *name : "<test>", specFile, specLocation.line);
     }
 
     struct Conf {
@@ -140,10 +137,7 @@ struct ParseSpec {
         return spec;
     }
 
-    ParseSpec(
-        yaml const&        node,
-        std::string const& specFile,
-        std::string const& testRoot);
+    ParseSpec(yaml const& node, std::string const& specFile, std::string const& testRoot);
 
     template <typename N, typename K, typename V, typename M>
     org::parse::NodeGroup<N, K, V, M> getNodeGroup() {

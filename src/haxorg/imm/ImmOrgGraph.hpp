@@ -116,22 +116,15 @@ struct MapNode
     MapNode(
         org::imm::ImmAdapter const&   id,
         hstd::Opt<std::string> const& stable_id = std::nullopt)
-        : hgraph::IVertex{stable_id.value_or(id.id.getReadableId())}
-        , id{id} {}
+        : hgraph::IVertex{stable_id.value_or(id.id.getReadableId())}, id{id} {}
 
-    bool operator==(MapNode const& other) const {
-        return this->id == other.id;
-    }
+    bool operator==(MapNode const& other) const { return this->id == other.id; }
 
-    bool operator<(MapNode const& other) const {
-        return id.id < other.id.id;
-    }
+    bool operator<(MapNode const& other) const { return id.id < other.id.id; }
 
     org::imm::ImmAdapter getAdapter() const { return id; }
 
-    hstd::SPtr<MapNodeProp> getProp() const {
-        return getUniqueAttribute<MapNodeProp>();
-    }
+    hstd::SPtr<MapNodeProp> getProp() const { return getUniqueAttribute<MapNodeProp>(); }
 
     DESC_FIELDS(MapNode, (id));
 
@@ -193,8 +186,7 @@ struct MapEdge
 
 class MapEdgeCollection : public hgraph::IEdgeCollection {
   public:
-    hstd::UnorderedIncrementalStore<hgraph::EdgeID, hstd::SPtr<MapEdge>>
-        edges;
+    hstd::UnorderedIncrementalStore<hgraph::EdgeID, hstd::SPtr<MapEdge>> edges;
 
     hgraph::EdgeCollectionID getCollectionID() const override {
         return hgraph::EdgeCollectionID::FromCollectionTypePointer(this);
@@ -209,9 +201,7 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
     }
 
     using hgraph::IEdgeCollection::hasEdge;
-    bool hasEdge(hgraph::EdgeID const& id) const override {
-        return edges.contains(id);
-    }
+    bool hasEdge(hgraph::EdgeID const& id) const override { return edges.contains(id); }
     DESC_FIELDS(MapEdgeCollection, ());
 
 
@@ -255,10 +245,9 @@ struct MapGraph
     : public hstd::SharedPtrApi<MapGraph>
     , public hgraph::IGraph
     , public hstd::OperationsTracer {
-    hstd::UnorderedIncrementalStore<hgraph::VertexID, hstd::SPtr<MapNode>>
-                                                              nodes;
-    hstd::SPtr<MapEdgeCollection>                             edges;
-    hstd::UnorderedMap<org::imm::ImmUniqId, hgraph::VertexID> id_map;
+    hstd::UnorderedIncrementalStore<hgraph::VertexID, hstd::SPtr<MapNode>> nodes;
+    hstd::SPtr<MapEdgeCollection>                                          edges;
+    hstd::UnorderedMap<org::imm::ImmUniqId, hgraph::VertexID>              id_map;
     DESC_FIELDS(MapGraph, ());
 
     hstd::ext::graph::VertexID addVertex(
@@ -266,13 +255,9 @@ struct MapGraph
         return nodes.add(hstd::validated_dynamic_cast<MapNode>(vertex));
     }
 
-    MapGraph() : edges{std::make_shared<MapEdgeCollection>()} {
-        addCollection(edges);
-    }
+    MapGraph() : edges{std::make_shared<MapEdgeCollection>()} { addCollection(edges); }
 
-    hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const {
-        return id_map.at(id);
-    }
+    hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const { return id_map.at(id); }
 
     hgraph::VertexID getVertexID(org::imm::ImmAdapter const& ad) const {
         return getVertexID(ad.uniq());
@@ -286,9 +271,7 @@ struct MapGraph
         return this->getCastVertex<MapNode>(id);
     }
 
-    MapEdge const* get(hgraph::EdgeID id) const {
-        return this->getCastEdge<MapEdge>(id);
-    }
+    MapEdge const* get(hgraph::EdgeID id) const { return this->getCastEdge<MapEdge>(id); }
 
     MapNodeProp::Ptr getAttr(hgraph::VertexID id) const {
         return this->getVertex(id)->getUniqueAttribute<MapNodeProp>();
@@ -301,22 +284,17 @@ struct MapGraph
     hstd::generator<std::tuple<hgraph::VertexID, org::imm::ImmUniqId, MapNodeProp::Ptr>> getProperties()
         const {
         for (auto const& id : getAllVertices()) {
-            co_yield {
-                id, getCastVertex<MapNode>(id)->id.uniq(), getAttr(id)};
+            co_yield {id, getCastVertex<MapNode>(id)->id.uniq(), getAttr(id)};
         }
     }
 
-    hstd::Vec<std::tuple<hgraph::EdgeID, hstd::SPtr<MapEdgeProp>>> getEdges()
-        const {
+    hstd::Vec<std::tuple<hgraph::EdgeID, hstd::SPtr<MapEdgeProp>>> getEdges() const {
         hstd::Vec<std::tuple<hgraph::EdgeID, hstd::SPtr<MapEdgeProp>>> res;
-        for (auto const& e : edges->getEdges()) {
-            res.push_back({e, getAttr(e)});
-        }
+        for (auto const& e : edges->getEdges()) { res.push_back({e, getAttr(e)}); }
         return res;
     }
 
-    const hgraph::IVertex* getVertex(
-        hgraph::VertexID const& id) const override {
+    const hgraph::IVertex* getVertex(hgraph::VertexID const& id) const override {
         return nodes.at(id).get();
     }
 
@@ -332,15 +310,13 @@ struct MapGraph
         return edges->hasEdge(source, target);
     }
 
-    bool hasEdge(
-        org::imm::ImmUniqId const& source,
-        org::imm::ImmUniqId const& target) const {
+    bool hasEdge(org::imm::ImmUniqId const& source, org::imm::ImmUniqId const& target)
+        const {
         return hasEdge(getVertexID(source), getVertexID(target));
     }
 
-    bool hasEdge(
-        org::imm::ImmAdapter const& source,
-        org::imm::ImmAdapter const& target) const {
+    bool hasEdge(org::imm::ImmAdapter const& source, org::imm::ImmAdapter const& target)
+        const {
         return hasEdge(source.uniq(), target.uniq());
     }
 
@@ -376,16 +352,11 @@ struct MapGraph
 
         GvConfig() : run{state.init()} {}
 
-        hstd::UnorderedMap<hgraph::VertexID, hgraph::VertexID>
-            layout_vertices;
+        hstd::UnorderedMap<hgraph::VertexID, hgraph::VertexID> layout_vertices;
 
-        virtual bool acceptNode(hgraph::VertexID const& node) const {
-            return true;
-        }
+        virtual bool acceptNode(hgraph::VertexID const& node) const { return true; }
 
-        virtual bool acceptEdge(hgraph::EdgeID const& edge) const {
-            return true;
-        }
+        virtual bool acceptEdge(hgraph::EdgeID const& edge) const { return true; }
 
         virtual hgraph::gv::Record getNodeLabel(
             org::imm::ImmAdapter const& node,
@@ -400,8 +371,7 @@ struct MapGraph
         hstd::Func<bool(hstd::ext::graph::VertexID node)> accept_node_cb;
         hstd::Func<bool(hstd::ext::graph::EdgeID edge)>   accept_edge_cb;
 
-        bool acceptNode(
-            hstd::ext::graph::VertexID const& node) const override {
+        bool acceptNode(hstd::ext::graph::VertexID const& node) const override {
             if (accept_node_cb) {
                 return accept_node_cb(node);
             } else {
@@ -409,8 +379,7 @@ struct MapGraph
             }
         }
 
-        bool acceptEdge(
-            hstd::ext::graph::EdgeID const& edge) const override {
+        bool acceptEdge(hstd::ext::graph::EdgeID const& edge) const override {
             if (accept_edge_cb) {
                 return accept_edge_cb(edge);
             } else {
@@ -454,7 +423,7 @@ struct MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
     hgraph::VertexIDSet                      unresolved;
     std::shared_ptr<MapGraph>                graph;
     std::shared_ptr<org::imm::ImmAstContext> ast;
-    std::shared_ptr<MapGraph> getGraph() const { return graph; }
+    std::shared_ptr<MapGraph>                getGraph() const { return graph; }
 
     MapGraphState(org::imm::ImmAstContext::Ptr ast)
         : ast{ast}, graph{std::make_shared<MapGraph>()} {};
@@ -525,10 +494,8 @@ MapNodeResolveResult getResolvedNodeInsert(
     std::shared_ptr<MapConfig>        conf);
 
 
-bool hasGraphAnnotations(
-    org::imm::ImmAdapterT<org::imm::ImmParagraph> const& par);
-bool hasGraphAnnotations(
-    org::imm::ImmAdapterT<org::imm::ImmSubtree> const& par);
+bool hasGraphAnnotations(org::imm::ImmAdapterT<org::imm::ImmParagraph> const& par);
+bool hasGraphAnnotations(org::imm::ImmAdapterT<org::imm::ImmSubtree> const& par);
 
 bool isMmapIgnored(org::imm::ImmAdapter const& n);
 

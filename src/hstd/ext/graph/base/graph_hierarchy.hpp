@@ -30,17 +30,14 @@ class IVertexHierarchy : public IEdgeProvider {
 
     /// \brief Track `(parent, sub-vertex) -> edge ID`. Edges are added and
     /// removed automatically based on the hierarchy.
-    hstd::ext::Unordered1to1Bimap<hstd::Pair<VertexID, VertexID>, EdgeID>
-        edgeTracker;
+    hstd::ext::Unordered1to1Bimap<hstd::Pair<VertexID, VertexID>, EdgeID> edgeTracker;
 
 
   public:
     virtual ~IVertexHierarchy() = default;
 
 #if ORG_BUILD_WITH_PROTOBUF
-    virtual void writeSerial(
-        proto::IVertexHierarchy* out,
-        IGraph const*            graph) const;
+    virtual void writeSerial(proto::IVertexHierarchy* out, IGraph const* graph) const;
 
     void readSerial(
         proto::IVertexHierarchy const* in,
@@ -52,8 +49,7 @@ class IVertexHierarchy : public IEdgeProvider {
     int getVertexCount() const { return vertexIDs.size(); }
 
     using IEdgeProvider::hasEdge;
-    bool hasEdge(VertexID const& source, VertexID const& target)
-        const override {
+    bool hasEdge(VertexID const& source, VertexID const& target) const override {
         return edgeTracker.contains_left({source, target});
     }
 
@@ -88,9 +84,7 @@ class IVertexHierarchy : public IEdgeProvider {
 
     void assertKnownVertex(VertexID const& id) {}
 
-    bool isTrackingVertex(VertexID const& id) const {
-        return vertexIDs.contains(id);
-    }
+    bool isTrackingVertex(VertexID const& id) const { return vertexIDs.contains(id); }
 
     /// \brief Add the vertex to the hierarchy collection without nesting
     /// relations.
@@ -132,8 +126,7 @@ class IVertexHierarchy : public IEdgeProvider {
         return edgeTracker.at_left(edge).second;
     }
 
-    hstd::Pair<VertexID, VertexID> getParentAndNested(
-        EdgeID const& edge) const {
+    hstd::Pair<VertexID, VertexID> getParentAndNested(EdgeID const& edge) const {
         return {getSource(edge), getTarget(edge)};
     }
 
@@ -150,9 +143,7 @@ class IVertexHierarchy : public IEdgeProvider {
     /// `unregisterVertex`, to prevent malformed graph structure, but it is
     /// also safe to call this method manually, if the graph nesting
     /// relations must be edited.
-    void untrackSubVertexRelation(
-        VertexID const& parent,
-        VertexID const& sub);
+    void untrackSubVertexRelation(VertexID const& parent, VertexID const& sub);
 
     /// \brief Return all vertices tracked by this hierarchy.
     VertexIDSet getAllVertices() const;
@@ -166,17 +157,15 @@ class IVertexHierarchy : public IEdgeProvider {
     /// \brief Return parent vertex for `id` if present.
     hstd::Opt<VertexID> getParentVertex(VertexID const& id) const;
 
-    std::optional<VertexID> getCommonAncestor(
-        VertexIDSet const& ids) const;
+    std::optional<VertexID> getCommonAncestor(VertexIDSet const& ids) const;
 
     /// \brief Return full parent chain for `id`, from immediate parent up
     /// to the root.
     hstd::Vec<VertexID> getParentChain(VertexID const& id) const;
     /// \brief Get parent chain from the start to finish node, excluding
     /// these two nodes.
-    hstd::Vec<VertexID> getParentChainUntil(
-        VertexID const& start,
-        VertexID const& finish) const;
+    hstd::Vec<VertexID> getParentChainUntil(VertexID const& start, VertexID const& finish)
+        const;
 
     EdgeIDSet getEdges() const override;
     EdgeIDSet getOutgoing(VertexID const& vert) const override;
@@ -227,13 +216,9 @@ struct TrivialHierarchy : public IVertexHierarchy {
         return EdgeCollectionID::FromHierarchyTypePointer(this);
     }
 
-    const IEdge* getEdge(EdgeID const& id) const override {
-        return &edgeStore.at(id);
-    }
+    const IEdge* getEdge(EdgeID const& id) const override { return &edgeStore.at(id); }
 
-    bool hasEdge(EdgeID const& id) const override {
-        return edgeStore.contains(id);
-    }
+    bool hasEdge(EdgeID const& id) const override { return edgeStore.contains(id); }
 
     void addEdge(EdgeID const& id, TrivialEdge const& init_vertex);
 
@@ -251,13 +236,9 @@ struct IdOnlyHierarchy : public IVertexHierarchy {
         return EdgeCollectionID::FromHierarchyTypePointer(this);
     }
 
-    const IEdge* getEdge(EdgeID const& id) const override {
-        return nullptr;
-    }
+    const IEdge* getEdge(EdgeID const& id) const override { return nullptr; }
 
-    bool hasEdge(EdgeID const& id) const override {
-        return edgeStore.contains(id);
-    }
+    bool hasEdge(EdgeID const& id) const override { return edgeStore.contains(id); }
 
     EdgeID trackSubVertexRelation(
         VertexID const&               parent,
@@ -277,10 +258,9 @@ class AutoSegmentingCollection : public IEdgeCollection {
     IVertexHierarchy const* hierarchy;
     IGraph const*           graph;
 
-    hstd::ext::UnorderedNto1Bimap<hstd::Pair<EdgeID, EdgeID>, PortID>
-                                                  segments_to_ports;
-    hstd::ext::UnorderedNto1Bimap<EdgeID, EdgeID> segments_to_edges;
-    hstd::UnorderedMap<EdgeID, int>               segment_index;
+    hstd::ext::UnorderedNto1Bimap<hstd::Pair<EdgeID, EdgeID>, PortID> segments_to_ports;
+    hstd::ext::UnorderedNto1Bimap<EdgeID, EdgeID>                     segments_to_edges;
+    hstd::UnorderedMap<EdgeID, int>                                   segment_index;
 
   public:
     AutoSegmentingCollection(
@@ -311,13 +291,10 @@ class AutoSegmentingCollection : public IEdgeCollection {
         return segmented_edges->getEdge(id);
     }
 
-    bool hasEdge(EdgeID const& id) const override {
-        return segmented_edges->hasEdge(id);
-    }
+    bool hasEdge(EdgeID const& id) const override { return segmented_edges->hasEdge(id); }
 
 #if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IEdgeCollection* out, IGraph const* graph)
-        const override {
+    void writeSerial(proto::IEdgeCollection* out, IGraph const* graph) const override {
         IEdgeCollection::writeSerial(out, graph);
         proto::AutoSegmentingCollectioneCollection tag;
         out->mutable_payload()->PackFrom(tag);

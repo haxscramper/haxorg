@@ -8,10 +8,7 @@
 namespace hstd::ext::kiwi_ir {
 namespace {
 
-void repr_impl(
-    hstd::ColStream&        os,
-    kiwi::Expression const& e,
-    int                     indent) {
+void repr_impl(hstd::ColStream& os, kiwi::Expression const& e, int indent) {
 
     int var_size = 8;
     for (auto const& t : e.terms()) {
@@ -22,17 +19,11 @@ void repr_impl(
         os.newline();
         os.indent(indent);
         os << hstd::fmt(
-            "{:<{}} {}",
-            t.value().variable(),
-            var_size,
-            t.value().coefficient());
+            "{:<{}} {}", t.value().variable(), var_size, t.value().coefficient());
     }
 }
 
-void repr_impl(
-    hstd::ColStream&        os,
-    kiwi::Constraint const& c,
-    int                     indent) {
+void repr_impl(hstd::ColStream& os, kiwi::Constraint const& c, int indent) {
     switch (c.op()) {
         case kiwi::RelationalOperator::OP_EQ: os << "EQ"; break;
         case kiwi::RelationalOperator::OP_GE: os << "GE"; break;
@@ -56,30 +47,22 @@ void repr_impl(hstd::ColStream& os, Expr::Node const& n, int indent) {
 
     using Kind = Expr::Node::Kind;
     switch (n.kind) {
-        case Kind::Constant:
-            write_head(hstd::fmt("Const({})", n.constant));
-            break;
+        case Kind::Constant: write_head(hstd::fmt("Const({})", n.constant)); break;
 
-        case Kind::Variable:
-            write_head(hstd::fmt("Var({})", n.variable->name()));
-            break;
+        case Kind::Variable: write_head(hstd::fmt("Var({})", n.variable->name())); break;
 
         case Kind::KiwiExpression: {
             write_head("KiwiExpr");
             int var_size = 8;
             for (auto const& t : n.kiwi_expr->terms()) {
-                var_size = std::max<int>(
-                    var_size, t.variable().name().size());
+                var_size = std::max<int>(var_size, t.variable().name().size());
             }
 
             for (auto const& t : hstd::enumerator(n.kiwi_expr->terms())) {
                 os.newline();
                 os.indent(indent + 1);
                 os << hstd::fmt(
-                    "{:<{}} {}",
-                    t.value().variable(),
-                    var_size,
-                    t.value().coefficient());
+                    "{:<{}} {}", t.value().variable(), var_size, t.value().coefficient());
             }
 
             os.newline();
@@ -118,15 +101,9 @@ void repr_impl(hstd::ColStream& os, Constraint const& c, int indent) {
     os.indent(indent);
 
     switch (c.op) {
-        case kiwi::RelationalOperator::OP_EQ:
-            os << "Constraint(EQ)";
-            break;
-        case kiwi::RelationalOperator::OP_LE:
-            os << "Constraint(LE)";
-            break;
-        case kiwi::RelationalOperator::OP_GE:
-            os << "Constraint(GE)";
-            break;
+        case kiwi::RelationalOperator::OP_EQ: os << "Constraint(EQ)"; break;
+        case kiwi::RelationalOperator::OP_LE: os << "Constraint(LE)"; break;
+        case kiwi::RelationalOperator::OP_GE: os << "Constraint(GE)"; break;
     }
 
     if (c.origin_line != -1) {
@@ -160,9 +137,7 @@ struct LinearForm {
 
 static void add_scaled(LinearForm& dst, LinearForm const& src, double k) {
     dst.constant += src.constant * k;
-    for (auto const& [name, coef] : src.terms) {
-        dst.terms[name] += coef * k;
-    }
+    for (auto const& [name, coef] : src.terms) { dst.terms[name] += coef * k; }
 }
 
 static LinearForm scale(LinearForm const& src, double k) {
@@ -332,30 +307,21 @@ static std::string flat_repr_impl(
         case Kind::KiwiExpression: return render_kiwi_expr(n);
 
         case Kind::Neg: {
-            auto inner = flat_repr_impl(
-                *n.lhs, static_cast<int>(Prec::Unary), false);
-            bool need_paren = precedence(*n.lhs)
-                            < static_cast<int>(Prec::Unary);
+            auto inner = flat_repr_impl(*n.lhs, static_cast<int>(Prec::Unary), false);
+            bool need_paren = precedence(*n.lhs) < static_cast<int>(Prec::Unary);
             auto out        = "-" + wrap_if(wrap_all || need_paren, inner);
-            return wrap_if(
-                wrap_all || static_cast<int>(Prec::Unary) < parent_prec,
-                out);
+            return wrap_if(wrap_all || static_cast<int>(Prec::Unary) < parent_prec, out);
         }
 
         case Kind::Mul: {
-            auto l = flat_repr_impl(
-                *n.lhs, static_cast<int>(Prec::Mul), false);
-            auto r = flat_repr_impl(
-                *n.rhs, static_cast<int>(Prec::Mul), false);
+            auto l = flat_repr_impl(*n.lhs, static_cast<int>(Prec::Mul), false);
+            auto r = flat_repr_impl(*n.rhs, static_cast<int>(Prec::Mul), false);
 
             bool lp = precedence(*n.lhs) < static_cast<int>(Prec::Mul);
             bool rp = precedence(*n.rhs) < static_cast<int>(Prec::Mul);
 
-            auto out = wrap_if(wrap_all || lp, l) + " * "
-                     + wrap_if(wrap_all || rp, r);
-            return wrap_if(
-                wrap_all || static_cast<int>(Prec::Mul) < parent_prec,
-                out);
+            auto out = wrap_if(wrap_all || lp, l) + " * " + wrap_if(wrap_all || rp, r);
+            return wrap_if(wrap_all || static_cast<int>(Prec::Mul) < parent_prec, out);
         }
 
         case Kind::Add:
@@ -380,8 +346,7 @@ static std::string flat_repr_impl(
                     continue;
                 }
 
-                auto body = flat_repr_impl(
-                    *ptr, static_cast<int>(Prec::Add), false);
+                auto body = flat_repr_impl(*ptr, static_cast<int>(Prec::Add), false);
 
                 if (first) {
                     if (sign < 0) { out += "-"; }
@@ -393,9 +358,7 @@ static std::string flat_repr_impl(
                 }
             }
 
-            return wrap_if(
-                wrap_all || static_cast<int>(Prec::Add) < parent_prec,
-                out);
+            return wrap_if(wrap_all || static_cast<int>(Prec::Add) < parent_prec, out);
         }
     }
 
@@ -465,10 +428,7 @@ Str flat_repr(Constraint const& c, bool full_flatten) {
     }
 
     std::string result = hstd::fmt(
-        "{} {} {}",
-        flat_repr(c.lhs, full_flatten),
-        op,
-        flat_repr(c.rhs, full_flatten));
+        "{} {} {}", flat_repr(c.lhs, full_flatten), op, flat_repr(c.rhs, full_flatten));
 
     if (c.origin_line != -1) {
         result += hstd::fmt(" {}:{}", c.origin_function, c.origin_line);

@@ -6,8 +6,7 @@ using namespace hstd;
 
 TEST(Algorithms, Partitioning) {
     Vec<int> it{1, 1, 2, 2, 3, 3, 4, 4, 3};
-    auto     spans = partition<int, int>(
-        it, [](int const& v) -> int { return v; });
+    auto     spans = partition<int, int>(it, [](int const& v) -> int { return v; });
     EXPECT_EQ(spans.size(), 5);
     EXPECT_EQ(spans[0].size(), 2);
     EXPECT_EQ(spans[1].size(), 2);
@@ -16,23 +15,20 @@ TEST(Algorithms, Partitioning) {
 
 TEST(Algorithms, PartitioningEmptyVector) {
     Vec<int> input;
-    auto     result = partition<int, int>(
-        input, [](int const& i) { return i % 2 == 0; });
+    auto     result = partition<int, int>(input, [](int const& i) { return i % 2 == 0; });
     EXPECT_TRUE(result.empty());
 }
 
 TEST(Algorithms, PartitioningSingleElementVector) {
     Vec<int> input  = {1};
-    auto     result = partition<int, int>(
-        input, [](int const& i) { return i % 2 == 0; });
+    auto     result = partition<int, int>(input, [](int const& i) { return i % 2 == 0; });
     EXPECT_EQ(result.size(), 1);
     EXPECT_EQ(result[0], input);
 }
 
 TEST(Algorithms, PartitioningOddEvenNumbers) {
     Vec<int> input  = {1, 2, 3, 4, 5};
-    auto     result = partition<int, int>(
-        input, [](int const& i) { return i % 2 == 0; });
+    auto     result = partition<int, int>(input, [](int const& i) { return i % 2 == 0; });
     EXPECT_EQ(result.size(), 5);
     EXPECT_EQ(result[0], Vec<int>({1}));
     EXPECT_EQ(result[1], Vec<int>({2}));
@@ -40,8 +36,7 @@ TEST(Algorithms, PartitioningOddEvenNumbers) {
 
 TEST(Algorithms, PartitioningPositiveNegativeNumbers) {
     Vec<int> input  = {-1, -2, 3, 4, -5};
-    auto     result = partition<int, int>(
-        input, [](int const& i) { return 0 <= i; });
+    auto     result = partition<int, int>(input, [](int const& i) { return 0 <= i; });
     EXPECT_EQ(result.size(), 3);
     EXPECT_EQ(result[0], Vec<int>({-1, -2}));
     EXPECT_EQ(result[1], Vec<int>({3, 4}));
@@ -98,9 +93,8 @@ TEST(Algorithms, SortedBy) {
         std::string name;
         int         age;
     };
-    Vec<Person> people = {{"Alice", 30}, {"Bob", 25}, {"Charlie", 35}};
-    auto        sortedPeople = sortedBy(
-        people, [](Person const& p) { return p.age; });
+    Vec<Person> people       = {{"Alice", 30}, {"Bob", 25}, {"Charlie", 35}};
+    auto        sortedPeople = sortedBy(people, [](Person const& p) { return p.age; });
     ASSERT_EQ(sortedPeople[0].name, "Bob");
     ASSERT_EQ(sortedPeople[1].name, "Alice");
     ASSERT_EQ(sortedPeople[2].name, "Charlie");
@@ -131,8 +125,7 @@ TEST(Algorithms, RangeAuxAlgorithms) {
 
     {
         auto tmp1 = own_view(Vec<int>{1})
-                  | rv::transform([](int const& value) { return value; })
-                  | rs::to<Vec>();
+                  | rv::transform([](int const& value) { return value; }) | rs::to<Vec>();
 
         EXPECT_EQ(tmp1, Vec<int>{1});
     }
@@ -145,8 +138,7 @@ TEST(Algorithms, RangeAuxAlgorithms) {
         };
 
         auto tmp1 = own_view(gen_func())
-                  | rv::transform(
-                        [](int const& value) { return value * 2; })
+                  | rv::transform([](int const& value) { return value * 2; })
                   | rs::to<Vec>();
         EXPECT_EQ(call_count, 1);
         EXPECT_EQ(tmp1.size(), 3);

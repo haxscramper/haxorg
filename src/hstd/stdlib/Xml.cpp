@@ -3,23 +3,15 @@
 
 using namespace hstd;
 
-XmlNode::XmlNode(std::string tag)
-    : type(Kind::Element), tag(std::move(tag)) {}
+XmlNode::XmlNode(std::string tag) : type(Kind::Element), tag(std::move(tag)) {}
 
-XmlNode::XmlNode(Kind type, std::string content)
-    : type(type), text(std::move(content)) {}
+XmlNode::XmlNode(Kind type, std::string content) : type(type), text(std::move(content)) {}
 
-XmlNode XmlNode::comment(std::string const& text) {
-    return XmlNode(Kind::Comment, text);
-}
+XmlNode XmlNode::comment(std::string const& text) { return XmlNode(Kind::Comment, text); }
 
-XmlNode XmlNode::cdata(std::string const& text) {
-    return XmlNode(Kind::CData, text);
-}
+XmlNode XmlNode::cdata(std::string const& text) { return XmlNode(Kind::CData, text); }
 
-XmlNode XmlNode::raw(std::string const& data) {
-    return XmlNode(Kind::Raw, data);
-}
+XmlNode XmlNode::raw(std::string const& data) { return XmlNode(Kind::Raw, data); }
 
 void XmlNode::set_attr(std::string const& name, std::string const& value) {
     for (auto& [k, v] : attrs) {
@@ -31,9 +23,7 @@ void XmlNode::set_attr(std::string const& name, std::string const& value) {
     attrs.emplace_back(name, value);
 }
 
-void XmlNode::push_back(XmlNode child) {
-    subnodes.push_back(std::move(child));
-}
+void XmlNode::push_back(XmlNode child) { subnodes.push_back(std::move(child)); }
 
 void XmlNode::set_text(std::string const& text_) { text = text_; }
 
@@ -47,8 +37,7 @@ std::string XmlNode::to_string(int indent) const {
     return os.str();
 }
 
-void XmlNode::serialize_impl(std::ostream& os, int depth, int indent)
-    const {
+void XmlNode::serialize_impl(std::ostream& os, int depth, int indent) const {
     std::string pad(depth * indent, ' ');
 
     if (type == Kind::Comment) {
@@ -111,9 +100,7 @@ void XmlNode::write_escaped(std::ostream& os, std::string const& text) {
     }
 }
 
-void XmlNode::write_attr_escaped(
-    std::ostream&      os,
-    std::string const& text) {
+void XmlNode::write_attr_escaped(std::ostream& os, std::string const& text) {
     for (char c : text) {
         switch (c) {
             case '&': os << "&amp;"; break;
@@ -126,9 +113,7 @@ void XmlNode::write_attr_escaped(
     }
 }
 
-void XmlNode::write_comment_escaped(
-    std::ostream&      os,
-    std::string const& input) {
+void XmlNode::write_comment_escaped(std::ostream& os, std::string const& input) {
     bool last_was_dash = false;
 
     for (char ch : input) {

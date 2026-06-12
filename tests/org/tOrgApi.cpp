@@ -9,9 +9,7 @@
 
 template <typename T>
 struct JsonSerde<sem::SemId<T>> {
-    static sem::SemId<T> from_json(json const& j) {
-        return sem::SemId<T>::Nil();
-    }
+    static sem::SemId<T> from_json(json const& j) { return sem::SemId<T>::Nil(); }
 
     static json to_json(sem::SemId<T> value) {
         if (value.isNil()) {
@@ -77,16 +75,11 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
         auto t10 = group.at(10).getTrackedHashtag();
 
         EXPECT_EQ2(t2.targets.size(), 1);
-        EXPECT_EQ2(
-            t2.targets.begin()->first, sem::HashTagFlat{{"hashtag1"}});
+        EXPECT_EQ2(t2.targets.begin()->first, sem::HashTagFlat{{"hashtag1"}});
         EXPECT_EQ2(t6.targets.size(), 1);
-        EXPECT_EQ2(
-            t6.targets.begin()->first,
-            (sem::HashTagFlat{{"nested", "alias1"}}));
+        EXPECT_EQ2(t6.targets.begin()->first, (sem::HashTagFlat{{"nested", "alias1"}}));
         EXPECT_EQ2(t10.targets.size(), 1);
-        EXPECT_EQ2(
-            t10.targets.begin()->first,
-            (sem::HashTagFlat{{"nested", "alias2"}}));
+        EXPECT_EQ2(t10.targets.begin()->first, (sem::HashTagFlat{{"nested", "alias2"}}));
     }
 }
 
@@ -100,8 +93,7 @@ content
     org::OrgCodeEvalParameters conf{parseContext};
     Vec<sem::OrgCodeEvalInput> buf;
 
-    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
-        -> Vec<sem::OrgCodeEvalOutput> {
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in) -> Vec<sem::OrgCodeEvalOutput> {
         buf.push_back(in);
         return {sem::OrgCodeEvalOutput{.stdoutText = "*bold*"}};
     };
@@ -115,17 +107,14 @@ content
     writeTreeRepr(ev, getDebugFile("eval-post.txt"));
 
     EXPECT_EQ2(buf.at(0).language, "test");
-    EXPECT_EQ2(
-        buf.at(0).resultFormat, sem::OrgCodeEvalInput::ResultFormat::Raw);
-    EXPECT_EQ2(
-        buf.at(0).resultType, sem::OrgCodeEvalInput::ResultType::Scalar);
+    EXPECT_EQ2(buf.at(0).resultFormat, sem::OrgCodeEvalInput::ResultFormat::Raw);
+    EXPECT_EQ2(buf.at(0).resultType, sem::OrgCodeEvalInput::ResultType::Scalar);
 
     EXPECT_EQ2(ev->getKind(), OrgSemKind::Document);
     EXPECT_EQ2(ev.at(0)->getKind(), OrgSemKind::BlockCode);
     auto bc = ev.at(0).as<sem::BlockCode>();
     EXPECT_EQ2(bc->result.size(), 1);
-    EXPECT_EQ2(
-        bc->result.at(0)->getKind(), OrgSemKind::BlockCodeEvalResult);
+    EXPECT_EQ2(bc->result.at(0)->getKind(), OrgSemKind::BlockCodeEvalResult);
     auto res = bc->result.at(0).as<sem::BlockCodeEvalResult>();
     EXPECT_EQ2(res->node->getKind(), OrgSemKind::StmtList);
     EXPECT_EQ2(res->node.at(0)->getKind(), OrgSemKind::Paragraph);
@@ -153,8 +142,7 @@ input text
     org::OrgCodeEvalParameters conf{parseContext};
     Vec<sem::OrgCodeEvalInput> buf;
 
-    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
-        -> Vec<sem::OrgCodeEvalOutput> {
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in) -> Vec<sem::OrgCodeEvalOutput> {
         buf.push_back(in);
         // LOG(INFO) << fmt1(in);
         return {sem::OrgCodeEvalOutput{.stdoutText = "*bold*"}};
@@ -212,15 +200,13 @@ return tab
     auto parseContext = std::make_shared<org::parse::ParseContext>();
     org::OrgCodeEvalParameters conf{parseContext};
 
-    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
-        -> Vec<sem::OrgCodeEvalOutput> {
+    conf.evalBlock = [&](sem::OrgCodeEvalInput const& in) -> Vec<sem::OrgCodeEvalOutput> {
         return {sem::OrgCodeEvalOutput{.stdoutText = R"(| a | b | c |
 | d | e | f |
 | g | h | i |
 )"}};
     };
-    conf.debug->setTraceFile(
-        getDebugFile("BlockEvalIntermediateData.log"));
+    conf.debug->setTraceFile(getDebugFile("BlockEvalIntermediateData.log"));
     auto ev = org::evaluateCodeBlocks(doc, conf);
 
     writeTreeRepr(doc, getDebugFile("eval-pre.json"));

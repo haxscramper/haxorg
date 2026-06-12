@@ -16,14 +16,11 @@ std::string getClangResourceDir() {
         popen("clang -print-resource-dir 2>/dev/null", "r"), pclose);
 
     if (pipe) {
-        while (fgets(buffer.data(), buffer.size(), pipe.get())
-               != nullptr) {
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
             result += buffer.data();
         }
         // Remove trailing newline
-        if (!result.empty() && result.back() == '\n') {
-            result.pop_back();
-        }
+        if (!result.empty() && result.back() == '\n') { result.pop_back(); }
     }
 
     return result;
@@ -36,19 +33,14 @@ std::unique_ptr<clang::ASTConsumer> ReflFrontendAction::CreateASTConsumer(
     HSLOG_TRACE("Ast consumer verbose: {}", cli.verbose_log);
     auto consumer = std::make_unique<ReflASTConsumer>(CI, cli);
     if (cli.mode == ReflectionCLI::Mode::AllMainSymbolsInCompilationDb) {
-        consumer->Visitor
-            .visitMode = ReflASTVisitor::VisitMode::AllMainTranslationUnit;
+        consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::AllMainTranslationUnit;
     } else if (cli.mode == ReflectionCLI::Mode::AllAnotatedSymbols) {
-        consumer->Visitor
-            .visitMode = ReflASTVisitor::VisitMode::AllAnnotated;
+        consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::AllAnnotated;
     } else {
-        consumer->Visitor
-            .visitMode = ReflASTVisitor::VisitMode::AllTargeted;
+        consumer->Visitor.visitMode = ReflASTVisitor::VisitMode::AllTargeted;
     }
 
-    HSLOG_INFO(
-        "Create AST consumer with visit mode {}",
-        consumer->Visitor.visitMode);
+    HSLOG_INFO("Create AST consumer with visit mode {}", consumer->Visitor.visitMode);
 
     return consumer;
 }
@@ -64,8 +56,7 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
 
     HSLOG_INFO("Running drop reflection plugin");
 
-    auto push = [&](std::string const& value,
-                    int                line = __builtin_LINE()) {
+    auto push = [&](std::string const& value, int line = __builtin_LINE()) {
         if (cli.verbose_log) { HSLOG_TRACE("+++ Adding {}", value); }
         filteredArgs.push_back(value);
     };
@@ -73,15 +64,12 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
     bool has_resource_dir = false;
     for (size_t i = 0; i < Args.size(); ++i) {
         auto drop = [&](int line = __builtin_LINE()) {
-            if (cli.verbose_log) {
-                HSLOG_TRACE("!!! Discarding {}", Args[i]);
-            }
+            if (cli.verbose_log) { HSLOG_TRACE("!!! Discarding {}", Args[i]); }
         };
 
         // Skip unwanted arguments
         if (Args[i] == "-Xclang" && (i + 1 < Args.size())
-            && (Args[i + 1] == "-add-plugin"
-                || Args[i + 1] == "refl-plugin"
+            && (Args[i + 1] == "-add-plugin" || Args[i + 1] == "refl-plugin"
                 || Args[i + 1].starts_with("out=")
                 || Args[i + 1] == "-plugin-arg-refl-plugin")) {
 
@@ -91,19 +79,15 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
             drop();
         } else if (Args[i].find("sarif") != std::string::npos) {
             drop();
-        } else if (
-            Args[i].starts_with("@")
-            || Args[i].starts_with("-vectorize")) {
+        } else if (Args[i].starts_with("@") || Args[i].starts_with("-vectorize")) {
+            drop();
+        } else if (Args[i].starts_with("-W") && !Args[i].starts_with("-Wno")) {
             drop();
         } else if (
-            Args[i].starts_with("-W") && !Args[i].starts_with("-Wno")) {
-            drop();
-        } else if (
-            (i + 3 < Args.size())   //
-            && Args[i] == "-Xclang" //
-            && (Args[i + 1] == "-include-pch"
-                || Args[i + 1] == "-include") //
-            && Args[i + 2] == "-Xclang"       //
+            (i + 3 < Args.size())                                           //
+            && Args[i] == "-Xclang"                                         //
+            && (Args[i + 1] == "-include-pch" || Args[i + 1] == "-include") //
+            && Args[i + 2] == "-Xclang"                                     //
             && (Args[i + 3].ends_with("pch")
                 || Args[i + 3].find("cmake_pch") != std::string::npos)) {
             drop();
@@ -185,15 +169,13 @@ clang::tooling::CommandLineArguments dropReflectionPLugin(
 
 void run_semantic_symbols_collection(ReflectionCLI const& cli) {
     std::string ErrorMessage;
-    auto JSONDB = clang::tooling::JSONCompilationDatabase::loadFromFile(
+    auto        JSONDB = clang::tooling::JSONCompilationDatabase::loadFromFile(
         cli.reflection.compilation_database,
         ErrorMessage,
         clang::tooling::JSONCommandLineSyntax::AutoDetect);
 
     if (JSONDB) {
-        HSLOG_TRACE(
-            "Using compilation database {}",
-            cli.reflection.compilation_database);
+        HSLOG_TRACE("Using compilation database {}", cli.reflection.compilation_database);
     } else {
         throw hstd::runtime_error::init(
             std::format(
@@ -209,8 +191,7 @@ void run_semantic_symbols_collection(ReflectionCLI const& cli) {
     adjustedCompilations.appendArgumentsAdjuster(
         [cli](
             clang::tooling::CommandLineArguments const& Args,
-            llvm::StringRef                             Filename)
-            -> clang::tooling::CommandLineArguments {
+            llvm::StringRef Filename) -> clang::tooling::CommandLineArguments {
             return dropReflectionPLugin(Args, Filename, cli);
         });
 
@@ -229,24 +210,18 @@ void run_semantic_symbols_collection(ReflectionCLI const& cli) {
     }
 
     if (cli.verbose_log) {
-        HSLOG_TRACE(
-            "Using toolchain include {}",
-            cli.reflection.toolchain_include);
+        HSLOG_TRACE("Using toolchain include {}", cli.reflection.toolchain_include);
         HSLOG_TRACE("Configuration parse OK, running tool");
     }
 
     HSLOG_INFO("Starting reflection frontend tool run");
 
-    int result = tool.run(
-        std::make_unique<ReflFrontendActionFactory>(cli).get());
+    int result = tool.run(std::make_unique<ReflFrontendActionFactory>(cli).get());
 
-    if (result != 0) {
-        throw std::runtime_error("Reflection tool execution failed");
-    }
+    if (result != 0) { throw std::runtime_error("Reflection tool execution failed"); }
 }
 
-std::unique_ptr<clang::FrontendAction> ReflFrontendActionFactory::
-    create() {
+std::unique_ptr<clang::FrontendAction> ReflFrontendActionFactory::create() {
     HSLOG_TRACE("Refl frontend action factory create");
     return std::make_unique<ReflFrontendAction>(cli);
 }

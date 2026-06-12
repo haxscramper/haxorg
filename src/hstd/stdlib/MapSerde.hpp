@@ -22,8 +22,7 @@ struct JsonSerde<UnorderedMap<K, V>> {
         UnorderedMap<K, V> result;
         for (auto const& i : j) {
             result.insert_or_assign(
-                JsonSerde<K>::from_json(i["key"]),
-                JsonSerde<V>::from_json(i["value"]));
+                JsonSerde<K>::from_json(i["key"]), JsonSerde<V>::from_json(i["value"]));
         }
         return result;
     }

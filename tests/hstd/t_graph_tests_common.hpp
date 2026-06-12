@@ -55,26 +55,18 @@ class GraphUtils_Test : public ::testing::Test {
     }
 
     hstd::SPtr<TrivialGraph>     getGraph() const { return state.graph; }
-    hstd::SPtr<TrivialHierarchy> getHierarchy() const {
-        return state.hierarchy;
-    }
+    hstd::SPtr<TrivialHierarchy> getHierarchy() const { return state.hierarchy; }
 
-    geometry::Rect box(VertexID const& id) {
-        return run->getAbsoluteBBox(id);
-    }
+    geometry::Rect box(VertexID const& id) { return run->getAbsoluteBBox(id); }
 
-    hstd::SPtr<TrivialPortCollection> getPorts() const {
-        return state.ports;
-    }
+    hstd::SPtr<TrivialPortCollection> getPorts() const { return state.ports; }
 
     VertexID addVertex(hstd::Str const& id_override) {
         return getGraph()->addVertex(id_override);
     }
 
     void trackHierarchyVertex(VertexID const& id) {
-        if (!getHierarchy()->isTrackingVertex(id)) {
-            getHierarchy()->trackVertex(id);
-        }
+        if (!getHierarchy()->isTrackingVertex(id)) { getHierarchy()->trackVertex(id); }
     }
 
     EdgeID addNesting(VertexID const& parent, VertexID const& sub) {
@@ -134,14 +126,10 @@ class GraphUtils_Test : public ::testing::Test {
     }
 
     hstd::SPtr<gv::NodeAttribute> getGv(VertexID const& id) {
-        return getGraph()
-            ->getVertex(id)
-            ->getUniqueAttribute<gv::NodeAttribute>();
+        return getGraph()->getVertex(id)->getUniqueAttribute<gv::NodeAttribute>();
     }
 
     hstd::SPtr<gv::EdgeAttribute> getGv(EdgeID const& id) {
-        return getGraph()
-            ->getEdge(id)
-            ->getUniqueAttribute<gv::EdgeAttribute>();
+        return getGraph()->getEdge(id)->getUniqueAttribute<gv::EdgeAttribute>();
     }
 };

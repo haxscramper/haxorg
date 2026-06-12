@@ -10,10 +10,7 @@ using Pair = std::pair<A, B>;
 
 
 template <typename Tuple, std::size_t... Is, typename FormatContext>
-auto format_tuple_impl(
-    Tuple const&   t,
-    FormatContext& ctx,
-    std::index_sequence<Is...>) {
+auto format_tuple_impl(Tuple const& t, FormatContext& ctx, std::index_sequence<Is...>) {
     fmt_ctx("(", ctx);
     (...,
      (fmt_ctx(std::get<Is>(t), ctx),

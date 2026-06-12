@@ -63,18 +63,14 @@ struct CRTP_this_method {
 #define CONCAT_INNER(a, b) a##b
 
 
-#define __ploc()                                                          \
-    std::cout << __FILE__ << ":" << __LINE__ << " at " << __func__        \
-              << std::endl;
+#define __ploc()                                                                         \
+    std::cout << __FILE__ << ":" << __LINE__ << " at " << __func__ << std::endl;
 
 
 /// Check if ~ptr~ falls in ~[start, start + size]~ range. Start and size
 /// addition will use pointer arichmetics to compute the size.
 template <typename T>
-bool is_within_memory_block(
-    T const*    ptr,
-    T const*    start,
-    std::size_t size) {
+bool is_within_memory_block(T const* ptr, T const* start, std::size_t size) {
     T const* end = start + size;
     return start <= ptr && ptr < end;
 }
@@ -90,11 +86,7 @@ std::ptrdiff_t pointer_distance(T const* first, T const* last) {
     return last - first;
 }
 
-inline bool isclose(
-    double a,
-    double b,
-    double rtol = 1e-5,
-    double atol = 1e-8) {
+inline bool isclose(double a, double b, double rtol = 1e-5, double atol = 1e-8) {
     return std::abs(a - b) <= atol + rtol * std::abs(b);
 }
 

@@ -33,31 +33,24 @@ void ExporterJson::visit(json& res, sem::SemId<sem::Space> const& arg) {
     }
 }
 
-void ExporterJson::visitSubtreeValueFields(
-    json&            j,
-    In<sem::Subtree> tree) {
+void ExporterJson::visitSubtreeValueFields(json& j, In<sem::Subtree> tree) {
     using Md = describe_members<sem::Subtree, mod_any_access>;
     mp_for_each<Md>([&](auto const& field) {
         if (field.name != "subnodes" && field.name != "title") {
             visitField(
                 j,
                 field.name,
-                (*static_cast<sem::Subtree const*>(tree.get()))
-                    .*field.pointer);
+                (*static_cast<sem::Subtree const*>(tree.get())).*field.pointer);
         }
     });
 }
 
 
-template json ExporterJson::eval<sem::SemId<sem::Org>>(
-    sem::SemId<sem::Org> const&);
+template json ExporterJson::eval<sem::SemId<sem::Org>>(sem::SemId<sem::Org> const&);
 
 
 template <typename T>
-void ExporterJson::visitField(
-    json&         j,
-    char const*   name,
-    Opt<T> const& value) {
+void ExporterJson::visitField(json& j, char const* name, Opt<T> const& value) {
     if (value) {
         j[name] = eval(value.value());
     } else if (!skipNullFields) {

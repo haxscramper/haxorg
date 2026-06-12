@@ -53,9 +53,7 @@ hstd::Vec<org::parse::OrgParseFragment> org::parse::extractCommentBlocks(
             } else {
                 // Start a new comment fragment
                 currentFragment = {
-                    static_cast<int>(lineIdx),
-                    static_cast<int>(commentPos),
-                    commentText};
+                    static_cast<int>(lineIdx), static_cast<int>(commentPos), commentText};
             }
         } else if (currentFragment.baseLine != -1) {
             // No comment on this line, so the previous comment block is
@@ -66,9 +64,7 @@ hstd::Vec<org::parse::OrgParseFragment> org::parse::extractCommentBlocks(
     }
 
     // Add the last fragment if it exists
-    if (currentFragment.baseLine != -1) {
-        fragments.push_back(currentFragment);
-    }
+    if (currentFragment.baseLine != -1) { fragments.push_back(currentFragment); }
 
     // Process the fragments to clean up the text
     for (auto& fragment : fragments) {
@@ -87,8 +83,7 @@ hstd::Vec<org::parse::OrgParseFragment> org::parse::extractCommentBlocks(
                     size_t pos = fragmentLine.find(prefix);
                     if (pos != std::string::npos
                         && pos == fragmentLine.find_first_not_of(" \t")) {
-                        fragmentLine = fragmentLine.substr(
-                            pos + prefix.length());
+                        fragmentLine = fragmentLine.substr(pos + prefix.length());
                         break;
                     }
                 }
@@ -112,20 +107,16 @@ hstd::Vec<org::parse::OrgParseFragment> org::parse::extractCommentBlocks(
 
 ParseContext::ParseContext() : source{std::make_shared<SourceManager>()} {}
 
-ParseContext::ParseContext(hstd::SPtr<SourceManager> const& source)
-    : source{source} {}
+ParseContext::ParseContext(hstd::SPtr<SourceManager> const& source) : source{source} {}
 
 std::shared_ptr<hstd::ext::Cache> ParseContext::getDiagnosticStrings() {
-    return std::make_shared<org::parse::DiagnosticsParseContext>(
-        shared_from_this());
+    return std::make_shared<org::parse::DiagnosticsParseContext>(shared_from_this());
 }
 
-SourceFileId ParseContext::addSource(
-    std::string const& path,
-    std::string const& content) const {
+SourceFileId ParseContext::addSource(std::string const& path, std::string const& content)
+    const {
     LOGIC_ASSERTION_CHECK_FMT(
-        path.contains("/")
-            || (path.starts_with("<") && path.ends_with(">")),
+        path.contains("/") || (path.starts_with("<") && path.ends_with(">")),
         "Source name must be a properly formatted path with `/`, or a "
         "temporary path name `<something>`");
 
@@ -163,19 +154,13 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
         auto                          fragments = opts->getFragments(text);
         Vec<OrgConverter::InFragment> toConvert;
 
-        if (opts->baseTokenTracePath) {
-            fs::remove(opts->baseTokenTracePath.value());
-        }
+        if (opts->baseTokenTracePath) { fs::remove(opts->baseTokenTracePath.value()); }
 
-        if (opts->parseTracePath) {
-            fs::remove(opts->parseTracePath.value());
-        }
+        if (opts->parseTracePath) { fs::remove(opts->parseTracePath.value()); }
 
         if (opts->semTracePath) { fs::remove(opts->semTracePath.value()); }
 
-        if (opts->tokenTracePath) {
-            fs::remove(opts->tokenTracePath.value());
-        }
+        if (opts->tokenTracePath) { fs::remove(opts->tokenTracePath.value()); }
 
         Vec<org::parse::OrgTokenGroup> tokens;
         Vec<org::parse::OrgNodeGroup>  nodes;
@@ -206,8 +191,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             }
 
             tokenizer.convert(baseTokens);
-            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{
-                &tokens.at(i)};
+            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
 
             org::parse::OrgParser parser{&nodes.at(i)};
             if (opts->parseTracePath) {
@@ -246,8 +230,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             p.traceColored = false;
         }
 
-        org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
-            text, p, file_id);
+        org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(text, p, file_id);
 
         org::parse::OrgTokenGroup tokens;
         org::parse::OrgTokenizer  tokenizer{&tokens};
@@ -274,9 +257,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             converter.traceColored = false;
         }
 
-        return converter
-            .convertDocument(org::parse::OrgAdapter(&nodes, id))
-            .unwrap();
+        return converter.convertDocument(org::parse::OrgAdapter(&nodes, id)).unwrap();
     }
 }
 
@@ -302,9 +283,7 @@ Opt<sem::SemId<sem::File>> parseFileAux(
     std::shared_ptr<OrgDirectoryParseParameters> const& opts,
     DirectoryParseState&                                state) {
     LOGIC_ASSERTION_CHECK_FMT(
-        opts->isRegularFile(path),
-        "'{}' should be a regular text file",
-        path);
+        opts->isRegularFile(path), "'{}' should be a regular text file", path);
 
     __perf_trace("parsing", "Parse file", path, path.native());
 
@@ -344,16 +323,14 @@ Opt<sem::SemId<Org>> parsePathAux(
             sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
             sym->isDirectory             = true;
             sym->absPath                 = target.native();
-            auto dir                     = parsePathAux(
-                ctx, target, sym->absPath.toBase(), opts, state);
+            auto dir = parsePathAux(ctx, target, sym->absPath.toBase(), opts, state);
             if (dir) { sym->push_back(dir.value()); }
             return sym;
 
         } else if (opts->isRegularFile(target)) {
             sem::SemId<sem::Symlink> sym = sem::SemId<sem::Symlink>::New();
             sym->absPath                 = target.parent_path().native();
-            auto file                    = parsePathAux(
-                ctx, target, sym->absPath.toBase(), opts, state);
+            auto file = parsePathAux(ctx, target, sym->absPath.toBase(), opts, state);
             if (file) { sym->push_back(file.value()); }
             return sym;
         } else {
@@ -363,13 +340,11 @@ Opt<sem::SemId<Org>> parsePathAux(
 
     } else if (opts->isDirectory(path)) {
         sem::SemId<Directory> dir = sem::SemId<Directory>::New();
-        dir->relPath = fs::relative(path, activeRoot).native();
-        dir->absPath = path.native();
-        __perf_trace(
-            "parsing", "Parse directory", dir, dir->absPath.toBase());
+        dir->relPath              = fs::relative(path, activeRoot).native();
+        dir->absPath              = path.native();
+        __perf_trace("parsing", "Parse directory", dir, dir->absPath.toBase());
         for (const auto& entry : opts->getDirectoryEntries(path)) {
-            auto nested = parsePathAux(
-                ctx, entry, activeRoot, opts, state);
+            auto nested = parsePathAux(ctx, entry, activeRoot, opts, state);
             if (nested) { dir->push_back(nested.value()); }
         }
 
@@ -391,14 +366,11 @@ Opt<fs::path> resolvePath(
     Str const&                                          target,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
     LOGIC_ASSERTION_CHECK_FMT(
-        opts->isDirectory(workdir),
-        "Workdir must be a directory, but got '{}'",
-        workdir);
+        opts->isDirectory(workdir), "Workdir must be a directory, but got '{}'", workdir);
 
     fs::path full //
-        = fs::path{target.toBase()}.is_absolute()
-            ? fs::path{target.toBase()}
-            : (workdir / target.toBase());
+        = fs::path{target.toBase()}.is_absolute() ? fs::path{target.toBase()}
+                                                  : (workdir / target.toBase());
 
     if (!fs::exists(full) && opts->findIncludeTarget) {
         auto includeFound = opts->findIncludeTarget(target);
@@ -426,14 +398,12 @@ void postProcessInclude(
     if (full) {
         switch (incl->getIncludeKind()) {
             case sem::CmdInclude::Kind::OrgDocument: {
-                auto parsed = parsePathAux(
-                    ctx, full.value(), activeRoot, opts, state);
+                auto parsed = parsePathAux(ctx, full.value(), activeRoot, opts, state);
                 if (parsed) { arg->push_back(parsed.value()); }
                 break;
             }
             case sem::CmdInclude::Kind::Src: {
-                LOGIC_ASSERTION_CHECK_FMT(
-                    incl.at(0)->is(OrgSemKind::BlockCode), "");
+                LOGIC_ASSERTION_CHECK_FMT(incl.at(0)->is(OrgSemKind::BlockCode), "");
 
                 auto code   = incl.as<sem::BlockCode>();
                 auto source = readFile(full.value());
@@ -447,8 +417,7 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Example: {
-                LOGIC_ASSERTION_CHECK_FMT(
-                    incl.at(0)->is(OrgSemKind::BlockExample), "");
+                LOGIC_ASSERTION_CHECK_FMT(incl.at(0)->is(OrgSemKind::BlockExample), "");
 
                 auto code   = incl.as<sem::BlockExample>();
                 auto source = readFile(full.value());
@@ -460,8 +429,7 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Export: {
-                LOGIC_ASSERTION_CHECK_FMT(
-                    incl.at(0)->is(OrgSemKind::BlockExport), "");
+                LOGIC_ASSERTION_CHECK_FMT(incl.at(0)->is(OrgSemKind::BlockExport), "");
 
                 auto code     = incl.as<sem::BlockExport>();
                 code->content = readFile(full.value());
@@ -472,8 +440,8 @@ void postProcessInclude(
             }
         }
     } else {
-        auto group = sem::SemId<sem::ErrorGroup>::New();
-        auto error = sem::SemId<sem::ErrorItem>::New();
+        auto                                   group = sem::SemId<sem::ErrorGroup>::New();
+        auto                                   error = sem::SemId<sem::ErrorItem>::New();
         org::sem::OrgDiagnostics::IncludeError inc{};
         inc.brief       = "Could not resolve include target";
         inc.targetPath  = inc.brief;
@@ -502,12 +470,10 @@ void postProcessFileLink(
                 target = t.getAttachment().file;
             }
 
-            auto full = resolvePath(
-                documentPath.parent_path(), target, opts);
+            auto full = resolvePath(documentPath.parent_path(), target, opts);
             if (full) {
                 auto file     = sem::SemId<sem::File>::New();
-                file->relPath = fs::relative(full.value(), activeRoot)
-                                    .native();
+                file->relPath = fs::relative(full.value(), activeRoot).native();
                 file->absPath = full.value().native();
                 link->push_back(file);
             }
@@ -527,11 +493,9 @@ void postProcessFileReferences(
     DirectoryParseState&                                state) {
     org::eachSubnodeRec(parsed, [&](sem::SemId<sem::Org> arg) {
         if (auto incl = arg.asOpt<sem::CmdInclude>()) {
-            postProcessInclude(
-                ctx, arg, path, activeRoot, parsed, opts, state);
+            postProcessInclude(ctx, arg, path, activeRoot, parsed, opts, state);
         } else if (auto link = arg.asOpt<sem::Link>()) {
-            postProcessFileLink(
-                arg, path, activeRoot, parsed, opts, state);
+            postProcessFileLink(arg, path, activeRoot, parsed, opts, state);
         }
     });
 }
@@ -546,18 +510,15 @@ Opt<sem::SemId<Org>> ParseContext::parseDirectoryOpts(
     return parsePathAux(this, fs::absolute(root), root, opts, state);
 }
 
-hstd::Opt<sem::SemId<Org>> ParseContext::parseDirectory(
-    std::string const& path) {
-    return parseDirectoryOpts(
-        path, org::parse::OrgDirectoryParseParameters::shared());
+hstd::Opt<sem::SemId<Org>> ParseContext::parseDirectory(std::string const& path) {
+    return parseDirectoryOpts(path, org::parse::OrgDirectoryParseParameters::shared());
 }
 
 sem::SemId<File> ParseContext::parseFileWithIncludes(
     std::string const&                                  file,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
     DirectoryParseState state;
-    auto                parsed = parseFileAux(
-        this, file, fs::path{file}.parent_path(), opts, state);
+    auto parsed = parseFileAux(this, file, fs::path{file}.parent_path(), opts, state);
     if (parsed) {
         return parsed.value();
     } else {
@@ -565,8 +526,7 @@ sem::SemId<File> ParseContext::parseFileWithIncludes(
     }
 }
 
-bool OrgDirectoryParseParameters::isDirectory(
-    std::string const& path) const {
+bool OrgDirectoryParseParameters::isDirectory(std::string const& path) const {
     if (isDirectoryImpl) {
         return isDirectoryImpl(path);
     } else {
@@ -574,8 +534,7 @@ bool OrgDirectoryParseParameters::isDirectory(
     }
 }
 
-bool OrgDirectoryParseParameters::isSymlink(
-    std::string const& path) const {
+bool OrgDirectoryParseParameters::isSymlink(std::string const& path) const {
     if (isSymlinkImpl) {
         return isSymlinkImpl(path);
     } else {
@@ -583,8 +542,7 @@ bool OrgDirectoryParseParameters::isSymlink(
     }
 }
 
-bool OrgDirectoryParseParameters::isRegularFile(
-    std::string const& path) const {
+bool OrgDirectoryParseParameters::isRegularFile(std::string const& path) const {
     if (isRegularFileImpl) {
         return isRegularFileImpl(path);
     } else {
@@ -592,8 +550,7 @@ bool OrgDirectoryParseParameters::isRegularFile(
     }
 }
 
-std::string OrgDirectoryParseParameters::resolveSymlink(
-    std::string const& path) const {
+std::string OrgDirectoryParseParameters::resolveSymlink(std::string const& path) const {
     if (resolveSymlinkImpl) {
         return resolveSymlinkImpl(path);
     } else {
@@ -639,9 +596,7 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                             ext::Report(ext::ReportKind::Error, id, 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
-                                .with_note(
-                                    hstd::to_compact_json(
-                                        hstd::to_json_eval(err)))
+                                .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
                                 .with_label(
                                     ext::Label{1}
                                         .with_span(id, slice(1, 2))
@@ -654,18 +609,14 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                         auto        id  = getId(err.loc.value());
                         auto        l   = //
                             ext::Label{1}
-                                .with_span(
-                                    id,
-                                    slice(err.loc->pos, err.loc->pos + 1))
+                                .with_span(id, slice(err.loc->pos, err.loc->pos + 1))
                                 .with_message(err.detail);
 
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
-                                .with_note(
-                                    hstd::to_compact_json(
-                                        hstd::to_json_eval(err)))
+                                .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
                                 .with_label(l));
                         break;
                     }
@@ -678,18 +629,14 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                                 .with_span(
                                     id,
                                     slice(
-                                        err.loc.pos,
-                                        err.loc.pos
-                                            + err.tokenText.size()))
+                                        err.loc.pos, err.loc.pos + err.tokenText.size()))
                                 .with_message(err.detail);
 
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
-                                .with_note(
-                                    hstd::to_compact_json(
-                                        hstd::to_json_eval(err)))
+                                .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
                                 .with_label(l));
                         break;
                     }
@@ -699,8 +646,7 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                     }
 
                     default: {
-                        throw hstd::logic_unhandled_kind_error::init(
-                            d.getKind());
+                        throw hstd::logic_unhandled_kind_error::init(d.getKind());
                     }
                 }
             }
@@ -721,8 +667,7 @@ hstd::Vec<sem::SemId<ErrorGroup>> ParseContext::collectErrorNodes(
     return res;
 }
 
-std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(
-    hstd::ext::Id const& id) {
+std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(hstd::ext::Id const& id) {
     auto file_id = org::parse::SourceFileId::FromValue(id);
     if (!sources.contains(file_id)) {
         sources.insert_or_assign(
@@ -736,6 +681,5 @@ std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(
 
 std::optional<std::string> DiagnosticsParseContext::display(
     hstd::ext::Id const& id) const {
-    return context->source->getPath(
-        org::parse::SourceFileId::FromValue(id));
+    return context->source->getPath(org::parse::SourceFileId::FromValue(id));
 }

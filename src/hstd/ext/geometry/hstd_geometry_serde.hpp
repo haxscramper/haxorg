@@ -10,32 +10,20 @@ namespace hstd::serde {
 
 template <>
 struct proto_serde<ext::geometry::proto::Point, ext::geometry::Point> {
-    static void write(
-        ext::geometry::proto::Point* out,
-        ext::geometry::Point const&  in);
-    static void read(
-        ext::geometry::proto::Point const& in,
-        ext::geometry::Point*              out);
+    static void write(ext::geometry::proto::Point* out, ext::geometry::Point const& in);
+    static void read(ext::geometry::proto::Point const& in, ext::geometry::Point* out);
 };
 
 template <>
 struct proto_serde<ext::geometry::proto::Point, ext::geometry::Size> {
-    static void write(
-        ext::geometry::proto::Point* out,
-        ext::geometry::Size const&   in);
-    static void read(
-        ext::geometry::proto::Point const& in,
-        ext::geometry::Size*               out);
+    static void write(ext::geometry::proto::Point* out, ext::geometry::Size const& in);
+    static void read(ext::geometry::proto::Point const& in, ext::geometry::Size* out);
 };
 
 template <>
 struct proto_serde<ext::geometry::proto::Rect, ext::geometry::Rect> {
-    static void write(
-        ext::geometry::proto::Rect* out,
-        ext::geometry::Rect const&  in);
-    static void read(
-        ext::geometry::proto::Rect const& in,
-        ext::geometry::Rect*              out);
+    static void write(ext::geometry::proto::Rect* out, ext::geometry::Rect const& in);
+    static void read(ext::geometry::proto::Rect const& in, ext::geometry::Rect* out);
 };
 
 template <>
@@ -49,9 +37,7 @@ struct proto_serde<ext::geometry::proto::Polygon, ext::geometry::Polygon> {
 };
 
 template <>
-struct proto_serde<
-    ext::geometry::proto::Path::Command,
-    ext::geometry::Path::Command> {
+struct proto_serde<ext::geometry::proto::Path::Command, ext::geometry::Path::Command> {
     static void write(
         ext::geometry::proto::Path::Command* out,
         ext::geometry::Path::Command const&  in);
@@ -62,12 +48,8 @@ struct proto_serde<
 
 template <>
 struct proto_serde<ext::geometry::proto::Path, ext::geometry::Path> {
-    static void write(
-        ext::geometry::proto::Path* out,
-        ext::geometry::Path const&  in);
-    static void read(
-        ext::geometry::proto::Path const& in,
-        ext::geometry::Path*              out);
+    static void write(ext::geometry::proto::Path* out, ext::geometry::Path const& in);
+    static void read(ext::geometry::proto::Path const& in, ext::geometry::Path* out);
 };
 
 template <>

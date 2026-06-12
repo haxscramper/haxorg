@@ -16,8 +16,7 @@ struct std::hash<hstd::ext::ImmBox<T>> {
 
 template <typename K, typename V>
 struct std::hash<hstd::ext::ImmMap<K, V>> {
-    std::size_t operator()(
-        hstd::ext::ImmMap<K, V> const& it) const noexcept {
+    std::size_t operator()(hstd::ext::ImmMap<K, V> const& it) const noexcept {
         std::size_t  result = 0;
         hstd::Vec<K> keys;
         for (auto const& [key, _] : it) { keys.push_back(key); }

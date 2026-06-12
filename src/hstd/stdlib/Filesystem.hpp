@@ -28,10 +28,7 @@ struct IoContext {
 };
 
 void writeFile(fs::path const& target, std::string const& content);
-void createDirectory(
-    fs::path const& target,
-    bool            parents  = true,
-    bool            existsOk = true);
+void createDirectory(fs::path const& target, bool parents = true, bool existsOk = true);
 
 void writeDebugFile(
     std::string const& content,
@@ -53,8 +50,7 @@ template <>
 struct std::formatter<hstd::fs::path> : std::formatter<std::string> {
     using FmtType = hstd::fs::path;
     template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(p.native(), ctx);
     }

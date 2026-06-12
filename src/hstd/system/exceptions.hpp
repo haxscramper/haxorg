@@ -77,27 +77,19 @@ struct CRTP_hexception
     }
 
 #if ORG_BUILD_EMCC
-    virtual const char* what() const noexcept override {
-        return get_fmt_message();
-    }
+    virtual const char* what() const noexcept override { return get_fmt_message(); }
 #else
-    virtual cpptrace::stacktrace const& trace() const noexcept override {
-        return eager;
-    }
+    virtual cpptrace::stacktrace const& trace() const noexcept override { return eager; }
 
-    virtual const char* message() const noexcept override {
-        return get_fmt_message();
-    }
+    virtual const char* message() const noexcept override { return get_fmt_message(); }
 #endif
 };
 
 struct invalid_argument : CRTP_hexception<invalid_argument> {};
 
 struct logic_error : CRTP_hexception<logic_error> {};
-struct logic_assertion_error
-    : CRTP_hexception<logic_assertion_error, logic_error> {};
-struct logic_unreachable_error
-    : CRTP_hexception<logic_unreachable_error, logic_error> {};
+struct logic_assertion_error : CRTP_hexception<logic_assertion_error, logic_error> {};
+struct logic_unreachable_error : CRTP_hexception<logic_unreachable_error, logic_error> {};
 
 struct range_error : CRTP_hexception<range_error> {};
 
@@ -107,22 +99,19 @@ struct domain_error : CRTP_hexception<domain_error> {};
 
 struct getter_error : CRTP_hexception<getter_error, invalid_argument> {};
 struct key_error : CRTP_hexception<key_error, invalid_argument> {};
-struct unexpected_kind_error
-    : CRTP_hexception<unexpected_kind_error, domain_error> {};
+struct unexpected_kind_error : CRTP_hexception<unexpected_kind_error, domain_error> {};
 
-#define LOGIC_ASSERTION_CHECK_FMT(expr, message_fmt, ...)                 \
-    if (!(expr)) {                                                        \
-        throw ::hstd::logic_assertion_error::init(                        \
-            ::hstd::fmt(                                                  \
-                "{}: {}",                                                 \
-                #expr,                                                    \
-                ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));    \
+#define LOGIC_ASSERTION_CHECK_FMT(expr, message_fmt, ...)                                \
+    if (!(expr)) {                                                                       \
+        throw ::hstd::logic_assertion_error::init(                                       \
+            ::hstd::fmt(                                                                 \
+                "{}: {}", #expr, ::hstd::fmt(message_fmt __VA_OPT__(, ) __VA_ARGS__)));  \
     }
 
-#define LOGIC_ASSERTION_CHECK(expr, __message)                            \
-    if (!(expr)) {                                                        \
-        throw ::hstd::logic_assertion_error::init(                        \
-            std::string{#expr ": "} + std::string{__message});            \
+#define LOGIC_ASSERTION_CHECK(expr, __message)                                           \
+    if (!(expr)) {                                                                       \
+        throw ::hstd::logic_assertion_error::init(                                       \
+            std::string{#expr ": "} + std::string{__message});                           \
     }
 
 #define logic_todo_impl() throw hstd::logic_assertion_error::init("TODO");

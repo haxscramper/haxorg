@@ -11,8 +11,7 @@ template <typename T>
 struct JsonSerde<Slice<T>> {
     static Slice<T> from_json(json const& j) {
         return slice<T>(
-            JsonSerde<T>::from_json(j["first"]),
-            JsonSerde<T>::from_json(j["last"]));
+            JsonSerde<T>::from_json(j["first"]), JsonSerde<T>::from_json(j["last"]));
     }
 
     static json to_json(Slice<T> const& value) {
@@ -27,8 +26,7 @@ template <typename A, typename B>
 struct JsonSerde<HSlice<A, B>> {
     static HSlice<A, B> from_json(json const& j) {
         return HSlice<A, B>{
-            JsonSerde<A>::from_json(j["first"]),
-            JsonSerde<B>::from_json(j["last"])};
+            JsonSerde<A>::from_json(j["first"]), JsonSerde<B>::from_json(j["last"])};
     }
 
     static json to_json(HSlice<A, B> const& value) {
@@ -43,8 +41,7 @@ template <typename A, typename B>
 struct JsonSerde<Pair<A, B>> {
     static Pair<A, B> from_json(json const& j) {
         return std::make_pair<A, B>(
-            JsonSerde<A>::from_json(j["first"]),
-            JsonSerde<B>::from_json(j["second"]));
+            JsonSerde<A>::from_json(j["first"]), JsonSerde<B>::from_json(j["second"]));
     }
 
     static json to_json(Pair<A, B> const& value) {
@@ -78,23 +75,19 @@ struct JsonSerde<double> {
 
 template <>
 struct JsonSerde<unsigned int> {
-    static json to_json(unsigned int const& it) { return json(it); }
-    static unsigned int from_json(json const& j) {
-        return j.get<unsigned int>();
-    }
+    static json         to_json(unsigned int const& it) { return json(it); }
+    static unsigned int from_json(json const& j) { return j.get<unsigned int>(); }
 };
 
 template <>
 struct JsonSerde<unsigned long> {
-    static json to_json(unsigned long const& it) { return json(it); }
-    static unsigned long from_json(json const& j) {
-        return j.get<unsigned long>();
-    }
+    static json          to_json(unsigned long const& it) { return json(it); }
+    static unsigned long from_json(json const& j) { return j.get<unsigned long>(); }
 };
 
 template <>
 struct JsonSerde<unsigned long long> {
-    static json to_json(unsigned long long const& it) { return json(it); }
+    static json               to_json(unsigned long long const& it) { return json(it); }
     static unsigned long long from_json(json const& j) {
         return j.get<unsigned long long>();
     }
@@ -109,9 +102,7 @@ struct JsonSerde<float> {
 template <>
 struct JsonSerde<std::string> {
     static json        to_json(std::string const& it) { return json(it); }
-    static std::string from_json(json const& j) {
-        return j.get<std::string>();
-    }
+    static std::string from_json(json const& j) { return j.get<std::string>(); }
 };
 
 template <>
@@ -124,9 +115,7 @@ struct JsonSerde<char const*> {
 template <>
 struct JsonSerde<Str> {
     static json      to_json(Str const& it) { return json(it.toBase()); }
-    static hstd::Str from_json(json const& j) {
-        return j.get<std::string>();
-    }
+    static hstd::Str from_json(json const& j) { return j.get<std::string>(); }
 };
 
 
@@ -160,24 +149,19 @@ T from_json_eval(json const& j) {
 }
 
 template <typename T>
-concept DescribedMembers = ::boost::describe::has_describe_members<
-    T>::value;
+concept DescribedMembers = ::boost::describe::has_describe_members<T>::value;
 
 template <typename T, typename ListType>
 struct JsonSerdeListApi {
     static json to_json(ListType const& it) {
         auto result = json::array();
-        for (auto const& i : it) {
-            result.push_back(JsonSerde<T>::to_json(i));
-        }
+        for (auto const& i : it) { result.push_back(JsonSerde<T>::to_json(i)); }
 
         return result;
     }
     static ListType from_json(json const& j) {
         ListType result;
-        for (auto const& i : j) {
-            result.push_back(JsonSerde<T>::from_json(i));
-        }
+        for (auto const& i : j) { result.push_back(JsonSerde<T>::from_json(i)); }
         return result;
     }
 };
@@ -203,8 +187,8 @@ struct JsonSerdeMapApi {
     static MapType from_json(json const& j) {
         MapType result;
         for (auto const& i : j) {
-            result[JsonSerde<K>::from_json(
-                i["key"])] = JsonSerde<V>::from_json(i["value"]);
+            result[JsonSerde<K>::from_json(i["key"])] = JsonSerde<V>::from_json(
+                i["value"]);
         }
         return result;
     }
@@ -219,9 +203,7 @@ template <typename V>
 struct JsonSerde<std::unordered_map<std::string, V>> {
     static json to_json(std::unordered_map<std::string, V> const& it) {
         auto result = json::object();
-        for (auto const& [key, val] : it) {
-            result[key] = JsonSerde<V>::to_json(val);
-        }
+        for (auto const& [key, val] : it) { result[key] = JsonSerde<V>::to_json(val); }
 
         return result;
     }
@@ -239,17 +221,13 @@ template <typename T>
 struct JsonSerde<Vec<T>> {
     static json to_json(Vec<T> const& it) {
         auto result = json::array();
-        for (auto const& i : it) {
-            result.push_back(JsonSerde<T>::to_json(i));
-        }
+        for (auto const& i : it) { result.push_back(JsonSerde<T>::to_json(i)); }
 
         return result;
     }
     static Vec<T> from_json(json const& j) {
         Vec<T> result;
-        for (auto const& i : j) {
-            result.push_back(JsonSerde<T>::from_json(i));
-        }
+        for (auto const& i : j) { result.push_back(JsonSerde<T>::from_json(i)); }
         return result;
     }
 };
@@ -290,10 +268,7 @@ struct JsonSerde<std::shared_ptr<T>> {
     }
 };
 
-template <
-    DescribedRecord T,
-    bool            WithNullFields  = false,
-    bool            WithEmptyFields = false>
+template <DescribedRecord T, bool WithNullFields = false, bool WithEmptyFields = false>
 struct JsonSerdeDescribedRecordBaseEx {
     static json to_json(T const& obj) {
         json result = json::object();
@@ -303,10 +278,8 @@ struct JsonSerdeDescribedRecordBaseEx {
                 using cvf = std::remove_cvref_t<F>;
                 if (!hstd::value_metadata<cvf>::isNil(value)
                     || !hstd::value_metadata<cvf>::isEmpty(value)
-                    || (hstd::value_metadata<cvf>::isNil(value)
-                        && WithNullFields)
-                    || (hstd::value_metadata<cvf>::isEmpty(value)
-                        && WithEmptyFields)) {
+                    || (hstd::value_metadata<cvf>::isNil(value) && WithNullFields)
+                    || (hstd::value_metadata<cvf>::isEmpty(value) && WithEmptyFields)) {
                     result[name] = JsonSerde<cvf>::to_json(value);
                 }
             });
@@ -318,9 +291,8 @@ struct JsonSerdeDescribedRecordBaseEx {
         T result = SerdeDefaultProvider<T>::get();
         for_each_field_with_bases<T>([&](auto const& field) {
             if (j.contains(field.name)) {
-                result.*field.pointer = JsonSerde<
-                    std::remove_cvref_t<decltype(result.*field.pointer)>>::
-                    from_json(j[field.name]);
+                result.*field.pointer = JsonSerde<std::remove_cvref_t<
+                    decltype(result.*field.pointer)>>::from_json(j[field.name]);
             }
         });
 
@@ -334,9 +306,8 @@ struct JsonSerdeDescribedRecordBase {
         json result = json::object();
 
         for_each_field_with_bases<T>([&](auto const& field) {
-            result[field.name] = JsonSerde<
-                std::remove_cvref_t<decltype(obj.*field.pointer)>>::
-                to_json(obj.*field.pointer);
+            result[field.name] = JsonSerde<std::remove_cvref_t<
+                decltype(obj.*field.pointer)>>::to_json(obj.*field.pointer);
         });
 
         return result;
@@ -346,9 +317,8 @@ struct JsonSerdeDescribedRecordBase {
         T result = SerdeDefaultProvider<T>::get();
         for_each_field_with_bases<T>([&](auto const& field) {
             if (j.contains(field.name)) {
-                result.*field.pointer = JsonSerde<
-                    std::remove_cvref_t<decltype(result.*field.pointer)>>::
-                    from_json(j[field.name]);
+                result.*field.pointer = JsonSerde<std::remove_cvref_t<
+                    decltype(result.*field.pointer)>>::from_json(j[field.name]);
             }
         });
 
@@ -368,8 +338,7 @@ struct JsonSerde<E> {
         } else {
             throw json::type_error::create(
                 302,
-                "Could not convert json value <" + j.dump()
-                    + "> to enum for type " +
+                "Could not convert json value <" + j.dump() + "> to enum for type " +
 #ifdef __cpp_rtti
                     typeid(E).name()
 #else
@@ -380,9 +349,7 @@ struct JsonSerde<E> {
         }
     }
 
-    static json to_json(E value) {
-        return enum_serde<E>::to_string(value);
-    }
+    static json to_json(E value) { return enum_serde<E>::to_string(value); }
 };
 
 

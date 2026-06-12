@@ -59,9 +59,7 @@ struct BinarySymbolInfo {
     uint64_t                                 size;
     uint64_t                                 address;
     std::optional<BinarySymbolDebugLocation> debug;
-    DESC_FIELDS(
-        BinarySymbolInfo,
-        (name, demangled, head, size, address, debug));
+    DESC_FIELDS(BinarySymbolInfo, (name, demangled, head, size, address, debug));
 };
 
 DECL_ID_TYPE(BinarySymbolInfo, BinarySymbolInfoId, std::size_t);
@@ -74,12 +72,10 @@ struct BinarySectionInfo {
 };
 
 struct BinaryFileDB {
-    hstd::
-        UnorderedMap<BinarySymComponentId, hstd::Vec<BinarySymComponentId>>
-            nested_symbols;
+    hstd::UnorderedMap<BinarySymComponentId, hstd::Vec<BinarySymComponentId>>
+        nested_symbols;
 
-    hstd::dod::InternStore<BinarySymComponentId, BinarySymComponent>
-        symbol_components;
+    hstd::dod::InternStore<BinarySymComponentId, BinarySymComponent> symbol_components;
 
     hstd::dod::Store<BinarySymbolInfoId, BinarySymbolInfo> symbols;
     std::vector<BinarySectionInfo>                         sections;

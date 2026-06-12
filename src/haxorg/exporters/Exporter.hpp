@@ -144,8 +144,7 @@ template <typename V, typename R = std::monostate>
 struct Exporter : ExporterEventBase {
 
 
-#define __EXPORTER_USING_DEFINE(__Kind)                                   \
-    using __ExporterBase::visit##__Kind;
+#define __EXPORTER_USING_DEFINE(__Kind) using __ExporterBase::visit##__Kind;
 
     template <typename T>
     using In = sem::SemId<T>;
@@ -154,19 +153,19 @@ struct Exporter : ExporterEventBase {
     using crtp_type   = V;
 
 
-#define EXPORTER_USING()                                                  \
-    using __ExporterBase::visitField;                                     \
-    using __ExporterBase::visitSubnode;                                   \
-    using __ExporterBase::pushVisit;                                      \
-    using __ExporterBase::popVisit;                                       \
-    using __ExporterBase::visit;                                          \
-    using __ExporterBase::visitDispatchHook;                              \
-    using __ExporterBase::visitStart;                                     \
-    using __ExporterBase::visitEnd;                                       \
-    using __ExporterBase::evalTop;                                        \
-    using __ExporterBase::In;                                             \
-    using __ExporterBase::export_type;                                    \
-    using __ExporterBase::crtp_type;                                      \
+#define EXPORTER_USING()                                                                 \
+    using __ExporterBase::visitField;                                                    \
+    using __ExporterBase::visitSubnode;                                                  \
+    using __ExporterBase::pushVisit;                                                     \
+    using __ExporterBase::popVisit;                                                      \
+    using __ExporterBase::visit;                                                         \
+    using __ExporterBase::visitDispatchHook;                                             \
+    using __ExporterBase::visitStart;                                                    \
+    using __ExporterBase::visitEnd;                                                      \
+    using __ExporterBase::evalTop;                                                       \
+    using __ExporterBase::In;                                                            \
+    using __ExporterBase::export_type;                                                   \
+    using __ExporterBase::crtp_type;                                                     \
     EACH_SEM_ORG_KIND(__EXPORTER_USING_DEFINE)
 
     void visitField(R& arg, char const* name, sem::SemId<sem::Org> org);
@@ -174,9 +173,7 @@ struct Exporter : ExporterEventBase {
     void visitSubnode(R& tmp, int, sem::SemId<sem::Org> val);
 
     /// \brief Create default instance of the new result type
-    R newRes(sem::SemId<sem::Org>) {
-        return hstd::SerdeDefaultProvider<R>::get();
-    }
+    R newRes(sem::SemId<sem::Org>) { return hstd::SerdeDefaultProvider<R>::get(); }
 
 
     /// \brief Additional hook that is called for each node before
@@ -184,8 +181,7 @@ struct Exporter : ExporterEventBase {
     void visitDispatchHook(R&, sem::SemId<sem::Org>) {}
     /// \brief Start of the top-level visit, triggered in `visitTop`
     void visitStart(sem::SemId<sem::Org> node) {
-        trace_instant(
-            trace(VisitReport::Kind::VisitStart).with_node(node));
+        trace_instant(trace(VisitReport::Kind::VisitStart).with_node(node));
     }
     /// \brief End of the top-level visit, triggered in the `visitTop`
     void visitEnd(sem::SemId<sem::Org> node) {
@@ -226,9 +222,7 @@ struct Exporter : ExporterEventBase {
     /// `visitMoreSpecificNodeType`. Former will also bypass all push/pop
     /// hooks while the latter will only override core functionality of the
     /// dispatch.
-    void visit(R& res, sem::SemId<sem::Org> arg) {
-        visitDispatch(res, arg);
-    }
+    void visit(R& res, sem::SemId<sem::Org> arg) { visitDispatch(res, arg); }
 
     /// \brief Default implementation of the top visit
     ///
@@ -241,9 +235,8 @@ struct Exporter : ExporterEventBase {
 
     template <typename T>
     void visitFieldRedirect(R& res, char const* name, T const& value) {
-        auto __scope = trace_scope(trace(VisitReport::Kind::VisitField)
-                                       .with_field(name)
-                                       .with_value(value));
+        auto __scope = trace_scope(
+            trace(VisitReport::Kind::VisitField).with_field(name).with_value(value));
         _this()->visitField(res, name, value);
     }
 
@@ -256,9 +249,7 @@ struct Exporter : ExporterEventBase {
     void visit(R& res, org::parse::SourceLoc const& time);
     void visit(R& res, org::parse::SourceFileId const& time);
     void visit(R& res, float const& time);
-    void visit(
-        R&                                                      res,
-        hstd::Variant<In<sem::Time>, In<sem::TimeRange>> const& range);
+    void visit(R& res, hstd::Variant<In<sem::Time>, In<sem::TimeRange>> const& range);
 
 #include "ExporterMethods.tcc"
 };

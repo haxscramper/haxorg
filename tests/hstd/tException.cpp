@@ -7,9 +7,7 @@ using namespace hstd;
 
 struct test_exception_1 : CRTP_hexception<test_exception_1> {};
 
-void a() {
-    throw test_exception_1::init("Throwing invalid argument in body");
-}
+void a() { throw test_exception_1::init("Throwing invalid argument in body"); }
 
 void b() { a(); }
 

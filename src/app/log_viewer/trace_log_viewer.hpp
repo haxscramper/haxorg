@@ -87,13 +87,8 @@ class TraceLogViewer {
     std::string format_scope_offset(int nesting_level) const;
 
     void draw_event_row_recursive(EventId id);
-    void draw_event_row(
-        EventRecord const& record,
-        bool               has_nested,
-        bool*              open_state);
+    void draw_event_row(EventRecord const& record, bool has_nested, bool* open_state);
     void draw_event_state(EventRecord const& record);
-    void draw_structured_value(
-        StructuredValue const& value,
-        char const*            label = nullptr);
+    void draw_structured_value(StructuredValue const& value, char const* label = nullptr);
     void draw_variables_state(VariablesState const& variables);
 };

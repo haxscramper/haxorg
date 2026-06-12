@@ -43,9 +43,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
 
     {
         auto root = v1.getRootAdapter();
-        writeFile(
-            "/tmp/SubtreePromotion_repr.txt",
-            root.treeRepr().toString(false));
+        writeFile("/tmp/SubtreePromotion_repr.txt", root.treeRepr().toString(false));
     }
 
     Vec<int> path{0, 1, 0};
@@ -57,19 +55,16 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
             auto s3010 = root.at(path);
             EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
             EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 3);
-            return demoteSubtree(
-                s3010, imm::SubtreeMove::ForceLevels, ctx);
+            return demoteSubtree(s3010, imm::SubtreeMove::ForceLevels, ctx);
         });
 
     imm::ImmAdapter::TreeReprConf conf{.withAuxFields = true};
 
     writeFile(
-        getDebugFile("repr_v1.txt"),
-        v1.getRootAdapter().treeRepr(conf).toString(false));
+        getDebugFile("repr_v1.txt"), v1.getRootAdapter().treeRepr(conf).toString(false));
 
     writeFile(
-        getDebugFile("repr_v2.txt"),
-        v2.getRootAdapter().treeRepr(conf).toString(false));
+        getDebugFile("repr_v2.txt"), v2.getRootAdapter().treeRepr(conf).toString(false));
 
     ColStream os;
     start->format(os);
@@ -139,28 +134,22 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_All) {
 
     writeGvHistory({v1, v2}, "v1_v2");
 
-    EXPECT_EQ(
-        getDfsSubtreeLevels(v1.getRootAdapter()),
-        (Vec<int>{1, 2, 3, 3, 2, 3}));
+    EXPECT_EQ(getDfsSubtreeLevels(v1.getRootAdapter()), (Vec<int>{1, 2, 3, 3, 2, 3}));
 
-    EXPECT_EQ(
-        getDfsSubtreeLevels(v2.getRootAdapter()),
-        (Vec<int>{2, 3, 4, 4, 3, 4}));
+    EXPECT_EQ(getDfsSubtreeLevels(v2.getRootAdapter()), (Vec<int>{2, 3, 4, 4, 3, 4}));
 }
 
 TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
     setTraceFile(getDebugFile("trace.txt"));
     imm::ImmAstVersion v1 = getInitialVersion(getSubtreeDash());
 
-    auto demotePath = [&](imm::ImmAstVersion v,
-                          CVec<int>          path) -> imm::ImmAstVersion {
+    auto demotePath = [&](imm::ImmAstVersion v, CVec<int> path) -> imm::ImmAstVersion {
         return v.getEditVersion(
             [&](imm::ImmAstContext::Ptr ast,
                 imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
                 auto root = v.getRootAdapter();
                 auto s1   = root.at(path);
-                return demoteSubtree(
-                    s1, imm::SubtreeMove::ForceLevels, ctx);
+                return demoteSubtree(s1, imm::SubtreeMove::ForceLevels, ctx);
             });
     };
 
@@ -211,12 +200,9 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
 
     {
         auto r = v5.getRootAdapter();
-        EXPECT_TRUE(
-            r.at({0, 0, 0, 0, 0, 0}).isSubnodeOf(r.at({0, 0, 0, 0, 0})));
-        EXPECT_EQ(
-            r.at({0, 0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 6);
-        EXPECT_EQ(
-            r.at({0, 0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 6);
+        EXPECT_TRUE(r.at({0, 0, 0, 0, 0, 0}).isSubnodeOf(r.at({0, 0, 0, 0, 0})));
+        EXPECT_EQ(r.at({0, 0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 6);
+        EXPECT_EQ(r.at({0, 0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 6);
         EXPECT_EQ(r.at({0, 0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 5);
         EXPECT_EQ(r.at({0, 0, 0, 0}).as<imm::ImmSubtree>()->level, 4);
         EXPECT_EQ(r.at({0, 0, 0}).as<imm::ImmSubtree>()->level, 3);
@@ -239,13 +225,9 @@ TEST_F(ImmOrgApiEdit, PhysicalDemote) {
     writeGvHistory({v1, v2}, "v1_v2");
     writeTreeRepr(v2.getRootAdapter(), getDebugFile("repr_v2.txt"));
 
-    EXPECT_EQ(
-        getDfsSubtreeLevels(v1.getRootAdapter()),
-        (Vec<int>{1, 2, 3, 3, 2, 3}));
+    EXPECT_EQ(getDfsSubtreeLevels(v1.getRootAdapter()), (Vec<int>{1, 2, 3, 3, 2, 3}));
 
-    EXPECT_EQ(
-        getDfsSubtreeLevels(v2.getRootAdapter()),
-        (Vec<int>{1, 3, 3, 3, 2, 3}));
+    EXPECT_EQ(getDfsSubtreeLevels(v2.getRootAdapter()), (Vec<int>{1, 3, 3, 3, 2, 3}));
 }
 
 TEST_F(ImmOrgApiEdit, ResetTitle) {
@@ -259,9 +241,8 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
             return ctx.store().updateNode<imm::ImmSubtree>(
                 v1.getRootAdapter().at(0), ctx, [&](imm::ImmSubtree tree) {
                     tree.title = ctx->add(
-                                        org::asOneNode(
-                                            parseContext->parseString(
-                                                "replaced", "<replaced>")),
+                                        org::asOneNode(parseContext->parseString(
+                                            "replaced", "<replaced>")),
                                         ctx)
                                      .as<imm::ImmParagraph>();
                     return tree;
@@ -273,16 +254,12 @@ TEST_F(ImmOrgApiEdit, ResetTitle) {
 
     {
         auto tree = v1.getRootAdapter().at(0).as<imm::ImmSubtree>();
-        EXPECT_EQ(
-            tree.pass(tree->title).at(0).as<imm::ImmWord>()->text,
-            "subtree");
+        EXPECT_EQ(tree.pass(tree->title).at(0).as<imm::ImmWord>()->text, "subtree");
     }
 
     {
         auto tree = v2.getRootAdapter().at(0).as<imm::ImmSubtree>();
-        EXPECT_EQ(
-            tree.pass(tree->title).at(0).as<imm::ImmWord>()->text,
-            "replaced");
+        EXPECT_EQ(tree.pass(tree->title).at(0).as<imm::ImmWord>()->text, "replaced");
     }
 }
 
@@ -290,17 +267,12 @@ TEST_F(ImmOrgApiEdit, MoveSubnodes) {
     setTraceFile(getDebugFile("trace.txt"));
     imm::ImmAstVersion v1 = getInitialVersion("zero one two three");
 
-    auto move =
-        [&](int position, int offset, bool bounded) -> imm::ImmAstVersion {
+    auto move = [&](int position, int offset, bool bounded) -> imm::ImmAstVersion {
         return v1.getEditVersion(
             [&](imm::ImmAstContext::Ptr ast,
                 imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
                 auto update = moveSubnode(
-                    v1.getRootAdapter().at(0),
-                    position,
-                    offset,
-                    ctx,
-                    bounded);
+                    v1.getRootAdapter().at(0), position, offset, ctx, bounded);
                 if (update) {
                     return *update;
                 } else {

@@ -19,7 +19,6 @@ template <typename... Args>
 struct std::formatter<std::tuple<Args...>> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(std::tuple<Args...> const& t, FormatContext& ctx) const {
-        return ::hstd::format_tuple_impl(
-            t, ctx, std::index_sequence_for<Args...>{});
+        return ::hstd::format_tuple_impl(t, ctx, std::index_sequence_for<Args...>{});
     }
 };

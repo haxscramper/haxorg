@@ -19,8 +19,7 @@ namespace hstd {
 
 template <std::size_t MeaningfulBits, typename... Args>
 uint64_t hash_bits(const Args&... args) {
-    static_assert(
-        MeaningfulBits <= 64, "MeaningfulBits must be in [0, 64]");
+    static_assert(MeaningfulBits <= 64, "MeaningfulBits must be in [0, 64]");
 
     auto mix64 = [](uint64_t x) -> uint64_t {
         x += 0x9e3779b97f4a7c15ULL;
@@ -32,8 +31,7 @@ uint64_t hash_bits(const Args&... args) {
     uint64_t state = 0x243f6a8885a308d3ULL;
 
     ((state = mix64(
-          state
-          ^ static_cast<uint64_t>(std::hash<std::decay_t<Args>>{}(args)))),
+          state ^ static_cast<uint64_t>(std::hash<std::decay_t<Args>>{}(args)))),
      ...);
 
     if constexpr (MeaningfulBits == 0) {
@@ -62,9 +60,7 @@ struct strong_typedef_hash {
 
 template <typename T>
 struct value_metadata<std::vector<T>> {
-    static bool isEmpty(std::vector<T> const& value) {
-        return value.empty();
-    }
+    static bool isEmpty(std::vector<T> const& value) { return value.empty(); }
 
     static std::string typeName() {
         return "std::vector<" + value_metadata<T>::typeName() + ">";
@@ -77,37 +73,29 @@ struct value_metadata<std::optional<T>> {
         return !value.has_value() || value_metadata<T>::isEmpty(*value);
     }
 
-    static bool isNil(std::optional<T> const& value) {
-        return !value.has_value();
-    }
+    static bool isNil(std::optional<T> const& value) { return !value.has_value(); }
 
-    static std::string typeName() {
-        return "Opt<" + value_metadata<T>::typeName() + ">";
-    }
+    static std::string typeName() { return "Opt<" + value_metadata<T>::typeName() + ">"; }
 };
 
 template <typename T>
 struct value_metadata<T*> {
-    static bool isEmpty(T* const& value) { return value == nullptr; }
-    static bool isNil(T* const& value) { return value == nullptr; }
-    static std::string typeName() {
-        return value_metadata<T>::typeName() + "*";
-    }
+    static bool        isEmpty(T* const& value) { return value == nullptr; }
+    static bool        isNil(T* const& value) { return value == nullptr; }
+    static std::string typeName() { return value_metadata<T>::typeName() + "*"; }
 };
 
 template <typename T>
 struct value_metadata<T const*> {
-    static bool isEmpty(T const* const& value) { return value == nullptr; }
-    static bool isNil(T const* const& value) { return value == nullptr; }
-    static std::string typeName() {
-        return value_metadata<T>::typeName() + "const *";
-    }
+    static bool        isEmpty(T const* const& value) { return value == nullptr; }
+    static bool        isNil(T const* const& value) { return value == nullptr; }
+    static std::string typeName() { return value_metadata<T>::typeName() + "const *"; }
 };
 
 
 template <>
 struct value_metadata<std::string> {
-    static bool isEmpty(std::string const& value) { return value.empty(); }
+    static bool        isEmpty(std::string const& value) { return value.empty(); }
     static std::string typeName() { return "std::string"; }
 };
 
@@ -119,9 +107,7 @@ template <typename T>
 concept IsRecord = std::is_class<T>::value;
 
 template <typename T>
-concept DescribedEnum = IsEnum<T>
-                     && boost::describe::has_describe_enumerators<
-                            T>::value;
+concept DescribedEnum = IsEnum<T> && boost::describe::has_describe_enumerators<T>::value;
 
 template <typename T>
 concept DescribedRecord = boost::describe::has_describe_members<
@@ -134,12 +120,10 @@ concept DescribedRecord = boost::describe::has_describe_members<
 
 namespace boost::describe {
 
-[[noreturn]] inline void throw_invalid_name(
-    char const* name,
-    char const* type) {
+[[noreturn]] inline void throw_invalid_name(char const* name, char const* type) {
     throw std::runtime_error(
-        (std::string("Invalid enumerator name '") + name
-         + "' for enum type '" + type + "'"));
+        (std::string("Invalid enumerator name '") + name + "' for enum type '" + type
+         + "'"));
 }
 
 template <class E>
@@ -147,13 +131,12 @@ E string_to_enum(char const* name) {
     bool found = false;
     E    r     = {};
 
-    ::boost::mp11::mp_for_each<::boost::describe::describe_enumerators<E>>(
-        [&](auto D) {
-            if (!found && std::strcmp(D.name, name) == 0) {
-                found = true;
-                r     = D.value;
-            }
-        });
+    ::boost::mp11::mp_for_each<::boost::describe::describe_enumerators<E>>([&](auto D) {
+        if (!found && std::strcmp(D.name, name) == 0) {
+            found = true;
+            r     = D.value;
+        }
+    });
 
     if (found) {
         return r;
@@ -211,8 +194,7 @@ constexpr std::array<E, sizeof...(T)> describe_enumerators_list(L<T...>) {
 
 template <class E>
 constexpr auto describe_enumerators_as_array() {
-    return describe_enumerators_list<E>(
-        ::boost::describe::describe_enumerators<E>());
+    return describe_enumerators_list<E>(::boost::describe::describe_enumerators<E>());
 }
 
 template <class E>
@@ -270,25 +252,22 @@ struct value_domain<E> {
 template <typename T, typename Func>
 void for_each_field_with_bases(Func cb, bool pre_bases = true) {
     if (pre_bases) {
-        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
-            T,
-            ::boost::describe::mod_any_access>>([&](auto Base) {
-            for_each_field_with_bases<typename decltype(Base)::type>(
-                cb, pre_bases);
-        });
+        ::boost::mp11::mp_for_each<
+            ::boost::describe::describe_bases<T, ::boost::describe::mod_any_access>>(
+            [&](auto Base) {
+                for_each_field_with_bases<typename decltype(Base)::type>(cb, pre_bases);
+            });
     }
 
-    ::boost::mp11::mp_for_each<::boost::describe::describe_members<
-        T,
-        ::boost::describe::mod_any_access>>(cb);
+    ::boost::mp11::mp_for_each<
+        ::boost::describe::describe_members<T, ::boost::describe::mod_any_access>>(cb);
 
     if (!pre_bases) {
-        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
-            T,
-            ::boost::describe::mod_any_access>>([&](auto Base) {
-            for_each_field_with_bases<typename decltype(Base)::type>(
-                cb, pre_bases);
-        });
+        ::boost::mp11::mp_for_each<
+            ::boost::describe::describe_bases<T, ::boost::describe::mod_any_access>>(
+            [&](auto Base) {
+                for_each_field_with_bases<typename decltype(Base)::type>(cb, pre_bases);
+            });
     }
 }
 
@@ -297,43 +276,36 @@ void for_each_field_with_bases(Func cb, bool pre_bases = true) {
 /// function iterates over inheritance tree, first passing the `T const&`
 /// as a class reference, then their bases etc.
 template <typename T, typename Func>
-void for_each_field_with_base_value(
-    T const& value,
-    Func     cb,
-    bool     pre_bases = true) {
+void for_each_field_with_base_value(T const& value, Func cb, bool pre_bases = true) {
     if (pre_bases) {
-        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
-            T,
-            ::boost::describe::mod_any_access>>([&](auto Base) {
-            for_each_field_with_base_value<typename decltype(Base)::type>(
-                value, cb, pre_bases);
-        });
+        ::boost::mp11::mp_for_each<
+            ::boost::describe::describe_bases<T, ::boost::describe::mod_any_access>>(
+            [&](auto Base) {
+                for_each_field_with_base_value<typename decltype(Base)::type>(
+                    value, cb, pre_bases);
+            });
     }
 
-    ::boost::mp11::mp_for_each<::boost::describe::describe_members<
-        T,
-        ::boost::describe::mod_any_access>>(
+    ::boost::mp11::mp_for_each<
+        ::boost::describe::describe_members<T, ::boost::describe::mod_any_access>>(
         [&](auto const& field) { cb(value, field); });
 
     if (!pre_bases) {
-        ::boost::mp11::mp_for_each<::boost::describe::describe_bases<
-            T,
-            ::boost::describe::mod_any_access>>([&](auto Base) {
-            for_each_field_with_base_value<typename decltype(Base)::type>(
-                value, cb, pre_bases);
-        });
+        ::boost::mp11::mp_for_each<
+            ::boost::describe::describe_bases<T, ::boost::describe::mod_any_access>>(
+            [&](auto Base) {
+                for_each_field_with_base_value<typename decltype(Base)::type>(
+                    value, cb, pre_bases);
+            });
     }
 }
 
 /// \brief Invoke callback on all fields directly used in the type `T`,
 /// ignoring the fields from bases. Pass field descriptor to the callback.
 template <typename T, typename Func>
-void for_each_field_no_base(
-    Func                  cb,
-    [[maybe_unused]] bool pre_bases = true) {
-    ::boost::mp11::mp_for_each<::boost::describe::describe_members<
-        T,
-        ::boost::describe::mod_any_access>>(cb);
+void for_each_field_no_base(Func cb, [[maybe_unused]] bool pre_bases = true) {
+    ::boost::mp11::mp_for_each<
+        ::boost::describe::describe_members<T, ::boost::describe::mod_any_access>>(cb);
 }
 
 
@@ -360,9 +332,8 @@ template <typename T>
 bool equal_on_all_fields(T const& lhs, T const& rhs) {
     bool equal = true;
 
-    for_each_field_with_bases<T>([&](auto const& field) {
-        equal &= (lhs.*field.pointer == rhs.*field.pointer);
-    });
+    for_each_field_with_bases<T>(
+        [&](auto const& field) { equal &= (lhs.*field.pointer == rhs.*field.pointer); });
 
     return equal;
 }
@@ -371,7 +342,7 @@ template <typename T>
 struct __DescFieldTypeHelper {};
 
 /// \brief Get type of the boost::describe field descriptor.
-#define DESC_FIELD_TYPE(__field)                                          \
+#define DESC_FIELD_TYPE(__field)                                                         \
     hstd::__DescFieldTypeHelper<decltype(__field.pointer)>::Type
 
 template <typename StructType, typename FieldType>
@@ -394,8 +365,7 @@ template <
     DescribedRecord T,
     class Dm = boost::describe::describe_members<
         T,
-        ::boost::describe::mod_any_access
-            | boost::describe::mod_inherited>,
+        ::boost::describe::mod_any_access | boost::describe::mod_inherited>,
     class En = std::enable_if_t<!std::is_union<T>::value>>
 auto class_to_total_ptr_tuple(T const& t) {
     return class_to_total_ptr_tuple_impl(t, Dm());
@@ -444,10 +414,8 @@ void* get_field_ptr_by_total_index(T& object, int index) {
     if constexpr (boost::describe::has_describe_members<T>::value) {
         using all_members = boost::describe::describe_members<
             T,
-            ::boost::describe::mod_any_access
-                | boost::describe::mod_inherited>;
-        constexpr int
-            total_count = boost::mp11::mp_size<all_members>::value;
+            ::boost::describe::mod_any_access | boost::describe::mod_inherited>;
+        constexpr int total_count = boost::mp11::mp_size<all_members>::value;
 
         if (index < 0 || total_count <= index) {
             throw std::out_of_range{"Field index out of range"};
@@ -459,8 +427,7 @@ void* get_field_ptr_by_total_index(T& object, int index) {
             void* result = nullptr;
             boost::mp11::mp_with_index<total_count>(index, [&](auto I) {
                 using member_desc = boost::mp11::mp_at_c<all_members, I>;
-                result            = static_cast<void*>(
-                    &(object.*member_desc::pointer));
+                result            = static_cast<void*>(&(object.*member_desc::pointer));
             });
             return result;
         }
@@ -487,8 +454,7 @@ void* get_field_ptr_by_own_index(T& object, int index) {
             void* result = nullptr;
             boost::mp11::mp_with_index<own_count>(index, [&](auto I) {
                 using member_desc = boost::mp11::mp_at_c<own_members, I>;
-                result            = static_cast<void*>(
-                    &(object.*member_desc::pointer));
+                result            = static_cast<void*>(&(object.*member_desc::pointer));
             });
             return result;
         }
@@ -507,10 +473,9 @@ template <DescribedRecord T>
 struct struct_field_types {
     using L = boost::describe::describe_members<
         T,
-        ::boost::describe::mod_any_access
-            | boost::describe::mod_inherited>;
-    using list = typename boost::mp11::
-        mp_rename<L, class_to_field_type_list_impl>::result;
+        ::boost::describe::mod_any_access | boost::describe::mod_inherited>;
+    using list = typename boost::mp11::mp_rename<L, class_to_field_type_list_impl>::
+        result;
 };
 
 template <typename T1, typename F1, typename T2, typename F2>
@@ -534,21 +499,17 @@ int get_own_field_index_by_ptr(F T::* fieldPtr) {
             throw std::out_of_range{"No fields in object"};
         } else {
             int result = -1;
-            boost::mp11::mp_for_each<boost::mp11::mp_iota_c<own_count>>(
-                [&](auto I) {
-                    if (result == -1) {
-                        using member_desc = boost::mp11::
-                            mp_at_c<own_members, I>;
-                        if (compare_field_pointers_eq(
-                                member_desc::pointer, fieldPtr)) {
-                            result = I;
-                        }
+            boost::mp11::mp_for_each<boost::mp11::mp_iota_c<own_count>>([&](auto I) {
+                if (result == -1) {
+                    using member_desc = boost::mp11::mp_at_c<own_members, I>;
+                    if (compare_field_pointers_eq(member_desc::pointer, fieldPtr)) {
+                        result = I;
                     }
-                });
+                }
+            });
 
             if (result == -1) {
-                throw std::out_of_range{
-                    "Field pointer not found in object"};
+                throw std::out_of_range{"Field pointer not found in object"};
             }
             return result;
         }
@@ -563,30 +524,24 @@ int get_total_field_index_by_ptr(F T::* fieldPtr) {
     if constexpr (boost::describe::has_describe_members<T>::value) {
         using all_members = boost::describe::describe_members<
             T,
-            ::boost::describe::mod_any_access
-                | boost::describe::mod_inherited>;
-        constexpr int
-            total_count = boost::mp11::mp_size<all_members>::value;
+            ::boost::describe::mod_any_access | boost::describe::mod_inherited>;
+        constexpr int total_count = boost::mp11::mp_size<all_members>::value;
 
         if constexpr (total_count == 0) {
             throw std::out_of_range{"No fields in object"};
         } else {
             int result = -1;
-            boost::mp11::mp_for_each<boost::mp11::mp_iota_c<total_count>>(
-                [&](auto I) {
-                    if (result == -1) {
-                        using member_desc = boost::mp11::
-                            mp_at_c<all_members, I>;
-                        if (compare_field_pointers_eq(
-                                member_desc::pointer, fieldPtr)) {
-                            result = I;
-                        }
+            boost::mp11::mp_for_each<boost::mp11::mp_iota_c<total_count>>([&](auto I) {
+                if (result == -1) {
+                    using member_desc = boost::mp11::mp_at_c<all_members, I>;
+                    if (compare_field_pointers_eq(member_desc::pointer, fieldPtr)) {
+                        result = I;
                     }
-                });
+                }
+            });
 
             if (result == -1) {
-                throw std::out_of_range{
-                    "Field pointer not found in object"};
+                throw std::out_of_range{"Field pointer not found in object"};
             }
             return result;
         }
@@ -600,8 +555,7 @@ template <hstd::SerializableEnum T>
 struct std::formatter<T> : std::formatter<std::string> {
     using FmtType = T;
     template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(hstd::enum_serde<T>::to_string(p), ctx);
     }
@@ -612,8 +566,7 @@ template <hstd::NonSerializableEnum T>
 struct std::formatter<T> : std::formatter<std::string> {
     using FmtType = T;
     template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(std::to_string((int)p), ctx);
     }

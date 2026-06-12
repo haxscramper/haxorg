@@ -76,26 +76,16 @@ class IPortCollection {
                 bmi::tag<ByPortCompositeKey>,
                 bmi::composite_key<
                     PortEdgeEntry,
-                    bmi::member<
-                        PortEdgeEntry,
-                        PortID,
-                        &PortEdgeEntry::port>,
-                    bmi::member<
-                        PortEdgeEntry,
-                        EdgeID,
-                        &PortEdgeEntry::edge>,
-                    bmi::member<
-                        PortEdgeEntry,
-                        bool,
-                        &PortEdgeEntry::is_source>>>,
+                    bmi::member<PortEdgeEntry, PortID, &PortEdgeEntry::port>,
+                    bmi::member<PortEdgeEntry, EdgeID, &PortEdgeEntry::edge>,
+                    bmi::member<PortEdgeEntry, bool, &PortEdgeEntry::is_source>>>,
             bmi::ordered_non_unique<
                 bmi::tag<ByEdgeID>,
                 bmi::member<PortEdgeEntry, EdgeID, &PortEdgeEntry::edge>>,
             // Non-unique: edge — range query for "ports of edge"
             bmi::ordered_non_unique<
                 bmi::tag<ByPortIDInEdgeMap>,
-                bmi::
-                    member<PortEdgeEntry, PortID, &PortEdgeEntry::port>>>>;
+                bmi::member<PortEdgeEntry, PortID, &PortEdgeEntry::port>>>>;
 
   public:
     struct PortSpec {
@@ -111,8 +101,7 @@ class IPortCollection {
     PortContainer     ports;
     PortEdgeContainer port_edges;
 
-    decltype(ports.get<ByPortID>().begin()) getPortIterator(
-        PortID const& pid) const;
+    decltype(ports.get<ByPortID>().begin()) getPortIterator(PortID const& pid) const;
 
     /// \brief Base method to add ports to the collection, derived classes
     /// should provide the storage implementation that will generate port
@@ -126,19 +115,13 @@ class IPortCollection {
         return addPort(spec.v, spec.e, spec.is_start, pid);
     }
 
-    void connectPort(
-        VertexID vertex,
-        EdgeID   edge,
-        bool     is_start,
-        PortID   pid);
+    void connectPort(VertexID vertex, EdgeID edge, bool is_start, PortID pid);
 
   public:
     virtual ~IPortCollection() = default;
 
 #if ORG_BUILD_WITH_PROTOBUF
-    virtual void writeSerial(
-        proto::IPortCollection* out,
-        IGraph const*           graph) const;
+    virtual void writeSerial(proto::IPortCollection* out, IGraph const* graph) const;
 
     virtual void readSerial(
         proto::IPortCollection const* in,
@@ -176,9 +159,7 @@ class IPortCollection {
 
     EdgeIDSet getEdgeForPort(PortID pid) const;
 
-    VertexID getVertexForPort(PortID pid) const {
-        return getPortIterator(pid)->vertex;
-    }
+    VertexID getVertexForPort(PortID pid) const { return getPortIterator(pid)->vertex; }
 
     bool isSourcePort(PortID pid) const;
 
@@ -200,8 +181,7 @@ class IPortCollection {
 
     bool hasTargetPort(VertexID vid, EdgeID eid) const;
 
-    PortID getPortForConnection(VertexID vid, EdgeID eid, bool is_start)
-        const;
+    PortID getPortForConnection(VertexID vid, EdgeID eid, bool is_start) const;
 
     PortID getSourcePort(VertexID vid, EdgeID eid) const;
 
@@ -223,9 +203,7 @@ class TrivialPortCollection : public IPortCollection {
             hstd::hash_bits<15>(typeid(this).hash_code()));
     }
 
-    const IPort* getPort(PortID pid) const override {
-        return &portStore.at(pid);
-    }
+    const IPort* getPort(PortID pid) const override { return &portStore.at(pid); }
 
     PortID addPort(PortSpec const& spec) {
         return addPort(spec.v, spec.e, spec.is_start);

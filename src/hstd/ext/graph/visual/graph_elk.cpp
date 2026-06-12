@@ -22,9 +22,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
 
     std::function<void(NodeElkLayoutData const&)> collect_node_ids =
         [&](NodeElkLayoutData const& node) {
-            if (node.id.empty()) {
-                throw hstd::runtime_error::init("Empty node ID");
-            }
+            if (node.id.empty()) { throw hstd::runtime_error::init("Empty node ID"); }
 
             if (node_ids.contains(node.id)) {
                 throw hstd::runtime_error::init(
@@ -40,9 +38,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                 port_ids.insert(port.id);
             }
 
-            for (const auto& child : node.children) {
-                collect_node_ids(child);
-            }
+            for (const auto& child : node.children) { collect_node_ids(child); }
         };
 
     for (const auto& node : graph.children) { collect_node_ids(node); }
@@ -55,15 +51,12 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
         port_ids.insert(port.id);
     }
 
-    std::function<void(std::optional<std::vector<ElkEdgeData>> const&)>
-        validate_edges = [&](std::optional<std::vector<ElkEdgeData>> const&
-                                 edges) {
+    std::function<void(std::optional<std::vector<ElkEdgeData>> const&)> validate_edges =
+        [&](std::optional<std::vector<ElkEdgeData>> const& edges) {
             if (!edges) { return; }
 
             for (const auto& edge : *edges) {
-                if (edge.id.empty()) {
-                    throw hstd::runtime_error::init("Empty edge ID");
-                }
+                if (edge.id.empty()) { throw hstd::runtime_error::init("Empty edge ID"); }
                 if (edge_ids.contains(edge.id)) {
                     throw hstd::runtime_error::init(
                         std::format("Duplicate edge id: '{}'", edge.id));
@@ -88,8 +81,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                             *edge.target));
                 }
 
-                if (edge.sourcePort
-                    && !port_ids.contains(*edge.sourcePort)) {
+                if (edge.sourcePort && !port_ids.contains(*edge.sourcePort)) {
                     throw hstd::runtime_error::init(
                         std::format(
                             "Edge '{}' references unknown source port: "
@@ -98,8 +90,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                             *edge.sourcePort));
                 }
 
-                if (edge.targetPort
-                    && !port_ids.contains(*edge.targetPort)) {
+                if (edge.targetPort && !port_ids.contains(*edge.targetPort)) {
                     throw hstd::runtime_error::init(
                         std::format(
                             "Edge '{}' references unknown target port: "
@@ -109,8 +100,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                 }
 
                 for (const auto& source : edge.sources) {
-                    if (!node_ids.contains(source)
-                        && !port_ids.contains(source)) {
+                    if (!node_ids.contains(source) && !port_ids.contains(source)) {
                         throw hstd::runtime_error::init(
                             std::format(
                                 "Edge '{}' references unknown source: "
@@ -121,8 +111,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                 }
 
                 for (const auto& target : edge.targets) {
-                    if (!node_ids.contains(target)
-                        && !port_ids.contains(target)) {
+                    if (!node_ids.contains(target) && !port_ids.contains(target)) {
                         throw hstd::runtime_error::init(
                             std::format(
                                 "Edge '{}' references unknown target: "
@@ -139,9 +128,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
     std::function<void(NodeElkLayoutData const&)> validate_node_edges =
         [&](NodeElkLayoutData const& node) {
             validate_edges(node.edges);
-            for (const auto& child : node.children) {
-                validate_node_edges(child);
-            }
+            for (const auto& child : node.children) { validate_node_edges(child); }
         };
 
     for (const auto& node : graph.children) { validate_node_edges(node); }
@@ -182,20 +169,13 @@ struct State {
     hstd::ext::Unordered1to1Bimap<hstd::Str, PortID>   p_id_map;
     layout::LayoutRun::EdgeIteration                   iter;
 
-    State(hstd::SPtr<layout::LayoutRun> const& run)
-        : run{run}, iter{run.get()} {}
+    State(hstd::SPtr<layout::LayoutRun> const& run) : run{run}, iter{run.get()} {}
 
-    PortID get_port_id(hstd::Str const& id) const {
-        return p_id_map.at_right(id);
-    }
+    PortID get_port_id(hstd::Str const& id) const { return p_id_map.at_right(id); }
 
-    VertexID get_vertex_id(hstd::Str const& id) const {
-        return v_id_map.at_right(id);
-    }
+    VertexID get_vertex_id(hstd::Str const& id) const { return v_id_map.at_right(id); }
 
-    EdgeID get_edge_id(hstd::Str const& id) const {
-        return e_id_map.at_right(id);
-    }
+    EdgeID get_edge_id(hstd::Str const& id) const { return e_id_map.at_right(id); }
 
     PortIDSet get_ports(VertexID const& vert) const {
         return run->getPorts()->getPortsForVertex(vert);
@@ -203,13 +183,9 @@ struct State {
 
     /// \brief return the ID of the entry the edge will connect to: port or
     /// vertex directly.
-    hstd::Str get_connecting_id(
-        VertexID const& v,
-        EdgeID const&   e,
-        bool            is_start) {
+    hstd::Str get_connecting_id(VertexID const& v, EdgeID const& e, bool is_start) {
         if (run->getPorts()->hasPortConnection(v, e, is_start)) {
-            return get_id(
-                run->getPorts()->getPortForConnection(v, e, is_start));
+            return get_id(run->getPorts()->getPortForConnection(v, e, is_start));
         } else {
             return get_id(v);
         }
@@ -244,13 +220,12 @@ elk::ElkEdgeData gen_edge_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
     EdgeID const&                        edge,
     State&                               id_map) {
-    auto res = *run->getEdgeVisualAttribute<elk::ElkEdgeVisualAttribute>(
-        edge);
+    auto res    = *run->getEdgeVisualAttribute<elk::ElkEdgeVisualAttribute>(edge);
     res.id      = id_map.get_id(edge);
-    res.sources = {id_map.get_connecting_id(
-        run->getGraph()->getSource(edge), edge, true)};
-    res.targets = {id_map.get_connecting_id(
-        run->getGraph()->getTarget(edge), edge, false)};
+    res.sources = {
+        id_map.get_connecting_id(run->getGraph()->getSource(edge), edge, true)};
+    res.targets = {
+        id_map.get_connecting_id(run->getGraph()->getTarget(edge), edge, false)};
     run->message(hstd::fmt("add edge {}", run->getDebug(edge)));
     return res;
 }
@@ -259,9 +234,8 @@ elk::ElkPortData gen_port_structure(
     hstd::SPtr<layout::LayoutRun> const& run,
     PortID const&                        port,
     State&                               id_map) {
-    auto res = *run->getPortVisualAttribute<elk::ElkPortVisualAttribute>(
-        port);
-    res.id = id_map.get_id(port);
+    auto res = *run->getPortVisualAttribute<elk::ElkPortVisualAttribute>(port);
+    res.id   = id_map.get_id(port);
     run->message(hstd::fmt("add port {}", run->getDebug(port)));
     return res;
 }
@@ -277,11 +251,9 @@ elk::NodeElkLayoutData gen_subgroup_node_structure(
     State&                               id_map,
     VertexID const&                      id,
     hstd::Opt<VertexID> const&           parent) {
-    auto __scope = run->begin_scope(
-        hstd::fmt("node structure for {}", id));
+    auto __scope  = run->begin_scope(hstd::fmt("node structure for {}", id));
     auto group    = run->getGroup(id);
-    auto gv_group = hstd::validated_dynamic_cast<
-        elk::ElkGroupVisualAttribute>(group);
+    auto gv_group = hstd::validated_dynamic_cast<elk::ElkGroupVisualAttribute>(group);
     LOGIC_ASSERTION_CHECK(
         gv_group != nullptr,
         "Nested subgroup without layout algorithm must be an "
@@ -315,9 +287,7 @@ elk::NodeElkLayoutData gen_node_structure(
 
         if (group->hasAlgorithm()) {
             run->message(
-                hstd::fmt(
-                    "group '{}' has layout algorithm set",
-                    group->getStableId()));
+                hstd::fmt("group '{}' has layout algorithm set", group->getStableId()));
             auto recursiveBBox = run->getLayout(id)->getBBox();
 
 
@@ -327,8 +297,7 @@ elk::NodeElkLayoutData gen_node_structure(
             res = gen_subgroup_node_structure(run, id_map, id, parent);
         }
     } else {
-        res = *run->getVertexVisualAttribute<elk::ElkNodeVisualAttribute>(
-            id);
+        res    = *run->getVertexVisualAttribute<elk::ElkNodeVisualAttribute>(id);
         res.id = id_map.get_id(id);
     }
 
@@ -340,8 +309,8 @@ elk::NodeElkLayoutData gen_node_structure(
 };
 } // namespace
 
-hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
-    elk::ElkLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
+hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::elk::
+    ElkLayoutAlgorithm::runSingleLayout(VertexID const& root_id) {
     GraphElkLayoutData full_graph;
     full_graph.x             = this->x;
     full_graph.y             = this->y;
@@ -353,8 +322,7 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
 
     {
         run->message("collecting nodes for the ELK layout");
-        auto sub_group = gen_subgroup_node_structure(
-            run, id_map, root_id, std::nullopt);
+        auto sub_group = gen_subgroup_node_structure(run, id_map, root_id, std::nullopt);
         full_graph.edges    = sub_group.edges;
         full_graph.children = sub_group.children;
         id_map.iter.validateLeftoverEdges();
@@ -362,13 +330,12 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
 
     Result res;
 
-    GraphElkLayoutData post_layout = manager->layoutDiagram(
-        full_graph, run);
+    GraphElkLayoutData post_layout = manager->layoutDiagram(full_graph, run);
 
     auto aux_edge = [&](ElkEdgeData const& node) {
         EdgeID id = id_map.get_edge_id(node.id);
         run->message(hstd::fmt("aux edge {}", run->getDebug(id)));
-        auto lyt = std::make_shared<ElkEdgeLayoutAttribute>();
+        auto lyt                        = std::make_shared<ElkEdgeLayoutAttribute>();
         static_cast<ElkEdgeData&>(*lyt) = node;
         lyt->validate();
         res.edges.insert_or_assign(id, lyt);
@@ -376,15 +343,13 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
 
     auto aux_port = [&](ElkPortData const& port) {
         PortID id = id_map.get_port_id(port.id);
-        run->message(
-            hstd::fmt("aux port {} using {}", run->getDebug(id), port));
-        auto lyt = std::make_shared<ElkPortLayoutAttribute>();
+        run->message(hstd::fmt("aux port {} using {}", run->getDebug(id), port));
+        auto lyt                        = std::make_shared<ElkPortLayoutAttribute>();
         static_cast<ElkPortData&>(*lyt) = port;
         res.ports.insert_or_assign(id, lyt);
     };
 
-    auto aux_node = [&](this auto&&              self,
-                        NodeElkLayoutData const& node) -> void {
+    auto aux_node = [&](this auto&& self, NodeElkLayoutData const& node) -> void {
         VertexID id = id_map.get_vertex_id(node.id);
 
         if (run->isGroupVertex(id)) {
@@ -419,20 +384,16 @@ hstd::ext::graph::layout::IPlacementAlgorithm::Result hstd::ext::graph::
     return res;
 }
 
-hstd::SPtr<elk::ElkGroupVisualAttribute> hstd::ext::graph::elk::
-    ElkGroupVisualAttribute::newRootGraph(
-        hstd::SPtr<layout::LayoutRun> run,
-        hstd::Str const&              name) {
+hstd::SPtr<elk::ElkGroupVisualAttribute> hstd::ext::graph::elk::ElkGroupVisualAttribute::
+    newRootGraph(hstd::SPtr<layout::LayoutRun> run, hstd::Str const& name) {
 
     auto result = std::make_shared<elk::ElkGroupVisualAttribute>(
-        std::make_shared<elk::ElkGroupVisualAttribute::SharedCtx>(run),
-        name);
+        std::make_shared<elk::ElkGroupVisualAttribute::SharedCtx>(run), name);
 
     auto algo = std::make_shared<elk::ElkLayoutAlgorithm>(
         run, std::make_shared<ElkLayoutAlgorithm::Manager>());
 
-    algo->layoutOptions.set(
-        "org.eclipse.elk.hierarchyHandling", "INCLUDE_CHILDREN");
+    algo->layoutOptions.set("org.eclipse.elk.hierarchyHandling", "INCLUDE_CHILDREN");
 
     result->algorithm = algo;
 
@@ -440,8 +401,8 @@ hstd::SPtr<elk::ElkGroupVisualAttribute> hstd::ext::graph::elk::
     return result;
 }
 
-hstd::ext::visual::VisGroup hstd::ext::graph::elk::
-    ElkGroupLayoutAttribute::getVisual(VertexID const& id) const {
+hstd::ext::visual::VisGroup hstd::ext::graph::elk::ElkGroupLayoutAttribute::getVisual(
+    VertexID const& id) const {
     visual::VisGroup res;
 
     res.offset = geometry::Point{x.value(), y.value()};
@@ -492,15 +453,11 @@ struct proto_serde<
     static void write(
         hstd::ext::graph::elk::proto::PortProperties* out,
         hstd::ext::graph::elk::PortProperties const&  in) {
-        if (in.port.has_value()) {
-            json_to_value(*in.port, out->mutable_port());
-        }
+        if (in.port.has_value()) { json_to_value(*in.port, out->mutable_port()); }
         if (in.portConstraints.has_value()) {
             out->set_port_constraints(*in.portConstraints);
         }
-        if (in.portAlignment.has_value()) {
-            out->set_port_alignment(*in.portAlignment);
-        }
+        if (in.portAlignment.has_value()) { out->set_port_alignment(*in.portAlignment); }
         if (in.allowNonFlowPortsToSwitchSides.has_value()) {
             out->set_allow_non_flow_ports_to_switch_sides(
                 *in.allowNonFlowPortsToSwitchSides);
@@ -543,9 +500,7 @@ struct proto_serde<
         if (in.portConstraints.has_value()) {
             out->set_port_constraints(*in.portConstraints);
         }
-        if (in.portAlignment.has_value()) {
-            out->set_port_alignment(*in.portAlignment);
-        }
+        if (in.portAlignment.has_value()) { out->set_port_alignment(*in.portAlignment); }
     }
 
     static void read(
@@ -565,9 +520,7 @@ struct proto_serde<
 };
 
 template <>
-struct proto_serde<
-    hstd::ext::graph::elk::proto::Label,
-    hstd::ext::graph::elk::Label> {
+struct proto_serde<hstd::ext::graph::elk::proto::Label, hstd::ext::graph::elk::Label> {
     static void write(
         hstd::ext::graph::elk::proto::Label* out,
         hstd::ext::graph::elk::Label const&  in) {
@@ -578,9 +531,7 @@ struct proto_serde<
         if (in.height.has_value()) { out->set_height(*in.height); }
         if (in.text.has_value()) { out->set_text(*in.text); }
 
-        for (auto const& it : in.labels) {
-            write_serde(out->add_labels(), it);
-        }
+        for (auto const& it : in.labels) { write_serde(out->add_labels(), it); }
 
         write_serde(out->mutable_layout_options(), in.layoutOptions);
     }
@@ -643,9 +594,7 @@ struct proto_serde<
         if (in.width.has_value()) { out->set_width(*in.width); }
         if (in.height.has_value()) { out->set_height(*in.height); }
 
-        for (auto const& it : in.labels) {
-            write_serde(out->add_labels(), it);
-        }
+        for (auto const& it : in.labels) { write_serde(out->add_labels(), it); }
 
         if (in.properties.has_value()) {
             write_serde(out->mutable_properties(), *in.properties);
@@ -708,21 +657,11 @@ struct proto_serde<
         write_serde(out->mutable_start_point(), in.startPoint);
         write_serde(out->mutable_end_point(), in.endPoint);
 
-        for (auto const& it : in.bendPoints) {
-            write_serde(out->add_bend_points(), it);
-        }
-        if (in.incomingShape.has_value()) {
-            out->set_incoming_shape(*in.incomingShape);
-        }
-        if (in.outgoingShape.has_value()) {
-            out->set_outgoing_shape(*in.outgoingShape);
-        }
-        for (auto const& it : in.incomingSections) {
-            out->add_incoming_sections(it);
-        }
-        for (auto const& it : in.outgoingSections) {
-            out->add_outgoing_sections(it);
-        }
+        for (auto const& it : in.bendPoints) { write_serde(out->add_bend_points(), it); }
+        if (in.incomingShape.has_value()) { out->set_incoming_shape(*in.incomingShape); }
+        if (in.outgoingShape.has_value()) { out->set_outgoing_shape(*in.outgoingShape); }
+        for (auto const& it : in.incomingSections) { out->add_incoming_sections(it); }
+        for (auto const& it : in.outgoingSections) { out->add_outgoing_sections(it); }
     }
 
     static void read(
@@ -776,22 +715,14 @@ struct proto_serde<
         hstd::ext::graph::elk::ElkEdgeData const&  in) {
         out->set_id(in.id);
         if (in.source.has_value()) { out->set_source(*in.source); }
-        if (in.sourcePort.has_value()) {
-            out->set_source_port(*in.sourcePort);
-        }
+        if (in.sourcePort.has_value()) { out->set_source_port(*in.sourcePort); }
         if (in.target.has_value()) { out->set_target(*in.target); }
-        if (in.targetPort.has_value()) {
-            out->set_target_port(*in.targetPort);
-        }
+        if (in.targetPort.has_value()) { out->set_target_port(*in.targetPort); }
 
         for (auto const& it : in.sources) { out->add_sources(it); }
         for (auto const& it : in.targets) { out->add_targets(it); }
-        for (auto const& it : in.sections) {
-            write_serde(out->add_sections(), it);
-        }
-        for (auto const& it : in.labels) {
-            write_serde(out->add_labels(), it);
-        }
+        for (auto const& it : in.sections) { write_serde(out->add_sections(), it); }
+        for (auto const& it : in.labels) { write_serde(out->add_labels(), it); }
         for (auto const& it : in.junctionPoints) {
             write_serde(out->add_junction_points(), it);
         }
@@ -869,18 +800,10 @@ struct proto_serde<
         if (in.height.has_value()) { out->set_height(*in.height); }
         if (in.type.has_value()) { out->set_type(*in.type); }
 
-        for (auto const& it : in.ports) {
-            write_serde(out->add_ports(), it);
-        }
-        for (auto const& it : in.labels) {
-            write_serde(out->add_labels(), it);
-        }
-        for (auto const& it : in.children) {
-            write_serde(out->add_children(), it);
-        }
-        for (auto const& it : in.edges) {
-            write_serde(out->add_edges(), it);
-        }
+        for (auto const& it : in.ports) { write_serde(out->add_ports(), it); }
+        for (auto const& it : in.labels) { write_serde(out->add_labels(), it); }
+        for (auto const& it : in.children) { write_serde(out->add_children(), it); }
+        for (auto const& it : in.edges) { write_serde(out->add_edges(), it); }
 
         if (in.properties.has_value()) {
             write_serde(out->mutable_properties(), *in.properties);
@@ -972,18 +895,10 @@ struct proto_serde<
         if (in.height.has_value()) { out->set_height(*in.height); }
 
         write_serde(out->mutable_layout_options(), in.layoutOptions);
-        for (auto const& it : in.children) {
-            write_serde(out->add_children(), it);
-        }
-        for (auto const& it : in.edges) {
-            write_serde(out->add_edges(), it);
-        }
-        for (auto const& it : in.ports) {
-            write_serde(out->add_ports(), it);
-        }
-        for (auto const& it : in.labels) {
-            write_serde(out->add_labels(), it);
-        }
+        for (auto const& it : in.children) { write_serde(out->add_children(), it); }
+        for (auto const& it : in.edges) { write_serde(out->add_edges(), it); }
+        for (auto const& it : in.ports) { write_serde(out->add_ports(), it); }
+        for (auto const& it : in.labels) { write_serde(out->add_labels(), it); }
     }
 
     static void read(
@@ -1050,8 +965,7 @@ namespace hstd::ext::graph::elk {
 namespace {
 
 template <typename Payload>
-Payload unpack_attr_payload(
-    ::hstd::ext::graph::proto::IAttribute const* in) {
+Payload unpack_attr_payload(::hstd::ext::graph::proto::IAttribute const* in) {
     Payload payload;
     if (!in->payload().UnpackTo(&payload)) {
         throw std::logic_error("Failed to unpack attribute payload");
@@ -1067,8 +981,7 @@ void ElkPortVisualAttribute::writeSerial(
     IGraph const*) const {
     hstd::ext::graph::elk::proto::ElkPortVisualAttributePayload load;
     load.mutable_base();
-    hstd::serde::write_serde(
-        load.mutable_data(), static_cast<ElkPortData const&>(*this));
+    hstd::serde::write_serde(load.mutable_data(), static_cast<ElkPortData const&>(*this));
     out->mutable_payload()->PackFrom(load);
 }
 
@@ -1086,12 +999,10 @@ void ElkPortLayoutAttribute::writeSerial(
     ::hstd::ext::graph::proto::IAttribute* out,
     IGraph const*) const {
     hstd::ext::graph::elk::proto::ElkPortLayoutAttributePayload load;
-    hstd::serde::write_serde(
-        load.mutable_base()->mutable_bbox(), getBBox());
+    hstd::serde::write_serde(load.mutable_base()->mutable_bbox(), getBBox());
     hstd::serde::write_serde(
         load.mutable_base()->mutable_group(), getVisual(PortID::Nil()));
-    hstd::serde::write_serde(
-        load.mutable_data(), static_cast<ElkPortData const&>(*this));
+    hstd::serde::write_serde(load.mutable_data(), static_cast<ElkPortData const&>(*this));
     out->mutable_payload()->PackFrom(load);
 }
 
@@ -1110,8 +1021,7 @@ void ElkEdgeVisualAttribute::writeSerial(
     IGraph const*) const {
     hstd::ext::graph::elk::proto::ElkEdgeVisualAttributePayload load;
     load.mutable_base();
-    hstd::serde::write_serde(
-        load.mutable_data(), static_cast<ElkEdgeData const&>(*this));
+    hstd::serde::write_serde(load.mutable_data(), static_cast<ElkEdgeData const&>(*this));
     out->mutable_payload()->PackFrom(load);
 }
 
@@ -1131,10 +1041,8 @@ void ElkEdgeLayoutAttribute::writeSerial(
     hstd::ext::graph::elk::proto::ElkEdgeLayoutAttributePayload load;
     hstd::serde::write_serde(
         load.mutable_base()->mutable_group(), getVisual(EdgeID::Nil()));
-    hstd::serde::write_serde(
-        load.mutable_base()->mutable_path(), getPath());
-    hstd::serde::write_serde(
-        load.mutable_data(), static_cast<ElkEdgeData const&>(*this));
+    hstd::serde::write_serde(load.mutable_base()->mutable_path(), getPath());
+    hstd::serde::write_serde(load.mutable_data(), static_cast<ElkEdgeData const&>(*this));
     out->mutable_payload()->PackFrom(load);
 }
 
@@ -1165,8 +1073,7 @@ void ElkNodeVisualAttribute::readSerial(
     IAttributeObject const*) {
     auto load = unpack_attr_payload<
         hstd::ext::graph::elk::proto::ElkNodeVisualAttributePayload>(in);
-    hstd::serde::read_serde(
-        load.data(), static_cast<NodeElkLayoutData*>(this));
+    hstd::serde::read_serde(load.data(), static_cast<NodeElkLayoutData*>(this));
 }
 
 void ElkGroupVisualAttribute::writeSerial(
@@ -1177,8 +1084,7 @@ void ElkGroupVisualAttribute::writeSerial(
         load.mutable_data(), static_cast<NodeElkLayoutData const&>(*this));
 
     hstd::ext::graph::elk::proto::NodeElkLayoutData algorithm;
-    hstd::serde::write_serde(
-        &algorithm, static_cast<NodeElkLayoutData const&>(*this));
+    hstd::serde::write_serde(&algorithm, static_cast<NodeElkLayoutData const&>(*this));
     load.mutable_base()->mutable_algorithm_payload()->PackFrom(algorithm);
 
     out->mutable_payload()->PackFrom(load);
@@ -1191,16 +1097,14 @@ void ElkGroupVisualAttribute::readSerial(
     IAttributeObject const*) {
     auto load = unpack_attr_payload<
         hstd::ext::graph::elk::proto::ElkGroupVisualAttributePayload>(in);
-    hstd::serde::read_serde(
-        load.data(), static_cast<NodeElkLayoutData*>(this));
+    hstd::serde::read_serde(load.data(), static_cast<NodeElkLayoutData*>(this));
 }
 
 void ElkNodeLayoutAttribute::writeSerial(
     ::hstd::ext::graph::proto::IAttribute* out,
     IGraph const*) const {
     hstd::ext::graph::elk::proto::ElkNodeLayoutAttributePayload load;
-    hstd::serde::write_serde(
-        load.mutable_base()->mutable_bbox(), getBBox());
+    hstd::serde::write_serde(load.mutable_base()->mutable_bbox(), getBBox());
     hstd::serde::write_serde(
         load.mutable_base()->mutable_group(), getVisual(VertexID::Nil()));
     hstd::serde::write_serde(
@@ -1215,16 +1119,14 @@ void ElkNodeLayoutAttribute::readSerial(
     IAttributeObject const*) {
     auto load = unpack_attr_payload<
         hstd::ext::graph::elk::proto::ElkNodeLayoutAttributePayload>(in);
-    hstd::serde::read_serde(
-        load.data(), static_cast<NodeElkLayoutData*>(this));
+    hstd::serde::read_serde(load.data(), static_cast<NodeElkLayoutData*>(this));
 }
 
 void ElkGroupLayoutAttribute::writeSerial(
     ::hstd::ext::graph::proto::IAttribute* out,
     IGraph const*) const {
     hstd::ext::graph::elk::proto::ElkGroupLayoutAttributePayload load;
-    hstd::serde::write_serde(
-        load.mutable_base()->mutable_bbox(), getBBox());
+    hstd::serde::write_serde(load.mutable_base()->mutable_bbox(), getBBox());
     hstd::serde::write_serde(
         load.mutable_base()->mutable_group(), getVisual(VertexID::Nil()));
     hstd::serde::write_serde(
@@ -1239,8 +1141,7 @@ void ElkGroupLayoutAttribute::readSerial(
     IAttributeObject const*) {
     auto load = unpack_attr_payload<
         hstd::ext::graph::elk::proto::ElkGroupLayoutAttributePayload>(in);
-    hstd::serde::read_serde(
-        load.data(), static_cast<NodeElkLayoutData*>(this));
+    hstd::serde::read_serde(load.data(), static_cast<NodeElkLayoutData*>(this));
 
     geometry::Rect bbox_value;
     hstd::serde::read_serde(load.base().bbox(), &bbox_value);

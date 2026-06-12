@@ -58,10 +58,8 @@ std::unique_ptr<perfetto::TracingSession> StartProcessTracing(
     auto tracing_session = StartTracing();
 
     // Give a custom name for the traced process.
-    perfetto::ProcessTrack
-        process_track = perfetto::ProcessTrack::Current();
-    perfetto::protos::gen::TrackDescriptor desc = process_track
-                                                      .Serialize();
+    perfetto::ProcessTrack process_track        = perfetto::ProcessTrack::Current();
+    perfetto::protos::gen::TrackDescriptor desc = process_track.Serialize();
     desc.mutable_process()->set_process_name(procesName);
     perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
     return tracing_session;

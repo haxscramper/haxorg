@@ -27,13 +27,7 @@ BOOST_DESCRIBE_STRUCT(stacktrace, (), (frames));
 BOOST_DESCRIBE_STRUCT(
     stacktrace_frame,
     (),
-    (raw_address,
-     object_address,
-     line,
-     column,
-     filename,
-     symbol,
-     is_inline));
+    (raw_address, object_address, line, column, filename, symbol, is_inline));
 } // namespace cpptrace
 
 namespace boost::beast::http {
@@ -142,10 +136,10 @@ void read_opt_json_param_impl(
 }
 
 
-#define opt_query_param(map, obj, field)                                  \
+#define opt_query_param(map, obj, field)                                                 \
     read_opt_query_param_impl(map, obj, &decltype(obj)::field, #field);
 
-#define opt_json_param(map, obj, field)                                   \
+#define opt_json_param(map, obj, field)                                                  \
     read_opt_json_param_impl(map, obj, &decltype(obj)::field, #field);
 
 
@@ -171,37 +165,29 @@ template <typename T>
 struct JsonSerde<immer::vector<T>> {
     static json to_json(immer::vector<T> const& it) {
         auto result = json::array();
-        for (auto const& i : it) {
-            result.push_back(JsonSerde<T>::to_json(i));
-        }
+        for (auto const& i : it) { result.push_back(JsonSerde<T>::to_json(i)); }
 
         return result;
     }
     static immer::vector<T> from_json(json const& j) {
         immer::vector<T> result;
         auto             tmp = result.transient();
-        for (auto const& i : j) {
-            tmp.push_back(JsonSerde<T>::from_json(i));
-        }
+        for (auto const& i : j) { tmp.push_back(JsonSerde<T>::from_json(i)); }
         return tmp.persistent();
     }
 };
 
 template <>
 struct JsonSerde<org::imm::ImmReflFieldId> {
-    static json to_json(org::imm::ImmReflFieldId const& id) {
-        return id.getName();
-    }
+    static json to_json(org::imm::ImmReflFieldId const& id) { return id.getName(); }
 
     static org::imm::ImmReflFieldId from_json(json const& j) {
         std::string j_name = j.get<std::string>();
-        for (auto const& [id, name] :
-             org::imm::ImmReflFieldId::fieldNames) {
+        for (auto const& [id, name] : org::imm::ImmReflFieldId::fieldNames) {
             if (name == j_name) { return id; }
         }
 
-        LOGIC_ASSERTION_CHECK(
-            false, "Cannot find refl field for name {}", j_name);
+        LOGIC_ASSERTION_CHECK(false, "Cannot find refl field for name {}", j_name);
     }
 };
 
@@ -215,8 +201,7 @@ template <>
 struct JsonSerde<OrgSemKind> {
     static json       to_json(OrgSemKind const& id) { return fmt1(id); }
     static OrgSemKind from_json(json const& id) {
-        return enum_serde<OrgSemKind>::from_string(id.get<std::string>())
-            .value();
+        return enum_serde<OrgSemKind>::from_string(id.get<std::string>()).value();
     }
 };
 
@@ -235,14 +220,12 @@ struct JsonSerde<ReflPathItem<Tag>> {
 
     static Item from_json(json const& j) {
         switch (from_json_eval<Kind>(j["kind"])) {
-            case Kind::Index:
-                return Item::FromIndex(j["index"].get<int>());
+            case Kind::Index: return Item::FromIndex(j["index"].get<int>());
             case Kind::Deref: return Item::FromDeref();
             case Kind::AnyKey: logic_todo_impl();
             case Kind::FieldName:
                 return Item::FromFieldName(
-                    from_json_eval<typename Tag::field_name_type>(
-                        j["name"]));
+                    from_json_eval<typename Tag::field_name_type>(j["name"]));
         }
     }
 };
@@ -282,8 +265,7 @@ template <typename T, typename = void>
 struct has_class_type : std::false_type {};
 
 template <typename T>
-struct has_class_type<T, std::void_t<typename T::class_type>>
-    : std::true_type {};
+struct has_class_type<T, std::void_t<typename T::class_type>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool has_class_type_v = has_class_type<T>::value;
@@ -292,8 +274,7 @@ template <typename T, typename = void>
 struct has_return_type : std::false_type {};
 
 template <typename T>
-struct has_return_type<T, std::void_t<typename T::return_type>>
-    : std::true_type {};
+struct has_return_type<T, std::void_t<typename T::return_type>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool has_return_type_v = has_return_type<T>::value;
@@ -317,16 +298,14 @@ struct TypeSpec {
 
 template <typename T>
 struct TypeSpecProvider {
-    static TypeSpec get() {
-        return TypeSpec{.name = demangle(typeid(T).name())};
-    }
+    static TypeSpec get() { return TypeSpec{.name = demangle(typeid(T).name())}; }
 };
 
 
-#define __trivial_type_spec_provider(__type, __name)                      \
-    template <>                                                           \
-    struct TypeSpecProvider<__type> {                                     \
-        static TypeSpec get() { return TypeSpec{.name = __name}; }        \
+#define __trivial_type_spec_provider(__type, __name)                                     \
+    template <>                                                                          \
+    struct TypeSpecProvider<__type> {                                                    \
+        static TypeSpec get() { return TypeSpec{.name = __name}; }                       \
     };
 
 __trivial_type_spec_provider(std::string, "string");
@@ -360,13 +339,12 @@ std::vector<ArgSpec> add_type_specs(std::vector<ArgSpec> const& args) {
     using tuple                 = typename traits::args_tuple;
     std::vector<ArgSpec> result = args;
 
-    auto add_type =
-        [&result]<std::size_t I>(std::integral_constant<std::size_t, I>) {
-            if (I < result.size()) {
-                using arg_t    = std::tuple_element_t<I, tuple>;
-                result[I].type = TypeSpecProvider<arg_t>::get();
-            }
-        };
+    auto add_type = [&result]<std::size_t I>(std::integral_constant<std::size_t, I>) {
+        if (I < result.size()) {
+            using arg_t    = std::tuple_element_t<I, tuple>;
+            result[I].type = TypeSpecProvider<arg_t>::get();
+        }
+    };
 
     [&]<std::size_t... I>(std::index_sequence<I...>) {
         (add_type(std::integral_constant<std::size_t, I>{}), ...);
@@ -386,8 +364,7 @@ ArgSpec opt_arg(std::string const& name, json value = json{}) {
 }
 
 void standalone_function(int arg1, int arg2, int opt1 = 123) {
-    OLOG(info) << fmt(
-        "Called standalone function {} {} {}", arg1, arg2, opt1);
+    OLOG(info) << fmt("Called standalone function {} {} {}", arg1, arg2, opt1);
 }
 
 
@@ -428,9 +405,7 @@ struct RestHandlerContext {
     ResponseWrap                           response;
 
 
-    DESC_FIELDS(
-        RestHandlerContext,
-        (query_params, response, route, query_body, state));
+    DESC_FIELDS(RestHandlerContext, (query_params, response, route, query_body, state));
 
     RestHandlerContext(ResponseWrap response, HttpState::Ptr state)
         : response{response}, state{state} {}
@@ -490,9 +465,7 @@ struct RestHandlerContext {
     }
 
     void finishResponse() {
-        if (requestId) {
-            response.getWebsocket().response["id"] = requestId.value();
-        }
+        if (requestId) { response.getWebsocket().response["id"] = requestId.value(); }
     }
 
     void setSocket(json const& query) {
@@ -510,9 +483,7 @@ struct RestHandlerContext {
             }
         }
 
-        if (query.contains("id")) {
-            requestId = query.at("id").get<std::string>();
-        }
+        if (query.contains("id")) { requestId = query.at("id").get<std::string>(); }
 
         if (query.contains("body")) { query_body = query.at("body"); }
     }
@@ -524,13 +495,9 @@ struct RestHandlerContext {
         if (!req.body().empty()) { setQueryBody(req.body()); }
     }
 
-    void setQueryBody(std::string_view body) {
-        query_body = json::parse(body);
-    }
+    void setQueryBody(std::string_view body) { query_body = json::parse(body); }
 
-    org::imm::ImmUniqId getRoot() const {
-        return state->root.getRootAdapter().uniq();
-    }
+    org::imm::ImmUniqId getRoot() const { return state->root.getRootAdapter().uniq(); }
 
     OrgSemKind getKind(org::imm::ImmUniqId const& id) const {
         return state->ctx->adapt(id).getKind();
@@ -538,16 +505,13 @@ struct RestHandlerContext {
 
     std::string getCleanSubtreeTitle(org::imm::ImmUniqId const& id) const {
         if (id.id.is(OrgSemKind::Subtree)) {
-            return state->ctx->adapt(id)
-                .as<org::imm::ImmSubtree>()
-                .getCleanTitle();
+            return state->ctx->adapt(id).as<org::imm::ImmSubtree>().getCleanTitle();
         } else {
             return "";
         }
     }
 
-    Vec<org::imm::ImmUniqId> getAllSubnodes(
-        org::imm::ImmUniqId const& id) const {
+    Vec<org::imm::ImmUniqId> getAllSubnodes(org::imm::ImmUniqId const& id) const {
         Vec<org::imm::ImmUniqId> res;
         for (auto const& sub : state->ctx->adapt(id).sub(true)) {
             res.push_back(sub.uniq());
@@ -556,9 +520,7 @@ struct RestHandlerContext {
     }
 
 
-    org::imm::ImmUniqId getSubnodeAt(
-        org::imm::ImmUniqId const& id,
-        int                        index) const {
+    org::imm::ImmUniqId getSubnodeAt(org::imm::ImmUniqId const& id, int index) const {
         return state->ctx->adapt(id).at(index).uniq();
     }
 
@@ -568,9 +530,7 @@ struct RestHandlerContext {
 
     void setRootText(std::string const& t) { state->parseRoot(t); }
     void setRootFile(std::string const& t) { setRootText(readFile(t)); }
-    void setExceptionHandler(bool handler) {
-        state->exception_handler = handler;
-    }
+    void setExceptionHandler(bool handler) { state->exception_handler = handler; }
 
     json toJson(org::sem::SemId<org::sem::Org> id) {
         org::algo::ExporterJson exp{};
@@ -593,8 +553,7 @@ struct RestHandlerContext {
             std::string        param;
             std::istringstream query_stream{std::string(query)};
             while (std::getline(query_stream, param, '&')) {
-                if (auto eq_pos = param.find('=');
-                    eq_pos != std::string::npos) {
+                if (auto eq_pos = param.find('='); eq_pos != std::string::npos) {
                     query_params.insert_or_assign(
                         param.substr(0, eq_pos), param.substr(eq_pos + 1));
                 }
@@ -657,8 +616,7 @@ auto call_with_tuple(Func&& f, Tuple&& t) {
     return call_with_tuple_impl(
         std::forward<Func>(f),
         std::forward<Tuple>(t),
-        std::make_index_sequence<
-            std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
+        std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
 }
 
 template <typename Arg>
@@ -673,17 +631,14 @@ void place_argument(
         return fmt(
             "Failed to parse arg '{}' from JSON '{}'",
             name,
-            ctx->query_body.contains(name) ? ctx->query_body.at(name)
-                                           : json{});
+            ctx->query_body.contains(name) ? ctx->query_body.at(name) : json{});
     };
     try {
-        arg = ctx->template getArg<std::decay_t<decltype(arg)>>(
-            arg_specs.at(idx));
+        arg = ctx->template getArg<std::decay_t<decltype(arg)>>(arg_specs.at(idx));
         ++idx;
     } catch (std::exception& ex) {
         failed_arg_parse.push_back(
-            json::object(
-                {{"arg", fmt_arg_message()}, {"what", ex.what()}}));
+            json::object({{"arg", fmt_arg_message()}, {"what", ex.what()}}));
     }
 }
 
@@ -701,9 +656,7 @@ auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
         std::apply(
             [&](auto&... tuple_args) {
                 int idx = 0;
-                (place_argument(
-                     tuple_args, idx, arg_specs, failed_arg_parse, ctx),
-                 ...);
+                (place_argument(tuple_args, idx, arg_specs, failed_arg_parse, ctx), ...);
             },
             args);
 
@@ -712,8 +665,7 @@ auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
                 call_with_tuple(f, args);
             } else {
                 auto result = call_with_tuple(f, args);
-                ctx->setResponseBody(
-                    JsonSerde<return_type>::to_json(result));
+                ctx->setResponseBody(JsonSerde<return_type>::to_json(result));
             }
             ctx->setResponseResult(http::status::ok);
         };
@@ -723,9 +675,7 @@ auto make_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
 }
 
 template <typename Class, typename Func>
-auto make_method_handler_callback(
-    Func                        f,
-    std::vector<ArgSpec> const& arg_specs) {
+auto make_method_handler_callback(Func f, std::vector<ArgSpec> const& arg_specs) {
     return [f, arg_specs](RestHandlerContext* ctx) {
         using traits      = function_traits<std::decay_t<Func>>;
         using args_tuple  = typename traits::args_tuple;
@@ -741,9 +691,7 @@ auto make_method_handler_callback(
         std::apply(
             [&](auto&... tuple_args) {
                 int idx = 0;
-                (place_argument(
-                     tuple_args, idx, arg_specs, failed_arg_parse, ctx),
-                 ...);
+                (place_argument(tuple_args, idx, arg_specs, failed_arg_parse, ctx), ...);
             },
             args);
 
@@ -751,13 +699,10 @@ auto make_method_handler_callback(
             if constexpr (std::is_void_v<return_type>) {
                 call_with_tuple(
                     [&instance, f](auto&&... args) {
-                        if constexpr (
-                            std::is_pointer_v<decltype(instance)>) {
-                            (instance->*f)(
-                                std::forward<decltype(args)>(args)...);
+                        if constexpr (std::is_pointer_v<decltype(instance)>) {
+                            (instance->*f)(std::forward<decltype(args)>(args)...);
                         } else {
-                            (instance
-                             .*f)(std::forward<decltype(args)>(args)...);
+                            (instance.*f)(std::forward<decltype(args)>(args)...);
                         }
                     },
                     args);
@@ -765,19 +710,15 @@ auto make_method_handler_callback(
                 // Call method and serialize result
                 auto result = call_with_tuple(
                     [&instance, f](auto&&... args) {
-                        if constexpr (
-                            std::is_pointer_v<decltype(instance)>) {
-                            return (instance->*f)(
-                                std::forward<decltype(args)>(args)...);
+                        if constexpr (std::is_pointer_v<decltype(instance)>) {
+                            return (instance->*f)(std::forward<decltype(args)>(args)...);
                         } else {
-                            return (instance.*f)(
-                                std::forward<decltype(args)>(args)...);
+                            return (instance.*f)(std::forward<decltype(args)>(args)...);
                         }
                     },
                     args);
 
-                ctx->setResponseBody(
-                    JsonSerde<return_type>::to_json(result));
+                ctx->setResponseBody(JsonSerde<return_type>::to_json(result));
             }
         };
 
@@ -852,9 +793,7 @@ struct HandlerImpl {
 
         if (result) { s["result"] = result.value().getApiSchema(); }
 
-        for (auto const& arg : args) {
-            s["parameters"].push_back(arg.getApiSchema());
-        }
+        for (auto const& arg : args) { s["parameters"].push_back(arg.getApiSchema()); }
         return s;
     }
 };
@@ -880,8 +819,7 @@ struct HandlerMapType : SharedPtrApi<HandlerMapType> {
         std::string const&          name,
         Func                        f,
         std::vector<ArgSpec> const& args) {
-        map.emplace(
-            endpoint, HandlerImpl::init_method<Class>(name, f, args));
+        map.emplace(endpoint, HandlerImpl::init_method<Class>(name, f, args));
     }
 
     void call(std::string const& target, RestHandlerContext* ctx) {
@@ -925,34 +863,25 @@ class WSSession : public SharedPtrApi<WSSession> {
         HandlerMapType::Ptr handler,
         net::io_context&    ioc,
         HttpState::Ptr      state)
-        : ws(std::move(socket))
-        , handlers(handler)
-        , ioc(ioc)
-        , state{state} {}
+        : ws(std::move(socket)), handlers(handler), ioc(ioc), state{state} {}
 
     void run() {
         net::dispatch(
             ws.get_executor(),
-            beast::bind_front_handler(
-                &WSSession::on_run, this->shared_from_this()));
+            beast::bind_front_handler(&WSSession::on_run, this->shared_from_this()));
     }
 
   private:
     void on_run() {
         ws.set_option(
-            websocket::stream_base::timeout::suggested(
-                beast::role_type::server));
+            websocket::stream_base::timeout::suggested(beast::role_type::server));
         ws.set_option(
-            websocket::stream_base::decorator(
-                [](websocket::response_type& res) {
-                    res.set(
-                        http::field::server,
-                        std::string(BOOST_BEAST_VERSION_STRING));
-                }));
+            websocket::stream_base::decorator([](websocket::response_type& res) {
+                res.set(http::field::server, std::string(BOOST_BEAST_VERSION_STRING));
+            }));
 
         ws.async_accept(
-            beast::bind_front_handler(
-                &WSSession::on_accept, this->shared_from_this()));
+            beast::bind_front_handler(&WSSession::on_accept, this->shared_from_this()));
     }
 
     void on_accept(beast::error_code ec) {
@@ -963,34 +892,23 @@ class WSSession : public SharedPtrApi<WSSession> {
     void do_read() {
         ws.async_read(
             buffer,
-            beast::bind_front_handler(
-                &WSSession::on_read, this->shared_from_this()));
+            beast::bind_front_handler(&WSSession::on_read, this->shared_from_this()));
     }
 
     void on_read(beast::error_code ec, std::size_t bytes_transferred) {
         if (ec) {
             OLOG(error) << fmt(
-                "Websocket read error: {} {}",
-                ec.to_string(),
-                ec.message());
+                "Websocket read error: {} {}", ec.to_string(), ec.message());
         } else {
             ZoneNamed(ReadRequest, true);
             bool logging = false;
 
-            auto request = json::parse(
-                beast::buffers_to_string(buffer.data()));
-            if (logging) {
-                OLOG(info)
-                    << fmt("Parsed WS request:\n{}", request.dump(2));
-            }
-            auto target = request["target"].get<std::string>();
-            RestHandlerContext ctx{
-                ResponseWrap{ResponseWrap::Websocket{}}, state};
+            auto request = json::parse(beast::buffers_to_string(buffer.data()));
+            if (logging) { OLOG(info) << fmt("Parsed WS request:\n{}", request.dump(2)); }
+            auto               target = request["target"].get<std::string>();
+            RestHandlerContext ctx{ResponseWrap{ResponseWrap::Websocket{}}, state};
             ctx.setSocket(request);
-            if (logging) {
-                OLOG(info)
-                    << fmt("Processing request ID {}", ctx.requestId);
-            }
+            if (logging) { OLOG(info) << fmt("Processing request ID {}", ctx.requestId); }
             {
                 ZoneNamed(CallRequest, true);
                 handlers->call(target, &ctx);
@@ -1047,8 +965,7 @@ class WSServer {
   private:
     void do_accept() {
         acceptor.async_accept(
-            net::make_strand(ioc),
-            beast::bind_front_handler(&WSServer::on_accept, this));
+            net::make_strand(ioc), beast::bind_front_handler(&WSServer::on_accept, this));
     }
 
     void on_accept(beast::error_code ec, tcp::socket socket) {
@@ -1057,9 +974,7 @@ class WSServer {
                 "Websocket connection accept failed: {}", ec.to_string());
         } else {
             OLOG(info) << "Accepted websocket connection";
-            std::make_shared<WSSession>(
-                std::move(socket), handlers, ioc, state)
-                ->run();
+            std::make_shared<WSSession>(std::move(socket), handlers, ioc, state)->run();
         }
         do_accept();
     }
@@ -1088,37 +1003,28 @@ class HttpSession : public SharedPtrApi<HttpSession> {
     void read_request() {
         auto self = shared_from_this();
 
-        http::async_read(
-            stream,
-            buffer,
-            req,
-            [self](beast::error_code ec, std::size_t) {
-                if (!ec) {
-                    OLOG(info) << "Processing request";
-                    self->process_request();
-                }
-            });
+        http::async_read(stream, buffer, req, [self](beast::error_code ec, std::size_t) {
+            if (!ec) {
+                OLOG(info) << "Processing request";
+                self->process_request();
+            }
+        });
     }
 
     void process_request() {
         LOGIC_ASSERTION_CHECK(state.get() != nullptr, "state is not set");
-        auto response = std::make_shared<
-            http::response<http::string_body>>();
+        auto response = std::make_shared<http::response<http::string_body>>();
         response->version(req.version());
         response->keep_alive(false);
         response->set(http::field::content_type, "application/json");
 
         response->set(http::field::access_control_allow_origin, "*");
-        response->set(
-            http::field::access_control_allow_methods,
-            "POST, GET, OPTIONS");
-        response->set(
-            http::field::access_control_allow_headers, "content-type");
+        response->set(http::field::access_control_allow_methods, "POST, GET, OPTIONS");
+        response->set(http::field::access_control_allow_headers, "content-type");
 
 
         // Get the request target/route
-        RestHandlerContext ctx{
-            ResponseWrap{ResponseWrap::Rest{response}}, state};
+        RestHandlerContext ctx{ResponseWrap{ResponseWrap::Rest{response}}, state};
         ctx.setRequest(req);
 
         OLOG(info) << fmt("HTTP Query parametersn {}", ctx.query_params);
@@ -1128,9 +1034,7 @@ class HttpSession : public SharedPtrApi<HttpSession> {
                 if (ctx.route == "/api/parseString") {
                     response->result(http::status::ok);
                     response->body() //
-                        = ctx.toJson(
-                                 org::parseString(
-                                     ctx.getArg<std::string>({"text"})))
+                        = ctx.toJson(org::parseString(ctx.getArg<std::string>({"text"})))
                               .dump();
                 } else if (ctx.route == "/api/parseRoot") {
                     state->parseRoot(ctx.getArg<std::string>({"text"}));
@@ -1152,12 +1056,9 @@ class HttpSession : public SharedPtrApi<HttpSession> {
 
         http::async_write(
             stream,
-            *std::static_pointer_cast<http::response<http::string_body>>(
-                res),
-            [self = shared_from_this()](
-                beast::error_code ec, std::size_t) {
-                self->stream.socket().shutdown(
-                    tcp::socket::shutdown_send, ec);
+            *std::static_pointer_cast<http::response<http::string_body>>(res),
+            [self = shared_from_this()](beast::error_code ec, std::size_t) {
+                self->stream.socket().shutdown(tcp::socket::shutdown_send, ec);
             });
     }
 };
@@ -1192,19 +1093,15 @@ class HttpServer : public SharedPtrApi<HttpServer> {
         OLOG(info) << "Accepted HTTP connection";
         acceptor.async_accept(
             net::make_strand(ioc),
-            beast::bind_front_handler(
-                &HttpServer::on_accept, shared_from_this()));
+            beast::bind_front_handler(&HttpServer::on_accept, shared_from_this()));
     }
 
     void on_accept(beast::error_code ec, tcp::socket socket) {
         if (ec) {
-            OLOG(warning) << fmt(
-                "HTTP connection accept failed: {}", ec.to_string());
+            OLOG(warning) << fmt("HTTP connection accept failed: {}", ec.to_string());
         } else {
             ZoneScoped;
-            std::make_shared<HttpSession>(
-                std::move(socket), state, handlers)
-                ->start();
+            std::make_shared<HttpSession>(std::move(socket), state, handlers)->start();
         }
         accept();
     }
@@ -1239,12 +1136,9 @@ int main(int argc, char** argv) {
             &standalone_function,
             {arg("arg1"), arg("arg2"), opt_arg("opt1")});
 
-#define _ctx_method(__method, ...)                                        \
-    handlers->setMethod<RestHandlerContext>(                              \
-        "/api/" #__method,                                                \
-        #__method,                                                        \
-        &RestHandlerContext::__method,                                    \
-        {__VA_ARGS__});
+#define _ctx_method(__method, ...)                                                       \
+    handlers->setMethod<RestHandlerContext>(                                             \
+        "/api/" #__method, #__method, &RestHandlerContext::__method, {__VA_ARGS__});
 
 
         _ctx_method(getRoot);
@@ -1266,7 +1160,7 @@ int main(int argc, char** argv) {
         } else {
             int const       http_port      = 8080;
             int const       websocket_port = 8089;
-            int const       threads = std::thread::hardware_concurrency();
+            int const       threads        = std::thread::hardware_concurrency();
             net::io_context ioc{static_cast<int>(threads)};
 
             auto http_server = std::make_shared<HttpServer>(

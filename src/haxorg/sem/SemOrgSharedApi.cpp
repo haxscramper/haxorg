@@ -14,8 +14,7 @@
 using namespace org;
 using namespace hstd;
 
-std::size_t std::hash<org::sem::OrgJson>::operator()(
-    org::sem::OrgJson const& it) const {
+std::size_t std::hash<org::sem::OrgJson>::operator()(org::sem::OrgJson const& it) const {
     std::size_t result = 0;
     hstd::hax_hash_combine(result, it.getRef());
     return result;
@@ -27,10 +26,9 @@ Opt<E> string_to_enum_insensitive(std::string const& name) {
     bool   found = false;
     Opt<E> r     = {};
 
-    boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>(
-        [&](auto D) {
-            if (!r && hstd::iequals(D.name, name)) { r = D.value; }
-        });
+    boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>([&](auto D) {
+        if (!r && hstd::iequals(D.name, name)) { r = D.value; }
+    });
 
     return r;
 }
@@ -108,9 +106,7 @@ template <sem::IsOrg T>
 Vec<sem::SemId<sem::Org>> getSubnodes(T const* t, bool withPath) { return t->subnodes; }
 // clang-format on
 
-bool is_kind(imm::ImmAdapter const& ad, OrgSemKind kind) {
-    return ad.getKind() == kind;
-}
+bool is_kind(imm::ImmAdapter const& ad, OrgSemKind kind) { return ad.getKind() == kind; }
 
 template <sem::IsOrg T>
 bool is_kind(sem::SemId<T> const& ad, OrgSemKind kind) {
@@ -160,9 +156,7 @@ sem::SemId<T> toHandle(sem::SemId<T> id, Handle const& handle) {
 
 /// \brief Convert optional imm ID to optional adapter
 template <imm::IsImmOrgValueType T, typename Handle>
-Opt<imm::ImmAdapterT<T>> toHandle(
-    Opt<imm::ImmIdT<T>> id,
-    Handle const&       handle) {
+Opt<imm::ImmAdapterT<T>> toHandle(Opt<imm::ImmIdT<T>> id, Handle const& handle) {
     if (id) {
         return toHandle(id.value(), handle);
     } else {
@@ -171,9 +165,7 @@ Opt<imm::ImmAdapterT<T>> toHandle(
 }
 
 template <imm::IsImmOrgValueType T, typename Handle>
-imm::ImmAdapterT<T> toHandle(
-    imm::ImmAdapterT<T> id,
-    Handle const&       handle) {
+imm::ImmAdapterT<T> toHandle(imm::ImmAdapterT<T> id, Handle const& handle) {
     return id;
 }
 
@@ -280,8 +272,7 @@ using SemIdOrImmId = SemOrImmType<
     imm::ImmAdapter>::result;
 
 template <typename Handle>
-concept IsSemOrgInstance = sem::IsOrg<
-    typename get_ast_type<Handle>::ast_type>;
+concept IsSemOrgInstance = sem::IsOrg<typename get_ast_type<Handle>::ast_type>;
 
 template <typename Handle>
 concept IsImmOrgInstance = imm::IsImmOrgValueType<
@@ -312,8 +303,7 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     // For sem IDs this is an identity function that returns the ID
     // directly.
 
-    for (const auto& it :
-         getSubnodes(toHandle(h->title, handle), withPath)) {
+    for (const auto& it : getSubnodes(toHandle(h->title, handle), withPath)) {
         if (it->getKind() == OrgSemKind::Time) {
             SubtreePeriod period{};
             // Specifying `sem::Time` in the cast, but returned type also
@@ -324,54 +314,47 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
             res.push_back(period);
         } else if (it->getKind() == OrgSemKind::TimeRange) {
             SubtreePeriod period{};
-            period.from = toHandle(
-                              org_cast<sem::TimeRange>(it)->from, handle)
+            period.from = toHandle(org_cast<sem::TimeRange>(it)->from, handle)
                               ->getStatic()
                               .time;
-            period.to = toHandle(org_cast<sem::TimeRange>(it)->to, handle)
-                            ->getStatic()
-                            .time;
+            period.to   = toHandle(org_cast<sem::TimeRange>(it)->to, handle)
+                              ->getStatic()
+                              .time;
             period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
         }
     }
 
-    if (kinds.contains(SubtreePeriod::Kind::Deadline)
-        && !isBoolFalse(h->deadline)) {
+    if (kinds.contains(SubtreePeriod::Kind::Deadline) && !isBoolFalse(h->deadline)) {
         SubtreePeriod period{};
         if constexpr (IsSemOrgInstance<Handle>) {
             period.from = h->deadline.value()->getStaticTime();
         } else {
-            period.from = toHandle(h->deadline.get().value(), handle)
-                              .getStaticTime();
+            period.from = toHandle(h->deadline.get().value(), handle).getStaticTime();
         }
 
         period.kind = SubtreePeriod::Kind::Deadline;
         res.push_back(period);
     }
 
-    if (kinds.contains(SubtreePeriod::Kind::Scheduled)
-        && !isBoolFalse(h->scheduled)) {
+    if (kinds.contains(SubtreePeriod::Kind::Scheduled) && !isBoolFalse(h->scheduled)) {
         SubtreePeriod period{};
         if constexpr (IsSemOrgInstance<Handle>) {
             period.from = h->scheduled.value()->getStaticTime();
         } else {
-            period.from = toHandle(h->scheduled.get().value(), handle)
-                              .getStaticTime();
+            period.from = toHandle(h->scheduled.get().value(), handle).getStaticTime();
         }
 
         period.kind = SubtreePeriod::Kind::Scheduled;
         res.push_back(period);
     }
 
-    if (kinds.contains(SubtreePeriod::Kind::Closed)
-        && !isBoolFalse(h->closed)) {
+    if (kinds.contains(SubtreePeriod::Kind::Closed) && !isBoolFalse(h->closed)) {
         SubtreePeriod period{};
         if constexpr (IsSemOrgInstance<Handle>) {
             period.from = h->closed.value()->getStaticTime();
         } else {
-            period.from = toHandle(h->closed.get().value(), handle)
-                              .getStaticTime();
+            period.from = toHandle(h->closed.get().value(), handle).getStaticTime();
         }
 
         period.kind = SubtreePeriod::Kind::Closed;
@@ -385,10 +368,8 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
         // `sem::SubtreeLog::Kind` are two different classes. That's why I
         // need to use the type selector here and define the target log
         // type.
-        using LogType = SemOrImmType<
-            HandleBase,
-            sem::SubtreeLog,
-            imm::ImmSubtreeLog>::result;
+        using LogType = SemOrImmType<HandleBase, sem::SubtreeLog, imm::ImmSubtreeLog>::
+            result;
 
         for (auto const& logIt : h->logbook) {
             auto const log = toHandle(logIt, handle);
@@ -421,9 +402,7 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     return res;
 }
 
-Vec<sem::AttrValue> Attrs_getAttrs(
-    sem::AttrGroup const& attrs,
-    Opt<Str> const&       param) {
+Vec<sem::AttrValue> Attrs_getAttrs(sem::AttrGroup const& attrs, Opt<Str> const& param) {
     return attrs.getAttrs(param);
 }
 
@@ -448,8 +427,7 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, Opt<Str> const& kind) {
         if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
             result.append( //
                 Attrs_getAttrs(
-                    org_cast<sem::CmdAttr>(toHandle(sub, handle))->attrs,
-                    kind));
+                    org_cast<sem::CmdAttr>(toHandle(sub, handle))->attrs, kind));
         }
     }
 
@@ -524,9 +502,7 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
                     SemIdOrImmId<Handle> colon = next.value().get();
                     if (sub->getKind() == OrgSemKind::BigIdent
                         && colon->getKind() == OrgSemKind::Punctuation
-                        && to_api(toHandle(
-                                      org_cast<sem::Punctuation>(colon),
-                                      handle))
+                        && to_api(toHandle(org_cast<sem::Punctuation>(colon), handle))
                                    .getText()
                                == ":") {
                         ++i;
@@ -535,11 +511,9 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
             } else if (sub->getKind() == OrgSemKind::Link) {
                 bool isFootnote = false;
                 if constexpr (IsSemOrgInstance<Handle>) {
-                    isFootnote = sub.template as<sem::Link>()
-                                     ->target.isFootnote();
+                    isFootnote = sub.template as<sem::Link>()->target.isFootnote();
                 } else {
-                    isFootnote = sub.template as<imm::ImmLink>()
-                                     ->target.isFootnote();
+                    isFootnote = sub.template as<imm::ImmLink>()->target.isFootnote();
                 }
 
                 if (!isFootnote) { lead = false; }
@@ -564,24 +538,19 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
 
 template <typename T>
 Vec<imm::ImmAdapterT<T>> mapNodes(Vec<imm::ImmAdapter> const& nodes) {
-    return nodes | rv::transform([](imm::ImmAdapter const& id) {
-               return id.as<T>();
-           })
+    return nodes | rv::transform([](imm::ImmAdapter const& id) { return id.as<T>(); })
          | rs::to<Vec>();
 }
 
 template <typename T>
 Vec<sem::SemId<T>> mapNodes(Vec<sem::SemId<sem::Org>> const& nodes) {
-    return nodes | rv::transform([](sem::SemId<sem::Org> const& id) {
-               return id.as<T>();
-           })
+    return nodes
+         | rv::transform([](sem::SemId<sem::Org> const& id) { return id.as<T>(); })
          | rs::to<Vec>();
 }
 
 template <typename Handle>
-Vec<sem::AttrValue> Cmd_getAttrs(
-    Handle const&   handle,
-    Opt<Str> const& param) {
+Vec<sem::AttrValue> Cmd_getAttrs(Handle const& handle, Opt<Str> const& param) {
     auto                h = getConstHandle(handle);
     Vec<sem::AttrValue> res;
     if (!isBoolFalse(h->attrs)) { res = Attrs_getAttrs(h->attrs, param); }
@@ -636,13 +605,10 @@ auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
                     result.push_back(sub_h);
                 }
             } else if (
-                is_kind(sub_h, OrgSemKind::CmdCaption)
-                && normalize(k) == "caption") {
+                is_kind(sub_h, OrgSemKind::CmdCaption) && normalize(k) == "caption") {
 
                 result.push_back(sub_h);
-            } else if (
-                is_kind(sub_h, OrgSemKind::CmdName)
-                && normalize(k) == "name") {
+            } else if (is_kind(sub_h, OrgSemKind::CmdName) && normalize(k) == "name") {
                 result.push_back(sub_h);
             }
         } else {
@@ -732,8 +698,7 @@ Vec<sem::NamedProperty> Document_getProperties(
     if (h->options.isNil()) {
         return {};
     } else {
-        return DocumentOptions_getProperties(
-            toHandle(h->options, handle), kind, subkind);
+        return DocumentOptions_getProperties(toHandle(h->options, handle), kind, subkind);
     }
 }
 
@@ -746,8 +711,7 @@ Opt<sem::NamedProperty> Document_getProperty(
     if (h->options.isNil()) {
         return std::nullopt;
     } else {
-        return DocumentOptions_getProperty(
-            toHandle(h->options, handle), kind, subkind);
+        return DocumentOptions_getProperty(toHandle(h->options, handle), kind, subkind);
     }
 }
 
@@ -761,9 +725,7 @@ bool List_isDescriptionList(Handle handle) {
     auto h = getConstHandle(handle);
     for (const auto& sub : getSubnodes(handle, false)) {
         if (is_kind(sub, OrgSemKind::ListItem)) {
-            if (ListItem_isDescriptionItem(org_cast<sem::ListItem>(sub))) {
-                return true;
-            }
+            if (ListItem_isDescriptionItem(org_cast<sem::ListItem>(sub))) { return true; }
         }
     }
     return false;
@@ -793,11 +755,7 @@ bool List_isNumberedList(Handle handle) {
 /// adapter. Adapter cannot correctly hold an ID that refers to the
 /// abstract base class, so every adapter object must use a concrete type
 /// of the node.
-template <
-    typename CastType,
-    typename ThisType,
-    typename Func,
-    typename... Args>
+template <typename CastType, typename ThisType, typename Func, typename... Args>
 void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
     thisType->visitNodeAdapter(
         overloaded{
@@ -987,20 +945,16 @@ ListFormattingMode sem::List::getListFormattingMode() const {
     }
 }
 
-imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterSubtreeAPI::getTitle()
-    const {
+imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterSubtreeAPI::getTitle() const {
     return pass(
         getThisT<imm::ImmSubtree>()->title,
-        ImmPathStep::Field(
-            imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
+        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
 }
-imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterCmdCaptionAPI::getText()
-    const {
+imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterCmdCaptionAPI::getText() const {
     return pass(
         getThisT<imm::ImmCmdCaption>()->text,
         ImmPathStep::Field(
-            imm::ImmReflFieldId::FromTypeField(
-                &imm::ImmCmdCaption::text)));
+            imm::ImmReflFieldId::FromTypeField(&imm::ImmCmdCaption::text)));
 }
 
 
@@ -1012,15 +966,13 @@ Opt<imm::ImmAdapter> imm::ImmAdapterListItemAPI::getHeader() const {
         return pass(
             it->header->value(),
             ImmPathStep::FieldDeref(
-                imm::ImmReflFieldId::FromTypeField(
-                    &imm::ImmListItem::header)));
+                imm::ImmReflFieldId::FromTypeField(&imm::ImmListItem::header)));
     }
 }
 
 Opt<Str> sem::Paragraph::getFootnoteName() const {
     if (!subnodes.has(0)) { return std::nullopt; }
-    if (auto link = at(0).asOpt<sem::Link>();
-        link && link->target.isFootnote()) {
+    if (auto link = at(0).asOpt<sem::Link>(); link && link->target.isFootnote()) {
         return link->target.getFootnote().target;
     } else {
         return std::nullopt;
@@ -1071,8 +1023,7 @@ Opt<sem::NamedProperty> Org_combinePropertyStack(
 
 
                     if (!in_args.attrs.positional.items.empty()) {
-                        res_args.attrs.setPositionalAttr(
-                            in_args.attrs.positional.items);
+                        res_args.attrs.setPositionalAttr(in_args.attrs.positional.items);
                     }
 
                     for (auto const& [key, items] : in_args.attrs.named) {
@@ -1147,61 +1098,50 @@ Opt<sem::NamedProperty> org::getFinalProperty(
     return Org_getFinalProperty(nodes, kind, subKind);
 }
 
-Vec<Str> org::getDfsLeafText(
-    sem::SemId<sem::Org> id,
-    SemSet const&        filter) {
-    return getDfsFuncEval<Str>(
-        id, [&](sem::SemId<sem::Org> const& id) -> Opt<Str> {
-            if (!filter.contains(id->getKind())) {
-                return std::nullopt;
-            } else {
-                return Org_getString(id);
-            }
-        });
+Vec<Str> org::getDfsLeafText(sem::SemId<sem::Org> id, SemSet const& filter) {
+    return getDfsFuncEval<Str>(id, [&](sem::SemId<sem::Org> const& id) -> Opt<Str> {
+        if (!filter.contains(id->getKind())) {
+            return std::nullopt;
+        } else {
+            return Org_getString(id);
+        }
+    });
 }
 
-Vec<Str> org::getDfsLeafText(
-    imm::ImmAdapter const& id,
-    SemSet const&          filter) {
-    return getDfsFuncEval<Str>(
-        id, false, [&](imm::ImmAdapter const& id) -> Opt<Str> {
-            if (!filter.contains(id->getKind())) {
-                return std::nullopt;
-            } else {
-                return Org_getString(id);
-            }
-        });
+Vec<Str> org::getDfsLeafText(imm::ImmAdapter const& id, SemSet const& filter) {
+    return getDfsFuncEval<Str>(id, false, [&](imm::ImmAdapter const& id) -> Opt<Str> {
+        if (!filter.contains(id->getKind())) {
+            return std::nullopt;
+        } else {
+            return Org_getString(id);
+        }
+    });
 }
 
 Str org::getCleanText(sem::SemId<sem::Org> const& id) {
     return join(
-        "",
-        org::getDfsFuncEval<Str>(
-            id, [](sem::SemId<sem::Org> const& id) -> Opt<Str> {
-                if (auto space = id.asOpt<sem::Space>()) {
-                    return " ";
-                } else {
-                    return Org_getString(id);
-                }
-            }));
+        "", org::getDfsFuncEval<Str>(id, [](sem::SemId<sem::Org> const& id) -> Opt<Str> {
+            if (auto space = id.asOpt<sem::Space>()) {
+                return " ";
+            } else {
+                return Org_getString(id);
+            }
+        }));
 }
 
 Str org::getCleanText(imm::ImmAdapter const& id) {
     return join(
-        "",
-        org::getDfsFuncEval<Str>(
-            id, false, [](imm::ImmAdapter const& a) -> Opt<Str> {
-                if (auto space = a.dyn_cast<imm::ImmSpace>()) {
-                    return " ";
-                } else {
-                    return Org_getString(a);
-                }
-            }));
+        "", org::getDfsFuncEval<Str>(id, false, [](imm::ImmAdapter const& a) -> Opt<Str> {
+            if (auto space = a.dyn_cast<imm::ImmSpace>()) {
+                return " ";
+            } else {
+                return Org_getString(a);
+            }
+        }));
 }
 
 Opt<Str> imm::ImmAdapterBlockExportAPI::getPlacement() const {
-    auto p = getThis()->as<imm::ImmBlockExport>().getFirstAttr(
-        "placement");
+    auto p = getThis()->as<imm::ImmBlockExport>().getFirstAttr("placement");
     if (p) {
         return p.value().getString();
     } else {
@@ -1226,8 +1166,9 @@ Opt<sem::AttrValue> sem::BlockCode::getVariable(Str const& var) const {
 }
 
 
-hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::
-    getFsSubnode(hstd::Str const& name, bool withPath) const {
+hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::getFsSubnode(
+    hstd::Str const& name,
+    bool             withPath) const {
 
     auto test = [&](hstd::Str const& path) -> bool {
         return fs::path{path.toBase()}.filename().native() == name;
@@ -1249,8 +1190,7 @@ hstd::Opt<org::imm::ImmAdapter> org::imm::ImmAdapterDirectoryAPI::
 
 hstd::Opt<int64_t> org::sem::TimeRange::getClockedTimeSeconds() const {
     if (!to.isNil() && to->isStatic() && from->isStatic()) {
-        return to->getStaticTime().getTimeDeltaSeconds(
-            from->getStaticTime());
+        return to->getStaticTime().getTimeDeltaSeconds(from->getStaticTime());
     } else {
         return std::nullopt;
     }
@@ -1267,8 +1207,7 @@ hstd::Opt<hstd::Str> org::sem::Subtree::getTodoKeyword() const {
 }
 
 
-hstd::Opt<hstd::Str> org::sem::Stmt::getFirstAttrString(
-    hstd::Str const& key) const {
+hstd::Opt<hstd::Str> org::sem::Stmt::getFirstAttrString(hstd::Str const& key) const {
     if (auto it = getFirstAttr(key); it.has_value()) {
         return it.value().getString();
     } else {
@@ -1276,8 +1215,7 @@ hstd::Opt<hstd::Str> org::sem::Stmt::getFirstAttrString(
     }
 }
 
-hstd::Opt<bool> org::sem::Stmt::getFirstAttrBool(
-    hstd::Str const& key) const {
+hstd::Opt<bool> org::sem::Stmt::getFirstAttrBool(hstd::Str const& key) const {
     if (auto it = getFirstAttr(key); it.has_value()) {
         return it.value().getBool();
     } else {
@@ -1285,8 +1223,7 @@ hstd::Opt<bool> org::sem::Stmt::getFirstAttrBool(
     }
 }
 
-hstd::Opt<int> org::sem::Stmt::getFirstAttrInt(
-    hstd::Str const& key) const {
+hstd::Opt<int> org::sem::Stmt::getFirstAttrInt(hstd::Str const& key) const {
     if (auto it = getFirstAttr(key); it.has_value()) {
         return it.value().getInt();
     } else {
@@ -1303,8 +1240,7 @@ hstd::Opt<sem::AttrValue::LispValue> org::sem::Stmt::getFirstAttrLisp(
     }
 }
 
-hstd::Opt<double> org::sem::Stmt::getFirstAttrDouble(
-    hstd::Str const& key) const {
+hstd::Opt<double> org::sem::Stmt::getFirstAttrDouble(hstd::Str const& key) const {
     if (auto it = getFirstAttr(key); it.has_value()) {
         return it.value().getDouble();
     } else {

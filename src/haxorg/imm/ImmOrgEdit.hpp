@@ -66,11 +66,7 @@ struct OrgSelectorLink {
         FieldName       = 2,
     };
 
-    BOOST_DESCRIBE_NESTED_ENUM(
-        Kind,
-        DirectSubnode,
-        IndirectSubnode,
-        FieldName);
+    BOOST_DESCRIBE_NESTED_ENUM(Kind, DirectSubnode, IndirectSubnode, FieldName);
 
 
     // 0
@@ -93,12 +89,7 @@ struct OrgSelectorLink {
 struct OrgSelectorResult {
     bool isMatching     = false;
     bool tryNestedNodes = true;
-    BOOST_DESCRIBE_CLASS(
-        OrgSelectorResult,
-        (),
-        (isMatching, tryNestedNodes),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(OrgSelectorResult, (), (isMatching, tryNestedNodes), (), ());
 };
 
 struct OrgSelectorCondition {
@@ -130,8 +121,7 @@ struct OrgDocumentSelector : hstd::OperationsTracer {
     }
 
     OrgSelectorLink linkField(ImmReflFieldId const& name) const {
-        return OrgSelectorLink{
-            .data = OrgSelectorLink::FieldName{.name = name}};
+        return OrgSelectorLink{.data = OrgSelectorLink::FieldName{.name = name}};
     }
 
     void searchSubtreePlaintextTitle(
@@ -153,7 +143,7 @@ struct OrgDocumentSelector : hstd::OperationsTracer {
     void searchPredicate(
         org::imm::OrgSelectorCondition::Predicate const& predicate,
         bool                                             isTarget,
-        hstd::Opt<OrgSelectorLink> link = std::nullopt);
+        hstd::Opt<OrgSelectorLink>                       link = std::nullopt);
 
     BOOST_DESCRIBE_CLASS(OrgDocumentSelector, (), (path), (), ());
 };

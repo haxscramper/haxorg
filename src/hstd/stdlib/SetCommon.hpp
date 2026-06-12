@@ -59,9 +59,7 @@ struct SetBase : public CRTP_this_method<Set> {
         return other.contains(*_this()) && _this()->size() < other.size();
     }
 
-    bool operator<=(Set const& other) const {
-        return other.contains(*_this());
-    }
+    bool operator<=(Set const& other) const { return other.contains(*_this()); }
 };
 
 } // namespace hstd

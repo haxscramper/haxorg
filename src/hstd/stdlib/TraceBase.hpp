@@ -21,9 +21,7 @@ struct OperationsMsg {
 
     void use_stacktrace_as_msg();
 
-    DESC_FIELDS(
-        OperationsMsg,
-        (msg, file, function, line, column, metadata));
+    DESC_FIELDS(OperationsMsg, (msg, file, function, line, column, metadata));
 };
 
 struct OperationsTracer;
@@ -58,8 +56,7 @@ struct [[refl]] OperationsTracer {
         std::format_string<_Args...> __fmt,
         _Args&&... __args) const {
         if (TraceState) {
-            return std::vformat(
-                __fmt.get(), std::make_format_args(__args...));
+            return std::vformat(__fmt.get(), std::make_format_args(__args...));
         } else {
             return "";
         }
@@ -89,9 +86,7 @@ struct [[refl]] OperationsTracer {
             char const*             file     = __builtin_FILE());
 
         ~ScopeHandle() {
-            if (tracer != nullptr) {
-                end(std::nullopt, nullptr, -1, nullptr);
-            }
+            if (tracer != nullptr) { end(std::nullopt, nullptr, -1, nullptr); }
         }
     };
 
@@ -139,9 +134,7 @@ struct [[refl]] OperationsTracer {
     void      stacktraceMessage() const;
 
     /// \brief Helper method for reflection
-    [[refl]] void setTraceFileStr(
-        std::string const& outfile,
-        bool               overwrite) {
+    [[refl]] void setTraceFileStr(std::string const& outfile, bool overwrite) {
         setTraceFile(outfile, overwrite);
     }
 
@@ -162,33 +155,26 @@ struct [[refl]] OperationsTracer {
 
 
 namespace {
-inline bool __is_trace_state(hstd::OperationsTracer const& t) {
-    return t.TraceState;
-}
-inline bool __is_trace_state(hstd::OperationsTracer const* t) {
-    return t->TraceState;
-}
+inline bool __is_trace_state(hstd::OperationsTracer const& t) { return t.TraceState; }
+inline bool __is_trace_state(hstd::OperationsTracer const* t) { return t->TraceState; }
 inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
     return t->TraceState;
 }
 } // namespace
 
-#define OP_TRACER_MESSAGE(__tracer, __format, ...)                        \
-    if (::hstd::__is_trace_state(__tracer)) {                             \
-        __tracer->message(                                                \
-            __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));  \
+#define OP_TRACER_MESSAGE(__tracer, __format, ...)                                       \
+    if (::hstd::__is_trace_state(__tracer)) {                                            \
+        __tracer->message(__tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));   \
     }
 
-#define OP_TRACER_MESSAGE_SCOPE_HANDLE(__tracer, __format, ...)           \
-    ::hstd::__is_trace_state(__tracer)                                    \
-        ? __tracer->begin_scope(                                          \
-              __tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__)) \
-        : __tracer->begin_scope();
+#define OP_TRACER_MESSAGE_SCOPE_HANDLE(__tracer, __format, ...)                          \
+    ::hstd::__is_trace_state(__tracer) ? __tracer->begin_scope(__tracer->fmt_message(    \
+                                             __format __VA_OPT__(, ) __VA_ARGS__))       \
+                                       : __tracer->begin_scope();
 
-#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                     \
-    auto                                                                     \
-        BOOST_PP_CAT(__scope, __COUNTER__) = OP_TRACER_MESSAGE_SCOPE_HANDLE( \
-            __tracer, __format __VA_OPT__(, ) __VA_ARGS__);
+#define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                                 \
+    auto BOOST_PP_CAT(__scope, __COUNTER__) = OP_TRACER_MESSAGE_SCOPE_HANDLE(            \
+        __tracer, __format __VA_OPT__(, ) __VA_ARGS__);
 
 template <typename Derived, typename Msg>
 struct OperationsMsgBulder : CRTP_this_method<Derived> {
@@ -215,10 +201,7 @@ struct OperationsMsgBulder : CRTP_this_method<Derived> {
         return *_this();
     }
 
-    Derived& with_location(
-        int const&  line,
-        char const* function,
-        char const* file) {
+    Derived& with_location(int const& line, char const* function, char const* file) {
         report.line     = line;
         report.function = function;
         report.file     = file;

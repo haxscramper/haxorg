@@ -57,12 +57,10 @@ void InsertFilePaths(
 void InsertCommits(
     SQLite::Database&                           db,
     dod::Store<ir::CommitId, ir::Commit> const& commits) {
-    SQLite::Statement query(
-        db, "INSERT INTO GitCommit VALUES (?, ?, ?, ?, ?, ?)");
+    SQLite::Statement query(db, "INSERT INTO GitCommit VALUES (?, ?, ?, ?, ?, ?)");
 
     SQLite::Statement actions(
-        db,
-        "INSERT INTO GitCommitActions VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        db, "INSERT INTO GitCommitActions VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
 
     for (const auto& [id, item] : commits.pairs()) {
@@ -88,9 +86,7 @@ void InsertCommits(
                 actions.bind(5, idcast(act.new_path.getValue()));
             }
 
-            if (!act.file.isNil()) {
-                actions.bind(6, idcast(act.file.getValue()));
-            }
+            if (!act.file.isNil()) { actions.bind(6, idcast(act.file.getValue())); }
 
             if (act.kind == ir::Commit::ActionKind::Modify) {
                 actions.bind(7, act.added);
@@ -116,14 +112,11 @@ void InsertFileTracks(
 
 // InsertFileTrackSections Function
 void InsertFileTrackSections(
-    SQLite::Database& db,
-    dod::Store<ir::FileTrackSectionId, ir::FileTrackSection> const&
-        fileTrackSections) {
-    SQLite::Statement query(
-        db, "INSERT INTO FileTrackSection VALUES (?, ?, ?, ?)");
+    SQLite::Database&                                               db,
+    dod::Store<ir::FileTrackSectionId, ir::FileTrackSection> const& fileTrackSections) {
+    SQLite::Statement query(db, "INSERT INTO FileTrackSection VALUES (?, ?, ?, ?)");
 
-    SQLite::Statement lineQuery(
-        db, "INSERT INTO FileSectionLines VALUES (?, ?, ?)");
+    SQLite::Statement lineQuery(db, "INSERT INTO FileSectionLines VALUES (?, ?, ?)");
 
     for (const auto& [id, item] : fileTrackSections.pairs()) {
         query.bind(1, idcast(id.getValue()));
@@ -203,8 +196,8 @@ class LinePrinterLogSink : public absl::LogSink {
   public:
     LinePrinterLogSink(std::string const& path) : file(path) {}
     void Send(absl::LogEntry const& entry) override {
-        for (absl::string_view line : absl::StrSplit(
-                 entry.text_message_with_prefix(), absl::ByChar('\n'))) {
+        for (absl::string_view line :
+             absl::StrSplit(entry.text_message_with_prefix(), absl::ByChar('\n'))) {
             // Overprint severe entries for emphasis:
             for (int i = static_cast<int>(absl::LogSeverity::kInfo);
                  i <= static_cast<int>(entry.log_severity());
@@ -226,16 +219,13 @@ int main(int argc, char** argv) {
 
     SPtr<LinePrinterLogSink> Sink;
     if (config->cli.out.log_file) {
-        LOG(INFO)
-            << "Log file configuration was provided, writing to file";
-        Sink = std::make_shared<LinePrinterLogSink>(
-            *config->cli.out.log_file);
+        LOG(INFO) << "Log file configuration was provided, writing to file";
+        Sink = std::make_shared<LinePrinterLogSink>(*config->cli.out.log_file);
         absl::AddLogSink(Sink.get());
         absl::log_internal::SetTimeZone(absl::LocalTimeZone());
         absl::log_internal::SetInitialized();
     } else {
-        LOG(INFO)
-            << "No log file configured, writing to regular logging output";
+        LOG(INFO) << "No log file configured, writing to regular logging output";
     }
 #ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
@@ -261,8 +251,8 @@ int main(int argc, char** argv) {
     } else if (!fs::exists(heads_path)) {
         LOG(ERROR) << "The branch '" << config->cli.repo.branch
                    << "' does not exist in the repository at path "
-                   << config->cli.repo.path << " the full path "
-                   << heads_path << " does not exist";
+                   << config->cli.repo.path << " the full path " << heads_path
+                   << " does not exist";
         return 1;
     }
 
@@ -270,8 +260,7 @@ int main(int argc, char** argv) {
     // Create main walker state used in the whole commit analysis state
     auto state = UPtr<walker_state>(new walker_state{
         .config  = config.get(),
-        .repo    = git::repository_open_ext(
-                       config->cli.repo.path.c_str(), 0, nullptr)
+        .repo    = git::repository_open_ext(config->cli.repo.path.c_str(), 0, nullptr)
                        .value(),
         .content = &content,
     });
@@ -309,24 +298,19 @@ int main(int argc, char** argv) {
                     "  Section [{}] = {} at {} +{} -{}\n",
                     section_id,
                     escape_literal(
-                        state->content
-                            ->at(state->content->at(section.path).path)
-                            .text),
-                    state->content->at(section.commit_id)
-                        .hash.substr(0, 8),
+                        state->content->at(state->content->at(section.path).path).text),
+                    state->content->at(section.commit_id).hash.substr(0, 8),
                     section.added_lines,
                     section.removed_lines);
 
-                for (auto const& [idx, line_id] :
-                     enumerate(section.lines)) {
+                for (auto const& [idx, line_id] : enumerate(section.lines)) {
                     file << fmt(
                         "   [{}] = ({}) {} {}\n",
                         idx,
                         line_id,
                         rs::contains(section.added_lines, idx) ? "+" : " ",
                         escape_literal(
-                            state->content
-                                ->at(state->content->at(line_id).content)
+                            state->content->at(state->content->at(line_id).content)
                                 .text));
                 }
             }
@@ -337,11 +321,9 @@ int main(int argc, char** argv) {
     fs::path db_file{config->cli.out.db_path};
     if (fs::exists(db_file)) { fs::remove(db_file); }
 
-    SQLite::Database db(
-        db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+    SQLite::Database db(db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     CreateTables(db);
-    LOG(INFO) << "Inserting data content, specified db path "
-              << config->cli.out.db_path;
+    LOG(INFO) << "Inserting data content, specified db path " << config->cli.out.db_path;
     db.exec("BEGIN");
     auto& m = state->content->multi;
     InsertFileTrackSections(db, m.store<ir::FileTrackSection>());

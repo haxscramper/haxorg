@@ -20,18 +20,13 @@ std::string getColumnName(TableColumns column) {
 }
 
 
-bool OrgTreeProxyModel::filterAcceptsRow(
-    int                source_row,
-    QModelIndex const& source_parent) const {
+bool OrgTreeProxyModel::filterAcceptsRow(int source_row, QModelIndex const& source_parent)
+    const {
     if (model->isFlatSorting()) {
         auto node = model->flat_nodes[source_row];
-        if (hide_completed_tasks && isCompletedTask(node->getTodo())) {
-            return false;
-        }
+        if (hide_completed_tasks && isCompletedTask(node->getTodo())) { return false; }
 
-        if (hide_tasks_without_todo_on_flat && node->getTodo().empty()) {
-            return false;
-        }
+        if (hide_tasks_without_todo_on_flat && node->getTodo().empty()) { return false; }
 
         return true;
     } else {
@@ -68,20 +63,17 @@ bool OrgTreeProxyModel::filterAcceptsRow(
     }
 }
 
-bool OrgTreeProxyModel::lessThan(
-    QModelIndex const& left,
-    QModelIndex const& right) const {
+bool OrgTreeProxyModel::lessThan(QModelIndex const& left, QModelIndex const& right)
+    const {
     int  column       = left.column();
     bool is_ascending = model->sort_order == Qt::AscendingOrder;
 
     if (model->isFlatSorting()) {
-        auto left_node = static_cast<OrgAgendaNode*>(
-            left.internalPointer());
-        auto right_node = static_cast<OrgAgendaNode*>(
-            right.internalPointer());
+        auto left_node  = static_cast<OrgAgendaNode*>(left.internalPointer());
+        auto right_node = static_cast<OrgAgendaNode*>(right.internalPointer());
 
-        auto earlyEmptyResult =
-            [&](bool left_empty, bool right_empty) -> std::optional<bool> {
+        auto earlyEmptyResult = [&](bool left_empty,
+                                    bool right_empty) -> std::optional<bool> {
             if (left_empty && right_empty) { return false; }
             if (left_empty) { return !is_ascending; }
             if (right_empty) { return is_ascending; }
@@ -90,16 +82,13 @@ bool OrgTreeProxyModel::lessThan(
 
         auto compareWithEmptyHandling = hstd::overloaded{
             [&]<typename T>(
-                hstd::Opt<T> const& left_value,
-                hstd::Opt<T> const& right_value) -> bool {
+                hstd::Opt<T> const& left_value, hstd::Opt<T> const& right_value) -> bool {
                 auto early = earlyEmptyResult(
                     !left_value.has_value(), !right_value.has_value());
                 if (early.has_value()) { return early.value(); }
                 return left_value.value() < right_value.value();
             },
-            [&](auto left_value,
-                auto right_value,
-                auto empty_value) -> bool {
+            [&](auto left_value, auto right_value, auto empty_value) -> bool {
                 auto early = earlyEmptyResult(
                     left_value == empty_value, right_value == empty_value);
                 if (early.has_value()) { return early.value(); }
@@ -110,33 +99,22 @@ bool OrgTreeProxyModel::lessThan(
         switch (static_cast<TableColumns>(column)) {
             case TableColumns::PRIORITY_INDEX:
                 return compareWithEmptyHandling(
-                    left_node->getPriorityOrder(),
-                    right_node->getPriorityOrder(),
-                    -1);
+                    left_node->getPriorityOrder(), right_node->getPriorityOrder(), -1);
             case TableColumns::TAGS:
                 return compareWithEmptyHandling(
-                    left_node->getTags().size(),
-                    right_node->getTags().size(),
-                    size_t{0});
+                    left_node->getTags().size(), right_node->getTags().size(), size_t{0});
             case TableColumns::TODO_INDEX:
                 return compareWithEmptyHandling(
-                    left_node->getTodo(),
-                    right_node->getTodo(),
-                    std::string{""});
+                    left_node->getTodo(), right_node->getTodo(), std::string{""});
             case TableColumns::CLOCKED:
                 return compareWithEmptyHandling(
-                    left_node->getClockedSeconds(),
-                    right_node->getClockedSeconds(),
-                    0);
+                    left_node->getClockedSeconds(), right_node->getClockedSeconds(), 0);
             case TableColumns::CREATION_DATE:
                 return compareWithEmptyHandling(
-                    left_node->getCreatedTime(),
-                    right_node->getCreatedTime());
+                    left_node->getCreatedTime(), right_node->getCreatedTime());
             case TableColumns::TASK_AGE:
                 return compareWithEmptyHandling(
-                    left_node->getAgeSeconds(),
-                    right_node->getAgeSeconds(),
-                    0);
+                    left_node->getAgeSeconds(), right_node->getAgeSeconds(), 0);
             default: return QSortFilterProxyModel::lessThan(left, right);
         }
     } else {
@@ -145,10 +123,7 @@ bool OrgTreeProxyModel::lessThan(
 }
 
 
-QModelIndex OrgTreeModel::index(
-    int                row,
-    int                column,
-    QModelIndex const& parent) const {
+QModelIndex OrgTreeModel::index(int row, int column, QModelIndex const& parent) const {
     if (!hasIndex(row, column, parent)) { return QModelIndex{}; }
 
     if (isFlatSorting()) {
@@ -159,12 +134,10 @@ QModelIndex OrgTreeModel::index(
     } else {
         if (!parent.isValid()) {
             if (row < getRoot()->children.size()) {
-                return createIndex(
-                    row, column, getRoot()->children[row].get());
+                return createIndex(row, column, getRoot()->children[row].get());
             }
         } else {
-            auto parent_node = static_cast<OrgAgendaNode*>(
-                parent.internalPointer());
+            auto parent_node = static_cast<OrgAgendaNode*>(parent.internalPointer());
             if (row < parent_node->children.size()) {
                 auto child_node = parent_node->children[row];
                 return createIndex(row, column, child_node.get());
@@ -178,7 +151,7 @@ QModelIndex OrgTreeModel::index(
 QModelIndex OrgTreeModel::parent(QModelIndex const& index) const {
     if (!index.isValid() || isFlatSorting()) { return QModelIndex{}; }
 
-    auto node = static_cast<OrgAgendaNode*>(index.internalPointer());
+    auto node        = static_cast<OrgAgendaNode*>(index.internalPointer());
     auto parent_node = node->parent.lock().get();
 
     if (!parent_node || parent_node == getRoot()) { return QModelIndex{}; }
@@ -188,9 +161,7 @@ QModelIndex OrgTreeModel::parent(QModelIndex const& index) const {
         auto it = std::find_if(
             grandparent->children.begin(),
             grandparent->children.end(),
-            [&](OrgAgendaNode::Ptr const& ch) {
-                return parent_node == ch.get();
-            });
+            [&](OrgAgendaNode::Ptr const& ch) { return parent_node == ch.get(); });
         if (it != grandparent->children.end()) {
             int row = std::distance(grandparent->children.begin(), it);
             return createIndex(row, 0, parent_node);
@@ -208,16 +179,13 @@ QVariant OrgTreeModel::data(QModelIndex const& index, int role) const {
 
     if (role == Qt::DisplayRole) {
         switch (static_cast<TableColumns>(column)) {
-            case TableColumns::TITLE:
-                return QString::fromStdString(node->getTitle());
+            case TableColumns::TITLE: return QString::fromStdString(node->getTitle());
             case TableColumns::PRIORITY_INDEX:
                 return QString::fromStdString(node->getPriority());
-            case TableColumns::TODO_INDEX:
-                return QString::fromStdString(node->getTodo());
+            case TableColumns::TODO_INDEX: return QString::fromStdString(node->getTodo());
             case TableColumns::CREATION_DATE: {
                 auto created = node->getCreatedTime();
-                return QString::fromStdString(
-                    created ? created->format() : "");
+                return QString::fromStdString(created ? created->format() : "");
             }
             case TableColumns::TASK_AGE:
                 return QString::fromStdString(node->getAgeDisplay());
@@ -238,14 +206,13 @@ QVariant OrgTreeModel::data(QModelIndex const& index, int role) const {
                 int sec     = node->getClockedSeconds();
                 int hours   = sec / (60 * 60);
                 int minutes = (sec / 60) % 60;
-                return QString::fromStdString(
-                    std::format("{}:{}", hours, minutes));
+                return QString::fromStdString(std::format("{}:{}", hours, minutes));
             }
         }
     } else if (
         role == Qt::BackgroundRole
         && column == static_cast<int>(TableColumns::PRIORITY_INDEX)) {
-        std::string priority = node->getPriority();
+        std::string priority                                        = node->getPriority();
         static const std::unordered_map<std::string, QColor> colors = {
             {"X", QColor{255, 0, 0}},
             {"S", QColor{253, 95, 240}},
@@ -302,10 +269,8 @@ QVariant OrgTreeModel::data(QModelIndex const& index, int role) const {
     return QVariant{};
 }
 
-QVariant OrgTreeModel::headerData(
-    int             section,
-    Qt::Orientation orientation,
-    int             role) const {
+QVariant OrgTreeModel::headerData(int section, Qt::Orientation orientation, int role)
+    const {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
         if (0 <= section && section < 8) {
             return QString::fromStdString(
@@ -329,10 +294,7 @@ void CommandPalette::setupUi() {
     search_input = new QLineEdit{};
     search_input->setPlaceholderText("Type to search items...");
     connect(
-        search_input,
-        &QLineEdit::textChanged,
-        this,
-        &CommandPalette::onSearchChanged);
+        search_input, &QLineEdit::textChanged, this, &CommandPalette::onSearchChanged);
     layout->addWidget(search_input);
 
     results_list = new QListWidget{};
@@ -354,8 +316,7 @@ std::vector<CommandPaletteItem> CommandPalette::filterAndScoreItems(
 
     hstd::FuzzyMatcher matcher;
     std::string*       curr_item;
-    matcher.isEqual = [&](int const& i_pattern,
-                          int const& i_item) -> bool {
+    matcher.isEqual = [&](int const& i_pattern, int const& i_item) -> bool {
         return std::tolower(search_text.at(i_pattern))
             == std::tolower(curr_item->at(i_item));
     };
@@ -384,13 +345,10 @@ std::vector<CommandPaletteItem> CommandPalette::filterAndScoreItems(
         }
     }
 
-    std::sort(
-        scored_items.begin(),
-        scored_items.end(),
-        [](auto const& a, auto const& b) {
-            if (a.score != b.score) { return a.score > b.score; }
-            return a.full_path.length() < b.full_path.length();
-        });
+    std::sort(scored_items.begin(), scored_items.end(), [](auto const& a, auto const& b) {
+        if (a.score != b.score) { return a.score > b.score; }
+        return a.full_path.length() < b.full_path.length();
+    });
 
     return scored_items;
 }
@@ -402,18 +360,13 @@ void CommandPalette::updateResultsList() {
         auto list_item = new QListWidgetItem{};
         list_item->setText(QString::fromStdString(item.full_path));
         list_item->setData(
-            Qt::UserRole,
-            QVariant::fromValue(const_cast<CommandPaletteItem*>(&item)));
+            Qt::UserRole, QVariant::fromValue(const_cast<CommandPaletteItem*>(&item)));
 
         if (!search_input->text().trimmed().isEmpty()) {
-            std::string
-                search_text = search_input->text().toLower().toStdString();
+            std::string search_text = search_input->text().toLower().toStdString();
             std::string title_lower = item.title;
             std::transform(
-                title_lower.begin(),
-                title_lower.end(),
-                title_lower.begin(),
-                ::tolower);
+                title_lower.begin(), title_lower.end(), title_lower.begin(), ::tolower);
 
             if (title_lower.find(search_text) != std::string::npos) {
                 auto font = list_item->font();

@@ -6,8 +6,7 @@
 
 namespace hstd {
 
-struct generator_rethrow_exception
-    : CRTP_hexception<generator_rethrow_exception> {};
+struct generator_rethrow_exception : CRTP_hexception<generator_rethrow_exception> {};
 
 template <typename T>
 struct generator {
@@ -19,7 +18,7 @@ struct generator {
         }
         std::suspend_always initial_suspend() { return {}; }
         std::suspend_always final_suspend() noexcept { return {}; }
-        generator get_return_object() { return generator{this}; };
+        generator           get_return_object() { return generator{this}; };
 
         void unhandled_exception() { throw; }
 
@@ -34,16 +33,10 @@ struct generator {
         iterator(std::coroutine_handle<promise_type> _coro, bool _done)
             : coro(_coro), done(_done) {}
 
-        bool operator==(iterator const& _right) const {
-            return done == _right.done;
-        }
-        bool operator!=(iterator const& _right) const {
-            return !(*this == _right);
-        }
-        T const& operator*() const {
-            return coro.promise().current_value.value();
-        }
-        T& operator*() { return coro.promise().current_value.value(); }
+        bool     operator==(iterator const& _right) const { return done == _right.done; }
+        bool     operator!=(iterator const& _right) const { return !(*this == _right); }
+        T const& operator*() const { return coro.promise().current_value.value(); }
+        T&       operator*() { return coro.promise().current_value.value(); }
 
         iterator& operator++() {
             coro.resume();

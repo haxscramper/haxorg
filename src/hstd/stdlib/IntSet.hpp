@@ -84,12 +84,8 @@ struct [[refl(R"({
 
     // Helper method to recurse into constructor argument list
     template <typename Value, typename... Args>
-    constexpr void buildSet(
-        Ref<IntSet<T>> result,
-        Value const&   value,
-        Args&&... tail)
-        requires AllConvertibleToSet<T, Args...>
-              && ConvertibleToSet<T, Value>
+    constexpr void buildSet(Ref<IntSet<T>> result, Value const& value, Args&&... tail)
+        requires AllConvertibleToSet<T, Args...> && ConvertibleToSet<T, Value>
     {
         result.incl(value);
         buildSet(result, tail...);
@@ -109,9 +105,7 @@ struct [[refl(R"({
     using BitsetT = std::bitset<pow_v<2, 8 * sizeof(T)>::res>;
     BitsetT values;
 
-    constexpr bool contains(T const& value) const {
-        return values.test(toIdx(value));
-    }
+    constexpr bool contains(T const& value) const { return values.test(toIdx(value)); }
     /// Check if one set is a proper subset of another -- \arg other
     /// contains all the values.
     constexpr bool contains(IntSet<T> const& other) const {
@@ -120,15 +114,11 @@ struct [[refl(R"({
 
 
     constexpr void incl(IntSet<T> const& other) { values |= other.values; }
-    constexpr void excl(IntSet<T> const& other) {
-        values &= ~other.values;
-    }
+    constexpr void excl(IntSet<T> const& other) { values &= ~other.values; }
     constexpr void incl(T const& value) { values.set(toIdx(value)); }
     constexpr void excl(T const& value) { values.reset(toIdx(value)); }
 
-    bool operator==(IntSet<T> const& other) const {
-        return values == other.values;
-    }
+    bool operator==(IntSet<T> const& other) const { return values == other.values; }
 
     IntSet<T> operator^(IntSet<T> const& other) const {
         IntSet<T> result;
@@ -171,13 +161,10 @@ struct [[refl(R"({
         typedef std::ptrdiff_t            difference_type;
 
 
-        iterator(std::size_t _index, BitsetT const* _base)
-            : index(_index), base(_base) {
+        iterator(std::size_t _index, BitsetT const* _base) : index(_index), base(_base) {
             // If starting position is empty, move over to the required
             // element.
-            if (index < base->size() && !base->test(index)) {
-                operator++();
-            }
+            if (index < base->size() && !base->test(index)) { operator++(); }
         }
 
         T operator*() { return value_from_bitset_index<T>(index); }
@@ -190,9 +177,7 @@ struct [[refl(R"({
             return *this;
         }
 
-        bool operator!=(iterator const& other) {
-            return index != other.index;
-        }
+        bool operator!=(iterator const& other) { return index != other.index; }
     };
 
     iterator begin() { return iterator(0, &values); }
@@ -207,8 +192,7 @@ template <typename T>
 struct std::formatter<hstd::IntSet<T>> : std::formatter<std::string> {
     using FmtType = hstd::IntSet<T>;
     template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         fmt.format("{", ctx);
         fmt.format(join(", ", p), ctx);

@@ -38,9 +38,8 @@ class RangeTree {
         Vec<Node*> getAllNodes(T const& point) const {
             Vec<Node*> result;
 
-            if (rs::any_of(overlapping, [&](Range const& r) {
-                    return r.contains(point);
-                })) {
+            if (rs::any_of(
+                    overlapping, [&](Range const& r) { return r.contains(point); })) {
                 result.push_back(const_cast<Node*>(this));
             }
 
@@ -101,8 +100,7 @@ class RangeTree {
     UPtr<Node> build(Vec<Slice<T>> slices) {
         auto ranges  //
             = slices //
-            | rv::enumerate
-            | rv::transform([](Pair<int, Slice<T>> const& pair) -> Range {
+            | rv::enumerate | rv::transform([](Pair<int, Slice<T>> const& pair) -> Range {
                   return Range{
                       .range = pair.second,
                       .index = pair.first,
@@ -110,26 +108,22 @@ class RangeTree {
               })
             | rs::to<Vec>();
 
-        std::sort(
-            ranges.begin(),
-            ranges.end(),
-            [](Range const& lhs, Range const& rhs) {
-                if (lhs.range.first != rhs.range.first) {
-                    return lhs.range.first < rhs.range.first;
-                } else if (lhs.range.last != rhs.range.last) {
-                    // When lhs completely contains rhs, sort lhs first.
-                    return rhs.range.last < lhs.range.last;
-                } else {
-                    return true;
-                }
-            });
+        std::sort(ranges.begin(), ranges.end(), [](Range const& lhs, Range const& rhs) {
+            if (lhs.range.first != rhs.range.first) {
+                return lhs.range.first < rhs.range.first;
+            } else if (lhs.range.last != rhs.range.last) {
+                // When lhs completely contains rhs, sort lhs first.
+                return rhs.range.last < lhs.range.last;
+            } else {
+                return true;
+            }
+        });
 
         return buildRec(ranges);
     }
 
     Vec<Node*> getNodes(T const& point) const {
-        LOGIC_ASSERTION_CHECK(
-            root.get() != nullptr, "Root must not be nil");
+        LOGIC_ASSERTION_CHECK(root.get() != nullptr, "Root must not be nil");
         return root->getAllNodes(point);
     }
 
@@ -150,11 +144,9 @@ class RangeTree {
 } // namespace hstd
 
 template <typename T>
-struct std::formatter<hstd::RangeTreeRange<T>>
-    : std::formatter<std::string> {
+struct std::formatter<hstd::RangeTreeRange<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(hstd::RangeTreeRange<T> const& p, FormatContext& ctx)
-        const {
+    auto format(hstd::RangeTreeRange<T> const& p, FormatContext& ctx) const {
         ::hstd::fmt_ctx("[", ctx);
         ::hstd::fmt_ctx(p.range.first, ctx);
         ::hstd::fmt_ctx("..", ctx);
@@ -175,17 +167,12 @@ struct std::formatter<hstd::RangeTree<T>> : std::formatter<std::string> {
         } else {
             typename hstd::RangeTree<T>::Node& node = *(p.root.get());
             std::stringstream                  os;
-            hstd::Func<void(typename hstd::RangeTree<T>::Node const&, int)>
-                aux;
+            hstd::Func<void(typename hstd::RangeTree<T>::Node const&, int)> aux;
 
-            aux = [&](typename hstd::RangeTree<T>::Node const& node,
-                      int                                      level) {
+            aux = [&](typename hstd::RangeTree<T>::Node const& node, int level) {
                 auto indent = hstd::Str("  ").repeated(level);
                 os << indent;
-                os << fmt(
-                    "center = {} overlapping = {}",
-                    node.center,
-                    node.overlapping);
+                os << fmt("center = {} overlapping = {}", node.center, node.overlapping);
 
                 if (node.left != nullptr) {
                     os << "\n" << indent << "  left = \n";

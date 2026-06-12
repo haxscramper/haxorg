@@ -11,21 +11,14 @@ template class nlohmann::basic_json<>;
 
 using namespace hstd;
 
-std::string hstd::to_compact_json(
-    json const&              j,
-    JsonFormatOptions const& options) {
+std::string hstd::to_compact_json(json const& j, JsonFormatOptions const& options) {
     std::unordered_map<std::size_t, int> sizes;
 
     Func<int(json const&)> getSize;
     getSize = [&](json const& j) -> int {
         std::size_t hash = std::hash<json>{}(j);
         if (!sizes.contains(hash)) {
-            sizes[hash] = j.dump(
-                               2,
-                               ' ',
-                               false,
-                               json::error_handler_t::ignore)
-                              .size();
+            sizes[hash] = j.dump(2, ' ', false, json::error_handler_t::ignore).size();
         }
 
         return sizes.at(hash);
@@ -43,8 +36,7 @@ std::string hstd::to_compact_json(
                     try {
                         return j.dump();
                     } catch (json::type_error& err) {
-                        return j.dump(
-                            2, ' ', false, json::error_handler_t::ignore);
+                        return j.dump(2, ' ', false, json::error_handler_t::ignore);
                     }
 
                     break;
@@ -52,9 +44,7 @@ std::string hstd::to_compact_json(
                 case json::value_t::boolean:
                 case json::value_t::number_float:
                 case json::value_t::number_integer:
-                case json::value_t::number_unsigned:
-                    return j.dump();
-                    break;
+                case json::value_t::number_unsigned: return j.dump(); break;
 
                 case json::value_t::array: {
                     std::string result;
@@ -90,8 +80,7 @@ std::string hstd::to_compact_json(
                             if (options.stableFieldOrder) {
                                 return lhs.first < rhs.first;
                             } else {
-                                return getSize(lhs.second)
-                                     < getSize(rhs.second);
+                                return getSize(lhs.second) < getSize(rhs.second);
                             }
                         });
 
@@ -119,13 +108,10 @@ std::string hstd::to_compact_json(
     return format(options.startIndent, j);
 }
 
-void hstd::filterFields(
-    json&                           j,
-    std::vector<std::string> const& fieldsToRemove) {
+void hstd::filterFields(json& j, std::vector<std::string> const& fieldsToRemove) {
     if (j.is_object()) {
         for (auto it = j.begin(); it != j.end();) {
-            if (std::find(
-                    fieldsToRemove.begin(), fieldsToRemove.end(), it.key())
+            if (std::find(fieldsToRemove.begin(), fieldsToRemove.end(), it.key())
                 != fieldsToRemove.end()) {
                 it = j.erase(it);
             } else {

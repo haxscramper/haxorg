@@ -10,11 +10,9 @@ template <typename Iter>
 class enumerator_impl {
   public:
     struct enumerate_iterator {
-        using it_type = typename std::iterator_traits<
-            Iter>::iterator_category;
+        using it_type = typename std::iterator_traits<Iter>::iterator_category;
 
-        using it_reference = typename std::iterator_traits<
-            Iter>::reference;
+        using it_reference = typename std::iterator_traits<Iter>::reference;
 
         int  idx;
         Iter it;
@@ -66,9 +64,7 @@ class enumerator_impl {
             }
 
 
-            int base_index() const {
-                return index() + iterator_ref.skip_first;
-            }
+            int base_index() const { return index() + iterator_ref.skip_first; }
         };
 
         item operator*() const { return item{*this}; }
@@ -79,9 +75,7 @@ class enumerator_impl {
             return *this;
         }
 
-        bool operator!=(enumerate_iterator const& other) const {
-            return it != other.it;
-        }
+        bool operator!=(enumerate_iterator const& other) const { return it != other.it; }
     };
 
   private:
@@ -91,8 +85,7 @@ class enumerator_impl {
     int  skip_last_base  = 0;
 
   public:
-    enumerator_impl(Iter begin, Iter end)
-        : base_begin(begin), base_end(end) {}
+    enumerator_impl(Iter begin, Iter end) : base_begin(begin), base_end(end) {}
 
     enumerator_impl skip_first(int n) {
         skip_first_base = n;
@@ -133,8 +126,7 @@ class enumerator_impl {
 };
 
 template <typename Sequence>
-enumerator_impl<typename Sequence::const_iterator> enumerator(
-    Sequence const& it) {
+enumerator_impl<typename Sequence::const_iterator> enumerator(Sequence const& it) {
     return enumerator_impl<typename Sequence::const_iterator>(
         std::begin(it), std::end(it));
 }

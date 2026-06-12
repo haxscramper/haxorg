@@ -20,8 +20,7 @@ namespace hstd::layout {
 DECL_ID_TYPE_MASKED(LytStr, LytStrId, u64, 8);
 DECL_ID_TYPE_MASKED(Block, BlockId, u64, 8);
 
-inline const auto LytSpacesId = LytStrId::FromValue(
-    value_domain<int>::high() - 120);
+inline const auto LytSpacesId = LytStrId::FromValue(value_domain<int>::high() - 120);
 
 /// Single layout string object. It contains all the information
 /// required to perform the layout and refer back to the original
@@ -29,18 +28,16 @@ inline const auto LytSpacesId = LytStrId::FromValue(
 struct LytStr {
     using id_type = LytStrId;
 
-    LytStrId id = LytStrId::Nil(); /// Id of the original piece of text
-    int len     = 0; /// It's length in units (units are specified - can be
-                     /// ASCII or unicode or anything else)
+    LytStrId id  = LytStrId::Nil(); /// Id of the original piece of text
+    int      len = 0;               /// It's length in units (units are specified - can be
+                                    /// ASCII or unicode or anything else)
 
     LytStr() = default;
     LytStr(LytStrId id, int len) : id(id), len(len) {}
     LytStr(int idx, int len) : id(LytStrId(idx)), len(len) {}
     int  toIndex() const { return id.getIndex(); }
     bool isSpaces() const { return id == LytSpacesId; }
-    bool operator==(LytStr const& s) const {
-        return id == s.id && len == s.len;
-    }
+    bool operator==(LytStr const& s) const { return id == s.id && len == s.len; }
 };
 
 BOOST_DESCRIBE_STRUCT(LytStr, (), (id, len));
@@ -67,8 +64,7 @@ struct Layout;
 struct Layout : public SharedPtrApi<Layout> {
     Vec<SPtr<LayoutElement>> elements;
     Layout() = default;
-    Layout(Vec<SPtr<LayoutElement>> const& elements)
-        : elements(elements) {}
+    Layout(Vec<SPtr<LayoutElement>> const& elements) : elements(elements) {}
     Layout(Span<SPtr<LayoutElement>> const& elements)
         : elements(Vec<SPtr<LayoutElement>>(elements)) {}
 };
@@ -109,15 +105,7 @@ struct LayoutElement : public SharedPtrApi<LayoutElement> {
         int spaceNum = 0;
     };
 
-    SUB_VARIANTS(
-        Kind,
-        Data,
-        data,
-        getKind,
-        String,
-        Newline,
-        LayoutPrint,
-        NewlineSpace);
+    SUB_VARIANTS(Kind, Data, data, getKind, String, Newline, LayoutPrint, NewlineSpace);
     Data data;
     int  id     = 0;
     bool indent = false;
@@ -138,9 +126,7 @@ struct Event {
 
     struct Spaces {
         int  spaces;
-        bool operator==(Spaces const& s) const {
-            return spaces == s.spaces;
-        }
+        bool operator==(Spaces const& s) const { return spaces == s.spaces; }
     };
 
 
@@ -149,9 +135,7 @@ struct Event {
     };
 
 
-    bool operator==(Event const& other) const {
-        return data == other.data;
-    }
+    bool operator==(Event const& other) const { return data == other.data; }
 
     SUB_VARIANTS(Kind, Data, data, getKind, Text, Spaces, Newline);
     Data data;
@@ -243,12 +227,7 @@ struct Solution : public SharedPtrApi<Solution> {
     /// The function performs basic consistency checks, and eliminates
     /// redundant segments that are linear extrapolations of those that
     /// precede them.
-    void add(
-        int         knot,
-        int         span,
-        float       intercept,
-        float       gradient,
-        Layout::Ptr layout);
+    void add(int knot, int span, float intercept, float gradient, Layout::Ptr layout);
 };
 
 struct Options;
@@ -284,18 +263,7 @@ struct Block {
     };
 
     struct Empty {};
-    SUB_VARIANTS(
-        Kind,
-        Data,
-        data,
-        getKind,
-        Verb,
-        Text,
-        Wrap,
-        Stack,
-        Choice,
-        Line,
-        Empty);
+    SUB_VARIANTS(Kind, Data, data, getKind, Verb, Text, Wrap, Stack, Choice, Line, Empty);
 
     int  size() const;
     int  leafCount(BlockStore const& store) const;
@@ -317,9 +285,7 @@ struct Block {
             logic_todo_impl();
         }
 
-        std::size_t operator()(Solution const&) const {
-            logic_todo_impl();
-        }
+        std::size_t operator()(Solution const&) const { logic_todo_impl(); }
 
         template <typename T>
         std::size_t operator()(SPtr<T> const& opt) const {
@@ -328,8 +294,7 @@ struct Block {
         }
     };
 
-    UnorderedMap<Opt<Solution::Ptr>, Opt<Solution::Ptr>, SolutionHash>
-         layoutCache;
+    UnorderedMap<Opt<Solution::Ptr>, Opt<Solution::Ptr>, SolutionHash> layoutCache;
     bool isBreaking = false; /// Whether or not this block should end the
                              /// line
     int  breakMult = 1;      /// Local line break cost change
@@ -358,10 +323,7 @@ struct BlockStore {
     BlockId vertical(Vec<BlockId> const& blocks, BlockId const& sep);
     BlockId horizontal(Vec<BlockId> const& blocks, BlockId const& sep);
 
-    BlockId surround_non_empty(
-        BlockId content,
-        BlockId before,
-        BlockId after) {
+    BlockId surround_non_empty(BlockId content, BlockId before, BlockId after) {
         if (store.at(content).size() == 0) {
             return space(0);
         } else {
@@ -411,7 +373,7 @@ struct BlockStore {
 };
 
 struct Options {
-    int leftMargin  = 0; /// position of the first right margin. Expected 0
+    int leftMargin  = 0;  /// position of the first right margin. Expected 0
     int rightMargin = 80; /// position of the second right margin. Set for
                           /// 80
     /// to wrap on default column limit.
@@ -422,12 +384,11 @@ struct Options {
                                  /// Expected value ~100
     int   linebreakCost = 5;     /// cost per line-break
     int   indentSpaces  = 2;     /// spaces per indent
-    float cpack = 0.001; /// cost (per element) for packing justified
-                         /// layouts. Expected value ~0.001
+    float cpack         = 0.001; /// cost (per element) for packing justified
+                                 /// layouts. Expected value ~0.001
 
 
-    using FormatPolicy = std::function<
-        Vec<Vec<BlockId>>(BlockStore&, Vec<Vec<BlockId>>)>;
+    using FormatPolicy = std::function<Vec<Vec<BlockId>>(BlockStore&, Vec<Vec<BlockId>>)>;
 
     static Vec<Vec<BlockId>> defaultFormatPolicy(
         BlockStore&              store,

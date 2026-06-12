@@ -52,8 +52,7 @@
 
 using namespace llvm::itanium_demangle;
 
-#define NO_COVERAGE                                                       \
-    __attribute__((no_sanitize("coverage", "address", "thread")))
+#define NO_COVERAGE __attribute__((no_sanitize("coverage", "address", "thread")))
 
 enum class KindProxy
 {
@@ -89,11 +88,7 @@ BOOST_DESCRIBE_ENUM(
     Comma,
     Default);
 
-BOOST_DESCRIBE_ENUM(
-    llvm::itanium_demangle::TemplateParamKind,
-    Type,
-    NonType,
-    Template);
+BOOST_DESCRIBE_ENUM(llvm::itanium_demangle::TemplateParamKind, Type, NonType, Template);
 
 BOOST_DESCRIBE_ENUM(
     llvm::itanium_demangle::FunctionRefQual,
@@ -128,8 +123,7 @@ class BumpPointerAllocator {
     };
 
     static constexpr size_t AllocSize       = 4096;
-    static constexpr size_t UsableAllocSize = AllocSize
-                                            - sizeof(BlockMeta);
+    static constexpr size_t UsableAllocSize = AllocSize - sizeof(BlockMeta);
 
     alignas(long double) char InitialBuffer[AllocSize];
     BlockMeta* BlockList = nullptr;
@@ -142,8 +136,7 @@ class BumpPointerAllocator {
 
     NO_COVERAGE void* allocateMassive(size_t NBytes) {
         NBytes += sizeof(BlockMeta);
-        BlockMeta* NewMeta = reinterpret_cast<BlockMeta*>(
-            std::malloc(NBytes));
+        BlockMeta* NewMeta = reinterpret_cast<BlockMeta*>(std::malloc(NBytes));
         if (NewMeta == nullptr) { std::terminate(); }
         BlockList->Next = new (NewMeta) BlockMeta{BlockList->Next, 0};
         return static_cast<void*>(NewMeta + 1);
@@ -161,17 +154,14 @@ class BumpPointerAllocator {
         }
         BlockList->Current += N;
         return static_cast<void*>(
-            reinterpret_cast<char*>(BlockList + 1) + BlockList->Current
-            - N);
+            reinterpret_cast<char*>(BlockList + 1) + BlockList->Current - N);
     }
 
     NO_COVERAGE void reset() {
         while (BlockList) {
             BlockMeta* Tmp = BlockList;
             BlockList      = BlockList->Next;
-            if (reinterpret_cast<char*>(Tmp) != InitialBuffer) {
-                std::free(Tmp);
-            }
+            if (reinterpret_cast<char*>(Tmp) != InitialBuffer) { std::free(Tmp); }
         }
         BlockList = new (InitialBuffer) BlockMeta{nullptr, 0};
     }
@@ -187,8 +177,7 @@ class DefaultAllocator {
 
     template <typename T, typename... Args>
     NO_COVERAGE T* makeNode(Args&&... args) {
-        return new (Alloc.allocate(sizeof(T)))
-            T(std::forward<Args>(args)...);
+        return new (Alloc.allocate(sizeof(T))) T(std::forward<Args>(args)...);
     }
 
     NO_COVERAGE void* allocateNodeArray(size_t sz) {
@@ -204,9 +193,7 @@ NO_COVERAGE llvm::json::Array& add_array_field(
     llvm::json::Object&      obj,
     std::string const&       field,
     llvm::json::Value const& value) {
-    if (obj.getArray(field) == nullptr) {
-        obj[field] = llvm::json::Array();
-    }
+    if (obj.getArray(field) == nullptr) { obj[field] = llvm::json::Array(); }
     obj.getArray(field)->push_back(value);
     return *obj.getArray(field);
 }
@@ -214,9 +201,7 @@ NO_COVERAGE llvm::json::Array& add_array_field(
 NO_COVERAGE llvm::json::Object& add_obj_field(
     llvm::json::Object& obj,
     std::string const&  field) {
-    if (obj.getObject(field) == nullptr) {
-        obj[field] = llvm::json::Object();
-    }
+    if (obj.getObject(field) == nullptr) { obj[field] = llvm::json::Object(); }
     return *obj.getObject(field);
 }
 
@@ -226,8 +211,7 @@ struct ForwardNth {
     T* target;
     template <typename... Args>
     decltype(auto) operator()(Args&&... args) const {
-        *target = std::get<N>(
-            std::forward_as_tuple(std::forward<Args>(args)...));
+        *target = std::get<N>(std::forward_as_tuple(std::forward<Args>(args)...));
     }
 };
 
@@ -255,11 +239,11 @@ NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
 
     using K = llvm::itanium_demangle::Node::Kind;
 
-#define K_CAST(Name)                                                      \
-    auto cast = const_cast<llvm::itanium_demangle::Name*>(                \
+#define K_CAST(Name)                                                                     \
+    auto cast = const_cast<llvm::itanium_demangle::Name*>(                               \
         static_cast<llvm::itanium_demangle::Name const*>(node));
 
-#define K_FIELD(Name, Idx, Type, ...)                                     \
+#define K_FIELD(Name, Idx, Type, ...)                                                    \
     sub(#Name, match<Idx, Type>(cast) __VA_OPT__(, ) __VA_ARGS__);
 
     visit_meta head_attached_rec{
@@ -399,9 +383,7 @@ NO_COVERAGE llvm::MD5::MD5Result demangle_digest(Node const* node) {
         [&result](llvm::itanium_demangle::ReferenceKind const& RK) { result.update(static_cast<int>(RK)); },
         // clang-format on
         [&result](NodeArray const& value) {
-            for (auto const& it : value) {
-                result.update(demangle_digest(it));
-            }
+            for (auto const& it : value) { result.update(demangle_digest(it)); }
         },
     };
 
@@ -436,8 +418,7 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
         [](std::string_view view) { return view.empty(); },
         [](llvm::json::Value const& value) {
             switch (value.kind()) {
-                case llvm::json::Value::Kind::Array:
-                    return value.getAsArray()->empty();
+                case llvm::json::Value::Kind::Array: return value.getAsArray()->empty();
                 case llvm::json::Value::Kind::Null: return true;
                 default: return false;
             }
@@ -471,17 +452,11 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
         },
         [&](std::string const& field, Qualifiers const& value) {
             llvm::json::Array array;
-            if (value & Qualifiers::QualConst) {
-                array.push_back("QualConst");
-            }
+            if (value & Qualifiers::QualConst) { array.push_back("QualConst"); }
 
-            if (value & Qualifiers::QualVolatile) {
-                array.push_back("QualVolatile");
-            }
+            if (value & Qualifiers::QualVolatile) { array.push_back("QualVolatile"); }
 
-            if (value & Qualifiers::QualRestrict) {
-                array.push_back("QualRestrict");
-            }
+            if (value & Qualifiers::QualRestrict) { array.push_back("QualRestrict"); }
 
             if (!array.empty()) { result[field] = std::move(array); }
         },
@@ -503,12 +478,11 @@ NO_COVERAGE llvm::json::Value demangle_to_json(
         },
     };
 
-    auto sub_proxy =
-        [&](std::string const&               field,
-            auto const&                      value,
-            std::optional<visit_meta> const& meta = std::nullopt) {
-            sub(field, value);
-        };
+    auto sub_proxy = [&](std::string const&               field,
+                         auto const&                      value,
+                         std::optional<visit_meta> const& meta = std::nullopt) {
+        sub(field, value);
+    };
 
     visit_node_fields(node, sub_proxy);
 
@@ -533,17 +507,12 @@ BinarySymComponentId demangle_to_db(
         [&](std::string_view value, Met const& meta) -> Res {
             return BSF{std::string{value.begin(), value.end()}};
         },
-        [&](std::string value, Met const& meta) -> Res {
-            return BSF{value};
-        },
-        [&](bool const& value, Met const& meta) -> Res {
-            return BSF{hstd::fmt1(value)};
-        },
+        [&](std::string value, Met const& meta) -> Res { return BSF{value}; },
+        [&](bool const& value, Met const& meta) -> Res { return BSF{hstd::fmt1(value)}; },
         [&](Node const* value, Met const& meta) -> Res {
             nested.push_back(demangle_to_db(value, ctx, db));
             if (meta && meta->head_node) {
-                return BSF{demangle_to_json(
-                    value, ctx, 0, meta->head_depth.value_or(1))};
+                return BSF{demangle_to_json(value, ctx, 0, meta->head_depth.value_or(1))};
             } else {
                 return std::nullopt;
             }
@@ -569,28 +538,24 @@ BinarySymComponentId demangle_to_db(
         [&](SpecialSubKind const& value, Met const& meta) -> Res {
             return BSF{hstd::fmt1(value)};
         },
-        [&](llvm::itanium_demangle::ReferenceKind const& value,
-            Met const& meta) -> Res { return BSF{hstd::fmt1(value)}; },
+        [&](llvm::itanium_demangle::ReferenceKind const& value, Met const& meta) -> Res {
+            return BSF{hstd::fmt1(value)};
+        },
     };
 
     auto sub = [&](std::string const&               field,
                    auto const&                      value,
                    std::optional<visit_meta> const& meta = std::nullopt) {
         auto info = visit_value(value, meta);
-        if (info) {
-            comp.head_direct_fields.insert_or_assign(field, info.value());
-        }
+        if (info) { comp.head_direct_fields.insert_or_assign(field, info.value()); }
     };
 
-    comp.head_direct_fields["Kind"] = BSF{
-        std::string{boost::describe::enum_to_string(
-            static_cast<KindProxy>(node->getKind()), "<none>")}};
+    comp.head_direct_fields["Kind"] = BSF{std::string{boost::describe::enum_to_string(
+        static_cast<KindProxy>(node->getKind()), "<none>")}};
 
     visit_node_fields(node, sub);
     auto res = db.symbol_components.add(comp);
-    if (!nested.empty()) {
-        db.nested_symbols.insert_or_assign(res, nested);
-    }
+    if (!nested.empty()) { db.nested_symbols.insert_or_assign(res, nested); }
     return res;
 }
 
@@ -618,8 +583,7 @@ int findSymbolNamePosition(std::string const& input) {
     while (pos != std::string::npos) {
         for (const auto& ext : CompiledFileExtensions) {
             int extPos = input.rfind(ext, pos);
-            if (extPos != std::string::npos
-                && extPos + ext.length() == pos) {
+            if (extPos != std::string::npos && extPos + ext.length() == pos) {
                 return pos + 1;
             }
         }
@@ -675,9 +639,7 @@ std::size_t hash_json_value(llvm::json::Value const& value) {
     std::size_t result = 0;
 
     switch (value.kind()) {
-        case llvm::json::Value::Null:
-            hstd::hax_hash_combine(result, 0);
-            break;
+        case llvm::json::Value::Null: hstd::hax_hash_combine(result, 0); break;
 
         case llvm::json::Value::Boolean:
             hstd::hax_hash_combine(result, value.getAsBoolean().value());
@@ -688,8 +650,7 @@ std::size_t hash_json_value(llvm::json::Value const& value) {
             break;
 
         case llvm::json::Value::String:
-            hstd::hax_hash_combine(
-                result, llvm::hash_value(value.getAsString().value()));
+            hstd::hax_hash_combine(result, llvm::hash_value(value.getAsString().value()));
             break;
 
         case llvm::json::Value::Array: {
@@ -703,8 +664,7 @@ std::size_t hash_json_value(llvm::json::Value const& value) {
 
         case llvm::json::Value::Object: {
             auto const& object = *value.getAsObject();
-            std::vector<std::pair<std::string, const llvm::json::Value*>>
-                sorted_fields;
+            std::vector<std::pair<std::string, const llvm::json::Value*>> sorted_fields;
 
             for (const auto& pair : object) {
                 sorted_fields.emplace_back(pair.first.str(), &pair.second);
@@ -713,15 +673,12 @@ std::size_t hash_json_value(llvm::json::Value const& value) {
             std::sort(
                 sorted_fields.begin(),
                 sorted_fields.end(),
-                [](auto const& a, auto const& b) {
-                    return a.first < b.first;
-                });
+                [](auto const& a, auto const& b) { return a.first < b.first; });
 
             hstd::hax_hash_combine(result, sorted_fields.size());
             for (const auto& field : sorted_fields) {
                 hstd::hax_hash_combine(result, field.first);
-                hstd::hax_hash_combine(
-                    result, hash_json_value(*field.second));
+                hstd::hax_hash_combine(result, hash_json_value(*field.second));
             }
             break;
         }
@@ -730,17 +687,14 @@ std::size_t hash_json_value(llvm::json::Value const& value) {
     return result;
 }
 
-bool json_values_equal(
-    llvm::json::Value const& lhs,
-    llvm::json::Value const& rhs) {
+bool json_values_equal(llvm::json::Value const& lhs, llvm::json::Value const& rhs) {
     if (lhs.kind() != rhs.kind()) { return false; }
 
     switch (lhs.kind()) {
         case llvm::json::Value::Null: return true;
 
         case llvm::json::Value::Boolean:
-            return lhs.getAsBoolean().value()
-                == rhs.getAsBoolean().value();
+            return lhs.getAsBoolean().value() == rhs.getAsBoolean().value();
 
         case llvm::json::Value::Number:
             return lhs.getAsNumber().value() == rhs.getAsNumber().value();
@@ -755,9 +709,7 @@ bool json_values_equal(
             if (lhs_array.size() != rhs_array.size()) { return false; }
 
             for (int i = 0; i < lhs_array.size(); ++i) {
-                if (!json_values_equal(lhs_array[i], rhs_array[i])) {
-                    return false;
-                }
+                if (!json_values_equal(lhs_array[i], rhs_array[i])) { return false; }
             }
             return true;
         }
@@ -771,9 +723,7 @@ bool json_values_equal(
             for (const auto& pair : lhs_object) {
                 auto rhs_it = rhs_object.find(pair.first);
                 if (rhs_it == rhs_object.end()) { return false; }
-                if (!json_values_equal(pair.second, rhs_it->second)) {
-                    return false;
-                }
+                if (!json_values_equal(pair.second, rhs_it->second)) { return false; }
             }
             return true;
         }
@@ -806,28 +756,19 @@ std::size_t std::hash<BinarySymField>::operator()(
     BinarySymField const& it) const noexcept {
     return std::visit(
         hstd::overloaded{
-            [](llvm::json::Value const& value) {
-                return hash_json_value(value);
-            },
-            [](auto const& val) {
-                return std::hash<std::decay_t<decltype(val)>>{}(val);
-            },
+            [](llvm::json::Value const& value) { return hash_json_value(value); },
+            [](auto const& val) { return std::hash<std::decay_t<decltype(val)>>{}(val); },
         },
         it.value);
 }
 
-bool BinarySymComponent::operator==(
-    BinarySymComponent const& other) const noexcept {
+bool BinarySymComponent::operator==(BinarySymComponent const& other) const noexcept {
     if (binary_sym_kind != other.binary_sym_kind) { return false; }
 
-    if (head_direct_fields.size() != other.head_direct_fields.size()) {
-        return false;
-    }
+    if (head_direct_fields.size() != other.head_direct_fields.size()) { return false; }
 
     std::vector<std::string> lhs_keys;
-    for (auto const& [key, value] : head_direct_fields) {
-        lhs_keys.emplace_back(key);
-    }
+    for (auto const& [key, value] : head_direct_fields) { lhs_keys.emplace_back(key); }
     std::sort(lhs_keys.begin(), lhs_keys.end());
 
     std::vector<std::string> rhs_keys;
@@ -866,13 +807,11 @@ void processObjectFile(
     BinaryFileCtx&                    ctx) {
     // Create DWARF context once per object file (cheap enough, and
     // avoids per-symbol reparse)
-    std::unique_ptr<llvm::DWARFContext> dwarf = llvm::DWARFContext::create(
-        obj);
+    std::unique_ptr<llvm::DWARFContext> dwarf = llvm::DWARFContext::create(obj);
 
     llvm::DILineInfoSpecifier spec;
-    spec.FNKind = llvm::DILineInfoSpecifier::FunctionNameKind::LinkageName;
-    spec.FLIKind = llvm::DILineInfoSpecifier::FileLineInfoKind::
-        AbsoluteFilePath;
+    spec.FNKind  = llvm::DILineInfoSpecifier::FunctionNameKind::LinkageName;
+    spec.FLIKind = llvm::DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath;
 
     for (const auto& symAndSize : llvm::object::computeSymbolSizes(obj)) {
         __perf_trace("sym", "Process symbol");
@@ -930,9 +869,7 @@ void processObjectFile(
         // addresses to avoid junk lookups.
         bool isUndef = false;
         if (auto flagsOrErr = symbol.getFlags()) {
-            isUndef = ((*flagsOrErr)
-                       & llvm::object::SymbolRef::SF_Undefined)
-                   != 0;
+            isUndef = ((*flagsOrErr) & llvm::object::SymbolRef::SF_Undefined) != 0;
 
         } else {
             consumeError(flagsOrErr.takeError());
@@ -944,8 +881,7 @@ void processObjectFile(
             sa.Address = address;
 
 
-            std::optional<llvm::DILineInfo>
-                li = dwarf->getLineInfoForAddress(sa, spec);
+            std::optional<llvm::DILineInfo> li = dwarf->getLineInfoForAddress(sa, spec);
             if (li && li->Line != 0 && !li->FileName.empty()) {
                 BinarySymbolDebugLocation loc;
                 loc.file     = li->FileName;
@@ -956,8 +892,7 @@ void processObjectFile(
             }
         }
 
-        ctx.sectionSymbols[sectionName].push_back(
-            ctx.db.symbols.add(info));
+        ctx.sectionSymbols[sectionName].push_back(ctx.db.symbols.add(info));
     }
 }
 } // namespace
@@ -976,9 +911,8 @@ BinaryFileDB getSymbolsInBinary(std::string const& path) {
             std::format("Binary loading error: {}", errorMsg));
     }
 
-    llvm::object::OwningBinary<llvm::object::Binary> binary = std::move(
-        *binaryOrErr);
-    llvm::object::Binary* bin = binary.getBinary();
+    llvm::object::OwningBinary<llvm::object::Binary> binary = std::move(*binaryOrErr);
+    llvm::object::Binary*                            bin    = binary.getBinary();
 
     BinaryFileCtx ctx{};
 
@@ -1012,8 +946,7 @@ BinaryFileDB getSymbolsInBinary(std::string const& path) {
             }
 
             llvm::object::Binary* childBin = childBinOrErr->get();
-            if (auto* childObj = llvm::dyn_cast<llvm::object::ObjectFile>(
-                    childBin)) {
+            if (auto* childObj = llvm::dyn_cast<llvm::object::ObjectFile>(childBin)) {
                 processObjectFile(*childObj, memberLabel, ctx);
             } else {
                 // else: skip non-object members
@@ -1034,9 +967,8 @@ BinaryFileDB getSymbolsInBinary(std::string const& path) {
 }
 
 NO_COVERAGE void CreateTables(SQLite::Database& db) {
-    auto        path = hstd::fs::path{__FILE__}.parent_path()
-                     / "reflection_demangler.sql";
-    std::string sql  = hstd::readFile(path);
+    auto path       = hstd::fs::path{__FILE__}.parent_path() / "reflection_demangler.sql";
+    std::string sql = hstd::readFile(path);
     db.exec(sql);
 }
 
@@ -1130,8 +1062,7 @@ NO_COVERAGE void BinaryFileDB::writeToFile(std::string const& path) {
 
     if (hstd::fs::exists(db_file)) { hstd::fs::remove(db_file); }
 
-    SQLite::Database db{
-        db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE};
+    SQLite::Database db{db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE};
     CreateTables(db);
     queries q{db};
 
@@ -1147,18 +1078,13 @@ NO_COVERAGE void BinaryFileDB::writeToFile(std::string const& path) {
                     [&](llvm::json::Value& value) {
                         j_object[field_name] = std::move(value);
                     },
-                    [&](int const& value) {
-                        j_object[field_name] = value;
-                    },
-                    [&](std::string const& value) {
-                        j_object[field_name] = value;
-                    },
+                    [&](int const& value) { j_object[field_name] = value; },
+                    [&](std::string const& value) { j_object[field_name] = value; },
                 },
                 field_value.value);
         }
 
-        auto j_format = llvm::formatv(
-            "{0}", llvm::json::Value(std::move(j_object)));
+        auto j_format = llvm::formatv("{0}", llvm::json::Value(std::move(j_object)));
 
         q.demangled_head.bind(3, j_format);
 
@@ -1176,13 +1102,11 @@ NO_COVERAGE void BinaryFileDB::writeToFile(std::string const& path) {
         q.binary_sections.reset();
 
         for (auto const& sym_id : it.value().symbols) {
-            q.binary_symbol.bind(
-                1, static_cast<int64_t>(sym_id.getValue()));
+            q.binary_symbol.bind(1, static_cast<int64_t>(sym_id.getValue()));
             auto const& sym = symbols.at(sym_id);
             q.binary_symbol.bind(2, sym.name);
             q.binary_symbol.bind(3, sym.demangled);
-            q.binary_symbol.bind(
-                4, static_cast<int64_t>(sym.head.getValue()));
+            q.binary_symbol.bind(4, static_cast<int64_t>(sym.head.getValue()));
             q.binary_symbol.bind(5, static_cast<int>(sym.size));
             q.binary_symbol.bind(6, static_cast<int>(sym.address));
             q.binary_symbol.bind(7, static_cast<int>(it.index()));
@@ -1191,9 +1115,7 @@ NO_COVERAGE void BinaryFileDB::writeToFile(std::string const& path) {
                 q.binary_symbol.bind(8, d.file);
                 q.binary_symbol.bind(9, static_cast<int>(d.line));
                 q.binary_symbol.bind(10, static_cast<int>(d.column));
-                if (!d.function.empty()) {
-                    q.binary_symbol.bind(11, d.function);
-                }
+                if (!d.function.empty()) { q.binary_symbol.bind(11, d.function); }
             }
             q.binary_symbol.exec();
             q.binary_symbol.reset();
@@ -1205,11 +1127,9 @@ NO_COVERAGE void BinaryFileDB::writeToFile(std::string const& path) {
     for (auto const& id : hstd::sorted(nested_symbols.keys())) {
         for (auto const& it : hstd::enumerator(nested_symbols.at(id))) {
             q.demangled_nested.bind(1, static_cast<int>(it.index()));
-            q.demangled_nested.bind(
-                2, static_cast<int64_t>(id.getValue()));
+            q.demangled_nested.bind(2, static_cast<int64_t>(id.getValue()));
             if (!it.value().isNil()) {
-                q.demangled_nested.bind(
-                    3, static_cast<int64_t>(it.value().getIndex()));
+                q.demangled_nested.bind(3, static_cast<int64_t>(it.value().getIndex()));
             }
             q.demangled_nested.exec();
             q.demangled_nested.reset();

@@ -20,8 +20,7 @@ namespace layout {
 
 struct layout_error : public hstd::CRTP_hexception<layout_error> {};
 
-struct constraint_error
-    : public hstd::CRTP_hexception<constraint_error, layout_error> {};
+struct constraint_error : public hstd::CRTP_hexception<constraint_error, layout_error> {};
 
 /// \brief Base class for configuring individual edge objects for layout
 ///
@@ -58,11 +57,10 @@ class IPortLayoutAttribute : public ILayoutAttribute {
         visual::VisGroup res;
         auto             bb = getBBox();
         res.offset          = bb.upper_left();
-        res.custom.setAttr(
-            "inkscape:label", hstd::fmt("BASE PORT:{}", selfId));
+        res.custom.setAttr("inkscape:label", hstd::fmt("BASE PORT:{}", selfId));
         res.elements.push_back(
-            visual::VisElement{visual::VisElement::RectShape{
-                geometry::Rect::FromSize(bb.size())}});
+            visual::VisElement{
+                visual::VisElement::RectShape{geometry::Rect::FromSize(bb.size())}});
         return res;
     }
 };
@@ -74,8 +72,7 @@ class IEdgeLayoutAttribute : public ILayoutAttribute {
         visual::VisGroup result;
         result.elements.push_back(
             visual::VisElement{visual::VisElement::PathShape{getPath()}});
-        result.custom.setAttr(
-            "inkscape:label", hstd::fmt("BASE EDGE:{}", selfId));
+        result.custom.setAttr("inkscape:label", hstd::fmt("BASE EDGE:{}", selfId));
         return result;
     }
 };
@@ -91,8 +88,7 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
         res.elements.push_back(
             visual::VisElement::FromText(
                 hstd::fmt("{}", selfId), getBBox().upper_left()));
-        res.custom.setAttr(
-            "inkscape:label", hstd::fmt("BASE VERTEX:{}", selfId));
+        res.custom.setAttr("inkscape:label", hstd::fmt("BASE VERTEX:{}", selfId));
         return res;
     }
 };
@@ -114,10 +110,9 @@ class IPlacementAlgorithm {
     static constexpr hstd::u16 TemporaryLayoutVertexMask = 0b1111'1111;
     /// \brief Result of the placement algorithm execution
     struct Result {
-        hstd::UnorderedMap<EdgeID, hstd::SPtr<IEdgeLayoutAttribute>> edges;
-        hstd::UnorderedMap<VertexID, hstd::SPtr<IVertexLayoutAttribute>>
-            vertices;
-        hstd::UnorderedMap<PortID, hstd::SPtr<IPortLayoutAttribute>> ports;
+        hstd::UnorderedMap<EdgeID, hstd::SPtr<IEdgeLayoutAttribute>>     edges;
+        hstd::UnorderedMap<VertexID, hstd::SPtr<IVertexLayoutAttribute>> vertices;
+        hstd::UnorderedMap<PortID, hstd::SPtr<IPortLayoutAttribute>>     ports;
     };
 
     hstd::SPtr<LayoutRun> run;
@@ -136,12 +131,9 @@ class IConstraint {
     virtual hstd::Vec<VertexID> getAllVertices() const = 0;
 
 #if ORG_BUILD_WITH_PROTOBUF
-    virtual void writeSerial(proto::IConstraint* out, IGraph const* graph)
-        const = 0;
+    virtual void writeSerial(proto::IConstraint* out, IGraph const* graph) const = 0;
 
-    virtual void readSerial(
-        proto::IConstraint const* in,
-        IGraph const*             graph) = 0;
+    virtual void readSerial(proto::IConstraint const* in, IGraph const* graph) = 0;
 #endif
 };
 
@@ -186,7 +178,7 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 #if ORG_BUILD_WITH_PROTOBUF
     void writeSerialConstraints(
         google::protobuf::RepeatedPtrField<proto::IConstraint>* out,
-        IGraph const* graph) const;
+        IGraph const*                                           graph) const;
 
     void readSerialConstraints(
         google::protobuf::RepeatedField<proto::IConstraint> const* in,
@@ -198,9 +190,7 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
   public:
-    std::string getRepr() const override {
-        return "UnboundEdgeVisualAttr";
-    }
+    std::string getRepr() const override { return "UnboundEdgeVisualAttr"; }
 #if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         proto::IAttribute const*   in,
@@ -210,8 +200,7 @@ class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
         logic_todo_impl();
     }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
         logic_todo_impl();
     }
 #endif
@@ -228,8 +217,7 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
         logic_todo_impl();
     }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
         logic_todo_impl();
     }
 #endif
@@ -295,8 +283,7 @@ class LayoutRun
     /// \brief Full store for the layout results of all recursive runs.
     IPlacementAlgorithm::Result result;
 
-    hstd::SPtr<UnboundEdgeVisualAttribute> addUnboundEdge(
-        EdgeID const& id) {
+    hstd::SPtr<UnboundEdgeVisualAttribute> addUnboundEdge(EdgeID const& id) {
         auto attr = std::make_shared<UnboundEdgeVisualAttribute>();
         setEdgeAttribute(id, attr);
         return attr;
@@ -346,29 +333,25 @@ class LayoutRun
     template <typename T = IGroupVisualAttribute>
         requires std::derived_from<T, IGroupVisualAttribute>
     hstd::SPtr<T> getGroup(VertexID const& id) const {
-        return graph->getVertex(id)->getUniqueAttribute<T>(
-            graph->getDebug(id));
+        return graph->getVertex(id)->getUniqueAttribute<T>(graph->getDebug(id));
     }
 
     template <typename T = IEdgeVisualAttribute>
         requires std::derived_from<T, IEdgeVisualAttribute>
     hstd::SPtr<T> getEdgeVisualAttribute(EdgeID const& id) const {
-        return graph->getEdge(id)->getUniqueAttribute<T>(
-            graph->getDebug(id));
+        return graph->getEdge(id)->getUniqueAttribute<T>(graph->getDebug(id));
     }
 
     template <typename T = IVertexVisualAttribute>
         requires std::derived_from<T, IVertexVisualAttribute>
     hstd::SPtr<T> getVertexVisualAttribute(VertexID const& id) const {
-        return graph->getVertex(id)->getUniqueAttribute<T>(
-            graph->getDebug(id));
+        return graph->getVertex(id)->getUniqueAttribute<T>(graph->getDebug(id));
     }
 
     template <typename T = IPortVisualAttribute>
         requires std::derived_from<T, IPortVisualAttribute>
     hstd::SPtr<T> getPortVisualAttribute(PortID const& id) const {
-        return graph->getPort(id)->getUniqueAttribute<T>(
-            graph->getDebug(id));
+        return graph->getPort(id)->getUniqueAttribute<T>(graph->getDebug(id));
     }
 
     template <typename T = IAttribute>
@@ -379,8 +362,7 @@ class LayoutRun
 
     template <typename T = IAttribute>
         requires std::derived_from<T, IAttribute>
-    void setAttribute(VertexID const& id, hstd::SPtr<T> const& attr)
-        const {
+    void setAttribute(VertexID const& id, hstd::SPtr<T> const& attr) const {
         graph->getVertex(id)->addOrResetUniqueAttribute<T>(id, attr);
     }
 
@@ -492,9 +474,7 @@ class LayoutRun
         EdgeID const&                             edge,
         hstd::SPtr<IVertexVisualAttribute> const& attr);
 
-    void setEdgeAttribute(
-        EdgeID const&                           id,
-        hstd::SPtr<IEdgeVisualAttribute> const& attr);
+    void setEdgeAttribute(EdgeID const& id, hstd::SPtr<IEdgeVisualAttribute> const& attr);
 
     void setPortAttribute(
         PortID const&                           id,
@@ -508,9 +488,7 @@ class LayoutRun
         return getGraph()->getTarget(edge);
     }
 
-    IVertex const* at(VertexID const& id) const {
-        return graph->getVertex(id);
-    }
+    IVertex const* at(VertexID const& id) const { return graph->getVertex(id); }
 
     template <typename T = IPortLayoutAttribute>
         requires std::derived_from<T, IPortLayoutAttribute>
@@ -547,17 +525,11 @@ class LayoutRun
         return hstd::validated_dynamic_cast<T>(result.vertices.at(id));
     }
 
-    bool hasLayout(VertexID const& id) const {
-        return result.vertices.contains(id);
-    }
+    bool hasLayout(VertexID const& id) const { return result.vertices.contains(id); }
 
-    bool hasLayout(PortID const& id) const {
-        return result.ports.contains(id);
-    }
+    bool hasLayout(PortID const& id) const { return result.ports.contains(id); }
 
-    bool hasLayout(EdgeID const& id) const {
-        return result.edges.contains(id);
-    }
+    bool hasLayout(EdgeID const& id) const { return result.edges.contains(id); }
 
     hstd::Opt<VertexID> getParent(VertexID const& id) const {
         return groups->getParentVertex(id);
@@ -588,8 +560,7 @@ class LayoutRun
     }
 
     geometry::Rect getAbsoluteBBox(PortID const& id) const {
-        auto parent_offset = getRelativeBBox(ports->getVertexForPort(id))
-                                 .upper_left();
+        auto parent_offset = getRelativeBBox(ports->getVertexForPort(id)).upper_left();
         return getRelativeBBox(id).move(parent_offset);
     }
 
@@ -619,9 +590,7 @@ class LayoutRun
 
     hstd::ColText treeRepr() { return treeRepr(TreeReprConf{}); }
 
-    std::string getDebug(EdgeID const& edge) const {
-        return getGraph()->getDebug(edge);
-    }
+    std::string getDebug(EdgeID const& edge) const { return getGraph()->getDebug(edge); }
     std::string getDebug(EdgeIDSet const& vert) const {
         return getGraph()->getDebug(vert);
     }
@@ -643,9 +612,7 @@ class LayoutRun
     std::string getDebug(PortIDVec const& vert) const {
         return getGraph()->getDebug(vert);
     }
-    std::string getDebug(PortID const& vert) const {
-        return getGraph()->getDebug(vert);
-    }
+    std::string getDebug(PortID const& vert) const { return getGraph()->getDebug(vert); }
 };
 
 

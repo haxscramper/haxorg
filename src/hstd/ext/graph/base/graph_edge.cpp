@@ -32,8 +32,7 @@ EdgeIDSet IEdgeCollection::getIncoming(VertexID const& vert) const {
     EdgeIDSet result;
     if (incoming_from.contains(vert)) {
         for (const auto& source : incoming_from.at(vert)) {
-            if (incidence.contains(source)
-                && incidence.at(source).contains(vert)) {
+            if (incidence.contains(source) && incidence.at(source).contains(vert)) {
                 for (const auto& edge : incidence.at(source).at(vert)) {
                     result.incl(edge);
                 }
@@ -54,8 +53,7 @@ void IEdgeCollection::trackVertex(VertexID const& vert) {
     }
 }
 
-IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
-    VertexID const& vert) {
+IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(VertexID const& vert) {
     EdgeIDSet edgesToRemove;
 
     if (incidence.contains(vert)) {
@@ -66,8 +64,7 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(
 
     if (incoming_from.contains(vert)) {
         for (const auto& source : incoming_from.at(vert)) {
-            if (incidence.contains(source)
-                && incidence.at(source).contains(vert)) {
+            if (incidence.contains(source) && incidence.at(source).contains(vert)) {
                 for (const auto& edge : incidence.at(source).at(vert)) {
                     edgesToRemove.incl(edge);
                 }
@@ -135,8 +132,7 @@ void hstd::ext::graph::IEdgeCollection::trackEdge(
 
     incoming_from.at(target).push_back(source);
 
-    source_target.insert_or_assign(
-        id, hstd::Pair<VertexID, VertexID>{source, target});
+    source_target.insert_or_assign(id, hstd::Pair<VertexID, VertexID>{source, target});
 }
 
 
@@ -144,8 +140,7 @@ void IEdgeCollection::untrackEdge(EdgeID const& id) {
     VertexID source = getSource(id);
     VertexID target = getTarget(id);
 
-    if (incidence.contains(source)
-        && incidence.at(source).contains(target)) {
+    if (incidence.contains(source) && incidence.at(source).contains(target)) {
         auto& edges = incidence.at(source).at(target);
         std::erase(edges, id);
         if (edges.empty()) {
@@ -169,15 +164,13 @@ hstd::ext::graph::VertexIDSet hstd::ext::graph::IEdgeProvider::getOutNodes(
     VertexID id) const {
     return VertexIDSet::FromIterable(
         hstd::own_view(getOutgoing(id))
-        | hstd::rv::transform(
-            [&](EdgeID e) -> VertexID { return getTarget(e); }));
+        | hstd::rv::transform([&](EdgeID e) -> VertexID { return getTarget(e); }));
 }
 hstd::ext::graph::VertexIDSet hstd::ext::graph::IEdgeProvider::getInNodes(
     VertexID id) const {
     return VertexIDSet::FromIterable(
         hstd::own_view(getIncoming(id))
-        | hstd::rv::transform(
-            [&](EdgeID e) -> VertexID { return getTarget(e); }));
+        | hstd::rv::transform([&](EdgeID e) -> VertexID { return getTarget(e); }));
 }
 
 EdgeCollectionID IEdgeProvider::edgeCategoryFromEdge(EdgeID const& id) {
@@ -204,10 +197,8 @@ void hstd::ext::graph::IEdge::writeSerial(
     IGraph const* graph,
     EdgeID const& self_id) const {
     out->set_stable_id(getStableId());
-    out->set_source_vertex_id(
-        graph->getStableId(graph->getSource(self_id)));
-    out->set_target_vertex_id(
-        graph->getStableId(graph->getTarget(self_id)));
+    out->set_source_vertex_id(graph->getStableId(graph->getSource(self_id)));
+    out->set_target_vertex_id(graph->getStableId(graph->getTarget(self_id)));
 }
 #endif
 
@@ -226,8 +217,7 @@ void TrivialEdgeCollection::readSerial(
         // similar pattern appears in other vertex readers, ideally this
         // should be addressed before merging the final branch for
         // universal layout.
-        auto id = edgeStore.add(
-            *hstd::validated_dynamic_cast<TrivialEdge>(out_edge));
+        auto id = edgeStore.add(*hstd::validated_dynamic_cast<TrivialEdge>(out_edge));
         trackEdge(
             id,
             graph->getVertexIDByStableId(e.source_vertex_id()),

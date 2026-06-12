@@ -25,8 +25,7 @@ class TestFactory : public IGraphSerialReaderFactory {
         if (in->payload().Is<proto::TrivialVertexHierarchyPayload>()) {
             return std::make_shared<TrivialHierarchy>();
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                in->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
         }
     }
 
@@ -37,17 +36,13 @@ class TestFactory : public IGraphSerialReaderFactory {
             "De-serialization input does not have payload object {}",
             getJString(*in));
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        if (in->payload()
-                .Is<org::graph::proto::MapEdgeCollectionPayload>()) {
+        if (in->payload().Is<org::graph::proto::MapEdgeCollectionPayload>()) {
             return std::make_shared<org::graph::MapEdgeCollection>();
-        } else if (
-            in->payload().Is<proto::TrivialEdgeCollectionPayload>()) {
+        } else if (in->payload().Is<proto::TrivialEdgeCollectionPayload>()) {
             return std::make_shared<TrivialEdgeCollection>(
-                EdgeCollectionID{
-                    static_cast<hstd::u16>(in->collection_id())});
+                EdgeCollectionID{static_cast<hstd::u16>(in->collection_id())});
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                in->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
         }
     }
 
@@ -60,8 +55,7 @@ class TestFactory : public IGraphSerialReaderFactory {
         OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
         if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                in->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
         }
     }
 
@@ -81,8 +75,7 @@ class TestFactory : public IGraphSerialReaderFactory {
 
         if (!run) {
             if (this->graph->getPorts().empty()) {
-                this->graph->addPorts(
-                    std::make_shared<TrivialPortCollection>());
+                this->graph->addPorts(std::make_shared<TrivialPortCollection>());
             }
 
             run = std::make_shared<layout::LayoutRun>(
@@ -99,13 +92,11 @@ class TestFactory : public IGraphSerialReaderFactory {
 
             if (pl.has_parent_stable_id()) {
                 return graph
-                    ->getVertex(graph->getVertexIDByStableId(
-                        pl.parent_stable_id()))
+                    ->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
                     ->getUniqueAttribute<gv::GraphGroup>()
                     ->newSubgraph(vertex->getStableId());
             } else {
-                return gv::GraphGroup::newRootGraph(
-                    run, vertex->getStableId());
+                return gv::GraphGroup::newRootGraph(run, vertex->getStableId());
             }
         } else if (in->payload().Is<gv::proto::NodeAttributePayload>()) {
             auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
@@ -118,9 +109,7 @@ class TestFactory : public IGraphSerialReaderFactory {
                 "specified",
                 vertex->getStableId());
 
-            return graph
-                ->getVertex(
-                    graph->getVertexIDByStableId(pl.parent_stable_id()))
+            return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
                 ->getUniqueAttribute<gv::GraphGroup>()
                 ->node(vertex->getStableId());
         } else if (in->payload().Is<gv::proto::EdgeAttributePayload>()) {
@@ -134,12 +123,9 @@ class TestFactory : public IGraphSerialReaderFactory {
                 "specified",
                 vertex->getStableId());
 
-            auto edge_id = graph->getEdgeIDByStableId(
-                vertex->getStableId());
+            auto edge_id = graph->getEdgeIDByStableId(vertex->getStableId());
 
-            return graph
-                ->getVertex(
-                    graph->getVertexIDByStableId(pl.parent_stable_id()))
+            return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
                 ->getUniqueAttribute<gv::GraphGroup>()
                 ->edge(
                     *graph->getVertex(graph->getSource(edge_id))
@@ -147,8 +133,7 @@ class TestFactory : public IGraphSerialReaderFactory {
                     *graph->getVertex(graph->getTarget(edge_id))
                          ->getUniqueAttribute<gv::NodeAttribute>());
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                in->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
         }
     }
 
@@ -164,15 +149,13 @@ class TestFactory : public IGraphSerialReaderFactory {
         } else if (in->payload().Is<proto::TrivialVertexPayload>()) {
             res = std::make_shared<TrivialVertex>(in->stable_id());
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                in->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
         }
 
         return res;
     }
 
-    hstd::SPtr<layout::IConstraint> newConstraint(
-        proto::IConstraint const* in) override {
+    hstd::SPtr<layout::IConstraint> newConstraint(proto::IConstraint const* in) override {
         LOGIC_ASSERTION_CHECK_FMT(
             in->has_payload(),
             "De-serialization input does not have payload object {}",
@@ -181,8 +164,7 @@ class TestFactory : public IGraphSerialReaderFactory {
         hstd::SPtr<layout::IConstraint> res;
         if (false) {
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                in->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
         }
 
         return res;
@@ -198,8 +180,7 @@ class TestFactory : public IGraphSerialReaderFactory {
         if (edge->payload().Is<proto::TrivialEdgePayload>()) {
             return std::make_shared<TrivialEdge>(edge->stable_id());
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                edge->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(edge->payload().type_url());
         }
     }
 
@@ -211,8 +192,7 @@ class TestFactory : public IGraphSerialReaderFactory {
 
         if (port->payload().Is<org::graph::proto::MapNodePayload>()) {
         } else {
-            throw hstd::logic_unhandled_kind_error::init(
-                port->payload().type_url());
+            throw hstd::logic_unhandled_kind_error::init(port->payload().type_url());
         }
     }
 };
@@ -231,13 +211,11 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
     out_vertex->set_stable_id(rg_id);
     out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
     gv::proto::GroupAttributePayload attr_payload;
-    auto out_attr = out_vertex->add_attributes();
+    auto                             out_attr = out_vertex->add_attributes();
     out_attr->mutable_payload()->PackFrom(attr_payload);
 
-    out_hierarchy->mutable_nested_in_map()->insert(
-        {rg_id, proto::VertexIDVec{}});
-    out_hierarchy->mutable_payload()->PackFrom(
-        proto::TrivialVertexHierarchyPayload{});
+    out_hierarchy->mutable_nested_in_map()->insert({rg_id, proto::VertexIDVec{}});
+    out_hierarchy->mutable_payload()->PackFrom(proto::TrivialVertexHierarchyPayload{});
 
     for (auto const& vertex : in->vertices()) {
         auto out_vertex = out->add_vertices();
@@ -249,27 +227,22 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
         attr_payload.set_parent_stable_id(rg_id);
         auto out_attr = out_vertex->add_attributes();
         out_attr->mutable_payload()->PackFrom(attr_payload);
-        out_vertex->mutable_payload()->PackFrom(
-            proto::TrivialVertexPayload{});
+        out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
         out_hierarchy->mutable_nested_in_map()->at(rg_id).add_vertices(
             vertex.stable_id());
     }
 
     auto edges = out->add_collections();
-    edges->mutable_payload()->PackFrom(
-        proto::TrivialEdgeCollectionPayload{});
+    edges->mutable_payload()->PackFrom(proto::TrivialEdgeCollectionPayload{});
     for (auto const& edge : in->collections().at(0).edges()) {
         auto out_edge = edges->add_edges();
         out_edge->set_source_vertex_id(edge.source_vertex_id());
         out_edge->set_target_vertex_id(edge.target_vertex_id());
         out_edge->set_stable_id(
-            hstd::fmt(
-                "{}-{}",
-                edge.source_vertex_id(),
-                edge.target_vertex_id()));
+            hstd::fmt("{}-{}", edge.source_vertex_id(), edge.target_vertex_id()));
 
         gv::proto::EdgeAttributePayload attr_payload;
-        auto out_attr = out_edge->add_attributes();
+        auto                            out_attr = out_edge->add_attributes();
         attr_payload.set_parent_stable_id(rg_id);
         out_attr->mutable_payload()->PackFrom(attr_payload);
         out_edge->mutable_payload()->PackFrom(proto::TrivialEdgePayload{});
@@ -285,18 +258,14 @@ std::unique_ptr<proto::IGraphProto> run_layout(
     factory.setTraceFile(getDebugFile("graph_serial_read.log"));
 
     auto proto_layout = get_layout_structure(proto);
-    writeFile(
-        getDebugFile("proto_laoyout_initial.json"),
-        getJString(*proto_layout));
+    writeFile(getDebugFile("proto_laoyout_initial.json"), getJString(*proto_layout));
 
     auto graph    = std::make_shared<TrivialGraphBase>();
     factory.graph = graph;
     graph->readSerial(proto_layout.get(), &factory);
     graph
         ->getVertex(
-            graph
-                ->getRootVertices(
-                    graph->getHierarchies().at(0)->getCollectionID())
+            graph->getRootVertices(graph->getHierarchies().at(0)->getCollectionID())
                 .items()
                 .at(0))
         ->getUniqueAttribute<gv::GraphGroup>()
@@ -306,8 +275,7 @@ std::unique_ptr<proto::IGraphProto> run_layout(
     factory.run->runFullLayout();
     auto result = std::make_unique<proto::IGraphProto>();
     graph->writeSerial(result.get());
-    writeFile(
-        getDebugFile("serial_layout_result.json"), getJString(*result));
+    writeFile(getDebugFile("serial_layout_result.json"), getJString(*result));
     return result;
 }
 #endif
@@ -323,17 +291,12 @@ struct ImmMapApi : ImmOrgApiTestBase {
         , store{imm::ImmAstContext::init_start_context()} //
     {}
 
-    imm::ImmAstVersion const& getVersion() const {
-        return versions.back();
-    }
+    imm::ImmAstVersion const& getVersion() const { return versions.back(); }
 
-    imm::ImmAdapter getLastRootAdapter() const {
-        return getVersion().getRootAdapter();
-    }
+    imm::ImmAdapter getLastRootAdapter() const { return getVersion().getRootAdapter(); }
 
     hstd::Vec<imm::ImmAdapter> getRootAdapters() const {
-        return versions
-             | hstd::rv::transform([](imm::ImmAstVersion const& v) {
+        return versions | hstd::rv::transform([](imm::ImmAstVersion const& v) {
                    return v.getRootAdapter();
                })
              | hstd::rs::to<hstd::Vec>();
@@ -362,22 +325,19 @@ struct ImmMapApi : ImmOrgApiTestBase {
 
         writeFile(
             getDebugFile("repr_tracking.txt"),
-            getVersion().getContext()->currentTrack->toString().toString(
-                false));
+            getVersion().getContext()->currentTrack->toString().toString(false));
     }
 
     void init_with(Vec<std::string> const& texts) {
         auto nodes = texts
-                   | hstd::rv::transform(
-                         std::bind_back(&testParseString, std::nullopt))
+                   | hstd::rv::transform(std::bind_back(&testParseString, std::nullopt))
                    | hstd::rs::to<Vec>();
         for (auto const& [idx, node] : hstd::enumerate(nodes)) {
             writeTreeRepr(node, getDebugFile(fmt("repr_{}.yaml", idx)));
         }
 
         init_with(nodes);
-        for (auto const& [idx, adapter] :
-             hstd::enumerate(getRootAdapters())) {
+        for (auto const& [idx, adapter] : hstd::enumerate(getRootAdapters())) {
             writeTreeRepr(adapter, getDebugFile(fmt("repr_{}.txt", idx)));
             writeTreeRepr(
                 adapter,
@@ -389,23 +349,19 @@ struct ImmMapApi : ImmOrgApiTestBase {
 
             writeFile(
                 getDebugFile(fmt("repr_{}_tracking.txt", idx)),
-                getVersion()
-                    .getContext()
-                    ->currentTrack->toString()
-                    .toString(false));
+                getVersion().getContext()->currentTrack->toString().toString(false));
         }
     }
 
     void init_with(org::sem::SemId<org::sem::Org> const& node) {
         setImmContextTraceFile(getDebugFile("imm.log"));
         versions = {store->addRoot(node)};
-        state = org::graph::MapGraphState::shared(versions.back().context);
+        state    = org::graph::MapGraphState::shared(versions.back().context);
         setGraphTraceFile(getDebugFile("graph.log"));
         getGraph()->message("init done");
     }
 
-    void init_with(
-        hstd::Vec<org::sem::SemId<org::sem::Org>> const& nodes) {
+    void init_with(hstd::Vec<org::sem::SemId<org::sem::Org>> const& nodes) {
         setImmContextTraceFile(getDebugFile("imm.log"));
         versions = {store->addRoot(nodes.front())};
         for (auto const& n : nodes.at(slice(1, 1_B))) {
@@ -421,9 +377,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
     }
 
     void addNodeRec(Vec<imm::ImmAdapter> const& nodes) {
-        for (auto const& node : nodes) {
-            state->addNodeRec(node.ctx.lock(), node, conf);
-        }
+        for (auto const& node : nodes) { state->addNodeRec(node.ctx.lock(), node, conf); }
     }
 
     void addNode(imm::ImmAdapter const& node) {
@@ -459,9 +413,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
         gv->render(name);
     }
 
-    void setGraphTraceFile(fs::path const& name) {
-        getGraph()->setTraceFile(name);
-    }
+    void setGraphTraceFile(fs::path const& name) { getGraph()->setTraceFile(name); }
 
     void setImmContextTraceFile(fs::path const& name) {
         store->debug->setTraceFile(name);
@@ -599,7 +551,7 @@ radio user paragraph
 
     {
         auto __scope = getGraph()->begin_scope("add second node");
-        auto v = getState()->addNode(getLastRootAdapter().at(3), conf);
+        auto v       = getState()->addNode(getLastRootAdapter().at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
         EXPECT_EQ(getState()->unresolved.size(), 0);
@@ -637,7 +589,7 @@ radio user paragraph
 
     {
         auto __scope = getGraph()->begin_scope("add second node");
-        auto v = getState()->addNode(getLastRootAdapter().at(3), conf);
+        auto v       = getState()->addNode(getLastRootAdapter().at(3), conf);
         EXPECT_EQ(getGraph()->getVertexCount(), 2);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
         EXPECT_EQ(getState()->unresolved.size(), 0);
@@ -895,9 +847,7 @@ void addAll(
     org::graph::MapGraphState::Ptr const& state,
     DocBlock const&                       block,
     org::graph::MapConfig::Ptr            conf) {
-    for (auto const& it : block.items) {
-        std::ignore = state->addNode(it.id, conf);
-    }
+    for (auto const& it : block.items) { std::ignore = state->addNode(it.id, conf); }
 
     for (auto const& it : block.nested) { addAll(state, it, conf); }
 }
@@ -921,14 +871,10 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     EXPECT_EQ((imm::flatWords(Paragraph_10)), (Vec<Str>{"Footnote", "2"}));
 
     auto Paragraph_11 = root.at(1).at(11);
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_11)),
-        (Vec<Str>{"Recursive", "footnote", "1"}));
+    EXPECT_EQ((imm::flatWords(Paragraph_11)), (Vec<Str>{"Recursive", "footnote", "1"}));
 
     auto Paragraph_12 = root.at(1).at(13);
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_12)),
-        (Vec<Str>{"Recursive", "footnote", "2"}));
+    EXPECT_EQ((imm::flatWords(Paragraph_12)), (Vec<Str>{"Recursive", "footnote", "2"}));
 
 
     auto Paragraph_14 = root.at(2).at(0).at(0).at(0);
@@ -943,15 +889,12 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
     auto Paragraph_3 = root.at(1).at(0).at(0).at(0);
     auto Paragraph_5 = root.at(1).at(0).at(1).at(0);
     auto Paragraph_6 = root.at(1).at(1);
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_6)),
-        (Vec<Str>{"Internal", "paragraph"}));
+    EXPECT_EQ((imm::flatWords(Paragraph_6)), (Vec<Str>{"Internal", "paragraph"}));
 
     auto Paragraph_7 = root.at(1).at(3).at(0);
     auto Paragraph_8 = root.at(1).at(5);
     auto Paragraph_9 = root.at(1).at(7);
-    EXPECT_EQ(
-        (imm::flatWords(Paragraph_9)), (Vec<Str>{"Second", "paragraph"}));
+    EXPECT_EQ((imm::flatWords(Paragraph_9)), (Vec<Str>{"Second", "paragraph"}));
 
     auto Subtree_1 = root.at(1);
     EXPECT_EQ(
@@ -1005,8 +948,7 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
 TEST_F(ImmMapApi, Doc1Graph) {
     __perf_trace("imm", "run test");
-    fs::path file = fs::path{std::getenv("HOME")}
-                  / std::string{"tmp/doc_graph->org"};
+    fs::path file = fs::path{std::getenv("HOME")} / std::string{"tmp/doc_graph->org"};
 
     if (!fs::exists(file)) { return; }
     auto n = testParseString(readFile(file));
@@ -1033,18 +975,14 @@ TEST_F(ImmMapApi, Doc1Graph) {
         int count = 0;
         __perf_trace("imm", "iterate each node with path");
         org::eachSubnodeRec(
-            v.getRootAdapter(), true, [&](imm::ImmAdapter const&) {
-                ++count;
-            });
+            v.getRootAdapter(), true, [&](imm::ImmAdapter const&) { ++count; });
     }
 
     {
         int count = 0;
         __perf_trace("imm", "iterate each node without path");
         org::eachSubnodeRec(
-            v.getRootAdapter(), false, [&](imm::ImmAdapter const&) {
-                ++count;
-            });
+            v.getRootAdapter(), false, [&](imm::ImmAdapter const&) { ++count; });
     }
 
     imm::ImmAdapter root = v.getRootAdapter();

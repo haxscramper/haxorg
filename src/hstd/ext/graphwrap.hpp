@@ -11,10 +11,7 @@
 
 namespace hstd::ext {
 
-template <
-    typename Graph,
-    typename Derived,
-    typename BoostBase = std::monostate>
+template <typename Graph, typename Derived, typename BoostBase = std::monostate>
 struct boost_visitor_callback_base
     : public CRTP_this_method<Derived>
     , public BoostBase {
@@ -73,9 +70,7 @@ struct boost_lambda_dfs_visitor
 
 template <typename Graph>
 struct boost_lambda_dijkstra_visitor
-    : public boost_visitor_callback_base<
-          Graph,
-          boost_lambda_dijkstra_visitor<Graph>> {};
+    : public boost_visitor_callback_base<Graph, boost_lambda_dijkstra_visitor<Graph>> {};
 
 
 template <typename Graph>
@@ -105,9 +100,7 @@ struct boost_lambda_bellman_ford_visitor {
 
 template <typename Graph>
 struct boost_lambda_astar_visitor
-    : public boost_visitor_callback_base<
-          Graph,
-          boost_lambda_astar_visitor<Graph>> {};
+    : public boost_visitor_callback_base<Graph, boost_lambda_astar_visitor<Graph>> {};
 
 } // namespace hstd::ext
 

@@ -75,16 +75,7 @@ struct StructuredValue {
         DESC_FIELDS(Enum, (index, value));
     };
 
-    SUB_VARIANTS(
-        Kind,
-        Data,
-        data,
-        getKind,
-        List,
-        Scalar,
-        Map,
-        Object,
-        Enum);
+    SUB_VARIANTS(Kind, Data, data, getKind, List, Scalar, Map, Object, Enum);
 
     Data data;
 
@@ -128,9 +119,7 @@ struct ScopeState {
     /// \brief 1-based ending column.
     Opt<int> endColumn;
 
-    DESC_FIELDS(
-        ScopeState,
-        (name, source, line, column, endLine, endColumn));
+    DESC_FIELDS(ScopeState, (name, source, line, column, endLine, endColumn));
 };
 
 /// \brief Scope collection snapshot.
@@ -217,9 +206,7 @@ struct TraceEventState {
     Opt<DebugStackTrace> stackTrace;
     Opt<Source>          source;
 
-    DESC_FIELDS(
-        TraceEventState,
-        (value, variables, scopes, stackTrace, source));
+    DESC_FIELDS(TraceEventState, (value, variables, scopes, stackTrace, source));
 };
 
 /// \brief Common event arguments.
@@ -549,12 +536,7 @@ struct ObjectCreatedEvent : TraceEventBase {
     /// \brief Lifecycle args, typically null.
     Opt<json> args;
 
-    BOOST_DESCRIBE_CLASS(
-        ObjectCreatedEvent,
-        (TraceEventBase),
-        (id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(ObjectCreatedEvent, (TraceEventBase), (id), (), ());
 };
 
 /// \brief Object snapshot event.
@@ -566,12 +548,7 @@ struct ObjectSnapshotEvent : TraceEventBase {
     /// \brief Snapshot args.
     ObjectSnapshotArgs args;
 
-    BOOST_DESCRIBE_CLASS(
-        ObjectSnapshotEvent,
-        (TraceEventBase),
-        (id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(ObjectSnapshotEvent, (TraceEventBase), (id), (), ());
 };
 
 /// \brief Object destroyed event.
@@ -583,12 +560,7 @@ struct ObjectDestroyedEvent : TraceEventBase {
     /// \brief Lifecycle args, typically null.
     Opt<json> args;
 
-    BOOST_DESCRIBE_CLASS(
-        ObjectDestroyedEvent,
-        (TraceEventBase),
-        (id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(ObjectDestroyedEvent, (TraceEventBase), (id), (), ());
 };
 
 /// \brief process_name metadata event.
@@ -603,12 +575,7 @@ struct MetadataProcessNameEvent : TraceEventBase {
     /// \brief Typed metadata args.
     MetadataProcessNameArgs args;
 
-    BOOST_DESCRIBE_CLASS(
-        MetadataProcessNameEvent,
-        (TraceEventBase),
-        (name, pid),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(MetadataProcessNameEvent, (TraceEventBase), (name, pid), (), ());
 };
 
 /// \brief process_labels metadata event.
@@ -704,12 +671,7 @@ struct GenericMetadataEvent : TraceEventBase {
     /// \brief Generic metadata args.
     Opt<UnorderedMap<Str, JsonValue>> args;
 
-    BOOST_DESCRIBE_CLASS(
-        GenericMetadataEvent,
-        (TraceEventBase),
-        (name),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(GenericMetadataEvent, (TraceEventBase), (name), (), ());
 };
 
 /// \brief Global memory dump event.
@@ -721,12 +683,7 @@ struct GlobalMemoryDumpEvent : TraceEventBase {
     /// \brief Dump payload.
     UnorderedMap<Str, JsonValue> args;
 
-    BOOST_DESCRIBE_CLASS(
-        GlobalMemoryDumpEvent,
-        (TraceEventBase),
-        (id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(GlobalMemoryDumpEvent, (TraceEventBase), (id), (), ());
 };
 
 /// \brief Process memory dump event.
@@ -740,12 +697,7 @@ struct ProcessMemoryDumpEvent : TraceEventBase {
     /// \brief Dump payload.
     UnorderedMap<Str, JsonValue> args;
 
-    BOOST_DESCRIBE_CLASS(
-        ProcessMemoryDumpEvent,
-        (TraceEventBase),
-        (pid, id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(ProcessMemoryDumpEvent, (TraceEventBase), (pid, id), (), ());
 };
 
 /// \brief Mark event.
@@ -776,12 +728,7 @@ struct ContextEnterEvent : TraceEventBase {
     /// \brief Context identifier.
     StrOrInt id;
 
-    BOOST_DESCRIBE_CLASS(
-        ContextEnterEvent,
-        (TraceEventBase),
-        (id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(ContextEnterEvent, (TraceEventBase), (id), (), ());
 };
 
 /// \brief Context-leave event.
@@ -791,12 +738,7 @@ struct ContextLeaveEvent : TraceEventBase {
     /// \brief Context identifier.
     StrOrInt id;
 
-    BOOST_DESCRIBE_CLASS(
-        ContextLeaveEvent,
-        (TraceEventBase),
-        (id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(ContextLeaveEvent, (TraceEventBase), (id), (), ());
 };
 
 /// \brief Identifier-linking event.
@@ -811,42 +753,41 @@ struct LinkingIdEvent : TraceEventBase {
     BOOST_DESCRIBE_CLASS(LinkingIdEvent, (TraceEventBase), (id), (), ());
 };
 
-#define ALL_TRACE_EVENT_TYPES(__IMPL)                                     \
-    __IMPL(DurationBeginEvent)                                            \
-    __IMPL(DurationEndEvent)                                              \
-    __IMPL(CompleteEvent)                                                 \
-    __IMPL(InstantEvent)                                                  \
-    __IMPL(CounterEvent)                                                  \
-    __IMPL(AsyncEventStart)                                               \
-    __IMPL(AsyncEventStep)                                                \
-    __IMPL(AsyncEventEnd)                                                 \
-    __IMPL(FlowEventStart)                                                \
-    __IMPL(FlowEventStep)                                                 \
-    __IMPL(FlowEventEnd)                                                  \
-    __IMPL(SampleEvent)                                                   \
-    __IMPL(ObjectCreatedEvent)                                            \
-    __IMPL(ObjectSnapshotEvent)                                           \
-    __IMPL(ObjectDestroyedEvent)                                          \
-    __IMPL(MetadataProcessNameEvent)                                      \
-    __IMPL(MetadataProcessLabelsEvent)                                    \
-    __IMPL(MetadataProcessSortIndexEvent)                                 \
-    __IMPL(MetadataThreadNameEvent)                                       \
-    __IMPL(MetadataThreadSortIndexEvent)                                  \
-    __IMPL(GenericMetadataEvent)                                          \
-    __IMPL(GlobalMemoryDumpEvent)                                         \
-    __IMPL(ProcessMemoryDumpEvent)                                        \
-    __IMPL(MarkEvent)                                                     \
-    __IMPL(ClockSyncEvent)                                                \
-    __IMPL(ContextEnterEvent)                                             \
-    __IMPL(ContextLeaveEvent)                                             \
+#define ALL_TRACE_EVENT_TYPES(__IMPL)                                                    \
+    __IMPL(DurationBeginEvent)                                                           \
+    __IMPL(DurationEndEvent)                                                             \
+    __IMPL(CompleteEvent)                                                                \
+    __IMPL(InstantEvent)                                                                 \
+    __IMPL(CounterEvent)                                                                 \
+    __IMPL(AsyncEventStart)                                                              \
+    __IMPL(AsyncEventStep)                                                               \
+    __IMPL(AsyncEventEnd)                                                                \
+    __IMPL(FlowEventStart)                                                               \
+    __IMPL(FlowEventStep)                                                                \
+    __IMPL(FlowEventEnd)                                                                 \
+    __IMPL(SampleEvent)                                                                  \
+    __IMPL(ObjectCreatedEvent)                                                           \
+    __IMPL(ObjectSnapshotEvent)                                                          \
+    __IMPL(ObjectDestroyedEvent)                                                         \
+    __IMPL(MetadataProcessNameEvent)                                                     \
+    __IMPL(MetadataProcessLabelsEvent)                                                   \
+    __IMPL(MetadataProcessSortIndexEvent)                                                \
+    __IMPL(MetadataThreadNameEvent)                                                      \
+    __IMPL(MetadataThreadSortIndexEvent)                                                 \
+    __IMPL(GenericMetadataEvent)                                                         \
+    __IMPL(GlobalMemoryDumpEvent)                                                        \
+    __IMPL(ProcessMemoryDumpEvent)                                                       \
+    __IMPL(MarkEvent)                                                                    \
+    __IMPL(ClockSyncEvent)                                                               \
+    __IMPL(ContextEnterEvent)                                                            \
+    __IMPL(ContextLeaveEvent)                                                            \
     __IMPL(LinkingIdEvent)
 
 #define COMMA
 #define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
 #define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
 
-#define ALL_TRACE_EVENT_TYPES_CSV(__CMD)                                  \
-    SKIP_FIRST_ARG(ALL_TRACE_EVENT_TYPES(__CMD))
+#define ALL_TRACE_EVENT_TYPES_CSV(__CMD) SKIP_FIRST_ARG(ALL_TRACE_EVENT_TYPES(__CMD))
 
 #define __id(A) , A
 

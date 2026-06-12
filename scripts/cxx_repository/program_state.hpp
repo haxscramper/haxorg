@@ -23,8 +23,7 @@ namespace bd       = boost::describe;
 template <>
 struct std::formatter<Date> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(Date const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(Date const& p, FormatContext& ctx) const {
         return fmt_ctx(boost::gregorian::to_iso_extended_string(p), ctx);
     }
 };
@@ -32,8 +31,7 @@ struct std::formatter<Date> : std::formatter<std::string> {
 template <>
 struct std::formatter<PTime> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(PTime const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(PTime const& p, FormatContext& ctx) const {
         return fmt_ctx(boost::posix_time::to_iso_extended_string(p), ctx);
     }
 };
@@ -60,9 +58,7 @@ struct cli_out_config {
     /// Enable perfetto profiling and write trace results into a file.
     hstd::Opt<std::string> perfetto = std::nullopt;
 
-    DESC_FIELDS(
-        cli_out_config,
-        (db_path, log_file, text_dump, graphviz, perfetto));
+    DESC_FIELDS(cli_out_config, (db_path, log_file, text_dump, graphviz, perfetto));
 };
 
 struct cli_diff_config {
@@ -120,10 +116,8 @@ struct cli_config {
 struct walker_config {
     cli_config cli;
 
-    hstd::fs::path repo_path() const {
-        return hstd::fs::path{cli.repo.path};
-    }
-    std::string heads_path() const {
+    hstd::fs::path repo_path() const { return hstd::fs::path{cli.repo.path}; }
+    std::string    heads_path() const {
         return hstd::fmt(".git/refs/heads/{}", cli.repo.branch);
     }
 };
@@ -162,18 +156,14 @@ struct walker_state {
         commit_ids.insert({oid, id});
     }
 
-    bool should_debug() const {
-        return config->cli.config.verbose_consistency_checks;
-    }
+    bool should_debug() const { return config->cli.config.verbose_consistency_checks; }
 
     bool should_check_file(hstd::Str const& path) {
         return config->cli.config.debug_paths.empty()
             || config->cli.config.debug_paths.contains(path);
     }
 
-    bool should_debug_file(ir::FilePathId id) {
-        return should_check_file(str(id));
-    }
+    bool should_debug_file(ir::FilePathId id) { return should_check_file(str(id)); }
 
     bool should_debug_commit(ir::CommitId id) {
         return config->cli.config.debug_commits.contains(at(id).hash);
@@ -190,9 +180,7 @@ struct walker_state {
 
     hstd::Str const& str(ir::CommitId id) { return this->at(id).hash; }
     hstd::Str const& str(ir::StringId id) { return this->at(id).text; }
-    hstd::Str const& str(ir::FilePathId id) {
-        return this->str(content->at(id).path);
-    }
+    hstd::Str const& str(ir::FilePathId id) { return this->str(content->at(id).path); }
 };
 
 #endif // PROGRAM_STATE_HPP

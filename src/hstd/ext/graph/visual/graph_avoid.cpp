@@ -89,8 +89,7 @@ std::tuple<float, float, Avoid::ConnDirFlags> get_port_offsets(
         }
     }
 
-    if (!(0 <= xOffset && xOffset <= 1)
-        || !(0 <= yOffset && yOffset <= 1)) {
+    if (!(0 <= xOffset && xOffset <= 1) || !(0 <= yOffset && yOffset <= 1)) {
         throw hstd::logic_assertion_error::init(
             hstd::fmt(
                 "xOffset:{} yOffset:{}, port-idx:{}, "
@@ -113,10 +112,8 @@ void add_ports(
     hstd::SPtr<cst::AvoidPortCollection> const& lp) {
     auto __ports = run->begin_scope("add ports");
     for (auto const& eid : edge_set) {
-        auto s_pid = lp->addPort(
-            run->getGraph()->getSource(eid), eid, true);
-        auto e_pid = lp->addPort(
-            run->getGraph()->getTarget(eid), eid, false);
+        auto s_pid = lp->addPort(run->getGraph()->getSource(eid), eid, true);
+        auto e_pid = lp->addPort(run->getGraph()->getTarget(eid), eid, false);
         run->message(hstd::fmt("added ports {} {}", s_pid, e_pid));
         auto s_port = lp->getMPort(s_pid);
         auto e_port = lp->getMPort(e_pid);
@@ -137,22 +134,20 @@ void add_ports(
 
     for (auto const& vert : vertex_set) {
         auto ports = hstd::own_view(lp->getPortsForVertex(vert))
-                   | rv::transform([&](PortID pid) -> IPort* {
-                         return lp->getMPort(pid);
-                     })
+                   | rv::transform(
+                         [&](PortID pid) -> IPort* { return lp->getMPort(pid); })
                    | rs::to<hstd::Vec>;
 
         rs::sort(ports, {}, [](IPort* port) {
             return port->getUniqueAttribute<APL>()->visibility;
         });
 
-        for (auto group :
-             ports | rv::chunk_by([](IPort* lhs, IPort* rhs) {
-                 return lhs->getUniqueAttribute<APL>()->visibility
-                     == rhs->getUniqueAttribute<APL>()->visibility;
-             })) {
+        for (auto group : ports | rv::chunk_by([](IPort* lhs, IPort* rhs) {
+                              return lhs->getUniqueAttribute<APL>()->visibility
+                                  == rhs->getUniqueAttribute<APL>()->visibility;
+                          })) {
             for (auto const& [idx, port] : enumerate(group)) {
-                auto attr = port->getUniqueAttribute<APL>();
+                auto attr                          = port->getUniqueAttribute<APL>();
                 auto [xOffset, yOffset, direction] = get_port_offsets(
                     attr->visibility, idx, group.size(), std::nullopt);
                 attr->xOffset   = xOffset;
@@ -170,9 +165,7 @@ unsigned int VertMask = 0b10000000'00000000'00000000'00000000;
 unsigned int PortMask = 0b11000000'00000000'00000000'00000000;
 
 template <typename ID>
-auto get_id_proxy(
-    ID                                                      id,
-    hstd::UnorderedMap<EdgeID::id_base_type, unsigned int>& id_map)
+auto get_id_proxy(ID id, hstd::UnorderedMap<EdgeID::id_base_type, unsigned int>& id_map)
     -> unsigned int {
     hstd::u64 id_value = id.getValue();
     if (!id_map.contains(id_value)) {
@@ -195,16 +188,14 @@ auto get_id_proxy(
 auto get_shape(
     VertexID                                                vid,
     cst::AvoidRouterAlgorithm*                              algo,
-    hstd::UnorderedMap<EdgeID::id_base_type, unsigned int>& id_map)
-    -> Avoid::ShapeRef* {
+    hstd::UnorderedMap<EdgeID::id_base_type, unsigned int>& id_map) -> Avoid::ShapeRef* {
     if (!algo->shapes.contains(vid)) {
         auto             rect = algo->rects.at(vid);
         Avoid::Rectangle poly = adapt::to_avoid(rect);
 
         algo->shapes.insert_or_assign(
             vid,
-            new Avoid::ShapeRef(
-                algo->router.get(), poly, get_id_proxy(vid, id_map)));
+            new Avoid::ShapeRef(algo->router.get(), poly, get_id_proxy(vid, id_map)));
 
         algo->run->message(hstd::fmt("for {} crated rect {}", vid, rect));
     }
@@ -217,8 +208,7 @@ auto get_shape_point(
     double                                                  xOffset,
     double                                                  yOffset,
     cst::AvoidRouterAlgorithm*                              algo,
-    hstd::UnorderedMap<EdgeID::id_base_type, unsigned int>& id_map)
-    -> geometry::Point {
+    hstd::UnorderedMap<EdgeID::id_base_type, unsigned int>& id_map) -> geometry::Point {
     auto s    = get_shape(id, algo, id_map);
     auto bbox = s->polygon().offsetBoundingBox(0);
     return {
@@ -234,8 +224,7 @@ void connect_edge_pins(
 
     for (auto const& eid : algo->edge_set) {
         auto eid_avoid = get_id_proxy(eid, id_map);
-        algo->run->message(
-            hstd::fmt("for edge ID {} avoid eid {}", eid, eid_avoid));
+        algo->run->message(hstd::fmt("for edge ID {} avoid eid {}", eid, eid_avoid));
         auto __scope = algo->run->begin_scope();
 
         auto source = algo->run->getGraph()->getSource(eid);
@@ -270,10 +259,8 @@ void connect_edge_pins(
             /*insideOffset=*/0,
             /*visDirs=*/map_direction(t_attr->visibility));
 
-        s_attr->connection = Avoid::ConnEnd{
-            get_shape(source, algo, id_map), eid_avoid};
-        t_attr->connection = Avoid::ConnEnd{
-            get_shape(target, algo, id_map), eid_avoid};
+        s_attr->connection = Avoid::ConnEnd{get_shape(source, algo, id_map), eid_avoid};
+        t_attr->connection = Avoid::ConnEnd{get_shape(target, algo, id_map), eid_avoid};
 
         conn->setSourceEndpoint(s_attr->connection);
         conn->setDestEndpoint(t_attr->connection);
@@ -286,25 +273,19 @@ void write_layout_state(
     cst::AvoidRouterAlgorithm::Result const& layout_res,
     hstd::Str const&                         suffix = "") {
     visual::VisGroup res;
-    auto __scope = algo->run->begin_scope("rectangle placement");
+    auto             __scope = algo->run->begin_scope("rectangle placement");
     for (auto const& [id, rect] : algo->rects) {
         res.add(
             visual::VisGroup::FromRectAndText(
-                rect,
-                algo->run->getGraph()->getVertex(id)->getStableId()));
+                rect, algo->run->getGraph()->getVertex(id)->getStableId()));
     }
 
-    for (auto const& [id, edge] : layout_res.edges) {
-        res.add(edge->getVisual(id));
-    }
+    for (auto const& [id, edge] : layout_res.edges) { res.add(edge->getVisual(id)); }
 
     static int write_state = 0;
     algo->run->writeAdjacentToTraceFile(
         hstd::fmt(
-            "edge_routing_{}_{}{}.svg",
-            algo->routing_run_name,
-            ++write_state,
-            suffix),
+            "edge_routing_{}_{}{}.svg", algo->routing_run_name, ++write_state, suffix),
         ext::visual::toSvg({res}, true).to_string());
 }
 
@@ -361,8 +342,7 @@ hstd::ext::graph::cst::AvoidRouterAlgorithm::Result hstd::ext::graph::cst::
     for (auto const& [eid, conn_ref] : connections) {
         auto path = adapt::to_hstd_path(conn_ref->displayRoute());
         run->message(hstd::fmt("eid {} path {} path", eid, path));
-        res.edges.insert_or_assign(
-            eid, std::make_shared<AvoidEdgeLayoutAttribute>(path));
+        res.edges.insert_or_assign(eid, std::make_shared<AvoidEdgeLayoutAttribute>(path));
     }
 
     write_layout_state(this, res, "_with_edges");

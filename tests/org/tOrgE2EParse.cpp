@@ -21,18 +21,15 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
 
 TEST(TestFiles, AllNodeSerdeRoundtrip) {
 #if ORG_BUILD_WITH_PROTOBUF
-    std::string
-        file = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
+    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     // std::string file = "/home/haxscramper/tmp/doc1.org";
     MockFull    p{file, false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
 
     sem::OrgConverter converter{};
-    sem::SemId        write_node = converter
-                                       .convertDocument(
-                                           OrgAdapter(&p.nodes, OrgId(0)))
-                                       .value();
+    sem::SemId write_node = converter.convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
+                                .value();
     orgproto::AnyNode result;
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, write_node);
@@ -51,13 +48,12 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
     sem::SemId read_node = sem::SemId<sem::Org>::Nil();
     org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
         result,
-        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(
-            read_node));
+        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
 
     {
         orgproto::AnyNode result2;
-        org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::
-            write(&result2, read_node);
+        org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+            &result2, read_node);
         std::string proto_read_json;
         (void)google::protobuf::util::MessageToJsonString(
             result2, &proto_read_json, options);
@@ -70,8 +66,7 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
 
     Vec<compare_report> out;
 
-    reporting_comparator<sem::SemId<sem::Org>>::compare(
-        write_node, read_node, out, {});
+    reporting_comparator<sem::SemId<sem::Org>>::compare(write_node, read_node, out, {});
 
     show_compare_reports(out);
 #endif
@@ -79,17 +74,14 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
 
 TEST(TestFiles, AllNodeCoverage) {
     GTEST_SKIP();
-    std::string
-        file = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
+    std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     MockFull    p{file, false, false};
     std::string source = readFile(fs::path(file));
     p.run(source);
 
     SemSet            foundNodes;
     sem::OrgConverter converter{};
-    sem::SemId node = converter
-                          .convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
-                          .value();
+    sem::SemId node = converter.convertDocument(OrgAdapter(&p.nodes, OrgId(0))).value();
 
     using osk = OrgSemKind;
     SemSet wipNotParseable{
@@ -117,19 +109,15 @@ TEST(TestFiles, AllNodeCoverage) {
     foundNodes.incl(wipNotParseable);
 
     SemSet expectedNodes;
-    for (auto const& value : sliceT<OrgSemKind>()) {
-        expectedNodes.incl(value);
-    }
+    for (auto const& value : sliceT<OrgSemKind>()) { expectedNodes.incl(value); }
 
     if (expectedNodes.size() != foundNodes.size()) {
         Vec<OrgSemKind> diff;
-        for (auto const& v : expectedNodes - foundNodes) {
-            diff.push_back(v);
-        }
+        for (auto const& v : expectedNodes - foundNodes) { diff.push_back(v); }
         std::string missing = join(
             ", ", map(diff, [](OrgSemKind value) { return fmt1(value); }));
-        FAIL() << "'all.org' test file missing node coverage for "
-               << diff.size() << " nodes: '" << missing << "'";
+        FAIL() << "'all.org' test file missing node coverage for " << diff.size()
+               << " nodes: '" << missing << "'";
     }
 }
 

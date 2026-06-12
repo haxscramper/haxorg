@@ -40,23 +40,17 @@ inline void fail_check_append(
     std::string&          result,
     char const*           name,
     FailVerbatimKV const& v) {
-    result += hstd::fmt(
-        "{:<{}} = {}\n", v.key, FAIL_CHECK_LABEL_WIDTH, v.value);
+    result += hstd::fmt("{:<{}} = {}\n", v.key, FAIL_CHECK_LABEL_WIDTH, v.value);
 }
 
 template <typename T>
-void fail_check_append(
-    std::string& result,
-    char const*  name,
-    T const&     value) {
-    result += hstd::fmt(
-        "{:<{}} = {}\n", name, FAIL_CHECK_LABEL_WIDTH, value);
+void fail_check_append(std::string& result, char const* name, T const& value) {
+    result += hstd::fmt("{:<{}} = {}\n", name, FAIL_CHECK_LABEL_WIDTH, value);
 }
 
 
 inline std::string fail_check_format(char const* error_name) {
-    return hstd::fmt(
-        "\n{:<{}} = {}\n", "error", FAIL_CHECK_LABEL_WIDTH, error_name);
+    return hstd::fmt("\n{:<{}} = {}\n", "error", FAIL_CHECK_LABEL_WIDTH, error_name);
 }
 
 template <typename... Args>
@@ -64,88 +58,83 @@ std::string fail_check_format(
     char const*                        error_name,
     std::initializer_list<const char*> names,
     Args const&... args) {
-    std::string result = ::hstd::ext::geometry::detail::fail_check_format(
-        error_name);
-    auto name_it = names.begin();
+    std::string result  = ::hstd::ext::geometry::detail::fail_check_format(error_name);
+    auto        name_it = names.begin();
     (detail::fail_check_append(result, *name_it++, args), ...);
     return result;
 }
 
-#define __HSTD_GEOMETRY_FAIL_CHECK_NAME(r, data, i, elem)                 \
-    BOOST_PP_STRINGIZE(elem),
+#define __HSTD_GEOMETRY_FAIL_CHECK_NAME(r, data, i, elem) BOOST_PP_STRINGIZE(elem),
 
-#define __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS(error_name, ...)             \
-    boost::outcome_v2::failure(                                           \
-        GeometryError::init(                                              \
-            ::hstd::ext::geometry::detail::fail_check_format(             \
-                error_name,                                               \
-                {BOOST_PP_SEQ_FOR_EACH_I(                                 \
-                    __HSTD_GEOMETRY_FAIL_CHECK_NAME,                      \
-                    _,                                                    \
-                    BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))},              \
+#define __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS(error_name, ...)                            \
+    boost::outcome_v2::failure(                                                          \
+        GeometryError::init(                                                             \
+            ::hstd::ext::geometry::detail::fail_check_format(                            \
+                error_name,                                                              \
+                {BOOST_PP_SEQ_FOR_EACH_I(                                                \
+                    __HSTD_GEOMETRY_FAIL_CHECK_NAME,                                     \
+                    _,                                                                   \
+                    BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))},                             \
                 __VA_ARGS__)))
 
-#define __HSTD_GEOMETRY_FAIL_CHECK_NO_ARGS(error_name)                    \
-    boost::outcome_v2::failure(                                           \
-        GeometryError::init(                                              \
-            ::hstd::ext::geometry::detail::fail_check_format(             \
-                error_name)))
+#define __HSTD_GEOMETRY_FAIL_CHECK_NO_ARGS(error_name)                                   \
+    boost::outcome_v2::failure(                                                          \
+        GeometryError::init(                                                             \
+            ::hstd::ext::geometry::detail::fail_check_format(error_name)))
 
-#define __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                  \
-    _1,                                                                   \
-    _2,                                                                   \
-    _3,                                                                   \
-    _4,                                                                   \
-    _5,                                                                   \
-    _6,                                                                   \
-    _7,                                                                   \
-    _8,                                                                   \
-    _9,                                                                   \
-    _10,                                                                  \
-    _11,                                                                  \
-    _12,                                                                  \
-    _13,                                                                  \
-    _14,                                                                  \
-    _15,                                                                  \
-    _16,                                                                  \
-    _17,                                                                  \
-    _18,                                                                  \
-    N,                                                                    \
-    ...)                                                                  \
+#define __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                                 \
+    _1,                                                                                  \
+    _2,                                                                                  \
+    _3,                                                                                  \
+    _4,                                                                                  \
+    _5,                                                                                  \
+    _6,                                                                                  \
+    _7,                                                                                  \
+    _8,                                                                                  \
+    _9,                                                                                  \
+    _10,                                                                                 \
+    _11,                                                                                 \
+    _12,                                                                                 \
+    _13,                                                                                 \
+    _14,                                                                                 \
+    _15,                                                                                 \
+    _16,                                                                                 \
+    _17,                                                                                 \
+    _18,                                                                                 \
+    N,                                                                                   \
+    ...)                                                                                 \
     N
 
 /// \brief Builds a formatted GeometryError failure result from an error
 /// label and optional key/value payload arguments.
-#define HSDT_GEOMETRY_FAIL_CHECK(...)                                     \
-    __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                      \
-        __VA_ARGS__,                                                      \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                             \
-        __HSTD_GEOMETRY_FAIL_CHECK_NO_ARGS)                               \
+#define HSDT_GEOMETRY_FAIL_CHECK(...)                                                    \
+    __HSTD_GEOMETRY_FAIL_CHECK_PICK(                                                     \
+        __VA_ARGS__,                                                                     \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_WITH_ARGS,                                            \
+        __HSTD_GEOMETRY_FAIL_CHECK_NO_ARGS)                                              \
     (__VA_ARGS__)
 
 } // namespace detail
 
 /// \brief Checks whether two points intersect by exact coordinate
 /// equality.
-GeometryCheckResult checkIntersects(
-    Point const& first,
-    Point const& second);
+GeometryCheckResult checkIntersects(Point const& first, Point const& second);
 
 /// \brief Checks whether a point lies inside or on the boundary of a
 /// rectangle.
@@ -350,9 +339,7 @@ GeometryCheckResult checkSameHeight(
 /// \brief Checks whether a sequence of shapes is evenly spaced along one
 /// axis.
 template <typename T>
-GeometryCheckResult checkEquidistant(
-    hstd::Vec<T> const& values,
-    double              tolerance = 0.0);
+GeometryCheckResult checkEquidistant(hstd::Vec<T> const& values, double tolerance = 0.0);
 } // namespace hstd::ext::geometry
 
 namespace hstd::ext::geometry {
@@ -394,23 +381,18 @@ GeometryCheckResult runBinaryBoundsCheck(
     auto fb = boundsOf(first);
     if (!fb) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(failed to compute first bounds)",
-            checkName,
-            fb.error().message());
+            R"(failed to compute first bounds)", checkName, fb.error().message());
     }
 
     auto sb = boundsOf(second);
     if (!sb) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(failed to compute second bounds)",
-            checkName,
-            sb.error().message());
+            R"(failed to compute second bounds)", checkName, sb.error().message());
     }
 
     auto r = std::forward<Fn>(fn)(fb.value(), sb.value());
     if (!r) {
-        return HSDT_GEOMETRY_FAIL_CHECK(
-            "general-error", checkName, r.error().message());
+        return HSDT_GEOMETRY_FAIL_CHECK("general-error", checkName, r.error().message());
     }
 
     return boost::outcome_v2::success();
@@ -453,12 +435,8 @@ GeometryCheckResult checkPartiallyAbove(
     double   rtol,
     double   atol) {
     return detail::runBinaryBoundsCheck(
-        "partially-above",
-        stationary,
-        relative,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkPartiallyAboveBounds(
-                a, b, maxUnderPercent, rtol, atol);
+        "partially-above", stationary, relative, [&](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyAboveBounds(a, b, maxUnderPercent, rtol, atol);
         });
 }
 
@@ -470,12 +448,8 @@ GeometryCheckResult checkPartiallyBelow(
     double   rtol,
     double   atol) {
     return detail::runBinaryBoundsCheck(
-        "partially-below",
-        stationary,
-        relative,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkPartiallyBelowBounds(
-                a, b, maxOverPercent, rtol, atol);
+        "partially-below", stationary, relative, [&](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyBelowBounds(a, b, maxOverPercent, rtol, atol);
         });
 }
 
@@ -487,12 +461,8 @@ GeometryCheckResult checkPartiallyLeft(
     double   rtol,
     double   atol) {
     return detail::runBinaryBoundsCheck(
-        "partially-left",
-        stationary,
-        relative,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkPartiallyLeftBounds(
-                a, b, maxOverPercent, rtol, atol);
+        "partially-left", stationary, relative, [&](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyLeftBounds(a, b, maxOverPercent, rtol, atol);
         });
 }
 
@@ -504,12 +474,8 @@ GeometryCheckResult checkPartiallyRight(
     double   rtol,
     double   atol) {
     return detail::runBinaryBoundsCheck(
-        "partially-right",
-        stationary,
-        relative,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkPartiallyRightBounds(
-                a, b, maxOverPercent, rtol, atol);
+        "partially-right", stationary, relative, [&](Rect const& a, Rect const& b) {
+            return detail::checkPartiallyRightBounds(a, b, maxOverPercent, rtol, atol);
         });
 }
 
@@ -543,8 +509,7 @@ GeometryCheckResult checkPartiallyCovers(
     double   atol) {
     return detail::runBinaryBoundsCheck(
         "fully-covers", main, nested, [&](Rect const& a, Rect const& b) {
-            return detail::checkCoversBounds(
-                a, b, overlapPercent, rtol, atol);
+            return detail::checkCoversBounds(a, b, overlapPercent, rtol, atol);
         });
 }
 
@@ -557,12 +522,8 @@ GeometryCheckResult checkAlignedHorizontally(
     double   rtol,
     double   atol) {
     return detail::runBinaryBoundsCheck(
-        "aligned-horizontally",
-        first,
-        second,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkAlignedHorizontallyBounds(
-                a, b, tolerance, rtol, atol);
+        "aligned-horizontally", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkAlignedHorizontallyBounds(a, b, tolerance, rtol, atol);
         });
 }
 
@@ -574,12 +535,8 @@ GeometryCheckResult checkAlignedVertically(
     double   rtol,
     double   atol) {
     return detail::runBinaryBoundsCheck(
-        "aligned-vertically",
-        first,
-        second,
-        [&](Rect const& a, Rect const& b) {
-            return detail::checkAlignedVerticallyBounds(
-                a, b, tolerance, rtol, atol);
+        "aligned-vertically", first, second, [&](Rect const& a, Rect const& b) {
+            return detail::checkAlignedVerticallyBounds(a, b, tolerance, rtol, atol);
         });
 }
 
@@ -593,8 +550,7 @@ GeometryCheckResult checkMinDistance(
     double        atol) {
     return detail::runBinaryBoundsCheck(
         "min-distance", first, second, [&](Rect const& a, Rect const& b) {
-            return detail::checkMinDistanceBounds(
-                a, b, minDistance, check, rtol, atol);
+            return detail::checkMinDistanceBounds(a, b, minDistance, check, rtol, atol);
         });
 }
 
@@ -608,8 +564,7 @@ GeometryCheckResult checkMaxDistance(
     double        atol) {
     return detail::runBinaryBoundsCheck(
         "max-distance", first, second, [&](Rect const& a, Rect const& b) {
-            return detail::checkMaxDistanceBounds(
-                a, b, maxDistance, check, rtol, atol);
+            return detail::checkMaxDistanceBounds(a, b, maxDistance, check, rtol, atol);
         });
 }
 
@@ -623,8 +578,7 @@ GeometryCheckResult checkDistance(
     double        atol) {
     return detail::runBinaryBoundsCheck(
         "max-distance", first, second, [&](Rect const& a, Rect const& b) {
-            return detail::checkDistanceBounds(
-                a, b, distance, check, rtol, atol);
+            return detail::checkDistanceBounds(a, b, distance, check, rtol, atol);
         });
 }
 
@@ -637,8 +591,7 @@ GeometryCheckResult checkSameSize(
     double   atol) {
     return detail::runBinaryBoundsCheck(
         "same-size", first, second, [&](Rect const& a, Rect const& b) {
-            return detail::checkSameSizeBounds(
-                a, b, tolerance, rtol, atol);
+            return detail::checkSameSizeBounds(a, b, tolerance, rtol, atol);
         });
 }
 
@@ -651,8 +604,7 @@ GeometryCheckResult checkSameWidth(
     double   atol) {
     return detail::runBinaryBoundsCheck(
         "same-width", first, second, [&](Rect const& a, Rect const& b) {
-            return detail::checkSameWidthBounds(
-                a, b, tolerance, rtol, atol);
+            return detail::checkSameWidthBounds(a, b, tolerance, rtol, atol);
         });
 }
 
@@ -665,15 +617,12 @@ GeometryCheckResult checkSameHeight(
     double   atol) {
     return detail::runBinaryBoundsCheck(
         "same-height", first, second, [&](Rect const& a, Rect const& b) {
-            return detail::checkSameHeightBounds(
-                a, b, tolerance, rtol, atol);
+            return detail::checkSameHeightBounds(a, b, tolerance, rtol, atol);
         });
 }
 
 template <typename T>
-GeometryCheckResult checkEquidistant(
-    hstd::Vec<T> const& values,
-    double              tolerance) {
+GeometryCheckResult checkEquidistant(hstd::Vec<T> const& values, double tolerance) {
     hstd::Vec<Rect> bounds;
     bounds.reserve(values.size());
 
@@ -681,16 +630,14 @@ GeometryCheckResult checkEquidistant(
         auto b = detail::boundsOf(value);
         if (!b) {
             return HSDT_GEOMETRY_FAIL_CHECK(
-                R"(equidistant failed to compute bounds)",
-                b.error().message());
+                R"(equidistant failed to compute bounds)", b.error().message());
         }
         bounds.push_back(b.value());
     }
 
     auto r = detail::checkEquidistantBounds(bounds, tolerance);
     if (!r) {
-        return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(equidistant)", values, r.error().message());
+        return HSDT_GEOMETRY_FAIL_CHECK(R"(equidistant)", values, r.error().message());
     }
 
     return boost::outcome_v2::success();

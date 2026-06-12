@@ -27,17 +27,13 @@ void log_graph_tracker::add_processor(
     processors.push_back(processor);
 }
 
-void log_graph_tracker::start_tracing(
-    log_graph_processor::tracked_info const& info) {
-    if (TraceState) {
-        throw std::runtime_error("Tracing already started");
-    }
+void log_graph_tracker::start_tracing(log_graph_processor::tracked_info const& info) {
+    if (TraceState) { throw std::runtime_error("Tracing already started"); }
     TraceState = true;
     for (auto& processor : processors) { processor->track_started(info); }
 }
 
-void log_graph_tracker::end_tracing(
-    log_graph_processor::tracked_info const& info) {
+void log_graph_tracker::end_tracing(log_graph_processor::tracked_info const& info) {
     if (!TraceState) { throw std::runtime_error("Tracing not started"); }
     TraceState = false;
     for (auto& processor : processors) { processor->track_ended(info); }
@@ -46,65 +42,49 @@ void log_graph_tracker::end_tracing(
 void log_graph_tracker::notify_function_start(
     log_graph_processor::function_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_function_start(info);
-    }
+    for (auto& processor : processors) { processor->track_function_start(info); }
 }
 
 void log_graph_tracker::notify_function_end(
     log_graph_processor::function_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_function_end(info);
-    }
+    for (auto& processor : processors) { processor->track_function_end(info); }
 }
 
 
-void log_graph_tracker::notify_scope_enter(
-    log_graph_processor::scope_info const& info) {
+void log_graph_tracker::notify_scope_enter(log_graph_processor::scope_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_scope_enter(info);
-    }
+    for (auto& processor : processors) { processor->track_scope_enter(info); }
 }
 
-void log_graph_tracker::notify_scope_exit(
-    log_graph_processor::scope_info const& info) {
+void log_graph_tracker::notify_scope_exit(log_graph_processor::scope_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_scope_exit(info);
-    }
+    for (auto& processor : processors) { processor->track_scope_exit(info); }
 }
 
 void log_graph_tracker::notify_named_text(
     log_graph_processor::named_text_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_named_text(info);
-    }
+    for (auto& processor : processors) { processor->track_named_text(info); }
 }
 
 void log_graph_tracker::notify_named_jump(
     log_graph_processor::named_jump_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_named_jump(info);
-    }
+    for (auto& processor : processors) { processor->track_named_jump(info); }
 }
 
 
 hstd::finally_std log_graph_tracker::track_scope(
     log_graph_processor::scope_info const& info) {
     notify_scope_enter(info);
-    return hstd::finally_std{
-        [this, info]() { this->notify_scope_exit(info); }};
+    return hstd::finally_std{[this, info]() { this->notify_scope_exit(info); }};
 }
 
 hstd::finally_std log_graph_tracker::track_function(
     log_graph_processor::function_info const& info) {
     notify_function_start(info);
-    return hstd::finally_std{
-        [this, info]() { this->notify_function_end(info); }};
+    return hstd::finally_std{[this, info]() { this->notify_function_end(info); }};
 }
 
 #    if ORG_BUILD_WITH_CGRAPH
@@ -141,8 +121,7 @@ void graphviz_processor::track_scope_enter(scope_info const& info) {
         });
 }
 
-void graphviz_processor::track_scope_exit(
-    log_graph_processor::scope_info const& info) {
+void graphviz_processor::track_scope_exit(log_graph_processor::scope_info const& info) {
     if (!call_stack.empty()) { call_stack.pop(); }
 }
 
@@ -157,20 +136,17 @@ void graphviz_processor::track_named_jump(named_jump_info const& info) {
     pending_jump = info.description;
 }
 
-hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
-    get_graphviz(
-        hstd::SPtr<hstd::ext::graph::layout::LayoutRun> const& run) {
+hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::get_graphviz(
+    hstd::SPtr<hstd::ext::graph::layout::LayoutRun> const& run) {
     using namespace hstd::ext;
     using namespace hstd::ext::graph;
     auto graph = gv::GraphGroup::newStandaloneRootGraph("g"_ss);
-    std::unordered_map<std::string, hstd::SPtr<gv::NodeAttribute>>
-        graph_nodes{};
-    std::unordered_map<std::string, hstd::SPtr<gv::GraphGroup>> clusters{};
+    std::unordered_map<std::string, hstd::SPtr<gv::NodeAttribute>> graph_nodes{};
+    std::unordered_map<std::string, hstd::SPtr<gv::GraphGroup>>    clusters{};
 
     graph->defaultNode.setNodeShape(gv::NodeShape::rect);
 
-    auto get_node = [&](hstd::SPtr<gv::GraphGroup> const& g,
-                        std::string const&                name) {
+    auto get_node = [&](hstd::SPtr<gv::GraphGroup> const& g, std::string const& name) {
         if (!graph_nodes.contains(name)) {
             graph_nodes.insert_or_assign(name, g->node(name));
         }
@@ -186,9 +162,7 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
 
             auto node = get_node(cluster, name);
 
-            for (auto const& sub : info.subnodes) {
-                get_node(cluster, sub);
-            }
+            for (auto const& sub : info.subnodes) { get_node(cluster, sub); }
         } else {
             get_node(graph, name);
         }
@@ -205,8 +179,7 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::
 
         std::string label{};
         if (!call.jump_description.empty() && call.count > 1) {
-            label = std::format(
-                "{} ({})", call.jump_description, call.count);
+            label = std::format("{} ({})", call.jump_description, call.count);
         } else if (!call.jump_description.empty()) {
             label = call.jump_description;
         } else if (call.count > 1) {
@@ -228,9 +201,7 @@ std::string graphviz_processor::get_parent() {
     return parent;
 }
 
-void graphviz_processor::add_edge(
-    std::string const& from,
-    std::string const& to) {
+void graphviz_processor::add_edge(std::string const& from, std::string const& to) {
     std::string edge_key = std::format("{} -> {}", from, to);
     auto        it       = edges.find(edge_key);
     if (it != edges.end()) {
@@ -246,8 +217,7 @@ void graphviz_processor::add_edge(
     pending_jump.clear();
 }
 
-void hstd::log::graphviz_processor::track_signal_emit(
-    signal_emit_info const& info) {
+void hstd::log::graphviz_processor::track_signal_emit(signal_emit_info const& info) {
     std::string full_name = std::format("{}", info.name);
     if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
     nodes.insert_or_assign(
@@ -258,8 +228,7 @@ void hstd::log::graphviz_processor::track_signal_emit(
         });
 }
 
-void hstd::log::graphviz_processor::track_slot_trigger(
-    slot_trigger_info const& info) {
+void hstd::log::graphviz_processor::track_slot_trigger(slot_trigger_info const& info) {
     std::string full_name = std::format("{}", info.name);
     call_stack.push(full_name);
     nodes.insert_or_assign(
@@ -341,9 +310,8 @@ void logger_processor::track_named_jump(named_jump_info const& info) {
 std::string hstd::descObjectPtr(QObject* obj) {
     return hstd::fmt(
         "'{}' at 0x{:X}",
-        obj ? (obj->objectName().isEmpty()
-                   ? obj->metaObject()->className()
-                   : obj->objectName().toStdString())
+        obj ? (obj->objectName().isEmpty() ? obj->metaObject()->className()
+                                           : obj->objectName().toStdString())
             : "<nullptr>",
         reinterpret_cast<std::ptrdiff_t>(obj));
 }
@@ -352,25 +320,20 @@ std::string hstd::descObjectPtr(QObject* obj) {
 void hstd::log::log_graph_tracker::notify_signal_emit(
     log_graph_processor::signal_emit_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_signal_emit(info);
-    }
+    for (auto& processor : processors) { processor->track_signal_emit(info); }
 }
 
 void hstd::log::log_graph_tracker::notify_slot_trigger(
     log_graph_processor::slot_trigger_info const& info) {
     if (!TraceState) { return; }
-    for (auto& processor : processors) {
-        processor->track_slot_trigger(info);
-    }
+    for (auto& processor : processors) { processor->track_slot_trigger(info); }
 }
 
 hstd::finally_std hstd::log::log_graph_tracker::track_slot(
     log_graph_processor::slot_trigger_info const& info) {
     notify_slot_trigger(info);
     return track_function(
-        hstd::log::log_graph_processor::function_info(
-            info.name, info.args, info.loc));
+        hstd::log::log_graph_processor::function_info(info.name, info.args, info.loc));
 }
 
 void hstd::log::log_graph_tracker::notify_qobject(
@@ -386,8 +349,7 @@ void hstd::log::log_graph_tracker::notify_connect(
 }
 
 
-void hstd::log::logger_processor::track_signal_emit(
-    signal_emit_info const& info) {
+void hstd::log::logger_processor::track_signal_emit(signal_emit_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
         .fmt_message(
@@ -398,14 +360,10 @@ void hstd::log::logger_processor::track_signal_emit(
         .end();
 }
 
-void hstd::log::logger_processor::track_slot_trigger(
-    slot_trigger_info const& info) {
+void hstd::log::logger_processor::track_slot_trigger(slot_trigger_info const& info) {
     log_record{}
         .set_callsite(info.loc.line, info.loc.function, info.loc.file)
-        .fmt_message(
-            "slot trigger::{} -> '{}'",
-            descObjectPtr(info.receiver),
-            info.name)
+        .fmt_message("slot trigger::{} -> '{}'", descObjectPtr(info.receiver), info.name)
         .end();
 }
 
@@ -416,14 +374,12 @@ void hstd::log::logger_processor::track_qobject(
         .fmt_message("created {}", descObjectPtr(info.object))
         .end();
 
-    QObject::connect(
-        info.object, &QObject::destroyed, info.object, [info]() {
-            log_record{}
-                .set_callsite(
-                    info.loc.line, info.loc.function, info.loc.file)
-                .fmt_message("destroyed {}", descObjectPtr(info.object))
-                .end();
-        });
+    QObject::connect(info.object, &QObject::destroyed, info.object, [info]() {
+        log_record{}
+            .set_callsite(info.loc.line, info.loc.function, info.loc.file)
+            .fmt_message("destroyed {}", descObjectPtr(info.object))
+            .end();
+    });
 }
 
 void hstd::log::logger_processor::track_connect(connect_info const& info) {
@@ -446,9 +402,7 @@ void SignalDebugger::connectToAllSignals() {
 
     for (int i = 0; i < metaObject->methodCount(); ++i) {
         QMetaMethod method = metaObject->method(i);
-        if (method.methodType() == QMetaMethod::Signal) {
-            connectToSignal(method);
-        }
+        if (method.methodType() == QMetaMethod::Signal) { connectToSignal(method); }
     }
 }
 
@@ -488,22 +442,19 @@ void SignalDebugger::onSignalTriggered() {
                 hstd::log::log_graph_processor::function_info(
                     signal.name().toStdString(),
                     formatParameterInfo(signal),
-                    hstd::log::log_graph_processor::callsite::
-                        this_callsite())));
+                    hstd::log::log_graph_processor::callsite::this_callsite())));
     }
 }
 
-hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> SignalDebugger::
-    formatParameterInfo(QMetaMethod const& method) {
+hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> SignalDebugger::formatParameterInfo(
+    QMetaMethod const& method) {
     QList<QByteArray> paramNames = method.parameterNames();
     QList<QByteArray> paramTypes = method.parameterTypes();
 
     if (paramNames.size() != paramTypes.size()) { return {}; }
     hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> debug{};
     for (int i = 0; i < paramNames.size(); ++i) {
-        debug.push_back(
-            {paramTypes.at(i).toStdString(),
-             paramNames.at(i).toStdString()});
+        debug.push_back({paramTypes.at(i).toStdString(), paramNames.at(i).toStdString()});
     }
 
     return debug;

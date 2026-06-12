@@ -4,8 +4,7 @@
 #include <hstd/stdlib/Formatter.hpp>
 
 template <>
-struct std::formatter<org::sem::SemId<org::sem::Org>>
-    : std::formatter<std::string> {
+struct std::formatter<org::sem::SemId<org::sem::Org>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
         org::sem::SemId<org::sem::Org> const& p,
@@ -18,9 +17,8 @@ struct std::formatter<org::sem::SemId<org::sem::Org>>
 template <typename T>
 struct std::formatter<org::sem::SemId<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        org::sem::SemId<T> const& p,
-        FormatContext&            ctx) const {
+    FormatContext::iterator format(org::sem::SemId<T> const& p, FormatContext& ctx)
+        const {
         if (p.isNil()) {
             return hstd::fmt_ctx("<nil>", ctx);
         } else {

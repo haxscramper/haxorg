@@ -49,16 +49,11 @@ class RecursivePathTracker {
         using pointer           = const PathStep*;
         using reference         = const PathStep&;
 
-        iterator(RecursivePathTracker const* t, int idx)
-            : tracker{t}, index{idx} {}
+        iterator(RecursivePathTracker const* t, int idx) : tracker{t}, index{idx} {}
 
-        reference operator*() const {
-            return tracker->getNodeAt(index)->value;
-        }
+        reference operator*() const { return tracker->getNodeAt(index)->value; }
 
-        pointer operator->() const {
-            return &(tracker->getNodeAt(index)->value);
-        }
+        pointer operator->() const { return &(tracker->getNodeAt(index)->value); }
 
         reference operator[](difference_type n) const {
             return tracker->getNodeAt(index + n)->value;
@@ -102,24 +97,12 @@ class RecursivePathTracker {
             return index - other.index;
         }
 
-        bool operator==(iterator const& other) const {
-            return index == other.index;
-        }
-        bool operator!=(iterator const& other) const {
-            return index != other.index;
-        }
-        bool operator<(iterator const& other) const {
-            return index < other.index;
-        }
-        bool operator<=(iterator const& other) const {
-            return index <= other.index;
-        }
-        bool operator>(iterator const& other) const {
-            return index > other.index;
-        }
-        bool operator>=(iterator const& other) const {
-            return other.index <= index;
-        }
+        bool operator==(iterator const& other) const { return index == other.index; }
+        bool operator!=(iterator const& other) const { return index != other.index; }
+        bool operator<(iterator const& other) const { return index < other.index; }
+        bool operator<=(iterator const& other) const { return index <= other.index; }
+        bool operator>(iterator const& other) const { return index > other.index; }
+        bool operator>=(iterator const& other) const { return other.index <= index; }
     };
 
     using const_iterator = iterator;
@@ -153,14 +136,10 @@ class RecursivePathTracker {
     int  size() const { return length; }
     bool empty() const { return length == 0; }
 
-    const PathStep& operator[](int index) const {
-        return getNodeAt(index)->value;
-    }
+    const PathStep& operator[](int index) const { return getNodeAt(index)->value; }
 
     const PathStep& back() const {
-        if (!current) {
-            throw std::out_of_range("RecursivePathTracker is empty");
-        }
+        if (!current) { throw std::out_of_range("RecursivePathTracker is empty"); }
         return current->value;
     }
 

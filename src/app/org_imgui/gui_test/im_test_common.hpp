@@ -8,16 +8,14 @@
 #include <org_imgui/gui_lib/imgui_utils.hpp>
 #include <hstd/ext/logger.hpp>
 
-#define IM_TEST_LOG()                                                     \
-    ::hstd::log::log_builder{}                                            \
-        .set_callsite()                                                   \
-        .severity(hstd::log::l_info)                                      \
+#define IM_TEST_LOG()                                                                    \
+    ::hstd::log::log_builder{}                                                           \
+        .set_callsite()                                                                  \
+        .severity(hstd::log::l_info)                                                     \
         .source_scope({"gui", "test"})
 
 
-inline void join_fmt_varargs_impl(
-    std::string&       buf,
-    std::string const& sep) {}
+inline void join_fmt_varargs_impl(std::string& buf, std::string const& sep) {}
 
 template <typename T>
 inline std::string format_for_log(T const& t) {
@@ -74,22 +72,21 @@ void im_ctx_act_impl(
     (ctx->*func)(std::forward<Args>(args)...);
 }
 
-#define IM_CTX_ACT(Func, ...)                                             \
-    im_ctx_act_impl(                                                      \
-        ctx,                                                              \
-        &ImGuiTestContext::Func,                                          \
-        #Func,                                                            \
-        __LINE__,                                                         \
-        __FILE__,                                                         \
+#define IM_CTX_ACT(Func, ...)                                                            \
+    im_ctx_act_impl(                                                                     \
+        ctx,                                                                             \
+        &ImGuiTestContext::Func,                                                         \
+        #Func,                                                                           \
+        __LINE__,                                                                        \
+        __FILE__,                                                                        \
         __FUNCTION__ __VA_OPT__(, ) __VA_ARGS__)
 
 
-#define IM_FMT_DECL(T)                                                    \
-    template <>                                                           \
-    inline void ImGuiTestEngineUtil_appendf_auto(                         \
-        ImGuiTextBuffer* buf, T v) {                                      \
-        buf->append(hstd::fmt1(v).c_str());                               \
-        IM_UNUSED(v);                                                     \
+#define IM_FMT_DECL(T)                                                                   \
+    template <>                                                                          \
+    inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, T v) {            \
+        buf->append(hstd::fmt1(v).c_str());                                              \
+        IM_UNUSED(v);                                                                    \
     }
 
 IM_FMT_DECL(std::string);
@@ -181,11 +178,8 @@ void MouseMoveRelative(ImGuiTestContext* ctx, ImVec2 const& shift);
 inline std::string __im_test_utils_format_va_args_list() { return ")"; }
 
 template <typename T, typename... Args>
-inline std::string __im_test_utils_format_va_args_list(
-    T const& head,
-    Args&&... args) {
-    return hstd::fmt(
-        ", {}{}", head, __im_test_utils_format_va_args_list(args...));
+inline std::string __im_test_utils_format_va_args_list(T const& head, Args&&... args) {
+    return hstd::fmt(", {}{}", head, __im_test_utils_format_va_args_list(args...));
 }
 
 inline float ImVec2Length(ImVec2 const& vec) {
@@ -212,9 +206,7 @@ inline PredicateResult is_within_distance(
     return res;
 }
 
-inline PredicateResult has_substring(
-    hstd::Str const& lhs,
-    hstd::Str const& rhs) {
+inline PredicateResult has_substring(hstd::Str const& lhs, hstd::Str const& rhs) {
     PredicateResult res;
     res.ok = lhs.contains(rhs);
     return res;
@@ -226,9 +218,7 @@ inline PredicateResult has_substring_normalized(
     return has_substring(normalize(lhs), normalize(rhs));
 }
 
-inline PredicateResult not_has_substring(
-    hstd::Str const& lhs,
-    hstd::Str const& rhs) {
+inline PredicateResult not_has_substring(hstd::Str const& lhs, hstd::Str const& rhs) {
     PredicateResult res;
     int             idx = lhs.find(rhs);
     if (idx == std::string::npos) {
@@ -238,8 +228,7 @@ inline PredicateResult not_has_substring(
         res.explanation = fmt(
             "Found substring starting {} ({} ...)",
             idx,
-            lhs.substr(
-                idx, std::clamp<int>(idx + 20, lhs.length(), idx + 20)));
+            lhs.substr(idx, std::clamp<int>(idx + 20, lhs.length(), idx + 20)));
     }
     return res;
 }
@@ -251,34 +240,32 @@ inline PredicateResult not_has_substring_normalized(
 }
 
 
-#define IM_CHECK_BINARY_PRED(_LHS, _RHS, __pred, ...)                     \
-    do {                                                                  \
-        auto            __lhs = _LHS; /* Cache to avoid side effects */   \
-        auto            __rhs = _RHS;                                     \
-        PredicateResult __res = __pred(                                   \
-            __lhs, __rhs __VA_OPT__(, ) __VA_ARGS__);                     \
-        std::string arglist_buf = __im_test_utils_format_va_args_list(    \
-            __VA_ARGS__);                                                 \
-        std::string expr_buf = hstd::fmt(                                 \
-            "{} [{}] !{}(_, _{} {} [{}]",                                 \
-            #_LHS,                                                        \
-            __lhs,                                                        \
-            #__pred,                                                      \
-            arglist_buf,                                                  \
-            #_RHS,                                                        \
-            __rhs);                                                       \
-        if (!__res.ok && __res.explanation) {                             \
-            expr_buf += " ";                                              \
-            expr_buf += __res.explanation.value();                        \
-        }                                                                 \
-        if (ImGuiTestEngine_Check(                                        \
-                __FILE__,                                                 \
-                __func__,                                                 \
-                __LINE__,                                                 \
-                ImGuiTestCheckFlags_None,                                 \
-                __res.ok,                                                 \
-                expr_buf.c_str())) {                                      \
-            IM_ASSERT(__res);                                             \
-        }                                                                 \
-        if (!__res.ok) { return; }                                        \
+#define IM_CHECK_BINARY_PRED(_LHS, _RHS, __pred, ...)                                    \
+    do {                                                                                 \
+        auto            __lhs       = _LHS; /* Cache to avoid side effects */            \
+        auto            __rhs       = _RHS;                                              \
+        PredicateResult __res       = __pred(__lhs, __rhs __VA_OPT__(, ) __VA_ARGS__);   \
+        std::string     arglist_buf = __im_test_utils_format_va_args_list(__VA_ARGS__);  \
+        std::string     expr_buf    = hstd::fmt(                                         \
+            "{} [{}] !{}(_, _{} {} [{}]",                                                \
+            #_LHS,                                                                       \
+            __lhs,                                                                       \
+            #__pred,                                                                     \
+            arglist_buf,                                                                 \
+            #_RHS,                                                                       \
+            __rhs);                                                                      \
+        if (!__res.ok && __res.explanation) {                                            \
+            expr_buf += " ";                                                             \
+            expr_buf += __res.explanation.value();                                       \
+        }                                                                                \
+        if (ImGuiTestEngine_Check(                                                       \
+                __FILE__,                                                                \
+                __func__,                                                                \
+                __LINE__,                                                                \
+                ImGuiTestCheckFlags_None,                                                \
+                __res.ok,                                                                \
+                expr_buf.c_str())) {                                                     \
+            IM_ASSERT(__res);                                                            \
+        }                                                                                \
+        if (!__res.ok) { return; }                                                       \
     } while (0)

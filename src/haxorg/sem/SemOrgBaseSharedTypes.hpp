@@ -37,11 +37,10 @@ struct [[refl]] OrgJson {
     json const& getValue() const;
     json const& getRef() const;
 
-    [[refl]] std::string getJsonString() const;
+    [[refl]] std::string                              getJsonString() const;
     [[refl(R"({"unique-name": "atIndex"})")]] OrgJson at(int idx) const;
-    [[refl(R"({"unique-name": "atField"})")]] OrgJson at(
-        std::string const& name) const;
-    [[refl]] std::string        getString() const;
+    [[refl(R"({"unique-name": "atField"})")]] OrgJson at(std::string const& name) const;
+    [[refl]] std::string                              getString() const;
     [[refl]] OrgJson            getField(std::string const& name) const;
     [[refl]] OrgJson            getItem(int index) const;
     [[refl]] int                getInt() const;

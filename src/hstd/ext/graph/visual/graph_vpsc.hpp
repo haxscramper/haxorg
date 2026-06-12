@@ -17,13 +17,10 @@ class VpscRectTracker {
     hstd::Vec<hstd::SPtr<vpsc::Rectangle>>       rectStore;
     DESC_FIELDS(VpscRectTracker, (rectMap, rectStore));
 
-    int getVertexIdx(VertexID const& id) const {
-        return rectMap.at_right(id);
-    }
+    int getVertexIdx(VertexID const& id) const { return rectMap.at_right(id); }
 
-    std::pair<int, int> getEdgeIdx(
-        EdgeID const&                 id,
-        hstd::SPtr<layout::LayoutRun> run) const {
+    std::pair<int, int> getEdgeIdx(EdgeID const& id, hstd::SPtr<layout::LayoutRun> run)
+        const {
         return {
             getVertexIdx(run->getGraph()->getSource(id)),
             getVertexIdx(run->getGraph()->getTarget(id)),
@@ -41,9 +38,7 @@ class VpscRectTracker {
         return result;
     }
 
-    bool hasRect(VertexID const& id) const {
-        return rectMap.contains_left(id);
-    }
+    bool hasRect(VertexID const& id) const { return rectMap.contains_left(id); }
 
     hstd::SPtr<vpsc::Rectangle> getRect(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK_FMT(

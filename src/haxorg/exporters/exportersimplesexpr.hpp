@@ -7,8 +7,7 @@
 
 namespace org::algo {
 
-struct ExporterSimpleSExpr
-    : public Exporter<ExporterSimpleSExpr, hstd::layout::BlockId> {
+struct ExporterSimpleSExpr : public Exporter<ExporterSimpleSExpr, hstd::layout::BlockId> {
     using Base = Exporter<ExporterSimpleSExpr, hstd::layout::BlockId>;
 #define __ExporterBase Base
     EXPORTER_USING()
@@ -34,8 +33,7 @@ struct ExporterSimpleSExpr
 
     template <org::sem::NotOrg T>
     void visit(Res& res, T const& value) {
-        res = b.line(
-            {string(hstd::escape_for_write(std::format("{}", value)))});
+        res = b.line({string(hstd::escape_for_write(std::format("{}", value)))});
     }
 
     template <typename T>
@@ -55,13 +53,9 @@ struct ExporterSimpleSExpr
     }
 
     Res eval(int value) { return string(hstd::fmt1(value)); }
-    Res eval(hstd::Str const& value) {
-        return string(escape_for_write(value));
-    }
+    Res eval(hstd::Str const& value) { return string(escape_for_write(value)); }
 
-    Res eval(std::string const& value) {
-        return string(hstd::escape_for_write(value));
-    }
+    Res eval(std::string const& value) { return string(hstd::escape_for_write(value)); }
 
 
     template <typename T>
@@ -75,16 +69,12 @@ struct ExporterSimpleSExpr
     void visitField(Res& res, char const* name, hstd::CVec<T> value) {
         if (!value.empty()) {
             if (b.at(res).isLine()) { b.add_at(res, string(" ")); }
-            b.add_at(
-                res, b.line({string(name), string(": "), eval(value)}));
+            b.add_at(res, b.line({string(name), string(": "), eval(value)}));
         }
     }
 
     template <typename T>
-    void visitField(
-        Res&                res,
-        char const*         name,
-        hstd::Opt<T> const& value) {
+    void visitField(Res& res, char const* name, hstd::Opt<T> const& value) {
         if (value) { visitField(res, name, *value); }
     }
 
@@ -97,8 +87,7 @@ struct ExporterSimpleSExpr
 
     void visitTime(Res& res, In<sem::Time> time) {
         if (time->isStatic()) {
-            res = b.line(
-                {string(" "), eval(time->getStatic().time.format())});
+            res = b.line({string(" "), eval(time->getStatic().time.format())});
         } else {
             res = string("dynamic-time");
         }

@@ -18,8 +18,7 @@ std::function<F(T const& obj)> get_getter_get(F (T::*method)() const) {
 }
 
 template <typename T>
-std::function<bool(T const& obj)> get_method_filter(
-    bool (T::*method)() const) {
+std::function<bool(T const& obj)> get_method_filter(bool (T::*method)() const) {
     return [method](T const& obj) -> bool { return (obj.*method)(); };
 }
 

@@ -8,8 +8,7 @@ template class Exporter<ExporterUltraplain, std::string>;
 
 
 std::string ExporterUltraplain::toStr(sem::SemId<sem::Org> node) {
-    return strip(
-        ExporterUltraplain{}.evalTop(node), CharSet{' '}, CharSet{' '});
+    return strip(ExporterUltraplain{}.evalTop(node), CharSet{' '}, CharSet{' '});
 }
 
 void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {
@@ -36,9 +35,7 @@ void ExporterUltraplain::visitLink(std::string& res, In<sem::Link> link) {
     }
 }
 
-void ExporterUltraplain::visitSubtree(
-    std::string&     res,
-    In<sem::Subtree> tree) {
+void ExporterUltraplain::visitSubtree(std::string& res, In<sem::Subtree> tree) {
 
     res += Str("*").repeated(tree->level);
     res += " ";

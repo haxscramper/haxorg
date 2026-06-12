@@ -22,9 +22,7 @@ void dumpReport(StrCache& src, Report const& rep) {
         writeFile(
             getDebugFile(
                 hstd::fmt(
-                    "errors_{}.{}",
-                    debug ? "debug" : "direct",
-                    color ? "ansi" : "txt")),
+                    "errors_{}.{}", debug ? "debug" : "direct", color ? "ansi" : "txt")),
             tmp.to_string(src, color));
     }
 }
@@ -54,9 +52,7 @@ def six =
                       .with_char_set(Config::unicode()))
               .with_message("Incompatible types"_ss)
               .with_label(
-                  Label{1}
-                      .with_span(a_id, slice(0, 1))
-                      .with_color(ColStyle{}.red()))
+                  Label{1}.with_span(a_id, slice(0, 1)).with_color(ColStyle{}.red()))
               .with_label(
                   Label{2}
                       .with_span(a_id, slice(2, 3))
@@ -64,30 +60,23 @@ def six =
                       .with_message("`b` for banana"_ss)
                       .with_order(1))
               .with_label(
-                  Label{3}
-                      .with_span(a_id, slice(4, 5))
-                      .with_color(ColStyle{}.green()))
+                  Label{3}.with_span(a_id, slice(4, 5)).with_color(ColStyle{}.green()))
               .with_label(
                   Label{4}
                       .with_span(a_id, slice(7, 9))
                       .with_color(ColStyle{}.cyan())
                       .with_message("`e` for emerald"_ss))
-              .with_note(
-                  "Outputs of {} expressions must coerce to the same type"_ss);
+              .with_note("Outputs of {} expressions must coerce to the same type"_ss);
 
 
-    writeFile(
-        getDebugFile("error_Simple.txt"),
-        report.to_string(sources, false));
+    writeFile(getDebugFile("error_Simple.txt"), report.to_string(sources, false));
 }
 
 Pair<Vec<Label>, Str> labelPair(Vec<Label> const& it, Str const& it2) {
     return {it, it2};
 }
 
-Pair<Vec<Label>, Str> labelList(
-    Vec<Pair<Vec<Label>, Str>> const& text,
-    Id                                source) {
+Pair<Vec<Label>, Str> labelList(Vec<Pair<Vec<Label>, Str>> const& text, Id source) {
     Str        str;
     Vec<Label> labels;
     int        label_idx = 0;
@@ -97,9 +86,8 @@ Pair<Vec<Label>, Str> labelList(
         str += in_str;
         int last = str.size() - 1;
         for (auto const& label : in_labels) {
-            labels.push_back(label.clone()
-                                 .with_id(++label_idx)
-                                 .with_span(source, slice(first, last)));
+            labels.push_back(
+                label.clone().with_id(++label_idx).with_span(source, slice(first, last)));
         }
     }
 
@@ -139,9 +127,7 @@ struct PrintErrorTestSetup {
     Str report_text;
     Str pivoted;
 
-    PrintErrorTestSetup(
-        Vec<Pair<Vec<Label>, Str>> list,
-        Characters const&          chars)
+    PrintErrorTestSetup(Vec<Pair<Vec<Label>, Str>> list, Characters const& chars)
         : report{ReportKind::Error, id, 12} //
     {
         report.with_config(Config{}.with_char_set(chars));
@@ -172,14 +158,9 @@ struct PrintErrorTestSetup {
 
                 own_view(rune_chunks(str)) //
                     | rv::enumerate
-                    | rv::transform(
-                        [](Pair<int, std::string> const& l)
-                            -> std::string {
-                            return fmt(
-                                "[{}] {}",
-                                l.first,
-                                escape_literal(l.second));
-                        })
+                    | rv::transform([](Pair<int, std::string> const& l) -> std::string {
+                          return fmt("[{}] {}", l.first, escape_literal(l.second));
+                      })
                     | rv::intersperse("\n") //
                     | rv::join              //
                     | rs::to<std::string>(),
@@ -262,11 +243,9 @@ TEST(PrintError, StringBuilder1) {
 
             own_view(rune_chunks(str)) //
                 | rv::enumerate
-                | rv::transform(
-                    [](Pair<int, std::string> const& l) -> std::string {
-                        return fmt(
-                            "[{}] {}", l.first, escape_literal(l.second));
-                    })
+                | rv::transform([](Pair<int, std::string> const& l) -> std::string {
+                      return fmt("[{}] {}", l.first, escape_literal(l.second));
+                  })
                 | rv::intersperse("\n") //
                 | rv::join              //
                 | rs::to<std::string>(),
@@ -394,12 +373,10 @@ def six =
               .with_label(
                   Label{3}
                       .with_span(a_id, slice(11, 48))
-                      .with_message(fmt(
-                          "The values are outputs of this {} expression",
-                          "match")))
-              .with_note(fmt(
-                  "Outputs of {} expressions must coerce to the same type",
-                  "match"));
+                      .with_message(
+                          fmt("The values are outputs of this {} expression", "match")))
+              .with_note(
+                  fmt("Outputs of {} expressions must coerce to the same type", "match"));
 
     dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
@@ -432,8 +409,7 @@ def six =
               .with_label(
                   Label{1}
                       .with_span(a_id, slice(30, 30))
-                      .with_message(fmt(
-                          "Single line label on the base range", "Nat"))
+                      .with_message(fmt("Single line label on the base range", "Nat"))
                       .with_color(a))
               .with_label(
                   Label{2}
@@ -479,27 +455,22 @@ TEST(PrintError, MultipleFiles) {
         = Report(ReportKind::Error, b_id, 10)
               .with_code("3")
               .with_message("Cannot add types Nat and Str"_qs)
-              .with_label(
-                  Label(1, CodeSpan(b_id, slice(10, 14)))
-                      .with_message(
-                          ColText("This is of type ") + natColorized)
-                      .with_color(a))
-              .with_label(
-                  Label(2, CodeSpan(b_id, slice(17, 20)))
-                      .with_message(
-                          ColText("This is of typee ") + strColorized)
-                      .with_color(b))
+              .with_label(Label(1, CodeSpan(b_id, slice(10, 14)))
+                              .with_message(ColText("This is of type ") + natColorized)
+                              .with_color(a))
+              .with_label(Label(2, CodeSpan(b_id, slice(17, 20)))
+                              .with_message(ColText("This is of typee ") + strColorized)
+                              .with_color(b))
               .with_label(Label(3, CodeSpan(b_id, slice(15, 16)))
                               .with_message(
-                                  natColorized + ColText(" and ")
-                                  + strColorized
+                                  natColorized + ColText(" and ") + strColorized
                                   + ColText(" undergo addition here"))
                               .with_color(c)
                               .with_order(10))
               .with_label(Label(4, CodeSpan(a_id, slice(4, 8)))
                               .with_message(
-                                  ColText("Original definition of ")
-                                  + fiveColorized + ColText(" is here"))
+                                  ColText("Original definition of ") + fiveColorized
+                                  + ColText(" is here"))
                               .with_color(a))
               .with_note(
                   natColorized
@@ -645,8 +616,7 @@ def multiline :: Str = match Some 5 in {
 }
 
 hstd::Str remove_trailing(hstd::Str const& in) {
-    hstd::Str noLeadTail = hstd::strip(
-        in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
+    hstd::Str noLeadTail = hstd::strip(in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
     return hstd::own_view(noLeadTail.split('\n'))
          | rv::transform([](hstd::Str const& str) -> hstd::Str {
                return hstd::strip(str, CharSet{}, CharSet{' '});
@@ -664,9 +634,7 @@ TEST(PrintError, OneMessageWrite) {
     auto report //
         = Report(ReportKind::Error, id, 13)
               .with_message("can't compare apples with oranges"_qs)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     GTEST_ASSERT_EQ(
         remove_trailing(report.to_string(sources, false)),
@@ -685,21 +653,16 @@ TEST(PrintError, TwoLabelsWithoutMessageWrite) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 4))
-                      .with_message("This is an apple"_ss))
+                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an orange"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ tao:1:1 ]
    |
@@ -724,21 +687,16 @@ TEST(PrintError, TwoLabelsWithMessages) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 4))
-                      .with_message("This is an apple"_ss))
+                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an orange"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -762,21 +720,16 @@ TEST(PrintError, MultiByteChars) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 4))
-                      .with_message("This is an äpplë"_ss))
+                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an äpplë"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an örängë"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare äpplës with örängës
    ,-[ <unknown>:1:1 ]
    |
@@ -800,21 +753,16 @@ TEST(PrintError, ByteLabel) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 6))
-                      .with_message("This is an äpplë"_ss))
+                  Label{1}.with_span(id, slice(0, 6)).with_message("This is an äpplë"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an örängë"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare äpplës with örängës
    ,-[ <unknown>:1:1 ]
    |
@@ -838,21 +786,16 @@ TEST(PrintError, ByteColumn) {
         = Report(ReportKind::Error, id, 11)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 6))
-                      .with_message("This is an äpplë"_ss))
+                  Label{1}.with_span(id, slice(0, 6)).with_message("This is an äpplë"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an örängë"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare äpplës with örängës
    ,-[ <unknown>:1:12 ]
    |
@@ -879,17 +822,13 @@ TEST(PrintError, LabelAtEndOfLongLine) {
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
                   Label{1}
-                      .with_span(
-                          id, slice(code.size() - 5, code.size() - 1))
+                      .with_span(id, slice(code.size() - 5, code.size() - 1))
                       .with_message("This is an orange"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -914,14 +853,11 @@ TEST(PrintError, LabelOfWidthZeroAtEndOfLine) {
                   Label{1}
                       .with_span(id, slice(8, 9))
                       .with_message("Unexpected end of file"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: unexpected end of file
    ,-[ <unknown>:1:1 ]
    |
@@ -943,17 +879,12 @@ TEST(PrintError, EmptyInput) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 0))
-                      .with_message("No more fruit!"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: unexpected end of file
    ,-[ <unknown>:1:1 ]
    |
@@ -975,18 +906,13 @@ TEST(PrintError, EmptyInputHelp) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 0))
-                      .with_message("No more fruit!"_ss))
+                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
               .with_help("have you tried going to the farmer's market?"_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: unexpected end of file
    ,-[ <unknown>:1:1 ]
    |
@@ -1011,18 +937,13 @@ TEST(PrintError, EmptyInputNote) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 0))
-                      .with_message("No more fruit!"_ss))
+                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: unexpected end of file
    ,-[ <unknown>:1:1 ]
    |
@@ -1046,19 +967,14 @@ TEST(PrintError, EmptyInputHelpNote) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 0))
-                      .with_message("No more fruit!"_ss))
+                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
               .with_help("have you tried going to the farmer's market?"_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: unexpected end of file
    ,-[ <unknown>:1:1 ]
    |
@@ -1086,14 +1002,11 @@ TEST(PrintError, MultilineLabel) {
                   Label{1}
                       .with_span(id, slice1<int>(0, code.size() - 1))
                       .with_message("illegal comparison"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error:
    ,-[ <unknown>:1:1 ]
    |
@@ -1124,13 +1037,10 @@ TEST(PrintError, PartiallyOverlappingLabels) {
                   Label{2}
                       .with_span(id, slice1<int>(0, colon_pos - 1))
                       .with_message("scheme"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error:
    ,-[ <unknown>:1:1 ]
    |
@@ -1154,19 +1064,15 @@ TEST(PrintError, MultipleLabelsSameSpan) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 4))
-                      .with_message("This is an apple"_ss))
+                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(0, 4))
-                      .with_message(
-                          "Have I mentioned that this is an apple?"_ss))
+                      .with_message("Have I mentioned that this is an apple?"_ss))
               .with_label(
                   Label{3}
                       .with_span(id, slice(0, 4))
-                      .with_message(
-                          "No really, have I mentioned that?"_ss))
+                      .with_message("No really, have I mentioned that?"_ss))
               .with_label(
                   Label{4}
                       .with_span(id, slice(9, 14))
@@ -1174,21 +1080,16 @@ TEST(PrintError, MultipleLabelsSameSpan) {
               .with_label(
                   Label{5}
                       .with_span(id, slice(9, 14))
-                      .with_message(
-                          "Have I mentioned that this is an orange?"_ss))
+                      .with_message("Have I mentioned that this is an orange?"_ss))
               .with_label(
                   Label{6}
                       .with_span(id, slice(9, 14))
-                      .with_message(
-                          "No really, have I mentioned that?"_ss))
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+                      .with_message("No really, have I mentioned that?"_ss))
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -1220,22 +1121,17 @@ TEST(PrintError, Note) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 4))
-                      .with_message("This is an apple"_ss))
+                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an orange"_ss))
               .with_note("stop trying ... this is a fruitless endeavor"_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -1261,22 +1157,17 @@ TEST(PrintError, Help) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 4))
-                      .with_message("This is an apple"_ss))
+                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -1302,23 +1193,18 @@ TEST(PrintError, HelpAndNote) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 4))
-                      .with_message("This is an apple"_ss))
+                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
               .with_label(
                   Label{2}
                       .with_span(id, slice(9, 14))
                       .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
               .with_note("stop trying ... this is a fruitless endeavor"_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -1350,14 +1236,11 @@ TEST(PrintError, SingleNoteSingleLine) {
                       .with_span(id, slice(0, 14))
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -1386,14 +1269,11 @@ TEST(PrintError, MultiNotesSingleLines) {
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
               .with_note("Yeah, really, please stop."_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -1423,16 +1303,12 @@ TEST(PrintError, MultiNotesMultiLines) {
                       .with_span(id, slice(0, 14))
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
-              .with_note(
-                  "Yeah, really, please stop.\nIt has no resemblance."_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_note("Yeah, really, please stop.\nIt has no resemblance."_ss)
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
@@ -1463,16 +1339,12 @@ TEST(PrintError, MultiHelpsMultiLines) {
                       .with_span(id, slice(0, 14))
                       .with_message("This is a strange comparison"_ss))
               .with_help("No need to try, they can't be compared."_ss)
-              .with_help(
-                  "Yeah, really, please stop.\nIt has no resemblance."_ss)
-              .with_config(
-                  Config().with_color(false).with_char_set(
-                      Config::ascii()));
+              .with_help("Yeah, really, please stop.\nIt has no resemblance."_ss)
+              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)),
-        remove_trailing(R"(
+        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |

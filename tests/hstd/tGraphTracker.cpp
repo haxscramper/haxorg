@@ -18,64 +18,20 @@ using testing::_;
 using p = log_graph_processor;
 
 struct mock_log_graph_processor : public log_graph_processor {
-    MOCK_METHOD(
-        void,
-        track_function_start,
-        (function_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_function_end,
-        (function_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_scope_enter,
-        (scope_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_scope_exit,
-        (scope_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_started,
-        (tracked_info const& info),
-        (override));
+    MOCK_METHOD(void, track_function_start, (function_info const& info), (override));
+    MOCK_METHOD(void, track_function_end, (function_info const& info), (override));
+    MOCK_METHOD(void, track_scope_enter, (scope_info const& info), (override));
+    MOCK_METHOD(void, track_scope_exit, (scope_info const& info), (override));
+    MOCK_METHOD(void, track_started, (tracked_info const& info), (override));
     MOCK_METHOD(void, track_ended, (tracked_info const& info), (override));
-    MOCK_METHOD(
-        void,
-        track_named_text,
-        (named_text_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_named_jump,
-        (named_jump_info const& info),
-        (override));
+    MOCK_METHOD(void, track_named_text, (named_text_info const& info), (override));
+    MOCK_METHOD(void, track_named_jump, (named_jump_info const& info), (override));
 
 #if ORG_BUILD_WITH_QT
-    MOCK_METHOD(
-        void,
-        track_qobject,
-        (qobject_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_connect,
-        (connect_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_signal_emit,
-        (signal_emit_info const& info),
-        (override));
-    MOCK_METHOD(
-        void,
-        track_slot_trigger,
-        (slot_trigger_info const& info),
-        (override));
+    MOCK_METHOD(void, track_qobject, (qobject_info const& info), (override));
+    MOCK_METHOD(void, track_connect, (connect_info const& info), (override));
+    MOCK_METHOD(void, track_signal_emit, (signal_emit_info const& info), (override));
+    MOCK_METHOD(void, track_slot_trigger, (slot_trigger_info const& info), (override));
 #endif
 };
 
@@ -94,8 +50,7 @@ struct log_graph_tracker_test : public ::testing::Test {
         } catch (...) {}
     }
 
-    std::shared_ptr<::testing::NiceMock<mock_log_graph_processor>>
-        mock_processor;
+    std::shared_ptr<::testing::NiceMock<mock_log_graph_processor>> mock_processor;
 };
 
 
@@ -132,48 +87,38 @@ TEST_F(log_graph_tracker_test, end_without_start_throws_exception) {
     EXPECT_THROW(tracker->end_tracing(), std::runtime_error);
 }
 
-TEST_F(
-    log_graph_tracker_test,
-    function_tracking_when_not_started_ignored) {
+TEST_F(log_graph_tracker_test, function_tracking_when_not_started_ignored) {
     EXPECT_CALL(
         *mock_processor,
-        track_function_start(
-            testing::Field(&p::function_info::name, "test_scope")))
+        track_function_start(testing::Field(&p::function_info::name, "test_scope")))
         .Times(0);
     EXPECT_CALL(
         *mock_processor,
-        track_function_end(
-            testing::Field(&p::function_info::name, "test_scope")))
+        track_function_end(testing::Field(&p::function_info::name, "test_scope")))
         .Times(0);
 
     tracker->notify_function_start(
-        p::function_info(
-            "test_function", {}, p::callsite::this_callsite()));
+        p::function_info("test_function", {}, p::callsite::this_callsite()));
     tracker->notify_function_end(
-        p::function_info(
-            "test_function", {}, p::callsite::this_callsite()));
+        p::function_info("test_function", {}, p::callsite::this_callsite()));
 }
 
 TEST_F(log_graph_tracker_test, function_tracking_when_started) {
     EXPECT_CALL(*mock_processor, track_started(_)).Times(1);
     EXPECT_CALL(
         *mock_processor,
-        track_function_start(
-            testing::Field(&p::function_info::name, "test_function")))
+        track_function_start(testing::Field(&p::function_info::name, "test_function")))
         .Times(1);
     EXPECT_CALL(
         *mock_processor,
-        track_function_end(
-            testing::Field(&p::function_info::name, "test_function")))
+        track_function_end(testing::Field(&p::function_info::name, "test_function")))
         .Times(1);
 
     tracker->start_tracing();
     tracker->notify_function_start(
-        p::function_info(
-            "test_function", {}, p::callsite::this_callsite()));
+        p::function_info("test_function", {}, p::callsite::this_callsite()));
     tracker->notify_function_end(
-        p::function_info(
-            "test_function", {}, p::callsite::this_callsite()));
+        p::function_info("test_function", {}, p::callsite::this_callsite()));
 }
 
 
@@ -214,8 +159,8 @@ struct LogGraphTracker : public ::testing::Test {
         }
         {
             layout::LayoutRun::TrivialState state;
-            auto                            run = state.init();
-            hstd::fs::path path = getDebugFile("result.dot");
+            auto                            run  = state.init();
+            hstd::fs::path                  path = getDebugFile("result.dot");
             processor->get_graphviz(run)->render(
                 path, gv::LayoutType::Dot, gv::RenderFormat::DOT);
             std::ifstream file{path};
@@ -244,11 +189,9 @@ TEST_F(LogGraphTracker, named_jump_tracking) {
     processor->track_function_start(
         p::function_info("main", {}, p::callsite::this_callsite()));
     processor->track_function_start(
-        p::function_info(
-            "conditional_function", {}, p::callsite::this_callsite()));
+        p::function_info("conditional_function", {}, p::callsite::this_callsite()));
     processor->track_function_end(
-        p::function_info(
-            "conditional_function", {}, p::callsite::this_callsite()));
+        p::function_info("conditional_function", {}, p::callsite::this_callsite()));
     processor->track_function_end(
         p::function_info("main", {}, p::callsite::this_callsite()));
 
@@ -257,17 +200,13 @@ TEST_F(LogGraphTracker, named_jump_tracking) {
 
 TEST_F(LogGraphTracker, recursive_calls) {
     processor->track_function_start(
-        p::function_info(
-            "recursive_func", {}, p::callsite::this_callsite()));
+        p::function_info("recursive_func", {}, p::callsite::this_callsite()));
     processor->track_function_start(
-        p::function_info(
-            "recursive_func", {}, p::callsite::this_callsite()));
+        p::function_info("recursive_func", {}, p::callsite::this_callsite()));
     processor->track_function_end(
-        p::function_info(
-            "recursive_func", {}, p::callsite::this_callsite()));
+        p::function_info("recursive_func", {}, p::callsite::this_callsite()));
     processor->track_function_end(
-        p::function_info(
-            "recursive_func", {}, p::callsite::this_callsite()));
+        p::function_info("recursive_func", {}, p::callsite::this_callsite()));
 
     finalize_files();
 }
@@ -336,9 +275,7 @@ void c(std::shared_ptr<log_graph_tracker> tracker) {
     HSLOG_TRACKED_FUNCTION(tracker, "c");
     try {
         HSLOG_TRACKED_SCOPE(tracker, "try-block");
-        if (rand() % 3 == 0) {
-            throw std::runtime_error("random exception");
-        }
+        if (rand() % 3 == 0) { throw std::runtime_error("random exception"); }
 
         HSLOG_TRACKED_JUMP(tracker, "no exception");
         e(tracker);
@@ -525,9 +462,7 @@ void k(std::shared_ptr<log_graph_tracker> tracker) {
     }
 }
 
-void h(std::shared_ptr<log_graph_tracker> tracker) {
-    h_impl<int>(tracker);
-}
+void h(std::shared_ptr<log_graph_tracker> tracker) { h_impl<int>(tracker); }
 } // namespace real_usage_test_func
 
 TEST(LogGraphTrackerManual, real_usage_test) {

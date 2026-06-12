@@ -19,8 +19,7 @@ struct ImmReflFieldId;
 
 template <>
 struct std::hash<org::imm::ImmReflFieldId> {
-    std::size_t operator()(
-        org::imm::ImmReflFieldId const& it) const noexcept;
+    std::size_t operator()(org::imm::ImmReflFieldId const& it) const noexcept;
 };
 
 
@@ -65,13 +64,9 @@ struct [[refl]] ImmReflFieldId {
             typeid(T), hstd::get_total_field_index_by_ptr(fieldPtr));
     }
 
-    bool operator==(ImmReflFieldId const& other) const {
-        return index == other.index;
-    }
+    bool operator==(ImmReflFieldId const& other) const { return index == other.index; }
 
-    bool operator<(ImmReflFieldId const& other) const {
-        return index < other.index;
-    }
+    bool operator<(ImmReflFieldId const& other) const { return index < other.index; }
 
     std::uint64_t getSerializableId() const { return index; }
 
@@ -85,11 +80,9 @@ struct [[refl]] ImmReflFieldId {
 } // namespace org::imm
 
 template <>
-struct std::formatter<org::imm::ImmReflFieldId>
-    : std::formatter<std::string> {
+struct std::formatter<org::imm::ImmReflFieldId> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(org::imm::ImmReflFieldId const& p, FormatContext& ctx)
-        const {
+    auto format(org::imm::ImmReflFieldId const& p, FormatContext& ctx) const {
         return fmt_ctx(p.getName(), ctx);
     }
 };
@@ -101,8 +94,7 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
     using AnyHasherType    = AnyHasher<Str>;
     using AnyEqualType     = AnyEqual<Str>;
 
-    using ReflPathStoreType = immer::vector<
-        ReflPathItem<org::imm::ImmReflPathTag>>;
+    using ReflPathStoreType = immer::vector<ReflPathItem<org::imm::ImmReflPathTag>>;
 
     template <typename T>
     static org::imm::ImmReflPathTag::field_name_type InitFieldName(
@@ -114,8 +106,7 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
     static ReflPath<org::imm::ImmReflPathTag> AddPathItem(
         ReflPath<org::imm::ImmReflPathTag>     res,
         ReflPathItem<org::imm::ImmReflPathTag> item) {
-        return ReflPath<org::imm::ImmReflPathTag>{
-            res.path.push_back(item)};
+        return ReflPath<org::imm::ImmReflPathTag>{res.path.push_back(item)};
     }
 };
 
@@ -147,14 +138,12 @@ struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
         hstd::ext::ImmBox<T> const& value,
         ReflPathItem<Tag> const&    step,
         Func const&                 cb) {
-        LOGIC_ASSERTION_CHECK(
-            step.isDeref(), hstd::enum_to_string(step.getKind()));
+        LOGIC_ASSERTION_CHECK(step.isDeref(), hstd::enum_to_string(step.getKind()));
         cb(value.get());
     }
 
 
-    static Vec<ReflPathItem<Tag>> subitems(
-        hstd::ext::ImmBox<T> const& value) {
+    static Vec<ReflPathItem<Tag>> subitems(hstd::ext::ImmBox<T> const& value) {
         Vec<ReflPathItem<Tag>> result;
         result.push_back(ReflPathItem<Tag>::FromDeref());
         return result;
@@ -172,12 +161,9 @@ struct std::formatter<hstd::ext::ImmBox<T>> : std::formatter<std::string> {
 };
 
 template <>
-struct std::formatter<hstd::ext::ImmBox<std::string>>
-    : std::formatter<std::string> {
+struct std::formatter<hstd::ext::ImmBox<std::string>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(
-        hstd::ext::ImmBox<std::string> const& p,
-        FormatContext&                        ctx) const {
+    auto format(hstd::ext::ImmBox<std::string> const& p, FormatContext& ctx) const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
         return hstd::fmt_ctx("}", ctx);
@@ -185,11 +171,9 @@ struct std::formatter<hstd::ext::ImmBox<std::string>>
 };
 
 template <>
-struct std::formatter<hstd::ext::ImmBox<hstd::Str>>
-    : std::formatter<std::string> {
+struct std::formatter<hstd::ext::ImmBox<hstd::Str>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(hstd::ext::ImmBox<hstd::Str> const& p, FormatContext& ctx)
-        const {
+    auto format(hstd::ext::ImmBox<hstd::Str> const& p, FormatContext& ctx) const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
         return hstd::fmt_ctx("}", ctx);
@@ -200,9 +184,8 @@ struct std::formatter<hstd::ext::ImmBox<hstd::Str>>
 template <typename T>
 struct std::formatter<hstd::ext::ImmSet<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        hstd::ext::ImmSet<T> const& p,
-        FormatContext&              ctx) const {
+    FormatContext::iterator format(hstd::ext::ImmSet<T> const& p, FormatContext& ctx)
+        const {
         std::formatter<std::string> fmt;
         fmt.format("{", ctx);
         fmt.format(join(", ", p), ctx);
@@ -222,16 +205,11 @@ using ImmMapTransientDefault = immer::map_transient<
 
 template <typename K, typename V>
 struct std::formatter<ImmMapTransientDefault<K, V>>
-    : hstd::std_kv_tuple_iterator_formatter<
-          K,
-          V,
-          ImmMapTransientDefault<K, V>> {};
+    : hstd::std_kv_tuple_iterator_formatter<K, V, ImmMapTransientDefault<K, V>> {};
 
 template <typename K, typename V>
 struct std::formatter<hstd::ext::ImmMap<K, V>>
-    : hstd::
-          std_kv_tuple_iterator_formatter<K, V, hstd::ext::ImmMap<K, V>> {
-};
+    : hstd::std_kv_tuple_iterator_formatter<K, V, hstd::ext::ImmMap<K, V>> {};
 
 template <typename K, typename V>
 struct std::formatter<immer::map<K, V>>
@@ -252,10 +230,8 @@ struct ImmIdT;
 
 static const hstd::u64 ImmIdMaskSize   = 4 * 6;
 static const hstd::u64 ImmIdMaskOffset = 8 * 8 - ImmIdMaskSize;
-using ImmIdBase                        = hstd::dod::Id<
-    hstd::u64,
-    hstd::u64,
-    std::integral_constant<hstd::u64, ImmIdMaskSize>>;
+using ImmIdBase                        = hstd::dod::
+    Id<hstd::u64, hstd::u64, std::integral_constant<hstd::u64, ImmIdMaskSize>>;
 
 struct [[refl]] ImmId : ImmIdBase {
     BOOST_DESCRIBE_CLASS(ImmId, (ImmIdBase), (), (), ());
@@ -282,22 +258,18 @@ struct [[refl]] ImmId : ImmIdBase {
     }
 
     ImmId() : ImmIdBase{0} {};
-    static ImmId FromValue(hstd::u64 value) {
-        return ImmId{ImmIdBase::FromValue(value)};
-    }
+    static ImmId FromValue(hstd::u64 value) { return ImmId{ImmIdBase::FromValue(value)}; }
     ImmId(ImmIdBase const& base) : ImmIdBase{base} {};
 
     ImmId(OrgSemKind kind, NodeIdxT nodeIndex)
         : ImmIdBase{combineFullValue(kind, nodeIndex)} {}
 
     [[refl]] OrgSemKind getKind() const { return ImmId::getKind(value); }
-    [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
+    [[refl]] bool       is(OrgSemKind kind) const { return getKind() == kind; }
 
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
-    [[refl]] NodeIdxT getNodeIndex() const {
-        return ImmId::getNodeIdx(value);
-    }
+    [[refl]] NodeIdxT getNodeIndex() const { return ImmId::getNodeIdx(value); }
 
     /// \brief Convert this node to one with specified kind
     template <typename T>
@@ -322,21 +294,13 @@ struct [[refl]] ImmId : ImmIdBase {
 
     void assertValid() const;
 
-    bool operator<(Id other) const noexcept {
-        return getValue() < other.getValue();
-    }
+    bool operator<(Id other) const noexcept { return getValue() < other.getValue(); }
 
-    bool operator<=(Id other) const noexcept {
-        return getValue() <= other.getValue();
-    }
+    bool operator<=(Id other) const noexcept { return getValue() <= other.getValue(); }
 
-    bool operator==(Id other) const noexcept {
-        return getValue() == other.getValue();
-    }
+    bool operator==(Id other) const noexcept { return getValue() == other.getValue(); }
 
-    bool operator!=(Id other) const noexcept {
-        return getValue() != other.getValue();
-    }
+    bool operator!=(Id other) const noexcept { return getValue() != other.getValue(); }
 };
 
 template <typename T>
@@ -380,8 +344,7 @@ struct [[refl]] ImmOrg {
         if (res == nullptr) {
             if constexpr (std::is_abstract_v<T>) {
                 throw std::logic_error(
-                    hstd::fmt(
-                        "Cannot cast node of kind {}", this->getKind()));
+                    hstd::fmt("Cannot cast node of kind {}", this->getKind()));
             } else {
                 throw std::logic_error(
                     hstd::fmt(
@@ -409,15 +372,11 @@ struct std::formatter<org::imm::ImmId> : std::formatter<std::string> {
 
 template <>
 struct hstd::ReflVisitor<org::imm::ImmId, org::imm::ImmReflPathTag>
-    : hstd::
-          ReflVisitorLeafType<org::imm::ImmId, org::imm::ImmReflPathTag> {
-};
+    : hstd::ReflVisitorLeafType<org::imm::ImmId, org::imm::ImmReflPathTag> {};
 
 template <typename T>
 struct hstd::ReflVisitor<org::imm::ImmIdT<T>, org::imm::ImmReflPathTag>
-    : hstd::ReflVisitorLeafType<
-          org::imm::ImmIdT<T>,
-          org::imm::ImmReflPathTag> {};
+    : hstd::ReflVisitorLeafType<org::imm::ImmIdT<T>, org::imm::ImmReflPathTag> {};
 
 
 template <>

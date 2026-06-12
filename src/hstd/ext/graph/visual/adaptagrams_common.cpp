@@ -11,8 +11,7 @@ geometry::Point to_hstd(Avoid::Point const& input) {
 
 geometry::Rect to_hstd(Avoid::Rectangle const& input) {
     auto bbox = input.offsetBoundingBox(0);
-    return geometry::Rect(
-        bbox.min.x, bbox.min.y, bbox.width(), bbox.height());
+    return geometry::Rect(bbox.min.x, bbox.min.y, bbox.width(), bbox.height());
 }
 
 geometry::Rect to_hstd(vpsc::Rectangle const& input) {
@@ -25,15 +24,12 @@ geometry::Rect to_hstd(vpsc::Rectangle const& input) {
 
 geometry::Rect to_hstd_rect(Avoid::Polygon const& input) {
     auto bbox = input.offsetBoundingBox(0);
-    return geometry::Rect(
-        bbox.min.x, bbox.min.y, bbox.width(), bbox.height());
+    return geometry::Rect(bbox.min.x, bbox.min.y, bbox.width(), bbox.height());
 }
 
 geometry::Polygon to_hstd(Avoid::Polygon const& input) {
     geometry::Polygon result;
-    for (int i = 0; i < input.size(); ++i) {
-        result.push_back(to_hstd(input.at(i)));
-    }
+    for (int i = 0; i < input.size(); ++i) { result.push_back(to_hstd(input.at(i))); }
 
     return result;
 }

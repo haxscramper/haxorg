@@ -105,9 +105,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
 
-    for (int i = 0; i < 11; ++i) {
-        vs.push_back(addVertex(hstd::fmt("id_{}", i)));
-    }
+    for (int i = 0; i < 11; ++i) { vs.push_back(addVertex(hstd::fmt("id_{}", i))); }
 
     auto     rg_id  = addVertex("rg_id");
     VertexID sg_id1 = addVertex("sg_id1");
@@ -210,9 +208,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
 TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     hstd::Vec<VertexID> vs;
     hstd::Vec<EdgeID>   es;
-    for (int i = 0; i < 6; ++i) {
-        vs.push_back(addVertex(hstd::fmt("id_{}", i)));
-    }
+    for (int i = 0; i < 6; ++i) { vs.push_back(addVertex(hstd::fmt("id_{}", i))); }
 
     auto edge = [&](int source, int target) {
         es.push_back(getGraph()->addEdge(vs.at(source), vs.at(target)));
@@ -315,8 +311,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 
-    hstd::writeFile(
-        getDebugFile("result.json"), hstd::to_json_eval(visual).dump(2));
+    hstd::writeFile(getDebugFile("result.json"), hstd::to_json_eval(visual).dump(2));
 
     hstd::writeFile(
         getDebugFile("result.txt"),
@@ -324,8 +319,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     // VSG1 is a left layout group
     // VSG2 is a right one
-    EXPECT_OUTCOME_OK(
-        checkLeftOf(/*stationary=*/vsg2.offset, /*relative=*/vsg1.offset));
+    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/vsg2.offset, /*relative=*/vsg1.offset));
 
     EXPECT_OUTCOME_OK(checkFullyCovers(/*main=*/vsg.computeBounds(),
                                        /*nested=*/vsg1.computeBounds()));
@@ -354,8 +348,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
                                  /*relative=*/run->getVisual(vs.at(5))));
 
     // group 0
-    for (auto const& [group_idx, group] :
-         hstd::enumerate(hstd::as_vec(&vsg1, &vsg2))) {
+    for (auto const& [group_idx, group] : hstd::enumerate(hstd::as_vec(&vsg1, &vsg2))) {
         for (int i : hstd::as_vec(0, 1, 2)) {
             EXPECT_OUTCOME_OK(
                 checkFullyCovers(

@@ -29,8 +29,7 @@ void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full) {
         auto                    json_result = exp.eval(node);
         writeFile(full, json_result.dump(2));
     } else {
-        writeFile(
-            full, org::algo::ExporterTree::treeRepr(node).toString(false));
+        writeFile(full, org::algo::ExporterTree::treeRepr(node).toString(false));
     }
 }
 
@@ -38,31 +37,23 @@ void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full) {
 sem::SemId<sem::Org> testParseString(
     std::string const&         text,
     std::optional<std::string> debug) {
-    org::test::MockFull p{"<test>", debug.has_value(), debug.has_value()};
-    sem::OrgConverter   converter{};
+    org::test::MockFull     p{"<test>", debug.has_value(), debug.has_value()};
+    sem::OrgConverter       converter{};
     org::parse::LexerParams params;
     if (debug) {
-        p.tokenizer->setTraceFile(
-            fs::path{debug.value() + "_tokenizer_trace.log"});
-        p.parser->setTraceFile(
-            fs::path{debug.value() + "_parser_trace.log"});
+        p.tokenizer->setTraceFile(fs::path{debug.value() + "_tokenizer_trace.log"});
+        p.parser->setTraceFile(fs::path{debug.value() + "_parser_trace.log"});
         converter.setTraceFile(fs::path{debug.value() + "_sem_trace.log"});
         p.parser->traceColored    = false;
         p.tokenizer->traceColored = false;
         params.setTraceFile(fs::path{debug.value() + "_lex_trace.log"});
-        p.tokenizeBase(
-            text,
-            params,
-            p.parseContext->addSource("<mock-full-run>", text));
+        p.tokenizeBase(text, params, p.parseContext->addSource("<mock-full-run>", text));
 
         writeFile(
             fs::path{debug.value() + "_base_lexed.yaml"},
             std::format("{}", org::test::yamlRepr(p.baseTokens)));
     } else {
-        p.tokenizeBase(
-            text,
-            params,
-            p.parseContext->addSource("<mock-full-run>", text));
+        p.tokenizeBase(text, params, p.parseContext->addSource("<mock-full-run>", text));
     }
 
     p.tokenizeConvert();
@@ -85,19 +76,14 @@ sem::SemId<sem::Org> testParseString(
 
         org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0))
             .treeRepr(
-                os,
-                0,
-                org::parse::OrgNodeGroup::TreeReprConf{
-                    .customWrite = writeImpl});
+                os, 0, org::parse::OrgNodeGroup::TreeReprConf{.customWrite = writeImpl});
 
-        writeFile(
-            fs::path{debug.value() + "_parse_tree.txt"}, buffer.str());
+        writeFile(fs::path{debug.value() + "_parse_tree.txt"}, buffer.str());
     }
 
     auto res = converter
                    .convertDocument(
-                       org::parse::OrgAdapter(
-                           &p.nodes, org::parse::OrgId(0)))
+                       org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0)))
                    .value();
 
     if (debug) {
@@ -108,13 +94,11 @@ sem::SemId<sem::Org> testParseString(
         tree.conf.skipEmptyFields = false;
         tree.evalTop(res);
 
-        writeFile(
-            fs::path{debug.value()} + "_sem_tree.txt", os.toString(false));
+        writeFile(fs::path{debug.value()} + "_sem_tree.txt", os.toString(false));
 
         org::algo::ExporterYaml exp{};
         auto                    yaml_result = exp.eval(res);
-        writeFile(
-            fs::path{debug.value()} + "_sem_tree.yaml", fmt1(yaml_result));
+        writeFile(fs::path{debug.value()} + "_sem_tree.yaml", fmt1(yaml_result));
     }
 
     return res;
@@ -124,24 +108,20 @@ void show_compare_reports(Vec<compare_report> const& out) {
     std::string buffer;
     for (auto const& it : out) {
         std::string ctx = it.context
-                        | rv::transform(
-                              [](compare_context const& c) -> std::string {
-                                  return fmt("{}.{}", c.type, c.field);
-                              })
+                        | rv::transform([](compare_context const& c) -> std::string {
+                              return fmt("{}.{}", c.type, c.field);
+                          })
                         | rv::intersperse("->") //
                         | rv::join              //
                         | rs::to<std::string>();
 
         buffer += fmt(
-            "{} failed: original != parsed\n{}\n",
-            ctx,
-            hstd::indent(it.message, 2));
+            "{} failed: original != parsed\n{}\n", ctx, hstd::indent(it.message, 2));
     }
 
     if (!out.empty()) {
         auto path = getDebugFile("changes.txt");
-        ADD_FAILURE() << "Found differences in value wrote report to "
-                      << path;
+        ADD_FAILURE() << "Found differences in value wrote report to " << path;
         writeFile(path, buffer);
     }
 }

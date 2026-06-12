@@ -60,13 +60,9 @@ Str hstd::ansiDiff(ColStyle const& s1, ColStyle const& s2) {
         }
     }
 
-    for (const auto style : s1.style - s2.style) {
-        result += ansiEsc(style, false);
-    }
+    for (const auto style : s1.style - s2.style) { result += ansiEsc(style, false); }
 
-    for (const auto style : s2.style - s1.style) {
-        result += ansiEsc(style, true);
-    }
+    for (const auto style : s2.style - s1.style) { result += ansiEsc(style, true); }
 
     return result;
 }
@@ -83,9 +79,7 @@ std::string hstd::to_string(ColRune const& rune, bool const& color) {
     return result;
 }
 
-std::string hstd::to_colored_string(
-    Vec<ColRune> const& runes,
-    bool const&         color) {
+std::string hstd::to_colored_string(Vec<ColRune> const& runes, bool const& color) {
     std::string result;
     if (color) {
         auto prev = ColStyle();
@@ -95,8 +89,7 @@ std::string hstd::to_colored_string(
             prev = rune.style;
         }
 
-        if (!isDefault(prev.fg) || !isDefault(prev.bg)
-            || 0 < prev.style.size()) {
+        if (!isDefault(prev.fg) || !isDefault(prev.bg) || 0 < prev.style.size()) {
             result += ansiEsc(0);
         }
     } else {
@@ -127,12 +120,8 @@ json hstd::to_formatting_json(Vec<ColRune> const& runes) {
             if (!current_text.empty()) {
                 json chunk;
                 chunk["text"] = current_text;
-                if (!isDefault(prev.fg)) {
-                    chunk["fg"] = static_cast<u8>(prev.fg);
-                }
-                if (!isDefault(prev.bg)) {
-                    chunk["bg"] = static_cast<u8>(prev.bg);
-                }
+                if (!isDefault(prev.fg)) { chunk["fg"] = static_cast<u8>(prev.fg); }
+                if (!isDefault(prev.bg)) { chunk["bg"] = static_cast<u8>(prev.bg); }
                 if (prev.style.size() > 0) {
                     json style_array = json::array();
                     for (const auto& style : prev.style) {
@@ -152,12 +141,8 @@ json hstd::to_formatting_json(Vec<ColRune> const& runes) {
     if (!current_text.empty()) {
         json chunk;
         chunk["text"] = current_text;
-        if (!isDefault(prev.fg)) {
-            chunk["fg"] = static_cast<u8>(prev.fg);
-        }
-        if (!isDefault(prev.bg)) {
-            chunk["bg"] = static_cast<u8>(prev.bg);
-        }
+        if (!isDefault(prev.fg)) { chunk["fg"] = static_cast<u8>(prev.fg); }
+        if (!isDefault(prev.bg)) { chunk["bg"] = static_cast<u8>(prev.bg); }
         if (prev.style.size() > 0) {
             json style_array = json::array();
             for (const auto& style : prev.style) {
@@ -223,9 +208,7 @@ void ColStream::write_indented_after_first(Str const& text, int indent) {
 }
 
 
-void ColStream::write_indented_after_first(
-    Vec<ColText> const& text,
-    int                 indent) {
+void ColStream::write_indented_after_first(Vec<ColText> const& text, int indent) {
     if (text.has(0)) { write(ColText{text.at(0)}); }
     for (int i = 1; i < text.size(); ++i) {
         write(ColText{"\n"});
@@ -234,9 +217,7 @@ void ColStream::write_indented_after_first(
     }
 }
 
-void ColStream::write_indented_after_first(
-    ColText const& text,
-    int            indent) {
+void ColStream::write_indented_after_first(ColText const& text, int indent) {
     write_indented_after_first(text.split("\n"), indent);
 }
 
@@ -256,16 +237,13 @@ void hstd::hshow<std::string_view>::format(
 
         if (opts.get_string_as_array()) {
             if (opts.get_use_quotes()) {
-                for (Str const& it :
-                     visibleUnicodeName(value, !opts.get_use_ascii())) {
+                for (Str const& it : visibleUnicodeName(value, !opts.get_use_ascii())) {
                     if (!first) { os << " "; }
                     first = false;
-                    os << std::format(
-                        "{}{}{}", open_quote, it, close_quote);
+                    os << std::format("{}{}{}", open_quote, it, close_quote);
                 }
             } else {
-                for (const auto& it :
-                     visibleUnicodeName(value, !opts.get_use_ascii())) {
+                for (const auto& it : visibleUnicodeName(value, !opts.get_use_ascii())) {
                     os << it;
                 }
             }
@@ -285,9 +263,7 @@ void hstd::hshow<std::string_view>::format(
                     os << value;
                 }
             } else {
-                for (const auto& it : visibleUnicodeName(value, true)) {
-                    os << it;
-                }
+                for (const auto& it : visibleUnicodeName(value, true)) { os << it; }
             }
 
             if (opts.get_use_quotes()) { os << close_quote; }
@@ -301,9 +277,7 @@ ColText& ColText::withStyle(ColStyle const& style) {
 }
 
 hstd::ColText::ColText(ColStyle const& style, std::string const& text) {
-    for (const auto& ch : rune_chunks(text)) {
-        push_back(ColRune(ch, style));
-    }
+    for (const auto& ch : rune_chunks(text)) { push_back(ColRune(ch, style)); }
 }
 
 void ColText::append(int repeat, ColRune c) {
@@ -369,8 +343,7 @@ std::string hstd::to_colored_html(Vec<ColRune> const& runes) {
         if (s2.fg != s1.fg) {
             if (!isDefault(s1.fg)) { close_tags += "</font>"; }
             if (!isDefault(s2.fg)) {
-                open_tags += std::format(
-                    "<font color=\"{}\">", toHtmlColor(s2.fg));
+                open_tags += std::format("<font color=\"{}\">", toHtmlColor(s2.fg));
             }
         }
 
@@ -427,10 +400,7 @@ hshow_opts& hshow_opts::with(IntSet<hshow_flag> flag) {
     return *this;
 }
 
-ColRune& ColRune::dbg_origin(
-    bool        enabled,
-    int         line,
-    char const* function) {
+ColRune& ColRune::dbg_origin(bool enabled, int line, char const* function) {
     if (enabled) { this->rune += hstd::fmt("{}:{}", function, line); }
     return *this;
 }

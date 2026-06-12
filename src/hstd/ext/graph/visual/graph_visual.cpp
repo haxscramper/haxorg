@@ -61,12 +61,10 @@ void hstd::ext::graph::layout::LayoutRun::setNestedVertexAttribute(
     getGraph()->getMVertex(nested)->addUniqueAttribute(attr);
 }
 
-hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
-    const {
+hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual() const {
     hstd::Vec<hstd::ext::visual::VisGroup> res;
     EdgeIteration                          iter{this};
-    auto aux = [&](this auto&& self,
-                   VertexID    id) -> hstd::ext::visual::VisGroup {
+    auto aux = [&](this auto&& self, VertexID id) -> hstd::ext::visual::VisGroup {
         auto                        group  = getGroup(id);
         auto                        attr   = getLayout(id);
         hstd::ext::visual::VisGroup result = getLayout(id)->getVisual(id);
@@ -78,8 +76,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             result.subgroups.push_back(visual);
         }
 
-        for (auto const& it :
-             hstd::sorted(getDirectVertices(id).items())) {
+        for (auto const& it : hstd::sorted(getDirectVertices(id).items())) {
             auto const& attr   = getLayout(it);
             auto        visual = attr->getVisual(it);
             LOGIC_ASSERTION_CHECK_FMT(
@@ -94,8 +91,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             visual.original_type = (int)ILayoutAttribute::Kind::Vertex;
             visual.custom.title  = graph->getDebug(it);
 
-            for (auto const& port :
-                 hstd::sorted(ports->getPortsForVertex(it).items())) {
+            for (auto const& port : hstd::sorted(ports->getPortsForVertex(it).items())) {
                 auto const& attr        = getLayout(port);
                 auto        port_visual = attr->getVisual(port);
                 visual.subgroups.push_back(port_visual);
@@ -112,8 +108,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
             result.subgroups.push_back(visual);
         }
 
-        for (auto const& it :
-             hstd::sorted(iter.getEdgesForGroup(id).items())) {
+        for (auto const& it : hstd::sorted(iter.getEdgesForGroup(id).items())) {
             auto const& attr     = getLayout(it);
             auto        visual   = attr->getVisual(it);
             visual.original_id   = it.getValue();
@@ -125,9 +120,7 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual()
         return result;
     };
 
-    for (auto const& rg : groups->getRootVertices()) {
-        res.push_back(aux(rg));
-    }
+    for (auto const& rg : groups->getRootVertices()) { res.push_back(aux(rg)); }
 
     iter.validateLeftoverEdges();
 
@@ -172,10 +165,8 @@ EdgeIDSet layout::LayoutRun::getAllUnboundEdges() const {
     return res;
 }
 
-VertexIDSet layout::LayoutRun::getDirectVertices(
-    VertexID const& id) const {
-    LOGIC_ASSERTION_CHECK(
-        isGroupVertex(id), "Cannot get nested vertices from non-group");
+VertexIDSet layout::LayoutRun::getDirectVertices(VertexID const& id) const {
+    LOGIC_ASSERTION_CHECK(isGroupVertex(id), "Cannot get nested vertices from non-group");
     VertexIDSet res;
     for (auto const& sub : groups->getSubVertices(id)) {
         if (!isGroupVertex(sub)) { res.incl(sub); }
@@ -184,8 +175,7 @@ VertexIDSet layout::LayoutRun::getDirectVertices(
 }
 
 VertexIDSet layout::LayoutRun::getSubGroups(VertexID const& id) const {
-    LOGIC_ASSERTION_CHECK(
-        isGroupVertex(id), "Cannot get nested groups from non-group");
+    LOGIC_ASSERTION_CHECK(isGroupVertex(id), "Cannot get nested groups from non-group");
     VertexIDSet res;
     for (auto const& sub : groups->getSubVertices(id)) {
         if (isGroupVertex(sub)) { res.incl(sub); }
@@ -193,8 +183,7 @@ VertexIDSet layout::LayoutRun::getSubGroups(VertexID const& id) const {
     return res;
 }
 
-VertexIDSet layout::LayoutRun::getSubGroupsNoLayoutSwitch(
-    VertexID const& id) const {
+VertexIDSet layout::LayoutRun::getSubGroupsNoLayoutSwitch(VertexID const& id) const {
     VertexIDSet noSwitch;
     for (auto const& sub : getSubGroups(id)) {
         if (!getGroup(sub)->hasAlgorithm()) { noSwitch.incl(sub); }
@@ -232,8 +221,7 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
     };
 
 
-    auto aux =
-        [&](this auto&& self, VertexID const& id, int depth) -> void {
+    auto aux = [&](this auto&& self, VertexID const& id, int depth) -> void {
         if (isGroupVertex(id)) {
             auto visual = getGroup(id);
             os.indent(depth * 2);
@@ -245,22 +233,19 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
                 os << hstd::fmt(" layout {}", layout->getBBox());
             }
 
-            for (auto const& sub :
-                 hstd::sorted(getDirectVertices(id).items())) {
+            for (auto const& sub : hstd::sorted(getDirectVertices(id).items())) {
                 os.newline();
                 self(sub, depth + 1);
             }
 
 
-            for (auto const& sub :
-                 hstd::sorted(iter.getEdgesForGroup(id).items())) {
+            for (auto const& sub : hstd::sorted(iter.getEdgesForGroup(id).items())) {
                 os.newline();
                 aux_edge(sub, depth + 1);
             }
 
 
-            for (auto const& sub :
-                 hstd::sorted(getSubGroups(id).items())) {
+            for (auto const& sub : hstd::sorted(getSubGroups(id).items())) {
                 os.newline();
                 self(sub, depth + 1);
             }
@@ -277,9 +262,7 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
         }
     };
 
-    for (auto const& g : hstd::sorted(groups->getRootVertices().items())) {
-        aux(g, 0);
-    }
+    for (auto const& g : hstd::sorted(groups->getRootVertices().items())) { aux(g, 0); }
 
     for (auto const& e : hstd::sorted(iter.getLeftoverEdges().items())) {
         os.newline();
@@ -294,19 +277,15 @@ void hstd::ext::graph::layout::LayoutRun::treeRepr(
     }
 }
 
-hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::
-    getGraph() const {
+hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::getGraph() const {
     return run->getGraph();
 }
 
 #if ORG_BUILD_WITH_PROTOBUF
 void layout::IGroupVisualAttribute::writeSerialConstraints(
-    google::protobuf::RepeatedPtrField<
-        hstd::ext::graph::proto::IConstraint>* out,
-    IGraph const*                              graph) const {
-    for (auto const& c : constraints) {
-        c->writeSerial(out->Add(), graph);
-    }
+    google::protobuf::RepeatedPtrField<hstd::ext::graph::proto::IConstraint>* out,
+    IGraph const* graph) const {
+    for (auto const& c : constraints) { c->writeSerial(out->Add(), graph); }
 }
 
 void layout::IGroupVisualAttribute::readSerialConstraints(
@@ -322,8 +301,8 @@ void layout::IGroupVisualAttribute::readSerialConstraints(
 }
 #endif
 
-hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::
-    EdgeIteration::getEdgesForGroup(VertexID const& id) {
+hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::EdgeIteration::
+    getEdgesForGroup(VertexID const& id) {
     // collect list of edges between explicit sub-vertices for a
     // group.
     auto direct_edges = run->getDirectlyNestedEdges(id);

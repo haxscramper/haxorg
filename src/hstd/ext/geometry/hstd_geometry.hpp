@@ -132,9 +132,7 @@ struct Point : public bg::model::d2::point_xy<double> {
         return a.x() == b.x() && a.y() == b.y();
     }
 
-    friend bool operator!=(Point const& a, Point const& b) {
-        return !(a == b);
-    }
+    friend bool operator!=(Point const& a, Point const& b) { return !(a == b); }
 };
 
 
@@ -143,13 +141,9 @@ struct Size : public Point {
     double width() const { return this->x(); }
     double height() const { return this->y(); }
 
-    Size operator/(double other) const {
-        return Size(x() / other, y() / other);
-    }
+    Size operator/(double other) const { return Size(x() / other, y() / other); }
 
-    Size operator*(double other) const {
-        return Size(x() * other, y() * other);
-    }
+    Size operator*(double other) const { return Size(x() * other, y() * other); }
 };
 
 struct Rect;
@@ -170,10 +164,7 @@ struct point_type<hstd::ext::geometry::Rect> {
 
 template <std::size_t Corner, std::size_t Dimension>
 struct indexed_access<hstd::ext::geometry::Rect, Corner, Dimension>
-    : indexed_access<
-          model::box<hstd::ext::geometry::Point>,
-          Corner,
-          Dimension> {};
+    : indexed_access<model::box<hstd::ext::geometry::Point>, Corner, Dimension> {};
 
 template <>
 struct tag<hstd::ext::geometry::Point> {
@@ -195,22 +186,14 @@ struct dimension<hstd::ext::geometry::Point> : boost::mpl::int_<2> {};
 
 template <>
 struct access<hstd::ext::geometry::Point, 0> {
-    static double get(hstd::ext::geometry::Point const& p) {
-        return p.x();
-    }
-    static void set(hstd::ext::geometry::Point& p, double const& value) {
-        p.x(value);
-    }
+    static double get(hstd::ext::geometry::Point const& p) { return p.x(); }
+    static void   set(hstd::ext::geometry::Point& p, double const& value) { p.x(value); }
 };
 
 template <>
 struct access<hstd::ext::geometry::Point, 1> {
-    static double get(hstd::ext::geometry::Point const& p) {
-        return p.y();
-    }
-    static void set(hstd::ext::geometry::Point& p, double const& value) {
-        p.y(value);
-    }
+    static double get(hstd::ext::geometry::Point const& p) { return p.y(); }
+    static void   set(hstd::ext::geometry::Point& p, double const& value) { p.y(value); }
 };
 
 } // namespace boost::geometry::traits
@@ -236,9 +219,7 @@ struct Polygon : public bg::model::polygon<Point> {
         return *this;
     }
 
-    Polygon& operator/=(double factor) {
-        return (*this *= (1.0 / factor));
-    }
+    Polygon& operator/=(double factor) { return (*this *= (1.0 / factor)); }
 
     Polygon& operator+=(Point const& delta) {
         const double dx = bg::get<0>(delta);
@@ -375,9 +356,7 @@ struct Rect : bg::model::box<Point> {
         return Rect(center.x() - w / 2, center.y() - h / 2, w, h);
     }
 
-    static Rect FromSize(Size const& s) {
-        return Rect(0, 0, s.width(), s.height());
-    }
+    static Rect FromSize(Size const& s) { return Rect(0, 0, s.width(), s.height()); }
 
     static Rect FromUpperLeftWH(Point const& ul, double w, double h) {
         return Rect(ul.x(), ul.y(), w, h);
@@ -397,31 +376,26 @@ struct Rect : bg::model::box<Point> {
     Point center() const { return Point{center_x(), center_y()}; }
 
     Rect move(Point const& other) const {
-        return Rect::FromUpperLeftWH(
-            this->upper_left() + other, width(), height());
+        return Rect::FromUpperLeftWH(this->upper_left() + other, width(), height());
     }
 
 
     double width() const {
-        return bg::get<bg::max_corner, 0>(*this)
-             - bg::get<bg::min_corner, 0>(*this);
+        return bg::get<bg::max_corner, 0>(*this) - bg::get<bg::min_corner, 0>(*this);
     }
 
     double height() const {
-        return bg::get<bg::max_corner, 1>(*this)
-             - bg::get<bg::min_corner, 1>(*this);
+        return bg::get<bg::max_corner, 1>(*this) - bg::get<bg::min_corner, 1>(*this);
     }
 
     Size size() const { return Size{width(), height()}; }
 
     Rect operator/(double other) const {
-        return Rect(
-            x() / other, y() / other, width() / other, height() / other);
+        return Rect(x() / other, y() / other, width() / other, height() / other);
     }
 
     Rect operator*(double other) const {
-        return Rect(
-            x() * other, y() * other, width() * other, height() * other);
+        return Rect(x() * other, y() * other, width() * other, height() * other);
     }
 
     static Rect FromCornerPoints(
@@ -448,7 +422,7 @@ struct Rect : bg::model::box<Point> {
         int _max_x = std::max(max_x(), point.x());
         int _min_y = std::min(min_y(), point.y());
         int _max_y = std::max(max_y(), point.y());
-        *this = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
+        *this      = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
     }
 
     inline void extend(Rect const& other) {
@@ -456,7 +430,7 @@ struct Rect : bg::model::box<Point> {
         int _max_x = std::max(max_x(), other.max_x());
         int _min_y = std::min(min_y(), other.min_y());
         int _max_y = std::max(max_y(), other.max_y());
-        *this = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
+        *this      = Rect(_min_x, _min_y, _max_x - _min_x, _max_y - _min_y);
     }
 };
 } // namespace hstd::ext::geometry
@@ -497,13 +471,7 @@ namespace hstd::ext::geometry {
 
 
 struct Path {
-    DECL_DESCRIBED_ENUM(
-        CommandType,
-        MoveTo,
-        LineTo,
-        QuadTo,
-        CubicTo,
-        CloseSubpath);
+    DECL_DESCRIBED_ENUM(CommandType, MoveTo, LineTo, QuadTo, CubicTo, CloseSubpath);
 
     struct Command {
         CommandType type;
@@ -628,21 +596,12 @@ struct Path {
         return quadTo(Point{cx, cy}, Point{x, y});
     }
 
-    Path& cubicTo(
-        Point const& control1,
-        Point const& control2,
-        Point const& to) {
+    Path& cubicTo(Point const& control1, Point const& control2, Point const& to) {
         commands.push_back(Command::cubicTo(control1, control2, to));
         return *this;
     }
 
-    Path& cubicTo(
-        double c1x,
-        double c1y,
-        double c2x,
-        double c2y,
-        double x,
-        double y) {
+    Path& cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
         return cubicTo(Point{c1x, c1y}, Point{c2x, c2y}, Point{x, y});
     }
 
@@ -659,51 +618,39 @@ struct Path {
 } // namespace hstd::ext::geometry
 
 template <>
-struct std::formatter<hstd::ext::geometry::Path>
-    : std::formatter<std::string> {
+struct std::formatter<hstd::ext::geometry::Path> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(hstd::ext::geometry::Path const& p, FormatContext& ctx)
-        const {
-        return hstd::fmt_ctx(
-            hstd::fmt("Path(commands={})", p.commands), ctx);
+    auto format(hstd::ext::geometry::Path const& p, FormatContext& ctx) const {
+        return hstd::fmt_ctx(hstd::fmt("Path(commands={})", p.commands), ctx);
     }
 };
 
 
 template <>
-struct std::formatter<hstd::ext::geometry::Point>
-    : std::formatter<std::string> {
+struct std::formatter<hstd::ext::geometry::Point> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(hstd::ext::geometry::Point const& p, FormatContext& ctx)
-        const {
+    auto format(hstd::ext::geometry::Point const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
             hstd::fmt(
-                "Point({}, {})",
-                hstd::format_number(p.x()),
-                hstd::format_number(p.y())),
+                "Point({}, {})", hstd::format_number(p.x()), hstd::format_number(p.y())),
             ctx);
     }
 };
 
 template <>
-struct std::formatter<hstd::ext::geometry::Size>
-    : std::formatter<std::string> {
+struct std::formatter<hstd::ext::geometry::Size> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(hstd::ext::geometry::Size const& p, FormatContext& ctx)
-        const {
+    auto format(hstd::ext::geometry::Size const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(
-            hstd::fmt("Size(width={}, height={})", p.width(), p.height()),
-            ctx);
+            hstd::fmt("Size(width={}, height={})", p.width(), p.height()), ctx);
     }
 };
 
 
 template <>
-struct std::formatter<hstd::ext::geometry::Rect>
-    : std::formatter<std::string> {
+struct std::formatter<hstd::ext::geometry::Rect> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(hstd::ext::geometry::Rect const& b, FormatContext& ctx)
-        const {
+    auto format(hstd::ext::geometry::Rect const& b, FormatContext& ctx) const {
         return hstd::fmt_ctx(
             hstd::fmt(
                 "Rect({}, {}, {})",
@@ -718,25 +665,25 @@ struct std::formatter<hstd::ext::geometry::Rect>
 namespace hstd {
 template <>
 struct JsonSerde<hstd::ext::geometry::Point> {
-    static json to_json(hstd::ext::geometry::Point const& point);
+    static json                       to_json(hstd::ext::geometry::Point const& point);
     static hstd::ext::geometry::Point from_json(json const& j);
 };
 
 template <>
 struct JsonSerde<hstd::ext::geometry::Size> {
-    static json to_json(hstd::ext::geometry::Size const& size);
+    static json                      to_json(hstd::ext::geometry::Size const& size);
     static hstd::ext::geometry::Size from_json(json const& j);
 };
 
 template <>
 struct JsonSerde<hstd::ext::geometry::Rect> {
-    static json to_json(hstd::ext::geometry::Rect const& box);
+    static json                      to_json(hstd::ext::geometry::Rect const& box);
     static hstd::ext::geometry::Rect from_json(json const& j);
 };
 
 template <>
 struct JsonSerde<hstd::ext::geometry::Polygon> {
-    static json to_json(hstd::ext::geometry::Polygon const& box);
+    static json                         to_json(hstd::ext::geometry::Polygon const& box);
     static hstd::ext::geometry::Polygon from_json(json const& j);
 };
 
