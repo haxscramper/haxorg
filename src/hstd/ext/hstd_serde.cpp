@@ -1,8 +1,10 @@
 #include "hstd_serde.hpp"
 
-#include <google/protobuf/struct.pb.h>
-#include <google/protobuf/wrappers.pb.h>
-#include <hstd/stdlib/JsonUse.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
+
+#    include <google/protobuf/struct.pb.h>
+#    include <google/protobuf/wrappers.pb.h>
+#    include <hstd/stdlib/JsonUse.hpp>
 
 namespace hstd::serde {
 
@@ -76,3 +78,5 @@ json value_to_json(::google::protobuf::Value const& in) {
 
 
 } // namespace hstd::serde
+
+#endif

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Json.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
+#    include <hstd/stdlib/Json.hpp>
 
 namespace google::protobuf {
 class Struct;
@@ -29,3 +30,4 @@ void read_serde(Proto const& in, T* out) {
 }
 
 } // namespace hstd::serde
+#endif
