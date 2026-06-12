@@ -54,7 +54,7 @@ TEST(OrgParseSem, TracerOperations1) {
   :end:
 )";
     org::test::MockFull p{"<test>", true, true};
-    fs::path tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
+    fs::path            tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
     p.tokenizer->setTraceFile(tokenizer_trace);
     p.tokenizer->traceStructured = true;
 
@@ -69,19 +69,18 @@ TEST(OrgParseSem, TracerOperations1) {
 
 
     org::parse::LexerParams params;
-    fs::path lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
+    fs::path                lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
     params.setTraceFile(lex_trace);
     params.traceStructured = true;
     p.run(text, params);
 
     auto document = converter
                         .convertDocument(
-                            org::parse::OrgAdapter(
-                                &p.nodes, org::parse::OrgId(0)))
+                            org::parse::OrgAdapter(&p.nodes, org::parse::OrgId(0)))
                         .value();
 
     org::algo::ExporterJson exp{};
-    fs::path exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
+    fs::path                exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
     exp.setTraceFile(exp_trace);
     exp.traceStructured = true;
     exp.evalTop(document);
@@ -115,8 +114,7 @@ TEST(OrgParseSem, ParagraphBody) {
 
     {
         auto par = parseOne<sem::Paragraph>(
-            "[fn:footnote] content",
-            getDebugFile("paragraph_body_footnote"));
+            "[fn:footnote] content", getDebugFile("paragraph_body_footnote"));
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 1);
@@ -124,8 +122,7 @@ TEST(OrgParseSem, ParagraphBody) {
     }
 
     {
-        auto par = parseOne<sem::Paragraph>(
-            "[fn::inline footnote] content");
+        auto par = parseOne<sem::Paragraph>("[fn::inline footnote] content");
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 3);
@@ -213,8 +210,7 @@ TEST(OrgParseSem, SubtreeProperties) {
         // dbgString(tree);
 
         {
-            auto olpath = org::getSubtreeProperties<NP::ArchiveOlpath>(
-                tree);
+            auto olpath = org::getSubtreeProperties<NP::ArchiveOlpath>(tree);
             EXPECT_EQ(olpath.size(), 1);
             auto const& p = olpath.at(0).path.path;
             EXPECT_EQ(p.at(0), "Haxorg");
@@ -258,20 +254,17 @@ TEST(OrgParseSem, SubtreeProperties) {
 :end:)",
             getDebugFile("prop_json"));
         {
-            auto p = org::getSubtreeProperties<NP::CustomSubtreeJson>(
-                tree);
+            auto p = org::getSubtreeProperties<NP::CustomSubtreeJson>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).name, "name"_ss);
             EXPECT_EQ(p.at(0).value.getField("key").getString(), "value");
         }
         {
-            auto p = org::getSubtreeProperties<NP::CustomSubtreeFlags>(
-                tree);
+            auto p = org::getSubtreeProperties<NP::CustomSubtreeFlags>(tree);
             EXPECT_EQ(p.size(), 1);
             EXPECT_EQ(p.at(0).value.getNamedSize(), 1);
             EXPECT_EQ(p.at(0).name, "name"_ss);
-            EXPECT_EQ(
-                p.at(0).value.getFirstNamed("key")->getString(), "value");
+            EXPECT_EQ(p.at(0).value.getFirstNamed("key")->getString(), "value");
         }
     }
 
@@ -287,9 +280,7 @@ TEST(OrgParseSem, SubtreeProperties) {
             EXPECT_TRUE(p.has_value());
             EXPECT_EQ2(p->getKind(), NP::Kind::CustomSubtreeJson);
             EXPECT_EQ2(p->getCustomSubtreeJson().name, "nameone");
-            EXPECT_EQ2(
-                p->getCustomSubtreeJson().value.getRef().dump(),
-                "[2,3,4]"_ss);
+            EXPECT_EQ2(p->getCustomSubtreeJson().value.getRef().dump(), "[2,3,4]"_ss);
         }
 
         {
@@ -297,9 +288,7 @@ TEST(OrgParseSem, SubtreeProperties) {
             EXPECT_TRUE(p.has_value());
             EXPECT_EQ2(p->getKind(), NP::Kind::CustomSubtreeJson);
             EXPECT_EQ2(p->getCustomSubtreeJson().name, "nameone");
-            EXPECT_EQ2(
-                p->getCustomSubtreeJson().value.getRef().dump(),
-                "[2,3,4]"_ss);
+            EXPECT_EQ2(p->getCustomSubtreeJson().value.getRef().dump(), "[2,3,4]"_ss);
         }
         {
             auto p = t->getProperty("prop_args");
@@ -321,16 +310,13 @@ TEST(OrgParseSem, SubtreeProperties) {
 :prop_args:name_other:
 :end:
 )");
-        for (auto const& kind : hstd::Vec<hstd::Str>{
-                 "prop_args", "propargs", "PROP_ARGS", "PROPARGS"}) {
+        for (auto const& kind :
+             hstd::Vec<hstd::Str>{"prop_args", "propargs", "PROP_ARGS", "PROPARGS"}) {
             auto p = t->getProperty(kind);
             EXPECT_TRUE(p.has_value());
 
             for (auto const& subkind : hstd::Vec<hstd::Str>{
-                     "nameother",
-                     "NAME_OTHER",
-                     "NAMEOTHER",
-                     "name_other"}) {
+                     "nameother", "NAME_OTHER", "NAMEOTHER", "name_other"}) {
                 auto p = t->getProperty(kind, subkind);
                 EXPECT_TRUE(p.has_value());
             }
@@ -344,8 +330,7 @@ TEST(OrgParseSem, HashtagParse) {
         auto h = parseOne<sem::HashTag>("#hashtag");
         EXPECT_EQ(h->text.head, "hashtag"_ss);
         EXPECT_EQ(h->text.subtags.size(), 0);
-        EXPECT_EQ(
-            h->text.getFlatHashes(), V{sem::HashTagFlat{{"hashtag"_ss}}});
+        EXPECT_EQ(h->text.getFlatHashes(), V{sem::HashTagFlat{{"hashtag"_ss}}});
     }
     {
         auto h = parseOne<sem::HashTag>("#hashtag##[sub]");
@@ -359,8 +344,7 @@ TEST(OrgParseSem, HashtagParse) {
 
     {
         auto h = parseOne<sem::HashTag>(
-            "#one##[two##[three,four,five]]",
-            getDebugFile("hashtag_parse_nested"));
+            "#one##[two##[three,four,five]]", getDebugFile("hashtag_parse_nested"));
         EXPECT_EQ(h->text.head, "one");
         EXPECT_EQ(h->text.subtags.size(), 1);
         auto flat = h->text.getFlatHashes();
@@ -420,31 +404,23 @@ TEST(OrgParseSem, TimeParsing) {
         EXPECT_TRUE(t->isStatic());
         auto& static_time = t->getStatic();
         EXPECT_EQ(static_time.repeat.size(), 1);
-        EXPECT_EQ(
-            static_time.repeat[0].mode, sem::Time::Repeat::Mode::Exact);
-        EXPECT_EQ(
-            static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
+        EXPECT_EQ(static_time.repeat[0].mode, sem::Time::Repeat::Mode::Exact);
+        EXPECT_EQ(static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
         EXPECT_EQ(static_time.repeat[0].count, 1);
     }
 
     {
         auto  t           = parseOne<sem::Time>("[2025-12-02 ++1d]");
         auto& static_time = t->getStatic();
-        EXPECT_EQ(
-            static_time.repeat[0].mode,
-            sem::Time::Repeat::Mode::FirstMatch);
-        EXPECT_EQ(
-            static_time.repeat[0].period, sem::Time::Repeat::Period::Day);
+        EXPECT_EQ(static_time.repeat[0].mode, sem::Time::Repeat::Mode::FirstMatch);
+        EXPECT_EQ(static_time.repeat[0].period, sem::Time::Repeat::Period::Day);
     }
 
     {
         auto  t           = parseOne<sem::Time>("[2025-12-02 .+1m]");
         auto& static_time = t->getStatic();
-        EXPECT_EQ(
-            static_time.repeat[0].mode, sem::Time::Repeat::Mode::SameDay);
-        EXPECT_EQ(
-            static_time.repeat[0].period,
-            sem::Time::Repeat::Period::Month);
+        EXPECT_EQ(static_time.repeat[0].mode, sem::Time::Repeat::Mode::SameDay);
+        EXPECT_EQ(static_time.repeat[0].period, sem::Time::Repeat::Period::Month);
     }
 
     {
@@ -452,28 +428,22 @@ TEST(OrgParseSem, TimeParsing) {
         auto& static_time = t->getStatic();
         EXPECT_EQ(static_time.repeat.size(), 1);
         EXPECT_TRUE(static_time.warn.has_value());
-        EXPECT_EQ(
-            static_time.warn->period, sem::Time::Repeat::Period::Day);
+        EXPECT_EQ(static_time.warn->period, sem::Time::Repeat::Period::Day);
         EXPECT_EQ(static_time.warn->count, -3);
     }
 
     {
         auto t = parseOne<sem::Time>(
-            "<%%(diary-anniversary 12 25 1990)>",
-            getDebugFile("diary_anniversary"));
+            "<%%(diary-anniversary 12 25 1990)>", getDebugFile("diary_anniversary"));
         EXPECT_TRUE(t->isDynamic());
         EXPECT_FALSE(t->isStatic());
         EXPECT_EQ(t->getTimeKind(), sem::Time::TimeKind::Dynamic);
         EXPECT_TRUE(t->isActive);
         auto& dynamic_time = t->getDynamic();
         EXPECT_EQ(dynamic_time.expr.getCall().name, "diary-anniversary");
-        EXPECT_EQ(
-            dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
-        EXPECT_EQ(
-            dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
-        EXPECT_EQ(
-            dynamic_time.expr.getCall().args.at(2).getNumber().value,
-            1990);
+        EXPECT_EQ(dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
+        EXPECT_EQ(dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
+        EXPECT_EQ(dynamic_time.expr.getCall().args.at(2).getNumber().value, 1990);
     }
 
     {
@@ -484,13 +454,9 @@ TEST(OrgParseSem, TimeParsing) {
         EXPECT_FALSE(t->isActive);
         auto& dynamic_time = t->getDynamic();
         EXPECT_EQ(dynamic_time.expr.getCall().name, "diary-anniversary");
-        EXPECT_EQ(
-            dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
-        EXPECT_EQ(
-            dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
-        EXPECT_EQ(
-            dynamic_time.expr.getCall().args.at(2).getNumber().value,
-            1990);
+        EXPECT_EQ(dynamic_time.expr.getCall().args.at(0).getNumber().value, 12);
+        EXPECT_EQ(dynamic_time.expr.getCall().args.at(1).getNumber().value, 25);
+        EXPECT_EQ(dynamic_time.expr.getCall().args.at(2).getNumber().value, 1990);
     }
 
     {
@@ -503,8 +469,7 @@ TEST(OrgParseSem, TimeParsing) {
     }
 
     {
-        auto tr = parseOne<sem::TimeRange>(
-            "[2025-12-02 10:00]--[2025-12-02 15:30]");
+        auto tr = parseOne<sem::TimeRange>("[2025-12-02 10:00]--[2025-12-02 15:30]");
         EXPECT_EQ(tr->getClockedTimeSeconds().value(), 5.5 * 60 * 60);
     }
 
@@ -519,15 +484,12 @@ TEST(OrgParseSem, TimeParsing) {
     }
 
     {
-        auto  t = parseOne<sem::Time>("[2025-12-02 +2w +1m -1d]");
+        auto  t           = parseOne<sem::Time>("[2025-12-02 +2w +1m -1d]");
         auto& static_time = t->getStatic();
         EXPECT_EQ(static_time.repeat.size(), 2);
-        EXPECT_EQ(
-            static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
+        EXPECT_EQ(static_time.repeat[0].period, sem::Time::Repeat::Period::Week);
         EXPECT_EQ(static_time.repeat[0].count, 2);
-        EXPECT_EQ(
-            static_time.repeat[1].period,
-            sem::Time::Repeat::Period::Month);
+        EXPECT_EQ(static_time.repeat[1].period, sem::Time::Repeat::Period::Month);
         EXPECT_EQ(static_time.repeat[1].count, 1);
         EXPECT_TRUE(static_time.warn.has_value());
         EXPECT_EQ(static_time.warn->count, -1);
@@ -572,8 +534,7 @@ TEST(OrgParseSem, SubtreeLogParsing) {
         EXPECT_EQ(l.at(0)->head.getTag().on.getBreakdown().year, 2000);
         EXPECT_EQ(l.at(0)->head.getTag().on.getBreakdown().minute, 52);
         EXPECT_EQ(l.at(1)->head.getClock().from.getBreakdown().minute, 51);
-        EXPECT_EQ(
-            l.at(1)->head.getClock().to.value().getBreakdown().minute, 43);
+        EXPECT_EQ(l.at(1)->head.getClock().to.value().getBreakdown().minute, 43);
         EXPECT_EQ(l.at(2)->head.getState().from, "TODO"_ss);
         EXPECT_EQ(l.at(2)->head.getState().to, "WIP"_ss);
         EXPECT_EQ(l.at(3)->head.getState().to, "COMPLETED"_ss);
@@ -697,10 +658,8 @@ TEST(OrgParseSem, SubtreeLogParsing) {
         EXPECT_EQ(it1->at(1)->getKind(), OrgSemKind::List);
         EXPECT_EQ(it1->at(1)->at(0)->getKind(), OrgSemKind::ListItem);
         EXPECT_EQ(it1->at(1)->at(1)->getKind(), OrgSemKind::ListItem);
-        EXPECT_EQ(
-            org::getCleanText(it1->at(1)->at(0)), "More nesting1"_ss);
-        EXPECT_EQ(
-            org::getCleanText(it1->at(1)->at(1)), "More nesting2"_ss);
+        EXPECT_EQ(org::getCleanText(it1->at(1)->at(0)), "More nesting1"_ss);
+        EXPECT_EQ(org::getCleanText(it1->at(1)->at(1)), "More nesting2"_ss);
     }
 }
 
@@ -872,8 +831,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(
-            R"(* TODO [#A] Important task [2/5])");
+        auto t = parseOne<sem::Subtree>(R"(* TODO [#A] Important task [2/5])");
         EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
         EXPECT_EQ(t->priority.value(), "A");
         auto c = t->completion.value();
@@ -884,8 +842,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(
-            R"(* DONE [#B] Finished work [100%])");
+        auto t = parseOne<sem::Subtree>(R"(* DONE [#B] Finished work [100%])");
         EXPECT_EQ(t->getTodoKeyword().value(), "DONE");
         EXPECT_EQ(t->priority.value(), "B");
         auto c = t->completion.value();
@@ -895,8 +852,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(
-            R"(* Task with *bold* and /italic/ text)");
+        auto t = parseOne<sem::Subtree>(R"(* Task with *bold* and /italic/ text)");
         EXPECT_EQ(t->getCleanTitle(), "Task with bold and italic text");
         EXPECT_FALSE(t->getTodoKeyword().has_value());
         EXPECT_FALSE(t->priority.has_value());
@@ -946,8 +902,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(
-            R"(* COMMENT TODO This should be comment)");
+        auto t = parseOne<sem::Subtree>(R"(* COMMENT TODO This should be comment)");
         EXPECT_TRUE(t->isComment);
         EXPECT_TRUE(t->getTodoKeyword().has_value());
         EXPECT_EQ(t->getTodoKeyword().value(), "TODO");
@@ -969,8 +924,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(
-            R"(* Title :work:urgent:ARCHIVE:)");
+        auto t = parseOne<sem::Subtree>(R"(* Title :work:urgent:ARCHIVE:)");
         EXPECT_TRUE(t->isArchived);
         EXPECT_EQ(t->tags.size(), 2);
         EXPECT_EQ(t->tags.at(0)->text.head, "work"_ss);
@@ -993,8 +947,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(
-            R"(* COMMENT Task with tags :comment:test:)");
+        auto t = parseOne<sem::Subtree>(R"(* COMMENT Task with tags :comment:test:)");
         EXPECT_TRUE(t->isComment);
         EXPECT_EQ(t->tags.size(), 2);
         EXPECT_EQ(t->tags.at(0)->text.head, "comment"_ss);
@@ -1022,8 +975,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(
-            R"(* Title with *markup* :tag1:tag2:tag3:)");
+        auto t = parseOne<sem::Subtree>(R"(* Title with *markup* :tag1:tag2:tag3:)");
         EXPECT_EQ(t->getCleanTitle(), "Title with markup");
         EXPECT_EQ(t->tags.size(), 3);
         EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
@@ -1042,9 +994,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
 
         EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
         EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).head, "complex"_ss);
-        EXPECT_EQ(
-            t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
-            "nested"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).subtags.at(0).head, "nested"_ss);
     }
     {
         auto t = parseOne<sem::Subtree>(
@@ -1057,9 +1007,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
 
         EXPECT_EQ(t->tags.at(2)->text.head, "tag3"_ss);
         EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).head, "complex"_ss);
-        EXPECT_EQ(
-            t->tags.at(2)->text.subtags.at(0).subtags.at(0).head,
-            "nested"_ss);
+        EXPECT_EQ(t->tags.at(2)->text.subtags.at(0).subtags.at(0).head, "nested"_ss);
     }
 }
 
@@ -1078,8 +1026,7 @@ TEST(OrgParseSem, TextParsing) {
     }
     {
         auto par = parseOne<sem::Paragraph>(
-            R"(@@html:<b>@@bold text@@html:</b>@@)",
-            getDebugFile("inline_export"));
+            R"(@@html:<b>@@bold text@@html:</b>@@)", getDebugFile("inline_export"));
         EXPECT_EQ(par.size(), 5);
         EXPECT_EQ(par.at(0)->getKind(), OrgSemKind::InlineExport);
         EXPECT_EQ(par.at(1)->getKind(), OrgSemKind::Word);
@@ -1164,8 +1111,7 @@ TEST(OrgParseSem, ColumnView) {
         EXPECT_TRUE(c1.summary.value().isCheckboxAggregate());
         EXPECT_EQ(
             c1.summary.value().getCheckboxAggregate().kind,
-            sem::ColumnView::Summary::CheckboxAggregate::Kind::
-                IfAllNested);
+            sem::ColumnView::Summary::CheckboxAggregate::Kind::IfAllNested);
     }
 }
 
@@ -1177,9 +1123,7 @@ TEST(OrgParseSem, List) {
         EXPECT_EQ(it->getCleanHeader().value(), "Desc");
 
         auto conv = immConv(l);
-        EXPECT_EQ(
-            conv.node.at(0).as<imm::ImmListItem>().getCleanHeader(),
-            "Desc");
+        EXPECT_EQ(conv.node.at(0).as<imm::ImmListItem>().getCleanHeader(), "Desc");
     }
     {
         auto l = parseOne<sem::List>("- Item");
@@ -1209,8 +1153,7 @@ TEST(OrgParseSem, SubtreePropertyContext) {
         auto t2 = t1.at(0).as<sem::Subtree>();
         auto h1 = t1->getProperty("header-args");
         EXPECT_TRUE(h1.has_value());
-        EXPECT_EQ(
-            h1.value().getKind(), sem::NamedProperty::Kind::CustomArgs);
+        EXPECT_EQ(h1.value().getKind(), sem::NamedProperty::Kind::CustomArgs);
         auto attrs1 = h1.value().getCustomArgs().attrs;
         EXPECT_EQ(attrs1.getAttrs("cache").size(), 1);
         EXPECT_EQ(attrs1.getAttrs("cache").at(0).name.value(), "cache");
@@ -1221,20 +1164,16 @@ TEST(OrgParseSem, SubtreePropertyContext) {
         auto attrs2 = h2.value().getCustomArgs().attrs;
         EXPECT_TRUE(h2.has_value());
         EXPECT_EQ(attrs2.getAttrs("results").size(), 1);
-        EXPECT_EQ(
-            attrs2.getAttrs("results").at(0).name.value(), "results");
+        EXPECT_EQ(attrs2.getAttrs("results").at(0).name.value(), "results");
         EXPECT_EQ(attrs2.getAttrs("results").at(0).getString(), "silent");
 
         auto stacked = org::getFinalProperty({t1, t2}, "header-args");
         EXPECT_TRUE(stacked.has_value());
         auto s = stacked.value();
         EXPECT_EQ(
-            s.getCustomArgs().attrs.getAttrs("results").at(0).getString(),
-            "silent");
+            s.getCustomArgs().attrs.getAttrs("results").at(0).getString(), "silent");
 
-        EXPECT_EQ(
-            s.getCustomArgs().attrs.getAttrs("cache").at(0).getString(),
-            "yes");
+        EXPECT_EQ(s.getCustomArgs().attrs.getAttrs("cache").at(0).getString(), "yes");
     }
 }
 
@@ -1255,12 +1194,10 @@ TEST(OrgParseSem, Macro) {
         EXPECT_EQ(m->name, "dashed-name"_ss);
     }
     {
-        auto m = parseOne<sem::Macro>(
-            R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})");
+        auto m = parseOne<sem::Macro>(R"({{{property(PROPERTY-NAME, SEARCH OPTION)}}})");
         EXPECT_EQ(m->name, "property");
         EXPECT_EQ(m->attrs.getPositionalSize(), 2);
-        EXPECT_EQ(
-            m->attrs.atPositional(0).getString(), "PROPERTY-NAME"_ss);
+        EXPECT_EQ(m->attrs.atPositional(0).getString(), "PROPERTY-NAME"_ss);
         EXPECT_EQ(m->attrs.atPositional(1).getString(), "SEARCH OPTION");
     }
     {
@@ -1372,15 +1309,12 @@ other
 }
 
 TEST(OrgParseSem, IncludeCommand) {
-    auto get = [&](std::string const& s,
-                   Opt<std::string>   debug = std::nullopt) {
+    auto get = [&](std::string const& s, Opt<std::string> debug = std::nullopt) {
         return parseOne<sem::CmdInclude>(s, debug);
     };
 
     {
-        auto i = get(
-            R"(#+include: data.org)",
-            getDebugFile("include_command_item"));
+        auto i = get(R"(#+include: data.org)", getDebugFile("include_command_item"));
         EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {
@@ -1389,15 +1323,12 @@ TEST(OrgParseSem, IncludeCommand) {
     }
     {
         auto i = get(R"(#+include: "data.org::#custom-id")");
-        EXPECT_EQ2(
-            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
-        EXPECT_EQ2(
-            i->getOrgDocument().customIdTarget.value(), "custom-id"_ss);
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ2(i->getOrgDocument().customIdTarget.value(), "custom-id"_ss);
     }
     {
         auto i = get(R"(#+include: "d.org::* path 1")");
-        EXPECT_EQ2(
-            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
         EXPECT_EQ2(i->path, "d.org");
         EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
         auto const& p = i->getOrgDocument().subtreePath.value().path;
@@ -1406,8 +1337,7 @@ TEST(OrgParseSem, IncludeCommand) {
     }
     {
         auto i = get(R"(#+include: "data.org::* path 1/path 2")");
-        EXPECT_EQ2(
-            i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
+        EXPECT_EQ2(i->getIncludeKind(), sem::CmdInclude::Kind::OrgDocument);
         EXPECT_EQ2(i->path, "data.org");
         EXPECT_TRUE(i->getOrgDocument().subtreePath.has_value());
         auto const& p = i->getOrgDocument().subtreePath.value().path;
@@ -1440,8 +1370,7 @@ TEST(OrgParseSem, IncludeCommand) {
         EXPECT_EQ2(i->getOrgDocument().minLevel, 1);
     }
     {
-        auto i = get(
-            R"(#+INCLUDE: "./paper.org::#theory" :only-contents t)");
+        auto i = get(R"(#+INCLUDE: "./paper.org::#theory" :only-contents t)");
         EXPECT_EQ2(i->getOrgDocument().onlyContent.value(), true);
     }
     {
@@ -1466,8 +1395,7 @@ TEST(OrgParseSem, IncludeCommand) {
 }
 
 TEST(OrgParseSem, CodeBlockVariables) {
-    auto get = [&](std::string const& s,
-                   Opt<std::string>   debug = std::nullopt) {
+    auto get = [&](std::string const& s, Opt<std::string> debug = std::nullopt) {
         return parseOne<sem::BlockCode>(s, debug);
     };
     {
@@ -1492,7 +1420,7 @@ TEST(OrgParseSem, CodeBlockVariables) {
         EXPECT_FALSE(span.at(1).last.has_value());
     }
     {
-        auto c = get(R"(#+BEGIN_SRC emacs-lisp :var data=example-table[1:3]
+        auto c    = get(R"(#+BEGIN_SRC emacs-lisp :var data=example-table[1:3]
   data
 #+END_SRC)");
         auto span = c->getVariable("data")->span;
@@ -1527,17 +1455,15 @@ TEST(OrgParseSem, CodeBlockVariables) {
 }
 
 TEST(OrgParseSem, CodeBlockEval) {
-    auto get = [](std::string const&         code,
-                  hstd::Opt<fs::path> const& path = std::nullopt)
-        -> sem::OrgCodeEvalInput {
-        org::OrgCodeEvalParameters conf{
-            org::parse::ParseContext::shared()};
+    auto get =
+        [](std::string const&         code,
+           hstd::Opt<fs::path> const& path = std::nullopt) -> sem::OrgCodeEvalInput {
+        org::OrgCodeEvalParameters conf{org::parse::ParseContext::shared()};
         Vec<sem::OrgCodeEvalInput> buf;
-        auto doc = path ? testParseString(code, path->native())
-                        : testParseString(code);
+        auto doc = path ? testParseString(code, path->native()) : testParseString(code);
 
-        conf.evalBlock = [&](sem::OrgCodeEvalInput const& in)
-            -> Vec<sem::OrgCodeEvalOutput> {
+        conf.evalBlock =
+            [&](sem::OrgCodeEvalInput const& in) -> Vec<sem::OrgCodeEvalOutput> {
             buf.push_back(in);
             return {sem::OrgCodeEvalOutput{.stdoutText = ""}};
         };
@@ -1555,68 +1481,56 @@ content
         auto i = get(R"(#+begin_src python :results table
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Table);
+        EXPECT_EQ2(i.resultType, org::sem::OrgCodeEvalInput::ResultType::Table);
     }
 
     {
         auto i = get(R"(#+begin_src python :results list
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultType, org::sem::OrgCodeEvalInput::ResultType::List);
+        EXPECT_EQ2(i.resultType, org::sem::OrgCodeEvalInput::ResultType::List);
     }
 
     {
         auto i = get(R"(#+begin_src python :results scalar
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
+        EXPECT_EQ2(i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
     }
 
     {
         auto i = get(R"(#+begin_src python :results file
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultType,
-            org::sem::OrgCodeEvalInput::ResultType::SaveFile);
+        EXPECT_EQ2(i.resultType, org::sem::OrgCodeEvalInput::ResultType::SaveFile);
     }
 
     {
         auto i = get(R"(#+begin_src python :results raw
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::Raw);
+        EXPECT_EQ2(i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::Raw);
     }
 
     {
         auto i = get(R"(#+begin_src python :results code
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultFormat,
-            org::sem::OrgCodeEvalInput::ResultFormat::Code);
+        EXPECT_EQ2(i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::Code);
     }
 
     {
         auto i = get(R"(#+begin_src python :results drawer
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultFormat,
-            org::sem::OrgCodeEvalInput::ResultFormat::Drawer);
+        EXPECT_EQ2(i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::Drawer);
     }
 
     {
         auto i = get(R"(#+begin_src python :results html
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultFormat,
-            org::sem::OrgCodeEvalInput::ResultFormat::ExportType);
+        EXPECT_EQ2(i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::ExportType);
         EXPECT_EQ2(i.exportType.value(), "html");
     }
 
@@ -1624,18 +1538,14 @@ content
         auto i = get(R"(#+begin_src python :results replace
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultHandling,
-            org::sem::OrgCodeEvalInput::ResultHandling::Replace);
+        EXPECT_EQ2(i.resultHandling, org::sem::OrgCodeEvalInput::ResultHandling::Replace);
     }
 
     {
         auto i = get(R"(#+begin_src python :results silent
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultHandling,
-            org::sem::OrgCodeEvalInput::ResultHandling::Silent);
+        EXPECT_EQ2(i.resultHandling, org::sem::OrgCodeEvalInput::ResultHandling::Silent);
     }
 
     {
@@ -1643,18 +1553,14 @@ content
 content
 #+end_src)");
         EXPECT_EQ2(i.language, "python"_ss);
-        EXPECT_EQ2(
-            i.resultHandling,
-            org::sem::OrgCodeEvalInput::ResultHandling::Append);
+        EXPECT_EQ2(i.resultHandling, org::sem::OrgCodeEvalInput::ResultHandling::Append);
     }
 
     {
         auto i = get(R"(#+begin_src python :results prepend
 content
 #+end_src)");
-        EXPECT_EQ2(
-            i.resultHandling,
-            org::sem::OrgCodeEvalInput::ResultHandling::Prepend);
+        EXPECT_EQ2(i.resultHandling, org::sem::OrgCodeEvalInput::ResultHandling::Prepend);
     }
 
     {
@@ -1663,8 +1569,7 @@ content
 #+end_src)");
         EXPECT_EQ2(i.argList.size(), 2);
         EXPECT_EQ2(i.getVariable("x").value().value.getString(), "10"_ss);
-        EXPECT_EQ2(
-            i.getVariable("name").value().value.getString(), "test"_ss);
+        EXPECT_EQ2(i.getVariable("name").value().value.getString(), "test"_ss);
     }
 
     {
@@ -1680,14 +1585,9 @@ x = 42
 no language
 #+end_src)");
         EXPECT_EQ2(i.language, "");
-        EXPECT_EQ2(
-            i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
-        EXPECT_EQ2(
-            i.resultFormat,
-            org::sem::OrgCodeEvalInput::ResultFormat::None);
-        EXPECT_EQ2(
-            i.resultHandling,
-            org::sem::OrgCodeEvalInput::ResultHandling::Replace);
+        EXPECT_EQ2(i.resultType, org::sem::OrgCodeEvalInput::ResultType::Scalar);
+        EXPECT_EQ2(i.resultFormat, org::sem::OrgCodeEvalInput::ResultFormat::None);
+        EXPECT_EQ2(i.resultHandling, org::sem::OrgCodeEvalInput::ResultHandling::Replace);
     }
 
     {
@@ -1871,8 +1771,7 @@ print("second")
 }
 
 TEST(OrgParseSem, CmdCallNode) {
-    auto get = [&](std::string const& s,
-                   Opt<std::string>   debug = std::nullopt) {
+    auto get = [&](std::string const& s, Opt<std::string> debug = std::nullopt) {
         return parseOne<sem::CmdCall>(s, debug);
     };
     {
@@ -1891,8 +1790,7 @@ TEST(OrgParseSem, CmdCallNode) {
         auto dir = ha.getFirstNamed("dir").value().getLispValue().code;
         EXPECT_TRUE(dir.isCall());
         EXPECT_EQ2(dir.getCall().name, "docker:infra-ssh");
-        EXPECT_EQ2(
-            dir.getCall().args.at(0).getText().value, "docker-swarm-0");
+        EXPECT_EQ2(dir.getCall().args.at(0).getText().value, "docker-swarm-0");
 
         EXPECT_EQ(ca.getPositionalSize(), 3);
         auto ca1 = ca.getPositional(0);
@@ -1956,8 +1854,7 @@ struct [[refl]] OrgParseFragment {
 
 
 TEST(OrgParseSem, CriticMarkup) {
-    auto get = [&](std::string const& s,
-                   Opt<std::string>   debug = std::nullopt) {
+    auto get = [&](std::string const& s, Opt<std::string> debug = std::nullopt) {
         return parseOne<sem::CriticMarkup>(s, debug);
     };
     { auto n = get(R"({--is --})", getDebugFile("delete")); }

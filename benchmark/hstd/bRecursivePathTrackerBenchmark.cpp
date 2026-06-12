@@ -74,16 +74,12 @@ void recursiveTraversal(
 
     for (int i = 0; i < branching_factor; ++i) {
         auto new_path = path.push(i);
-        recursiveTraversal(
-            new_path, depth + 1, max_depth, branching_factor, node_count);
+        recursiveTraversal(new_path, depth + 1, max_depth, branching_factor, node_count);
     }
 }
 
 template <typename PathTracker>
-void pathCopyingWorkload(
-    PathTracker path,
-    int         operations,
-    int&        access_sum) {
+void pathCopyingWorkload(PathTracker path, int operations, int& access_sum) {
     for (int i = 0; i < operations; ++i) {
         auto new_path = path.push(i);
 
@@ -91,9 +87,7 @@ void pathCopyingWorkload(
             auto copied_path  = new_path;
             auto another_copy = copied_path.push(j + 100);
 
-            if (!another_copy.empty()) {
-                access_sum += another_copy.back();
-            }
+            if (!another_copy.empty()) { access_sum += another_copy.back(); }
         }
     }
 }
@@ -120,8 +114,7 @@ static void BM_RecursiveTraversal_StdVector(benchmark::State& state) {
         benchmark::DoNotOptimize(_);
         VectorPathTracker<std::vector<int>> initial_path;
         int                                 node_count = 0;
-        recursiveTraversal(
-            initial_path, 0, max_depth, branching_factor, node_count);
+        recursiveTraversal(initial_path, 0, max_depth, branching_factor, node_count);
         benchmark::DoNotOptimize(node_count);
     }
 
@@ -138,8 +131,7 @@ static void BM_RecursiveTraversal_ImmerFlex(benchmark::State& state) {
         benchmark::DoNotOptimize(_);
         VectorPathTracker<immer::flex_vector<int>> initial_path;
         int                                        node_count = 0;
-        recursiveTraversal(
-            initial_path, 0, max_depth, branching_factor, node_count);
+        recursiveTraversal(initial_path, 0, max_depth, branching_factor, node_count);
         benchmark::DoNotOptimize(node_count);
     }
 
@@ -156,8 +148,7 @@ static void BM_RecursiveTraversal_ImmerVector(benchmark::State& state) {
         benchmark::DoNotOptimize(_);
         VectorPathTracker<immer::vector<int>> initial_path;
         int                                   node_count = 0;
-        recursiveTraversal(
-            initial_path, 0, max_depth, branching_factor, node_count);
+        recursiveTraversal(initial_path, 0, max_depth, branching_factor, node_count);
         benchmark::DoNotOptimize(node_count);
     }
 
@@ -166,8 +157,7 @@ static void BM_RecursiveTraversal_ImmerVector(benchmark::State& state) {
     state.counters["branching"] = state.range(1);
 }
 
-static void BM_RecursiveTraversal_RecursivePathTracker(
-    benchmark::State& state) {
+static void BM_RecursiveTraversal_RecursivePathTracker(benchmark::State& state) {
     int max_depth        = state.range(0);
     int branching_factor = state.range(1);
 
@@ -175,8 +165,7 @@ static void BM_RecursiveTraversal_RecursivePathTracker(
         benchmark::DoNotOptimize(_);
         RecursivePathTracker<int> initial_path;
         int                       node_count = 0;
-        recursiveTraversal(
-            initial_path, 0, max_depth, branching_factor, node_count);
+        recursiveTraversal(initial_path, 0, max_depth, branching_factor, node_count);
         benchmark::DoNotOptimize(node_count);
     }
 
@@ -192,9 +181,7 @@ static void BM_PathCopying_StdVector(benchmark::State& state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(_);
         VectorPathTracker<std::vector<int>> base_path;
-        for (int i = 0; i < base_path_length; ++i) {
-            base_path = base_path.push(i);
-        }
+        for (int i = 0; i < base_path_length; ++i) { base_path = base_path.push(i); }
 
         int access_sum = 0;
         pathCopyingWorkload(base_path, operations, access_sum);
@@ -213,9 +200,7 @@ static void BM_PathCopying_ImmerFlex(benchmark::State& state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(_);
         VectorPathTracker<immer::flex_vector<int>> base_path;
-        for (int i = 0; i < base_path_length; ++i) {
-            base_path = base_path.push(i);
-        }
+        for (int i = 0; i < base_path_length; ++i) { base_path = base_path.push(i); }
 
         int access_sum = 0;
         pathCopyingWorkload(base_path, operations, access_sum);
@@ -234,9 +219,7 @@ static void BM_PathCopying_ImmerVector(benchmark::State& state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(_);
         VectorPathTracker<immer::vector<int>> base_path;
-        for (int i = 0; i < base_path_length; ++i) {
-            base_path = base_path.push(i);
-        }
+        for (int i = 0; i < base_path_length; ++i) { base_path = base_path.push(i); }
 
         int access_sum = 0;
         pathCopyingWorkload(base_path, operations, access_sum);
@@ -255,9 +238,7 @@ static void BM_PathCopying_RecursivePathTracker(benchmark::State& state) {
     for (auto _ : state) {
         benchmark::DoNotOptimize(_);
         RecursivePathTracker<int> base_path;
-        for (int i = 0; i < base_path_length; ++i) {
-            base_path = base_path.push(i);
-        }
+        for (int i = 0; i < base_path_length; ++i) { base_path = base_path.push(i); }
 
         int access_sum = 0;
         pathCopyingWorkload(base_path, operations, access_sum);
@@ -340,13 +321,9 @@ static void BM_RandomAccess_RecursivePathTracker(benchmark::State& state) {
 static void CustomArguments(benchmark::internal::Benchmark* b) {
     for (int depth = 2; depth <= 8; depth += 2) {
         if (depth < 5) {
-            for (int width = 2; width <= 20; ++width) {
-                b->Args({depth, width});
-            }
+            for (int width = 2; width <= 20; ++width) { b->Args({depth, width}); }
         } else {
-            for (int width = 2; width <= 4; ++width) {
-                b->Args({depth, width});
-            }
+            for (int width = 2; width <= 4; ++width) { b->Args({depth, width}); }
         }
     }
 }
@@ -393,9 +370,7 @@ BENCHMARK(BM_PathCopying_RecursivePathTracker)
 
 static void AccessPatternArguments(benchmark::internal::Benchmark* b) {
     for (int length : {50, 100, 500, 1000, 2000}) {
-        for (int accesses : {1000, 5000, 10000}) {
-            b->Args({length, accesses});
-        }
+        for (int accesses : {1000, 5000, 10000}) { b->Args({length, accesses}); }
     }
 }
 

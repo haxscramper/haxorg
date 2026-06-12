@@ -19,9 +19,7 @@ struct Circle : Shape {
     double                   radius;
     Circle(double r) : radius{r} {}
     Kind   get_kind() const override { return Kind::Circle; }
-    double area() const override {
-        return 3.14159265359 * radius * radius;
-    }
+    double area() const override { return 3.14159265359 * radius * radius; }
 };
 
 struct Rectangle : Shape {
@@ -156,9 +154,7 @@ TEST_F(DynVariantTest, HoldsAlternativeReturnsFalseForEmptyVariant) {
 
 TEST_F(DynVariantTest, VisitCallsCorrectOverload) {
     double area = hstd::dyn_visit(
-        []<typename T>(std::shared_ptr<T> const& shape) {
-            return shape->area();
-        },
+        []<typename T>(std::shared_ptr<T> const& shape) { return shape->area(); },
         circle);
     EXPECT_DOUBLE_EQ(area, 3.14159265359 * 25.0);
 }
@@ -168,25 +164,21 @@ TEST_F(DynVariantTest, VisitWorksWithAllTypes) {
         return shape->area();
     };
 
-    EXPECT_DOUBLE_EQ(
-        hstd::dyn_visit(get_area, circle), 3.14159265359 * 25.0);
+    EXPECT_DOUBLE_EQ(hstd::dyn_visit(get_area, circle), 3.14159265359 * 25.0);
     EXPECT_DOUBLE_EQ(hstd::dyn_visit(get_area, rectangle), 12.0);
     EXPECT_DOUBLE_EQ(hstd::dyn_visit(get_area, triangle), 12.0);
 }
 
 TEST_F(DynVariantTest, VisitThrowsForEmptyVariant) {
     EXPECT_THROW(
-        hstd::dyn_visit(
-            []<typename T>(std::shared_ptr<T> const& shape) {}, empty),
+        hstd::dyn_visit([]<typename T>(std::shared_ptr<T> const& shape) {}, empty),
         std::bad_variant_access);
 }
 
 TEST_F(DynVariantTest, VisitWithConstVariant) {
     ShapeVariant const& const_circle = circle;
     double              area         = hstd::dyn_visit(
-        []<typename T>(std::shared_ptr<T> const& shape) {
-            return shape->area();
-        },
+        []<typename T>(std::shared_ptr<T> const& shape) { return shape->area(); },
         const_circle);
     EXPECT_DOUBLE_EQ(area, 3.14159265359 * 25.0);
 }
@@ -194,9 +186,7 @@ TEST_F(DynVariantTest, VisitWithConstVariant) {
 TEST_F(DynVariantTest, VisitCanModifyVariant) {
     hstd::dyn_visit(
         []<typename T>(std::shared_ptr<T> const& shape) {
-            if constexpr (std::is_same_v<T, Circle>) {
-                shape->radius = 10.0;
-            }
+            if constexpr (std::is_same_v<T, Circle>) { shape->radius = 10.0; }
         },
         circle);
 
@@ -210,13 +200,10 @@ TEST_F(DynVariantTest, VisitWithTypeSpecificLogic) {
             if constexpr (std::is_same_v<T, Circle>) {
                 return std::format("Circle with radius {}", shape->radius);
             } else if constexpr (std::is_same_v<T, Rectangle>) {
-                return std::format(
-                    "Rectangle {}x{}", shape->width, shape->height);
+                return std::format("Rectangle {}x{}", shape->width, shape->height);
             } else {
                 return std::format(
-                    "Triangle base {} height {}",
-                    shape->base,
-                    shape->height);
+                    "Triangle base {} height {}", shape->base, shape->height);
             }
         },
         circle);
@@ -333,8 +320,7 @@ TEST(DynVariantNestedInParent, CreateCircle) {
     using namespace nested_in_parent_test;
 
     Parent p{
-        .shape = Parent::ShapeVariant::make<Parent::Circle>(),
-        .name  = "CircleParent"};
+        .shape = Parent::ShapeVariant::make<Parent::Circle>(), .name = "CircleParent"};
 
     hstd::get<Parent::Circle>(p.shape).radius = 5.0;
 
@@ -347,8 +333,7 @@ TEST(DynVariantNestedInParent, CreateRectangle) {
     using namespace nested_in_parent_test;
 
     Parent p{
-        .shape = Parent::ShapeVariant::make<Parent::Rectangle>(),
-        .name  = "RectParent"};
+        .shape = Parent::ShapeVariant::make<Parent::Rectangle>(), .name = "RectParent"};
 
     hstd::get<Parent::Rectangle>(p.shape).width  = 4.0;
     hstd::get<Parent::Rectangle>(p.shape).height = 3.0;
@@ -362,8 +347,7 @@ TEST(DynVariantNestedInParent, VisitNestedTypes) {
     using namespace nested_in_parent_test;
 
     Parent p{
-        .shape = Parent::ShapeVariant::make<Parent::Triangle>(),
-        .name  = "TriParent"};
+        .shape = Parent::ShapeVariant::make<Parent::Triangle>(), .name = "TriParent"};
 
     hstd::get<Parent::Triangle>(p.shape).base   = 6.0;
     hstd::get<Parent::Triangle>(p.shape).height = 4.0;
@@ -388,22 +372,16 @@ TEST(DynVariantNestedInParent, VectorOfParents) {
 
     std::vector<Parent> parents;
 
-    Parent p1{
-        .shape = Parent::ShapeVariant::make<Parent::Circle>(),
-        .name  = "P1"};
+    Parent p1{.shape = Parent::ShapeVariant::make<Parent::Circle>(), .name = "P1"};
     hstd::get<Parent::Circle>(p1.shape).radius = 2.0;
     parents.push_back(p1);
 
-    Parent p2{
-        .shape = Parent::ShapeVariant::make<Parent::Rectangle>(),
-        .name  = "P2"};
+    Parent p2{.shape = Parent::ShapeVariant::make<Parent::Rectangle>(), .name = "P2"};
     hstd::get<Parent::Rectangle>(p2.shape).width  = 3.0;
     hstd::get<Parent::Rectangle>(p2.shape).height = 4.0;
     parents.push_back(p2);
 
-    Parent p3{
-        .shape = Parent::ShapeVariant::make<Parent::Triangle>(),
-        .name  = "P3"};
+    Parent p3{.shape = Parent::ShapeVariant::make<Parent::Triangle>(), .name = "P3"};
     hstd::get<Parent::Triangle>(p3.shape).base   = 5.0;
     hstd::get<Parent::Triangle>(p3.shape).height = 6.0;
     parents.push_back(p3);
@@ -411,24 +389,15 @@ TEST(DynVariantNestedInParent, VectorOfParents) {
     std::vector<std::string> descriptions;
     for (auto const& parent : parents) {
         std::string desc = hstd::dyn_visit(
-            [&parent]<typename T>(
-                std::shared_ptr<T> const& s) -> std::string {
+            [&parent]<typename T>(std::shared_ptr<T> const& s) -> std::string {
                 if constexpr (std::is_same_v<T, Parent::Circle>) {
+                    return std::format("{}: Circle(r={})", parent.name, s->radius);
+                } else if constexpr (std::is_same_v<T, Parent::Rectangle>) {
                     return std::format(
-                        "{}: Circle(r={})", parent.name, s->radius);
-                } else if constexpr (
-                    std::is_same_v<T, Parent::Rectangle>) {
-                    return std::format(
-                        "{}: Rect({}x{})",
-                        parent.name,
-                        s->width,
-                        s->height);
+                        "{}: Rect({}x{})", parent.name, s->width, s->height);
                 } else {
                     return std::format(
-                        "{}: Tri(b={},h={})",
-                        parent.name,
-                        s->base,
-                        s->height);
+                        "{}: Tri(b={},h={})", parent.name, s->base, s->height);
                 }
             },
             parent.shape);
@@ -502,10 +471,10 @@ struct Node {
         Type51);
 };
 
-#define DEFINE_NODE_TYPE(Name)                                            \
-    struct Name : Node {                                                  \
-        DEFINE_DYN_VARIANT_DERIVED_TYPE_BODY(Name, Kind, getKind);        \
-        int value;                                                        \
+#define DEFINE_NODE_TYPE(Name)                                                           \
+    struct Name : Node {                                                                 \
+        DEFINE_DYN_VARIANT_DERIVED_TYPE_BODY(Name, Kind, getKind);                       \
+        int value;                                                                       \
     };
 
 DEFINE_NODE_TYPE(Type00);
@@ -632,10 +601,7 @@ TEST(DynVariantManyTypes, InstantiateAndVisitFirst) {
     hstd::get<Type00>(v).value = 100;
 
     int result = hstd::dyn_visit(
-        []<typename T>(std::shared_ptr<T> const& n) -> int {
-            return n->value;
-        },
-        v);
+        []<typename T>(std::shared_ptr<T> const& n) -> int { return n->value; }, v);
 
     EXPECT_EQ(result, 100);
     EXPECT_TRUE(hstd::holds_alternative<Type00>(v));
@@ -648,10 +614,7 @@ TEST(DynVariantManyTypes, InstantiateAndVisitLast) {
     hstd::get<Type39>(v).value = 3900;
 
     int result = hstd::dyn_visit(
-        []<typename T>(std::shared_ptr<T> const& n) -> int {
-            return n->value;
-        },
-        v);
+        []<typename T>(std::shared_ptr<T> const& n) -> int { return n->value; }, v);
 
     EXPECT_EQ(result, 3900);
     EXPECT_TRUE(hstd::holds_alternative<Type39>(v));
@@ -664,10 +627,7 @@ TEST(DynVariantManyTypes, InstantiateAndVisitMiddle) {
     hstd::get<Type20>(v).value = 2000;
 
     int result = hstd::dyn_visit(
-        []<typename T>(std::shared_ptr<T> const& n) -> int {
-            return n->value;
-        },
-        v);
+        []<typename T>(std::shared_ptr<T> const& n) -> int { return n->value; }, v);
 
     EXPECT_EQ(result, 2000);
     EXPECT_TRUE(hstd::holds_alternative<Type20>(v));
@@ -723,9 +683,7 @@ TEST(DynVariantManyTypes, MultipleVariantsInVector) {
     int sum = 0;
     for (auto const& n : nodes) {
         sum += hstd::dyn_visit(
-            []<typename T>(std::shared_ptr<T> const& node) -> int {
-                return node->value;
-            },
+            []<typename T>(std::shared_ptr<T> const& node) -> int { return node->value; },
             n);
     }
 

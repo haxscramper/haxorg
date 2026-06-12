@@ -29,9 +29,7 @@ struct TokenGroup {
     const_iterator end() const { return tokens.content.end(); }
     const_iterator rbegin() const { return tokens.content.rbegin(); }
     const_iterator rend() const { return tokens.content.rend(); }
-    const_iterator pos_iterator(IdT id) const {
-        return begin() + id.getIndex();
-    }
+    const_iterator pos_iterator(IdT id) const { return begin() + id.getIndex(); }
     const_iterator rpos_iterator(IdT id) const {
         return rbegin() + (tokens.content().size() - id.getIndex() - 1);
     }
@@ -61,21 +59,16 @@ struct TokenGroup {
     }
 
     int  size() const { return tokens.size(); }
-    void resize(int size, TokenT const& value = TokenT()) {
-        tokens.resize(size, value);
-    }
+    void resize(int size, TokenT const& value = TokenT()) { tokens.resize(size, value); }
 };
 
 
 template <typename K, typename V>
 struct TokenStore {
     hstd::Vec<TokenGroup<K, V>> groups;
-    Token<K, V>&                at(TokenId<K, V> id) {
-        return groups.at(id.getStoreIdx());
-    }
+    Token<K, V>& at(TokenId<K, V> id) { return groups.at(id.getStoreIdx()); }
 
-    std::span<Token<K, V>> at(
-        hstd::HSlice<TokenId<K, V>, TokenId<K, V>> slice) {
+    std::span<Token<K, V>> at(hstd::HSlice<TokenId<K, V>, TokenId<K, V>> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         groups.at(slice.first.getStoreIdx()).at(slice);
     }
@@ -92,9 +85,7 @@ struct Tokenizer {
     /// \brief Get ID of the last token
     TokenId<K, V> back() const { return out->tokens.back(); }
     int           size() const { return out->size(); }
-    void          resize(int size, Token<K, V> value = Token<K, V>()) {
-        out->resize(size, value);
-    }
+    void resize(int size, Token<K, V> value = Token<K, V>()) { out->resize(size, value); }
 
     /// \name Add new token element to the list
     ///
@@ -136,12 +127,9 @@ struct Tokenizer {
 
 
 template <hstd::StdFormattable K, hstd::StdFormattable V>
-struct std::formatter<org::parse::TokenGroup<K, V>>
-    : std::formatter<std::string> {
+struct std::formatter<org::parse::TokenGroup<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(
-        org::parse::TokenGroup<K, V> const& p,
-        FormatContext&                      ctx) {
+    auto format(org::parse::TokenGroup<K, V> const& p, FormatContext& ctx) {
         std::formatter<std::string> fmt;
         for (const auto& [idx, tok] : p.tokens.pairs()) {
             fmt.format(std::format("{:<16}", idx), ctx);

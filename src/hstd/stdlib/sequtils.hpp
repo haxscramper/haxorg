@@ -32,16 +32,13 @@ struct EnumerateState {
             return *this;
         }
 
-        bool operator!=(iterator const& other) {
-            return (*iter) != (*other.iter);
-        }
+        bool operator!=(iterator const& other) { return (*iter) != (*other.iter); }
     };
 
     iterator begin() { return iterator(&beginIterator); }
     iterator end() { return iterator(&endIterator); }
 
-    EnumerateState(T begin, T end)
-        : beginIterator(begin), endIterator(end) {}
+    EnumerateState(T begin, T end) : beginIterator(begin), endIterator(end) {}
 
   private:
     T beginIterator;
@@ -51,9 +48,8 @@ struct EnumerateState {
 template <typename T>
 EnumerateState<typename T::iterator, typename T::iterator::value_type> enumerate(
     Ref<T> value) {
-    return EnumerateState<
-        typename T::iterator,
-        typename T::iterator::value_type>(value.begin(), value.end());
+    return EnumerateState<typename T::iterator, typename T::iterator::value_type>(
+        value.begin(), value.end());
 }
 
 
@@ -62,8 +58,7 @@ EnumerateState<typename T::const_iterator, typename T::const_iterator::value_typ
     T const& value) {
     return EnumerateState<
         typename T::const_iterator,
-        typename T::const_iterator::value_type>(
-        value.cbegin(), value.cend());
+        typename T::const_iterator::value_type>(value.cbegin(), value.cend());
 }
 
 

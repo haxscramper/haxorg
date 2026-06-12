@@ -41,8 +41,7 @@ struct SemId;
 #define SKIP_FIRST_ARG_AUX(op, ...) __VA_ARGS__
 #define SKIP_FIRST_ARG(op, ...) SKIP_FIRST_ARG_AUX(op)
 
-#define EACH_SEM_ORG_KIND_CSV(__CMD)                                      \
-    SKIP_FIRST_ARG(EACH_SEM_ORG_KIND(__CMD))
+#define EACH_SEM_ORG_KIND_CSV(__CMD) SKIP_FIRST_ARG(EACH_SEM_ORG_KIND(__CMD))
 
 
 #define __id(I) , SemId<I>
@@ -69,9 +68,7 @@ struct [[refl]] SemId {
     hstd::SPtr<O> value;
 
     [[refl]] bool isNil() const { return value.get() == nullptr; }
-    [[refl]] bool operator==(SemId<O> const& other) const {
-        return value == other.value;
-    }
+    [[refl]] bool operator==(SemId<O> const& other) const { return value == other.value; }
 
     template <typename... Args>
     static SemId<O> New(Args&&... args) {
@@ -96,7 +93,7 @@ struct [[refl]] SemId {
     O&                       operator*() { return *value; }
     O const&                 operator*() const { return *value; }
     [[refl]] SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
-    [[refl]] OrgSemKind getNodeKind() const { return get()->getKind(); }
+    [[refl]] OrgSemKind      getNodeKind() const { return get()->getKind(); }
 
     [[refl(R"({"unique-name": "atIndex"})")]] SemId<sem::Org> at(int idx) {
         return value->at(idx);
@@ -106,8 +103,7 @@ struct [[refl]] SemId {
         return value->at(idx);
     }
 
-    [[refl(R"({"unique-name": "getIndex"})")]] hstd::Opt<SemId<sem::Org>> get(
-        int idx) {
+    [[refl(R"({"unique-name": "getIndex"})")]] hstd::Opt<SemId<sem::Org>> get(int idx) {
         return value->get(idx);
     }
 
@@ -120,12 +116,8 @@ struct [[refl]] SemId {
 
     SubnodeVec::iterator       begin() { return value->subnodes.begin(); }
     SubnodeVec::iterator       end() { return value->subnodes.end(); }
-    SubnodeVec::const_iterator begin() const {
-        return value->subnodes.begin();
-    }
-    SubnodeVec::const_iterator end() const {
-        return value->subnodes.end();
-    }
+    SubnodeVec::const_iterator begin() const { return value->subnodes.begin(); }
+    SubnodeVec::const_iterator end() const { return value->subnodes.end(); }
 
     [[refl]] int size() const { return value->subnodes.size(); }
 
@@ -280,9 +272,7 @@ struct [[refl(R"({
 
     SemId<Org> as_unref_shared() const;
 
-    SemId<Org> at(hstd::BackwardsIndex idx) const {
-        return subnodes.at(idx);
-    }
+    SemId<Org> at(hstd::BackwardsIndex idx) const { return subnodes.at(idx); }
 
     hstd::Opt<SemId<Org>> get(int idx) const { return subnodes.get(idx); }
 
@@ -293,10 +283,10 @@ struct [[refl(R"({
     template <typename Func>
     void visit(Func const& cb) {
         switch (getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        cb(dyn_cast<sem::__Kind>());                                      \
-        break;                                                            \
+#define _case(__Kind)                                                                    \
+    case OrgSemKind::__Kind: {                                                           \
+        cb(dyn_cast<sem::__Kind>());                                                     \
+        break;                                                                           \
     }
 
             EACH_SEM_ORG_KIND(_case)
@@ -307,10 +297,10 @@ struct [[refl(R"({
     template <typename Func>
     void visit(Func const& cb) const {
         switch (getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind: {                                            \
-        cb(dyn_cast<sem::__Kind>());                                      \
-        break;                                                            \
+#define _case(__Kind)                                                                    \
+    case OrgSemKind::__Kind: {                                                           \
+        cb(dyn_cast<sem::__Kind>());                                                     \
+        break;                                                                           \
     }
 
             EACH_SEM_ORG_KIND(_case)
@@ -340,13 +330,13 @@ struct [[refl(R"({
 };
 }; // namespace org::sem
 
-#define EACH_SEM_ORG_LEAF_KIND(__IMPL)                                    \
-    __IMPL(Newline)                                                       \
-    __IMPL(Space)                                                         \
-    __IMPL(Word)                                                          \
-    __IMPL(RawText)                                                       \
-    __IMPL(Punctuation)                                                   \
-    __IMPL(Placeholder)                                                   \
+#define EACH_SEM_ORG_LEAF_KIND(__IMPL)                                                   \
+    __IMPL(Newline)                                                                      \
+    __IMPL(Space)                                                                        \
+    __IMPL(Word)                                                                         \
+    __IMPL(RawText)                                                                      \
+    __IMPL(Punctuation)                                                                  \
+    __IMPL(Placeholder)                                                                  \
     __IMPL(BigIdent)
 
 

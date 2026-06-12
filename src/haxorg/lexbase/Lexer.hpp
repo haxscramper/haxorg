@@ -10,20 +10,16 @@ struct LexerCommon {
     TokenGroup<K, V>*      in;
     TokenId<K, V>          pos;
     hstd::Opt<Token<K, V>> lastToken;
-    LexerCommon(
-        TokenGroup<K, V>* _in,
-        TokenId<K, V>     startPos = TokenId<K, V>(0))
+    LexerCommon(TokenGroup<K, V>* _in, TokenId<K, V> startPos = TokenId<K, V>(0))
         : in(_in), pos(startPos) {}
 
-    K            kind(int offset = 0) const { return tok(offset).kind; }
-    Token<K, V>& tok(TokenId<K, V> id) { return in->at(id); }
+    K                  kind(int offset = 0) const { return tok(offset).kind; }
+    Token<K, V>&       tok(TokenId<K, V> id) { return in->at(id); }
     Token<K, V> const& tok(TokenId<K, V> id) const { return in->at(id); }
-    Token<K, V> const& tok(int offset = 0) const {
-        return in->at(get(offset));
-    }
-    TokenId<K, V> get(int offset = 0) const { return pos + offset; }
-    V const&      val(int offset = 0) const { return tok(offset).value; }
-    V&            val(int offset = 0) { return in->at(get(offset)).value; }
+    Token<K, V> const& tok(int offset = 0) const { return in->at(get(offset)); }
+    TokenId<K, V>      get(int offset = 0) const { return pos + offset; }
+    V const&           val(int offset = 0) const { return tok(offset).value; }
+    V&                 val(int offset = 0) { return in->at(get(offset)).value; }
 
     hstd::Opt<hstd::CRw<Token<K, V>>> opt(int offset = 0) {
         if (hasNext(offset)) {
@@ -83,13 +79,11 @@ struct LexerCommon {
         const_iterator rend() const { return __this()->in->rend(); }
 
         iterator rcurrent() {
-            return __this()->in->rpos_iterator(
-                currentPos ? *currentPos : _this->pos);
+            return __this()->in->rpos_iterator(currentPos ? *currentPos : _this->pos);
         }
 
         const iterator rcurrent() const {
-            return __this()->in->rpos_iterator(
-                currentPos ? *currentPos : _this->pos);
+            return __this()->in->rpos_iterator(currentPos ? *currentPos : _this->pos);
         }
 
         hstd::rs::subrange<iterator> range() {
@@ -131,13 +125,10 @@ struct LexerCommon {
         bool withOffsets = false;
     };
 
-    using TokenFormatCb = hstd::Func<
-        void(hstd::ColStream&, Token<K, V> const&)>;
+    using TokenFormatCb = hstd::Func<void(hstd::ColStream&, Token<K, V> const&)>;
 
-    void print(
-        hstd::ColStream&   os,
-        TokenFormatCb      format,
-        PrintParams const& params) const {
+    void print(hstd::ColStream& os, TokenFormatCb format, PrintParams const& params)
+        const {
         if (params.withPos) {
             if (pos.isNil()) {
                 os << "#" << os.red() << "nil" << os.end();
@@ -149,15 +140,12 @@ struct LexerCommon {
         if (finished()) {
             os << os.red() << " finished" << os.end();
         } else {
-            for (int i = params.startOffset;
-                 i < params.maxTokens && hasNext(i);
-                 ++i) {
+            for (int i = params.startOffset; i < params.maxTokens && hasNext(i); ++i) {
                 auto const& t = tok(i);
                 if (os.colored) {
                     os << " "
                        << styledUnicodeMapping(
-                              std::format("{}", t.kind),
-                              hstd::AsciiStyle::Italic);
+                              std::format("{}", t.kind), hstd::AsciiStyle::Italic);
                 } else {
                     os << " " << std::format("{}", t.kind);
                 }
@@ -167,8 +155,7 @@ struct LexerCommon {
     }
 
 
-    std::string printToString(TokenFormatCb format, bool colored = false)
-        const {
+    std::string printToString(TokenFormatCb format, bool colored = false) const {
         return printToString(PrintParams{}, format, colored);
     }
 
@@ -219,8 +206,7 @@ struct LexerCommon {
             return false;
         } else {
             for (const auto& [idx, kind] : enumerate(kind)) {
-                if (!hasNext(idx + offset)
-                    || tok(idx + offset).kind != kind) {
+                if (!hasNext(idx + offset) || tok(idx + offset).kind != kind) {
                     return false;
                 }
             }
@@ -229,9 +215,7 @@ struct LexerCommon {
     }
 
     bool can_search(K kind) { return !finished() && !at(kind); }
-    bool can_search(hstd::IntSet<K> kind) {
-        return !finished() && !at(kind);
-    }
+    bool can_search(hstd::IntSet<K> kind) { return !finished() && !at(kind); }
     bool can_search(hstd::Vec<K> kind) { return !finished() && !at(kind); }
 
     bool at(hstd::IntSet<K> kind, int offset = 0) const {
@@ -239,10 +223,7 @@ struct LexerCommon {
     }
 
     template <typename Target>
-    int find(
-        hstd::IntSet<K> const& skip,
-        Target const&          target,
-        int                    offset = 0) const {
+    int find(hstd::IntSet<K> const& skip, Target const& target, int offset = 0) const {
         while (at(skip, offset)) { ++offset; }
 
         if (at(target, offset)) {
@@ -252,23 +233,18 @@ struct LexerCommon {
         }
     }
 
-    bool ahead(
-        hstd::IntSet<K> const& skip,
-        hstd::Vec<K> const&    target,
-        int                    offset = 0) const {
+    bool ahead(hstd::IntSet<K> const& skip, hstd::Vec<K> const& target, int offset = 0)
+        const {
         return find(skip, target, offset) != -1;
     }
 
-    bool ahead(
-        hstd::IntSet<K> const& skip,
-        hstd::IntSet<K> const& target,
-        int                    offset = 0) const {
+    bool ahead(hstd::IntSet<K> const& skip, hstd::IntSet<K> const& target, int offset = 0)
+        const {
         return find(skip, target, offset) != -1;
     }
 
     bool ahead(K const& skip, K const& target, int offset = 0) const {
-        return find(hstd::IntSet<K>{skip}, hstd::IntSet<K>{target}, offset)
-            != -1;
+        return find(hstd::IntSet<K>{skip}, hstd::IntSet<K>{target}, offset) != -1;
     }
 
     /// Check if the lexer is positioned on the appropriate token kind
@@ -417,9 +393,7 @@ struct SubLexer : public LexerCommon<K, V> {
     SubLexer(LexerCommon<K, V> const& in) : LexerCommon<K, V>(in.in) {}
 
     SubLexer(TokenGroup<K, V>* in, hstd::Vec<TokenId<K, V>> const& _tokens)
-        : LexerCommon<K, V>(
-              in,
-              _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
+        : LexerCommon<K, V>(in, _tokens.empty() ? TokenId<K, V>::Nil() : _tokens.at(0))
         , tokens(_tokens) {}
 };
 
@@ -456,15 +430,13 @@ struct Lexer : public LexerCommon<K, V> {
 
 
 template <typename K, typename V>
-struct std::formatter<org::parse::LexerCommon<K, V>>
-    : std::formatter<std::string> {
+struct std::formatter<org::parse::LexerCommon<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
         org::parse::LexerCommon<K, V> const& p,
         FormatContext&                       ctx) const {
         return ::hstd::fmt_ctx(
-            p.printToString(
-                [](hstd::ColStream&, org::parse::Token<K, V> const&) {}),
+            p.printToString([](hstd::ColStream&, org::parse::Token<K, V> const&) {}),
             ctx);
     }
 };

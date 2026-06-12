@@ -43,8 +43,7 @@ struct DirContext {
     }
 
     void registerFile(fs::path const& path) {
-        fileStates.insert_or_assign(
-            path.native(), FileState::from_file(path));
+        fileStates.insert_or_assign(path.native(), FileState::from_file(path));
     }
 
     SPtr<ContentNode> getFileNode(fs::path const& file);
@@ -86,9 +85,7 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
 
     ContentNode(org::imm::ImmAdapter const& ad) : a{ad} { a.get(); }
 
-    static ContentNode::Ptr from_node(
-        DirContext&                 ctx,
-        org::imm::ImmAdapter const& a) {
+    static ContentNode::Ptr from_node(DirContext& ctx, org::imm::ImmAdapter const& a) {
         auto res = ContentNode::shared(a);
         a.get();
         if (auto tree = a.asOpt<org::imm::ImmSubtree>()) {
@@ -114,8 +111,7 @@ struct ContentNode : public SharedPtrApi<ContentNode> {
 
 SPtr<ContentNode> DirContext::getFileNode(fs::path const& file) {
     if (hadChanges(file)) {
-        HSLOG_INFO(
-            "load", "Loading file {}", fs::relative(file, root).native());
+        HSLOG_INFO("load", "Loading file {}", fs::relative(file, root).native());
         auto node = parseContext->parseFile(file);
         auto root = ctx->addRoot(node);
         auto res  = ContentNode::from_node(*this, root.getRootAdapter());
@@ -158,8 +154,8 @@ struct FileNode : public SharedPtrApi<FileNode> {
         } else {
             if (auto doc_node = doc->a.asOpt<org::imm::ImmDocument>();
                 doc_node && doc_node.value()->title->has_value()) {
-                res->title = org::getCleanText(doc_node.value().pass(
-                    doc_node.value()->title->value()));
+                res->title = org::getCleanText(
+                    doc_node.value().pass(doc_node.value()->title->value()));
             } else {
                 res->title = file.filename().native();
             }
@@ -175,9 +171,7 @@ struct DirNode : public SharedPtrApi<DirNode> {
     Vec<FileNode::Ptr>    files;
     Vec<DirNode::Ptr>     nested;
 
-    bool empty() const {
-        return !readme.has_value() && files.empty() && nested.empty();
-    }
+    bool empty() const { return !readme.has_value() && files.empty() && nested.empty(); }
 
     void render(DirContext& ctx) {
         if (ImGui::TreeNodeEx(
@@ -200,21 +194,16 @@ struct DirNode : public SharedPtrApi<DirNode> {
             escape_literal(ctx.root.native()),
             escape_literal(dir.native()));
 
-        if (res->relative.starts_with(".") && 2 < res->relative.size()) {
-            return res;
-        }
+        if (res->relative.starts_with(".") && 2 < res->relative.size()) { return res; }
 
-        HSLOG_INFO(
-            "load", "Loading directory {}", escape_literal(res->relative));
+        HSLOG_INFO("load", "Loading directory {}", escape_literal(res->relative));
         HSLOG_DEPTH_SCOPE_ANON();
 
         for (const auto& entry : fs::directory_iterator(dir)) {
             if (entry.is_directory()) {
                 auto sub = DirNode::from_dir(ctx, entry);
                 if (!sub->empty()) { res->nested.push_back(sub); }
-            } else if (
-                entry.is_regular_file()
-                && entry.path().extension() == ".org") {
+            } else if (entry.is_regular_file() && entry.path().extension() == ".org") {
                 res->files.push_back(FileNode::from_file(ctx, entry));
             }
         }
@@ -240,12 +229,8 @@ std::string format_event(inotify_event const& event) {
     if (event.mask & IN_ISDIR) { description += " [Directory]"; }
     if (event.mask & IN_ACCESS) { description += " [Accessed]"; }
     if (event.mask & IN_ATTRIB) { description += " [Metadata Changed]"; }
-    if (event.mask & IN_CLOSE_NOWRITE) {
-        description += " [Closed (Read-only)]";
-    }
-    if (event.mask & IN_CLOSE_WRITE) {
-        description += " [Closed (Write)]";
-    }
+    if (event.mask & IN_CLOSE_NOWRITE) { description += " [Closed (Read-only)]"; }
+    if (event.mask & IN_CLOSE_WRITE) { description += " [Closed (Write)]"; }
     if (event.mask & IN_OPEN) { description += " [Opened]"; }
 
     return description;
@@ -258,9 +243,7 @@ class InotifyWatcher {
 
   public:
     InotifyWatcher() : inotifyFd{inotify_init1(IN_NONBLOCK)} {
-        if (inotifyFd == -1) {
-            throw std::runtime_error("Failed to initialize inotify");
-        }
+        if (inotifyFd == -1) { throw std::runtime_error("Failed to initialize inotify"); }
     }
 
     ~InotifyWatcher() {
@@ -299,8 +282,8 @@ class InotifyWatcher {
             int wd = inotify_add_watch(
                 inotifyFd,
                 file.c_str(),
-                IN_CREATE | IN_DELETE | IN_MODIFY | IN_ISDIR
-                    | IN_MOVED_FROM | IN_MOVED_TO);
+                IN_CREATE | IN_DELETE | IN_MODIFY | IN_ISDIR | IN_MOVED_FROM
+                    | IN_MOVED_TO);
             if (wd == -1) {
                 throw std::runtime_error(
                     "Failed to add inotify watch for: " + file.string());
@@ -310,8 +293,7 @@ class InotifyWatcher {
     }
 
     bool hasChanges() {
-        char buffer[4096]
-            __attribute__((aligned(alignof(struct inotify_event))));
+        char    buffer[4096] __attribute__((aligned(alignof(struct inotify_event))));
         ssize_t length = read(inotifyFd, buffer, sizeof(buffer));
 
         if (0 < length) {
@@ -320,13 +302,11 @@ class InotifyWatcher {
             int  i           = 0;
             bool had_changes = false;
             while (i < length) {
-                struct inotify_event*
-                    event = (struct inotify_event*)&buffer[i];
+                struct inotify_event* event = (struct inotify_event*)&buffer[i];
                 if (event->len) {
-                    fs::path const& path = watchDescriptors.at(event->wd);
+                    fs::path const& path        = watchDescriptors.at(event->wd);
                     std::string     description = format_event(*event);
-                    HSLOG_INFO(
-                        "watch", "Path {}", path.native(), description);
+                    HSLOG_INFO("watch", "Path {}", path.native(), description);
                     had_changes = true;
                 }
                 i += sizeof(struct inotify_event) + event->len;

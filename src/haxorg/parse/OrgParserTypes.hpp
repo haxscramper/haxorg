@@ -18,24 +18,12 @@ using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
 using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
 using OrgTokSet     = hstd::IntSet<OrgTokenKind>;
 
-using OrgNodeGroup = NodeGroup<
-    OrgNodeKind,
-    OrgTokenKind,
-    OrgFill,
-    OrgNodeMono>;
+using OrgNodeGroup = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
 
 
-using OrgAdapter = NodeAdapter<
-    OrgNodeKind,
-    OrgTokenKind,
-    OrgFill,
-    OrgNodeMono>;
+using OrgAdapter = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
 
-extern template class NodeGroup<
-    OrgNodeKind,
-    OrgTokenKind,
-    OrgFill,
-    OrgNodeMono>;
+extern template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
 
 
 using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;

@@ -31,9 +31,7 @@ struct Config {
     hstd::Opt<hstd::Str> log_file        = std::nullopt;
     hstd::Opt<hstd::Str> perf_trace_file = std::nullopt;
 
-    DESC_FIELDS(
-        Config,
-        (file, mode, appstate, fullscreen, log_file, perf_trace_file));
+    DESC_FIELDS(Config, (file, mode, appstate, fullscreen, log_file, perf_trace_file));
 };
 
 struct OutlineConfig {
@@ -45,8 +43,7 @@ struct OutlineConfig {
 long GetTimeDelta(hstd::UserTime const& from, hstd::UserTime const& to) {
     auto from_utc = cctz::convert(
         from.time, from.zone ? *from.zone : cctz::utc_time_zone());
-    auto to_utc = cctz::convert(
-        to.time, to.zone ? *to.zone : cctz::utc_time_zone());
+    auto to_utc = cctz::convert(to.time, to.zone ? *to.zone : cctz::utc_time_zone());
     return (to_utc - from_utc).count();
 }
 
@@ -72,8 +69,7 @@ hstd::Opt<int> render_mini_map(
 
     ImGui::InvisibleButton("MiniMap", size);
     ImVec2 window_pos = ImGui::GetWindowPos();
-    std::function<void(org::sem::SemId<org::sem::Subtree> const&)>
-        render_node;
+    std::function<void(org::sem::SemId<org::sem::Subtree> const&)> render_node;
 
     int            dfs_idx = 0;
     hstd::Opt<int> out_idx;
@@ -92,20 +88,12 @@ hstd::Opt<int> render_mini_map(
 
         ImU32 rect_color = ImGui::ColorConvertFloat4ToU32(
             color((ColorName)((int)ColorName::Red + node->level - 1)));
-        ImGui::GetWindowDrawList()->AddRectFilled(
-            rect_pos, rect_end, rect_color);
+        ImGui::GetWindowDrawList()->AddRectFilled(rect_pos, rect_end, rect_color);
 
         if (ImGui::IsMouseHoveringRect(rect_pos, rect_end)) {
             ImGui::GetWindowDrawList()->AddRect(
-                rect_pos,
-                rect_end,
-                IM_COL32(0, 255, 255, 255),
-                0.0f,
-                0,
-                2.0f);
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                out_idx = dfs_idx;
-            }
+                rect_pos, rect_end, IM_COL32(0, 255, 255, 255), 0.0f, 0, 2.0f);
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) { out_idx = dfs_idx; }
         }
 
         for (const auto& subnode : node.subAs<org::sem::Subtree>()) {
@@ -130,8 +118,7 @@ void render_outline_subtree(
     bool skipped //
         = (!conf.showDone && org->todo
            && (org->todo == "DONE" || org->todo == "COMPLETED"))
-       || (org->priority.has_value()
-           && !conf.priorities.contains(org->priority.value()))
+       || (org->priority.has_value() && !conf.priorities.contains(org->priority.value()))
        || (!org->priority.has_value() && !conf.priorities.contains(""));
 
     if (!skipped || !nested.empty()) {
@@ -144,24 +131,19 @@ void render_outline_subtree(
         ImGui::PushTextWrapPos(
             ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
         ImGui::Text(
-            "%s",
-            org::algo::ExporterUltraplain::toStr(org->title.asOrg())
-                .c_str());
+            "%s", org::algo::ExporterUltraplain::toStr(org->title.asOrg()).c_str());
         ImGui::PopTextWrapPos();
 
         if (org->priority) {
             ImGui::TableSetColumnIndex(2);
             ImGui::TextColored(
-                color(ColorName::Red),
-                "%s",
-                org->priority.value().c_str());
+                color(ColorName::Red), "%s", org->priority.value().c_str());
         }
 
 
         if (org->todo) {
             ImGui::TableSetColumnIndex(3);
-            ImGui::TextColored(
-                color(ColorName::Yellow), "%s", org->todo.value().c_str());
+            ImGui::TextColored(color(ColorName::Yellow), "%s", org->todo.value().c_str());
         }
 
         long full_duration = 0;
@@ -170,8 +152,7 @@ void render_outline_subtree(
                 case org::sem::SubtreeLogHead::Kind::Clock: {
                     auto const& clock = log->head.getClock();
                     if (clock.to) {
-                        full_duration += GetTimeDelta(
-                            clock.from, clock.to.value());
+                        full_duration += GetTimeDelta(clock.from, clock.to.value());
                     }
                     break;
                 }
@@ -190,15 +171,11 @@ void render_outline_subtree(
 
     if (!nested.empty()) {
         ImGui::PushID(
-            hstd::fmt("{:p}", static_cast<const void*>(org.value.get()))
-                .c_str());
+            hstd::fmt("{:p}", static_cast<const void*>(org.value.get())).c_str());
 
-        if (org->level < 3) {
-            ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-        }
+        if (org->level < 3) { ImGui::SetNextItemOpen(true, ImGuiCond_Once); }
         bool node_open = ImGui::TreeNodeEx(
-            hstd::fmt("[{}]", org->level).c_str(),
-            ImGuiTreeNodeFlags_SpanFullWidth);
+            hstd::fmt("[{}]", org->level).c_str(), ImGuiTreeNodeFlags_SpanFullWidth);
         ImGui::PopID();
 
         render_tree_columns();
@@ -224,16 +201,11 @@ void render_outline(
             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg
                 | ImGuiTableFlags_SizingFixedFit)) {
 
-        ImGui::TableSetupColumn(
-            "Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-        ImGui::TableSetupColumn(
-            "Title", ImGuiTableColumnFlags_WidthFixed, 400.0f);
-        ImGui::TableSetupColumn(
-            "Prio", ImGuiTableColumnFlags_WidthFixed, 50.0f);
-        ImGui::TableSetupColumn(
-            "TODO", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-        ImGui::TableSetupColumn(
-            "Duration", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Tree", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableSetupColumn("Title", ImGuiTableColumnFlags_WidthFixed, 400.0f);
+        ImGui::TableSetupColumn("Prio", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+        ImGui::TableSetupColumn("TODO", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableHeadersRow();
 
         for (auto const& sub : org.subAs<org::sem::Subtree>()) {
@@ -248,15 +220,12 @@ void render_outline(
 void fps_window_begin() {
 
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowPos(
-        ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Once);
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 250, 10), ImGuiCond_Once);
     ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("%.2f FPS", io.Framerate);
 }
 
-void sem_tree_loop(
-    GLFWwindow*                    window,
-    org::sem::SemId<org::sem::Org> node) {
+void sem_tree_loop(GLFWwindow* window, org::sem::SemId<org::sem::Org> node) {
     VisualExporterConfig sem_tree_config;
     while (!glfwWindowShouldClose(window)) {
         frame_start();
@@ -271,9 +240,7 @@ void sem_tree_loop(
     }
 }
 
-void outline_tree_loop(
-    GLFWwindow*                    window,
-    org::sem::SemId<org::sem::Org> node) {
+void outline_tree_loop(GLFWwindow* window, org::sem::SemId<org::sem::Org> node) {
     OutlineConfig outline_config;
     outline_config.priorities.incl("");
 
@@ -284,8 +251,7 @@ void outline_tree_loop(
         if (auto tree = it.asOpt<org::sem::Subtree>()) {
             ++subtree_count;
             max_level = std::max(tree->level, max_level);
-            if (tree->priority
-                && priorities.indexOf(tree->priority.value()) == -1) {
+            if (tree->priority && priorities.indexOf(tree->priority.value()) == -1) {
                 priorities.push_back(tree->priority.value());
             }
         }
@@ -306,14 +272,12 @@ void outline_tree_loop(
 
             if (row_scroll) {
                 float scroll = static_cast<float>(row_scroll.value())
-                             / static_cast<float>(subtree_count)
-                             * content_height;
+                             / static_cast<float>(subtree_count) * content_height;
                 ImGui::SetScrollY(scroll);
             }
 
             mini_map_size = ImVec2(
-                max_level * minimap_indent_size + 10.0f,
-                ImGui::GetWindowHeight());
+                max_level * minimap_indent_size + 10.0f, ImGui::GetWindowHeight());
 
             scroll_y = ImGui::GetScrollY();
 
@@ -322,13 +286,10 @@ void outline_tree_loop(
 
         {
             ImGuiIO& io = ImGui::GetIO();
-            ImGui::SetNextWindowPos(
-                ImVec2(io.DisplaySize.x - mini_map_size.x, 0));
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - mini_map_size.x, 0));
             ImGui::SetNextWindowSize(mini_map_size);
             ImGui::Begin(
-                "Map",
-                nullptr,
-                ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav);
+                "Map", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav);
 
 
             row_scroll = render_mini_map(
@@ -368,8 +329,7 @@ int main(int argc, char** argv) {
 
     hstd::log::clear_sink_backends();
     if (conf.log_file) {
-        hstd::log::push_sink(
-            hstd::log::init_file_sink(conf.log_file.value()));
+        hstd::log::push_sink(hstd::log::init_file_sink(conf.log_file.value()));
     }
 
 #ifdef ORG_BUILD_WITH_PERFETTO
@@ -380,8 +340,7 @@ int main(int argc, char** argv) {
 
     hstd::finally end_trace{[&]() {
         if (conf.perf_trace_file) {
-            StopTracing(
-                std::move(tracing_session), "/tmp/story_grid.pftrace");
+            StopTracing(std::move(tracing_session), "/tmp/story_grid.pftrace");
         }
     }};
 #endif
@@ -419,8 +378,7 @@ int main(int argc, char** argv) {
     if (conf.appstate.has_value()
         && hstd::fs::is_regular_file(conf.appstate.value().toBase())) {
         appstate = json::parse(
-            hstd::readFile(
-                hstd::fs::path{conf.appstate.value().toBase()}));
+            hstd::readFile(hstd::fs::path{conf.appstate.value().toBase()}));
     }
 
     switch (conf.mode) {
@@ -447,8 +405,7 @@ int main(int argc, char** argv) {
 
     if (appstate && conf.appstate.has_value()) {
         hstd::writeFile(
-            hstd::fs::path{conf.appstate.value().toBase()},
-            appstate.value().dump(2));
+            hstd::fs::path{conf.appstate.value().toBase()}, appstate.value().dump(2));
     }
 
     ImGui_ImplOpenGL3_Shutdown();

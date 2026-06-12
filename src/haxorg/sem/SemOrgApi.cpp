@@ -8,7 +8,7 @@
 using namespace hstd;
 using namespace org::sem;
 
-#define _define_static(__Kind)                                            \
+#define _define_static(__Kind)                                                           \
     const OrgSemKind org::sem::__Kind::staticKind = OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
@@ -31,7 +31,7 @@ struct value_domain<org::sem::SubtreePeriod::Kind>
 
 namespace org::sem {
 sem::OrgIdVariant asVariant(SemId<Org> in) {
-#define __case(__Kind)                                                    \
+#define __case(__Kind)                                                                   \
     case OrgSemKind::__Kind: return in.as<__Kind>();
 
     switch (in->getKind()) { EACH_SEM_ORG_KIND(__case) }
@@ -40,7 +40,7 @@ sem::OrgIdVariant asVariant(SemId<Org> in) {
 }
 
 sem::OrgPtrVariant asVariant(Org* in) {
-#define __case(__Kind)                                                    \
+#define __case(__Kind)                                                                   \
     case OrgSemKind::__Kind: return dynamic_cast<__Kind*>(in);
     switch (in->getKind()) { EACH_SEM_ORG_KIND(__case) }
 #undef __case
@@ -53,9 +53,7 @@ Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 
 Vec<org::sem::AttrValue> AttrGroup::getFlatArgs() const {
     Vec<AttrValue> res = positional.items;
-    for (auto const& key : sorted(named.keys())) {
-        res.append(named.at(key).items);
-    }
+    for (auto const& key : sorted(named.keys())) { res.append(named.at(key).items); }
     return res;
 }
 
@@ -64,9 +62,7 @@ Vec<AttrValue> AttrGroup::getAttrs(Opt<Str> const& param) const {
         Vec<AttrValue> res;
         auto           norm = normalize(*param);
         if (named.contains(norm)) {
-            for (auto const& it : named.at(norm).items) {
-                res.push_back(it);
-            }
+            for (auto const& it : named.at(norm).items) { res.push_back(it); }
         }
         return res;
     } else {
@@ -76,15 +72,11 @@ Vec<AttrValue> AttrGroup::getAttrs(Opt<Str> const& param) const {
 
 int AttrGroup::getNamedSize() const {
     int result = 0;
-    for (auto const& [key, val] : this->named) {
-        result += val.items.size();
-    }
+    for (auto const& [key, val] : this->named) { result += val.items.size(); }
     return result;
 }
 
-int AttrGroup::getPositionalSize() const {
-    return positional.items.size();
-}
+int AttrGroup::getPositionalSize() const { return positional.items.size(); }
 
 bool AttrGroup::isEmpty() const {
     return getNamedSize() == 0 && getPositionalSize() == 0;
@@ -123,9 +115,7 @@ org::sem::AttrList AttrGroup::getAll() const {
     for (auto const& it : positional.items) { result.items.push_back(it); }
 
     for (auto const& key : sorted(named.keys())) {
-        for (auto const& it : named.at(key).items) {
-            result.items.push_back(it);
-        }
+        for (auto const& it : named.at(key).items) { result.items.push_back(it); }
     }
 
     return result;
@@ -134,16 +124,12 @@ org::sem::AttrList AttrGroup::getAll() const {
 AttrList AttrGroup::atVarNamed(Str const& index) const {
     AttrList result;
     for (auto const& it : positional.items) {
-        if (it.varname && it.varname.value() == index) {
-            result.items.push_back(it);
-        }
+        if (it.varname && it.varname.value() == index) { result.items.push_back(it); }
     }
 
     for (auto const& key : sorted(named.keys())) {
         for (auto const& it : named.at(key).items) {
-            if (it.varname && it.varname.value() == index) {
-                result.items.push_back(it);
-            }
+            if (it.varname && it.varname.value() == index) { result.items.push_back(it); }
         }
     }
 
@@ -173,9 +159,7 @@ void AttrGroup::setNamedAttr(Str const& key, Vec<AttrValue> const& attr) {
     named.insert_or_assign(normalize(key), AttrList{.items = attr});
 }
 
-void AttrGroup::setPositionalAttr(Vec<AttrValue> const& attr) {
-    positional.items = attr;
-}
+void AttrGroup::setPositionalAttr(Vec<AttrValue> const& attr) { positional.items = attr; }
 
 bool HashTagText::prefixMatch(Vec<Str> const& prefix) const {
     if (prefix.empty() || (prefix.size() == 1 && prefix[0] == head)) {
@@ -199,8 +183,7 @@ Vec<HashTagFlat> HashTagText::getFlatHashes(bool withIntermediate) const {
     UnorderedSet<Vec<Str>>                                     visited;
     aux = [&](Vec<Str> const& parents, HashTagText const& tag) -> Res {
         Res result;
-        if (withIntermediate && !parents.empty()
-            && !visited.contains(parents)) {
+        if (withIntermediate && !parents.empty() && !visited.contains(parents)) {
             result.push_back(HashTagFlat{parents});
             visited.incl(parents);
         }
@@ -264,8 +247,7 @@ Opt<Str> NamedProperty::getSubKind() const {
     }
 }
 
-bool NamedProperty::isMatching(Str const& kind, Opt<Str> const& subkind)
-    const {
+bool NamedProperty::isMatching(Str const& kind, Opt<Str> const& subkind) const {
     auto pk = getKind();
     if (pk == Property::Kind::CustomRaw) {
         return normalize(getCustomRaw().name) == normalize(kind);
@@ -275,14 +257,12 @@ bool NamedProperty::isMatching(Str const& kind, Opt<Str> const& subkind)
         pk == Property::Kind::CustomSubtreeJson
         && normalize(kind) == normalize("propjson")) {
         return !subkind.has_value()
-            || normalize(getCustomSubtreeJson().name)
-                   == normalize(subkind.value());
+            || normalize(getCustomSubtreeJson().name) == normalize(subkind.value());
     } else if (
         pk == Property::Kind::CustomSubtreeFlags
         && normalize(kind) == normalize("propargs")) {
         return !subkind.has_value()
-            || normalize(getCustomSubtreeFlags().name)
-                   == normalize(subkind.value());
+            || normalize(getCustomSubtreeFlags().name) == normalize(subkind.value());
     } else if (normalize(fmt1(pk)) == normalize(kind)) {
         return true;
     } else if (
@@ -312,15 +292,10 @@ Vec<SemId<Org>> Org::getAllSubnodes() const {
             overloaded{
                 [&]<typename K, typename F>(
                     char const* name, UnorderedMap<K, F> const& values) {
-                    for (auto const& [key, value] : values) {
-                        result.push_back(value);
-                    }
+                    for (auto const& [key, value] : values) { result.push_back(value); }
                 },
-                [&]<typename F>(
-                    char const* name, Vec<SemId<F>> const& items) {
-                    for (auto const& it : items) {
-                        result.push_back(it.asOrg());
-                    }
+                [&]<typename F>(char const* name, Vec<SemId<F>> const& items) {
+                    for (auto const& it : items) { result.push_back(it.asOrg()); }
                 },
                 [&]<typename F>(char const* name, SemId<F> const& id) {
                     result.push_back(id.asOrg());
@@ -358,8 +333,8 @@ Opt<int> AttrValue::getInt() const {
     } catch (std::invalid_argument const& e) { return std::nullopt; }
 }
 
-hstd::Opt<org::sem::OrgCodeEvalInput::Var> org::sem::OrgCodeEvalInput::
-    getVariable(hstd::Str const& name) const {
+hstd::Opt<org::sem::OrgCodeEvalInput::Var> org::sem::OrgCodeEvalInput::getVariable(
+    hstd::Str const& name) const {
     for (auto const& var : argList) {
         if (var.name == name) { return var; }
     }

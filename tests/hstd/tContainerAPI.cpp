@@ -13,9 +13,7 @@ SequentialContainerAdapter<T> to_seq_adapter(T const* p) {
 }
 
 template <HasSequentialContainerAdapter T, typename It>
-void sequential_api_user(
-    SequentialContainerAdapter<T> a,
-    Vec<It> const&                items) {
+void sequential_api_user(SequentialContainerAdapter<T> a, Vec<It> const& items) {
     a.clear();
     int count = 0;
 
@@ -73,9 +71,7 @@ TYPED_TEST(SequentialContainerAdapterTest, SequentialContainerAPI) {
             sequential_api_user(a, seq_items);
         } else {
             Vec<std::pair<int, int>> seq_items;
-            for (int i = 0; i < count; ++i) {
-                seq_items.push_back({i, i + 1});
-            }
+            for (int i = 0; i < count; ++i) { seq_items.push_back({i, i + 1}); }
             sequential_api_user(a, seq_items);
         }
 
@@ -109,9 +105,7 @@ using AssociativeContainerTypes = ::testing::Types<
     hstd::SortedMap<int, int>,
     hstd::UnorderedMap<int, int>>;
 
-TYPED_TEST_SUITE(
-    AssociativeContainerAdapterTest,
-    AssociativeContainerTypes);
+TYPED_TEST_SUITE(AssociativeContainerAdapterTest, AssociativeContainerTypes);
 
 TYPED_TEST(AssociativeContainerAdapterTest, AssociativeContainerAPI) {
     using Container = typename TestFixture::ContainerType;

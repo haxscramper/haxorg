@@ -66,8 +66,7 @@ Variant event_from_json_impl(json const& j, std::index_sequence<Is...>) {
         [&] {
             using T = std::variant_alternative_t<Is, Variant>;
             if (!matched && T::ph == ph) {
-                result = Variant{
-                    hstd::log::record::load_event_from_json<T>(j)};
+                result  = Variant{hstd::log::record::load_event_from_json<T>(j)};
                 matched = true;
             }
         }(),
@@ -85,15 +84,14 @@ Variant event_from_json(json const& j) {
 }
 } // namespace
 
-hstd::log::record::TraceEvent hstd::log::record::
-    load_event_variant_from_json(json const& event) {
+hstd::log::record::TraceEvent hstd::log::record::load_event_variant_from_json(
+    json const& event) {
     return event_from_json<TraceEvent>(event);
 }
 
 
-#define __define(_T)                                                      \
-    template json                                                         \
-        hstd::log::record::format_event_to_json<hstd::log::record::_T>(   \
-            hstd::log::record::_T const&);
+#define __define(_T)                                                                     \
+    template json hstd::log::record::format_event_to_json<hstd::log::record::_T>(        \
+        hstd::log::record::_T const&);
 
 ALL_TRACE_EVENT_TYPES(__define)

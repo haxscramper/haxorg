@@ -16,23 +16,19 @@ struct NodeAdapter {
     int  size() const { return group->size(id); }
     /// \brief Check if node adapter is default-constructed and does not
     /// contain pointers to the underlying content.
-    bool isNil() const {
-        return group == nullptr && id == NodeId<N, K, V, M>::Nil();
-    }
+    bool isNil() const { return group == nullptr && id == NodeId<N, K, V, M>::Nil(); }
 
     V const& val() const { return group->val(id); }
     N        kind() const { return group->at(id).kind; }
     bool     isTerminal() const { return group->at(id).isTerminal(); }
     bool     isMono() const { return group->at(id).isMono(); }
     M const  getMono() const { return group->at(id).getMono(); }
-    bool isNonTerminal() const { return group->at(id).isNonTerminal(); }
+    bool     isNonTerminal() const { return group->at(id).isNonTerminal(); }
 
     Node<N, K, V, M> const& get() const { return group->at(id); }
 
 
-    NodeAdapter<N, K, V, M>(
-        NodeGroup<N, K, V, M> const* group,
-        NodeId<N, K, V, M>           id)
+    NodeAdapter<N, K, V, M>(NodeGroup<N, K, V, M> const* group, NodeId<N, K, V, M> id)
         : group(group), id(id) {
         LOGIC_ASSERTION_CHECK(group->nodes.contains(id), "");
     }
@@ -43,9 +39,7 @@ struct NodeAdapter {
     // invalid index genenerated by the tree sweep in parser in certain
     // cases. At the moment it is not fully clear what is causing creation
     // of a separate node group.
-    bool isValid() const {
-        return !id.isNil() && id.getIndex() < group->size();
-    }
+    bool isValid() const { return !id.isNil() && id.getIndex() < group->size(); }
 
     NodeAdapter<N, K, V, M> at(int index) const {
         return {group, group->subnode(id, index)};
@@ -73,9 +67,7 @@ struct NodeAdapter {
     }
 
     hstd::generator<NodeAdapter<N, K, V, M>> items() {
-        for (int i = 0; i < group->size(id); ++i) {
-            co_yield this->operator[](i);
-        }
+        for (int i = 0; i < group->size(id); ++i) { co_yield this->operator[](i); }
     }
 
     template <typename H, typename L>
@@ -99,8 +91,7 @@ struct NodeAdapter {
         typedef NodeAdapter<N, K, V, M>&  reference;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(typename NodeGroup<N, K, V, M>::iterator iter)
-            : iter(iter) {}
+        iterator(typename NodeGroup<N, K, V, M>::iterator iter) : iter(iter) {}
 
         NodeAdapter<N, K, V, M> operator*() const {
             return NodeAdapter<N, K, V, M>(iter.group, iter.id);
@@ -126,9 +117,7 @@ struct NodeAdapter {
         }
     }
 
-    iterator end() {
-        return iterator(group->end(id + group->at(id).getExtent()));
-    }
+    iterator end() { return iterator(group->end(id + group->at(id).getExtent())); }
 
     iterator begin() const {
         if ((id + 1).getIndex() < group->size()) {
@@ -138,9 +127,7 @@ struct NodeAdapter {
         }
     }
 
-    iterator end() const {
-        return iterator(group->end(id + group->at(id).getExtent()));
-    }
+    iterator end() const { return iterator(group->end(id + group->at(id).getExtent())); }
 };
 
 } // namespace org::parse

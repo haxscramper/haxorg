@@ -97,16 +97,16 @@ void equality_compare_impl(
     }
 }
 
-#define EQUALITY_COMPARE_TRIVIAL(__type)                                  \
-    template <>                                                           \
-    struct reporting_comparator<__type> {                                 \
-        static void compare(                                              \
-            __type const&               lhs,                              \
-            __type const&               rhs,                              \
-            Vec<compare_report>&        out,                              \
-            Vec<compare_context> const& context) {                        \
-            equality_compare_impl<__type>(lhs, rhs, out, context);        \
-        }                                                                 \
+#define EQUALITY_COMPARE_TRIVIAL(__type)                                                 \
+    template <>                                                                          \
+    struct reporting_comparator<__type> {                                                \
+        static void compare(                                                             \
+            __type const&               lhs,                                             \
+            __type const&               rhs,                                             \
+            Vec<compare_report>&        out,                                             \
+            Vec<compare_context> const& context) {                                       \
+            equality_compare_impl<__type>(lhs, rhs, out, context);                       \
+        }                                                                                \
     };
 
 template <typename T>
@@ -208,8 +208,7 @@ struct reporting_comparator<immer::box<T>> {
         immer::box<T> const&        rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
-        reporting_comparator<T>::compare(
-            lhs.get(), rhs.get(), out, context);
+        reporting_comparator<T>::compare(lhs.get(), rhs.get(), out, context);
     }
 };
 
@@ -316,20 +315,18 @@ struct reporting_comparator<T> {
         T const&                    rhs,
         Vec<compare_report>&        out,
         Vec<compare_context> const& context) {
-        for_each_field_with_bases<std::remove_cvref_t<T>>(
-            [&](auto const& field) {
-                reporting_comparator<
-                    std::remove_cvref_t<decltype(lhs.*field.pointer)>>::
-                    compare(
-                        lhs.*field.pointer,
-                        rhs.*field.pointer,
-                        out,
-                        context
-                            + Vec<compare_context>{{
-                                .field = field.name,
-                                .type  = demangle(typeid(T).name()),
-                            }});
-            });
+        for_each_field_with_bases<std::remove_cvref_t<T>>([&](auto const& field) {
+            reporting_comparator<std::remove_cvref_t<decltype(lhs.*field.pointer)>>::
+                compare(
+                    lhs.*field.pointer,
+                    rhs.*field.pointer,
+                    out,
+                    context
+                        + Vec<compare_context>{{
+                            .field = field.name,
+                            .type  = demangle(typeid(T).name()),
+                        }});
+        });
     }
 };
 
@@ -341,10 +338,9 @@ struct reporting_comparator<org::imm::ImmAstStore> {
         org::imm::ImmAstStore const& rhs,
         Vec<compare_report>&         out,
         Vec<compare_context> const&  context) {
-#define _kind(__Kind)                                                     \
-    reporting_comparator<                                                 \
-        org::imm::ImmAstKindStore<org::imm::Imm##__Kind>>::               \
-        compare(lhs.store##__Kind, rhs.store##__Kind, out, context);
+#define _kind(__Kind)                                                                    \
+    reporting_comparator<org::imm::ImmAstKindStore<org::imm::Imm##__Kind>>::compare(     \
+        lhs.store##__Kind, rhs.store##__Kind, out, context);
         EACH_SEM_ORG_KIND(_kind)
 #undef _kind
     }
@@ -368,8 +364,7 @@ struct reporting_comparator<sem::SemId<T>> {
                     rhs.isNil()),
             });
         } else if (!lhs.isNil()) {
-            reporting_comparator<T>::compare(
-                *lhs.get(), *rhs.get(), out, context);
+            reporting_comparator<T>::compare(*lhs.get(), *rhs.get(), out, context);
         }
     }
 };
@@ -391,17 +386,14 @@ struct reporting_comparator<sem::SemId<sem::Org>> {
         } else if (lhs->getKind() != rhs->getKind()) {
             out.push_back({
                 .context = context,
-                .message = fmt(
-                    "kind mismatch {} != {}",
-                    lhs->getKind(),
-                    rhs->getKind()),
+                .message = fmt("kind mismatch {} != {}", lhs->getKind(), rhs->getKind()),
             });
         } else {
             switch (lhs->getKind()) {
-#define _case(__Kind)                                                     \
-    case OrgSemKind::__Kind:                                              \
-        reporting_comparator<sem::SemId<sem::__Kind>>::compare(           \
-            lhs.as<sem::__Kind>(), rhs.as<sem::__Kind>(), out, context);  \
+#define _case(__Kind)                                                                    \
+    case OrgSemKind::__Kind:                                                             \
+        reporting_comparator<sem::SemId<sem::__Kind>>::compare(                          \
+            lhs.as<sem::__Kind>(), rhs.as<sem::__Kind>(), out, context);                 \
         break;
 
                 EACH_SEM_ORG_KIND(_case)
@@ -412,10 +404,7 @@ struct reporting_comparator<sem::SemId<sem::Org>> {
 };
 
 template <typename Obj, typename Field>
-compare_report cmp_field_value(
-    Obj const& lhs,
-    Obj const& rhs,
-    Field Obj::* fieldPtr) {
+compare_report cmp_field_value(Obj const& lhs, Obj const& rhs, Field Obj::* fieldPtr) {
     return reporting_comparator<decltype(lhs.*fieldPtr)>::compare(
         lhs.*fieldPtr, rhs.*fieldPtr);
 };
@@ -486,12 +475,8 @@ struct ImmTestResult {
     imm::ImmAdapterT<T>     node;
 };
 
-template <
-    sem::IsOrg Sem,
-    typename Imm = imm::sem_to_imm_map<Sem>::imm_type>
-ImmTestResult<Imm> immConv(
-    imm::ImmAstContext::Ptr ctx,
-    sem::SemId<Sem> const&  id) {
+template <sem::IsOrg Sem, typename Imm = imm::sem_to_imm_map<Sem>::imm_type>
+ImmTestResult<Imm> immConv(imm::ImmAstContext::Ptr ctx, sem::SemId<Sem> const& id) {
     ImmTestResult<Imm> res;
     res.context = ctx;
     res.version = res.context->init(id.asOrg());
@@ -499,9 +484,7 @@ ImmTestResult<Imm> immConv(
     return res;
 }
 
-template <
-    sem::IsOrg Sem,
-    typename Imm = imm::sem_to_imm_map<Sem>::imm_type>
+template <sem::IsOrg Sem, typename Imm = imm::sem_to_imm_map<Sem>::imm_type>
 ImmTestResult<Imm> immConv(sem::SemId<Sem> const& id) {
     return immConv(imm::ImmAstContext::init_start_context(), id);
 }
@@ -514,9 +497,7 @@ struct ImmOrgApiTestBase : public ::testing::Test {
         : start{imm::ImmAstContext::init_start_context()}
         , parseContext{org::parse::ParseContext::shared()} {}
 
-    void setTraceFile(std::string const& path) {
-        start->debug->setTraceFile(path);
-    }
+    void setTraceFile(std::string const& path) { start->debug->setTraceFile(path); }
 
     imm::ImmAstVersion getInitialVersion(
         Str const&                 text,

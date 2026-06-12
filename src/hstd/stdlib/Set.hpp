@@ -62,9 +62,7 @@ struct UnorderedSet
 namespace hstd {
 template <typename T>
 struct value_metadata<hstd::UnorderedSet<T>> {
-    static bool isEmpty(UnorderedSet<T> const& value) {
-        return value.empty();
-    }
+    static bool isEmpty(UnorderedSet<T> const& value) { return value.empty(); }
 
     static bool isNil(UnorderedSet<T> const& value) { return false; }
 };

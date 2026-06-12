@@ -56,28 +56,19 @@ org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
 }
 
 struct ErrorTable {
-#define P_ERROR(__fieldname, __short, __long)                             \
-    static const inline org::sem::OrgDiagnostics::ConvertError            \
-        __fieldname = ConvertErrorInit(                                   \
-            #__fieldname,                                                 \
-            ::org::fieldname_to_code(#__fieldname),                       \
-            __short,                                                      \
-            __long);
+#define P_ERROR(__fieldname, __short, __long)                                            \
+    static const inline org::sem::OrgDiagnostics::ConvertError                           \
+        __fieldname = ConvertErrorInit(                                                  \
+            #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
 
-    P_ERROR(
-        MissingLogHashtag,
-        "No hashtag provided for the 'tag' value",
-        "");
+    P_ERROR(MissingLogHashtag, "No hashtag provided for the 'tag' value", "");
     P_ERROR(
         MissingCurrentState,
         "No current state provided for the subtree state log "
         "change",
         "");
 
-    P_ERROR(
-        MissingRefileTime,
-        "No 'on' time for the refiled subtree log",
-        "");
+    P_ERROR(MissingRefileTime, "No 'on' time for the refiled subtree log", "");
 
     P_ERROR(
         OverloadedHashtagDef,
@@ -92,10 +83,7 @@ struct ErrorTable {
         "Hashtag definition can only contain space or hashtag nodes",
         "");
 
-    P_ERROR(
-        UnexpectedCreatedValue,
-        "Expected timestamp for :CREATED: property",
-        "");
+    P_ERROR(UnexpectedCreatedValue, "Expected timestamp for :CREATED: property", "");
 
     P_ERROR(
         UnexpectedCookieData,
@@ -133,8 +121,7 @@ struct ErrorTable {
 template <typename T>
 org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
     auto res = Sem<T>(adapter);
-    LOGIC_ASSERTION_CHECK_FMT(
-        adapter.isTerminal(), "{}", adapter.treeRepr(false));
+    LOGIC_ASSERTION_CHECK_FMT(adapter.isTerminal(), "{}", adapter.treeRepr(false));
     res->text = adapter.val().text;
     return res;
 }
@@ -157,14 +144,11 @@ bool org_streq(Str const& str1, Str const& str2) {
     return normalize(str1) == normalize(str2);
 }
 
-Str strip_space(Str const& space) {
-    return strip(space, CharSet{' '}, CharSet{' '});
-}
+Str strip_space(Str const& space) { return strip(space, CharSet{' '}, CharSet{' '}); }
 
 org::sem::SubtreePath convertSubtreePath(Str const& path) {
     org::sem::SubtreePath res;
-    for (auto const& item :
-         strip(path, CharSet{'*', ' '}, CharSet{' '}).split("/")) {
+    for (auto const& item : strip(path, CharSet{'*', ' '}, CharSet{' '}).split("/")) {
         res.path.push_back(strip_space(item));
     }
     return res;
@@ -198,9 +182,7 @@ cctz::time_zone ConvertToTimeZone(std::string z) {
     return create_time_zone_from_offset(offset);
 }
 
-Opt<UserTime> ParseUserTime(
-    std::string                 datetime,
-    Opt<cctz::time_zone> const& zone) {
+Opt<UserTime> ParseUserTime(std::string datetime, Opt<cctz::time_zone> const& zone) {
     struct Spec {
         std::string         pattern;
         UserTime::Alignment align = UserTime::Alignment::Second;
@@ -237,9 +219,7 @@ Opt<UserTime> ParseUserTime(
 
 void remove_empty_text(SemId<Org> node) {
     auto& s = node->subnodes;
-    if (s.at(0)->is(OrgSemKind::Paragraph) && s.at(0).size() == 0) {
-        s.erase(s.begin());
-    }
+    if (s.at(0)->is(OrgSemKind::Paragraph) && s.at(0).size() == 0) { s.erase(s.begin()); }
 
     while ((s.back()->is(OrgSemKind::Paragraph) && s.back().size() == 0)
            || (s.back()->is(OrgSemKind::Newline))) {
@@ -271,13 +251,12 @@ Opt<E> parseOrgEnum(std::string const& name) {
     bool found = false;
     E    r     = {};
 
-    boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>(
-        [&](auto D) {
-            if (!found && normalize(D.name) == normalize(name)) {
-                found = true;
-                r     = D.value;
-            }
-        });
+    boost::mp11::mp_for_each<boost::describe::describe_enumerators<E>>([&](auto D) {
+        if (!found && normalize(D.name) == normalize(name)) {
+            found = true;
+            r     = D.value;
+        }
+    });
 
     if (found) {
         return r;
@@ -296,16 +275,14 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
     auto __trace = trace(a);
     auto result  = Sem<Table>(a);
 
-    if (auto args = one(a, N::Args);
-        args.getKind() == onk::InlineStmtList) {
+    if (auto args = one(a, N::Args); args.getKind() == onk::InlineStmtList) {
         result->isBlock = true;
         result->attrs   = convertAttrs(args);
     }
 
     for (auto const& in_row : many(a, N::Rows)) {
         SemId<Row> row = Sem<Row>(in_row);
-        if (auto args = one(in_row, N::Args);
-            args.getKind() == onk::InlineStmtList) {
+        if (auto args = one(in_row, N::Args); args.getKind() == onk::InlineStmtList) {
             row->isBlock = true;
             row->attrs   = convertAttrs(args);
         }
@@ -367,17 +344,13 @@ OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
 template <sem::IsOrg T>
 Vec<SemId<T>> filter_subnodes(sem::OrgArg node, SemSet const& limiter) {
     return node->subnodes //
-         | rv::take_while([&limiter](sem::OrgArg arg) {
-               return !limiter.contains(arg->getKind());
-           })
-         | rv::remove_if(
-               [](sem::OrgArg arg) { return !arg->is(T::staticKind); })
-         | rv::transform([](OrgArg arg) { return arg.as<T>(); })
-         | rs::to<Vec>();
+         | rv::take_while(
+               [&limiter](sem::OrgArg arg) { return !limiter.contains(arg->getKind()); })
+         | rv::remove_if([](sem::OrgArg arg) { return !arg->is(T::staticKind); })
+         | rv::transform([](OrgArg arg) { return arg.as<T>(); }) | rs::to<Vec>();
 }
 
-OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
-    __args) {
+OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     __perf_trace("convert", "convertSubtreeLog");
     auto log = Sem<SubtreeLog>(a);
 
@@ -390,19 +363,13 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
 
     Vec<Str> words = //
         own_view(filter_subnodes<Word>(par0, limit))
-        | rv::transform(
-            [](OrgArg arg) { return normalize(arg.as<Word>()->text); })
+        | rv::transform([](OrgArg arg) { return normalize(arg.as<Word>()->text); })
         | rs::to<Vec>();
 
-    auto node_after =
-        [&](Str const&    word,
-            SemSet const& target) -> Opt<sem::SemId<sem::Org>> {
+    auto node_after = [&](Str const&    word,
+                          SemSet const& target) -> Opt<sem::SemId<sem::Org>> {
         auto __trace = trace(a, "node_after");
-        print(
-            fmt("Searching for '{}' after '{}' in {}",
-                target,
-                word,
-                par0->subnodes));
+        print(fmt("Searching for '{}' after '{}' in {}", target, word, par0->subnodes));
         for (int i = 0; i < par0.size(); ++i) {
             if (auto w = par0.at(i)->dyn_cast<sem::Leaf>();
                 w != nullptr && normalize(w->text) == word) {
@@ -411,8 +378,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 while (offset < par0.size()) {
                     auto t = par0.at(offset);
                     print(fmt("[{}] = {}", offset, t->getKind()));
-                    if ((SemSet{osk::Word} - target)
-                            .contains(t->getKind())) {
+                    if ((SemSet{osk::Word} - target).contains(t->getKind())) {
                         goto found_search_limit;
                     } else if (target.contains(t->getKind())) {
                         return t;
@@ -468,13 +434,10 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             if (auto tag = node_after("tag", {osk::HashTag})) {
                 res.tag = tag->as<sem::HashTag>()->text;
             } else {
-                return SemError(
-                    a, MakeConvert(a, ErrorTable::MissingLogHashtag));
+                return SemError(a, MakeConvert(a, ErrorTable::MissingLogHashtag));
             }
 
-            if (auto on = time_after("on")) {
-                res.on = on.value()->getStaticTime();
-            }
+            if (auto on = time_after("on")) { res.on = on.value()->getStaticTime(); }
 
             if (words.at(1) == "added") {
                 res.added = true;
@@ -490,8 +453,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             if (auto state = node_after("state", {osk::BigIdent})) {
                 states.to = state.value().as<sem::BigIdent>()->text;
             } else {
-                return SemError(
-                    a, MakeConvert(a, ErrorTable::MissingCurrentState));
+                return SemError(a, MakeConvert(a, ErrorTable::MissingCurrentState));
             }
             if (auto from = node_after("from", {osk::BigIdent})) {
                 states.from = from.value().as<sem::BigIdent>()->text;
@@ -521,8 +483,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             if (auto time = time_after("on")) {
                 refile.on = time.value()->getStaticTime();
             } else {
-                return SemError(
-                    a, MakeConvert(a, ErrorTable::MissingRefileTime));
+                return SemError(a, MakeConvert(a, ErrorTable::MissingRefileTime));
             }
 
             if (!link.empty()) { refile.from = link.at(0)->target; }
@@ -539,10 +500,9 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
         } else if (words.has(0) && words.at(0) == "priority") {
             auto __trace = trace(a, "priority");
             print(fmt("words {}", words));
-            Vec<SemId<Time>> times = filter_subnodes<Time>(par0, limit);
-            Vec<SemId<BigIdent>> priorities = filter_subnodes<BigIdent>(
-                par0, limit);
-            auto priority = Log::Priority{};
+            Vec<SemId<Time>>     times      = filter_subnodes<Time>(par0, limit);
+            Vec<SemId<BigIdent>> priorities = filter_subnodes<BigIdent>(par0, limit);
+            auto                 priority   = Log::Priority{};
 
             if (words.contains("added")) {
                 if (auto new_ = node_after("priority", {osk::BigIdent})) {
@@ -567,24 +527,18 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
                 priority.action = Log::Priority::Action::Removed;
             } else {
                 throw convert_logic_error::init(
-                    fmt("{} Unexpected priority log message structure",
-                        words));
+                    fmt("{} Unexpected priority log message structure", words));
             }
 
-            if (auto on = time_after("on")) {
-                priority.on = on.value()->getStaticTime();
-            }
+            if (auto on = time_after("on")) { priority.on = on.value()->getStaticTime(); }
 
             log->head = Log{priority};
 
-        } else if (
-            words.has(0) && words.at(0) == "note" && !times.empty()) {
+        } else if (words.has(0) && words.at(0) == "note" && !times.empty()) {
             auto __trace = trace(a, "note");
             auto note    = Log::Note{};
 
-            if (auto on = time_after("on")) {
-                note.on = on.value()->getStaticTime();
-            }
+            if (auto on = time_after("on")) { note.on = on.value()->getStaticTime(); }
 
             log->head = Log{note};
 
@@ -592,9 +546,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             auto __trace = trace(a, "unknown");
             auto unknown = Log::Unknown{};
             auto stmt    = SemId<StmtList>::New();
-            for (auto const& sub : item->subnodes) {
-                stmt->subnodes.push_back(sub);
-            }
+            for (auto const& sub : item->subnodes) { stmt->subnodes.push_back(sub); }
 
             log->desc = stmt;
             log->head = Log{unknown};
@@ -606,8 +558,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
             par0->subnodes //
             | rv::drop_while([](sem::OrgArg arg) {
                   return !(
-                      arg->is(osk::Punctuation)
-                      && arg.as<Punctuation>()->text == "\\\\");
+                      arg->is(osk::Punctuation) && arg.as<Punctuation>()->text == "\\\\");
               })
             | rv::drop(1) //
             | rv::drop_while([](sem::OrgArg arg) {
@@ -638,9 +589,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(
     return log;
 }
 
-Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
-    SemId<Subtree>& tree,
-    In              a) {
+Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(SemId<Subtree>& tree, In a) {
     __perf_trace("convert", "convertSubtreeDrawer");
     auto __trace = trace(a);
 
@@ -673,9 +622,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
                 case onk::DrawerPropertyList: {
                     for (const auto& prop : group) {
                         auto res = convertPropertyList(tree, prop);
-                        if (res) {
-                            diags.append(res.value()->diagnostics);
-                        }
+                        if (res) { diags.append(res.value()->diagnostics); }
                     }
                     break;
                 }
@@ -707,25 +654,18 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertSubtreeDrawer(
     }
 }
 
-Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
-    SemId<Subtree>& tree,
-    In              a) {
+Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, In a) {
     __perf_trace("convert", "convertPropertyList");
 
-    if (IsErrorInfoToken(a)) {
-        return SemError(a, {convertErrorItem(a).value()});
-    }
+    if (IsErrorInfoToken(a)) { return SemError(a, {convertErrorItem(a).value()}); }
 
     std::string basename = strip(
         get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
     std::string name = normalize(basename);
 
-    auto __trace = trace(
-        a, fmt("property-'{}' (base: '{}')", name, basename));
+    auto __trace = trace(a, fmt("property-'{}' (base: '{}')", name, basename));
 
-    auto get_values_text = [&]() {
-        return strip_space(get_text(one(a, N::Values)));
-    };
+    auto get_values_text = [&]() { return strip_space(get_text(one(a, N::Values))); };
 
     auto handled = [&](int         line     = __builtin_LINE(),
                        char const* function = __builtin_FUNCTION()) {
@@ -762,7 +702,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (name == "hashtagdef") {
         handled();
         Property::HashtagDef def;
-        auto par = convertParagraph(one(a, N::Values)).value();
+        auto                 par = convertParagraph(one(a, N::Values)).value();
         print(fmt("{}", a.treeRepr()));
         print(fmt("{}", ExporterTree::treeRepr(par).toString(false)));
         for (int i = 0; i < par.size(); ++i) {
@@ -773,9 +713,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 if (def.hashtag.head.empty()) {
                     def.hashtag = tag.value->text;
                 } else {
-                    return SemError(
-                        a,
-                        MakeConvert(a, ErrorTable::OverloadedHashtagDef));
+                    return SemError(a, MakeConvert(a, ErrorTable::OverloadedHashtagDef));
                 }
             } else {
                 return SemError(
@@ -791,8 +729,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (name == "created") {
         handled();
         Property::Created created;
-        auto par  = convertParagraph(one(a, N::Values)).value();
-        auto par0 = par->at(0);
+        auto              par  = convertParagraph(one(a, N::Values)).value();
+        auto              par0 = par->at(0);
 
         if (par0->is(osk::Time)) {
             created.time = par0.as<sem::Time>()->getStatic().time;
@@ -803,14 +741,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
                 MakeConvert(
                     a,
                     ErrorTable::UnexpectedCreatedValue,
-                    hstd::fmt(
-                        "found {} at {}", par0->getKind(), getLocMsg(a))));
+                    hstd::fmt("found {} at {}", par0->getKind(), getLocMsg(a))));
         }
 
     } else if (name == "visibility") {
         handled();
-        if (auto visibility = parseOrgEnum<
-                sem::NamedProperty::Visibility::Level>(
+        if (auto visibility = parseOrgEnum<sem::NamedProperty::Visibility::Level>(
                 get_text(one(a, N::Values)));
             visibility) {
             Property::Visibility prop;
@@ -872,12 +808,10 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
         Opt<cctz::time_zone>       zone;
         if (time.at(3_B) == '+' || time.at(3_B) == '-') {
             span.last -= 3;
-            zone = ConvertToTimeZone(
-                Str{time.at(slice(2_B, 1_B))}.toBase());
+            zone = ConvertToTimeZone(Str{time.at(slice(2_B, 1_B))}.toBase());
         } else if (time.at(5_B) == '+' || time.at(5_B) == '-') {
             span.last -= 5;
-            zone = ConvertToTimeZone(
-                Str{time.at(slice(4_B, 1_B))}.toBase());
+            zone = ConvertToTimeZone(Str{time.at(slice(4_B, 1_B))}.toBase());
         }
 
         auto          datetime = Str{time.at(span)}.toBase();
@@ -934,17 +868,13 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(
     } else if (
         one(a, N::Values).kind() == onk::InlineStmtList
         && rs::all_of(
-            gen_view(one(a, N::Values).items()),
-            [](org::parse::OrgAdapter const& a) {
+            gen_view(one(a, N::Values).items()), [](org::parse::OrgAdapter const& a) {
                 return a.getKind() == onk::AttrValue;
             })) {
         handled();
         NamedProperty::CustomArgs prop;
-        auto                      name = strip(
-                                             get_text(one(a, N::Name)),
-                                             CharSet{':'},
-                                             CharSet{':'})
-                                             .split(':');
+        auto name = strip(get_text(one(a, N::Name)), CharSet{':'}, CharSet{':'})
+                        .split(':');
 
         prop.name = name.at(0);
         if (name.has(1)) { prop.sub = name.at(1); }
@@ -984,9 +914,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
                 ident && ident->text == "COMMENT") {
                 tree->isComment = true;
                 int offset      = 1;
-                while (sn.has(offset) && sn.at(offset)->is(osk::Space)) {
-                    ++offset;
-                }
+                while (sn.has(offset) && sn.at(offset)->is(osk::Space)) { ++offset; }
 
                 sn.erase(sn.begin(), sn.begin() + offset);
             }
@@ -997,8 +925,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         auto __field = field(N::Importance, a);
         auto urgency = one(a, N::Importance);
         if (urgency.kind() != onk::Empty) {
-            tree->priority = strip(
-                get_text(urgency), CharSet{'[', '#'}, CharSet{']'});
+            tree->priority = strip(get_text(urgency), CharSet{'[', '#'}, CharSet{']'});
         }
     }
 
@@ -1006,8 +933,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         auto __field    = field(N::Completion, a);
         auto completion = one(a, N::Completion);
         if (completion.kind() != onk::Empty) {
-            auto text = strip(
-                get_text(completion), CharSet{'['}, CharSet{']'});
+            auto text = strip(get_text(completion), CharSet{'['}, CharSet{']'});
             sem::SubtreeCompletion res;
             if (text.ends_with("%")) {
                 res.isPercent = true;
@@ -1050,17 +976,14 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         auto __field = field(N::Times, a);
         for (auto const& it : one(a, N::Times)) {
             LOGIC_ASSERTION_CHECK_FMT(
-                (parse::OrgSet{onk::BigIdent, onk::Word}.contains(
-                    it.at(0).kind())),
+                (parse::OrgSet{onk::BigIdent, onk::Word}.contains(it.at(0).kind())),
                 "{}",
                 it.treeRepr(false));
             auto kind = convertWord(it.at(0)).value();
             auto time = convertTime(it.at(1)).value();
 
             if (!time->isStatic()) {
-                return SemError(
-                    a,
-                    MakeConvert(a, ErrorTable::ExpectedStaticSubtreeTime));
+                return SemError(a, MakeConvert(a, ErrorTable::ExpectedStaticSubtreeTime));
             }
 
             if (org_streq(kind->text, "closed")) {
@@ -1088,8 +1011,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
 
     {
         auto __field = field(N::Body, a);
-        for (auto const& it :
-             flatConvertAttachedSubnodes(one(a, N::Body))) {
+        for (auto const& it : flatConvertAttachedSubnodes(one(a, N::Body))) {
             tree->push_back(it.unwrap());
         }
     }
@@ -1115,14 +1037,11 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
     time->isActive = (a.kind() == onk::DynamicActiveTime)
                   || (a.kind() == onk::StaticActiveTime);
 
-    if (a.kind() == onk::DynamicInactiveTime
-        || a.kind() == onk::DynamicActiveTime) {
+    if (a.kind() == onk::DynamicInactiveTime || a.kind() == onk::DynamicActiveTime) {
         Time::Dynamic d{};
         d.expr     = convertLisp(one(a, N::Body));
         time->time = d;
-    } else if (
-        a.kind() == onk::StaticActiveTime
-        || a.kind() == onk::StaticInactiveTime) {
+    } else if (a.kind() == onk::StaticActiveTime || a.kind() == onk::StaticInactiveTime) {
 
         std::string datetime;
         if (one(a, N::Year).kind() != onk::Empty) {
@@ -1175,8 +1094,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
                     }
 
                     auto period  = get_text(r.at(1));
-                    r_out.count  = Str{period.substr(0, period.size() - 1)}
-                                       .toInt();
+                    r_out.count  = Str{period.substr(0, period.size() - 1)}.toInt();
                     r_out.period = which_period(period.at(1_B));
 
                     s.repeat.push_back(r_out);
@@ -1186,9 +1104,9 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
             if (one(a, N::Warn).kind() != onk::Empty) {
                 Time::Repeat r_out;
                 auto         spec = get_text(one(a, N::Warn));
-                r_out.count = Str{spec.substr(0, spec.size() - 1)}.toInt();
-                r_out.period = which_period(spec.at(1_B));
-                s.warn       = r_out;
+                r_out.count       = Str{spec.substr(0, spec.size() - 1)}.toInt();
+                r_out.period      = which_period(spec.at(1_B));
+                s.warn            = r_out;
             }
 
             time->time = s;
@@ -1197,9 +1115,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
             return SemError(
                 a,
                 MakeConvert(
-                    a,
-                    ErrorTable::TimeFormatFail,
-                    hstd::fmt("Format '{}'", datetime)));
+                    a, ErrorTable::TimeFormatFail, hstd::fmt("Format '{}'", datetime)));
         }
     }
 
@@ -1207,8 +1123,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
     return time;
 }
 
-OrgConverter::ConvResult<TimeRange> OrgConverter::convertTimeRange(
-    __args) {
+OrgConverter::ConvResult<TimeRange> OrgConverter::convertTimeRange(__args) {
     __perf_trace("convert", "convertTimeRange");
     auto __trace = trace(a);
     auto range   = Sem<TimeRange>(a);
@@ -1259,33 +1174,28 @@ OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
         for (int i = 0; i < params.size();) {
             if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
                 sym->parameters.push_back(
-                    Symbol::Param{
-                        .key = params.at(i), .value = params.at(i + 1)});
+                    Symbol::Param{.key = params.at(i), .value = params.at(i + 1)});
                 i += 2;
             } else {
-                sym->parameters.push_back(
-                    Symbol::Param{.value = params.at(i)});
+                sym->parameters.push_back(Symbol::Param{.value = params.at(i)});
                 i += 1;
             }
         }
     }
 
-    for (const auto& sub : one(a, N::Body)) {
-        sym->positional.push_back(convert(sub));
-    }
+    for (const auto& sub : one(a, N::Body)) { sym->positional.push_back(convert(sub)); }
 
     return sym;
 }
 
-OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(
-    __args) {
+OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(__args) {
     auto __trace = trace(a);
     auto par     = Sem<Paragraph>(a);
     for (const auto& item : a) { par->push_back(convert(item)); }
 
-    while (!par->subnodes.empty()
-           && SemSet{osk::Newline, osk::Space}.contains(
-               par->subnodes.back()->getKind())) {
+    while (
+        !par->subnodes.empty()
+        && SemSet{osk::Newline, osk::Space}.contains(par->subnodes.back()->getKind())) {
         par->subnodes.pop_back();
     }
 
@@ -1303,8 +1213,7 @@ OrgConverter::ConvResult<StmtList> OrgConverter::convertStmtList(__args) {
 }
 
 
-OrgConverter::ConvResult<InlineFootnote> OrgConverter::
-    convertInlineFootnote(__args) {
+OrgConverter::ConvResult<InlineFootnote> OrgConverter::convertInlineFootnote(__args) {
     __perf_trace("convert", "convertInlineFootnote");
     auto __trace     = trace(a);
     auto note        = Sem<InlineFootnote>(a);
@@ -1316,15 +1225,13 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
     __perf_trace("convert", "convertLink");
     auto __trace   = trace(a);
     auto link      = Sem<Link>(a);
-    auto getTarget = [&]() {
-        return lstrip(get_text(one(a, N::Link)), CharSet{':'});
-    };
+    auto getTarget = [&]() { return lstrip(get_text(one(a, N::Link)), CharSet{':'}); };
     if (a.kind() == onk::RawLink) {
         link->target = LinkTarget{LinkTarget::Raw{.text = get_text(a)}};
 
     } else if (a.kind() == onk::Footnote) {
-        link->target = LinkTarget{LinkTarget::Footnote{
-            .target = get_text(one(a, N::Definition))}};
+        link->target = LinkTarget{
+            LinkTarget::Footnote{.target = get_text(one(a, N::Definition))}};
     } else if (one(a, N::Protocol).kind() == onk::Empty) {
         Str target = getTarget();
         if (target.starts_with(".") || target.starts_with("/")) {
@@ -1344,15 +1251,13 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
             }};
 
         } else {
-            link->target = LinkTarget{
-                LinkTarget::Internal{.target = target}};
+            link->target = LinkTarget{LinkTarget::Internal{.target = target}};
         }
 
     } else {
         Str protocol_raw = get_text(one(a, N::Protocol));
         Str protocol     = normalize(get_text(one(a, N::Protocol)));
-        print(fmt(
-            "Protocol is '{}', normalized {}", protocol_raw, protocol));
+        print(fmt("Protocol is '{}', normalized {}", protocol_raw, protocol));
         if (protocol == "http" || protocol == "https") {
             link->target = LinkTarget{
                 LinkTarget::Raw{.text = protocol + ":"_ss + getTarget()}};
@@ -1367,19 +1272,15 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
             }
 
         } else if (protocol == "file") {
-            link->target = LinkTarget{
-                LinkTarget::File{.file = getTarget()}};
+            link->target = LinkTarget{LinkTarget::File{.file = getTarget()}};
 
         } else if (protocol == "attachment") {
-            link->target = LinkTarget{
-                LinkTarget::Attachment{.file = getTarget()}};
+            link->target = LinkTarget{LinkTarget::Attachment{.file = getTarget()}};
         } else if (protocol_raw == "#") {
-            link->target = LinkTarget{
-                LinkTarget::CustomId{.text = getTarget()}};
+            link->target = LinkTarget{LinkTarget::CustomId{.text = getTarget()}};
 
         } else {
-            link->target = LinkTarget{
-                LinkTarget::UserProtocol{.protocol = protocol}};
+            link->target = LinkTarget{LinkTarget::UserProtocol{.protocol = protocol}};
         }
     }
 
@@ -1415,9 +1316,7 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
 
     if (one(a, N::Checkbox).kind() != onk::Empty) {
         Str text = strip(
-            get_text(one(a, N::Checkbox)),
-            CharSet{'[', ' '},
-            CharSet{' ', ']'});
+            get_text(one(a, N::Checkbox)), CharSet{'[', ' '}, CharSet{' ', ']'});
 
         print(fmt("Normalized checkbox: {}", escape_literal(text)));
 
@@ -1431,23 +1330,18 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
             return SemError(
                 a,
                 MakeConvert(
-                    a,
-                    ErrorTable::UnexpectedCheckboxValue,
-                    fmt("got value '{}'", text)));
+                    a, ErrorTable::UnexpectedCheckboxValue, fmt("got value '{}'", text)));
         }
     }
 
     {
-        for (const auto& sub : one(a, N::Body)) {
-            item->push_back(convert(sub));
-        }
+        for (const auto& sub : one(a, N::Body)) { item->push_back(convert(sub)); }
     }
 
     return item;
 }
 
-OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
-    __args) {
+OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(__args) {
     __perf_trace("convert", "convertCmdCaption");
     auto __trace  = trace(a);
     auto caption  = Sem<CmdCaption>(a);
@@ -1456,26 +1350,20 @@ OrgConverter::ConvResult<CmdCaption> OrgConverter::convertCmdCaption(
     return caption;
 }
 
-OrgConverter::ConvResult<CmdCreator> OrgConverter::convertCmdCreator(
-    __args) {
+OrgConverter::ConvResult<CmdCreator> OrgConverter::convertCmdCreator(__args) {
     __perf_trace("convert", "convertCmdCreator");
     auto __trace = trace(a);
     auto creator = Sem<CmdCreator>(a);
-    if (0 < a.size()) {
-        creator->text = convertParagraph(one(a, N::Args)[0]).value();
-    }
+    if (0 < a.size()) { creator->text = convertParagraph(one(a, N::Args)[0]).value(); }
 
     return creator;
 }
 
-OrgConverter::ConvResult<CmdAuthor> OrgConverter::convertCmdAuthor(
-    __args) {
+OrgConverter::ConvResult<CmdAuthor> OrgConverter::convertCmdAuthor(__args) {
     __perf_trace("convert", "convertCmdAuthor");
     auto __trace = trace(a);
     auto Author  = Sem<CmdAuthor>(a);
-    if (0 < a.size()) {
-        Author->text = convertParagraph(one(a, N::Args)[0]).value();
-    }
+    if (0 < a.size()) { Author->text = convertParagraph(one(a, N::Args)[0]).value(); }
 
     return Author;
 }
@@ -1484,27 +1372,21 @@ OrgConverter::ConvResult<CmdEmail> OrgConverter::convertCmdEmail(__args) {
     __perf_trace("convert", "convertCmdEmail");
     auto __trace = trace(a);
     auto Email   = Sem<CmdEmail>(a);
-    if (0 < a.size()) {
-        Email->text = strip_space(get_text(one(a, N::Args)));
-    }
+    if (0 < a.size()) { Email->text = strip_space(get_text(one(a, N::Args))); }
 
     return Email;
 }
 
-OrgConverter::ConvResult<CmdLanguage> OrgConverter::convertCmdLanguage(
-    __args) {
+OrgConverter::ConvResult<CmdLanguage> OrgConverter::convertCmdLanguage(__args) {
     __perf_trace("convert", "convertCmdLanguage");
     auto __trace  = trace(a);
     auto Language = Sem<CmdLanguage>(a);
-    if (0 < a.size()) {
-        Language->text = strip_space(get_text(one(a, N::Args)));
-    }
+    if (0 < a.size()) { Language->text = strip_space(get_text(one(a, N::Args))); }
 
     return Language;
 }
 
-OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(
-    __args) {
+OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(__args) {
     __perf_trace("convert", "convertCmdCaption");
     auto __trace = trace(a);
     auto cmd     = Sem<CmdCustomRaw>(a);
@@ -1513,20 +1395,16 @@ OrgConverter::ConvResult<CmdCustomRaw> OrgConverter::convertCmdCustomRaw(
     return cmd;
 }
 
-OrgConverter::ConvResult<CmdCustomText> OrgConverter::convertCmdCustomText(
-    __args) {
+OrgConverter::ConvResult<CmdCustomText> OrgConverter::convertCmdCustomText(__args) {
     __perf_trace("convert", "convertCmdCaption");
     auto __trace = trace(a);
     auto cmd     = Sem<CmdCustomText>(a);
     cmd->name    = get_text(one(a, N::Name));
-    if (1 < a.size()) {
-        cmd->text = convertParagraph(one(a, N::Args)).value();
-    }
+    if (1 < a.size()) { cmd->text = convertParagraph(one(a, N::Args)).value(); }
     return cmd;
 }
 
-OrgConverter::ConvResult<CmdCustomArgs> OrgConverter::convertCmdCustomArgs(
-    __args) {
+OrgConverter::ConvResult<CmdCustomArgs> OrgConverter::convertCmdCustomArgs(__args) {
     __perf_trace("convert", "convertCmdCaption");
     auto __trace = trace(a);
     auto cmd     = Sem<CmdCustomArgs>(a);
@@ -1538,9 +1416,7 @@ OrgConverter::ConvResult<CmdCustomArgs> OrgConverter::convertCmdCustomArgs(
 
 namespace dsl  = lexy::dsl;
 using lexy_tok = lexy::string_lexeme<>;
-Str lexy_str(lexy_tok const& t) {
-    return Str{std::string{t.begin(), t.end()}};
-}
+Str lexy_str(lexy_tok const& t) { return Str{std::string{t.begin(), t.end()}}; }
 
 
 namespace tblfmt_grammar {
@@ -1579,28 +1455,16 @@ struct axis_spec {
     }
 
     sc auto value = lexy::callback<axis_spec::type>(overloaded{
-        [](lexy::string_lexeme<> const& sgn,
-           int                          position,
-           std::string const&           base) {
-            return impl(
-                std::string{sgn.begin(), sgn.end()}, position, base);
+        [](lexy::string_lexeme<> const& sgn, int position, std::string const& base) {
+            return impl(std::string{sgn.begin(), sgn.end()}, position, base);
         },
-        [](lexy::string_lexeme<> const& sgn,
-           int                          position,
-           lexy::nullopt const&         base) {
-            return impl(
-                std::string{sgn.begin(), sgn.end()},
-                position,
-                std::nullopt);
+        [](lexy::string_lexeme<> const& sgn, int position, lexy::nullopt const& base) {
+            return impl(std::string{sgn.begin(), sgn.end()}, position, std::nullopt);
         },
-        [](lexy::nullopt const& sgb,
-           int                  position,
-           std::string const&   base) {
+        [](lexy::nullopt const& sgb, int position, std::string const& base) {
             return impl(std::nullopt, position, base);
         },
-        [](lexy::nullopt const& sgn,
-           int                  position,
-           lexy::nullopt const& base) {
+        [](lexy::nullopt const& sgn, int position, lexy::nullopt const& base) {
             return impl(std::nullopt, position, std::nullopt);
         },
     });
@@ -1610,18 +1474,16 @@ struct axis_name {
     using type    = sem::Tblfm::Expr::AxisRef::Position::Name;
     sc_char name  = "axis_name";
     sc auto rule  = dsl::identifier(dsl::ascii::alpha_digit_underscore);
-    sc auto value = lexy::callback<type>(
-        [](lexy::string_lexeme<> const& name) {
-            type res;
-            res.name = std::string{name.begin(), name.end()};
-            return res;
-        });
+    sc auto value = lexy::callback<type>([](lexy::string_lexeme<> const& name) {
+        type res;
+        res.name = std::string{name.begin(), name.end()};
+        return res;
+    });
 };
 
 struct axis_pos {
     using type    = sem::Tblfm::Expr::AxisRef::Position;
-    sc auto rule  = (dsl::peek(dsl::ascii::digit / dsl::lit_c<'-'>)
-                     >> dsl::p<axis_spec>)
+    sc auto rule  = (dsl::peek(dsl::ascii::digit / dsl::lit_c<'-'>) >> dsl::p<axis_spec>)
                   | (dsl::peek(dsl::ascii::alpha) >> dsl::p<axis_name>);
     sc auto value = lexy::callback<type>(
         [](axis_spec::type const& t) {
@@ -1644,8 +1506,7 @@ struct axis_ref {
         + dsl::opt(dsl::lit_c<'@'> >> dsl::p<axis_pos>);
 
     sc auto value = lexy::callback<type>(
-        [](std::optional<axis_pos::type> col,
-           std::optional<axis_pos::type> row) {
+        [](std::optional<axis_pos::type> col, std::optional<axis_pos::type> row) {
             type ref;
             return ref;
         });
@@ -1672,14 +1533,12 @@ std::unordered_map<std::string, int> operator_precedence = {
     {"*", 2},
     {"/", 2}};
 
-sem::Tblfm::Expr fold_expression_stack(
-    std::vector<sem::Tblfm::Expr> const& exprs) {
+sem::Tblfm::Expr fold_expression_stack(std::vector<sem::Tblfm::Expr> const& exprs) {
     std::stack<sem::Tblfm::Expr> output;
     std::stack<std::string>      operators;
 
     auto precedence = [](std::string const& op) {
-        return operator_precedence.contains(op) ? operator_precedence[op]
-                                                : -1;
+        return operator_precedence.contains(op) ? operator_precedence[op] : -1;
     };
 
     auto apply_operator = [&]() {
@@ -1691,8 +1550,7 @@ sem::Tblfm::Expr fold_expression_stack(
             output.pop();
         }
         std::reverse(call.args.begin(), call.args.end());
-        output.push(
-            sem::Tblfm::Expr{sem::Tblfm::Expr::Call{std::move(call)}});
+        output.push(sem::Tblfm::Expr{sem::Tblfm::Expr::Call{std::move(call)}});
     };
 
     for (auto const& expr : exprs) {
@@ -1700,14 +1558,12 @@ sem::Tblfm::Expr fold_expression_stack(
             auto const& call = expr.getCall();
             if (operator_precedence.contains(call.name)) {
                 while (!operators.empty()
-                       && precedence(call.name)
-                              <= precedence(operators.top())) {
+                       && precedence(call.name) <= precedence(operators.top())) {
                     apply_operator();
                 }
                 operators.push(call.name);
             } else {
-                output.push(
-                    sem::Tblfm::Expr{sem::Tblfm::Expr::Call{call}});
+                output.push(sem::Tblfm::Expr{sem::Tblfm::Expr::Call{call}});
             }
         } else {
             output.push(expr);
@@ -1738,13 +1594,13 @@ struct call {
         + dsl::lit_c<')'>;
 
     sc auto value = lexy::bind(
-        lexy::callback<type>([](lexy::string_lexeme<> const& name,
-                                call_args::type const&       args) {
-            type result;
-            result.name = Str{std::string{name.begin(), name.end()}};
-            result.args = Vec<sem::Tblfm::Expr>{args.begin(), args.end()};
-            return result;
-        }),
+        lexy::callback<type>(
+            [](lexy::string_lexeme<> const& name, call_args::type const& args) {
+                type result;
+                result.name = Str{std::string{name.begin(), name.end()}};
+                result.args = Vec<sem::Tblfm::Expr>{args.begin(), args.end()};
+                return result;
+            }),
         lexy::_1,
         lexy::_2);
 };
@@ -1761,10 +1617,8 @@ struct expr {
                 LEXY_LIT("+"),
                 LEXY_LIT("/"),
                 LEXY_LIT("-")))))
-        | (dsl::peek(dsl::p<axis_ref> + LEXY_LIT(".."))
-           >> dsl::p<axis_range>)
-        | (dsl::peek(dsl::lit_c<'$'> | dsl::lit_c<'@'>)
-           >> dsl::p<axis_ref>)
+        | (dsl::peek(dsl::p<axis_ref> + LEXY_LIT("..")) >> dsl::p<axis_range>)
+        | (dsl::peek(dsl::lit_c<'$'> | dsl::lit_c<'@'>) >> dsl::p<axis_ref>)
         | (dsl::integer<int>);
 
     sc auto value = lexy::callback<type>(overloaded{
@@ -1821,12 +1675,11 @@ struct assign_flag {
                        + dsl::while_(dsl::ascii::digit) //
                        + dsl::lit_c<'f'>))));
 
-    sc auto value = lexy::callback<type>(
-        [](lexy::string_lexeme<> const& op) {
-            type res = type::CellBool;
+    sc auto value = lexy::callback<type>([](lexy::string_lexeme<> const& op) {
+        type res = type::CellBool;
 
-            return res;
-        });
+        return res;
+    });
 };
 
 struct assign {
@@ -1835,8 +1688,7 @@ struct assign {
     sc auto rule           //
         = dsl::p<axis_ref> //
         + dsl::lit_c<'='>  //
-        + dsl::p<expr_list>
-        + dsl::opt(dsl::peek(dsl::lit_c<';'>) >> dsl::p<assign_flag>);
+        + dsl::p<expr_list> + dsl::opt(dsl::peek(dsl::lit_c<';'>) >> dsl::p<assign_flag>);
 
     static type impl(
         axis_ref::type const&         axis,
@@ -1853,14 +1705,10 @@ struct assign {
     sc auto value = lexy::callback<type>(overloaded{
         [](axis_ref::type const&  axis,
            expr_list::type const& expr,
-           lexy::nullopt const&) {
-            return impl(axis, expr, std::nullopt);
-        },
+           lexy::nullopt const&) { return impl(axis, expr, std::nullopt); },
         [](axis_ref::type const&    axis,
            expr_list::type const&   expr,
-           assign_flag::type const& flag) {
-            return impl(axis, expr, flag);
-        },
+           assign_flag::type const& flag) { return impl(axis, expr, flag); },
     });
 };
 
@@ -1903,19 +1751,16 @@ auto run_lexy_parse(Str const& expr, OrgConverter* conv) {
         lexy::string_input input{expr.data(), expr.data() + expr.size()};
 
         lexy::visualization_options opts{};
-        opts.flags = lexy::visualize_use_unicode
-                   | lexy::visualize_use_symbols | lexy::visualize_space;
+        opts.flags = lexy::visualize_use_unicode | lexy::visualize_use_symbols
+                   | lexy::visualize_space;
         lexy::trace_to<Rule>(
-            std::back_insert_iterator(str),
-            lexy::zstring_input(input.data()),
-            opts);
+            std::back_insert_iterator(str), lexy::zstring_input(input.data()), opts);
 
         conv->print(str);
     }
 
     return lexy::parse<Rule>(
-        lexy::string_input{expr.data(), expr.data() + expr.size()},
-        CollectErrors{});
+        lexy::string_input{expr.data(), expr.data() + expr.size()}, CollectErrors{});
 }
 
 OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
@@ -1935,10 +1780,7 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     } else {
         return SemError(
             a,
-            MakeConvert(
-                a,
-                ErrorTable::TableExpressionFail,
-                join("\n", result.errors())));
+            MakeConvert(a, ErrorTable::TableExpressionFail, join("\n", result.errors())));
     }
 }
 
@@ -1948,8 +1790,7 @@ OrgConverter::ConvResult<Word> OrgConverter::convertWord(__args) {
     return SemLeaf<Word>(a);
 }
 
-OrgConverter::ConvResult<Placeholder> OrgConverter::convertPlaceholder(
-    __args) {
+OrgConverter::ConvResult<Placeholder> OrgConverter::convertPlaceholder(__args) {
     auto __trace = trace(a);
     return SemLeaf<Placeholder>(a);
 }
@@ -1971,14 +1812,12 @@ OrgConverter::ConvResult<RawText> OrgConverter::convertRawText(__args) {
     return SemLeaf<RawText>(a);
 }
 
-OrgConverter::ConvResult<ErrorSkipToken> OrgConverter::
-    convertErrorSkipToken(__args) {
+OrgConverter::ConvResult<ErrorSkipToken> OrgConverter::convertErrorSkipToken(__args) {
     return SemLeaf<ErrorSkipToken>(a);
 }
 
 
-OrgConverter::ConvResult<ErrorSkipGroup> OrgConverter::
-    convertErrorSkipGroup(__args) {
+OrgConverter::ConvResult<ErrorSkipGroup> OrgConverter::convertErrorSkipGroup(__args) {
     auto __trace = trace(a);
     auto result  = Sem<ErrorSkipGroup>(a);
     for (auto const& sub : a) {
@@ -1987,25 +1826,20 @@ OrgConverter::ConvResult<ErrorSkipGroup> OrgConverter::
     return result;
 }
 
-OrgConverter::ConvResult<ErrorItem> OrgConverter::convertErrorItem(
-    __args) {
+OrgConverter::ConvResult<ErrorItem> OrgConverter::convertErrorItem(__args) {
     auto __trace = trace(a);
     auto mono    = a.getMono().getError();
-    LOGIC_ASSERTION_CHECK_FMT(
-        mono.box, "Mono error for node should have box data");
+    LOGIC_ASSERTION_CHECK_FMT(mono.box, "Mono error for node should have box data");
     if (mono.box->isParseFail()) {
-        return SemErrorItem(
-            a, org::sem::OrgDiagnostics{mono.box->getParseFail().err});
+        return SemErrorItem(a, org::sem::OrgDiagnostics{mono.box->getParseFail().err});
     } else {
         return SemErrorItem(
-            a,
-            org::sem::OrgDiagnostics{mono.box->getParseTokenFail().err});
+            a, org::sem::OrgDiagnostics{mono.box->getParseTokenFail().err});
     }
 }
 
 
-OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(
-    __args) {
+OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(__args) {
     auto result = Sem<RadioTarget>(a);
     for (auto const& sub : a) {
         if (sub.getKind() != OrgNodeKind::Space) {
@@ -2015,16 +1849,14 @@ OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(
     return result;
 }
 
-OrgConverter::ConvResult<TextTarget> OrgConverter::convertTextTarget(
-    __args) {
+OrgConverter::ConvResult<TextTarget> OrgConverter::convertTextTarget(__args) {
     auto result = Sem<TextTarget>(a);
     for (auto const& sub : a) { result->text += get_text(sub); }
     return result;
 }
 
 
-OrgConverter::ConvResult<Punctuation> OrgConverter::convertPunctuation(
-    __args) {
+OrgConverter::ConvResult<Punctuation> OrgConverter::convertPunctuation(__args) {
     auto __trace = trace(a);
     auto res     = SemLeaf<Punctuation>(a);
     return res;
@@ -2035,8 +1867,7 @@ OrgConverter::ConvResult<BigIdent> OrgConverter::convertBigIdent(__args) {
     return SemLeaf<BigIdent>(a);
 }
 
-OrgConverter::ConvResult<MarkQuote> OrgConverter::convertMarkQuote(
-    __args) {
+OrgConverter::ConvResult<MarkQuote> OrgConverter::convertMarkQuote(__args) {
     auto __trace = trace(a);
     return convertAllSubnodes<MarkQuote>(a);
 }
@@ -2051,8 +1882,7 @@ OrgConverter::ConvResult<Bold> OrgConverter::convertBold(__args) {
     return convertAllSubnodes<Bold>(a);
 }
 
-OrgConverter::ConvResult<Monospace> OrgConverter::convertMonospace(
-    __args) {
+OrgConverter::ConvResult<Monospace> OrgConverter::convertMonospace(__args) {
     auto __trace = trace(a);
     return convertAllSubnodes<Monospace>(a);
 }
@@ -2072,42 +1902,35 @@ OrgConverter::ConvResult<Italic> OrgConverter::convertItalic(__args) {
     return convertAllSubnodes<Italic>(a);
 }
 
-OrgConverter::ConvResult<Underline> OrgConverter::convertUnderline(
-    __args) {
+OrgConverter::ConvResult<Underline> OrgConverter::convertUnderline(__args) {
     auto __trace = trace(a);
     return convertAllSubnodes<Underline>(a);
 }
 
-OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(
-    __args) {
+OrgConverter::ConvResult<BlockExample> OrgConverter::convertBlockExample(__args) {
     auto                __trace = trace(a);
     SemId<BlockExample> result  = Sem<BlockExample>(a);
-    for (auto const& it : many(a, N::Body)) {
-        result->subnodes.push_back(convert(it));
-    }
+    for (auto const& it : many(a, N::Body)) { result->subnodes.push_back(convert(it)); }
 
     return result;
 }
 
-OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::
-    convertBlockDynamicFallback(__args) {
+OrgConverter::ConvResult<BlockDynamicFallback> OrgConverter::convertBlockDynamicFallback(
+    __args) {
     auto                        __trace = trace(a);
     SemId<BlockDynamicFallback> result  = Sem<BlockDynamicFallback>(a);
     result->attrs                       = convertAttrs(one(a, N::Args));
 
     result->name = normalize(get_text(one(a, N::Name)));
     hstd::replace_all(result->name, "begin", "");
-    for (auto const& it : many(a, N::Body)) {
-        result->subnodes.push_back(convert(it));
-    }
+    for (auto const& it : many(a, N::Body)) { result->subnodes.push_back(convert(it)); }
 
     remove_empty_text(result);
 
     return result;
 }
 
-OrgConverter::ConvResult<CriticMarkup> OrgConverter::convertCriticMarkup(
-    __args) {
+OrgConverter::ConvResult<CriticMarkup> OrgConverter::convertCriticMarkup(__args) {
     auto                __trace = trace(a);
     SemId<CriticMarkup> result  = Sem<CriticMarkup>(a);
     auto                head    = get_text(one(a, N::Name));
@@ -2128,9 +1951,7 @@ OrgConverter::ConvResult<CriticMarkup> OrgConverter::convertCriticMarkup(
         result->kind = K::Substitution;
     }
 
-    if (assoc.getKind() != onk::Empty) {
-        result->push_back(convert(assoc));
-    }
+    if (assoc.getKind() != onk::Empty) { result->push_back(convert(assoc)); }
 
     result->push_back(convert(body));
 
@@ -2138,8 +1959,7 @@ OrgConverter::ConvResult<CriticMarkup> OrgConverter::convertCriticMarkup(
 }
 
 
-OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
-    __args) {
+OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(__args) {
     auto                __trace = trace(a);
     SemId<ColonExample> result  = Sem<ColonExample>(a);
     for (auto const& it : many(a, N::Body)) {
@@ -2152,8 +1972,7 @@ OrgConverter::ConvResult<ColonExample> OrgConverter::convertColonExample(
     return result;
 }
 
-OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
-    __args) {
+OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(__args) {
     auto __trace = trace(a);
     auto eexport = Sem<BlockExport>(a);
 
@@ -2173,8 +1992,7 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(
     return eexport;
 }
 
-OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
-    __args) {
+OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(__args) {
     auto               __trace = trace(a);
     SemId<BlockCenter> res     = Sem<BlockCenter>(a);
     try {
@@ -2186,8 +2004,7 @@ OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(
     return res;
 }
 
-OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
-    __args) {
+OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(__args) {
     auto              __trace = trace(a);
     SemId<BlockQuote> quote   = Sem<BlockQuote>(a);
 
@@ -2204,8 +2021,7 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(
     return quote;
 }
 
-OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(
-    __args) {
+OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(__args) {
     auto                __trace = trace(a);
     SemId<BlockComment> result  = Sem<BlockComment>(a);
     try {
@@ -2221,13 +2037,11 @@ OrgConverter::ConvResult<Latex> OrgConverter::convertMath(__args) {
     if (a.kind() == onk::InlineMath) {
         return Sem<Latex>(a);
     } else {
-        throw convert_logic_error::init(
-            "Unhanled kind for inline math TODO");
+        throw convert_logic_error::init("Unhanled kind for inline math TODO");
     }
 }
 
-OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
-    __args) {
+OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(__args) {
     auto              __trace = trace(a);
     SemId<CmdInclude> include = Sem<CmdInclude>(a);
     auto              args    = convertAttrs(one(a, N::Args));
@@ -2273,8 +2087,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
             if (second.starts_with("*")) {
                 doc.subtreePath = convertSubtreePath(second);
             } else if (second.starts_with("#")) {
-                doc.customIdTarget = strip(
-                    second, CharSet{'#', ' '}, CharSet{' '});
+                doc.customIdTarget = strip(second, CharSet{'#', ' '}, CharSet{' '});
             }
         }
         include->data = doc;
@@ -2286,12 +2099,10 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
     }
 
     if (auto only = args.named.pop_opt("onlycontents")) {
-        include->getOrgDocument().onlyContent = only->items.at(0)
-                                                    .getBool();
+        include->getOrgDocument().onlyContent = only->items.at(0).getBool();
     }
     if (auto arg = args.named.pop_opt("lines")) {
-        Str lines = strip(
-            arg->items.at(0).getString(), CharSet{'"'}, CharSet{'"'});
+        Str      lines = strip(arg->items.at(0).getString(), CharSet{'"'}, CharSet{'"'});
         Vec<Str> split = lines.split("-");
         if (lines.starts_with("-")) {
             include->lastLine = split.at(1).toInt();
@@ -2307,14 +2118,12 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(
     return include;
 }
 
-OrgConverter::ConvResult<TextSeparator> OrgConverter::convertTextSeparator(
-    __args) {
+OrgConverter::ConvResult<TextSeparator> OrgConverter::convertTextSeparator(__args) {
     auto __trace = trace(a);
     return Sem<TextSeparator>(a);
 }
 
-OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(
-    __args) {
+OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(__args) {
     auto __trace = trace(a);
     return SemLeaf<AtMention>(a);
 }
@@ -2343,8 +2152,7 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
         }
 
         auto split = value.split(':');
-        if (!result.isQuoted && split.size() == 2
-            && !value.contains("::")) {
+        if (!result.isQuoted && split.size() == 2 && !value.contains("::")) {
             AttrValue::FileReference fr{};
             fr.file      = split.at(0);
             fr.reference = split.at(1);
@@ -2411,16 +2219,13 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
     };
 
     if (a.getKind() == onk::Attrs) {
-        for (auto const& item : one(a, N::Values)) {
-            push_argument(convertAttr(item));
-        }
+        for (auto const& item : one(a, N::Values)) { push_argument(convertAttr(item)); }
     } else if (a.getKind() == onk::InlineStmtList) {
         for (auto const& it : a) {
             push_argument(convertAttr(it)); //
         }
     } else {
-        LOGIC_ASSERTION_CHECK_FMT(
-            a.getKind() == onk::Empty, "{}", a.treeRepr());
+        LOGIC_ASSERTION_CHECK_FMT(a.getKind() == onk::Empty, "{}", a.treeRepr());
     }
 
     return result;
@@ -2438,9 +2243,7 @@ LispCode OrgConverter::convertLisp(In a) {
         if (!items.empty() && items.front().isIdent()) {
             L::Call res;
             res.name = items.front().getIdent().name;
-            if (items.has(1)) {
-                res.args = Vec<LispCode>{items.at(slice(1, 1_B))};
-            }
+            if (items.has(1)) { res.args = Vec<LispCode>{items.at(slice(1, 1_B))}; }
             out.data = res;
         } else {
             L::List res;
@@ -2498,25 +2301,20 @@ struct aggregate {
         type res;
         Str  agg = lexy_str(tok);
         if (agg == ":min" || agg == "min" || agg == "@min") {
-            res.data = type::MathAggregate{
-                .kind = type::MathAggregate::Kind::Min};
+            res.data = type::MathAggregate{.kind = type::MathAggregate::Kind::Min};
         } else if (agg == ":max" || agg == "max" || agg == "@max") {
-            res.data = type::MathAggregate{
-                .kind = type::MathAggregate::Kind::Max};
+            res.data = type::MathAggregate{.kind = type::MathAggregate::Kind::Max};
         } else if (agg == "est+") {
-            res.data = type::MathAggregate{
-                .kind = type::MathAggregate::Kind::LowHighEst};
+            res.data = type::MathAggregate{.kind = type::MathAggregate::Kind::LowHighEst};
         } else if (agg == "x" || agg == "X") {
             res.data = type::CheckboxAggregate{
                 .kind = type::CheckboxAggregate::Kind::IfAllNested};
         } else if (agg == "x/" || agg == "X/") {
             res.data = type::CheckboxAggregate{
-                .kind = type::CheckboxAggregate::Kind::
-                    AggregateFractionRec};
+                .kind = type::CheckboxAggregate::Kind::AggregateFractionRec};
         } else if (agg == "x%" || agg == "X%") {
             res.data = type::CheckboxAggregate{
-                .kind = type::CheckboxAggregate::Kind::
-                    AggregatePercentRec};
+                .kind = type::CheckboxAggregate::Kind::AggregatePercentRec};
         }
 
         return res;
@@ -2530,18 +2328,16 @@ struct field {
         = dsl::identifier(dsl::ascii::alpha_digit_underscore) //
         + dsl::opt(
               dsl::peek(dsl::lit_c<'('>) >> dsl::round_bracketed(
-                  dsl::identifier(
-                      dsl::ascii::character - dsl::lit_c<')'>))) //
+                  dsl::identifier(dsl::ascii::character - dsl::lit_c<')'>))) //
         ;
 
     sc auto value = lexy::bind(
-        lexy::callback<type>(
-            [](lexy_tok const& prop, Opt<lexy_tok> const& title) {
-                type res;
-                res.first = lexy_str(prop);
-                if (title) { res.second = lexy_str(title.value()); }
-                return res;
-            }),
+        lexy::callback<type>([](lexy_tok const& prop, Opt<lexy_tok> const& title) {
+            type res;
+            res.first = lexy_str(prop);
+            if (title) { res.second = lexy_str(title.value()); }
+            return res;
+        }),
         lexy::_1,
         lexy::_2 or Opt<lexy_tok>{});
 };
@@ -2582,8 +2378,7 @@ struct columns {
 };
 } // namespace columns_grammar
 
-OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
-    __args) {
+OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(__args) {
     auto              __trace = trace(a);
     SemId<CmdColumns> result  = Sem<CmdColumns>(a);
 
@@ -2593,16 +2388,12 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(
 
     if (spec.has_value()) {
         auto v               = spec.value();
-        result->view.columns = Vec<sem::ColumnView::Column>{
-            v.begin(), v.end()};
+        result->view.columns = Vec<sem::ColumnView::Column>{v.begin(), v.end()};
         return result;
     } else {
         return SemError(
             a,
-            MakeConvert(
-                a,
-                ErrorTable::ColumnExpressionFail,
-                join("\n", spec.errors())));
+            MakeConvert(a, ErrorTable::ColumnExpressionFail, join("\n", spec.errors())));
     }
 
     return result;
@@ -2615,12 +2406,11 @@ OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     return result;
 }
 
-OrgConverter::ConvResult<InlineExport> OrgConverter::convertInlineExport(
-    __args) {
+OrgConverter::ConvResult<InlineExport> OrgConverter::convertInlineExport(__args) {
     auto                __trace = trace(a);
     SemId<InlineExport> result  = Sem<InlineExport>(a);
-    result->exporter = lstrip(get_text(one(a, N::Name)), CharSet{'@'});
-    result->content  = Str{get_text(one(a, N::Body)).at(slice(1, 3_B))};
+    result->exporter            = lstrip(get_text(one(a, N::Name)), CharSet{'@'});
+    result->content             = Str{get_text(one(a, N::Body)).at(slice(1, 3_B))};
     return result;
 }
 
@@ -2655,8 +2445,7 @@ SemId<ErrorGroup> OrgConverter::SemError(
     return res;
 }
 
-OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
-    __args) {
+OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(__args) {
     auto             __trace = trace(a);
     SemId<BlockCode> result  = Sem<BlockCode>(a);
 
@@ -2699,10 +2488,9 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(
                     }
                     case onk::CodeTangle: {
                         line.parts.push_back(
-                            BlockCodeLine::Part{
-                                BlockCodeLine::Part::Tangle{
-                                    .target = get_text(one(part, N::Name)),
-                                }});
+                            BlockCodeLine::Part{BlockCodeLine::Part::Tangle{
+                                .target = get_text(one(part, N::Name)),
+                            }});
                         break;
                     }
                     default: {
@@ -2743,9 +2531,7 @@ OrgConverter::ConvResult<CmdCall> OrgConverter::convertCmdCall(__args) {
         call->endHeaderAttrs    = convertAttrs(one(a, N::EndArgs));
         return call;
     } else {
-        return SemError(
-            a,
-            {SemErrorItem(a, MakeInternal("TODO Convert inline call"))});
+        return SemError(a, {SemErrorItem(a, MakeInternal("TODO Convert inline call"))});
     }
 }
 
@@ -2765,12 +2551,10 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
             buffer.push_back(res);
         } else {
             if (auto res_stmt = res.asOpt<sem::Stmt>()) {
-                print(fmt(
-                    "{} is a statement, adding attached", res->getKind()));
+                print(fmt("{} is a statement, adding attached", res->getKind()));
                 if (auto par = res_stmt.asOpt<sem::Paragraph>();
                     par && par->subnodes.size() == 1) {
-                    if (auto link = par->subnodes.at(0)
-                                        .asOpt<sem::Link>()) {
+                    if (auto link = par->subnodes.at(0).asOpt<sem::Link>()) {
                         link->attached = buffer;
                     } else {
                         res_stmt->attached = buffer;
@@ -2782,15 +2566,11 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
 
                 int offset = 0;
 
-                Opt<CRw<org::parse::OrgAdapter>> next_opt = items.get(
-                    i + offset + 1);
+                Opt<CRw<org::parse::OrgAdapter>> next_opt = items.get(i + offset + 1);
                 while (next_opt) {
                     if (next_opt->get().getKind() == onk::CmdTblfm) {
-                        print(
-                            fmt("tblfm attached {} + {} {}",
-                                i,
-                                offset,
-                                next_opt->get().id));
+                        print(fmt(
+                            "tblfm attached {} + {} {}", i, offset, next_opt->get().id));
                         auto tblfm = convertCmdTblfm(next_opt->get());
                         res_stmt->attached.push_back(tblfm.unwrap());
                         ++offset;
@@ -2807,9 +2587,7 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
                 i += offset;
 
             } else {
-                print(
-                    fmt("{} is not a statement, releasing attached",
-                        res->getKind()));
+                print(fmt("{} is not a statement, releasing attached", res->getKind()));
                 for (auto const& buf : buffer) { result.push_back(buf); }
             }
             buffer.clear();
@@ -2824,8 +2602,7 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
     return result;
 }
 
-Vec<OrgConverter::ConvResult<Org>> OrgConverter::
-    flatConvertAttachedSubnodes(In item) {
+Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttachedSubnodes(In item) {
     Vec<org::parse::OrgAdapter> items;
     for (auto const& sub : item) { items.push_back(sub); }
     return flatConvertAttached(items);
@@ -2835,9 +2612,7 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::
 SemId<Org> OrgConverter::convert(__args) {
     auto __trace = trace(a);
     LOGIC_ASSERTION_CHECK_FMT(
-        a.isValid(),
-        "Invalid node encountered during conversion {}",
-        a.id);
+        a.isValid(), "Invalid node encountered during conversion {}", a.id);
 
     bool hasError = false;
     for (auto const& sub : a) {
@@ -2848,8 +2623,7 @@ SemId<Org> OrgConverter::convert(__args) {
         auto group = Sem<ErrorGroup>(a);
         for (auto const& sub : a) {
             if (sub.isMono() && sub.getMono().isError()) {
-                group->diagnostics.push_back(
-                    convertErrorItem(sub).value());
+                group->diagnostics.push_back(convertErrorItem(sub).value());
             } else {
                 group->push_back(convert(sub));
             }
@@ -2924,29 +2698,20 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdName: return convertCmdName(a).unwrap();
         case onk::CmdCallCode: return convertCmdCall(a).unwrap();
         case onk::Paragraph: return convertParagraph(a).unwrap();
-        case onk::CmdCustomRawCommand:
-            return convertCmdCustomRaw(a).unwrap();
-        case onk::CmdCustomTextCommand:
-            return convertCmdCustomText(a).unwrap();
-        case onk::CmdCustomArgsCommand:
-            return convertCmdCustomArgs(a).unwrap();
-        case onk::CriticMarkStructure:
-            return convertCriticMarkup(a).unwrap();
-        case onk::BlockDynamicFallback:
-            return convertBlockDynamicFallback(a).unwrap();
+        case onk::CmdCustomRawCommand: return convertCmdCustomRaw(a).unwrap();
+        case onk::CmdCustomTextCommand: return convertCmdCustomText(a).unwrap();
+        case onk::CmdCustomArgsCommand: return convertCmdCustomArgs(a).unwrap();
+        case onk::CriticMarkStructure: return convertCriticMarkup(a).unwrap();
+        case onk::BlockDynamicFallback: return convertBlockDynamicFallback(a).unwrap();
         default: {
-            return SemError(
-                a,
-                MakeInternal(fmt("ERR Unknown content {}", a.getKind())));
+            return SemError(a, MakeInternal(fmt("ERR Unknown content {}", a.getKind())));
         }
     }
 #undef CASE
 }
 
 
-parse::OrgAdapter OrgConverter::one(
-    parse::OrgAdapter node,
-    OrgSpecName       name) {
+parse::OrgAdapter OrgConverter::one(parse::OrgAdapter node, OrgSpecName name) {
     LOGIC_ASSERTION_CHECK_FMT(
         !ErrorKinds.contains(node.getKind()),
         "Attempting to index into a named field of the error info "
@@ -2969,9 +2734,7 @@ void OrgConverter::convertDocumentOptions(
     SemId<DocumentOptions> opts,
     org::parse::OrgAdapter a) {
     auto item      = a.at(0);
-    auto parseBool = [](Str const& value) {
-        return value == "t" || value == "T";
-    };
+    auto parseBool = [](Str const& value) { return value == "t" || value == "T"; };
     for (auto const& value : get_text(item).split(' ')) {
         if (value.contains(':')) {
             auto split = value.split(':');
@@ -2979,22 +2742,19 @@ void OrgConverter::convertDocumentOptions(
             auto tail  = split[1];
             if (org_streq(head, "broken-links")) {
                 if (org_streq(tail, "mark")) {
-                    opts->exportConfig.brokenLinks = DocumentExportConfig::
-                        BrokenLinks::Mark;
+                    opts->exportConfig
+                        .brokenLinks = DocumentExportConfig::BrokenLinks::Mark;
                 } else if (org_streq(tail, "t")) {
-                    opts->exportConfig.brokenLinks = DocumentExportConfig::
-                        BrokenLinks::Ignore;
+                    opts->exportConfig
+                        .brokenLinks = DocumentExportConfig::BrokenLinks::Ignore;
                 }
             } else if (org_streq(head, "toc")) {
                 if (org_streq(tail, "t")) {
-                    opts->exportConfig
-                        .tocExport = DocumentExportConfig::DoExport{true};
+                    opts->exportConfig.tocExport = DocumentExportConfig::DoExport{true};
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig
-                        .tocExport = DocumentExportConfig::DoExport{false};
+                    opts->exportConfig.tocExport = DocumentExportConfig::DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->exportConfig
-                        .tocExport = DocumentExportConfig::ExportFixed{
+                    opts->exportConfig.tocExport = DocumentExportConfig::ExportFixed{
                         tail.toInt()};
                 }
             } else if (org_streq(head, "inline")) {
@@ -3056,41 +2816,33 @@ void OrgConverter::convertDocumentOptions(
             } else if (org_streq(head, "arch")) {
                 if (org_streq(tail, "headline")) {
                     opts->exportConfig
-                        .archivedTrees = DocumentExportConfig::
-                        ArchivedTrees::Headline;
+                        .archivedTrees = DocumentExportConfig::ArchivedTrees::Headline;
                 } else if (org_streq(tail, "t")) {
                     opts->exportConfig
-                        .archivedTrees = DocumentExportConfig::
-                        ArchivedTrees::All;
+                        .archivedTrees = DocumentExportConfig::ArchivedTrees::All;
                 } else if (org_streq(tail, "nil")) {
                     opts->exportConfig
-                        .archivedTrees = DocumentExportConfig::
-                        ArchivedTrees::Skip;
+                        .archivedTrees = DocumentExportConfig::ArchivedTrees::Skip;
                 }
             } else if (org_streq(head, "tags")) {
                 if (org_streq(tail, "not-in-toc")) {
-                    opts->exportConfig.tagExport = DocumentExportConfig::
-                        TagExport::NotInToc;
+                    opts->exportConfig
+                        .tagExport = DocumentExportConfig::TagExport::NotInToc;
                 } else if (org_streq(tail, "t")) {
-                    opts->exportConfig
-                        .tagExport = DocumentExportConfig::TagExport::All;
+                    opts->exportConfig.tagExport = DocumentExportConfig::TagExport::All;
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig
-                        .tagExport = DocumentExportConfig::TagExport::None;
+                    opts->exportConfig.tagExport = DocumentExportConfig::TagExport::None;
                 }
             } else if (org_streq(head, "tasks")) {
                 if (org_streq(tail, "nil")) {
                     opts->exportConfig
-                        .taskFiltering = DocumentExportConfig::
-                        TaskFiltering::None;
+                        .taskFiltering = DocumentExportConfig::TaskFiltering::None;
                 } else if (org_streq(tail, "t")) {
                     opts->exportConfig
-                        .taskFiltering = DocumentExportConfig::
-                        TaskFiltering::All;
+                        .taskFiltering = DocumentExportConfig::TaskFiltering::All;
                 } else if (org_streq(tail, "todo")) {
                     opts->exportConfig
-                        .taskFiltering = DocumentExportConfig::
-                        TaskFiltering::Done;
+                        .taskFiltering = DocumentExportConfig::TaskFiltering::Done;
                 }
             } else {
                 opts->push_back(SemError(
@@ -3112,9 +2864,7 @@ void OrgConverter::convertDocumentOptions(
             opts->push_back(SemError(
                 a,
                 MakeConvert(
-                    a,
-                    ErrorTable::UnexpectedDocumentOption,
-                    fmt("value {}", value))));
+                    a, ErrorTable::UnexpectedDocumentOption, fmt("value {}", value))));
         }
     }
 }
@@ -3123,9 +2873,7 @@ void OrgConverter::convertDocumentOptions(
 using Prop = NamedProperty;
 
 
-bool OrgConverter::updateDocument(
-    SemId<Document>&         doc,
-    parse::OrgAdapter const& sub) {
+bool OrgConverter::updateDocument(SemId<Document>& doc, parse::OrgAdapter const& sub) {
     switch (sub.kind()) {
         case onk::CmdColumns: {
             if (auto columns = convertCmdColumns(sub)) {
@@ -3182,9 +2930,7 @@ bool OrgConverter::updateDocument(
             }
 
             if (auto it = args.get(1); it.has_value()) {
-                if (org_streq(*it, "indent")) {
-                    doc->options->startupIndented = true;
-                }
+                if (org_streq(*it, "indent")) { doc->options->startupIndented = true; }
             }
 
             return true;
@@ -3233,21 +2979,20 @@ bool OrgConverter::updateDocument(
 
 OrgConverter::ConvResult<Document> OrgConverter::convertDocumentFragments(
     hstd::Vec<InFragment> const& fragments) {
-    auto __trace        = trace(std::nullopt, "document-fragment-list");
-    SemId<Document> doc = Sem<Document>(fragments.front().node);
-    doc->options        = Sem<DocumentOptions>(fragments.front().node);
+    auto            __trace = trace(std::nullopt, "document-fragment-list");
+    SemId<Document> doc     = Sem<Document>(fragments.front().node);
+    doc->options            = Sem<DocumentOptions>(fragments.front().node);
     for (auto const frag : fragments) {
-        auto __trace = trace(std::nullopt, "document-fragment");
+        auto                   __trace = trace(std::nullopt, "document-fragment");
         Vec<parse::OrgAdapter> buffer;
         for (const auto& sub : frag.node) {
             auto __trace = trace(sub, fmt1(sub.getKind()));
             if (!updateDocument(doc, sub)) { buffer.push_back(sub); }
         }
 
-        SemId<DocumentFragment> outFragment = Sem<DocumentFragment>(
-            frag.node);
-        outFragment->baseLine = frag.baseLine;
-        outFragment->baseCol  = frag.baseCol;
+        SemId<DocumentFragment> outFragment = Sem<DocumentFragment>(frag.node);
+        outFragment->baseLine               = frag.baseLine;
+        outFragment->baseCol                = frag.baseCol;
 
         for (auto const& it : flatConvertAttached(buffer)) {
             outFragment->subnodes.push_back(it.unwrap());
@@ -3259,8 +3004,7 @@ OrgConverter::ConvResult<Document> OrgConverter::convertDocumentFragments(
     return doc;
 }
 
-org::sem::OrgConverter::ConvResult<Document> OrgConverter::convertDocument(
-    __args) {
+org::sem::OrgConverter::ConvResult<Document> OrgConverter::convertDocument(__args) {
     auto __trace = trace(a);
 
     SemId<Document> doc = Sem<Document>(a);

@@ -38,8 +38,7 @@ struct ExporterJson : public Exporter<ExporterJson, json> {
 
     template <typename... Args>
     json newRes(hstd::Variant<Args...> const& var) {
-        return std::visit(
-            [this](auto const& it) -> json { return eval(it); }, var);
+        return std::visit([this](auto const& it) -> json { return eval(it); }, var);
     }
 
     json eval(hstd::Str const& value) { return json(value); }

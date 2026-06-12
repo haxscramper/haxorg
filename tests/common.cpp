@@ -8,8 +8,7 @@ hstd::fs::path getDebugPath(hstd::Str const& suffix) {
 
     hstd::Str testId = info->name();
 
-    if (auto const* valueParam = info->value_param();
-        valueParam != nullptr) {
+    if (auto const* valueParam = info->value_param(); valueParam != nullptr) {
         testId += hstd::fmt("/value-{}", valueParam);
     }
 
@@ -18,14 +17,12 @@ hstd::fs::path getDebugPath(hstd::Str const& suffix) {
     }
 
     auto dir = std::filesystem::temp_directory_path()
-             / hstd::fs::path{
-                 hstd::fmt("haxorg_tests/{}", info->test_suite_name())};
+             / hstd::fs::path{hstd::fmt("haxorg_tests/{}", info->test_suite_name())};
 
     if (suffix.empty()) {
         return hstd::fs::path{hstd::fmt("{}/{}", dir.native(), testId)};
     } else {
-        return hstd::fs::path{
-            hstd::fmt("{}/{}/{}", dir.native(), testId, suffix)};
+        return hstd::fs::path{hstd::fmt("{}/{}/{}", dir.native(), testId, suffix)};
     }
 }
 } // namespace
@@ -67,12 +64,9 @@ hstd::fs::path getDebugDir(hstd::Str const& suffix, bool clean) {
 }
 
 
-hstd::log::log_sink_scope getDebugLogScope(
-    hstd::Str const& suffix,
-    bool             cleanParent) {
+hstd::log::log_sink_scope getDebugLogScope(hstd::Str const& suffix, bool cleanParent) {
     return HSLOG_SINK_FACTORY_SCOPED(([suffix, cleanParent]() {
-        return ::hstd::log::init_file_sink(
-            getDebugFile(suffix, cleanParent));
+        return ::hstd::log::init_file_sink(getDebugFile(suffix, cleanParent));
     }));
 }
 
@@ -122,18 +116,14 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
     hstd::ColText const& lhs,
     hstd::ColText const& rhs) {
     return __gtest_assert_eq_seq_format_text_compare(
-        __gtest_assert_eq_seq_fail_message(
-            lhs.split('\n'), lhs.split('\n')),
-        lhs,
-        rhs);
+        __gtest_assert_eq_seq_fail_message(lhs.split('\n'), lhs.split('\n')), lhs, rhs);
 }
 
 std::string getJString(google::protobuf::Message const& message) {
     std::string                          json;
     google::protobuf::json::PrintOptions j_opts;
     j_opts.add_whitespace = true;
-    auto status           = google::protobuf::util::MessageToJsonString(
-        message, &json, j_opts);
+    auto status = google::protobuf::util::MessageToJsonString(message, &json, j_opts);
 
     EXPECT_TRUE(status.ok());
     return json;

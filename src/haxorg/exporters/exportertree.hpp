@@ -41,12 +41,8 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     };
 
     static hstd::ColText treeRepr(sem::SemId<sem::Org> org);
-    static void          treeRepr(
-        sem::SemId<sem::Org>         org,
-        std::filesystem::path const& path);
-    static hstd::ColText treeRepr(
-        sem::SemId<sem::Org> org,
-        TreeReprConf const&  conf);
+    static void treeRepr(sem::SemId<sem::Org> org, std::filesystem::path const& path);
+    static hstd::ColText treeRepr(sem::SemId<sem::Org> org, TreeReprConf const& conf);
 
     struct TreeReprCtx {
         int level      = 0;
@@ -59,8 +55,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     hstd::Vec<TreeReprCtx> stack;
 
     void pushIndent() {
-        stack.push_back(
-            {.level = stack.empty() ? conf.startLevel : stack.size()});
+        stack.push_back({.level = stack.empty() ? conf.startLevel : stack.size()});
     }
 
     void popIndent() { stack.pop_back(); }
@@ -128,10 +123,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
     template <typename V>
     void visit(int& arg, hstd::UnorderedMap<hstd::Str, V> const& opt);
 
-    void visitField(
-        int&                             i,
-        char const*                      name,
-        hstd::CVec<sem::SemId<sem::Org>> org);
+    void visitField(int& i, char const* name, hstd::CVec<sem::SemId<sem::Org>> org);
 
 
     template <typename T>

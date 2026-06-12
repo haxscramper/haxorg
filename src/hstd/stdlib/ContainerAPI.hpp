@@ -23,11 +23,7 @@ struct SequentialContainerAdapterBase : CRTP_this_method<Derived> {
     void reserve(int size) { _this()->reserve_impl(size); }
 };
 
-template <
-    typename Derived,
-    typename Container,
-    typename KeyType,
-    typename ValueType>
+template <typename Derived, typename Container, typename KeyType, typename ValueType>
 struct AssociativeContainerAdapterBase : CRTP_this_method<Derived> {
     using CRTP_this_method<Derived>::_this;
 
@@ -35,21 +31,15 @@ struct AssociativeContainerAdapterBase : CRTP_this_method<Derived> {
         _this()->insert_or_assign_impl(key, value);
     }
 
-    bool contains(KeyType const& key) const {
-        return _this()->contains_impl(key);
-    }
+    bool contains(KeyType const& key) const { return _this()->contains_impl(key); }
 
-    ValueType const& at(KeyType const& key) {
-        return _this()->at_impl(key);
-    }
+    ValueType const& at(KeyType const& key) { return _this()->at_impl(key); }
 
-    KeyType const& get_pair_key(
-        std::pair<KeyType, ValueType> const& pair) const {
+    KeyType const& get_pair_key(std::pair<KeyType, ValueType> const& pair) const {
         return pair.first;
     }
 
-    ValueType const& get_pair_value(
-        std::pair<KeyType, ValueType> const& pair) const {
+    ValueType const& get_pair_value(std::pair<KeyType, ValueType> const& pair) const {
         return pair.second;
     }
 
@@ -94,8 +84,7 @@ class SequentialContainerAdapter<hstd::Vec<T>>
 
     container_type const* container = nullptr;
 
-    SequentialContainerAdapter(container_type const* container)
-        : container{container} {}
+    SequentialContainerAdapter(container_type const* container) : container{container} {}
 
     auto begin_impl() const { return container->begin(); }
     auto end_impl() const { return container->end(); }
@@ -123,8 +112,7 @@ class SequentialContainerAdapter<hstd::SmallVec<T, Size>>
 
     container_type const* container = nullptr;
 
-    SequentialContainerAdapter(container_type const* container)
-        : container{container} {}
+    SequentialContainerAdapter(container_type const* container) : container{container} {}
 
     auto begin_impl() const { return container->begin(); }
     auto end_impl() const { return container->end(); }

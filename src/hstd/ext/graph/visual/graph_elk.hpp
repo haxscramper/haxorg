@@ -30,10 +30,7 @@ class PortProperties {
     BOOST_DESCRIBE_CLASS(
         PortProperties,
         (),
-        (port,
-         portConstraints,
-         portAlignment,
-         allowNonFlowPortsToSwitchSides),
+        (port, portConstraints, portAlignment, allowNonFlowPortsToSwitchSides),
         (),
         ());
 };
@@ -43,12 +40,7 @@ class NodeProperties {
     hstd::Opt<hstd::Str> portConstraints;
     hstd::Opt<hstd::Str> portAlignment;
 
-    BOOST_DESCRIBE_CLASS(
-        NodeProperties,
-        (),
-        (portConstraints, portAlignment),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(NodeProperties, (), (portConstraints, portAlignment), (), ());
 };
 
 
@@ -237,13 +229,10 @@ class ElkPortVisualAttribute
     , public layout::IPortVisualAttribute {
 
   public:
-    std::string getRepr() const override {
-        return "ElkPortVisualAttribute";
-    }
+    std::string getRepr() const override { return "ElkPortVisualAttribute"; }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -257,13 +246,10 @@ class ElkPortLayoutAttribute
     : public ElkPortData
     , public layout::IPortLayoutAttribute {
   public:
-    std::string getRepr() const override {
-        return "ElkPortLayoutAttribute";
-    }
+    std::string getRepr() const override { return "ElkPortLayoutAttribute"; }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -348,13 +334,10 @@ class ElkEdgeVisualAttribute
     : public layout::IEdgeVisualAttribute
     , public ElkEdgeData {
   public:
-    std::string getRepr() const override {
-        return "ElkPortVisualAttribute";
-    }
+    std::string getRepr() const override { return "ElkPortVisualAttribute"; }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -368,10 +351,8 @@ class ElkEdgeLayoutAttribute
     : public layout::IEdgeLayoutAttribute
     , public ElkEdgeData {
   public:
-    std::string getRepr() const override {
-        return "ElkEdgeLayoutAttribute";
-    }
-    Path getPath() const override {
+    std::string getRepr() const override { return "ElkEdgeLayoutAttribute"; }
+    Path        getPath() const override {
         Path res;
         for (auto const& sec : sections) {
             res.moveTo(sec.startPoint);
@@ -383,8 +364,7 @@ class ElkEdgeLayoutAttribute
     }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -411,8 +391,7 @@ class NodeElkLayoutData {
 
     void validate() {
         LOGIC_ASSERTION_CHECK_FMT(
-            x.has_value() && x.has_value() && x.has_value()
-                && x.has_value(),
+            x.has_value() && x.has_value() && x.has_value() && x.has_value(),
             "node layout data incomplete ID {}: x={} y={} width={} "
             "height={}",
             id,
@@ -429,15 +408,11 @@ class NodeElkLayoutData {
     NodeElkLayoutData* setSize(double _width, double _height) {
         this->width  = _width;
         this->height = _height;
-        layoutOptions.set(
-            "nodeLabels.placement", "[H_CENTER, V_TOP, OUTSIDE]");
-        layoutOptions.set(
-            "portLabels.placement", "NEXT_TO_PORT_OF_POSSIBLE");
+        layoutOptions.set("nodeLabels.placement", "[H_CENTER, V_TOP, OUTSIDE]");
+        layoutOptions.set("portLabels.placement", "NEXT_TO_PORT_OF_POSSIBLE");
         layoutOptions.set("edgeLabels.placement", "CENTER");
         layoutOptions.set("elk.nodeSize.constraints", "MINIMUM_SIZE");
-        layoutOptions.set(
-            "elk.nodeSize.minimum",
-            hstd::fmt("({}, {})", _width, _height));
+        layoutOptions.set("elk.nodeSize.minimum", hstd::fmt("({}, {})", _width, _height));
         layoutOptions.set("elk.margins", 0);
         return this;
     }
@@ -465,13 +440,10 @@ class ElkNodeVisualAttribute
     : public layout::IVertexVisualAttribute
     , public NodeElkLayoutData {
   public:
-    std::string getRepr() const override {
-        return "ElkNodeVisualAttribute";
-    }
+    std::string getRepr() const override { return "ElkNodeVisualAttribute"; }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -485,13 +457,10 @@ class ElkGroupVisualAttribute
     : public layout::IGroupVisualAttribute
     , public NodeElkLayoutData {
   public:
-    std::string getRepr() const override {
-        return "ElkGroupVisualAttribute";
-    }
+    std::string getRepr() const override { return "ElkGroupVisualAttribute"; }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -500,13 +469,9 @@ class ElkGroupVisualAttribute
         IAttributeObject const*    vertex) override;
 #    endif
 
-    void setOuterPadding(geometry::Padding const& pad) override {
-        logic_todo_impl();
-    }
+    void setOuterPadding(geometry::Padding const& pad) override { logic_todo_impl(); }
 
-    hstd::Opt<geometry::Padding> getOuterPadding() const override {
-        logic_todo_impl();
-    }
+    hstd::Opt<geometry::Padding> getOuterPadding() const override { logic_todo_impl(); }
 
     std::string getStableId() const override { return local.name; }
 
@@ -521,9 +486,7 @@ class ElkGroupVisualAttribute
     hstd::SPtr<SharedCtx> shared;
     LocalCtx              local;
 
-    ElkGroupVisualAttribute(
-        hstd::SPtr<SharedCtx> const& ctx,
-        hstd::Str const&             name)
+    ElkGroupVisualAttribute(hstd::SPtr<SharedCtx> const& ctx, hstd::Str const& name)
         : layout::IGroupVisualAttribute{ctx->run}, shared{ctx} {}
 
 
@@ -534,8 +497,7 @@ class ElkGroupVisualAttribute
         hstd::SPtr<layout::LayoutRun> run,
         hstd::Str const&              name = "");
 
-    hstd::SPtr<ElkGroupVisualAttribute> addNewNativeSubgroup(
-        EdgeID const& edge) {
+    hstd::SPtr<ElkGroupVisualAttribute> addNewNativeSubgroup(EdgeID const& edge) {
         auto id  = run->getNestedVertex(edge);
         auto res = std::make_shared<ElkGroupVisualAttribute>(
             shared, hstd::fmt("cola_{}", id));
@@ -568,13 +530,10 @@ class ElkNodeLayoutAttribute
     : public layout::IVertexLayoutAttribute
     , public NodeElkLayoutData {
   public:
-    std::string getRepr() const override {
-        return "ElkNodeLayoutAttribute";
-    }
+    std::string getRepr() const override { return "ElkNodeLayoutAttribute"; }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -586,8 +545,7 @@ class ElkNodeLayoutAttribute
     hstd::SPtr<layout::LayoutRun> run;
 
 
-    ElkNodeLayoutAttribute(hstd::SPtr<layout::LayoutRun> const& run)
-        : run{run} {}
+    ElkNodeLayoutAttribute(hstd::SPtr<layout::LayoutRun> const& run) : run{run} {}
 
     Rect getBBox() const override {
         return geometry::Rect{
@@ -603,16 +561,15 @@ class ElkNodeLayoutAttribute
         auto             bb = getBBox();
         res.offset          = bb.upper_left();
         res.elements.push_back(
-            visual::VisElement{visual::VisElement::RectShape{
-                geometry::Rect::FromSize(bb.size())}});
+            visual::VisElement{
+                visual::VisElement::RectShape{geometry::Rect::FromSize(bb.size())}});
 
         res.elements.push_back(
             visual::VisElement::FromText(
                 run->getGraph()->getVertex(selfId)->getStableId()));
 
         res.custom.setAttr(
-            "inkscape:label",
-            hstd::fmt("ELK VERTEX:{}", run->getDebug(selfId)));
+            "inkscape:label", hstd::fmt("ELK VERTEX:{}", run->getDebug(selfId)));
         return res;
     }
 };
@@ -621,13 +578,10 @@ class ElkGroupLayoutAttribute
     : public layout::IGroupLayoutAttribute
     , public NodeElkLayoutData {
   public:
-    std::string getRepr() const override {
-        return "ElkGroupLayoutAttribute";
-    }
+    std::string getRepr() const override { return "ElkGroupLayoutAttribute"; }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         proto::IAttribute const*   in,
@@ -638,9 +592,7 @@ class ElkGroupLayoutAttribute
 
     geometry::Rect bbox;
 
-    void setBBox(geometry::Rect const& bbox) override {
-        this->bbox = bbox;
-    }
+    void setBBox(geometry::Rect const& bbox) override { this->bbox = bbox; }
 
     Rect getBBox() const override { return bbox; }
 
@@ -665,16 +617,7 @@ class GraphElkLayoutData {
     BOOST_DESCRIBE_CLASS(
         GraphElkLayoutData,
         (),
-        (id,
-         x,
-         y,
-         width,
-         height,
-         layoutOptions,
-         children,
-         edges,
-         ports,
-         labels),
+        (id, x, y, width, height, layoutOptions, children, edges, ports, labels),
         (),
         ());
 };
@@ -702,7 +645,7 @@ class ElkLayoutAlgorithm : public layout::IPlacementAlgorithm {
             }
         }
 
-        std::string layoutDiagram(std::string const& graphJson);
+        std::string             layoutDiagram(std::string const& graphJson);
         elk::GraphElkLayoutData layoutDiagram(
             elk::GraphElkLayoutData const&       graph,
             hstd::SPtr<layout::LayoutRun> const& run);
@@ -738,18 +681,16 @@ struct hstd::value_metadata<hstd::ext::graph::elk::Options> {
 
     static bool isEmpty(hstd::ext::graph::elk::Options const& opts) {
         return isNil(opts)
-            || ((opts.data.is_array() || opts.data.is_object())
-                && opts.data.size() == 0)
+            || ((opts.data.is_array() || opts.data.is_object()) && opts.data.size() == 0)
             || (opts.data.is_string()
                 && opts.data.get_ref<const std::string&>().size() == 0);
     }
 };
 
-#    define SPECIALIZE_WO_NULL_FIELDS(__name)                             \
-        template <>                                                       \
-        struct hstd::JsonSerde<hstd::ext::graph::elk::__name>             \
-            : hstd::JsonSerdeDescribedRecordBaseEx<                       \
-                  hstd::ext::graph::elk::__name> {};
+#    define SPECIALIZE_WO_NULL_FIELDS(__name)                                            \
+        template <>                                                                      \
+        struct hstd::JsonSerde<hstd::ext::graph::elk::__name>                            \
+            : hstd::JsonSerdeDescribedRecordBaseEx<hstd::ext::graph::elk::__name> {};
 
 SPECIALIZE_WO_NULL_FIELDS(GraphElkLayoutData);
 SPECIALIZE_WO_NULL_FIELDS(PortProperties);
@@ -761,20 +702,14 @@ SPECIALIZE_WO_NULL_FIELDS(NodeElkLayoutData);
 
 template <>
 struct hstd::JsonSerde<hstd::ext::graph::elk::Options> {
-    static json to_json(hstd::ext::graph::elk::Options const& it) {
-        return it.data;
-    }
-    static hstd::ext::graph::elk::Options from_json(json const& j) {
-        return {j};
-    }
+    static json to_json(hstd::ext::graph::elk::Options const& it) { return it.data; }
+    static hstd::ext::graph::elk::Options from_json(json const& j) { return {j}; }
 };
 
 template <>
 struct std::formatter<hstd::ext::graph::elk::Options> {
     template <typename FormatContext>
-    auto format(
-        hstd::ext::graph::elk::Options const& p,
-        FormatContext&                        ctx) const {
+    auto format(hstd::ext::graph::elk::Options const& p, FormatContext& ctx) const {
         return hstd::fmt_ctx(p.data, ctx);
     }
 };

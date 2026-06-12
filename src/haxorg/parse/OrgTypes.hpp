@@ -29,13 +29,7 @@ struct OrgNodeMono {
                 DESC_FIELDS(ParseTokenFail, (err));
             };
 
-            SUB_VARIANTS(
-                Kind,
-                Data,
-                data,
-                getKind,
-                ParseFail,
-                ParseTokenFail);
+            SUB_VARIANTS(Kind, Data, data, getKind, ParseFail, ParseTokenFail);
             Data data;
             DESC_FIELDS(Box, (data));
         };

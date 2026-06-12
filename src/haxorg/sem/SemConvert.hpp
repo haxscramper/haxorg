@@ -28,8 +28,7 @@ struct OrgConverter : public hstd::OperationsTracer {
                     "{}:{} (pos {})",
                     loc ? loc->line : -1,
                     loc ? loc->column : -1,
-                    adapter ? hstd::fmt1(adapter->id.getIndex())
-                            : hstd::fmt1("<none>"));
+                    adapter ? hstd::fmt1(adapter->id.getIndex()) : hstd::fmt1("<none>"));
             }
         };
 
@@ -40,8 +39,7 @@ struct OrgConverter : public hstd::OperationsTracer {
             UnhandledKind(OrgNodeKind kind) : kind(kind) {}
             const char* what() const noexcept override {
                 return hstd::strdup(
-                    hstd::fmt(
-                        "Unexpected kind {} at {}", kind, getLocMsg()));
+                    hstd::fmt("Unexpected kind {} at {}", kind, getLocMsg()));
             };
         };
     };
@@ -54,34 +52,27 @@ struct OrgConverter : public hstd::OperationsTracer {
         ConvertError() : err(Errors::None()) {}
         explicit ConvertError(Error const& err) : err(err) {}
         const char* what() const noexcept override {
-            return std::visit(
-                [](auto const& in) { return in.what(); }, err);
+            return std::visit([](auto const& in) { return in.what(); }, err);
         }
         void setLoc(org::parse::SourceLoc const& loc) {
             std::visit([&loc](auto& in) { in.loc = loc; }, err);
         }
 
         void setAdapter(org::parse::OrgAdapter const& adapter) {
-            std::visit(
-                [&adapter](auto& in) { in.adapter = adapter; }, err);
+            std::visit([&adapter](auto& in) { in.adapter = adapter; }, err);
         }
 
 
         hstd::Opt<org::parse::OrgAdapter> getAdapter() const {
             return std::visit(
-                [](auto& in) -> hstd::Opt<org::parse::OrgAdapter> {
-                    return in.adapter;
-                },
+                [](auto& in) -> hstd::Opt<org::parse::OrgAdapter> { return in.adapter; },
                 err);
         }
     };
 
-    ConvertError wrapError(
-        Error const&                  err,
-        org::parse::OrgAdapter const& adapter);
-    hstd::Opt<org::parse::SourceLoc> getLoc(
-        org::parse::OrgAdapter const& adapter);
-    std::string getLocMsg(org::parse::OrgAdapter const& adapter);
+    ConvertError wrapError(Error const& err, org::parse::OrgAdapter const& adapter);
+    hstd::Opt<org::parse::SourceLoc> getLoc(org::parse::OrgAdapter const& adapter);
+    std::string                      getLocMsg(org::parse::OrgAdapter const& adapter);
 
   public:
     enum class ReportKind
@@ -108,13 +99,9 @@ struct OrgConverter : public hstd::OperationsTracer {
 
     OrgConverter() { spec = getOrgSpec(); }
 
-    org::parse::OrgAdapter one(
-        org::parse::OrgAdapter node,
-        OrgSpecName            name);
+    org::parse::OrgAdapter one(org::parse::OrgAdapter node, OrgSpecName name);
 
-    hstd::Vec<org::parse::OrgAdapter> many(
-        org::parse::OrgAdapter node,
-        OrgSpecName            name);
+    hstd::Vec<org::parse::OrgAdapter> many(org::parse::OrgAdapter node, OrgSpecName name);
 
     template <typename T>
     struct ConvResult {
@@ -141,12 +128,9 @@ struct OrgConverter : public hstd::OperationsTracer {
 
         ConvResult(SemId<T> value) : data{Node{.node = value}} {}
 
-        ConvResult(SemId<ErrorGroup> error)
-            : data{Error{.error = error}} {}
+        ConvResult(SemId<ErrorGroup> error) : data{Error{.error = error}} {}
 
-        SemId<Org> unwrap() const {
-            return isNode() ? value().asOrg() : error().asOrg();
-        }
+        SemId<Org> unwrap() const { return isNode() ? value().asOrg() : error().asOrg(); }
 
         SemId<T>          value() const { return getNode().node; }
         SemId<ErrorGroup> error() const { return getError().error; }
@@ -159,9 +143,7 @@ struct OrgConverter : public hstd::OperationsTracer {
     hstd::Vec<ConvResult<Org>>   flatConvertAttachedSubnodes(In item);
 
     ConvResult<BlockDynamicFallback> convertBlockDynamicFallback(In);
-    void                             convertDocumentOptions(
-        SemId<DocumentOptions> opts,
-        parse::OrgAdapter      a);
+    void convertDocumentOptions(SemId<DocumentOptions> opts, parse::OrgAdapter a);
 
     ConvResult<Table>           convertTable(In);
     ConvResult<HashTag>         convertHashTag(In);
@@ -233,12 +215,9 @@ struct OrgConverter : public hstd::OperationsTracer {
         parse::OrgAdapter node;
     };
 
-    ConvResult<Document> convertDocumentFragments(
-        hstd::Vec<InFragment> const& fragments);
+    ConvResult<Document> convertDocumentFragments(hstd::Vec<InFragment> const& fragments);
 
-    bool updateDocument(
-        SemId<Document>&         doc,
-        parse::OrgAdapter const& sub);
+    bool updateDocument(SemId<Document>& doc, parse::OrgAdapter const& sub);
 
     sem::AttrValue convertAttr(In);
     sem::AttrGroup convertAttrs(In);
@@ -293,13 +272,12 @@ struct OrgConverter : public hstd::OperationsTracer {
     org::sem::OrgDiagnostics MakeConvert(
         org::parse::OrgAdapter const&                 a,
         org::sem::OrgDiagnostics::ConvertError const& conv,
-        hstd::Opt<hstd::Str> const& extraDetail = std::nullopt,
-        int                         line        = __builtin_LINE(),
-        char const*                 function    = __builtin_FUNCTION(),
-        char const*                 file        = __builtin_FILE());
+        hstd::Opt<hstd::Str> const&                   extraDetail = std::nullopt,
+        int                                           line        = __builtin_LINE(),
+        char const*                                   function    = __builtin_FUNCTION(),
+        char const*                                   file        = __builtin_FILE());
 
-    hstd::Opt<org::parse::SourceLoc> MakeSourceLocation(
-        org::parse::OrgAdapter const& a);
+    hstd::Opt<org::parse::SourceLoc> MakeSourceLocation(org::parse::OrgAdapter const& a);
 
     SemId<Org> convert(In);
 

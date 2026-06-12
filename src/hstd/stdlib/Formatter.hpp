@@ -19,9 +19,7 @@ void with_std_formatter(T const& value) {
         std::format_context*     ctx;
         std::formatter<T> const* fmt;
         auto                     result = fmt->format(value, *ctx);
-        static_assert(std::is_same_v<
-                      decltype(result),
-                      std::format_context::iterator>);
+        static_assert(std::is_same_v<decltype(result), std::format_context::iterator>);
     }
 }
 
@@ -45,8 +43,7 @@ std::string fmt1_maybe(T const& t) {
 
 template <typename T>
 std::string fmt1_maybe([[maybe_unused]] T const& t) {
-    return std::format(
-        "[not formattable {}]", hstd::value_metadata<T>::typeName());
+    return std::format("[not formattable {}]", hstd::value_metadata<T>::typeName());
 }
 
 
@@ -83,8 +80,7 @@ struct std_format_ptr_as_hex : std::formatter<std::string> {
         if (p == nullptr) {
             return fmt_ctx("nullptr", ctx);
         } else {
-            return fmt_ctx(
-                std::format("{:p}", static_cast<const void*>(p)), ctx);
+            return fmt_ctx(std::format("{:p}", static_cast<const void*>(p)), ctx);
         }
     }
 };
@@ -96,8 +92,7 @@ struct std_format_ptr_as_hex_and_value : std::formatter<std::string> {
         if (p == nullptr) {
             return fmt_ctx("nullptr", ctx);
         } else {
-            fmt_ctx(
-                std::format("{:p}->", static_cast<const void*>(p)), ctx);
+            fmt_ctx(std::format("{:p}->", static_cast<const void*>(p)), ctx);
             return fmt_ctx(*p, ctx);
         }
     }
@@ -106,8 +101,7 @@ struct std_format_ptr_as_hex_and_value : std::formatter<std::string> {
 template <typename T, typename Container>
 struct std_item_iterator_formatter : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(Container const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(Container const& p, FormatContext& ctx) const {
         fmt_ctx("[", ctx);
         bool first = true;
         for (const auto& value : p) {
@@ -122,8 +116,7 @@ struct std_item_iterator_formatter : std::formatter<std::string> {
 template <typename K, typename V, typename Type>
 struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(Type const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(Type const& p, FormatContext& ctx) const {
         fmt_ctx("{", ctx);
         bool first = true;
         for (const auto& [key, value] : p) {
@@ -141,8 +134,7 @@ struct std_kv_tuple_iterator_formatter : std::formatter<std::string> {
 template <typename T, typename Set>
 struct std_unordered_sequence_formatter : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(Set const& p, FormatContext& ctx)
-        const {
+    FormatContext::iterator format(Set const& p, FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         fmt.format("{", ctx);
         bool first = true;
@@ -175,11 +167,9 @@ template <>
 struct std::formatter<int*> : hstd::std_format_ptr_as_value<int> {};
 
 template <typename T>
-struct std::formatter<std::reference_wrapper<T>>
-    : std::formatter<std::string> {
+struct std::formatter<std::reference_wrapper<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(std::reference_wrapper<T> const& p, FormatContext& ctx)
-        const {
+    auto format(std::reference_wrapper<T> const& p, FormatContext& ctx) const {
         return fmt_ctx(p.get(), ctx);
     }
 };

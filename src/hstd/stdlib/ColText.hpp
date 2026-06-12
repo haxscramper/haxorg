@@ -120,8 +120,8 @@ inline bool isDefault(TermColorBg8Bit bg) { return (u8)bg == 0; }
 struct ColStyle {
     TermColorFg8Bit fg = (TermColorFg8Bit)0; /*!Foreground color */
     TermColorBg8Bit bg = (TermColorBg8Bit)0; /*!Background */
-    IntSet<Style> style; /*!Other styling options (italic, underline, dim,
-                         bright etc.) */
+    IntSet<Style>   style; /*!Other styling options (italic, underline, dim,
+                           bright etc.) */
 
     inline ColStyle() {}
     inline ColStyle(TermColorFg8Bit fg) : fg(fg) {}
@@ -144,9 +144,7 @@ struct ColStyle {
         return fg == other.fg && bg == other.bg && style == other.style;
     }
 
-    bool operator!=(ColStyle const& other) const {
-        return !(*this == other);
-    }
+    bool operator!=(ColStyle const& other) const { return !(*this == other); }
 
     // clang-format off
     ColStyle& red() { fg = TermColorFg8Bit::Red; return *this; }
@@ -167,9 +165,7 @@ struct ColRune;
 struct ColText;
 
 /*! Create ansi escape sequence with given code */
-inline std::string ansiEsc(int code) {
-    return ESC_PREFIX + std::to_string(code) + "m";
-}
+inline std::string ansiEsc(int code) { return ESC_PREFIX + std::to_string(code) + "m"; }
 
 
 /*! Create ansi escape sequence with given terminal color */
@@ -195,9 +191,7 @@ std::string to_string(ColRune const& rune, const bool& color = true);
 /// Convert sequence of colored runes to the std::string, with ansi escape
 /// sequences in. `color` controls whether styling is going to be applied
 /// or not.
-std::string to_colored_string(
-    Vec<ColRune> const& runes,
-    const bool&         color = true);
+std::string to_colored_string(Vec<ColRune> const& runes, const bool& color = true);
 
 std::string to_colored_html(Vec<ColRune> const& runes);
 
@@ -226,9 +220,7 @@ struct ColRune {
         return rune == other.rune && style == other.style;
     }
 
-    bool operator!=(ColRune const& other) const {
-        return !(*this == other);
-    }
+    bool operator!=(ColRune const& other) const { return !(*this == other); }
 
     DESC_FIELDS(ColRune, (rune, style));
 };
@@ -252,8 +244,7 @@ struct ColText : hstd::Vec<ColRune> {
     ColText(std::string const& text) : ColText(ColStyle{}, text) {}
     ColText(Span<ColRune> text) : Vec<ColRune>{text} {}
 
-    ColText(ColStyle const& style, char text)
-        : Vec<ColRune>({ColRune(text, style)}) {}
+    ColText(ColStyle const& style, char text) : Vec<ColRune>({ColRune(text, style)}) {}
 
 
     inline ColText operator<<=(int n) const { return leftAligned(n); }
@@ -300,16 +291,13 @@ struct ColStream : public ColText {
     int           position = 0;
 
 
-    ColText const& getBuffer() const {
-        return *static_cast<ColText const*>(this);
-    }
+    ColText const& getBuffer() const { return *static_cast<ColText const*>(this); }
 
     ColStream() : buffered(true) {};
     ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
 
     finally_std style_scope() {
-        return finally_std{
-            [this, start = active]() { this->active = start; }};
+        return finally_std{[this, start = active]() { this->active = start; }};
     }
 
     // clang-format off

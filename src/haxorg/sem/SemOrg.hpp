@@ -23,7 +23,6 @@ concept NotOrg = !(
 /// \brief  Compile-time check whether the element is an org-mode node or
 /// an org-mode ID
 template <typename T>
-concept IsOrg = std::
-    derived_from<typename remove_sem_org<T>::type, sem::Org>;
+concept IsOrg = std::derived_from<typename remove_sem_org<T>::type, sem::Org>;
 
 }; // namespace org::sem

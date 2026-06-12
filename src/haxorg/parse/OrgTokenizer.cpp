@@ -39,11 +39,10 @@ struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
     }
 };
 
-#define x_report(kind, ...)                                               \
-    if (TraceState) {                                                     \
-        this->report(                                                     \
-            (::Builder(lex, OrgTokenizer::ReportKind::kind) __VA_ARGS__)  \
-                .report);                                                 \
+#define x_report(kind, ...)                                                              \
+    if (TraceState) {                                                                    \
+        this->report(                                                                    \
+            (::Builder(lex, OrgTokenizer::ReportKind::kind) __VA_ARGS__).report);        \
     }
 
 
@@ -67,7 +66,7 @@ bool opt_equal_kind(Opt<CRw<Token<K, V>>> const& opt, K const& value) {
 }
 
 
-#define IN_SET(value, first, ...)                                         \
+#define IN_SET(value, first, ...)                                                        \
     (IntSet<decltype((first))>{first, __VA_ARGS__}.contains((value)))
 
 template <typename T, typename... Args>
@@ -83,13 +82,10 @@ OrgFill fill(OrgLexer& lex) {
 template <typename T>
 struct std::formatter<rs::subrange<T>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        rs::subrange<T> const& p,
-        FormatContext&         ctx) const {
+    FormatContext::iterator format(rs::subrange<T> const& p, FormatContext& ctx) const {
         fmt_ctx("[", ctx);
         bool first = true;
-        for (auto begin = rs::begin(p); begin != rs::end(p);
-             begin      = std::next(begin)) {
+        for (auto begin = rs::begin(p); begin != rs::end(p); begin = std::next(begin)) {
             if (!first) { fmt_ctx(", ", ctx); }
             fmt_ctx(*begin, ctx);
             first = false;
@@ -163,8 +159,7 @@ struct RecombineState {
 
 
     void next(OrgLexer& lex, int line = __builtin_LINE()) {
-        x_report(
-            Print, .with_line(line).with_msg(fmt("next {}", lex.tok())));
+        x_report(Print, .with_line(line).with_msg(fmt("next {}", lex.tok())));
         lex.next();
     }
 
@@ -172,17 +167,11 @@ struct RecombineState {
         x_report(Print, .with_line(line).with_msg(msg));
     }
 
-    std::string const& tok_str(int offset = 0) const {
-        return lex.tok(offset)->text;
-    }
+    std::string const& tok_str(int offset = 0) const { return lex.tok(offset)->text; }
 
 
-    void skip(
-        OrgLexer&    lex,
-        OrgTokenKind kind,
-        int          line = __builtin_LINE()) {
-        x_report(
-            Print, .with_line(line).with_msg(fmt("skip {}", lex.tok())));
+    void skip(OrgLexer& lex, OrgTokenKind kind, int line = __builtin_LINE()) {
+        x_report(Print, .with_line(line).with_msg(fmt("skip {}", lex.tok())));
         lex.skip(kind);
     }
 
@@ -195,14 +184,9 @@ struct RecombineState {
         return res;
     }
 
-    void pop(
-        Opt<OrgTokenKind> expected = std::nullopt,
-        int               line     = __builtin_LINE()) {
+    void pop(Opt<OrgTokenKind> expected = std::nullopt, int line = __builtin_LINE()) {
         auto res = d->out->add(lex.tok());
-        x_report(
-            Push,
-            .with_id(res).with_line(line).with_msg(
-                fmt("pop {}", lex.tok())));
+        x_report(Push, .with_id(res).with_line(line).with_msg(fmt("pop {}", lex.tok())));
         if (expected) {
             lex.skip(*expected);
         } else {
@@ -249,10 +233,7 @@ struct RecombineState {
         return res;
     }
 
-    OrgTokenId add_fake(
-        OrgTokenKind __to,
-        OrgFill      fill,
-        int          line = __builtin_LINE()) {
+    OrgTokenId add_fake(OrgTokenKind __to, OrgFill fill, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill});
         x_report(
             Push,
@@ -290,24 +271,16 @@ struct RecombineState {
 
         auto [open, close, unknown] = //
             UnorderedMap<otk, std::tuple<otk, otk, otk>>{
-                {otk::Asterisk,
-                 {otk::BoldBegin, otk::BoldEnd, otk::BoldUnknown}},
+                {otk::Asterisk, {otk::BoldBegin, otk::BoldEnd, otk::BoldUnknown}},
                 {otk::ForwardSlash,
                  {otk::ItalicBegin, otk::ItalicEnd, otk::ItalicUnknown}},
                 {otk::Underline,
-                 {otk::UnderlineBegin,
-                  otk::UnderlineEnd,
-                  otk::UnderlineUnknown}},
+                 {otk::UnderlineBegin, otk::UnderlineEnd, otk::UnderlineUnknown}},
                 {otk::Equals,
-                 {otk::VerbatimBegin,
-                  otk::VerbatimEnd,
-                  otk::VerbatimUnknown}},
-                {otk::Plus,
-                 {otk::StrikeBegin, otk::StrikeEnd, otk::StrikeUnknown}},
+                 {otk::VerbatimBegin, otk::VerbatimEnd, otk::VerbatimUnknown}},
+                {otk::Plus, {otk::StrikeBegin, otk::StrikeEnd, otk::StrikeUnknown}},
                 {otk::Tilda,
-                 {otk::MonospaceBegin,
-                  otk::MonospaceEnd,
-                  otk::MonospaceUnknown}},
+                 {otk::MonospaceBegin, otk::MonospaceEnd, otk::MonospaceUnknown}},
             }
                 .at(lex.kind());
 
@@ -316,12 +289,12 @@ struct RecombineState {
         bool next_empty = !next || EmptyToken.contains(next->kind);
 
         if (TraceState) {
-            print(fmt(
-                "prev kind {} next kind {} prev_empty={} next_empty={}",
-                prev ? prev->kind : otk::Unknown,
-                next ? next->kind : otk::Unknown,
-                prev_empty,
-                next_empty));
+            print(
+                fmt("prev kind {} next kind {} prev_empty={} next_empty={}",
+                    prev ? prev->kind : otk::Unknown,
+                    next ? next->kind : otk::Unknown,
+                    prev_empty,
+                    next_empty));
         }
 
         if (prev_empty && !next_empty) {
@@ -331,13 +304,11 @@ struct RecombineState {
             add_fake(close, {lex.tok().value});
             lex.next();
         } else if (
-            prev_empty
-            && (lex.kind() == otk::Tilda || lex.kind() == otk::Equals)) {
+            prev_empty && (lex.kind() == otk::Tilda || lex.kind() == otk::Equals)) {
             add_fake(open, {lex.tok().value});
             lex.next();
         } else if (
-            next_empty
-            && (lex.kind() == otk::Tilda || lex.kind() == otk::Equals)) {
+            next_empty && (lex.kind() == otk::Tilda || lex.kind() == otk::Equals)) {
             add_fake(close, {lex.tok().value});
             lex.next();
         } else if (next_empty && prev_empty) {
@@ -445,8 +416,7 @@ struct RecombineState {
             }
 
             case otk::CmdRawArg: {
-                if (tok_str().starts_with('"')
-                    && !tok_str().ends_with('"')) {
+                if (tok_str().starts_with('"') && !tok_str().ends_with('"')) {
                     Vec<OrgToken> buf;
                     buf.push_back(lex.tok());
                     lex.pop();
@@ -454,9 +424,7 @@ struct RecombineState {
                            || lex.tok().kind == OrgTokenKind::CmdRawArg) {
                         buf.push_back(lex.tok());
                         lex.pop();
-                        if (buf.back().value.text.ends_with('"')) {
-                            break;
-                        }
+                        if (buf.back().value.text.ends_with('"')) { break; }
                     }
 
                     if (buf.back().value.text.ends_with('"')) {
@@ -488,8 +456,7 @@ struct RecombineState {
             }
 
             case otk::At: {
-                add_fake(
-                    otk::At, loc_fill(lex.tok().value.text.substr(1)));
+                add_fake(otk::At, loc_fill(lex.tok().value.text.substr(1)));
                 lex.next();
                 break;
             }
@@ -522,15 +489,13 @@ struct RecombineState {
             case otk::Placeholder: {
                 add_fake(
                     otk::Placeholder,
-                    loc_fill(lex.val().text.substr(
-                        1, lex.val().text.size() - 2)));
+                    loc_fill(lex.val().text.substr(1, lex.val().text.size() - 2)));
                 lex.next();
                 break;
             }
 
             case otk::TextSrcBegin: {
-                add_fake(
-                    otk::TextSrcBegin, loc_fill(lex.val().text.substr(4)));
+                add_fake(otk::TextSrcBegin, loc_fill(lex.val().text.substr(4)));
                 lex.next();
                 break;
             }
@@ -555,17 +520,13 @@ struct RecombineState {
             case otk::ColonExampleLine: {
                 add_fake(
                     otk::ColonExampleLine,
-                    loc_fill(
-                        1 < lex.val().text.size()
-                            ? lex.val().text.substr(2)
-                            : ""));
+                    loc_fill(1 < lex.val().text.size() ? lex.val().text.substr(2) : ""));
                 lex.next();
                 break;
             }
 
             case otk::FootnoteLinked: {
-                auto text = lex.val().text.dropPrefix("[fn:").dropSuffix(
-                    "]");
+                auto text = lex.val().text.dropPrefix("[fn:").dropSuffix("]");
                 add_fake(otk::FootnoteLinked, loc_fill(text));
                 lex.next();
                 break;
@@ -595,8 +556,7 @@ struct RecombineState {
                 val.text,
                 lex.pos.format(),
                 lex.printToString([](ColStream& os, OrgToken const& t) {
-                    os << os.yellow() << escape_for_write(t.value.text)
-                       << os.end();
+                    os << os.yellow() << escape_for_write(t.value.text) << os.end();
                 }));
         }
     }
@@ -623,8 +583,7 @@ struct LineToken {
 
     bool isListBreakingItem() const {
         if (auto last = tokens.get(1_B)) {
-            return kind == Kind::ListItem
-                && last->get().kind == otk::LongNewline;
+            return kind == Kind::ListItem && last->get().kind == otk::LongNewline;
         } else {
             return false;
         }
@@ -698,14 +657,10 @@ struct LineToken {
         }
     }
 
-    void setLineCommandKind(
-        Span<OrgToken> const& tokens,
-        int                   tokensOffset) {
+    void setLineCommandKind(Span<OrgToken> const& tokens, int tokensOffset) {
         OrgToken const& current = tokens.at(tokensOffset);
         if (current.kind == otk::LineCommand) {
-            if (auto next = whichBlockLineKind(
-                    tokens.at(tokensOffset + 1).kind);
-                next) {
+            if (auto next = whichBlockLineKind(tokens.at(tokensOffset + 1).kind); next) {
                 kind = *next;
             } else {
                 throw tokenizer_error::init(
@@ -719,8 +674,7 @@ struct LineToken {
             kind = Kind::BlockClose;
         } else {
             throw tokenizer_error::init(
-                fmt("Expected line command or closing block, but got {}",
-                    current.kind));
+                fmt("Expected line command or closing block, but got {}", current.kind));
         }
     }
 
@@ -743,15 +697,11 @@ struct LineToken {
                 case otk::ColonProperties:
                 case otk::ColonLogbook: kind = Kind::Property; break;
 
-                case otk::LineCommand:
-
-                    setLineCommandKind(tokens, 1);
-                    break;
+                case otk::LineCommand: setLineCommandKind(tokens, 1); break;
 
                 default: {
-                    kind = CmdBlockClose.contains(next->get().kind)
-                             ? Kind::BlockClose
-                             : Kind::IndentedLine;
+                    kind = CmdBlockClose.contains(next->get().kind) ? Kind::BlockClose
+                                                                    : Kind::IndentedLine;
                     break;
                 }
             }
@@ -817,9 +767,7 @@ struct LineToken {
             case otk::TreeClock: kind = Kind::ListItem; break;
 
             default: {
-                kind = CmdBlockClose.contains(first.kind)
-                         ? Kind::BlockClose
-                         : Kind::Line;
+                kind = CmdBlockClose.contains(first.kind) ? Kind::BlockClose : Kind::Line;
                 break;
             }
         }
@@ -853,9 +801,7 @@ struct GroupToken {
     Data data;
 
     bool isSrc() const {
-        if (!(isNested() && getNested().subgroups.has(0))) {
-            return false;
-        }
+        if (!(isNested() && getNested().subgroups.has(0))) { return false; }
 
         auto const& gr1 = getNested().subgroups.at(0);
         if (gr1.isNested()) { return false; }
@@ -865,8 +811,8 @@ struct GroupToken {
         if (first) {
             auto const& token = first->get().tokens.get(0);
             if (token) {
-                return OrgTokSet{otk::SrcContent, otk::CmdExampleLine}
-                    .contains(token->get().kind);
+                return OrgTokSet{otk::SrcContent, otk::CmdExampleLine}.contains(
+                    token->get().kind);
             } else {
                 return false;
             }
@@ -876,8 +822,7 @@ struct GroupToken {
     }
 
     void push_back(Span<LineToken> lines, Kind kind) {
-        getNested().subgroups.push_back(
-            GroupToken{.data = Leaf{lines}, .kind = kind});
+        getNested().subgroups.push_back(GroupToken{.data = Leaf{lines}, .kind = kind});
     }
 
 
@@ -907,9 +852,7 @@ struct TokenVisitor {
             if (line_end.contains(it->kind)) {
                 auto span = IteratorSpan(start, std::next(it));
                 auto line = LineToken{span};
-                if (TraceState) {
-                    d->print(lex, fmt("{} {}", line.kind, line.tokens));
-                }
+                if (TraceState) { d->print(lex, fmt("{} {}", line.kind, line.tokens)); }
                 lines.push_back(line);
                 start = std::next(it);
             }
@@ -933,9 +876,7 @@ struct TokenVisitor {
             auto __scope  = d->begin_scope();
             auto end      = lines.end();
             auto nextline = [&]() { ++it; };
-            if (TraceState) {
-                d->message(fmt("{} {}", it->kind, it->tokens));
-            }
+            if (TraceState) { d->message(fmt("{} {}", it->kind, it->tokens)); }
 
             auto start = it;
             switch (start->kind) {
@@ -943,8 +884,7 @@ struct TokenVisitor {
                 case LK::Line: {
                     int start_indent = start->indent;
                     while (it != end
-                           && (it->kind == LK::Line
-                               || it->kind == LK::IndentedLine)
+                           && (it->kind == LK::Line || it->kind == LK::IndentedLine)
                            && (start_indent <= it->indent)) {
                         nextline();
                     }
@@ -983,9 +923,7 @@ struct TokenVisitor {
                 }
 
                 case LK::Property: {
-                    while (it != end && it->kind == LK::Property) {
-                        nextline();
-                    }
+                    while (it != end && it->kind == LK::Property) { nextline(); }
 
                     return GroupToken{
                         .data = GroupToken::Leaf{IteratorSpan(start, it)},
@@ -1001,9 +939,7 @@ struct TokenVisitor {
 
                 default: {
                     throw tokenizer_error::init(
-                        fmt("Unhandled line kind {} {}",
-                            start->kind,
-                            it->tokens));
+                        fmt("Unhandled line kind {} {}", start->kind, it->tokens));
                     return std::nullopt;
                 }
             }
@@ -1082,9 +1018,7 @@ struct GroupVisitorState {
         if (TraceState) {
             d->print(
                 lex,
-                fmt("  ADD LINE: indent={} kind={}",
-                    line.indent,
-                    line.kind),
+                fmt("  ADD LINE: indent={} kind={}", line.indent, line.kind),
                 code_line,
                 function);
         }
@@ -1101,8 +1035,7 @@ struct GroupVisitorState {
                          || tokens.get(tok_idx - 1).value().get().kind
                                 == otk::LeadingSpace)
                         && tokens.get(tok_idx + 1)
-                        && tokens.get(tok_idx + 1)->get().kind
-                               == otk::Whitespace
+                        && tokens.get(tok_idx + 1)->get().kind == otk::Whitespace
                         && gr.kind == GK::ListItem) {
                         add_base(tok, ind);
 
@@ -1143,9 +1076,9 @@ struct GroupVisitorState {
     void rec_convert_groups(Vec<GroupToken> const& groups) {
         Vec<int> ind{};
         for (auto gr_index = 0; gr_index < groups.size(); ++gr_index) {
-            auto const& gr = groups.at(gr_index);
-            auto dbg = [&](int         line     = __builtin_LINE(),
-                           char const* function = __builtin_FUNCTION()) {
+            auto const& gr  = groups.at(gr_index);
+            auto        dbg = [&](int         line     = __builtin_LINE(),
+                                  char const* function = __builtin_FUNCTION()) {
                 if (TraceState) {
                     print1(
                         fmt("indent: {}, gr.indent(): {} index {}",
@@ -1199,9 +1132,7 @@ struct GroupVisitorState {
                         prev && prev.value().get().kind == GK::ListItem) {
                         auto const& it = prev.value().get();
                         if (it.isLeaf()
-                            && it.getLeaf()
-                                   .lines.back()
-                                   .isListBreakingItem()) {
+                            && it.getLeaf().lines.back().isListBreakingItem()) {
                             add_fake(otk::Dedent, ind);
                             add_fake(otk::Indent, ind);
                         } else {
@@ -1250,8 +1181,7 @@ struct GroupVisitorState {
                         auto const& t = line.tokens;
                         if ((t.size() == 2 && t.at(0)->text.empty()
                              && line_end.contains(t.at(1).kind))
-                            || (t.size() == 1
-                                && line_end.contains(t.at(0).kind))) {
+                            || (t.size() == 1 && line_end.contains(t.at(0).kind))) {
                             continue;
                         } else if (!line.tokens.empty()) {
                             minIndent = std::min(line.indent, minIndent);
@@ -1265,8 +1195,7 @@ struct GroupVisitorState {
                 // on any line
                 for (auto const& sub : nest.subgroups) {
                     for (auto const& line : sub.getLeaf().lines) {
-                        for (auto const& [idx, tok] :
-                             enumerate(line.tokens)) {
+                        for (auto const& [idx, tok] : enumerate(line.tokens)) {
                             if (idx == 0) {
                                 OrgToken tmp;
                                 tmp.kind  = tok.kind;
@@ -1274,8 +1203,7 @@ struct GroupVisitorState {
                                     .loc  = tok.value.loc,
                                     .text = tok.value.text.empty()
                                               ? tok.value.text
-                                              : tok.value.text.substr(
-                                                    minIndent),
+                                              : tok.value.text.substr(minIndent),
                                 };
 
                                 add_base(tmp, ind);
@@ -1317,10 +1245,7 @@ struct GroupVisitorState {
         int  width   = 96 + 9;
         auto aligned = text
                      + Str(" ").repeated(
-                         std::clamp<int>(
-                             width - (text.runeLen() + level * 2),
-                             0,
-                             width));
+                         std::clamp<int>(width - (text.runeLen() + level * 2), 0, width));
 
         d->print(lex, aligned, line, "group", level);
     };
@@ -1344,8 +1269,7 @@ struct GroupVisitorState {
                 code_line,
                 function);
 
-            for (int token_idx = 0; token_idx < line.tokens.size();
-                 ++token_idx) {
+            for (int token_idx = 0; token_idx < line.tokens.size(); ++token_idx) {
                 print1(
                     fmt("[{}] {}", token_idx, line.tokens.at(token_idx)),
                     level + 1,
@@ -1356,17 +1280,13 @@ struct GroupVisitorState {
     };
 
     void print_groups(Vec<GroupToken> const& groups) {
-        Func<void(Vec<GroupToken> const& groups, int level)>
-            rec_print_group;
+        Func<void(Vec<GroupToken> const& groups, int level)> rec_print_group;
         rec_print_group = [&](Vec<GroupToken> const& groups, int level) {
             for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
                 auto const& gr = groups.at(gr_index);
                 if (TraceState) {
                     print1(
-                        fmt("[{}] group:{} indent {}",
-                            gr_index,
-                            gr.kind,
-                            gr.indent()),
+                        fmt("[{}] group:{} indent {}", gr_index, gr.kind, gr.indent()),
                         level);
                 }
 
@@ -1375,8 +1295,7 @@ struct GroupVisitorState {
                     rec_print_group(gr.getNested().subgroups, level + 2);
                     print_line(gr.getNested().end, "end", level + 2);
                 } else {
-                    for (int line_index = 0;
-                         line_index < gr.getLeaf().lines.size();
+                    for (int line_index = 0; line_index < gr.getLeaf().lines.size();
                          ++line_index) {
                         print_line(
                             gr.getLeaf().lines.at(line_index),
@@ -1433,12 +1352,7 @@ void OrgTokenizer::print(
     char const*        function,
     int                extraIndent) {
     if (TraceState) {
-        auto rep = Builder(
-                       lex,
-                       OrgTokenizer::ReportKind::Print,
-                       __FILE__,
-                       line,
-                       function)
+        auto rep = Builder(lex, OrgTokenizer::ReportKind::Print, __FILE__, line, function)
                        .with_msg(msg)
                        .report;
 

@@ -24,10 +24,6 @@ struct hstd::JsonSerde<YAML::Mark> {
 
 template <>
 struct hstd::JsonSerde<YAML::Node> {
-    static YAML::Node from_json(json const& j) {
-        return org::test::toYaml(j);
-    }
-    static json to_json(YAML::Node const& j) {
-        return org::test::toJson(j);
-    }
+    static YAML::Node from_json(json const& j) { return org::test::toYaml(j); }
+    static json       to_json(YAML::Node const& j) { return org::test::toJson(j); }
 };

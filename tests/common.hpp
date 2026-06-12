@@ -29,33 +29,25 @@ extern TestParameters testParameters;
 // cannot believe anyone would even consider writing a library that would
 // depend on ADL for customization points. It is a pure unmitigated
 // disaster with no way to debug or consistently provide implementation.
-#define GTEST_ADL_PRINT_TYPE(__type)                                      \
-    namespace testing {                                                   \
-    inline std::string PrintToString(__type const& value) {               \
-        return hstd::fmt1(value);                                         \
-    }                                                                     \
-                                                                          \
-    namespace internal {                                                  \
-    template <typename Other>                                             \
-    class FormatForComparison<__type, Other> {                            \
-      public:                                                             \
-        static ::std::string Format(const __type& value) {                \
-            return hstd::fmt1(value);                                     \
-        }                                                                 \
-    };                                                                    \
-    }                                                                     \
+#define GTEST_ADL_PRINT_TYPE(__type)                                                     \
+    namespace testing {                                                                  \
+    inline std::string PrintToString(__type const& value) { return hstd::fmt1(value); }  \
+                                                                                         \
+    namespace internal {                                                                 \
+    template <typename Other>                                                            \
+    class FormatForComparison<__type, Other> {                                           \
+      public:                                                                            \
+        static ::std::string Format(const __type& value) { return hstd::fmt1(value); }   \
+    };                                                                                   \
+    }                                                                                    \
     } // namespace testing
 
 
 GTEST_ADL_PRINT_TYPE(hstd::Str);
 
-hstd::fs::path getDebugFile(
-    const hstd::Str& suffix      = "",
-    bool             cleanParent = false);
+hstd::fs::path getDebugFile(const hstd::Str& suffix = "", bool cleanParent = false);
 
-hstd::fs::path getDebugDir(
-    const hstd::Str& suffix = "",
-    bool             clean  = false);
+hstd::fs::path getDebugDir(const hstd::Str& suffix = "", bool clean = false);
 
 hstd::log::log_sink_scope getDebugLogScope(
     hstd::Str const& suffix      = "execution.log",
@@ -100,20 +92,16 @@ std::string format_test_fail(
 // suite print values in some sane capacity, greasy cumshots are splattered
 // over the docs are not worth shit, they don't even match whatever is in
 // the `gtest.h` header. `AbslStringify`, right. Fuck you.
-#define EXPECT_EQ2(lhs, rhs)                                              \
-    EXPECT_EQ(lhs, rhs) << format_test_fail(lhs, rhs, #lhs, #rhs)
+#define EXPECT_EQ2(lhs, rhs) EXPECT_EQ(lhs, rhs) << format_test_fail(lhs, rhs, #lhs, #rhs)
 
 
 template <typename T>
-hstd::ColText __gtest_assert_eq_seq_fail_message(
-    T const& lhs,
-    T const& rhs) {
+hstd::ColText __gtest_assert_eq_seq_fail_message(T const& lhs, T const& rhs) {
     return hstd::formatDiffed(
         lhs,
         rhs,
         hstd::FormattedDiff::Conf{
-            .formatLine = hstd::FormattedDiff::getSequenceFormatterCb(
-                &lhs, &rhs, true)});
+            .formatLine = hstd::FormattedDiff::getSequenceFormatterCb(&lhs, &rhs, true)});
 }
 
 template <>
@@ -131,53 +119,50 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
     hstd::ColText const& lhs,
     hstd::ColText const& rhs);
 
-#define GTEST_ASSERT_EQ_SEQ(__lhs_arg, __rhs_arg)                         \
-    {                                                                     \
-        auto const __lhs = __lhs_arg;                                     \
-        auto const __rhs = __rhs_arg;                                     \
-        if (!(__lhs == __rhs)) {                                          \
-            FAIL() << __gtest_assert_eq_seq_fail_message(__lhs, __rhs)    \
-                          .toString(false);                               \
-        }                                                                 \
+#define GTEST_ASSERT_EQ_SEQ(__lhs_arg, __rhs_arg)                                        \
+    {                                                                                    \
+        auto const __lhs = __lhs_arg;                                                    \
+        auto const __rhs = __rhs_arg;                                                    \
+        if (!(__lhs == __rhs)) {                                                         \
+            FAIL() << __gtest_assert_eq_seq_fail_message(__lhs, __rhs).toString(false);  \
+        }                                                                                \
     }
 
 
-#define EXPECT_OUTCOME_OK(...)                                            \
+#define EXPECT_OUTCOME_OK(...)                                                           \
     BOOST_PP_OVERLOAD(EXPECT_OUTCOME_OK_, __VA_ARGS__)(__VA_ARGS__)
 
-#define EXPECT_OUTCOME_OK_1(expr)                                         \
-    do {                                                                  \
-        auto _outcome_result = (expr);                                    \
-        EXPECT_TRUE(_outcome_result.has_value())                          \
-            << "Expected success, got failure: "                          \
-            << _outcome_result.error().message();                         \
+#define EXPECT_OUTCOME_OK_1(expr)                                                        \
+    do {                                                                                 \
+        auto _outcome_result = (expr);                                                   \
+        EXPECT_TRUE(_outcome_result.has_value())                                         \
+            << "Expected success, got failure: " << _outcome_result.error().message();   \
     } while (0)
 
-#define EXPECT_OUTCOME_OK_2(expr, extra)                                  \
-    do {                                                                  \
-        auto _outcome_result = (expr);                                    \
-        EXPECT_TRUE(_outcome_result.has_value())                          \
-            << "Expected success, got failure: "                          \
-            << _outcome_result.error().message() << " " << (extra);       \
+#define EXPECT_OUTCOME_OK_2(expr, extra)                                                 \
+    do {                                                                                 \
+        auto _outcome_result = (expr);                                                   \
+        EXPECT_TRUE(_outcome_result.has_value())                                         \
+            << "Expected success, got failure: " << _outcome_result.error().message()    \
+            << " " << (extra);                                                           \
     } while (0)
 
-#define ASSERT_OUTCOME_OK(...)                                            \
+#define ASSERT_OUTCOME_OK(...)                                                           \
     BOOST_PP_OVERLOAD(ASSERT_OUTCOME_OK_, __VA_ARGS__)(__VA_ARGS__)
 
-#define ASSERT_OUTCOME_OK_1(expr)                                         \
-    do {                                                                  \
-        auto _outcome_result = (expr);                                    \
-        ASSERT_TRUE(_outcome_result.has_value())                          \
-            << "Expected success, got failure: "                          \
-            << _outcome_result.error().message();                         \
+#define ASSERT_OUTCOME_OK_1(expr)                                                        \
+    do {                                                                                 \
+        auto _outcome_result = (expr);                                                   \
+        ASSERT_TRUE(_outcome_result.has_value())                                         \
+            << "Expected success, got failure: " << _outcome_result.error().message();   \
     } while (0)
 
-#define ASSERT_OUTCOME_OK_2(expr, extra)                                  \
-    do {                                                                  \
-        auto _outcome_result = (expr);                                    \
-        ASSERT_TRUE(_outcome_result.has_value())                          \
-            << "Expected success, got failure: "                          \
-            << _outcome_result.error().message() << " " << (extra);       \
+#define ASSERT_OUTCOME_OK_2(expr, extra)                                                 \
+    do {                                                                                 \
+        auto _outcome_result = (expr);                                                   \
+        ASSERT_TRUE(_outcome_result.has_value())                                         \
+            << "Expected success, got failure: " << _outcome_result.error().message()    \
+            << " " << (extra);                                                           \
     } while (0)
 
 
@@ -187,8 +172,7 @@ inline ::testing::AssertionResult TextContainsAll(
     for (std::string_view part : substrings) {
         if (text.find(part) == std::string_view::npos) {
             std::ostringstream out;
-            out << "expected text to contain substring: \"" << part
-                << "\"\n"
+            out << "expected text to contain substring: \"" << part << "\"\n"
                 << "text was:\n"
                 << text;
             return ::testing::AssertionFailure() << out.str();
@@ -198,7 +182,7 @@ inline ::testing::AssertionResult TextContainsAll(
     return ::testing::AssertionSuccess();
 }
 
-#define EXPECT_TEXT_CONTAINS(text, ...)                                   \
+#define EXPECT_TEXT_CONTAINS(text, ...)                                                  \
     EXPECT_TRUE(TextContainsAll((text), {__VA_ARGS__}))
 
 template <typename E>
@@ -232,8 +216,8 @@ inline ::testing::AssertionResult ThrowsWithTextContainsAll(
     }
 }
 
-#define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)             \
-    EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(               \
+#define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)                            \
+    EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(                              \
         [&]() { (void)(expr); }, {__VA_ARGS__})))
 
 namespace google::protobuf {

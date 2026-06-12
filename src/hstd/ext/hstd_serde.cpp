@@ -28,8 +28,7 @@ void json_to_value(json const& in, ::google::protobuf::Value* out) {
     } else if (in.is_number_integer()) {
         out->set_number_value(static_cast<double>(in.get<long long>()));
     } else if (in.is_number_unsigned()) {
-        out->set_number_value(
-            static_cast<double>(in.get<unsigned long long>()));
+        out->set_number_value(static_cast<double>(in.get<unsigned long long>()));
     } else if (in.is_number_float()) {
         out->set_number_value(in.get<double>());
     } else if (in.is_string()) {
@@ -37,9 +36,7 @@ void json_to_value(json const& in, ::google::protobuf::Value* out) {
     } else if (in.is_array()) {
         auto* list = out->mutable_list_value();
         list->clear_values();
-        for (auto const& it : in) {
-            json_to_value(it, list->add_values());
-        }
+        for (auto const& it : in) { json_to_value(it, list->add_values()); }
     } else if (in.is_object()) {
         json_to_struct(in, out->mutable_struct_value());
     } else {
@@ -56,10 +53,8 @@ json struct_to_json(::google::protobuf::Struct const& in) {
 json value_to_json(::google::protobuf::Value const& in) {
     switch (in.kind_case()) {
         case ::google::protobuf::Value::kNullValue: return nullptr;
-        case ::google::protobuf::Value::kNumberValue:
-            return in.number_value();
-        case ::google::protobuf::Value::kStringValue:
-            return in.string_value();
+        case ::google::protobuf::Value::kNumberValue: return in.number_value();
+        case ::google::protobuf::Value::kStringValue: return in.string_value();
         case ::google::protobuf::Value::kBoolValue: return in.bool_value();
         case ::google::protobuf::Value::kStructValue:
             return struct_to_json(in.struct_value());

@@ -6,8 +6,7 @@
 namespace hstd {
 template <typename L, typename R, typename LHash, typename RHash>
 struct JsonSerde<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>> {
-    static json to_json(
-        hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> const& it) {
+    static json to_json(hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> const& it) {
         auto result = json::array();
         for (auto const& key : it.left_keys()) {
             result.push_back(
@@ -19,13 +18,11 @@ struct JsonSerde<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>> {
 
         return result;
     }
-    static hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> from_json(
-        json const& j) {
+    static hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> from_json(json const& j) {
         hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> result;
         for (auto const& i : j) {
             result.add_unique(
-                JsonSerde<L>::from_json(i["left"]),
-                JsonSerde<R>::from_json(i["right"]));
+                JsonSerde<L>::from_json(i["left"]), JsonSerde<R>::from_json(i["right"]));
         }
         return result;
     }

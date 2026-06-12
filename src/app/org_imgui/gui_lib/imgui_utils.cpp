@@ -28,14 +28,11 @@ void AddTextWithBackground(
     std::string const& text,
     ImU32              background_color) {
     ImFont* font      = ImGui::GetFont();
-    ImVec2  text_size = font->CalcTextSizeA(
-        font->FontSize, FLT_MAX, 0.0f, text.c_str());
-    ImVec2 rect_min = position;
-    ImVec2 rect_max = ImVec2(
-        position.x + text_size.x, position.y + text_size.y);
+    ImVec2  text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, text.c_str());
+    ImVec2  rect_min  = position;
+    ImVec2  rect_max  = ImVec2(position.x + text_size.x, position.y + text_size.y);
     draw_list->AddRectFilled(rect_min, rect_max, background_color);
-    draw_list->AddText(
-        font, font->FontSize, position, text_color, text.c_str());
+    draw_list->AddText(font, font->FontSize, position, text_color, text.c_str());
 }
 
 
@@ -74,8 +71,7 @@ void fullscreen_window_begin() {
     ImGui::Begin(
         "Fullscreen Window",
         nullptr,
-        ImGuiWindowFlags_NoDecoration
-            | ImGuiWindowFlags_NoBringToFrontOnFocus
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBringToFrontOnFocus
             | ImGuiWindowFlags_NoNav);
 }
 
@@ -88,10 +84,7 @@ int push_frameless_window_vars() {
 
 void render_debug_rect(ImVec2 const& size, ImU32 const& col) {
     render_debug_rect(
-        ImRect(
-            ImGui::GetCursorScreenPos(),
-            ImGui::GetCursorScreenPos() + size),
-        col);
+        ImRect(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + size), col);
 }
 
 
@@ -126,24 +119,21 @@ SPtr<StbFontMetrics> StbFontMetrics::FromPath(
     result->fontSize = fontSize;
     std::ifstream fontFile{fontPath, std::ios::binary | std::ios::ate};
     if (!fontFile.is_open()) {
-        throw std::runtime_error(
-            fmt("Failed to open font file {}", fontPath));
+        throw std::runtime_error(fmt("Failed to open font file {}", fontPath));
     }
 
     std::streamsize size = fontFile.tellg();
     fontFile.seekg(0, std::ios::beg);
     result->buffer.resize(size);
     if (!fontFile.read((char*)result->buffer.data(), size)) {
-        throw std::runtime_error(
-            fmt("Failed to read font file {}", fontPath));
+        throw std::runtime_error(fmt("Failed to read font file {}", fontPath));
     }
 
     if (!stbtt_InitFont(
             &result->font,
             result->buffer.data(),
             stbtt_GetFontOffsetForIndex(result->buffer.data(), 0))) {
-        throw std::runtime_error(
-            fmt("Failed to initialize font from file {}", fontPath));
+        throw std::runtime_error(fmt("Failed to initialize font from file {}", fontPath));
     }
 
     result->scale = stbtt_ScaleForPixelHeight(&result->font, fontSize);
@@ -174,8 +164,7 @@ int StbFontMetrics::GetTextWidth(std::string_view const& text) const {
     int textWidth = 0;
     for (char c : text) {
         int advanceWidth, leftSideBearing;
-        stbtt_GetCodepointHMetrics(
-            &font, c, &advanceWidth, &leftSideBearing);
+        stbtt_GetCodepointHMetrics(&font, c, &advanceWidth, &leftSideBearing);
         textWidth += static_cast<int>(advanceWidth * scale);
     }
 
@@ -185,9 +174,7 @@ int StbFontMetrics::GetTextWidth(std::string_view const& text) const {
 hstd::log::log_record ImRenderTraceRecord::to_org_log_record() const {
     hstd::log::log_record res;
     res.set_callsite(line, function, file);
-    if (cursor_winpos) {
-        res.metadata("cursor_winpos", fmt1(cursor_winpos.value()));
-    }
+    if (cursor_winpos) { res.metadata("cursor_winpos", fmt1(cursor_winpos.value())); }
     if (cursor_screenpos) {
         res.metadata("cursor_screenpos", fmt1(cursor_screenpos.value()));
     }
@@ -210,9 +197,7 @@ void ImRenderTraceRecord::PushRecord(ImRenderTraceRecord const& rec) {
 
 void ImRenderTraceRecord::PushUnitRecord(ImRenderTraceRecord const& rec) {
     if (TraceState) {
-        if (stack.empty()) {
-            stack.push_back(ImRenderTraceRecord::init());
-        }
+        if (stack.empty()) { stack.push_back(ImRenderTraceRecord::init()); }
         stack.back().nested.push_back(rec);
     }
 }
@@ -307,8 +292,7 @@ void ImRenderTraceRecord::WriteTrace(OperationsTracer& trace) {
     }
 }
 
-void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
-    const {
+void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level) const {
     auto os = trace.getStream();
 
     os.indent(level * 2);
@@ -319,9 +303,7 @@ void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
         line,
         escape_for_write(im_id.value_or("?")));
 
-    if (cursor_screenpos) {
-        os << fmt(" screen {}", cursor_screenpos.value());
-    }
+    if (cursor_screenpos) { os << fmt(" screen {}", cursor_screenpos.value()); }
 
     if (cursor_winpos) { os << fmt(" win {}", cursor_winpos.value()); }
 
@@ -331,8 +313,7 @@ void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level)
 }
 
 ImVec2 getCurrentWindowContentPos() {
-    return ImGui::GetWindowPos()
-         + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
+    return ImGui::GetWindowPos() + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
 }
 
 void AddText(

@@ -24,9 +24,7 @@ std::string join(std::string const& sep, Iterable const& list) {
 /// \brief Small insanity to allow for `os << "[" << join(os, "", "wer")
 /// <<` and other stuff without having to break everything into multiple
 /// lines. Yes, this overload makes zero sense but whatever.
-inline std::ostream& operator<<(std::ostream& os, std::ostream const&) {
-    return os;
-}
+inline std::ostream& operator<<(std::ostream& os, std::ostream const&) { return os; }
 
 
 #define __xxloc() std::cout << __FILE__ << ":" << __LINE__ << "\n";

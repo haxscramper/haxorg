@@ -72,8 +72,7 @@ struct [[nodiscard]] Id {
 
 
     /// \brief Start position of the least significant bit of the mask
-    static const inline int mask_offset = (8 * sizeof(IdType))
-                                        - MaskSizeT::value;
+    static const inline int mask_offset = (8 * sizeof(IdType)) - MaskSizeT::value;
 
     /// \brief Number of bits allotted for the mask value
     static const inline int mask_size = MaskSizeT::value;
@@ -133,8 +132,7 @@ struct [[nodiscard]] Id {
         }
 
         LOGIC_ASSERTION_CHECK(
-            mask_offset < sizeof(decltype(mask)) * 8,
-            "Shift count exceeds type width");
+            mask_offset < sizeof(decltype(mask)) * 8, "Shift count exceeds type width");
         auto shift = mask << mask_offset;
         value      = getUnmasked() | shift;
     }
@@ -156,14 +154,13 @@ struct [[nodiscard]] Id {
     /// from the `getValue()`
     auto getIndex() const -> IdType {
         if (isNil()) {
-            throw hstd::range_error::init(
-                "Cannot get index for nil value of DOD ID");
+            throw hstd::range_error::init("Cannot get index for nil value of DOD ID");
         } else {
             return (getUnmasked() - 1);
         }
     }
 
-    int getIntIndex() const { return static_cast<int>(getIndex()); }
+    int           getIntIndex() const { return static_cast<int>(getIndex()); }
     long long int getLongIntIndex() const {
         return static_cast<long long int>(getIndex());
     }
@@ -186,14 +183,10 @@ struct [[nodiscard]] Id {
     /// \brief Compare full ID value for equality.
     ///
     /// \note This handles internal value differently from `<` comparison
-    bool operator==(Id other) const noexcept {
-        return getValue() == other.getValue();
-    }
+    bool operator==(Id other) const noexcept { return getValue() == other.getValue(); }
 
     /// \brief  Compare full ID value for inequality
-    bool operator!=(Id other) const noexcept {
-        return getValue() != other.getValue();
-    }
+    bool operator!=(Id other) const noexcept { return getValue() != other.getValue(); }
 
     struct FormatConfig {
         std::string name         = "Id";
@@ -250,36 +243,34 @@ struct [[nodiscard]] Id {
 // using CRTP method. In this case the need for "with attr" part will
 // disapper as well, the end consumer can annotate the derived types with
 // all the required attributes.
-#define DECL_ID_TYPE_MASKED_WITH_ATTR(                                    \
-    __value, __name, __type, __mask, __attr)                              \
-    struct __value;                                                       \
-    using __name##BaseId = ::hstd::dod::                                  \
-        Id<__type, __type, std::integral_constant<__type, __mask>>;       \
-    struct [[nodiscard]] __attr __name : public __name##BaseId {          \
-        BOOST_DESCRIBE_CLASS(__name, (__name##BaseId), (), (), ());       \
-        using value_type = __value;                                       \
-                                                                          \
-        static constexpr auto Nil() -> __name { return FromValue(0); };   \
-                                                                          \
-        static constexpr auto FromValue(__type arg) -> __name {           \
-            __name res{__type{}};                                         \
-            res.setValue(arg);                                            \
-            return res;                                                   \
-        }                                                                 \
-                                                                          \
-        auto operator==(__name other) const -> bool {                     \
-            return getValue() == other.getValue();                        \
-        }                                                                 \
-                                                                          \
-        constexpr explicit __name(__name##BaseId const& arg)              \
-            : __name##BaseId(arg) {}                                      \
-                                                                          \
-        constexpr explicit __name(__type arg) : __name##BaseId(arg) {}    \
+#define DECL_ID_TYPE_MASKED_WITH_ATTR(__value, __name, __type, __mask, __attr)           \
+    struct __value;                                                                      \
+    using __name##BaseId = ::hstd::dod::                                                 \
+        Id<__type, __type, std::integral_constant<__type, __mask>>;                      \
+    struct [[nodiscard]] __attr __name : public __name##BaseId {                         \
+        BOOST_DESCRIBE_CLASS(__name, (__name##BaseId), (), (), ());                      \
+        using value_type = __value;                                                      \
+                                                                                         \
+        static constexpr auto Nil() -> __name { return FromValue(0); };                  \
+                                                                                         \
+        static constexpr auto FromValue(__type arg) -> __name {                          \
+            __name res{__type{}};                                                        \
+            res.setValue(arg);                                                           \
+            return res;                                                                  \
+        }                                                                                \
+                                                                                         \
+        auto operator==(__name other) const -> bool {                                    \
+            return getValue() == other.getValue();                                       \
+        }                                                                                \
+                                                                                         \
+        constexpr explicit __name(__name##BaseId const& arg) : __name##BaseId(arg) {}    \
+                                                                                         \
+        constexpr explicit __name(__type arg) : __name##BaseId(arg) {}                   \
     };
 
 #define EMPTY()
 
-#define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)              \
+#define DECL_ID_TYPE_MASKED(__value, __name, __type, __mask)                             \
     DECL_ID_TYPE_MASKED_WITH_ATTR(__value, __name, __type, __mask, EMPTY())
 
 
@@ -291,7 +282,7 @@ struct [[nodiscard]] Id {
 /// Defined type provides implementation of the `::FromValue` and `::Nil`
 /// static functions that can be used as an alternative construction
 /// methods in various cases.
-#define DECL_ID_TYPE(__value, __name, __type)                             \
+#define DECL_ID_TYPE(__value, __name, __type)                                            \
     DECL_ID_TYPE_MASKED(__value, __name, __type, 0)
 
 
@@ -303,8 +294,7 @@ concept IsIdType = is_base_of_template_v<::hstd::dod::Id, D>;
 /// the ID
 template <IsIdType Id>
 Id& operator--(Id& id) {
-    id.setValue(
-        id.getMaskUnshifed() | saturating_sub(id.getUnmasked(), 1));
+    id.setValue(id.getMaskUnshifed() | saturating_sub(id.getUnmasked(), 1));
     return id;
 }
 
@@ -312,16 +302,14 @@ Id& operator--(Id& id) {
 template <IsIdType Id>
 Id operator--(Id& id, int) {
     Id res = id;
-    id.setValue(
-        id.getMaskUnshifed() | saturating_sub(id.getUnmasked(), 1));
+    id.setValue(id.getMaskUnshifed() | saturating_sub(id.getUnmasked(), 1));
     return res;
 }
 
 /// \brief Saturated in-place pre-increment of the ID
 template <IsIdType Id>
 Id& operator++(Id& id) {
-    id.setValue(
-        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
+    id.setValue(id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
     return id;
 }
 
@@ -335,16 +323,14 @@ auto operator-(Id lhs, Id rhs) {
 template <IsIdType Id>
 Id operator+(Id id, int extent) {
     return Id::FromValue(
-        id.getMaskUnshifed()
-        | saturating_add_any(id.getUnmasked(), extent));
+        id.getMaskUnshifed() | saturating_add_any(id.getUnmasked(), extent));
 }
 
 /// \brief Saturated in-place post-increment of the ID
 template <IsIdType Id>
 Id operator++(Id& id, int) {
     Id res = id;
-    id.setValue(
-        id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
+    id.setValue(id.getMaskUnshifed() | saturating_add(id.getUnmasked(), 1));
     return res;
 }
 
@@ -398,9 +384,7 @@ struct Store {
     using ContentT = Vec<T>;
 
     Store() = default;
-    void resize(int size, T const& value = T()) {
-        content.resize(size, value);
-    }
+    void resize(int size, T const& value = T()) { content.resize(size, value); }
 
     void reserve(int size) { content.reserve(size); }
 
@@ -418,8 +402,7 @@ struct Store {
         content.push_back(value);
         auto result = Id::FromMaskedIdx(index, mask);
         LOGIC_ASSERTION_CHECK(
-            !result.isNil(),
-            "Implementation error, added ID cannot be nil");
+            !result.isNil(), "Implementation error, added ID cannot be nil");
         return Id(result);
     }
 
@@ -429,8 +412,7 @@ struct Store {
         content.push_back(value);
         auto result = Id::FromMaskedIdx(index, mask);
         LOGIC_ASSERTION_CHECK(
-            !result.isNil(),
-            "Implementation error, added ID cannot be nil");
+            !result.isNil(), "Implementation error, added ID cannot be nil");
         return result;
     }
 
@@ -440,8 +422,7 @@ struct Store {
         content.push_back(value);
         auto result = Id::FromIndex(index);
         LOGIC_ASSERTION_CHECK(
-            !result.isNil(),
-            "Implementation error, added ID cannot be nil");
+            !result.isNil(), "Implementation error, added ID cannot be nil");
         return Id(result);
     }
 
@@ -451,8 +432,7 @@ struct Store {
         content.push_back(value);
         auto result = Id::FromIndex(index);
         LOGIC_ASSERTION_CHECK(
-            !result.isNil(),
-            "Implementation error, added ID cannot be nil");
+            !result.isNil(), "Implementation error, added ID cannot be nil");
         return Id(result);
     }
 
@@ -471,8 +451,7 @@ struct Store {
     /// \note Both start and end ID should ideally have the same store
     /// index, otherwise this method does not make a lot of sense.
     std::span<T> at(HSlice<Id, Id> slice) {
-        return content.at(
-            slice(slice.first.getIndex(), slice.last.getIndex()));
+        return content.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
 
 
@@ -540,29 +519,24 @@ struct InternStore {
     /// return previous ID
     [[nodiscard]] auto add(
         Val const&                               in,
-        std::optional<typename Id::id_mask_type> mask = std::nullopt)
-        -> Id {
+        std::optional<typename Id::id_mask_type> mask = std::nullopt) -> Id {
         auto found = id_map.find(in);
         if (found != id_map.end()) {
             LOGIC_ASSERTION_CHECK(
-                !found->second.isNil(),
-                "Implementation error, added ID cannot be nil");
+                !found->second.isNil(), "Implementation error, added ID cannot be nil");
             return found->second;
         } else {
             auto result = mask.has_value() ? content.add(in, mask.value())
                                            : content.add(in);
             id_map.insert({in, result});
             LOGIC_ASSERTION_CHECK(
-                !result.isNil(),
-                "Implementation error, added ID cannot be nil");
+                !result.isNil(), "Implementation error, added ID cannot be nil");
             return result;
         }
     }
 
     /// \brief Value has already been interned in the store
-    auto contains(Val const& in) const -> bool {
-        return id_map.find(in) != id_map.end();
-    }
+    auto contains(Val const& in) const -> bool { return id_map.find(in) != id_map.end(); }
 
     bool empty() const { return size() == 0; }
 
@@ -587,9 +561,7 @@ struct InternStore {
     }
 
     /// \brief Return generator of the stored indices and values
-    auto pairs() const -> generator<std::pair<Id, CP<Val>>> {
-        return content.pairs();
-    }
+    auto pairs() const -> generator<std::pair<Id, CP<Val>>> { return content.pairs(); }
 
     /// \copydoc Store::items
     auto items() const -> generator<CP<Val>> { return content.items(); }
@@ -699,6 +671,5 @@ struct std::formatter<Id> : std::formatter<std::string> {
 
 namespace hstd::dod {
 template <typename T>
-concept IsDescribedDodIdType = hstd::dod::IsIdType<T>
-                            && hstd::DescribedRecord<T>;
+concept IsDescribedDodIdType = hstd::dod::IsIdType<T> && hstd::DescribedRecord<T>;
 }

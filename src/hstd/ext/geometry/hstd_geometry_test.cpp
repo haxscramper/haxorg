@@ -33,11 +33,7 @@ static double rectArea(Rect const& r) {
     return std::max(0.0, rectWidth(r)) * std::max(0.0, rectHeight(r));
 }
 
-static double overlapLen1D(
-    double aMin,
-    double aMax,
-    double bMin,
-    double bMax) {
+static double overlapLen1D(double aMin, double aMax, double bMin, double bMax) {
     return std::max(0.0, std::min(aMax, bMax) - std::max(aMin, bMin));
 }
 
@@ -65,10 +61,7 @@ auto box_axis_distance(Box const& a, Box const& b) {
     return std::max({decltype(a_min)(0), b_min - a_max, a_min - b_max});
 }
 
-static double distance(
-    Rect const&   r1,
-    Rect const&   r2,
-    DistanceCheck check) {
+static double distance(Rect const& r1, Rect const& r2, DistanceCheck check) {
     switch (check) {
         case DistanceCheck::Both: return bg::distance(r1, r2);
         case DistanceCheck::XOnly: return box_axis_distance<0>(r1, r2);
@@ -81,11 +74,7 @@ static double overlapPercent(double overlap, double full) {
     return std::clamp((overlap / full) * 100.0, 0.0, 100.0);
 }
 
-static Point quadAt(
-    Point const& p0,
-    Point const& p1,
-    Point const& p2,
-    double       t) {
+static Point quadAt(Point const& p0, Point const& p1, Point const& p2, double t) {
     double u = 1.0 - t;
     return Point(
         u * u * p0.x() + 2.0 * u * t * p1.x() + t * t * p2.x(),
@@ -102,17 +91,14 @@ static Point cubicAt(
     double uu = u * u;
     double tt = t * t;
     return Point(
-        uu * u * p0.x() + 3.0 * uu * t * p1.x() + 3.0 * u * tt * p2.x()
-            + tt * t * p3.x(),
+        uu * u * p0.x() + 3.0 * uu * t * p1.x() + 3.0 * u * tt * p2.x() + tt * t * p3.x(),
         uu * u * p0.y() + 3.0 * uu * t * p1.y() + 3.0 * u * tt * p2.y()
             + tt * t * p3.y());
 }
 
 static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flattenPath(
     Path const& path) {
-    if (path.commands.empty()) {
-        return HSDT_GEOMETRY_FAIL_CHECK("path is empty");
-    }
+    if (path.commands.empty()) { return HSDT_GEOMETRY_FAIL_CHECK("path is empty"); }
 
     if (path.commands.front().type != Path::CommandType::MoveTo) {
         return HSDT_GEOMETRY_FAIL_CHECK(
@@ -137,8 +123,7 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
         }
 
         if (!hasCurrent) {
-            return HSDT_GEOMETRY_FAIL_CHECK(
-                R"(command has no current point)", i, cmd);
+            return HSDT_GEOMETRY_FAIL_CHECK(R"(command has no current point)", i, cmd);
         }
 
         if (cmd.type == Path::CommandType::LineTo) {
@@ -155,8 +140,7 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
         if (cmd.type == Path::CommandType::QuadTo) {
             Point prev = current;
             for (int s = 1; s <= steps; ++s) {
-                double t    = static_cast<double>(s)
-                            / static_cast<double>(steps);
+                double t    = static_cast<double>(s) / static_cast<double>(steps);
                 Point  next = quadAt(current, cmd.p1, cmd.p2, t);
                 segments.push_back(
                     PathSegment{
@@ -173,8 +157,7 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
         if (cmd.type == Path::CommandType::CubicTo) {
             Point prev = current;
             for (int s = 1; s <= steps; ++s) {
-                double t    = static_cast<double>(s)
-                            / static_cast<double>(steps);
+                double t    = static_cast<double>(s) / static_cast<double>(steps);
                 Point  next = cubicAt(current, cmd.p1, cmd.p2, cmd.p3, t);
                 segments.push_back(
                     PathSegment{
@@ -201,17 +184,14 @@ static boost::outcome_v2::result<std::vector<PathSegment>, GeometryError> flatte
     }
 
     if (segments.empty()) {
-        return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(path has no drawable segments)", path);
+        return HSDT_GEOMETRY_FAIL_CHECK(R"(path has no drawable segments)", path);
     }
 
     return segments;
 }
 
 template <typename T>
-GeometryCheckResult checkEquidistant(
-    hstd::Vec<T> const& values,
-    double              tolerance) {
+GeometryCheckResult checkEquidistant(hstd::Vec<T> const& values, double tolerance) {
     hstd::Vec<Rect> bounds;
     bounds.reserve(values.size());
 
@@ -248,18 +228,15 @@ reason = {}
     return boost::outcome_v2::success();
 }
 
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(
-    Rect const& value) {
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(Rect const& value) {
     return value;
 }
 
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(
-    Point const& value) {
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(Point const& value) {
     return Rect(value.x(), value.y(), 0.0, 0.0);
 }
 
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(
-    Path const& value) {
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(Path const& value) {
     auto segs = flattenPath(value);
     if (!segs) { return boost::outcome_v2::failure(segs.error()); }
 
@@ -283,10 +260,7 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
 
 
 namespace {
-DECL_DESCRIBED_ENUM_STANDALONE(
-    OverflowSide,
-    EdgeBeforeRelative,
-    EdgeAfterRelative);
+DECL_DESCRIBED_ENUM_STANDALONE(OverflowSide, EdgeBeforeRelative, EdgeAfterRelative);
 
 GeometryCheckResult checkPartiallyBoundsImpl(
     char const*  checkName,
@@ -505,10 +479,8 @@ GeometryCheckResult checkCoversBounds(
     double interArea             = overlapArea(main, nested);
     double mainArea              = rectArea(main);
     double nestedArea            = rectArea(nested);
-    double overlapOfMainByNested = detail::overlapPercent(
-        interArea, mainArea);
-    double overlapOfNestedByMain = detail::overlapPercent(
-        interArea, nestedArea);
+    double overlapOfMainByNested = detail::overlapPercent(interArea, mainArea);
+    double overlapOfNestedByMain = detail::overlapPercent(interArea, nestedArea);
 
     auto expected = overlapPercent;
     if (hstd::isclose(overlapOfNestedByMain, expected, rtol, atol)) {
@@ -704,8 +676,7 @@ GeometryCheckResult checkEquidistantBounds(
     double                 tolerance) {
     if (items.size() < 3) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(equidistant-bounds need at least three shapes)",
-            items.size());
+            R"(equidistant-bounds need at least three shapes)", items.size());
     }
 
     hstd::Vec<double> cx;
@@ -715,11 +686,9 @@ GeometryCheckResult checkEquidistantBounds(
 
     for (Rect const& r : items) {
         cx.push_back(
-            (bg::get<bg::min_corner, 0>(r) + bg::get<bg::max_corner, 0>(r))
-            * 0.5);
+            (bg::get<bg::min_corner, 0>(r) + bg::get<bg::max_corner, 0>(r)) * 0.5);
         cy.push_back(
-            (bg::get<bg::min_corner, 1>(r) + bg::get<bg::max_corner, 1>(r))
-            * 0.5);
+            (bg::get<bg::min_corner, 1>(r) + bg::get<bg::max_corner, 1>(r)) * 0.5);
     }
 
     auto spread = [](hstd::Vec<double> const& v) {
@@ -741,19 +710,14 @@ GeometryCheckResult checkEquidistantBounds(
     for (double s : spacing) {
         if (std::abs(s - expected) > tolerance) {
             return HSDT_GEOMETRY_FAIL_CHECK(
-                R"(equidistant-bounds)",
-                useHorizontalAxis,
-                spacing,
-                expected,
-                tolerance);
+                R"(equidistant-bounds)", useHorizontalAxis, spacing, expected, tolerance);
         }
     }
 
     return boost::outcome_v2::success();
 }
 
-boost::outcome_v2::result<Rect, GeometryError> boundsOf(
-    visual::VisGroup const& value) {
+boost::outcome_v2::result<Rect, GeometryError> boundsOf(visual::VisGroup const& value) {
     return value.computeBounds();
 }
 
@@ -764,24 +728,18 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
 
 } // namespace detail
 
-GeometryCheckResult checkIntersects(
-    Point const& first,
-    Point const& second) {
+GeometryCheckResult checkIntersects(Point const& first, Point const& second) {
     if (first.x() == second.x() && first.y() == second.y()) {
         return boost::outcome_v2::success();
     }
 
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(point-point-intersects)", first, second);
+    return HSDT_GEOMETRY_FAIL_CHECK(R"(point-point-intersects)", first, second);
 }
 
 GeometryCheckResult checkIntersects(Point const& point, Rect const& rect) {
-    if (bg::covered_by(point, rect)) {
-        return boost::outcome_v2::success();
-    }
+    if (bg::covered_by(point, rect)) { return boost::outcome_v2::success(); }
 
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(point-rect-intersects)", point, rect);
+    return HSDT_GEOMETRY_FAIL_CHECK(R"(point-rect-intersects)", point, rect);
 }
 
 GeometryCheckResult checkIntersects(Rect const& rect, Point const& point) {
@@ -792,18 +750,14 @@ GeometryCheckResult checkIntersects(Point const& point, Path const& path) {
     auto segs = detail::flattenPath(path);
     if (!segs) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(point-path-intersects cannot flatten path)",
-            segs.error().message());
+            R"(point-path-intersects cannot flatten path)", segs.error().message());
     }
 
     for (auto const& s : segs.value()) {
-        if (bg::distance(point, s.seg) == 0.0) {
-            return boost::outcome_v2::success();
-        }
+        if (bg::distance(point, s.seg) == 0.0) { return boost::outcome_v2::success(); }
     }
 
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(point-path-intersects)", point, path);
+    return HSDT_GEOMETRY_FAIL_CHECK(R"(point-path-intersects)", point, path);
 }
 
 GeometryCheckResult checkIntersects(Path const& path, Point const& point) {
@@ -814,14 +768,11 @@ GeometryCheckResult checkIntersects(Rect const& rect, Path const& path) {
     auto segs = detail::flattenPath(path);
     if (!segs) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(rect-path-intersects cannot flatten path)",
-            segs.error().message());
+            R"(rect-path-intersects cannot flatten path)", segs.error().message());
     }
 
     for (auto const& s : segs.value()) {
-        if (bg::intersects(s.seg, rect)) {
-            return boost::outcome_v2::success();
-        }
+        if (bg::intersects(s.seg, rect)) { return boost::outcome_v2::success(); }
     }
 
     return HSDT_GEOMETRY_FAIL_CHECK(R"(rect-path-intersects)", rect, path);
@@ -831,33 +782,26 @@ GeometryCheckResult checkIntersects(Path const& path, Rect const& rect) {
     return checkIntersects(rect, path);
 }
 
-GeometryCheckResult checkIntersects(
-    Path const& first,
-    Path const& second) {
+GeometryCheckResult checkIntersects(Path const& first, Path const& second) {
     auto a = detail::flattenPath(first);
     if (!a) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(path-path-intersects cannot flatten first path)",
-            a.error().message());
+            R"(path-path-intersects cannot flatten first path)", a.error().message());
     }
 
     auto b = detail::flattenPath(second);
     if (!b) {
         return HSDT_GEOMETRY_FAIL_CHECK(
-            R"(path-path-intersects cannot flatten second path)",
-            b.error().message());
+            R"(path-path-intersects cannot flatten second path)", b.error().message());
     }
 
     for (auto const& sa : a.value()) {
         for (auto const& sb : b.value()) {
-            if (bg::intersects(sa.seg, sb.seg)) {
-                return boost::outcome_v2::success();
-            }
+            if (bg::intersects(sa.seg, sb.seg)) { return boost::outcome_v2::success(); }
         }
     }
 
-    return HSDT_GEOMETRY_FAIL_CHECK(
-        R"(path-path-intersects)", first, second);
+    return HSDT_GEOMETRY_FAIL_CHECK(R"(path-path-intersects)", first, second);
 }
 
 } // namespace hstd::ext::geometry

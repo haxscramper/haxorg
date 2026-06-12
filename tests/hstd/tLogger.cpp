@@ -42,8 +42,8 @@ class buffer_sink
 
 log::sink_ptr init_buffer_sink(Vec<log::log_record>* buffer) {
     auto backend = boost::make_shared<buffer_sink>(buffer);
-    auto sink    = boost::make_shared<
-        boost::log::sinks::synchronous_sink<buffer_sink>>(backend);
+    auto sink    = boost::make_shared<boost::log::sinks::synchronous_sink<buffer_sink>>(
+        backend);
     return sink;
 }
 
@@ -52,14 +52,11 @@ struct TestScope {
     log::log_sink_scope  scope;
 
     TestScope() {
-        scope = HSLOG_SINK_FACTORY_SCOPED(
-            [&]() { return init_buffer_sink(&buffer); });
+        scope = HSLOG_SINK_FACTORY_SCOPED([&]() { return init_buffer_sink(&buffer); });
     }
 
     void debug() {
-        for (auto const& it : buffer) {
-            std::cout << fmt1(it) << std::endl;
-        }
+        for (auto const& it : buffer) { std::cout << fmt1(it) << std::endl; }
     }
 };
 
@@ -136,8 +133,7 @@ struct BothFormattableType {
 
 template <>
 struct std::formatter<BothFormattableType> : std::formatter<std::string> {
-    auto format(BothFormattableType const& obj, format_context& ctx)
-        const {
+    auto format(BothFormattableType const& obj, format_context& ctx) const {
         return std::formatter<std::string>::format(
             "std_both:" + std::to_string(obj.value), ctx);
     }
@@ -154,30 +150,25 @@ struct log_value_formatter<BothFormattableType> {
 
 
 TEST_F(LoggerTest, LogStringFormatting) {
-    EXPECT_EQ(
-        hstd::log::format_logger_arguments("Value: {}", 42), "Value: 42");
+    EXPECT_EQ(hstd::log::format_logger_arguments("Value: {}", 42), "Value: 42");
 
     static_assert(hstd::StdFormattable<StdFormattableType>);
     EXPECT_EQ(
-        hstd::log::format_logger_arguments(
-            "Value: {}", StdFormattableType{123}),
+        hstd::log::format_logger_arguments("Value: {}", StdFormattableType{123}),
         "Value: std_fmt:123");
 
 
     static_assert(hstd::log::has_log_value_formatter<LogFormattableType>);
     EXPECT_EQ(
-        hstd::log::format_logger_arguments(
-            "Value: {}", LogFormattableType{456}),
+        hstd::log::format_logger_arguments("Value: {}", LogFormattableType{456}),
         "Value: log_fmt:456");
 
     EXPECT_EQ(
-        hstd::log::format_logger_arguments(
-            "Value: {}", BothFormattableType{789}),
+        hstd::log::format_logger_arguments("Value: {}", BothFormattableType{789}),
         "Value: log_both:789");
 
     EXPECT_EQ(
-        hstd::log::format_logger_arguments(
-            "Value: {}", UnformattableType{999}),
+        hstd::log::format_logger_arguments("Value: {}", UnformattableType{999}),
         "Value: <type unformattable 'UnformattableType'>");
 
     EXPECT_EQ(
@@ -187,25 +178,19 @@ TEST_F(LoggerTest, LogStringFormatting) {
 }
 
 TEST_F(LoggerTest, StdFormatterSpecifications) {
-    EXPECT_EQ(
-        hstd::log::format_logger_arguments("Hex: {:X}", 255), "Hex: FF");
+    EXPECT_EQ(hstd::log::format_logger_arguments("Hex: {:X}", 255), "Hex: FF");
+
+    EXPECT_EQ(hstd::log::format_logger_arguments("Padded: {:05d}", 42), "Padded: 00042");
 
     EXPECT_EQ(
-        hstd::log::format_logger_arguments("Padded: {:05d}", 42),
-        "Padded: 00042");
+        hstd::log::format_logger_arguments("Float: {:.2f}", 3.14159), "Float: 3.14");
 
     EXPECT_EQ(
-        hstd::log::format_logger_arguments("Float: {:.2f}", 3.14159),
-        "Float: 3.14");
-
-    EXPECT_EQ(
-        hstd::log::format_logger_arguments(
-            "String: {:>10}", std::string{"test"}),
+        hstd::log::format_logger_arguments("String: {:>10}", std::string{"test"}),
         "String:       test");
 
     EXPECT_EQ(
-        hstd::log::format_logger_arguments(
-            "Mixed: {:X} and {:.1f}", 16, 2.718),
+        hstd::log::format_logger_arguments("Mixed: {:X} and {:.1f}", 16, 2.718),
         "Mixed: 10 and 2.7");
 
     EXPECT_EQ(
@@ -220,8 +205,7 @@ TEST_F(LoggerTest, CollectionRepr) {
         .as_info()
         .end();
 
-    hstd::log::log_sequential_collection(
-        hstd::Vec<std::string>{"123", "222"})
+    hstd::log::log_sequential_collection(hstd::Vec<std::string>{"123", "222"})
         .as_info()
         .end();
 }

@@ -148,12 +148,7 @@ struct Type_FieldIterator_1 : Type_FieldIterator_A {
     int a;
     int b;
     int c;
-    BOOST_DESCRIBE_CLASS(
-        Type_FieldIterator_1,
-        (Type_FieldIterator_A),
-        (a, b, c),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(Type_FieldIterator_1, (Type_FieldIterator_A), (a, b, c), (), ());
 };
 
 TEST(Reflection, FieldIterator) {
@@ -246,23 +241,13 @@ struct FieldIndexing_3items {
     int         field1;
     double      field2;
     std::string field3;
-    BOOST_DESCRIBE_CLASS(
-        FieldIndexing_3items,
-        (),
-        (field1, field2, field3),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(FieldIndexing_3items, (), (field1, field2, field3), (), ());
 };
 
 struct FieldIndexing_Base {
     int   baseField1;
     float baseField2;
-    BOOST_DESCRIBE_CLASS(
-        FieldIndexing_Base,
-        (),
-        (baseField1, baseField2),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(FieldIndexing_Base, (), (baseField1, baseField2), (), ());
 };
 
 struct FieldIndexing_Derived : FieldIndexing_Base {
@@ -302,14 +287,10 @@ TEST(Reflection, FieldIndexing) {
         EXPECT_EQ(hstd::get_own_field_count<T>(), 0);
         EXPECT_EQ(hstd::get_total_field_count<T>(), 0);
         EXPECT_EQ(own_tuple_size(t), 0);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_own_index(t, 0), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_total_index(t, 0), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_own_index(t, -1), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_total_index(t, -1), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_own_index(t, 0), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_total_index(t, 0), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_own_index(t, -1), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_total_index(t, -1), std::out_of_range);
     }
 
     {
@@ -326,12 +307,9 @@ TEST(Reflection, FieldIndexing) {
         void* totalPtr0 = hstd::get_field_ptr_by_total_index(t, 0);
         EXPECT_EQ(totalPtr0, static_cast<void*>(&t.field1));
 
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_own_index(t, 1), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_total_index(t, 1), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_own_index(t, -1), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_own_index(t, 1), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_total_index(t, 1), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_own_index(t, -1), std::out_of_range);
     }
 
     {
@@ -361,13 +339,10 @@ TEST(Reflection, FieldIndexing) {
         EXPECT_EQ(totalPtr1, ptr1);
         EXPECT_EQ(totalPtr2, ptr2);
 
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_own_index(t, 3), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_total_index(t, 3), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_own_index(t, 3), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_total_index(t, 3), std::out_of_range);
 
-        static_assert(
-            std::is_same_v<decltype(&T::field1), decltype(&T::field1)>);
+        static_assert(std::is_same_v<decltype(&T::field1), decltype(&T::field1)>);
 
         EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::field1), 0);
         EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::field2), 1);
@@ -429,14 +404,10 @@ TEST(Reflection, FieldIndexing) {
         EXPECT_EQ(*static_cast<std::string*>(totalPtr2), "derived");
         EXPECT_EQ(*static_cast<bool*>(totalPtr3), true);
 
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_own_index(t, 2), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_total_index(t, 4), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_own_index(t, -1), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_field_ptr_by_total_index(t, -1), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_own_index(t, 2), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_total_index(t, 4), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_own_index(t, -1), std::out_of_range);
+        EXPECT_THROW(hstd::get_field_ptr_by_total_index(t, -1), std::out_of_range);
 
 
         EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::baseField1), 0);
@@ -446,10 +417,8 @@ TEST(Reflection, FieldIndexing) {
 
         EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::derivedField1), 0);
         EXPECT_EQ(hstd::get_own_field_index_by_ptr(&T::derivedField2), 1);
-        EXPECT_EQ(
-            hstd::get_total_field_index_by_ptr(&T::derivedField1), 2);
-        EXPECT_EQ(
-            hstd::get_total_field_index_by_ptr(&T::derivedField2), 3);
+        EXPECT_EQ(hstd::get_total_field_index_by_ptr(&T::derivedField1), 2);
+        EXPECT_EQ(hstd::get_total_field_index_by_ptr(&T::derivedField2), 3);
     }
 
     {
@@ -484,10 +453,8 @@ TEST(Reflection, GlobalFieldNamingRegistry) {
         std::type_index id = std::type_index(typeid(T));
         EXPECT_EQ(hstd::get_registered_field_count<T>(), 0);
         EXPECT_EQ(hstd::get_registered_field_count(id), 0);
-        EXPECT_THROW(
-            hstd::get_registered_field_name<T>(0), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_registered_field_name(id, 0), std::out_of_range);
+        EXPECT_THROW(hstd::get_registered_field_name<T>(0), std::out_of_range);
+        EXPECT_THROW(hstd::get_registered_field_name(id, 0), std::out_of_range);
     }
 
     // Test 3 items type
@@ -505,10 +472,8 @@ TEST(Reflection, GlobalFieldNamingRegistry) {
         EXPECT_EQ(hstd::get_registered_field_name(id, 1), "field2");
         EXPECT_EQ(hstd::get_registered_field_name(id, 2), "field3");
 
-        EXPECT_THROW(
-            hstd::get_registered_field_name<T>(3), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_registered_field_name(id, 3), std::out_of_range);
+        EXPECT_THROW(hstd::get_registered_field_name<T>(3), std::out_of_range);
+        EXPECT_THROW(hstd::get_registered_field_name(id, 3), std::out_of_range);
     }
 
     // Test base type
@@ -545,10 +510,8 @@ TEST(Reflection, GlobalFieldNamingRegistry) {
         EXPECT_EQ(hstd::get_registered_field_name(id, 2), "derivedField1");
         EXPECT_EQ(hstd::get_registered_field_name(id, 3), "derivedField2");
 
-        EXPECT_THROW(
-            hstd::get_registered_field_name<T>(4), std::out_of_range);
-        EXPECT_THROW(
-            hstd::get_registered_field_name(id, 4), std::out_of_range);
+        EXPECT_THROW(hstd::get_registered_field_name<T>(4), std::out_of_range);
+        EXPECT_THROW(hstd::get_registered_field_name(id, 4), std::out_of_range);
     }
 
     // Test unregistered type throws
@@ -557,18 +520,15 @@ TEST(Reflection, GlobalFieldNamingRegistry) {
             int field;
         };
         EXPECT_THROW(
-            hstd::get_registered_field_count(
-                std::type_index(typeid(UnregisteredType))),
+            hstd::get_registered_field_count(std::type_index(typeid(UnregisteredType))),
             std::runtime_error);
         EXPECT_THROW(
-            hstd::get_registered_field_name(
-                std::type_index(typeid(UnregisteredType)), 0),
+            hstd::get_registered_field_name(std::type_index(typeid(UnregisteredType)), 0),
             std::runtime_error);
     }
 
     {
-        std::type_index id = std::type_index(
-            typeid(reflection_test::reflection_named));
+        std::type_index id = std::type_index(typeid(reflection_test::reflection_named));
 
         EXPECT_EQ(hstd::get_registered_field_count(id), 2);
         EXPECT_EQ(hstd::get_registered_field_name(id, 0), "f1");
@@ -705,8 +665,7 @@ TEST(ReflectionVisitor, Vector) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path,
-                Vec<std::string> const&   field) {
+            [&](ReflPath<ReflTag1> const& path, Vec<std::string> const& field) {
                 visitNames.push_back("vec");
             },
             [&](ReflPath<ReflTag1> const& path, std::string const& field) {
@@ -775,21 +734,17 @@ TEST(ReflectionVisitor, ComplexDataStructure) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path,
-                DataStructure const&      field) {
+            [&](ReflPath<ReflTag1> const& path, DataStructure const& field) {
                 visitNames.push_back("DataStructure");
             },
-            [&](ReflPath<ReflTag1> const&      path,
-                std::unordered_set<int> const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::unordered_set<int> const& field) {
                 visitNames.push_back("std::unordered_set<int>");
             },
             [&](ReflPath<ReflTag1> const&                   path,
                 std::unordered_map<std::string, int> const& field) {
-                visitNames.push_back(
-                    "std::unordered_map<std::string, int>");
+                visitNames.push_back("std::unordered_map<std::string, int>");
             },
-            [&](ReflPath<ReflTag1> const&       path,
-                std::vector<std::string> const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::vector<std::string> const& field) {
                 visitNames.push_back("std::vector<std::string>");
             },
             [&](ReflPath<ReflTag1> const& path, std::string const& field) {
@@ -808,23 +763,19 @@ TEST(ReflectionVisitor, ComplexDataStructure) {
             [&](ReflPath<ReflTag1> const& path, TupleType const& field) {
                 visitNames.push_back("TupleType");
             },
-            [&](ReflPath<ReflTag1> const& path,
-                std::nullptr_t const&     field) {
+            [&](ReflPath<ReflTag1> const& path, std::nullptr_t const& field) {
                 visitNames.push_back("std::nullptr_t");
             },
-            [&](ReflPath<ReflTag1> const& path,
-                std::optional<int> const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::optional<int> const& field) {
                 visitNames.push_back("std::optional<int>");
             },
             [&](ReflPath<ReflTag1> const& path, int const& field) {
                 visitNames.push_back("int");
             },
-            [&](ReflPath<ReflTag1> const&   path,
-                std::shared_ptr<int> const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::shared_ptr<int> const& field) {
                 visitNames.push_back("std::shared_ptr<int>");
             },
-            [&](ReflPath<ReflTag1> const&   path,
-                std::unique_ptr<int> const& field) {
+            [&](ReflPath<ReflTag1> const& path, std::unique_ptr<int> const& field) {
                 visitNames.push_back("std::unique_ptr<int>");
             },
         });
@@ -859,16 +810,16 @@ TEST(ReflectionVisitor, ComplexDataStructure) {
 
 TEST(ReflectionVisitor, PopulatedDataStructure) {
     DataStructure data;
-    data.uset    = {1, 2, 3};
-    data.umap    = {{"one", 1}, {"two", 2}};
-    data.vec     = {"hello", "world"};
-    data.str     = "test string";
-    data.custom  = CustomData{42};
-    data.variant = std::string("variant string");
-    data.pair    = std::make_pair(10, "pair string");
-    data.tuple   = std::make_tuple(20, "tuple string", CustomData{84});
-    data.nullp   = nullptr;
-    data.opt     = 100;
+    data.uset         = {1, 2, 3};
+    data.umap         = {{"one", 1}, {"two", 2}};
+    data.vec          = {"hello", "world"};
+    data.str          = "test string";
+    data.custom       = CustomData{42};
+    data.variant      = std::string("variant string");
+    data.pair         = std::make_pair(10, "pair string");
+    data.tuple        = std::make_tuple(20, "tuple string", CustomData{84});
+    data.nullp        = nullptr;
+    data.opt          = 100;
     data.regularField = 200;
     data.sharedPtr    = std::make_shared<int>(300);
     data.uniquePtr    = std::make_unique<int>(400);
@@ -881,10 +832,7 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
                               visitedValues;
     ReflRecursiveVisitContext ctx;
     reflVisitAll<DataStructure, ReflTag1>(
-        data,
-        {},
-        ctx,
-        overloaded{[&](ReflPath<ReflTag1> const& path, auto const& field) {
+        data, {}, ctx, overloaded{[&](ReflPath<ReflTag1> const& path, auto const& field) {
             std::stringstream ss;
             ss << fmt1(field);
             visitedValues[path] = ss.str();
@@ -915,8 +863,7 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
 
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
         expectedValues[path] = std::nullopt;
     }
     {
@@ -926,8 +873,7 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
         expectedValues[path] = std::nullopt;
     }
     {
@@ -942,14 +888,12 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
         expectedValues[path] = std::nullopt;
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("custom"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("custom"));
         expectedValues[path] = std::nullopt;
     }
     {
@@ -959,24 +903,20 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("regularField"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("regularField"));
         expectedValues[path] = "200";
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("custom"));
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("value"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("custom"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("value"));
         expectedValues[path] = "42";
     }
     {
         Vec<int> sorted_uset = sorted(data.uset | rs::to<Vec>());
         for (int i = 0; i < data.uset.size(); ++i) {
             ReflPath<ReflTag1> path;
-            path.path.push_back(
-                ReflPathItem<ReflTag1>::FromFieldName("uset"));
+            path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uset"));
             path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(i));
             expectedValues[path] = fmt1(sorted_uset.at(i));
         }
@@ -990,21 +930,18 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     for (size_t i = 0; i < data.vec.size(); ++i) {
         ReflPath<ReflTag1> path;
         path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("vec"));
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromIndex(static_cast<int>(i)));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(static_cast<int>(i)));
         expectedValues[path] = data.vec[i];
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("variant"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("variant"));
         path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
         expectedValues[path] = std::get<std::string>(data.variant);
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("variant"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("variant"));
         expectedValues[path] = std::nullopt;
     }
     {
@@ -1015,62 +952,52 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
         path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
         expectedValues[path] = "300";
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
         path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
         expectedValues[path] = "400";
     }
     { // `data.pair`
         ReflPath<ReflTag1> path_first;
-        path_first.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("pair"));
+        path_first.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("pair"));
         path_first.path.push_back(ReflPathItem<ReflTag1>::FromIndex(0));
         expectedValues[path_first] = "10";
 
         ReflPath<ReflTag1> path_second;
-        path_second.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("pair"));
+        path_second.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("pair"));
         path_second.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
         expectedValues[path_second] = "pair string";
     }
     {
         ReflPath<ReflTag1> path0;
-        path0.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path0.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
         path0.path.push_back(ReflPathItem<ReflTag1>::FromIndex(0));
         expectedValues[path0] = "20";
 
         ReflPath<ReflTag1> path1;
-        path1.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path1.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
         path1.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
         expectedValues[path1] = "tuple string";
 
         ReflPath<ReflTag1> path2;
-        path2.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path2.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
         path2.path.push_back(ReflPathItem<ReflTag1>::FromIndex(2));
-        path2.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("value"));
+        path2.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("value"));
         expectedValues[path2] = "84";
 
         ReflPath<ReflTag1> path3;
-        path3.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        path3.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
         path3.path.push_back(ReflPathItem<ReflTag1>::FromIndex(2));
         expectedValues[path3] = std::nullopt;
     }
     {
         ReflPath<ReflTag1> path;
-        path.path.push_back(
-            ReflPathItem<ReflTag1>::FromFieldName("nullp"));
+        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("nullp"));
         expectedValues[path] = "0x0";
     }
 
@@ -1085,7 +1012,6 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
 
     for (const auto& [path, value] : visitedValues) {
         auto it = expectedValues.find(path);
-        EXPECT_NE(it, expectedValues.end())
-            << fmt("Unexpected path {}", path);
+        EXPECT_NE(it, expectedValues.end()) << fmt("Unexpected path {}", path);
     }
 }

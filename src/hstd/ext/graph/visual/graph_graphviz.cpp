@@ -40,9 +40,7 @@ Rect getNodeRectangle(
 
 /// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
 /// (y down). `height` is the vertical size of the main graph bounding box.
-Point toGvPoint(pointf p, float height) {
-    return Point(p.x, height - p.y);
-}
+Point toGvPoint(pointf p, float height) { return Point(p.x, height - p.y); }
 
 /// \brief Get bounding gox for the nested subtraph
 Rect getSubgraphBBox(gv::GraphGroup const& g, Rect const& bbox) {
@@ -55,18 +53,14 @@ Rect getSubgraphBBox(gv::GraphGroup const& g, Rect const& bbox) {
     return res;
 }
 
-Path getEdgeSpline(
-    gv::EdgeAttribute const& edge,
-    int                      scaling,
-    Rect const&              bbox) {
+Path getEdgeSpline(gv::EdgeAttribute const& edge, int scaling, Rect const& bbox) {
     Path     path;
     splines* spl    = edge.info()->spl;
     int      height = bbox.height();
     if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
         bezier bez = spl->list[0];
         if (bez.sflag) {
-            path.quadTo(
-                toGvPoint(bez.sp, height), toGvPoint(bez.list[0], height));
+            path.quadTo(toGvPoint(bez.sp, height), toGvPoint(bez.list[0], height));
         } else {
             path.moveTo(toGvPoint(bez.list[0], height));
         }
@@ -120,17 +114,13 @@ Str gv::escapeHtml(Str const& input) {
 }
 
 hstd::XmlNode gv::Record::toHtml(bool horizontal) const {
-    auto make_tag = [](Record const*      rec,
-                       std::string const& tagname) -> hstd::XmlNode {
+    auto make_tag = [](Record const* rec, std::string const& tagname) -> hstd::XmlNode {
         hstd::XmlNode node(tagname);
-        for (auto const& [key, value] : rec->htmlAttrs) {
-            node.set_attr(key, value);
-        }
+        for (auto const& [key, value] : rec->htmlAttrs) { node.set_attr(key, value); }
         return node;
     };
 
-    auto append_cell_content = [&](hstd::XmlNode& cell,
-                                   Record const&  rec) {
+    auto append_cell_content = [&](hstd::XmlNode& cell, Record const& rec) {
         if (rec.isFinal()) {
             cell.set_text(rec.getLabel());
         } else {
@@ -147,12 +137,10 @@ hstd::XmlNode gv::Record::toHtml(bool horizontal) const {
     auto const& nested              = getNested();
     bool const  is_rectangular_grid = //
         !nested.empty()
-        && std::ranges::all_of(
-            nested, [](Record const& r) { return r.isRecord(); })
+        && std::ranges::all_of(nested, [](Record const& r) { return r.isRecord(); })
         && std::ranges::all_of(nested, [&](Record const& row) {
                return row.isRecord()
-                   && row.getNested().size()
-                          == nested.front().getNested().size();
+                   && row.getNested().size() == nested.front().getNested().size();
            });
 
     hstd::XmlNode table = make_tag(this, "table");
@@ -171,9 +159,7 @@ hstd::XmlNode gv::Record::toHtml(bool horizontal) const {
         for (Record const& r : nested) {
             hstd::XmlNode tr = make_tag(&r, "tr");
             hstd::XmlNode td("td");
-            if (!horizontal) {
-                td.set_attr("style", "writing-mode:vertical-lr");
-            }
+            if (!horizontal) { td.set_attr("style", "writing-mode:vertical-lr"); }
             append_cell_content(td, r);
             tr.push_back(std::move(td));
             table.push_back(std::move(tr));
@@ -261,16 +247,12 @@ gv::EdgeAttribute::EdgeAttribute(
     }
 }
 
-gv::GraphGroup::GraphGroup(
-    GroupContext ctx,
-    Str const&   name,
-    Agdesc_t     desc)
+gv::GraphGroup::GraphGroup(GroupContext ctx, Str const& name, Agdesc_t desc)
     : layout::IGroupVisualAttribute{ctx.run}
     , defaultEdge(nullptr, nullptr)
     , defaultNode(nullptr, nullptr)
     , ctx{ctx} {
-    Agraph_t* graph_ = agopen(
-        const_cast<char*>(name.c_str()), desc, nullptr);
+    Agraph_t* graph_ = agopen(const_cast<char*>(name.c_str()), desc, nullptr);
     if (!graph_) {
         throw std::runtime_error("Failed to create graph");
     } else {
@@ -311,16 +293,14 @@ void gv::GraphGroup::initDefaultSetters() {
     // graph is deleted somewhere else or the pointer is modified. `graph =
     // this->graph` does not have this issue, but that's not how this is
     // supposed to work.
-    defaultNode.setOverride = [graph = this->graph](
-                                  Str const& key, Str const& value) {
+    defaultNode.setOverride = [graph = this->graph](Str const& key, Str const& value) {
         auto& r = *graph;
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
         agattr(graph, AGNODE, strdup(key), strdup(value));
     };
 
     defaultEdge.graph       = graph;
-    defaultEdge.setOverride = [graph = this->graph](
-                                  Str const& key, Str const& value) {
+    defaultEdge.setOverride = [graph = this->graph](Str const& key, Str const& value) {
         auto& r = *graph;
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
         agattr(graph, AGEDGE, strdup(key), strdup(value));
@@ -335,10 +315,8 @@ void gv::GraphGroup::eachNode(Func<void(NodeAttribute)> cb) {
 }
 
 void gv::GraphGroup::eachEdge(Func<void(EdgeAttribute)> cb) {
-    for (Agnode_t* node = agfstnode(get()); node;
-         node           = agnxtnode(get(), node)) {
-        for (Agedge_t* edge = agfstout(get(), node); edge;
-             edge           = agnxtout(get(), edge)) {
+    for (Agnode_t* node = agfstnode(get()); node; node = agnxtnode(get(), node)) {
+        for (Agedge_t* edge = agfstout(get(), node); edge; edge = agnxtout(get(), edge)) {
             cb(EdgeAttribute(get(), edge));
         }
     }
@@ -367,16 +345,14 @@ void gv::GraphGroup::render(
 
 hstd::SPtr<gv::EdgeAttribute> gv::GraphGroup::addEdge(EdgeID const& id) {
     auto attr = edge(
-        *ctx.run->getVertexVisualAttribute<NodeAttribute>(
-            run->getGraph()->getSource(id)),
+        *ctx.run->getVertexVisualAttribute<NodeAttribute>(run->getGraph()->getSource(id)),
         *ctx.run->getVertexVisualAttribute<NodeAttribute>(
             run->getGraph()->getTarget(id)));
     run->setEdgeAttribute(id, attr);
     return attr;
 }
 
-hstd::SPtr<gv::NodeAttribute> gv::GraphGroup::addVertex(
-    EdgeID const& edge) {
+hstd::SPtr<gv::NodeAttribute> gv::GraphGroup::addVertex(EdgeID const& edge) {
     auto vertex_id = run->getNestedVertex(edge);
     auto vertex    = run->getVertex(vertex_id);
     auto attribute = this->node(vertex->getStableId());
@@ -384,12 +360,9 @@ hstd::SPtr<gv::NodeAttribute> gv::GraphGroup::addVertex(
     return attribute;
 }
 
-hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newStandaloneRootGraph(
-    Str const& name) {
+hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newStandaloneRootGraph(Str const& name) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
-    if (!gvc) {
-        throw std::runtime_error("Failed to create Graphviz context");
-    }
+    if (!gvc) { throw std::runtime_error("Failed to create Graphviz context"); }
 
     auto result = std::make_shared<GraphGroup>(
         GroupContext{
@@ -408,8 +381,7 @@ hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newStandaloneRootGraph(
         graph->edges->getCollectionID(),
         ports->getCollectionID(),
         groups->getCollectionID());
-    result->algorithm = std::static_pointer_cast<
-        layout::IPlacementAlgorithm>(
+    result->algorithm = std::static_pointer_cast<layout::IPlacementAlgorithm>(
         std::make_shared<gv::Layout>(gvc, run));
 
     return result;
@@ -424,9 +396,7 @@ hstd::SPtr<gv::GraphGroup> gv::GraphGroup::addNewNativeSubgroup(
     } else {
         res = newSubgraph(
             hstd::fmt(
-                "GV_{}",
-                run->getGraph()->getStableId(
-                    run->getGraph()->getTarget(edge))));
+                "GV_{}", run->getGraph()->getStableId(run->getGraph()->getTarget(edge))));
     }
     run->setNestedGroupAttribute(edge, res);
     return res;
@@ -456,9 +426,7 @@ Str gv::alignText(Str const& text, TextAlign direction) {
     return res;
 }
 
-std::string gv::escapeHtmlForGraphviz(
-    std::string const& input,
-    TextAlign          direction) {
+std::string gv::escapeHtmlForGraphviz(std::string const& input, TextAlign direction) {
     std::string escaped = input;
     hstd::replace_all(escaped, "&", "&amp;");
     hstd::replace_all(escaped, "<", "&lt;");
@@ -536,9 +504,7 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     // Layout does not position the labels, need to call rendering pass.
     // 'dot' here is the name of the rendering backend.
     res = gvRender(gvc.get(), g, "xdot", NULL);
-    if (res != 0) {
-        throw std::logic_error("Could not execute render for the layout");
-    }
+    if (res != 0) { throw std::logic_error("Could not execute render for the layout"); }
     // _dbg("agwrite after layout");
     // bb = agget(g, (char*)"bb");
     // fprintf(stderr, "graph bb (after layout): %s\n", bb ? bb :
@@ -599,16 +565,12 @@ void gv::Layout::renderToFile(
     }
 }
 
-layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
-    VertexID const& root_id) {
+layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& root_id) {
     hstd::logic_assertion_check_not_nil(run);
     auto g       = run->getGraph();
     auto __scope = run->begin_scope(
-        hstd::fmt(
-            "running single layout for gv::Layout {}",
-            g->getDebug(root_id)));
-    auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(
-        run->getGroup(root_id));
+        hstd::fmt("running single layout for gv::Layout {}", g->getDebug(root_id)));
+    auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(run->getGroup(root_id));
 
     char const* id_attr      = "_gv_layout_id";
     char const* id_sub_group = "_gv_group";
@@ -621,21 +583,16 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             auto parentGroup = hstd::validated_dynamic_cast<GraphGroup>(
                 run->getGroup(parent.value()));
             run->message(
-                hstd::fmt(
-                    "group '{}' has layout algorithm set",
-                    group->getStableId()));
+                hstd::fmt("group '{}' has layout algorithm set", group->getStableId()));
             auto recursiveBBox = run->getLayout(id)->getBBox();
-            auto recursiveNode = parentGroup->node(
-                hstd::fmt("tmp-subgraph-node-{}", id));
+            auto recursiveNode = parentGroup->node(hstd::fmt("tmp-subgraph-node-{}", id));
 
             recursiveNode->setAttr(id_sub_group, id.getValue());
 
             recursiveNode->setFixedInchesWH(
-                recursiveBBox.width() / scaling,
-                recursiveBBox.height() / scaling);
+                recursiveBBox.width() / scaling, recursiveBBox.height() / scaling);
         } else {
-            auto gv_group = hstd::validated_dynamic_cast<GraphGroup>(
-                group);
+            auto gv_group = hstd::validated_dynamic_cast<GraphGroup>(group);
             LOGIC_ASSERTION_CHECK(
                 gv_group != nullptr,
                 "Nested subgroup without layout algorithm must be an "
@@ -650,16 +607,14 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
 
             auto __scope = run->begin_scope();
             // iterate over sub-groups to find all layout switches
-            for (auto const& sub : run->getSubGroups(id)) {
-                self(sub, id);
-            }
+            for (auto const& sub : run->getSubGroups(id)) { self(sub, id); }
 
             // iterate over edges/vertices to insert graphviz attributes to
             // enable post-layout association.
             for (auto const& vertex : run->getDirectVertices(id)) {
                 // run->message(hstd::fmt("vertex {}", vertex));
-                run->getVertexVisualAttribute<NodeAttribute>(vertex)
-                    ->setAttr(id_attr, vertex.getValue());
+                run->getVertexVisualAttribute<NodeAttribute>(vertex)->setAttr(
+                    id_attr, vertex.getValue());
             }
 
             for (auto const& edge : run->getDirectlyNestedEdges(id)) {
@@ -703,24 +658,20 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             auto const& prev_attribute = run->getLayout(id);
 
             run->message("replacing existing group attribute");
-            auto prev_cast = hstd::validated_dynamic_cast<
-                GraphGroupLayoutAttribute>(prev_attribute);
+            auto prev_cast = hstd::validated_dynamic_cast<GraphGroupLayoutAttribute>(
+                prev_attribute);
             if (prev_attribute) {
                 run->message("previous attribute was a graphviz layout");
                 run->getGroup<GraphGroup>(id);
                 result.vertices.insert_or_assign(
                     id,
-                    std::make_shared<GraphGroupLayoutAttribute>(
-                        rect, prev_cast->group));
+                    std::make_shared<GraphGroupLayoutAttribute>(rect, prev_cast->group));
             } else {
                 run->message(
                     hstd::fmt(
-                        "previous attribute was {}",
-                        typeid(prev_cast.get()).name()));
+                        "previous attribute was {}", typeid(prev_cast.get()).name()));
                 result.vertices.insert_or_assign(
-                    id,
-                    std::make_shared<GraphGroupLayoutAttribute>(
-                        rect, rootGroup));
+                    id, std::make_shared<GraphGroupLayoutAttribute>(rect, rootGroup));
             }
 
 
@@ -734,21 +685,16 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
             auto id = VertexID::FromValue(id_value.value());
             // run->message(hstd::fmt("each-group iterate vertex {}", id));
             result.vertices.insert_or_assign(
-                id,
-                std::make_shared<GraphVertexLayoutAttribute>(
-                    node, *rootGroup));
+                id, std::make_shared<GraphVertexLayoutAttribute>(node, *rootGroup));
         }
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        auto id = EdgeID::FromValue(
-            edge.getAttr<hstd::u64>(id_attr).value());
-        run->message(
-            hstd::fmt("each-group iterate edge {}", id, g->getDebug(id)));
+        auto id = EdgeID::FromValue(edge.getAttr<hstd::u64>(id_attr).value());
+        run->message(hstd::fmt("each-group iterate edge {}", id, g->getDebug(id)));
 
         result.edges.insert_or_assign(
-            id,
-            std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
+            id, std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
     });
 
     rootGroup->eachSubgraph([&](GraphGroup const& group) {
@@ -773,17 +719,13 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(
     // the final coordinates.
     result.vertices.insert_or_assign(
         root_id,
-        std::make_shared<GraphGroupLayoutAttribute>(
-            getGraphBBox(*rootGroup), rootGroup));
+        std::make_shared<GraphGroupLayoutAttribute>(getGraphBBox(*rootGroup), rootGroup));
 
 
     return result;
 }
 
-gv::NodeAttribute::NodeAttribute(
-    Agraph_t*     graph,
-    Str const&    name,
-    Record const& record)
+gv::NodeAttribute::NodeAttribute(Agraph_t* graph, Str const& name, Record const& record)
     : NodeAttribute(graph, name) {
     setNodeShape(NodeShape::record);
     setLabel(record.toString());
@@ -828,8 +770,7 @@ std::string gv::EdgeAttribute::getPropertiesAsString() const {
     Agsym_t*          sym;
     char*             value;
 
-    for (sym = agnxtattr(graph, AGEDGE, NULL); sym;
-         sym = agnxtattr(graph, AGEDGE, sym)) {
+    for (sym = agnxtattr(graph, AGEDGE, NULL); sym; sym = agnxtattr(graph, AGEDGE, sym)) {
         value = agxget(edge_, sym);
         if (value) { ss << sym->name << " = " << value << ", "; }
     }
@@ -847,8 +788,7 @@ std::string gv::GraphGroup::getPropertiesAsString() const {
     Agsym_t*          sym;
     char*             value;
 
-    for (sym = agnxtattr(graph, AGRAPH, NULL); sym;
-         sym = agnxtattr(graph, AGRAPH, sym)) {
+    for (sym = agnxtattr(graph, AGRAPH, NULL); sym; sym = agnxtattr(graph, AGRAPH, sym)) {
         value = agget(graph, sym->name);
         if (value) { ss << sym->name << " = " << value << ", "; }
     }
@@ -865,9 +805,7 @@ hstd::SPtr<gv::GraphGroup> gv::GraphGroup::newRootGraph(
     hstd::SPtr<layout::LayoutRun> run,
     hstd::Str const&              name) {
     auto gvc = SPtr<GVC_t>(gvContext(), gvFreeContext);
-    if (!gvc) {
-        throw std::runtime_error("Failed to create Graphviz context");
-    }
+    if (!gvc) { throw std::runtime_error("Failed to create Graphviz context"); }
 
     auto result = std::make_shared<GraphGroup>(
         GroupContext{
@@ -887,8 +825,7 @@ std::string gv::NodeAttribute::getPropertiesAsString() const {
     Agsym_t*          sym;
     char*             value;
 
-    for (sym = agnxtattr(graph, AGNODE, NULL); sym;
-         sym = agnxtattr(graph, AGNODE, sym)) {
+    for (sym = agnxtattr(graph, AGNODE, NULL); sym; sym = agnxtattr(graph, AGNODE, sym)) {
         value = agxget(node, sym);
         if (value) { ss << sym->name << " = " << value << ", "; }
     }
@@ -917,8 +854,7 @@ visual::VisColor parseGvColor(hstd::Str const& str) {
         } else if (str.size() == 9) {
             std::sscanf(str.c_str(), "#%02x%02x%02x%02x", &r, &g, &b, &a);
         }
-        return visual::VisColor{
-            (uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a};
+        return visual::VisColor{(uint8_t)r, (uint8_t)g, (uint8_t)b, (uint8_t)a};
     }
     // Basic named colors
     if (str == "black") { return visual::VisColor::black(); }
@@ -926,9 +862,7 @@ visual::VisColor parseGvColor(hstd::Str const& str) {
     if (str == "red") { return visual::VisColor::red(); }
     if (str == "green") { return visual::VisColor::green(); }
     if (str == "blue") { return visual::VisColor::blue(); }
-    if (str == "transparent" || str == "none") {
-        return visual::VisColor::transparent();
-    }
+    if (str == "transparent" || str == "none") { return visual::VisColor::transparent(); }
     return visual::VisColor::black();
 }
 
@@ -968,9 +902,7 @@ visual::VisFont buildFontFromLabel(textlabel_t const* label) {
     return font;
 }
 
-visual::VisElement makeLabelElement(
-    textlabel_t const* label,
-    float              height) {
+visual::VisElement makeLabelElement(textlabel_t const* label, float height) {
     Point pos = toGvPoint(label->pos, height);
 
     visual::VisElement            elem;
@@ -980,14 +912,11 @@ visual::VisElement makeLabelElement(
     text.font                 = buildFontFromLabel(label);
     text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
     text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
-    if (label->fontcolor) {
-        text.color = parseGvColor(hstd::Str{label->fontcolor});
-    }
+    if (label->fontcolor) { text.color = parseGvColor(hstd::Str{label->fontcolor}); }
     // Set bounding box from label dimen
     float lw         = (float)label->dimen.x;
     float lh         = (float)label->dimen.y;
-    text.boundingBox = Rect(
-        pos.x() - lw / 2.0f, pos.y() - lh / 2.0f, lw, lh);
+    text.boundingBox = Rect(pos.x() - lw / 2.0f, pos.y() - lh / 2.0f, lw, lh);
 
     elem.data = text;
     return elem;
@@ -1012,19 +941,17 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 } // namespace
 
 
-visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
-    VertexID const& selfId) const {
+visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfId) const {
     Rect bbox     = getGraphBBox(graph);
     Rect nodeRect = getNodeRectangle(graph, node, bbox);
 
     visual::VisGroup result;
-    result.offset       = Point{nodeRect.x(), nodeRect.y()};
-    result.custom.extra = json::object();
+    result.offset                                  = Point{nodeRect.x(), nodeRect.y()};
+    result.custom.extra                            = json::object();
     result.custom.extra["graphviz"]["vertex_name"] = node.name();
     result.max_point = Point{nodeRect.width(), nodeRect.height()};
 
-    result.custom.setAttr(
-        "inkscape:label", hstd::fmt("GV VERTEX:{}", selfId));
+    result.custom.setAttr("inkscape:label", hstd::fmt("GV VERTEX:{}", selfId));
 
     // Determine shape kind
     auto*            info  = node.info();
@@ -1038,19 +965,16 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
         case S::circle:
         case S::oval: {
             visual::VisElement::EllipseShape ellipse;
-            ellipse.geometry = Rect(
-                0, 0, nodeRect.width(), nodeRect.height());
-            ellipse.pen    = pen;
-            ellipse.brush  = brush;
-            shapeElem.data = ellipse;
+            ellipse.geometry = Rect(0, 0, nodeRect.width(), nodeRect.height());
+            ellipse.pen      = pen;
+            ellipse.brush    = brush;
+            shapeElem.data   = ellipse;
             break;
         }
         case S::point: {
             visual::VisElement::PointShape pt;
-            pt.position = Point{
-                nodeRect.width() / 2.0f, nodeRect.height() / 2.0f};
-            pt.radius      = std::min(nodeRect.width(), nodeRect.height())
-                           / 2.0f;
+            pt.position    = Point{nodeRect.width() / 2.0f, nodeRect.height() / 2.0f};
+            pt.radius      = std::min(nodeRect.width(), nodeRect.height()) / 2.0f;
             pt.pen         = pen;
             pt.brush       = brush;
             shapeElem.data = pt;
@@ -1066,8 +990,8 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
             polygon_t* poly = (polygon_t*)info->shape_info;
             if (poly && poly->sides > 0 && poly->vertices) {
                 visual::VisElement::PolygonShape polyShape;
-                float cx = nodeRect.width() / 2.0f;
-                float cy = nodeRect.height() / 2.0f;
+                float                            cx = nodeRect.width() / 2.0f;
+                float                            cy = nodeRect.height() / 2.0f;
                 for (size_t i = 0; i < poly->sides; ++i) {
                     polyShape.points.push_back(
                         Point{
@@ -1080,8 +1004,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
             } else {
                 // Fallback to rect
                 visual::VisElement::RectShape rect;
-                rect.geometry = Rect(
-                    0, 0, nodeRect.width(), nodeRect.height());
+                rect.geometry  = Rect(0, 0, nodeRect.width(), nodeRect.height());
                 rect.pen       = pen;
                 rect.brush     = brush;
                 shapeElem.data = rect;
@@ -1091,17 +1014,12 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
         default: {
             // Default: box/rect and variants
             visual::VisElement::RectShape rect;
-            rect.geometry = Rect(
-                0, 0, nodeRect.width(), nodeRect.height());
-            rect.pen   = pen;
-            rect.brush = brush;
+            rect.geometry = Rect(0, 0, nodeRect.width(), nodeRect.height());
+            rect.pen      = pen;
+            rect.brush    = brush;
             // Check for rounded style
-            if (auto style = node.getStyle();
-                style == gv::Style::rounded) {
-                rect.cornerRadius = std::min(
-                                        nodeRect.width(),
-                                        nodeRect.height())
-                                  * 0.1f;
+            if (auto style = node.getStyle(); style == gv::Style::rounded) {
+                rect.cornerRadius = std::min(nodeRect.width(), nodeRect.height()) * 0.1f;
             }
             shapeElem.data = rect;
             break;
@@ -1118,8 +1036,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
         // Label pos is in graph coordinates; convert to local node coords
         Point labelGlobal = toGvPoint(label->pos, bbox.height());
         text.anchor       = Point{
-            labelGlobal.x() - nodeRect.x(),
-            labelGlobal.y() - nodeRect.y()};
+            labelGlobal.x() - nodeRect.x(), labelGlobal.y() - nodeRect.y()};
         text.font                 = buildFontFromLabel(label);
         text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
         text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
@@ -1131,10 +1048,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
         float lw         = (float)label->dimen.x;
         float lh         = (float)label->dimen.y;
         text.boundingBox = Rect(
-            text.anchor.x() - lw / 2.0f,
-            text.anchor.y() - lh / 2.0f,
-            lw,
-            lh);
+            text.anchor.x() - lw / 2.0f, text.anchor.y() - lh / 2.0f, lw, lh);
 
         visual::VisElement labelElem;
         labelElem.data = text;
@@ -1156,14 +1070,12 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(
 }
 
 
-visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(
-    EdgeID const& selfId) const {
+visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) const {
     Rect             bbox = getGraphBBox(graph);
     Path             path = getEdgeSpline(edge, scaling, bbox);
     visual::VisGroup result;
 
-    result.custom.setAttr(
-        "inkscape:label", hstd::fmt("GV EDGE:{}", selfId));
+    result.custom.setAttr("inkscape:label", hstd::fmt("GV EDGE:{}", selfId));
 
     // Edge path
     if (!path.empty()) {
@@ -1183,8 +1095,7 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(
         bezier& bez = info->spl->list[0];
         if (bez.eflag) {
             Point ep      = toGvPoint(bez.ep, bbox.height());
-            Point lastCtl = toGvPoint(
-                bez.list[bez.size - 1], bbox.height());
+            Point lastCtl = toGvPoint(bez.list[bez.size - 1], bbox.height());
 
             // Compute arrow direction
             float dx  = ep.x() - lastCtl.x();
@@ -1222,33 +1133,27 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(
 
     // Edge label
     if (info->label && info->label->text && info->label->text[0] != '\0') {
-        result.elements.push_back(
-            makeLabelElement(info->label, bbox.height()));
+        result.elements.push_back(makeLabelElement(info->label, bbox.height()));
     }
 
     // Head/tail labels
-    if (info->head_label && info->head_label->text
-        && info->head_label->text[0] != '\0') {
-        result.elements.push_back(
-            makeLabelElement(info->head_label, bbox.height()));
+    if (info->head_label && info->head_label->text && info->head_label->text[0] != '\0') {
+        result.elements.push_back(makeLabelElement(info->head_label, bbox.height()));
     }
-    if (info->tail_label && info->tail_label->text
-        && info->tail_label->text[0] != '\0') {
-        result.elements.push_back(
-            makeLabelElement(info->tail_label, bbox.height()));
+    if (info->tail_label && info->tail_label->text && info->tail_label->text[0] != '\0') {
+        result.elements.push_back(makeLabelElement(info->tail_label, bbox.height()));
     }
 
     return result;
 }
 
-visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
-    VertexID const& selfId) const {
+visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId) const {
     visual::VisGroup result;
     result.offset = Point{graph.x(), graph.y()};
 
     result.custom.extra                           = json::object();
     result.custom.extra["graphviz"]["group_name"] = group->name();
-    result.max_point = getGraphBBox(*group).max_corner();
+    result.max_point                              = getGraphBBox(*group).max_corner();
 
     // Boundary rectangle
     visual::VisElement::RectShape rect;
@@ -1263,9 +1168,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
 
     // Read style attributes from the group if available
     if (group) {
-        if (auto c = group->getColor()) {
-            rect.pen.color = parseGvColor(*c);
-        }
+        if (auto c = group->getColor()) { rect.pen.color = parseGvColor(*c); }
         if (auto style = group->getStyle()) {
             if (style == gv::Style::dashed) {
                 rect.pen.style = visual::VisPen::LineStyle::Dash;
@@ -1278,18 +1181,14 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
             } else if (style == gv::Style::filled) {
                 auto fc    = group->getFillColor();
                 rect.brush = visual::VisBrush::solid(
-                    fc ? parseGvColor(*fc)
-                       : visual::VisColor{230, 230, 230, 255});
+                    fc ? parseGvColor(*fc) : visual::VisColor{230, 230, 230, 255});
             }
         }
-        if (auto pw = group->getPenWidth()) {
-            rect.pen.width = (float)*pw;
-        }
+        if (auto pw = group->getPenWidth()) { rect.pen.width = (float)*pw; }
     }
 
     visual::VisElement rectElem;
-    rectElem.custom.addComment(
-        hstd::fmt("graphviz group visual '{}'", group->name()));
+    rectElem.custom.addComment(hstd::fmt("graphviz group visual '{}'", group->name()));
     rectElem.data = rect;
     result.elements.push_back(rectElem);
 
@@ -1297,8 +1196,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
         visual::VisElement::FromText(
             hstd::fmt("GROUP:{}", group->name()), geometry::Point(0, 0)));
 
-    result.custom.setAttr(
-        "inkscape:label", hstd::fmt("GV GROUP:{}", group->name()));
+    result.custom.setAttr("inkscape:label", hstd::fmt("GV GROUP:{}", group->name()));
     result.custom.addDesc(hstd::fmt("bbox:{}", getBBox()));
 
     // Subgraph label
@@ -1311,22 +1209,17 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(
             // Label pos is in graph coordinates; convert to local group
             // coords
             Point labelGlobal = toGvPoint(label->pos, bbox.height());
-            text.anchor       = Point{
-                labelGlobal.x() - graph.x(), labelGlobal.y() - graph.y()};
-            text.font = buildFontFromLabel(label);
-            text.alignment
-                .horizontal         = visual::VisTextAlign::HAlign::Center;
-            text.alignment.vertical = visual::VisTextAlign::VAlign::Center;
+            text.anchor = Point{labelGlobal.x() - graph.x(), labelGlobal.y() - graph.y()};
+            text.font   = buildFontFromLabel(label);
+            text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
+            text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
             if (label->fontcolor) {
                 text.color = parseGvColor(hstd::Str{label->fontcolor});
             }
             float lw         = (float)label->dimen.x;
             float lh         = (float)label->dimen.y;
             text.boundingBox = Rect(
-                text.anchor.x() - lw / 2.0f,
-                text.anchor.y() - lh / 2.0f,
-                lw,
-                lh);
+                text.anchor.x() - lw / 2.0f, text.anchor.y() - lh / 2.0f, lw, lh);
 
             visual::VisElement labelElem;
             labelElem.data = text;
@@ -1344,9 +1237,7 @@ using ::google::protobuf::Message;
 using ::google::protobuf::Reflection;
 using namespace gv;
 
-inline FieldDescriptor const* findField(
-    Message const& msg,
-    Str const&     name) {
+inline FieldDescriptor const* findField(Message const& msg, Str const& name) {
     return msg.GetDescriptor()->FindFieldByName(name);
 }
 
@@ -1400,7 +1291,7 @@ bool getProtoField(Message const& msg, Str const& name, T& value) {
         Reflection const* pr = p.GetReflection();
         auto const*       fx = p.GetDescriptor()->FindFieldByName("x");
         auto const*       fy = p.GetDescriptor()->FindFieldByName("y");
-        value = Point(pr->GetDouble(p, fx), pr->GetDouble(p, fy));
+        value                = Point(pr->GetDouble(p, fx), pr->GetDouble(p, fy));
     } else {
         return false;
     }
@@ -1410,27 +1301,25 @@ bool getProtoField(Message const& msg, Str const& name, T& value) {
 
 template <typename Attr, typename Payload>
 void writeAttrs(Attr const* self, Payload* payload) {
-#    define WRITE_ATTR(__Class, Method, key, Type)                        \
-        do {                                                              \
-            auto v = self->get##Method();                                 \
-            if (v) { setProtoField(payload, #key, *v); }                  \
+#    define WRITE_ATTR(__Class, Method, key, Type)                                       \
+        do {                                                                             \
+            auto v = self->get##Method();                                                \
+            if (v) { setProtoField(payload, #key, *v); }                                 \
         } while (false)
 
-#    define WRITE_EATTR(__Class, Name, key, _type)                        \
-        do {                                                              \
-            auto v = self->get##Name();                                   \
-            if (v) { setProtoField(payload, #key, *v); }                  \
+#    define WRITE_EATTR(__Class, Name, key, _type)                                       \
+        do {                                                                             \
+            auto v = self->get##Name();                                                  \
+            if (v) { setProtoField(payload, #key, *v); }                                 \
         } while (false)
 
-#    define WRITE_ALIGNED(__Class, Method, key, Type)                     \
-        do {                                                              \
-            Opt<Type>      value;                                         \
-            Opt<TextAlign> dir;                                           \
-            self->getAttr(#key, value);                                   \
-            if (value) { setProtoField(payload, #key, *value); }          \
-            if (dir) {                                                    \
-                setProtoField(payload, Str(#key) + Str("_align"), *dir);  \
-            }                                                             \
+#    define WRITE_ALIGNED(__Class, Method, key, Type)                                    \
+        do {                                                                             \
+            Opt<Type>      value;                                                        \
+            Opt<TextAlign> dir;                                                          \
+            self->getAttr(#key, value);                                                  \
+            if (value) { setProtoField(payload, #key, *value); }                         \
+            if (dir) { setProtoField(payload, Str(#key) + Str("_align"), *dir); }        \
         } while (false)
 
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {
@@ -1448,29 +1337,26 @@ void writeAttrs(Attr const* self, Payload* payload) {
 
 template <typename Attr, typename Payload>
 void readAttrs(Attr* self, Payload const& payload) {
-#    define READ_ATTR(__Class, Method, key, Type)                         \
-        do {                                                              \
-            Type v;                                                       \
-            if (getProtoField(payload, #key, v)) {                        \
-                self->set##Method(v);                                     \
-            }                                                             \
+#    define READ_ATTR(__Class, Method, key, Type)                                        \
+        do {                                                                             \
+            Type v;                                                                      \
+            if (getProtoField(payload, #key, v)) { self->set##Method(v); }               \
         } while (false)
 
-#    define READ_EATTR(__Class, Name, key, _type)                         \
-        do {                                                              \
-            _type v;                                                      \
-            if (getProtoField(payload, #key, v)) { self->set##Name(v); }  \
+#    define READ_EATTR(__Class, Name, key, _type)                                        \
+        do {                                                                             \
+            _type v;                                                                     \
+            if (getProtoField(payload, #key, v)) { self->set##Name(v); }                 \
         } while (false)
 
-#    define READ_ALIGNED(__Class, Method, key, Type)                      \
-        do {                                                              \
-            Type v;                                                       \
-            if (getProtoField(payload, #key, v)) {                        \
-                TextAlign dir = TextAlign::Left;                          \
-                (void)getProtoField(                                      \
-                    payload, Str(#key) + Str("_align"), dir);             \
-                self->set##Method(v, dir);                                \
-            }                                                             \
+#    define READ_ALIGNED(__Class, Method, key, Type)                                     \
+        do {                                                                             \
+            Type v;                                                                      \
+            if (getProtoField(payload, #key, v)) {                                       \
+                TextAlign dir = TextAlign::Left;                                         \
+                (void)getProtoField(payload, Str(#key) + Str("_align"), dir);            \
+                self->set##Method(v, dir);                                               \
+            }                                                                            \
         } while (false)
 
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {

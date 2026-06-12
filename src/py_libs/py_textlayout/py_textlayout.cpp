@@ -51,9 +51,7 @@ struct TextLayout {
     TextLayout() : store{&b} {}
     ~TextLayout() {}
 
-    void dbg() {
-        std::cerr << __LINE__ << b.store.size() << store.strings.size();
-    }
+    void dbg() { std::cerr << __LINE__ << b.store.size() << store.strings.size(); }
 
     Id text(std::string t) { return store.text(t); }
 
@@ -66,19 +64,13 @@ struct TextLayout {
     Id line(std::vector<Id> const& ids) { return b.line(tmpVec(ids)); }
 
     Id choice(std::vector<Id> const& ids) { return b.choice(tmpVec(ids)); }
-    Id indent(int indent, Id const& block) {
-        return b.indent(indent, block);
-    }
+    Id indent(int indent, Id const& block) { return b.indent(indent, block); }
 
     Id space(int count) { return b.space(count); }
 
     Id empty() { return b.empty(); }
 
-    Id join(
-        std::vector<Id> const& items,
-        Id const&              join,
-        bool                   isLine,
-        bool                   isTrailing) {
+    Id join(std::vector<Id> const& items, Id const& join, bool isLine, bool isTrailing) {
         return b.join(tmpVec(items), join, isLine, isTrailing);
     }
 
@@ -100,9 +92,7 @@ struct TextLayout {
 
     void add_at(Id const& id, Id const& next) { b.add_at(id, next); }
 
-    void add_at(Id const& id, std::vector<Id> const& next) {
-        b.add_at(id, tmpVec(next));
-    }
+    void add_at(Id const& id, std::vector<Id> const& next) { b.add_at(id, tmpVec(next)); }
 
     bool isStack(Id id) { return b.at(id).isStack(); }
     bool isLine(Id id) { return b.at(id).isLine(); }
@@ -122,10 +112,7 @@ struct TextLayout {
             .def("isLine", &TextLayout::isLine)
             .def("isStack", &TextLayout::isStack)
             .def("surround_non_empty", &TextLayout::surround_non_empty)
-            .def(
-                "stack",
-                &TextLayout::stack,
-                nb::arg("ids") = std::vector<Id>{})
+            .def("stack", &TextLayout::stack, nb::arg("ids") = std::vector<Id>{})
             .def(
                 "join",
                 &TextLayout::join,
@@ -140,14 +127,10 @@ struct TextLayout {
             .def("size", &TextLayout::size)
             .def("toString", &TextLayout::toString)
             .def("toTreeRepr", &TextLayout::toTreeRepr)
-            .def(
-                "add_at",
-                nb::overload_cast<Id const&, Id const&>(
-                    &TextLayout::add_at))
+            .def("add_at", nb::overload_cast<Id const&, Id const&>(&TextLayout::add_at))
             .def(
                 "add_at_list",
-                nb::overload_cast<Id const&, std::vector<Id> const&>(
-                    &TextLayout::add_at))
+                nb::overload_cast<Id const&, std::vector<Id> const&>(&TextLayout::add_at))
             //
             ;
     }
@@ -168,10 +151,7 @@ struct type_caster<TextLayout::Id> {
         return !PyErr_Occurred();
     }
 
-    static handle from_cpp(
-        TextLayout::Id src,
-        rv_policy,
-        cleanup_list*) noexcept {
+    static handle from_cpp(TextLayout::Id src, rv_policy, cleanup_list*) noexcept {
         return PyLong_FromUnsignedLongLong(src.id.getValue());
     }
 };

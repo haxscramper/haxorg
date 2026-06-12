@@ -39,18 +39,14 @@ template <typename T>
 struct hstd::JsonSerde<hstd::ext::ImmVec<T>> {
     static json to_json(hstd::ext::ImmVec<T> const& it) {
         auto result = json::array();
-        for (auto const& i : it) {
-            result.push_back(JsonSerde<T>::to_json(i));
-        }
+        for (auto const& i : it) { result.push_back(JsonSerde<T>::to_json(i)); }
 
         return result;
     }
     static hstd::ext::ImmVec<T> from_json(json const& j) {
         hstd::ext::ImmVec<T> result;
         auto                 tmp = result.transient();
-        for (auto const& i : j) {
-            tmp.push_back(JsonSerde<T>::from_json(i));
-        }
+        for (auto const& i : j) { tmp.push_back(JsonSerde<T>::from_json(i)); }
         return tmp.persistent();
     }
 };
@@ -59,18 +55,14 @@ template <typename T>
 struct hstd::JsonSerde<hstd::ext::ImmSet<T>> {
     static json to_json(hstd::ext::ImmSet<T> const& it) {
         auto result = json::array();
-        for (auto const& i : it) {
-            result.push_back(JsonSerde<T>::to_json(i));
-        }
+        for (auto const& i : it) { result.push_back(JsonSerde<T>::to_json(i)); }
 
         return result;
     }
     static hstd::ext::ImmSet<T> from_json(json const& j) {
         hstd::ext::ImmSet<T> result;
         auto                 tmp = result.transient();
-        for (auto const& i : j) {
-            result.insert(JsonSerde<T>::from_json(i));
-        }
+        for (auto const& i : j) { result.insert(JsonSerde<T>::from_json(i)); }
         return tmp.persistent();
     }
 };
@@ -94,8 +86,7 @@ struct hstd::JsonSerde<immer::map<K, V>> {
         auto             tmp = result.transient();
         for (auto const& i : j) {
             result.insert(
-                JsonSerde<K>::from_json(i["key"]),
-                JsonSerde<V>::from_json(i["value"]));
+                JsonSerde<K>::from_json(i["key"]), JsonSerde<V>::from_json(i["value"]));
         }
         return tmp.persistent();
     }
@@ -114,12 +105,10 @@ struct hstd::JsonSerde<hstd::ext::ImmMap<K, V>> {
 template <>
 struct hstd::JsonSerde<org::imm::ImmId> {
     static json to_json(org::imm::ImmId const& it) {
-        return json::object(
-            {{"number", it.getValue()}, {"format", it.getReadableId()}});
+        return json::object({{"number", it.getValue()}, {"format", it.getReadableId()}});
     }
     static org::imm::ImmId from_json(json const& j) {
-        return org::imm::ImmId::FromValue(
-            j["number"].get<unsigned long long>());
+        return org::imm::ImmId::FromValue(j["number"].get<unsigned long long>());
     }
 };
 
@@ -129,7 +118,6 @@ struct hstd::JsonSerde<org::imm::ImmIdT<T>> {
         return JsonSerde<org::imm::ImmId>::to_json(it.toId());
     }
     static org::imm::ImmIdT<T> from_json(json const& j) {
-        return org::imm::ImmIdT<T>{
-            JsonSerde<org::imm::ImmId>::from_json(j)};
+        return org::imm::ImmIdT<T>{JsonSerde<org::imm::ImmId>::from_json(j)};
     }
 };

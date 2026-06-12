@@ -34,9 +34,7 @@ Str getDebugFile(ImGuiTest* t, Str const& suffix) {
             normalize(t->Category),
             normalize(t->Name),
             suffix)};
-    if (!fs::is_directory(res.parent_path())) {
-        createDirectory(res.parent_path());
-    }
+    if (!fs::is_directory(res.parent_path())) { createDirectory(res.parent_path()); }
 
     return res.native();
 }
@@ -47,8 +45,7 @@ ImVec2 getContentPos(ImGuiTestContext* ctx) {
              + ImVec2{0, ImGui::GetCurrentWindow()->TitleBarHeight};
     } else {
         return ctx->GetWindowByRef(ctx->GetRef())->Pos
-             + ImVec2{
-                 0, ctx->GetWindowByRef(ctx->GetRef())->TitleBarHeight};
+             + ImVec2{0, ctx->GetWindowByRef(ctx->GetRef())->TitleBarHeight};
     }
 }
 

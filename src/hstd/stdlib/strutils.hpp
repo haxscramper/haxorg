@@ -28,15 +28,12 @@ Str join(Str const& sep, generator<T>&& list) {
 
 /// Get visible name of the character.
 Pair<Str, Str> visibleName(char ch);
-Str indent(Str const& str, int spaces, char space = ' ', Str prefix = "");
+Str            indent(Str const& str, int spaces, char space = ' ', Str prefix = "");
 
 Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode = true);
 Vec<Str> visibleUnicodeName(Str const& str, bool useUnicode = true);
 Vec<Str> split_keep_separator(Str const& str, CharSet sep = {' '});
-Str      strip(
-    Str const&     string,
-    CharSet const& leading,
-    CharSet const& trailing);
+Str      strip(Str const& string, CharSet const& leading, CharSet const& trailing);
 Str      lstrip(Str const& string, CharSet const& chars);
 Str      rstrip(Str const& string, CharSet const& chars);
 Vec<Str> split(Str const& str, char ch);
@@ -47,7 +44,7 @@ Str      repeat(Str const& str, int count);
 Str      escape_for_write(Str const& str, bool quote = true);
 int      rune_length(std::string const& str);
 std::vector<std::string> rune_chunks(std::string const& str);
-bool iequals(std::string const& a, std::string const& b);
+bool                     iequals(std::string const& a, std::string const& b);
 
 std::string format_number(double value);
 std::string format_table(
@@ -66,10 +63,7 @@ void        validate_utf8(std::string const& str);
 std::string format_integer_bits(uint64_t value, char fmt, int pad_to = 0);
 
 
-void replace_all(
-    std::string&       str,
-    std::string const& from,
-    std::string const& to);
+void replace_all(std::string& str, std::string const& from, std::string const& to);
 
 Str wrap_text(Vec<Str> const& words, int maxWidth, bool justified);
 
@@ -122,8 +116,6 @@ struct value_domain<AsciiStyle>
 Str styledUnicodeMapping(char ch, AsciiStyle style);
 Str styledUnicodeMapping(Str const& str, AsciiStyle style);
 
-inline char* strdup(std::string const& str) {
-    return ::strdup(str.c_str());
-}
+inline char* strdup(std::string const& str) { return ::strdup(str.c_str()); }
 
 } // namespace hstd

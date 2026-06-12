@@ -6,11 +6,9 @@
 namespace hstd::ext::kiwi_ir {
 
 static void write_outputs(Layout& layout, Opt<Str> name_r = std::nullopt) {
-    auto name = name_r.value_or(
-        std::string{getDebugFile().filename().c_str()});
+    auto name = name_r.value_or(std::string{getDebugFile().filename().c_str()});
     writeFile(
-        getDebugFile(std::format("{}.svg", name)),
-        layout.to_svg(name).to_string(2));
+        getDebugFile(std::format("{}.svg", name)), layout.to_svg(name).to_string(2));
     layout.to_graphviz(getDebugFile(std::format("{}-graph.png", name)));
 }
 
@@ -26,13 +24,9 @@ TEST(KiwiIr, AlignAndSeparate) {
             {"b", AlignSpec{.anchor = Anchor::TOP}},
             {"c", AlignSpec{.anchor = Anchor::TOP}}}),
         std::make_shared<SeparateConstraint>(
-            RectSpec1Side("b", Anchor::LEFT),
-            RectSpec1Side("a", Anchor::RIGHT),
-            15),
+            RectSpec1Side("b", Anchor::LEFT), RectSpec1Side("a", Anchor::RIGHT), 15),
         std::make_shared<SeparateConstraint>(
-            RectSpec1Side("c", Anchor::LEFT),
-            RectSpec1Side("b", Anchor::RIGHT),
-            15),
+            RectSpec1Side("c", Anchor::LEFT), RectSpec1Side("b", Anchor::RIGHT), 15),
     };
     Layout layout(rects, constraints);
     layout.verify_constraints();
@@ -115,14 +109,8 @@ TEST(KiwiIr, ParentWrapAndRelative) {
     EXPECT_NEAR(rect_parent.height(), 80.0, 1e-6);
     EXPECT_NEAR(rect_inner.width(), rect_parent.width() * 0.2, 1e-6);
     EXPECT_NEAR(rect_inner.height(), rect_parent.height() * 0.5, 1e-6);
-    EXPECT_NEAR(
-        rect_inner.x(),
-        rect_parent.x() + rect_parent.width() * 0.5 + 20,
-        1e-6);
-    EXPECT_NEAR(
-        rect_inner.y(),
-        rect_parent.y() + rect_parent.height() * 0.5,
-        1e-6);
+    EXPECT_NEAR(rect_inner.x(), rect_parent.x() + rect_parent.width() * 0.5 + 20, 1e-6);
+    EXPECT_NEAR(rect_inner.y(), rect_parent.y() + rect_parent.height() * 0.5, 1e-6);
     EXPECT_OUTCOME_OK(checkFullyCovers(rect_parent, rect_inner));
 }
 
@@ -136,13 +124,9 @@ TEST(KiwiIr, LinearAndEqualSize) {
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EqualSizeConstraint>("a", "b", false, true),
         std::make_shared<LinearConstraint>(
-            b.expr(RectAttr::X),
-            Relation::EQ,
-            a.expr(RectAttr::RIGHT) + 30),
+            b.expr(RectAttr::X), Relation::EQ, a.expr(RectAttr::RIGHT) + 30),
         std::make_shared<LinearConstraint>(
-            b.expr(RectAttr::WIDTH),
-            Relation::EQ,
-            a.expr(RectAttr::WIDTH) + 20),
+            b.expr(RectAttr::WIDTH), Relation::EQ, a.expr(RectAttr::WIDTH) + 20),
     };
     Layout layout(rects, constraints);
     layout.verify_constraints();
@@ -170,7 +154,7 @@ TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
         Rect("r21", std::nullopt, 60, 20, 10),
         Rect("r22", std::nullopt, 60, 20, 10),
     };
-    auto                            la = AlignSpec{.anchor = Anchor::LEFT};
+    auto                            la          = AlignSpec{.anchor = Anchor::LEFT};
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
             RectSpec2Side::HorizontalRectBounds("r00"),
@@ -242,15 +226,13 @@ TEST(KiwiIr, MultiSeparateGrid) {
     for (auto const& row : ids) {
         for (auto const& rid : row) {
             if (rid.rect_id != "g00") {
-                rects.push_back(
-                    Rect(rid.rect_id, std::nullopt, std::nullopt, 10, 10));
+                rects.push_back(Rect(rid.rect_id, std::nullopt, std::nullopt, 10, 10));
             }
         }
     }
 
     Vec<hstd::SPtr<ConstraintBase>> constraints;
-    constraints.push_back(
-        std::make_shared<MultiSeparateConstraint>(ids, 25));
+    constraints.push_back(std::make_shared<MultiSeparateConstraint>(ids, 25));
 
     Vec<Vec<RectSpec1Side>> col_groups = {
         {
@@ -270,26 +252,21 @@ TEST(KiwiIr, MultiSeparateGrid) {
         },
     };
 
-    constraints.push_back(
-        std::make_shared<MultiSeparateConstraint>(col_groups, 35));
+    constraints.push_back(std::make_shared<MultiSeparateConstraint>(col_groups, 35));
 
     for (auto const& row : ids) {
         Vec<AlignItem> row_items;
         for (auto const& r : row) {
-            row_items.push_back(
-                AlignItem{r.rect_id, AlignSpec{.anchor = Anchor::TOP}});
+            row_items.push_back(AlignItem{r.rect_id, AlignSpec{.anchor = Anchor::TOP}});
         }
-        constraints.push_back(
-            std::make_shared<AlignConstraint>(row_items));
+        constraints.push_back(std::make_shared<AlignConstraint>(row_items));
     }
     for (auto const& col : col_groups) {
         Vec<AlignItem> col_items;
         for (auto const& r : col) {
-            col_items.push_back(
-                AlignItem{r.rect_id, AlignSpec{.anchor = Anchor::LEFT}});
+            col_items.push_back(AlignItem{r.rect_id, AlignSpec{.anchor = Anchor::LEFT}});
         }
-        constraints.push_back(
-            std::make_shared<AlignConstraint>(col_items));
+        constraints.push_back(std::make_shared<AlignConstraint>(col_items));
     }
 
     Layout layout(rects, constraints);
@@ -369,9 +346,7 @@ TEST(KiwiIr, VerifyPass) {
     };
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<SeparateConstraint>(
-            RectSpec1Side("b", Anchor::LEFT),
-            RectSpec1Side("a", Anchor::RIGHT),
-            5),
+            RectSpec1Side("b", Anchor::LEFT), RectSpec1Side("a", Anchor::RIGHT), 5),
     };
     Layout layout(rects, constraints);
     EXPECT_NO_THROW(layout.verify_constraints());
@@ -391,12 +366,10 @@ TEST(KiwiIr, VerifyPassWeakConflict) {
 }
 
 TEST(KiwiIr, VerifyFailPinConflict) {
-    Vec<Rect> rects = {
-        Rect("a", 0, std::nullopt, std::nullopt, std::nullopt)};
-    Rect&                           a           = rects[0];
+    Vec<Rect> rects = {Rect("a", 0, std::nullopt, std::nullopt, std::nullopt)};
+    Rect&     a     = rects[0];
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
-        std::make_shared<LinearConstraint>(
-            a.expr(RectAttr::X), Relation::EQ, Expr(10)),
+        std::make_shared<LinearConstraint>(a.expr(RectAttr::X), Relation::EQ, Expr(10)),
     };
     Layout layout(rects, constraints);
 
@@ -414,13 +387,9 @@ TEST(KiwiIr, VerifyFailMutuallyExclusiveSeparate) {
     Vec<Rect>                       rects       = {Rect("a"), Rect("b")};
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<SeparateConstraint>(
-            RectSpec1Side("b", Anchor::LEFT),
-            RectSpec1Side("a", Anchor::RIGHT),
-            5),
+            RectSpec1Side("b", Anchor::LEFT), RectSpec1Side("a", Anchor::RIGHT), 5),
         std::make_shared<SeparateConstraint>(
-            RectSpec1Side("b", Anchor::LEFT),
-            RectSpec1Side("a", Anchor::RIGHT),
-            7),
+            RectSpec1Side("b", Anchor::LEFT), RectSpec1Side("a", Anchor::RIGHT), 7),
     };
     Layout layout(rects, constraints);
 
@@ -702,10 +671,8 @@ TEST(KiwiIr, RelativeVariations) {
     auto rect_c = solved.at("rel").getGeometry();
     EXPECT_NEAR(rect_c.width(), rect_p.width() * 0.5, 1e-6);
     EXPECT_NEAR(rect_c.height(), rect_p.height() * 0.6, 1e-6);
-    EXPECT_NEAR(
-        rect_c.x() + rect_c.width(), rect_p.x() + rect_p.width(), 1e-6);
-    EXPECT_NEAR(
-        rect_c.y() + rect_c.height(), rect_p.y() + rect_p.height(), 1e-6);
+    EXPECT_NEAR(rect_c.x() + rect_c.width(), rect_p.x() + rect_p.width(), 1e-6);
+    EXPECT_NEAR(rect_c.y() + rect_c.height(), rect_p.y() + rect_p.height(), 1e-6);
 }
 
 TEST(KiwiIr, EqualSizeWithParentWrap) {

@@ -72,8 +72,7 @@ Vec<BacktrackRes> hstd::longestCommonSubsequence(
             Vec<BacktrackRes> res;
             for (const auto& t : back) {
                 res.push_back(
-                    {.lhsIndex = t.lhsIndex + lhsIdx,
-                     .rhsIndex = t.rhsIndex + rhsIdx});
+                    {.lhsIndex = t.lhsIndex + lhsIdx, .rhsIndex = t.rhsIndex + rhsIdx});
             }
 
             return res;
@@ -141,12 +140,10 @@ Vec<SeqEdit> hstd::myersDiff(
                 history.push_back(SeqEdit(sek::Delete, lhsIdx - 1, -1));
             }
 
-            while (lhsIdx < lhsSize && rhsIdx < rhsSize
-                   && itemCmp(lhsIdx, rhsIdx)) {
+            while (lhsIdx < lhsSize && rhsIdx < rhsSize && itemCmp(lhsIdx, rhsIdx)) {
                 lhsIdx++;
                 rhsIdx++;
-                history.push_back(
-                    SeqEdit(sek::Keep, lhsIdx - 1, rhsIdx - 1));
+                history.push_back(SeqEdit(sek::Keep, lhsIdx - 1, rhsIdx - 1));
             }
 
             if (lhsSize <= lhsIdx && rhsSize <= rhsIdx) {
@@ -166,7 +163,7 @@ LevenshteinDistanceResult hstd::levenshteinDistance(
     int                  rhsMax,
     Func<bool(int, int)> itemEq) {
 
-    Vec<Vec<int>> table(lhsMax + 1, Vec<int>(rhsMax + 1, 0));
+    Vec<Vec<int>>                 table(lhsMax + 1, Vec<int>(rhsMax + 1, 0));
     Vec<Vec<std::pair<int, int>>> paths(
         lhsMax + 1, Vec<std::pair<int, int>>(rhsMax + 1, {0, 0}));
 
@@ -187,9 +184,7 @@ LevenshteinDistanceResult hstd::levenshteinDistance(
                 paths[lhs][rhs] = {lhs - 1, rhs - 1};
             } else {
                 int min_val = std::min(
-                    {table[lhs - 1][rhs],
-                     table[lhs][rhs - 1],
-                     table[lhs - 1][rhs - 1]});
+                    {table[lhs - 1][rhs], table[lhs][rhs - 1], table[lhs - 1][rhs - 1]});
                 table[lhs][rhs] = min_val + 1;
                 if (table[lhs - 1][rhs] == min_val) {
                     paths[lhs][rhs] = {lhs - 1, rhs};
@@ -229,25 +224,15 @@ LevenshteinDistanceResult hstd::levenshteinDistance(
         auto cur  = levenpath[pathIdx];
 
         if (pathIdx != 0) {
-            if (cur.lhsIdx == last.lhsIdx + 1
-                && cur.rhsIdx == last.rhsIdx + 1
-                && table[cur.lhsIdx][cur.rhsIdx]
-                       != table[last.lhsIdx][last.rhsIdx]) {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Replace, 0, 0});
-            } else if (
-                cur.lhsIdx == last.lhsIdx
-                && cur.rhsIdx == last.rhsIdx + 1) {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Insert, 0, 0});
-            } else if (
-                cur.lhsIdx == last.lhsIdx + 1
-                && cur.rhsIdx == last.rhsIdx) {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Delete, 0, 0});
+            if (cur.lhsIdx == last.lhsIdx + 1 && cur.rhsIdx == last.rhsIdx + 1
+                && table[cur.lhsIdx][cur.rhsIdx] != table[last.lhsIdx][last.rhsIdx]) {
+                resultOperations.push_back(SeqEdit{SeqEditKind::Replace, 0, 0});
+            } else if (cur.lhsIdx == last.lhsIdx && cur.rhsIdx == last.rhsIdx + 1) {
+                resultOperations.push_back(SeqEdit{SeqEditKind::Insert, 0, 0});
+            } else if (cur.lhsIdx == last.lhsIdx + 1 && cur.rhsIdx == last.rhsIdx) {
+                resultOperations.push_back(SeqEdit{SeqEditKind::Delete, 0, 0});
             } else {
-                resultOperations.push_back(
-                    SeqEdit{SeqEditKind::Keep, 0, 0});
+                resultOperations.push_back(SeqEdit{SeqEditKind::Keep, 0, 0});
             }
 
             resultOperations.back().sourcePos = cur.lhsIdx - 1;
@@ -255,15 +240,10 @@ LevenshteinDistanceResult hstd::levenshteinDistance(
         }
     }
 
-    return {
-        table[levenpath.back().lhsIdx][levenpath.back().rhsIdx],
-        resultOperations};
+    return {table[levenpath.back().lhsIdx][levenpath.back().rhsIdx], resultOperations};
 }
 
-hstd::ShiftedDiff::ShiftedDiff(
-    BacktrackRes const& track,
-    int                 lhsMax,
-    int                 rhsMax) {
+hstd::ShiftedDiff::ShiftedDiff(BacktrackRes const& track, int lhsMax, int rhsMax) {
     using sek    = SeqEditKind;
     int prevLhs  = 0;
     int prevRhs  = 0;
@@ -313,20 +293,19 @@ hstd::ShiftedDiff::ShiftedDiff(Vec<SeqEdit> const& diff) {
                 break;
 
             case sek::None:
-                assert(false && "Input diff sequence should not contain empty operations");
+                assert(
+                    false && "Input diff sequence should not contain empty operations");
                 break;
 
             case sek::Transpose:
-                assert(false && "Input diff sequence should not contain transpose operations");
+                assert(
+                    false
+                    && "Input diff sequence should not contain transpose operations");
                 break;
 
-            case sek::Delete:
-                oldShifted.push_back({sek::Delete, line.sourcePos});
-                break;
+            case sek::Delete: oldShifted.push_back({sek::Delete, line.sourcePos}); break;
 
-            case sek::Insert:
-                newShifted.push_back({sek::Insert, line.targetPos});
-                break;
+            case sek::Insert: newShifted.push_back({sek::Insert, line.targetPos}); break;
 
             case sek::Keep:
                 int oldLen = oldShifted.size();
@@ -352,10 +331,7 @@ hstd::ShiftedDiff::ShiftedDiff(Vec<SeqEdit> const& diff) {
     }
 }
 
-bool hstd::hasInvisibleChanges(
-    Vec<SeqEdit>& diff,
-    Vec<Str>&     oldSeq,
-    Vec<Str>&     newSeq) {
+bool hstd::hasInvisibleChanges(Vec<SeqEdit>& diff, Vec<Str>& oldSeq, Vec<Str>& newSeq) {
     // Is any change in the edit sequence invisible?
     CharSet start = Invis + ' ';
 
@@ -382,8 +358,7 @@ bool hstd::hasInvisibleChanges(
                 if (invis(oldSeq[edit.sourcePos])) {}
                 break;
             case SeqEditKind::Replace:
-                if (invis(oldSeq[edit.sourcePos])
-                    || invis(newSeq[edit.targetPos])) {
+                if (invis(oldSeq[edit.sourcePos]) || invis(newSeq[edit.targetPos])) {
                     return true;
                 }
                 break;
@@ -416,9 +391,7 @@ int FormattedDiff::maxLineNumber() const {
     return result;
 }
 
-hstd::FormattedDiff::FormattedDiff(
-    ShiftedDiff const& shifted,
-    Conf const&        conf)
+hstd::FormattedDiff::FormattedDiff(ShiftedDiff const& shifted, Conf const& conf)
     : conf{conf} {
     Vec<BufItem> oldText, newText;
 
@@ -498,8 +471,7 @@ hstd::FormattedDiff::FormattedDiff(
         for (auto it = oldText.begin() + 1, jt = newText.begin() + 1;
              it != oldText.end() - 1;
              ++it, ++jt) {
-            if (it->kind != lhsBuf.back().kind
-                || jt->kind != rhsBuf.back().kind) {
+            if (it->kind != lhsBuf.back().kind || jt->kind != rhsBuf.back().kind) {
                 // If one of the edit streaks finished, dump both
                 // results to output and continue
                 //
@@ -569,19 +541,19 @@ ColText FormattedDiff::format() {
     ColStream os;
     if (isUnified()) {
         Vec<Pair<FormattedDiff::DiffLine, FormattedDiff::DiffLine>> lines;
-        Vec<Pair<ColText, ColText>> formattedLines;
+        Vec<Pair<ColText, ColText>>                                 formattedLines;
         for (auto const& pair : unifiedLines()) {
             lines.push_back(pair);
             auto lhsLine = conf.formatLine(pair.first);
             auto rhsLine = conf.formatLine(pair.second);
             if (conf.maxLhsSize) {
-                lhsLine = lhsLine.at(slice(
-                    0, std::min(lhsLine.size(), conf.maxLhsSize.value())));
+                lhsLine = lhsLine.at(
+                    slice(0, std::min(lhsLine.size(), conf.maxLhsSize.value())));
             }
 
             if (conf.maxRhsSize) {
-                rhsLine = rhsLine.at(slice(
-                    0, std::min(rhsLine.size(), conf.maxRhsSize.value())));
+                rhsLine = rhsLine.at(
+                    slice(0, std::min(rhsLine.size(), conf.maxRhsSize.value())));
             }
 
             formattedLines.push_back({lhsLine, rhsLine});
@@ -590,18 +562,16 @@ ColText FormattedDiff::format() {
         int lhsSize = std::max(
             conf.minLhsSize.value_or(0),
             rs::max(
-                formattedLines
-                | rv::transform([](Pair<ColText, ColText> const& elem) {
-                      return elem.first.size();
-                  })));
+                formattedLines | rv::transform([](Pair<ColText, ColText> const& elem) {
+                    return elem.first.size();
+                })));
 
         int rhsSize = std::max(
             conf.minRhsSize.value_or(0),
             rs::max(
-                formattedLines
-                | rv::transform([](Pair<ColText, ColText> const& elem) {
-                      return elem.second.size();
-                  })));
+                formattedLines | rv::transform([](Pair<ColText, ColText> const& elem) {
+                    return elem.second.size();
+                })));
 
         int const linePrefixSize = 2;
 
@@ -653,21 +623,16 @@ ColText FormattedDiff::format() {
             auto lhsStyle = toStyle(lhs.prefix);
             auto rhsStyle = toStyle(rhs.prefix);
 
-            os
-                << (ColText(
-                        lhsStyle, toPrefix(lhs.prefix)) <<= linePrefixSize)
-                << ((lhs.empty()
-                         ? ColText("")
-                         : formattedLines.at(lhs.index().value())
-                               .first.withStyle(lhsStyle)) <<= lhsSize)
-                << splitSeparator //
-                << (ColText(
-                        rhsStyle, toPrefix(rhs.prefix)) <<= linePrefixSize)
-                << ((rhs.empty()
-                         ? ColText("")
-                         : formattedLines.at(rhs.index().value())
-                               .second.withStyle(rhsStyle)) <<= rhsSize)
-                << "\n";
+            os << (ColText(lhsStyle, toPrefix(lhs.prefix)) <<= linePrefixSize)
+               << ((lhs.empty() ? ColText("")
+                                : formattedLines.at(lhs.index().value())
+                                      .first.withStyle(lhsStyle)) <<= lhsSize)
+               << splitSeparator //
+               << (ColText(rhsStyle, toPrefix(rhs.prefix)) <<= linePrefixSize)
+               << ((rhs.empty() ? ColText("")
+                                : formattedLines.at(rhs.index().value())
+                                      .second.withStyle(rhsStyle)) <<= rhsSize)
+               << "\n";
         }
     } else {
         logic_todo_impl();
@@ -691,8 +656,7 @@ hstd::ColText formatInlineDiff(
                     bool        isInline = false) {
         ColText chunk;
         if (conf.explainInvisible && scanInvisible(text, start)) {
-            chunk = conf.chunk(
-                toVisibleNames(conf, text), mode, secondary, isInline);
+            chunk = conf.chunk(toVisibleNames(conf, text), mode, secondary, isInline);
         } else {
             chunk = conf.chunk(text, mode, secondary, isInline);
         }
@@ -709,9 +673,7 @@ hstd::ColText formatInlineDiff(
         groups = partition<SeqEdit, SeqEditKind>(
             diffed, [](SeqEdit const& edit) { return edit.kind; });
     } else {
-        for (int i = 0; i < diffed.size(); ++i) {
-            groups[i] = {diffed[slice(i, i)]};
-        }
+        for (int i = 0; i < diffed.size(); ++i) { groups[i] = {diffed[slice(i, i)]}; }
     }
 
     using sek = SeqEditKind;
@@ -720,9 +682,7 @@ hstd::ColText formatInlineDiff(
         switch (groups[gIdx][0].kind) {
             case sek::Keep: {
                 Str buf;
-                for (const auto& op : groups[gIdx]) {
-                    buf.append(src[op.sourcePos]);
-                }
+                for (const auto& op : groups[gIdx]) { buf.append(src[op.sourcePos]); }
                 push(buf, sek::Keep, sek::Keep);
                 break;
             }
@@ -730,17 +690,13 @@ hstd::ColText formatInlineDiff(
             case sek::Transpose: break;
             case sek::Insert: {
                 Str buf;
-                for (const auto& op : groups[gIdx]) {
-                    buf.append(target[op.targetPos]);
-                }
+                for (const auto& op : groups[gIdx]) { buf.append(target[op.targetPos]); }
                 push(buf, sek::Insert, sek::Insert);
                 break;
             }
             case sek::Delete: {
                 Str buf;
-                for (const auto& op : groups[gIdx]) {
-                    buf.append(src[op.sourcePos]);
-                }
+                for (const auto& op : groups[gIdx]) { buf.append(src[op.sourcePos]); }
                 push(buf, sek::Delete, sek::Delete);
                 break;
             }
@@ -769,15 +725,15 @@ struct fuzzy_result {
     int  score;
 };
 
-#define LG(__msg)                                                         \
-    if (m.TraceState) {                                                   \
-        m.message(                                                        \
-            OperationsMsg{                                                \
-                .line     = __LINE__,                                     \
-                .function = __func__,                                     \
-                .msg      = indent(__msg, recursionCount),                \
-                .file     = __FILE__,                                     \
-            });                                                           \
+#define LG(__msg)                                                                        \
+    if (m.TraceState) {                                                                  \
+        m.message(                                                                       \
+            OperationsMsg{                                                               \
+                .line     = __LINE__,                                                    \
+                .function = __func__,                                                    \
+                .msg      = indent(__msg, recursionCount),                               \
+                .file     = __FILE__,                                                    \
+            });                                                                          \
     }
 
 fuzzy_result fuzzy_match_recursive(
@@ -815,8 +771,7 @@ fuzzy_result fuzzy_match_recursive(
     bool first_match = true;
     while (pattern.isValid() && str.isValid()) {
         LG(fmt("str:{} pattern:{}", str, pattern));
-        LOGIC_ASSERTION_CHECK(
-            m.isEqual, "Missing item equality compare function");
+        LOGIC_ASSERTION_CHECK(m.isEqual, "Missing item equality compare function");
         // Found match
         if (m.isEqual(pattern.first, str.first)) {
             LG(fmt("pattern[{}] == str[{}]", pattern.first, str.first));
@@ -849,8 +804,7 @@ fuzzy_result fuzzy_match_recursive(
 
             if (recurse.has_match) {
                 // Pick best recursive score
-                if (!recursiveMatch
-                    || bestRecursiveScore < recurse.score) {
+                if (!recursiveMatch || bestRecursiveScore < recurse.score) {
                     bestRecursiveMatches = recursiveMatches;
                     bestRecursiveScore   = recurse.score;
                 }
@@ -873,8 +827,7 @@ fuzzy_result fuzzy_match_recursive(
     bool matched  = !pattern.isValid();
     int  outScore = 0;
 
-    LOGIC_ASSERTION_CHECK(
-        m.matchScore, "Match score callback implementation is missing");
+    LOGIC_ASSERTION_CHECK(m.matchScore, "Match score callback implementation is missing");
     // Calculate score
     if (matched) { outScore = m.matchScore(str, nextMatch, matches); }
 
@@ -901,10 +854,7 @@ fuzzy_result fuzzy_match_recursive(
 
 FuzzyMatcher::ScoreFunc hstd::FuzzyMatcher::getLinearScore(
     LinearScoreConfig const& conf) {
-    return [&conf](
-               Range const&    _str,
-               int             nextMatch,
-               Vec<int> const& matches) -> int {
+    return [&conf](Range const& _str, int nextMatch, Vec<int> const& matches) -> int {
         auto str      = _str;
         int  outScore = 0;
         // Iterate str to end
@@ -932,9 +882,7 @@ FuzzyMatcher::ScoreFunc hstd::FuzzyMatcher::getLinearScore(
                 int prevIdx = matches[i - 1];
 
                 // Sequential
-                if (currIdx == (prevIdx + 1)) {
-                    outScore += conf.sequential_bonus;
-                }
+                if (currIdx == (prevIdx + 1)) { outScore += conf.sequential_bonus; }
             }
 
             if (0 == currIdx) {

@@ -18,9 +18,7 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
 
     for (auto const& g : groups) {
         Vec<Slice<int>> slices;
-        for (auto const& s : g.segments) {
-            slices.push_back(slice(s.first, s.last));
-        }
+        for (auto const& s : g.segments) { slices.push_back(slice(s.first, s.last)); }
 
         trees.push_back(
             GroupTree{
@@ -39,8 +37,7 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
             if (!ranges.empty()) {
                 Vec<int> kinds;
                 for (auto const& range : ranges) {
-                    kinds.push_back(
-                        tree.group.segments.at(range.index).kind);
+                    kinds.push_back(tree.group.segments.at(range.index).kind);
                 }
                 ranges::actions::sort(kinds.begin(), kinds.end());
                 groups.incl(std::make_pair(tree.group.kind, kinds));
@@ -95,12 +92,9 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
     return result;
 }
 
-bool hstd::SequenceAnnotation::isAnnotatedWith(
-    int groupKind,
-    int segmentKind) const {
+bool hstd::SequenceAnnotation::isAnnotatedWith(int groupKind, int segmentKind) const {
     for (auto const& a : annotations) {
-        if (a.groupKind == groupKind
-            && a.segmentKinds.indexOf(segmentKind) != -1) {
+        if (a.groupKind == groupKind && a.segmentKinds.indexOf(segmentKind) != -1) {
             return true;
         }
     }

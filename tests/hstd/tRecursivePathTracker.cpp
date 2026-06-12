@@ -50,9 +50,7 @@ TEST_F(RecursivePathTrackerTest, PushMultipleElements) {
 }
 
 TEST_F(RecursivePathTrackerTest, PopElements) {
-    auto tracker = empty_tracker.push(TestStep{1})
-                       .push(TestStep{2})
-                       .push(TestStep{3});
+    auto tracker = empty_tracker.push(TestStep{1}).push(TestStep{2}).push(TestStep{3});
 
     auto popped = tracker.pop();
     EXPECT_EQ(popped.size(), 2);
@@ -67,8 +65,7 @@ TEST_F(RecursivePathTrackerTest, PopElements) {
 }
 
 TEST_F(RecursivePathTrackerTest, CopySemantics) {
-    auto original = empty_tracker.push(TestStep{1, "a"})
-                        .push(TestStep{2, "b"});
+    auto original = empty_tracker.push(TestStep{1, "a"}).push(TestStep{2, "b"});
 
     auto copy          = original;
     auto modified_copy = copy.push(TestStep{3, "c"});
@@ -178,8 +175,7 @@ TEST_F(RecursivePathTrackerTest, IntegerType) {
 }
 
 TEST_F(RecursivePathTrackerTest, StringType) {
-    auto string_path = string_tracker.push("hello").push("world").push(
-        "test");
+    auto string_path = string_tracker.push("hello").push("world").push("test");
 
     EXPECT_EQ(string_path.size(), 3);
     EXPECT_EQ(string_path[0], "hello");
@@ -218,9 +214,7 @@ TEST_F(RecursivePathTrackerTest, DeepBranching) {
     for (int i = 0; i < 10; ++i) { base = base.push(TestStep{i}); }
 
     std::vector<RecursivePathTracker<TestStep>> branches;
-    for (int i = 0; i < 5; ++i) {
-        branches.push_back(base.push(TestStep{100 + i}));
-    }
+    for (int i = 0; i < 5; ++i) { branches.push_back(base.push(TestStep{100 + i})); }
 
     for (int i = 0; i < 5; ++i) {
         EXPECT_EQ(branches[i].size(), 11);

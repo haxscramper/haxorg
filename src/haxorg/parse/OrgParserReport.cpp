@@ -17,8 +17,7 @@ void OrgParser::report(Report const& in) {
 
     if (reportHook) { reportHook(in); }
 
-    if (in.kind == ReportKind::EnterParse
-        || in.kind == ReportKind::StartNode) {
+    if (in.kind == ReportKind::EnterParse || in.kind == ReportKind::StartNode) {
         ++activeLevel;
     }
 
@@ -30,10 +29,10 @@ void OrgParser::report(Report const& in) {
 
         EntryParser res;
         res.depth = activeLevel;
-#define __kind(K)                                                         \
-    case ReportKind::K: {                                                 \
-        res.kind = EntryParser::Kind::K;                                  \
-        break;                                                            \
+#define __kind(K)                                                                        \
+    case ReportKind::K: {                                                                \
+        res.kind = EntryParser::Kind::K;                                                 \
+        break;                                                                           \
     }
         switch (in.kind) {
             __kind(Error);
@@ -51,9 +50,7 @@ void OrgParser::report(Report const& in) {
             val.maxPos = in.lex->in->size();
             val.loc    = this->getLoc(*in.lex);
 
-            if (!in.lex->pos.isNil()) {
-                val.nowPos = in.lex->pos.getIndex();
-            }
+            if (!in.lex->pos.isNil()) { val.nowPos = in.lex->pos.getIndex(); }
 
             for (int i = 0; i < 10; ++i) {
                 if (in.lex->hasNext(i)) {
@@ -62,8 +59,7 @@ void OrgParser::report(Report const& in) {
                             .kind  = fmt1(in.lex->tok(i).kind),
                             .index = in.lex->pos.isNil()
                                        ? -1
-                                       : static_cast<int>(
-                                             in.lex->pos.getIndex() + i),
+                                       : static_cast<int>(in.lex->pos.getIndex() + i),
                             .value = in.lex->tok(i).value.text,
                         });
                 }
@@ -168,11 +164,8 @@ void OrgParser::report(Report const& in) {
                     id.getUnmasked(),
                     in.line,
                     escape_literal(
-                        group->at(id).isMono() ? "<mono>"
-                                               : group->val(id).text));
-                if (in.msg && !in.msg->empty()) {
-                    os << " " << in.msg.value();
-                }
+                        group->at(id).isMono() ? "<mono>" : group->val(id).text));
+                if (in.msg && !in.msg->empty()) { os << " " << in.msg.value(); }
                 break;
             }
 
@@ -181,8 +174,7 @@ void OrgParser::report(Report const& in) {
                 printNode();
                 auto id = in.node.value();
                 if (in.kind == ReportKind::EndNode) {
-                    os << " ext="
-                       << std::format("{}", group->at(id).getExtent());
+                    os << " ext=" << std::format("{}", group->at(id).getExtent());
                 }
                 if (in.msg && !in.msg->empty()) { os << " " << *in.msg; }
                 break;
@@ -194,9 +186,8 @@ void OrgParser::report(Report const& in) {
                     "{} [{}] ",
                     in.kind == ReportKind::EnterParse ? ">" : "<",
                     treeDepth())
-                   << fg::Green << fmt1(in.function ? in.function : "")
-                   << os.end() << ":" << fg::Cyan << fmt1(in.line)
-                   << os.end();
+                   << fg::Green << fmt1(in.function ? in.function : "") << os.end() << ":"
+                   << fg::Cyan << fmt1(in.line) << os.end();
 
                 printTokens();
 
@@ -208,8 +199,7 @@ void OrgParser::report(Report const& in) {
 
     endStream(os);
 
-    if (in.kind == ReportKind::LeaveParse
-        || in.kind == ReportKind::EndNode) {
+    if (in.kind == ReportKind::LeaveParse || in.kind == ReportKind::EndNode) {
         --activeLevel;
     }
 }

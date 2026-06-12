@@ -21,8 +21,7 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public hstd::OperationsTracer {
   public:
-    using OrgExpectable = hstd::
-        Variant<OrgTokenKind, OrgTokSet, hstd::Vec<OrgTokenKind>>;
+    using OrgExpectable = hstd::Variant<OrgTokenKind, OrgTokSet, hstd::Vec<OrgTokenKind>>;
 
     std::string getLocMsg(OrgLexer const& lex);
     parse_error fatalError(
@@ -167,18 +166,14 @@ struct OrgParser : public hstd::OperationsTracer {
         std::string debug;
 
         NodeGuard(int startingDepth, OrgParser* parser, OrgId startId)
-            : startingDepth{startingDepth}
-            , parser{parser}
-            , startId{startId} {}
+            : startingDepth{startingDepth}, parser{parser}, startId{startId} {}
 
         NodeGuard()                       = delete;
         NodeGuard(NodeGuard&& other)      = default;
         NodeGuard(NodeGuard const& other) = delete;
 
         ~NodeGuard() {
-            if (!closed && parser != nullptr && !startId.isNil()) {
-                end();
-            }
+            if (!closed && parser != nullptr && !startId.isNil()) { end(); }
         }
 
         OrgParser::ParseOk end(
@@ -207,16 +202,15 @@ struct OrgParser : public hstd::OperationsTracer {
     OrgNodeMono::Error error_value(
         org::sem::OrgDiagnostics::ParseError const& message,
         OrgLexer const&                             lex,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        int                                         line     = __builtin_LINE(),
+        char const*                                 function = __builtin_FUNCTION());
 
     ParseResult error_end(
         org::sem::OrgDiagnostics::ParseError const& message,
         OrgLexer const&                             lex,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
-        return error_end(
-            error_value(message, lex, line, function), line, function);
+        int                                         line     = __builtin_LINE(),
+        char const*                                 function = __builtin_FUNCTION()) {
+        return error_end(error_value(message, lex, line, function), line, function);
     }
 
     OrgId error_token(
@@ -238,8 +232,8 @@ struct OrgParser : public hstd::OperationsTracer {
         ParseResult const&                          res,
         org::sem::OrgDiagnostics::ParseError const& on_fail_message,
         OrgLexer&                                   lex,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        int                                         line     = __builtin_LINE(),
+        char const*                                 function = __builtin_FUNCTION());
 
 
     OrgId fake(
@@ -254,11 +248,10 @@ struct OrgParser : public hstd::OperationsTracer {
         char const*     function = __builtin_FUNCTION());
 
     [[nodiscard]] ParseResult expect(
-        OrgLexer const&                 lex,
-        OrgParser::OrgExpectable const& item,
-        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const&
-                    message  = std::nullopt,
-        int         line     = __builtin_LINE(),
+        OrgLexer const&                                        lex,
+        OrgParser::OrgExpectable const&                        item,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::nullopt,
+        int                                                    line    = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
     OrgTokenId pop(
@@ -271,24 +264,22 @@ struct OrgParser : public hstd::OperationsTracer {
     [[nodiscard]] LexResult pop(
         OrgLexer&                           lex,
         hstd::Opt<OrgParser::OrgExpectable> tok,
-        int                                 line = __builtin_LINE(),
-        char const* function                     = __builtin_FUNCTION());
+        int                                 line     = __builtin_LINE(),
+        char const*                         function = __builtin_FUNCTION());
 
     void skip(
-        OrgLexer& lex,
-        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const&
-                    message  = std::nullopt,
-        int         line     = __builtin_LINE(),
+        OrgLexer&                                              lex,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::nullopt,
+        int                                                    line    = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
         std::ignore = skip(lex, std::nullopt, message, line, function);
     }
 
     [[nodiscard]] ParseResult skip(
-        OrgLexer&                           lex,
-        hstd::Opt<OrgParser::OrgExpectable> item,
-        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const&
-                    message  = std::nullopt,
-        int         line     = __builtin_LINE(),
+        OrgLexer&                                              lex,
+        hstd::Opt<OrgParser::OrgExpectable>                    item,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message = std::nullopt,
+        int                                                    line    = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
     void space(
@@ -327,9 +318,7 @@ struct OrgParser : public hstd::OperationsTracer {
 
     void reserve(int size) { group->nodes.reserve(size); }
 
-    void setReportHook(hstd::Func<void(Report const&)> in) {
-        reportHook = in;
-    }
+    void setReportHook(hstd::Func<void(Report const&)> in) { reportHook = in; }
 
     static hstd::Opt<SourceLoc> getLoc(OrgLexer const& lex);
 

@@ -9,39 +9,34 @@ namespace hstd {
 
 
 /// \brief Macro to handle std::optional - converts to outcome::result
-#define BOOST_OUTCOME_TRY_OPTIONAL(var, optional_expr, error_msg)         \
-    auto BOOST_OUTCOME_UNIQUE_NAME = (optional_expr);                     \
-    if (!BOOST_OUTCOME_UNIQUE_NAME.has_value()) {                         \
-        return ::hstd::outcome::failure(error_msg);                       \
-    }                                                                     \
+#define BOOST_OUTCOME_TRY_OPTIONAL(var, optional_expr, error_msg)                        \
+    auto BOOST_OUTCOME_UNIQUE_NAME = (optional_expr);                                    \
+    if (!BOOST_OUTCOME_UNIQUE_NAME.has_value()) {                                        \
+        return ::hstd::outcome::failure(error_msg);                                      \
+    }                                                                                    \
     auto const& var = std::move(BOOST_OUTCOME_UNIQUE_NAME.value());
 
 /// \brief Macro to handle is<X>() + get<X>() pattern
-#define BOOST_OUTCOME_TRY_VALIDATE_GET(                                   \
-    var, obj, check_method, get_method, error_msg)                        \
-    if (!(obj).check_method()) {                                          \
-        return ::hstd::outcome::failure(error_msg);                       \
-    }                                                                     \
+#define BOOST_OUTCOME_TRY_VALIDATE_GET(var, obj, check_method, get_method, error_msg)    \
+    if (!(obj).check_method()) { return ::hstd::outcome::failure(error_msg); }           \
     auto const& var = (obj).get_method();
 
 /// \brief Alternative macro if get_method() doesn't return optional
-#define BOOST_OUTCOME_TRY_VALIDATE_GET_DIRECT(                            \
-    var, obj, check_method, get_method, error_msg)                        \
-    if (!(obj).check_method()) {                                          \
-        return ::hstd::outcome::failure(error_msg);                       \
-    }                                                                     \
+#define BOOST_OUTCOME_TRY_VALIDATE_GET_DIRECT(                                           \
+    var, obj, check_method, get_method, error_msg)                                       \
+    if (!(obj).check_method()) { return ::hstd::outcome::failure(error_msg); }           \
     auto const& var = (obj).get_method();
 
 
-#define BOOST_OUTCOME_TRY_SUB_VARIANT(var, obj, variant_name)             \
-    BOOST_OUTCOME_TRY_VALIDATE_GET(                                       \
-        var,                                                              \
-        obj,                                                              \
-        is##variant_name,                                                 \
-        get##variant_name,                                                \
-        hstd::fmt(                                                        \
-            "Expected sub variant '{}' but got '{}'",                     \
-            #variant_name,                                                \
+#define BOOST_OUTCOME_TRY_SUB_VARIANT(var, obj, variant_name)                            \
+    BOOST_OUTCOME_TRY_VALIDATE_GET(                                                      \
+        var,                                                                             \
+        obj,                                                                             \
+        is##variant_name,                                                                \
+        get##variant_name,                                                               \
+        hstd::fmt(                                                                       \
+            "Expected sub variant '{}' but got '{}'",                                    \
+            #variant_name,                                                               \
             obj.sub_variant_get_kind()))
 
 
@@ -50,8 +45,7 @@ namespace outcome = BOOST_OUTCOME_V2_NAMESPACE;
 template <
     typename Value,
     typename Error,
-    class NoValuePolicy = outcome::policy::
-        default_policy<Value, Error, void>>
+    class NoValuePolicy = outcome::policy::default_policy<Value, Error, void>>
 using Result = outcome::result<Value, Error, NoValuePolicy>;
 
 struct described_predicate_error {
@@ -74,12 +68,11 @@ struct described_predicate_error {
     }
 };
 
-using described_predicate_result = outcome::
-    result<bool, described_predicate_error>;
+using described_predicate_result = outcome::result<bool, described_predicate_error>;
 
-#define LOGIC_ASSERTION_CHECK_DESCRIBED(expr)                             \
-    if (::hstd::described_predicate_result tmp = expr; !(tmp)) {          \
-        throw tmp.error().as_exception(#expr);                            \
+#define LOGIC_ASSERTION_CHECK_DESCRIBED(expr)                                            \
+    if (::hstd::described_predicate_result tmp = expr; !(tmp)) {                         \
+        throw tmp.error().as_exception(#expr);                                           \
     }
 
 } // namespace hstd

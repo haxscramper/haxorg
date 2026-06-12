@@ -12,8 +12,7 @@ TYPED_TEST_SUITE(IntVecTypedTest, IntVecTestTypes);
 
 template <typename T>
 class StrVecTypedTest : public ::testing::Test {};
-using StrVecTestTypes = ::testing::
-    Types<Vec<std::string>, SmallVec<std::string, 10>>;
+using StrVecTestTypes = ::testing::Types<Vec<std::string>, SmallVec<std::string, 10>>;
 TYPED_TEST_SUITE(StrVecTypedTest, StrVecTestTypes);
 
 TEST(BackwardsIndexTest, BackwardsIndexFormat) {
@@ -200,9 +199,8 @@ TEST(VectorTest, VectorSplicing) {
 
     {
         auto tmp = V{1, 2, 3};
-        auto v   = V::Splice(1, tmp | rv::transform([](int arg) -> int {
-                                  return arg + 1;
-                                }));
+        auto v   = V::Splice(
+            1, tmp | rv::transform([](int arg) -> int { return arg + 1; }));
 
         EXPECT_EQ(v.size(), 4);
         EXPECT_EQ(v.at(0), 1);

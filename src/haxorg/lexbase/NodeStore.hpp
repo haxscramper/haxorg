@@ -39,9 +39,7 @@ struct NodeGroup {
     /// \brief Add token node to the list of nodes
     Id token(NodeT const& node) { return nodes.add(node); }
     /// \brief Create new token node
-    Id token(N node, TokenId<K, V> tok) {
-        return nodes.add(Node<N, K, V, M>(node, tok));
-    }
+    Id token(N node, TokenId<K, V> tok) { return nodes.add(Node<N, K, V, M>(node, tok)); }
 
     /// \brief Add one nonterminal node to the store and push its ID into
     /// the opening stack
@@ -79,9 +77,7 @@ struct NodeGroup {
     /// \brief Remove all nodes starting from a position `id`
     void removeTail(Id id);
 
-    Node<N, K, V, M> const& lastPending() const {
-        return nodes.at(pendingTrees.back());
-    }
+    Node<N, K, V, M> const& lastPending() const { return nodes.at(pendingTrees.back()); }
 
     /// \brief Return reference to the node *object* at specified ID
     Node<N, K, V, M>&       at(Id id) { return nodes.at(id); }
@@ -109,8 +105,7 @@ struct NodeGroup {
         typedef Id&                       reference;
         typedef std::ptrdiff_t            difference_type;
 
-        iterator(Id _id, NodeGroup const* _group)
-            : id(_id), group(_group) {}
+        iterator(Id _id, NodeGroup const* _group) : id(_id), group(_group) {}
 
         Id operator*() const {
             check();
@@ -133,9 +128,7 @@ struct NodeGroup {
             return *this;
         }
 
-        bool operator!=(iterator const& other) const {
-            return this->id != other.id;
-        }
+        bool operator!=(iterator const& other) const { return this->id != other.id; }
     };
 
     iterator begin(Id start) const;
@@ -197,10 +190,8 @@ struct NodeGroup {
         hstd::Func<void(WriteParams const& params)> customWrite;
     };
 
-    void lispRepr(
-        std::ostream&       os,
-        Id                  node,
-        TreeReprConf const& conf = TreeReprConf()) const;
+    void lispRepr(std::ostream& os, Id node, TreeReprConf const& conf = TreeReprConf())
+        const;
 
 
     void treeRepr(
@@ -211,9 +202,7 @@ struct NodeGroup {
         int                 subnodeIdx = 0,
         hstd::Opt<Id>       parent     = std::nullopt) const;
 
-    std::string treeRepr(
-        Id                  node,
-        TreeReprConf const& conf = TreeReprConf()) const;
+    std::string treeRepr(Id node, TreeReprConf const& conf = TreeReprConf()) const;
 };
 
 } // namespace org::parse

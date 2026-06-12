@@ -24,8 +24,7 @@ int main(int argc, char** argv) {
     if (!glfwInit()) { return 1; }
 
     hstd::log::clear_sink_backends();
-    hstd::log::push_sink(
-        hstd::log::init_file_sink("/tmp/imgui_tests_sink.log"));
+    hstd::log::push_sink(hstd::log::init_file_sink("/tmp/imgui_tests_sink.log"));
 
     GLFWmonitor*       monitor = glfwGetPrimaryMonitor();
     GLFWvidmode const* mode    = glfwGetVideoMode(monitor);
@@ -72,10 +71,7 @@ int main(int argc, char** argv) {
     RegisterApptests(engine);
 
     ImGuiTestEngine_QueueTests(
-        engine,
-        ImGuiTestGroup_Tests,
-        nullptr,
-        ImGuiTestRunFlags_RunFromGui);
+        engine, ImGuiTestGroup_Tests, nullptr, ImGuiTestRunFlags_RunFromGui);
 
     bool aborted = false;
     while (!aborted) {

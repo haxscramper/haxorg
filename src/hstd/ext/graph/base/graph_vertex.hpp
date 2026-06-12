@@ -29,18 +29,15 @@ struct IVertex
 struct TrivialVertex
     : public IVertex
     , public virtual TrivialAttributeObject {
-    explicit TrivialVertex(std::string const& _stable_id)
-        : IVertex{_stable_id} {}
+    explicit TrivialVertex(std::string const& _stable_id) : IVertex{_stable_id} {}
 
     std::string getRepr() const override {
         return hstd::fmt("IVertex({})", getStableId());
     }
 
 #if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(
-        proto::IVertex* out,
-        IGraph const*   graph,
-        VertexID const& id) const override {
+    void writeSerial(proto::IVertex* out, IGraph const* graph, VertexID const& id)
+        const override {
         IVertex::writeSerial(out, graph, id);
         out->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
     }

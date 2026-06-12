@@ -196,24 +196,20 @@ TEST_F(GraphKiwi_Test, KiwiLinearConstraintPartialInset) {
     double line_percent    = (inset / size) * 100.0;
     double overlap_percent = (inset * inset) / (size * size) * 100.0;
 
+    EXPECT_OUTCOME_OK(checkPartiallyLeft(box(v_center), box(v_up_left), line_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyLeft(box(v_center), box(v_down_left), line_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyRight(box(v_center), box(v_up_right), line_percent));
     EXPECT_OUTCOME_OK(
-        checkPartiallyLeft(box(v_center), box(v_up_left), line_percent));
+        checkPartiallyRight(box(v_center), box(v_down_right), line_percent));
+    EXPECT_OUTCOME_OK(checkPartiallyLeft(box(v_up_right), box(v_up_left), line_percent));
     EXPECT_OUTCOME_OK(
-        checkPartiallyLeft(box(v_center), box(v_down_left), line_percent));
+        checkPartiallyCovers(box(v_center), box(v_up_right), overlap_percent));
     EXPECT_OUTCOME_OK(
-        checkPartiallyRight(box(v_center), box(v_up_right), line_percent));
-    EXPECT_OUTCOME_OK(checkPartiallyRight(
-        box(v_center), box(v_down_right), line_percent));
+        checkPartiallyCovers(box(v_center), box(v_up_left), overlap_percent));
     EXPECT_OUTCOME_OK(
-        checkPartiallyLeft(box(v_up_right), box(v_up_left), line_percent));
-    EXPECT_OUTCOME_OK(checkPartiallyCovers(
-        box(v_center), box(v_up_right), overlap_percent));
-    EXPECT_OUTCOME_OK(checkPartiallyCovers(
-        box(v_center), box(v_up_left), overlap_percent));
-    EXPECT_OUTCOME_OK(checkPartiallyCovers(
-        box(v_center), box(v_down_left), overlap_percent));
-    EXPECT_OUTCOME_OK(checkPartiallyCovers(
-        box(v_center), box(v_down_right), overlap_percent));
+        checkPartiallyCovers(box(v_center), box(v_down_left), overlap_percent));
+    EXPECT_OUTCOME_OK(
+        checkPartiallyCovers(box(v_center), box(v_down_right), overlap_percent));
 }
 
 
@@ -331,7 +327,7 @@ TEST_P(GraphKiwi_BoolParamTest, KiwiAlign_Offset) {
     root->addVertex(addNesting(rg_id, v3), Size(70, 70));
 
     bool const is_vertical = GetParam();
-    auto       c = root->addConstraint<kw::AlignConstraint>(root);
+    auto       c           = root->addConstraint<kw::AlignConstraint>(root);
 
     if (is_vertical) {
         c->useVerticalAxis();
@@ -346,19 +342,18 @@ TEST_P(GraphKiwi_BoolParamTest, KiwiAlign_Offset) {
     run->runFullLayout();
     writeVisual();
 
-    auto offset = is_vertical ? geometry::Point{50, 0}
-                              : geometry::Point{0, 50};
+    auto offset = is_vertical ? geometry::Point{50, 0} : geometry::Point{0, 50};
 
     if (is_vertical) {
-        EXPECT_OUTCOME_OK(checkAlignedVertically(
-            box(v1).center(), box(v2).center() - offset));
-        EXPECT_OUTCOME_OK(checkAlignedVertically(
-            box(v2).center(), box(v3).center() - offset));
+        EXPECT_OUTCOME_OK(
+            checkAlignedVertically(box(v1).center(), box(v2).center() - offset));
+        EXPECT_OUTCOME_OK(
+            checkAlignedVertically(box(v2).center(), box(v3).center() - offset));
     } else {
-        EXPECT_OUTCOME_OK(checkAlignedHorizontally(
-            box(v1).center(), box(v2).center() - offset));
-        EXPECT_OUTCOME_OK(checkAlignedHorizontally(
-            box(v2).center(), box(v3).center() - offset));
+        EXPECT_OUTCOME_OK(
+            checkAlignedHorizontally(box(v1).center(), box(v2).center() - offset));
+        EXPECT_OUTCOME_OK(
+            checkAlignedHorizontally(box(v2).center(), box(v3).center() - offset));
     }
 }
 
@@ -378,7 +373,7 @@ TEST_P(GraphKiwi_BoolParamTest, SeparationConstraintAlign) {
     root->addVertex(addNesting(rg_id, v4), Size(50, 50));
 
     bool const is_vertical = GetParam();
-    auto       c = root->addConstraint<kw::SeparateConstraint>(root);
+    auto       c           = root->addConstraint<kw::SeparateConstraint>(root);
 
     if (is_vertical) {
         c->separateVertically();
@@ -427,8 +422,7 @@ TEST_F(GraphKiwi_Test, MultiSeparationConstraint) {
     for (int row = 0; row < size; ++row) {
         VertexIDVec row_ids;
         for (int col = 0; col < size; ++col) {
-            row_ids.push_back(
-                getGraph()->addVertex(hstd::fmt("v_{}_{}", row, col)));
+            row_ids.push_back(getGraph()->addVertex(hstd::fmt("v_{}_{}", row, col)));
         }
         grid.push_back(row_ids);
     }
@@ -450,17 +444,16 @@ TEST_F(GraphKiwi_Test, MultiSeparationConstraint) {
                     ->setSeparationDistance(90)
                     ->separateHorizontally();
 
-    hstd::Vec<VertexIDVec>
-        grid_T = hstd::rv::iota(0, size)
-               | hstd::rv::transform([&](int col) -> VertexIDVec {
-                     return grid
-                          | hstd::rv::transform(
-                                [&](VertexIDVec const& v) -> VertexID {
-                                    return v.at(col);
-                                })
-                          | hstd::rs::to<hstd::Vec>();
-                 })
-               | hstd::rs::to<hstd::Vec>();
+    hstd::Vec<VertexIDVec> grid_T = hstd::rv::iota(0, size)
+                                  | hstd::rv::transform([&](int col) -> VertexIDVec {
+                                        return grid
+                                             | hstd::rv::transform(
+                                                   [&](VertexIDVec const& v) -> VertexID {
+                                                       return v.at(col);
+                                                   })
+                                             | hstd::rs::to<hstd::Vec>();
+                                    })
+                                  | hstd::rs::to<hstd::Vec>();
 
     for (auto const& row : grid) { sep1->addFullLane(row); }
     for (auto const& col : grid_T) { sep2->addFullLane(col); }
@@ -474,15 +467,13 @@ TEST_F(GraphKiwi_Test, MultiSeparationConstraint) {
 
     for (auto const& row : grid) {
         for (auto const& col : row | hstd::rv::sliding(2)) {
-            EXPECT_OUTCOME_OK(
-                checkAlignedHorizontally(get_c(col[0]), get_c(col[1])));
+            EXPECT_OUTCOME_OK(checkAlignedHorizontally(get_c(col[0]), get_c(col[1])));
         }
     }
 
     for (auto const& col : grid_T) {
         for (auto const& row : col | hstd::rv::sliding(2)) {
-            EXPECT_OUTCOME_OK(
-                checkAlignedVertically(get_c(row[0]), get_c(row[1])));
+            EXPECT_OUTCOME_OK(checkAlignedVertically(get_c(row[0]), get_c(row[1])));
         }
     }
 }

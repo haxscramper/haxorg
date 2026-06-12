@@ -72,8 +72,7 @@ struct OrgTokenizer
     void       push(hstd::Vec<OrgToken> const& tok) { out->add(tok); }
     OrgTokenId push(OrgToken tok) { return out->add(tok); }
 
-    OrgTokenizer(OrgTokenGroup* out)
-        : Tokenizer<OrgTokenKind, OrgFill>(out) {}
+    OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind, OrgFill>(out) {}
 
     /// Rewrite stream of base lexer tokens to the org token stream, adding
     /// boundaries for the paragraph elements, closing unterminated

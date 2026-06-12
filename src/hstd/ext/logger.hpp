@@ -43,9 +43,7 @@ struct log_value_formatter {};
 
 #    if ORG_BUILD_WITH_QT
 template <typename T>
-concept QDebugFormattable = requires(QDebug debug, T const& value) {
-    debug << value;
-};
+concept QDebugFormattable = requires(QDebug debug, T const& value) { debug << value; };
 
 template <QDebugFormattable T>
 std::string formatQtToString(T const& value) {
@@ -58,14 +56,11 @@ std::string formatQtToString(T const& value) {
 }
 
 template <typename T>
-concept OnlyQDebugFormattable = QDebugFormattable<T>
-                             && !hstd::StdFormattable<T>;
+concept OnlyQDebugFormattable = QDebugFormattable<T> && !hstd::StdFormattable<T>;
 
 template <OnlyQDebugFormattable T>
 struct log_value_formatter<T> {
-    static std::string format(T const& value) {
-        return formatQtToString(value);
-    }
+    static std::string format(T const& value) { return formatQtToString(value); }
 };
 #    endif
 
@@ -87,38 +82,26 @@ template <typename... Args>
 using LogFormatStr = std::format_string<std::conditional_t<
     hstd::log::has_log_value_formatter<std::decay_t<Args>>,
     std::string,
-    std::conditional_t<
-        hstd::StdFormattable<std::decay_t<Args>>,
-        Args,
-        std::string>>...>;
+    std::conditional_t<hstd::StdFormattable<std::decay_t<Args>>, Args, std::string>>...>;
 
 template <typename T>
 auto format_logger_argument1(T const& arg) {
-    if constexpr (
-        hstd::log::has_log_value_formatter<std::decay_t<decltype(arg)>>) {
-        return hstd::log::log_value_formatter<
-                   std::decay_t<decltype(arg)>>{}
-            .format(arg);
-    } else if constexpr (
-        hstd::StdFormattable<std::decay_t<decltype(arg)>>) {
+    if constexpr (hstd::log::has_log_value_formatter<std::decay_t<decltype(arg)>>) {
+        return hstd::log::log_value_formatter<std::decay_t<decltype(arg)>>{}.format(arg);
+    } else if constexpr (hstd::StdFormattable<std::decay_t<decltype(arg)>>) {
         return arg;
     } else {
         return hstd::fmt(
-            "<type unformattable '{}'>",
-            hstd::value_metadata<T>::typeName());
+            "<type unformattable '{}'>", hstd::value_metadata<T>::typeName());
     }
 }
 
 template <typename... Args>
-std::string format_logger_arguments(
-    LogFormatStr<Args...> __fmt,
-    const Args&... args) {
-    auto formatted_args = std::make_tuple(
-        format_logger_argument1<Args>(args)...);
+std::string format_logger_arguments(LogFormatStr<Args...> __fmt, const Args&... args) {
+    auto formatted_args = std::make_tuple(format_logger_argument1<Args>(args)...);
     return std::apply(
         [&__fmt](auto&... args_ref) {
-            return std::vformat(
-                __fmt.get(), std::make_format_args(args_ref...));
+            return std::vformat(__fmt.get(), std::make_format_args(args_ref...));
         },
         formatted_args);
 }
@@ -134,14 +117,7 @@ enum class severity_level
     fatal
 };
 
-BOOST_DESCRIBE_ENUM(
-    severity_level,
-    trace,
-    debug,
-    info,
-    warning,
-    error,
-    fatal);
+BOOST_DESCRIBE_ENUM(severity_level, trace, debug, info, warning, error, fatal);
 
 
 using sink_ptr = boost::shared_ptr<boost::log::sinks::basic_sink_frontend>;
@@ -179,7 +155,7 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
 }
 
 
-#    define HSLOG_SINK_FACTORY(impl)                                      \
+#    define HSLOG_SINK_FACTORY(impl)                                                     \
         ::hstd::log::log_sink_mutable_factory<__COUNTER__>(impl)
 
 
@@ -208,8 +184,7 @@ void clear_sink_backends();
 struct log_category {
     std::string category;
     log_category() = default;
-    explicit log_category(std::string const& category)
-        : category{category} {}
+    explicit log_category(std::string const& category) : category{category} {}
 
     bool operator==(log_category const& other) const {
         return category == other.category;
@@ -249,9 +224,7 @@ struct log_record {
     };
 
     std::size_t hash() const { return data.hash(); }
-    bool        operator==(log_record const& other) const {
-        return data == other.data;
-    }
+    bool        operator==(log_record const& other) const { return data == other.data; }
 
     static log_record from_operations(hstd::OperationsMsg const& msg);
 
@@ -265,8 +238,7 @@ struct log_record {
         LogFormatStr<Args...> fmt,
         Args&&... args) {
         log_record rec;
-        auto       formatted_args = std::make_tuple(
-            format_logger_argument1<Args>(args)...);
+        auto formatted_args = std::make_tuple(format_logger_argument1<Args>(args)...);
         rec.line(line)
             .file(file)
             .severity(severity)
@@ -291,19 +263,13 @@ struct log_record {
         LogFormatStr<Args...> fmt,
         Args&&... args) {
         log_record rec;
-        auto       formatted_args = std::make_tuple(
-            format_logger_argument1<Args>(args)...);
-        rec.line(line)
-            .file(file)
-            .severity(severity)
-            .function(function)
-            .message(
-                std::apply(
-                    [&fmt](auto&... args_ref) {
-                        return std::vformat(
-                            fmt.get(), std::make_format_args(args_ref...));
-                    },
-                    formatted_args));
+        auto formatted_args = std::make_tuple(format_logger_argument1<Args>(args)...);
+        rec.line(line).file(file).severity(severity).function(function).message(
+            std::apply(
+                [&fmt](auto&... args_ref) {
+                    return std::vformat(fmt.get(), std::make_format_args(args_ref...));
+                },
+                formatted_args));
         return rec;
     }
 
@@ -361,8 +327,7 @@ struct log_record {
     inline log_record& fmt_message(
         std::format_string<_Args...> __fmt,
         _Args&&... __args) {
-        data.message += std::vformat(
-            __fmt.get(), std::make_format_args(__args...));
+        data.message += std::vformat(__fmt.get(), std::make_format_args(__args...));
         return *this;
     }
 
@@ -384,8 +349,7 @@ struct log_differential_sink_factory {
         return *this;
     }
 
-    log_differential_sink_factory(std::string const& path)
-        : outfile{path} {};
+    log_differential_sink_factory(std::string const& path) : outfile{path} {};
 };
 
 
@@ -394,7 +358,7 @@ using log_filter_cb = hstd::Func<bool(log_record const&)>;
 sink_ptr set_sink_filter(sink_ptr, log_filter_cb filter);
 
 
-#    define HSLOG_SINK_FACTORY_SCOPED(generator)                          \
+#    define HSLOG_SINK_FACTORY_SCOPED(generator)                                         \
         ::hstd::log::log_sink_scoped_factory<__COUNTER__>(generator)
 
 template <int Unique, typename Generator>
@@ -504,35 +468,35 @@ struct log_scoped_depth_attr {
     };
 };
 
-#    define HSLOG_DEPTH_SCOPE()                                           \
+#    define HSLOG_DEPTH_SCOPE()                                                          \
         ::hstd::log::log_scoped_depth_attr::raii {}
 
-#    define HSLOG_DEPTH_SCOPE_ANON()                                      \
+#    define HSLOG_DEPTH_SCOPE_ANON()                                                     \
         auto BOOST_PP_CAT(__scope, __COUNTER__) = HSLOG_DEPTH_SCOPE();
 
-#    define HSLOG_DEBUG_DEPTH_SCOPE_ANON(...)                             \
-        HSLOG_DEBUG(__VA_ARGS__);                                         \
+#    define HSLOG_DEBUG_DEPTH_SCOPE_ANON(...)                                            \
+        HSLOG_DEBUG(__VA_ARGS__);                                                        \
         HSLOG_DEPTH_SCOPE_ANON();
 
-#    define HSLOG_TRACE_DEPTH_SCOPE_ANON(...)                             \
-        HSLOG_TRACE(__VA_ARGS__);                                         \
+#    define HSLOG_TRACE_DEPTH_SCOPE_ANON(...)                                            \
+        HSLOG_TRACE(__VA_ARGS__);                                                        \
         HSLOG_DEPTH_SCOPE_ANON();
 
-#    define HSLOG_INFO_DEPTH_SCOPE_ANON(...)                              \
-        HSLOG_INFO(__VA_ARGS__);                                          \
+#    define HSLOG_INFO_DEPTH_SCOPE_ANON(...)                                             \
+        HSLOG_INFO(__VA_ARGS__);                                                         \
         HSLOG_DEPTH_SCOPE_ANON();
 
-#    define HSLOG_WARNING_DEPTH_SCOPE_ANON(...)                           \
-        HSLOG_WARNING(__VA_ARGS__);                                       \
+#    define HSLOG_WARNING_DEPTH_SCOPE_ANON(...)                                          \
+        HSLOG_WARNING(__VA_ARGS__);                                                      \
         HSLOG_DEPTH_SCOPE_ANON();
 
-#    define HSLOG_ERROR_DEPTH_SCOPE_ANON(...)                             \
-        HSLOG_ERROR(__VA_ARGS__);                                         \
+#    define HSLOG_ERROR_DEPTH_SCOPE_ANON(...)                                            \
+        HSLOG_ERROR(__VA_ARGS__);                                                        \
         HSLOG_DEPTH_SCOPE_ANON();
 
 
-#    define HSLOG_FATAL_DEPTH_SCOPE_ANON(...)                             \
-        HSLOG_FATAL(__VA_ARGS__);                                         \
+#    define HSLOG_FATAL_DEPTH_SCOPE_ANON(...)                                            \
+        HSLOG_FATAL(__VA_ARGS__);                                                        \
         HSLOG_DEPTH_SCOPE_ANON();
 
 /// \brief Create a finalizer that can use a mutable generator object as a
@@ -583,15 +547,13 @@ log_builder::Finalizer log_builder_get_mutable_finalizer_filter_unique_records(
         reset);
 }
 
-#    define HSLOG_UNIQUE_VALUE_FILTER_FINALIZER(__reset)                  \
-        ::hstd::log::                                                     \
-            log_builder_get_mutable_finalizer_filter_unique_records<      \
-                __COUNTER__>(__reset)
+#    define HSLOG_UNIQUE_VALUE_FILTER_FINALIZER(__reset)                                 \
+        ::hstd::log::log_builder_get_mutable_finalizer_filter_unique_records<            \
+            __COUNTER__>(__reset)
 
 template <int Unique>
-log_builder::
-    Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
-        bool reset = false) {
+log_builder::Finalizer log_builder_get_mutable_finalizer_filter_changed_value(
+    bool reset = false) {
     return log_builder_get_mutable_finalizer_filter<Unique>(
         [last_state = std::size_t{}](log_builder const& rec) mutable {
             auto h = rec.hash();
@@ -605,10 +567,9 @@ log_builder::
         reset);
 }
 
-#    define HSLOG_CHANGED_VALUE_FILTER_FINALIZER(__reset)                 \
-        ::hstd::log::                                                     \
-            log_builder_get_mutable_finalizer_filter_changed_value<       \
-                __COUNTER__>(__reset)
+#    define HSLOG_CHANGED_VALUE_FILTER_FINALIZER(__reset)                                \
+        ::hstd::log::log_builder_get_mutable_finalizer_filter_changed_value<             \
+            __COUNTER__>(__reset)
 
 bool is_log_accepted(severity_level level);
 
@@ -627,16 +588,12 @@ hstd::log::log_record log_sequential_collection(
     int               line     = __builtin_LINE(),
     char const*       function = __builtin_FUNCTION(),
     char const*       file     = __builtin_FILE()) {
-    auto res = ::hstd::log::log_record{}.set_callsite(
-        line, function, file);
+    auto res = ::hstd::log::log_record{}.set_callsite(line, function, file);
     res.fmt_message(
-        "{} with {} items:",
-        hstd::value_metadata<Collection>::typeName(),
-        items.size());
+        "{} with {} items:", hstd::value_metadata<Collection>::typeName(), items.size());
     SequentialContainerAdapter<Collection> container{&items};
     for (int i = 0; i < items.size(); ++i) {
-        res.fmt_message(
-            "\n[{}]: {}", i, format_logger_argument1(items.at(i)));
+        res.fmt_message("\n[{}]: {}", i, format_logger_argument1(items.at(i)));
     }
     return res;
 }
@@ -647,12 +604,9 @@ hstd::log::log_record log_associative_collection(
     int               line     = __builtin_LINE(),
     char const*       function = __builtin_FUNCTION(),
     char const*       file     = __builtin_FILE()) {
-    auto res = ::hstd::log::log_record{}.set_callsite(
-        line, function, file);
+    auto res = ::hstd::log::log_record{}.set_callsite(line, function, file);
     res.fmt_message(
-        "{} with {} items:",
-        hstd::value_metadata<Collection>::typeName(),
-        items.size());
+        "{} with {} items:", hstd::value_metadata<Collection>::typeName(), items.size());
     AssociativeContainerAdapter<Collection> container{&items};
 
     auto keys = container.keys();
@@ -662,8 +616,7 @@ hstd::log::log_record log_associative_collection(
     }
 
     for (auto const& key : keys) {
-        res.fmt_message(
-            "\n[{}]: {}", key, format_logger_argument1(items.at(key)));
+        res.fmt_message("\n[{}]: {}", key, format_logger_argument1(items.at(key)));
     }
     return res;
 }
@@ -674,8 +627,7 @@ hstd::log::log_record log_described_record(
     int         line     = __builtin_LINE(),
     char const* function = __builtin_FUNCTION(),
     char const* file     = __builtin_FILE()) {
-    auto res = ::hstd::log::log_record{}.set_callsite(
-        line, function, file);
+    auto res = ::hstd::log::log_record{}.set_callsite(line, function, file);
     res.fmt_message("{}:", hstd::value_metadata<Rec>::typeName());
 
     int field_name_align = 0;
@@ -692,8 +644,7 @@ hstd::log::log_record log_described_record(
             res.fmt_message(
                 "\n  {} = {}",
                 hstd::left_aligned(fieldName, field_name_align),
-                hstd::escape_literal(
-                    hstd::fmt1(format_logger_argument1(value))));
+                hstd::escape_literal(hstd::fmt1(format_logger_argument1(value))));
         });
 
     return res;
@@ -703,36 +654,33 @@ hstd::log::log_record log_described_record(
 
 #    define __ORG_LOG_MESSAGE(_1, _2, arg) .message((arg))
 
-#    define __ORG_LOG_ALL_ARGS(...)                                       \
-        BOOST_PP_SEQ_FOR_EACH(                                            \
-            __ORG_LOG_MESSAGE, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
+#    define __ORG_LOG_ALL_ARGS(...)                                                      \
+        BOOST_PP_SEQ_FOR_EACH(__ORG_LOG_MESSAGE, _, BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
-#    define HSLOG_BUILDER()                                               \
+#    define HSLOG_BUILDER()                                                              \
         ::hstd::log::log_builder {}
 
-#    define __ORG_LOG_IMPL(__severity, ...)                               \
-        if (::hstd::log::is_log_accepted(                                 \
-                ::hstd::log::severity_level::__severity)) {               \
-            ::hstd::log::log_record::from_log_fmt_macro(                  \
-                __FUNCTION__,                                             \
-                __FILE__,                                                 \
-                __LINE__,                                                 \
-                ::hstd::log::severity_level::__severity,                  \
-                __VA_ARGS__)                                              \
-                .end();                                                   \
+#    define __ORG_LOG_IMPL(__severity, ...)                                              \
+        if (::hstd::log::is_log_accepted(::hstd::log::severity_level::__severity)) {     \
+            ::hstd::log::log_record::from_log_fmt_macro(                                 \
+                __FUNCTION__,                                                            \
+                __FILE__,                                                                \
+                __LINE__,                                                                \
+                ::hstd::log::severity_level::__severity,                                 \
+                __VA_ARGS__)                                                             \
+                .end();                                                                  \
         }
 
-#    define HSLOG_INIT(__severity)                                        \
-        ::hstd::log::log_record{}                                         \
-            .file(__FILE__)                                               \
-            .line(__LINE__)                                               \
-            .function(__FUNCTION__)                                       \
+#    define HSLOG_INIT(__severity)                                                       \
+        ::hstd::log::log_record{}                                                        \
+            .file(__FILE__)                                                              \
+            .line(__LINE__)                                                              \
+            .function(__FUNCTION__)                                                      \
             .severity(::hstd::log::severity_level::__severity)
 
-#    define HSLOG_TRACE_STACKTRACE(__cat, __severity)                     \
-        if (::hstd::log::is_log_accepted(                                 \
-                ::hstd::log::severity_level::__severity)) {               \
-            HSLOG_INIT(__cat, __severity).fmt_stacktrace().end();         \
+#    define HSLOG_TRACE_STACKTRACE(__cat, __severity)                                    \
+        if (::hstd::log::is_log_accepted(::hstd::log::severity_level::__severity)) {     \
+            HSLOG_INIT(__cat, __severity).fmt_stacktrace().end();                        \
         }
 
 #    define HSLOG_TRACE(...) __ORG_LOG_IMPL(trace, __VA_ARGS__)
@@ -742,13 +690,12 @@ hstd::log::log_record log_described_record(
 #    define HSLOG_ERROR(...) __ORG_LOG_IMPL(error, __VA_ARGS__)
 #    define HSLOG_FATAL(...) __ORG_LOG_IMPL(fatal, __VA_ARGS__)
 
-#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl(_1, _2, arg)              \
-        BOOST_PP_STRINGIZE(arg),
+#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl(_1, _2, arg) BOOST_PP_STRINGIZE(arg),
 
-#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH(...)                           \
-        BOOST_PP_SEQ_FOR_EACH(                                            \
-            HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl,                          \
-            _,                                                            \
+#    define HSLOG_DEBUG_FMT_STRINGIZE_EACH(...)                                          \
+        BOOST_PP_SEQ_FOR_EACH(                                                           \
+            HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl,                                         \
+            _,                                                                           \
             BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
 namespace hstd::log {
@@ -761,9 +708,7 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
     auto        values = std::make_tuple(std::forward<Args>(args)...);
 
     int names_width = 0;
-    for (auto const& n : argNames) {
-        names_width = std::max<int>(names_width, n.size());
-    }
+    for (auto const& n : argNames) { names_width = std::max<int>(names_width, n.size()); }
 
     auto format_arg = [&](int index, auto const& value) {
         if (index > 0) {
@@ -778,35 +723,28 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
             stack ? hstd::left_aligned(argNames.at(index), names_width)
                   : argNames.at(index),
             ::hstd::escape_literal(
-                ::hstd::fmt1(
-                    ::hstd::log::format_logger_argument1(value))));
+                ::hstd::fmt1(::hstd::log::format_logger_argument1(value))));
     };
 
     int index = 0;
-    std::apply(
-        [&](const auto&... vals) { ((format_arg(index++, vals)), ...); },
-        values);
+    std::apply([&](const auto&... vals) { ((format_arg(index++, vals)), ...); }, values);
 
     return result;
 }
 } // namespace hstd::log
 
-#    define HSLOG_DEBUG_FMT_LINE_EXPR_IMPL(...)                           \
-        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                    \
-            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)},                \
-            false,                                                        \
-            __VA_ARGS__)
+#    define HSLOG_DEBUG_FMT_LINE_EXPR_IMPL(...)                                          \
+        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                                   \
+            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)}, false, __VA_ARGS__)
 
-#    define HSLOG_DEBUG_FMT_LINE(...)                                     \
+#    define HSLOG_DEBUG_FMT_LINE(...)                                                    \
         HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_LINE_EXPR_IMPL(__VA_ARGS__));
 
-#    define HSLOG_DEBUG_FMT_STACK_EXPR_IMPL(...)                          \
-        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                    \
-            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)},                \
-            true,                                                         \
-            __VA_ARGS__)
+#    define HSLOG_DEBUG_FMT_STACK_EXPR_IMPL(...)                                         \
+        ::hstd::log::__HSLOG_DEBUG_FMT_EXPR_IMPL_impl(                                   \
+            {HSLOG_DEBUG_FMT_STRINGIZE_EACH(__VA_ARGS__)}, true, __VA_ARGS__)
 
-#    define HSLOG_DEBUG_FMT_STACK(...)                                    \
+#    define HSLOG_DEBUG_FMT_STACK(...)                                                   \
         HSLOG_DEBUG("{}", HSLOG_DEBUG_FMT_STACK_EXPR_IMPL(__VA_ARGS__));
 
 #    define HSLOG_DEBUG_FMT1(value) HSLOG_DEBUG("{} = {}", #value, value);
@@ -822,24 +760,21 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
 
 template <>
 struct std::hash<hstd::log::log_record> {
-    std::size_t operator()(
-        hstd::log::log_record const& it) const noexcept {
+    std::size_t operator()(hstd::log::log_record const& it) const noexcept {
         return it.hash();
     }
 };
 
 template <>
 struct std::hash<hstd::log::log_record::log_data> {
-    std::size_t operator()(
-        hstd::log::log_record::log_data const& it) const noexcept {
+    std::size_t operator()(hstd::log::log_record::log_data const& it) const noexcept {
         return it.hash();
     }
 };
 
 template <>
 struct std::hash<hstd::log::log_category> {
-    std::size_t operator()(
-        hstd::log::log_category const& it) const noexcept {
+    std::size_t operator()(hstd::log::log_category const& it) const noexcept {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.category);
         return result;

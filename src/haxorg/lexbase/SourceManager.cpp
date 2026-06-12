@@ -1,8 +1,7 @@
 #include <haxorg/lexbase/SourceManager.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 
-std::string org::parse::SourceManager::getPath(
-    SourceFileId const& id) const {
+std::string org::parse::SourceManager::getPath(SourceFileId const& id) const {
     return path_ids.at_left(id);
 }
 
@@ -31,8 +30,7 @@ org::parse::SourceFileId org::parse::SourceManager::addSource(
     if (auto id = path_ids.get_right(path); id.has_value()) {
         return id.value();
     } else {
-        auto result = store.add(
-            SourceFile{.path = path, .content = content});
+        auto result = store.add(SourceFile{.path = path, .content = content});
         LOGIC_ASSERTION_CHECK_FMT(
             !path_ids.get_left(result).has_value(),
             "ID has already been used, store created duplicate ID {} for "
@@ -46,7 +44,6 @@ org::parse::SourceFileId org::parse::SourceManager::addSource(
     }
 }
 
-org::parse::SourceFileId org::parse::SourceManager::getId(
-    std::string const& path) const {
+org::parse::SourceFileId org::parse::SourceManager::getId(std::string const& path) const {
     return path_ids.at_right(path);
 }

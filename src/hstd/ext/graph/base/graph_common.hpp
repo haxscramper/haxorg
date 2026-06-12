@@ -22,18 +22,15 @@ template <typename ID, typename T>
 struct UnorderedInternStore {
     hstd::ext::Unordered1to1Bimap<ID, T> store;
 
-    ID add(
-        T const&                                 value,
-        std::optional<typename ID::id_mask_type> mask = std::nullopt) {
+    ID add(T const& value, std::optional<typename ID::id_mask_type> mask = std::nullopt) {
         LOGIC_ASSERTION_CHECK_FMT(
             !store.contains_right(value),
             "Store already contains value {}",
             hstd::fmt1_maybe(value));
 
         int  current_size = size();
-        auto result = mask.has_value()
-                        ? ID::FromMaskedIdx(current_size, mask.value())
-                        : ID::FromIndex(current_size);
+        auto result = mask.has_value() ? ID::FromMaskedIdx(current_size, mask.value())
+                                       : ID::FromIndex(current_size);
         store.add_unique(result, value);
         return result;
     }
@@ -84,19 +81,14 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
         return Base::at(id);
     }
 
-    ID getNextId(
-        std::optional<typename ID::id_mask_type> mask = std::nullopt)
-        const {
+    ID getNextId(std::optional<typename ID::id_mask_type> mask = std::nullopt) const {
         int  current_size = size();
-        auto id = mask.has_value()
-                    ? ID::FromMaskedIdx(current_size, mask.value())
-                    : ID::FromIndex(current_size);
+        auto id = mask.has_value() ? ID::FromMaskedIdx(current_size, mask.value())
+                                   : ID::FromIndex(current_size);
         return ID(id);
     }
 
-    ID add(
-        T const&                                 value,
-        std::optional<typename ID::id_mask_type> mask = std::nullopt) {
+    ID add(T const& value, std::optional<typename ID::id_mask_type> mask = std::nullopt) {
         auto id = getNextId(mask);
         add_with_id(value, id);
         return id;
@@ -138,21 +130,18 @@ struct EdgeCollectionID : public EdgeCollectionIDBase {
         return hstd::masked_equals(t, CollectionTypeMask, IsHierarchyMask);
     }
     bool isCollection() const {
-        return hstd::masked_equals(
-            t, CollectionTypeMask, IsCollectionMask);
+        return hstd::masked_equals(t, CollectionTypeMask, IsCollectionMask);
     }
 
     static EdgeCollectionID FromHierarchy(hstd::u16 base) {
         return EdgeCollectionID(
-            hstd::assign_masked(
-                base, CollectionTypeMask, IsHierarchyMask));
+            hstd::assign_masked(base, CollectionTypeMask, IsHierarchyMask));
     }
 
     static EdgeCollectionID FromCollection(hstd::u16 base) {
         // first bit must not be set
         return EdgeCollectionID(
-            hstd::assign_masked(
-                base, CollectionTypeMask, IsCollectionMask));
+            hstd::assign_masked(base, CollectionTypeMask, IsCollectionMask));
     }
 
     void assert_is_collection() const {
@@ -181,15 +170,13 @@ struct EdgeCollectionID : public EdgeCollectionIDBase {
     /// only one instance of the hierarchy type in a graph.
     template <typename T>
     static EdgeCollectionID FromHierarchyTypePointer(T const* self) {
-        return FromHierarchy(
-            hstd::hash_bits<15>(typeid(self).hash_code()));
+        return FromHierarchy(hstd::hash_bits<15>(typeid(self).hash_code()));
     }
 
     /// \brief Default implementation of the collection ID constructoir.
     template <typename T>
     static EdgeCollectionID FromCollectionTypePointer(T const* self) {
-        return FromCollection(
-            hstd::hash_bits<15>(typeid(self).hash_code()));
+        return FromCollection(hstd::hash_bits<15>(typeid(self).hash_code()));
     }
 };
 
@@ -203,23 +190,18 @@ BOOST_STRONG_TYPEDEF(hstd::u16, PortCollectionID);
 
 struct graph_error : public hstd::CRTP_hexception<graph_error> {};
 
-struct serde_error
-    : public hstd::CRTP_hexception<serde_error, graph_error> {};
+struct serde_error : public hstd::CRTP_hexception<serde_error, graph_error> {};
 
-struct structure_error
-    : public hstd::CRTP_hexception<structure_error, graph_error> {};
+struct structure_error : public hstd::CRTP_hexception<structure_error, graph_error> {};
 
 struct port_structure_error
-    : public hstd::CRTP_hexception<port_structure_error, structure_error> {
-};
+    : public hstd::CRTP_hexception<port_structure_error, structure_error> {};
 
 struct edge_structure_error
-    : public hstd::CRTP_hexception<edge_structure_error, structure_error> {
-};
+    : public hstd::CRTP_hexception<edge_structure_error, structure_error> {};
 
 struct vertex_structure_error
-    : public hstd::
-          CRTP_hexception<vertex_structure_error, structure_error> {};
+    : public hstd::CRTP_hexception<vertex_structure_error, structure_error> {};
 
 /// \brief Base class for all graph entries: edges, vertices, groups.
 /// Container classes (vertex hierarchies, edge collections) are not graph
@@ -233,8 +215,7 @@ class IGraphObjectBase {
     virtual std::string getRepr() const;
     virtual std::string getStableId() const;
 
-    IGraphObjectBase(std::string const& _stable_id)
-        : stable_id{_stable_id} {}
+    IGraphObjectBase(std::string const& _stable_id) : stable_id{_stable_id} {}
 
     virtual ~IGraphObjectBase() = default;
 
@@ -255,13 +236,9 @@ struct EdgeID : public EdgeIDBase {
 
     EdgeID(EdgeIDBase base) : EdgeIDBase{base} {}
 
-    bool isHierarchyEdge() const {
-        return EdgeCollectionID(getMask()).isHierarchy();
-    }
+    bool isHierarchyEdge() const { return EdgeCollectionID(getMask()).isHierarchy(); }
 
-    bool isCollectionEdge() const {
-        return EdgeCollectionID(getMask()).isCollection();
-    }
+    bool isCollectionEdge() const { return EdgeCollectionID(getMask()).isCollection(); }
 
     static EdgeID FromMasked(hstd::u64 value, EdgeCollectionID mask) {
         return EdgeID(FromMaskedIdx(value, mask.t));
@@ -317,9 +294,9 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
         IGraph const*            graph,
         IAttributeObject const*  vertex) = 0;
 
-    virtual hstd::SPtr<IVertex> newVertex(proto::IVertex const* in) = 0;
-    virtual hstd::SPtr<IEdge>   newEdge(proto::IEdge const* edge)   = 0;
-    virtual hstd::SPtr<IPort>   newPort(proto::IPort const* port)   = 0;
+    virtual hstd::SPtr<IVertex>             newVertex(proto::IVertex const* in) = 0;
+    virtual hstd::SPtr<IEdge>               newEdge(proto::IEdge const* edge)   = 0;
+    virtual hstd::SPtr<IPort>               newPort(proto::IPort const* port)   = 0;
     virtual hstd::SPtr<layout::IConstraint> newConstraint(
         proto::IConstraint const* constraint) = 0;
 };
@@ -329,39 +306,31 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
 
 template <>
 struct std::formatter<hstd::ext::graph::EdgeCollectionID>
-    : public hstd::std_strong_typedef_formatter<
-          hstd::ext::graph::EdgeCollectionID> {};
+    : public hstd::std_strong_typedef_formatter<hstd::ext::graph::EdgeCollectionID> {};
 
 template <>
 struct std::formatter<hstd::ext::graph::PortCollectionID>
-    : public hstd::std_strong_typedef_formatter<
-          hstd::ext::graph::PortCollectionID> {};
+    : public hstd::std_strong_typedef_formatter<hstd::ext::graph::PortCollectionID> {};
 
 template <>
 struct std::formatter<hstd::ext::graph::AttributeTrackerID>
-    : public hstd::std_strong_typedef_formatter<
-          hstd::ext::graph::AttributeTrackerID> {};
+    : public hstd::std_strong_typedef_formatter<hstd::ext::graph::AttributeTrackerID> {};
 
 
 template <>
 struct std::hash<hstd::ext::graph::EdgeCollectionID>
-    : public hstd::strong_typedef_hash<
-          hstd::ext::graph::EdgeCollectionID> {};
+    : public hstd::strong_typedef_hash<hstd::ext::graph::EdgeCollectionID> {};
 
 template <>
 struct std::hash<hstd::ext::graph::PortCollectionID>
-    : public hstd::strong_typedef_hash<
-          hstd::ext::graph::PortCollectionID> {};
+    : public hstd::strong_typedef_hash<hstd::ext::graph::PortCollectionID> {};
 
 template <>
 struct std::hash<hstd::ext::graph::AttributeTrackerID>
-    : public hstd::strong_typedef_hash<
-          hstd::ext::graph::AttributeTrackerID> {};
+    : public hstd::strong_typedef_hash<hstd::ext::graph::AttributeTrackerID> {};
 
 
 template <hstd::ext::graph::IsGraphObject T>
 struct std::hash<T> {
-    std::size_t operator()(T const& it) const noexcept {
-        return it.getHash();
-    }
+    std::size_t operator()(T const& it) const noexcept { return it.getHash(); }
 };

@@ -14,12 +14,9 @@ template <>
 struct type_caster<hstd::Str> {
     NB_TYPE_CASTER(hstd::Str, const_name("str"));
 
-    bool from_python(
-        handle        src,
-        uint8_t       flags,
-        cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         type_caster<std::string> impl;
-        bool result = impl.from_python(src, flags, cleanup);
+        bool                     result = impl.from_python(src, flags, cleanup);
         if (result) { this->value = impl.value; }
         return result;
     }
@@ -28,8 +25,7 @@ struct type_caster<hstd::Str> {
         hstd::Str     src,
         rv_policy     policy,
         cleanup_list* cleanup) noexcept {
-        return type_caster<std::string>::from_cpp(
-            std::string(src), policy, cleanup);
+        return type_caster<std::string>::from_cpp(std::string(src), policy, cleanup);
     }
 };
 

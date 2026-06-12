@@ -31,8 +31,7 @@ double kiwi_value(Strength strength) {
 }
 
 Axis anchor_axis(Anchor anchor) {
-    if (anchor == Anchor::LEFT || anchor == Anchor::HCENTER
-        || anchor == Anchor::RIGHT) {
+    if (anchor == Anchor::LEFT || anchor == Anchor::HCENTER || anchor == Anchor::RIGHT) {
         return Axis::X;
     } else {
         return Axis::Y;
@@ -57,25 +56,21 @@ std::shared_ptr<Expr::Node> Expr::make_constant(double value) {
     return std::make_shared<Node>(std::move(n));
 }
 
-std::shared_ptr<Expr::Node> Expr::make_variable(
-    kiwi::Variable const& value) {
+std::shared_ptr<Expr::Node> Expr::make_variable(kiwi::Variable const& value) {
     Node n;
     n.kind     = Node::Kind::Variable;
     n.variable = value;
     return std::make_shared<Node>(std::move(n));
 }
 
-std::shared_ptr<Expr::Node> Expr::make_kiwi_expr(
-    kiwi::Expression const& value) {
+std::shared_ptr<Expr::Node> Expr::make_kiwi_expr(kiwi::Expression const& value) {
     Node n;
     n.kind      = Node::Kind::KiwiExpression;
     n.kiwi_expr = value;
     return std::make_shared<Node>(std::move(n));
 }
 
-std::shared_ptr<Expr::Node> Expr::make_unary(
-    Node::Kind            kind,
-    std::shared_ptr<Node> lhs) {
+std::shared_ptr<Expr::Node> Expr::make_unary(Node::Kind kind, std::shared_ptr<Node> lhs) {
     Node n;
     n.kind = kind;
     n.lhs  = std::move(lhs);
@@ -109,9 +104,7 @@ Expr Expr::operator*(double other) const {
     return Expr(make_binary(Node::Kind::Mul, node, make_constant(other)));
 }
 
-Expr Expr::operator-() const {
-    return Expr(make_unary(Node::Kind::Neg, node));
-}
+Expr Expr::operator-() const { return Expr(make_unary(Node::Kind::Neg, node)); }
 
 Expr Expr::operator*(Expr const& other) const {
     return Expr(make_binary(Node::Kind::Mul, node, other.node));
@@ -129,14 +122,10 @@ Constraint Expr::operator>=(Expr const& other) const {
     return Constraint(*this, other, kiwi::RelationalOperator::OP_GE);
 }
 
-Constraint::Constraint(
-    Expr const&              lhs,
-    Expr const&              rhs,
-    kiwi::RelationalOperator op)
+Constraint::Constraint(Expr const& lhs, Expr const& rhs, kiwi::RelationalOperator op)
     : lhs(lhs), rhs(rhs), op(op) {}
 
-kiwi::Expression Constraint::fold_expr(
-    std::shared_ptr<Expr::Node const> const& node) {
+kiwi::Expression Constraint::fold_expr(std::shared_ptr<Expr::Node const> const& node) {
     using Kind = Expr::Node::Kind;
     switch (node->kind) {
         case Kind::Constant: return kiwi::Expression(node->constant);
@@ -153,16 +142,14 @@ kiwi::Expression Constraint::fold_expr(
             bool right_const = right.terms().empty();
 
             if (left_const && right_const) {
-                return kiwi::Expression(
-                    left.constant() * right.constant());
+                return kiwi::Expression(left.constant() * right.constant());
             } else if (left_const) {
                 return right * left.constant();
             } else if (right_const) {
                 return left * right.constant();
             }
 
-            throw std::runtime_error(
-                "Kiwi supports only linear expressions");
+            throw std::runtime_error("Kiwi supports only linear expressions");
         }
     }
 
@@ -187,13 +174,9 @@ kiwi::Constraint Constraint::to_kiwi(hstd::Opt<double> str) const {
     throw std::runtime_error("Invalid relational operator");
 }
 
-Expr operator+(double left, Expr const& right) {
-    return Expr(left) + right;
-}
+Expr operator+(double left, Expr const& right) { return Expr(left) + right; }
 
-Expr operator-(double left, Expr const& right) {
-    return Expr(left) - right;
-}
+Expr operator-(double left, Expr const& right) { return Expr(left) - right; }
 
 Expr operator*(double left, Expr const& right) { return right * left; }
 
@@ -249,8 +232,7 @@ namespace {
 const bool verbose_build_repr = false;
 }
 
-Vec<Str> ConstraintBase::getBuildRepr(
-    hstd::Opt<RectMap> const& rects) const {
+Vec<Str> ConstraintBase::getBuildRepr(hstd::Opt<RectMap> const& rects) const {
     Vec<Str> joined;
     if (rects) {
         for (auto const& c : build(rects.value())) {
@@ -267,20 +249,18 @@ Vec<Str> ConstraintBase::getBuildRepr(
 AlignConstraint::AlignConstraint(Vec<AlignItem> items, Strength strength)
     : ConstraintBase(strength), items(std::move(items)) {}
 
-Vec<kiwi_ir::Constraint> AlignConstraint::build(
-    RectMap const& rects) const {
+Vec<kiwi_ir::Constraint> AlignConstraint::build(RectMap const& rects) const {
     if (items.size() < 2) {
-        throw std::runtime_error(
-            "AlignConstraint requires at least 2 items");
+        throw std::runtime_error("AlignConstraint requires at least 2 items");
     }
-    auto const& base = items[0];
-    Expr base_expr   = rects.at(base.rect_id).anchor_expr(base.spec.anchor)
-                     - base.spec.offset;
+    auto const& base      = items[0];
+    Expr        base_expr = rects.at(base.rect_id).anchor_expr(base.spec.anchor)
+                          - base.spec.offset;
     Vec<kiwi_ir::Constraint> result;
     for (int i = 1; i < items.size(); ++i) {
         auto const& item = items[i];
-        Expr expr = rects.at(item.rect_id).anchor_expr(item.spec.anchor)
-                  - item.spec.offset;
+        Expr        expr = rects.at(item.rect_id).anchor_expr(item.spec.anchor)
+                         - item.spec.offset;
         result.push_back((expr == base_expr) | kiwi_value(strength));
     }
     return result;
@@ -304,10 +284,7 @@ Str AlignConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     for (auto const& item : items) {
         joined.push_back(
             std::format(
-                "  {} {} ({:+g})",
-                item.rect_id,
-                item.spec.anchor,
-                item.spec.offset));
+                "  {} {} ({:+g})", item.rect_id, item.spec.anchor, item.spec.offset));
     }
 
     joined.append(getBuildRepr(rects));
@@ -320,17 +297,12 @@ SeparateConstraint::SeparateConstraint(
     RectSpec1Side const& rect_b,
     double               offset,
     Strength             strength)
-    : ConstraintBase(strength)
-    , rect_a(rect_a)
-    , rect_b(rect_b)
-    , offset(offset) {}
+    : ConstraintBase(strength), rect_a(rect_a), rect_b(rect_b), offset(offset) {}
 
-Vec<kiwi_ir::Constraint> SeparateConstraint::build(
-    RectMap const& rects) const {
-    Expr first  = rects.at(rect_a.rect_id).anchor_expr(rect_a.anchor);
-    Expr second = rects.at(rect_b.rect_id).anchor_expr(rect_b.anchor);
-    kiwi_ir::Constraint c = (first == (second + offset))
-                          | kiwi_value(strength);
+Vec<kiwi_ir::Constraint> SeparateConstraint::build(RectMap const& rects) const {
+    Expr                first  = rects.at(rect_a.rect_id).anchor_expr(rect_a.anchor);
+    Expr                second = rects.at(rect_b.rect_id).anchor_expr(rect_b.anchor);
+    kiwi_ir::Constraint c      = (first == (second + offset)) | kiwi_value(strength);
     return {c};
 }
 
@@ -338,20 +310,12 @@ Vec<EdgeDesc> SeparateConstraint::describe_edges() const {
     return {
         EdgeDesc{
             rect_b.rect_id,
-            std::format(
-                "separate:{}->{}+{}",
-                rect_b.anchor,
-                rect_b.anchor,
-                offset),
+            std::format("separate:{}->{}+{}", rect_b.anchor, rect_b.anchor, offset),
             anchor_axis(rect_b.anchor),
         },
         EdgeDesc{
             rect_a.rect_id,
-            std::format(
-                "separate:{}->{}+{}",
-                rect_b.anchor,
-                rect_a.anchor,
-                offset),
+            std::format("separate:{}->{}+{}", rect_b.anchor, rect_a.anchor, offset),
             anchor_axis(rect_a.anchor),
         },
     };
@@ -391,14 +355,12 @@ MultiSeparateConstraint::MultiSeparateConstraint(
                         item_idx));
             }
 
-            s.insert_or_assign(
-                item.rect_id, Pair<int, int>{idx, item_idx});
+            s.insert_or_assign(item.rect_id, Pair<int, int>{idx, item_idx});
         }
     }
 }
 
-Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
-    RectMap const& rects) const {
+Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(RectMap const& rects) const {
     Vec<kiwi_ir::Constraint> constraints;
     for (auto const& [g1, g2] : groups | hstd::rv_sliding_tuple2) {
         if (g1.empty() || g2.empty()) {
@@ -419,8 +381,7 @@ Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(
         // ▲          ▲
         // └──────────┘
         //  a + step = b
-        constraints.push_back(
-            ((expr_a + step) == expr_b).loc() | kiwi_value(strength));
+        constraints.push_back(((expr_a + step) == expr_b).loc() | kiwi_value(strength));
     }
 
     for (auto const& g : groups) {
@@ -458,33 +419,27 @@ Vec<EdgeDesc> MultiSeparateConstraint::describe_edges() const {
             edges.push_back(
                 EdgeDesc{
                     rect.rect_id,
-                    std::format(
-                        "multi-separate:{}+{:g}", rect.anchor, step),
+                    std::format("multi-separate:{}+{:g}", rect.anchor, step),
                     anchor_axis(rect.anchor)});
         }
     }
     return edges;
 }
 
-Str MultiSeparateConstraint::getRepr(
-    hstd::Opt<RectMap> const& rects) const {
+Str MultiSeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     std::ostringstream out;
     Vec<Vec<Str>>      g_fmt;
     for (int i = 0; i < groups.size(); ++i) {
         g_fmt.push_back({hstd::fmt("GR {}", i)});
         for (int j = 0; j < groups[i].size(); ++j) {
             g_fmt.back().push_back(
-                hstd::fmt(
-                    "{} {}", groups[i][j].rect_id, groups[i][j].anchor));
+                hstd::fmt("{} {}", groups[i][j].rect_id, groups[i][j].anchor));
         }
     }
 
     Vec<Str> joined;
     joined.push_back(
-        std::format(
-            "MultiSeparateConstraint(step={:g} strength={})",
-            step,
-            strength));
+        std::format("MultiSeparateConstraint(step={:g} strength={})", step, strength));
 
     auto     t_1   = Str{hstd::format_table(g_fmt, " => ", "")};
     auto     ind   = hstd::indent(t_1, 2);
@@ -505,8 +460,7 @@ ParentWrapConstraint::ParentWrapConstraint(
     , nested_rect_ids(std::move(nested_rect_ids))
     , pad{pad} {}
 
-Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(
-    RectMap const& rects) const {
+Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(RectMap const& rects) const {
     if (nested_rect_ids.empty()) { return {}; }
 
     Rect const&              parent = rects.at(parent_rect_id);
@@ -518,48 +472,38 @@ Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(
     Vec<Expr> bottom_exprs;
 
     for (auto const& nested_id : nested_rect_ids) {
-        left_exprs.push_back(
-            rects.at(nested_id).anchor_expr(Anchor::LEFT));
+        left_exprs.push_back(rects.at(nested_id).anchor_expr(Anchor::LEFT));
         top_exprs.push_back(rects.at(nested_id).anchor_expr(Anchor::TOP));
-        right_exprs.push_back(
-            rects.at(nested_id).anchor_expr(Anchor::RIGHT));
-        bottom_exprs.push_back(
-            rects.at(nested_id).anchor_expr(Anchor::BOTTOM));
+        right_exprs.push_back(rects.at(nested_id).anchor_expr(Anchor::RIGHT));
+        bottom_exprs.push_back(rects.at(nested_id).anchor_expr(Anchor::BOTTOM));
     }
 
     for (auto const& nested_left : left_exprs) {
         constraints.push_back(
-            (parent.anchor_expr(Anchor::LEFT) <= (nested_left - pad.left))
-                .loc()
+            (parent.anchor_expr(Anchor::LEFT) <= (nested_left - pad.left)).loc()
             | kiwi_value(strength));
     }
 
     for (auto const& nested_top : top_exprs) {
         constraints.push_back(
-            (parent.anchor_expr(Anchor::TOP) <= (nested_top - pad.top))
-                .loc()
+            (parent.anchor_expr(Anchor::TOP) <= (nested_top - pad.top)).loc()
             | kiwi_value(strength));
     }
 
     for (auto const& nested_right : right_exprs) {
         constraints.push_back(
-            ((nested_right + pad.right)
-             <= parent.anchor_expr(Anchor::RIGHT))
-                .loc()
+            ((nested_right + pad.right) <= parent.anchor_expr(Anchor::RIGHT)).loc()
             | kiwi_value(strength));
     }
 
     for (auto const& nested_bottom : bottom_exprs) {
         constraints.push_back(
-            ((nested_bottom + pad.bottom)
-             <= parent.anchor_expr(Anchor::BOTTOM))
-                .loc()
+            ((nested_bottom + pad.bottom) <= parent.anchor_expr(Anchor::BOTTOM)).loc()
             | kiwi_value(strength));
     }
 
     constraints.push_back(
-        (parent.anchor_expr(Anchor::LEFT) == (left_exprs[0] - pad.left))
-            .loc()
+        (parent.anchor_expr(Anchor::LEFT) == (left_exprs[0] - pad.left)).loc()
         | kiwi_value(strength));
     constraints.push_back(
         (parent.anchor_expr(Anchor::TOP) == (top_exprs[0] - pad.top)).loc()
@@ -622,8 +566,7 @@ RelativeConstraint::RelativeConstraint(
     , anchor_relative(anchor_relative)
     , anchor_fixed(anchor_fixed) {}
 
-Vec<kiwi_ir::Constraint> RelativeConstraint::build(
-    RectMap const& rects) const {
+Vec<kiwi_ir::Constraint> RelativeConstraint::build(RectMap const& rects) const {
     Rect const&              rel = rects.at(relative_rect_id);
     Rect const&              fix = rects.at(fixed_rect_id);
     Vec<kiwi_ir::Constraint> constraints;
@@ -649,8 +592,7 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
         constraints.push_back(
             (rel.anchor_expr(anchor_relative.x)
              == (fix.anchor_expr(anchor_fixed.x)
-                 + (x_dim.relative_offset.value()
-                    * fix.expr(RectAttr::WIDTH))
+                 + (x_dim.relative_offset.value() * fix.expr(RectAttr::WIDTH))
                  + x_dim.absolute_offset))
                 .loc()
             | kiwi_value(strength));
@@ -667,8 +609,7 @@ Vec<kiwi_ir::Constraint> RelativeConstraint::build(
         constraints.push_back(
             (rel.anchor_expr(anchor_relative.y)
              == (fix.anchor_expr(anchor_fixed.y)
-                 + (y_dim.relative_offset.value()
-                    * fix.expr(RectAttr::HEIGHT))
+                 + (y_dim.relative_offset.value() * fix.expr(RectAttr::HEIGHT))
                  + y_dim.absolute_offset))
                 .loc()
             | kiwi_value(strength));
@@ -701,9 +642,7 @@ Str RelativeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     Vec<Str> joined;
     joined.push_back(
         hstd::fmt(
-            "RelativeConstraint fixed:{} relative:{}",
-            fixed_rect_id,
-            relative_rect_id));
+            "RelativeConstraint fixed:{} relative:{}", fixed_rect_id, relative_rect_id));
 
     joined.push_back(hstd::fmt("  x_dim           {}", x_dim));
     joined.push_back(hstd::fmt("  y_dim           {}", y_dim));
@@ -736,9 +675,7 @@ Str RelativeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
 }
 
 
-EvenGapConstraint::EvenGapConstraint(
-    Vec<RectSpec2Side> rects_spec,
-    Strength           strength)
+EvenGapConstraint::EvenGapConstraint(Vec<RectSpec2Side> rects_spec, Strength strength)
     : ConstraintBase(strength), rects_spec(std::move(rects_spec)) {
     for (auto const& spec : this->rects_spec) {
         if (anchor_axis(spec.min_anchor) != anchor_axis(spec.max_anchor)) {
@@ -754,8 +691,7 @@ EvenGapConstraint::EvenGapConstraint(
     }
 
     if (!this->rects_spec.empty()) {
-        Axis common_axis = anchor_axis(
-            this->rects_spec.front().min_anchor);
+        Axis common_axis = anchor_axis(this->rects_spec.front().min_anchor);
         for (auto const& spec : this->rects_spec) {
             if (anchor_axis(spec.min_anchor) != common_axis) {
                 throw hstd::invalid_argument::init(
@@ -771,13 +707,11 @@ EvenGapConstraint::EvenGapConstraint(
     }
 }
 
-Vec<kiwi_ir::Constraint> EvenGapConstraint::build(
-    RectMap const& rects) const {
+Vec<kiwi_ir::Constraint> EvenGapConstraint::build(RectMap const& rects) const {
     if (rects_spec.size() < 3) { return {}; }
 
     Vec<kiwi_ir::Constraint> constraints;
-    for (auto const& [prev, curr, next] :
-         hstd::rv_sliding_tuple3(rects_spec)) {
+    for (auto const& [prev, curr, next] : hstd::rv_sliding_tuple3(rects_spec)) {
         Expr prev_max //
             = rects.at(prev.rect_id).anchor_expr(prev.max_anchor);
         Expr curr_min //
@@ -810,17 +744,13 @@ Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
 Str EvenGapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     Vec<Str> joined;
 
-    joined.push_back(
-        std::format("EvenGapConstraint(strength={})", strength));
+    joined.push_back(std::format("EvenGapConstraint(strength={})", strength));
 
     for (int i = 0; i < rects_spec.size(); ++i) {
         RectSpec2Side const& s = rects_spec[i];
         joined.push_back(
             std::format(
-                "  id={}, min={}, max={}",
-                s.rect_id,
-                s.min_anchor,
-                s.max_anchor));
+                "  id={}, min={}, max={}", s.rect_id, s.min_anchor, s.max_anchor));
     }
 
     joined.append(getBuildRepr(rects));
@@ -839,8 +769,7 @@ EqualSizeConstraint::EqualSizeConstraint(
     , match_width(match_width)
     , match_height(match_height) {}
 
-Vec<kiwi_ir::Constraint> EqualSizeConstraint::build(
-    RectMap const& rects) const {
+Vec<kiwi_ir::Constraint> EqualSizeConstraint::build(RectMap const& rects) const {
     Rect const&              a = rects.at(rect_a_id);
     Rect const&              b = rects.at(rect_b_id);
     Vec<kiwi_ir::Constraint> constraints;
@@ -908,22 +837,16 @@ Vec<kiwi_ir::Constraint> LinearConstraint::build(RectMap const&) const {
 Vec<EdgeDesc> LinearConstraint::describe_edges() const { return {}; }
 
 Str LinearConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
-    Str      rel = relation == Relation::EQ
-                     ? "=="
-                     : (relation == Relation::LE ? "<=" : ">=");
+    Str rel = relation == Relation::EQ ? "==" : (relation == Relation::LE ? "<=" : ">=");
     Vec<Str> joined;
-    joined.push_back(
-        std::format(
-            "LinearConstraint({} ..., strength={})", rel, strength));
+    joined.push_back(std::format("LinearConstraint({} ..., strength={})", rel, strength));
 
     joined.append(getBuildRepr(rects));
 
     return hstd::join("\n", joined);
 }
 
-Layout::Layout(
-    Vec<Rect>                       rects,
-    Vec<hstd::SPtr<ConstraintBase>> constraints)
+Layout::Layout(Vec<Rect> rects, Vec<hstd::SPtr<ConstraintBase>> constraints)
     : constraints(std::move(constraints)) {
     for (auto& rect : rects) { this->rects.emplace(rect.rect_id, rect); }
 }
@@ -940,35 +863,29 @@ RectMap Layout::solve() {
                                  .to_kiwi(kiwi::strength::required));
 
         if (rect.x0.has_value()) {
-            solver.addConstraint(
-                (rect.expr(RectAttr::X) == rect.x0.value())
-                    .loc()
-                    .to_kiwi(kiwi::strength::required));
+            solver.addConstraint((rect.expr(RectAttr::X) == rect.x0.value())
+                                     .loc()
+                                     .to_kiwi(kiwi::strength::required));
         }
         if (rect.y0.has_value()) {
-            solver.addConstraint(
-                (rect.expr(RectAttr::Y) == rect.y0.value())
-                    .loc()
-                    .to_kiwi(kiwi::strength::required));
+            solver.addConstraint((rect.expr(RectAttr::Y) == rect.y0.value())
+                                     .loc()
+                                     .to_kiwi(kiwi::strength::required));
         }
         if (rect.width0.has_value()) {
-            solver.addConstraint(
-                (rect.expr(RectAttr::WIDTH) == rect.width0.value())
-                    .loc()
-                    .to_kiwi(kiwi::strength::required));
+            solver.addConstraint((rect.expr(RectAttr::WIDTH) == rect.width0.value())
+                                     .loc()
+                                     .to_kiwi(kiwi::strength::required));
         }
         if (rect.height0.has_value()) {
-            solver.addConstraint(
-                (rect.expr(RectAttr::HEIGHT) == rect.height0.value())
-                    .loc()
-                    .to_kiwi(kiwi::strength::required));
+            solver.addConstraint((rect.expr(RectAttr::HEIGHT) == rect.height0.value())
+                                     .loc()
+                                     .to_kiwi(kiwi::strength::required));
         }
     }
 
     for (auto const& item : constraints) {
-        for (auto const& c : item->build(rects)) {
-            solver.addConstraint(c.to_kiwi());
-        }
+        for (auto const& c : item->build(rects)) { solver.addConstraint(c.to_kiwi()); }
     }
 
     solver.updateVariables();
@@ -980,16 +897,14 @@ namespace bg = boost::geometry;
 Vec<std::pair<Str, Rect>> sort_rectangles_for_svg(
     Vec<std::pair<Str, Rect>> const& items) {
 
-    using Graph = boost::
-        adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
+    using Graph  = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
     using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
 
     auto to_box = [](Rect const& g) -> geometry::Rect {
         return geometry::Rect{
             geometry::Point{g.x.value(), g.y.value()},
             geometry::Point{
-                g.x.value() + g.width.value(),
-                g.y.value() + g.height.value()}};
+                g.x.value() + g.width.value(), g.y.value() + g.height.value()}};
     };
 
     auto area = [](Rect const& g) -> double {
@@ -1034,23 +949,19 @@ Vec<std::pair<Str, Rect>> sort_rectangles_for_svg(
             bool const j_contains_i = contains(rj, ri);
 
             if (i_contains_j && !j_contains_i) {
-                boost::add_edge(
-                    static_cast<Vertex>(i), static_cast<Vertex>(j), g);
+                boost::add_edge(static_cast<Vertex>(i), static_cast<Vertex>(j), g);
                 continue;
             }
 
             if (j_contains_i && !i_contains_j) {
-                boost::add_edge(
-                    static_cast<Vertex>(j), static_cast<Vertex>(i), g);
+                boost::add_edge(static_cast<Vertex>(j), static_cast<Vertex>(i), g);
                 continue;
             }
 
             if (prefer_before(i, j)) {
-                boost::add_edge(
-                    static_cast<Vertex>(i), static_cast<Vertex>(j), g);
+                boost::add_edge(static_cast<Vertex>(i), static_cast<Vertex>(j), g);
             } else {
-                boost::add_edge(
-                    static_cast<Vertex>(j), static_cast<Vertex>(i), g);
+                boost::add_edge(static_cast<Vertex>(j), static_cast<Vertex>(i), g);
             }
         }
     }
@@ -1062,9 +973,7 @@ Vec<std::pair<Str, Rect>> sort_rectangles_for_svg(
         Vec<int> idx(items.size());
         for (int i = 0; i < items.size(); ++i) { idx[i] = i; }
 
-        std::ranges::sort(idx, [&](int lhs, int rhs) {
-            return prefer_before(lhs, rhs);
-        });
+        std::ranges::sort(idx, [&](int lhs, int rhs) { return prefer_before(lhs, rhs); });
 
         Vec<std::pair<Str, Rect>> result;
         result.reserve(items.size());
@@ -1115,8 +1024,7 @@ hstd::XmlNode Layout::to_svg(Str const& title) {
     titleNode.set_text(title);
     svg.push_back(std::move(titleNode));
 
-    Vec<Str> colors = {
-        "#ffcccc", "#ccffcc", "#ccccff", "#fff0cc", "#f0ccff", "#ccfff7"};
+    Vec<Str> colors = {"#ffcccc", "#ccffcc", "#ccccff", "#fff0cc", "#f0ccff", "#ccfff7"};
 
     int idx = 0;
 
@@ -1154,10 +1062,7 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
 
     auto result = graph::gv::GraphGroup::newStandaloneRootGraph("G");
     result->setRankDirection(graph::gv::RankDirection::LR);
-    std::unordered_map<
-        Pair<Str, Axis>,
-        hstd::SPtr<graph::gv::NodeAttribute>>
-        rectNodes;
+    std::unordered_map<Pair<Str, Axis>, hstd::SPtr<graph::gv::NodeAttribute>> rectNodes;
 
     auto cluster_x = result->newSubgraph("x_constraint");
     auto cluster_y = result->newSubgraph("y_constraint");
@@ -1170,22 +1075,16 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
 
             hstd::Vec<Str> rect_info;
             rect_info.push_back(hstd::fmt("{} {}", rect_id, axis));
-            if (rect.x0) {
-                rect_info.push_back(hstd::fmt("  x0 {}", rect.x0.value()));
-            }
+            if (rect.x0) { rect_info.push_back(hstd::fmt("  x0 {}", rect.x0.value())); }
 
-            if (rect.y0) {
-                rect_info.push_back(hstd::fmt("  y0 {}", rect.y0.value()));
-            }
+            if (rect.y0) { rect_info.push_back(hstd::fmt("  y0 {}", rect.y0.value())); }
 
             if (rect.width0) {
-                rect_info.push_back(
-                    hstd::fmt("  width0  {}", rect.width0.value()));
+                rect_info.push_back(hstd::fmt("  width0  {}", rect.width0.value()));
             }
 
             if (rect.height0) {
-                rect_info.push_back(
-                    hstd::fmt("  height0 {}", rect.height0.value()));
+                rect_info.push_back(hstd::fmt("  height0 {}", rect.height0.value()));
             }
 
             node->setLabel(hstd::join("\n", rect_info));
@@ -1207,21 +1106,15 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         for (auto const& edge : constraint->describe_edges()) {
             auto constraint_to_rect_edge = //
                 edge.axis == Axis::X
-                    ? result->edge(
-                          *cnode, *rectNodes.at({edge.rect_id, edge.axis}))
-                    : result->edge(
-                          *rectNodes.at({edge.rect_id, edge.axis}),
-                          *cnode);
+                    ? result->edge(*cnode, *rectNodes.at({edge.rect_id, edge.axis}))
+                    : result->edge(*rectNodes.at({edge.rect_id, edge.axis}), *cnode);
 
             if (edge.axis == Axis::Y) {
-                constraint_to_rect_edge->setEdgeDir(
-                    graph::gv::EdgeDir::back);
+                constraint_to_rect_edge->setEdgeDir(graph::gv::EdgeDir::back);
             }
 
             constraint_to_rect_edge->setColor(axis_color(edge.axis));
-            if (!edge.label.empty()) {
-                constraint_to_rect_edge->setLabel(edge.label);
-            }
+            if (!edge.label.empty()) { constraint_to_rect_edge->setLabel(edge.label); }
         }
     }
 
@@ -1235,23 +1128,18 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
         entries.push_back(
             ConstraintEntry{
                 std::format("Rect({}).width >= 0", rect.rect_id),
-                {(Expr(0) <= rect.expr(RectAttr::WIDTH))
-                 | kiwi::strength::required},
+                {(Expr(0) <= rect.expr(RectAttr::WIDTH)) | kiwi::strength::required},
             });
         entries.push_back(
             ConstraintEntry{
                 std::format("Rect({}).height >= 0", rect.rect_id),
-                {(Expr(0) <= rect.expr(RectAttr::HEIGHT))
-                 | kiwi::strength::required},
+                {(Expr(0) <= rect.expr(RectAttr::HEIGHT)) | kiwi::strength::required},
             });
 
         if (rect.x0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    std::format(
-                        "Rect({}).x == {:g}",
-                        rect.rect_id,
-                        rect.x0.value()),
+                    std::format("Rect({}).x == {:g}", rect.rect_id, rect.x0.value()),
                     {(rect.expr(RectAttr::X) == rect.x0.value())
                      | kiwi::strength::required},
                 });
@@ -1259,10 +1147,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
         if (rect.y0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    std::format(
-                        "Rect({}).y == {:g}",
-                        rect.rect_id,
-                        rect.y0.value()),
+                    std::format("Rect({}).y == {:g}", rect.rect_id, rect.y0.value()),
                     {(rect.expr(RectAttr::Y) == rect.y0.value())
                      | kiwi::strength::required},
                 });
@@ -1271,9 +1156,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
             entries.push_back(
                 ConstraintEntry{
                     std::format(
-                        "Rect({}).width == {:g}",
-                        rect.rect_id,
-                        rect.width0.value()),
+                        "Rect({}).width == {:g}", rect.rect_id, rect.width0.value()),
                     {(rect.expr(RectAttr::WIDTH) == rect.width0.value())
                      | kiwi::strength::required},
                 });
@@ -1282,9 +1165,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
             entries.push_back(
                 ConstraintEntry{
                     std::format(
-                        "Rect({}).height == {:g}",
-                        rect.rect_id,
-                        rect.height0.value()),
+                        "Rect({}).height == {:g}", rect.rect_id, rect.height0.value()),
                     {(rect.expr(RectAttr::HEIGHT) == rect.height0.value())
                      | kiwi::strength::required},
                 });
@@ -1338,7 +1219,7 @@ ConflictSet minimal_conflict_set(
     Vec<ConstraintEntry> const& active_entries,
     ConstraintEntry const&      failing_entry) {
     auto make_trial = [&](Vec<ConstraintEntry> const& conflict,
-                          int skip_idx) -> Vec<ConstraintEntry> {
+                          int                         skip_idx) -> Vec<ConstraintEntry> {
         Vec<ConstraintEntry> trial;
         for (int idx = 0; idx < conflict.size(); ++idx) {
             if (idx != skip_idx) { trial.push_back(conflict.at(idx)); }
@@ -1390,8 +1271,7 @@ ConflictSet minimal_conflict_set(
             ConstraintFailure{
                 .entry = conflict.at(entry_idx),
                 .desc  = //
-                sat.has_error() ? std::make_optional(sat.assume_error())
-                                : std::nullopt,
+                sat.has_error() ? std::make_optional(sat.assume_error()) : std::nullopt,
             });
     }
 
@@ -1405,8 +1285,7 @@ void Layout::verify_constraints() {
     Vec<ConstraintEntry> active_entries;
 
     auto describe_constraint_source =
-        [&](std::variant<Str, hstd::SPtr<ConstraintBase>> const& source)
-        -> Str {
+        [&](std::variant<Str, hstd::SPtr<ConstraintBase>> const& source) -> Str {
         if (std::holds_alternative<Str>(source)) {
             return std::get<Str>(source);
         } else {
@@ -1420,14 +1299,13 @@ void Layout::verify_constraints() {
                 solver.addConstraint(lowered.to_kiwi());
             }
         } catch (kiwi::UnsatisfiableConstraint const&) {
-            auto conflicts = minimal_conflict_set(active_entries, entry);
+            auto            conflicts = minimal_conflict_set(active_entries, entry);
             hstd::ColStream os;
             // NOTE: primary candidate for tree-like data representation
             // optimization. [[f69705c4-9013-4919-a540-3c473bbadbaf]]
             os << "Unsatisfiable layout constraints detected.\n";
             os << std::format(
-                "Failing constraint: {}\n",
-                describe_constraint_source(entry.source));
+                "Failing constraint: {}\n", describe_constraint_source(entry.source));
 
             auto describe_failure = [&](SatisfyFail const& fail) {
                 if (1 < fail.preceding.size()) {
@@ -1444,21 +1322,19 @@ void Layout::verify_constraints() {
                         describe_constraint_source(it.value().source), 8);
                     os.newline();
 
-                    auto write_lowered =
-                        [&](hstd::Span<kiwi_ir::Constraint> const& c) {
-                            for (auto const& sub : c) {
-                                os.indent(8);
-                                os << "- ";
-                                os.write_indented_after_first(
-                                    flat_repr(sub), 10);
-                                os.newline();
-                            }
-                        };
+                    auto write_lowered = [&](hstd::Span<kiwi_ir::Constraint> const& c) {
+                        for (auto const& sub : c) {
+                            os.indent(8);
+                            os << "- ";
+                            os.write_indented_after_first(flat_repr(sub), 10);
+                            os.newline();
+                        }
+                    };
 
                     if (it.is_last()) {
                         if (0 < fail.failing) {
-                            write_lowered(it.value().lowered.at(
-                                hstd::slice(0, fail.failing - 1)));
+                            write_lowered(
+                                it.value().lowered.at(hstd::slice(0, fail.failing - 1)));
                         }
                     } else {
                         write_lowered(it.value().lowered.toSpan());
@@ -1468,8 +1344,7 @@ void Layout::verify_constraints() {
                 os << std::format(
                     "    - first conflict detected when "
                     "adding lowered element {}\n",
-                    flat_repr(
-                        fail.preceding.back().lowered.at(fail.failing)));
+                    flat_repr(fail.preceding.back().lowered.at(fail.failing)));
             };
 
             if (conflicts.failures.empty()) {
@@ -1482,8 +1357,7 @@ void Layout::verify_constraints() {
                 os << "Conflicts with:\n";
                 for (auto const& src : conflicts.failures) {
                     os << std::format(
-                        "  - {}\n",
-                        describe_constraint_source(src.entry.source));
+                        "  - {}\n", describe_constraint_source(src.entry.source));
                     describe_failure(src.desc.value());
                 }
             }

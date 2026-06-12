@@ -30,15 +30,12 @@ struct MatchCandidate {
 };
 
 struct EagerAstDiff {
-    NodeStore& srcStore;
-    NodeStore& dstStore;
-    Func<bool(NodeStore::Id const& src, NodeStore::Id const& dst)> const&
-                        areValuesEqual;
-    hstd::Vec<DiaEdit>& results;
+    NodeStore&                                                            srcStore;
+    NodeStore&                                                            dstStore;
+    Func<bool(NodeStore::Id const& src, NodeStore::Id const& dst)> const& areValuesEqual;
+    hstd::Vec<DiaEdit>&                                                   results;
 
-    hstd::Vec<NodeStore::Id> getSubnodes(
-        NodeStore&           store,
-        NodeStore::Id const& node) {
+    hstd::Vec<NodeStore::Id> getSubnodes(NodeStore& store, NodeStore::Id const& node) {
         hstd::Vec<NodeStore::Id> subnodes;
         int                      count = store.getSubnodeCount(node);
         subnodes.reserve(count);
@@ -54,9 +51,7 @@ struct EagerAstDiff {
         ProcessedNodes const&           processed) {
         int count = 0;
         for (auto const& id : haystack) {
-            if (!processed.contains(id) && areValuesEqual(id, needle)) {
-                ++count;
-            }
+            if (!processed.contains(id) && areValuesEqual(id, needle)) { ++count; }
         }
         return count;
     }
@@ -68,8 +63,7 @@ struct EagerAstDiff {
         for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
             auto const& srcSubnode = srcSubnodes.at(srcIndex);
             if (!processedSrc.contains(srcSubnode)
-                && srcStore.getNodeKind(srcSubnode)
-                       == dstStore.getNodeKind(dstSubnode)) {
+                && srcStore.getNodeKind(srcSubnode) == dstStore.getNodeKind(dstSubnode)) {
                 return srcIndex;
             }
         }
@@ -93,9 +87,7 @@ struct EagerAstDiff {
         ProcessedNodes const&           processedSrc) {
 
         HSLOG_TRACE(
-            "Finding best match for dstSubnode:{} at dstIndex:{}",
-            dstSubnode,
-            dstIndex);
+            "Finding best match for dstSubnode:{} at dstIndex:{}", dstSubnode, dstIndex);
         HSLOG_DEPTH_SCOPE_ANON();
 
         std::optional<MatchCandidate> exactMatch;
@@ -105,8 +97,7 @@ struct EagerAstDiff {
         for (int srcIndex = 0; srcIndex < srcSubnodes.size(); ++srcIndex) {
             auto const& srcSubnode = srcSubnodes.at(srcIndex);
             if (processedSrc.contains(srcSubnode)
-                || srcStore.getNodeKind(srcSubnode)
-                       != dstStore.getNodeKind(dstSubnode)) {
+                || srcStore.getNodeKind(srcSubnode) != dstStore.getNodeKind(dstSubnode)) {
                 continue;
             }
 
@@ -125,21 +116,16 @@ struct EagerAstDiff {
 
             if (isExact) {
                 if (isMove) {
-                    if (!moveCandidate.has_value()
-                        || !moveCandidate->isExactMatch) {
-                        moveCandidate = MatchCandidate{
-                            srcIndex, true, true};
+                    if (!moveCandidate.has_value() || !moveCandidate->isExactMatch) {
+                        moveCandidate = MatchCandidate{srcIndex, true, true};
                         HSLOG_TRACE(
-                            "Found exact move candidate at srcIndex:{}",
-                            srcIndex);
+                            "Found exact move candidate at srcIndex:{}", srcIndex);
                     }
                 } else {
                     exactMatch = MatchCandidate{srcIndex, true, false};
-                    HSLOG_TRACE(
-                        "Found exact match at srcIndex:{}", srcIndex);
+                    HSLOG_TRACE("Found exact match at srcIndex:{}", srcIndex);
                 }
-            } else if (
-                !exactMatch.has_value() && !diaIdMatch.has_value()) {
+            } else if (!exactMatch.has_value() && !diaIdMatch.has_value()) {
                 diaIdMatch = MatchCandidate{srcIndex, false, isMove};
                 HSLOG_TRACE("Found DiaId match at srcIndex:{}", srcIndex);
             }
@@ -160,11 +146,9 @@ struct EagerAstDiff {
             return diaIdMatch;
         }
 
-        auto kindMatch = findMatchingByKind(
-            dstSubnode, srcSubnodes, processedSrc);
+        auto kindMatch = findMatchingByKind(dstSubnode, srcSubnodes, processedSrc);
         if (kindMatch.has_value()) {
-            HSLOG_TRACE(
-                "Selecting kind match at srcIndex:{}", kindMatch.value());
+            HSLOG_TRACE("Selecting kind match at srcIndex:{}", kindMatch.value());
             return MatchCandidate{
                 kindMatch.value(), false, kindMatch.value() != dstIndex};
         }
@@ -236,19 +220,13 @@ struct EagerAstDiff {
         auto const& srcSubnode = srcSubnodes.at(matchCandidate.srcIndex);
 
         HSLOG_TRACE(
-            "{} to match src:{} with dst:{}",
-            matchCandidate,
-            srcSubnode,
-            dstSubnode);
+            "{} to match src:{} with dst:{}", matchCandidate, srcSubnode, dstSubnode);
 
         int unprocessedSrcCount = countUnprocessedMatching(
             dstSubnode, srcSubnodes, processedSrc);
 
         if (shouldPreferInsert(
-                dstSubnode,
-                dstSubnodes,
-                processedDst,
-                unprocessedSrcCount)) {
+                dstSubnode, dstSubnodes, processedDst, unprocessedSrcCount)) {
             HSLOG_TRACE(
                 "Preferring insert over match due to "
                 "duplicate handling");
@@ -274,9 +252,7 @@ struct EagerAstDiff {
         return true;
     }
 
-    void diffSubnodes(
-        NodeStore::Id const& srcNode,
-        NodeStore::Id const& dstNode) {
+    void diffSubnodes(NodeStore::Id const& srcNode, NodeStore::Id const& dstNode) {
 
         if (srcStore.getSubnodeCount(srcNode) == 0
             && dstStore.getSubnodeCount(dstNode) == 0) {
@@ -286,8 +262,7 @@ struct EagerAstDiff {
         HSLOG_TRACE("aux on src:{} dst:{}", srcNode, dstNode);
         HSLOG_DEPTH_SCOPE_ANON();
 
-        if (srcStore.getNodeKind(srcNode)
-            != dstStore.getNodeKind(dstNode)) {
+        if (srcStore.getNodeKind(srcNode) != dstStore.getNodeKind(dstNode)) {
             HSLOG_TRACE(
                 "Node kind mismatch, early return {} != {}",
                 srcStore.getNodeKind(srcNode),
@@ -308,8 +283,7 @@ struct EagerAstDiff {
 
             if (processedDst.contains(dstSubnode)) {
                 HSLOG_TRACE(
-                    "Skipping already processed dstSubnode at index:{}",
-                    dstIndex);
+                    "Skipping already processed dstSubnode at index:{}", dstIndex);
                 continue;
             }
 
@@ -335,8 +309,7 @@ struct EagerAstDiff {
                     dstIndex,
                     dstSubnode);
                 results.emplace_back(
-                    DiaEdit::Insert{
-                        .dstNode = dstSubnode, .dstIndex = dstIndex});
+                    DiaEdit::Insert{.dstNode = dstSubnode, .dstIndex = dstIndex});
                 processedDst.incl(dstSubnode);
                 continue;
             }
@@ -350,8 +323,7 @@ struct EagerAstDiff {
                     srcIndex,
                     srcSubnode);
                 results.emplace_back(
-                    DiaEdit::Delete{
-                        .srcNode = srcSubnode, .srcIndex = srcIndex});
+                    DiaEdit::Delete{.srcNode = srcSubnode, .srcIndex = srcIndex});
             }
         }
     }
@@ -361,9 +333,7 @@ struct EagerAstDiff {
 
         if (!areValuesEqual(srcRoot, dstRoot)) {
             HSLOG_TRACE(
-                "Creating root Update edit ID mismatch{} -> {}",
-                srcRoot,
-                dstRoot);
+                "Creating root Update edit ID mismatch{} -> {}", srcRoot, dstRoot);
             results.emplace_back(
                 DiaEdit::Update{
                     .srcNode  = srcRoot,

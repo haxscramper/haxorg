@@ -56,9 +56,7 @@ struct FilePath {
     using id_type = FilePathId;
     ir::StringId path;
 
-    bool operator==(FilePath const& other) const {
-        return this->path == other.path;
-    }
+    bool operator==(FilePath const& other) const { return this->path == other.path; }
 };
 
 /// \brief single commit by author, taken at some point in time
@@ -113,9 +111,7 @@ struct FileTrack {
 struct String {
     using id_type = StringId;
     hstd::Str text; /// Textual content of the line
-    auto      operator==(String const& other) const -> bool {
-        return text == other.text;
-    }
+    auto      operator==(String const& other) const -> bool { return text == other.text; }
 };
 
 /// \brief Author - name and email found during the source code analysis.
@@ -163,16 +159,16 @@ inline void hash_combine(std::size_t& seed, T const& v, Rest... rest) {
 }
 
 /// \brief Declare boilerplate type hasing using list of fields
-#define MAKE_HASHABLE(__type, __varname, ...)                             \
-    namespace std {                                                       \
-    template <>                                                           \
-    struct hash<__type> {                                                 \
-        auto operator()(const __type& __varname) const -> std::size_t {   \
-            std::size_t ret = 0;                                          \
-            hash_combine(ret, __VA_ARGS__);                               \
-            return ret;                                                   \
-        }                                                                 \
-    };                                                                    \
+#define MAKE_HASHABLE(__type, __varname, ...)                                            \
+    namespace std {                                                                      \
+    template <>                                                                          \
+    struct hash<__type> {                                                                \
+        auto operator()(const __type& __varname) const -> std::size_t {                  \
+            std::size_t ret = 0;                                                         \
+            hash_combine(ret, __VA_ARGS__);                                              \
+            return ret;                                                                  \
+        }                                                                                \
+    };                                                                                   \
     }
 
 // Add hashing declarations for the author and line data - they will be
@@ -192,7 +188,7 @@ struct content_manager {
         hstd::dod::Store<FileTrackId, FileTrack>,     // file tracks
         hstd::dod::InternStore<FilePathId, FilePath>, // file paths
         hstd::dod::Store<CommitId, Commit>,           // all commits
-        hstd::dod::InternStore<StringId, String> // all interned strings
+        hstd::dod::InternStore<StringId, String>      // all interned strings
         >
         multi;
 
@@ -203,13 +199,10 @@ struct content_manager {
         }
 
 
-        auto result = add(
-            ir::FilePath{.path = add(String{file.native()})});
+        auto result = add(ir::FilePath{.path = add(String{file.native()})});
 
-        LOGIC_ASSERTION_CHECK_FMT(
-            !at(at(result).path).text.starts_with(" "), "");
-        LOGIC_ASSERTION_CHECK_FMT(
-            !result.isNil(), "ID:{} PATH:{}", result, file, "");
+        LOGIC_ASSERTION_CHECK_FMT(!at(at(result).path).text.starts_with(" "), "");
+        LOGIC_ASSERTION_CHECK_FMT(!result.isNil(), "ID:{} PATH:{}", result, file, "");
 
         return result;
     }
@@ -221,8 +214,7 @@ struct content_manager {
     }
 
     template <hstd::dod::IsIdType Id>
-    [[nodiscard]] auto at(Id id) const
-        -> hstd::dod::value_type_t<Id> const& {
+    [[nodiscard]] auto at(Id id) const -> hstd::dod::value_type_t<Id> const& {
         return multi.at<Id>(id);
     }
 

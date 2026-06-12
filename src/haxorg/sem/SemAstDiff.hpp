@@ -23,24 +23,17 @@ struct SemNodeStore : hstd::ext::diff::NodeStore {
         }
     }
 
-    sem::Org const* get(Id const& id) const {
-        return id.ToPtr<sem::Org>();
-    }
+    sem::Org const* get(Id const& id) const { return id.ToPtr<sem::Org>(); }
 
-    sem::Org* get(Id const& id) {
-        return const_cast<sem::Org*>(id.ToPtr<sem::Org>());
-    }
+    sem::Org* get(Id const& id) { return const_cast<sem::Org*>(id.ToPtr<sem::Org>()); }
 
     virtual int getSubnodeCount(Id const& id) override;
 
     virtual Id getSubnodeAt(Id const& node, int index) override;
 
-    virtual Id getRoot() override {
-        return NodeStore::Id::FromPtr(root.get());
-    }
+    virtual Id getRoot() override { return NodeStore::Id::FromPtr(root.get()); }
 
-    virtual hstd::ext::diff::ASTNodeKind getNodeKind(
-        Id const& node) const override {
+    virtual hstd::ext::diff::ASTNodeKind getNodeKind(Id const& node) const override {
         return static_cast<int>(get(node)->getKind());
     }
 
@@ -107,22 +100,16 @@ struct ImmNodeStore : hstd::ext::diff::NodeStore {
         bool                         DirectSubnodes,
         org::imm::ImmAstContext::Ptr context);
 
-    NodeStore::Id getStoreId(org::imm::ImmUniqId const& id) {
-        return map.at_right(id);
-    }
+    NodeStore::Id getStoreId(org::imm::ImmUniqId const& id) { return map.at_right(id); }
 
-    org::imm::ImmId getNodeValue(NodeStore::Id const& id) {
-        return get(id).id;
-    }
+    org::imm::ImmId getNodeValue(NodeStore::Id const& id) { return get(id).id; }
 
     org::imm::ImmAdapter get(Id const& id) const {
         hstd::logic_assertion_check_not_nil(context);
         return context->adapt(map.at_left(id));
     }
 
-    org::imm::ImmUniqId getUniq(Id const& id) const {
-        return map.at_left(id);
-    }
+    org::imm::ImmUniqId getUniq(Id const& id) const { return map.at_left(id); }
 
     virtual int getSubnodeCount(Id const& id) override;
 
@@ -130,8 +117,7 @@ struct ImmNodeStore : hstd::ext::diff::NodeStore {
 
     virtual Id getRoot() override { return getStoreId(root.uniq()); }
 
-    virtual hstd::ext::diff::ASTNodeKind getNodeKind(
-        Id const& node) const override {
+    virtual hstd::ext::diff::ASTNodeKind getNodeKind(Id const& node) const override {
         return static_cast<int>(get(node).getKind());
     }
 
@@ -168,15 +154,7 @@ struct ImmNodeDiff {
             DESC_FIELDS(Replace, (src, dst));
         };
 
-        SUB_VARIANTS(
-            Kind,
-            Data,
-            data,
-            getKind,
-            Delete,
-            Keep,
-            Insert,
-            Replace);
+        SUB_VARIANTS(Kind, Data, data, getKind, Delete, Keep, Insert, Replace);
 
         Data data;
         DESC_FIELDS(AstEdit, (data));

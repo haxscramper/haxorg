@@ -1,7 +1,9 @@
 #include "graph_port.hpp"
 
-hstd::ext::graph::PortID hstd::ext::graph::IPortCollection::
-    getPortForConnection(VertexID vid, EdgeID eid, bool is_start) const {
+hstd::ext::graph::PortID hstd::ext::graph::IPortCollection::getPortForConnection(
+    VertexID vid,
+    EdgeID   eid,
+    bool     is_start) const {
     auto& edge_idx    = port_edges.get<ByEdgeID>();
     auto [begin, end] = edge_idx.equal_range(eid);
     for (; begin != end; ++begin) {
@@ -17,8 +19,8 @@ hstd::ext::graph::PortID hstd::ext::graph::IPortCollection::
             eid));
 }
 
-hstd::Pair<hstd::ext::graph::PortID, hstd::ext::graph::PortID> hstd::ext::
-    graph::IPortCollection::getPortsForEdge(EdgeID eid) const {
+hstd::Pair<hstd::ext::graph::PortID, hstd::ext::graph::PortID> hstd::ext::graph::
+    IPortCollection::getPortsForEdge(EdgeID eid) const {
     auto& idx         = port_edges.get<ByEdgeID>();
     auto [begin, end] = idx.equal_range(eid);
 
@@ -36,8 +38,8 @@ hstd::Pair<hstd::ext::graph::PortID, hstd::ext::graph::PortID> hstd::ext::
     return {source, target};
 }
 
-hstd::ext::graph::PortIDSet hstd::ext::graph::IPortCollection::
-    getPortsForVertex(VertexID vid) const {
+hstd::ext::graph::PortIDSet hstd::ext::graph::IPortCollection::getPortsForVertex(
+    VertexID vid) const {
     auto& idx         = ports.get<ByVertexID>();
     auto [begin, end] = idx.equal_range(vid);
     PortIDSet result;
@@ -45,8 +47,8 @@ hstd::ext::graph::PortIDSet hstd::ext::graph::IPortCollection::
     return result;
 }
 
-hstd::ext::graph::EdgeIDSet hstd::ext::graph::IPortCollection::
-    getEdgeForPort(PortID pid) const {
+hstd::ext::graph::EdgeIDSet hstd::ext::graph::IPortCollection::getEdgeForPort(
+    PortID pid) const {
     getPortIterator(pid);
     auto& idx         = port_edges.get<ByPortIDInEdgeMap>();
     auto [begin, end] = idx.equal_range(pid);
@@ -58,8 +60,7 @@ hstd::ext::graph::EdgeIDSet hstd::ext::graph::IPortCollection::
 decltype(hstd::ext::graph::IPortCollection::ports
              .get<hstd::ext::graph::IPortCollection::ByPortID>()
              .begin())
-    hstd::ext::graph::IPortCollection::getPortIterator(
-        PortID const& pid) const {
+    hstd::ext::graph::IPortCollection::getPortIterator(PortID const& pid) const {
     auto& idx = ports.get<ByPortID>();
     auto  it  = idx.find(pid);
     if (it == idx.end()) {
@@ -69,14 +70,11 @@ decltype(hstd::ext::graph::IPortCollection::ports
     return it;
 }
 
-void hstd::ext::graph::IPortCollection::addPort(
-    VertexID vertex,
-    PortID   pid) {
+void hstd::ext::graph::IPortCollection::addPort(VertexID vertex, PortID pid) {
     auto& port_idx = ports.get<ByPortID>();
     if (port_idx.find(pid) != port_idx.end()) {
         throw port_structure_error::init(
-            hstd::fmt(
-                "port {} is already registered in the collection", pid));
+            hstd::fmt("port {} is already registered in the collection", pid));
     }
 
     ports.insert(PortEntry{vertex, pid});
@@ -109,8 +107,7 @@ void hstd::ext::graph::IPortCollection::connectPort(
     }
 
     auto& edge_idx     = port_edges.get<ByPortCompositeKey>();
-    auto [_, inserted] = edge_idx.insert(
-        PortEdgeEntry{port_it->port, edge, is_start});
+    auto [_, inserted] = edge_idx.insert(PortEdgeEntry{port_it->port, edge, is_start});
     if (!inserted) {
         throw port_structure_error::init(
             hstd::fmt(
@@ -146,9 +143,7 @@ bool hstd::ext::graph::IPortCollection::isSourcePort(PortID pid) const {
     for (; begin != end; ++begin) {
         if (begin->is_source != value) {
             throw port_structure_error::init(
-                hstd::fmt(
-                    "port {} has mixed source/target edge connections",
-                    pid));
+                hstd::fmt("port {} has mixed source/target edge connections", pid));
         }
     }
     return value;
@@ -167,9 +162,7 @@ bool hstd::ext::graph::IPortCollection::hasPortConnection(
     return false;
 }
 
-bool hstd::ext::graph::IPortCollection::hasTargetPort(
-    VertexID vid,
-    EdgeID   eid) const {
+bool hstd::ext::graph::IPortCollection::hasTargetPort(VertexID vid, EdgeID eid) const {
     return hasPortConnection(vid, eid, false);
 }
 
@@ -191,8 +184,8 @@ hstd::ext::graph::PortID hstd::ext::graph::TrivialPortCollection::addPort(
     bool                              is_start,
     std::optional<std::string> const& stable_id) {
     auto id = portStore.add(
-        TrivialPort{stable_id.value_or(
-            hstd::fmt1(portStore.getNextId(getCollectionID().t)))},
+        TrivialPort{
+            stable_id.value_or(hstd::fmt1(portStore.getNextId(getCollectionID().t)))},
         getCollectionID().t);
     IPortCollection::addPort(vertex, edge, is_start, id);
     return id;
@@ -202,8 +195,8 @@ hstd::ext::graph::PortID hstd::ext::graph::TrivialPortCollection::addPort(
     VertexID                          vertex,
     std::optional<std::string> const& stable_id) {
     auto id = portStore.add(
-        TrivialPort{stable_id.value_or(
-            hstd::fmt1(portStore.getNextId(getCollectionID().t)))},
+        TrivialPort{
+            stable_id.value_or(hstd::fmt1(portStore.getNextId(getCollectionID().t)))},
         getCollectionID().t);
     IPortCollection::addPort(vertex, id);
     return id;

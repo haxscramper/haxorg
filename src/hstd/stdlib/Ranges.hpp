@@ -20,8 +20,7 @@ struct generator_view : rs::view_facade<generator_view<T>> {
     struct Data {
         generator<T>           gen_;
         generator<T>::iterator iter;
-        explicit Data(generator<T>&& gen)
-            : gen_(std::move(gen)), iter(gen_.begin()) {}
+        explicit Data(generator<T>&& gen) : gen_(std::move(gen)), iter(gen_.begin()) {}
     };
 
     SPtr<Data> data;
@@ -90,8 +89,7 @@ owning_range<std::remove_cvref_t<T>> own_view(T&& gen) {
 
 template <class Rng>
 struct collector_view
-    : public rs::
-          view_interface<collector_view<Rng>, rs::cardinality::finite> {
+    : public rs::view_interface<collector_view<Rng>, rs::cardinality::finite> {
 
     using Collected      = std::vector<rs::range_value_t<Rng>>;
     using iterator       = typename Collected::iterator;
@@ -101,9 +99,7 @@ struct collector_view
     Collected values;
     // iterator  iter;
 
-    constexpr const_iterator begin() const noexcept {
-        return values.begin();
-    }
+    constexpr const_iterator begin() const noexcept { return values.begin(); }
 
     constexpr const_iterator end() const noexcept { return values.end(); }
     constexpr iterator       begin() noexcept { return values.begin(); }
@@ -166,24 +162,18 @@ inline auto unpack_optional() {
 }
 
 inline auto rv_transform_pair_first = hstd::rv::transform(
-    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
-        return it.first;
-    });
+    []<typename A, typename B>(hstd::Pair<A, B> const& it) { return it.first; });
 
 inline auto rv_transform_pair_second = hstd::rv::transform(
-    []<typename A, typename B>(hstd::Pair<A, B> const& it) {
-        return it.second;
-    });
+    []<typename A, typename B>(hstd::Pair<A, B> const& it) { return it.second; });
 
 inline auto rv_sliding_tuple2 //
-    = hstd::rv::sliding(2) | hstd::rv::transform([](auto const& it) {
-          return std::tuple(it[0], it[1]);
-      });
+    = hstd::rv::sliding(2)
+    | hstd::rv::transform([](auto const& it) { return std::tuple(it[0], it[1]); });
 
 inline auto rv_sliding_tuple3 //
-    = hstd::rv::sliding(3) | hstd::rv::transform([](auto const& it) {
-          return std::tuple(it[0], it[1], it[2]);
-      });
+    = hstd::rv::sliding(3)
+    | hstd::rv::transform([](auto const& it) { return std::tuple(it[0], it[1], it[2]); });
 
 
 inline auto rv_sliding_tuple4 //

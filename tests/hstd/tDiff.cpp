@@ -5,16 +5,11 @@
 using namespace hstd;
 
 template <typename T>
-Str formatDiffedEx(
-    Vec<SeqEdit> const& ops,
-    Span<T>             oldSeq,
-    Span<T>             newSeq) {
+Str formatDiffedEx(Vec<SeqEdit> const& ops, Span<T> oldSeq, Span<T> newSeq) {
     Str result;
     for (const auto& op : ops) {
         switch (op.kind) {
-            case SeqEditKind::Keep:
-                result += fmt1(oldSeq[op.sourcePos]);
-                break;
+            case SeqEditKind::Keep: result += fmt1(oldSeq[op.sourcePos]); break;
             case SeqEditKind::Delete:
                 result += "[del " + fmt1(oldSeq[op.sourcePos]) + "]";
                 break;
@@ -51,9 +46,7 @@ Vec<T> expandOn(BacktrackRes const& back, Vec<T> const& in, bool onX) {
 
 
 Str levEditText(Str const& a, Str const& b) {
-    Vec<SeqEdit> ops = levenshteinDistance<const char>(
-                           a.toSpan(), b.toSpan())
-                           .operations;
+    Vec<SeqEdit> ops = levenshteinDistance<const char>(a.toSpan(), b.toSpan()).operations;
     return formatDiffedEx(ops, a.toSpan(), b.toSpan());
 }
 
@@ -75,9 +68,7 @@ TEST_F(LevenshteinEditOperationsTest, SimpleEdits) {
 class DiffTest : public ::testing::Test {
   protected:
     void SetUp() override {
-        cmp = [](int const& lhs, int const& rhs) -> bool {
-            return lhs == rhs;
-        };
+        cmp = [](int const& lhs, int const& rhs) -> bool { return lhs == rhs; };
 
         cmpValue = [](int const& lhs, int const& rhs) -> float {
             return lhs == rhs ? 1.0 : 0.0;
@@ -232,26 +223,19 @@ class DiffTestFuzzy : public ::testing::Test {
     void SetUp() override {}
 
 
-    FuzzyMatcher initMatcher(
-        hstd::Opt<hstd::Str> debugFullPath = std::nullopt) {
+    FuzzyMatcher initMatcher(hstd::Opt<hstd::Str> debugFullPath = std::nullopt) {
         const ::testing::TestInfo* const test_info //
             = ::testing::UnitTest::GetInstance()->current_test_info();
         FuzzyMatcher matcher;
 
-        if (debugFullPath) {
-            matcher.setTraceFile(debugFullPath.value().toBase());
-        }
+        if (debugFullPath) { matcher.setTraceFile(debugFullPath.value().toBase()); }
 
         return matcher;
     }
 
-    Vec<int> runMatcher(
-        FuzzyMatcher& matcher,
-        Str const&    lhs,
-        Str const&    rhs) {
+    Vec<int> runMatcher(FuzzyMatcher& matcher, Str const& lhs, Str const& rhs) {
         int score       = 0;
-        matcher.isEqual = [&](int const& lhsIdx,
-                              int const& rhsIdx) -> bool {
+        matcher.isEqual = [&](int const& lhsIdx, int const& rhsIdx) -> bool {
             return lhs.at(lhsIdx) == rhs.at(rhsIdx);
         };
 
@@ -271,9 +255,7 @@ class DiffTestFuzzy : public ::testing::Test {
 
         matcher.matchScore = matcher.getLinearScore(
             FuzzyMatcher::LinearScoreConfig{
-                .isSeparator = [](char const& sep) -> bool {
-                    return false;
-                }});
+                .isSeparator = [](char const& sep) -> bool { return false; }});
         return runMatcher(matcher, lhs, rhs);
     }
 };

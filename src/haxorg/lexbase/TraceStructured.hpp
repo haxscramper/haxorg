@@ -55,20 +55,11 @@ struct EntryParser {
     hstd::Opt<int>              codeLine;
     hstd::Opt<hstd::Str>        message;
 
-    DESC_FIELDS(
-        EntryParser,
-        (node, depth, kind, lex, codeFunction, codeLine, message));
+    DESC_FIELDS(EntryParser, (node, depth, kind, lex, codeFunction, codeLine, message));
 };
 
 struct EntrySem {
-    DECL_DESCRIBED_ENUM(
-        Kind,
-        Enter,
-        EnterField,
-        LeaveField,
-        Json,
-        Print,
-        Leave);
+    DECL_DESCRIBED_ENUM(Kind, Enter, EnterField, LeaveField, Json, Print, Leave);
 
     Kind                    kind;
     hstd::Opt<ValueOrgNode> node;
@@ -77,9 +68,7 @@ struct EntrySem {
     hstd::Opt<hstd::Str>    message;
     hstd::Opt<hstd::Str>    codeFunction;
     hstd::Opt<int>          codeLine;
-    DESC_FIELDS(
-        EntrySem,
-        (kind, node, field, indent, message, codeFunction, codeLine));
+    DESC_FIELDS(EntrySem, (kind, node, field, indent, message, codeFunction, codeLine));
 };
 
 struct EntryTokenizer {
@@ -133,15 +122,7 @@ struct EntryExport {
 
     DESC_FIELDS(
         EntryExport,
-        (kind,
-         visitedKind,
-         level,
-         codeLine,
-         field,
-         codeFunction,
-         isStart,
-         type,
-         msg));
+        (kind, visitedKind, level, codeLine, field, codeFunction, isStart, type, msg));
 };
 
 } // namespace org::report

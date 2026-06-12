@@ -49,14 +49,14 @@ struct CommitGraph {
     git_oid                            first_oid;
 
   public:
-    inline int in_degree(VDesc v) const { return bg::in_degree(v, g); }
-    inline int out_degree(VDesc v) const { return bg::out_degree(v, g); }
+    inline int         in_degree(VDesc v) const { return bg::in_degree(v, g); }
+    inline int         out_degree(VDesc v) const { return bg::out_degree(v, g); }
     inline CommitInfo& operator[](VDesc v) { return g[v]; }
     inline CommitEdge& operator[](EDesc e) { return g[e]; }
-    inline VDesc operator[](git_oid const& oid) { return get_desc(oid); }
-    inline VDesc source(EDesc e) const { return bg::source(e, g); }
-    inline VDesc target(EDesc e) const { return bg::target(e, g); }
-    inline bool  is_merge(VDesc v) const { return 1 < in_degree(v); }
+    inline VDesc       operator[](git_oid const& oid) { return get_desc(oid); }
+    inline VDesc       source(EDesc e) const { return bg::source(e, g); }
+    inline VDesc       target(EDesc e) const { return bg::target(e, g); }
+    inline bool        is_merge(VDesc v) const { return 1 < in_degree(v); }
 
     hstd::Opt<VDesc> get_base(VDesc v) const;
 

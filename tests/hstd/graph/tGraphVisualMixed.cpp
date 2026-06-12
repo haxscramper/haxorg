@@ -15,14 +15,12 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto dot_sub2_id   = addVertex("dot_sub2");
 
     // main cola wrapper
-    hstd::SPtr<kw::KiwiGroup> kiwi_root = kw::KiwiGroup::newRootGraph(
-        run, "kiwi_root");
+    hstd::SPtr<kw::KiwiGroup> kiwi_root = kw::KiwiGroup::newRootGraph(run, "kiwi_root");
 
     run->setRootGroupAttribute(kiwi_root_id, kiwi_root);
 
     // sidebar dot layout
-    hstd::SPtr<gv::GraphGroup> dot_sub1 = gv::GraphGroup::newRootGraph(
-        run, "dot_sub1");
+    hstd::SPtr<gv::GraphGroup> dot_sub1 = gv::GraphGroup::newRootGraph(run, "dot_sub1");
 
     auto dot_sub1_id_nesting = addNesting(kiwi_root_id, dot_sub1_id);
     run->setNestedGroupAttribute(dot_sub1_id_nesting, dot_sub1);
@@ -35,20 +33,13 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto l6 = addVertex("l6");
     auto l7 = addVertex("l7");
 
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l1))
-        ->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l2))
-        ->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l3))
-        ->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l4))
-        ->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l5))
-        ->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l6))
-        ->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l7))
-        ->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l1))->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l2))->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l3))->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l4))->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l5))->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l6))->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l7))->setFixedPointWH(rect);
 
     auto e_l1_l2 = addEdge(l1, l2, "e_l1_l2");
     auto e_l2_l3 = addEdge(l2, l3, "e_l2_l3");
@@ -67,8 +58,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     dot_sub1->setOuterPadding(pad);
 
     // intermediate cola layout
-    hstd::SPtr<kw::KiwiGroup> kiwi_sub1 = kw::KiwiGroup::newRootGraph(
-        run, "kiwi_sub1");
+    hstd::SPtr<kw::KiwiGroup> kiwi_sub1 = kw::KiwiGroup::newRootGraph(run, "kiwi_sub1");
 
     auto kiwi_sub1_id_nesting = addNesting(kiwi_root_id, kiwi_sub1_id);
     run->setNestedGroupAttribute(kiwi_sub1_id_nesting, kiwi_sub1);
@@ -147,22 +137,14 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto c7 = addVertex("c7");
     auto c8 = addVertex("c8");
 
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c1))
-        ->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c2))
-        ->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c3))
-        ->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c4))
-        ->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c5))
-        ->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c6))
-        ->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c7))
-        ->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c8))
-        ->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c1))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c2))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c3))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c4))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c5))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c6))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c7))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c8))->setFixedPointWH(rect);
 
     auto e_c1_c2 = addEdge(c1, c2, "e_c1_c2");
     auto e_c2_c3 = addEdge(c2, c3, "e_c2_c3");
@@ -183,8 +165,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     circo_sub2->addEdge(e_c8_c1);
 
     // innermost dot group layout sub-group
-    hstd::SPtr<gv::GraphGroup> dot_sub2 = gv::GraphGroup::newRootGraph(
-        run, "dot_sub2");
+    hstd::SPtr<gv::GraphGroup> dot_sub2 = gv::GraphGroup::newRootGraph(run, "dot_sub2");
 
     dot_sub2->setOuterPadding(geometry::Padding{5});
 
@@ -196,14 +177,10 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto d3 = addVertex("d3");
     auto d4 = addVertex("d4");
 
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d1))
-        ->setFixedPointWH(rect);
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d2))
-        ->setFixedPointWH(rect);
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d3))
-        ->setFixedPointWH(rect);
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d4))
-        ->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d1))->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d2))->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d3))->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d4))->setFixedPointWH(rect);
 
     auto e_d1_d2 = addEdge(d1, d2, "e_d1_d2");
     auto e_d1_d3 = addEdge(d1, d3, "e_d1_d3");
@@ -245,15 +222,14 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     // construction.
     kiwi_sub1->addVertex(dot_sub2_id_nesting);
     kiwi_sub1->addVertex(circo_sub2_id_nesting);
-    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)
-        ->setSecondLeftOfFirst(dot_sub2_id, circo_sub2_id);
+    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)->setSecondLeftOfFirst(
+        dot_sub2_id, circo_sub2_id);
 
-    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)
-        ->setSecondBelowFirst(circo_sub2_id, g1);
+    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)->setSecondBelowFirst(
+        circo_sub2_id, g1);
 
     {
-        auto under_nodes = kiwi_sub1->addConstraint<kw::LinearConstraint>(
-            kiwi_root);
+        auto under_nodes = kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root);
         under_nodes->finalize(
             under_nodes->use(g1, kiwi_ir::RectAttr::LEFT),
             kiwi_ir::Relation::EQ,
@@ -262,13 +238,12 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
 
     kiwi_root->addVertex(kiwi_sub1_id_nesting);
     kiwi_root->addVertex(dot_sub1_id_nesting);
-    kiwi_root->addConstraint<kw::LinearConstraint>(kiwi_root)
-        ->setSecondRightOfFirst(kiwi_sub1_id, dot_sub1_id);
+    kiwi_root->addConstraint<kw::LinearConstraint>(kiwi_root)->setSecondRightOfFirst(
+        kiwi_sub1_id, dot_sub1_id);
 
     run->runFullLayout();
 
-    hstd::writeFile(
-        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+    hstd::writeFile(getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto visual = run->getVisual();
     hstd::writeFile(
@@ -291,12 +266,9 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     EXPECT_OUTCOME_OK(checkBelow(box(d1), box(d2)));
 
     EXPECT_OUTCOME_OK(checkRightOf(box(circo_sub2_id), box(dot_sub2_id)));
-    EXPECT_OUTCOME_OK(
-        checkFullyCovers(box(kiwi_sub1_id), box(circo_sub2_id)));
-    EXPECT_OUTCOME_OK(
-        checkPartiallyCovers(box(circo_sub2_id), box(dot_sub2_id), 0.0));
-    EXPECT_OUTCOME_OK(
-        checkPartiallyCovers(box(dot_sub2_id), box(dot_sub1_id), 0.0));
+    EXPECT_OUTCOME_OK(checkFullyCovers(box(kiwi_sub1_id), box(circo_sub2_id)));
+    EXPECT_OUTCOME_OK(checkPartiallyCovers(box(circo_sub2_id), box(dot_sub2_id), 0.0));
+    EXPECT_OUTCOME_OK(checkPartiallyCovers(box(dot_sub2_id), box(dot_sub1_id), 0.0));
 }
 
 TEST_F(GraphMixed_Test, TrivialNestingLayoutSwitch) {
@@ -332,8 +304,7 @@ TEST_F(GraphMixed_Test, TrivialNestingLayoutSwitch) {
 
     run->runFullLayout();
 
-    hstd::writeFile(
-        getDebugFile("repr.txt"), run->treeRepr().toString(false));
+    hstd::writeFile(getDebugFile("repr.txt"), run->treeRepr().toString(false));
 
     auto visual = run->getVisual();
     hstd::writeFile(

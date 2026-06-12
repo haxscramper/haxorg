@@ -27,12 +27,10 @@ using namespace org;
 
 TEST(ManualFileRun, TestCoverallOrg) {
     {
-        fs::path file{
-            __CURRENT_FILE_DIR__ / "corpus" / "org"
-            / "py_validated_all.org"};
-        std::string content = readFile(file);
-        auto        spec    = ParseSpec::FromSource(std::move(content));
-        spec.debug.traceAll = true;
+        fs::path file{__CURRENT_FILE_DIR__ / "corpus" / "org" / "py_validated_all.org"};
+        std::string content        = readFile(file);
+        auto        spec           = ParseSpec::FromSource(std::move(content));
+        spec.debug.traceAll        = true;
         spec.debug.doFormatReparse = false;
         gtest_run_spec(
             TestParams{
@@ -42,14 +40,12 @@ TEST(ManualFileRun, TestCoverallOrg) {
             getDebugDir());
 
         org::parse::ParseContext ctx;
-        auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(ctx.parseString(content, file));
+        auto                     start = imm::ImmAstContext::init_start_context();
+        auto                     n     = start->init(ctx.parseString(content, file));
 
         writeFile(
             getDebugFile("imm_repr_subnodes_only.txt"),
-            n.getRootAdapter()
-                .treeRepr(imm::ImmAdapter::TreeReprConf{})
-                .toString(false));
+            n.getRootAdapter().treeRepr(imm::ImmAdapter::TreeReprConf{}).toString(false));
 
 
         writeFile(
@@ -73,16 +69,15 @@ TEST(ManualFileRun, TestCoverallOrg) {
 
         {
             imm::ImmAdapter::TreeReprConf conf{};
-#define __visit_fields(                                                   \
-    __field_type,                                                         \
-    __field_lowercase,                                                    \
-    __field_uppercase,                                                    \
-    __parent_qual_type,                                                   \
-    __parent_name)                                                        \
-    conf.with_field(                                                      \
-        &BOOST_PP_REMOVE_PARENS __parent_qual_type::__field_lowercase);
+#define __visit_fields(                                                                  \
+    __field_type,                                                                        \
+    __field_lowercase,                                                                   \
+    __field_uppercase,                                                                   \
+    __parent_qual_type,                                                                  \
+    __parent_name)                                                                       \
+    conf.with_field(&BOOST_PP_REMOVE_PARENS __parent_qual_type::__field_lowercase);
 
-#define __visit_kind(__Kind)                                              \
+#define __visit_kind(__Kind)                                                             \
     EACH_SEM_ORG_##__Kind##_FIELD_WITH_BASE_FIELDS(__visit_fields)
 
             EACH_SEM_ORG_KIND(__visit_kind);
@@ -112,9 +107,9 @@ TEST(ManualFileRun, TestDoc1) {
 
         HSLOG_INFO("Send initial message");
 
-        std::string content = readFile(file);
-        auto        spec    = ParseSpec::FromSource(std::move(content));
-        spec.debug.traceAll = true;
+        std::string content        = readFile(file);
+        auto        spec           = ParseSpec::FromSource(std::move(content));
+        spec.debug.traceAll        = true;
         spec.debug.doFormatReparse = false;
         gtest_run_spec(
             TestParams{
@@ -123,9 +118,9 @@ TEST(ManualFileRun, TestDoc1) {
             },
             getDebugDir());
 
-        auto start = imm::ImmAstContext::init_start_context();
+        auto                     start = imm::ImmAstContext::init_start_context();
         org::parse::ParseContext ctx;
-        auto n = start->init(ctx.parseString(content, file));
+        auto                     n = start->init(ctx.parseString(content, file));
 
         writeFile(
             getDebugFile("TestDoc1_clean.txt"),
@@ -151,8 +146,8 @@ TEST(ManualFileRun, TestDoc1) {
 TEST(ManualFileRun, TestDoc2) {
     fs::path file{"/home/haxscramper/tmp/doc2.org"};
     if (fs::exists(file)) {
-        std::string content = readFile(file);
-        auto        spec    = ParseSpec::FromSource(std::move(content));
+        std::string content        = readFile(file);
+        auto        spec           = ParseSpec::FromSource(std::move(content));
         spec.debug.doFormatReparse = false;
         // spec.debug.printSemToFile         = true;
         spec.debug.debugOutDir = "/tmp/doc2_run";
@@ -163,9 +158,9 @@ TEST(ManualFileRun, TestDoc2) {
             },
             getDebugDir());
 
-        auto start = imm::ImmAstContext::init_start_context();
+        auto                     start = imm::ImmAstContext::init_start_context();
         org::parse::ParseContext ctx;
-        auto n = start->init(ctx.parseString(content, file));
+        auto                     n = start->init(ctx.parseString(content, file));
     }
 }
 
@@ -173,7 +168,7 @@ TEST(ManualFileRun, TestMain1) {
     fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
     if (fs::exists(file)) {
         org::parse::ParseContext ctx;
-        auto opts = org::parse::OrgDirectoryParseParameters::shared();
+        auto                     opts = org::parse::OrgDirectoryParseParameters::shared();
 
         opts->getParsedNode = [&](std::string const& path) {
             return ctx.parseFile(path);
@@ -188,7 +183,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
     LOGIC_ASSERTION_CHECK_FMT(fs::exists(dir), "{}", fs::absolute(dir));
 
     org::parse::ParseContext ctx;
-    auto opts = org::parse::OrgDirectoryParseParameters::shared();
+    auto                     opts = org::parse::OrgDirectoryParseParameters::shared();
 
     opts->getParsedNode = [&](std::string const& path) {
         fs::path relative = fs::relative(path, dir);
@@ -207,11 +202,9 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
         auto node = ctx.parseFile(path);
 
         if (trace) {
-            writeTreeRepr(
-                node, getDebugFile((relative / "node.yaml").native()));
+            writeTreeRepr(node, getDebugFile((relative / "node.yaml").native()));
 
-            writeTreeRepr(
-                node, getDebugFile((relative / "node.txt").native()));
+            writeTreeRepr(node, getDebugFile((relative / "node.txt").native()));
         }
 
         return node;
@@ -228,46 +221,34 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
     LOG(INFO) << "Parse directory content";
     auto parse = ctx.parseDirectoryOpts(dir, opts);
 
-    if (trace) {
-        writeTreeRepr(parse.value(), getDebugFile("parse_sem.yaml"));
-    }
+    if (trace) { writeTreeRepr(parse.value(), getDebugFile("parse_sem.yaml")); }
 
     auto initial_context = imm::ImmAstContext::init_start_context();
     auto initial_version = initial_context->addRoot(parse.value());
 
     if (trace) {
-        writeTreeRepr(
-            initial_version.getRootAdapter(),
-            getDebugFile("parse_imm.txt"));
+        writeTreeRepr(initial_version.getRootAdapter(), getDebugFile("parse_imm.txt"));
     }
 
     LOG(INFO) << "Write tracking debug";
     if (trace) {
         writeFile(
             getDebugFile("graph_tracking.txt"),
-            initial_version.getContext()
-                ->currentTrack->toString()
-                .toString(false));
+            initial_version.getContext()->currentTrack->toString().toString(false));
     }
 
     LOG(INFO) << "Generating mind map";
     auto conf = org::graph::MapConfig::shared();
 
-    auto state = org::graph::MapGraphState::FromAstContext(
-        initial_version.getContext());
+    auto state = org::graph::MapGraphState::FromAstContext(initial_version.getContext());
 
-    if (trace) {
-        state->graph->setTraceFile(getDebugFile("graph_trace.log"));
-    }
+    if (trace) { state->graph->setTraceFile(getDebugFile("graph_trace.log")); }
 
     state->addNodeRec(
-        initial_version.getContext(),
-        initial_version.getRootAdapter(),
-        conf);
+        initial_version.getContext(), initial_version.getRootAdapter(), conf);
 
     org::graph::MapGraph::GvConfigCallbackFilters gvc{};
-    gvc.accept_node_cb =
-        [&](hstd::ext::graph::VertexID const& node) -> bool {
+    gvc.accept_node_cb = [&](hstd::ext::graph::VertexID const& node) -> bool {
         return 0 < state->graph->getInDegree(node)
             || 0 < state->graph->getOutDegree(node);
     };
@@ -292,8 +273,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
     std::string                          json;
     google::protobuf::json::PrintOptions j_opts;
     j_opts.add_whitespace = true;
-    auto status           = google::protobuf::util::MessageToJsonString(
-        *serial, &json, j_opts);
+    auto status = google::protobuf::util::MessageToJsonString(*serial, &json, j_opts);
     EXPECT_TRUE(status.ok());
     writeFile(getDebugFile("serial.json"), json);
 }
@@ -305,7 +285,5 @@ TEST(ManualFileRun, TestDirCorpus) {
 
 TEST(ManualFileRun, TestDir1) {
     fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
-    if (fs::exists(dir)) {
-        test_dir_parsing(dir, is_full_trace_on_cli_enabled());
-    }
+    if (fs::exists(dir)) { test_dir_parsing(dir, is_full_trace_on_cli_enabled()); }
 }

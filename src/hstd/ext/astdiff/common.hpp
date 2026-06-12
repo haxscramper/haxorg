@@ -24,12 +24,11 @@ struct NodeIdx {
     /// Support defining iterators on NodeIdx.
     inline NodeIdx& operator*() { return *this; }
     inline bool     isValid() const { return Offset != InvalidNodeOffset; }
-    inline bool isInvalid() const { return Offset == InvalidNodeOffset; }
+    inline bool     isInvalid() const { return Offset == InvalidNodeOffset; }
 
     inline void assertValid(std::string const& msg) const {
         if (isInvalid()) {
-            throw std::domain_error(
-                "non-valid (-1) node found for " + msg);
+            throw std::domain_error("non-valid (-1) node found for " + msg);
         }
     }
 
@@ -40,9 +39,7 @@ struct NodeIdx {
 struct ASTNodeKind {
     int value = 0;
     ASTNodeKind(int kind) : value(kind) {}
-    bool operator==(ASTNodeKind const& other) const {
-        return value == other.value;
-    }
+    bool operator==(ASTNodeKind const& other) const { return value == other.value; }
 
     DESC_FIELDS(ASTNodeKind, (value));
 };
@@ -63,23 +60,20 @@ struct NodeStore {
 
         template <typename T>
         T const* ToPtr() const {
-            return reinterpret_cast<T const*>(
-                static_cast<std::intptr_t>(id));
+            return reinterpret_cast<T const*>(static_cast<std::intptr_t>(id));
         }
 
         static Id FromNumber(i64 id) { return Id{.id = id}; }
         i64       ToNumber() const { return id; }
 
-        bool operator==(NodeStore::Id const& other) const {
-            return id == other.id;
-        }
+        bool operator==(NodeStore::Id const& other) const { return id == other.id; }
     };
 
     virtual int         getSubnodeCount(Id const& id)           = 0;
     virtual Id          getSubnodeAt(Id const& node, int index) = 0;
     virtual Id          getRoot()                               = 0;
     virtual ASTNodeKind getNodeKind(Id const& node) const       = 0;
-    virtual bool isMatchingAllowed(Id const& src, Id const& dst) const {
+    virtual bool        isMatchingAllowed(Id const& src, Id const& dst) const {
         return getNodeKind(src) == getNodeKind(dst);
     }
 };
@@ -88,8 +82,7 @@ struct NodeStore {
 
 template <>
 struct std::hash<hstd::ext::diff::NodeStore::Id> {
-    std::size_t operator()(
-        hstd::ext::diff::NodeStore::Id const& it) const noexcept {
+    std::size_t operator()(hstd::ext::diff::NodeStore::Id const& it) const noexcept {
         std::size_t result = 0;
         hstd::hax_hash_combine(result, it.id);
         return result;

@@ -23,9 +23,7 @@ struct JsonSerde<V> {
     static V from_json(json const& j) {
         V result = variant_from_index<V>(j["index"].get<int>());
         std::visit(
-            [&]<typename T>(T& value) {
-                value = JsonSerde<T>::from_json(j["value"]);
-            },
+            [&]<typename T>(T& value) { value = JsonSerde<T>::from_json(j["value"]); },
             result);
     }
 };
@@ -40,8 +38,7 @@ struct JsonSerde<V> : JsonSerdeDescribedRecordBase<V> {
     static json to_json(V const& it) {
         auto result = JsonSerdeDescribedRecordBase<V>::to_json(it);
         result[V::sub_variant_get_enum_name()] = JsonSerde<
-            typename V::variant_enum_type>::
-            to_json(it.sub_variant_get_kind());
+            typename V::variant_enum_type>::to_json(it.sub_variant_get_kind());
         return result;
     }
 };

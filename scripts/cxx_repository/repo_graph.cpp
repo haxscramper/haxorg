@@ -8,33 +8,24 @@
 
 using namespace hstd;
 
-CommitGraph::CommitGraph(
-    SPtr<git_repository> repo,
-    Str const&           branch_name) {
+CommitGraph::CommitGraph(SPtr<git_repository> repo, Str const& branch_name) {
     SPtr<git_revwalk> walker = git::revwalk_new(repo.get()).value();
     git::revwalk_sorting(walker.get(), GIT_SORT_NONE);
 
-    SPtr<git_reference>
-        branch = git::branch_lookup(repo.get(), branch_name).value();
-    GitResult<SPtr<git_commit>> first_commit = git::reference_peel(
-        branch.get());
+    SPtr<git_reference> branch = git::branch_lookup(repo.get(), branch_name).value();
+    GitResult<SPtr<git_commit>> first_commit = git::reference_peel(branch.get());
     git_oid_cpy(&first_oid, git_commit_id(first_commit.value().get()));
     git_revwalk_push(walker.get(), &first_oid);
 
     LOG(INFO) << std::format(
-        "[repo-graph] First commit on branch '{}' is '{}'",
-        branch_name,
-        first_oid);
+        "[repo-graph] First commit on branch '{}' is '{}'", branch_name, first_oid);
 
     git_oid oid;
     while (git_revwalk_next(&oid, walker.get()) == 0) {
         VDesc            current = get_desc(oid);
-        SPtr<git_commit> commit  = git::commit_lookup(repo.get(), &oid)
-                                       .value();
+        SPtr<git_commit> commit  = git::commit_lookup(repo.get(), &oid).value();
 
-        if (git_oid_cmp(&oid, &first_oid) == 0) {
-            g[current].is_main = true;
-        }
+        if (git_oid_cmp(&oid, &first_oid) == 0) { g[current].is_main = true; }
 
         // Extract DAG graph of commits from the history
         for (int i = 0; i < git::commit_parentcount(commit.get()); ++i) {
@@ -47,8 +38,7 @@ CommitGraph::CommitGraph(
 }
 
 
-hstd::SPtr<hstd::ext::graph::gv::GraphGroup> CommitGraph::toGraphviz()
-    const {
+hstd::SPtr<hstd::ext::graph::gv::GraphGroup> CommitGraph::toGraphviz() const {
     std::stringstream         os;
     boost::dynamic_properties dp;
     using namespace hstd::ext::graph;

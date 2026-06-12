@@ -32,14 +32,7 @@ enum class SeqEditKind : u8
     Transpose ///< Transpose two elements
 };
 
-BOOST_DESCRIBE_ENUM(
-    SeqEditKind,
-    None,
-    Keep,
-    Insert,
-    Replace,
-    Delete,
-    Transpose);
+BOOST_DESCRIBE_ENUM(SeqEditKind, None, Keep, Insert, Replace, Delete, Transpose);
 
 struct SeqEdit {
     SeqEditKind kind;      /// Sequence edit operation kind
@@ -62,10 +55,7 @@ struct SeqMove {
 
 template <>
 struct value_domain<SeqEditKind>
-    : value_domain_ungapped<
-          SeqEditKind,
-          SeqEditKind::None,
-          SeqEditKind::Transpose> {};
+    : value_domain_ungapped<SeqEditKind, SeqEditKind::None, SeqEditKind::Transpose> {};
 
 inline Str toPrefix(SeqEditKind kind) {
     switch (kind) {
@@ -125,10 +115,7 @@ struct DiffFormatConf {
     /// `secondary` is used for `sekChanged` to annotated which part
     /// was deleted and which part was added.
     Func<ColText(Str const&, SeqEditKind, SeqEditKind, bool)> formatChunk =
-        [](Str const&  word,
-           SeqEditKind mode,
-           SeqEditKind secondary,
-           bool        isInline) {
+        [](Str const& word, SeqEditKind mode, SeqEditKind secondary, bool isInline) {
             using fg = TermColorFg8Bit;
             switch (mode) {
                 case SeqEditKind::Delete: return ColText(fg::Red, word);
@@ -139,8 +126,7 @@ struct DiffFormatConf {
                 case SeqEditKind::Transpose:
                     if (isInline && secondary == SeqEditKind::Delete) {
                         return "["s + ColText(fg::Yellow, word) + " -> "s;
-                    } else if (
-                        isInline && secondary == SeqEditKind::Insert) {
+                    } else if (isInline && secondary == SeqEditKind::Insert) {
                         return ColText(fg::Yellow, word) + "]"s;
                     } else {
                         return ColText(fg::Yellow, word);
@@ -192,8 +178,7 @@ Vec<BacktrackRes> longestCommonSubsequence(
         [&lhs, &rhs, &itemCmp](int lhsIdx, int rhsIdx) -> bool {
             return itemCmp(lhs[lhsIdx], rhs[rhsIdx]);
         },
-        [&lhs, &rhs, &itemEqualityMetric](
-            int lhsIdx, int rhsIdx) -> float {
+        [&lhs, &rhs, &itemEqualityMetric](int lhsIdx, int rhsIdx) -> float {
             return itemEqualityMetric(lhs[lhsIdx], rhs[rhsIdx]);
         });
 }
@@ -213,10 +198,7 @@ Vec<BacktrackRes> longestCommonSubsequence(
         });
 }
 
-Vec<SeqEdit> myersDiff(
-    int                          aSize,
-    int                          bSize,
-    Func<bool(int lhs, int rhs)> itemCmp);
+Vec<SeqEdit> myersDiff(int aSize, int bSize, Func<bool(int lhs, int rhs)> itemCmp);
 
 template <typename T>
 Vec<SeqEdit> myersDiffCbCmp(
@@ -234,9 +216,7 @@ Vec<SeqEdit> myersDiffCbCmp(
 template <typename T>
 Vec<SeqEdit> myersDiffEqCmp(Vec<T> const& lhsSeq, Vec<T> const& rhsSeq) {
     return myersDiff(
-        lhsSeq.size(),
-        rhsSeq.size(),
-        [&lhsSeq, &rhsSeq](int lhs, int rhs) -> bool {
+        lhsSeq.size(), rhsSeq.size(), [&lhsSeq, &rhsSeq](int lhs, int rhs) -> bool {
             return lhsSeq[lhs] == rhsSeq[rhs];
         });
 }
@@ -269,10 +249,7 @@ struct ZipToMaxResult {
 /// argument. This is an opposite of the std built-in `zip` which iterates
 /// up until `min(lhs.len, rhs.len)`.
 template <typename T>
-generator<ZipToMaxResult<T>> zipToMax(
-    CVec<T> lhs,
-    CVec<T> rhs,
-    T       fill = T()) {
+generator<ZipToMaxResult<T>> zipToMax(CVec<T> lhs, CVec<T> rhs, T fill = T()) {
     int idx = 0;
     while (idx < std::max(lhs.size(), rhs.size())) {
         if (idx < lhs.size() && idx < rhs.size()) {
@@ -299,10 +276,9 @@ LevenshteinDistanceResult levenshteinDistance(
 
 template <typename T>
 LevenshteinDistanceResult levenshteinDistance(Span<T> str1, Span<T> str2) {
-    return levenshteinDistance(
-        str1.size(), str2.size(), [&](int lhs, int rhs) -> bool {
-            return str1[lhs] == str2[rhs];
-        });
+    return levenshteinDistance(str1.size(), str2.size(), [&](int lhs, int rhs) -> bool {
+        return str1[lhs] == str2[rhs];
+    });
 }
 
 Const<CharSet> Invis{slice('\x00', '\x1F'), '\x7F'};
@@ -326,14 +302,9 @@ inline bool scanInvisible(Str const& text, CharSet& invisSet) {
 }
 
 
-bool hasInvisibleChanges(
-    Vec<SeqEdit>& diff,
-    Vec<Str>&     oldSeq,
-    Vec<Str>&     newSeq);
+bool hasInvisibleChanges(Vec<SeqEdit>& diff, Vec<Str>& oldSeq, Vec<Str>& newSeq);
 
-inline bool hasInvisible(
-    std::string text,
-    CharSet     startSet = Invis + CharSet{' '}) {
+inline bool hasInvisible(std::string text, CharSet startSet = Invis + CharSet{' '}) {
     // Does string have significant invisible characters?
     CharSet invisSet = startSet;
     if (scanInvisible(text, invisSet)) { return true; }
@@ -360,15 +331,11 @@ inline Str toVisibleNames(DiffFormatConf const& conf, Str const& str) {
     return result;
 }
 
-inline Vec<Str> toVisibleNames(
-    DiffFormatConf const& conf,
-    Vec<Str> const&       split) {
+inline Vec<Str> toVisibleNames(DiffFormatConf const& conf, Vec<Str> const& split) {
     Vec<Str> result;
     // Convert all characters in all strings into visible ones.
     if (split.size() > 0) {
-        for (const Str& part : split) {
-            result.push_back(toVisibleNames(conf, part));
-        }
+        for (const Str& part : split) { result.push_back(toVisibleNames(conf, part)); }
     }
     return result;
 }
@@ -385,12 +352,7 @@ struct ShiftedDiff {
     Vec<Item> oldShifted;
     Vec<Item> newShifted;
 
-    BOOST_DESCRIBE_CLASS(
-        ShiftedDiff,
-        (),
-        (oldShifted, newShifted),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(ShiftedDiff, (), (oldShifted, newShifted), (), ());
 
     /// \brief Construct shifted diff pairing from LCS trace information
     ShiftedDiff(BacktrackRes const& track, int lhsMax, int rhsMax);
@@ -426,28 +388,28 @@ Pair<ColText, ColText> formatDiffed(
 
             case sek::Keep:
                 if (unchanged < conf.maxUnchanged) {
-                    oldLine.push_back(conf.chunk(
-                        oldSeq[ops[i].sourcePos], sek::Keep, sek::Keep));
-                    newLine.push_back(conf.chunk(
-                        newSeq[ops[i].targetPos], sek::Keep, sek::Keep));
+                    oldLine.push_back(
+                        conf.chunk(oldSeq[ops[i].sourcePos], sek::Keep, sek::Keep));
+                    newLine.push_back(
+                        conf.chunk(newSeq[ops[i].targetPos], sek::Keep, sek::Keep));
                     ++unchanged;
                 }
                 break;
             case sek::Delete:
-                oldLine.push_back(conf.chunk(
-                    oldSeq[ops[i].sourcePos], sek::Delete, sek::Delete));
+                oldLine.push_back(
+                    conf.chunk(oldSeq[ops[i].sourcePos], sek::Delete, sek::Delete));
                 unchanged = 0;
                 break;
             case sek::Insert:
-                newLine.push_back(conf.chunk(
-                    newSeq[ops[i].targetPos], sek::Insert, sek::Insert));
+                newLine.push_back(
+                    conf.chunk(newSeq[ops[i].targetPos], sek::Insert, sek::Insert));
                 unchanged = 0;
                 break;
             case sek::Replace:
-                oldLine.push_back(conf.chunk(
-                    oldSeq[ops[i].sourcePos], sek::Replace, sek::Delete));
-                newLine.push_back(conf.chunk(
-                    newSeq[ops[i].targetPos], sek::Replace, sek::Insert));
+                oldLine.push_back(
+                    conf.chunk(oldSeq[ops[i].sourcePos], sek::Replace, sek::Delete));
+                newLine.push_back(
+                    conf.chunk(newSeq[ops[i].targetPos], sek::Replace, sek::Insert));
                 unchanged = 0;
                 break;
             case sek::Transpose: break;
@@ -455,8 +417,7 @@ Pair<ColText, ColText> formatDiffed(
     }
 
     return {
-        join(conf.inlineDiffSeparator, oldLine),
-        join(conf.inlineDiffSeparator, newLine)};
+        join(conf.inlineDiffSeparator, oldLine), join(conf.inlineDiffSeparator, newLine)};
 }
 
 
@@ -469,30 +430,23 @@ inline Pair<ColText, ColText> formatLineDiff(
 
     auto oldLineSplit = conf.lineSplit(oldLine);
     auto newLineSplit = conf.lineSplit(newLine);
-    auto diffed = levenshteinDistance<Str>(oldLineSplit, newLineSplit);
+    auto diffed       = levenshteinDistance<Str>(oldLineSplit, newLineSplit);
 
     ColText oldLineLine, newLineLine;
 
     if (conf.explainInvisible
-        && (hasInvisibleChanges(
-                diffed.operations, oldLineSplit, newLineSplit)
+        && (hasInvisibleChanges(diffed.operations, oldLineSplit, newLineSplit)
             || hasInvisible(oldLineSplit) || hasInvisible(newLineSplit))) {
 
         auto oldVisible = toVisibleNames(conf, oldLineSplit);
         auto newVisible = toVisibleNames(conf, newLineSplit);
 
         auto const& [oldLineLine, newLineLine] = formatDiffed(
-            diffed.operations,
-            oldVisible.toSpan(),
-            newVisible.toSpan(),
-            conf);
+            diffed.operations, oldVisible.toSpan(), newVisible.toSpan(), conf);
 
     } else {
         auto const& [oldLineLine, newLineLine] = formatDiffed(
-            diffed.operations,
-            oldLineSplit.toSpan(),
-            newLineSplit.toSpan(),
-            conf);
+            diffed.operations, oldLineSplit.toSpan(), newLineSplit.toSpan(), conf);
     }
 
     return {oldLineLine, newLineLine};
@@ -554,18 +508,12 @@ struct FormattedDiff {
 
     StackedDiff&       stacked() { return std::get<StackedDiff>(content); }
     UnifiedDiff&       unified() { return std::get<UnifiedDiff>(content); }
-    StackedDiff const& stacked() const {
-        return std::get<StackedDiff>(content);
-    }
-    UnifiedDiff const& unified() const {
-        return std::get<UnifiedDiff>(content);
-    }
+    StackedDiff const& stacked() const { return std::get<StackedDiff>(content); }
+    UnifiedDiff const& unified() const { return std::get<UnifiedDiff>(content); }
 
     int maxLineNumber() const;
 
-    bool isUnified() const {
-        return std::holds_alternative<UnifiedDiff>(content);
-    }
+    bool isUnified() const { return std::holds_alternative<UnifiedDiff>(content); }
 
     generator<DiffLine> stackedLines() {
         for (const auto& line : stacked().elements) { co_yield line; }
@@ -584,8 +532,7 @@ struct FormattedDiff {
         T const* rhs,
         bool     formatLine = false) {
         int digitCount = std::max<int>(
-            std::ceil(std::log10(lhs->size())),
-            std::ceil(std::log10(rhs->size())));
+            std::ceil(std::log10(lhs->size())), std::ceil(std::log10(rhs->size())));
 
         return [lhs, rhs, formatLine, digitCount](
                    FormattedDiff::DiffLine const& line) -> ColText {
@@ -595,11 +542,9 @@ struct FormattedDiff {
                 int const idx = line.index().value();
                 if (formatLine) {
                     if (line.isLhs) {
-                        return std::format(
-                            "[{:0{}}] {}", idx, digitCount, lhs->at(idx));
+                        return std::format("[{:0{}}] {}", idx, digitCount, lhs->at(idx));
                     } else {
-                        return std::format(
-                            "[{:0{}}] {}", idx, digitCount, rhs->at(idx));
+                        return std::format("[{:0{}}] {}", idx, digitCount, rhs->at(idx));
                     }
                 } else {
                     if (line.isLhs) {
@@ -634,8 +579,7 @@ ColText formatInlineDiff(
 
 struct FuzzyMatcher : OperationsTracer {
     using Range     = Slice<int>;
-    using ScoreFunc = Func<
-        int(Range const& str, int nextMatch, Vec<int> const& matches)>;
+    using ScoreFunc = Func<int(Range const& str, int nextMatch, Vec<int> const& matches)>;
 
     Func<bool(int patternIdx, int itemIdx)> isEqual;
 
@@ -678,11 +622,7 @@ struct FuzzyMatcher : OperationsTracer {
 
     Vec<int> matches;
 
-    bool fuzzy_match(
-        Range     pattern,
-        Range     str,
-        int&      outScore,
-        Vec<int>& matches);
+    bool fuzzy_match(Range pattern, Range str, int& outScore, Vec<int>& matches);
 
     bool fuzzy_match(Range pattern, Range str, int& outScore) {
         matches.resize(pattern.last + 1);

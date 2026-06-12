@@ -47,8 +47,7 @@ struct bad_variant_access : CRTP_hexception<bad_variant_access> {
         } else {
             msg += "::" + std::to_string(given);
         }
-        return CRTP_hexception<bad_variant_access>::init(
-            msg, line, function, file);
+        return CRTP_hexception<bad_variant_access>::init(msg, line, function, file);
     }
 };
 
@@ -56,8 +55,7 @@ template <size_t _Np, typename... _Types>
 constexpr std::variant_alternative_t<_Np, std::variant<_Types...>> const& variant_get(
     std::variant<_Types...> const& __v) {
     static_assert(
-        _Np < sizeof...(_Types),
-        "The index must be in [0, number of alternatives)");
+        _Np < sizeof...(_Types), "The index must be in [0, number of alternatives)");
     if (__v.index() != _Np) {
         throw bad_variant_access::init(_Np, __v.index());
     } else {
@@ -69,8 +67,7 @@ template <size_t _Np, typename... _Types>
 constexpr std::variant_alternative_t<_Np, std::variant<_Types...>>& variant_get(
     std::variant<_Types...>& __v) {
     static_assert(
-        _Np < sizeof...(_Types),
-        "The index must be in [0, number of alternatives)");
+        _Np < sizeof...(_Types), "The index must be in [0, number of alternatives)");
     if (__v.index() != _Np) {
         throw bad_variant_access::init(_Np, __v.index());
     } else {
@@ -110,14 +107,12 @@ auto& get_sub_variant(auto& variant) {
 
 
 template <typename T>
-concept DescribedSubVariantType = IsSubVariantType<T>
-                               && DescribedRecord<T>;
+concept DescribedSubVariantType = IsSubVariantType<T> && DescribedRecord<T>;
 
 
 template <IsVariant V>
 auto variant_from_index(size_t index) -> V {
-    return ::boost::mp11::mp_with_index<
-        ::boost::mp11::mp_size<V>>(index, [](auto I) {
+    return ::boost::mp11::mp_with_index<::boost::mp11::mp_size<V>>(index, [](auto I) {
         return V(
             std::in_place_index<I>,
             SerdeDefaultProvider<std::variant_alternative_t<I, V>>::get());
@@ -135,8 +130,7 @@ struct std::hash<V> {
     std::size_t operator()(V const& it) const noexcept {
         std::size_t result = 0;
         hax_hash_combine(result, it.index());
-        std::visit(
-            [&](auto const& var) { hax_hash_combine(result, var); }, it);
+        std::visit([&](auto const& var) { hax_hash_combine(result, var); }, it);
         return result;
     }
 };
@@ -161,60 +155,51 @@ struct hstd::value_metadata<hstd::Variant<Args...>> {
 
     static std::string typeName() {
         return Str{"Variant<"}
-             + Str{", "}.join(
-                 Vec<Str>{hstd::value_metadata<Args>::typeName()...})
+             + Str{", "}.join(Vec<Str>{hstd::value_metadata<Args>::typeName()...})
              + Str{">"};
     }
 };
 
 /// \internal Generate getter methods for SUB_VARIANTS
 
-#define __SUB_VARIANT_GETTER(fieldName, Type)                             \
-    Type& get##Type() {                                                   \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    Type const& get##Type() const {                                       \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    bool is##Type() const {                                               \
-        return std::holds_alternative<Type>(fieldName);                   \
-    }
+#define __SUB_VARIANT_GETTER(fieldName, Type)                                            \
+    Type& get##Type() {                                                                  \
+        return ::hstd::get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(      \
+            fieldName);                                                                  \
+    }                                                                                    \
+                                                                                         \
+    Type const& get##Type() const {                                                      \
+        return ::hstd::get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(      \
+            fieldName);                                                                  \
+    }                                                                                    \
+                                                                                         \
+    bool is##Type() const { return std::holds_alternative<Type>(fieldName); }
 
 
-#define __SUB_VARIANT_GETTER_REFL(fieldName, Type)                        \
-    [[refl]] Type& get##Type() {                                          \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    [[refl]] Type const& get##Type() const {                              \
-        return ::hstd::                                                   \
-            get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(  \
-                fieldName);                                               \
-    }                                                                     \
-                                                                          \
-    [[refl]] bool is##Type() const {                                      \
-        return std::holds_alternative<Type>(fieldName);                   \
-    }
+#define __SUB_VARIANT_GETTER_REFL(fieldName, Type)                                       \
+    [[refl]] Type& get##Type() {                                                         \
+        return ::hstd::get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(      \
+            fieldName);                                                                  \
+    }                                                                                    \
+                                                                                         \
+    [[refl]] Type const& get##Type() const {                                             \
+        return ::hstd::get_sub_variant<Type, std::remove_cvref_t<decltype(*this)>>(      \
+            fieldName);                                                                  \
+    }                                                                                    \
+                                                                                         \
+    [[refl]] bool is##Type() const { return std::holds_alternative<Type>(fieldName); }
 
 /// \internal Generate kind getter lambda for SUB_VARIANTS
-#define __SUB_VARIANT_KIND_LAMBDA(EnumName, Type)                         \
+#define __SUB_VARIANT_KIND_LAMBDA(EnumName, Type)                                        \
     [](Type const&) -> EnumName { return EnumName::Type; },
 
-#define __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                              \
-    EnumName, VariantName, fieldName, kindGetterName)                     \
-    using variant_enum_type = EnumName;                                   \
-    using variant_data_type = VariantName;                                \
-    EnumName sub_variant_get_kind() const { return kindGetterName(); }    \
-    VariantName const& sub_variant_get_data() const { return fieldName; } \
-    static char const* sub_variant_get_name() { return #fieldName; }      \
+#define __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                                             \
+    EnumName, VariantName, fieldName, kindGetterName)                                    \
+    using variant_enum_type = EnumName;                                                  \
+    using variant_data_type = VariantName;                                               \
+    EnumName           sub_variant_get_kind() const { return kindGetterName(); }         \
+    VariantName const& sub_variant_get_data() const { return fieldName; }                \
+    static char const* sub_variant_get_name() { return #fieldName; }                     \
     static char const* sub_variant_get_enum_name() { return #EnumName; }
 
 /**
@@ -262,45 +247,37 @@ When using `EditTarget` from the example above, it is possible either
 individual values with `isExisting()` + `getExisting()`.
 
 **/
-#define SUB_VARIANTS_REFL(                                                \
-    EnumName, VariantName, fieldName, kindGetterName, ...)                \
-    enum class [[refl]] EnumName : unsigned short int                     \
-    {                                                                     \
-        __VA_ARGS__                                                       \
-    };                                                                    \
-    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                    \
-    using VariantName = std::variant<__VA_ARGS__>;                        \
-    FOR_EACH_CALL_WITH_PASS(                                              \
-        __SUB_VARIANT_GETTER_REFL, (fieldName), __VA_ARGS__)              \
-    static EnumName kindGetterName(VariantName const& __input) {          \
-        return std::visit(                                                \
-            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                   \
-                __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
-            __input);                                                     \
-    }                                                                     \
-    [[refl]] EnumName kindGetterName() const {                            \
-        return kindGetterName(fieldName);                                 \
-    }                                                                     \
-    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                                  \
-        EnumName, VariantName, fieldName, kindGetterName)
+#define SUB_VARIANTS_REFL(EnumName, VariantName, fieldName, kindGetterName, ...)         \
+    enum class [[refl]] EnumName : unsigned short int                                    \
+    {                                                                                    \
+        __VA_ARGS__                                                                      \
+    };                                                                                   \
+    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                                   \
+    using VariantName = std::variant<__VA_ARGS__>;                                       \
+    FOR_EACH_CALL_WITH_PASS(__SUB_VARIANT_GETTER_REFL, (fieldName), __VA_ARGS__)         \
+    static EnumName kindGetterName(VariantName const& __input) {                         \
+        return std::visit(                                                               \
+            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                                  \
+                __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},                    \
+            __input);                                                                    \
+    }                                                                                    \
+    [[refl]] EnumName kindGetterName() const { return kindGetterName(fieldName); }       \
+    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(EnumName, VariantName, fieldName, kindGetterName)
 
 
-#define SUB_VARIANTS(                                                     \
-    EnumName, VariantName, fieldName, kindGetterName, ...)                \
-    enum class EnumName : unsigned short int                              \
-    {                                                                     \
-        __VA_ARGS__                                                       \
-    };                                                                    \
-    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                    \
-    using VariantName = std::variant<__VA_ARGS__>;                        \
-    FOR_EACH_CALL_WITH_PASS(                                              \
-        __SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)                   \
-    static EnumName kindGetterName(VariantName const& __input) {          \
-        return std::visit(                                                \
-            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                   \
-                __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},     \
-            __input);                                                     \
-    }                                                                     \
-    EnumName kindGetterName() const { return kindGetterName(fieldName); } \
-    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(                                  \
-        EnumName, VariantName, fieldName, kindGetterName)
+#define SUB_VARIANTS(EnumName, VariantName, fieldName, kindGetterName, ...)              \
+    enum class EnumName : unsigned short int                                             \
+    {                                                                                    \
+        __VA_ARGS__                                                                      \
+    };                                                                                   \
+    BOOST_DESCRIBE_NESTED_ENUM(EnumName, __VA_ARGS__);                                   \
+    using VariantName = std::variant<__VA_ARGS__>;                                       \
+    FOR_EACH_CALL_WITH_PASS(__SUB_VARIANT_GETTER, (fieldName), __VA_ARGS__)              \
+    static EnumName kindGetterName(VariantName const& __input) {                         \
+        return std::visit(                                                               \
+            ::hstd::overloaded{FOR_EACH_CALL_WITH_PASS(                                  \
+                __SUB_VARIANT_KIND_LAMBDA, (EnumName), __VA_ARGS__)},                    \
+            __input);                                                                    \
+    }                                                                                    \
+    EnumName kindGetterName() const { return kindGetterName(fieldName); }                \
+    __SUB_VARIANTS_REFL_CONCEPT_SERVICE(EnumName, VariantName, fieldName, kindGetterName)

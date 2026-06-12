@@ -26,9 +26,7 @@ template <
     typename M,
     typename IdBase   = hstd::u64,
     typename MaskType = IdBase>
-struct NodeId
-    : hstd::dod::
-          Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
+struct NodeId : hstd::dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
     using base_type = hstd::dod::
         Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>;
     using value_type = Node<N, K, V, M>;
@@ -55,8 +53,7 @@ struct Node {
     N                                   kind;
     std::variant<int, TokenId<K, V>, M> value;
 
-    Node(N _kind, TokenId<K, V> const& token)
-        : kind(_kind), value(token) {}
+    Node(N _kind, TokenId<K, V> const& token) : kind(_kind), value(token) {}
     Node(N _kind, int extent = 0) : kind(_kind), value(extent) {}
     Node(N _kind, M mono) : kind(_kind), value(mono) {}
 
@@ -64,13 +61,9 @@ struct Node {
 
     bool isMono() const { return std::holds_alternative<M>(value); }
 
-    bool isTerminal() const {
-        return std::holds_alternative<TokenId<K, V>>(value);
-    }
+    bool isTerminal() const { return std::holds_alternative<TokenId<K, V>>(value); }
 
-    bool isNonTerminal() const {
-        return std::holds_alternative<int>(value);
-    }
+    bool isNonTerminal() const { return std::holds_alternative<int>(value); }
 
     void extend(int extent) {
         LOGIC_ASSERTION_CHECK(isNonTerminal(), "");
@@ -99,9 +92,7 @@ struct Node {
     }
 
     /// \brief Return token value for the terminal node
-    TokenId<K, V> getToken() const {
-        return std::get<TokenId<K, V>>(value);
-    }
+    TokenId<K, V> getToken() const { return std::get<TokenId<K, V>>(value); }
 
     M const& getMono() const { return std::get<M>(value); }
 
@@ -129,8 +120,7 @@ struct Node {
 
     bool operator==(Node<N, K, V, M> const& other) const {
         if (isTerminal() == other.isTerminal()) {
-            return (this->kind == other.kind)
-                && (this->value == other.value);
+            return (this->kind == other.kind) && (this->value == other.value);
         } else if (isMono() == other.isMono()) {
             return this->kind == other.kind;
         } else {
@@ -156,18 +146,14 @@ struct hstd::value_domain<org::parse::NodeId<N, K, IdBase, MaskType>> {
 
 
 template <typename N, typename K, typename V, typename M>
-struct std::formatter<org::parse::NodeId<N, K, V, M>>
-    : std::formatter<std::string> {
+struct std::formatter<org::parse::NodeId<N, K, V, M>> : std::formatter<std::string> {
     template <typename FormatContext>
     FormatContext::iterator format(
         org::parse::NodeId<N, K, V, M> const& p,
         FormatContext&                        ctx) const {
         std::formatter<std::string> fmt;
         return fmt.format(
-            p.format(
-                std::format(
-                    "NodeId<{}>", hstd::demangle(typeid(N).name()))),
-            ctx);
+            p.format(std::format("NodeId<{}>", hstd::demangle(typeid(N).name()))), ctx);
     }
 };
 
@@ -175,20 +161,16 @@ struct std::formatter<org::parse::NodeId<N, K, V, M>>
 template <>
 struct std::formatter<std::monostate> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        std::monostate const& p,
-        FormatContext&        ctx) const {
+    FormatContext::iterator format(std::monostate const& p, FormatContext& ctx) const {
         std::formatter<std::string> fmt;
         return hstd::fmt_ctx("<std::monostate>", ctx);
     }
 };
 
 template <typename N, typename K, typename V, typename M>
-struct std::formatter<org::parse::Node<N, K, V, M>>
-    : std::formatter<std::string> {
+struct std::formatter<org::parse::Node<N, K, V, M>> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(org::parse::Node<N, K, V, M> const& p, FormatContext& ctx)
-        const {
+    auto format(org::parse::Node<N, K, V, M> const& p, FormatContext& ctx) const {
         hstd::fmt_ctx("{", ctx);
         hstd::fmt_ctx(p.kind, ctx);
         if (p.isTerminal()) {

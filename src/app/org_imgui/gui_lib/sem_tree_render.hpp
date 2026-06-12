@@ -9,9 +9,7 @@ struct VisualExporterConfig {
     bool doTrace     = false;
 };
 
-void render_sem_tree(
-    org::sem::SemId<org::sem::Org> tree,
-    VisualExporterConfig&          config);
+void render_sem_tree(org::sem::SemId<org::sem::Org> tree, VisualExporterConfig& config);
 
 enum class ColorName
 {

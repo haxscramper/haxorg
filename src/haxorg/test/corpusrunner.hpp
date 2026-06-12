@@ -68,12 +68,7 @@ class CorpusRunner : public hstd::OperationsTracer {
         struct CompareBase {
             bool          isOk = false;
             hstd::ColText failDescribe;
-            BOOST_DESCRIBE_CLASS(
-                CompareBase,
-                (),
-                (isOk, failDescribe),
-                (),
-                ());
+            BOOST_DESCRIBE_CLASS(CompareBase, (), (isOk, failDescribe), (), ());
         };
 
         struct NodeCompare : CompareBase {
@@ -196,9 +191,7 @@ struct TestParams {
 };
 
 
-TestResult gtest_run_spec(
-    TestParams const&     params,
-    hstd::fs::path const& testDir);
+TestResult gtest_run_spec(TestParams const& params, hstd::fs::path const& testDir);
 
 hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const& params)> getOrgParseWriteParams(
     OrgSpec const*                               spec,

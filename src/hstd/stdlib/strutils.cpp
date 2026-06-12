@@ -1011,20 +1011,14 @@ Str hstd::styledUnicodeMapping(char ch, AsciiStyle style) {
 Str hstd::styledUnicodeMapping(Str const& str, AsciiStyle style) {
     Str result;
     result.reserve(str.size());
-    for (const auto& ch : str) {
-        result += styledUnicodeMapping(ch, style);
-    }
+    for (const auto& ch : str) { result += styledUnicodeMapping(ch, style); }
     return result;
 }
 
-Str hstd::strip(
-    Str const&     string,
-    CharSet const& leading,
-    CharSet const& trailing) {
+Str hstd::strip(Str const& string, CharSet const& leading, CharSet const& trailing) {
     if (0 < string.size()) {
         Span<char> view = string.toSpan();
-        LOGIC_ASSERTION_CHECK(
-            view.data() != nullptr, "View data cannot be nullptr");
+        LOGIC_ASSERTION_CHECK(view.data() != nullptr, "View data cannot be nullptr");
         char* end = view.data() + string.size();
 
         while (0 < view.size() && leading.contains(view.at(0))) {
@@ -1052,13 +1046,9 @@ Vec<Str> hstd::split_keep_separator(Str const& str, CharSet sep) {
     int      prev = 0, curr = 0;
     while (curr < str.length()) {
         if (sep.contains(str[curr])) {
-            if (prev != curr) {
-                result.push_back(str.substr(prev, curr - prev));
-            }
+            if (prev != curr) { result.push_back(str.substr(prev, curr - prev)); }
             prev = curr;
-            while (curr < str.length() - 1 && str[curr + 1] == str[curr]) {
-                curr++;
-            }
+            while (curr < str.length() - 1 && str[curr + 1] == str[curr]) { curr++; }
             result.push_back(str.substr(prev, curr - prev + 1));
             curr++;
             prev = curr;
@@ -1135,9 +1125,7 @@ Pair<Str, Str> hstd::visibleName(char ch) {
 
 Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
     auto lines = str.split('\n');
-    for (auto& line : lines) {
-        line = prefix + repeat(Str(space), spaces) + line;
-    }
+    for (auto& line : lines) { line = prefix + repeat(Str(space), spaces) + line; }
     return join("\n", lines);
 }
 
@@ -1292,8 +1280,7 @@ Str hstd::wrap_text(Vec<Str> const& words, int maxWidth, bool justified) {
             // I'm writing this code at 2024-12-31T22:53:23+04:00 and I
             // don't give a shit how performant this is.
             while (join_line().size() < maxWidth) {
-                for (int i = 0; (i < padding.size())
-                                && (join_line().size() < maxWidth);
+                for (int i = 0; (i < padding.size()) && (join_line().size() < maxWidth);
                      ++i) {
                     padding.at(i).append(" ");
                 }
@@ -1317,8 +1304,7 @@ Str hstd::wrap_text(Vec<Str> const& words, int maxWidth, bool justified) {
     };
 
     for (const auto& word : words) {
-        if (maxWidth
-            < (currentWidth + word.size() + (buffer.empty() ? 0 : 1))) {
+        if (maxWidth < (currentWidth + word.size() + (buffer.empty() ? 0 : 1))) {
             if (!buffer.empty()) { fold_buffer(); }
         }
         buffer.push_back(word);
@@ -1331,17 +1317,13 @@ Str hstd::wrap_text(Vec<Str> const& words, int maxWidth, bool justified) {
         return "";
     } else {
         return std::accumulate(
-            lines.begin() + 1,
-            lines.end(),
-            lines[0],
-            [](Str const& a, Str const& b) { return a + "\n"_ss + b; });
+            lines.begin() + 1, lines.end(), lines[0], [](Str const& a, Str const& b) {
+                return a + "\n"_ss + b;
+            });
     }
 }
 
-void hstd::replace_all(
-    std::string&       str,
-    std::string const& from,
-    std::string const& to) {
+void hstd::replace_all(std::string& str, std::string const& from, std::string const& to) {
     if (from.empty()) { return; }
 
     size_t pos = 0;
@@ -1355,11 +1337,10 @@ bool hstd::iequals(std::string const& a, std::string const& b) {
     if (a.length() != b.length()) {
         return false;
     } else {
-        return std::equal(
-            a.begin(), a.end(), b.begin(), b.end(), [](char a, char b) {
-                return std::tolower(static_cast<unsigned char>(a))
-                    == std::tolower(static_cast<unsigned char>(b));
-            });
+        return std::equal(a.begin(), a.end(), b.begin(), b.end(), [](char a, char b) {
+            return std::tolower(static_cast<unsigned char>(a))
+                == std::tolower(static_cast<unsigned char>(b));
+        });
     }
 }
 
@@ -1382,9 +1363,9 @@ std::string hstd::format_number(double value) {
         return s;
     }
 
-    int exponent  = static_cast<int>(std::floor(std::log10(abs_value)));
-    int decimals  = std::clamp(-exponent + 2, 0, 9);
-    std::string s = std::format("{:.{}f}", value, decimals);
+    int         exponent = static_cast<int>(std::floor(std::log10(abs_value)));
+    int         decimals = std::clamp(-exponent + 2, 0, 9);
+    std::string s        = std::format("{:.{}f}", value, decimals);
 
     while (!s.empty() && s.back() == '0') { s.pop_back(); }
     if (!s.empty() && s.back() == '.') { s.pop_back(); }
@@ -1416,9 +1397,8 @@ std::string hstd::escape_literal(std::string const& in) {
 }
 
 void hstd::validate_utf8(std::string const& str) {
-    unsigned char const* bytes = reinterpret_cast<const unsigned char*>(
-        str.data());
-    size_t len = str.size();
+    unsigned char const* bytes = reinterpret_cast<const unsigned char*>(str.data());
+    size_t               len   = str.size();
 
     for (size_t i = 0; i < len; i++) {
         if (bytes[i] <= 0x7F) {
@@ -1428,31 +1408,22 @@ void hstd::validate_utf8(std::string const& str) {
             // 2-byte sequence
             if (len <= i + 1) {
                 throw logic_assertion_error::init(
-                    std::format(
-                        "Incomplete 2-byte UTF-8 sequence at position {}",
-                        i));
+                    std::format("Incomplete 2-byte UTF-8 sequence at position {}", i));
             }
             if ((bytes[i + 1] & 0xC0) != 0x80) {
                 throw logic_assertion_error::init(
-                    std::format(
-                        "Invalid 2-byte UTF-8 sequence at position {}",
-                        i));
+                    std::format("Invalid 2-byte UTF-8 sequence at position {}", i));
             }
             i += 1;
         } else if (0xE0 <= bytes[i] && bytes[i] <= 0xEF) {
             // 3-byte sequence
             if (len <= i + 2) {
                 throw logic_assertion_error::init(
-                    std::format(
-                        "Incomplete 3-byte UTF-8 sequence at position {}",
-                        i));
+                    std::format("Incomplete 3-byte UTF-8 sequence at position {}", i));
             }
-            if ((bytes[i + 1] & 0xC0) != 0x80
-                || (bytes[i + 2] & 0xC0) != 0x80) {
+            if ((bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80) {
                 throw logic_assertion_error::init(
-                    std::format(
-                        "Invalid 3-byte UTF-8 sequence at position {}",
-                        i));
+                    std::format("Invalid 3-byte UTF-8 sequence at position {}", i));
             }
 
             // Special case for UTF-8 surrogate values
@@ -1478,17 +1449,12 @@ void hstd::validate_utf8(std::string const& str) {
             // 4-byte sequence
             if (len <= i + 3) {
                 throw logic_assertion_error::init(
-                    std::format(
-                        "Incomplete 4-byte UTF-8 sequence at position {}",
-                        i));
+                    std::format("Incomplete 4-byte UTF-8 sequence at position {}", i));
             }
-            if ((bytes[i + 1] & 0xC0) != 0x80
-                || (bytes[i + 2] & 0xC0) != 0x80
+            if ((bytes[i + 1] & 0xC0) != 0x80 || (bytes[i + 2] & 0xC0) != 0x80
                 || (bytes[i + 3] & 0xC0) != 0x80) {
                 throw logic_assertion_error::init(
-                    std::format(
-                        "Invalid 4-byte UTF-8 sequence at position {}",
-                        i));
+                    std::format("Invalid 4-byte UTF-8 sequence at position {}", i));
             }
 
             // Check for valid range
@@ -1513,17 +1479,12 @@ void hstd::validate_utf8(std::string const& str) {
         } else {
             throw logic_assertion_error::init(
                 std::format(
-                    "Invalid UTF-8 leading byte 0x{:02X} at position {}",
-                    bytes[i],
-                    i));
+                    "Invalid UTF-8 leading byte 0x{:02X} at position {}", bytes[i], i));
         }
     }
 }
 
-std::string hstd::format_integer_bits(
-    uint64_t value,
-    char     fmt,
-    int      pad_to) {
+std::string hstd::format_integer_bits(uint64_t value, char fmt, int pad_to) {
     std::string raw;
     switch (fmt) {
         case 'b': {
@@ -1588,9 +1549,7 @@ std::string hstd::format_table(
     Str const&           inter_row_spacing,
     char                 row_underline) {
     int col_count = 0;
-    for (const auto& row : rows) {
-        col_count = std::max(col_count, row.size());
-    }
+    for (const auto& row : rows) { col_count = std::max(col_count, row.size()); }
 
     if (col_count == 0 || rows.empty()) { return ""; }
 
@@ -1623,11 +1582,10 @@ std::string hstd::format_table(
 
         for (int line_idx = 0; line_idx < row_height; ++line_idx) {
             for (int col = 0; col < col_count; ++col) {
-                std::string_view
-                    cell_line = line_idx < cell_lines[col].size()
-                                  ? std::string_view(
-                                        cell_lines[col][line_idx])
-                                  : std::string_view("");
+                std::string_view cell_line = line_idx < cell_lines[col].size()
+                                               ? std::string_view(
+                                                     cell_lines[col][line_idx])
+                                               : std::string_view("");
 
                 out << cell_line;
 

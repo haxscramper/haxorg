@@ -62,20 +62,16 @@ OrgConverter::ConvertError OrgConverter::wrapError(
     return result;
 }
 
-Opt<org::parse::SourceLoc> OrgConverter::getLoc(
-    parse::OrgAdapter const& adapter) {
+Opt<org::parse::SourceLoc> OrgConverter::getLoc(parse::OrgAdapter const& adapter) {
     if (adapter.isTerminal()) {
         return adapter.val().loc.value();
     } else if (adapter.isMono()) {
         return std::nullopt;
 
-    } else if (
-        auto nested = adapter.get().nestedNodes(adapter.id); nested) {
+    } else if (auto nested = adapter.get().nestedNodes(adapter.id); nested) {
         for (org::parse::OrgId const& id : nested.value()) {
             parse::OrgAdapter sub{adapter.group, id};
-            if (sub.isTerminal() && !sub.val().isFake()) {
-                return sub.val().loc;
-            }
+            if (sub.isTerminal() && !sub.val().isFake()) { return sub.val().loc; }
         }
     }
 
@@ -105,15 +101,12 @@ void OrgConverter::report(OrgConverter::Report const& in) {
         std::string res;
         if (in.node.has_value()) {
             Opt<parse::SourceLoc> loc = this->getLoc(in.node.value());
-            if (loc.has_value()) {
-                res = hstd::fmt("{}:{} ", loc->line, loc->column);
-            }
+            if (loc.has_value()) { res = hstd::fmt("{}:{} ", loc->line, loc->column); }
         }
         return res;
     };
 
-    if (in.kind == ReportKind::Enter
-        || in.kind == ReportKind::EnterField) {
+    if (in.kind == ReportKind::Enter || in.kind == ReportKind::EnterField) {
         ++activeLevel;
     }
 
@@ -122,10 +115,10 @@ void OrgConverter::report(OrgConverter::Report const& in) {
         using namespace org::report;
         EntrySem res;
         res.indent = activeLevel;
-#define __kind(K)                                                         \
-    case ReportKind::K: {                                                 \
-        res.kind = EntrySem::Kind::K;                                     \
-        break;                                                            \
+#define __kind(K)                                                                        \
+    case ReportKind::K: {                                                                \
+        res.kind = EntrySem::Kind::K;                                                    \
+        break;                                                                           \
     }
         switch (in.kind) {
             __kind(EnterField);
@@ -140,9 +133,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
             ValueOrgNode node;
             node.kind = fmt1(in.node->kind());
             node.id   = fmt1(in.node->id);
-            if (in.node->isTerminal()) {
-                node.value = in.node->val().text;
-            }
+            if (in.node->isTerminal()) { node.value = in.node->val().text; }
             res.node = node;
         }
 
@@ -158,8 +149,8 @@ void OrgConverter::report(OrgConverter::Report const& in) {
 
         switch (in.kind) {
             case ReportKind::EnterField: {
-                os << "{ " << fmt1(in.field.value())
-                   << fmt(" @{}", in.line) << " " << getLoc();
+                os << "{ " << fmt1(in.field.value()) << fmt(" @{}", in.line) << " "
+                   << getLoc();
                 if (in.msg) { os << " " << *in.msg; }
                 break;
             }
@@ -174,8 +165,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
             }
 
             case ReportKind::Enter: {
-                os << "> " << (in.function ? in.function : "")
-                   << fmt(" @{}", in.line);
+                os << "> " << (in.function ? in.function : "") << fmt(" @{}", in.line);
                 if (in.node.has_value() && in.node->isValid()) {
                     os << " " << fmt1(in.node->kind())
                        << " ID:" << fmt1(in.node->id.getUnmasked());
@@ -190,14 +180,12 @@ void OrgConverter::report(OrgConverter::Report const& in) {
                 break;
             }
             case ReportKind::Leave: {
-                os << "< " << (in.function ? in.function : "") << " "
-                   << getLoc();
+                os << "< " << (in.function ? in.function : "") << " " << getLoc();
                 break;
             }
 
             case ReportKind::Print: {
-                os << "  " << (in.function ? in.function : "")
-                   << fmt(" @{}", in.line);
+                os << "  " << (in.function ? in.function : "") << fmt(" @{}", in.line);
                 if (in.msg) {
                     os << " ";
                     int prefix_end = os.position;
@@ -212,8 +200,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
     endStream(os);
 
 
-    if (in.kind == ReportKind::Leave
-        || in.kind == ReportKind::LeaveField) {
+    if (in.kind == ReportKind::Leave || in.kind == ReportKind::LeaveField) {
         --activeLevel;
     }
 }
@@ -257,19 +244,13 @@ finally_std OrgConverter::trace(
     int         line,
     char const* function) {
     if (TraceState) {
-        report(
-            Builder(
-                OrgConverter::ReportKind::Enter, nullptr, line, function)
-                .with_node(adapter)
-                .with_msg(subname)
-                .report);
+        report(Builder(OrgConverter::ReportKind::Enter, nullptr, line, function)
+                   .with_node(adapter)
+                   .with_msg(subname)
+                   .report);
 
         return finally_std{[this, line, function, adapter, subname]() {
-            report(Builder(
-                       OrgConverter::ReportKind::Leave,
-                       nullptr,
-                       line,
-                       function)
+            report(Builder(OrgConverter::ReportKind::Leave, nullptr, line, function)
                        .with_node(adapter)
                        .with_msg(subname)
                        .report);
@@ -288,41 +269,28 @@ finally_std OrgConverter::field(
     int         line,
     char const* function) {
     if (TraceState) {
-        report(Builder(
-                   OrgConverter::ReportKind::EnterField,
-                   nullptr,
-                   line,
-                   function)
+        report(Builder(OrgConverter::ReportKind::EnterField, nullptr, line, function)
                    .with_node(adapter)
                    .with_msg(subname)
                    .with_field(name)
                    .report);
 
-        return finally_std{
-            [this, line, function, adapter, name, subname]() {
-                report(Builder(
-                           OrgConverter::ReportKind::LeaveField,
-                           nullptr,
-                           line,
-                           function)
-                           .with_node(adapter)
-                           .with_msg(subname)
-                           .with_field(name)
-                           .report);
-            }};
+        return finally_std{[this, line, function, adapter, name, subname]() {
+            report(Builder(OrgConverter::ReportKind::LeaveField, nullptr, line, function)
+                       .with_node(adapter)
+                       .with_msg(subname)
+                       .with_field(name)
+                       .report);
+        }};
 
     } else {
         return finally_std::nop();
     }
 }
 
-void OrgConverter::print_json(
-    SemId<Org>  semResult,
-    int         line,
-    char const* function) {
+void OrgConverter::print_json(SemId<Org> semResult, int line, char const* function) {
     if (TraceState) {
-        report(Builder(
-                   OrgConverter::ReportKind::Json, nullptr, line, function)
+        report(Builder(OrgConverter::ReportKind::Json, nullptr, line, function)
                    .with_sem(semResult)
                    .report);
     }
@@ -330,10 +298,8 @@ void OrgConverter::print_json(
 
 void OrgConverter::print(std::string msg, int line, char const* function) {
     if (TraceState) {
-        report(
-            Builder(
-                OrgConverter::ReportKind::Print, nullptr, line, function)
-                .with_msg(msg)
-                .report);
+        report(Builder(OrgConverter::ReportKind::Print, nullptr, line, function)
+                   .with_msg(msg)
+                   .report);
     }
 }

@@ -4,12 +4,10 @@ using namespace hstd;
 using namespace org::parse;
 
 using otk        = OrgTokenKind;
-using OrgPattern = org::parse::
-    AstPattern<OrgAdapter, OrgNodeKind, OrgSpecName>;
-using SpecPair = Pair<OrgNodeKind, OrgPattern>;
-using Field    = org::parse::
-    AstPatternRange<OrgAdapter, OrgNodeKind, OrgSpecName>;
-using Range = org::parse::AstRange<OrgSpecName>;
+using OrgPattern = org::parse::AstPattern<OrgAdapter, OrgNodeKind, OrgSpecName>;
+using SpecPair   = Pair<OrgNodeKind, OrgPattern>;
+using Field      = org::parse::AstPatternRange<OrgAdapter, OrgNodeKind, OrgSpecName>;
+using Range      = org::parse::AstRange<OrgSpecName>;
 
 using N   = OrgSpecName;
 using onk = OrgNodeKind;
@@ -25,11 +23,7 @@ Field field1(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
 }
 
 template <typename Idx>
-Field field1(
-    Idx           idx,
-    N             name,
-    OrgSet const& pattern = OrgSet{},
-    Str           doc     = "") {
+Field field1(Idx idx, N name, OrgSet const& pattern = OrgSet{}, Str doc = "") {
     return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
 
@@ -39,11 +33,7 @@ Field fieldN(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
 }
 
 template <typename Idx>
-Field fieldN(
-    Idx           idx,
-    N             name,
-    OrgSet const& pattern = OrgSet{},
-    Str           doc     = "") {
+Field fieldN(Idx idx, N name, OrgSet const& pattern = OrgSet{}, Str doc = "") {
     return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
 
@@ -102,11 +92,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             onk::Subtree,
             OrgPattern({
-                field1(
-                    0,
-                    N::Prefix,
-                    onk::RawText,
-                    "Starting prefix of the subtree"),
+                field1(0, N::Prefix, onk::RawText, "Starting prefix of the subtree"),
                 fieldN(
                     1,
                     N::Todo,
@@ -140,16 +126,8 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     onk::StmtList,
                     "Scheduled, closed, and/or deadline times for "
                     "the subtree"),
-                field1(
-                    7,
-                    N::Drawer,
-                    onk::Drawer,
-                    "Logbook, properties, description"),
-                field1(
-                    8,
-                    N::Body,
-                    onk::StmtList,
-                    "Statement list of the nested nodes"),
+                field1(7, N::Drawer, onk::Drawer, "Logbook, properties, description"),
+                field1(8, N::Body, onk::StmtList, "Statement list of the nested nodes"),
             })},
         SpecPair{
             onk::CmdFiletags,
@@ -190,8 +168,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     OrgPattern({onk::SubtreeDescription, onk::Empty})),
             })},
         SpecPair{
-            onk::SubtreeDescription,
-            OrgPattern({field1(0, N::Text, onk::Paragraph)})},
+            onk::SubtreeDescription, OrgPattern({field1(0, N::Text, onk::Paragraph)})},
         SpecPair{onk::BlockCenter, textWrapContent},
         SpecPair{onk::BlockQuote, textWrapContent},
         SpecPair{onk::BlockComment, textWrapContent},
@@ -237,28 +214,18 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             onk::InlineCallCode,
             OrgPattern({
                 Field(Range(0, N::Name), OrgPattern(onk::Word)),
-                Field(
-                    Range(1, N::HeaderArgs),
-                    OrgPattern({onk::Attrs, onk::Empty})),
+                Field(Range(1, N::HeaderArgs), OrgPattern({onk::Attrs, onk::Empty})),
                 Field(Range(2, N::Args)),
                 Field(Range(3, N::EndArgs)),
-                Field(
-                    Range(4, N::Result),
-                    OrgPattern({onk::RawText, onk::Empty})),
+                Field(Range(4, N::Result), OrgPattern({onk::RawText, onk::Empty})),
             })},
         SpecPair{
             onk::SrcInlineCode,
             OrgPattern({
-                Field(
-                    Range(0, N::Lang),
-                    OrgPattern({onk::Word, onk::Empty})),
-                Field(
-                    Range(1, N::HeaderArgs),
-                    OrgPattern({onk::Attrs, onk::Empty})),
+                Field(Range(0, N::Lang), OrgPattern({onk::Word, onk::Empty})),
+                Field(Range(1, N::HeaderArgs), OrgPattern({onk::Attrs, onk::Empty})),
                 Field(Range(2, N::Body), OrgPattern(onk::CodeLine)),
-                Field(
-                    Range(3, N::Result),
-                    OrgPattern({onk::RawText, onk::Empty})),
+                Field(Range(3, N::Result), OrgPattern({onk::RawText, onk::Empty})),
             })},
         SpecPair{
             onk::Attrs,
@@ -290,9 +257,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(0, N::Value),
             })},
         SpecPair{onk::CmdTblfm, OrgPattern({fieldN(0, N::Values)})},
-        SpecPair{
-            onk::CmdResult,
-            OrgPattern({fieldN(0, N::Hash), fieldN(1, N::Body)})},
+        SpecPair{onk::CmdResult, OrgPattern({fieldN(0, N::Hash), fieldN(1, N::Body)})},
         SpecPair{
             onk::ListItem,
             OrgPattern({
@@ -326,9 +291,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
         SpecPair{
             onk::DrawerPropertyList,
             OrgPattern({
-                Field(
-                    Range(slice(0, 1_B), N::Property),
-                    OrgPattern(onk::DrawerProperty)),
+                Field(Range(slice(0, 1_B), N::Property), OrgPattern(onk::DrawerProperty)),
             })},
         SpecPair{
             onk::TableRow,
@@ -350,8 +313,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 Field(
                     Range(2, N::Body),
                     OrgPattern({Field(
-                        Range(slice(0, 1_B), N::Cells),
-                        OrgPattern(onk::TableCell))})),
+                        Range(slice(0, 1_B), N::Cells), OrgPattern(onk::TableCell))})),
             })},
         SpecPair{
             onk::DrawerProperty,
@@ -370,9 +332,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             onk::Table,
             OrgPattern({
                 fieldN(0, N::Args, {onk::Attrs, onk::Empty}),
-                Field(
-                    Range(slice(1, 1_B), N::Rows),
-                    OrgPattern(onk::TableRow)),
+                Field(Range(slice(1, 1_B), N::Rows), OrgPattern(onk::TableRow)),
             })},
         SpecPair{
             onk::TableCell,
@@ -430,8 +390,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     Range(2, N::Body),
                     OrgPattern(onk::StmtList)
                         .sub({Field(
-                            Range(slice(0, 1_B), N::Lines),
-                            OrgPattern(onk::RawText))})),
+                            Range(slice(0, 1_B), N::Lines), OrgPattern(onk::RawText))})),
             })},
         SpecPair{
             onk::InlineExport,
@@ -458,11 +417,8 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                     Range(2, N::Body),
                     OrgPattern(onk::StmtList)
                         .sub({Field(
-                            Range(slice(0, 1_B), N::Lines),
-                            OrgPattern(onk::CodeLine))})),
-                Field(
-                    Range(3, N::Result),
-                    OrgPattern({onk::RawText, onk::Empty})),
+                            Range(slice(0, 1_B), N::Lines), OrgPattern(onk::CodeLine))})),
+                Field(Range(3, N::Result), OrgPattern({onk::RawText, onk::Empty})),
             })},
         SpecPair{
             onk::CmdResults,
@@ -490,44 +446,29 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             })},
         SpecPair{
             onk::Footnote,
-            OrgPattern(
-                {Field(Range(0, N::Name)),
-                 Field(Range(1, N::Definition))})},
-        SpecPair{
-            onk::InlineFootnote,
-            OrgPattern({Field(Range(0, N::Definition))})},
+            OrgPattern({Field(Range(0, N::Name)), Field(Range(1, N::Definition))})},
+        SpecPair{onk::InlineFootnote, OrgPattern({Field(Range(0, N::Definition))})},
         SpecPair{
             onk::CmdAttr,
             OrgPattern({
-                Field(
-                    Range(0, N::Name),
-                    OrgPattern({onk::Empty, onk::Word})),
-                Field(
-                    Range(1, N::Args),
-                    OrgPattern({onk::Empty, onk::Attrs})),
+                Field(Range(0, N::Name), OrgPattern({onk::Empty, onk::Word})),
+                Field(Range(1, N::Args), OrgPattern({onk::Empty, onk::Attrs})),
             })},
         SpecPair{
             onk::CmdHeader,
             OrgPattern({
-                Field(
-                    Range(0, N::Args),
-                    OrgPattern({onk::Empty, onk::Attrs})),
+                Field(Range(0, N::Args), OrgPattern({onk::Empty, onk::Attrs})),
             })},
         SpecPair{
             onk::CmdOptions,
-            OrgPattern({Field(
-                Range(slice(0, 1_B), N::Args),
-                OrgPattern(onk::RawText))})},
+            OrgPattern({Field(Range(slice(0, 1_B), N::Args), OrgPattern(onk::RawText))})},
         SpecPair{
             onk::CodeLine,
             OrgPattern({
                 Field(
                     Range(slice(0, 1_B), N::Chunks),
                     OrgPattern(
-                        {onk::CodeText,
-                         onk::CodeTangle,
-                         onk::CodeCallout,
-                         onk::Empty})),
+                        {onk::CodeText, onk::CodeTangle, onk::CodeCallout, onk::Empty})),
             })},
         SpecPair{
             onk::Link,
@@ -544,13 +485,11 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(
                     1,
                     N::Args,
-                    OrgPattern(
-                        {field1(slice(0, 1_B), N::Args, onk::RawText)})),
+                    OrgPattern({field1(slice(0, 1_B), N::Args, onk::RawText)})),
                 fieldN(
                     2,
                     N::Body,
-                    OrgPattern(
-                        {field1(slice(0, 1_B), N::Args, onk::Paragraph)})),
+                    OrgPattern({field1(slice(0, 1_B), N::Args, onk::Paragraph)})),
             })},
         SpecPair{
             onk::Macro,
@@ -567,24 +506,18 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
             onk::CmdCallCode,
             OrgPattern({
                 fieldN(0, N::Name),
-                fieldN(
-                    1, N::HeaderArgs, {onk::InlineStmtList, onk::Empty}),
+                fieldN(1, N::HeaderArgs, {onk::InlineStmtList, onk::Empty}),
                 fieldN(2, N::Args, {onk::InlineStmtList, onk::Empty}),
                 fieldN(3, N::EndArgs, {onk::InlineStmtList, onk::Empty}),
             })},
         SpecPair{onk::Angle, OrgPattern({fieldN(0, N::Body)})},
         SpecPair{onk::Bold, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{onk::Italic, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{onk::Verbatim, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{onk::Strike, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
+        SpecPair{onk::Underline, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
         SpecPair{
-            onk::Italic, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
-        SpecPair{
-            onk::Verbatim, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
-        SpecPair{
-            onk::Strike, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
-        SpecPair{
-            onk::Underline, OrgPattern({fieldN(slice(0, 1_B), N::Body)})},
-        SpecPair{
-            onk::Monospace,
-            OrgPattern({field1(slice(0, 1_B), N::Body, onk::RawText)})},
+            onk::Monospace, OrgPattern({field1(slice(0, 1_B), N::Body, onk::RawText)})},
         //
     });
 }

@@ -12,8 +12,7 @@ void hstd::writeFile(fs::path const& target, std::string const& content) {
     if (file.is_open()) {
         file << content;
     } else {
-        throw FilesystemError::init(
-            "Could not write to file '" + target.native() + "'");
+        throw FilesystemError::init("Could not write to file '" + target.native() + "'");
     }
 }
 
@@ -24,8 +23,7 @@ std::string hstd::readFile(fs::path const& target) {
         result << in.rdbuf();
         return result.str();
     } else {
-        throw FilesystemError::init(
-            "Could not open file '" + target.native() + "'");
+        throw FilesystemError::init("Could not open file '" + target.native() + "'");
     }
 }
 
@@ -57,13 +55,9 @@ void hstd::writeDebugFile(
     writeFile(full_path, content);
 }
 
-void hstd::createDirectory(
-    fs::path const& target,
-    bool            parents,
-    bool            existsOk) {
+void hstd::createDirectory(fs::path const& target, bool parents, bool existsOk) {
     if (target.native().empty()) {
-        throw FilesystemError::init(
-            fmt("Cannot create directory, target is empty"));
+        throw FilesystemError::init(fmt("Cannot create directory, target is empty"));
     }
 
     if (fs::is_regular_file(target)) {
@@ -75,14 +69,12 @@ void hstd::createDirectory(
 
     if (fs::is_directory(target) && !existsOk) {
         throw FilesystemError::init(
-            fmt("Cannot create directory {} -- the path already exists",
-                target));
+            fmt("Cannot create directory {} -- the path already exists", target));
     }
 
     if (!fs::is_directory(target.parent_path()) && !parents) {
         throw FilesystemError::init(
-            fmt("Cannot create directory {} -- parent path does not exist",
-                target));
+            fmt("Cannot create directory {} -- parent path does not exist", target));
     }
 
     std::function<void(fs::path const& target)> aux;
@@ -91,9 +83,7 @@ void hstd::createDirectory(
         // code, so the `!=` thing is the only one that worked.
         if (target.parent_path() != target) {
             aux(target.parent_path());
-            if (fs::is_directory(target.parent_path())) {
-                fs::create_directory(target);
-            }
+            if (fs::is_directory(target.parent_path())) { fs::create_directory(target); }
         }
     };
     aux(target);

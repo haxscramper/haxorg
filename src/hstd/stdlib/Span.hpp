@@ -52,15 +52,11 @@ class Span : public std::span<T> {
 
 
     int clampSize(int size, T const* data, T const* end) const {
-        if (end < data) {
-            throw std::range_error{"check failed: data <= end"};
-        }
+        if (end < data) { throw std::range_error{"check failed: data <= end"}; }
         if (data == nullptr) {
             throw std::invalid_argument{"Data pointer cannot be null"};
         }
-        if (end == nullptr) {
-            throw std::invalid_argument{"End pointer cannot be null"};
-        }
+        if (end == nullptr) { throw std::invalid_argument{"End pointer cannot be null"}; }
 
         auto d_raw    = std::distance(data, end);
         int  distance = static_cast<int>(d_raw + 1);
@@ -80,9 +76,8 @@ class Span : public std::span<T> {
         auto data = dataAtOffset(steps);
         if (data != nullptr) {
             int oldSize = size();
-            int newSize = fixSize
-                            ? clampSize(size(), data, maxEnd)
-                            : clampSize(size() - steps, data, maxEnd);
+            int newSize = fixSize ? clampSize(size(), data, maxEnd)
+                                  : clampSize(size() - steps, data, maxEnd);
 
             assert(0 <= newSize && newSize <= oldSize);
 
@@ -106,10 +101,9 @@ class Span : public std::span<T> {
         bool fixSize = false) {
         if (fixSize) {
             auto data = dataAtOffset(steps);
-            *this = Span<T>(data, clampSize(size() + steps, data, maxEnd));
+            *this     = Span<T>(data, clampSize(size() + steps, data, maxEnd));
         } else {
-            *this = Span<T>(
-                data(), clampSize(size() + steps, data(), maxEnd));
+            *this = Span<T>(data(), clampSize(size() + steps, data(), maxEnd));
         }
     }
 
@@ -152,20 +146,14 @@ class Span : public std::span<T> {
         }
     }
 
-    int index(BackwardsIndex idx) const {
-        return this->size() - idx.value;
-    }
+    int index(BackwardsIndex idx) const { return this->size() - idx.value; }
 
     /// \brief Get reference wrapper to a value at specified index or empty
     /// option if the index is out of range
-    std::optional<Rw<T>> get(BackwardsIndex idx) {
-        return get(index(idx));
-    }
+    std::optional<Rw<T>> get(BackwardsIndex idx) { return get(index(idx)); }
 
     /// \brief Overload for constant vector
-    std::optional<CRw<T>> get(BackwardsIndex idx) const {
-        return get(index(idx));
-    }
+    std::optional<CRw<T>> get(BackwardsIndex idx) const { return get(index(idx)); }
 
     template <typename A, typename B>
     Span<T> operator[](HSlice<A, B> const& s) {
@@ -185,22 +173,17 @@ class Span : public std::span<T> {
 #endif
     }
 
-    T& operator[](BackwardsIndex idx) {
-        return (*this)[this->size() - idx.value];
-    }
+    T& operator[](BackwardsIndex idx) { return (*this)[this->size() - idx.value]; }
 
     T&       at(int idx) { return (*this)[idx]; }
     T const& at(int idx) const { return (*this)[idx]; }
 
-    T& at(BackwardsIndex idx) {
-        return this->at(this->size() - idx.value);
-    }
+    T& at(BackwardsIndex idx) { return this->at(this->size() - idx.value); }
 };
 
 
 template <std::random_access_iterator Iter>
-static auto IteratorSpan(Iter begin, Iter end)
-    -> Span<typename Iter::value_type> {
+static auto IteratorSpan(Iter begin, Iter end) -> Span<typename Iter::value_type> {
     return Span<typename Iter::value_type>{
         const_cast<Iter::value_type*>(&*begin),
         static_cast<int>(std::distance(begin, end))};

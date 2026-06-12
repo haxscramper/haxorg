@@ -42,8 +42,8 @@ char hstd::Str::at(int pos) const {
         return std::string::operator[](pos);
     } else {
         throw std::out_of_range(
-            "String index out of range wanted " + std::to_string(pos)
-            + " but size() is " + std::to_string(size()));
+            "String index out of range wanted " + std::to_string(pos) + " but size() is "
+            + std::to_string(size()));
     }
 }
 
@@ -52,8 +52,8 @@ char& hstd::Str::at(int pos) {
         return std::string::operator[](pos);
     } else {
         throw std::out_of_range(
-            "String index out of range wanted " + std::to_string(pos)
-            + " but size() is " + std::to_string(size()));
+            "String index out of range wanted " + std::to_string(pos) + " but size() is "
+            + std::to_string(size()));
     }
 }
 
@@ -74,9 +74,7 @@ Vec<Str> hstd::Str::split(char delimiter) const {
     Str                token;
     std::istringstream tokenStream(*this);
 
-    while (std::getline(tokenStream, token, delimiter)) {
-        tokens.push_back(token);
-    }
+    while (std::getline(tokenStream, token, delimiter)) { tokens.push_back(token); }
 
     return tokens;
 }
@@ -106,9 +104,7 @@ u64   Str::toU64() const { return std::stoull(*this); }
 void Str::append(Str const& str) { std::string::append(str.toBase()); }
 int  Str::size() const { return static_cast<int>(std::string::size()); }
 bool Str::contains(char ch) const { return find(ch) != std::string::npos; }
-bool Str::contains(Str const& ch) const {
-    return find(ch) != std::string::npos;
-}
+bool Str::contains(Str const& ch) const { return find(ch) != std::string::npos; }
 
 Str Str::join(Vec<Str> const& items) const {
     Str res;

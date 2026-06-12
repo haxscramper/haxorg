@@ -43,30 +43,30 @@ bool imm_eq_build(T const* lhs, T const* rhs) {
 
 } // namespace
 
-#define _define_hash(__kind)                                              \
-    std::size_t std::hash<org::imm::Imm##__kind>::operator()(             \
-        org::imm::Imm##__kind const& it) const noexcept {                 \
-        return imm_hash_build(it);                                        \
+#define _define_hash(__kind)                                                             \
+    std::size_t std::hash<org::imm::Imm##__kind>::operator()(                            \
+        org::imm::Imm##__kind const& it) const noexcept {                                \
+        return imm_hash_build(it);                                                       \
     }
 
 EACH_SEM_ORG_KIND(_define_hash)
 #undef _define_hash
 
 
-#define _define_hash(__parent, __qual, _)                                 \
-    std::size_t std::hash<org::imm::Imm##__parent::__qual>::operator()(   \
-        org::imm::Imm##__parent::__qual const& it) const noexcept {       \
-        return imm_hash_build(it);                                        \
+#define _define_hash(__parent, __qual, _)                                                \
+    std::size_t std::hash<org::imm::Imm##__parent::__qual>::operator()(                  \
+        org::imm::Imm##__parent::__qual const& it) const noexcept {                      \
+        return imm_hash_build(it);                                                       \
     }
 
 EACH_SEM_ORG_RECORD_NESTED(_define_hash)
 #undef _define_hash
 
 
-#define _declare_hash(__qual, _)                                          \
-    std::size_t std::hash<org::sem::__qual>::operator()(                  \
-        org::sem::__qual const& it) const noexcept {                      \
-        return imm_hash_build(it);                                        \
+#define _declare_hash(__qual, _)                                                         \
+    std::size_t std::hash<org::sem::__qual>::operator()(org::sem::__qual const& it)      \
+        const noexcept {                                                                 \
+        return imm_hash_build(it);                                                       \
     }
 
 EACH_SHARED_ORG_RECORD(_declare_hash)
@@ -75,25 +75,23 @@ EACH_SHARED_ORG_RECORD(_declare_hash)
 
 // eq comparison methods
 
-#define _eq_method(__QualType, _)                                         \
-    bool org::imm::Imm##__QualType::operator==(                           \
-        org::imm::Imm##__QualType const& other) const {                   \
-        return imm_eq_build<org::imm::Imm##__QualType>(this, &other);     \
+#define _eq_method(__QualType, _)                                                        \
+    bool org::imm::Imm##__QualType::operator==(org::imm::Imm##__QualType const& other)   \
+        const {                                                                          \
+        return imm_eq_build<org::imm::Imm##__QualType>(this, &other);                    \
     }
 
 EACH_SEM_ORG_RECORD(_eq_method)
 #undef _eq_method
 
-#define _eq_method(__QualType, _)                                         \
-    bool org::sem::__QualType::operator==(                                \
-        org::sem::__QualType const& other) const {                        \
-        return imm_eq_build<org::sem::__QualType>(this, &other);          \
+#define _eq_method(__QualType, _)                                                        \
+    bool org::sem::__QualType::operator==(org::sem::__QualType const& other) const {     \
+        return imm_eq_build<org::sem::__QualType>(this, &other);                         \
     }
 
 EACH_SHARED_ORG_RECORD(_eq_method)
 #undef _eq_method
 
-bool org::sem::HashTagFlat::operator<(
-    sem::HashTagFlat const& other) const {
+bool org::sem::HashTagFlat::operator<(sem::HashTagFlat const& other) const {
     return this->tags < other.tags;
 }

@@ -18,16 +18,11 @@ void layout_run_full_layout(layout::LayoutRun* run) {
 
     auto aux = [&](this auto&& self, VertexID const& id) -> void {
         auto __scope = run->begin_scope(
-            hstd::fmt(
-                "running layout for group ID {}", run->getDebug(id)));
+            hstd::fmt("running layout for group ID {}", run->getDebug(id)));
         auto group = run->getGroup(id);
-        for (auto const& sub :
-             hstd::sorted(run->getSubGroups(id).items())) {
-            self(sub);
-        }
+        for (auto const& sub : hstd::sorted(run->getSubGroups(id).items())) { self(sub); }
 
-        for (auto const& sub :
-             hstd::sorted(run->getSubGroups(id).items())) {
+        for (auto const& sub : hstd::sorted(run->getSubGroups(id).items())) {
             if (run->getGroup(sub)->hasAlgorithm()) {
                 LOGIC_ASSERTION_CHECK_FMT(
                     run->result.vertices.contains(sub),
@@ -55,12 +50,9 @@ void layout_run_full_layout(layout::LayoutRun* run) {
                 run->getDebug(id));
 
             auto missing_vertex_layout = run->getDirectVertices(id)
-                                       - VertexIDSet::FromVec(
-                                             sub_res.vertices.keys());
+                                       - VertexIDSet::FromVec(sub_res.vertices.keys());
             OP_TRACER_MESSAGE(
-                run,
-                "generated layout for {}",
-                run->getDebug(sub_res.vertices.keys()));
+                run, "generated layout for {}", run->getDebug(sub_res.vertices.keys()));
 
             LOGIC_ASSERTION_CHECK_FMT(
                 missing_vertex_layout.empty(),
@@ -70,8 +62,7 @@ void layout_run_full_layout(layout::LayoutRun* run) {
                 run->getDebug(missing_vertex_layout));
 
             auto missing_port_layout = run->getDirectPorts(id)
-                                     - PortIDSet::FromVec(
-                                           sub_res.ports.keys());
+                                     - PortIDSet::FromVec(sub_res.ports.keys());
             LOGIC_ASSERTION_CHECK_FMT(
                 missing_port_layout.empty(),
                 "Running layout for {} should provide the port "
@@ -92,8 +83,7 @@ void layout_run_full_layout(layout::LayoutRun* run) {
                 // algorithms, the filtering must be done on the
                 // `runSingleLayout` side.
                 LOGIC_ASSERTION_CHECK_FMT(
-                    run->getEdges()->hasEdge(id)
-                        && run->getEdges()->isTrackingEdge(id),
+                    run->getEdges()->hasEdge(id) && run->getEdges()->isTrackingEdge(id),
                     "Layout run returned layout information for edge not "
                     "included in the overall layout run collection: {}",
                     run->getDebug(id));
@@ -107,16 +97,12 @@ void layout_run_full_layout(layout::LayoutRun* run) {
         }
     };
 
-    for (auto const& root : run->getGroups()->getRootVertices()) {
-        aux(root);
-    }
+    for (auto const& root : run->getGroups()->getRootVertices()) { aux(root); }
 
-    VertexIDSet all_layout_vertices = VertexIDSet::FromVec(
-        run->result.vertices.keys());
+    VertexIDSet all_layout_vertices = VertexIDSet::FromVec(run->result.vertices.keys());
 
-    VertexIDSet hierarchy_vertices = run->getGroups()->getAllVertices();
-    VertexIDSet missing_hierarchy_vertices = hierarchy_vertices
-                                           - all_layout_vertices;
+    VertexIDSet hierarchy_vertices         = run->getGroups()->getAllVertices();
+    VertexIDSet missing_hierarchy_vertices = hierarchy_vertices - all_layout_vertices;
     LOGIC_ASSERTION_CHECK_FMT(
         missing_hierarchy_vertices.empty(),
         "Full layout run did not provide layout attributes for all "
@@ -167,8 +153,7 @@ void run_placement_with_subset(
 
     for (auto const& vert : vertex_set) {
         if (run->hasLayout(vert)) {
-            router.rects.insert_or_assign(
-                vert, run->getAbsoluteBBox(vert));
+            router.rects.insert_or_assign(vert, run->getAbsoluteBBox(vert));
         }
     }
 
@@ -181,8 +166,7 @@ void run_placement_with_subset(
 #endif
 
 void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
-    auto __scope = run->begin_scope(
-        "unbound edge placement", "unbound-edge");
+    auto        __scope = run->begin_scope("unbound edge placement", "unbound-edge");
     EdgeIDSet   vertex_vertex_edges;
     EdgeIDSet   group_vertex_edges;
     VertexIDSet vertex_set;
@@ -213,10 +197,7 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
         run, vertex_vertex_edges, vertex_set, "vertex_only_routing");
 
     run_placement_with_subset(
-        run,
-        group_vertex_edges,
-        group_set + vertex_set,
-        "vertex_and_group_routing");
+        run, group_vertex_edges, group_set + vertex_set, "vertex_and_group_routing");
 #endif
 }
 

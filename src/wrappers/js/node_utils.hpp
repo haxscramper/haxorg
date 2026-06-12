@@ -22,13 +22,9 @@ struct emscripten::smart_ptr_trait<org::sem::SemId<T>> {
     using PointerType  = org::sem::SemId<T>;
     using element_type = T;
 
-    static T* get(PointerType const& ptr) {
-        return const_cast<T*>(ptr.get());
-    }
+    static T* get(PointerType const& ptr) { return const_cast<T*>(ptr.get()); }
 
-    static sharing_policy get_sharing_policy() {
-        return sharing_policy::BY_EMVAL;
-    }
+    static sharing_policy get_sharing_policy() { return sharing_policy::BY_EMVAL; }
 
     static PointerType* share(T* p, EM_VAL v) {
         return new PointerType(
@@ -103,23 +99,20 @@ struct type_registration_guard {
 template <hstd::DescribedEnum E>
 void bind_enum(std::string const& name) {
     auto&& e = emscripten::enum_<E>(name.c_str());
-    for (hstd::EnumFieldDesc<E> const& d :
-         hstd::describe_enumerators<E>()) {
+    for (hstd::EnumFieldDesc<E> const& d : hstd::describe_enumerators<E>()) {
         e = e.value(d.name.c_str(), d.value);
     }
 
-    emscripten::function(
-        ("format_" + name).c_str(),
-        +[](E const& value) -> std::string { return hstd::fmt1(value); });
+    emscripten::function(("format_" + name).c_str(), +[](E const& value) -> std::string {
+        return hstd::fmt1(value);
+    });
 }
 
 template <typename T>
 void immerbox_bind(type_registration_guard& g, std::string const& name) {}
 
 template <typename T>
-void immerflex_vector_bind(
-    type_registration_guard& g,
-    std::string const&       name) {}
+void immerflex_vector_bind(type_registration_guard& g, std::string const& name) {}
 
 template <typename T>
 void hstdVec_bind(type_registration_guard& g, std::string const& name) {
@@ -127,28 +120,20 @@ void hstdVec_bind(type_registration_guard& g, std::string const& name) {
     if (g.can_add<VT>()) {
         emscripten::class_<VT>(name.c_str())
             .function("size", &VT::size)
-            .function(
-                "push_back",
-                static_cast<void (VT::*)(T const&)>(&VT::push_back))
+            .function("push_back", static_cast<void (VT::*)(T const&)>(&VT::push_back))
             .function("pop_back", &VT::pop_back)
             .function("clear", &VT::clear)
-            .function(
-                "empty", static_cast<bool (VT::*)() const>(&VT::empty))
+            .function("empty", static_cast<bool (VT::*)() const>(&VT::empty))
             .function("reserve", &VT::reserve)
             .function(
                 "resize_with_value",
                 static_cast<void (VT::*)(size_t, T const&)>(&VT::resize))
+            .function("at", static_cast<T const& (VT::*)(int) const>(&VT::at))
+            .function("front", static_cast<T const& (VT::*)() const>(&VT::front))
+            .function("back", static_cast<T const& (VT::*)() const>(&VT::back))
             .function(
-                "at", static_cast<T const& (VT::*)(int) const>(&VT::at))
-            .function(
-                "front", static_cast<T const& (VT::*)() const>(&VT::front))
-            .function(
-                "back", static_cast<T const& (VT::*)() const>(&VT::back))
-            .function(
-                "toArray",
-                +[](hstd::Vec<T> const& self) -> emscripten::val {
-                    emscripten::val
-                        result = emscripten::val::global("Array").new_();
+                "toArray", +[](hstd::Vec<T> const& self) -> emscripten::val {
+                    emscripten::val result = emscripten::val::global("Array").new_();
                     for (size_t i = 0; i < self.size(); ++i) {
                         result.call<void>("push", self[i]);
                     }
@@ -158,30 +143,22 @@ void hstdVec_bind(type_registration_guard& g, std::string const& name) {
 }
 
 template <typename T>
-void hstdIntSet_bind(type_registration_guard& g, std::string const& name) {
-}
+void hstdIntSet_bind(type_registration_guard& g, std::string const& name) {}
 
 template <typename K, typename V>
-void hstdUnorderedMap_bind(
-    type_registration_guard& g,
-    std::string const&       name) {}
+void hstdUnorderedMap_bind(type_registration_guard& g, std::string const& name) {}
 
 
 template <typename T>
-void stdoptional_bind(
-    type_registration_guard& g,
-    std::string const&       name) {
+void stdoptional_bind(type_registration_guard& g, std::string const& name) {
     if (g.can_add<std::optional<T>>()) {
         emscripten::class_<std::optional<T>>(name.c_str()) //
             .function(
                 "value",
-                +[](std::optional<T> const& opt) -> T const& {
-                    return opt.value();
-                })
+                +[](std::optional<T> const& opt) -> T const& { return opt.value(); })
             .function(
-                "has_value", +[](std::optional<T> const& opt) -> bool {
-                    return opt.has_value();
-                });
+                "has_value",
+                +[](std::optional<T> const& opt) -> bool { return opt.has_value(); });
     }
 }
 
@@ -262,9 +239,7 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
         typename = std::enable_if_t<
             !std::is_same_v<std::decay_t<Functor>, Callable>
             && is_callable<Functor, Args...>::value
-            && std::is_same_v<
-                callable_result_t<Functor, Args...>,
-                ReturnType>>>
+            && std::is_same_v<callable_result_t<Functor, Args...>, ReturnType>>>
     Callable(Functor&& functor, ArgsTuple args)
         : function_(nullptr)
         , args_(std::move(args))
@@ -292,8 +267,7 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
         } else if (functor_) {
             return functor_->invoke(std::forward<CallArgs>(callArgs)...);
         } else {
-            throw std::runtime_error(
-                "Callable has no valid function or functor");
+            throw std::runtime_error("Callable has no valid function or functor");
         }
     }
 
@@ -301,9 +275,7 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
     FunctionType     function() const { return function_; }
     bool             isFunctor() const { return functor_ != nullptr; }
 
-    int getRequiredArgsCount() const {
-        return count_required_args(args());
-    }
+    int getRequiredArgsCount() const { return count_required_args(args()); }
 
   private:
     // Base class for type-erased functor
@@ -317,8 +289,7 @@ class Callable<CallableClass<std::monostate>, ReturnType, Args...> {
     struct FunctorWrapper : FunctorBase {
         Functor functor;
 
-        explicit FunctorWrapper(Functor&& f)
-            : functor(std::forward<Functor>(f)) {}
+        explicit FunctorWrapper(Functor&& f) : functor(std::forward<Functor>(f)) {}
 
         ReturnType invoke(Args... args) const override {
             return functor(std::forward<Args>(args)...);
@@ -343,8 +314,7 @@ class Callable<CallableClass<ClassType>, ReturnType, Args...> {
         : method_(method), args_(std::move(args)) {}
 
     template <typename... CallArgs>
-    ReturnType operator()(ClassType* instance, CallArgs&&... callArgs)
-        const {
+    ReturnType operator()(ClassType* instance, CallArgs&&... callArgs) const {
         return invoke(
             instance,
             std::index_sequence_for<Args...>{},
@@ -354,9 +324,7 @@ class Callable<CallableClass<ClassType>, ReturnType, Args...> {
     const ArgsTuple& args() const { return args_; }
     MethodType       method() const { return method_; }
 
-    int getRequiredArgsCount() const {
-        return count_required_args(args());
-    }
+    int getRequiredArgsCount() const { return count_required_args(args()); }
 
 
   private:
@@ -384,9 +352,7 @@ class Callable<CallableClass<const ClassType>, ReturnType, Args...> {
         : method_(method), args_(std::move(args)) {}
 
     template <typename... CallArgs>
-    ReturnType operator()(
-        ClassType const* instance,
-        CallArgs&&... callArgs) const {
+    ReturnType operator()(ClassType const* instance, CallArgs&&... callArgs) const {
         return invoke(
             instance,
             std::index_sequence_for<Args...>{},
@@ -396,9 +362,7 @@ class Callable<CallableClass<const ClassType>, ReturnType, Args...> {
     const ArgsTuple& args() const { return args_; }
     MethodType       method() const { return method_; }
 
-    int getRequiredArgsCount() const {
-        return count_required_args(args());
-    }
+    int getRequiredArgsCount() const { return count_required_args(args()); }
 
   private:
     MethodType method_;
@@ -447,22 +411,16 @@ template <
     typename Functor,
     typename... Args,
     typename ReturnType = callable_result_t<Functor, Args...>,
-    typename = std::enable_if_t<is_callable<Functor, Args...>::value>>
-auto makeCallable(
-    Functor&&                                     functor,
-    std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
+    typename            = std::enable_if_t<is_callable<Functor, Args...>::value>>
+auto makeCallable(Functor&& functor, std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
     return Callable<CallableClass<std::monostate>, ReturnType, Args...>(
         std::forward<Functor>(functor), std::move(args));
 }
 
 // For constructors
 template <typename ConstructedType, typename... Args>
-auto makeConstructorCallable(
-    std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
-    return Callable<
-        CallableClass<std::monostate>,
-        ConstructedType,
-        Args...>::
+auto makeConstructorCallable(std::tuple<CxxArgSpec<std::decay_t<Args>>...> args) {
+    return Callable<CallableClass<std::monostate>, ConstructedType, Args...>::
         template ForConstructor<ConstructedType>(std::move(args));
 }
 

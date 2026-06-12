@@ -23,53 +23,51 @@
 #    include <google/protobuf/message.h>
 #    include <hstd/stdlib/Xml.hpp>
 
-#    define _attr_aligned(__Class, Method, key, Type)                     \
-        __Class* set##Method(                                             \
-            Type const& value, TextAlign direction = TextAlign::Left) {   \
-            setAttr(#key, value, direction);                              \
-            return this;                                                  \
-        }                                                                 \
-                                                                          \
-        Opt<Type> get##Method() const {                                   \
-            Opt<Type> value;                                              \
-            getAttr(#key, value);                                         \
-            return value;                                                 \
+#    define _attr_aligned(__Class, Method, key, Type)                                    \
+        __Class* set##Method(Type const& value, TextAlign direction = TextAlign::Left) { \
+            setAttr(#key, value, direction);                                             \
+            return this;                                                                 \
+        }                                                                                \
+                                                                                         \
+        Opt<Type> get##Method() const {                                                  \
+            Opt<Type> value;                                                             \
+            getAttr(#key, value);                                                        \
+            return value;                                                                \
         }
 
-#    define _attr(__Class, Method, key, Type)                             \
-        __Class* set##Method(Type const& value) {                         \
-            setAttr(#key, value);                                         \
-            return this;                                                  \
-        }                                                                 \
-                                                                          \
-        Opt<Type> get##Method() const {                                   \
-            Opt<Type> value;                                              \
-            getAttr(#key, value);                                         \
-            return value;                                                 \
+#    define _attr(__Class, Method, key, Type)                                            \
+        __Class* set##Method(Type const& value) {                                        \
+            setAttr(#key, value);                                                        \
+            return this;                                                                 \
+        }                                                                                \
+                                                                                         \
+        Opt<Type> get##Method() const {                                                  \
+            Opt<Type> value;                                                             \
+            getAttr(#key, value);                                                        \
+            return value;                                                                \
         }
 
-#    define _attrx(__Class, Method, key, Type)                            \
-        __Class* set##Method(Type const& value);
+#    define _attrx(__Class, Method, key, Type) __Class* set##Method(Type const& value);
 
 
-#    define _eattr_use(__Class, Name, key, Type)                          \
-        __Class* set##Name(Type value) {                                  \
-            setAttr(#key, enum_serde<Type>::to_string(value));            \
-            return this;                                                  \
-        }                                                                 \
-        Opt<Type> get##Name() const {                                     \
-            Opt<Str> result;                                              \
-            getAttr(#key, result);                                        \
-            if (result) {                                                 \
-                return enum_serde<Type>::from_string(result.value());     \
-            } else {                                                      \
-                return std::nullopt;                                      \
-            }                                                             \
+#    define _eattr_use(__Class, Name, key, Type)                                         \
+        __Class* set##Name(Type value) {                                                 \
+            setAttr(#key, enum_serde<Type>::to_string(value));                           \
+            return this;                                                                 \
+        }                                                                                \
+        Opt<Type> get##Name() const {                                                    \
+            Opt<Str> result;                                                             \
+            getAttr(#key, result);                                                       \
+            if (result) {                                                                \
+                return enum_serde<Type>::from_string(result.value());                    \
+            } else {                                                                     \
+                return std::nullopt;                                                     \
+            }                                                                            \
         }
 
 
-#    define _eattr(__Class, Name, key, ...)                               \
-        DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                           \
+#    define _eattr(__Class, Name, key, ...)                                              \
+        DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                                          \
         _eattr_use(__Class, Name, key);
 
 
@@ -124,13 +122,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     diagonals,
     rounded);
 
-DECL_DESCRIBED_ENUM_STANDALONE(
-    NodeArrowSize,
-    tiny,
-    small,
-    normal,
-    large,
-    huge);
+DECL_DESCRIBED_ENUM_STANDALONE(NodeArrowSize, tiny, small, normal, large, huge);
 
 DECL_DESCRIBED_ENUM_STANDALONE(
     NodeArrowType,
@@ -227,86 +219,81 @@ DECL_DESCRIBED_ENUM_STANDALONE(
     lpromoter);
 
 
-#    define _GV_NODE_ATTRIBUTES(                                          \
-        __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
-        __eattr_use_impl(NodeAttribute, NodeShape, shape, gv::NodeShape); \
-        __eattr_use_impl(                                                 \
-            NodeAttribute, NodeArrowSize, arrowsize, gv::NodeArrowSize);  \
-        __eattr_use_impl(NodeAttribute, Style, style, gv::Style);         \
-        __attr_impl(NodeAttribute, PenWidth, penwidth, double);           \
-        __attr_impl(NodeAttribute, Color, color, Str);                    \
-        __attr_impl(NodeAttribute, FillColor, fillcolor, Str);            \
-        __attr_impl(NodeAttribute, FontColor, fontcolor, Str);            \
-        __attr_impl(NodeAttribute, FontName, fontname, Str);              \
-        __attr_impl(NodeAttribute, FontSize, fontsize, double);           \
-        __attr_impl(NodeAttribute, Height, height, double);               \
-        __attr_aligned_impl(NodeAttribute, Label, label, Str);            \
-        __attr_impl(NodeAttribute, Position, pos, Point);                 \
-        __attr_impl(NodeAttribute, URL, URL, Str);                        \
-        __attr_impl(NodeAttribute, Width, width, double);                 \
-        __attr_aligned_impl(NodeAttribute, XLabel, xlabel, Str);          \
-        __attr_impl(NodeAttribute, XLabelPosition, xlabelpos, Point);     \
+#    define _GV_NODE_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)      \
+        __eattr_use_impl(NodeAttribute, NodeShape, shape, gv::NodeShape);                \
+        __eattr_use_impl(NodeAttribute, NodeArrowSize, arrowsize, gv::NodeArrowSize);    \
+        __eattr_use_impl(NodeAttribute, Style, style, gv::Style);                        \
+        __attr_impl(NodeAttribute, PenWidth, penwidth, double);                          \
+        __attr_impl(NodeAttribute, Color, color, Str);                                   \
+        __attr_impl(NodeAttribute, FillColor, fillcolor, Str);                           \
+        __attr_impl(NodeAttribute, FontColor, fontcolor, Str);                           \
+        __attr_impl(NodeAttribute, FontName, fontname, Str);                             \
+        __attr_impl(NodeAttribute, FontSize, fontsize, double);                          \
+        __attr_impl(NodeAttribute, Height, height, double);                              \
+        __attr_aligned_impl(NodeAttribute, Label, label, Str);                           \
+        __attr_impl(NodeAttribute, Position, pos, Point);                                \
+        __attr_impl(NodeAttribute, URL, URL, Str);                                       \
+        __attr_impl(NodeAttribute, Width, width, double);                                \
+        __attr_aligned_impl(NodeAttribute, XLabel, xlabel, Str);                         \
+        __attr_impl(NodeAttribute, XLabelPosition, xlabelpos, Point);                    \
         __attr_impl(NodeAttribute, Margin, margin, Point);
 
-#    define _GV_EDGE_ATTRIBUTES(                                          \
-        __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
-        __attr_impl(EdgeAttribute, Constraint, constraint, bool);         \
-        __attr_impl(EdgeAttribute, Color, color, Str /*Str*/);            \
-        __eattr_use_impl(EdgeAttribute, EdgeDir, dir, gv::EdgeDir);       \
-        __attr_impl(EdgeAttribute, FontColor, fontcolor, Str /*Str*/);    \
-        __attr_impl(EdgeAttribute, FontName, fontname, Str);              \
-        __attr_impl(EdgeAttribute, FontSize, fontsize, double);           \
-        __attr_aligned_impl(EdgeAttribute, Label, label, Str);            \
-        __attr_impl(EdgeAttribute, LabelPosition, lp, Point);             \
-        __attr_impl(EdgeAttribute, PenWidth, penwidth, double);           \
-        __eattr_use_impl(EdgeAttribute, Style, style, gv::Style);         \
-        __attr_impl(EdgeAttribute, URL, URL, Str);                        \
-        __attr_impl(EdgeAttribute, LHead, lhead, Str);                    \
+#    define _GV_EDGE_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)      \
+        __attr_impl(EdgeAttribute, Constraint, constraint, bool);                        \
+        __attr_impl(EdgeAttribute, Color, color, Str /*Str*/);                           \
+        __eattr_use_impl(EdgeAttribute, EdgeDir, dir, gv::EdgeDir);                      \
+        __attr_impl(EdgeAttribute, FontColor, fontcolor, Str /*Str*/);                   \
+        __attr_impl(EdgeAttribute, FontName, fontname, Str);                             \
+        __attr_impl(EdgeAttribute, FontSize, fontsize, double);                          \
+        __attr_aligned_impl(EdgeAttribute, Label, label, Str);                           \
+        __attr_impl(EdgeAttribute, LabelPosition, lp, Point);                            \
+        __attr_impl(EdgeAttribute, PenWidth, penwidth, double);                          \
+        __eattr_use_impl(EdgeAttribute, Style, style, gv::Style);                        \
+        __attr_impl(EdgeAttribute, URL, URL, Str);                                       \
+        __attr_impl(EdgeAttribute, LHead, lhead, Str);                                   \
         __attr_impl(EdgeAttribute, LTail, ltail, Str);
 
-#    define _GV_GRAPH_ATTRIBUTES(                                         \
-        __attr_impl, __eattr_use_impl, __attr_aligned_impl)               \
-        __eattr_use_impl(                                                 \
-            GraphGroup, RankDirection, rankdir, gv::RankDirection);       \
-        __eattr_use_impl(GraphGroup, Rank, rank, gv::Rank);               \
-        __attr_impl(GraphGroup, Damping, Damping, double);                \
-        __attr_impl(GraphGroup, K, K, double);                            \
-        __attr_impl(GraphGroup, URL, URL, Str);                           \
-        __attr_impl(GraphGroup, AspectRatio, aspect, double);             \
-        __attr_impl(GraphGroup, BackgroundColor, bgcolor, Str);           \
-        __attr_impl(GraphGroup, DefaultDistance, defaultdist, double);    \
-        __attr_impl(GraphGroup, DefaultNodeColor, defaultNodeColor, Str); \
-        __attr_impl(GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str); \
-        __attr_impl(GraphGroup, FontColor, fontcolor, Str);               \
-        __attr_impl(GraphGroup, Color, color, Str);                       \
-        __attr_impl(GraphGroup, PenWidth, penwidth, double);              \
-        __attr_impl(GraphGroup, FillColor, fillcolor, Str);               \
-        __eattr_use_impl(GraphGroup, Style, style, gv::Style);            \
-        __attr_impl(GraphGroup, FontName, fontname, Str);                 \
-        __attr_impl(GraphGroup, FontSize, fontsize, double);              \
-        __attr_aligned_impl(GraphGroup, Label, label, Str);               \
-        __attr_aligned_impl(GraphGroup, LabelURL, labelURL, Str);         \
-        __attr_impl(GraphGroup, LabelJustification, labeljust, Str);      \
-        __attr_impl(GraphGroup, LabelLocator, labelloc, Str);             \
-        __attr_impl(GraphGroup, LayerListSeparator, layersep, Str);       \
-        __attr_impl(GraphGroup, Layers, layers, Str);                     \
-        __attr_impl(GraphGroup, Margin, margin, Point);                   \
-        __attr_impl(GraphGroup, Pad, pad, Point);                         \
-        __attr_impl(GraphGroup, NodeSeparation, nodesep, double);         \
-        __attr_impl(GraphGroup, OutputOrder, outputorder, Str);           \
-        __attr_impl(GraphGroup, PageDirection, pagedir, Str);             \
-        __attr_impl(GraphGroup, PageHeight, pageheight, double);          \
-        __attr_impl(GraphGroup, PageWidth, pagewidth, double);            \
-        __attr_impl(GraphGroup, Quantum, quantum, double);                \
-        __attr_impl(GraphGroup, RankSeparation, ranksep, double);         \
-        __attr_impl(GraphGroup, Resolution, resolution, double);          \
-        __attr_impl(GraphGroup, SearchSize, searchsize, int);             \
-        __attr_impl(GraphGroup, Size, size, Point);                       \
-        __attr_impl(GraphGroup, Spline, splines, Str);                    \
-        __attr_impl(GraphGroup, StyleSheet, stylesheet, Str);             \
-        __attr_impl(GraphGroup, TrueColor, truecolor, bool);              \
-        __attr_impl(GraphGroup, ViewPort, viewport, Point);               \
-        __attr_impl(GraphGroup, Compound, compound, bool);                \
+#    define _GV_GRAPH_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)     \
+        __eattr_use_impl(GraphGroup, RankDirection, rankdir, gv::RankDirection);         \
+        __eattr_use_impl(GraphGroup, Rank, rank, gv::Rank);                              \
+        __attr_impl(GraphGroup, Damping, Damping, double);                               \
+        __attr_impl(GraphGroup, K, K, double);                                           \
+        __attr_impl(GraphGroup, URL, URL, Str);                                          \
+        __attr_impl(GraphGroup, AspectRatio, aspect, double);                            \
+        __attr_impl(GraphGroup, BackgroundColor, bgcolor, Str);                          \
+        __attr_impl(GraphGroup, DefaultDistance, defaultdist, double);                   \
+        __attr_impl(GraphGroup, DefaultNodeColor, defaultNodeColor, Str);                \
+        __attr_impl(GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str);                \
+        __attr_impl(GraphGroup, FontColor, fontcolor, Str);                              \
+        __attr_impl(GraphGroup, Color, color, Str);                                      \
+        __attr_impl(GraphGroup, PenWidth, penwidth, double);                             \
+        __attr_impl(GraphGroup, FillColor, fillcolor, Str);                              \
+        __eattr_use_impl(GraphGroup, Style, style, gv::Style);                           \
+        __attr_impl(GraphGroup, FontName, fontname, Str);                                \
+        __attr_impl(GraphGroup, FontSize, fontsize, double);                             \
+        __attr_aligned_impl(GraphGroup, Label, label, Str);                              \
+        __attr_aligned_impl(GraphGroup, LabelURL, labelURL, Str);                        \
+        __attr_impl(GraphGroup, LabelJustification, labeljust, Str);                     \
+        __attr_impl(GraphGroup, LabelLocator, labelloc, Str);                            \
+        __attr_impl(GraphGroup, LayerListSeparator, layersep, Str);                      \
+        __attr_impl(GraphGroup, Layers, layers, Str);                                    \
+        __attr_impl(GraphGroup, Margin, margin, Point);                                  \
+        __attr_impl(GraphGroup, Pad, pad, Point);                                        \
+        __attr_impl(GraphGroup, NodeSeparation, nodesep, double);                        \
+        __attr_impl(GraphGroup, OutputOrder, outputorder, Str);                          \
+        __attr_impl(GraphGroup, PageDirection, pagedir, Str);                            \
+        __attr_impl(GraphGroup, PageHeight, pageheight, double);                         \
+        __attr_impl(GraphGroup, PageWidth, pagewidth, double);                           \
+        __attr_impl(GraphGroup, Quantum, quantum, double);                               \
+        __attr_impl(GraphGroup, RankSeparation, ranksep, double);                        \
+        __attr_impl(GraphGroup, Resolution, resolution, double);                         \
+        __attr_impl(GraphGroup, SearchSize, searchsize, int);                            \
+        __attr_impl(GraphGroup, Size, size, Point);                                      \
+        __attr_impl(GraphGroup, Spline, splines, Str);                                   \
+        __attr_impl(GraphGroup, StyleSheet, stylesheet, Str);                            \
+        __attr_impl(GraphGroup, TrueColor, truecolor, bool);                             \
+        __attr_impl(GraphGroup, ViewPort, viewport, Point);                              \
+        __attr_impl(GraphGroup, Compound, compound, bool);                               \
         __attr_impl(GraphGroup, Concentrate, concentrate, bool);
 
 Str alignText(Str const& text, TextAlign direction);
@@ -332,8 +319,7 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     /// that cannot be serialized to the simple string attributes.
     template <typename Rec, typename... Args>
     Rec* bindPayload(Str const& name, Args&&... args) {
-        Rec* result = (Rec*)agbindrec(
-            _this()->get(), strdup(name), sizeof(Rec), false);
+        Rec* result = (Rec*)agbindrec(_this()->get(), strdup(name), sizeof(Rec), false);
         if (result != nullptr) {
             result = new (result) Rec(std::forward<Args>(args)...);
             return result;
@@ -347,17 +333,12 @@ struct GraphvizObjBase : CRTP_this_method<T> {
         return (Rec*)aggetrec(_this()->get(), strdup(name), false);
     }
 
-    void delPayload(Str const& name) {
-        agdelrec(_this()->get(), strdup(name));
-    }
+    void delPayload(Str const& name) { agdelrec(_this()->get(), strdup(name)); }
 
     Func<void(Str const&, Str const&)> setOverride;
 
 
-    void setAttr(
-        Str const& attribute,
-        Str const& value,
-        TextAlign  direction) {
+    void setAttr(Str const& attribute, Str const& value, TextAlign direction) {
         setAttr(attribute, alignText(value, direction));
     }
 
@@ -373,8 +354,7 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     }
 
     void getAttr(Str const& attribute, Opt<Str>& value) const {
-        char* found = agget(
-            (void*)(_this()->get()), const_cast<char*>(attribute.data()));
+        char* found = agget((void*)(_this()->get()), const_cast<char*>(attribute.data()));
 
         if (found != nullptr) {
             value = found;
@@ -420,22 +400,16 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     void setHtmlAttr(Str attribute, Str const& value) {
         // Define the attribute if not already defined
         Agsym_t* attr = agattr(
-            agraphof(_this()->get()),
-            T::graphvizKind,
-            attribute.data(),
-            "");
+            agraphof(_this()->get()), T::graphvizKind, attribute.data(), "");
         if (!attr) {
-            throw std::runtime_error(
-                "Failed to define attribute: " + attribute);
+            throw std::runtime_error("Failed to define attribute: " + attribute);
         }
 
         // Set the raw value using `agxset` and `agstrdup_html`
         agxset(
             _this()->get(),
             attr,
-            agstrdup_html(
-                agraphof(_this()->get()),
-                const_cast<char*>(value.c_str())));
+            agstrdup_html(agraphof(_this()->get()), const_cast<char*>(value.c_str())));
     }
 
 
@@ -444,10 +418,7 @@ struct GraphvizObjBase : CRTP_this_method<T> {
             setOverride(attribute, value);
         } else {
             agsafeset(
-                _this()->get(),
-                attribute.data(),
-                const_cast<char*>(value.c_str()),
-                "");
+                _this()->get(), attribute.data(), const_cast<char*>(value.c_str()), "");
         }
     }
 
@@ -529,9 +500,7 @@ struct Record {
     Vec<Record> const& getNested() const { return std::get<1>(content); }
 
 
-    static Record fromEscapedText(
-        Str const& text,
-        TextAlign  align = TextAlign::Left);
+    static Record fromEscapedText(Str const& text, TextAlign align = TextAlign::Left);
 
     static Record fromHtmlText(Str const& text) { return Record{text}; }
 
@@ -574,8 +543,7 @@ class NodeAttribute
 
     NodeAttribute(Agraph_t* graph, Str const& name, Record const& record);
 
-    NodeAttribute(Agraph_t* graph, Agnode_t* node_)
-        : node(node_), graph(graph) {}
+    NodeAttribute(Agraph_t* graph, Agnode_t* node_) : node(node_), graph(graph) {}
 
     NodeAttribute(Agraph_t* graph, Str const& name);
     NodeAttribute(NodeAttribute const& other) = default;
@@ -585,9 +553,7 @@ class NodeAttribute
 
     Str name() const { return agnameof(node); }
 
-    std::string getRepr() const override {
-        return getPropertiesAsString();
-    }
+    std::string getRepr() const override { return getPropertiesAsString(); }
 
     std::string getPropertiesAsString() const;
 
@@ -628,9 +594,7 @@ class NodeAttribute
     double getPointHeight() const { return getInchHeight() * scaling; }
 
     Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
-    Agnodeinfo_t const* info() const {
-        return (Agnodeinfo_t*)AGDATA(node);
-    }
+    Agnodeinfo_t const* info() const { return (Agnodeinfo_t*)AGDATA(node); }
 
     NodeAttribute* setFixedInchesWH(double w, double h);
     NodeAttribute* setFixedPointWH(double w, double h) {
@@ -638,8 +602,7 @@ class NodeAttribute
     }
 
     NodeAttribute* setFixedPointWH(geometry::Size const& size) {
-        return setFixedInchesWH(
-            size.width() / scaling, size.height() / scaling);
+        return setFixedInchesWH(size.width() / scaling, size.height() / scaling);
     }
 
   public:
@@ -647,8 +610,7 @@ class NodeAttribute
     Agraph_t* graph;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
-        const override;
+    void writeSerial(graph::proto::IAttribute*, IGraph const* graph) const override;
 
     void readSerial(
         graph::proto::IAttribute const* in,
@@ -663,15 +625,11 @@ class EdgeAttribute
     , public layout::IEdgeVisualAttribute {
   public:
     static const int graphvizKind = AGEDGE;
-    EdgeAttribute(Agraph_t* graph, Agedge_t* edge)
-        : edge_(edge), graph(graph) {}
+    EdgeAttribute(Agraph_t* graph, Agedge_t* edge) : edge_(edge), graph(graph) {}
 
     std::string getRepr() const override { return "gv::EdgeAttribute"; }
 
-    EdgeAttribute(
-        Agraph_t*            graph,
-        NodeAttribute const& head,
-        NodeAttribute const& tail);
+    EdgeAttribute(Agraph_t* graph, NodeAttribute const& head, NodeAttribute const& tail);
 
     _GV_EDGE_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
 
@@ -696,17 +654,14 @@ class EdgeAttribute
     };
 
     Agedgeinfo_t*       info() { return (Agedgeinfo_t*)AGDATA(edge_); }
-    Agedgeinfo_t const* info() const {
-        return (Agedgeinfo_t*)AGDATA(edge_);
-    }
+    Agedgeinfo_t const* info() const { return (Agedgeinfo_t*)AGDATA(edge_); }
 
   public:
     Agraph_t* graph;
     Agedge_t* edge_;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute*, IGraph const* graph)
-        const override;
+    void writeSerial(graph::proto::IAttribute*, IGraph const* graph) const override;
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
@@ -725,13 +680,9 @@ class GraphGroup
     using Base = layout::IGroupVisualAttribute;
 
     hstd::Opt<geometry::Padding> outerPadding;
-    void setOuterPadding(geometry::Padding const& pad) override {
-        outerPadding = pad;
-    }
+    void setOuterPadding(geometry::Padding const& pad) override { outerPadding = pad; }
 
-    hstd::Opt<geometry::Padding> getOuterPadding() const override {
-        return outerPadding;
-    }
+    hstd::Opt<geometry::Padding> getOuterPadding() const override { return outerPadding; }
 
     static const int graphvizKind = AGRAPH;
 
@@ -743,10 +694,7 @@ class GraphGroup
         SPtr<GVC_t>                   gvc;
     };
 
-    GraphGroup(
-        GroupContext ctx,
-        Str const&   name,
-        Agdesc_t     desc = Agdirected);
+    GraphGroup(GroupContext ctx, Str const& name, Agdesc_t desc = Agdirected);
     GraphGroup(GroupContext ctx, fs::path const& file);
     GraphGroup(GroupContext ctx, Agraph_t* graph);
 
@@ -786,21 +734,16 @@ class GraphGroup
     }
 
     Agraphinfo_t*       info() { return (Agraphinfo_t*)AGDATA(graph); }
-    Agraphinfo_t const* info() const {
-        return (Agraphinfo_t*)AGDATA(graph);
-    }
+    Agraphinfo_t const* info() const { return (Agraphinfo_t*)AGDATA(graph); }
 
     /// \brief Create a new graphviz graph node and return attribute handle
     /// for it.
     hstd::SPtr<NodeAttribute> node(Str const& name) {
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
-        auto existing_node = agnode(
-            graph, const_cast<char*>(name.c_str()), 0);
+        auto existing_node = agnode(graph, const_cast<char*>(name.c_str()), 0);
         if (existing_node != nullptr) {
             throw hstd::ext::graph::layout::layout_error::init(
-                hstd::fmt(
-                    "Node with name {} already exists in the graph",
-                    name));
+                hstd::fmt("Node with name {} already exists in the graph", name));
         }
 
         auto tmp = std::make_shared<NodeAttribute>(graph, name);
@@ -809,18 +752,14 @@ class GraphGroup
 
     /// \brief Create new edge between two existing graph nodes, return
     /// graph edge attribute handle.
-    hstd::SPtr<EdgeAttribute> edge(
-        NodeAttribute const& head,
-        NodeAttribute const& tail) {
+    hstd::SPtr<EdgeAttribute> edge(NodeAttribute const& head, NodeAttribute const& tail) {
         LOGIC_ASSERTION_CHECK(graph != nullptr, "");
         return std::make_shared<EdgeAttribute>(graph, head, tail);
     }
 
     _GV_GRAPH_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
 
-    GraphGroup* setDirectionLR() {
-        return setRankDirection(RankDirection::LR);
-    }
+    GraphGroup* setDirectionLR() { return setRankDirection(RankDirection::LR); }
 
     std::string getRepr() const override { return "gv::GraphGroup"; }
 
@@ -840,8 +779,7 @@ class GraphGroup
     /// layout run. graphviz API makes it reasonably easy to generate a
     /// quick graph visualization, without setting up the full layout run,
     /// so this method is used as an escape hatch for cases like these.
-    static hstd::SPtr<gv::GraphGroup> newStandaloneRootGraph(
-        hstd::Str const& name);
+    static hstd::SPtr<gv::GraphGroup> newStandaloneRootGraph(hstd::Str const& name);
 
 
     static hstd::SPtr<GraphGroup> newRootGraph(
@@ -857,8 +795,7 @@ class GraphGroup
     }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
-        const override;
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
         graph::proto::IAttribute const* in,
@@ -903,8 +840,7 @@ class Layout : public layout::IPlacementAlgorithm {
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override {
         logic_todo_impl();
     }
 
@@ -920,24 +856,19 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
     NodeAttribute node;
     GraphGroup    graph;
 
-    GraphVertexLayoutAttribute(
-        NodeAttribute const& node,
-        GraphGroup const&    graph)
+    GraphVertexLayoutAttribute(NodeAttribute const& node, GraphGroup const& graph)
         : node{node}, graph{graph} {}
 
     Rect getBBox() const override;
 
-    std::string getRepr() const override {
-        return node.getPropertiesAsString();
-    }
+    std::string getRepr() const override { return node.getPropertiesAsString(); }
 
     visual::VisGroup getVisual(VertexID const& selfId) const override;
 };
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
-    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override {
         logic_todo_impl();
     }
 
@@ -952,16 +883,12 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
     EdgeAttribute edge;
     GraphGroup    graph;
 
-    GraphEdgeLayoutAttribute(
-        EdgeAttribute const& edge,
-        GraphGroup const&    graph)
+    GraphEdgeLayoutAttribute(EdgeAttribute const& edge, GraphGroup const& graph)
         : edge{edge}, graph{graph} {}
 
     Path getPath() const override;
 
-    std::string getRepr() const override {
-        return edge.getPropertiesAsString();
-    }
+    std::string getRepr() const override { return edge.getPropertiesAsString(); }
 
 
     visual::VisGroup getVisual(EdgeID const& selfId) const override;
@@ -970,8 +897,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override {
         logic_todo_impl();
     }
 
@@ -987,17 +913,13 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
     Rect                   graph;
     hstd::SPtr<GraphGroup> group;
 
-    GraphGroupLayoutAttribute(
-        Rect const&                   graph,
-        hstd::SPtr<GraphGroup> const& group)
+    GraphGroupLayoutAttribute(Rect const& graph, hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
     Rect getBBox() const override { return graph; }
     void setBBox(geometry::Rect const& rect) override { graph = rect; }
 
-    std::string getRepr() const override {
-        return group->getPropertiesAsString();
-    }
+    std::string getRepr() const override { return group->getPropertiesAsString(); }
 
     visual::VisGroup getVisual(VertexID const& selfId) const override;
 };

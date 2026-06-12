@@ -4,19 +4,19 @@ void action(char const*) {}
 #define macro_1() action();
 
 #define layer_macro_2() action();
-#define layer_macro_1()                                                   \
-    layer_macro_2();                                                      \
-    layer_macro_2();                                                      \
+#define layer_macro_1()                                                                  \
+    layer_macro_2();                                                                     \
+    layer_macro_2();                                                                     \
     action();
-#define layer_macro_0()                                                   \
-    layer_macro_1();                                                      \
-    layer_macro_1();                                                      \
+#define layer_macro_0()                                                                  \
+    layer_macro_1();                                                                     \
+    layer_macro_1();                                                                     \
     action();
 
 void layer_call() { layer_macro_0(); }
 
-#define parameter_macro(par1, par2)                                       \
-    action(#par1);                                                        \
+#define parameter_macro(par1, par2)                                                      \
+    action(#par1);                                                                       \
     action(#par2);
 
 void parameter_call() {

@@ -20,14 +20,8 @@ template <typename K, typename V>
 struct Token;
 
 
-template <
-    typename K,
-    typename V,
-    typename IdBase   = hstd::u64,
-    typename MaskType = IdBase>
-struct TokenId
-    : hstd::dod::
-          Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
+template <typename K, typename V, typename IdBase = hstd::u64, typename MaskType = IdBase>
+struct TokenId : hstd::dod::Id<IdBase, MaskType, std::integral_constant<MaskType, 16>> {
     using base_type = hstd::dod::
         Id<IdBase, MaskType, std::integral_constant<MaskType, 16>>;
     using value_type = Token<K, V>;
@@ -72,12 +66,10 @@ struct Token {
 
 
 template <hstd::StdFormattable K, typename V>
-struct std::formatter<org::parse::Token<K, V>>
-    : std::formatter<std::string> {
+struct std::formatter<org::parse::Token<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        org::parse::Token<K, V> const& p,
-        FormatContext&                 ctx) const {
+    FormatContext::iterator format(org::parse::Token<K, V> const& p, FormatContext& ctx)
+        const {
         std::formatter<std::string> fmt;
         fmt.format("Token<", ctx);
         std::formatter<K>{}.format(p.kind, ctx);
@@ -89,8 +81,7 @@ struct std::formatter<org::parse::Token<K, V>>
 
 
 template <typename K, typename V>
-struct std::formatter<org::parse::TokenId<K, V>>
-    : std::formatter<std::string> {
+struct std::formatter<org::parse::TokenId<K, V>> : std::formatter<std::string> {
     template <typename FormatContext>
     typename FormatContext::iterator format(
         org::parse::TokenId<K, V> const& p,

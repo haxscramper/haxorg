@@ -78,10 +78,7 @@ struct type_caster<org::sem::SemId<O>> {
     static constexpr bool IsClass = false;
     Value                 value   = Value::Nil();
 
-    bool from_python(
-        handle        src,
-        uint8_t       flags,
-        cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             value = Value::Nil();
             return true;
@@ -130,8 +127,7 @@ org::sem::SemId<org::sem::Org> getSingleSubnode(
     org::sem::SemId<org::sem::Org> node,
     nanobind::callable             callback);
 
-struct [[refl(R"({ "backend": {"target-backends": ["python"]}})")]]
-PyCodeEvalParameters {
+struct [[refl(R"({ "backend": {"target-backends": ["python"]}})")]] PyCodeEvalParameters {
     hstd::SPtr<hstd::OperationsTracer> debug;
     [[refl]] nanobind::callable        evalBlock;
 
@@ -156,8 +152,7 @@ PyCodeEvalParameters {
     PyCodeEvalParameters const&               conf,
     std::shared_ptr<org::parse::ParseContext> parse_context);
 
-enum class [[refl(
-    R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType
+enum class [[refl(R"({"backend": {"target-backends": ["python"]}})")]] LeafFieldType
 {
     Int,
     UserTimeKind,
@@ -194,8 +189,7 @@ struct LeafKindForT<int> : LeafKindForBase<int, LeafFieldType::Int> {};
 
 
 template <>
-struct LeafKindForT<hstd::Str>
-    : LeafKindForBase<hstd::Str, LeafFieldType::Str> {};
+struct LeafKindForT<hstd::Str> : LeafKindForBase<hstd::Str, LeafFieldType::Str> {};
 
 template <>
 struct LeafKindForT<bool> : LeafKindForBase<bool, LeafFieldType::Bool> {};
@@ -208,9 +202,7 @@ struct LeafKindForT<hstd::Vec<org::sem::SemId<org::sem::Org>>>
 
 template <org::sem::IsOrg T>
 struct LeafKindForT<hstd::Vec<org::sem::SemId<T>>>
-    : LeafKindForBase<
-          hstd::Vec<org::sem::SemId<T>>,
-          LeafFieldType::FixedIdVec> {};
+    : LeafKindForBase<hstd::Vec<org::sem::SemId<T>>, LeafFieldType::FixedIdVec> {};
 
 template <typename T>
 struct LeafKindForT : LeafKindForBase<T, LeafFieldType::Any> {};
@@ -234,11 +226,10 @@ struct FixedTypeUnion {
 };
 
 template <typename T, typename... Ts>
-concept IsOneOf = FixedTypeUnion<Ts...>::template contains<
-    std::remove_cvref_t<T>>;
+concept IsOneOf = FixedTypeUnion<Ts...>::template contains<std::remove_cvref_t<T>>;
 
-struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]]
-ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
+struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPython
+    : org::algo::Exporter<ExporterPython, nanobind::object> {
     using Base = org::algo::Exporter<ExporterPython, nanobind::object>;
 #define __ExporterBase Base
     EXPORTER_USING()
@@ -252,8 +243,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     using FieldCbMap = hstd::UnorderedMap<LeafFieldType, PyFunc>;
 
     std::string describe(PyFunc const& func) const;
-    std::string describe_use(std::string const& msg, PyFunc const& usage)
-        const;
+    std::string describe_use(std::string const& msg, PyFunc const& usage) const;
 
 
     using VK = VisitReport::Kind;
@@ -267,9 +257,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
             trace(kind)
                 .with_node(node)
                 .with_loc(line, function)
-                .with_msg(
-                    hstd::fmt(
-                        "no callback for node kind {}", node->getKind())));
+                .with_msg(hstd::fmt("no callback for node kind {}", node->getKind())));
     }
 
     VisitScope trace_leaf(
@@ -300,12 +288,10 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
 
     [[refl]] void        enableBufferTrace();
     [[refl]] std::string getTraceBuffer() const;
-    [[refl]] void enableFileTrace(std::string const& path, bool colored);
+    [[refl]] void        enableFileTrace(std::string const& path, bool colored);
 
     hstd::Opt<PyFunc> visitAnyNodeAround;
-    [[refl]] void     setVisitAnyIdAround(PyFunc cb) {
-        visitAnyNodeAround = cb;
-    }
+    [[refl]] void     setVisitAnyIdAround(PyFunc cb) { visitAnyNodeAround = cb; }
 
     hstd::Opt<PyFunc> visitAnyNodeIn;
     [[refl]] void     setVisitAnyIdIn(PyFunc cb) { visitAnyNodeIn = cb; }
@@ -327,26 +313,18 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     }
 
     SemCbMap      visitIdInCb;
-    [[refl]] void setVisitIdInCb(OrgSemKind kind, PyFunc cb) {
-        visitIdInCb[kind] = cb;
-    }
+    [[refl]] void setVisitIdInCb(OrgSemKind kind, PyFunc cb) { visitIdInCb[kind] = cb; }
 
     SemCbMap      evalIdInCb;
-    [[refl]] void setEvalIdIn(OrgSemKind kind, PyFunc cb) {
-        evalIdInCb[kind] = cb;
-    }
+    [[refl]] void setEvalIdIn(OrgSemKind kind, PyFunc cb) { evalIdInCb[kind] = cb; }
 
     FieldCbMap    visitLeafFieldCb;
-    [[refl]] void setVisitLeafField(
-        org::bind::python::LeafFieldType kind,
-        PyFunc                           cb) {
+    [[refl]] void setVisitLeafField(org::bind::python::LeafFieldType kind, PyFunc cb) {
         visitLeafFieldCb[kind] = cb;
     }
 
     FieldCbMap    evalLeafFieldCb;
-    [[refl]] void setEvalLeafField(
-        org::bind::python::LeafFieldType kind,
-        PyFunc                           cb) {
+    [[refl]] void setEvalLeafField(org::bind::python::LeafFieldType kind, PyFunc cb) {
         evalLeafFieldCb[kind] = cb;
     }
 
@@ -365,17 +343,13 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
 
 
     SemCbMap      newOrgResCb;
-    [[refl]] void setNewOrgRes(OrgSemKind kind, PyFunc cb) {
-        newOrgResCb[kind] = cb;
-    }
+    [[refl]] void setNewOrgRes(OrgSemKind kind, PyFunc cb) { newOrgResCb[kind] = cb; }
 
     hstd::Opt<PyFunc> newAnyOrgResCb;
     [[refl]] void     setNewAnyOrgRes(PyFunc cb) { newAnyOrgResCb = cb; }
 
     FieldCbMap    newLeafResCb;
-    [[refl]] void setNewLeafRes(
-        org::bind::python::LeafFieldType kind,
-        PyFunc                           cb) {
+    [[refl]] void setNewLeafRes(org::bind::python::LeafFieldType kind, PyFunc cb) {
         newLeafResCb[kind] = cb;
     }
 
@@ -383,28 +357,22 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     [[refl]] void     setNewAnyLeafRes(PyFunc cb) { newAnyLeafResCb = cb; }
 
     hstd::Opt<PyFunc> pushVisitAnyIdCb;
-    [[refl]] void setPushVisitAnyId(PyFunc cb) { pushVisitAnyIdCb = cb; }
+    [[refl]] void     setPushVisitAnyId(PyFunc cb) { pushVisitAnyIdCb = cb; }
 
     hstd::Opt<PyFunc> popVisitAnyIdCb;
     [[refl]] void     setPopVisitAnyId(PyFunc cb) { popVisitAnyIdCb = cb; }
 
     SemCbMap      pushVisitIdCb;
-    [[refl]] void setPushVisitId(OrgSemKind kind, PyFunc cb) {
-        pushVisitIdCb[kind] = cb;
-    }
+    [[refl]] void setPushVisitId(OrgSemKind kind, PyFunc cb) { pushVisitIdCb[kind] = cb; }
 
     SemCbMap      popVisitIdCb;
-    [[refl]] void setPopVisitIdCb(OrgSemKind kind, PyFunc cb) {
-        popVisitIdCb[kind] = cb;
-    }
+    [[refl]] void setPopVisitIdCb(OrgSemKind kind, PyFunc cb) { popVisitIdCb[kind] = cb; }
 
     hstd::Opt<PyFunc> visitAnyHookCb;
     [[refl]] void     setVisitAnyHookCb(PyFunc cb) { visitAnyHookCb = cb; }
 
     SemCbMap      visitIdHookCb;
-    [[refl]] void setVisitIdHook(OrgSemKind kind, PyFunc cb) {
-        visitIdHookCb[kind] = cb;
-    }
+    [[refl]] void setVisitIdHook(OrgSemKind kind, PyFunc cb) { visitIdHookCb[kind] = cb; }
 
     [[refl]] void print_trace(
         std::string const& trace,
@@ -414,9 +382,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
 
     Res newResImpl(org::sem::OrgArg node);
 
-    Res newRes(org::sem::SemId<org::sem::Org> const& node) {
-        return newResImpl(node);
-    }
+    Res newRes(org::sem::SemId<org::sem::Org> const& node) { return newResImpl(node); }
 
     template <org::sem::IsOrg T>
     Res newRes(org::sem::SemId<T> const& node) {
@@ -428,18 +394,16 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
         if (newAnyOrgResCb) {
             return newAnyLeafResCb->operator()(_self, node);
         } else if (newLeafResCb.contains(LeafKindForT<T>::value)) {
-            trace_instant(
-                trace(VK::NewRes)
-                    .with_node(node)
-                    .with_msg(describe_use(
-                        "has callback for kind",
-                        newLeafResCb.at(LeafKindForT<T>::value))));
+            trace_instant(trace(VK::NewRes)
+                              .with_node(node)
+                              .with_msg(describe_use(
+                                  "has callback for kind",
+                                  newLeafResCb.at(LeafKindForT<T>::value))));
             return newLeafResCb.at(LeafKindForT<T>::value)(_self, node);
         } else {
-            trace_instant(
-                trace(VK::NewRes)
-                    .with_node(node)
-                    .with_msg(fmt("no callback for {}", T::staticKind)));
+            trace_instant(trace(VK::NewRes)
+                              .with_node(node)
+                              .with_msg(fmt("no callback for {}", T::staticKind)));
             return nanobind::none();
         }
     }
@@ -450,18 +414,15 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
         auto       ev   = trace(VK::VisitValue).with_node(node);
         if (visitAnyNodeAround) {
             trace_instant(ev.with_loc().with_msg(describe_use(
-                "has generic around visitor callback",
-                *visitAnyNodeAround)));
+                "has generic around visitor callback", *visitAnyNodeAround)));
             visitAnyNodeAround->operator()(_self, res, node);
         } else if (visitIdAroundCb.contains(kind)) {
             trace_instant(ev.with_loc().with_msg(describe_use(
-                "has specific around visitor callback",
-                visitIdAroundCb.at(kind))));
+                "has specific around visitor callback", visitIdAroundCb.at(kind))));
             visitIdAroundCb.at(kind)(_self, res, node);
         } else if (evalIdAroundCb.contains(kind)) {
             trace_instant(ev.with_loc().with_msg(describe_use(
-                "has specific around eval callback",
-                evalIdAroundCb.at(kind))));
+                "has specific around eval callback", evalIdAroundCb.at(kind))));
             res = evalIdAroundCb.at(kind)(_self, node);
         } else {
             trace_instant(ev.with_loc().with_msg("going to dispatched"));
@@ -476,27 +437,26 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
         OrgSemKind kind = T::staticKind;
         auto       ev   = trace(VK::VisitSpecificKind).with_node(node);
         if (visitAnyNodeIn) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
-                "has generic visitor callback", *visitAnyNodeIn)));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has generic visitor callback", *visitAnyNodeIn)));
             visitAnyNodeIn->operator()(_self, res, node);
         } else if (visitIdInCb.contains(kind)) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
-                "has specifid visitor callback", visitIdInCb.at(kind))));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has specifid visitor callback", visitIdInCb.at(kind))));
             visitIdInCb.at(kind)(_self, res, node);
         } else if (evalIdInCb.contains(kind)) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
-                "has specifid eval callback", evalIdInCb.at(kind))));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has specifid eval callback", evalIdInCb.at(kind))));
 
             res = evalIdInCb.at(kind)(_self, node);
         } else {
             auto __scope = trace_scope(
                 ev.with_loc().with_msg("deferring to default visitor"));
             switch (kind) {
-#define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: {                                            \
-        _this()->visit##__Kind(                                           \
-            res, node.template as<org::sem::__Kind>());                   \
-        break;                                                            \
+#define __case(__Kind)                                                                   \
+    case OrgSemKind::__Kind: {                                                           \
+        _this()->visit##__Kind(res, node.template as<org::sem::__Kind>());               \
+        break;                                                                           \
     }
 
                 EACH_SEM_ORG_KIND(__case)
@@ -507,54 +467,41 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     }
 
     template <org::sem::IsOrg T>
-    void visitOrgField(
-        Res&                      res,
-        char const*               name,
-        org::sem::SemId<T> const& value) {
+    void visitOrgField(Res& res, char const* name, org::sem::SemId<T> const& value) {
         OrgSemKind kind = T::staticKind;
-        auto       ev   = trace(VK::VisitField)
-                              .with_node(value.asOrg())
-                              .with_field(name);
+        auto       ev   = trace(VK::VisitField).with_node(value.asOrg()).with_field(name);
 
         if (visitAnyField) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(
-                describe_use("has universal CB", *visitAnyField)));
+            auto __scope = trace_scope(
+                ev.with_loc().with_msg(describe_use("has universal CB", *visitAnyField)));
             visitAnyField->operator()(_self, res, name, value);
         } else if (visitOrgFieldCb.contains(kind)) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
-                "has specific visitor CB", visitOrgFieldCb.at(kind))));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has specific visitor CB", visitOrgFieldCb.at(kind))));
             visitOrgFieldCb.at(kind)(_self, res, name, value);
         } else if (evalOrgFieldCb.contains(kind)) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
-                "has specific eval CB", evalOrgFieldCb.at(kind))));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has specific eval CB", evalOrgFieldCb.at(kind))));
 
             res = evalOrgFieldCb.at(kind)(_self, name, value);
         } else {
-            auto __scope = trace_scope(
-                ev.with_loc().with_msg("using default visit"));
+            auto __scope = trace_scope(ev.with_loc().with_msg("using default visit"));
             visit(res, value);
         }
     }
 
-#define __fallback_visit(__msg)                                           \
-    auto __scope = trace_scope(                                           \
-        trace(VK::VisitField).with_field(name).with_msg(__msg));
+#define __fallback_visit(__msg)                                                          \
+    auto __scope = trace_scope(trace(VK::VisitField).with_field(name).with_msg(__msg));
 
 
     template <typename T>
-    void fallbackFieldVisitor(
-        Res&          res,
-        char const*   name,
-        hstd::CVec<T> value) {
+    void fallbackFieldVisitor(Res& res, char const* name, hstd::CVec<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         for (T const& it : value) { _this()->visit(res, it); }
     }
 
     template <typename T>
-    void fallbackFieldVisitor(
-        Res&         res,
-        char const*  name,
-        hstd::Opt<T> value) {
+    void fallbackFieldVisitor(Res& res, char const* name, hstd::Opt<T> value) {
         __fallback_visit("using fallback field visitor for vector");
         if (value) { _this()->visit(res, value.value()); }
     }
@@ -572,17 +519,17 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
 
         LeafFieldType kind = LeafKindForT<T>::value;
         if (visitAnyField) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(
-                describe_use("has universal CB", *visitAnyField)));
+            auto __scope = trace_scope(
+                ev.with_loc().with_msg(describe_use("has universal CB", *visitAnyField)));
             visitAnyField->operator()(_self, res, name, value);
         } else if (visitLeafFieldCb.contains(kind)) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
-                "has specific visitor CB", visitLeafFieldCb.at(kind))));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has specific visitor CB", visitLeafFieldCb.at(kind))));
 
             visitLeafFieldCb.at(kind)(_self, res, name, value);
         } else if (evalLeafFieldCb.contains(kind)) {
-            auto __scope = trace_scope(ev.with_loc().with_msg(describe_use(
-                "has specific eval CB", evalLeafFieldCb.at(kind))));
+            auto __scope = trace_scope(ev.with_loc().with_msg(
+                describe_use("has specific eval CB", evalLeafFieldCb.at(kind))));
 
             res = evalLeafFieldCb.at(kind)(_self, name, value);
         } else {
@@ -597,8 +544,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
                 VK::VisitDispatchHook, id, "universal", *visitAnyHookCb);
             visitAnyHookCb->operator()(_self, res, id);
         } else if (auto cb = visitIdHookCb.get(T::staticKind)) {
-            auto __scope = trace_scoped(
-                VK::VisitDispatchHook, id, "cb for kind", *cb);
+            auto __scope = trace_scoped(VK::VisitDispatchHook, id, "cb for kind", *cb);
             cb.value()(_self, res, id);
         } else {
             // trace_no_cb(VK::VisitDispatchHook, id);
@@ -632,9 +578,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
     void visit(Res& res, org::sem::NamedProperty const&) {}
     void visit(Res& res, hstd::Str const&) {}
     void visit(Res& res, hstd::Vec<hstd::Str> const&) {}
-    void visit(
-        Res& res,
-        org::sem::DocumentExportConfig::TocExport const&) {}
+    void visit(Res& res, org::sem::DocumentExportConfig::TocExport const&) {}
     void visit(Res& res, org::sem::Tblfm const&) {}
     void visit(Res& res, org::sem::Tblfm::Assign::Flag const&) {}
     void visit(Res& res, int const&) {}
@@ -649,10 +593,7 @@ ExporterPython : org::algo::Exporter<ExporterPython, nanobind::object> {
         visitOrgField(res, name, value);
     }
 
-    void visitField(
-        Res&                           res,
-        char const*                    name,
-        org::sem::SemId<org::sem::Org> value);
+    void visitField(Res& res, char const* name, org::sem::SemId<org::sem::Org> value);
 
     [[refl]] Res evalTop(org::sem::SemId<org::sem::Org> org);
 

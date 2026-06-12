@@ -82,7 +82,6 @@ struct DiaEdit {
 hstd::Vec<DiaEdit> getEdits(
     NodeStore& srcStore,
     NodeStore& dstStore,
-    hstd::Func<
-        bool(NodeStore::Id const& src, NodeStore::Id const& dst)> const&
+    hstd::Func<bool(NodeStore::Id const& src, NodeStore::Id const& dst)> const&
         areValuesEqual);
 } // namespace hstd::ext::diff

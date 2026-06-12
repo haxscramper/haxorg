@@ -56,8 +56,7 @@ template <typename T, typename = void>
 struct is_complete : std::false_type {};
 
 template <typename T>
-struct is_complete<T, std::void_t<decltype(sizeof(T))>>
-    : std::true_type {};
+struct is_complete<T, std::void_t<decltype(sizeof(T))>> : std::true_type {};
 
 
 /// \brief get next value
@@ -92,13 +91,11 @@ concept ImplementsOrd = requires(T const& value) {
 
 template <std::integral T>
 struct value_domain<T> {
-    static inline T low() { return std::numeric_limits<T>::min(); }
-    static inline T high() { return std::numeric_limits<T>::max(); }
-    static inline T succ(T const& val) { return val + 1; }
-    static inline T prev(T const& val) { return val - 1; }
-    static inline long long int ord(T const& val) {
-        return static_cast<int>(val);
-    }
+    static inline T             low() { return std::numeric_limits<T>::min(); }
+    static inline T             high() { return std::numeric_limits<T>::max(); }
+    static inline T             succ(T const& val) { return val + 1; }
+    static inline T             prev(T const& val) { return val - 1; }
+    static inline long long int ord(T const& val) { return static_cast<int>(val); }
 };
 
 template <typename T>
@@ -132,8 +129,7 @@ struct value_domain_ungapped {
 
     static inline E succ(E value) {
         if constexpr (std::is_enum_v<E>) {
-            return static_cast<E>(
-                static_cast<std::underlying_type_t<E>>(value) + 1);
+            return static_cast<E>(static_cast<std::underlying_type_t<E>>(value) + 1);
         } else {
             return value + 1;
         }
@@ -141,16 +137,14 @@ struct value_domain_ungapped {
 
     static inline E prev(E value) {
         if constexpr (std::is_enum_v<E>) {
-            return static_cast<E>(
-                static_cast<std::underlying_type_t<E>>(value) - 1);
+            return static_cast<E>(static_cast<std::underlying_type_t<E>>(value) - 1);
         } else {
             return value - 1;
         }
     }
 
     static inline long long int ord(E value) {
-        return static_cast<long long int>(value)
-             - static_cast<long long int>(Low);
+        return static_cast<long long int>(value) - static_cast<long long int>(Low);
     }
 };
 

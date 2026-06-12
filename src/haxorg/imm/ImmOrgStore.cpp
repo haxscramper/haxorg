@@ -28,11 +28,10 @@ using namespace hstd::ext;
 
 struct store_error : hstd::CRTP_hexception<store_error> {};
 
-#define _kind(__Kind)                                                     \
-    template <>                                                           \
-    ImmAstKindStore<org::imm::Imm##__Kind> const*                         \
-        ImmAstStore::getStoreImpl() const {                               \
-        return &store##__Kind;                                            \
+#define _kind(__Kind)                                                                    \
+    template <>                                                                          \
+    ImmAstKindStore<org::imm::Imm##__Kind> const* ImmAstStore::getStoreImpl() const {    \
+        return &store##__Kind;                                                           \
     }
 EACH_SEM_ORG_KIND(_kind)
 #undef _kind
@@ -42,14 +41,12 @@ ImmAstReplace org::imm::setSubnodes(
     ImmAdapter         target,
     ImmVec<ImmId>      subnodes,
     ImmAstEditContext& ctx) {
-    LOGIC_ASSERTION_CHECK_FMT(
-        !target.isNil(), "cannot set subnodes to nil node");
+    LOGIC_ASSERTION_CHECK_FMT(!target.isNil(), "cannot set subnodes to nil node");
     Opt<ImmAstReplace> result;
-    switch_node_value(
-        target.id, target.ctx.lock(), [&]<typename N>(N node) {
-            node.subnodes = subnodes;
-            result = target.ctx.lock()->store->setNode(target, node, ctx);
-        });
+    switch_node_value(target.id, target.ctx.lock(), [&]<typename N>(N node) {
+        node.subnodes = subnodes;
+        result        = target.ctx.lock()->store->setNode(target, node, ctx);
+    });
 
     return result.value();
 }
@@ -62,15 +59,12 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
     ImmAstEditContext& ctx) {
     HSLOG_TRACE(_cat, "Set node value");
 
-    for (auto const& it : allSubnodes<T>(value, ctx.ctx.lock())) {
-        it.assertValid();
-    }
+    for (auto const& it : allSubnodes<T>(value, ctx.ctx.lock())) { it.assertValid(); }
 
     ImmId     result_node = getStore<T>()->add(value, ctx);
     ImmUniqId replaced    = target.uniq().update(result_node);
 
-    LOGIC_ASSERTION_CHECK_FMT(
-        !result_node.isNil(), "added node must not be nil");
+    LOGIC_ASSERTION_CHECK_FMT(!result_node.isNil(), "added node must not be nil");
     result_node.assertValid();
 
     auto ft = fmt1(target);
@@ -128,10 +122,8 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
 using SubnodeAssignTarget = Pair<org::imm::ImmReflPathBase, ImmId>;
 /// \brief Group of subnode values to assign to the given path in the
 /// parent node.
-using SubnodeVecAssignPair = Pair<
-    org::imm::ImmReflPathBase,
-    Vec<SubnodeAssignTarget>>;
-using SubnodeAssignGroup = hstd::Vec<SubnodeVecAssignPair>;
+using SubnodeVecAssignPair = Pair<org::imm::ImmReflPathBase, Vec<SubnodeAssignTarget>>;
+using SubnodeAssignGroup   = hstd::Vec<SubnodeVecAssignPair>;
 
 /// \brief Group a flat list of subnode updates into assignment group so
 /// that changes on the same field would be grouped together.
@@ -139,11 +131,9 @@ using SubnodeAssignGroup = hstd::Vec<SubnodeVecAssignPair>;
 /// This is made in order to allow for [[vector_field_assignment]] to work
 /// in one go, since inserting subnode one by one might've overrode the
 /// indexing or other elements.
-SubnodeAssignGroup groupUpdatedSubnodes(
-    Vec<SubnodeAssignTarget> const& updatedSubnodes) {
+SubnodeAssignGroup groupUpdatedSubnodes(Vec<SubnodeAssignTarget> const& updatedSubnodes) {
     Vec<SubnodeAssignTarget> sortedUpdatedSubnodes = sorted(
-        updatedSubnodes,
-        [](SubnodeAssignTarget const& a, SubnodeAssignTarget const& b) {
+        updatedSubnodes, [](SubnodeAssignTarget const& a, SubnodeAssignTarget const& b) {
             return a.first.first().getFieldName().name
                  < b.first.first().getFieldName().name;
         });
@@ -151,18 +141,14 @@ SubnodeAssignGroup groupUpdatedSubnodes(
     SubnodeAssignGroup grouped //
         = sortedUpdatedSubnodes
         | rv::group_by(
-              [](SubnodeAssignTarget const& a,
-                 SubnodeAssignTarget const& b) -> bool {
+              [](SubnodeAssignTarget const& a, SubnodeAssignTarget const& b) -> bool {
                   return a.first.first().getFieldName().name
                       == b.first.first().getFieldName().name;
               })
         | rv::transform([](auto const& group) -> SubnodeVecAssignPair {
               ReflPath path = group.front().first;
               return std::make_pair(
-                  path,
-                  group
-                      | rs::to<
-                          Vec<Pair<org::imm::ImmReflPathBase, ImmId>>>());
+                  path, group | rs::to<Vec<Pair<org::imm::ImmReflPathBase, ImmId>>>());
           })
         | rs::to<SubnodeAssignGroup>();
 
@@ -193,17 +179,16 @@ Opt<ImmAstReplace> setNewSubnodes(
             for (SubnodeVecAssignPair const& fieldGroup : grouped) {
                 auto field = fieldGroup.first.first();
                 LOGIC_ASSERTION_CHECK_FMT(field.isFieldName(), "");
-                auto fail_field =
-                    [&](int         line     = __builtin_LINE(),
-                        char const* function = __builtin_FUNCTION()) {
-                        throw logic_unreachable_error::init(
-                            fmt("Field path {} refers to a non-ID field "
-                                "and "
-                                "cannot assigned",
-                                field),
-                            line,
-                            function);
-                    };
+                auto fail_field = [&](int         line     = __builtin_LINE(),
+                                      char const* function = __builtin_FUNCTION()) {
+                    throw logic_unreachable_error::init(
+                        fmt("Field path {} refers to a non-ID field "
+                            "and "
+                            "cannot assigned",
+                            field),
+                        line,
+                        function);
+                };
 
                 ReflVisitor<K, org::imm::ImmReflPathTag>::visit(
                     node,
@@ -252,8 +237,7 @@ Opt<ImmAstReplace> setNewSubnodes(
                         [&](ImmVec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
                         // clang-format on
                         [&]<typename FK>(
-                            ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const&
-                                f) {
+                            ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const& f) {
                             LOGIC_ASSERTION_CHECK_FMT(
                                 fieldGroup.second.size() == 1,
                                 "Assignment to single field cannot have "
@@ -287,8 +271,7 @@ Opt<ImmAstReplace> setNewSubnodes(
                                 convKinds.end(),
                             };
                         },
-                        [&]<typename FK>(
-                            ImmMap<Str, org::imm::ImmIdT<FK>> const& f) {
+                        [&]<typename FK>(ImmMap<Str, org::imm::ImmIdT<FK>> const& f) {
                             auto transient = f.transient();
                             for (auto const& key : fieldGroup.second) {
                                 transient.set(
@@ -300,8 +283,7 @@ Opt<ImmAstReplace> setNewSubnodes(
                     });
             }
 
-            act = updateTarget.ctx.lock()->store->setNode(
-                updateTarget, node, ctx);
+            act = updateTarget.ctx.lock()->store->setNode(updateTarget, node, ctx);
         });
     return act;
 }
@@ -346,8 +328,7 @@ UnorderedSet<ImmUniqId> getEditParents(
     if (AST_EDIT_TRACE()) {
         auto __scope = ctx.debug()->begin_scope();
         for (auto const& key : sorted(replace.nodeReplaceMap.keys())) {
-            AST_EDIT_MSG(
-                fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
+            AST_EDIT_MSG(fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
         }
     }
 
@@ -379,15 +360,13 @@ Pair<Vec<SubnodeAssignTarget>, Vec<ImmId>> getUpdatedSubnodes(
     auto                     flatTargetPath = updateTarget.flatPath();
     Vec<SubnodeAssignTarget> updatedSubnodes;
     Vec<ImmId>               flatUpdatedSubnodes;
-    for (auto const& sub :
-         updateTarget.getAllSubnodes(updateTarget.path)) {
+    for (auto const& sub : updateTarget.getAllSubnodes(updateTarget.path)) {
         auto relativePath = sub.flatPath().dropPrefix(flatTargetPath);
         LOGIC_ASSERTION_CHECK_FMT(
             relativePath.first().isFieldName(),
             "relative path for subnode update must target a field "
             "of the node");
-        ImmId updated = recurseUpdateSubnodes(
-            sub, replace, ctx, editParents, result);
+        ImmId updated = recurseUpdateSubnodes(sub, replace, ctx, editParents, result);
         flatUpdatedSubnodes.push_back(updated);
         updatedSubnodes.push_back({relativePath, updated});
     }
@@ -405,7 +384,7 @@ ImmId recurseUpdateSubnodes(
     auto __scope = ctx.debug()->begin_scope();
     if (editParents.contains(node.uniq())) {
         // The node is a parent subnode for some edit.
-        auto updateTarget = getUpdateTarget(node, replace, ctx);
+        auto updateTarget                           = getUpdateTarget(node, replace, ctx);
         auto [updatedSubnodes, flatUpdatedSubnodes] = getUpdatedSubnodes(
             updateTarget, replace, ctx, editParents, result);
 
@@ -414,15 +393,11 @@ ImmId recurseUpdateSubnodes(
         // of subnodes.
         auto targetSubnodes //
             = own_view(updateTarget.getAllSubnodes(std::nullopt))
-            | rv::transform([](org::imm::ImmAdapter const& it) -> ImmId {
-                  return it.id;
-              })
+            | rv::transform([](org::imm::ImmAdapter const& it) -> ImmId { return it.id; })
             | rs::to<Vec>();
         if (flatUpdatedSubnodes == targetSubnodes) {
-            AST_EDIT_MSG(
-                fmt("Updated subnodes for {} are the same as target {}",
-                    node,
-                    updateTarget));
+            AST_EDIT_MSG(fmt(
+                "Updated subnodes for {} are the same as target {}", node, updateTarget));
 
             result->replaced.set(
                 ImmAstReplace{
@@ -471,8 +446,7 @@ ImmAstReplaceEpoch::Ptr ImmAstStore::cascadeUpdate(
 
     ImmAstReplaceEpoch::Ptr result = ImmAstReplaceEpoch::shared();
     AST_EDIT_MSG(fmt("Main root {}", root));
-    result->root = recurseUpdateSubnodes(
-        root, replace, ctx, editParents, result);
+    result->root = recurseUpdateSubnodes(root, replace, ctx, editParents, result);
     AST_EDIT_MSG(fmt("Replace {}", result->replaced));
     return result;
 }
@@ -482,8 +456,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     auto impl = [&]() {
         org::imm::ImmId result = org::imm::ImmId::Nil();
         switch_node_kind(
-            org::imm::ImmId{data->getKind(), 0},
-            [&]<typename K>(org::imm::ImmIdT<K> id) {
+            org::imm::ImmId{data->getKind(), 0}, [&]<typename K>(org::imm::ImmIdT<K> id) {
                 result = getStore<K>()->add(data, ctx);
             });
         auto adapter = ctx->adapt(ImmUniqId{result});
@@ -503,8 +476,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     };
 
     if (AddTrackingKinds.contains(data->getKind())) {
-        __perf_trace(
-            "imm", "ImmAstStore::Add", "kind", fmt1(data->getKind()));
+        __perf_trace("imm", "ImmAstStore::Add", "kind", fmt1(data->getKind()));
         return impl();
     } else {
         return impl();
@@ -537,27 +509,24 @@ ImmId ImmAstContext::at(ImmId node, ImmPathStep const& item) const {
             item.path.first().getIndex().index);
     } else {
         Opt<ImmId> result;
-        switch_node_value(
-            node, mshared_from_this(), [&]<typename T>(T const& value) {
-                reflVisitPath<T>(
-                    value,
-                    item.path,
-                    overloaded{
-                        [&](ImmId const& id) { result = id; },
-                        [&]<typename K>(ImmIdT<K> const& id) {
-                            result = id.toId();
-                        },
-                        [&](auto const& other) {
-                            LOGIC_ASSERTION_CHECK_FMT(
-                                false,
-                                "Path {} does not point to a field with "
-                                "ID, "
-                                "resolved to {}",
-                                item,
-                                other);
-                        },
-                    });
-            });
+        switch_node_value(node, mshared_from_this(), [&]<typename T>(T const& value) {
+            reflVisitPath<T>(
+                value,
+                item.path,
+                overloaded{
+                    [&](ImmId const& id) { result = id; },
+                    [&]<typename K>(ImmIdT<K> const& id) { result = id.toId(); },
+                    [&](auto const& other) {
+                        LOGIC_ASSERTION_CHECK_FMT(
+                            false,
+                            "Path {} does not point to a field with "
+                            "ID, "
+                            "resolved to {}",
+                            item,
+                            other);
+                    },
+                });
+        });
         return result.value();
     }
 }
@@ -569,9 +538,7 @@ ImmId ImmAstContext::at(ImmPath const& item) const {
 }
 
 template <org::imm::IsImmOrgValueType T>
-void ImmAstKindStore<T>::format(
-    ColStream&         os,
-    std::string const& linePrefix) const {
+void ImmAstKindStore<T>::format(ColStream& os, std::string const& linePrefix) const {
     bool       isFirst = true;
     Vec<ImmId> ids;
     for (auto const& it : values.id_map) { ids.push_back(it.second); }
@@ -581,29 +548,24 @@ void ImmAstKindStore<T>::format(
     for (auto const& id : ids) {
         if (!isFirst) { os << "\n"; }
         isFirst = false;
-        os << fmt(
-            "{}[{}]: {}", linePrefix, id.getReadableId(), values.at(id));
+        os << fmt("{}[{}]: {}", linePrefix, id.getReadableId(), values.at(id));
     }
 }
 
 
 void ImmAstStore::format(ColStream& os, std::string const& prefix) const {
-#define _kind(__Kind)                                                     \
-    if (!store##__Kind.empty()) {                                         \
-        os << fmt(                                                        \
-            "\n{0}[{1:-<16}] {2:016X}\n",                                 \
-            prefix,                                                       \
-            #__Kind,                                                      \
-            u64(OrgSemKind::__Kind));                                     \
-        store##__Kind.format(os, prefix + "  ");                          \
+#define _kind(__Kind)                                                                    \
+    if (!store##__Kind.empty()) {                                                        \
+        os << fmt(                                                                       \
+            "\n{0}[{1:-<16}] {2:016X}\n", prefix, #__Kind, u64(OrgSemKind::__Kind));     \
+        store##__Kind.format(os, prefix + "  ");                                         \
     }
 
     EACH_SEM_ORG_KIND(_kind)
 #undef _kind
 }
 
-void ImmAstContext::format(ColStream& os, std::string const& prefix)
-    const {
+void ImmAstContext::format(ColStream& os, std::string const& prefix) const {
     os << fmt("{}ImmAstStore\n", prefix);
     store->format(os, prefix + "  ");
 }
@@ -613,8 +575,7 @@ ImmAdapter ImmAstContext::adapt(ImmUniqId const& id) const {
 }
 
 ImmAdapter ImmAstContext::adaptUnrooted(ImmId const& id) const {
-    return org::imm::ImmAdapter{
-        org::imm::ImmUniqId{id, {}}, mweak_from_this()};
+    return org::imm::ImmAdapter{org::imm::ImmUniqId{id, {}}, mweak_from_this()};
 }
 
 
@@ -629,8 +590,7 @@ ImmAstVersion ImmAstContext::getEditVersion(
 ImmAstContext::Ptr ImmAstContext::finishEdit(ImmAstEditContext& ctx) {
     return SharedPtrApi::shared(
         store,
-        std::make_shared<ImmAstTrackingMap>(
-            ctx.transientTrack.persistent()),
+        std::make_shared<ImmAstTrackingMap>(ctx.transientTrack.persistent()),
         debug);
 }
 
@@ -642,9 +602,7 @@ ImmAstVersion ImmAstContext::finishEdit(
     return ImmAstVersion{.context = newContext, .epoch = epoch};
 }
 
-ImmId ImmAstContext::add(
-    sem::SemId<sem::Org> data,
-    ImmAstEditContext&   ctx) {
+ImmId ImmAstContext::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
     return store->add(data, ctx);
 }
 
@@ -668,9 +626,7 @@ ImmAstVersion ImmAstContext::getEmptyVersion() {
     };
 }
 
-ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) {
-    return addRoot(root);
-}
+ImmAstVersion ImmAstContext::init(sem::SemId<sem::Org> root) { return addRoot(root); }
 
 
 struct AddContext {
@@ -679,9 +635,7 @@ struct AddContext {
 
 template <>
 struct SerdeDefaultProvider<sem::SubtreeLogHead::Priority> {
-    static sem::SubtreeLogHead::Priority get() {
-        return sem::SubtreeLogHead::Priority{};
-    }
+    static sem::SubtreeLogHead::Priority get() { return sem::SubtreeLogHead::Priority{}; }
 };
 
 using SemId_t = sem::SemId<sem::Org>;
@@ -698,9 +652,7 @@ struct ImmSemSerde<SemId_t, ImmId_t> {
         return ctx.ctx.lock()->store->add(id, ctx);
     }
 
-    static SemId_t from_immer(
-        ImmId_t const&       id,
-        ImmAstContext const& ctx) {
+    static SemId_t from_immer(ImmId_t const& id, ImmAstContext const& ctx) {
         return ctx.store->get(id, ctx);
     }
 };
@@ -710,9 +662,7 @@ struct ImmSemSerde<sem::SemId<SemType>, org::imm::ImmIdT<ImmType>> {
     static org::imm::ImmIdT<ImmType> to_immer(
         sem::SemId<SemType> const& id,
         ImmAstEditContext&         ctx) {
-        return ctx.ctx.lock()
-            ->store->add(id.asOrg(), ctx)
-            .template as<ImmType>();
+        return ctx.ctx.lock()->store->add(id.asOrg(), ctx).template as<ImmType>();
     }
 
     static sem::SemId<SemType> from_immer(
@@ -729,9 +679,7 @@ struct ImmSemSerde<SemType, ImmType> {
         return static_cast<ImmType>(value);
     }
 
-    static SemType from_immer(
-        ImmType const&       value,
-        ImmAstContext const& ctx) {
+    static SemType from_immer(ImmType const& value, ImmAstContext const& ctx) {
         return static_cast<SemType>(value);
     }
 };
@@ -749,16 +697,14 @@ struct ImmSemSerde<SemType, ImmType> {
                     boost::mp11::mp_find<ImmType, ImmVariantItem>::value,
                     SemType>;
 
-                out = ImmSemSerde<SemVariantItem, ImmVariantItem>::
-                    to_immer(std::get<SemVariantItem>(value), ctx);
+                out = ImmSemSerde<SemVariantItem, ImmVariantItem>::to_immer(
+                    std::get<SemVariantItem>(value), ctx);
             },
             result);
         return result;
     }
 
-    static SemType from_immer(
-        ImmType const&       value,
-        ImmAstContext const& ctx) {
+    static SemType from_immer(ImmType const& value, ImmAstContext const& ctx) {
         SemType result = variant_from_index<SemType>(value.index());
         std::visit(
             [&](auto& out) {
@@ -767,22 +713,16 @@ struct ImmSemSerde<SemType, ImmType> {
                     boost::mp11::mp_find<SemType, SemVariantItem>::value,
                     ImmType>;
 
-                out = ImmSemSerde<SemVariantItem, ImmVariantItem>::
-                    from_immer(std::get<ImmVariantItem>(value), ctx);
+                out = ImmSemSerde<SemVariantItem, ImmVariantItem>::from_immer(
+                    std::get<ImmVariantItem>(value), ctx);
             },
             result);
         return result;
     }
 };
 
-template <
-    typename SemKey,
-    typename SemValue,
-    typename ImmKey,
-    typename ImmValue>
-struct ImmSemSerde<
-    UnorderedMap<SemKey, SemValue>,
-    ImmMap<ImmKey, ImmValue>> {
+template <typename SemKey, typename SemValue, typename ImmKey, typename ImmValue>
+struct ImmSemSerde<UnorderedMap<SemKey, SemValue>, ImmMap<ImmKey, ImmValue>> {
     static ImmMap<ImmKey, ImmValue> to_immer(
         UnorderedMap<SemKey, SemValue> const& value,
         ImmAstEditContext&                    ctx) {
@@ -813,24 +753,16 @@ struct ImmSemSerde<
 
 template <typename SemType, typename ImmType>
 struct ImmSemSerde<Opt<SemType>, Opt<ImmType>> {
-    static Opt<ImmType> to_immer(
-        Opt<SemType> const& value,
-        ImmAstEditContext&  ctx) {
+    static Opt<ImmType> to_immer(Opt<SemType> const& value, ImmAstEditContext& ctx) {
         Opt<ImmType> base{};
-        if (value) {
-            base = ImmSemSerde<SemType, ImmType>::to_immer(
-                value.value(), ctx);
-        }
+        if (value) { base = ImmSemSerde<SemType, ImmType>::to_immer(value.value(), ctx); }
         return base;
     }
 
-    static Opt<SemType> from_immer(
-        Opt<ImmType> const&  value,
-        ImmAstContext const& ctx) {
+    static Opt<SemType> from_immer(Opt<ImmType> const& value, ImmAstContext const& ctx) {
         Opt<SemType> base{};
         if (value) {
-            base = ImmSemSerde<SemType, ImmType>::from_immer(
-                value.value(), ctx);
+            base = ImmSemSerde<SemType, ImmType>::from_immer(value.value(), ctx);
         }
         return base;
     }
@@ -838,17 +770,14 @@ struct ImmSemSerde<Opt<SemType>, Opt<ImmType>> {
 
 template <typename SemType, typename ImmType>
 struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
-    static ImmVec<ImmType> to_immer(
-        Vec<SemType> const& value,
-        ImmAstEditContext&  ctx) {
+    static ImmVec<ImmType> to_immer(Vec<SemType> const& value, ImmAstEditContext& ctx) {
         if (value.empty()) {
             return ImmVec<ImmType>{};
         } else {
             Vec<ImmType> tmp;
             tmp.reserve(value.size());
             for (auto const& sub : value) {
-                tmp.push_back(
-                    ImmSemSerde<SemType, ImmType>::to_immer(sub, ctx));
+                tmp.push_back(ImmSemSerde<SemType, ImmType>::to_immer(sub, ctx));
             }
             return ImmVec<ImmType>{tmp.begin(), tmp.end()};
         }
@@ -859,25 +788,20 @@ struct ImmSemSerde<Vec<SemType>, ImmVec<ImmType>> {
         ImmAstContext const&   ctx) {
         Vec<SemType> tmp{};
         for (auto const& sub : value) {
-            tmp.push_back(
-                ImmSemSerde<SemType, ImmType>::from_immer(sub, ctx));
+            tmp.push_back(ImmSemSerde<SemType, ImmType>::from_immer(sub, ctx));
         }
         return tmp;
     }
 };
 
-#define __same_type(__T)                                                  \
-    template <>                                                           \
-    struct ImmSemSerde<__T, __T> {                                        \
-        static __T to_immer(__T const& value, ImmAstEditContext& ctx) {   \
-            return value;                                                 \
-        }                                                                 \
-                                                                          \
-        static __T from_immer(                                            \
-            __T const&           value,                                   \
-            ImmAstContext const& ctx) {                                   \
-            return value;                                                 \
-        }                                                                 \
+#define __same_type(__T)                                                                 \
+    template <>                                                                          \
+    struct ImmSemSerde<__T, __T> {                                                       \
+        static __T to_immer(__T const& value, ImmAstEditContext& ctx) { return value; }  \
+                                                                                         \
+        static __T from_immer(__T const& value, ImmAstContext const& ctx) {              \
+            return value;                                                                \
+        }                                                                                \
     };
 
 __same_type(int);
@@ -909,74 +833,55 @@ __same_type(org::sem::OrgDiagnostics);
 
 template <typename SemType, typename ImmType>
 struct ImmSemSerde<SemType, ImmBox<ImmType>> {
-    static ImmBox<ImmType> to_immer(
-        SemType const&     value,
-        ImmAstEditContext& ctx) {
+    static ImmBox<ImmType> to_immer(SemType const& value, ImmAstEditContext& ctx) {
         return ImmSemSerde<SemType, ImmType>::to_immer(value, ctx);
     }
 
-    static SemType from_immer(
-        ImmBox<ImmType> const& value,
-        ImmAstContext const&   ctx) {
+    static SemType from_immer(ImmBox<ImmType> const& value, ImmAstContext const& ctx) {
         return ImmSemSerde<SemType, ImmType>::from_immer(value.get(), ctx);
     }
 };
 
 
 template <typename SemType, typename ImmType>
-void assign_immer_field(
-    ImmType&           field,
-    SemType const&     value,
-    ImmAstEditContext& ctx) {
+void assign_immer_field(ImmType& field, SemType const& value, ImmAstEditContext& ctx) {
     field = ImmSemSerde<SemType, ImmType>::to_immer(value, ctx);
 }
 
 template <typename SemType, typename ImmType>
-void assign_sem_field(
-    SemType&             field,
-    ImmType const&       value,
-    ImmAstContext const& ctx) {
+void assign_sem_field(SemType& field, ImmType const& value, ImmAstContext const& ctx) {
     field = ImmSemSerde<SemType, ImmType>::from_immer(value, ctx);
 }
 
 
 #include "ImmOrgSerde.tcc"
 
-ImmId imm::immer_from_sem(
-    sem::SemId<sem::Org> const& id,
-    ImmAstEditContext&          ctx) {
+ImmId imm::immer_from_sem(sem::SemId<sem::Org> const& id, ImmAstEditContext& ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::to_immer(id, ctx);
 }
 
 
-sem::SemId<sem::Org> imm::sem_from_immer(
-    ImmId const&         id,
-    ImmAstContext const& ctx) {
+sem::SemId<sem::Org> imm::sem_from_immer(ImmId const& id, ImmAstContext const& ctx) {
     return ImmSemSerde<SemId_t, ImmId_t>::from_immer(id, ctx);
 }
 
 
-sem::SemId<sem::Org> ImmAstContext::get(ImmId id) {
-    return store->get(id, *this);
-}
+sem::SemId<sem::Org> ImmAstContext::get(ImmId id) { return store->get(id, *this); }
 
 template <IsImmOrgValueType ImmType>
-ImmId_t imm::ImmAstKindStore<ImmType>::add(
-    SemId_t            data,
-    ImmAstEditContext& ctx) {
+ImmId_t imm::ImmAstKindStore<ImmType>::add(SemId_t data, ImmAstEditContext& ctx) {
 
 
     using SemType = imm_to_sem_map<ImmType>::sem_type;
     if (!data->is(SemType::staticKind)) {
-        throw store_error::init(fmt(
-            "Cannot create store value of kind {} from node of kind {}",
-            ImmType::staticKind,
-            data->getKind()));
+        throw store_error::init(
+            fmt("Cannot create store value of kind {} from node of kind {}",
+                ImmType::staticKind,
+                data->getKind()));
     }
 
 
-    ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(
-        *data.as<SemType>(), ctx);
+    ImmType value = ImmSemSerde<SemType, ImmType>::to_immer(*data.as<SemType>(), ctx);
 
     LOGIC_ASSERTION_CHECK_FMT(data->getKind() == ImmType::staticKind, "");
     return add(value, ctx);
@@ -1007,23 +912,20 @@ mask:              {:064b}
 
 
 template <IsImmOrgValueType T>
-sem::SemId<sem::Org> ImmAstKindStore<T>::get(
-    ImmId                id,
-    ImmAstContext const& ctx) {
+sem::SemId<sem::Org> ImmAstKindStore<T>::get(ImmId id, ImmAstContext const& ctx) {
     if (id.isNil()) {
         return sem::SemId<sem::Org>::Nil();
     } else {
         using SemType = imm_to_sem_map<T>::sem_type;
         auto result   = sem::SemId<SemType>::New();
-        *result.value = ImmSemSerde<SemType, T>::from_immer(
-            ctx.value<T>(id), ctx);
+        *result.value = ImmSemSerde<SemType, T>::from_immer(ctx.value<T>(id), ctx);
 
         return result.asOrg();
     }
 }
 
 
-#define forward_declare(__Kind)                                           \
+#define forward_declare(__Kind)                                                          \
     template class org::imm::ImmAstKindStore<org::imm::Imm##__Kind>;
 
 EACH_SEM_ORG_KIND(forward_declare)

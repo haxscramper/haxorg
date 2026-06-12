@@ -65,12 +65,8 @@ TEST(StringOperationsTest, StringApi) {
     EXPECT_EQ((Str("0").replaceAll("0", "1")), Str("1"));
     EXPECT_EQ((Str("0000").replaceAll("0", "1")), Str("1111"));
     EXPECT_EQ((Str("0000").replaceAll("000", "1")), Str("10"));
-    EXPECT_EQ(
-        (Str("0-0-0").split("-")),
-        (Vec<Str>{Str("0"), Str("0"), Str("0")}));
-    EXPECT_EQ(
-        (Str("0-0-0").split('-')),
-        (Vec<Str>{Str("0"), Str("0"), Str("0")}));
+    EXPECT_EQ((Str("0-0-0").split("-")), (Vec<Str>{Str("0"), Str("0"), Str("0")}));
+    EXPECT_EQ((Str("0-0-0").split('-')), (Vec<Str>{Str("0"), Str("0"), Str("0")}));
     EXPECT_EQ(Str("1").repeated(4), Str("1111"));
 
     EXPECT_EQ(Str("1").toInt(), 1);
@@ -100,16 +96,14 @@ TEST(StringOperationsTest, UnicodeLength) {
 }
 
 
-#define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)                \
-    try {                                                                 \
-        stmt;                                                             \
-        FAIL() << "Expected " << #etype << " with message \""             \
-               << whatstring << "\"";                                     \
-    } catch (const etype& e) {                                            \
-        EXPECT_EQ(std::string(e.what()), std::string(whatstring));        \
-    } catch (...) {                                                       \
-        FAIL() << "Expected " << #etype << " with message \""             \
-               << whatstring << "\"";                                     \
+#define EXPECT_THROW_WITH_MESSAGE(stmt, etype, whatstring)                               \
+    try {                                                                                \
+        stmt;                                                                            \
+        FAIL() << "Expected " << #etype << " with message \"" << whatstring << "\"";     \
+    } catch (const etype& e) {                                                           \
+        EXPECT_EQ(std::string(e.what()), std::string(whatstring));                       \
+    } catch (...) {                                                                      \
+        FAIL() << "Expected " << #etype << " with message \"" << whatstring << "\"";     \
     }
 
 
@@ -164,17 +158,15 @@ TEST(WrapTextTest, MultipleShortWordsSingleLine) {
 }
 
 TEST(WrapTextTest, WrapWordsToMultipleLines) {
-    Vec<Str> words = {"This", "is", "a", "test", "of", "text", "wrapping"};
+    Vec<Str> words  = {"This", "is", "a", "test", "of", "text", "wrapping"};
     Str      result = wrap_text(words, 10, false);
     EXPECT_EQ(result.toBase(), "This is a\ntest of\ntext\nwrapping");
 }
 
 TEST(WrapTextTest, JustifiedText) {
-    Vec<Str> words = {
-        "This", "is", "a", "test", "of", "justified", "text"};
-    Str result = wrap_text(words, 20, true);
-    EXPECT_EQ(
-        result.toBase(), "This  is  a  test of\njustified       text");
+    Vec<Str> words  = {"This", "is", "a", "test", "of", "justified", "text"};
+    Str      result = wrap_text(words, 20, true);
+    EXPECT_EQ(result.toBase(), "This  is  a  test of\njustified       text");
 }
 
 TEST(WrapTextTest, LastLineNotJustified) {

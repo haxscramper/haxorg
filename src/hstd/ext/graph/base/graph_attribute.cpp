@@ -1,12 +1,9 @@
 #include "graph_attribute.hpp"
 
 
-hstd::Vec<hstd::Str> hstd::ext::graph::IAttributeObject::getAttributeRepr()
-    const {
+hstd::Vec<hstd::Str> hstd::ext::graph::IAttributeObject::getAttributeRepr() const {
     hstd::Vec<hstd::Str> result;
-    for (auto const& a : getAttributes()) {
-        result.push_back(a->getRepr());
-    }
+    for (auto const& a : getAttributes()) { result.push_back(a->getRepr()); }
     return result;
 }
 
@@ -25,17 +22,14 @@ void hstd::ext::graph::IAttribute::writeSerial(
 void hstd::ext::graph::IAttributeObject::writeSerial(
     ::google::protobuf::RepeatedPtrField<proto::IAttribute>* out,
     IGraph const*                                            graph) const {
-    for (auto const& attr : getAttributes()) {
-        attr->writeSerial(out->Add(), graph);
-    }
+    for (auto const& attr : getAttributes()) { attr->writeSerial(out->Add(), graph); }
 }
 
 void hstd::ext::graph::IAttributeObject::readSerial(
-    ::google::protobuf::RepeatedPtrField<
-        ::hstd::ext::graph::proto::IAttribute> const* in,
-    IGraph const*                                     graph,
-    IGraphSerialReaderFactory*                        factory,
-    IAttributeObject const*                           vertex) {
+    ::google::protobuf::RepeatedPtrField<::hstd::ext::graph::proto::IAttribute> const* in,
+    IGraph const*              graph,
+    IGraphSerialReaderFactory* factory,
+    IAttributeObject const*    vertex) {
     OP_TRACER_MESSAGE_SCOPE(factory, "IAttributeObject::readSerial");
     hstd::Vec<hstd::SPtr<IAttribute>> attrs;
     for (auto const& a : *in) {

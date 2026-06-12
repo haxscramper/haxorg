@@ -44,20 +44,17 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// \brief helper assertion to fail if the vector is empty.
     void failEmpty() const {
         if (_this()->empty()) {
-            throw hstd::range_error::init(
-                "Operation does not work with an empty vector");
+            throw hstd::range_error::init("Operation does not work with an empty vector");
         }
     }
 
     void checkIdx(int idx) const {
         if (idx < 0) {
-            throw hstd::range_error::init(
-                "Operation does not support negative indices");
+            throw hstd::range_error::init("Operation does not support negative indices");
         } else if (!(idx < _this()->size())) {
             throw hstd::range_error::init(
-                std::string("Value out of range. idx < size(): ")
-                + std::to_string(idx) + std::string(" !< ")
-                + std::to_string(_this()->size()));
+                std::string("Value out of range. idx < size(): ") + std::to_string(idx)
+                + std::string(" !< ") + std::to_string(_this()->size()));
         }
     }
 
@@ -147,9 +144,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
 #endif
     }
 
-    int index(BackwardsIndex idx) const {
-        return _this()->size() - idx.value;
-    }
+    int index(BackwardsIndex idx) const { return _this()->size() - idx.value; }
 
     /// \brief Access vector value using backwards index, identical to
     /// `size() - <index value>`
@@ -159,9 +154,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// recommended for use as it unconiditionally does the bound checking
     T& at(BackwardsIndex idx) { return _this()->at(_this()->index(idx)); }
 
-    T const& at(BackwardsIndex idx) const {
-        return _this()->at(index(idx));
-    }
+    T const& at(BackwardsIndex idx) const { return _this()->at(index(idx)); }
 
     T const& at_or(int idx, T const& fallback) const {
         if (_this()->has(idx)) {
@@ -173,9 +166,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
 
 
     /// \brief Append elements from \arg other vector
-    void append(Container const& other) {
-        _this()->append(other.begin(), other.end());
-    }
+    void append(Container const& other) { _this()->append(other.begin(), other.end()); }
 
     /// \brief copy multiple elements referred to by span to the fector
     void append(std::span<T> const& other) {
@@ -243,9 +234,7 @@ struct IndexedBase : public CRTP_this_method<Container> {
     int indexOf(T const& item) const { return index_of(*_this(), item); }
     /// \brief Check if vector contains item, using `==`. \note \(O(n)\)
     /// operation, so better used only on small vectors.
-    bool contains(T const& item) const {
-        return _this()->indexOf(item) != -1;
-    }
+    bool contains(T const& item) const { return _this()->indexOf(item) != -1; }
 
     int push_back_idx(T const& item) {
         int result = _this()->size();
@@ -303,9 +292,7 @@ class [[refl(R"({
     using Base::end;
     using Base::insert;
 
-    void insert(int index, T const& value) {
-        Base::insert(begin() + index, value);
-    }
+    void insert(int index, T const& value) { Base::insert(begin() + index, value); }
 
     [[refl]] using Base::push_back;
 
@@ -323,18 +310,13 @@ class [[refl(R"({
     ///
     /// \note Made explicit to make it harder to do accidental
     /// low-performance copies of the whole data.
-    explicit Vec(Span<T> const& values)
-        : std::vector<T>(values.begin(), values.end()) {}
+    explicit Vec(Span<T> const& values) : std::vector<T>(values.begin(), values.end()) {}
 
     /// \brief Implicit conversion to the base class
-    operator Ref<std::vector<T>>() {
-        return static_cast<std::vector<T>>(*this);
-    }
+    operator Ref<std::vector<T>>() { return static_cast<std::vector<T>>(*this); }
 
     /// \brief implicit conversion to the base class
-    operator std::vector<T> const&() const {
-        return static_cast<std::vector<T>>(*this);
-    }
+    operator std::vector<T> const&() const { return static_cast<std::vector<T>>(*this); }
 
     template <typename Iter>
     void append(Iter begin, Iter end) {
@@ -374,8 +356,7 @@ class [[refl(R"({
     template <typename A, typename B>
     Span<T> at(HSlice<A, B> const& s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return Span<T>(
-            const_cast<T*>(this->data() + start), end - start + 1);
+        return Span<T>(const_cast<T*>(this->data() + start), end - start + 1);
     }
 
     /// \brief Reference to the last element. Checks for proper array size
@@ -403,9 +384,7 @@ class [[refl(R"({
 
 
     /// \brief Get span that extents for the whole vector content
-    Span<T> toSpan() const {
-        return Span<T>(const_cast<T*>(this->data()), size());
-    }
+    Span<T> toSpan() const { return Span<T>(const_cast<T*>(this->data()), size()); }
 
 
     std::vector<T> const& toBase() const { return *this; }
@@ -413,15 +392,10 @@ class [[refl(R"({
 
     template <IsIterableRange Range>
     static void Splice_Impl1(std::vector<T>& result, Range&& range) {
-        std::copy(
-            std::begin(range),
-            std::end(range),
-            std::back_inserter(result));
+        std::copy(std::begin(range), std::end(range), std::back_inserter(result));
     }
 
-    static void Splice_Impl1(Vec<T>& result, T const& arg) {
-        result.push_back(arg);
-    }
+    static void Splice_Impl1(Vec<T>& result, T const& arg) { result.push_back(arg); }
 
     static void Splice_Impl1(Vec<T>& result, T&& arg) {
         result.push_back(std::forward<T>(arg));
@@ -431,26 +405,18 @@ class [[refl(R"({
         result.append(std::forward<Vec<T>>(arg));
     }
 
-    static void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) {
-        result.append(arg);
-    }
+    static void Splice_Impl1(Vec<T>& result, Vec<T>&& arg) { result.append(arg); }
 
     static void Splice_Impl(Vec<T>& result) {}
 
     template <typename... Rest>
-    static void Splice_Impl(
-        Vec<T>&  result,
-        Vec<T>&& first,
-        Rest&&... rest) {
+    static void Splice_Impl(Vec<T>& result, Vec<T>&& first, Rest&&... rest) {
         Splice_Impl1(result, std::forward<Vec<T>>(first));
         Splice_Impl(result, std::forward<Rest>(rest)...);
     }
 
     template <typename First, typename... Rest>
-    static void Splice_Impl(
-        Vec<T>& result,
-        First&& first,
-        Rest&&... rest) {
+    static void Splice_Impl(Vec<T>& result, First&& first, Rest&&... rest) {
         Splice_Impl1(result, std::forward<First>(first));
         Splice_Impl(result, std::forward<Rest>(rest)...);
     }
@@ -564,8 +530,7 @@ struct SmallVec
     template <typename A, typename B>
     Span<T> at(HSlice<A, B> const& s, bool checkRange = true) const {
         const auto [start, end] = getSpan(size(), s, checkRange);
-        return Span<T>(
-            const_cast<T*>(this->data() + start), end - start + 1);
+        return Span<T>(const_cast<T*>(this->data() + start), end - start + 1);
     }
 };
 
@@ -592,13 +557,10 @@ using CVec = Vec<T> const&;
 
 template <typename T>
 struct value_metadata<Vec<T>> {
-    static bool isEmpty(Vec<T> const& value) { return value.empty(); }
-    static bool isNil([[maybe_unused]] Vec<T> const& value) {
-        return false;
-    }
+    static bool        isEmpty(Vec<T> const& value) { return value.empty(); }
+    static bool        isNil([[maybe_unused]] Vec<T> const& value) { return false; }
     static std::string typeName() {
-        return std::string{"Vec<"} + value_metadata<T>::typeName()
-             + std::string{">"};
+        return std::string{"Vec<"} + value_metadata<T>::typeName() + std::string{">"};
     }
 };
 

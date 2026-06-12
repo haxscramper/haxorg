@@ -11,7 +11,7 @@ namespace org::parse {
 struct OrgFill {
     hstd::Str                        text;
     hstd::Opt<org::parse::SourceLoc> loc;
-    bool isFake() const { return !loc.has_value(); }
+    bool                             isFake() const { return !loc.has_value(); }
     DESC_FIELDS(OrgFill, (text, loc));
 };
 
@@ -23,9 +23,8 @@ using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
 template <>
 struct std::formatter<org::parse::OrgFill> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        org::parse::OrgFill const& p,
-        FormatContext&             ctx) const {
+    FormatContext::iterator format(org::parse::OrgFill const& p, FormatContext& ctx)
+        const {
         std::formatter<std::string>{}.format("<", ctx);
         ::hstd::fmt_ctx(escape_for_write(p.text), ctx);
         std::formatter<std::string>{}.format(">", ctx);

@@ -16,12 +16,8 @@ using namespace org;
 using namespace hstd;
 namespace {
 
-json sliceJson(
-    json const&                                    input,
-    Vec<org::sem::AttrValue::DimensionSpan> const& spans) {
-    if (!input.is_array()) {
-        throw std::invalid_argument("Input JSON must be an array");
-    }
+json sliceJson(json const& input, Vec<org::sem::AttrValue::DimensionSpan> const& spans) {
+    if (!input.is_array()) { throw std::invalid_argument("Input JSON must be an array"); }
 
     if (spans.empty()) { return input; }
 
@@ -33,8 +29,7 @@ json sliceJson(
     }
 
     if (spans.size() > dimensions.size()) {
-        throw std::invalid_argument(
-            "More spans provided than dimensions in input");
+        throw std::invalid_argument("More spans provided than dimensions in input");
     }
 
     std::vector<std::vector<int>> indices(spans.size());
@@ -54,16 +49,12 @@ json sliceJson(
             throw std::out_of_range("Span last index out of bounds");
         }
 
-        for (int idx = first; idx <= last; ++idx) {
-            indices[i].push_back(idx);
-        }
+        for (int idx = first; idx <= last; ++idx) { indices[i].push_back(idx); }
     }
 
-    std::function<json(json const&, size_t, std::vector<int> const&)>
-        sliceRecursive;
-    sliceRecursive = [&](json const&             arr,
-                         size_t                  dim,
-                         std::vector<int> const& path) -> json {
+    std::function<json(json const&, size_t, std::vector<int> const&)> sliceRecursive;
+    sliceRecursive =
+        [&](json const& arr, size_t dim, std::vector<int> const& path) -> json {
         if (dim == indices.size()) {
             json const* value = &arr;
             for (int idx : path) { value = &(*value)[idx]; }
@@ -104,28 +95,24 @@ struct EvalContext {
     /// parsing.
     int evalCounter = 0;
 
-    imm::ImmAstContext::Ptr getContext() const { return version.context; }
+    imm::ImmAstContext::Ptr            getContext() const { return version.context; }
     hstd::SPtr<imm::ImmAstTrackingMap> getTrack() const {
         return getContext()->currentTrack;
     }
 
-    bool isTraceEnabled() const {
-        return conf.debug && conf.debug->TraceState;
-    }
+    bool isTraceEnabled() const { return conf.debug && conf.debug->TraceState; }
 
 
-#define EVAL_TRACE(msg)                                                   \
+#define EVAL_TRACE(msg)                                                                  \
     if (isTraceEnabled()) { conf.debug->message(msg); }
 
 
-#define EVAL_SCOPE()                                                      \
-    auto CONCAT(                                                          \
-        __scope, __COUNTER__) = isTraceEnabled()                          \
-                                  ? conf.debug->begin_scope()             \
-                                  : conf.debug->begin_scope_nop();
+#define EVAL_SCOPE()                                                                     \
+    auto CONCAT(__scope, __COUNTER__) = isTraceEnabled()                                 \
+                                          ? conf.debug->begin_scope()                    \
+                                          : conf.debug->begin_scope_nop();
 
-    Opt<json> getTargetValue(imm::ImmId const& target_id, bool asFlatText)
-        const {
+    Opt<json> getTargetValue(imm::ImmId const& target_id, bool asFlatText) const {
         auto target = getContext()->adaptUnrooted(target_id);
         EVAL_TRACE(fmt("Target node is {}", target));
         EVAL_SCOPE();
@@ -154,19 +141,16 @@ struct EvalContext {
                         json out_row = json::array();
                         EVAL_TRACE(fmt("Row {}", row));
                         EVAL_SCOPE();
-                        for (auto const& cell : getContext()
-                                                    ->adaptUnrooted(row)
-                                                    .as<imm::ImmRow>()
-                                                    ->cells) {
+                        for (auto const& cell :
+                             getContext()->adaptUnrooted(row).as<imm::ImmRow>()->cells) {
                             EVAL_TRACE(fmt("Cell {}", cell));
                             if (asFlatText) {
-                                out_row.push_back(getCleanText(
-                                    getContext()->adaptUnrooted(cell)));
+                                out_row.push_back(
+                                    getCleanText(getContext()->adaptUnrooted(cell)));
                             } else {
                                 auto cell_sem = org::imm::sem_from_immer(
                                     cell, *getContext());
-                                auto json_res = algo::ExporterJson::toJson(
-                                    cell_sem);
+                                auto json_res = algo::ExporterJson::toJson(cell_sem);
                                 out_row.push_back(json_res);
                             }
                         }
@@ -181,12 +165,10 @@ struct EvalContext {
                             "result "
                             "field");
                     } else {
-                        auto
-                            value = getContext()
-                                        ->adaptUnrooted(code.result.back())
-                                        .as<imm::ImmBlockCodeEvalResult>();
-                        EVAL_TRACE(fmt(
-                            "Target code block evaluated to {}", value));
+                        auto value = getContext()
+                                         ->adaptUnrooted(code.result.back())
+                                         .as<imm::ImmBlockCodeEvalResult>();
+                        EVAL_TRACE(fmt("Target code block evaluated to {}", value));
                         // EVAL_TRACE()
                         result = getTargetValue(value->node, asFlatText);
                     }
@@ -231,25 +213,19 @@ struct EvalContext {
             res.block = adapter.as<imm::ImmBlockCode>();
         } else {
             auto command = adapter.as<imm::ImmCmdCall>();
-            EVAL_TRACE(fmt(
-                "Getting target code block for name '{}'", command->name));
+            EVAL_TRACE(fmt("Getting target code block for name '{}'", command->name));
             res.callsiteVars       = command->callAttrs;
             res.callsiteHeaderArgs = command->insideHeaderAttrs;
             if (auto opt_block = getTrack()->names.get(command->name)) {
                 if (!opt_block->is(OrgSemKind::BlockCode)) {
                     EVAL_TRACE(
-                        fmt("Name '{}' does not refer to a code block",
-                            command->name));
+                        fmt("Name '{}' does not refer to a code block", command->name));
                 }
 
                 auto paths = getContext()->getPathsFor(opt_block.value());
                 LOGIC_ASSERTION_CHECK_FMT(
-                    !paths.empty(),
-                    "Logic block {} has no paths",
-                    opt_block.value());
-                res.block = getContext()
-                                ->adapt(paths.front())
-                                .as<imm::ImmBlockCode>();
+                    !paths.empty(), "Logic block {} has no paths", opt_block.value());
+                res.block = getContext()->adapt(paths.front()).as<imm::ImmBlockCode>();
             } else {
                 EVAL_TRACE(
                     fmt("Name '{}' does not refer to a known document "
@@ -268,11 +244,9 @@ struct EvalContext {
         OrgCodeEvalParameters const&  conf) {
         EVAL_SCOPE();
         EVAL_TRACE(fmt("Parsing stdout"));
-        std::string activeName = hstd::fmt(
-            "<{}-output-{}>", currentFile, evalCounter);
-        auto doc = conf.parseContext->parseString(
-            out.stdoutText, activeName);
-        auto stmt = sem::SemId<sem::StmtList>::New();
+        std::string activeName = hstd::fmt("<{}-output-{}>", currentFile, evalCounter);
+        auto        doc  = conf.parseContext->parseString(out.stdoutText, activeName);
+        auto        stmt = sem::SemId<sem::StmtList>::New();
         for (auto const& node : doc) {
             EVAL_TRACE(fmt("Result node {}", node->getKind()));
             stmt->subnodes.push_back(node);
@@ -381,9 +355,7 @@ struct EvalContext {
         if (res.callsiteVars) {
             for (auto const& var : res.callsiteVars->positional.items) {
                 EVAL_TRACE(fmt("Callsite variable {}", var));
-                if (var.varname) {
-                    byVarname.insert_or_assign(var.varname.value(), var);
-                }
+                if (var.varname) { byVarname.insert_or_assign(var.varname.value(), var); }
             }
         }
 
@@ -398,8 +370,7 @@ struct EvalContext {
             } else {
                 value = attr.getString();
             }
-            EVAL_TRACE(
-                fmt("Var '{}' value is '{}'", var.name, value.dump()));
+            EVAL_TRACE(fmt("Var '{}' value is '{}'", var.name, value.dump()));
             var.value = value;
             input.argList.push_back(var);
         }
@@ -425,8 +396,7 @@ struct EvalContext {
         version = version.getEditVersion(
             [&](imm::ImmAstContext::Ptr ast,
                 imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
-                auto id = ast->add(result, ctx)
-                              .as<imm::ImmBlockCodeEvalResult>();
+                auto id = ast->add(result, ctx).as<imm::ImmBlockCodeEvalResult>();
 
                 if (id == target_id.id) {
                     EVAL_TRACE("No changes in the code eval");
@@ -483,16 +453,14 @@ struct EvalContext {
         // imm_context->debug->setTraceFile("/tmp/evaluateCodeBlocks.log");
         version = imm_context->init(document);
 
-        auto collect_code_blocks =
-            [](imm::ImmAdapter const& ad) -> Vec<imm::ImmUniqId> {
+        auto collect_code_blocks = [](imm::ImmAdapter const& ad) -> Vec<imm::ImmUniqId> {
             Vec<imm::ImmUniqId> res;
-            org::eachSubnodeRec(
-                ad, true, [&](imm::ImmAdapter const& adapter) {
-                    if (adapter.is(OrgSemKind::BlockCode)
-                        || adapter.is(OrgSemKind::CmdCall)) {
-                        res.push_back(adapter.uniq());
-                    }
-                });
+            org::eachSubnodeRec(ad, true, [&](imm::ImmAdapter const& adapter) {
+                if (adapter.is(OrgSemKind::BlockCode)
+                    || adapter.is(OrgSemKind::CmdCall)) {
+                    res.push_back(adapter.uniq());
+                }
+            });
 
             return res;
         };
@@ -502,8 +470,7 @@ struct EvalContext {
 
 
         auto init_buffer = collect_code_blocks(version.getRootAdapter());
-        std::deque<imm::ImmUniqId> codeBlockPaths{
-            init_buffer.begin(), init_buffer.end()};
+        std::deque<imm::ImmUniqId> codeBlockPaths{init_buffer.begin(), init_buffer.end()};
 
         while (!codeBlockPaths.empty()) {
             auto block = codeBlockPaths.front();
@@ -513,10 +480,8 @@ struct EvalContext {
             CallParams call = getTargetBlock(adapter);
 
             if (!call.block.isNil()) {
-                EVAL_TRACE(
-                    fmt("Evaluating language '{}' at {}",
-                        call.block->lang,
-                        call.block->loc));
+                EVAL_TRACE(fmt(
+                    "Evaluating language '{}' at {}", call.block->lang, call.block->loc));
                 EVAL_SCOPE();
 
                 auto input  = convertInput(call);
@@ -524,13 +489,9 @@ struct EvalContext {
 
                 for (auto const& it : output) {
                     if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }
-                    if (!it.args.empty()) {
-                        EVAL_TRACE(fmt("args: {}", it.args));
-                    }
+                    if (!it.args.empty()) { EVAL_TRACE(fmt("args: {}", it.args)); }
                     EVAL_TRACE(fmt("code: {}", it.code));
-                    if (!it.cwd.empty()) {
-                        EVAL_TRACE(fmt("cwd: {}", it.cwd));
-                    }
+                    if (!it.cwd.empty()) { EVAL_TRACE(fmt("cwd: {}", it.cwd)); }
 
                     if (!it.stderrText.empty()) {
                         EVAL_TRACE(fmt("stderr:\n{}", it.stderrText));
@@ -543,10 +504,7 @@ struct EvalContext {
 
                 if (!output.empty()) {
                     setOutput(
-                        output,
-                        input,
-                        block,
-                        convertOutput(output.back(), input, conf));
+                        output, input, block, convertOutput(output.back(), input, conf));
                 }
             }
         }
@@ -565,11 +523,8 @@ struct EvalContext {
             "/tmp/codeblock_eval_final.txt",
             version.getRootAdapter().treeRepr(repr_conf).toString(false));
 
-        EVAL_TRACE(
-            fmt("Converting final root result {} back to sem",
-                version.getRoot()));
-        return org::imm::sem_from_immer(
-            version.getRoot(), *version.context);
+        EVAL_TRACE(fmt("Converting final root result {} back to sem", version.getRoot()));
+        return org::imm::sem_from_immer(version.getRoot(), *version.context);
     }
 };
 

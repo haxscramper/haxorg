@@ -37,8 +37,7 @@ using namespace hstd;
 
 BOOST_LOG_GLOBAL_LOGGER(
     global_logger,
-    boost::log::sources::severity_logger_mt<
-        boost::log::trivial::severity_level>)
+    boost::log::sources::severity_logger_mt<boost::log::trivial::severity_level>)
 
 using logger_type      = global_logger::logger_type;
 using stream_type      = ::boost::log::basic_record_ostream<char>;
@@ -54,10 +53,7 @@ namespace sinks    = boost::log::sinks;
 using namespace hstd;
 
 
-BOOST_LOG_ATTRIBUTE_KEYWORD(
-    a_file,
-    HSLOG_RECORD_FIELD,
-    hstd::log::log_record)
+BOOST_LOG_ATTRIBUTE_KEYWORD(a_file, HSLOG_RECORD_FIELD, hstd::log::log_record)
 
 typedef boost::log::attributes::mutable_constant<
     hstd::log::log_record,                   // attribute value type
@@ -76,15 +72,12 @@ log_record_mutable_constant current_record{log_record{}};
 BOOST_LOG_GLOBAL_LOGGER_INIT(
     global_logger,
     boost::log::sources::severity_logger_mt<LogLevel>) {
-    static boost::log::sources::severity_logger_mt<
-        boost::log::trivial::severity_level>
+    static boost::log::sources::severity_logger_mt<boost::log::trivial::severity_level>
         logger;
-    logger.add_attribute(
-        HSLOG_TIMESTAMP_FIELD, boost::log::attributes::local_clock());
+    logger.add_attribute(HSLOG_TIMESTAMP_FIELD, boost::log::attributes::local_clock());
 
     logger.add_attribute(
-        HSLOG_SCOPE_DEPTH_FIELD,
-        boost::log::attributes::make_function([]() -> int {
+        HSLOG_SCOPE_DEPTH_FIELD, boost::log::attributes::make_function([]() -> int {
             return log_scoped_depth_attr::instance().get_depth();
         }));
 
@@ -120,10 +113,10 @@ class log_sink_manager {
         std::lock_guard<std::mutex> lock(m_);
         if (!sinks_.empty()) {
             if (OLOG_INNER_DEBUG) {
-                OLOG_MSG()
-                    << fmt("Pop sink {:p}, current sink stack is {}",
-                           (void*)sinks_.top().get(),
-                           sinks_.size());
+                OLOG_MSG() << fmt(
+                    "Pop sink {:p}, current sink stack is {}",
+                    (void*)sinks_.top().get(),
+                    sinks_.size());
             }
             sinks_.pop();
             sync_sinks();
@@ -169,9 +162,7 @@ hstd::log::log_sink_scope::log_sink_scope()
     : previous_sinks_(log_sink_manager::instance().get_sinks()) {}
 
 hstd::log::log_sink_scope::~log_sink_scope() {
-    if (!moved) {
-        log_sink_manager::instance().set_sinks(previous_sinks_);
-    }
+    if (!moved) { log_sink_manager::instance().set_sinks(previous_sinks_); }
 }
 
 log_sink_scope& log_sink_scope::drop_current_sinks() {
@@ -180,9 +171,7 @@ log_sink_scope& log_sink_scope::drop_current_sinks() {
 }
 
 
-void hstd::log::clear_sink_backends() {
-    log_sink_manager::instance().set_sinks({});
-}
+void hstd::log::clear_sink_backends() { log_sink_manager::instance().set_sinks({}); }
 
 namespace {
 
@@ -191,8 +180,7 @@ void format_log_record_data(
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data,
     bool                            ignoreDepth = false) {
-    auto        ts           = rec[HSLOG_TIMESTAMP_FIELD]
-                                   .extract<boost::posix_time::ptime>();
+    auto        ts = rec[HSLOG_TIMESTAMP_FIELD].extract<boost::posix_time::ptime>();
     auto        global_depth = rec[HSLOG_SCOPE_DEPTH_FIELD].extract<int>();
     std::string prefix;
 
@@ -258,32 +246,29 @@ sink_ptr hstd::log::init_file_sink(Str const& log_file_name) {
 
     auto& logger = global_logger::get();
 
-    typedef boost::log::sinks::synchronous_sink<
-        boost::log::sinks::text_file_backend>
+    typedef boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>
         sink_t;
 
     boost::shared_ptr<sink_t> sink{new sink_t(
         boost::log::keywords::file_name     = log_file_name,
         boost::log::keywords::rotation_size = 10 * 1024 * 1024,
-        boost::log::keywords::
-            open_mode = (std::ios_base::out | std::ios_base::trunc),
-        boost::log::keywords::auto_flush = true //
+        boost::log::keywords::open_mode     = (std::ios_base::out | std::ios_base::trunc),
+        boost::log::keywords::auto_flush    = true //
         )};
 
-    sink->set_formatter([](boost::log::record_view const&  rec,
-                           boost::log::formatting_ostream& strm) {
-        auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
-        LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
-        format_log_record_data(rec, strm, ref->data);
-    });
+    sink->set_formatter(
+        [](boost::log::record_view const& rec, boost::log::formatting_ostream& strm) {
+            auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
+            LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
+            format_log_record_data(rec, strm, ref->data);
+        });
 
     return sink;
 }
 
 struct log_differential_sink
-    : public boost::log::sinks::basic_formatted_sink_backend<
-          char,
-          boost::log::sinks::synchronized_feeding> {
+    : public boost::log::sinks::
+          basic_formatted_sink_backend<char, boost::log::sinks::synchronized_feeding> {
 
     Vec<log_record>                curr_run;
     Vec<std::string>               curr_run_format;
@@ -308,9 +293,7 @@ struct log_differential_sink
         auto&         prev_fmt = factory->prev_run_format;
 
         auto prefixed_write = [&](Str const& prefix, Str const& text) {
-            for (auto const& line : text.split("\n")) {
-                ofs << prefix << line << "\n";
-            }
+            for (auto const& line : text.split("\n")) { ofs << prefix << line << "\n"; }
         };
 
         while (i < prev.size() || j < curr_run.size()) {
@@ -343,8 +326,7 @@ struct log_differential_sink
 sink_ptr log_differential_sink_factory::operator()() {
     auto backend     = boost::make_shared<log_differential_sink>();
     backend->factory = this;
-    return boost::make_shared<
-        boost::log::sinks::synchronous_sink<log_differential_sink>>(
+    return boost::make_shared<boost::log::sinks::synchronous_sink<log_differential_sink>>(
         backend);
 }
 
@@ -416,9 +398,7 @@ log_record& log_record::metadata(Str const& field, json const& value) {
 }
 
 log_record& log_record::maybe_space() {
-    if (!data.message.empty() && data.message.back() != ' ') {
-        data.message += " ";
-    }
+    if (!data.message.empty() && data.message.back() != ' ') { data.message += " "; }
     return *this;
 }
 
@@ -448,41 +428,27 @@ hstd::log::log_record& ::hstd::log::log_record::file(char const* f) {
     return *this;
 }
 
-hstd::log::log_record& ::hstd::log::log_record::category(
-    log_category const& cat) {
+hstd::log::log_record& ::hstd::log::log_record::category(log_category const& cat) {
     data.category = cat;
     return *this;
 }
 
-hstd::log::log_record& ::hstd::log::log_record::severity(
-    severity_level l) {
+hstd::log::log_record& ::hstd::log::log_record::severity(severity_level l) {
     data.severity = l;
     return *this;
 }
 
-log_record& log_record::as_trace() {
-    return severity(severity_level::trace);
-}
+log_record& log_record::as_trace() { return severity(severity_level::trace); }
 
-log_record& log_record::as_debug() {
-    return severity(severity_level::debug);
-}
+log_record& log_record::as_debug() { return severity(severity_level::debug); }
 
-log_record& log_record::as_info() {
-    return severity(severity_level::info);
-}
+log_record& log_record::as_info() { return severity(severity_level::info); }
 
-log_record& log_record::as_warning() {
-    return severity(severity_level::warning);
-}
+log_record& log_record::as_warning() { return severity(severity_level::warning); }
 
-log_record& log_record::as_error() {
-    return severity(severity_level::error);
-}
+log_record& log_record::as_error() { return severity(severity_level::error); }
 
-log_record& log_record::as_fatal() {
-    return severity(severity_level::fatal);
-}
+log_record& log_record::as_fatal() { return severity(severity_level::fatal); }
 
 std::size_t log_record::log_data::hash() const {
     std::size_t result{0};
@@ -501,10 +467,8 @@ std::size_t log_record::log_data::hash() const {
 
 template <DescribedRecord T>
 bool impl_refl_operator_eq(T const& t1, T const& t2) {
-    using Bd = boost::describe::
-        describe_bases<T, boost::describe::mod_any_access>;
-    using Md = boost::describe::
-        describe_members<T, boost::describe::mod_any_access>;
+    using Bd = boost::describe::describe_bases<T, boost::describe::mod_any_access>;
+    using Md = boost::describe::describe_members<T, boost::describe::mod_any_access>;
 
     bool r = true;
 
@@ -534,16 +498,14 @@ bool log_record::log_data::operator==(log_data const& other) const {
 //     get_logger().unlock();
 // }
 
-hstd::log::log_record& ::hstd::log::log_record::function(
-    char const* func) {
+hstd::log::log_record& ::hstd::log::log_record::function(char const* func) {
     data.function = func;
     return *this;
 }
 
 namespace {
 record_type start_log_record(boost::log::trivial::severity_level level) {
-    return get_logger().open_record(
-        ::boost::log::keywords::severity = level);
+    return get_logger().open_record(::boost::log::keywords::severity = level);
 }
 
 } // namespace
@@ -556,42 +518,33 @@ void hstd::log::log_record::end() {
         static_cast<boost::log::trivial::severity_level>(data.severity));
     // if the record did not pass filtering, it will return empty, and
     // should not be submitted.
-    if (!!rec_var) {
-        logging::core::get()->push_record(std::move(rec_var));
-    }
+    if (!!rec_var) { logging::core::get()->push_record(std::move(rec_var)); }
 }
 
 
 template <>
-struct std::formatter<boost::log::attribute_name>
-    : std::formatter<std::string> {
+struct std::formatter<boost::log::attribute_name> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(boost::log::attribute_name const& p, FormatContext& ctx)
-        const {
+    auto format(boost::log::attribute_name const& p, FormatContext& ctx) const {
         return fmt_ctx(p.string(), ctx);
     }
 };
 
 template <>
-struct std::formatter<boost::log::attribute_value>
-    : std::formatter<std::string> {
+struct std::formatter<boost::log::attribute_value> : std::formatter<std::string> {
     template <typename FormatContext>
-    auto format(boost::log::attribute_value const& p, FormatContext& ctx)
-        const {
+    auto format(boost::log::attribute_value const& p, FormatContext& ctx) const {
         return fmt_ctx(p.get_type().pretty_name(), ctx);
     }
 };
 
 
-sink_ptr hstd::log::set_sink_filter(
-    sink_ptr                      sink,
-    Func<bool(log_record const&)> filter) {
+sink_ptr hstd::log::set_sink_filter(sink_ptr sink, Func<bool(log_record const&)> filter) {
     sink->set_filter([filter](logging::attribute_value_set const& attrs) {
         auto rec = attrs[HSLOG_RECORD_FIELD].extract<log_record>();
 
         LOGIC_ASSERTION_CHECK(
-            !!rec,
-            "Logging attribute record set does not have a 'record' field");
+            !!rec, "Logging attribute record set does not have a 'record' field");
 
         if (!!rec) {
             try {

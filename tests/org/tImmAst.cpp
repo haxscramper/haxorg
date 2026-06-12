@@ -26,34 +26,30 @@ TEST_F(ImmOrgApi, StoreNode) {
 
 
 TEST_F(ImmOrgApi, RountripImmutableAst) {
-    std::string file       = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
-    std::string source     = readFile(fs::path(file));
-    auto        store      = imm::ImmAstContext::init_start_context();
-    sem::SemId  write_node = testParseString(source);
-    imm::ImmAstVersion v1  = store->addRoot(write_node);
-    sem::SemId         read_node = v1.context->get(v1.getRoot());
+    std::string        file       = (__CURRENT_FILE_DIR__ / "corpus/org/all.org");
+    std::string        source     = readFile(fs::path(file));
+    auto               store      = imm::ImmAstContext::init_start_context();
+    sem::SemId         write_node = testParseString(source);
+    imm::ImmAstVersion v1         = store->addRoot(write_node);
+    sem::SemId         read_node  = v1.context->get(v1.getRoot());
 
     Vec<compare_report> out;
 
-    reporting_comparator<sem::SemId<sem::Org>>::compare(
-        write_node, read_node, out, {});
+    reporting_comparator<sem::SemId<sem::Org>>::compare(write_node, read_node, out, {});
     show_compare_reports(out);
 }
 
 TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
-    std::string
-        file = (__CURRENT_FILE_DIR__ / "corpus/mind_map_directory");
+    std::string file = (__CURRENT_FILE_DIR__ / "corpus/mind_map_directory");
     LOGIC_ASSERTION_CHECK_FMT(fs::exists(file), "{}", file);
     auto store = imm::ImmAstContext::init_start_context();
     auto node  = parseContext->parseDirectory(file);
     ASSERT_TRUE(node.has_value());
     auto version = store->addRoot(node.value());
-    auto state   = org::graph::MapGraphState::FromAstContext(
-        version.getContext());
+    auto state   = org::graph::MapGraphState::FromAstContext(version.getContext());
 
     auto conf = org::graph::MapConfig::shared();
-    state->addNodeRec(
-        version.getContext(), version.getRootAdapter(), conf);
+    state->addNodeRec(version.getContext(), version.getRootAdapter(), conf);
 }
 
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
@@ -68,8 +64,7 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
                     tmp,
                     imm::ImmReflPathBase{},
                     ctx,
-                    [&]<typename T>(
-                        imm::ImmReflPathBase const& path, T const& value) {
+                    [&]<typename T>(imm::ImmReflPathBase const& path, T const& value) {
                         paths.push_back(path);
                     });
             });
@@ -80,9 +75,7 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
 
 TEST_F(ImmOrgApi, ItearteParentNodes) {
     setTraceFile(getDebugFile("trace.txt"));
-    start->currentTrack->isTrackingParent = [](imm::ImmAdapter const&) {
-        return true;
-    };
+    start->currentTrack->isTrackingParent = [](imm::ImmAdapter const&) { return true; };
 
 
     auto start_node   = testParseString("word0 word2 word4");
@@ -97,29 +90,25 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
     EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
     {
-        imm::ImmParentIdVec parents = v1.context->getParentIds(
-            space_id.id);
+        imm::ImmParentIdVec parents = v1.context->getParentIds(space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_TRUE(parents.contains(par_id.id));
         EXPECT_EQ(parents.size(), 1);
     }
 
     {
-        imm::ParentPathMap parents = v1.context->getParentsFor(
-            space_id.id);
+        imm::ParentPathMap parents = v1.context->getParentsFor(space_id.id);
         EXPECT_EQ(parents.size(), 1);
         EXPECT_TRUE(parents.contains(par_id.id));
         EXPECT_EQ(parents.at(par_id.id).size(), 2);
         EXPECT_EQ(
             parents.at(par_id.id).at(0).path.at(0).getFieldName().name,
             imm::ImmReflFieldId::FromTypeField(&imm::ImmOrg::subnodes));
-        EXPECT_EQ(
-            parents.at(par_id.id).at(0).path.at(1).getIndex().index, 1);
+        EXPECT_EQ(parents.at(par_id.id).at(0).path.at(1).getIndex().index, 1);
         EXPECT_EQ(
             parents.at(par_id.id).at(1).path.at(0).getFieldName().name,
             imm::ImmReflFieldId::FromTypeField(&imm::ImmOrg::subnodes));
-        EXPECT_EQ(
-            parents.at(par_id.id).at(1).path.at(1).getIndex().index, 3);
+        EXPECT_EQ(parents.at(par_id.id).at(1).path.at(1).getIndex().index, 3);
     }
 
 
@@ -150,8 +139,7 @@ Other paragraph mentions radiotarget
     EXPECT_EQ(radio.getKind(), OrgSemKind::RadioTarget);
     imm::ImmAdapter par2 = root.at(3);
     EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
-    Vec<imm::ImmSubnodeGroup> grouped = imm::getSubnodeGroups(
-        init.context, par2);
+    Vec<imm::ImmSubnodeGroup> grouped = imm::getSubnodeGroups(init.context, par2);
     EXPECT_EQ(grouped.size(), 7);
     EXPECT_TRUE(grouped.at(0).isSingle());
     EXPECT_TRUE(grouped.at(6).isRadioTarget());
@@ -194,14 +182,10 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
     EXPECT_EQ2(t2.targets.begin()->first, sem::HashTagFlat{{"hashtag1"}});
     EXPECT_EQ2(t6.targets.size(), 1);
     EXPECT_EQ2(t6.targets.begin()->second, t1.id);
-    EXPECT_EQ2(
-        t6.targets.begin()->first,
-        (sem::HashTagFlat{{"nested", "alias1"}}));
+    EXPECT_EQ2(t6.targets.begin()->first, (sem::HashTagFlat{{"nested", "alias1"}}));
     EXPECT_EQ2(t10.targets.size(), 1);
     EXPECT_EQ2(t10.targets.begin()->second, t1.id);
-    EXPECT_EQ2(
-        t10.targets.begin()->first,
-        (sem::HashTagFlat{{"nested", "alias2"}}));
+    EXPECT_EQ2(t10.targets.begin()->first, (sem::HashTagFlat{{"nested", "alias2"}}));
 }
 
 
@@ -231,18 +215,15 @@ also known as a human-readable alias
     imm::ImmAdapter t2 = root.at(2);
     EXPECT_EQ(t2.getKind(), OrgSemKind::Subtree);
 
-    imm::ImmAdapterT<imm::ImmSubtree>
-        treeAdapter = t1.as<imm::ImmSubtree>();
+    imm::ImmAdapterT<imm::ImmSubtree> treeAdapter = t1.as<imm::ImmSubtree>();
 
-    Vec<sem::NamedProperty> radioAliases = treeAdapter.getPropertiesByKind(
-        "radio_id");
+    Vec<sem::NamedProperty> radioAliases = treeAdapter.getPropertiesByKind("radio_id");
 
     EXPECT_EQ(radioAliases.size(), 3);
     EXPECT_EQ(radioAliases.at(0).getRadioId().words, Vec<Str>{"alias1"});
     EXPECT_EQ(radioAliases.at(1).getRadioId().words, Vec<Str>{"alias2"});
     EXPECT_EQ(
-        radioAliases.at(2).getRadioId().words,
-        (Vec<Str>{"human-readable", "alias"}));
+        radioAliases.at(2).getRadioId().words, (Vec<Str>{"human-readable", "alias"}));
 
     imm::ImmAdapter par_alias1 = t2.at(0);
     imm::ImmAdapter par_alias2 = t2.at(2);
@@ -270,14 +251,11 @@ also known as a human-readable alias
 
 TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     setTraceFile(getDebugFile("trace.txt"));
-    start->currentTrack->isTrackingParent = [](imm::ImmAdapter const&) {
-        return true;
-    };
+    start->currentTrack->isTrackingParent = [](imm::ImmAdapter const&) { return true; };
 
 
-    sem::SemId<sem::Org> start_node = testParseString("word0 word2 word4");
-    sem::SemId<sem::Org> replace_node = testParseString("wordXX").at(0).at(
-        0);
+    sem::SemId<sem::Org> start_node   = testParseString("word0 word2 word4");
+    sem::SemId<sem::Org> replace_node = testParseString("wordXX").at(0).at(0);
 
     imm::ImmAstVersion      version1  = start->init(start_node);
     imm::ImmAstContext::Ptr store     = version1.context;
@@ -287,13 +265,10 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto                    version2  = store->finishEdit(
         ctx,
         ctx.store().cascadeUpdate(
-            version1.getRootAdapter(),
-            setSubnode(paragraph, word_xx, 2, ctx),
-            ctx));
+            version1.getRootAdapter(), setSubnode(paragraph, word_xx, 2, ctx), ctx));
 
     auto        store2 = version2.context;
-    auto const& c = gen_view(version2.epoch->replaced.allReplacements())
-                  | rs::to<Vec>();
+    auto const& c = gen_view(version2.epoch->replaced.allReplacements()) | rs::to<Vec>();
 
     auto const& doc1_id = ctx->adapt(c.at(0).original.value());
     auto const& doc2_id = ctx->adapt(c.at(0).replaced);
@@ -373,9 +348,7 @@ struct ImmOrgApiAppModel : ImmOrgApiTestBase {
         imm::ImmAdapter storyEventOrigin;
         std::string     storyEvent;
         Vec<Row>        nested;
-        DESC_FIELDS(
-            Row,
-            (nameOrigin, name, storyEventOrigin, storyEvent, nested));
+        DESC_FIELDS(Row, (nameOrigin, name, storyEventOrigin, storyEvent, nested));
     };
 
     Row buildRow(imm::ImmAdapterT<imm::ImmSubtree> tree) {
@@ -389,8 +362,7 @@ struct ImmOrgApiAppModel : ImmOrgApiTestBase {
                     for (auto const& word : flat) {
                         if (word == "story_event") {
                             result.storyEventOrigin = item.at(0);
-                            result.storyEvent       = join(
-                                " ", flatWords(item.at(0)));
+                            result.storyEvent       = join(" ", flatWords(item.at(0)));
                         }
                     }
                 }
@@ -459,8 +431,8 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
                 imm::replaceNode(
                     t2.nameOrigin,
                     ast->add(
-                        org::asOneNode(parseContext->parseString(
-                            "New title", "<test-1>")),
+                        org::asOneNode(
+                            parseContext->parseString("New title", "<test-1>")),
                         ctx),
                     ctx));
             result.incl(
@@ -488,9 +460,7 @@ TEST_F(ImmOrgApiAppModel, EditModel) {
         EXPECT_EQ(rows2.at(0).nested.size(), 1);
         EXPECT_EQ(rows2.at(0).name, "Entry 1");
         EXPECT_EQ(rows2.at(0).nested.at(0).name, "New title");
-        EXPECT_EQ(
-            rows2.at(0).nested.at(0).storyEvent,
-            "New story event description");
+        EXPECT_EQ(rows2.at(0).nested.at(0).storyEvent, "New story event description");
     }
 }
 
@@ -524,8 +494,7 @@ TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
 TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
     auto                     node = getInitialVersion("word *bold*");
     imm::OrgDocumentSelector selector;
-    selector.searchAnyKind(
-        {OrgSemKind::Bold}, false, selector.linkDirectSubnode());
+    selector.searchAnyKind({OrgSemKind::Bold}, false, selector.linkDirectSubnode());
     selector.searchAnyKind({OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
@@ -575,8 +544,7 @@ Paragraph under subtitle 2
         // Then visitation gets to the subtree title itself. Nested fields
         // for each node are iterated starting from the base's fields and
         // then to the concrete type -- also in the DFS order.
-        EXPECT_EQ(
-            words.at(4).as<imm::ImmWord>()->text->toBase(), "Subtitle2");
+        EXPECT_EQ(words.at(4).as<imm::ImmWord>()->text->toBase(), "Subtitle2");
     }
 
     if (true) {
@@ -586,8 +554,7 @@ Paragraph under subtitle 2
             {"Subtitle2"},
             false,
             selector.linkField(
-                imm::ImmReflFieldId::FromTypeField(
-                    &imm::ImmOrg::subnodes)));
+                imm::ImmReflFieldId::FromTypeField(&imm::ImmOrg::subnodes)));
         selector.searchAnyKind({OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
@@ -661,20 +628,17 @@ TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
 )");
 
     imm::OrgDocumentSelector selector;
-    selector.searchAnyKind(
-        {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
+    selector.searchAnyKind({OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
 
     selector.searchAnyKind({OrgSemKind::Subtree}, false);
 
-    Vec<imm::ImmAdapter> subtrees = selector.getMatches(
-        doc.getRootAdapter());
+    Vec<imm::ImmAdapter> subtrees = selector.getMatches(doc.getRootAdapter());
 
     EXPECT_EQ(subtrees.size(), 3);
-    auto titles = subtrees
-                | rv::transform([](imm::ImmAdapter const& id) -> Vec<Str> {
+    auto titles = subtrees | rv::transform([](imm::ImmAdapter const& id) -> Vec<Str> {
                       return flatWords(id.at(
-                          imm::ImmReflFieldId::FromTypeField<
-                              imm::ImmSubtree>(&imm::ImmSubtree::title)));
+                          imm::ImmReflFieldId::FromTypeField<imm::ImmSubtree>(
+                              &imm::ImmSubtree::title)));
                   })
                 | rs::to<Vec>();
 
@@ -697,8 +661,7 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
             {OrgSemKind::Subtree},
             true,
             selector.linkField(
-                imm::ImmReflFieldId::FromTypeField(
-                    &imm::ImmSubtree::title)));
+                imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
         selector.searchAnyKind({OrgSemKind::Time}, false);
         auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 1);

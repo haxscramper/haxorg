@@ -20,8 +20,8 @@ class LinePrinterLogSink : public absl::LogSink {
   public:
     LinePrinterLogSink(char const* path) : file(path) {}
     void Send(absl::LogEntry const& entry) override {
-        for (absl::string_view line : absl::StrSplit(
-                 entry.text_message_with_prefix(), absl::ByChar('\n'))) {
+        for (absl::string_view line :
+             absl::StrSplit(entry.text_message_with_prefix(), absl::ByChar('\n'))) {
             // Overprint severe entries for emphasis:
             for (int i = static_cast<int>(absl::LogSeverity::kInfo);
                  i <= static_cast<int>(entry.log_severity());
@@ -37,14 +37,12 @@ class LinePrinterLogSink : public absl::LogSink {
 
 class QuietTestPrinter : public ::testing::EmptyTestEventListener {
     // Called after a failed assertion or a SUCCESS().
-    void OnTestPartResult(
-        ::testing::TestPartResult const& test_part_result) override {
+    void OnTestPartResult(::testing::TestPartResult const& test_part_result) override {
         if (test_part_result.failed()) {
             std::cout << ::hstd::fmt(
                 "{} in {}:{}\n{}\n",
                 test_part_result.failed() ? "*** Failure" : "Success",
-                test_part_result.file_name() ? test_part_result.file_name()
-                                             : "<none>",
+                test_part_result.file_name() ? test_part_result.file_name() : "<none>",
                 test_part_result.line_number(),
                 test_part_result.summary());
         }

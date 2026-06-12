@@ -21,11 +21,9 @@ class ReflFrontendAction : public clang::ASTFrontendAction {
     ReflFrontendAction(ReflectionCLI const& cli) : cli{cli} {}
 };
 
-class ReflFrontendActionFactory
-    : public clang::tooling::FrontendActionFactory {
+class ReflFrontendActionFactory : public clang::tooling::FrontendActionFactory {
   public:
-    explicit ReflFrontendActionFactory(ReflectionCLI const& cli)
-        : cli{cli} {}
+    explicit ReflFrontendActionFactory(ReflectionCLI const& cli) : cli{cli} {}
 
     std::unique_ptr<clang::FrontendAction> create() override;
 

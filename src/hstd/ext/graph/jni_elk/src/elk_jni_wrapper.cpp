@@ -28,8 +28,7 @@ class ElkLayoutEngine::Impl {
         JavaVMOption   options[2];
 
         // Get the current directory and construct classpath
-        std::string classpath = std::format(
-            "-Djava.class.path={}", wrapper_jar);
+        std::string classpath = std::format("-Djava.class.path={}", wrapper_jar);
 
         options[0].optionString = const_cast<char*>(classpath.c_str());
         options[1].optionString = const_cast<char*>("-Xmx512m");
@@ -44,9 +43,7 @@ class ElkLayoutEngine::Impl {
             std::string desc;
             switch (result) {
                 case JNI_OK: desc = "JNI_OK 0    /* success */"; break;
-                case JNI_ERR:
-                    desc = "JNI_ERR (-1) /* unknown error */";
-                    break;
+                case JNI_ERR: desc = "JNI_ERR (-1) /* unknown error */"; break;
                 case JNI_EDETACHED:
                     desc
                         = "JNI_EDETACHED (-2) /* thread detached from the "
@@ -55,27 +52,19 @@ class ElkLayoutEngine::Impl {
                 case JNI_EVERSION:
                     desc = "JNI_EVERSION (-3) /* JNI version error */";
                     break;
-                case JNI_ENOMEM:
-                    desc = "JNI_ENOMEM (-4) /* not enough memory */";
-                    break;
-                case JNI_EEXIST:
-                    desc = "JNI_EEXIST (-5) /* VM already created */";
-                    break;
-                case JNI_EINVAL:
-                    desc = "JNI_EINVAL (-6) /* invalid arguments */";
-                    break;
+                case JNI_ENOMEM: desc = "JNI_ENOMEM (-4) /* not enough memory */"; break;
+                case JNI_EEXIST: desc = "JNI_EEXIST (-5) /* VM already created */"; break;
+                case JNI_EINVAL: desc = "JNI_EINVAL (-6) /* invalid arguments */"; break;
             }
 
-            throw std::runtime_error(
-                std::format("Failed to create JVM: {}", result));
+            throw std::runtime_error(std::format("Failed to create JVM: {}", result));
         }
 
         // Find the wrapper class
         wrapperClass = env->FindClass("com/example/elk/ElkLayoutWrapper");
         if (!wrapperClass) {
             env->ExceptionDescribe();
-            throw std::runtime_error(
-                "Failed to find ElkLayoutWrapper class");
+            throw std::runtime_error("Failed to find ElkLayoutWrapper class");
         }
 
         // Make it a global reference
@@ -83,13 +72,10 @@ class ElkLayoutEngine::Impl {
 
         // Get the method ID
         performLayoutMethod = env->GetStaticMethodID(
-            wrapperClass,
-            "performLayout",
-            "(Ljava/lang/String;)Ljava/lang/String;");
+            wrapperClass, "performLayout", "(Ljava/lang/String;)Ljava/lang/String;");
         if (!performLayoutMethod) {
             env->ExceptionDescribe();
-            throw std::runtime_error(
-                "Failed to find performLayout method");
+            throw std::runtime_error("Failed to find performLayout method");
         }
 
         initialized = true;
@@ -110,15 +96,11 @@ class ElkLayoutEngine::Impl {
     }
 
     std::string callPerformLayout(std::string const& inputJson) {
-        if (!initialized || !env) {
-            throw std::runtime_error("JVM not initialized");
-        }
+        if (!initialized || !env) { throw std::runtime_error("JVM not initialized"); }
 
         // Create Java string
         jstring jInputJson = env->NewStringUTF(inputJson.c_str());
-        if (!jInputJson) {
-            throw std::runtime_error("Failed to create input string");
-        }
+        if (!jInputJson) { throw std::runtime_error("Failed to create input string"); }
 
         // Call the method
         jstring jResult = (jstring)env->CallStaticObjectMethod(
@@ -133,9 +115,7 @@ class ElkLayoutEngine::Impl {
             throw std::runtime_error("Exception in Java method");
         }
 
-        if (!jResult) {
-            throw std::runtime_error("Null result from Java method");
-        }
+        if (!jResult) { throw std::runtime_error("Null result from Java method"); }
 
         // Convert result to C++ string
         char const* resultChars = env->GetStringUTFChars(jResult, nullptr);
@@ -164,9 +144,7 @@ std::string ElkLayoutEngine::performLayout(std::string const& inputJson) {
     return pImpl->callPerformLayout(inputJson);
 }
 
-bool ElkLayoutEngine::isInitialized() const {
-    return pImpl->isInitialized();
-}
+bool ElkLayoutEngine::isInitialized() const { return pImpl->isInitialized(); }
 
 } // namespace elk_jni
 #endif

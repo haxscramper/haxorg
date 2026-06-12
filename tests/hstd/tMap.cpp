@@ -37,9 +37,6 @@ TEST(BimapTest, LeftKeysAndRightKeys) {
 
     EXPECT_EQ(leftKeys.size(), 2);
     EXPECT_EQ(rightKeys.size(), 2);
-    EXPECT_NE(
-        std::find(leftKeys.begin(), leftKeys.end(), 1), leftKeys.end());
-    EXPECT_NE(
-        std::find(rightKeys.begin(), rightKeys.end(), "one"),
-        rightKeys.end());
+    EXPECT_NE(std::find(leftKeys.begin(), leftKeys.end(), 1), leftKeys.end());
+    EXPECT_NE(std::find(rightKeys.begin(), rightKeys.end(), "one"), rightKeys.end());
 }

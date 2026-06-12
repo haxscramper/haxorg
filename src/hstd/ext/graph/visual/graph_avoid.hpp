@@ -28,11 +28,9 @@ class AvoidPort
 class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
   public:
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
         hstd::ext::graph::avoid::proto::PortVisualAttributePayload load;
-        load.set_visibility(
-            static_cast<avoid::proto::EdgeVisibility>(visibility));
+        load.set_visibility(static_cast<avoid::proto::EdgeVisibility>(visibility));
         if (edgeOffset) { load.set_edge_offset(edgeOffset.value()); }
         out->mutable_payload()->PackFrom(load);
     }
@@ -56,20 +54,16 @@ class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
 
 class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
-    std::string getRepr() const override {
-        return "AvoidEdgeLayoutAttribute";
-    }
+    std::string getRepr() const override { return "AvoidEdgeLayoutAttribute"; }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
         avoid::proto::EdgeLayoutAttributePayload load;
         hstd::serde::write_serde(
             load.mutable_base()->mutable_group(),
             // TODO: See [[nil-visual-id-for-serialization]]
             getVisual(EdgeID::Nil()));
 
-        hstd::serde::write_serde(
-            load.mutable_base()->mutable_path(), getPath());
+        hstd::serde::write_serde(load.mutable_base()->mutable_path(), getPath());
 
         out->mutable_payload()->PackFrom(load);
     }
@@ -89,12 +83,9 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
   public:
-    std::string getRepr() const override {
-        return "AvoidPortLayoutAttribute";
-    }
+    std::string getRepr() const override { return "AvoidPortLayoutAttribute"; }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph)
-        const override {
+    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
         avoid::proto::PortLayoutAttributePayload load;
 
         hstd::serde::write_serde(
@@ -134,8 +125,7 @@ class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
     }
 
     DECL_DESCRIBED_ENUM(Placement, Unspecified, Proportional, Absolute);
-    using VisibilityDirection = AvoidPortVisualAttribute::
-        VisibilityDirection;
+    using VisibilityDirection = AvoidPortVisualAttribute::VisibilityDirection;
     VisibilityDirection visibility;
     Placement           placement;
     double              xOffset;
@@ -157,13 +147,10 @@ class AvoidPortCollection : public IPortCollection {
             hstd::hash_bits<15>(typeid(this).hash_code()));
     }
 
-    const IPort* getPort(PortID pid) const override {
-        return &portStore.at(pid);
-    }
+    const IPort* getPort(PortID pid) const override { return &portStore.at(pid); }
 
     PortID addPort(VertexID vertex, EdgeID edge, bool is_start) {
-        auto id = portStore.add(
-            AvoidPort{hstd::fmt1(portStore.getNextId())});
+        auto id = portStore.add(AvoidPort{hstd::fmt1(portStore.getNextId())});
         IPortCollection::addPort(vertex, edge, is_start, id);
         return id;
     }
@@ -201,10 +188,8 @@ class AvoidRouterAlgorithm {
     hstd::Str routing_run_name;
 
     struct Result {
-        hstd::SPtr<AvoidPortCollection> layoutPorts;
-        hstd::
-            UnorderedMap<EdgeID, hstd::SPtr<layout::IEdgeLayoutAttribute>>
-                edges;
+        hstd::SPtr<AvoidPortCollection>                                      layoutPorts;
+        hstd::UnorderedMap<EdgeID, hstd::SPtr<layout::IEdgeLayoutAttribute>> edges;
     };
 
     Result routeEdges();

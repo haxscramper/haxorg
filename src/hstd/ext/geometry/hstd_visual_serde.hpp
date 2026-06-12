@@ -12,48 +12,30 @@ struct proto_serde;
 
 template <>
 struct proto_serde<ext::visual::proto::VisColor, ext::visual::VisColor> {
-    static void write(
-        ext::visual::proto::VisColor* out,
-        ext::visual::VisColor const&  in);
-    static void read(
-        ext::visual::proto::VisColor const& in,
-        ext::visual::VisColor*              out);
+    static void write(ext::visual::proto::VisColor* out, ext::visual::VisColor const& in);
+    static void read(ext::visual::proto::VisColor const& in, ext::visual::VisColor* out);
 };
 
 template <>
 struct proto_serde<ext::visual::proto::VisPen, ext::visual::VisPen> {
-    static void write(
-        ext::visual::proto::VisPen* out,
-        ext::visual::VisPen const&  in);
-    static void read(
-        ext::visual::proto::VisPen const& in,
-        ext::visual::VisPen*              out);
+    static void write(ext::visual::proto::VisPen* out, ext::visual::VisPen const& in);
+    static void read(ext::visual::proto::VisPen const& in, ext::visual::VisPen* out);
 };
 
 template <>
 struct proto_serde<ext::visual::proto::VisBrush, ext::visual::VisBrush> {
-    static void write(
-        ext::visual::proto::VisBrush* out,
-        ext::visual::VisBrush const&  in);
-    static void read(
-        ext::visual::proto::VisBrush const& in,
-        ext::visual::VisBrush*              out);
+    static void write(ext::visual::proto::VisBrush* out, ext::visual::VisBrush const& in);
+    static void read(ext::visual::proto::VisBrush const& in, ext::visual::VisBrush* out);
 };
 
 template <>
 struct proto_serde<ext::visual::proto::VisFont, ext::visual::VisFont> {
-    static void write(
-        ext::visual::proto::VisFont* out,
-        ext::visual::VisFont const&  in);
-    static void read(
-        ext::visual::proto::VisFont const& in,
-        ext::visual::VisFont*              out);
+    static void write(ext::visual::proto::VisFont* out, ext::visual::VisFont const& in);
+    static void read(ext::visual::proto::VisFont const& in, ext::visual::VisFont* out);
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::VisTextAlign,
-    ext::visual::VisTextAlign> {
+struct proto_serde<ext::visual::proto::VisTextAlign, ext::visual::VisTextAlign> {
     static void write(
         ext::visual::proto::VisTextAlign* out,
         ext::visual::VisTextAlign const&  in);
@@ -73,9 +55,7 @@ struct proto_serde<ext::visual::proto::VisCustom, ext::visual::VisCustom> {
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::RectShape,
-    ext::visual::VisElement::RectShape> {
+struct proto_serde<ext::visual::proto::RectShape, ext::visual::VisElement::RectShape> {
     static void write(
         ext::visual::proto::RectShape*            out,
         ext::visual::VisElement::RectShape const& in);
@@ -97,9 +77,7 @@ struct proto_serde<
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::LineShape,
-    ext::visual::VisElement::LineShape> {
+struct proto_serde<ext::visual::proto::LineShape, ext::visual::VisElement::LineShape> {
     static void write(
         ext::visual::proto::LineShape*            out,
         ext::visual::VisElement::LineShape const& in);
@@ -109,9 +87,7 @@ struct proto_serde<
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::PathShape,
-    ext::visual::VisElement::PathShape> {
+struct proto_serde<ext::visual::proto::PathShape, ext::visual::VisElement::PathShape> {
     static void write(
         ext::visual::proto::PathShape*            out,
         ext::visual::VisElement::PathShape const& in);
@@ -133,9 +109,7 @@ struct proto_serde<
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::TextShape,
-    ext::visual::VisElement::TextShape> {
+struct proto_serde<ext::visual::proto::TextShape, ext::visual::VisElement::TextShape> {
     static void write(
         ext::visual::proto::TextShape*            out,
         ext::visual::VisElement::TextShape const& in);
@@ -157,9 +131,7 @@ struct proto_serde<
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::PointShape,
-    ext::visual::VisElement::PointShape> {
+struct proto_serde<ext::visual::proto::PointShape, ext::visual::VisElement::PointShape> {
     static void write(
         ext::visual::proto::PointShape*            out,
         ext::visual::VisElement::PointShape const& in);
@@ -169,9 +141,7 @@ struct proto_serde<
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::VisElementData,
-    ext::visual::VisElement::Data> {
+struct proto_serde<ext::visual::proto::VisElementData, ext::visual::VisElement::Data> {
     static void write(
         ext::visual::proto::VisElementData*  out,
         ext::visual::VisElement::Data const& in);
@@ -181,9 +151,7 @@ struct proto_serde<
 };
 
 template <>
-struct proto_serde<
-    ext::visual::proto::VisElement,
-    ext::visual::VisElement> {
+struct proto_serde<ext::visual::proto::VisElement, ext::visual::VisElement> {
     static void write(
         ext::visual::proto::VisElement* out,
         ext::visual::VisElement const&  in);
@@ -194,12 +162,8 @@ struct proto_serde<
 
 template <>
 struct proto_serde<ext::visual::proto::VisGroup, ext::visual::VisGroup> {
-    static void write(
-        ext::visual::proto::VisGroup* out,
-        ext::visual::VisGroup const&  in);
-    static void read(
-        ext::visual::proto::VisGroup const& in,
-        ext::visual::VisGroup*              out);
+    static void write(ext::visual::proto::VisGroup* out, ext::visual::VisGroup const& in);
+    static void read(ext::visual::proto::VisGroup const& in, ext::visual::VisGroup* out);
 };
 
 } // namespace hstd::serde

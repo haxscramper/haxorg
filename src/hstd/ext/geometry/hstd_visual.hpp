@@ -67,9 +67,7 @@ struct VisBrush {
 
     DESC_FIELDS(VisBrush, (color, style));
 
-    static VisBrush noBrush() {
-        return VisBrush{.style = BrushStyle::None};
-    }
+    static VisBrush noBrush() { return VisBrush{.style = BrushStyle::None}; }
 
     static VisBrush solid(VisColor const& c) {
         return VisBrush{.color = c, .style = BrushStyle::Solid};
@@ -106,7 +104,7 @@ struct VisCustom {
     hstd::Opt<hstd::Str>                     title;
     hstd::Vec<hstd::Str>                     desc;
     hstd::UnorderedMap<hstd::Str, hstd::Str> attrs;
-    DebugMode debugMode = DebugMode::CommonDebug;
+    DebugMode                                debugMode = DebugMode::CommonDebug;
 
     void addComment(hstd::Str const& c) { this->comment.push_back(c); }
     void addDesc(hstd::Str const& c) { this->desc.push_back(c); }
@@ -124,9 +122,7 @@ struct VisCustom {
     }
 
 
-    DESC_FIELDS(
-        VisCustom,
-        (extra, comment, attrs, title, desc, debugMode));
+    DESC_FIELDS(VisCustom, (extra, comment, attrs, title, desc, debugMode));
 };
 
 struct VisElement {
@@ -153,13 +149,9 @@ struct VisElement {
             VisPen       pen   = VisPen{},
             VisBrush     brush = VisBrush{}) {
             return EllipseShape{
-                .geometry = Rect(
-                    center.x() - rx,
-                    center.y() - ry,
-                    2.0f * rx,
-                    2.0f * ry),
-                .pen   = pen,
-                .brush = brush,
+                .geometry = Rect(center.x() - rx, center.y() - ry, 2.0f * rx, 2.0f * ry),
+                .pen      = pen,
+                .brush    = brush,
             };
         }
 
@@ -204,9 +196,7 @@ struct VisElement {
         VisTextAlign    alignment;
         VisColor        color = VisColor::black();
 
-        DESC_FIELDS(
-            TextShape,
-            (content, anchor, boundingBox, font, alignment, color));
+        DESC_FIELDS(TextShape, (content, anchor, boundingBox, font, alignment, color));
     };
 
     struct PixmapShape {
@@ -231,10 +221,7 @@ struct VisElement {
         VisPen const&   pen    = VisPen{},
         VisBrush const& brush  = VisBrush{}) {
         return VisElement{PointShape{
-            .position = position,
-            .pen      = pen,
-            .brush    = brush,
-            .radius   = radius}};
+            .position = position, .pen = pen, .brush = brush, .radius = radius}};
     }
 
     static VisElement FromRect(
@@ -253,8 +240,7 @@ struct VisElement {
         Rect const&     geometry,
         VisPen const&   pen   = VisPen{},
         VisBrush const& brush = VisBrush{}) {
-        return VisElement{EllipseShape{
-            .geometry = geometry, .pen = pen, .brush = brush}};
+        return VisElement{EllipseShape{.geometry = geometry, .pen = pen, .brush = brush}};
     }
 
     static VisElement FromLine(
@@ -268,16 +254,14 @@ struct VisElement {
         Path const&     path,
         VisPen const&   pen   = VisPen{},
         VisBrush const& brush = VisBrush{}) {
-        return VisElement{
-            PathShape{.path = path, .pen = pen, .brush = brush}};
+        return VisElement{PathShape{.path = path, .pen = pen, .brush = brush}};
     }
 
     static VisElement FromPolygon(
         Polygon const&  points,
         VisPen const&   pen   = VisPen{},
         VisBrush const& brush = VisBrush{}) {
-        return VisElement{
-            PolygonShape{.points = points, .pen = pen, .brush = brush}};
+        return VisElement{PolygonShape{.points = points, .pen = pen, .brush = brush}};
     }
 
     static VisElement FromText(
@@ -296,9 +280,7 @@ struct VisElement {
             .color       = color}};
     }
 
-    static VisElement FromPixmap(
-        hstd::Str const& path,
-        Rect const&      geometry) {
+    static VisElement FromPixmap(hstd::Str const& path, Rect const& geometry) {
         return VisElement{PixmapShape{.path = path, .geometry = geometry}};
     }
 
@@ -346,9 +328,7 @@ struct VisGroup {
         return *this;
     }
 
-    static VisGroup FromRectAndText(
-        geometry::Rect const& rect,
-        hstd::Str const&      text) {
+    static VisGroup FromRectAndText(geometry::Rect const& rect, hstd::Str const& text) {
         VisGroup res;
         res.offset  = rect.upper_left();
         auto v_rect = VisElement::FromRect(
@@ -356,8 +336,7 @@ struct VisGroup {
         v_rect.custom.debugMode = VisCustom::DebugMode::IgnoreDebug;
         res.elements.push_back(v_rect);
         res.elements.push_back(
-            VisElement::FromText(
-                text, geometry::Point{0, 0}, VisFont{.pixelSize = 6}));
+            VisElement::FromText(text, geometry::Point{0, 0}, VisFont{.pixelSize = 6}));
         return res;
     }
 
@@ -368,16 +347,12 @@ struct VisGroup {
         for (auto const& it : elements) {
             std::visit(
                 [&]<typename It>(It const& it) {
-                    if constexpr (std::is_same_v<It, T>) {
-                        result.push_back(it);
-                    }
+                    if constexpr (std::is_same_v<It, T>) { result.push_back(it); }
                 },
                 it.data);
         }
 
-        for (auto const& sub : subgroups) {
-            result.append(sub.getElements<T>());
-        }
+        for (auto const& sub : subgroups) { result.append(sub.getElements<T>()); }
 
         return result;
     }
@@ -387,9 +362,7 @@ struct VisGroup {
         return Rect(res.x() + ox, res.y() + oy, res.width(), res.height());
     }
 
-    Rect computeBounds() const {
-        return computeBounds(offset.x(), offset.y());
-    }
+    Rect computeBounds() const { return computeBounds(offset.x(), offset.y()); }
 
     Rect computeBoundsNoSelfOffset() const;
 

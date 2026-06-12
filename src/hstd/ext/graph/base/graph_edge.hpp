@@ -20,15 +20,11 @@ struct IEdge
         DESC_FIELDS(SerialSchema, (edgeId));
     };
 
-    bool operator==(IEdge const& other) const {
-        return this->isEqual(&other);
-    }
+    bool operator==(IEdge const& other) const { return this->isEqual(&other); }
 
     virtual std::size_t getHash() const override;
-    virtual bool isEqual(IGraphObjectBase const* other) const override;
-    virtual std::string getRepr() const override {
-        return hstd::fmt1(*this);
-    }
+    virtual bool        isEqual(IGraphObjectBase const* other) const override;
+    virtual std::string getRepr() const override { return hstd::fmt1(*this); }
 
 #if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(
@@ -54,8 +50,7 @@ struct TrivialEdge
         proto::IEdge const*        in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory) override {
-        IAttributeObject::readSerial(
-            &in->attributes(), graph, factory, this);
+        IAttributeObject::readSerial(&in->attributes(), graph, factory, this);
     }
 #endif
 };
@@ -121,13 +116,9 @@ class IEdgeProvider {
     /// associated with the given edge.
     virtual bool hasEdge(EdgeID const& id) const = 0;
 
-    virtual int getInDegree(VertexID const& id) const {
-        return getIncoming(id).size();
-    }
+    virtual int getInDegree(VertexID const& id) const { return getIncoming(id).size(); }
 
-    virtual int getOutDegree(VertexID const& id) const {
-        return getOutgoing(id).size();
-    }
+    virtual int getOutDegree(VertexID const& id) const { return getOutgoing(id).size(); }
 
     virtual EdgeIDSet getAdjacentEdges(VertexID id) const {
         return getIncoming(id) + getOutgoing(id);
@@ -148,8 +139,7 @@ class IEdgeProvider {
     /// incidence matrix presence for the edgei.
     virtual bool isTrackingEdge(EdgeID const& id) const = 0;
 
-    virtual bool hasEdge(VertexID const& source, VertexID const& target)
-        const = 0;
+    virtual bool hasEdge(VertexID const& source, VertexID const& target) const = 0;
 
     // static API for masking the edge IDs.
 
@@ -160,21 +150,16 @@ class IEdgeProvider {
 };
 
 class IEdgeCollection : public IEdgeProvider {
-    hstd::UnorderedMap<
-        VertexID,
-        hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>>
+    hstd::UnorderedMap<VertexID, hstd::UnorderedMap<VertexID, hstd::Vec<EdgeID>>>
         incidence;
 
-    hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>> incoming_from;
-    hstd::UnorderedMap<EdgeID, hstd::Pair<VertexID, VertexID>>
-        source_target;
+    hstd::UnorderedMap<VertexID, hstd::Vec<VertexID>>          incoming_from;
+    hstd::UnorderedMap<EdgeID, hstd::Pair<VertexID, VertexID>> source_target;
 
 
   public:
 #if ORG_BUILD_WITH_PROTOBUF
-    virtual void writeSerial(
-        proto::IEdgeCollection* out,
-        IGraph const*           graph) const = 0;
+    virtual void writeSerial(proto::IEdgeCollection* out, IGraph const* graph) const = 0;
 
     virtual void readSerial(
         proto::IEdgeCollection const* in,
@@ -197,10 +182,8 @@ class IEdgeCollection : public IEdgeProvider {
     }
 
     using IEdgeProvider::hasEdge;
-    bool hasEdge(VertexID const& source, VertexID const& target)
-        const override {
-        return incidence.contains(source)
-            && incidence.at(source).contains(target);
+    bool hasEdge(VertexID const& source, VertexID const& target) const override {
+        return incidence.contains(source) && incidence.at(source).contains(target);
     }
 
 
@@ -235,8 +218,7 @@ class IEdgeCollection : public IEdgeProvider {
         // match the requirements, it can walk over the incidence matrix
         // directly.
         for (auto const& id : getEdges()) {
-            if (subset.contains(getSource(id))
-                && subset.contains(getTarget(id))) {
+            if (subset.contains(getSource(id)) && subset.contains(getTarget(id))) {
                 res.incl(id);
             }
         }
@@ -250,8 +232,7 @@ class IEdgeCollection : public IEdgeProvider {
         hstd::UnorderedSet<VertexID> const& subset) const {
         hstd::UnorderedSet<EdgeID> res;
         for (auto const& id : getEdges()) {
-            if (subset.contains(getSource(id))
-                || subset.contains(getTarget(id))) {
+            if (subset.contains(getSource(id)) || subset.contains(getTarget(id))) {
                 res.incl(id);
             }
         }
@@ -275,43 +256,32 @@ struct TrivialEdgeCollection : public IEdgeCollection {
 
     EdgeCollectionID collection_id = EdgeCollectionID{};
 
-    bool hasEdge(EdgeID const& id) const override {
-        return edgeStore.contains(id);
-    }
+    bool hasEdge(EdgeID const& id) const override { return edgeStore.contains(id); }
 
     EdgeID addEdge(
         VertexID const&               source,
         VertexID const&               target,
         hstd::Opt<std::string> const& stable_id = std::nullopt) {
         auto res = edgeStore.add(
-            TrivialEdge{
-                stable_id.value_or(hstd::fmt("{}-{}", source, target))},
+            TrivialEdge{stable_id.value_or(hstd::fmt("{}-{}", source, target))},
             getCollectionID());
         trackEdge(res, source, target);
         return res;
     }
 
-    TrivialEdgeCollection(EdgeCollectionID const& id)
-        : collection_id{id} {}
+    TrivialEdgeCollection(EdgeCollectionID const& id) : collection_id{id} {}
 
-    EdgeCollectionID getCollectionID() const override {
-        return collection_id;
-    }
+    EdgeCollectionID getCollectionID() const override { return collection_id; }
 
-    const IEdge* getEdge(EdgeID const& id) const override {
-        return &edgeStore.at(id);
-    }
+    const IEdge* getEdge(EdgeID const& id) const override { return &edgeStore.at(id); }
 
-    void trackEdge(
-        EdgeID const&   id,
-        VertexID const& source,
-        VertexID const& target) override {
+    void trackEdge(EdgeID const& id, VertexID const& source, VertexID const& target)
+        override {
         IEdgeCollection::trackEdge(id, source, target);
     }
 
 #if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IEdgeCollection* out, IGraph const* graph)
-        const override {
+    void writeSerial(proto::IEdgeCollection* out, IGraph const* graph) const override {
         IEdgeCollection::writeSerial(out, graph);
         proto::TrivialEdgeCollectionPayload tag;
         out->mutable_payload()->PackFrom(tag);
@@ -330,25 +300,17 @@ struct IdOnlyEdgeCollection : public IEdgeCollection {
 
     EdgeCollectionID collection_id = EdgeCollectionID{};
 
-    bool hasEdge(EdgeID const& id) const override {
-        return edgeStore.contains(id);
-    }
+    bool hasEdge(EdgeID const& id) const override { return edgeStore.contains(id); }
 
     IdOnlyEdgeCollection(EdgeCollectionID const& id) : collection_id{id} {}
 
-    EdgeCollectionID getCollectionID() const override {
-        return collection_id;
-    }
+    EdgeCollectionID getCollectionID() const override { return collection_id; }
 
-    const IEdge* getEdge(EdgeID const& id) const override {
-        return nullptr;
-    }
+    const IEdge* getEdge(EdgeID const& id) const override { return nullptr; }
 
 
-    void trackEdge(
-        EdgeID const&   id,
-        VertexID const& source,
-        VertexID const& target) override {
+    void trackEdge(EdgeID const& id, VertexID const& source, VertexID const& target)
+        override {
         edgeStore.incl(id);
         IEdgeCollection::trackEdge(id, source, target);
     }

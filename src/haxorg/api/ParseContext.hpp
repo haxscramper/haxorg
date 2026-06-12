@@ -39,8 +39,7 @@ struct [[refl(
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
-    hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)>
-        getFragments;
+    hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)> getFragments;
 
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
@@ -63,26 +62,22 @@ struct [[refl(
   "wrapper-name": "OrgDirectoryParseParameters"
 })")]] OrgDirectoryParseParameters
     : public hstd::SharedPtrApi<OrgDirectoryParseParameters> {
-    hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)>
-        getParsedNode;
+    hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)> getParsedNode;
 
-    hstd::Func<bool(std::string const& fullPath)> shouldProcessPath;
-    hstd::Func<hstd::Opt<std::string>(std::string const& includePath)>
-        findIncludeTarget;
+    hstd::Func<bool(std::string const& fullPath)>                      shouldProcessPath;
+    hstd::Func<hstd::Opt<std::string>(std::string const& includePath)> findIncludeTarget;
 
-    std::function<bool(std::string const&)>        isDirectoryImpl;
-    std::function<bool(std::string const&)>        isSymlinkImpl;
-    std::function<bool(std::string const&)>        isRegularFileImpl;
-    std::function<std::string(std::string const&)> resolveSymlinkImpl;
-    std::function<std::vector<std::string>(std::string const&)>
-        getDirectoryEntriesImpl;
+    std::function<bool(std::string const&)>                     isDirectoryImpl;
+    std::function<bool(std::string const&)>                     isSymlinkImpl;
+    std::function<bool(std::string const&)>                     isRegularFileImpl;
+    std::function<std::string(std::string const&)>              resolveSymlinkImpl;
+    std::function<std::vector<std::string>(std::string const&)> getDirectoryEntriesImpl;
 
     bool                     isDirectory(std::string const& path) const;
     bool                     isSymlink(std::string const& path) const;
     bool                     isRegularFile(std::string const& path) const;
     std::string              resolveSymlink(std::string const& path) const;
-    std::vector<std::string> getDirectoryEntries(
-        std::string const& path) const;
+    std::vector<std::string> getDirectoryEntries(std::string const& path) const;
 
     BOOST_DESCRIBE_CLASS(OrgDirectoryParseParameters, (), (), (), ());
 };
@@ -110,9 +105,8 @@ struct [[refl(
 
     [[refl]] std::shared_ptr<hstd::ext::Cache> getDiagnosticStrings();
 
-    [[refl]] SourceFileId addSource(
-        std::string const& path,
-        std::string const& content) const;
+    [[refl]] SourceFileId addSource(std::string const& path, std::string const& content)
+        const;
 
     [[refl]] sem::SemId<sem::Org> parseFileOpts(
         std::string const&                         file,
@@ -129,8 +123,7 @@ struct [[refl(
         std::string const&                         file_name,
         std::shared_ptr<OrgParseParameters> const& opts);
 
-    [[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectory(
-        std::string const& path);
+    [[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectory(std::string const& path);
 
     [[refl]] hstd::Opt<sem::SemId<sem::Org>> parseDirectoryOpts(
         std::string const&                                  path,
@@ -149,9 +142,7 @@ struct [[refl(
 };
 
 struct DiagnosticsParseContext : public hstd::ext::Cache {
-    hstd::UnorderedMap<
-        org::parse::SourceFileId,
-        std::shared_ptr<hstd::ext::Source>>
+    hstd::UnorderedMap<org::parse::SourceFileId, std::shared_ptr<hstd::ext::Source>>
         sources;
 
     std::shared_ptr<ParseContext> context;
@@ -159,10 +150,8 @@ struct DiagnosticsParseContext : public hstd::ext::Cache {
     DiagnosticsParseContext(std::shared_ptr<ParseContext> const& context)
         : context{context} {};
 
-    virtual std::shared_ptr<hstd::ext::Source> fetch(
-        hstd::ext::Id const& id) override;
-    virtual std::optional<std::string> display(
-        hstd::ext::Id const& id) const override;
+    virtual std::shared_ptr<hstd::ext::Source> fetch(hstd::ext::Id const& id) override;
+    virtual std::optional<std::string> display(hstd::ext::Id const& id) const override;
 };
 
 

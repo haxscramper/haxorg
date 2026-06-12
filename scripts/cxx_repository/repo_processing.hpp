@@ -25,13 +25,13 @@ void push_line(
     int                 period);
 
 struct SubTaskParams {
-    git_oid      commit_oid; ///< Original git commit iD
-    ir::CommitId out_commit; ///< ID of the commit to append resulting file
-                             ///< to
-    hstd::Str                  root;  ///< Root path for the analyzed entry
-    hstd::SPtr<git_tree_entry> entry; ///< Entry to analyze
-    int index;     ///< Task index in the global sequence
-    int max_count; ///< Maximum number of task to process
+    git_oid      commit_oid;              ///< Original git commit iD
+    ir::CommitId out_commit;              ///< ID of the commit to append resulting file
+                                          ///< to
+    hstd::Str                  root;      ///< Root path for the analyzed entry
+    hstd::SPtr<git_tree_entry> entry;     ///< Entry to analyze
+    int                        index;     ///< Task index in the global sequence
+    int                        max_count; ///< Maximum number of task to process
 };
 
 /// Implementaiton of the commit processing function. Walks files that were

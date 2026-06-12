@@ -38,13 +38,11 @@ struct is_base_of_template {
 };
 
 template <template <typename...> class Base, typename Derived>
-using is_base_of_template_t = typename is_base_of_template<Base, Derived>::
-    type;
+using is_base_of_template_t = typename is_base_of_template<Base, Derived>::type;
 
 /// Convenience helper trait for getting `value` of the trait check
 template <template <typename...> class Base, typename Derived>
-inline constexpr bool
-    is_base_of_template_v = is_base_of_template<Base, Derived>::value;
+inline constexpr bool is_base_of_template_v = is_base_of_template<Base, Derived>::value;
 
 /// Type trait to check whether provided T type is in the
 /// Pack

@@ -31,9 +31,7 @@ struct PyTypeRegistryGuard {
     hstd::UnorderedSet<hstd::Str> py_cxx_map;
 
     void incl(hstd::Str const& name) { py_cxx_map.incl(name); }
-    bool contains(hstd::Str const& name) const {
-        return py_cxx_map.contains(name);
-    }
+    bool contains(hstd::Str const& name) const { return py_cxx_map.contains(name); }
 
     PyTypeRegistryGuard() {}
 };
@@ -41,8 +39,7 @@ struct PyTypeRegistryGuard {
 template <typename E>
 class PyEnumIterator {
   public:
-    explicit PyEnumIterator(E value = hstd::value_domain<E>::low())
-        : value(value) {}
+    explicit PyEnumIterator(E value = hstd::value_domain<E>::low()) : value(value) {}
 
     E operator*() const { return value; }
 
@@ -71,9 +68,7 @@ void bind_enum_iterator(
         nb::class_<PyEnumIterator<E>>(m, name.c_str())
             .def(
                 "__iter__",
-                [](PyEnumIterator<E>& self) -> PyEnumIterator<E>& {
-                    return self;
-                })
+                [](PyEnumIterator<E>& self) -> PyEnumIterator<E>& { return self; })
             .def("__next__", [](PyEnumIterator<E>& self) {
                 auto current = *self;
                 if (current == hstd::value_domain<E>::high()) {
@@ -86,18 +81,13 @@ void bind_enum_iterator(
 }
 
 template <typename T>
-void bind_hstdIntSet(
-    nb::module_&         m,
-    char const*          PyNameType,
-    PyTypeRegistryGuard& guard) {
+void bind_hstdIntSet(nb::module_& m, char const* PyNameType, PyTypeRegistryGuard& guard) {
     if (!guard.contains(PyNameType)) {
         guard.incl(PyNameType);
         nb::class_<hstd::IntSet<T>>(m, PyNameType)
             .def("__init__", [](hstd::IntSet<T>* result, nb::list list) {
                 new (result) hstd::IntSet<T>();
-                for (nb::handle it : list) {
-                    result->incl(nb::cast<T>(it));
-                }
+                for (nb::handle it : list) { result->incl(nb::cast<T>(it)); }
             });
     }
 }
@@ -115,9 +105,7 @@ void bind_hstdextImmBox(
         nb::class_<immer::box<T>>(m, name.c_str())
             .def(nb::init<>())
             .def(nb::init<const immer::box<T>&>())
-            .def(
-                "get",
-                [](immer::box<T> const& it) -> T { return it.get(); })
+            .def("get", [](immer::box<T> const& it) -> T { return it.get(); })
             //
             ;
     }
@@ -142,9 +130,7 @@ void bind_imm_vector_base(
                 [](VT* self, nb::list list) {
                     VT   result;
                     auto tmp = result.transient();
-                    for (auto const& it : list) {
-                        tmp.push_back(nb::cast<T>(it));
-                    }
+                    for (auto const& it : list) { tmp.push_back(nb::cast<T>(it)); }
                     new (self) VT(tmp.persistent());
                 })
             //
@@ -153,10 +139,7 @@ void bind_imm_vector_base(
 }
 
 template <typename T>
-void bind_imm_vector(
-    nb::module_&         m,
-    char const*          PyNameType,
-    PyTypeRegistryGuard& guard) {
+void bind_imm_vector(nb::module_& m, char const* PyNameType, PyTypeRegistryGuard& guard) {
     return bind_imm_vector_base<T, immer::vector<T>>(m, PyNameType, guard);
 }
 
@@ -165,8 +148,7 @@ void bind_immerflex_vector(
     nb::module_&         m,
     char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
-    return bind_imm_vector_base<T, immer::flex_vector<T>>(
-        m, PyNameType, guard);
+    return bind_imm_vector_base<T, immer::flex_vector<T>>(m, PyNameType, guard);
 }
 
 /// "nodoc"
@@ -175,17 +157,13 @@ void bind_hstdextImmVec(
     nb::module_&         m,
     char const*          PyNameType,
     PyTypeRegistryGuard& guard) {
-    return bind_imm_vector_base<T, hstd::ext::ImmVec<T>>(
-        m, PyNameType, guard);
+    return bind_imm_vector_base<T, hstd::ext::ImmVec<T>>(m, PyNameType, guard);
 }
 
 
 /// \brief Bind specialization of the std vector map for use in python
 template <typename T>
-void bind_stdvector(
-    nb::module_&         m,
-    char const*          PyNameType,
-    PyTypeRegistryGuard& guard) {
+void bind_stdvector(nb::module_& m, char const* PyNameType, PyTypeRegistryGuard& guard) {
     using Vec = std::vector<T>;
 
     std::string name = std::string(PyNameType);
@@ -199,10 +177,7 @@ void bind_stdvector(
 
 /// \brief Bind specialization of the hstd vector for use in python
 template <typename T>
-void bind_hstdVec(
-    nb::module_&         m,
-    char const*          PyNameType,
-    PyTypeRegistryGuard& guard) {
+void bind_hstdVec(nb::module_& m, char const* PyNameType, PyTypeRegistryGuard& guard) {
     using Vec = hstd::Vec<T>;
 
     std::string name = std::string(PyNameType);
@@ -217,9 +192,7 @@ void bind_hstdVec(
             "__init__",
             [](Vec* self, nb::iterable it) {
                 new (self) Vec();
-                for (nb::handle h : it) {
-                    self->push_back(nb::cast<T>(h));
-                }
+                for (nb::handle h : it) { self->push_back(nb::cast<T>(h)); }
             })
         .def("FromValue", &Vec::FromValue);
 }
@@ -257,10 +230,7 @@ void bind_stdunordered_map(
 
 /// \brief Bind specialization of std::pair for use in python
 template <typename K, typename V>
-void bind_stdpair(
-    nb::module_&         m,
-    char const*          PyNameType,
-    PyTypeRegistryGuard& guard) {
+void bind_stdpair(nb::module_& m, char const* PyNameType, PyTypeRegistryGuard& guard) {
     using Pair       = std::pair<K, V>;
     std::string name = std::string(PyNameType);
     if (guard.contains(name)) { return; }
@@ -286,20 +256,15 @@ nb::class_<Set> bind_set(nb::module_& m, char const* PyNameType) {
             "__init__",
             [](Set* result, nb::iterable it) {
                 new (result) Set();
-                for (nb::handle h : it) {
-                    result->insert(nb::cast<Value>(h));
-                }
+                for (nb::handle h : it) { result->insert(nb::cast<Value>(h)); }
             })
         .def("__len__", [](Set const& s) { return s.size(); })
         .def("__bool__", [](Set const& s) { return !s.empty(); })
-        .def(
-            "__contains__",
-            [](Set const& s, Value const& v) { return s.contains(v); })
+        .def("__contains__", [](Set const& s, Value const& v) { return s.contains(v); })
         .def(
             "__iter__",
             [](Set const& s) {
-                return nb::make_iterator(
-                    nb::type<Set>(), "iterator", s.begin(), s.end());
+                return nb::make_iterator(nb::type<Set>(), "iterator", s.begin(), s.end());
             },
             nb::keep_alive<0, 1>())
         .def("add", [](Set& s, Value const& v) { s.insert(v); })
@@ -350,9 +315,7 @@ void bind_hstdUnorderedSet(
 template <typename T>
 struct py_arg_convertor {
     /// nodoc
-    static void write(T& value, nb::handle const& py) {
-        value = nb::cast<T>(py);
-    }
+    static void write(T& value, nb::handle const& py) { value = nb::cast<T>(py); }
 };
 
 template <typename T>
@@ -384,8 +347,7 @@ void init_fields_from_kwargs(R& value, nb::kwargs const& kwargs) {
             passed_kwargs.incl(hstd::Str(nb::str(it.first).c_str()));
         }
         throw std::logic_error(
-            fmt("Passed unknown field name {}",
-                (passed_kwargs - used_kwargs)));
+            fmt("Passed unknown field name {}", (passed_kwargs - used_kwargs)));
     }
 }
 
@@ -398,11 +360,8 @@ nb::object py_getattr_impl(R const& obj, std::string const& attr) {
         hstd::for_each_field_value_with_bases<R>(
             obj,
             hstd::overloaded{
-                [&](char const* name, nb::callable const& func) {
-                    result[name] = func;
-                },
-                [&]<typename T>(
-                    char const* name, hstd::Opt<T> const& field) {
+                [&](char const* name, nb::callable const& func) { result[name] = func; },
+                [&]<typename T>(char const* name, hstd::Opt<T> const& field) {
                     if (field.has_value()) {
                         result[name] = nb::cast(field);
                     } else {
@@ -418,23 +377,16 @@ nb::object py_getattr_impl(R const& obj, std::string const& attr) {
         hstd::for_each_field_value_with_bases<R>(
             obj,
             hstd::overloaded{
-                [&](char const* name, nb::callable const& func) {
-                    result = func;
-                },
+                [&](char const* name, nb::callable const& func) { result = func; },
                 [&](char const* name, auto const& field) {
-                    if (std::string{name} == attr) {
-                        result = nb::cast(field);
-                    }
+                    if (std::string{name} == attr) { result = nb::cast(field); }
                 }});
 
         if (result.has_value()) {
             return result.value();
         } else {
             throw nb::attribute_error(
-                hstd::fmt(
-                    "No attribute '{}' found for type {}",
-                    attr,
-                    typeid(obj).name())
+                hstd::fmt("No attribute '{}' found for type {}", attr, typeid(obj).name())
                     .c_str());
         }
     }
@@ -455,10 +407,7 @@ void py_setattr_impl(R& obj, std::string const& attr, nb::object value) {
 
     if (!found_target) {
         throw nb::attribute_error(
-            hstd::fmt(
-                "No attribute '{}' found for type {}",
-                attr,
-                typeid(obj).name())
+            hstd::fmt("No attribute '{}' found for type {}", attr, typeid(obj).name())
                 .c_str());
     }
 }

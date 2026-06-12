@@ -26,15 +26,11 @@ struct [[refl]] SourceManager {
 
     [[refl]] std::string        getPath(SourceFileId const& id) const;
     [[refl]] SourceFileId       getId(std::string const& path) const;
-    [[refl]] std::string const& getSourceContent(
-        SourceFileId const& id) const;
+    [[refl]] std::string const& getSourceContent(SourceFileId const& id) const;
 
-    [[refl]] std::string const& getContentTextForPath(
-        std::string const& path) const;
+    [[refl]] std::string const& getContentTextForPath(std::string const& path) const;
 
-    [[refl]] SourceFileId addSource(
-        std::string const& path,
-        std::string const& content);
+    [[refl]] SourceFileId addSource(std::string const& path, std::string const& content);
 };
 
 
@@ -45,16 +41,11 @@ struct [[refl]] SourceLoc {
     [[refl]] SourceFileId file_id = SourceFileId::Nil();
 
     bool operator==(SourceLoc const& other) const {
-        return line == other.line && column == other.column
-            && pos == other.pos && file_id == other.file_id;
+        return line == other.line && column == other.column && pos == other.pos
+            && file_id == other.file_id;
     }
 
-    BOOST_DESCRIBE_CLASS(
-        SourceLoc,
-        (),
-        (line, column, pos, file_id),
-        (),
-        ());
+    BOOST_DESCRIBE_CLASS(SourceLoc, (), (line, column, pos, file_id), (), ());
 };
 
 

@@ -34,7 +34,6 @@ template <>
 struct std::formatter<hstd::ColText> : std::formatter<std::string> {
     template <typename FormatContext>
     auto format(hstd::ColText const& p, FormatContext& ctx) const {
-        return std::formatter<std::string>{}.format(
-            p.toString(false), ctx);
+        return std::formatter<std::string>{}.format(p.toString(false), ctx);
     }
 };

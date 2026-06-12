@@ -31,8 +31,7 @@ std::vector<sem::SemId<sem::Org>> getSubnodeRange(
 
     auto [start, stop, step, slicelength] = slice.compute(data.size());
 
-    std::vector<sem::SemId<sem::Org>> result{
-        slicelength, sem::SemId<sem::Org>::Nil()};
+    std::vector<sem::SemId<sem::Org>> result{slicelength, sem::SemId<sem::Org>::Nil()};
     for (size_t i = 0; i < slicelength; ++i) {
         result[i] = data[start];
         start += step;
@@ -52,15 +51,11 @@ void init_py_manual_api(nanobind::module_& m) {
 std::string format_function_definition(nanobind::callable const& func) {
     auto obj  = func.attr("__code__");
     auto name = std::string{nanobind::str(func.attr("__name__")).c_str()};
-    auto file = std::string{
-        nanobind::str(obj.attr("co_filename")).c_str()};
+    auto file = std::string{nanobind::str(obj.attr("co_filename")).c_str()};
     auto line = nanobind::cast<int>(obj.attr("co_firstlineno"));
 
     return std::format(
-        "{}:{}@{}",
-        name,
-        line,
-        std::filesystem::path(file).stem().string());
+        "{}:{}@{}", name, line, std::filesystem::path(file).stem().string());
 }
 
 
@@ -68,9 +63,8 @@ std::string ExporterPython::describe(PyFunc const& func) const {
     return format_function_definition(func);
 }
 
-std::string ExporterPython::describe_use(
-    std::string const& msg,
-    PyFunc const&      usage) const {
+std::string ExporterPython::describe_use(std::string const& msg, PyFunc const& usage)
+    const {
     return std::format("{} {}", msg, describe(usage));
 }
 
@@ -79,13 +73,9 @@ void ExporterPython::enableBufferTrace() {
     traceToBuffer = true;
 }
 
-std::string ExporterPython::getTraceBuffer() const {
-    return this->traceBuffer;
-}
+std::string ExporterPython::getTraceBuffer() const { return this->traceBuffer; }
 
-void ExporterPython::enableFileTrace(
-    std::string const& path,
-    bool               colored) {
+void ExporterPython::enableFileTrace(std::string const& path, bool colored) {
     this->setTraceFile(path);
     this->traceColored = colored;
 }
@@ -120,21 +110,20 @@ ExporterPython::Res ExporterPython::newResImpl(sem::OrgArg node) {
 }
 
 void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
-    auto __scope = trace_scope(
-        trace(VisitReport::Kind::VisitDispatch).with_node(arg));
+    auto __scope = trace_scope(trace(VisitReport::Kind::VisitDispatch).with_node(arg));
 
     if (arg.isNil()) { return; }
 
     auto kind = arg->getKind();
     switch (kind) {
-#define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: {                                            \
-        In<sem::__Kind> tmp = arg.as<sem::__Kind>();                      \
-        _this()->pushVisit(res, tmp);                                     \
-        _this()->visitDispatchHook(res, tmp);                             \
-        _this()->visitOrgNodeIn(res, tmp);                                \
-        _this()->popVisit(res, tmp);                                      \
-        break;                                                            \
+#define __case(__Kind)                                                                   \
+    case OrgSemKind::__Kind: {                                                           \
+        In<sem::__Kind> tmp = arg.as<sem::__Kind>();                                     \
+        _this()->pushVisit(res, tmp);                                                    \
+        _this()->visitDispatchHook(res, tmp);                                            \
+        _this()->visitOrgNodeIn(res, tmp);                                               \
+        _this()->popVisit(res, tmp);                                                     \
+        break;                                                                           \
     }
 
 
@@ -168,16 +157,13 @@ void ExporterPython::popVisitImpl(Res& res, sem::OrgArg id) {
     }
 }
 
-void ExporterPython::visitField(
-    Res&                 res,
-    char const*          name,
-    sem::SemId<sem::Org> value) {
+void ExporterPython::visitField(Res& res, char const* name, sem::SemId<sem::Org> value) {
     switch (value->getKind()) {
-#define __case(__Kind)                                                    \
-    case OrgSemKind::__Kind: {                                            \
-        In<sem::__Kind> tmp = value.as<sem::__Kind>();                    \
-        visitOrgField(res, name, tmp);                                    \
-        break;                                                            \
+#define __case(__Kind)                                                                   \
+    case OrgSemKind::__Kind: {                                                           \
+        In<sem::__Kind> tmp = value.as<sem::__Kind>();                                   \
+        visitOrgField(res, name, tmp);                                                   \
+        break;                                                                           \
     }
 
         EACH_SEM_ORG_KIND(__case)
@@ -187,8 +173,7 @@ void ExporterPython::visitField(
 }
 
 ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
-    auto __scope = trace_scope(
-        trace(VisitReport::Kind::VisitTop).with_node(org));
+    auto __scope = trace_scope(trace(VisitReport::Kind::VisitTop).with_node(org));
 
     if (evalTopCb) {
         return evalTopCb->operator()(_self, org);
@@ -205,17 +190,14 @@ ExporterPython::Res ExporterPython::evalTop(sem::SemId<sem::Org> org) {
 void org::bind::python::eachSubnodeRec(
     sem::SemId<sem::Org> node,
     nanobind::callable   callback) {
-    org::eachSubnodeRec(
-        node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
+    org::eachSubnodeRec(node, [&](sem::SemId<sem::Org> arg) { callback(arg); });
 }
 
 void org::bind::python::eachSubnodeRecSimplePath(
     sem::SemId<sem::Org> node,
     nanobind::callable   callback) {
     org::eachSubnodeRecSimplePath(
-        node, [&](sem::OrgArg arg, sem::OrgVecArg path) {
-            callback(arg, path);
-        });
+        node, [&](sem::OrgArg arg, sem::OrgVecArg path) { callback(arg, path); });
 }
 
 org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
@@ -224,10 +206,9 @@ org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
     std::shared_ptr<org::parse::ParseContext> parse_context) {
     org::OrgCodeEvalParameters eval_conf{parse_context, conf.debug};
 
-    eval_conf.evalBlock = [&](org::sem::OrgCodeEvalInput const& input)
-        -> Vec<org::sem::OrgCodeEvalOutput> {
-        return nanobind::cast<Vec<org::sem::OrgCodeEvalOutput>>(
-            conf.evalBlock(input));
+    eval_conf.evalBlock =
+        [&](org::sem::OrgCodeEvalInput const& input) -> Vec<org::sem::OrgCodeEvalOutput> {
+        return nanobind::cast<Vec<org::sem::OrgCodeEvalOutput>>(conf.evalBlock(input));
     };
 
     return org::evaluateCodeBlocks(node, eval_conf);
@@ -236,8 +217,7 @@ org::sem::SemId<sem::Org> org::bind::python::evaluateCodeBlocks(
 void org::bind::python::setShouldProcessPath(
     org::parse::OrgDirectoryParseParameters* parameters,
     nanobind::callable                       callback) {
-    parameters->shouldProcessPath =
-        [callback](std::string const& fullPath) -> bool {
+    parameters->shouldProcessPath = [callback](std::string const& fullPath) -> bool {
         return nanobind::cast<bool>(callback(fullPath));
     };
 }

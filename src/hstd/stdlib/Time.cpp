@@ -61,8 +61,7 @@ std::string UserTime::format(Format kind) const {
         if (zone) {
             auto info = tz.lookup(
                 cctz::convert(
-                    cctz::civil_second(1970, 1, 1, 0, 0, 0),
-                    cctz::utc_time_zone()));
+                    cctz::civil_second(1970, 1, 1, 0, 0, 0), cctz::utc_time_zone()));
             int offset  = info.offset / 60;
             int hours   = offset / 60;
             int minutes = offset % 60;
@@ -106,8 +105,7 @@ int64_t UserTime::toUnixTimestamp() const {
 
     auto unix_epoch           = std::chrono::system_clock::from_time_t(0);
     auto duration_since_epoch = absolute_time - unix_epoch;
-    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
-                       duration_since_epoch)
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration_since_epoch)
                        .count();
 
     constexpr int64_t unix_min = -2147483648LL;
@@ -115,20 +113,17 @@ int64_t UserTime::toUnixTimestamp() const {
 
     if (seconds < unix_min || unix_max < seconds) {
         throw std::out_of_range(
-            std::format(
-                "Time {} is outside unix timestamp range", seconds));
+            std::format("Time {} is outside unix timestamp range", seconds));
     }
 
     return seconds;
 }
 
-std::size_t std::hash<UserTime>::operator()(
-    UserTime const& it) const noexcept {
+std::size_t std::hash<UserTime>::operator()(UserTime const& it) const noexcept {
     std::size_t result = 0;
     hstd::hax_hash_combine(result, it.align);
     if (it.zone) {
-        hstd::hax_hash_combine(
-            result, std::hash<std::string>{}(it.zone->name()));
+        hstd::hax_hash_combine(result, std::hash<std::string>{}(it.zone->name()));
     }
     hstd::hax_hash_combine(result, it.time.year());
     hstd::hax_hash_combine(result, it.time.month());
@@ -162,9 +157,10 @@ FormatContext::iterator std::formatter<cctz::civil_second>::format(
         ctx);
 }
 
-template std::format_context::iterator std::formatter<cctz::civil_second>::
-    format(cctz::civil_second const&, std::format_context&) const;
+template std::format_context::iterator std::formatter<cctz::civil_second>::format(
+    cctz::civil_second const&,
+    std::format_context&) const;
 
-template std::format_context::iterator std::formatter<
-    cctz::time_zone,
-    char>::format(cctz::time_zone const&, std::format_context&) const;
+template std::format_context::iterator std::formatter<cctz::time_zone, char>::format(
+    cctz::time_zone const&,
+    std::format_context&) const;

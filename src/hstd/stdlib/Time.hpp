@@ -68,15 +68,11 @@ struct std::hash<hstd::UserTime> {
 template <>
 struct std::formatter<cctz::civil_second> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        cctz::civil_second const& p,
-        FormatContext&            ctx) const;
+    FormatContext::iterator format(cctz::civil_second const& p, FormatContext& ctx) const;
 };
 
 template <>
 struct std::formatter<cctz::time_zone> : std::formatter<std::string> {
     template <typename FormatContext>
-    FormatContext::iterator format(
-        cctz::time_zone const& p,
-        FormatContext&         ctx) const;
+    FormatContext::iterator format(cctz::time_zone const& p, FormatContext& ctx) const;
 };

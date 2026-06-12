@@ -71,9 +71,7 @@ auto map(T const& vec, F cb) {
 }
 
 template <typename T, typename F>
-Vec<Span<T const>> partition(
-    Vec<T> const&     elements,
-    Func<F(T const&)> callback) {
+Vec<Span<T const>> partition(Vec<T> const& elements, Func<F(T const&)> callback) {
     Vec<Span<T const>> result;
     if (!elements.empty()) {
         Span<T const> currentSpan;
@@ -83,9 +81,7 @@ Vec<Span<T const>> partition(
         for (int i = 0; i < elements.size(); ++i) {
             F newValue = callback(elements[i]);
             if (currentSpan.empty() || currentValue != newValue) {
-                if (!currentSpan.empty()) {
-                    result.push_back(currentSpan);
-                }
+                if (!currentSpan.empty()) { result.push_back(currentSpan); }
                 currentSpan  = elements[slice(i, i)];
                 currentValue = newValue;
             } else {
