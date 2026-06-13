@@ -18,6 +18,7 @@
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 
 using namespace ir;
 using namespace hstd;
@@ -79,31 +80,31 @@ struct FullCommitData {
 struct RemoveAction {
     int          removed;
     ir::StringId id;
-    BOOST_DESCRIBE_CLASS(RemoveAction, (), (removed), (), ());
+    DESC_FIELDS(RemoveAction, (removed));
 };
 
 struct AddAction {
     int        added;
     ir::LineId id;
-    BOOST_DESCRIBE_CLASS(AddAction, (), (added, id), (), ());
+    DESC_FIELDS(AddAction, (added, id));
 };
 
 struct FileRenameAction {
     ir::FilePathId prev_path;
     ir::FilePathId this_path;
-    BOOST_DESCRIBE_CLASS(FileRenameAction, (), (prev_path, this_path), (), ());
+    DESC_FIELDS(FileRenameAction, (prev_path, this_path));
 };
 
 struct FileDeleteAction {
     ir::FilePathId path;
-    BOOST_DESCRIBE_CLASS(FileDeleteAction, (), (path), (), ());
+    DESC_FIELDS(FileDeleteAction, (path));
 };
 
 struct FileModifyAction {
     ir::FilePathId path;
     int            added;
     int            removed;
-    BOOST_DESCRIBE_CLASS(FileModifyAction, (), (path, added, removed), (), ());
+    DESC_FIELDS(FileModifyAction, (path, added, removed));
 };
 
 struct NameAction {
@@ -130,6 +131,7 @@ struct CommitTask {
     SPtr<git_tree> this_tree;
     Opt<git_oid>   prev_hash;
     git_oid        this_hash;
+    DESC_FIELDS(CommitTask, (id, prev_tree, this_tree, prev_hash, this_hash));
 };
 
 struct CommitActionGroup : Vec<Action> {
@@ -137,6 +139,12 @@ struct CommitActionGroup : Vec<Action> {
     Opt<FileRenameAction> rename_action;
     Opt<FileDeleteAction> delete_action;
     Opt<FileModifyAction> modify_action;
+
+    bool hasAny() const { return rename_action || delete_action || modify_action; }
+
+    DESC_FIELDS(
+        CommitActionGroup,
+        (leading_name, rename_action, delete_action, modify_action));
 };
 
 struct CommitActions {
@@ -241,7 +249,7 @@ void file_edit_actions(
         }
     }
 
-    std::reverse(delete_actions.begin(), delete_actions.end());
+    std::ranges::reverse(delete_actions);
     actions.append(delete_actions);
     actions.append(add_actions);
 }
@@ -296,12 +304,10 @@ CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
 
     file_name_actions(state, result);
 
-    SPtr<git_diff> diff = git::diff_tree_to_tree(
-                              state->repo.get(),
-                              task.prev_tree.get(),
-                              task.this_tree.get(),
-                              &diffopts)
-                              .value();
+    SPtr<git_diff> diff = //
+        git::diff_tree_to_tree(
+            state->repo.get(), task.prev_tree.get(), task.this_tree.get(), &diffopts)
+            .value();
 
     git_diff_find_similar(diff.get(), &findopts);
 
@@ -429,18 +435,16 @@ struct ChangeIterationState {
         state->at(commit_id).actions.push_back(
             ir::Commit::Action{
                 .kind     = ir::Commit::ActionKind::Rename,
+                .track    = prev_track,
                 .old_path = rename.prev_path,
                 .new_path = rename.this_path,
-                .track    = prev_track,
             });
 
-        if (state->should_debug()
-            && (state->should_debug_file(rename.this_path)
-                || state->should_debug_file(rename.prev_path))) {
+        if (state->should_debug_file(rename.this_path)
+            || state->should_debug_file(rename.prev_path)) {
             HSLOG_INFO(
                 "[apply] File rename action, track {} moved from path "
-                "'{}' "
-                "to '{}'",
+                "'{}' to '{}'",
                 prev_track,
                 state->str(rename.prev_path),
                 state->str(rename.this_path));
@@ -454,8 +458,8 @@ struct ChangeIterationState {
             state->at(commit_id).actions.push_back(
                 ir::Commit::Action{
                     .kind  = ir::Commit::ActionKind::Delete,
-                    .file  = del.path,
                     .track = tracks.at(del.path),
+                    .file  = del.path,
                 });
 
             tracks.erase(del.path);
@@ -466,10 +470,10 @@ struct ChangeIterationState {
         state->at(commit_id).actions.push_back(
             ir::Commit::Action{
                 .kind    = ir::Commit::ActionKind::Modify,
-                .file    = del.path,
                 .track   = tracks.at(del.path),
-                .removed = del.removed,
+                .file    = del.path,
                 .added   = del.added,
+                .removed = del.removed,
             });
     }
 
@@ -541,10 +545,10 @@ struct ChangeIterationState {
 
         LOGIC_ASSERTION_CHECK_FMT(
             to_remove < lines_size,
-            "[apply] Cannot remove line index {} from section version {} "
-            "path '{}' commit {} {}  on track:{} {}",
-            to_remove,
-            section.lines.size(),
+            "[apply] Cannot apply remove {} on section {} path '{}' commit {} {} on "
+            "track:{} {}",
+            remove,
+            section_id,
             state->str(state->at(section.path).path),
             state->at(commit_id).hash,
             remove,
@@ -609,9 +613,8 @@ struct ChangeIterationState {
             LOGIC_ASSERTION_CHECK_FMT(
                 state->at(prev_section).track == state->at(section_id).track,
                 "[apply] New track section copied lines from the "
-                "wrong "
-                "track. Section {} is placed in track {}, but the "
-                "previous section {} had track {}",
+                "wrong track. Section {} is placed in track {}, but the previous section "
+                "{} had track {}",
                 section_id,
                 state->at(section_id).track,
                 prev_section,
@@ -661,7 +664,7 @@ void check_tree_entry_consistency(
     ir::FilePathId path_id = state->content->getFilePath(path);
 
     if (!commit_actions.actions.contains(path_id)) {
-        HSLOG_INFO(
+        HSLOG_TRACE(
             "[state-verify] No file actions recorded for path {} on commit {}",
             path,
             state->at(commit_actions.id).hash);
@@ -720,7 +723,7 @@ void check_tree_entry_consistency(
         | rs::to<std::string>();
 
     HSLOG_IF(
-        info,
+        warning,
         content_lines.size() != section.lines.size(),
         "[state-verify] Section lines size and content lines size mismatch: "
         "commit-hash:{} section:{} content:{} where:{}\nfull content:\n{}",
@@ -739,7 +742,7 @@ void check_tree_entry_consistency(
         Str const& content_line{pair.second};
 
         HSLOG_IF(
-            info,
+            warning,
             section_line != content_line,
             "[state-verify] Line {} compare at did not match, "
             "section:'{}' != "
@@ -753,11 +756,13 @@ void check_tree_entry_consistency(
         LOGIC_ASSERTION_CHECK_FMT(section_line == content_line, "");
     }
 
-    HSLOG_INFO(
-        "[state-verify] {} ok at commit {} line count {}",
-        where,
-        state->at(commit_actions.id).hash,
-        section.lines.size());
+    if (false) {
+        HSLOG_INFO(
+            "[state-verify] {} ok at commit {} line count {}",
+            where,
+            state->at(commit_actions.id).hash,
+            section.lines.size());
+    }
 }
 
 void for_each_commit(CommitGraph& g, walker_state* state) {
@@ -825,7 +830,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         __perf_trace(
             "repo", "Actions for commit", "hash", state->at(commit_actions.id).hash);
 
-        if (state->should_debug() && state->should_debug_commit(commit_actions.id)) {
+        if (state->should_debug_commit(commit_actions.id)) {
             HSLOG_INFO(
                 "[mainloop] Processing commit {}", state->at(commit_actions.id).hash);
         }
@@ -833,11 +838,15 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
         for (auto const& [file_id, actions] : commit_actions.actions) {
             __perf_trace(
                 "repo", "Actions for file", "path", state->str(state->at(file_id).path));
-            if (state->should_debug() && state->should_debug_file(file_id)) {
+            if (state->should_debug_file(file_id)
+                || state->should_debug_commit(commit_actions.id)) {
                 HSLOG_INFO(
-                    "[mainloop] New action on file {} {}",
+                    "[mainloop] New action on file {} {} in commit {}: {}",
                     file_id,
-                    state->str(state->at(file_id).path));
+                    state->str(state->at(file_id).path),
+                    state->str(commit_actions.id),
+                    actions);
+                for (auto const& a : actions) { HSLOG_TRACE("  {}", a); }
             }
 
             if (actions.rename_action) {

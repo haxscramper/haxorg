@@ -815,6 +815,65 @@ def test_repo_operations_example_2() -> None:
 
 
 @pytest.mark.test_release
+def test_edit_and_add_file_again() -> None:
+    # yapf:disable
+    run_repo_operations_test(
+        [
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker", file_content=["A", "B", "C", "D"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename="log_graph_tracker", file_content=["A", "B", "C"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="other", file_content=["ABC"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker2", file_content=["A", "B"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.RENAME_FILE, filename="log_graph_tracker2", new_name="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+        ])
+    # yapf:enable
+
+
+@pytest.mark.test_release
+def test_edit_and_add_file_again_with_fork() -> None:
+    # yapf:disable
+    run_repo_operations_test(
+        [
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="start", file_content=["init"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker", file_content=["A"] * 20 + ["B"] * 20),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+
+            # in branch 00001
+            GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout="00001"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename="log_graph_tracker", file_content=["A"] * 15 + ["B"] * 15),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker2", file_content=["A"] * 20 + ["B"] * 20 + ["Q"] * 20),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout="master", branch_to_merge="00001"),
+
+            # master
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="start2", file_content=["init"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+
+
+            # in branch 00002
+            GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout="00002"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename="log_graph_tracker2", file_content=["A"] * 15 + ["B"] * 15 + ["Q"] * 20),
+            GitOperation(operation=GitOperationKind.RENAME_FILE, filename="log_graph_tracker2", new_name="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+
+            # master
+            GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout="master", branch_to_merge="00002"),
+        ])
+    # yapf:enable
+
+
+@pytest.mark.test_release
 def test_repo_operations_example_3() -> None:
     run_repo_operations_test([
         GitOperation(GitOperationKind.CREATE_FILE,

@@ -164,7 +164,9 @@ struct walker_state {
             || config->cli.config.debug_paths.contains(path);
     }
 
-    bool should_debug_file(ir::FilePathId id) { return should_check_file(str(id)); }
+    bool should_debug_file(ir::FilePathId id) {
+        return config->cli.config.debug_paths.contains(str(id));
+    }
 
     bool should_debug_commit(ir::CommitId id) {
         return config->cli.config.debug_commits.contains(at(id).hash);
