@@ -56,13 +56,13 @@ void haxorg_wasm_manual_register() {
     emscripten::function(
         "setOrgDirectoryFileReaderCallback",
         +[](std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& config,
-            std::shared_ptr<org::parse::ParseContext> const&                context,
+            org::parse::ParseContext&                                       context,
             emscripten::val const& get_file_content_callback) {
             config->getParsedNode =
                 [get_file_content_callback,
-                 context](std::string const& path) -> org::sem::SemId<org::sem::Org> {
+                 &context](std::string const& path) -> org::sem::SemId<org::sem::Org> {
                 emscripten::val file_content = get_file_content_callback(path);
-                return context->parseString(file_content.as<std::string>(), path);
+                return context.parseString(file_content.as<std::string>(), path);
             };
         });
 

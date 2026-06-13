@@ -51,7 +51,8 @@ haxorg_wasm().then(
     /** @param {HaxorgModule} org */ org => {
       console.log("WebAssembly loaded!");
       // Access your functions (if bound by Embind):
-      const node = org.parseString("#+title: title\n* test");
+      const context = new org.ParseContext();
+      const node    = context.parseString("#+title: title\n* test", "<test>");
       console.log(node);
       console.log(node.getKind() == org.OrgSemKind.Document);
       const node2 = node.at(0);
@@ -61,8 +62,6 @@ haxorg_wasm().then(
       console.log("???");
       console.log(doc.title.has_value());
       console.log(typeof doc.title.value());
-      // dump_properties(doc.title.value());
-
       console.log(org.format_OrgSemKind(doc.title.value().getKind()));
 
       const recursive_dir = path.resolve("../../tests/org/corpus");
@@ -71,12 +70,14 @@ haxorg_wasm().then(
       org.setOrgDirectoryIsDirectoryCallback(directory_opts, is_directory_impl);
       org.setOrgDirectoryIsRegularFileCallback(directory_opts, is_regular_file);
       org.setOrgDirectoryIsSymlinkCallback(directory_opts, is_symlink);
-      org.setOrgDirectoryFileReaderCallback(directory_opts, read_file_content);
+      org.setOrgDirectoryFileReaderCallback(directory_opts, context,
+                                            read_file_content);
       org.setOrgDirectoryGetDirectoryEntriesCallback(directory_opts,
                                                      get_entry_list);
       org.setOrgDirectoryResolveSymlinkCallback(directory_opts,
                                                 resolve_symllink);
+
       const recursive_node
-          = org.parseDirectoryOpts(recursive_dir, directory_opts);
+          = context.parseDirectoryOpts(recursive_dir, directory_opts);
       console.log("Recursive node done");
     });

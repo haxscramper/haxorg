@@ -1,8 +1,5 @@
 {
   "develop_ci_conf": {
-    "emscripten_deps" : true,
-    "emscripten_build": true,
-    "emscripten_test" : true
   },
   "debug": true,
   "use_unchanged_tasks": true,

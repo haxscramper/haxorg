@@ -290,7 +290,8 @@ class WasmClass():
         self.conf = conf
 
     def getWasmName(self) -> str:
-        return self.conf.getTypeBindName(self.Record.Name)
+        return self.Record.ReflectionParams.wrapper_name or self.conf.getBackendType(
+            self.Record.Name).Name
 
     def getCxxName(self) -> QualType:
         return self.Record.declarationQualName()
