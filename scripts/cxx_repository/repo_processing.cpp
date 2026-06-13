@@ -557,10 +557,8 @@ struct ChangeIterationState {
             info,
             remove_content != remove.id,
             "[apply] Cannot remove line {} on path '{}' because string content IDs are "
-            "mismatched. "
-            "Current line content is {} and trying to remove it by a line with content "
-            "{} "
-            "line value compare '{}' != '{}' commit {} on track:{}{}",
+            "mismatched. Current line content is {} and trying to remove it by a line "
+            "with content {} line value compare '{}' != '{}' commit {} on track:{}{}",
             to_remove,
             state->str(state->at(section.path).path),
             fmt1(remove_content),
