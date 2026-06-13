@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -9,7 +10,6 @@
 #include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/serde/SemOrgCereal.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <utility>
 
@@ -52,13 +52,18 @@ struct emscripten::smart_ptr_trait<org::sem::SemId<T>> {
 namespace org::bind::js {
 
 template <typename T>
-struct holder_type_builder {};
+struct holder_type_builder {
+    template <typename... Args>
+    static T init(Args&&... args) {
+        return T(std::forward<Args>(args)...);
+    }
+};
 
 template <typename T>
 struct holder_type_builder<std::shared_ptr<T>> {
     template <typename... Args>
     static std::shared_ptr<T> init(Args&&... args) {
-        return std::make_shared<T>(std::forward(args)...);
+        return std::make_shared<T>(std::forward<Args>(args)...);
     }
 };
 
@@ -66,7 +71,7 @@ template <typename T>
 struct holder_type_builder<std::unique_ptr<T>> {
     template <typename... Args>
     static std::unique_ptr<T> init(Args&&... args) {
-        return std::make_unique<T>(std::forward(args)...);
+        return std::make_unique<T>(std::forward<Args>(args)...);
     }
 };
 
@@ -74,13 +79,13 @@ template <typename T>
 struct holder_type_builder<org::sem::SemId<T>> {
     template <typename... Args>
     static org::sem::SemId<T> init(Args&&... args) {
-        return org::sem::SemId<T>::New(std::forward(args)...);
+        return org::sem::SemId<T>::New(std::forward<Args>(args)...);
     }
 };
 
 template <typename T, typename... Args>
 T holder_type_constructor(Args&&... args) {
-    return holder_type_builder<T>::init(std::forward(args)...);
+    return holder_type_builder<T>::init(std::forward<Args>(args)...);
 }
 
 struct type_registration_guard {
@@ -109,10 +114,32 @@ void bind_enum(std::string const& name) {
 }
 
 template <typename T>
-void immerbox_bind(type_registration_guard& g, std::string const& name) {}
-
-template <typename T>
-void immerflex_vector_bind(type_registration_guard& g, std::string const& name) {}
+void stdvector_bind(type_registration_guard& g, std::string const& name) {
+    using VT = std::vector<T>;
+    if (g.can_add<VT>()) {
+        emscripten::class_<VT>(name.c_str())
+            .function("size", &VT::size)
+            .function("push_back", static_cast<void (VT::*)(T const&)>(&VT::push_back))
+            .function("pop_back", &VT::pop_back)
+            .function("clear", &VT::clear)
+            .function("empty", static_cast<bool (VT::*)() const>(&VT::empty))
+            .function("reserve", &VT::reserve)
+            .function(
+                "resize_with_value",
+                static_cast<void (VT::*)(size_t, T const&)>(&VT::resize))
+            .function("at", static_cast<T const& (VT::*)(std::size_t) const>(&VT::at))
+            .function("front", static_cast<T const& (VT::*)() const>(&VT::front))
+            .function("back", static_cast<T const& (VT::*)() const>(&VT::back))
+            .function(
+                "toArray", +[](hstd::Vec<T> const& self) -> emscripten::val {
+                    emscripten::val result = emscripten::val::global("Array").new_();
+                    for (size_t i = 0; i < self.size(); ++i) {
+                        result.call<void>("push", self[i]);
+                    }
+                    return result;
+                });
+    }
+}
 
 template <typename T>
 void hstdVec_bind(type_registration_guard& g, std::string const& name) {
@@ -139,6 +166,152 @@ void hstdVec_bind(type_registration_guard& g, std::string const& name) {
                     }
                     return result;
                 });
+    }
+}
+
+template <typename T>
+void hstdextImmBox_bind(type_registration_guard& g, std::string const& name) {
+    using BT = hstd::ext::ImmBox<T>;
+    if (g.can_add<BT>()) {
+        emscripten::class_<BT>(name.c_str())
+            .template constructor<T const&>()
+            .function(
+                "value", +[](BT const& self) -> T const& { return *self; })
+            .function("set", +[](BT const&, T const& value) -> BT { return BT(value); });
+    }
+}
+
+template <typename T>
+void hstdextImmVec_bind(type_registration_guard& g, std::string const& name) {
+    using VT = hstd::ext::ImmVec<T>;
+    if (g.can_add<VT>()) {
+        emscripten::class_<VT>(name.c_str())
+            .template constructor<>()
+            .function("size", &VT::size)
+            .function("empty", &VT::empty)
+            .function(
+                "at",
+                +[](VT const& self, std::size_t idx) -> T const& { return self[idx]; })
+            .function(
+                "toArray", +[](VT const& self) -> emscripten::val {
+                    emscripten::val result = emscripten::val::global("Array").new_();
+                    for (std::size_t i = 0; i < self.size(); ++i) {
+                        result.call<void>("push", self[i]);
+                    }
+                    return result;
+                });
+    }
+}
+
+template <typename T>
+void immerbox_bind(type_registration_guard& g, std::string const& name) {
+    hstdextImmBox_bind<T>(g, name);
+}
+
+template <typename T>
+void immerflex_vector_bind(type_registration_guard& g, std::string const& name) {
+    hstdextImmVec_bind<T>(g, name);
+}
+
+template <typename T>
+void hstdUnorderedSet_bind(type_registration_guard& g, std::string const& name) {
+    using ST = hstd::UnorderedSet<T>;
+    if (g.can_add<ST>()) {
+        emscripten::class_<ST>(name.c_str())
+            .template constructor<>()
+            .function("size", &ST::size)
+            .function("empty", static_cast<bool (ST::*)() const>(&ST::empty))
+            .function("clear", &ST::clear)
+            .function("contains", &ST::contains)
+            .function("incl", static_cast<void (ST::*)(T const&)>(&ST::incl))
+            .function("excl", static_cast<void (ST::*)(T const&)>(&ST::excl))
+            .function("items", &ST::items)
+            .class_function("fromVec", &ST::FromVec);
+    }
+}
+
+template <typename A, typename B>
+void stdpair_bind(type_registration_guard& g, std::string const& name) {
+    using PT = std::pair<A, B>;
+    if (g.can_add<PT>()) {
+        emscripten::class_<PT>(name.c_str())
+            .template constructor<A const&, B const&>()
+            .property("first", &PT::first)
+            .property("second", &PT::second);
+    }
+}
+
+template <typename K, typename V>
+void stdunordered_map_bind(type_registration_guard& g, std::string const& name) {
+    using MT = std::unordered_map<K, V>;
+    if (g.can_add<MT>()) {
+        emscripten::class_<MT>(name.c_str())
+            .template constructor<>()
+            .function("size", &MT::size)
+            .function("empty", static_cast<bool (MT::*)() const>(&MT::empty))
+            .function("clear", &MT::clear)
+            .function(
+                "erase",
+                static_cast<typename MT::size_type (MT::*)(K const&)>(&MT::erase))
+            .function(
+                "contains",
+                +[](MT const& self, K const& key) -> bool {
+                    return self.find(key) != self.end();
+                })
+            .function("at", static_cast<V const& (MT::*)(K const&) const>(&MT::at))
+            .function(
+                "set",
+                +[](MT& self, K const& key, V const& value) {
+                    self.insert_or_assign(key, value);
+                })
+            .function(
+                "items", +[](MT const& self) -> hstd::Vec<std::pair<K, V>> {
+                    hstd::Vec<std::pair<K, V>> result;
+                    result.reserve(self.size());
+                    for (auto const& [k, v] : self) {
+                        result.push_back(std::make_pair(k, v));
+                    }
+                    return result;
+                });
+    }
+}
+
+namespace detail {
+
+template <typename Variant, std::size_t Index>
+void bind_variant_alternative(emscripten::class_<Variant>& cls) {
+    using Alt = std::variant_alternative_t<Index, Variant>;
+
+    cls.function(
+        ("is_" + std::to_string(Index)).c_str(),
+        +[](Variant const& self) -> bool { return std::holds_alternative<Alt>(self); });
+
+    cls.function(
+        ("get_" + std::to_string(Index)).c_str(),
+        +[](Variant const& self) -> Alt { return std::get<Alt>(self); });
+
+    cls.class_function(
+        ("from_" + std::to_string(Index)).c_str(),
+        +[](Alt const& value) -> Variant { return Variant{value}; });
+}
+
+template <typename Variant, std::size_t... Indices>
+void bind_variant_alternatives(
+    emscripten::class_<Variant>& cls,
+    std::index_sequence<Indices...>) {
+    (bind_variant_alternative<Variant, Indices>(cls), ...);
+}
+
+} // namespace detail
+
+template <typename... Ts>
+void stdvariant_bind(type_registration_guard& g, std::string const& name) {
+    using VT = std::variant<Ts...>;
+    if (g.can_add<VT>()) {
+        auto cls = emscripten::class_<VT>(name.c_str()).function("index", &VT::index);
+
+        detail::bind_variant_alternatives<VT>(
+            cls, std::make_index_sequence<sizeof...(Ts)>{});
     }
 }
 

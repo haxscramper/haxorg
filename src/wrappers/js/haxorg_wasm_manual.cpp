@@ -1,6 +1,8 @@
 #include "haxorg_wasm_manual.hpp"
 
 #include <hstd/stdlib/Debug.hpp>
+#include <haxorg/api/ParseContext.hpp>
+#include <memory>
 
 namespace {
 template <typename T>
@@ -53,42 +55,42 @@ void haxorg_wasm_manual_register() {
 
     emscripten::function(
         "setOrgDirectoryFileReaderCallback",
-        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const& config,
-            emscripten::val const&                                   value) {
+        +[](std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& config,
+            std::shared_ptr<org::parse::ParseContext> const&                context,
+            emscripten::val const& get_file_content_callback) {
             config->getParsedNode =
-                [value](std::string const& path) -> org::sem::SemId<org::sem::Org> {
-                // _dbg(path);
-                emscripten::val file_content = value(path);
-                return org::parseString(file_content.as<std::string>());
+                [get_file_content_callback,
+                 context](std::string const& path) -> org::sem::SemId<org::sem::Org> {
+                emscripten::val file_content = get_file_content_callback(path);
+                return context->parseString(file_content.as<std::string>(), path);
             };
         });
 
     emscripten::function(
         "setOrgDirectoryIsSymlinkCallback",
-        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const& config,
-            emscripten::val const&                                   value) {
-            config->isSymlinkImpl = [value](std::string const& path) -> bool {
-                bool result = value(path).as<bool>();
-                // _dfmt(path, result);
+        +[](std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& config,
+            emscripten::val const& check_file_is_symlink_callback) {
+            config->isSymlinkImpl =
+                [check_file_is_symlink_callback](std::string const& path) -> bool {
+                bool result = check_file_is_symlink_callback(path).as<bool>();
                 return result;
             };
         });
 
     emscripten::function(
         "setOrgDirectoryIsRegularFileCallback",
-        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const& config,
-            emscripten::val const&                                   value) {
+        +[](std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& config,
+            emscripten::val const&                                          value) {
             config->isRegularFileImpl = [value](std::string const& path) -> bool {
                 bool result = value(path).as<bool>();
-                // _dfmt(path, result);
                 return result;
             };
         });
 
     emscripten::function(
         "setOrgDirectoryIsDirectoryCallback",
-        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const& config,
-            emscripten::val const&                                   value) {
+        +[](std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& config,
+            emscripten::val const&                                          value) {
             config->isDirectoryImpl = [value](std::string const& path) -> bool {
                 bool result = value(path).as<bool>();
                 // _dfmt(path, result);
@@ -98,8 +100,8 @@ void haxorg_wasm_manual_register() {
 
     emscripten::function(
         "setOrgDirectoryResolveSymlinkCallback",
-        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const& config,
-            emscripten::val const&                                   value) {
+        +[](std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& config,
+            emscripten::val const&                                          value) {
             config->resolveSymlinkImpl = [value](std::string const& path) -> std::string {
                 std::string result = value(path).as<std::string>();
                 // _dfmt(path, result);
@@ -109,8 +111,8 @@ void haxorg_wasm_manual_register() {
 
     emscripten::function(
         "setOrgDirectoryGetDirectoryEntriesCallback",
-        +[](std::shared_ptr<org::OrgDirectoryParseParameters> const& config,
-            emscripten::val const&                                   value) {
+        +[](std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& config,
+            emscripten::val const&                                          value) {
             config->getDirectoryEntriesImpl =
                 [value](std::string const& path) -> std::vector<std::string> {
                 emscripten::val          result = value(path);
@@ -135,62 +137,4 @@ void haxorg_wasm_manual_register() {
             "toString", +[](hstd::Str const& self) -> std::string {
                 return static_cast<const std::string&>(self);
             });
-
-    emscripten::function(
-        "serializeAstContextToTextUint8",
-        +[](std::shared_ptr<org::imm::ImmAstContext> const& store) -> emscripten::val {
-            return convert_to_uint8_array(org::imm::serializeToText(store));
-        });
-
-    emscripten::function(
-        "serializeAstContextFromTextUint8",
-        +[](emscripten::val                                 uint8_array,
-            std::shared_ptr<org::imm::ImmAstContext> const& store) -> void {
-            int         length = uint8_array["length"].as<int>();
-            std::string binary_data;
-            binary_data.reserve(length);
-            for (int i = 0; i < length; ++i) {
-                binary_data += static_cast<char>(uint8_array[i].as<uint8_t>());
-            }
-            org::imm::serializeFromText(binary_data, store);
-        });
-
-    emscripten::function(
-        "serializeAstEpochToTextUint8",
-        +[](std::shared_ptr<org::imm::ImmAstReplaceEpoch> const& store)
-            -> emscripten::val {
-            return convert_to_uint8_array(org::imm::serializeToText(store));
-        });
-
-    emscripten::function(
-        "serializeAstEpochFromTextUint8",
-        +[](emscripten::val                                      uint8_array,
-            std::shared_ptr<org::imm::ImmAstReplaceEpoch> const& store) -> void {
-            int         length = uint8_array["length"].as<int>();
-            std::string binary_data;
-            binary_data.reserve(length);
-            for (int i = 0; i < length; ++i) {
-                binary_data += static_cast<char>(uint8_array[i].as<uint8_t>());
-            }
-            org::imm::serializeFromText(binary_data, store);
-        });
-
-    emscripten::function(
-        "serializeMapGraphToTextUint8",
-        +[](std::shared_ptr<org::graph::MapGraph> const& store) -> emscripten::val {
-            return convert_to_uint8_array(org::imm::serializeToText(store));
-        });
-
-    emscripten::function(
-        "serializeMapGraphFromTextUint8",
-        +[](emscripten::val                              uint8_array,
-            std::shared_ptr<org::graph::MapGraph> const& store) -> void {
-            int         length = uint8_array["length"].as<int>();
-            std::string binary_data;
-            binary_data.reserve(length);
-            for (int i = 0; i < length; ++i) {
-                binary_data += static_cast<char>(uint8_array[i].as<uint8_t>());
-            }
-            org::imm::serializeFromText(binary_data, store);
-        });
 }

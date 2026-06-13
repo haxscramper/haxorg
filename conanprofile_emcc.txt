@@ -1,0 +1,10 @@
+include(default)
+
+[settings]
+os=Emscripten
+arch=wasm
+compiler=emcc
+
+[conf]
+tools.build:compiler_executables={"c":"emcc","cpp":"em++"}
+tools.cmake.cmaketoolchain:generator=Ninja

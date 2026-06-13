@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 cmake_policy(SET CMP0135 NEW)
-cmake_policy(SET CMP0148 OLD) # or NEW
+cmake_policy(SET CMP0148 NEW)
 cmake_policy(SET CMP0155 NEW)
 if(POLICY CMP0167)
   cmake_policy(SET CMP0167 NEW)
@@ -187,31 +187,50 @@ message(
   STATUS
     "ORG_USE_CONAN_INSTALL = ${ORG_USE_CONAN_INSTALL} ORG_IS_CONAN_BUILD = ${ORG_IS_CONAN_BUILD}")
 
-if(${ORG_IS_CONAN_BUILD} AND ${ORG_USE_CONAN_INSTALL})
+if(${ORG_USE_CONAN_INSTALL})
   add_definitions(-DORG_USE_CONAN_INSTALL=1)
-  set(CONAN_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/.conan_install")
-  set(CONAN_TOOLCHAIN
-      "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}/generators/conan_toolchain.cmake")
 
   # if(NOT EXISTS "${CONAN_TOOLCHAIN}")
   message(STATUS "Running Conan install...")
 
+  set(CONAN_OUT_BASE "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}")
+
+  if(${ORG_BUILD_EMCC})
+    set(CONAN_PROFILE_PATH "${BASE}/conanprofile_emcc.txt")
+    set(CONAN_OPTS "-o use_emcc=True")
+    set(CONAN_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/.conan_install_emcc")
+  else()
+    set(CONAN_PROFILE_PATH "${BASE}/conanprofile.txt")
+    set(CONAN_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/.conan_install")
+  endif()
+
   execute_process(
-    COMMAND conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
-            -pr:h=${BASE}/conanprofile.txt --build=missing -s build_type=${CMAKE_BUILD_TYPE}
+    COMMAND
+      conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
+      -pr:h=${CONAN_PROFILE_PATH} --build=missing -s build_type=${CMAKE_BUILD_TYPE} ${CONAN_OPTS}
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     RESULT_VARIABLE CONAN_RESULT
     OUTPUT_VARIABLE CONAN_STDOUT
     ERROR_VARIABLE CONAN_STDERR
     OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_STRIP_TRAILING_WHITESPACE)
 
+  message(STATUS "Conan install\n" "---- stdout ----\n${CONAN_STDOUT}\n"
+                 "---- stderr ----\n${CONAN_STDERR}\n")
+
   if(NOT CONAN_RESULT EQUAL 0)
-    message(FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})\n"
-                        "---- stdout ----\n${CONAN_STDOUT}\n" "---- stderr ----\n${CONAN_STDERR}\n")
-    # endif()
+    message(FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})")
   endif()
 
+  set(CONAN_TOOLCHAIN
+      "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}/generators/conan_toolchain.cmake")
+
   include("${CONAN_TOOLCHAIN}")
+  if(${ORG_BUILD_EMCC})
+    # for EMCC build, conan is only used to provide some header-only libraries like boost, the rest
+    # of dependencies still has to be built using emcc and properly linked into the main project.
+    include("${ORG_DEPS_INSTALL_ROOT}/paths.cmake")
+  endif()
+
 elseif(NOT ORG_DEPS_INSTALL_ROOT OR ORG_DEPS_INSTALL_ROOT STREQUAL "OFF")
   add_definitions(-DORG_USE_CONAN_INSTALL=0)
   message(STATUS "No dependency path specified, will be using system-provided deps")
@@ -318,9 +337,8 @@ if(NOT ${ORG_BUILD_EMCC})
   find_package(cpptrace CONFIG REQUIRED)
 endif()
 
-if(NOT ${ORG_BUILD_EMCC})
-  find_package(Boost REQUIRED COMPONENTS ALL)
-endif()
+find_package(Boost REQUIRED COMPONENTS ALL)
+message(STATUS "Boost_DIR = ${Boost_DIR}")
 
 if(${ORG_BUILD_EMCC})
   add_definitions(-DORG_BUILD_EMCC=1)

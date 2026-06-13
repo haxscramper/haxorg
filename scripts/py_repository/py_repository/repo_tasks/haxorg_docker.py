@@ -84,7 +84,9 @@ def run_develop_ci(ctx: TaskContext) -> None:
     emcc_conf.build_conf.build_python = False
     emcc_conf.build_conf.use_cgraph = False
     emcc_conf.build_conf.build_wrappers_c = False
-    emcc_conf.build_conf.use_packaged_boost = True
+    # emcc_conf.build_conf.use_packaged_boost = True
+    emcc_conf.use_conan_install = True
+    # emcc_conf.build_conf.real_time_output_print = True
     emcc_context = ctx.with_temp_config(emcc_conf)
 
     if conf.develop_ci_conf.emscripten_deps:

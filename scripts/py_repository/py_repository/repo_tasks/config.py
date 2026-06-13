@@ -241,6 +241,7 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     use: HaxorgUseConfig = Field(default_factory=lambda: HaxorgUseConfig())
     use_unchanged_tasks: bool = Field(default=False)
     use_dependencies: bool = Field(default=True)
+    use_conan_install: bool = Field(default=False)
     emscripten: HaxorgEmscriptenConfig = Field(
         default_factory=lambda: HaxorgEmscriptenConfig())
     instrument: HaxorgInstrumentConfig = Field(
