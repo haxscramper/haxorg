@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from datetime import datetime
 import json
 import logging
 from pathlib import Path
@@ -95,11 +96,19 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
     executor_tracker = get_build_root(context, "haxorg").joinpath("executor_tracker")
     log(CAT).info(f"executor_tracker = {executor_tracker}")
 
+    if context.config.force_subprocess_tracking:
+        assert executor_tracker.exists(), executor_tracker
+
+    tracker_path = Path(
+        f"/tmp/workflow_log/execution_tracker/track-{datetime.now().isoformat()}.jsonl")
+    tracker_path.parent.mkdir(parents=True, exist_ok=True)
+
     if executor_tracker.exists():
         import os
+
         tracker_configuration = {
             "pids": [os.getpid()],
-            "path": "/tmp/execution-log.jsonl",
+            "path": str(tracker_path),
         }
         log(CAT).info(f"Opening executor tracker with {tracker_configuration}")
         proc = subprocess.Popen([
@@ -129,6 +138,10 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
         if proc:
             proc.kill()
             proc.wait()
+
+    if tracker_path.exists():
+        import shutil
+        shutil.copy(tracker_path, tracker_path.with_name("last.jsonl"))
 
 
 if __name__ == "__main__":
