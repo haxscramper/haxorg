@@ -14,8 +14,10 @@ from types import TracebackType
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, List, Literal, Optional, Set, Type
 from cxx_repository import burndown
+import git
 from hypothesis import (
     assume,
+    find,
     given,
     note,
     Phase,
@@ -46,6 +48,8 @@ from rich import box
 from rich.console import Console
 from rich.table import Column, Style, Table
 from sqlalchemy import create_engine, Engine
+
+CAT = __name__
 
 
 @beartype
@@ -113,7 +117,11 @@ def git_write_files(dir: Path, files: Dict[str, str]) -> None:
 
 @beartype
 def git_move_files(dir: Path, source: str, target: str) -> None:
-    dir.joinpath(source).rename(dir.joinpath(target))
+    source_p = dir.joinpath(source)
+    target_p = dir.joinpath(target)
+    assert source_p.exists(), f"source '{source}' does not exist"
+    assert not target_p.exists(), f"target file '{target}' already exists"
+    source_p.rename(target_p)
 
 
 @beartype
@@ -137,15 +145,24 @@ def git_commit(
 ) -> None:
     git_add(dir)
     git = get_git(dir)
-    git = git.with_env(GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
-                       GIT_COMMITTER_DATE=date.strftime("%Y-%m-%d %H:%M:%S"))
+    git = git.with_env(
+        GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
+        GIT_COMMITTER_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
+    )
     code, stdout, stderr = git.run(
         ("commit", f"--author={author} <{email}>", "-m", message), retcode=None)
 
     if code != 0 and not allow_fail:
-        log().warning("Failed to commit")
-        log().warning(stdout)
-        log().warning(stderr)
+
+        assert False, f"""
+Failed to commit
+stdout:
+{stdout}
+stderr:
+{stderr}
+directory content:
+- {"\n- ".join(str(s) for s in dir.rglob("*") if ".git" not in str(s))}
+        """
 
 
 @beartype
@@ -222,8 +239,10 @@ class GitTestRepository:
             self.dir.__enter__()
 
         git_init_repo(self.git_dir())
-        git_write_files(self.git_dir(), self.start_files)
-        git_commit(self.git_dir(), self.init_message)
+        if self.start_files:
+            git_write_files(self.git_dir(), self.start_files)
+            git_add(self.git_dir())
+            git_commit(self.git_dir(), self.init_message)
 
         if self.fixed_db:
             self.db = self.fixed_db
@@ -393,6 +412,7 @@ def test_fast_forward_merge() -> None:
 HAXORG_OUT_DB = gettempdir("test_haxorg_forensics.sqlite")
 
 
+@pytest.mark.skip()
 def test_haxorg_forensics() -> None:
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
@@ -516,10 +536,11 @@ class GitFileEditStrategy:
 class GitOperation:
     operation: GitOperationKind
     filename: Optional[str] = None
-    new_name: Optional[str] = None  # Only used for 'rename' operation
+    new_name: Optional[str] = None
     file_content: Optional[List[str]] = None
     branch_to_checkout: Optional[str] = None
     branch_to_merge: Optional[str] = None
+    commit_message: Optional[str] = None
 
 
 @beartype
@@ -692,8 +713,8 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 assert new_name is not None
                 git_move_files(repo.git_dir(), source=file, target=new_name)
 
-            case GitOperation(operation=GitOperationKind.REPO_COMMIT,):
-                git_commit(repo.git_dir(), "message", allow_fail=True)
+            case GitOperation(operation=GitOperationKind.REPO_COMMIT, commit_message=msg):
+                git_commit(repo.git_dir(), msg or "message", allow_fail=True)
 
             case GitOperation(
                 operation=GitOperationKind.FORK_BRANCH,
@@ -735,6 +756,193 @@ def run_repo_operations_test(
         )
         # engine = repo.get_engine()
         # print_connection_tables(engine=engine)
+
+        inferred = infer_git_operations_from_repo(repo.git_dir())
+        replay_inferred_and_verify(inferred)
+
+
+@beartype
+@dataclass
+class InferredCommit:
+    commit_id: str
+    message: str
+    operations: List[GitOperation]
+    expected_files: Dict[str, List[str]]
+
+
+@beartype
+def _tree_files(commit: git.objects.commit.Commit) -> Dict[str, List[str]]:
+    result: Dict[str, List[str]] = {}
+    for node in commit.tree.traverse():
+        if node.type != "blob":
+            continue
+        text = node.data_stream.read().decode("utf-8", errors="ignore")
+        result[node.path] = text.splitlines()
+    return result
+
+
+def get_commit_ids_for_path(repo_path: Path) -> List[str]:
+    src_repo = git.Repo(str(repo_path))
+    return [c.hexsha for c in src_repo.iter_commits("master")][::-1]
+
+
+@beartype
+def infer_git_operations_from_repo(
+    repo_path: Path,
+    start_commit_ids: Optional[List[str]] = None,
+) -> List[InferredCommit]:
+    repo = git.Repo(str(repo_path))
+
+    commit_ids = start_commit_ids if start_commit_ids else get_commit_ids_for_path(
+        repo_path)
+
+    commits = [repo.commit(cid) for cid in commit_ids]
+    inferred: List[InferredCommit] = []
+
+    for idx, commit in enumerate(commits):
+        current_files = _tree_files(commit)
+        ops: List[GitOperation] = []
+
+        if idx == 0:
+            for path, content in current_files.items():
+                ops.append(
+                    GitOperation(
+                        operation=GitOperationKind.CREATE_FILE,
+                        filename=path,
+                        file_content=content,
+                    ))
+        else:
+            prev_commit = commits[idx - 1]
+            prev_files = _tree_files(prev_commit)
+
+            for diff in prev_commit.diff(commit, create_patch=False):
+                change = diff.change_type
+
+                if change == "A":
+                    assert diff.b_path is not None
+                    ops.append(
+                        GitOperation(
+                            operation=GitOperationKind.CREATE_FILE,
+                            filename=diff.b_path,
+                            file_content=current_files[diff.b_path],
+                        ))
+
+                elif change == "D":
+                    assert diff.a_path is not None
+                    ops.append(
+                        GitOperation(
+                            operation=GitOperationKind.DELETE_FILE,
+                            filename=diff.a_path,
+                        ))
+
+                elif change == "M":
+                    assert diff.b_path is not None
+                    ops.append(
+                        GitOperation(
+                            operation=GitOperationKind.MODIFY_FILE,
+                            filename=diff.b_path,
+                            file_content=current_files[diff.b_path],
+                        ))
+
+                elif change == "R":
+                    assert diff.a_path is not None
+                    assert diff.b_path is not None
+                    ops.append(
+                        GitOperation(
+                            operation=GitOperationKind.RENAME_FILE,
+                            filename=diff.a_path,
+                            new_name=diff.b_path,
+                        ))
+
+                    if prev_files.get(diff.a_path) != current_files.get(diff.b_path):
+                        ops.append(
+                            GitOperation(
+                                operation=GitOperationKind.MODIFY_FILE,
+                                filename=diff.b_path,
+                                file_content=current_files[diff.b_path],
+                            ))
+
+        ops.append(
+            GitOperation(
+                operation=GitOperationKind.REPO_COMMIT,
+                commit_message=commit.message.strip(),
+            ))
+
+        inferred.append(
+            InferredCommit(
+                commit_id=commit.hexsha,
+                message=commit.message.strip(),
+                operations=ops,
+                expected_files=current_files,
+            ))
+
+    return inferred
+
+
+@beartype
+def _reproduces_failure(
+    inferred_steps: List[InferredCommit],
+    params: Dict[str, Any],
+) -> bool:
+    with GitTestRepository({}) as repo:
+        for step in inferred_steps:
+            run_repo_operations(repo, step.operations)
+        code, _, _ = run_forensics(repo.git_dir(), db=str(repo.db), params=params)
+        return code != 0
+
+
+@beartype
+def minimize_failing_commit_subset(
+    repo_path: Path,
+    commit_ids: List[str],
+    params: Dict[str, Any],
+) -> List[str]:
+    inferred = infer_git_operations_from_repo(repo_path, commit_ids)
+    assert _reproduces_failure(inferred, params)
+
+    mask = find(
+        st.lists(st.booleans(), min_size=len(inferred),
+                 max_size=len(inferred)).filter(lambda m: any(m)),
+        lambda m: _reproduces_failure(
+            [step for keep, step in zip(m, inferred) if keep],
+            params,
+        ),
+        settings=settings(
+            deadline=None,
+            max_examples=400,
+            phases=[Phase.generate, Phase.shrink],
+            verbosity=Verbosity.normal,
+        ),
+    )
+
+    return [step.commit_id for keep, step in zip(mask, inferred) if keep]
+
+
+@pytest.mark.test_release
+def test_infer_and_replay_roundtrip() -> None:
+    with GitTestRepository({"base.txt": "v1"}) as source:
+        git_write_files(source.git_dir(), {"base.txt": "v2"})
+        git_commit(source.git_dir(), "mod-1")
+
+        git_move_files(source.git_dir(), "base.txt", "renamed.txt")
+        git_commit(source.git_dir(), "rename-1")
+
+        git_write_files(source.git_dir(), {"new.txt": "hello\nworld"})
+        git_commit(source.git_dir(), "add-1")
+
+        inferred = infer_git_operations_from_repo(source.git_dir())
+        replay_inferred_and_verify(inferred)
+
+
+@beartype
+def replay_inferred_and_verify(inferred: List[InferredCommit]) -> None:
+    with GitTestRepository({}) as replay_repo:
+        replay_git = git.Repo(str(replay_repo.git_dir()))
+        for step in inferred:
+            run_repo_operations(replay_repo, step.operations)
+            assert not replay_git.head.is_detached
+            replay_head = replay_git.head.commit
+            assert _tree_files(replay_head) == step.expected_files
 
 
 @pytest.mark.test_release

@@ -15,7 +15,7 @@
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
-      // "tests/python/repo/test_code_forensics.py::test_haxorg_forensics"
+      // "tests/python/repo/test_code_forensics.py"
       // "tests/python/test_execution_tracker.py"
       // "tests/python/repo/test_code_coverage.py::test_file_segmentation_2",
       // "tests/python/refl/test_reflection_algorithm.py::test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrappers",

@@ -40,6 +40,8 @@ def pytest_configure(config: Any) -> None:
             "graphviz._tools",
             "matplotlib",
             "asyncio",
+            "git.cmd",
+            "git.util",
     ]:
         logger = logging.getLogger(logger_name)
         logger.disabled = True
