@@ -22,6 +22,7 @@ class HaxorgConan(ConanFile):
         "use_tracy": [True, False],
         "use_protobuf": [True, False],
         "use_python_bindings": [True, False],
+        "use_emcc": [True, False],
     }
 
     default_options = {
@@ -30,37 +31,44 @@ class HaxorgConan(ConanFile):
         "use_python_bindings": False,
         "use_protobuf": True,
         "use_cgraph": False,
+        "use_emcc": False,
     }
 
     def requirements(self):
         tr = dict(transitive_headers=True, transitive_libs=True)
-        self.requires("cpptrace/[>=1.0.4 <2]", **tr)
-        self.requires("foonathan-lexy/[>=2025.05.0 <2026]")
-        self.requires("cctz/[>=2.4 <3]", **tr)
-        self.requires("yaml-cpp/[>=0.8.0 <1]", **tr)
-        self.requires("range-v3/[>=0.12.0 <1]")
-        self.requires("immer/[>=0.8.1 <1]", **tr)
-        self.requires("lager/[>=0.1.1 <1]", **tr)
-        self.requires("nlohmann_json/[>=3.12.0 <4]", **tr)
-        self.requires("boost/[>=1.90.0 <2]", override=True)
+        if self.options.use_emcc:
+            self.requires("boost/[>=1.90.0 <2]", override=True)
 
-        # self.requires("zstd/[>=1.5.7 <2]")
-        # self.requires("openssl/[>=3.6.1 <4]")
+        else:
+            self.requires("boost/[>=1.90.0 <2]", override=True)
+            self.requires("cpptrace/[>=1.0.4 <2]", **tr)
+            self.requires("foonathan-lexy/[>=2025.05.0 <2026]")
+            self.requires("cctz/[>=2.4 <3]", **tr)
+            self.requires("yaml-cpp/[>=0.8.0 <1]", **tr)
+            self.requires("range-v3/[>=0.12.0 <1]")
+            self.requires("immer/[>=0.8.1 <1]", **tr)
+            self.requires("lager/[>=0.1.1 <1]", **tr)
+            self.requires("nlohmann_json/[>=3.12.0 <4]", **tr)
 
-        if self.options.use_python_bindings:
-            self.requires("nanobind/[>=2.9.2 <3]")
+            # self.requires("zstd/[>=1.5.7 <2]")
+            # self.requires("openssl/[>=3.6.1 <4]")
 
-        if self.options.use_perfetto:
-            self.requires("perfetto/[>=52.0 <53]")
+            if self.options.use_python_bindings:
+                self.requires("nanobind/[>=2.9.2 <3]")
 
-        if self.options.use_tracy:
-            self.requires("tracy/[>=0.13.1 <1]")
+            if self.options.use_perfetto:
+                self.requires("perfetto/[>=52.0 <53]")
 
-        if self.options.use_protobuf:
-            self.requires("protobuf/[>=6.32.1 <7]")
+            if self.options.use_tracy:
+                self.requires("tracy/[>=0.13.1 <1]")
+
+            if self.options.use_protobuf:
+                self.requires("protobuf/[>=6.32.1 <7]")
 
     def configure(self):
         self.options["boost/*"].without_cobalt = True
+        if self.options.use_emcc:
+            self.options["boost/*"].header_only = True
 
     def layout(self):
         cmake_layout(self)

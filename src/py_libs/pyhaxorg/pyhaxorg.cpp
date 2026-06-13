@@ -1246,18 +1246,6 @@ node can have subnodes.)RAW")
     .def_rw("traceColored", &hstd::OperationsTracer::traceColored)
     .def_rw("activeLevel", &hstd::OperationsTracer::activeLevel)
     .def_rw("traceBuffer", &hstd::OperationsTracer::traceBuffer)
-    .def("begin_scope_event",
-         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*) const>(&hstd::OperationsTracer::begin_scope_event),
-         nanobind::arg("value") = std::nullopt,
-         nanobind::arg("function") = __builtin_FUNCTION(),
-         nanobind::arg("line") = 46,
-         nanobind::arg("file") = __builtin_FILE())
-    .def("end_scope_event",
-         static_cast<void(hstd::OperationsTracer::*)(std::optional<std::string> const&, char const*, int, char const*) const>(&hstd::OperationsTracer::end_scope_event),
-         nanobind::arg("value") = std::nullopt,
-         nanobind::arg("function") = __builtin_FUNCTION(),
-         nanobind::arg("line") = 52,
-         nanobind::arg("file") = __builtin_FILE())
     .def("setTraceFileStr",
          static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
          nanobind::arg("outfile"),

@@ -8,3 +8,4 @@
 #include <hstd/stdlib/RangeSegmentation.hpp>
 
 #include <haxorg/serde/SemOrgSerde.hpp>
+#include <haxorg/api/ParseContext.hpp>

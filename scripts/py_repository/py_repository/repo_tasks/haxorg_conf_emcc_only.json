@@ -6,8 +6,12 @@
     "docs": false,
     "coverage": false,
     "reflection": false,
+    "linter": false,
     "install": false,
-    "example": false,
+    "example_build": false,
+    "example_run": false,
+    "include_graph": false,
+    "symbol_size": false,
     "emscripten_deps": true,
     "emscripten_build": true,
     "emscripten_test": true

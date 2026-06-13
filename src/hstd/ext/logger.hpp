@@ -11,6 +11,13 @@
 #    define HSLOG_SINK_SCOPE()
 #    define HSLOG_NOSINK_SCOPE()
 #    define HSLOG_TRACE_STACKTRACE(__cat, __severity)
+#    define HSLOG_DEPTH_SCOPE_ANON(...)
+#    define HSLOG_INFO_DEPTH_SCOPE_ANON(...)
+#    define HSLOG_WARNING_DEPTH_SCOPE_ANON(...)
+#    define HSLOG_ERROR_DEPTH_SCOPE_ANON(...)
+#    define HSLOG_FATAL_DEPTH_SCOPE_ANON(...)
+#    define HSLOG_TRACE_DEPTH_SCOPE_ANON(...)
+#    define HSLOG_DEBUG_DEPTH_SCOPE_ANON(...)
 
 #else
 #    include <boost/log/attributes/mutable_constant.hpp>

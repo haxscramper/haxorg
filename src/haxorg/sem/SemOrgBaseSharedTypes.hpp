@@ -1,4 +1,5 @@
 #pragma once
+#include "hstd/stdlib/Formatter.hpp"
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <hstd/system/basic_typedefs.hpp>
@@ -48,6 +49,13 @@ struct [[refl]] OrgJson {
     [[refl]] hstd::Vec<OrgJson> getArray() const;
     [[refl]] std::string        dump(int indent) const;
 };
+
+namespace detail {
+std::string format_enum_value(OrgSemKind kind);
+std::string format_enum_value(OrgTokenKind kind);
+std::string format_enum_value(OrgNodeKind kind);
+} // namespace detail
+
 } // namespace org::sem
 
 // Explicitly instantiating the formatters for large enums can save up to
@@ -66,18 +74,24 @@ using back_inserter_string_format_context = std::basic_format_context<std::back_
 template <>
 struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
     template <class FormatContext>
-    auto format(OrgTokenKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator;
+    auto format(OrgTokenKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator {
+        return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
+    }
 };
 
 template <>
 struct std::formatter<OrgSemKind> : std::formatter<std::string> {
     template <class FormatContext>
-    auto format(OrgSemKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator;
+    auto format(OrgSemKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator {
+        return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
+    }
 };
 
 template <>
 struct std::formatter<OrgNodeKind> : std::formatter<std::string> {
     template <class FormatContext>
-    auto format(OrgNodeKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator;
+    auto format(OrgNodeKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator {
+        return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
+    }
 };
 // clang-format on

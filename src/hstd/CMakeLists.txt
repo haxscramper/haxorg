@@ -33,6 +33,8 @@ if(${ORG_DEPS_USE_PACKAGED_BOOST})
   target_link_libraries(hstd PUBLIC Boost::boost_describe Boost::boost_preprocessor)
 endif()
 
+target_link_libraries(hstd PUBLIC Boost::headers)
+
 if(NOT ${ORG_BUILD_EMCC})
   target_link_libraries(hstd PUBLIC Boost::log cpptrace::cpptrace)
 endif()

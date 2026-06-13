@@ -193,20 +193,6 @@ def get_external_deps_list(
     )
 
     dep(
-        build_name="msgpack",
-        deps_name="msgpack-c",
-        is_emcc_ready=True,
-        cmake_dirs=[
-            ("msgpack-cxx",
-             ["msgpack/lib/cmake/msgpack-cxx"] + make_lib("msgpack/{}/cmake/msgpack-cxx"))
-        ],
-        configure_args=[
-            opt("MSGPACK_USE_BOOST", False),
-            opt("MSGPACK_BUILD_TESTS", False),
-        ],
-    )
-
-    dep(
         build_name="cpptrace",
         deps_name="cpptrace",
         is_emcc_ready=False,

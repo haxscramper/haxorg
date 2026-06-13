@@ -1,3 +1,5 @@
+import {ParseContext} from "./haxorg_wasm_types";
+
 export interface Optional<T> {
   has_value(): boolean;
   value(): T;
@@ -28,7 +30,7 @@ export interface StdVariant<T1, T2 = never, T3 = never, T4 = never, T5 = never,
                             > {}
 
 export interface haxorg_wasm_manual {
-  setOrgDirectoryFileReaderCallback(config: any,
+  setOrgDirectoryFileReaderCallback(config: any, context: ParseContext,
                                     callback: (path: string) => string): void;
 
   setOrgDirectoryIsSymlinkCallback(config: any,

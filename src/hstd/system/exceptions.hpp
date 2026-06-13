@@ -78,6 +78,7 @@ struct CRTP_hexception
 
 #if ORG_BUILD_EMCC
     virtual const char* what() const noexcept override { return get_fmt_message(); }
+    const char*         message() const noexcept { return get_fmt_message(); }
 #else
     virtual cpptrace::stacktrace const& trace() const noexcept override { return eager; }
 

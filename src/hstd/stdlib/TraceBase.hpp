@@ -38,18 +38,17 @@ struct [[refl]] OperationsTracer {
     mutable SPtr<std::ostream> stream;
 
 
-    [[refl]] void begin_scope_event(
+    void begin_scope_event(
         Opt<std::string> const& value    = std::nullopt,
         char const*             function = __builtin_FUNCTION(),
         int                     line     = __builtin_LINE(),
         char const*             file     = __builtin_FILE()) const;
 
-    [[refl]] void end_scope_event(
+    void end_scope_event(
         Opt<std::string> const& value    = std::nullopt,
         char const*             function = __builtin_FUNCTION(),
         int                     line     = __builtin_LINE(),
         char const*             file     = __builtin_FILE()) const;
-
 
     template <typename... _Args>
     [[nodiscard]] inline std::string fmt_message(
@@ -91,7 +90,6 @@ struct [[refl]] OperationsTracer {
     };
 
     ScopeHandle begin_scope_nop() const { return ScopeHandle{nullptr}; }
-
 
     ScopeHandle begin_scope(
         Opt<std::string> const& value    = std::nullopt,

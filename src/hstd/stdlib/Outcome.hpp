@@ -4,7 +4,6 @@
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/system/macros.hpp>
 
-
 namespace hstd {
 
 

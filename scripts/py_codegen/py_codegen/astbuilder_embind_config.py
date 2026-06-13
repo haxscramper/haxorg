@@ -44,8 +44,11 @@ class EmbindAstbuilderConfig(AstbulderConfig):
             case ["bool"]:
                 name = "boolean"
 
-            case ["Str"] | ["string"] | ["std", "string"] | ["basic_string" \
-                                                             ] | ["std", "basic_string"]:
+            case ["Str"] |  \
+                ["string"] | \
+                ["std", "string"] | \
+                ["basic_string" ] | \
+                ["std", "basic_string"]:
                 name = "string"
 
             case ["void"]:
@@ -54,7 +57,8 @@ class EmbindAstbuilderConfig(AstbulderConfig):
             case ["org", "sem", "SemId", _]:
                 return self.getBackendType(Type.par0())
 
-            case ["hstd", "Opt", _] | ["std", "optional", _]:
+            case ["hstd", "Opt", _] | \
+                ["std", "optional", _]:
                 name = GEN + ".Optional"
 
             case ["hstd", "Vec", _] | \
@@ -70,7 +74,7 @@ class EmbindAstbuilderConfig(AstbulderConfig):
                 name = GEN + "." + self.getTypeBindName(Type, withParams=False)
 
             case _:
-                name = self.getTypeBindName(Type, withParams=False)
+                name = self.getTypeBindName(Type, withParams=True)
 
         struct = self.type_map.get_struct_for_qual_name(Type)
         if not struct or struct.ReflectionParams.wrapper_has_params:

@@ -51,7 +51,8 @@ haxorg_wasm().then(
     /** @param {HaxorgModule} org */ org => {
       console.log("WebAssembly loaded!");
       // Access your functions (if bound by Embind):
-      const node = org.parseString("#+title: title\n* test");
+      const context = new org.ParseContext();
+      const node    = context.parseString("#+title: title\n* test", "<test>");
       console.log(node);
       console.log(node.getKind() == org.OrgSemKind.Document);
       const node2 = node.at(0);
@@ -61,8 +62,6 @@ haxorg_wasm().then(
       console.log("???");
       console.log(doc.title.has_value());
       console.log(typeof doc.title.value());
-      // dump_properties(doc.title.value());
-
       console.log(org.format_OrgSemKind(doc.title.value().getKind()));
 
       const recursive_dir = path.resolve("../../tests/org/corpus");
@@ -71,78 +70,14 @@ haxorg_wasm().then(
       org.setOrgDirectoryIsDirectoryCallback(directory_opts, is_directory_impl);
       org.setOrgDirectoryIsRegularFileCallback(directory_opts, is_regular_file);
       org.setOrgDirectoryIsSymlinkCallback(directory_opts, is_symlink);
-      org.setOrgDirectoryFileReaderCallback(directory_opts, read_file_content);
+      org.setOrgDirectoryFileReaderCallback(directory_opts, context,
+                                            read_file_content);
       org.setOrgDirectoryGetDirectoryEntriesCallback(directory_opts,
                                                      get_entry_list);
       org.setOrgDirectoryResolveSymlinkCallback(directory_opts,
                                                 resolve_symllink);
+
       const recursive_node
-          = org.parseDirectoryOpts(recursive_dir, directory_opts);
+          = context.parseDirectoryOpts(recursive_dir, directory_opts);
       console.log("Recursive node done");
-
-      var original_context = org.initImmutableAstContext();
-      var original_state   = original_context.addRoot(recursive_node.value());
-      var graph_state = org.GraphMapGraphState.FromAstContext(original_context);
-
-      const msgpack_context_path = path.join(os.tmpdir(), "dir1_msgpack.bin");
-      const msgpack_graph_path
-          = path.join(os.tmpdir(), "dir1_graph_msgpack.bin");
-      const msgpack_epoch_path
-          = path.join(os.tmpdir(), "dir1_msgpack_epoch.bin");
-
-      console.log(`msgpack_context_path = ${msgpack_context_path}`);
-      console.log(`msgpack_graph_path = ${msgpack_graph_path}`);
-      console.log(`msgpack_epoch_path = ${msgpack_epoch_path}`);
-
-      {
-        console.log("Serialize initial context");
-        const binary = org.serializeAstContextToTextUint8(original_context);
-        fs.writeFileSync(msgpack_context_path, Buffer.from(binary));
-        console.log(`Finished binary write ${binary.length} bytes`)
-      }
-
-      {
-        console.log("Serialize mind map");
-        const binary = org.serializeMapGraphToTextUint8(graph_state.getGraph());
-        fs.writeFileSync(msgpack_graph_path, Buffer.from(binary));
-        console.log(`Finished binary write ${binary.length} bytes`)
-      }
-
-      {
-        console.log("Serialize current epoch");
-        const binary
-            = org.serializeAstEpochToTextUint8(original_state.getEpoch());
-        fs.writeFileSync(msgpack_epoch_path, Buffer.from(binary));
-        console.log(`Finished binary write ${binary.length} bytes`)
-      }
-
-      // JS cannot correctly save serialized binary for whatever reason,
-      // I will fix this sometime later
-      if (false) {
-        var deserialized_context = org.initImmutableAstContext();
-        var deserialized_version = deserialized_context.getEmptyVersion();
-        var deserialized_graph
-            = org.GraphMapGraphState.FromAstContext(original_context);
-
-        {
-          console.log("Deserialize context");
-          const binary = fs.readFileSync(msgpack_context_path);
-          org.serializeAstContextFromTextUint8(new Uint8Array(binary),
-                                               deserialized_context);
-        }
-
-        {
-          console.log("Deserialize epoch");
-          const binary = fs.readFileSync(msgpack_epoch_path);
-          org.serializeAstEpochFromTextUint8(new Uint8Array(binary),
-                                             deserialized_version.getEpoch());
-        }
-
-        {
-          console.log("Deserialize graph");
-          const binary = fs.readFileSync(msgpack_graph_path);
-          org.serializeMapGraphFromTextUint8(new Uint8Array(binary),
-                                             deserialized_graph.getGraph());
-        }
-      }
     });
