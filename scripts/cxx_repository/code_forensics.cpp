@@ -288,37 +288,7 @@ int main(int argc, char** argv) {
 
     HSLOG_INFO("Finished execution, DB written successfully");
 
-    if (config->cli.out.text_dump) {
-        HSLOG_INFO("Text dump option specified, writing debug");
-        std::ofstream file{*config->cli.out.text_dump};
-        for (auto const& [id, value] :
-             state->content->multi.store<ir::FileTrack>().pairs()) {
-            file << "File\n";
-            for (ir::FileTrackSectionId section_id : value->sections) {
-                auto& section = state->content->at(section_id);
-                file << fmt(
-                    "  Section [{}] = {} at {} +{} -{}\n",
-                    section_id,
-                    escape_literal(
-                        state->content->at(state->content->at(section.path).path).text),
-                    state->content->at(section.commit_id).hash.substr(0, 8),
-                    section.added_lines,
-                    section.removed_lines);
-
-                for (auto const& [idx, line_id] : enumerate(section.lines)) {
-                    file << fmt(
-                        "   [{}] = ({}) {} {}\n",
-                        idx,
-                        line_id,
-                        rs::contains(section.added_lines, idx) ? "+" : " ",
-                        escape_literal(
-                            state->content->at(state->content->at(line_id).content)
-                                .text));
-                }
-            }
-        }
-    }
-
+    state->dump_text_if_enabled();
 
     fs::path db_file{config->cli.out.db_path};
     if (fs::exists(db_file)) { fs::remove(db_file); }

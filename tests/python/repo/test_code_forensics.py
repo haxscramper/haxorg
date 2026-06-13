@@ -874,6 +874,31 @@ def test_edit_and_add_file_again_with_fork() -> None:
 
 
 @pytest.mark.test_release
+def test_repeated_delete() -> None:
+    # yapf:disable
+    run_repo_operations_test(
+        [
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 20),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 15),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 10),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 25),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+        ])
+    # yapf:enable
+
+
+@pytest.mark.test_release
 def test_repo_operations_example_3() -> None:
     run_repo_operations_test([
         GitOperation(GitOperationKind.CREATE_FILE,

@@ -317,7 +317,13 @@ CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
     for (int i = 0; i < deltas; ++i) {
         SPtr<git_patch>       patch = git::patch_from_diff(diff.get(), i).value();
         git_diff_delta const* delta = git::patch_get_delta(patch.get());
-        fs::path              path{delta->new_file.path};
+
+        char const* action_path = (delta->status == GIT_DELTA_DELETED)
+                                    ? delta->old_file.path
+                                    : delta->new_file.path;
+
+        fs::path path{action_path};
+
 
         bool should_debug_path = state->should_debug()
                               && (state->should_check_file(path.native())
@@ -334,17 +340,14 @@ CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
                 path,
                 state->at(task.id).hash,
                 delta->status);
-
             continue;
         }
 
         ir::FilePathId path_id = state->content->getFilePath(path);
-
-        if (delta->status == GIT_DELTA_DELETED) {
-            LOGIC_ASSERTION_CHECK_FMT(!result.actions.contains(path_id), "");
-            result.actions[state->content->getFilePath(path)].leading_name = NameAction{
-                state->content->getFilePath(path)};
+        if (!result.actions.contains(path_id)) {
+            result.actions[path_id] = CommitActionGroup{};
         }
+        auto& actions = result.actions.at(path_id);
 
         LOGIC_ASSERTION_CHECK_FMT(
             result.actions.contains(path_id),
@@ -356,7 +359,6 @@ CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
             delta->status,
             result.directory_paths.contains(path.native()));
 
-        auto& actions = result.actions.at(path_id);
 
         HSLOG_IF(
             info,
@@ -430,7 +432,7 @@ struct ChangeIterationState {
     void apply(ir::CommitId commit_id, FileRenameAction const& rename) {
         ir::FileTrackId prev_track = tracks.at(rename.prev_path);
         tracks.erase(rename.prev_path);
-        tracks.insert({rename.this_path, prev_track});
+        tracks.insert_or_assign(rename.this_path, prev_track);
 
         state->at(commit_id).actions.push_back(
             ir::Commit::Action{
@@ -543,6 +545,8 @@ struct ChangeIterationState {
         int to_remove  = remove.removed;
         int lines_size = section.lines.size();
 
+        if (!(to_remove < lines_size)) { state->dump_text_if_enabled(); }
+
         LOGIC_ASSERTION_CHECK_FMT(
             to_remove < lines_size,
             "[apply] Cannot apply remove {} on section {} path '{}' commit {} {} on "
@@ -579,15 +583,16 @@ struct ChangeIterationState {
         section.lines = section.lines.erase(to_remove);
     }
 
-    auto apply(ir::CommitId commit_id, NameAction const& name)
+    auto apply(ir::CommitId commit_id, NameAction const& name, CommitActionGroup const& g)
         -> Pair<ir::FileTrackId, ir::FileTrackSectionId> {
         LOGIC_ASSERTION_CHECK_FMT(!name.getPath().isNil(), "");
-        ir::FileTrackId track = which_track(name.getPath());
+        auto const      p     = name.getPath();
+        ir::FileTrackId track = which_track(p);
 
-        if (state->should_debug() && state->should_debug_file(name.getPath())) {
+        if (state->should_debug_file(p) || state->should_debug_commit(commit_id)) {
             HSLOG_INFO(
                 "[apply] Applying name action, path name '{}' track {}",
-                state->str(name.getPath()),
+                state->str(p),
                 track);
         }
 
@@ -597,7 +602,7 @@ struct ChangeIterationState {
         auto section_id = state->content->add(
             FileTrackSection{
                 .commit_id = commit_id,
-                .path      = name.getPath(),
+                .path      = p,
                 .track     = track,
             });
 
@@ -605,10 +610,29 @@ struct ChangeIterationState {
 
         tmp_track.sections.push_back(section_id);
 
+        if (state->should_debug_file(p)) {
+            HSLOG_TRACE("track {} size {}", section_id, tmp_track.sections.size());
+        }
+
         LOGIC_ASSERTION_CHECK_FMT(!section.path.isNil(), "");
         if (1 < tmp_track.sections.size()) {
             ir::FileTrackSectionId prev_section = tmp_track.sections.at(
                 tmp_track.sections.size() - 2);
+            if (state->should_debug_file(p)) {
+                HSLOG_TRACE(
+                    "prev section lines size {} at commit {}",
+                    state->at(prev_section).lines.size(),
+                    state->str(state->at(prev_section).commit_id));
+            }
+
+            if (g.rename_action) {
+                HSLOG_INFO(
+                    "Rename operation {} -> {} lines {}",
+                    state->str(g.rename_action->prev_path),
+                    state->str(g.rename_action->this_path),
+                    state->at(prev_section).lines.size());
+            }
+
             section.lines = state->at(prev_section).lines;
             LOGIC_ASSERTION_CHECK_FMT(
                 state->at(prev_section).track == state->at(section_id).track,
@@ -846,7 +870,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                     state->str(state->at(file_id).path),
                     state->str(commit_actions.id),
                     actions);
-                for (auto const& a : actions) { HSLOG_TRACE("  {}", a); }
+                // for (auto const& a : actions) { HSLOG_TRACE("  {}", a); }
             }
 
             if (actions.rename_action) {
@@ -861,15 +885,24 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
                 iter_state.apply(commit_actions.id, *actions.modify_action);
             }
 
-            auto [track_id, section_id] = iter_state.apply(
-                commit_actions.id, actions.leading_name.value());
             // Apply actions to the commit iteration state. It will
             // insert new file tracks, keep track of the historical
             // context of the repo changes and so on.
+            Opt<Pair<ir::FileTrackId, ir::FileTrackSectionId>> target_section;
+            if (actions.leading_name) {
+                target_section = iter_state.apply(
+                    commit_actions.id, *actions.leading_name, actions);
+            }
+
             rs::for_each(actions, [&](auto const& edit) {
+                LOGIC_ASSERTION_CHECK_FMT(target_section.has_value(), "");
                 std::visit(
                     [&](auto const& act) {
-                        iter_state.apply(track_id, section_id, commit_actions.id, act);
+                        iter_state.apply(
+                            target_section->first,
+                            target_section->second,
+                            commit_actions.id,
+                            act);
                     },
                     edit);
             });

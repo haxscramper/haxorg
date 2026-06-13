@@ -10,6 +10,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/ext/logger.hpp>
+#include <fstream>
 
 #include "git_ir.hpp"
 #include "hstd/stdlib/Set.hpp"
@@ -184,6 +187,49 @@ struct walker_state {
     hstd::Str const& str(ir::CommitId id) { return this->at(id).hash; }
     hstd::Str const& str(ir::StringId id) { return this->at(id).text; }
     hstd::Str const& str(ir::FilePathId id) { return this->str(content->at(id).path); }
+
+    void write_debug(std::ostream& os) {
+        for (auto const& [id, value] : content->multi.store<ir::FileTrack>().pairs()) {
+            // if (should_debug_file(value))
+            bool had_file = false;
+
+            for (ir::FileTrackSectionId section_id : value->sections) {
+                auto& section = content->at(section_id);
+                if ((!section.added_lines.empty() || !section.removed_lines.empty())
+                    && should_debug_file(section.path)) {
+                    if (!had_file) {
+                        os << "File\n";
+                        had_file = true;
+                    }
+                    os << fmt(
+                        "  Section [{}] = {} at {} +{} -{}\n",
+                        section_id,
+                        escape_literal(content->at(content->at(section.path).path).text),
+                        content->at(section.commit_id).hash.substr(0, 8),
+                        section.added_lines,
+                        section.removed_lines);
+
+                    for (auto const& [idx, line_id] : hstd::enumerate(section.lines)) {
+                        os << hstd::fmt(
+                            "   [{}] = ({}) {} {}\n",
+                            idx,
+                            line_id,
+                            hstd::rs::contains(section.added_lines, idx) ? "+" : " ",
+                            escape_literal(
+                                content->at(content->at(line_id).content).text));
+                    }
+                }
+            }
+        }
+    }
+
+    void dump_text_if_enabled() {
+        if (config->cli.out.text_dump) {
+            HSLOG_INFO("Text dump option specified, writing debug");
+            std::ofstream file{*config->cli.out.text_dump};
+            write_debug(file);
+        }
+    }
 };
 
 #endif // PROGRAM_STATE_HPP
