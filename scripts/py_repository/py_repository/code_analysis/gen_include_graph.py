@@ -347,6 +347,7 @@ def create_project_file_subgraphs(
         graph: igraph.Graph) -> List[Tuple[igraph.Graph, igraph.Vertex]]:
     result: List[Tuple[igraph.Graph, igraph.Vertex]] = []
 
+    # TODO: Annotate each edge with the number of vertices it transitively reaches.
     for vertex in graph.vs:
         incd: IncludeVertexData = vertex["include_data"]
         if incd.isProjectFile:

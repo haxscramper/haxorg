@@ -168,6 +168,8 @@ endif()
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PROTOBUF)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_ADAPTAGRAMS)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_KIWI)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_ELK)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_CGRAPH)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PERFETTO)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_TESTS)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_INTERNAL_TOOLS)
@@ -235,24 +237,27 @@ endif()
 
 find_package(cctz REQUIRED)
 
-find_package(zstd QUIET CONFIG)
+if(NOT ${ORG_BUILD_EMCC})
+  # TODO: What package requires zstd?
+  find_package(zstd QUIET CONFIG)
 
-if(zstd_FOUND)
-  message(STATUS "Found zstd via CMake config")
-  # zstd::zstd target should be available
-else()
-  # Fallback to pkg-config
-  message(STATUS "zstd CMake config not found, trying pkg-config")
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(ZSTD REQUIRED libzstd)
+  if(zstd_FOUND)
+    message(STATUS "Found zstd via CMake config")
+    # zstd::zstd target should be available
+  else()
+    # Fallback to pkg-config
+    message(STATUS "zstd CMake config not found, trying pkg-config")
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(ZSTD REQUIRED libzstd)
 
-  # Create an imported target to match the CONFIG mode interface
-  add_library(zstd::zstd INTERFACE IMPORTED)
-  set_target_properties(
-    zstd::zstd
-    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ZSTD_INCLUDE_DIRS}"
-               INTERFACE_LINK_LIBRARIES "${ZSTD_LIBRARIES}"
-               INTERFACE_LINK_DIRECTORIES "${ZSTD_LIBRARY_DIRS}")
+    # Create an imported target to match the CONFIG mode interface
+    add_library(zstd::zstd INTERFACE IMPORTED)
+    set_target_properties(
+      zstd::zstd
+      PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${ZSTD_INCLUDE_DIRS}"
+                 INTERFACE_LINK_LIBRARIES "${ZSTD_LIBRARIES}"
+                 INTERFACE_LINK_DIRECTORIES "${ZSTD_LIBRARY_DIRS}")
+  endif()
 endif()
 
 if(NOT ${ORG_BUILD_EMCC})

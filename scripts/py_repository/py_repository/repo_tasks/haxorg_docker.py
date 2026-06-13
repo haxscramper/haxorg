@@ -71,8 +71,20 @@ def run_develop_ci(ctx: TaskContext) -> None:
     log(CAT).info("Running EMCC task set")
     emcc_conf = conf.model_copy()
     emcc_conf.emscripten.build = True
+    emcc_conf.build_conf.cxx_compiler = "em++"
+    emcc_conf.build_conf.c_compiler = "emcc"
     emcc_conf.instrument.coverage = False
     emcc_conf.use.qt = False
+    emcc_conf.use.imgui = False
+    emcc_conf.build_conf.build_tests = False
+    emcc_conf.build_conf.use_adaptagrams = False
+    emcc_conf.build_conf.use_kiwi = False
+    emcc_conf.build_conf.use_elk = False
+    emcc_conf.build_conf.build_internal_tools = False
+    emcc_conf.build_conf.build_python = False
+    emcc_conf.build_conf.use_cgraph = False
+    emcc_conf.build_conf.build_wrappers_c = False
+    emcc_conf.build_conf.use_packaged_boost = True
     emcc_context = ctx.with_temp_config(emcc_conf)
 
     if conf.develop_ci_conf.emscripten_deps:

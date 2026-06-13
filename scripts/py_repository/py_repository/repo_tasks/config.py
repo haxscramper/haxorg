@@ -59,8 +59,12 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     c_compiler: str = "clang"
     cmake_generator: str = "Ninja"
     use_warnings: bool = True
+    use_packaged_boost: bool = False
     real_time_output_print: bool = Field(
         default=False, description="Print the build output in real time")
+    # TODO: Replace the field collection with the dictionary of str->bool flags, and put the
+    # cmake defines directly into the config instead of re-declaring every individual field
+    # here.
     use_kiwi: bool = Field(default=True)
     use_adaptagrams: bool = Field(
         default=True, description="Build the project with adaptagrams support")
@@ -68,6 +72,9 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     build_python: bool = Field(default=True, description="Build python bindings")
     build_tests: bool = Field(default=True,
                               description="Build tests for hstd/haxorg project")
+    build_internal_tools: bool = Field(default=True,
+                                       description="ORG_BUILD_INTERNAL_TOOLS")
+    build_wrappers_c: bool = Field(default=True, description="ORG_BUILD_WRAPPERS_C")
     cmake_extra_build_flags: list[str] = Field(
         default_factory=list,
         description="Extra flags provided directly to cmake configuration")

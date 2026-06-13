@@ -144,6 +144,11 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("CMAKE_EXPORT_COMPILE_COMMANDS", True))
     result.append(cmake_opt("Python_EXECUTABLE", get_python_binary(ctx)))
     result.append(cmake_opt("ORG_DISABLE_WARNINGS", not conf.build_conf.use_warnings))
+    result.append(
+        cmake_opt("ORG_BUILD_INTERNAL_TOOLS", conf.build_conf.build_internal_tools))
+    result.append(cmake_opt("ORG_BUILD_WRAPPERS_C", conf.build_conf.build_wrappers_c))
+    result.append(
+        cmake_opt("ORG_DEPS_USE_PACKAGED_BOOST", conf.build_conf.use_packaged_boost))
 
     if conf.build_conf.cmake_generator == "Ninja":
         # https://github.com/ninja-build/ninja/issues/2029

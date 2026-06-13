@@ -5,6 +5,10 @@ run_develop_ci:
   {{workflow_run}} --task run_develop_ci \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_develop_ci.json
 
+run_develop_ci_emcc:
+  {{workflow_run}} --task run_develop_ci \
+    --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_emcc_only.json
+
 build_haxorg:
   {{workflow_run}} --task build_haxorg \
     --config_override scripts/py_repository/py_repository/repo_tasks/haxorg_conf_no_emcc.json
