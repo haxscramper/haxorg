@@ -705,6 +705,9 @@ hstd::log::log_record log_described_record(
             _,                                                                           \
             BOOST_PP_VARIADIC_TO_SEQ(__VA_ARGS__))
 
+#    define HSLOG_IF(_level, _expression, ...)                                           \
+        if (_expression) { __ORG_LOG_IMPL(_level, __VA_ARGS__) }
+
 namespace hstd::log {
 template <typename... Args>
 std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(

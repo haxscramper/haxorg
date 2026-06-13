@@ -1,10 +1,8 @@
 #include "repo_graph.hpp"
 
 #include <boost/graph/graphml.hpp>
-// FIXME: Remove usage of the ABSL logging from the repository graph, use
-// the hstd logger or operations tracer instead.
-#include <absl/log/log.h>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/ext/logger.hpp>
 
 using namespace hstd;
 
@@ -17,7 +15,7 @@ CommitGraph::CommitGraph(SPtr<git_repository> repo, Str const& branch_name) {
     git_oid_cpy(&first_oid, git_commit_id(first_commit.value().get()));
     git_revwalk_push(walker.get(), &first_oid);
 
-    LOG(INFO) << std::format(
+    HSLOG_INFO(
         "[repo-graph] First commit on branch '{}' is '{}'", branch_name, first_oid);
 
     git_oid oid;

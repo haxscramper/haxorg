@@ -12,6 +12,7 @@
 #include <boost/mp11.hpp>
 
 #include "git_ir.hpp"
+#include "hstd/stdlib/Set.hpp"
 #include <hstd/system/reflection.hpp>
 
 using Date         = boost::gregorian::date;
@@ -92,8 +93,8 @@ struct cli_config_config {
     /// paths in this list.
     hstd::Vec<std::string> debug_paths = {};
     cli_diff_config        diffopts    = cli_diff_config{};
-    /// Only generate database for the first N commits.
-    hstd::Opt<int> max_commit_idx = std::nullopt;
+    /// Only generate database for the commit subset.
+    hstd::UnorderedSet<std::string> target_commit_subset;
 
     DESC_FIELDS(
         cli_config_config,
@@ -101,7 +102,7 @@ struct cli_config_config {
          debug_commits,
          debug_paths,
          diffopts,
-         max_commit_idx));
+         target_commit_subset));
 };
 
 struct cli_config {

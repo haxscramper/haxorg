@@ -8,7 +8,7 @@
 #include <immer/flex_vector_transient.hpp>
 #include <fstream>
 #include "repo_profile.hpp"
-
+#include <hstd/ext/logger.hpp>
 #include <boost/asio/thread_pool.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <boost/asio/post.hpp>
@@ -166,7 +166,7 @@ void maybe_file_rename(
         auto old_path = state->content->getFilePath(delta->old_file.path);
 
         if (state->should_debug()) {
-            LOG(INFO) << std::format(
+            HSLOG_INFO(
                 "[actions] File rename from '{}' to '{}', ID mapping is: "
                 "new:{} -> old:{}",
                 delta->old_file.path,
@@ -176,8 +176,8 @@ void maybe_file_rename(
         }
 
         actions.rename_action = FileRenameAction{
-            .this_path = new_path,
             .prev_path = old_path,
+            .this_path = new_path,
         };
     }
 }
@@ -269,8 +269,7 @@ void file_name_actions(walker_state* state, CommitActions& result) {
             } else if (entry_type == GIT_OBJECT_TREE || entry_type == GIT_OBJECT_COMMIT) {
                 result.directory_paths.incl(path.native());
             } else {
-                LOG(INFO) << std::format(
-                    "Commit has '{}' with type {}", path.native(), entry_type);
+                HSLOG_INFO("Commit has '{}' with type {}", path.native(), entry_type);
             }
             return 0;
         });
@@ -278,8 +277,11 @@ void file_name_actions(walker_state* state, CommitActions& result) {
 
 CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
     CommitActions result{.id = task.id, .this_tree = task.this_tree};
-    LOG_IF(INFO, state->should_debug_commit(task.id)) << std::format(
-        "[actions] Generating list of actions for commit {}", state->str(task.id));
+    HSLOG_IF(
+        info,
+        state->should_debug_commit(task.id),
+        "[actions] Generating list of actions for commit {}",
+        state->str(task.id));
 
     auto const&           c_diff     = state->config->cli.config.diffopts;
     git_diff_options      diffopts   = GIT_DIFF_OPTIONS_INIT;
@@ -317,7 +319,9 @@ CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
 
 
         if (result.directory_paths.contains(path.native())) {
-            LOG_IF(INFO, should_debug_path) << std::format(
+            HSLOG_IF(
+                info,
+                should_debug_path,
                 "Delta contained directory-related changes (submodule "
                 "addition) that were ignored. Path '{}' on commit {} with "
                 "delta kind {}.",
@@ -348,7 +352,9 @@ CommitActions get_commit_actions(walker_state* state, CommitTask const& task) {
 
         auto& actions = result.actions.at(path_id);
 
-        LOG_IF(INFO, should_debug_path) << std::format(
+        HSLOG_IF(
+            info,
+            should_debug_path,
             "[actions] File '{}' change {} at commit '{}'",
             path,
             delta->status,
@@ -395,7 +401,7 @@ struct ChangeIterationState {
     ir::FileTrackId which_track(ir::FilePathId path) {
         ir::FilePathId target_path = path;
         if (state->should_debug() && state->should_debug_file(path)) {
-            LOG(INFO) << std::format(
+            HSLOG_INFO(
                 "[state] File path ID {} '{}' resolved to {} '{}' "
                 "has known track:{}",
                 path,
@@ -431,7 +437,7 @@ struct ChangeIterationState {
         if (state->should_debug()
             && (state->should_debug_file(rename.this_path)
                 || state->should_debug_file(rename.prev_path))) {
-            LOG(INFO) << std::format(
+            HSLOG_INFO(
                 "[apply] File rename action, track {} moved from path "
                 "'{}' "
                 "to '{}'",
@@ -496,17 +502,22 @@ struct ChangeIterationState {
         ir::FileTrackSection& section = state->at(section_id);
 
         if (state->should_debug() && state->should_debug_file(section.path)) {
-            LOG(INFO) << std::format(
-                "[apply] {} '{}'", add, state->str(state->at(add.id).content));
+            HSLOG_INFO("[apply] {} '{}'", add, state->str(state->at(add.id).content));
         }
 
         int to_add = add.added;
-        LOG_IF(INFO, !(to_add <= section.lines.size()))
-            << "[apply] Cannot add line at index " << to_add << " from section of size "
-            << section.lines.size() << " path '"
-            << state->str(state->at(section.path).path) << "' commit "
-            << state->at(commit_id).hash << " " << fmt1(add)
-            << std::format(" on track:{}", track) << format_section_lines(section_id);
+        HSLOG_IF(
+            info,
+            !(to_add <= section.lines.size()),
+            "[apply] Cannot add line at index {} from section of size {} path '{}' "
+            "commit {} on track:{} {}",
+            to_add,
+            section.lines.size(),
+            state->str(state->at(section.path).path),
+            state->at(commit_id).hash,
+            fmt1(add),
+            track,
+            format_section_lines(section_id));
 
         LOGIC_ASSERTION_CHECK_FMT(to_add <= section.lines.size(), "");
 
@@ -522,7 +533,7 @@ struct ChangeIterationState {
 
         ir::FileTrackSection& section = state->at(section_id);
         if (state->should_debug() && state->should_debug_file(section.path)) {
-            LOG(INFO) << std::format("[apply] {}", remove);
+            HSLOG_INFO("[apply] {}", remove);
         }
 
         int to_remove  = remove.removed;
@@ -542,19 +553,23 @@ struct ChangeIterationState {
 
         auto remove_content = state->at(section.lines.at(to_remove)).content;
 
-        LOG_IF(INFO, remove_content != remove.id)
-            << "[apply] Cannot remove line " << to_remove << " on path '"
-            << state->str(state->at(section.path).path)
-            << "' because string content IDs are mismatched. Current "
-               "line content is "
-            << fmt1(remove_content) << " and trying to remove it by a line with content "
-            << fmt1(remove.id)
-            << std::format(
-                   " line value compare '{}' != '{}'",
-                   state->str(remove_content),
-                   state->str(remove.id))
-            << " commit " << state->at(commit_id).hash
-            << std::format(" on track:{}", track) << format_section_lines(section_id);
+        HSLOG_IF(
+            info,
+            remove_content != remove.id,
+            "[apply] Cannot remove line {} on path '{}' because string content IDs are "
+            "mismatched. "
+            "Current line content is {} and trying to remove it by a line with content "
+            "{} "
+            "line value compare '{}' != '{}' commit {} on track:{}{}",
+            to_remove,
+            state->str(state->at(section.path).path),
+            fmt1(remove_content),
+            fmt1(remove.id),
+            state->str(remove_content),
+            state->str(remove.id),
+            state->at(commit_id).hash,
+            track,
+            format_section_lines(section_id));
 
         LOGIC_ASSERTION_CHECK_FMT(remove_content == remove.id, "");
 
@@ -568,7 +583,7 @@ struct ChangeIterationState {
         ir::FileTrackId track = which_track(name.getPath());
 
         if (state->should_debug() && state->should_debug_file(name.getPath())) {
-            LOG(INFO) << std::format(
+            HSLOG_INFO(
                 "[apply] Applying name action, path name '{}' track {}",
                 state->str(name.getPath()),
                 track);
@@ -648,8 +663,10 @@ void check_tree_entry_consistency(
     ir::FilePathId path_id = state->content->getFilePath(path);
 
     if (!commit_actions.actions.contains(path_id)) {
-        LOG(INFO) << "[state-verify] No file actions recorded for path " << path
-                  << " on commit " << state->at(commit_actions.id).hash;
+        HSLOG_INFO(
+            "[state-verify] No file actions recorded for path {} on commit {}",
+            path,
+            state->at(commit_actions.id).hash);
         return;
     }
 
@@ -704,11 +721,11 @@ void check_tree_entry_consistency(
         | rv::join              //
         | rs::to<std::string>();
 
-    LOG_IF(INFO, content_lines.size() != section.lines.size()) << std::format(
-        "[state-verify] Section lines size and content lines size "
-        "mismatch: "
-        "commit-hash:{} section:{} "
-        "content:{} where:{}\nfull content:\n{}",
+    HSLOG_IF(
+        info,
+        content_lines.size() != section.lines.size(),
+        "[state-verify] Section lines size and content lines size mismatch: "
+        "commit-hash:{} section:{} content:{} where:{}\nfull content:\n{}",
         state->at(commit_actions.id).hash,
         section.lines.size(),
         content_lines.size(),
@@ -723,7 +740,9 @@ void check_tree_entry_consistency(
         Str const& section_line = state->str(state->at(pair.first).content);
         Str const& content_line{pair.second};
 
-        LOG_IF(INFO, section_line != content_line) << std::format(
+        HSLOG_IF(
+            info,
+            section_line != content_line,
             "[state-verify] Line {} compare at did not match, "
             "section:'{}' != "
             "content:'{}', file '{}', {}\nfull content:\n{}",
@@ -736,7 +755,7 @@ void check_tree_entry_consistency(
         LOGIC_ASSERTION_CHECK_FMT(section_line == content_line, "");
     }
 
-    LOG(INFO) << std::format(
+    HSLOG_INFO(
         "[state-verify] {} ok at commit {} line count {}",
         where,
         state->at(commit_actions.id).hash,
@@ -744,7 +763,7 @@ void check_tree_entry_consistency(
 }
 
 void for_each_commit(CommitGraph& g, walker_state* state) {
-    LOG(INFO) << "Getting list of files changed per each commit";
+    HSLOG_INFO("Getting list of files changed per each commit");
     __perf_trace("repo", "For each commit");
 
     git_commit*     prev = nullptr;
@@ -809,7 +828,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             "repo", "Actions for commit", "hash", state->at(commit_actions.id).hash);
 
         if (state->should_debug() && state->should_debug_commit(commit_actions.id)) {
-            LOG(INFO) << std::format(
+            HSLOG_INFO(
                 "[mainloop] Processing commit {}", state->at(commit_actions.id).hash);
         }
 
@@ -817,7 +836,7 @@ void for_each_commit(CommitGraph& g, walker_state* state) {
             __perf_trace(
                 "repo", "Actions for file", "path", state->str(state->at(file_id).path));
             if (state->should_debug() && state->should_debug_file(file_id)) {
-                LOG(INFO) << std::format(
+                HSLOG_INFO(
                     "[mainloop] New action on file {} {}",
                     file_id,
                     state->str(state->at(file_id).path));
@@ -896,11 +915,14 @@ CommitGraph build_repo_graph(git_oid& oid, walker_state* state) {
         state->add_id_mapping(oid, id);
     }
 
-    std::reverse(full_commits.begin(), full_commits.end());
+    std::ranges::reverse(full_commits);
 
     // Push information about all known commits to the full list
-    for (const auto& [commit, date, _, __] : full_commits) {
-        state->add_full_commit(commit);
+    for (const auto& [commit, date, _, id] : full_commits) {
+        if (state->config->cli.config.target_commit_subset.empty()
+            || state->config->cli.config.target_commit_subset.contains(state->str(id))) {
+            state->add_full_commit(commit);
+        }
     }
 
     __perf_trace("repo", "construct repo graph structure");

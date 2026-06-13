@@ -393,7 +393,6 @@ def test_fast_forward_merge() -> None:
 HAXORG_OUT_DB = gettempdir("test_haxorg_forensics.sqlite")
 
 
-@pytest.mark.skip()
 def test_haxorg_forensics() -> None:
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {

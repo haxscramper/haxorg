@@ -1,6 +1,4 @@
-
 #include "git_ir.hpp"
-
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
@@ -18,11 +16,15 @@
 #include <absl/strings/str_format.h>
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
+#include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/SetSerde.hpp>
+#include <hstd/stdlib/JsonCLIParser.hpp>
 
 #include "repo_profile.hpp"
 
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+// #include <hstd/stdlib/
 
 using namespace hstd;
 
@@ -215,18 +217,15 @@ class LinePrinterLogSink : public absl::LogSink {
 int main(int argc, char** argv) {
     auto config = UPtr<walker_config>(new walker_config{});
 
-    config->cli = JsonSerde<cli_config>::from_json(json::parse(argv[1]));
+    config->cli = hstd::parse_json_argc<cli_config>(argc, argv);
+
+    hstd::log::clear_sink_backends();
 
     SPtr<LinePrinterLogSink> Sink;
     if (config->cli.out.log_file) {
-        LOG(INFO) << "Log file configuration was provided, writing to file";
-        Sink = std::make_shared<LinePrinterLogSink>(*config->cli.out.log_file);
-        absl::AddLogSink(Sink.get());
-        absl::log_internal::SetTimeZone(absl::LocalTimeZone());
-        absl::log_internal::SetInitialized();
-    } else {
-        LOG(INFO) << "No log file configured, writing to regular logging output";
+        hstd::log::push_sink(hstd::log::init_file_sink(config->cli.out.log_file.value()));
     }
+
 #ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession> perfetto_session;
     if (config->cli.out.perfetto) {
@@ -245,14 +244,17 @@ int main(int argc, char** argv) {
 
     auto heads_path = config->repo_path() / heads;
     if (!fs::is_directory(config->repo_path())) {
-        LOG(ERROR) << "Input directory '" << config->cli.repo.path
-                   << "' does not exist, aborting analysis";
+        HSLOG_ERROR(
+            "Input directory '{}' does not exist, aborting analysis",
+            config->cli.repo.path);
         return 1;
     } else if (!fs::exists(heads_path)) {
-        LOG(ERROR) << "The branch '" << config->cli.repo.branch
-                   << "' does not exist in the repository at path "
-                   << config->cli.repo.path << " the full path " << heads_path
-                   << " does not exist";
+        HSLOG_ERROR(
+            "The branch '{}' does not exist in the repository at path {} the full path "
+            "{} does not exist",
+            config->cli.repo.branch,
+            config->cli.repo.path,
+            heads_path);
         return 1;
     }
 
@@ -266,7 +268,7 @@ int main(int argc, char** argv) {
     });
 
     if (config->cli.config.verbose_consistency_checks) {
-        LOG(INFO) << std::format(
+        HSLOG_INFO(
             "Verbose consistency check was set to {}",
             config->cli.config.verbose_consistency_checks);
     }
@@ -284,10 +286,10 @@ int main(int argc, char** argv) {
 
     for_each_commit(result, state.get());
 
-    LOG(INFO) << "Finished execution, DB written successfully";
+    HSLOG_INFO("Finished execution, DB written successfully");
 
     if (config->cli.out.text_dump) {
-        LOG(INFO) << "Text dump option specified, writing debug";
+        HSLOG_INFO("Text dump option specified, writing debug");
         std::ofstream file{*config->cli.out.text_dump};
         for (auto const& [id, value] :
              state->content->multi.store<ir::FileTrack>().pairs()) {
@@ -323,7 +325,7 @@ int main(int argc, char** argv) {
 
     SQLite::Database db(db_file.native(), SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
     CreateTables(db);
-    LOG(INFO) << "Inserting data content, specified db path " << config->cli.out.db_path;
+    HSLOG_INFO("Inserting data content, specified db path '{}'", config->cli.out.db_path);
     db.exec("BEGIN");
     auto& m = state->content->multi;
     InsertFileTrackSections(db, m.store<ir::FileTrackSection>());
@@ -335,12 +337,12 @@ int main(int argc, char** argv) {
     InsertLineData(db, m.store<ir::LineData>());
     db.exec("COMMIT");
 
-    LOG(INFO) << "Completed DB write";
+    HSLOG_INFO("Completed DB write");
 
 #ifdef ORG_BUILD_WITH_PERFETTO
     if (config->cli.out.perfetto) {
         fs::path out_path{*config->cli.out.perfetto};
-        LOG(INFO) << std::format("Perfetto output {}", out_path);
+        HSLOG_INFO("Perfetto output {}", out_path);
         StopTracing(std::move(perfetto_session), out_path);
     }
 #endif
