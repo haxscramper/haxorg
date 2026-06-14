@@ -13,7 +13,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def get_threading_count() -> int:
-    return int((os.cpu_count() or 6) * 0.9)
+    return int((os.cpu_count() or 6) * 0.8)
 
 
 def get_j_cap() -> List[str]:
