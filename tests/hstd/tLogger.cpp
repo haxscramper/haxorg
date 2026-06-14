@@ -133,7 +133,7 @@ struct BothFormattableType {
 };
 
 template <>
-struct fmt::formatter<BothFormattableType> : fmt::formatter<std::string> {
+struct fmt::formatter<BothFormattableType> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(BothFormattableType const& obj, format_context& ctx) const {
         return hstd::fmt_ctx("std_both:" + std::to_string(obj.value), ctx);

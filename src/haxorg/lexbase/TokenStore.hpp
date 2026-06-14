@@ -132,14 +132,13 @@ struct fmt::formatter<org::parse::TokenGroup<K, V>> {
     hstd::fmt_iter format(
         org::parse::TokenGroup<K, V> const& p,
         fmt::format_context&                ctx) {
-        fmt::formatter<std::string> fmt;
         for (const auto& [idx, tok] : p.tokens.pairs()) {
-            fmt.format(fmt::format("{:<16}", idx), ctx);
-            fmt.format(" | ", ctx);
-            fmt.format(*tok, ctx);
-            fmt.format("\n", ctx);
+            hstd::fmt_ctx(fmt::format("{:<16}", idx), ctx);
+            hstd::fmt_ctx(" | ", ctx);
+            hstd::fmt_ctx(*tok, ctx);
+            hstd::fmt_ctx("\n", ctx);
         }
 
-        return fmt.format("", ctx);
+        return hstd::fmt_ctx("", ctx);
     }
 };

@@ -189,10 +189,9 @@ template <typename T>
 struct fmt::formatter<hstd::ext::ImmSet<T>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ext::ImmSet<T> const& p, fmt::format_context& ctx) const {
-        fmt::formatter<std::string> fmt;
-        fmt.format("{", ctx);
-        fmt.format(join(", ", p), ctx);
-        return fmt.format("}", ctx);
+        hstd::fmt_ctx("{", ctx);
+        hstd::fmt_ctx(join(", ", p), ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };
 

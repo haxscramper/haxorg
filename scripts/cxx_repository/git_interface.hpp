@@ -46,7 +46,7 @@ template <>
 struct fmt::formatter<git_oid> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(git_oid const& p, fmt::format_context& ctx) const {
-        return fmt::formatter<std::string>{}.format(oid_tostr(p), ctx);
+        return hstd::fmt_ctx(oid_tostr(p), ctx);
     }
 };
 

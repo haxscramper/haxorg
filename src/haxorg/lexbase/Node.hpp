@@ -150,8 +150,7 @@ struct fmt::formatter<org::parse::NodeId<N, K, V, M>> {
     hstd::fmt_iter format(
         org::parse::NodeId<N, K, V, M> const& p,
         fmt::format_context&                  ctx) const {
-        fmt::formatter<std::string> fmt;
-        return fmt.format(
+        return hstd::fmt_ctx(
             p.format(fmt::format("NodeId<{}>", hstd::demangle(typeid(N).name()))), ctx);
     }
 };
@@ -161,7 +160,6 @@ template <>
 struct fmt::formatter<std::monostate> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(std::monostate const& p, fmt::format_context& ctx) const {
-        fmt::formatter<std::string> fmt;
         return hstd::fmt_ctx("<std::monostate>", ctx);
     }
 };
