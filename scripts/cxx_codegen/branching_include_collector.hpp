@@ -129,19 +129,6 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         if (line != 0) { top.ProcessedLines.insert(line); }
     }
 
-    void finalizeTop() {
-        VisitFrame& top = ActiveStack.back();
-
-        unsigned selfLines = static_cast<unsigned>(top.ProcessedLines.size());
-        top.Node->set_expandedlinecountwithoutnested(selfLines);
-
-        unsigned withnested = selfLines;
-        for (int i = 0; i < top.Node->nested_size(); ++i) {
-            withnested += top.Node->nested(i).expandedlinecountwithnested();
-        }
-
-        top.Node->set_expandedlinecountwithnested(withnested);
-    }
 
     std::optional<PendingInclude> popPendingForParent(std::string const& parentPath) {
         for (auto it = PendingIncludes.begin(); it != PendingIncludes.end(); ++it) {
@@ -161,6 +148,9 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         if (spelling.isInvalid()) { return; }
 
         clang::FileID enteredFile = SM->getFileID(spelling);
+
+        auto fe = SM->getFileEntryRefForID(enteredFile);
+        if (!fe) { return; } // skip non-physical files
 
         if (!ActiveStack.empty() && ActiveStack.back().File == enteredFile) { return; }
 
@@ -195,12 +185,6 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         markLine(Loc);
     }
 
-    void exitFile() {
-        if (ActiveStack.empty()) { return; }
-
-        finalizeTop();
-        ActiveStack.pop_back();
-    }
 
     void InclusionDirective(
         clang::SourceLocation HashLoc,
@@ -315,10 +299,44 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         markLine(Loc);
     }
 
-    ~BranchingIncludeCollectorCallback() override {
+
+    bool Finalized = false;
+
+    void finalizeTop() {
+        VisitFrame& top = ActiveStack.back();
+
+        unsigned selfLines = static_cast<unsigned>(top.ProcessedLines.size());
+        top.Node->set_expandedlinecountwithoutnested(selfLines);
+
+        unsigned withnested = selfLines;
+        for (int i = 0; i < top.Node->nested_size(); ++i) {
+            withnested += top.Node->nested(i).expandedlinecountwithnested();
+        }
+
+        top.Node->set_expandedlinecountwithnested(withnested);
+    }
+
+    void exitFile() {
+        if (ActiveStack.empty()) { return; }
+
+        finalizeTop();
+        ActiveStack.pop_back();
+    }
+
+
+    void finalizeAll() {
+        if (Finalized) { return; }
         while (!ActiveStack.empty()) {
             finalizeTop();
             ActiveStack.pop_back();
         }
+        Finalized = true;
     }
+
+    void EndOfMainFile() override {
+        if (!Root) { ensureRoot(); }
+        finalizeAll();
+    }
+
+    ~BranchingIncludeCollectorCallback() override { finalizeAll(); }
 };
