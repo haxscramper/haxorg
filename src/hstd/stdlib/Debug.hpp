@@ -9,7 +9,7 @@
 
 void setMessageStream(std::ostream& stream);
 
-#define __fmt_location() std::format("{}:{} {}", __FILE__, __LINE__, __FUNCTION__)
+#define __fmt_location() fmt::format("{}:{} {}", __FILE__, __LINE__, __FUNCTION__)
 
 #define _dbg(expr)                                                                       \
     ([](auto const& it, char const* __base_function) {                                   \
@@ -31,7 +31,7 @@ void setMessageStream(std::ostream& stream);
               << std::endl;
 
 #define _dfmt_expr_impl(_1, _2, arg)                                                     \
-    +std::string{" "} + BOOST_PP_STRINGIZE(arg) + fmt(" = ⦃{}⦄", arg)
+    +std::string{" "} + BOOST_PP_STRINGIZE(arg) + ::hstd::fmt(" = ⦃{}⦄", arg)
 
 
 /// \brief Format all values to string `<expr1> = ⦃<value1>⦄ <expr2> =

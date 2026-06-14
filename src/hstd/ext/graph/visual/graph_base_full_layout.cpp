@@ -5,6 +5,7 @@
 #include <hstd/ext/graph/visual/graph_avoid.hpp>
 #include <hstd/ext/graph/visual/graph_vpsc.hpp>
 #include <hstd/ext/geometry/hstd_geometry.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 
 using namespace hstd::ext::graph;
 

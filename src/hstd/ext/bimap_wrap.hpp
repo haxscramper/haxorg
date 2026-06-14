@@ -258,25 +258,24 @@ class StableNto1Bimap
 } // namespace hstd::ext
 
 template <typename L, typename R, typename LHash, typename RHash>
-struct std::formatter<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>>
-    : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(
+struct fmt::formatter<hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(
         hstd::ext::Unordered1to1Bimap<L, R, LHash, RHash> const& p,
-        FormatContext&                                           ctx) const {
+        fmt::format_context&                                     ctx) const {
         bool first = true;
-        fmt_ctx("{", ctx);
+        hstd::fmt_ctx("{", ctx);
         for (auto const& [left, right] : p.get_map()) {
             if (first) {
                 first = false;
             } else {
-                fmt_ctx(", ", ctx);
+                hstd::fmt_ctx(", ", ctx);
             }
-            fmt_ctx(left, ctx);
-            fmt_ctx("<>", ctx);
-            fmt_ctx(right, ctx);
+            hstd::fmt_ctx(left, ctx);
+            hstd::fmt_ctx("<>", ctx);
+            hstd::fmt_ctx(right, ctx);
         }
 
-        return fmt_ctx("}", ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };

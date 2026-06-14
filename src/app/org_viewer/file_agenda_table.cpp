@@ -200,13 +200,13 @@ QVariant OrgTreeModel::data(QModelIndex const& index, int role) const {
             }
             case TableColumns::COMPLETION: {
                 auto [a, b] = node->getRecursiveCompletion();
-                return QString::fromStdString(std::format("{}/{}", a, b));
+                return QString::fromStdString(fmt::format("{}/{}", a, b));
             }
             case TableColumns::CLOCKED: {
                 int sec     = node->getClockedSeconds();
                 int hours   = sec / (60 * 60);
                 int minutes = (sec / 60) % 60;
-                return QString::fromStdString(std::format("{}:{}", hours, minutes));
+                return QString::fromStdString(fmt::format("{}:{}", hours, minutes));
             }
         }
     } else if (

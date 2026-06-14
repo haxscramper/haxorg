@@ -2,6 +2,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 
@@ -725,6 +726,7 @@ struct fuzzy_result {
     int  score;
 };
 
+// FIXME: Remove the special macro and use the regular OP_TRACER_MESSAGE macro here.
 #define LG(__msg)                                                                        \
     if (m.TraceState) {                                                                  \
         m.message(                                                                       \
@@ -747,7 +749,7 @@ fuzzy_result fuzzy_match_recursive(
     int&                recursionCount,
     int                 matchSize) {
 
-    LG(fmt("Match recursive count:{}", recursionCount));
+    LG(hstd::fmt("Match recursive count:{}", recursionCount));
 
     // Count recursions
     ++recursionCount;
@@ -770,11 +772,11 @@ fuzzy_result fuzzy_match_recursive(
     // Loop through pattern and str looking for a match
     bool first_match = true;
     while (pattern.isValid() && str.isValid()) {
-        LG(fmt("str:{} pattern:{}", str, pattern));
+        LG(hstd::fmt("str:{} pattern:{}", str, pattern));
         LOGIC_ASSERTION_CHECK(m.isEqual, "Missing item equality compare function");
         // Found match
         if (m.isEqual(pattern.first, str.first)) {
-            LG(fmt("pattern[{}] == str[{}]", pattern.first, str.first));
+            LG(hstd::fmt("pattern[{}] == str[{}]", pattern.first, str.first));
             // "Copy-on-Write" srcMatches into matches
             if (first_match) {
                 matches     = srcMatches;
@@ -797,10 +799,10 @@ fuzzy_result fuzzy_match_recursive(
                 recursionCount,
                 matchSize);
 
-            LG(
-                fmt("Recursive call result score:{} match:{}",
-                    recurse.score,
-                    recurse.has_match));
+            LG(hstd::fmt(
+                "Recursive call result score:{} match:{}",
+                recurse.score,
+                recurse.has_match));
 
             if (recurse.has_match) {
                 // Pick best recursive score
@@ -818,7 +820,7 @@ fuzzy_result fuzzy_match_recursive(
             ++pattern.first;
             LG(fmt1(matches));
         } else {
-            LG(fmt("pattern[{}] != str[{}]", pattern.first, str.first));
+            LG(hstd::fmt("pattern[{}] != str[{}]", pattern.first, str.first));
         }
         ++str.first;
     }

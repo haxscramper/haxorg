@@ -15,11 +15,12 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <typeindex>
 
 template <>
-struct std::formatter<std::any> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(std::any const& p, FormatContext& ctx) const {
+struct fmt::formatter<std::any> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(std::any const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(p.type().name(), ctx);
     }
 };
@@ -313,9 +314,9 @@ struct ReflPathItem {
 
 
 template <typename Tag>
-struct ReflPathItemFormatter : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(ReflPathItem<Tag> const& step, FormatContext& ctx) const {
+struct ReflPathItemFormatter {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(ReflPathItem<Tag> const& step, fmt::format_context& ctx) const {
         typename ReflTypeTraits<Tag>::AnyFormatterType anyFmt;
         if (step.isAnyKey()) {
             fmt_ctx(anyFmt(step.getAnyKey().key), ctx);
@@ -438,9 +439,9 @@ struct ReflPathComparator {
 };
 
 template <typename Tag>
-struct ReflPathFormatter : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(ReflPath<Tag> const& step, FormatContext& ctx) const {
+struct ReflPathFormatter {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(ReflPath<Tag> const& step, fmt::format_context& ctx) const {
         ReflPathItemFormatter<Tag> fmt{};
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { fmt_ctx(">>", ctx); }
@@ -1005,9 +1006,10 @@ inline std::size_t get_registered_field_count(std::type_index type_id) {
 
 
 template <typename Tag>
-struct std::formatter<hstd::ReflPath<Tag>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ReflPath<Tag> const& step, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ReflPath<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ReflPath<Tag> const& step, fmt::format_context& ctx)
+        const {
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { ::hstd::fmt_ctx(">>", ctx); }
             ::hstd::fmt_ctx(it.value(), ctx);
@@ -1027,9 +1029,10 @@ struct std::hash<hstd::ReflPath<Tag>> {
 };
 
 template <typename Tag>
-struct std::formatter<hstd::ReflPathItem<Tag>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ReflPathItem<Tag> const& step, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ReflPathItem<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ReflPathItem<Tag> const& step, fmt::format_context& ctx)
+        const {
         step.visit([&](auto const& it) { ::hstd::fmt_ctx(it, ctx); });
         return ::hstd::fmt_ctx("", ctx);
     }

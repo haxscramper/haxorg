@@ -54,7 +54,7 @@ std::string format_function_definition(nanobind::callable const& func) {
     auto file = std::string{nanobind::str(obj.attr("co_filename")).c_str()};
     auto line = nanobind::cast<int>(obj.attr("co_firstlineno"));
 
-    return std::format(
+    return fmt::format(
         "{}:{}@{}", name, line, std::filesystem::path(file).stem().string());
 }
 
@@ -65,7 +65,7 @@ std::string ExporterPython::describe(PyFunc const& func) const {
 
 std::string ExporterPython::describe_use(std::string const& msg, PyFunc const& usage)
     const {
-    return std::format("{} {}", msg, describe(usage));
+    return fmt::format("{} {}", msg, describe(usage));
 }
 
 void ExporterPython::enableBufferTrace() {

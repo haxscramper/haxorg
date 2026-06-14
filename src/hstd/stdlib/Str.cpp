@@ -1,5 +1,6 @@
 #include "Str.hpp"
 #include <hstd/stdlib/strutils.hpp>
+#include <sstream>
 
 using namespace hstd;
 

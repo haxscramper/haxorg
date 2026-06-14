@@ -78,10 +78,10 @@ struct ExporterVisual : public Exporter<ExporterVisual, int> {
         auto __scope = trace_scope(trace(VK::VisitField).with_field(name));
         for (const auto& [idx, sub] : enumerate(org)) {
             if (LeafKinds.contains(sub->getKind())) {
-                ImGui::Text("%s", fmt("[{}]", idx).c_str());
+                ImGui::Text("%s", hstd::fmt("[{}]", idx).c_str());
                 ImGui::SameLine();
                 visit(i, sub);
-            } else if (ImOrgTree(fmt("[{}] {}", idx, sub->getKind()))) {
+            } else if (ImOrgTree(hstd::fmt("[{}] {}", idx, sub->getKind()))) {
                 visit(i, sub);
                 ImGui::TreePop();
             }

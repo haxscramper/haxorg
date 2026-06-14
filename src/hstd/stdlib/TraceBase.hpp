@@ -52,10 +52,11 @@ struct [[refl]] OperationsTracer {
 
     template <typename... _Args>
     [[nodiscard]] inline std::string fmt_message(
-        std::format_string<_Args...> __fmt,
+        fmt::format_string<_Args...> __fmt,
         _Args&&... __args) const {
         if (TraceState) {
-            return std::vformat(__fmt.get(), std::make_format_args(__args...));
+            auto store = fmt::make_format_args(__args...);
+            return fmt::vformat(__fmt.get(), fmt::format_args(store));
         } else {
             return "";
         }

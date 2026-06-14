@@ -108,13 +108,13 @@ void OrgParser::report(Report const& in) {
 
         auto printSourceLoc = [&]() {
             if (in.function) { os << " " << in.function; }
-            os << fmt(":{}", in.line);
+            os << hstd::fmt(":{}", in.line);
         };
 
         auto printNode = [&]() {
             auto id = in.node.value();
             if (in.node && !in.node.value().isNil()) {
-                os << std::format(
+                os << fmt::format(
                     "{} {} ID:{} @{}",
                     (in.kind == ReportKind::StartNode ? "+" : "-"),
                     group->at(id).kind,
@@ -151,14 +151,14 @@ void OrgParser::report(Report const& in) {
 
             case ReportKind::Print: {
                 if (in.msg) { os << "  " << *in.msg; }
-                os << std::format(" @{}", in.line);
+                os << fmt::format(" @{}", in.line);
                 printTokens();
                 break;
             }
 
             case ReportKind::AddToken: {
                 auto id = in.node.value();
-                os << std::format(
+                os << fmt::format(
                     "  add {} ID:{} @{} with '{}'",
                     group->at(id).kind,
                     id.getUnmasked(),
@@ -174,7 +174,7 @@ void OrgParser::report(Report const& in) {
                 printNode();
                 auto id = in.node.value();
                 if (in.kind == ReportKind::EndNode) {
-                    os << " ext=" << std::format("{}", group->at(id).getExtent());
+                    os << " ext=" << fmt::format("{}", group->at(id).getExtent());
                 }
                 if (in.msg && !in.msg->empty()) { os << " " << *in.msg; }
                 break;
@@ -182,7 +182,7 @@ void OrgParser::report(Report const& in) {
 
             case ReportKind::EnterParse:
             case ReportKind::LeaveParse: {
-                os << std::format(
+                os << fmt::format(
                     "{} [{}] ",
                     in.kind == ReportKind::EnterParse ? ">" : "<",
                     treeDepth())

@@ -113,7 +113,7 @@ int64_t UserTime::toUnixTimestamp() const {
 
     if (seconds < unix_min || unix_max < seconds) {
         throw std::out_of_range(
-            std::format("Time {} is outside unix timestamp range", seconds));
+            fmt::format("Time {} is outside unix timestamp range", seconds));
     }
 
     return seconds;
@@ -134,19 +134,19 @@ std::size_t std::hash<UserTime>::operator()(UserTime const& it) const noexcept {
     return result;
 }
 
-template <typename FormatContext>
-FormatContext::iterator std::formatter<cctz::time_zone>::format(
+
+hstd::fmt_iter fmt::formatter<cctz::time_zone>::format(
     cctz::time_zone const& p,
-    FormatContext&         ctx) const {
+    fmt::format_context&   ctx) const {
     return fmt_ctx(p.name(), ctx);
 }
 
-template <typename FormatContext>
-FormatContext::iterator std::formatter<cctz::civil_second>::format(
+
+hstd::fmt_iter fmt::formatter<cctz::civil_second>::format(
     cctz::civil_second const& p,
-    FormatContext&            ctx) const {
+    fmt::format_context&      ctx) const {
     return hstd::fmt_ctx(
-        std::format(
+        fmt::format(
             "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
             p.year(),
             p.month(),
@@ -156,11 +156,3 @@ FormatContext::iterator std::formatter<cctz::civil_second>::format(
             p.second()),
         ctx);
 }
-
-template std::format_context::iterator std::formatter<cctz::civil_second>::format(
-    cctz::civil_second const&,
-    std::format_context&) const;
-
-template std::format_context::iterator std::formatter<cctz::time_zone, char>::format(
-    cctz::time_zone const&,
-    std::format_context&) const;

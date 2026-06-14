@@ -333,22 +333,22 @@ struct ImmMapApi : ImmOrgApiTestBase {
                    | hstd::rv::transform(std::bind_back(&testParseString, std::nullopt))
                    | hstd::rs::to<Vec>();
         for (auto const& [idx, node] : hstd::enumerate(nodes)) {
-            writeTreeRepr(node, getDebugFile(fmt("repr_{}.yaml", idx)));
+            writeTreeRepr(node, getDebugFile(hstd::fmt("repr_{}.yaml", idx)));
         }
 
         init_with(nodes);
         for (auto const& [idx, adapter] : hstd::enumerate(getRootAdapters())) {
-            writeTreeRepr(adapter, getDebugFile(fmt("repr_{}.txt", idx)));
+            writeTreeRepr(adapter, getDebugFile(hstd::fmt("repr_{}.txt", idx)));
             writeTreeRepr(
                 adapter,
-                getDebugFile(fmt("repr_{}_verbose.txt", idx)),
+                getDebugFile(hstd::fmt("repr_{}_verbose.txt", idx)),
                 imm::ImmAdapter::TreeReprConf{
                     .withReflFields = true,
                     .withAuxFields  = true,
                 });
 
             writeFile(
-                getDebugFile(fmt("repr_{}_tracking.txt", idx)),
+                getDebugFile(hstd::fmt("repr_{}_tracking.txt", idx)),
                 getVersion().getContext()->currentTrack->toString().toString(false));
         }
     }

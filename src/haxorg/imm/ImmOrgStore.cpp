@@ -18,6 +18,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
 
 using namespace org;
 using namespace org::imm;
@@ -70,14 +71,14 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
     auto ft = fmt1(target);
     auto fr = fmt1(replaced);
     auto w  = std::max(ft.size(), fr.size());
-    AST_EDIT_MSG(fmt("| Original ID:{:<{}} {}", ft, w, target.value<T>()));
-    AST_EDIT_MSG(fmt("| Replaced ID:{:<{}} {}", fr, w, value));
+    AST_EDIT_MSG(hstd::fmt("| Original ID:{:<{}} {}", ft, w, target.value<T>()));
+    AST_EDIT_MSG(hstd::fmt("| Replaced ID:{:<{}} {}", fr, w, value));
 
     ctx.updateTracking(target.id, false);
     ctx.updateTracking(result_node, true);
 
     auto dbg = [&](std::string section) {
-        AST_EDIT_MSG(fmt("{}", section));
+        AST_EDIT_MSG(hstd::fmt("{}", section));
         auto        __scope = ctx.debug()->begin_scope();
         auto const& imm     = ctx.ctx.lock()->currentTrack->parents;
         auto const& mut     = ctx.transientTrack.parents;
@@ -87,7 +88,8 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
         for (auto const& [key, value] : mut) { keys.incl(key); }
         for (auto const& key : sorted(keys | rs::to<Vec>())) {
             AST_EDIT_MSG(
-                fmt("key {:<24} imm {:<32} mut {:<32}",
+                hstd::fmt(
+                    "key {:<24} imm {:<32} mut {:<32}",
                     fmt1(key),
                     imm.find(key) == nullptr ? "" : fmt1(imm.at(key)),
                     mut.find(key) == nullptr ? "" : fmt1(mut.at(key))));
@@ -106,7 +108,8 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
 
     if (replaced == target.uniq()) {
         AST_EDIT_MSG(
-            fmt("Original and replaced have the same ID -- node value did "
+            hstd::fmt(
+                "Original and replaced have the same ID -- node value did "
                 "not change, no replacement action needed"));
         return std::nullopt;
     } else {
@@ -182,7 +185,8 @@ Opt<ImmAstReplace> setNewSubnodes(
                 auto fail_field = [&](int         line     = __builtin_LINE(),
                                       char const* function = __builtin_FUNCTION()) {
                     throw logic_unreachable_error::init(
-                        fmt("Field path {} refers to a non-ID field "
+                        hstd::fmt(
+                            "Field path {} refers to a non-ID field "
                             "and "
                             "cannot assigned",
                             field),
@@ -293,7 +297,7 @@ ImmAdapter getUpdateTarget(
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
     Opt<ImmUniqId> edit = replace.map.get(node.uniq());
-    AST_EDIT_MSG(fmt("Node {} direct edit:{}", node.id, edit), "aux");
+    AST_EDIT_MSG(hstd::fmt("Node {} direct edit:{}", node.id, edit), "aux");
 
     // If there were no modifications to the original node, use its
     // direct subnodes. Otherwise, take a newer version of the node
@@ -308,10 +312,10 @@ UnorderedSet<ImmUniqId> getEditParents(
     UnorderedSet<ImmUniqId> editParents;
 
     for (auto const& act : replace.allReplacements()) {
-        AST_EDIT_MSG(fmt("Parent chain for", act.original));
+        AST_EDIT_MSG(hstd::fmt("Parent chain for", act.original));
         for (auto const& parent :
              ctx->adapt(act.original.value()).getParentChain(false)) {
-            AST_EDIT_MSG(fmt("> {}", parent.uniq()));
+            AST_EDIT_MSG(hstd::fmt("> {}", parent.uniq()));
             editParents.incl(parent.uniq());
         }
     }
@@ -320,7 +324,7 @@ UnorderedSet<ImmUniqId> getEditParents(
     if (AST_EDIT_TRACE()) {
         auto __scope = ctx.debug()->begin_scope();
         for (auto const& key : replace.allReplacements()) {
-            AST_EDIT_MSG(fmt("[{}] -> {}", key.original, key.replaced));
+            AST_EDIT_MSG(hstd::fmt("[{}] -> {}", key.original, key.replaced));
         }
     }
 
@@ -328,7 +332,7 @@ UnorderedSet<ImmUniqId> getEditParents(
     if (AST_EDIT_TRACE()) {
         auto __scope = ctx.debug()->begin_scope();
         for (auto const& key : sorted(replace.nodeReplaceMap.keys())) {
-            AST_EDIT_MSG(fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
+            AST_EDIT_MSG(hstd::fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
         }
     }
 
@@ -336,7 +340,7 @@ UnorderedSet<ImmUniqId> getEditParents(
     if (AST_EDIT_TRACE()) {
         auto __scope = ctx.debug()->begin_scope();
         for (auto const& key : sorted(editParents | rs::to<Vec>())) {
-            AST_EDIT_MSG(fmt("[{}]", key));
+            AST_EDIT_MSG(hstd::fmt("[{}]", key));
         }
     }
 
@@ -396,8 +400,11 @@ ImmId recurseUpdateSubnodes(
             | rv::transform([](org::imm::ImmAdapter const& it) -> ImmId { return it.id; })
             | rs::to<Vec>();
         if (flatUpdatedSubnodes == targetSubnodes) {
-            AST_EDIT_MSG(fmt(
-                "Updated subnodes for {} are the same as target {}", node, updateTarget));
+            AST_EDIT_MSG(
+                hstd::fmt(
+                    "Updated subnodes for {} are the same as target {}",
+                    node,
+                    updateTarget));
 
             result->replaced.set(
                 ImmAstReplace{
@@ -408,7 +415,8 @@ ImmId recurseUpdateSubnodes(
             return updateTarget.id;
         } else {
             AST_EDIT_MSG(
-                fmt("Updated subnodes changed: updated:{} != "
+                hstd::fmt(
+                    "Updated subnodes changed: updated:{} != "
                     "target({}):{}",
                     updatedSubnodes,
                     updateTarget,
@@ -425,11 +433,11 @@ ImmId recurseUpdateSubnodes(
         // was updated, return a new version, otherwise return the same
         // node.
         if (auto edit = replace.map.get(node.uniq()); edit) {
-            AST_EDIT_MSG(fmt("Replace {} -> {}", node.uniq(), *edit));
+            AST_EDIT_MSG(hstd::fmt("Replace {} -> {}", node.uniq(), *edit));
             result->replaced.incl({node.uniq(), *edit});
             return edit->id;
         } else {
-            AST_EDIT_MSG(fmt("No changes in {}", node), "aux");
+            AST_EDIT_MSG(hstd::fmt("No changes in {}", node), "aux");
             return node.id;
         }
     }
@@ -445,9 +453,9 @@ ImmAstReplaceEpoch::Ptr ImmAstStore::cascadeUpdate(
     UnorderedSet<ImmUniqId> editParents = getEditParents(replace, ctx);
 
     ImmAstReplaceEpoch::Ptr result = ImmAstReplaceEpoch::shared();
-    AST_EDIT_MSG(fmt("Main root {}", root));
+    AST_EDIT_MSG(hstd::fmt("Main root {}", root));
     result->root = recurseUpdateSubnodes(root, replace, ctx, editParents, result);
-    AST_EDIT_MSG(fmt("Replace {}", result->replaced));
+    AST_EDIT_MSG(hstd::fmt("Replace {}", result->replaced));
     return result;
 }
 
@@ -548,7 +556,7 @@ void ImmAstKindStore<T>::format(ColStream& os, std::string const& linePrefix) co
     for (auto const& id : ids) {
         if (!isFirst) { os << "\n"; }
         isFirst = false;
-        os << fmt("{}[{}]: {}", linePrefix, id.getReadableId(), values.at(id));
+        os << hstd::fmt("{}[{}]: {}", linePrefix, id.getReadableId(), values.at(id));
     }
 }
 
@@ -556,7 +564,7 @@ void ImmAstKindStore<T>::format(ColStream& os, std::string const& linePrefix) co
 void ImmAstStore::format(ColStream& os, std::string const& prefix) const {
 #define _kind(__Kind)                                                                    \
     if (!store##__Kind.empty()) {                                                        \
-        os << fmt(                                                                       \
+        os << hstd::fmt(                                                                 \
             "\n{0}[{1:-<16}] {2:016X}\n", prefix, #__Kind, u64(OrgSemKind::__Kind));     \
         store##__Kind.format(os, prefix + "  ");                                         \
     }
@@ -566,7 +574,7 @@ void ImmAstStore::format(ColStream& os, std::string const& prefix) const {
 }
 
 void ImmAstContext::format(ColStream& os, std::string const& prefix) const {
-    os << fmt("{}ImmAstStore\n", prefix);
+    os << hstd::fmt("{}ImmAstStore\n", prefix);
     store->format(os, prefix + "  ");
 }
 
@@ -875,7 +883,8 @@ ImmId_t imm::ImmAstKindStore<ImmType>::add(SemId_t data, ImmAstEditContext& ctx)
     using SemType = imm_to_sem_map<ImmType>::sem_type;
     if (!data->is(SemType::staticKind)) {
         throw store_error::init(
-            fmt("Cannot create store value of kind {} from node of kind {}",
+            hstd::fmt(
+                "Cannot create store value of kind {} from node of kind {}",
                 ImmType::staticKind,
                 data->getKind()));
     }

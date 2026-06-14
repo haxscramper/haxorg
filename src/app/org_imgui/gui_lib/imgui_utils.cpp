@@ -119,21 +119,22 @@ SPtr<StbFontMetrics> StbFontMetrics::FromPath(
     result->fontSize = fontSize;
     std::ifstream fontFile{fontPath, std::ios::binary | std::ios::ate};
     if (!fontFile.is_open()) {
-        throw std::runtime_error(fmt("Failed to open font file {}", fontPath));
+        throw std::runtime_error(hstd::fmt("Failed to open font file {}", fontPath));
     }
 
     std::streamsize size = fontFile.tellg();
     fontFile.seekg(0, std::ios::beg);
     result->buffer.resize(size);
     if (!fontFile.read((char*)result->buffer.data(), size)) {
-        throw std::runtime_error(fmt("Failed to read font file {}", fontPath));
+        throw std::runtime_error(hstd::fmt("Failed to read font file {}", fontPath));
     }
 
     if (!stbtt_InitFont(
             &result->font,
             result->buffer.data(),
             stbtt_GetFontOffsetForIndex(result->buffer.data(), 0))) {
-        throw std::runtime_error(fmt("Failed to initialize font from file {}", fontPath));
+        throw std::runtime_error(
+            hstd::fmt("Failed to initialize font from file {}", fontPath));
     }
 
     result->scale = stbtt_ScaleForPixelHeight(&result->font, fontSize);
@@ -260,7 +261,7 @@ bool ImRenderTraceRecord::ImRenderExpr(
     if (TraceState) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
-        rec.im_id       = fmt("Evaluated to {}", expr);
+        rec.im_id       = hstd::fmt("Evaluated to {}", expr);
         PushUnitRecord(rec);
         auto tmp = rec.to_org_log_record();
         tmp.source_scope_add("expr");
@@ -286,7 +287,7 @@ void ImRenderTraceRecord::ImRenderUnit(
 void ImRenderTraceRecord::WriteTrace(OperationsTracer& trace) {
     for (auto const& [idx, s] : enumerate(stack)) {
         auto os = trace.getStream();
-        os << fmt("[{}] -- ", idx);
+        os << hstd::fmt("[{}] -- ", idx);
         trace.endStream(os);
         s.WriteRecord(trace, idx + 1);
     }
@@ -296,16 +297,16 @@ void ImRenderTraceRecord::WriteRecord(OperationsTracer& trace, int level) const 
     auto os = trace.getStream();
 
     os.indent(level * 2);
-    os << fmt(
+    os << hstd::fmt(
         "{} at {}:{} to draw {}",
         im_function.value_or("<>"),
         file ? fs::path{file}.filename() : "",
         line,
         escape_for_write(im_id.value_or("?")));
 
-    if (cursor_screenpos) { os << fmt(" screen {}", cursor_screenpos.value()); }
+    if (cursor_screenpos) { os << hstd::fmt(" screen {}", cursor_screenpos.value()); }
 
-    if (cursor_winpos) { os << fmt(" win {}", cursor_winpos.value()); }
+    if (cursor_winpos) { os << hstd::fmt(" win {}", cursor_winpos.value()); }
 
     trace.endStream(os);
 

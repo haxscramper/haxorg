@@ -503,5 +503,5 @@ bool isMmapIgnored(org::imm::ImmAdapter const& n);
 
 
 template <>
-struct std::formatter<org::graph::MapGraph*>
+struct fmt::formatter<org::graph::MapGraph*>
     : hstd::std_format_ptr_as_value<org::graph::MapGraph> {};

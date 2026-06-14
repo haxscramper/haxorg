@@ -26,14 +26,14 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
 
             if (node_ids.contains(node.id)) {
                 throw hstd::runtime_error::init(
-                    std::format("Duplicate node id: '{}'", node.id));
+                    fmt::format("Duplicate node id: '{}'", node.id));
             }
             node_ids.insert(node.id);
 
             for (const auto& port : node.ports) {
                 if (port_ids.contains(port.id)) {
                     throw hstd::runtime_error::init(
-                        std::format("Duplicate port id: '{}'", node.id));
+                        fmt::format("Duplicate port id: '{}'", node.id));
                 }
                 port_ids.insert(port.id);
             }
@@ -46,7 +46,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
     for (const auto& port : graph.ports) {
         if (port_ids.contains(port.id)) {
             throw hstd::runtime_error::init(
-                std::format("Duplicate port id: '{}'", port.id));
+                fmt::format("Duplicate port id: '{}'", port.id));
         }
         port_ids.insert(port.id);
     }
@@ -59,14 +59,14 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                 if (edge.id.empty()) { throw hstd::runtime_error::init("Empty edge ID"); }
                 if (edge_ids.contains(edge.id)) {
                     throw hstd::runtime_error::init(
-                        std::format("Duplicate edge id: '{}'", edge.id));
+                        fmt::format("Duplicate edge id: '{}'", edge.id));
                 }
                 edge_ids.insert(edge.id);
 
                 if (edge.source && !node_ids.contains(*edge.source)
                     && !port_ids.contains(*edge.source)) {
                     throw hstd::runtime_error::init(
-                        std::format(
+                        fmt::format(
                             "Edge '{}' references unknown source: '{}'",
                             edge.id,
                             *edge.source));
@@ -75,7 +75,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                 if (edge.target && !node_ids.contains(*edge.target)
                     && !port_ids.contains(*edge.target)) {
                     throw hstd::runtime_error::init(
-                        std::format(
+                        fmt::format(
                             "Edge '{}' references unknown target: '{}'",
                             edge.id,
                             *edge.target));
@@ -83,7 +83,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
 
                 if (edge.sourcePort && !port_ids.contains(*edge.sourcePort)) {
                     throw hstd::runtime_error::init(
-                        std::format(
+                        fmt::format(
                             "Edge '{}' references unknown source port: "
                             "'{}'",
                             edge.id,
@@ -92,7 +92,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
 
                 if (edge.targetPort && !port_ids.contains(*edge.targetPort)) {
                     throw hstd::runtime_error::init(
-                        std::format(
+                        fmt::format(
                             "Edge '{}' references unknown target port: "
                             "'{}'",
                             edge.id,
@@ -102,7 +102,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                 for (const auto& source : edge.sources) {
                     if (!node_ids.contains(source) && !port_ids.contains(source)) {
                         throw hstd::runtime_error::init(
-                            std::format(
+                            fmt::format(
                                 "Edge '{}' references unknown source: "
                                 "'{}'",
                                 edge.id,
@@ -113,7 +113,7 @@ void elk::validate(elk::GraphElkLayoutData const& graph) {
                 for (const auto& target : edge.targets) {
                     if (!node_ids.contains(target) && !port_ids.contains(target)) {
                         throw hstd::runtime_error::init(
-                            std::format(
+                            fmt::format(
                                 "Edge '{}' references unknown target: "
                                 "'{}'",
                                 edge.id,

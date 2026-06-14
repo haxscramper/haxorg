@@ -116,14 +116,16 @@ typename NodeGroup<N, K, V, M>::Id NodeGroup<N, K, V, M>::subnode(Id node, int i
         }
 
         throw hstd::range_error::init(
-            fmt("Could not get subnode with index {} for node with id {} "
+            hstd::fmt(
+                "Could not get subnode with index {} for node with id {} "
                 "-- it contains only {} items",
                 index,
                 node.getUnmasked(),
                 i));
     } else {
         throw hstd::range_error::init(
-            fmt("Node {} of kind {} does not have subnode range", node, at(node).kind));
+            hstd::fmt(
+                "Node {} of kind {} does not have subnode range", node, at(node).kind));
     }
 }
 
@@ -157,7 +159,7 @@ void NodeGroup<N, K, V, M>::treeRepr(
     }
 
     int const startPosition = os.position;
-    os << repeat("  ", level) << std::format("{}", at(node).kind);
+    os << repeat("  ", level) << fmt::format("{}", at(node).kind);
 
     if (conf.customWrite) {
         hstd::ColStream tmp;
@@ -168,12 +170,14 @@ void NodeGroup<N, K, V, M>::treeRepr(
         os.write_indented_after_first(split, os.position - startPosition);
     }
 
-    if (conf.withSubnodeIdx) { os << os.cyan() << fmt("[{}]", subnodeIdx) << os.end(); }
+    if (conf.withSubnodeIdx) {
+        os << os.cyan() << hstd::fmt("[{}]", subnodeIdx) << os.end();
+    }
 
-    if (conf.withTreeMask) { os << fmt(" MASK:{}", node.getMask()); }
+    if (conf.withTreeMask) { os << hstd::fmt(" MASK:{}", node.getMask()); }
 
     if (conf.withTreeId) {
-        os << " " << os.blue() << fmt("ID:{}", node.getUnmasked()) << os.end();
+        os << " " << os.blue() << hstd::fmt("ID:{}", node.getUnmasked()) << os.end();
     }
 
     if (at(node).isTerminal()) {
@@ -186,7 +190,7 @@ void NodeGroup<N, K, V, M>::treeRepr(
                << fmt1(at(tok).value) << os.end();
         }
     } else {
-        if (conf.withExt) { os << fmt(" EXT:{}", at(node).getExtent()); }
+        if (conf.withExt) { os << hstd::fmt(" EXT:{}", at(node).getExtent()); }
 
         auto [begin, end] = subnodesOf(node).value();
         int  idx          = 0;

@@ -5,9 +5,9 @@
 
 
 template <>
-struct std::formatter<org::parse::SourceLoc> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(org::parse::SourceLoc const& p, FormatContext& ctx)
+struct fmt::formatter<org::parse::SourceLoc> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(org::parse::SourceLoc const& p, fmt::format_context& ctx)
         const {
         hstd::fmt_ctx(p.line, ctx);
         hstd::fmt_ctx(":", ctx);

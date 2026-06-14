@@ -21,7 +21,7 @@ extern TestParameters testParameters;
 // you can possible have. The shit doesn't work reliably, you need to do
 // some fucking magic with namespaces and whatever the fuck else, it does
 // not work again, and with functions you need to specify the concrete type
-// for every type. If this was a structure I could've used `std::format`
+// for every type. If this was a structure I could've used `fmt::format`
 // with some form of concept here, if the library was actually written with
 // this in mind.
 //

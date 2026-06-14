@@ -225,7 +225,7 @@ inline PredicateResult not_has_substring(hstd::Str const& lhs, hstd::Str const& 
         res.ok = true;
     } else {
         res.ok          = false;
-        res.explanation = fmt(
+        res.explanation = hstd::fmt(
             "Found substring starting {} ({} ...)",
             idx,
             lhs.substr(idx, std::clamp<int>(idx + 20, lhs.length(), idx + 20)));

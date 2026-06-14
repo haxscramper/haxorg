@@ -153,10 +153,10 @@ hstd::Vec<EdgeID> IGraph::trackSubVertexRelation(
     VertexID const&         parent,
     VertexID const&         sub) {
     if (!vertexIDs.contains(parent)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "parent ", parent));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "sub ", sub));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "sub ", sub));
     }
 
     hstd::Vec<EdgeID> result;
@@ -200,7 +200,7 @@ hstd::ext::graph::PortCollectionID hstd::ext::graph::IGraph::getPortCollectionID
 
 void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
     if (vertexIDs.contains(id)) {
-        throw graph_error::init(std::format("Vertex {} already registered", id));
+        throw graph_error::init(fmt::format("Vertex {} already registered", id));
     }
     vertexIDs.insert(id);
     stableIdMap.insert_unqiue(getVertex(id)->getStableId(), id);
@@ -211,7 +211,7 @@ void hstd::ext::graph::IGraph::trackVertex(VertexID const& id) {
 hstd::UnorderedMap<EdgeCollectionID, IEdgeCollection::DependantDeletion> hstd::ext::
     graph::IGraph::untrackVertex(VertexID const& id) {
     if (!vertexIDs.contains(id)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "", id));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "", id));
     }
 
     hstd::UnorderedMap<EdgeCollectionID, IEdgeProvider::DependantDeletion> result;
@@ -255,10 +255,10 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
 }
 
 namespace {
-auto format_collection = hstd::rv::transform([](auto const& pair) -> std::string {
-                             return pair.second->getStableID();
-                         })
-                       | hstd::rs::to<hstd::Vec>();
+auto format_collection //
+    = hstd::rv::transform(
+          [](auto const& pair) -> std::string { return pair.second->getStableID(); })
+    | hstd::rs::to<hstd::Vec>();
 } // namespace
 
 

@@ -125,7 +125,7 @@ TEST(TestIntegralSetOperations, ValueDomainSanityChecks) {
     for (unsigned char uc = 0;; ++uc) {
         char c = static_cast<char>(uc);
         EXPECT_EQ(D::ord(c), count)
-            << std::format("'{}' ({:B} {:B}) != '{}'", c, c, uc, count);
+            << fmt::format("'{}' ({:B} {:B}) != '{}'", c, c, uc, count);
         ++count;
         if (uc == 255) { break; }
     }

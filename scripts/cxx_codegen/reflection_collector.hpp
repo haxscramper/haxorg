@@ -81,7 +81,7 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
         std::optional<clang::SourceLocation> const& Loc      = std::nullopt,
         int                                         line     = __builtin_LINE(),
         char const*                                 function = __builtin_FUNCTION()) {
-        std::string message = std::format("from code {}:{}", function, line);
+        std::string message = fmt::format("from code {}:{}", function, line);
         auto&       D       = Ctx->getDiagnostics();
         if (Loc) {
             return D.Report(*Loc, D.getCustomDiagID(L, FormatString)) << message;

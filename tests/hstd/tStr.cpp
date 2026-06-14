@@ -3,6 +3,7 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/ColTextHShow.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 #include "../common.hpp"
 

@@ -908,7 +908,7 @@ BinaryFileDB getSymbolsInBinary(std::string const& path) {
     if (!binaryOrErr) {
         auto errorMsg = llvm::toString(binaryOrErr.takeError());
         throw hstd::runtime_error::init(
-            std::format("Binary loading error: {}", errorMsg));
+            fmt::format("Binary loading error: {}", errorMsg));
     }
 
     llvm::object::OwningBinary<llvm::object::Binary> binary = std::move(*binaryOrErr);
@@ -978,7 +978,7 @@ namespace {
 NO_COVERAGE std::string SqlInsert(
     std::string const&              Table,
     std::vector<std::string> const& Columns) {
-    std::string result = std::format("INSERT INTO {} (", Table);
+    std::string result = fmt::format("INSERT INTO {} (", Table);
     for (auto it : llvm::enumerate(Columns)) {
         if (it.index() != 0) { result += ", "; }
         result += it.value();
@@ -1143,7 +1143,7 @@ NO_COVERAGE void run_binary_symbols_collection(ReflectionCLI const& cli) {
     __perf_trace("main", "Process binary symbols");
     if (cli.output.empty()) {
         throw std::invalid_argument(
-            std::format("Missing output path for reflection run"));
+            fmt::format("Missing output path for reflection run"));
     }
 
     auto db = getSymbolsInBinary(cli.input.at(0));

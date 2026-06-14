@@ -186,10 +186,9 @@ HSlice<A, B> slice(A const& first, B const& last) {
 
 
 template <typename A, typename B>
-struct std::formatter<hstd::HSlice<A, B>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(hstd::HSlice<A, B> const& p, FormatContext& ctx)
-        const {
+struct fmt::formatter<hstd::HSlice<A, B>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(hstd::HSlice<A, B> const& p, fmt::format_context& ctx) const {
         ::hstd::fmt_ctx("[", ctx);
         ::hstd::fmt_ctx(p.first, ctx);
         ::hstd::fmt_ctx("..", ctx);
@@ -199,9 +198,9 @@ struct std::formatter<hstd::HSlice<A, B>> : std::formatter<std::string> {
 };
 
 template <typename T>
-struct std::formatter<hstd::Slice<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(hstd::Slice<T> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::Slice<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(hstd::Slice<T> const& p, fmt::format_context& ctx) const {
         ::hstd::fmt_ctx("[", ctx);
         ::hstd::fmt_ctx(p.first, ctx);
         ::hstd::fmt_ctx("..", ctx);
@@ -249,7 +248,7 @@ Pair<int, int> getSpan(
     if (checkRange
         && !((0 <= startPos && startPos < size) && (0 <= endPos && endPos < size))) {
         throw hstd::range_error::init(
-            std::format(
+            fmt::format(
                 "Container index is out of range: real span range is "
                 "{}..{} "
                 "computed from {}, but full extent length is only {}",

@@ -618,49 +618,41 @@ struct Path {
 } // namespace hstd::ext::geometry
 
 template <>
-struct std::formatter<hstd::ext::geometry::Path> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::geometry::Path const& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(hstd::fmt("Path(commands={})", p.commands), ctx);
-    }
+struct fmt::formatter<hstd::ext::geometry::Path> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ext::geometry::Path const& p, fmt::format_context& ctx)
+        const;
 };
 
 
 template <>
-struct std::formatter<hstd::ext::geometry::Point> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::geometry::Point const& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(
-            hstd::fmt(
-                "Point({}, {})", hstd::format_number(p.x()), hstd::format_number(p.y())),
-            ctx);
-    }
+struct fmt::formatter<hstd::ext::geometry::Point> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ext::geometry::Point const& p, fmt::format_context& ctx)
+        const;
 };
 
 template <>
-struct std::formatter<hstd::ext::geometry::Size> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::geometry::Size const& p, FormatContext& ctx) const {
-        return hstd::fmt_ctx(
-            hstd::fmt("Size(width={}, height={})", p.width(), p.height()), ctx);
-    }
+struct fmt::formatter<hstd::ext::geometry::Size> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ext::geometry::Size const& p, fmt::format_context& ctx)
+        const;
 };
 
 
 template <>
-struct std::formatter<hstd::ext::geometry::Rect> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::geometry::Rect const& b, FormatContext& ctx) const {
-        return hstd::fmt_ctx(
-            hstd::fmt(
-                "Rect({}, {}, {})",
-                b.min_corner(),
-                hstd::format_number(b.width()),
-                hstd::format_number(b.height())),
-            ctx);
-    }
+struct fmt::formatter<hstd::ext::geometry::Rect> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ext::geometry::Rect const& b, fmt::format_context& ctx)
+        const;
 };
 
+template <>
+struct fmt::formatter<hstd::ext::geometry::Polygon> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ext::geometry::Polygon const& b, fmt::format_context& ctx)
+        const;
+};
 
 namespace hstd {
 template <>

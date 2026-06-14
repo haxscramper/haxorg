@@ -28,6 +28,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 
 namespace {
@@ -242,7 +243,7 @@ Str get_text(
         return res;
     } else {
         throw convert_logic_error::init(
-            fmt("{} {} {}", function, line, a.treeRepr(false)));
+            hstd::fmt("{} {} {}", function, line, a.treeRepr(false)));
     }
 }
 
@@ -369,15 +370,17 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     auto node_after = [&](Str const&    word,
                           SemSet const& target) -> Opt<sem::SemId<sem::Org>> {
         auto __trace = trace(a, "node_after");
-        print(fmt("Searching for '{}' after '{}' in {}", target, word, par0->subnodes));
+        print(
+            hstd::fmt(
+                "Searching for '{}' after '{}' in {}", target, word, par0->subnodes));
         for (int i = 0; i < par0.size(); ++i) {
             if (auto w = par0.at(i)->dyn_cast<sem::Leaf>();
                 w != nullptr && normalize(w->text) == word) {
-                print(fmt("[{}] = {}({})", i, w->getKind(), w->text));
+                print(hstd::fmt("[{}] = {}({})", i, w->getKind(), w->text));
                 auto offset = i + 1;
                 while (offset < par0.size()) {
                     auto t = par0.at(offset);
-                    print(fmt("[{}] = {}", offset, t->getKind()));
+                    print(hstd::fmt("[{}] = {}", offset, t->getKind()));
                     if ((SemSet{osk::Word} - target).contains(t->getKind())) {
                         goto found_search_limit;
                     } else if (target.contains(t->getKind())) {
@@ -499,7 +502,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
 
         } else if (words.has(0) && words.at(0) == "priority") {
             auto __trace = trace(a, "priority");
-            print(fmt("words {}", words));
+            print(hstd::fmt("words {}", words));
             Vec<SemId<Time>>     times      = filter_subnodes<Time>(par0, limit);
             Vec<SemId<BigIdent>> priorities = filter_subnodes<BigIdent>(par0, limit);
             auto                 priority   = Log::Priority{};
@@ -527,7 +530,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
                 priority.action = Log::Priority::Action::Removed;
             } else {
                 throw convert_logic_error::init(
-                    fmt("{} Unexpected priority log message structure", words));
+                    hstd::fmt("{} Unexpected priority log message structure", words));
             }
 
             if (auto on = time_after("on")) { priority.on = on.value()->getStaticTime(); }
@@ -663,13 +666,13 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
     std::string name = normalize(basename);
 
-    auto __trace = trace(a, fmt("property-'{}' (base: '{}')", name, basename));
+    auto __trace = trace(a, hstd::fmt("property-'{}' (base: '{}')", name, basename));
 
     auto get_values_text = [&]() { return strip_space(get_text(one(a, N::Values))); };
 
     auto handled = [&](int         line     = __builtin_LINE(),
                        char const* function = __builtin_FUNCTION()) {
-        print(fmt("handled '{}'", name), line, function);
+        print(hstd::fmt("handled '{}'", name), line, function);
     };
 
 
@@ -703,8 +706,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         handled();
         Property::HashtagDef def;
         auto                 par = convertParagraph(one(a, N::Values)).value();
-        print(fmt("{}", a.treeRepr()));
-        print(fmt("{}", ExporterTree::treeRepr(par).toString(false)));
+        print(hstd::fmt("{}", a.treeRepr()));
+        print(hstd::fmt("{}", ExporterTree::treeRepr(par).toString(false)));
         for (int i = 0; i < par.size(); ++i) {
             auto sub = par.at(i);
             if (sub->is(OrgSemKind::Space)) {
@@ -775,7 +778,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
                     MakeConvert(
                         a,
                         ErrorTable::UnexpectedCookieData,
-                        fmt("Unexpected cookie data parameter: {}", arg)));
+                        hstd::fmt("Unexpected cookie data parameter: {}", arg)));
             }
         }
 
@@ -822,7 +825,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
             result    = NamedProperty{prop};
         } else {
             throw convert_logic_error::init(
-                fmt("broken datetime or broken zone from value {} "
+                hstd::fmt(
+                    "broken datetime or broken zone from value {} "
                     "(datetime: '{}', zone: '{}')",
                     time,
                     datetime,
@@ -998,7 +1002,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
                     MakeConvert(
                         a,
                         ErrorTable::UnexpectedSubtreeTimeName,
-                        fmt("The value was '{}'", kind)));
+                        hstd::fmt("The value was '{}'", kind)));
             }
         }
     }
@@ -1257,7 +1261,7 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
     } else {
         Str protocol_raw = get_text(one(a, N::Protocol));
         Str protocol     = normalize(get_text(one(a, N::Protocol)));
-        print(fmt("Protocol is '{}', normalized {}", protocol_raw, protocol));
+        print(hstd::fmt("Protocol is '{}', normalized {}", protocol_raw, protocol));
         if (protocol == "http" || protocol == "https") {
             link->target = LinkTarget{
                 LinkTarget::Raw{.text = protocol + ":"_ss + getTarget()}};
@@ -1318,7 +1322,7 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
         Str text = strip(
             get_text(one(a, N::Checkbox)), CharSet{'[', ' '}, CharSet{' ', ']'});
 
-        print(fmt("Normalized checkbox: {}", escape_literal(text)));
+        print(hstd::fmt("Normalized checkbox: {}", escape_literal(text)));
 
         if (text == "x" || text == "X") {
             item->checkbox = CheckboxState::Done;
@@ -1330,7 +1334,9 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
             return SemError(
                 a,
                 MakeConvert(
-                    a, ErrorTable::UnexpectedCheckboxValue, fmt("got value '{}'", text)));
+                    a,
+                    ErrorTable::UnexpectedCheckboxValue,
+                    hstd::fmt("got value '{}'", text)));
         }
     }
 
@@ -2047,7 +2053,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(__args) {
     auto              args    = convertAttrs(one(a, N::Args));
     include->path             = args.positional.items.at(0).getString();
 
-    if (TraceState) { print(fmt("args: {}", args)); }
+    if (TraceState) { print(hstd::fmt("args: {}", args)); }
 
     if (auto kind = args.positional.items.get(1)) {
         Str ks = kind.value().get().getString();
@@ -2134,17 +2140,17 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
 
     if (one(a, N::Name).getKind() != onk::Empty) {
         result.name = lstrip(get_text(one(a, N::Name)), CharSet{':'});
-        print(fmt("Result name '{}'", result.name.value()));
+        print(hstd::fmt("Result name '{}'", result.name.value()));
     }
 
     if (one(a, N::Subname).getKind() != onk::Empty) {
         result.varname = get_text(one(a, N::Subname));
-        print(fmt("Result varname '{}'", result.varname.value()));
+        print(hstd::fmt("Result varname '{}'", result.varname.value()));
     }
 
     if (one(a, N::Value).getKind() == onk::RawText) {
         Str value = get_text(one(a, N::Value));
-        print(fmt("Text value is '{}'", value));
+        print(hstd::fmt("Text value is '{}'", value));
 
         if (value.starts_with('"') && value.ends_with('"')) {
             result.isQuoted = true;
@@ -2156,12 +2162,12 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
             AttrValue::FileReference fr{};
             fr.file      = split.at(0);
             fr.reference = split.at(1);
-            print(fmt("Attribute is file reference {}", fr));
+            print(hstd::fmt("Attribute is file reference {}", fr));
             result.data = fr;
         } else {
             AttrValue::TextValue tv{};
             tv.value = value;
-            print(fmt("Attribute is text value {}", tv));
+            print(hstd::fmt("Attribute is text value {}", tv));
 
             result.data = tv;
         }
@@ -2173,7 +2179,7 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
     } else {
         AttrValue::TextValue tv{};
         tv.value += get_text(one(a, N::Value));
-        print(fmt("Attribute is text value {}", tv));
+        print(hstd::fmt("Attribute is text value {}", tv));
         result.data = tv;
     }
 
@@ -2189,7 +2195,7 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
                 dim.first  = split.at(0).toInt();
                 if (split.has(1)) { dim.last = split.at(1).toInt(); }
             }
-            print(fmt("Attribute dimension span {}", dim));
+            print(hstd::fmt("Attribute dimension span {}", dim));
             result.span.push_back(dim);
         }
     }
@@ -2421,7 +2427,7 @@ SemId<ErrorItem> OrgConverter::SemErrorItem(
     char const*                     function) {
     auto res  = Sem<ErrorItem>(adapter);
     res->diag = diag;
-    if (TraceState) { print(fmt("{}", diag), line, function); }
+    if (TraceState) { print(hstd::fmt("{}", diag), line, function); }
     return res;
 }
 
@@ -2510,7 +2516,7 @@ OrgConverter::ConvResult<BlockCode> OrgConverter::convertBlockCode(__args) {
                 && conv->at(0)->is(osk::Link)) {
                 conv = conv.at(0);
             }
-            print(fmt("Parsed result body as {}", conv->getKind()));
+            print(hstd::fmt("Parsed result body as {}", conv->getKind()));
             auto result_block  = Sem<sem::BlockCodeEvalResult>(res);
             result_block->node = conv;
             result->result.push_back(result_block);
@@ -2547,11 +2553,11 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
         auto it  = items.at(i);
         auto res = convert(it);
         if (res->dyn_cast<sem::Attached>()) {
-            print(fmt("{} is attached", res->getKind()));
+            print(hstd::fmt("{} is attached", res->getKind()));
             buffer.push_back(res);
         } else {
             if (auto res_stmt = res.asOpt<sem::Stmt>()) {
-                print(fmt("{} is a statement, adding attached", res->getKind()));
+                print(hstd::fmt("{} is a statement, adding attached", res->getKind()));
                 if (auto par = res_stmt.asOpt<sem::Paragraph>();
                     par && par->subnodes.size() == 1) {
                     if (auto link = par->subnodes.at(0).asOpt<sem::Link>()) {
@@ -2569,14 +2575,19 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
                 Opt<CRw<org::parse::OrgAdapter>> next_opt = items.get(i + offset + 1);
                 while (next_opt) {
                     if (next_opt->get().getKind() == onk::CmdTblfm) {
-                        print(fmt(
-                            "tblfm attached {} + {} {}", i, offset, next_opt->get().id));
+                        print(
+                            hstd::fmt(
+                                "tblfm attached {} + {} {}",
+                                i,
+                                offset,
+                                next_opt->get().id));
                         auto tblfm = convertCmdTblfm(next_opt->get());
                         res_stmt->attached.push_back(tblfm.unwrap());
                         ++offset;
                     } else {
                         print(
-                            fmt("next node is not post-attached {}",
+                            hstd::fmt(
+                                "next node is not post-attached {}",
                                 next_opt->get().getKind()));
                         break;
                     }
@@ -2587,7 +2598,9 @@ Vec<OrgConverter::ConvResult<Org>> OrgConverter::flatConvertAttached(
                 i += offset;
 
             } else {
-                print(fmt("{} is not a statement, releasing attached", res->getKind()));
+                print(
+                    hstd::fmt(
+                        "{} is not a statement, releasing attached", res->getKind()));
                 for (auto const& buf : buffer) { result.push_back(buf); }
             }
             buffer.clear();
@@ -2704,7 +2717,8 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CriticMarkStructure: return convertCriticMarkup(a).unwrap();
         case onk::BlockDynamicFallback: return convertBlockDynamicFallback(a).unwrap();
         default: {
-            return SemError(a, MakeInternal(fmt("ERR Unknown content {}", a.getKind())));
+            return SemError(
+                a, MakeInternal(hstd::fmt("ERR Unknown content {}", a.getKind())));
         }
     }
 #undef CASE
@@ -2850,7 +2864,8 @@ void OrgConverter::convertDocumentOptions(
                     MakeConvert(
                         a,
                         ErrorTable::UnexpectedDocumentOption,
-                        fmt("Value {}, "
+                        hstd::fmt(
+                            "Value {}, "
                             "head:'{}', "
                             "tail:'{}'",
                             value,
@@ -2864,7 +2879,9 @@ void OrgConverter::convertDocumentOptions(
             opts->push_back(SemError(
                 a,
                 MakeConvert(
-                    a, ErrorTable::UnexpectedDocumentOption, fmt("value {}", value))));
+                    a,
+                    ErrorTable::UnexpectedDocumentOption,
+                    hstd::fmt("value {}", value))));
         }
     }
 }

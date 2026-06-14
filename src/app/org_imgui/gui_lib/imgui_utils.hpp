@@ -78,9 +78,9 @@ BOOST_DESCRIBE_STRUCT(ImVec4, (), (x, y, z, w));
 BOOST_DESCRIBE_STRUCT(ImRect, (), (Min, Max));
 
 template <>
-struct std::formatter<ImVec2> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(ImVec2 const& p, FormatContext& ctx) const {
+struct fmt::formatter<ImVec2> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(ImVec2 const& p, fmt::format_context& ctx) const {
         hstd::fmt_ctx("(", ctx);
         hstd::fmt_ctx(p.x, ctx);
         hstd::fmt_ctx(", ", ctx);

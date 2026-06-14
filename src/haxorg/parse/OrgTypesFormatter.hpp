@@ -5,9 +5,11 @@
 
 
 template <>
-struct std::formatter<org::parse::OrgNodeMono::Error> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::parse::OrgNodeMono::Error const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::parse::OrgNodeMono::Error> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        org::parse::OrgNodeMono::Error const& p,
+        fmt::format_context&                  ctx) const {
         if (p.box) {
             return hstd::fmt_ctx(*p.box, ctx);
         } else {

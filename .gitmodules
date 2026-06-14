@@ -76,3 +76,6 @@
 [submodule "thirdparty/kiwi"]
 	path = thirdparty/kiwi
 	url = https://github.com/nucleic/kiwi.git
+[submodule "thirdparty/fmt"]
+	path = thirdparty/fmt
+	url = https://github.com/fmtlib/fmt.git

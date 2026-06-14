@@ -275,7 +275,7 @@ struct log_graph_tracker {
             if constexpr (hstd::log::has_log_value_formatter<VarType>) {
                 return hstd::log::log_value_formatter<VarType>{}.format(var);
             } else if constexpr (hstd::StdFormattable<VarType>) {
-                return std::format("{}", var);
+                return fmt::format("{}", var);
             } else {
                 return hstd::Str{"<type unformattable>"};
             }

@@ -127,17 +127,18 @@ struct Tokenizer {
 
 
 template <hstd::StdFormattable K, hstd::StdFormattable V>
-struct std::formatter<org::parse::TokenGroup<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::parse::TokenGroup<K, V> const& p, FormatContext& ctx) {
-        std::formatter<std::string> fmt;
+struct fmt::formatter<org::parse::TokenGroup<K, V>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        org::parse::TokenGroup<K, V> const& p,
+        fmt::format_context&                ctx) {
         for (const auto& [idx, tok] : p.tokens.pairs()) {
-            fmt.format(std::format("{:<16}", idx), ctx);
-            fmt.format(" | ", ctx);
-            fmt.format(*tok, ctx);
-            fmt.format("\n", ctx);
+            hstd::fmt_ctx(fmt::format("{:<16}", idx), ctx);
+            hstd::fmt_ctx(" | ", ctx);
+            hstd::fmt_ctx(*tok, ctx);
+            hstd::fmt_ctx("\n", ctx);
         }
 
-        return fmt.format("", ctx);
+        return hstd::fmt_ctx("", ctx);
     }
 };

@@ -305,15 +305,15 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
 } // namespace hstd::ext::graph
 
 template <>
-struct std::formatter<hstd::ext::graph::EdgeCollectionID>
+struct fmt::formatter<hstd::ext::graph::EdgeCollectionID>
     : public hstd::std_strong_typedef_formatter<hstd::ext::graph::EdgeCollectionID> {};
 
 template <>
-struct std::formatter<hstd::ext::graph::PortCollectionID>
+struct fmt::formatter<hstd::ext::graph::PortCollectionID>
     : public hstd::std_strong_typedef_formatter<hstd::ext::graph::PortCollectionID> {};
 
 template <>
-struct std::formatter<hstd::ext::graph::AttributeTrackerID>
+struct fmt::formatter<hstd::ext::graph::AttributeTrackerID>
     : public hstd::std_strong_typedef_formatter<hstd::ext::graph::AttributeTrackerID> {};
 
 

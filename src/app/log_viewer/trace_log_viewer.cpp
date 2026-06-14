@@ -150,9 +150,9 @@ CommonEventArgs const& TraceLogViewer::get_args(TraceEvent const& event) const {
 std::string TraceLogViewer::format_name(TraceEvent const& event) const {
     auto const& base = get_base(event);
     if (base.name) {
-        return std::format("{} [{}]", *base.name, format_event_kind(event));
+        return fmt::format("{} [{}]", *base.name, format_event_kind(event));
     } else {
-        return std::format("[{}]", format_event_kind(event));
+        return fmt::format("[{}]", format_event_kind(event));
     }
 }
 
@@ -168,7 +168,7 @@ std::string TraceLogViewer::format_message(TraceEvent const& event) const {
 
 std::string TraceLogViewer::format_source(TraceEvent const& event) const {
     auto const& args = get_args(event);
-    return std::format("{}:{} {}", args.file, args.line, args.function);
+    return fmt::format("{}:{} {}", args.file, args.line, args.function);
 }
 
 std::string TraceLogViewer::format_event_kind(TraceEvent const& event) const {
@@ -182,7 +182,7 @@ std::string TraceLogViewer::format_event_kind(TraceEvent const& event) const {
 }
 
 std::string TraceLogViewer::format_scope_offset(int nesting_level) const {
-    return std::format("{}", nesting_level);
+    return fmt::format("{}", nesting_level);
 }
 
 void TraceLogViewer::draw_event_row_recursive(EventId id) {
@@ -205,7 +205,7 @@ void TraceLogViewer::draw_event_row(
     bool*              open_state) {
 
     TraceEvent const& event = *record.event;
-    std::string const label = std::format("##event_row_{}", record.id);
+    std::string const label = fmt::format("##event_row_{}", record.id);
 
     ImGui::TableNextRow();
     ImGui::PushID(static_cast<int>(record.id));
@@ -284,9 +284,9 @@ void TraceLogViewer::draw_structured_value(
 
     if (label) {
         if (value.shortRepr) {
-            node_label = std::format("{}: {}", label, *value.shortRepr);
+            node_label = fmt::format("{}: {}", label, *value.shortRepr);
         } else {
-            node_label = std::format("{}", label);
+            node_label = fmt::format("{}", label);
         }
     } else if (value.shortRepr) {
         node_label = *value.shortRepr;
@@ -301,14 +301,14 @@ void TraceLogViewer::draw_structured_value(
             },
             [&](StructuredValue::Enum const& data) {
                 ImGui::TextUnformatted(
-                    std::format("{} = {} ({})", node_label, data.value, data.index)
+                    fmt::format("{} = {} ({})", node_label, data.value, data.index)
                         .c_str());
             },
             [&](StructuredValue::List const& data) {
                 if (ImGui::TreeNode(node_label.c_str())) {
                     for (int i = 0; i < data.values.size(); ++i) {
                         draw_structured_value(
-                            data.values[i], std::format("[{}]", i).c_str());
+                            data.values[i], fmt::format("[{}]", i).c_str());
                     }
                     ImGui::TreePop();
                 }
@@ -317,7 +317,7 @@ void TraceLogViewer::draw_structured_value(
                 if (ImGui::TreeNode(node_label.c_str())) {
                     for (int i = 0; i < data.pairs.size(); ++i) {
                         auto const& pair = data.pairs[i];
-                        if (ImGui::TreeNode(std::format("pair {}", i).c_str())) {
+                        if (ImGui::TreeNode(fmt::format("pair {}", i).c_str())) {
                             if (pair.key) { draw_structured_value(*pair.key, "key"); }
                             if (pair.value) {
                                 draw_structured_value(*pair.value, "value");
@@ -329,7 +329,7 @@ void TraceLogViewer::draw_structured_value(
                 }
             },
             [&](StructuredValue::Object const& data) {
-                std::string object_label = std::format("{} <{}>", node_label, data.type);
+                std::string object_label = fmt::format("{} <{}>", node_label, data.type);
                 if (ImGui::TreeNode(object_label.c_str())) {
                     for (auto const& field : data.fields) {
                         if (field.value) {
@@ -344,10 +344,10 @@ void TraceLogViewer::draw_structured_value(
 
 void TraceLogViewer::draw_variables_state(VariablesState const& variables) {
     if (ImGui::TreeNode(
-            std::format("variables ({})", variables.variables.size()).c_str())) {
+            fmt::format("variables ({})", variables.variables.size()).c_str())) {
         for (auto const& variable : variables.variables) {
             std::string label = variable.type
-                                  ? std::format("{}: {}", variable.name, *variable.type)
+                                  ? fmt::format("{}: {}", variable.name, *variable.type)
                                   : variable.name.toBase();
 
             draw_structured_value(variable.value, label.c_str());

@@ -189,13 +189,13 @@ struct [[refl(R"({
 } // namespace hstd
 
 template <typename T>
-struct std::formatter<hstd::IntSet<T>> : std::formatter<std::string> {
+struct fmt::formatter<hstd::IntSet<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+
     using FmtType = hstd::IntSet<T>;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        fmt.format("{", ctx);
-        fmt.format(join(", ", p), ctx);
-        return fmt.format("}", ctx);
+    hstd::fmt_iter format(FmtType const& p, fmt::format_context& ctx) const {
+        hstd::fmt_ctx("{", ctx);
+        hstd::fmt_ctx(join(", ", p), ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };

@@ -51,7 +51,7 @@ sem::SemId<sem::Org> testParseString(
 
         writeFile(
             fs::path{debug.value() + "_base_lexed.yaml"},
-            std::format("{}", org::test::yamlRepr(p.baseTokens)));
+            fmt::format("{}", org::test::yamlRepr(p.baseTokens)));
     } else {
         p.tokenizeBase(text, params, p.parseContext->addSource("<mock-full-run>", text));
     }
@@ -61,7 +61,7 @@ sem::SemId<sem::Org> testParseString(
     if (debug) {
         writeFile(
             fs::path{debug.value() + "_lexed.yaml"},
-            std::format("{}", org::test::yamlRepr(p.tokens)));
+            fmt::format("{}", org::test::yamlRepr(p.tokens)));
     }
 
     p.parse();
@@ -109,13 +109,13 @@ void show_compare_reports(Vec<compare_report> const& out) {
     for (auto const& it : out) {
         std::string ctx = it.context
                         | rv::transform([](compare_context const& c) -> std::string {
-                              return fmt("{}.{}", c.type, c.field);
+                              return hstd::fmt("{}.{}", c.type, c.field);
                           })
                         | rv::intersperse("->") //
                         | rv::join              //
                         | rs::to<std::string>();
 
-        buffer += fmt(
+        buffer += hstd::fmt(
             "{} failed: original != parsed\n{}\n", ctx, hstd::indent(it.message, 2));
     }
 

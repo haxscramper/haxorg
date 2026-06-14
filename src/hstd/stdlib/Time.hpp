@@ -66,13 +66,13 @@ struct std::hash<hstd::UserTime> {
 
 
 template <>
-struct std::formatter<cctz::civil_second> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(cctz::civil_second const& p, FormatContext& ctx) const;
+struct fmt::formatter<cctz::civil_second> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(cctz::civil_second const& p, fmt::format_context& ctx) const;
 };
 
 template <>
-struct std::formatter<cctz::time_zone> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(cctz::time_zone const& p, FormatContext& ctx) const;
+struct fmt::formatter<cctz::time_zone> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(cctz::time_zone const& p, fmt::format_context& ctx) const;
 };

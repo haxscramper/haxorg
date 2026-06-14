@@ -707,9 +707,11 @@ struct hstd::JsonSerde<hstd::ext::graph::elk::Options> {
 };
 
 template <>
-struct std::formatter<hstd::ext::graph::elk::Options> {
-    template <typename FormatContext>
-    auto format(hstd::ext::graph::elk::Options const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ext::graph::elk::Options> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::graph::elk::Options const& p,
+        fmt::format_context&                  ctx) const {
         return hstd::fmt_ctx(p.data, ctx);
     }
 };

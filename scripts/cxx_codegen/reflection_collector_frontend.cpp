@@ -178,7 +178,7 @@ void run_semantic_symbols_collection(ReflectionCLI const& cli) {
         HSLOG_TRACE("Using compilation database {}", cli.reflection.compilation_database);
     } else {
         throw hstd::runtime_error::init(
-            std::format(
+            fmt::format(
                 "Failed to process provided JSON DB, failure was: {}\n"
                 "CompilationDB = {}",
                 ErrorMessage,
@@ -201,7 +201,7 @@ void run_semantic_symbols_collection(ReflectionCLI const& cli) {
         if (!hstd::fs::is_directory(
                 std::string(cli.reflection.toolchain_include.value()))) {
             throw hstd::FilesystemError::init(
-                std::format(
+                fmt::format(
                     "Toolchain include is not a directory or does not "
                     "exist "
                     "'{}'",

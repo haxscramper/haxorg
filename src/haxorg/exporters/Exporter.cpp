@@ -14,7 +14,7 @@ void Exporter<V, R>::visit(
 template <typename V, typename R>
 template <typename T, typename Kind>
 void Exporter<V, R>::visitVariants(R& res, Kind kind, T const& var) {
-    std::string fieldName = std::format("{}", kind);
+    std::string fieldName = fmt::format("{}", kind);
     _this()->visitField(res, "kind", kind);
     std::visit(
         [&, this](auto const& it) { _this()->visitField(res, fieldName.c_str(), it); },

@@ -4,6 +4,7 @@
 #include "imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 struct Conf {
     Str  file;

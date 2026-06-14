@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graph_common.hpp"
+#include <hstd/stdlib/VecFormatter.hpp>
 
 namespace hstd::ext::graph {
 

@@ -1,8 +1,7 @@
 #if ORG_BUILD_WITH_ELK
 #    include "elk_jni_wrapper.hpp"
 #    include <jni.h>
-#    include <iostream>
-#    include <format>
+#    include <fmt/format.h>
 
 
 #    include <dlfcn.h>
@@ -28,7 +27,7 @@ class ElkLayoutEngine::Impl {
         JavaVMOption   options[2];
 
         // Get the current directory and construct classpath
-        std::string classpath = std::format("-Djava.class.path={}", wrapper_jar);
+        std::string classpath = fmt::format("-Djava.class.path={}", wrapper_jar);
 
         options[0].optionString = const_cast<char*>(classpath.c_str());
         options[1].optionString = const_cast<char*>("-Xmx512m");
@@ -57,7 +56,7 @@ class ElkLayoutEngine::Impl {
                 case JNI_EINVAL: desc = "JNI_EINVAL (-6) /* invalid arguments */"; break;
             }
 
-            throw std::runtime_error(std::format("Failed to create JVM: {}", result));
+            throw std::runtime_error(fmt::format("Failed to create JVM: {}", result));
         }
 
         // Find the wrapper class

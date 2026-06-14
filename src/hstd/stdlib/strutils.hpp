@@ -13,7 +13,7 @@ Str join(Str const& sep, generator<T>& list) {
     int index = 0;
     for (const auto& it : list) {
         if (0 < index) { os += sep; }
-        os += std::format("{}", it);
+        os += fmt::format("{}", it);
         ++index;
     }
     return os;

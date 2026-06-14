@@ -145,27 +145,30 @@ struct Node {
 } // namespace hstd::ext::diff
 
 template <>
-struct std::formatter<hstd::ext::diff::NodeIdx> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::diff::NodeIdx const& p, FormatContext& ctx) const {
-        return fmt_ctx(p.Offset, ctx);
+struct fmt::formatter<hstd::ext::diff::NodeIdx> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ext::diff::NodeIdx const& p, fmt::format_context& ctx)
+        const {
+        return ::hstd::fmt_ctx(p.Offset, ctx);
     }
 };
 
 
 template <>
-struct std::formatter<hstd::ext::diff::NodeStore::Id> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::diff::NodeStore::Id const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ext::diff::NodeStore::Id> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::diff::NodeStore::Id const& p,
+        fmt::format_context&                  ctx) const {
         return ::hstd::fmt_ctx(p.id, ctx);
     }
 };
 
 template <>
-struct std::formatter<hstd::ext::diff::Node> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::diff::Node const& p, FormatContext& ctx) {
-        return std::format(
+struct fmt::formatter<hstd::ext::diff::Node> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(hstd::ext::diff::Node const& p, fmt::format_context& ctx) {
+        return fmt::format(
             "<H: {}, D: {}, S: {}, P: {}, L: {}, R: {}>",
             p.Height,
             p.Depth,
@@ -802,5 +805,5 @@ void printMapping(
 } // namespace hstd::ext::diff
 
 template <>
-struct std::formatter<hstd::ext::diff::ASTDiff*>
+struct fmt::formatter<hstd::ext::diff::ASTDiff*>
     : hstd::std_format_ptr_as_hex<hstd::ext::diff::ASTDiff> {};

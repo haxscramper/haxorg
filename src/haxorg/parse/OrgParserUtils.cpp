@@ -250,7 +250,7 @@ OrgParser::ParseResult OrgParser::expect(
     if (at(lex, item)) {
         return ParseOk{};
     } else {
-        auto msg = fmt(
+        auto msg = hstd::fmt(
             "{}: Expected token {} {} but got '{}'",
             line,
             item,
@@ -282,7 +282,7 @@ OrgParser::LexResult OrgParser::pop(
     int                line,
     char const*        function) {
     if (tok) { BOOST_OUTCOME_TRY(expect(lex, *tok, std::nullopt, line, function)); }
-    if (TraceState) { print(fmt("pop {}", lex.tok()), &lex, line, function); }
+    if (TraceState) { print(hstd::fmt("pop {}", lex.tok()), &lex, line, function); }
     return lex.pop();
 }
 
@@ -296,7 +296,7 @@ OrgParser::ParseResult OrgParser::skip(
 
     if (item) { BOOST_OUTCOME_TRY(expect(lex, *item, message, line, function)); }
 
-    if (TraceState) { print(fmt("skip {}", lex.tok()), &lex, line, function); }
+    if (TraceState) { print(hstd::fmt("skip {}", lex.tok()), &lex, line, function); }
 
     lex.next();
     return ParseOk{};
@@ -352,7 +352,8 @@ parse_error OrgParser::fatalError(
     Opt<OrgToken> tok = lex.hasNext(-1) ? Opt<OrgToken>{lex.tok(-1)} : std::nullopt;
 
     return parse_error::init(
-        fmt("{} {} at {} in (prev: {}) {}",
+        hstd::fmt(
+            "{} {} at {} in (prev: {}) {}",
             msg,
             lex.finished()
                 ? (lex.lastToken ? fmt1(lex.lastToken.value()) : "<lexer-finished>")

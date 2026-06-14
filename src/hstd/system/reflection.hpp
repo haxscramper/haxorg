@@ -1,18 +1,15 @@
 #pragma once
 
-#include <iostream>
 #include <string>
-#include <sstream>
 #include <optional>
 
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
 #include <hstd/system/basic_typedefs.hpp>
 #include <hstd/system/basic_templates.hpp>
-#include <typeindex>
 #include <vector>
-#include <format>
 #include <type_traits>
+#include <fmt/base.h>
 
 
 namespace hstd {
@@ -552,23 +549,21 @@ int get_total_field_index_by_ptr(F T::* fieldPtr) {
 } // namespace hstd
 
 template <hstd::SerializableEnum T>
-struct std::formatter<T> : std::formatter<std::string> {
+struct fmt::formatter<T> {
     using FmtType = T;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(hstd::enum_serde<T>::to_string(p), ctx);
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(FmtType const& p, fmt::format_context& ctx) const {
+        return fmt::format_to(ctx.out(), "{}", hstd::enum_serde<T>::to_string(p));
     }
 };
 
 
 template <hstd::NonSerializableEnum T>
-struct std::formatter<T> : std::formatter<std::string> {
+struct fmt::formatter<T> {
     using FmtType = T;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(std::to_string((int)p), ctx);
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(FmtType const& p, fmt::format_context& ctx) const {
+        return fmt::format_to(ctx.out(), "{}", std::to_string((int)p));
     }
 };
 

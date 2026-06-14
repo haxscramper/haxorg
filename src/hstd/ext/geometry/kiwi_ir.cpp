@@ -5,7 +5,6 @@
 
 #    include <algorithm>
 #    include <filesystem>
-#    include <format>
 #    include <sstream>
 #    include <stdexcept>
 
@@ -191,10 +190,10 @@ Rect::Rect(
     , y0(y0)
     , width0(width0)
     , height0(height0)
-    , x(std::format("{}.x", this->rect_id))
-    , y(std::format("{}.y", this->rect_id))
-    , width(std::format("{}.width", this->rect_id))
-    , height(std::format("{}.height", this->rect_id)) {}
+    , x(fmt::format("{}.x", this->rect_id))
+    , y(fmt::format("{}.y", this->rect_id))
+    , width(fmt::format("{}.width", this->rect_id))
+    , height(fmt::format("{}.height", this->rect_id)) {}
 
 Expr Rect::expr(RectAttr name) const {
     switch (name) {
@@ -272,7 +271,7 @@ Vec<EdgeDesc> AlignConstraint::describe_edges() const {
         edges.push_back(
             EdgeDesc{
                 item.rect_id,
-                std::format("align:{}", item.spec.anchor),
+                fmt::format("align:{}", item.spec.anchor),
                 anchor_axis(item.spec.anchor)});
     }
     return edges;
@@ -283,7 +282,7 @@ Str AlignConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     joined.push_back(hstd::fmt("AlignConstraint strength={}", strength));
     for (auto const& item : items) {
         joined.push_back(
-            std::format(
+            fmt::format(
                 "  {} {} ({:+g})", item.rect_id, item.spec.anchor, item.spec.offset));
     }
 
@@ -310,19 +309,19 @@ Vec<EdgeDesc> SeparateConstraint::describe_edges() const {
     return {
         EdgeDesc{
             rect_b.rect_id,
-            std::format("separate:{}->{}+{}", rect_b.anchor, rect_b.anchor, offset),
+            fmt::format("separate:{}->{}+{}", rect_b.anchor, rect_b.anchor, offset),
             anchor_axis(rect_b.anchor),
         },
         EdgeDesc{
             rect_a.rect_id,
-            std::format("separate:{}->{}+{}", rect_b.anchor, rect_a.anchor, offset),
+            fmt::format("separate:{}->{}+{}", rect_b.anchor, rect_a.anchor, offset),
             anchor_axis(rect_a.anchor),
         },
     };
 }
 
 Str SeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
-    return std::format(
+    return fmt::format(
         "SeparateConstraint({}.{} == {}.{} + {:g}, strength={})",
         rect_a.rect_id,
         rect_a.anchor,
@@ -419,7 +418,7 @@ Vec<EdgeDesc> MultiSeparateConstraint::describe_edges() const {
             edges.push_back(
                 EdgeDesc{
                     rect.rect_id,
-                    std::format("multi-separate:{}+{:g}", rect.anchor, step),
+                    fmt::format("multi-separate:{}+{:g}", rect.anchor, step),
                     anchor_axis(rect.anchor)});
         }
     }
@@ -439,7 +438,7 @@ Str MultiSeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
 
     Vec<Str> joined;
     joined.push_back(
-        std::format("MultiSeparateConstraint(step={:g} strength={})", step, strength));
+        fmt::format("MultiSeparateConstraint(step={:g} strength={})", step, strength));
 
     auto     t_1   = Str{hstd::format_table(g_fmt, " => ", "")};
     auto     ind   = hstd::indent(t_1, 2);
@@ -541,7 +540,7 @@ Str ParentWrapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
         if (i + 1 < nested_rect_ids.size()) { nested << ", "; }
     }
     nested << "]";
-    return std::format(
+    return fmt::format(
         "ParentWrapConstraint(parent={}, nested={}, padding={}, "
         "strength={})",
         parent_rect_id,
@@ -652,13 +651,13 @@ Str RelativeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
 
     return hstd::join("\n", joined);
 
-    // Str wf = x_factor.has_value() ? std::format("{:g}",
+    // Str wf = x_factor.has_value() ? fmt::format("{:g}",
     // x_factor.value())
     //                               : "None";
-    // Str hf = y_factor.has_value() ? std::format("{:g}",
+    // Str hf = y_factor.has_value() ? fmt::format("{:g}",
     // y_factor.value())
     //                               : "None";
-    // return std::format(
+    // return fmt::format(
     //     "nestedRelativeToParentConstraint(nested={}, parent={}, "
     //     "width_factor={}, height_factor={}, x={}->{}{:+g},
     //     y={}->{}{:+g}, " "strength={})", relative_rect_id,
@@ -680,7 +679,7 @@ EvenGapConstraint::EvenGapConstraint(Vec<RectSpec2Side> rects_spec, Strength str
     for (auto const& spec : this->rects_spec) {
         if (anchor_axis(spec.min_anchor) != anchor_axis(spec.max_anchor)) {
             throw hstd::invalid_argument::init(
-                std::format(
+                fmt::format(
                     "EvenGapConstraint: min/max anchors of '{}' are on "
                     "different axes "
                     "({} vs {})",
@@ -695,7 +694,7 @@ EvenGapConstraint::EvenGapConstraint(Vec<RectSpec2Side> rects_spec, Strength str
         for (auto const& spec : this->rects_spec) {
             if (anchor_axis(spec.min_anchor) != common_axis) {
                 throw hstd::invalid_argument::init(
-                    std::format(
+                    fmt::format(
                         "EvenGapConstraint: mixed axes are not allowed, "
                         "'{}' has axis {} "
                         "while expected {}",
@@ -735,7 +734,7 @@ Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
         result.push_back(
             EdgeDesc{
                 g.rect_id,
-                std::format("even-gap:{}->{}", g.max_anchor, g.min_anchor),
+                fmt::format("even-gap:{}->{}", g.max_anchor, g.min_anchor),
                 anchor_axis(g.max_anchor)});
     }
     return result;
@@ -744,12 +743,12 @@ Vec<EdgeDesc> EvenGapConstraint::describe_edges() const {
 Str EvenGapConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     Vec<Str> joined;
 
-    joined.push_back(std::format("EvenGapConstraint(strength={})", strength));
+    joined.push_back(fmt::format("EvenGapConstraint(strength={})", strength));
 
     for (int i = 0; i < rects_spec.size(); ++i) {
         RectSpec2Side const& s = rects_spec[i];
         joined.push_back(
-            std::format(
+            fmt::format(
                 "  id={}, min={}, max={}", s.rect_id, s.min_anchor, s.max_anchor));
     }
 
@@ -800,7 +799,7 @@ Vec<EdgeDesc> EqualSizeConstraint::describe_edges() const {
 }
 
 Str EqualSizeConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
-    return std::format(
+    return fmt::format(
         "EqualSizeConstraint(a={}, b={}, match_width={}, match_height={}, "
         "strength={})",
         rect_a_id,
@@ -839,7 +838,7 @@ Vec<EdgeDesc> LinearConstraint::describe_edges() const { return {}; }
 Str LinearConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     Str rel = relation == Relation::EQ ? "==" : (relation == Relation::LE ? "<=" : ">=");
     Vec<Str> joined;
-    joined.push_back(std::format("LinearConstraint({} ..., strength={})", rel, strength));
+    joined.push_back(fmt::format("LinearConstraint({} ..., strength={})", rel, strength));
 
     joined.append(getBuildRepr(rects));
 
@@ -1071,7 +1070,7 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         for (auto const& [rect_id, rect] : rects) {
             auto node = //
                 (axis == Axis::X ? cluster_x : cluster_y)
-                    ->node(std::format("rect-{}-{}", rect_id, axis));
+                    ->node(fmt::format("rect-{}-{}", rect_id, axis));
 
             hstd::Vec<Str> rect_info;
             rect_info.push_back(hstd::fmt("{} {}", rect_id, axis));
@@ -1098,7 +1097,7 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
 
     for (int idx = 0; idx < constraints.size(); ++idx) {
         auto const& constraint = constraints[idx];
-        Str         cid        = std::format("constraint-{}", idx);
+        Str         cid        = fmt::format("constraint-{}", idx);
         auto        cnode      = cluster_center->node(cid);
         cnode->setLabel(constraint->getRepr(rects));
         cnode->setNodeShape(graph::gv::NodeShape::rectangle);
@@ -1127,19 +1126,19 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
     for (auto const& [rect_id, rect] : rects) {
         entries.push_back(
             ConstraintEntry{
-                std::format("Rect({}).width >= 0", rect.rect_id),
+                fmt::format("Rect({}).width >= 0", rect.rect_id),
                 {(Expr(0) <= rect.expr(RectAttr::WIDTH)) | kiwi::strength::required},
             });
         entries.push_back(
             ConstraintEntry{
-                std::format("Rect({}).height >= 0", rect.rect_id),
+                fmt::format("Rect({}).height >= 0", rect.rect_id),
                 {(Expr(0) <= rect.expr(RectAttr::HEIGHT)) | kiwi::strength::required},
             });
 
         if (rect.x0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    std::format("Rect({}).x == {:g}", rect.rect_id, rect.x0.value()),
+                    fmt::format("Rect({}).x == {:g}", rect.rect_id, rect.x0.value()),
                     {(rect.expr(RectAttr::X) == rect.x0.value())
                      | kiwi::strength::required},
                 });
@@ -1147,7 +1146,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
         if (rect.y0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    std::format("Rect({}).y == {:g}", rect.rect_id, rect.y0.value()),
+                    fmt::format("Rect({}).y == {:g}", rect.rect_id, rect.y0.value()),
                     {(rect.expr(RectAttr::Y) == rect.y0.value())
                      | kiwi::strength::required},
                 });
@@ -1155,7 +1154,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
         if (rect.width0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    std::format(
+                    fmt::format(
                         "Rect({}).width == {:g}", rect.rect_id, rect.width0.value()),
                     {(rect.expr(RectAttr::WIDTH) == rect.width0.value())
                      | kiwi::strength::required},
@@ -1164,7 +1163,7 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
         if (rect.height0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    std::format(
+                    fmt::format(
                         "Rect({}).height == {:g}", rect.rect_id, rect.height0.value()),
                     {(rect.expr(RectAttr::HEIGHT) == rect.height0.value())
                      | kiwi::strength::required},
@@ -1304,7 +1303,7 @@ void Layout::verify_constraints() {
             // NOTE: primary candidate for tree-like data representation
             // optimization. [[f69705c4-9013-4919-a540-3c473bbadbaf]]
             os << "Unsatisfiable layout constraints detected.\n";
-            os << std::format(
+            os << fmt::format(
                 "Failing constraint: {}\n", describe_constraint_source(entry.source));
 
             auto describe_failure = [&](SatisfyFail const& fail) {
@@ -1341,7 +1340,7 @@ void Layout::verify_constraints() {
                     }
                 }
 
-                os << std::format(
+                os << fmt::format(
                     "    - first conflict detected when "
                     "adding lowered element {}\n",
                     flat_repr(fail.preceding.back().lowered.at(fail.failing)));
@@ -1356,7 +1355,7 @@ void Layout::verify_constraints() {
             } else {
                 os << "Conflicts with:\n";
                 for (auto const& src : conflicts.failures) {
-                    os << std::format(
+                    os << fmt::format(
                         "  - {}\n", describe_constraint_source(src.entry.source));
                     describe_failure(src.desc.value());
                 }

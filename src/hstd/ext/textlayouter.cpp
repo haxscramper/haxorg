@@ -9,6 +9,8 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <sstream>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd::layout;
 using namespace hstd;

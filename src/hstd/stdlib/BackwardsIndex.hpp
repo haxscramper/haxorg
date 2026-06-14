@@ -1,6 +1,6 @@
 #pragma once
+#include <fmt/base.h>
 #pragma clang diagnostic ignored "-Wunknown-attributes"
-#include <format>
 
 namespace hstd {
 struct [[refl]] BackwardsIndex {
@@ -25,12 +25,14 @@ inline BackwardsIndex backIndex(int value) { return BackwardsIndex{.value = valu
 } // namespace hstd
 
 template <>
-struct std::formatter<hstd::BackwardsIndex> : std::formatter<std::string> {
+struct fmt::formatter<hstd::BackwardsIndex> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+
     using FmtType = hstd::BackwardsIndex;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format("^" + std::to_string(p.value), ctx);
+    fmt::format_context::iterator format(FmtType const& p, fmt::format_context& ctx)
+        const {
+        fmt::format_to(ctx.out(), "^");
+        return fmt::format_to(ctx.out(), "{}", p.value);
     }
 };
 

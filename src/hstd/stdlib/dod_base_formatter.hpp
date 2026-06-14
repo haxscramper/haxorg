@@ -5,11 +5,9 @@
 
 
 template <hstd::dod::IsDescribedDodIdType Id>
-struct std::formatter<Id> : std::formatter<std::string> {
-    using FmtType = Id;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(p.format(), ctx);
+struct fmt::formatter<Id> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(Id const& p, fmt::format_context& ctx) const {
+        return hstd::fmt_ctx(p.format(), ctx);
     }
 };

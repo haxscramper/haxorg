@@ -49,7 +49,7 @@ void hstd::writeDebugFile(
     char const*        function,
     char const*        file) {
     auto        filename  = fs::path{file}.stem();
-    std::string full_path = fmt(
+    std::string full_path = hstd::fmt(
         "/tmp/{}_{}{}.{}", filename, function, stem_suffix, extension);
 
     writeFile(full_path, content);

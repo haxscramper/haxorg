@@ -49,12 +49,12 @@ void open_walker(git_oid& oid, walker_state& state) {
 
     if ((head_fileptr = fopen(head_filepath.c_str(), "r")) == nullptr) {
         throw std::system_error{
-            std::error_code{}, fmt("Error opening {}", head_filepath)};
+            std::error_code{}, hstd::fmt("Error opening {}", head_filepath)};
     }
 
     if (fread(head_rev.data(), 40, 1, head_fileptr) != 1) {
         throw std::system_error{
-            std::error_code{}, fmt("Error reading from {}", head_filepath)};
+            std::error_code{}, hstd::fmt("Error reading from {}", head_filepath)};
         fclose(head_fileptr);
     }
 
@@ -488,7 +488,7 @@ struct ChangeIterationState {
                  + (state->at(section_id).lines //
                     | rv ::enumerate            //
                     | rv::transform([&](auto const& line) {
-                          return std::format(
+                          return fmt::format(
                               "[{:<4}] '{:<100}'",
                               line.first,
                               state->str(state->at(line.second).content));
@@ -709,7 +709,7 @@ void check_tree_entry_consistency(
 
     ir::FileTrackSection const& section = state->at(section_id);
 
-    std::string where = std::format(
+    std::string where = fmt::format(
         "section:{} track:{} file-path:\"{}\" "
         "section-path:{} track:{} section-index:{}",
         section_id,
@@ -735,7 +735,7 @@ void check_tree_entry_consistency(
                     line_pair.second.second ? *line_pair.second.second : "");
             })
         | rv::transform([](auto const& line_tuple) -> std::string {
-              return std::format(
+              return fmt::format(
                   "[{:<4}] [{}] '{:<100}' '{:<100}'",
                   std::get<0>(line_tuple),
                   std::get<1>(line_tuple) == std::get<2>(line_tuple) ? "ok" : "er",

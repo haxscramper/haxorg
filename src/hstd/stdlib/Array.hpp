@@ -117,14 +117,12 @@ struct TypArray : public Array<Val, pow_v<2, 8 * sizeof(Key)>::res> {
 } // namespace hstd
 
 template <typename T, int Size>
-struct std::formatter<hstd::Array<T, Size>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    typename FormatContext::iterator format(
-        hstd::Array<T, Size> const& p,
-        FormatContext&              ctx) const {
-        std::formatter<std::string> fmt;
-        fmt.format("[", ctx);
-        fmt.format(join(", ", p), ctx);
-        return fmt.format("]", ctx);
+struct fmt::formatter<hstd::Array<T, Size>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+
+    hstd::fmt_iter format(hstd::Array<T, Size> const& p, fmt::format_context& ctx) const {
+        ::hstd::fmt_ctx("[", ctx);
+        ::hstd::fmt_ctx(join(", ", p), ctx);
+        return ::hstd::fmt_ctx("]", ctx);
     }
 };

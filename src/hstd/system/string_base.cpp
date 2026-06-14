@@ -1,9 +1,9 @@
 #include <hstd/system/string_base.hpp>
-#include <format>
+#include <fmt/format.h>
 
 template <std::integral T>
 std::string format_string_to_hex(T const& value) {
-    return std::format("{:0{}X}", value, sizeof(T) * 2);
+    return fmt::format("{:0{}X}", value, sizeof(T) * 2);
 }
 
 template std::string format_string_to_hex<int>(int const& value);
@@ -22,7 +22,7 @@ template std::string format_string_to_hex<unsigned short int>(
 
 template <std::integral T>
 std::string format_string_to_bin(T const& value) {
-    return std::format("{:0{}b}", value, sizeof(T) * 8);
+    return fmt::format("{:0{}b}", value, sizeof(T) * 8);
 }
 
 template std::string format_string_to_bin<int>(int const& value);

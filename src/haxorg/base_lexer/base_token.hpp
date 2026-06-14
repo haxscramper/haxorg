@@ -21,21 +21,20 @@ using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
 
 
 template <>
-struct std::formatter<org::parse::OrgFill> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(org::parse::OrgFill const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string>{}.format("<", ctx);
+struct fmt::formatter<org::parse::OrgFill> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(org::parse::OrgFill const& p, fmt::format_context& ctx) const {
+        ::hstd::fmt_ctx("<", ctx);
         ::hstd::fmt_ctx(escape_for_write(p.text), ctx);
-        std::formatter<std::string>{}.format(">", ctx);
+        ::hstd::fmt_ctx(">", ctx);
         if (p.loc.has_value()) {
             ::hstd::fmt_ctx(":", ctx);
             ::hstd::fmt_ctx(p.loc->line, ctx);
-            std::formatter<std::string>{}.format(":", ctx);
+            ::hstd::fmt_ctx(":", ctx);
             ::hstd::fmt_ctx(p.loc->column, ctx);
-            std::formatter<std::string>{}.format(":", ctx);
+            ::hstd::fmt_ctx(":", ctx);
             ::hstd::fmt_ctx(p.loc->pos, ctx);
-            std::formatter<std::string>{}.format("@", ctx);
+            ::hstd::fmt_ctx("@", ctx);
             ::hstd::fmt_ctx(p.loc->file_id.format(), ctx);
         }
         return ctx.out();

@@ -19,7 +19,10 @@ void repr_impl(hstd::ColStream& os, kiwi::Expression const& e, int indent) {
         os.newline();
         os.indent(indent);
         os << hstd::fmt(
-            "{:<{}} {}", t.value().variable(), var_size, t.value().coefficient());
+            "{:<{}} {}",
+            hstd::fmt1(t.value().variable()),
+            var_size,
+            t.value().coefficient());
     }
 }
 
@@ -62,7 +65,10 @@ void repr_impl(hstd::ColStream& os, Expr::Node const& n, int indent) {
                 os.newline();
                 os.indent(indent + 1);
                 os << hstd::fmt(
-                    "{:<{}} {}", t.value().variable(), var_size, t.value().coefficient());
+                    "{:<{}} {}",
+                    hstd::fmt1(t.value().variable()),
+                    var_size,
+                    t.value().coefficient());
             }
 
             os.newline();

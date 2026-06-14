@@ -240,7 +240,7 @@ void hstd::hshow<std::string_view>::format(
                 for (Str const& it : visibleUnicodeName(value, !opts.get_use_ascii())) {
                     if (!first) { os << " "; }
                     first = false;
-                    os << std::format("{}{}{}", open_quote, it, close_quote);
+                    os << fmt::format("{}{}{}", open_quote, it, close_quote);
                 }
             } else {
                 for (const auto& it : visibleUnicodeName(value, !opts.get_use_ascii())) {
@@ -343,7 +343,7 @@ std::string hstd::to_colored_html(Vec<ColRune> const& runes) {
         if (s2.fg != s1.fg) {
             if (!isDefault(s1.fg)) { close_tags += "</font>"; }
             if (!isDefault(s2.fg)) {
-                open_tags += std::format("<font color=\"{}\">", toHtmlColor(s2.fg));
+                open_tags += fmt::format("<font color=\"{}\">", toHtmlColor(s2.fg));
             }
         }
 

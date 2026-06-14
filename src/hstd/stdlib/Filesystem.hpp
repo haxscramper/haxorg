@@ -4,7 +4,6 @@
 #include <string>
 #include <filesystem>
 #include <hstd/stdlib/Ptrs.hpp>
-#include <format>
 #include <hstd/system/exceptions.hpp>
 
 namespace hstd {
@@ -47,11 +46,10 @@ std::string readFile(fs::path const& target);
 
 
 template <>
-struct std::formatter<hstd::fs::path> : std::formatter<std::string> {
-    using FmtType = hstd::fs::path;
-    template <typename FormatContext>
-    FormatContext::iterator format(FmtType const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
-        return fmt.format(p.native(), ctx);
+struct fmt::formatter<hstd::fs::path> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+
+    hstd::fmt_iter format(hstd::fs::path const& p, fmt::format_context& ctx) const {
+        return hstd::fmt_ctx(p.native(), ctx);
     }
 };

@@ -9,9 +9,9 @@
 
 
 template <>
-struct std::formatter<json> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(json const& p, FormatContext& ctx) const {
+struct fmt::formatter<json> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(json const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(p.dump(), ctx);
     }
 };

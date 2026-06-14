@@ -12,6 +12,7 @@
 #include "../common.hpp"
 
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
 
 #if ORG_BUILD_WITH_QT
 #    include <QString>
@@ -107,10 +108,10 @@ struct StdFormattableType {
 };
 
 template <>
-struct std::formatter<StdFormattableType> : std::formatter<std::string> {
-    auto format(StdFormattableType const& obj, format_context& ctx) const {
-        return std::formatter<std::string>::format(
-            "std_fmt:" + std::to_string(obj.value), ctx);
+struct fmt::formatter<StdFormattableType> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(StdFormattableType const& obj, format_context& ctx) const {
+        return hstd::fmt_ctx("std_fmt:" + std::to_string(obj.value), ctx);
     }
 };
 
@@ -132,10 +133,10 @@ struct BothFormattableType {
 };
 
 template <>
-struct std::formatter<BothFormattableType> : std::formatter<std::string> {
-    auto format(BothFormattableType const& obj, format_context& ctx) const {
-        return std::formatter<std::string>::format(
-            "std_both:" + std::to_string(obj.value), ctx);
+struct fmt::formatter<BothFormattableType> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(BothFormattableType const& obj, format_context& ctx) const {
+        return hstd::fmt_ctx("std_both:" + std::to_string(obj.value), ctx);
     }
 };
 
@@ -195,7 +196,7 @@ TEST_F(LoggerTest, StdFormatterSpecifications) {
 
     EXPECT_EQ(
         hstd::log::format_logger_arguments(
-            "Custom with spec: {:>15}", StdFormattableType{100}),
+            "Custom with spec: {:>15}", hstd::fmt1(StdFormattableType{100})),
         "Custom with spec:     std_fmt:100");
 }
 

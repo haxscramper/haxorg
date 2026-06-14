@@ -49,6 +49,7 @@ class HaxorgConan(ConanFile):
             self.requires("immer/[>=0.8.1 <1]", **tr)
             self.requires("lager/[>=0.1.1 <1]", **tr)
             self.requires("nlohmann_json/[>=3.12.0 <4]", **tr)
+            self.requires("fmt/[>=12.1.0 <13]", **tr)
 
             # self.requires("zstd/[>=1.5.7 <2]")
             # self.requires("openssl/[>=3.6.1 <4]")

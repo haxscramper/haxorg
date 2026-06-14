@@ -4,21 +4,20 @@
 #include <hstd/stdlib/Formatter.hpp>
 
 template <>
-struct std::formatter<org::sem::SemId<org::sem::Org>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
+struct fmt::formatter<org::sem::SemId<org::sem::Org>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
         org::sem::SemId<org::sem::Org> const& p,
-        FormatContext&                        ctx) const {
+        fmt::format_context&                  ctx) const {
         return hstd::fmt_ctx(p->getKind(), ctx);
     }
 };
 
 
 template <typename T>
-struct std::formatter<org::sem::SemId<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(org::sem::SemId<T> const& p, FormatContext& ctx)
-        const {
+struct fmt::formatter<org::sem::SemId<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(org::sem::SemId<T> const& p, fmt::format_context& ctx) const {
         if (p.isNil()) {
             return hstd::fmt_ctx("<nil>", ctx);
         } else {
@@ -28,9 +27,9 @@ struct std::formatter<org::sem::SemId<T>> : std::formatter<std::string> {
 };
 
 template <>
-struct std::formatter<org::sem::OrgJson> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::sem::OrgJson const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::sem::OrgJson> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(org::sem::OrgJson const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(p.dump(0), ctx);
     }
 };

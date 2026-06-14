@@ -147,7 +147,8 @@ struct PrintErrorTestSetup {
     void write_report(hstd::fs::path const& path) {
         writeFile(
             path,
-            fmt(R"(- - - - - -
+            hstd::fmt(
+                R"(- - - - - -
 {}
 - - - - - -
 {}
@@ -159,7 +160,7 @@ struct PrintErrorTestSetup {
                 own_view(rune_chunks(str)) //
                     | rv::enumerate
                     | rv::transform([](Pair<int, std::string> const& l) -> std::string {
-                          return fmt("[{}] {}", l.first, escape_literal(l.second));
+                          return hstd::fmt("[{}] {}", l.first, escape_literal(l.second));
                       })
                     | rv::intersperse("\n") //
                     | rv::join              //
@@ -231,8 +232,9 @@ TEST(PrintError, StringBuilder1) {
     Str pivoted     = pivotStringTable(report_text);
 
     writeFile(
-        getDebugFile(fmt("error_{}.txt", "StringBuilder1")),
-        fmt(R"(- - - - - -
+        getDebugFile(hstd::fmt("error_{}.txt", "StringBuilder1")),
+        hstd::fmt(
+            R"(- - - - - -
 {}
 - - - - - -
 {}
@@ -244,7 +246,7 @@ TEST(PrintError, StringBuilder1) {
             own_view(rune_chunks(str)) //
                 | rv::enumerate
                 | rv::transform([](Pair<int, std::string> const& l) -> std::string {
-                      return fmt("[{}] {}", l.first, escape_literal(l.second));
+                      return hstd::fmt("[{}] {}", l.first, escape_literal(l.second));
                   })
                 | rv::intersperse("\n") //
                 | rv::join              //
@@ -363,20 +365,22 @@ def six =
               .with_label(
                   Label{1}
                       .with_span(a_id, slice(30, 30))
-                      .with_message(fmt("This is of type {}", "Nat"))
+                      .with_message(hstd::fmt("This is of type {}", "Nat"))
                       .with_color(a))
               .with_label(
                   Label{2}
                       .with_span(a_id, slice(42, 45))
-                      .with_message(fmt("This is of type {}", "Str"))
+                      .with_message(hstd::fmt("This is of type {}", "Str"))
                       .with_color(b))
               .with_label(
                   Label{3}
                       .with_span(a_id, slice(11, 48))
                       .with_message(
-                          fmt("The values are outputs of this {} expression", "match")))
+                          hstd::fmt(
+                              "The values are outputs of this {} expression", "match")))
               .with_note(
-                  fmt("Outputs of {} expressions must coerce to the same type", "match"));
+                  hstd::fmt(
+                      "Outputs of {} expressions must coerce to the same type", "match"));
 
     dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
@@ -409,23 +413,26 @@ def six =
               .with_label(
                   Label{1}
                       .with_span(a_id, slice(30, 30))
-                      .with_message(fmt("Single line label on the base range", "Nat"))
+                      .with_message(
+                          hstd::fmt("Single line label on the base range", "Nat"))
                       .with_color(a))
               .with_label(
                   Label{2}
                       .with_span(a_id, slice(31, 31))
                       .with_message(
-                          fmt("Multiple line label\nwith at "
+                          hstd::fmt(
+                              "Multiple line label\nwith at "
                               "least\nthree separate lines"))
                       .with_color(b))
               .with_label(
                   Label{3}
                       .with_span(a_id, slice(32, 32))
                       .with_message(
-                          fmt("Another multiline\nannotation "
+                          hstd::fmt(
+                              "Another multiline\nannotation "
                               "immediately\nfollowing the previous\none"))
                       .with_color(b))
-              .with_note(fmt("Single line note"));
+              .with_note(hstd::fmt("Single line note"));
 
     dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
@@ -509,7 +516,7 @@ def multiline :: Str = match Some 5 in {
                      int         line     = __builtin_LINE(),
                      char const* function = __builtin_FUNCTION()) {
         return Label{++label_counter, CodeSpan(id, range)}.with_message(
-            fmt("MSG {} {}", range, line));
+            hstd::fmt("MSG {} {}", range, line));
     };
 
     auto report //
@@ -589,7 +596,7 @@ def multiline :: Str = match Some 5 in {
                      int         line     = __builtin_LINE(),
                      char const* function = __builtin_FUNCTION()) {
         return Label{++label_counter, CodeSpan(id, range)}.with_message(
-            fmt("MSG {} {}", range, line));
+            hstd::fmt("MSG {} {}", range, line));
     };
 
     auto report //
@@ -609,7 +616,8 @@ def multiline :: Str = match Some 5 in {
     dumpReport(sources, report);
     writeFile(
         getDebugFile("res.txt"),
-        fmt("{}\n{}..{}\n",
+        hstd::fmt(
+            "{}\n{}..{}\n",
             report.to_string(sources, false),
             code.at(108),
             code.at(122)));

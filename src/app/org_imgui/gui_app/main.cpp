@@ -51,7 +51,7 @@ std::string FormatTimeDelta(long delta_seconds) {
     long delta   = delta_seconds / 60;
     long hours   = delta / 60;
     long minutes = delta % 60;
-    return std::format("{}:{:02}", hours, minutes);
+    return fmt::format("{}:{:02}", hours, minutes);
 }
 
 namespace {
@@ -308,7 +308,7 @@ void outline_tree_loop(GLFWwindow* window, org::sem::SemId<org::sem::Org> node) 
             for (auto const& it : priorities) {
                 bool shown = outline_config.priorities.contains(it);
                 bool start = shown;
-                ImGui::Checkbox(fmt("Priority '{}'", it).c_str(), &shown);
+                ImGui::Checkbox(hstd::fmt("Priority '{}'", it).c_str(), &shown);
                 if (start != shown) {
                     if (shown) {
                         outline_config.priorities.incl(it);

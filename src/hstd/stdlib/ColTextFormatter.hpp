@@ -5,9 +5,9 @@
 
 
 template <>
-struct std::formatter<hstd::ColRune> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ColRune const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ColRune> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ColRune const& p, fmt::format_context& ctx) const {
         hstd::fmt_ctx("{", ctx);
         hstd::fmt_ctx(p.rune, ctx);
         if (p.style.fg != (hstd::TermColorFg8Bit)0) {
@@ -31,9 +31,9 @@ struct std::formatter<hstd::ColRune> : std::formatter<std::string> {
 
 
 template <>
-struct std::formatter<hstd::ColText> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ColText const& p, FormatContext& ctx) const {
-        return std::formatter<std::string>{}.format(p.toString(false), ctx);
+struct fmt::formatter<hstd::ColText> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ColText const& p, fmt::format_context& ctx) const {
+        return hstd::fmt_ctx(p.toString(false), ctx);
     }
 };
