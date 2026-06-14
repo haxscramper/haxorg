@@ -245,7 +245,8 @@ message IncludeVisit {
     uint32 DirectLineCount = 3;
     uint32 ExpandedLineCountWithNested = 4;
     uint32 ExpandedLineCountWithoutNested = 5;
-    repeated IncludeVisit Nested = 6;
+    uint32 PhysicalLine = 6;
+    repeated IncludeVisit Nested = 7;
 }
 
 message TU {

@@ -10,6 +10,7 @@
 
 #include "reflection_config.hpp"
 #include "reflection_defs.pb.h"
+#include <filesystem>
 
 
 struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
@@ -19,14 +20,25 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
     IncludeVisit* Root = nullptr;
 
+    static std::string normalizeAbsolutePath(std::string const& rawPath) {
+        if (rawPath.empty()) { return {}; }
+
+        std::filesystem::path p(rawPath);
+        if (p.is_relative()) { p = std::filesystem::absolute(p); }
+
+        p = p.lexically_normal();
+        return p.string();
+    }
+
     static std::string getMainFileAbsolutePath(clang::CompilerInstance& CI) {
         clang::SourceManager&       SM     = CI.getSourceManager();
         clang::FileID               mainId = SM.getMainFileID();
         clang::OptionalFileEntryRef file   = SM.getFileEntryRefForID(mainId);
         if (file) {
-            return file->getName().str();
+            return normalizeAbsolutePath(file->getName().str());
         } else {
-            return SM.getFileEntryRefForID(mainId)->getName().str();
+            return normalizeAbsolutePath(
+                SM.getFileEntryRefForID(mainId)->getName().str());
         }
     }
 
@@ -38,10 +50,10 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
         clang::FileID               fid  = SM.getFileID(spelling);
         clang::OptionalFileEntryRef file = SM.getFileEntryRefForID(fid);
-        if (file) { return file->getName().str(); }
+        if (file) { return normalizeAbsolutePath(file->getName().str()); }
 
         if (auto oldFile = SM.getFileEntryRefForID(fid)) {
-            return oldFile->getName().str();
+            return normalizeAbsolutePath(oldFile->getName().str());
         }
 
         return {};
@@ -64,6 +76,7 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         std::string IncludingFilePath;
         std::string RelativePath;
         std::string AbsolutePath;
+        unsigned    PhysicalLine = 0;
     };
 
     struct VisitFrame {
@@ -89,6 +102,7 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         Root = Out->mutable_mainfileincludetree();
         Root->set_absolutepath(getMainFileAbsolutePathFromSM());
         Root->set_relativepath("");
+        Root->set_physicalline(0);
 
         clang::FileID mainId = SM->getMainFileID();
 
@@ -107,9 +121,9 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         clang::FileID               mainId = SM->getMainFileID();
         clang::OptionalFileEntryRef file   = SM->getFileEntryRefForID(mainId);
         if (file) {
-            return file->getName().str();
+            return normalizeAbsolutePath(file->getName().str());
         } else if (auto oldFile = SM->getFileEntryRefForID(mainId)) {
-            return oldFile->getName().str();
+            return normalizeAbsolutePath(oldFile->getName().str());
         } else {
             return {};
         }
@@ -167,11 +181,13 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
         if (pending) {
             nested->set_relativepath(pending->RelativePath);
+            nested->set_physicalline(pending->PhysicalLine);
             if (nested->absolutepath().empty()) {
                 nested->set_absolutepath(pending->AbsolutePath);
             }
         } else {
             nested->set_relativepath("");
+            nested->set_physicalline(0);
         }
 
         ActiveStack.push_back(
@@ -204,14 +220,19 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
         if (File && SM->isInMainFile(HashLoc)) {
             auto incl = Out->add_includes();
-            incl->set_absolutepath(File->getName().str());
+            incl->set_absolutepath(normalizeAbsolutePath(File->getName().str()));
             incl->set_relativepath(FileName.str());
         }
 
         PendingInclude pending;
         pending.IncludingFilePath = getRealPathForLoc(*SM, HashLoc);
         pending.RelativePath      = FileName.str();
-        if (File) { pending.AbsolutePath = File->getName().str(); }
+        if (File) { pending.AbsolutePath = normalizeAbsolutePath(File->getName().str()); }
+
+        clang::SourceLocation spelling = SM->getSpellingLoc(HashLoc);
+        if (spelling.isValid()) {
+            pending.PhysicalLine = SM->getSpellingLineNumber(spelling);
+        }
 
         PendingIncludes.push_back(std::move(pending));
     }
