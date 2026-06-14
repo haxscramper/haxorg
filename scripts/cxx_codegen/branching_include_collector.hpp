@@ -102,7 +102,7 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         Root = Out->mutable_mainfileincludetree();
         Root->set_absolutepath(getMainFileAbsolutePathFromSM());
         Root->set_relativepath("");
-        Root->set_physicalline(0);
+        Root->set_includelocationline(0);
 
         clang::FileID mainId = SM->getMainFileID();
 
@@ -114,7 +114,7 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
                 .ProcessedLines = {},
             });
 
-        Root->set_directlinecount(countPhysicalLines(*SM, mainId));
+        Root->set_filelinecount(countPhysicalLines(*SM, mainId));
     }
 
     std::string getMainFileAbsolutePathFromSM() {
@@ -177,17 +177,17 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
         IncludeVisit* nested = ActiveStack.back().Node->add_nested();
         nested->set_absolutepath(enteredPath);
-        nested->set_directlinecount(countPhysicalLines(*SM, enteredFile));
+        nested->set_filelinecount(countPhysicalLines(*SM, enteredFile));
 
         if (pending) {
             nested->set_relativepath(pending->RelativePath);
-            nested->set_physicalline(pending->PhysicalLine);
+            nested->set_includelocationline(pending->PhysicalLine);
             if (nested->absolutepath().empty()) {
                 nested->set_absolutepath(pending->AbsolutePath);
             }
         } else {
             nested->set_relativepath("");
-            nested->set_physicalline(0);
+            nested->set_includelocationline(0);
         }
 
         ActiveStack.push_back(
@@ -327,14 +327,7 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         VisitFrame& top = ActiveStack.back();
 
         unsigned selfLines = static_cast<unsigned>(top.ProcessedLines.size());
-        top.Node->set_expandedlinecountwithoutnested(selfLines);
-
-        unsigned withnested = selfLines;
-        for (int i = 0; i < top.Node->nested_size(); ++i) {
-            withnested += top.Node->nested(i).expandedlinecountwithnested();
-        }
-
-        top.Node->set_expandedlinecountwithnested(withnested);
+        top.Node->set_directexpandedlines(selfLines);
     }
 
     void exitFile() {
