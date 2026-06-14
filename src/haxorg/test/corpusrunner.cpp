@@ -26,6 +26,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace org::test;
 using namespace hstd;
