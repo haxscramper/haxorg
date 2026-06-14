@@ -1,7 +1,6 @@
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <filesystem>
-#    include <format>
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Debug.hpp>
 
@@ -208,7 +207,7 @@ gv::Record gv::Record::fromEscapedTextRow(Vec<Str> const& cells) {
 Str gv::Record::toString(bool braceCount) const {
     Str result;
     if (isFinal()) {
-        if (tag) { result += std::format("<{}>", *tag); }
+        if (tag) { result += fmt::format("<{}>", *tag); }
         result += gv::escape(getLabel());
     } else {
         auto const& c = getNested();

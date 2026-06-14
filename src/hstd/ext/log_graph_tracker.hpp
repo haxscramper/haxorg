@@ -270,12 +270,12 @@ struct log_graph_tracker {
         hstd::Vec<hstd::Str> const& names,
         const Args&... args) {
         hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> result;
-        auto format_var = [](auto const& var) -> std::string {
+        hstd::fmt_iter format_var = [](auto const& var) -> std::string {
             using VarType = std::decay_t<decltype(var)>;
             if constexpr (hstd::log::has_log_value_formatter<VarType>) {
                 return hstd::log::log_value_formatter<VarType>{}.format(var);
             } else if constexpr (hstd::StdFormattable<VarType>) {
-                return std::format("{}", var);
+                return fmt::format("{}", var);
             } else {
                 return hstd::Str{"<type unformattable>"};
             }

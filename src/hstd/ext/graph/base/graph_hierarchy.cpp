@@ -14,7 +14,7 @@ using namespace hstd::ext::graph;
 IEdgeProvider::DependantDeletion IVertexHierarchy::untrackVertex(VertexID const& id) {
     DependantDeletion result;
     if (!vertexIDs.contains(id)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "", id));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "", id));
     }
 
     std::function<void(VertexID const&)> collect = [&](VertexID const& current) {
@@ -125,7 +125,7 @@ hstd::Vec<VertexID> IVertexHierarchy::getHierarchyCrossings(
 void IVertexHierarchy::trackVertex(VertexID const& id) {
     if (vertexIDs.contains(id)) {
         throw graph_error::init(
-            std::format(
+            fmt::format(
                 "Vertex {} already registered in hierarchy {}", id, getStableID()));
     }
     vertexIDs.insert(id);
@@ -138,11 +138,11 @@ void IVertexHierarchy::trackSubVertexRelation(
     VertexID const& sub) {
 
     if (!vertexIDs.contains(parent)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "parent ", parent));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "parent ", parent));
     }
 
     if (!vertexIDs.contains(sub)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "sub ", sub));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "sub ", sub));
     }
 
 
@@ -154,7 +154,7 @@ void IVertexHierarchy::trackSubVertexRelation(
         edge);
 
     if (parentMap.contains(sub)) {
-        throw graph_error::init(std::format("Vertex {} already has a parent", sub));
+        throw graph_error::init(fmt::format("Vertex {} already has a parent", sub));
     }
 
     parentMap.insert_or_assign(sub, parent);
@@ -172,10 +172,10 @@ EdgeID hstd::ext::graph::IVertexHierarchy::getNestingEdgeID(
     VertexID const& parent,
     VertexID const& sub) {
     if (!vertexIDs.contains(parent)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "Parent ", parent));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "Parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "Sub ", sub));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "Sub ", sub));
     }
 
     return EdgeID::FromMasked(
@@ -187,14 +187,14 @@ void IVertexHierarchy::untrackSubVertexRelation(
     VertexID const& parent,
     VertexID const& sub) {
     if (!vertexIDs.contains(parent)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "Parent ", parent));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "Parent ", parent));
     }
     if (!vertexIDs.contains(sub)) {
-        throw graph_error::init(std::format(vertex_not_found_msg, "Sub ", sub));
+        throw graph_error::init(fmt::format(vertex_not_found_msg, "Sub ", sub));
     }
     if (!parentMap.contains(sub) || parentMap.at(sub) != parent) {
         throw graph_error::init(
-            std::format("Vertex {} is not a child of {}", sub, parent));
+            fmt::format("Vertex {} is not a child of {}", sub, parent));
     }
 
     parentMap.erase(sub);

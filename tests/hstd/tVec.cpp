@@ -16,14 +16,14 @@ using StrVecTestTypes = ::testing::Types<Vec<std::string>, SmallVec<std::string,
 TYPED_TEST_SUITE(StrVecTypedTest, StrVecTestTypes);
 
 TEST(BackwardsIndexTest, BackwardsIndexFormat) {
-    std::string f1 = std::format("{}", 1_B);
+    std::string f1 = fmt::format("{}", 1_B);
     ASSERT_EQ(f1, "^1");
 }
 
 TYPED_TEST(IntVecTypedTest, Formatter) {
-    EXPECT_EQ((std::format("{}", TypeParam{})), "[]");
-    EXPECT_EQ((std::format("{}", TypeParam{1})), "[1]");
-    EXPECT_EQ((std::format("{}", TypeParam{1, 2})), "[1, 2]");
+    EXPECT_EQ((fmt::format("{}", TypeParam{})), "[]");
+    EXPECT_EQ((fmt::format("{}", TypeParam{1})), "[1]");
+    EXPECT_EQ((fmt::format("{}", TypeParam{1, 2})), "[1, 2]");
 }
 
 TEST(VectorTest, ContainsFind) {

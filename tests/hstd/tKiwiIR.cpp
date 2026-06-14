@@ -8,8 +8,8 @@ namespace hstd::ext::kiwi_ir {
 static void write_outputs(Layout& layout, Opt<Str> name_r = std::nullopt) {
     auto name = name_r.value_or(std::string{getDebugFile().filename().c_str()});
     writeFile(
-        getDebugFile(std::format("{}.svg", name)), layout.to_svg(name).to_string(2));
-    layout.to_graphviz(getDebugFile(std::format("{}-graph.png", name)));
+        getDebugFile(fmt::format("{}.svg", name)), layout.to_svg(name).to_string(2));
+    layout.to_graphviz(getDebugFile(fmt::format("{}-graph.png", name)));
 }
 
 TEST(KiwiIr, AlignAndSeparate) {

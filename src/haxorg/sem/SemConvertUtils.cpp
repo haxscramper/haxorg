@@ -149,7 +149,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
 
         switch (in.kind) {
             case ReportKind::EnterField: {
-                os << "{ " << fmt1(in.field.value()) << fmt(" @{}", in.line) << " "
+                os << "{ " << fmt1(in.field.value()) << hstd::fmt(" @{}", in.line) << " "
                    << getLoc();
                 if (in.msg) { os << " " << *in.msg; }
                 break;
@@ -165,7 +165,8 @@ void OrgConverter::report(OrgConverter::Report const& in) {
             }
 
             case ReportKind::Enter: {
-                os << "> " << (in.function ? in.function : "") << fmt(" @{}", in.line);
+                os << "> " << (in.function ? in.function : "")
+                   << hstd::fmt(" @{}", in.line);
                 if (in.node.has_value() && in.node->isValid()) {
                     os << " " << fmt1(in.node->kind())
                        << " ID:" << fmt1(in.node->id.getUnmasked());
@@ -185,7 +186,8 @@ void OrgConverter::report(OrgConverter::Report const& in) {
             }
 
             case ReportKind::Print: {
-                os << "  " << (in.function ? in.function : "") << fmt(" @{}", in.line);
+                os << "  " << (in.function ? in.function : "")
+                   << hstd::fmt(" @{}", in.line);
                 if (in.msg) {
                     os << " ";
                     int prefix_end = os.position;

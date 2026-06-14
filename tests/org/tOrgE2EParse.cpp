@@ -9,7 +9,7 @@ using namespace org::parse;
 using namespace org::test;
 
 Str getSelfTest(org::imm::ImmAdapter const& it) {
-    return fmt(
+    return hstd::fmt(
         R"(
 auto {0} = {1};
 EXPECT_EQ({0}->getKind(), OrgSemKind::{2});

@@ -53,7 +53,7 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> CommitGraph::toGraphviz() const {
 
         n //
             ->setColor(info.is_main ? "green" : "yellow")
-            ->setLabel(fmt("{}", info.oid).substr(0, 8));
+            ->setLabel(hstd::fmt("{}", info.oid).substr(0, 8));
 
         nodes.insert_or_assign(v, n);
     }

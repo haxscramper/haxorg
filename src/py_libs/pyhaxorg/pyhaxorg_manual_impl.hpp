@@ -59,9 +59,9 @@
 
 
 template <>
-struct std::formatter<nanobind::callable> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(nanobind::callable const& p, FormatContext& ctx) const {
+struct fmt::formatter<nanobind::callable> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(nanobind::callable const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx("nanobind::callable", ctx);
     }
 };

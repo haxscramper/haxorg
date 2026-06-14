@@ -52,7 +52,7 @@ hstd::Str OrgAgendaNode::getAgeDisplay() const {
     for (const auto& [unit_name, unit_seconds] : units) {
         if (unit_seconds <= seconds) {
             int count = seconds / unit_seconds;
-            parts.push_back(std::format("{}{}", count, unit_name));
+            parts.push_back(fmt::format("{}{}", count, unit_name));
             seconds %= unit_seconds;
             if (parts.size() == 2) { break; }
         }

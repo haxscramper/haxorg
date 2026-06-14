@@ -33,7 +33,7 @@ void org::algo::ExporterSimpleSExpr::visit(Res& res, sem::SemId<sem::Org> org) {
                         OrgSemKind::Par,
                     }
                         .contains(org->getKind())) {
-                    res = b.line({string(std::format("{}", org->getKind()))});
+                    res = b.line({string(fmt::format("{}", org->getKind()))});
 
                     for (const auto& it : org->subnodes) {
                         b.add_at(res, string(" "));
@@ -43,7 +43,7 @@ void org::algo::ExporterSimpleSExpr::visit(Res& res, sem::SemId<sem::Org> org) {
                     visitDispatch(inner, org);
                     res = b.line({
                         string(
-                            std::format("{}", org->getKind())
+                            fmt::format("{}", org->getKind())
                             + (b.at(inner).isStack() ? " " : "")),
                         inner,
                     });

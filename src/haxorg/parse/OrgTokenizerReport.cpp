@@ -83,7 +83,7 @@ void OrgTokenizer::report(Report const& in) {
                 os << "    ";
                 if (in.msg) { os << *in.msg; }
                 if (in.subname) { os << ":" << *in.subname; }
-                os << fmt(" {}:{}", (in.function ? in.function : ""), in.line)
+                os << hstd::fmt(" {}:{}", (in.function ? in.function : ""), in.line)
                    << getLoc();
                 break;
             }
@@ -95,10 +95,10 @@ void OrgTokenizer::report(Report const& in) {
             case ReportKind::Push: {
                 if (in.id.isNil()) {
                     os << "  + buffer token " << fmt1(getLoc())
-                       << std::format("{}", in.tok.kind);
+                       << fmt::format("{}", in.tok.kind);
                 } else {
                     os << "  + add token " << fmt1(getLoc()) << fmt1(in.id.getIndex())
-                       << " " << std::format("{}", at(in.id).kind);
+                       << " " << fmt::format("{}", at(in.id).kind);
                 }
                 os << " @" << fg::Cyan << fmt1(in.line) << os.end();
                 if (in.msg) { os << " " << *in.msg; }

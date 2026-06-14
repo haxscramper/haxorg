@@ -9,6 +9,7 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <sstream>
 
 namespace hstd {
 
@@ -144,26 +145,27 @@ class RangeTree {
 } // namespace hstd
 
 template <typename T>
-struct std::formatter<hstd::RangeTreeRange<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::RangeTreeRange<T> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::RangeTreeRange<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::RangeTreeRange<T> const& p, fmt::format_context& ctx)
+        const {
         ::hstd::fmt_ctx("[", ctx);
         ::hstd::fmt_ctx(p.range.first, ctx);
         ::hstd::fmt_ctx("..", ctx);
         ::hstd::fmt_ctx(p.range.last, ctx);
         ::hstd::fmt_ctx("[", ctx);
         ::hstd::fmt_ctx(p.index, ctx);
-        return fmt_ctx("]]", ctx);
+        return ::hstd::fmt_ctx("]]", ctx);
     }
 };
 
 
 template <typename T>
-struct std::formatter<hstd::RangeTree<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::RangeTree<T> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::RangeTree<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(hstd::RangeTree<T> const& p, fmt::format_context& ctx) const {
         if (p.root == nullptr) {
-            return fmt_ctx("nil", ctx);
+            return hstd::fmt_ctx("nil", ctx);
         } else {
             typename hstd::RangeTree<T>::Node& node = *(p.root.get());
             std::stringstream                  os;
@@ -172,7 +174,8 @@ struct std::formatter<hstd::RangeTree<T>> : std::formatter<std::string> {
             aux = [&](typename hstd::RangeTree<T>::Node const& node, int level) {
                 auto indent = hstd::Str("  ").repeated(level);
                 os << indent;
-                os << fmt("center = {} overlapping = {}", node.center, node.overlapping);
+                os << hstd::fmt(
+                    "center = {} overlapping = {}", node.center, node.overlapping);
 
                 if (node.left != nullptr) {
                     os << "\n" << indent << "  left = \n";
@@ -187,7 +190,7 @@ struct std::formatter<hstd::RangeTree<T>> : std::formatter<std::string> {
 
             aux(*p.root, 0);
 
-            return fmt_ctx(os.str(), ctx);
+            return hstd::fmt_ctx(os.str(), ctx);
         }
     }
 };

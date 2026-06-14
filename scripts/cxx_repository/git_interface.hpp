@@ -43,10 +43,10 @@ inline hstd::Str oid_tostr(git_oid oid) {
 }
 
 template <>
-struct std::formatter<git_oid> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(git_oid const& p, FormatContext& ctx) const {
-        return std::formatter<std::string>{}.format(oid_tostr(p), ctx);
+struct fmt::formatter<git_oid> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(git_oid const& p, fmt::format_context& ctx) const {
+        return fmt::formatter<std::string>{}.format(oid_tostr(p), ctx);
     }
 };
 

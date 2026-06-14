@@ -235,7 +235,7 @@ NO_COVERAGE static void loadInput(
         const llvm::StringRef FuncName = I.Name;
         bool                  Reported = false;
         Writer->addRecord(std::move(I), 1, [&](llvm::Error E) {
-            LOG(INFO) << std::format("{}", toString(std::move(E)));
+            LOG(INFO) << fmt::format("{}", toString(std::move(E)));
         });
     }
 
@@ -249,14 +249,14 @@ NO_COVERAGE static void loadInput(
 
     if (Reader->hasError()) {
         if (llvm::Error E = Reader->getError()) {
-            LOG(INFO) << std::format("{} {}", toString(std::move(E)), Filename);
+            LOG(INFO) << fmt::format("{} {}", toString(std::move(E)), Filename);
             return;
         }
     }
 
     std::vector<llvm::object::BuildID> BinaryIds;
     if (llvm::Error E = Reader->readBinaryIds(BinaryIds)) {
-        LOG(INFO) << std::format("{} {}", toString(std::move(E)), Filename);
+        LOG(INFO) << fmt::format("{} {}", toString(std::move(E)), Filename);
         return;
     }
 
@@ -326,7 +326,7 @@ namespace {
 NO_COVERAGE std::string SqlInsert(
     std::string const&              Table,
     std::vector<std::string> const& Columns) {
-    std::string result = std::format("INSERT INTO {} (", Table);
+    std::string result = fmt::format("INSERT INTO {} (", Table);
     for (auto it : llvm::enumerate(Columns)) {
         if (it.index() != 0) { result += ", "; }
         result += it.value();
@@ -529,7 +529,7 @@ struct db_build_ctx {
 
         for (auto const& r : llvm::enumerate(file_blacklist)) {
             if (r.value().match(path)) {
-                debug = std::format("blacklisted by #{}", r.index());
+                debug = fmt::format("blacklisted by #{}", r.index());
                 return false;
             }
         }
@@ -587,9 +587,9 @@ NO_COVERAGE int get_function_id(FunctionRecord const& f, queries& q, db_build_ct
 
 template <typename T, typename FormatContext>
 NO_COVERAGE auto fmt_ctx_field(
-    std::string const& field_name,
-    T const&           field_value,
-    FormatContext&     ctx) {
+    std::string const&   field_name,
+    T const&             field_value,
+    fmt::format_context& ctx) {
     fmt_ctx(" ", ctx);
     fmt_ctx(field_name, ctx);
     fmt_ctx(" = ", ctx);
@@ -597,9 +597,9 @@ NO_COVERAGE auto fmt_ctx_field(
 }
 
 template <>
-struct std::formatter<CountedRegion> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(CountedRegion const& p, FormatContext& ctx) const {
+struct fmt::formatter<CountedRegion> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(CountedRegion const& p, fmt::format_context& ctx) const {
         fmt_ctx("{", ctx);
         fmt_ctx_field("ExecutionCount", p.ExecutionCount, ctx);
         fmt_ctx_field("FalseExecutionCount", p.FalseExecutionCount, ctx);
@@ -615,9 +615,10 @@ struct std::formatter<CountedRegion> : std::formatter<std::string> {
 };
 
 template <>
-struct std::formatter<CoverageSegment> : std::formatter<std::string> {
-    template <typename FormatContext>
-    NO_COVERAGE auto format(CoverageSegment const& p, FormatContext& ctx) const {
+struct fmt::formatter<CoverageSegment> : fmt::formatter<std::string> {
+
+    NO_COVERAGE hstd::fmt_iter format(CoverageSegment const& p, fmt::format_context& ctx)
+        const {
         fmt_ctx("{", ctx);
         fmt_ctx_field("Line", p.Line, ctx);
         fmt_ctx_field("Col", p.Col, ctx);
@@ -776,7 +777,7 @@ NO_COVERAGE std::string format_range(T begin, T end) {
         } else {
             result += ", ";
         }
-        result += std::format("{}", *begin);
+        result += fmt::format("{}", *begin);
         ++begin;
     }
 
@@ -857,10 +858,10 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
     {
         __perf_trace("llvm", "Load raw profile coverage");
         loadInput(coverage_path, binary_path, &Writer);
-        LOG(INFO) << std::format("Loaded {} binary {}", coverage_path, binary_path);
+        LOG(INFO) << fmt::format("Loaded {} binary {}", coverage_path, binary_path);
     }
 
-    std::string tmp_path = std::format(
+    std::string tmp_path = fmt::format(
         "/tmp/{}.profdata",
         getMD5Digest(coverage_path, binary_path).digest().str().str());
 
@@ -873,12 +874,12 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
 
         if (EC) {
             throw hstd::domain_error::init(
-                std::format("Error while creating output stream {}", EC.message()));
+                fmt::format("Error while creating output stream {}", EC.message()));
         }
 
         if (llvm::Error E = Writer.write(Output)) {
             throw hstd::domain_error::init(
-                std::format("Failed write: {}", toString(std::move(E))));
+                fmt::format("Failed write: {}", toString(std::move(E))));
         }
     }
 
@@ -896,7 +897,7 @@ NO_COVERAGE std::shared_ptr<CoverageMapping> get_coverage_mapping(
 
         if (llvm::Error E = mapping_or_err.takeError()) {
             throw hstd::domain_error::init(
-                std::format(
+                fmt::format(
                     "Failed to load profdata {} from '{}'",
                     toString(std::move(E)),
                     tmp_path));
@@ -1086,20 +1087,20 @@ std::string generateInstantiateFunctionReport(BuildProfileCollection const& coll
         return totalDurB < totalDurA;
     });
 
-    auto formatDuration = [](int microseconds) -> std::string {
-        if (microseconds < 1000) { return std::format("{}µs", microseconds); }
+    hstd::fmt_iter formatDuration = [](int microseconds) -> std::string {
+        if (microseconds < 1000) { return fmt::format("{}µs", microseconds); }
         int ms          = microseconds / 1000;
         int remainingUs = microseconds % 1000;
         if (ms < 1000) {
-            if (remainingUs == 0) { return std::format("{}ms", ms); }
-            return std::format("{}ms {}µs", ms, remainingUs);
+            if (remainingUs == 0) { return fmt::format("{}ms", ms); }
+            return fmt::format("{}ms {}µs", ms, remainingUs);
         }
         int s           = ms / 1000;
         int remainingMs = ms % 1000;
-        if (remainingMs == 0 && remainingUs == 0) { return std::format("{}s", s); }
-        if (remainingUs == 0) { return std::format("{}s {}ms", s, remainingMs); }
-        if (remainingMs == 0) { return std::format("{}s {}µs", s, remainingUs); }
-        return std::format("{}s {}ms {}µs", s, remainingMs, remainingUs);
+        if (remainingMs == 0 && remainingUs == 0) { return fmt::format("{}s", s); }
+        if (remainingUs == 0) { return fmt::format("{}s {}ms", s, remainingMs); }
+        if (remainingMs == 0) { return fmt::format("{}s {}µs", s, remainingUs); }
+        return fmt::format("{}s {}ms {}µs", s, remainingMs, remainingUs);
     };
 
     std::string report;
@@ -1111,7 +1112,7 @@ std::string generateInstantiateFunctionReport(BuildProfileCollection const& coll
         int count  = static_cast<int>(events.size());
         int avgDur = totalDur / count;
 
-        report += std::format(
+        report += fmt::format(
             "{} = {} * {}: {}\n",
             formatDuration(totalDur),
             count,
@@ -1161,11 +1162,11 @@ NO_COVERAGE void build_run_coverage_merge(ReflectionCLI const& cli) {
 
     finally{flush_debug};
 
-    LOG(INFO) << std::format(
+    LOG(INFO) << fmt::format(
         "Using test summary file {}", cli.profdata.build_profile_dir);
 
     if (cli.profdata.debug_file) {
-        LOG(INFO) << std::format("Debug file enabled {}", cli.profdata.debug_file);
+        LOG(INFO) << fmt::format("Debug file enabled {}", cli.profdata.debug_file);
     }
 
     auto summary = JsonSerde<ProfdataFullProfile>::from_json(

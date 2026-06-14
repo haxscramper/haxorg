@@ -80,9 +80,10 @@ struct [[refl]] ImmReflFieldId {
 } // namespace org::imm
 
 template <>
-struct std::formatter<org::imm::ImmReflFieldId> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::imm::ImmReflFieldId const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::imm::ImmReflFieldId> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::imm::ImmReflFieldId const& p, fmt::format_context& ctx)
+        const {
         return fmt_ctx(p.getName(), ctx);
     }
 };
@@ -151,9 +152,9 @@ struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
 };
 
 template <typename T>
-struct std::formatter<hstd::ext::ImmBox<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::ImmBox<T> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ext::ImmBox<T>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(hstd::ext::ImmBox<T> const& p, fmt::format_context& ctx) const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(p.get(), ctx);
         return hstd::fmt_ctx("}", ctx);
@@ -161,9 +162,11 @@ struct std::formatter<hstd::ext::ImmBox<T>> : std::formatter<std::string> {
 };
 
 template <>
-struct std::formatter<hstd::ext::ImmBox<std::string>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::ImmBox<std::string> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ext::ImmBox<std::string>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(
+        hstd::ext::ImmBox<std::string> const& p,
+        fmt::format_context&                  ctx) const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
         return hstd::fmt_ctx("}", ctx);
@@ -171,9 +174,10 @@ struct std::formatter<hstd::ext::ImmBox<std::string>> : std::formatter<std::stri
 };
 
 template <>
-struct std::formatter<hstd::ext::ImmBox<hstd::Str>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::ImmBox<hstd::Str> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ext::ImmBox<hstd::Str>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(hstd::ext::ImmBox<hstd::Str> const& p, fmt::format_context& ctx)
+        const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
         return hstd::fmt_ctx("}", ctx);
@@ -182,11 +186,10 @@ struct std::formatter<hstd::ext::ImmBox<hstd::Str>> : std::formatter<std::string
 
 
 template <typename T>
-struct std::formatter<hstd::ext::ImmSet<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(hstd::ext::ImmSet<T> const& p, FormatContext& ctx)
-        const {
-        std::formatter<std::string> fmt;
+struct fmt::formatter<hstd::ext::ImmSet<T>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(hstd::ext::ImmSet<T> const& p, fmt::format_context& ctx) const {
+        fmt::formatter<std::string> fmt;
         fmt.format("{", ctx);
         fmt.format(join(", ", p), ctx);
         return fmt.format("}", ctx);
@@ -204,15 +207,15 @@ using ImmMapTransientDefault = immer::map_transient<
 
 
 template <typename K, typename V>
-struct std::formatter<ImmMapTransientDefault<K, V>>
+struct fmt::formatter<ImmMapTransientDefault<K, V>>
     : hstd::std_kv_tuple_iterator_formatter<K, V, ImmMapTransientDefault<K, V>> {};
 
 template <typename K, typename V>
-struct std::formatter<hstd::ext::ImmMap<K, V>>
+struct fmt::formatter<hstd::ext::ImmMap<K, V>>
     : hstd::std_kv_tuple_iterator_formatter<K, V, hstd::ext::ImmMap<K, V>> {};
 
 template <typename K, typename V>
-struct std::formatter<immer::map<K, V>>
+struct fmt::formatter<immer::map<K, V>>
     : hstd::std_kv_tuple_iterator_formatter<K, V, immer::map<K, V>> {};
 
 
@@ -362,9 +365,9 @@ struct [[refl]] ImmOrg {
 } // namespace org::imm
 
 template <>
-struct std::formatter<org::imm::ImmId> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::imm::ImmId const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::imm::ImmId> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::imm::ImmId const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(p.getReadableId(), ctx);
     }
 };

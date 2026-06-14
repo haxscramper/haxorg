@@ -1,7 +1,6 @@
 #include "reflection_collector.hpp"
 
 #include <llvm/Support/TimeProfiler.h>
-#include <format>
 #include <absl/log/log.h>
 #include <absl/log/check.h>
 #include <google/protobuf/util/json_util.h>
@@ -315,7 +314,7 @@ std::string getAbsoluteDeclLocation(c::Decl const* Decl) {
 
 template <typename T>
 void add_debug(T* it, std::string const& msg, int line = __builtin_LINE()) {
-    it->mutable_dbgorigin()->append(std::format(" [{}]{}", line, msg));
+    it->mutable_dbgorigin()->append(fmt::format(" [{}]{}", line, msg));
 }
 
 template <typename T>
@@ -353,7 +352,7 @@ finally_std scope_debug(T* it, std::string const& pre, std::string const& post) 
 std::ostream& errs(
     int         line     = __builtin_LINE(),
     char const* function = __builtin_FUNCTION()) {
-    return std::cerr << std::format("[refl-lib] [{}:{}] ", function, line);
+    return std::cerr << fmt::format("[refl-lib] [{}:{}] ", function, line);
 }
 
 
@@ -404,7 +403,7 @@ std::string formatDeclLocation(clang::Decl const* Decl) {
         name = "(not named decl)";
     }
 
-    return std::format(
+    return fmt::format(
         "Decl '{}' of kind {} at '{}'",
         name,
         Decl->getDeclKindName(),
@@ -422,7 +421,7 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
         space->set_name(Namespace->getNameAsString());
         add_debug(
             space,
-            std::format("Namespace visitation of '{}'", Namespace->getNameAsString()));
+            fmt::format("Namespace visitation of '{}'", Namespace->getNameAsString()));
         space->set_isnamespace(true);
         assert(!space->name().empty());
     }
@@ -479,7 +478,7 @@ void ReflASTVisitor::applyNamespaces(
                                                            : *oldNamespaces.at(i);
 
             //            if (newSpace.name().empty()) {
-            //                llvm::outs() << std::format(
+            //                llvm::outs() << fmt::format(
             //                    "Empty namespace formatted from {}\n",
             //                    newSpace.dbgorigin());
             //            }
@@ -489,7 +488,7 @@ void ReflASTVisitor::applyNamespaces(
             space->set_isglobalnamespace(newSpace.isglobalnamespace());
             add_debug(
                 space,
-                std::format(
+                fmt::format(
                     "Apply namespace @[{}] from {}:{} '{}'",
                     i,
                     line,
@@ -537,14 +536,14 @@ std::vector<QualType> ReflASTVisitor::getNamespaces(
             if (!nns->isAnonymousNamespace() && !nns->isInlineNamespace()) {
                 auto space = &result.emplace_back();
                 add_debug(
-                    space, std::format("regular type namespaces @[{}]", namespaceIndex));
+                    space, fmt::format("regular type namespaces @[{}]", namespaceIndex));
                 space->set_name(nns->getNameAsString());
                 space->set_isnamespace(true);
                 ++namespaceIndex;
             }
         } else if (c::CXXRecordDecl* rec = dyn_cast<c::CXXRecordDecl>(dc)) {
             auto space = &result.emplace_back();
-            add_debug(space, std::format("type namespace @[{}]", namespaceIndex));
+            add_debug(space, fmt::format("type namespace @[{}]", namespaceIndex));
             space->set_name(rec->getNameAsString());
             space->set_isnamespace(false);
             ++namespaceIndex;
@@ -577,12 +576,12 @@ void ReflASTVisitor::log_visit(
             if (false) {
                 HSLOG_TRACE(
                     "{}",
-                    std::format(
+                    fmt::format(
                         "\n-----------------------------------------------"
                         "---\n{}\n---\n{}\n"
                         "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
                         "^",
-                        std::format("line:{} function:{} msg:{}", line, function, msg),
+                        fmt::format("line:{} function:{} msg:{}", line, function, msg),
                         (Decl ? "\n" + dump(Decl, 5) : "")));
             }
         } else {
@@ -837,13 +836,13 @@ void ReflASTVisitor::fillTypeRec(
             auto const name //
                 = In->getAs<c::RecordType>()->getDecl()->getNameAsString();
 
-            add_debug(Out, std::format(" >record '{}'", name));
+            add_debug(Out, fmt::format(" >record '{}'", name));
             Out->set_name(name);
         } else if (In->isEnumeralType()) {
             auto const name //
                 = In->getAs<c::EnumType>()->getDecl()->getNameAsString();
             applyNamespaces(Out, getNamespaces(In, Loc));
-            add_debug(Out, std::format(" >enum '{}'", name));
+            add_debug(Out, fmt::format(" >enum '{}'", name));
             Out->set_name(name);
 
         } else if (In->isFunctionProtoType()) {
@@ -867,7 +866,7 @@ void ReflASTVisitor::fillTypeRec(
                 fillExpr(expr_param->mutable_typevalue(), size, Loc);
             } else {
                 expr_param->mutable_typevalue()->set_value(
-                    std::format("{}", C_ARRT->getSize().getSExtValue()));
+                    fmt::format("{}", C_ARRT->getSize().getSExtValue()));
                 add_debug(expr_param, " >int value");
             }
         } else if (In->isArrayType()) {
@@ -888,7 +887,7 @@ void ReflASTVisitor::fillTypeRec(
             } else {
                 unsigned Depth = parm->getDepth();
                 unsigned Index = parm->getIndex();
-                Out->set_name(std::format("unnamed_{}_{}", Depth, Index));
+                Out->set_name(fmt::format("unnamed_{}_{}", Depth, Index));
             }
 
         } else if (
@@ -944,7 +943,7 @@ void ReflASTVisitor::fillTypeRec(
                 Loc);
 
         } else {
-            add_debug(Out, std::format("typeclass={}", In->getTypeClassName()));
+            add_debug(Out, fmt::format("typeclass={}", In->getTypeClassName()));
             Diag(
                 DiagKind::Warning, "Unhandled serialization for a type '%0' (%1 %2)", Loc)
                 << In << dump(In);
@@ -1054,7 +1053,7 @@ void ReflASTVisitor::fillFieldDecl(Record::Field* sub, c::FieldDecl const* field
 
     log_visit(
         field,
-        std::format(
+        fmt::format(
             "field_visit has_rec_type: {} name: {}",
             RecType != nullptr,
             field->getNameAsString()));
@@ -1066,7 +1065,7 @@ void ReflASTVisitor::fillFieldDecl(Record::Field* sub, c::FieldDecl const* field
     if (RecType && RecType->getDecl()) {
         log_visit(
             RecType->getDecl(),
-            std::format("Anon:{}", RecType->getDecl()->getNameAsString().empty()));
+            fmt::format("Anon:{}", RecType->getDecl()->getNameAsString().empty()));
     }
 
     if (RecType != nullptr && RecType->getDecl()
@@ -1443,7 +1442,7 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
     } else {
         log_visit(
             nullptr,
-            std::format(
+            fmt::format(
                 "declaration context is not translation unit '{}' at {}, "
                 "isRefl:{}",
                 Decl->getNameAsString(),

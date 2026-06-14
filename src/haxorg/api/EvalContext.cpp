@@ -114,7 +114,7 @@ struct EvalContext {
 
     Opt<json> getTargetValue(imm::ImmId const& target_id, bool asFlatText) const {
         auto target = getContext()->adaptUnrooted(target_id);
-        EVAL_TRACE(fmt("Target node is {}", target));
+        EVAL_TRACE(hstd::fmt("Target node is {}", target));
         EVAL_SCOPE();
         Opt<json> result;
 
@@ -139,11 +139,11 @@ struct EvalContext {
                     json out_table = json::array();
                     for (auto const& row : t.rows) {
                         json out_row = json::array();
-                        EVAL_TRACE(fmt("Row {}", row));
+                        EVAL_TRACE(hstd::fmt("Row {}", row));
                         EVAL_SCOPE();
                         for (auto const& cell :
                              getContext()->adaptUnrooted(row).as<imm::ImmRow>()->cells) {
-                            EVAL_TRACE(fmt("Cell {}", cell));
+                            EVAL_TRACE(hstd::fmt("Cell {}", cell));
                             if (asFlatText) {
                                 out_row.push_back(
                                     getCleanText(getContext()->adaptUnrooted(cell)));
@@ -168,7 +168,7 @@ struct EvalContext {
                         auto value = getContext()
                                          ->adaptUnrooted(code.result.back())
                                          .as<imm::ImmBlockCodeEvalResult>();
-                        EVAL_TRACE(fmt("Target code block evaluated to {}", value));
+                        EVAL_TRACE(hstd::fmt("Target code block evaluated to {}", value));
                         // EVAL_TRACE()
                         result = getTargetValue(value->node, asFlatText);
                     }
@@ -180,7 +180,7 @@ struct EvalContext {
     }
 
     Opt<json> getAttrValue(sem::AttrValue const& attr) const {
-        EVAL_TRACE(fmt("Resolving attribute value to state {}", attr));
+        EVAL_TRACE(hstd::fmt("Resolving attribute value to state {}", attr));
         EVAL_SCOPE();
         Str  name = attr.getString();
         auto node = getTrack()->names.get(name);
@@ -213,13 +213,15 @@ struct EvalContext {
             res.block = adapter.as<imm::ImmBlockCode>();
         } else {
             auto command = adapter.as<imm::ImmCmdCall>();
-            EVAL_TRACE(fmt("Getting target code block for name '{}'", command->name));
+            EVAL_TRACE(
+                hstd::fmt("Getting target code block for name '{}'", command->name));
             res.callsiteVars       = command->callAttrs;
             res.callsiteHeaderArgs = command->insideHeaderAttrs;
             if (auto opt_block = getTrack()->names.get(command->name)) {
                 if (!opt_block->is(OrgSemKind::BlockCode)) {
                     EVAL_TRACE(
-                        fmt("Name '{}' does not refer to a code block", command->name));
+                        hstd::fmt(
+                            "Name '{}' does not refer to a code block", command->name));
                 }
 
                 auto paths = getContext()->getPathsFor(opt_block.value());
@@ -228,7 +230,8 @@ struct EvalContext {
                 res.block = getContext()->adapt(paths.front()).as<imm::ImmBlockCode>();
             } else {
                 EVAL_TRACE(
-                    fmt("Name '{}' does not refer to a known document "
+                    hstd::fmt(
+                        "Name '{}' does not refer to a known document "
                         "entry",
                         command->name));
             }
@@ -243,12 +246,12 @@ struct EvalContext {
         sem::OrgCodeEvalInput const&  in,
         OrgCodeEvalParameters const&  conf) {
         EVAL_SCOPE();
-        EVAL_TRACE(fmt("Parsing stdout"));
+        EVAL_TRACE(hstd::fmt("Parsing stdout"));
         std::string activeName = hstd::fmt("<{}-output-{}>", currentFile, evalCounter);
         auto        doc  = conf.parseContext->parseString(out.stdoutText, activeName);
         auto        stmt = sem::SemId<sem::StmtList>::New();
         for (auto const& node : doc) {
-            EVAL_TRACE(fmt("Result node {}", node->getKind()));
+            EVAL_TRACE(hstd::fmt("Result node {}", node->getKind()));
             stmt->subnodes.push_back(node);
         }
         ++evalCounter;
@@ -347,14 +350,14 @@ struct EvalContext {
         UnorderedMap<Str, sem::AttrValue> byVarname;
         if (auto default_vars = res.block->attrs.getNamed("var")) {
             for (auto const& var : default_vars->items) {
-                EVAL_TRACE(fmt("Default variable {}", var));
+                EVAL_TRACE(hstd::fmt("Default variable {}", var));
                 byVarname.insert_or_assign(var.varname.value(), var);
             }
         }
 
         if (res.callsiteVars) {
             for (auto const& var : res.callsiteVars->positional.items) {
-                EVAL_TRACE(fmt("Callsite variable {}", var));
+                EVAL_TRACE(hstd::fmt("Callsite variable {}", var));
                 if (var.varname) { byVarname.insert_or_assign(var.varname.value(), var); }
             }
         }
@@ -370,7 +373,7 @@ struct EvalContext {
             } else {
                 value = attr.getString();
             }
-            EVAL_TRACE(fmt("Var '{}' value is '{}'", var.name, value.dump()));
+            EVAL_TRACE(hstd::fmt("Var '{}' value is '{}'", var.name, value.dump()));
             var.value = value;
             input.argList.push_back(var);
         }
@@ -403,7 +406,8 @@ struct EvalContext {
                     return imm::ImmAstReplaceGroup{};
                 } else {
                     EVAL_TRACE(
-                        fmt("Updating AST with new eval result, target "
+                        hstd::fmt(
+                            "Updating AST with new eval result, target "
                             "{}, result handling {} result format {} new "
                             "node {}",
                             target.uniq(),
@@ -480,25 +484,28 @@ struct EvalContext {
             CallParams call = getTargetBlock(adapter);
 
             if (!call.block.isNil()) {
-                EVAL_TRACE(fmt(
-                    "Evaluating language '{}' at {}", call.block->lang, call.block->loc));
+                EVAL_TRACE(
+                    hstd::fmt(
+                        "Evaluating language '{}' at {}",
+                        call.block->lang,
+                        call.block->loc));
                 EVAL_SCOPE();
 
                 auto input  = convertInput(call);
                 auto output = conf.evalBlock(input);
 
                 for (auto const& it : output) {
-                    if (!it.cmd) { EVAL_TRACE(fmt("cmd: {}", it.cmd)); }
-                    if (!it.args.empty()) { EVAL_TRACE(fmt("args: {}", it.args)); }
-                    EVAL_TRACE(fmt("code: {}", it.code));
-                    if (!it.cwd.empty()) { EVAL_TRACE(fmt("cwd: {}", it.cwd)); }
+                    if (!it.cmd) { EVAL_TRACE(hstd::fmt("cmd: {}", it.cmd)); }
+                    if (!it.args.empty()) { EVAL_TRACE(hstd::fmt("args: {}", it.args)); }
+                    EVAL_TRACE(hstd::fmt("code: {}", it.code));
+                    if (!it.cwd.empty()) { EVAL_TRACE(hstd::fmt("cwd: {}", it.cwd)); }
 
                     if (!it.stderrText.empty()) {
-                        EVAL_TRACE(fmt("stderr:\n{}", it.stderrText));
+                        EVAL_TRACE(hstd::fmt("stderr:\n{}", it.stderrText));
                     }
 
                     if (!it.stdoutText.empty()) {
-                        EVAL_TRACE(fmt("stdout:\n{}", it.stdoutText));
+                        EVAL_TRACE(hstd::fmt("stdout:\n{}", it.stdoutText));
                     }
                 }
 
@@ -523,7 +530,8 @@ struct EvalContext {
             "/tmp/codeblock_eval_final.txt",
             version.getRootAdapter().treeRepr(repr_conf).toString(false));
 
-        EVAL_TRACE(fmt("Converting final root result {} back to sem", version.getRoot()));
+        EVAL_TRACE(
+            hstd::fmt("Converting final root result {} back to sem", version.getRoot()));
         return org::imm::sem_from_immer(version.getRoot(), *version.context);
     }
 };

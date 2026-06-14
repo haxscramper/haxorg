@@ -443,7 +443,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
 
                     auto group = line.isLhs ? &parsed : &expected;
 
-                    return fmt(
+                    return hstd::fmt(
                         "{} {} {}({})",
                         line.index().value(),
                         node.kind,
@@ -457,10 +457,11 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                                       hshow_opts().excl(hshow_flag::use_quotes))
                                       .toString(false))
                             : std::string(""),
-                        node.isTerminal() ? fmt("id={} kind={}",
+                        node.isTerminal() ? hstd::fmt(
+                                                "id={} kind={}",
                                                 node.getToken().getIndex(),
                                                 group->tokens->at(node.getToken()).kind)
-                                          : fmt("ext={}", node.getExtent()));
+                                          : hstd::fmt("ext={}", node.getExtent()));
                 }}};
 
         return {{.isOk = false, .failDescribe = text.format()}};
@@ -830,7 +831,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
 
     if (spec.debug.traceAll || spec.debug.printBaseLexed
         || spec.debug.printBaseLexedToFile) {
-        auto content = std::format("{}", yamlRepr(p.baseTokens));
+        auto content = fmt::format("{}", yamlRepr(p.baseTokens));
 
         if (spec.debug.traceAll || spec.debug.printBaseLexedToFile) {
             writeFile(spec, "base_lexed.yaml", content + "\n", relDebug);
@@ -885,7 +886,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     p.tokenizeConvert();
 
     if (spec.debug.traceAll || spec.debug.printLexed || spec.debug.printLexedToFile) {
-        auto content = std::format("{}", yamlRepr(p.tokens));
+        auto content = fmt::format("{}", yamlRepr(p.tokens));
 
         __perf_trace("cli", "write lexer yaml file");
         if (spec.debug.traceAll || spec.debug.printLexedToFile) {
@@ -960,7 +961,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         writeFile(
             spec,
             "parsed_non_extended.yaml",
-            std::format("{}", yamlRepr(p.nodes)) + "\n",
+            fmt::format("{}", yamlRepr(p.nodes)) + "\n",
             relDebug);
     }
 
@@ -968,7 +969,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
 
     if (spec.debug.traceAll || spec.debug.printParsed || spec.debug.printParsedToFile) {
         writeFile(
-            spec, "parsed.yaml", std::format("{}", yamlRepr(p.nodes)) + "\n", relDebug);
+            spec, "parsed.yaml", fmt::format("{}", yamlRepr(p.nodes)) + "\n", relDebug);
 
         for (auto const& [colored, path] :
              Vec<Pair<bool, Str>>{{false, "parsed.txt"}, {true, "parsed_colored.ansi"}}) {
@@ -1026,7 +1027,7 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
 
         writeFileOrStdout(
             spec.debugFile("sem.yaml", relDebug),
-            std::format("{}", toTestYaml(document)) + "\n",
+            fmt::format("{}", toTestYaml(document)) + "\n",
             spec.debug.traceAll || spec.debug.printSemToFile);
 
         {
@@ -1137,7 +1138,7 @@ TestResult org::test::gtest_run_spec(
 
     if (result.isOk() && result.isSkip()) {
         test.data = TestResult::Skip{
-            .msg = fmt(
+            .msg = hstd::fmt(
                 "Partially covered test: {}{}{}",
                 spec.debug.doLex ? "" : "lex is disabled ",
                 spec.debug.doParse ? "" : "parse is disabled ",
@@ -1179,7 +1180,7 @@ TestResult org::test::gtest_run_spec(
         runner.writeFile(spec, "failure.txt", os.toString(false), "fail");
 
         test.data = TestResult::Fail{
-            .msg = fmt(
+            .msg = hstd::fmt(
                 "{} failed, , wrote debug to  {}",
                 params.fullName(),
                 spec.debug.debugOutDir),
@@ -1191,8 +1192,8 @@ TestResult org::test::gtest_run_spec(
 
 std::string TestParams::testName() const {
     std::string final;
-    for (char const& ch :
-         fmt("{} at {}",
+    for (char const& ch : hstd::fmt(
+             "{} at {}",
              spec.name.has_value() ? spec.name.value() : std::string("<spec>"),
              file.stem())) {
         if (std::isalnum(ch) || ch == '_') {
@@ -1258,10 +1259,12 @@ hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const&)> org
                         par.os << " ";
                     }
                     if (name) {
-                        par.os << par.os.magenta() << fmt("{}", *name) << par.os.end();
+                        par.os << par.os.magenta() << hstd::fmt("{}", *name)
+                               << par.os.end();
                     } else {
                         par.os << par.os.red()
-                               << fmt("!! Missing field name for "
+                               << hstd::fmt(
+                                      "!! Missing field name for "
                                       "element {} of node {} !!",
                                       *par.subnodeIdx,
                                       OrgAdapter(nodes, *par.parent).getKind())
@@ -1276,7 +1279,7 @@ hstd::Func<void(org::parse::OrgNodeGroup::TreeReprConf::WriteParams const&)> org
                 if (parseAddedOnLine != nullptr
                     && parseAddedOnLine->contains(par.current)) {
                     par.os << " " << par.os.red()
-                           << fmt(" @{}", parseAddedOnLine->at(par.current))
+                           << hstd::fmt(" @{}", parseAddedOnLine->at(par.current))
                            << par.os.end();
                 }
                 break;

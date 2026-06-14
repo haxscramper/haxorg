@@ -98,7 +98,7 @@ class log_sink_manager {
 
     void push_sink(sink_ptr sink) {
         if (OLOG_INNER_DEBUG) {
-            OLOG_MSG() << fmt(
+            OLOG_MSG() << hstd::fmt(
                 "Push shink {:p}, current sink stack is {}",
                 (void*)sink.get(),
                 sinks_.size());
@@ -113,7 +113,7 @@ class log_sink_manager {
         std::lock_guard<std::mutex> lock(m_);
         if (!sinks_.empty()) {
             if (OLOG_INNER_DEBUG) {
-                OLOG_MSG() << fmt(
+                OLOG_MSG() << hstd::fmt(
                     "Pop sink {:p}, current sink stack is {}",
                     (void*)sinks_.top().get(),
                     sinks_.size());
@@ -185,7 +185,7 @@ void format_log_record_data(
     std::string prefix;
 
     if (false) {
-        prefix += fmt(
+        prefix += hstd::fmt(
             "{}{}",
             ts ? boost::posix_time::to_simple_string(*ts).substr(
                      11, 9 /*Extract HH:MM:SS*/)
@@ -523,17 +523,19 @@ void hstd::log::log_record::end() {
 
 
 template <>
-struct std::formatter<boost::log::attribute_name> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(boost::log::attribute_name const& p, FormatContext& ctx) const {
+struct fmt::formatter<boost::log::attribute_name> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(boost::log::attribute_name const& p, fmt::format_context& ctx)
+        const {
         return fmt_ctx(p.string(), ctx);
     }
 };
 
 template <>
-struct std::formatter<boost::log::attribute_value> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(boost::log::attribute_value const& p, FormatContext& ctx) const {
+struct fmt::formatter<boost::log::attribute_value> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(boost::log::attribute_value const& p, fmt::format_context& ctx)
+        const {
         return fmt_ctx(p.get_type().pretty_name(), ctx);
     }
 };

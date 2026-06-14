@@ -39,26 +39,26 @@ inline void maybe_enum_field(yaml const& in, E& out, std::string name, E fallbac
 
 
 template <>
-struct std::formatter<YAML::Mark> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(YAML::Mark const& p, FormatContext& ctx) const {
+struct fmt::formatter<YAML::Mark> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(YAML::Mark const& p, fmt::format_context& ctx) const {
         if (p.is_null()) {
-            return fmt_ctx("null", ctx);
+            return hstd::fmt_ctx("null", ctx);
         } else {
-            fmt_ctx(p.pos, ctx);
-            fmt_ctx(":", ctx);
-            fmt_ctx(p.line, ctx);
-            fmt_ctx(":", ctx);
-            return fmt_ctx(p.column, ctx);
+            hstd::fmt_ctx(p.pos, ctx);
+            hstd::fmt_ctx(":", ctx);
+            hstd::fmt_ctx(p.line, ctx);
+            hstd::fmt_ctx(":", ctx);
+            return hstd::fmt_ctx(p.column, ctx);
         }
     }
 };
 
 template <>
-struct std::formatter<yaml> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(yaml const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
+struct fmt::formatter<yaml> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(yaml const& p, fmt::format_context& ctx) const {
+        fmt::formatter<std::string> fmt;
         std::stringstream           os;
         os << p;
         return fmt.format(os.str(), ctx);

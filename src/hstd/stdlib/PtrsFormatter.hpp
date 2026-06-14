@@ -4,9 +4,9 @@
 
 
 template <typename T>
-struct std::formatter<hstd::SPtr<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::SPtr<T> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::SPtr<T>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(hstd::SPtr<T> const& p, fmt::format_context& ctx) const {
         if (p.get() == nullptr) {
             return ::hstd::fmt_ctx("nullptr", ctx);
         } else {
@@ -16,9 +16,9 @@ struct std::formatter<hstd::SPtr<T>> : std::formatter<std::string> {
 };
 
 template <typename T>
-struct std::formatter<hstd::UPtr<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::UPtr<T> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::UPtr<T>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(hstd::UPtr<T> const& p, fmt::format_context& ctx) const {
         if (p.get() == nullptr) {
             return ::hstd::fmt_ctx("nullptr", ctx);
         } else {

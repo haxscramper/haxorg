@@ -51,7 +51,7 @@ std::string FormatTimeDelta(long delta_seconds) {
     long delta   = delta_seconds / 60;
     long hours   = delta / 60;
     long minutes = delta % 60;
-    return std::format("{}:{:02}", hours, minutes);
+    return fmt::format("{}:{:02}", hours, minutes);
 }
 
 namespace {

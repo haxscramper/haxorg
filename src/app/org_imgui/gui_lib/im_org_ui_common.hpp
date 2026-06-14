@@ -101,7 +101,7 @@ struct EditableOrgTextEntry {
 DECL_ID_TYPE_MASKED(___RootId, DocRootId, hstd::u64, 32);
 
 template <>
-struct std::formatter<org::imm::ImmAstVersion*>
+struct fmt::formatter<org::imm::ImmAstVersion*>
     : hstd::std_format_ptr_as_hex<org::imm::ImmAstVersion> {};
 
 struct EditableOrgDocGroup {

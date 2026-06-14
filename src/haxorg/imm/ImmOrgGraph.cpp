@@ -458,7 +458,8 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
             default: {
                 throw logic_unreachable_error::init(
-                    fmt("Unhandled link kind '{}'", link_adapter->target.getKind()));
+                    hstd::fmt(
+                        "Unhandled link kind '{}'", link_adapter->target.getKind()));
             }
         }
     }
@@ -767,7 +768,8 @@ gv::Record MapGraph::GvConfig::getNodeLabel(
     if (node->loc || file) {
         rec.setEscaped(
             "Loc",
-            fmt("{}:{}:{} @ {}",
+            hstd::fmt(
+                "{}:{}:{} @ {}",
                 node->loc->column,
                 node->loc->line,
                 node->loc->pos,
@@ -781,8 +783,9 @@ gv::Record MapGraph::GvConfig::getNodeLabel(
                                   .as<ImmLink>()
                                   .value();
             rec.setEscaped(
-                fmt("Unresolved link [{}]", unresolved.getLink().link.id),
-                fmt("{} {}",
+                hstd::fmt("Unresolved link [{}]", unresolved.getLink().link.id),
+                hstd::fmt(
+                    "{} {}",
                     val.target.getKind(),
                     std::visit(
                         [](auto const& d) -> std::string {
@@ -791,7 +794,7 @@ gv::Record MapGraph::GvConfig::getNodeLabel(
                         val.target.data)));
         } else {
             rec.setEscaped(
-                fmt("Unresolved radio [{}]", unresolved.getRadio().target.id),
+                hstd::fmt("Unresolved radio [{}]", unresolved.getRadio().target.id),
                 "radio target");
         }
     }

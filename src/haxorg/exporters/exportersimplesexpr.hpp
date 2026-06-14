@@ -33,7 +33,7 @@ struct ExporterSimpleSExpr : public Exporter<ExporterSimpleSExpr, hstd::layout::
 
     template <org::sem::NotOrg T>
     void visit(Res& res, T const& value) {
-        res = b.line({string(hstd::escape_for_write(std::format("{}", value)))});
+        res = b.line({string(hstd::escape_for_write(fmt::format("{}", value)))});
     }
 
     template <typename T>

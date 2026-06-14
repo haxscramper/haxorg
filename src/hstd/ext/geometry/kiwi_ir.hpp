@@ -22,17 +22,17 @@
 #    include <src/hstd/ext/geometry/kiwi_ir.pb.h>
 
 template <>
-struct std::formatter<kiwi::Variable> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(kiwi::Variable const& p, FormatContext& ctx) const {
+struct fmt::formatter<kiwi::Variable> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(kiwi::Variable const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(p.name(), ctx);
     }
 };
 
 template <>
-struct std::formatter<kiwi::Term> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(kiwi::Term const& p, FormatContext& ctx) const {
+struct fmt::formatter<kiwi::Term> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(kiwi::Term const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(p.variable(), ctx);
     }
 };

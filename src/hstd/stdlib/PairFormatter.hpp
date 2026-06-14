@@ -3,10 +3,25 @@
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 
+namespace hstd {
+template <typename Tuple, std::size_t... Is, typename FormatContext>
+hstd::fmt_iter format_tuple_impl(
+    Tuple const&         t,
+    fmt::format_context& ctx,
+    std::index_sequence<Is...>) {
+    ::hstd::fmt_ctx("(", ctx);
+    (...,
+     (::hstd::fmt_ctx(std::get<Is>(t), ctx),
+      ::hstd::fmt_ctx((Is + 1 == sizeof...(Is) ? "" : ", "), ctx)));
+    return ::hstd::fmt_ctx(")", ctx);
+}
+
+} // namespace hstd
+
 template <typename A, typename B>
-struct std::formatter<hstd::Pair<A, B>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::Pair<A, B> const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::Pair<A, B>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(hstd::Pair<A, B> const& p, fmt::format_context& ctx) const {
         ::hstd::fmt_ctx("(", ctx);
         ::hstd::fmt_ctx(p.first, ctx);
         ::hstd::fmt_ctx(", ", ctx);
@@ -16,9 +31,9 @@ struct std::formatter<hstd::Pair<A, B>> : std::formatter<std::string> {
 };
 
 template <typename... Args>
-struct std::formatter<std::tuple<Args...>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(std::tuple<Args...> const& t, FormatContext& ctx) const {
+struct fmt::formatter<std::tuple<Args...>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(std::tuple<Args...> const& t, fmt::format_context& ctx) const {
         return ::hstd::format_tuple_impl(t, ctx, std::index_sequence_for<Args...>{});
     }
 };

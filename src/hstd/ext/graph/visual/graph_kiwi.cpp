@@ -98,7 +98,7 @@ struct single_layout_run_state {
         static int kiwi_run_counter = 0;
         if (run->TraceState) {
             layout.to_graphviz(run->getAdjacentToTraceFile(
-                std::format("kiwi_solver_run_{}.png", hstd::fmt1(kiwi_run_counter))));
+                fmt::format("kiwi_solver_run_{}.png", hstd::fmt1(kiwi_run_counter))));
         }
 
 
@@ -107,7 +107,7 @@ struct single_layout_run_state {
 
         if (run->TraceState) {
             run->writeAdjacentToTraceFile(
-                std::format("kiwi_solver_run_{}.svg", hstd::fmt1(kiwi_run_counter)),
+                fmt::format("kiwi_solver_run_{}.svg", hstd::fmt1(kiwi_run_counter)),
                 layout.to_svg(hstd::fmt1(kiwi_run_counter)).to_string(2));
         }
         ++kiwi_run_counter;

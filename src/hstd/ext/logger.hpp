@@ -86,16 +86,16 @@ concept has_log_value_formatter = requires(T const& value) {
 };
 
 template <typename... Args>
-using LogFormatStr = std::format_string<std::conditional_t<
+using LogFormatStr = fmt::format_string<std::conditional_t<
     hstd::log::has_log_value_formatter<std::decay_t<Args>>,
     std::string,
     std::conditional_t<hstd::StdFormattable<std::decay_t<Args>>, Args, std::string>>...>;
 
 template <typename T>
 auto format_logger_argument1(T const& arg) {
-    if constexpr (hstd::log::has_log_value_formatter<std::decay_t<decltype(arg)>>) {
-        return hstd::log::log_value_formatter<std::decay_t<decltype(arg)>>{}.format(arg);
-    } else if constexpr (hstd::StdFormattable<std::decay_t<decltype(arg)>>) {
+    if constexpr (hstd::log::has_log_value_formatter<std::decay_t<T>>) {
+        return hstd::log::log_value_formatter<std::decay_t<T>>{}.format(arg);
+    } else if constexpr (hstd::StdFormattable<std::decay_t<T>>) {
         return arg;
     } else {
         return hstd::fmt(
@@ -104,15 +104,13 @@ auto format_logger_argument1(T const& arg) {
 }
 
 template <typename... Args>
-std::string format_logger_arguments(LogFormatStr<Args...> __fmt, const Args&... args) {
-    auto formatted_args = std::make_tuple(format_logger_argument1<Args>(args)...);
+std::string format_logger_arguments(LogFormatStr<Args...> fmt_str, Args const&... args) {
+    hstd::fmt_iter formatted_args = std::make_tuple(
+        format_logger_argument1<Args>(args)...);
     return std::apply(
-        [&__fmt](auto&... args_ref) {
-            return std::vformat(__fmt.get(), std::make_format_args(args_ref...));
-        },
+        [&fmt_str](auto const&... args_ref) { return fmt::format(fmt_str, args_ref...); },
         formatted_args);
 }
-
 
 enum class severity_level
 {
@@ -244,8 +242,9 @@ struct log_record {
         log_category const&   category,
         LogFormatStr<Args...> fmt,
         Args&&... args) {
-        log_record rec;
-        auto formatted_args = std::make_tuple(format_logger_argument1<Args>(args)...);
+        log_record     rec;
+        hstd::fmt_iter formatted_args = std::make_tuple(
+            format_logger_argument1<Args>(args)...);
         rec.line(line)
             .file(file)
             .severity(severity)
@@ -254,7 +253,7 @@ struct log_record {
             .message(
                 std::apply(
                     [&fmt](auto&... args_ref) {
-                        return std::vformat(
+                        return fmt::vformat(
                             fmt.get(), std::make_format_args(args_ref...));
                     },
                     formatted_args));
@@ -274,7 +273,8 @@ struct log_record {
         rec.line(line).file(file).severity(severity).function(function).message(
             std::apply(
                 [&fmt](auto&... args_ref) {
-                    return std::vformat(fmt.get(), std::make_format_args(args_ref...));
+                    auto store = fmt::make_format_args(args_ref...);
+                    return fmt::vformat(fmt.get(), fmt::format_args(store));
                 },
                 formatted_args));
         return rec;
@@ -332,9 +332,10 @@ struct log_record {
 
     template <typename... _Args>
     inline log_record& fmt_message(
-        std::format_string<_Args...> __fmt,
+        fmt::format_string<_Args...> __fmt,
         _Args&&... __args) {
-        data.message += std::vformat(__fmt.get(), std::make_format_args(__args...));
+        auto store = fmt::make_format_args(__args...);
+        data.message += fmt::vformat(__fmt.get(), fmt::format_args(store));
         return *this;
     }
 
@@ -439,7 +440,7 @@ struct log_builder {
     template <typename Self, typename... _Args>
     inline auto&& fmt_message(
         this Self&&                  self,
-        std::format_string<_Args...> __fmt,
+        fmt::format_string<_Args...> __fmt,
         _Args&&... __args) {
         if (!self.is_released) {
             self.rec.fmt_message(__fmt, std::forward<_Args>(__args)...);
@@ -720,7 +721,7 @@ std::string __HSLOG_DEBUG_FMT_EXPR_IMPL_impl(
     int names_width = 0;
     for (auto const& n : argNames) { names_width = std::max<int>(names_width, n.size()); }
 
-    auto format_arg = [&](int index, auto const& value) {
+    hstd::fmt_iter format_arg = [&](int index, auto const& value) {
         if (index > 0) {
             if (stack) {
                 result += "\n";

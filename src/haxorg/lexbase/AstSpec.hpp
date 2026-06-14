@@ -141,11 +141,10 @@ struct AstRange {
 
 
 template <typename Name>
-struct std::formatter<org::parse::AstRange<Name>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
-        org::parse::AstRange<Name> const& p,
-        FormatContext&                    ctx) const {
+struct fmt::formatter<org::parse::AstRange<Name>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::parse::AstRange<Name> const& p, fmt::format_context& ctx)
+        const {
         switch (p.kind) {
             case org::parse::AstRangeKind::Point: {
                 hstd::fmt_ctx(p.idx, ctx);
@@ -544,7 +543,7 @@ struct AstSpec {
         auto diff = all - visited;
         if (!diff.empty()) {
             throw FieldAccessError(
-                std::format(
+                fmt::format(
                     "Indices missing from the field description {} are "
                     "not "
                     "covered in spec for node {}",
@@ -662,7 +661,7 @@ struct AstSpec {
         hstd::Opt<hstd::Slice<int>> slice,
         AstRange<Name> const&       range) const {
         return FieldAccessError::init(
-            std::format(
+            fmt::format(
                 "Range {} for node kind {} was resolved into slice {} "
                 "(required ast range is {})",
                 hstd::fmt1(name),

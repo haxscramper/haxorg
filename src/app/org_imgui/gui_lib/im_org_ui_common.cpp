@@ -85,12 +85,13 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
     std::string const&    id) {
     auto __scope = IM_SCOPE_BEGIN(
         "Editable text",
-        fmt("size:{} editing:{} buffer:{}",
+        hstd::fmt(
+            "size:{} editing:{} buffer:{}",
             size,
             is_editing,
             escape_literal(edit_buffer)));
 
-    auto cell_prefix = fmt("{}", id);
+    auto cell_prefix = hstd::fmt("{}", id);
 
 
     if (edit == Mode::Multiline) {
@@ -101,12 +102,12 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
         // edited.
         if (IM_FN_BEGIN(
                 BeginChild,
-                fmt("##{}_wrap", cell_prefix).c_str(),
+                hstd::fmt("##{}_wrap", cell_prefix).c_str(),
                 size,
                 ImGuiChildFlags_None,
                 ImGuiWindowFlags_NoScrollbar)) {
-            IM_FN_PRINT("Child", fmt("size:{}", size));
-            ImGui::PushID(fmt("##{}_view", cell_prefix).c_str());
+            IM_FN_PRINT("Child", hstd::fmt("size:{}", size));
+            ImGui::PushID(hstd::fmt("##{}_view", cell_prefix).c_str());
             IM_FN_STMT(TextWrapped, "%s", value.c_str());
             IM_FN_PRINT("Wrapped text", value);
             ImGui::PopID();
@@ -138,7 +139,7 @@ Opt<EditableOrgText::Result> EditableOrgText::render(
             } else {
                 ImGui::SameLine(0.0f, 0.0f);
                 ImGui::SetNextItemWidth(size.x);
-                ImGui::InputText(fmt("##{}_edit", id).c_str(), &edit_buffer);
+                ImGui::InputText(hstd::fmt("##{}_edit", id).c_str(), &edit_buffer);
                 return std::nullopt;
             }
 

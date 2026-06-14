@@ -88,7 +88,7 @@ struct verbose_convert {
             if (!knownFieldCache.contains(name)) {
                 throw RepresentationException(
                     it.first.Mark(),
-                    std::format(
+                    fmt::format(
                         "Unexpected field name '{}', expected {}",
                         name,
                         join(" or ", knownFieldCache.keys())));

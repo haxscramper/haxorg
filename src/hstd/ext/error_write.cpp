@@ -105,7 +105,7 @@ struct Writer {
         char const* function = __builtin_FUNCTION()) {
         if (config->debug_writes) {
             stream << stream.green() << value << stream.end() << stream.blue()
-                   << fmt("@{}", line) << stream.end();
+                   << hstd::fmt("@{}", line) << stream.end();
         } else {
             stream << value;
         }
@@ -161,7 +161,7 @@ struct MarginContext {
         bool       force_scope = false,
         int        line        = __builtin_LINE()) const {
         if (config.debug_scopes || force_scope) {
-            w.stream << fmt("«{}:{}«", line, function);
+            w.stream << hstd::fmt("«{}:{}«", line, function);
             return finally_std{[&]() { w.stream << "»»"; }};
         } else {
             return finally_std::nop();

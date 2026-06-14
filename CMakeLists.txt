@@ -304,6 +304,7 @@ endif()
 
 find_package(Lager CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 
 if(${ORG_BUILD_INTERNAL_TOOLS})
   find_package(SQLiteCpp CONFIG REQUIRED)

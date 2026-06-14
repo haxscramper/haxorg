@@ -33,11 +33,11 @@ template <typename T>
 struct std::hash<immer::vector<T>> : hstd::std_indexable_hash<immer::vector<T>> {};
 
 template <typename T>
-struct std::formatter<immer::vector<T>>
+struct fmt::formatter<immer::vector<T>>
     : hstd::std_item_iterator_formatter<T, immer::vector<T>> {};
 
 template <typename T>
-struct std::formatter<hstd::ext::ImmVec<T>>
+struct fmt::formatter<hstd::ext::ImmVec<T>>
     : hstd::std_item_iterator_formatter<T, hstd::ext::ImmVec<T>> {};
 
 namespace hstd::ext {

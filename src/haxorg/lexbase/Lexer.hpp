@@ -145,9 +145,9 @@ struct LexerCommon {
                 if (os.colored) {
                     os << " "
                        << styledUnicodeMapping(
-                              std::format("{}", t.kind), hstd::AsciiStyle::Italic);
+                              fmt::format("{}", t.kind), hstd::AsciiStyle::Italic);
                 } else {
-                    os << " " << std::format("{}", t.kind);
+                    os << " " << fmt::format("{}", t.kind);
                 }
                 format(os, t);
             }
@@ -430,11 +430,11 @@ struct Lexer : public LexerCommon<K, V> {
 
 
 template <typename K, typename V>
-struct std::formatter<org::parse::LexerCommon<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
+struct fmt::formatter<org::parse::LexerCommon<K, V>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(
         org::parse::LexerCommon<K, V> const& p,
-        FormatContext&                       ctx) const {
+        fmt::format_context&                 ctx) const {
         return ::hstd::fmt_ctx(
             p.printToString([](hstd::ColStream&, org::parse::Token<K, V> const&) {}),
             ctx);

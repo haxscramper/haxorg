@@ -3,20 +3,12 @@
 #include <utility>
 #include <hstd/system/reflection.hpp>
 
+
 namespace hstd {
 
 template <typename A, typename B>
 using Pair = std::pair<A, B>;
 
-
-template <typename Tuple, std::size_t... Is, typename FormatContext>
-auto format_tuple_impl(Tuple const& t, FormatContext& ctx, std::index_sequence<Is...>) {
-    fmt_ctx("(", ctx);
-    (...,
-     (fmt_ctx(std::get<Is>(t), ctx),
-      fmt_ctx((Is + 1 == sizeof...(Is) ? "" : ", "), ctx)));
-    return fmt_ctx(")", ctx);
-}
 
 template <typename T>
 Pair<T, T> pair1(T const& first, T const& second) {

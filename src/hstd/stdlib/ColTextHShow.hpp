@@ -94,7 +94,7 @@ struct hshow {};
 template <StdFormattable T>
 struct hshow_std_format {
     static void format(ColStream& s, T const& value, hshow_opts const& opts) {
-        s << std::format("{}", value);
+        s << fmt::format("{}", value);
     }
 };
 
@@ -117,11 +117,11 @@ struct hshow_integral_type {
     static void format(ColStream& s, T const& value, hshow_opts const& opts) {
         s << s.blue();
         if (opts.get_use_hex()) {
-            s << std::format("{:X}", value);
+            s << fmt::format("{:X}", value);
         } else if (opts.get_use_bin()) {
-            s << std::format("{:B}", value);
+            s << fmt::format("{:B}", value);
         } else {
-            s << std::format("{}", value);
+            s << fmt::format("{}", value);
         }
         s << s.end();
     }

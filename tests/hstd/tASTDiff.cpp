@@ -51,7 +51,7 @@ struct TestNodeStore : NodeStore {
 
     Func<ColText(NodeStore::Id const&)> getToStr() {
         return [](NodeStore::Id const& arg) -> ColText {
-            return std::format("{}", arg.ToPtr<TestNode>()->value);
+            return fmt::format("{}", arg.ToPtr<TestNode>()->value);
         };
     }
 };

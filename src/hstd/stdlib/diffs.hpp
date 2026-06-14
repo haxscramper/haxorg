@@ -9,6 +9,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
 #include <math.h>
+#include <hstd/stdlib/ColTextFormatter.hpp>
 
 #include <hstd/system/reflection.hpp>
 
@@ -542,15 +543,15 @@ struct FormattedDiff {
                 int const idx = line.index().value();
                 if (formatLine) {
                     if (line.isLhs) {
-                        return std::format("[{:0{}}] {}", idx, digitCount, lhs->at(idx));
+                        return fmt::format("[{:0{}}] {}", idx, digitCount, lhs->at(idx));
                     } else {
-                        return std::format("[{:0{}}] {}", idx, digitCount, rhs->at(idx));
+                        return fmt::format("[{:0{}}] {}", idx, digitCount, rhs->at(idx));
                     }
                 } else {
                     if (line.isLhs) {
-                        return std::format("{}", lhs->at(idx));
+                        return fmt::format("{}", lhs->at(idx));
                     } else {
-                        return std::format("{}", rhs->at(idx));
+                        return fmt::format("{}", rhs->at(idx));
                     }
                 }
             }

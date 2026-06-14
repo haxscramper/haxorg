@@ -2,6 +2,7 @@
 #include <immer/flex_vector_transient.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace org;
 using namespace org::imm;
@@ -12,7 +13,7 @@ ImmAstReplace org::imm::setSubnode(
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Set {}[{}] = {}", node, position, newSubnode));
+    AST_EDIT_MSG(hstd::fmt("Set {}[{}] = {}", node, position, newSubnode));
     auto res = setSubnodes(node, node->subnodes.set(position, newSubnode), ctx);
     return res;
 }
@@ -22,7 +23,7 @@ ImmAstReplace org::imm::insertSubnode(
     ImmId              add,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Insert {}[{}] = {}", node, position, add));
+    AST_EDIT_MSG(hstd::fmt("Insert {}[{}] = {}", node, position, add));
     return setSubnodes(node, node->subnodes.insert(position, add), ctx);
 }
 
@@ -31,7 +32,7 @@ ImmAstReplace org::imm::insertSubnodes(
     Vec<ImmId>         add,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Insert {} at {} in {}b", add, position, node));
+    AST_EDIT_MSG(hstd::fmt("Insert {} at {} in {}b", add, position, node));
     Vec<ImmId> u;
     LOGIC_ASSERTION_CHECK_FMT(0 <= position, "{}", position);
 
@@ -54,7 +55,7 @@ ImmAstReplace org::imm::dropSubnode(
     ImmAdapter const&  node,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Drop subnode {}[{}]", node, position));
+    AST_EDIT_MSG(hstd::fmt("Drop subnode {}[{}]", node, position));
     return setSubnodes(node, node->subnodes.erase(position), ctx);
 }
 
@@ -87,7 +88,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
     if (move == SubtreeMove::EnsureLevels || move == SubtreeMove::ForceLevels) {
 
-        AST_EDIT_MSG(fmt("Demote subtree {}", node));
+        AST_EDIT_MSG(hstd::fmt("Demote subtree {}", node));
         Func<Opt<ImmAstReplace>(ImmAdapter const&)> aux;
         aux = [&](ImmAdapter const& target) -> Opt<ImmAstReplace> {
             for (auto const& sub : target.sub()) {
@@ -117,7 +118,8 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                 // Demoting subtree caused reparenting, removing the
                 // node from the old subtree.
                 AST_EDIT_MSG(
-                    fmt("Subtree demote reparenting. Adjacent:{}, "
+                    hstd::fmt(
+                        "Subtree demote reparenting. Adjacent:{}, "
                         "replaced:{}, "
                         "target drop:{}",
                         adjacent->id,
@@ -129,7 +131,8 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                 edits.incl(appendSubnode(*adjacent, update.replaced.id, ctx));
             } else {
                 AST_EDIT_MSG(
-                    fmt("Subtree demote, no reparenting, levels are "
+                    hstd::fmt(
+                        "Subtree demote, no reparenting, levels are "
                         "ok. "
                         "Adjacent:{}, replaced:{}",
                         adjacentTree->level,
@@ -137,13 +140,14 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
             }
         } else {
             AST_EDIT_MSG(
-                fmt("Subtree demote, no reparenting parent:{} "
+                hstd::fmt(
+                    "Subtree demote, no reparenting parent:{} "
                     "adjacent:{}",
                     parent,
                     adjacent));
         }
     } else {
-        AST_EDIT_MSG(fmt("Physical demote subtree {}", node));
+        AST_EDIT_MSG(hstd::fmt("Physical demote subtree {}", node));
         Vec<ImmId> demotedSubnodes;
         Vec<ImmId> reparentedSubnodes;
         auto       tree  = node.as<org::imm::ImmSubtree>();
@@ -160,8 +164,8 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
             }
         }
 
-        AST_EDIT_MSG(fmt("New subnode list {}", demotedSubnodes));
-        AST_EDIT_MSG(fmt("Move subnode list {}", reparentedSubnodes));
+        AST_EDIT_MSG(hstd::fmt("New subnode list {}", demotedSubnodes));
+        AST_EDIT_MSG(hstd::fmt("Move subnode list {}", reparentedSubnodes));
 
 
         {
@@ -175,7 +179,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                     return value;
                 });
 
-            AST_EDIT_MSG(fmt("Update subtree {}", update));
+            AST_EDIT_MSG(hstd::fmt("Update subtree {}", update));
             edits.incl(update);
 
             if (!reparentedSubnodes.empty()) {
@@ -183,7 +187,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                 auto parent            = tree.getParent().value();
                 auto newParentSubnodes = edits.newSubnodes(
                     Vec<ImmId>{parent->subnodes.begin(), parent->subnodes.end()});
-                AST_EDIT_MSG(fmt("Tree {} parent {}", tree, parent));
+                AST_EDIT_MSG(hstd::fmt("Tree {} parent {}", tree, parent));
 
                 reparentedSubnodes = edits.newSubnodes(reparentedSubnodes);
                 newParentSubnodes.insert(
@@ -193,7 +197,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
                 auto update = setSubnodes(
                     parent, {newParentSubnodes.begin(), newParentSubnodes.end()}, ctx);
-                AST_EDIT_MSG(fmt("Update subnode list {}", update));
+                AST_EDIT_MSG(hstd::fmt("Update subnode list {}", update));
                 edits.incl(update);
             }
         }
@@ -239,7 +243,8 @@ Opt<ImmAstReplace> org::imm::moveSubnode(
     subnodes = subnodes.insert(targetPosition, inserted);
 
     AST_EDIT_MSG(
-        fmt("Move subnodes {}[{} + {} => {}] -> {} -> {}",
+        hstd::fmt(
+            "Move subnodes {}[{} + {} => {}] -> {} -> {}",
             node,
             position,
             offset,
@@ -296,7 +301,7 @@ ImmAstReplace org::imm::replaceNode(
     ImmAdapter const&  target,
     ImmId const&       value,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(fmt("Replace adapter {} -> {}", target, value));
+    AST_EDIT_MSG(hstd::fmt("Replace adapter {} -> {}", target, value));
     return ImmAstReplace{
         .original = target.uniq(),
         .replaced = target.uniq().update(value),
@@ -347,11 +352,12 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
     if (ctx.can_visit(node)) {
         ctx.visit(node);
     } else {
-        ctx.sel->message(fmt("Cannot visit adapter {}", node));
+        ctx.sel->message(hstd::fmt("Cannot visit adapter {}", node));
         return false;
     }
     ctx.sel->message(
-        fmt("condition={} (@{}/{}) node={}",
+        hstd::fmt(
+            "condition={} (@{}/{}) node={}",
             condition->debug.value_or("<?>"),
             std::distance(ctx.sel->path.begin(), condition),
             ctx.sel->path.high(),
@@ -359,7 +365,8 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
     auto __scope = ctx.sel->begin_scope();
 
     if (ctx.maxDepth && ctx.maxDepth.value() < depth) {
-        ctx.sel->message(fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth));
+        ctx.sel->message(
+            hstd::fmt("maxDepth {} < depth {}", ctx.maxDepth.value(), depth));
 
         return false;
     }
@@ -409,12 +416,13 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
                 case OrgSelectorLink::Kind::FieldName: {
                     auto const& name = std::get<OrgSelectorLink::FieldName>(
                         condition->link->data);
-                    ctx.sel->message(fmt("link field name '{}'", name.name));
+                    ctx.sel->message(hstd::fmt("link field name '{}'", name.name));
 
                     for (auto const& sub : node.getAllSubnodes(node.path)) {
                         auto drop = sub.flatPath().dropPrefix(node.flatPath());
                         ctx.sel->message(
-                            fmt("Subnode {} on path {} prefix {} drop {}",
+                            hstd::fmt(
+                                "Subnode {} on path {} prefix {} drop {}",
                                 sub.id,
                                 sub.flatPath(),
                                 node.flatPath(),
@@ -434,7 +442,8 @@ bool recMatches(PathIter condition, ImmAdapter node, int depth, Ctx ctx) {
 
         if (isMatch && condition->isTarget) {
             ctx.sel->message(
-                fmt("node is matched and marked as target\n{}",
+                hstd::fmt(
+                    "node is matched and marked as target\n{}",
                     node.treeRepr(
                             org::imm::ImmAdapter::TreeReprConf{
                                 .withAuxFields = true,
@@ -493,7 +502,9 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
                     Vec<Str> plaintext = flatWords(tree.value().at(
                         imm::ImmReflFieldId::FromTypeField<imm::ImmSubtree>(
                             &imm::ImmSubtree::title)));
-                    message(fmt("{} == {} -> {}", plaintext, title, plaintext == title));
+                    message(
+                        hstd::fmt(
+                            "{} == {} -> {}", plaintext, title, plaintext == title));
 
                     return OrgSelectorResult{
                         .isMatching = title == plaintext,
@@ -505,7 +516,7 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
                     };
                 }
             },
-            .debug    = fmt("HasSubtreePlaintextTitle:{}", title),
+            .debug    = hstd::fmt("HasSubtreePlaintextTitle:{}", title),
             .link     = link,
             .isTarget = isTarget,
         });
@@ -538,7 +549,7 @@ void OrgDocumentSelector::searchSubtreeId(
                     return OrgSelectorResult{.isMatching = false};
                 }
             },
-            .debug    = fmt("HasSubtreeId:{}", id),
+            .debug    = hstd::fmt("HasSubtreeId:{}", id),
             .link     = link,
             .isTarget = isTarget,
         });
@@ -555,7 +566,7 @@ void OrgDocumentSelector::searchAnyKind(
                     .isMatching = kinds.contains(node->getKind()),
                 };
             },
-            .debug    = fmt("HasKind:{}", kinds),
+            .debug    = hstd::fmt("HasKind:{}", kinds),
             .link     = link,
             .isTarget = isTarget,
         });

@@ -27,7 +27,7 @@ glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE 
 glob_add_sources2(TARGET hstd LS_REGEX "${BASE}/src/hstd/ext/.*" SEARCH_BASE "${BASE}")
 
 target_link_libraries(hstd PUBLIC yaml-cpp::yaml-cpp range-v3::range-v3
-                                  nlohmann_json::nlohmann_json cctz::cctz)
+                                  nlohmann_json::nlohmann_json cctz::cctz fmt::fmt)
 
 if(${ORG_DEPS_USE_PACKAGED_BOOST})
   target_link_libraries(hstd PUBLIC Boost::boost_describe Boost::boost_preprocessor)

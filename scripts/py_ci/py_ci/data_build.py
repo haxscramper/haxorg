@@ -146,6 +146,13 @@ def get_external_deps_list(
     # present.
 
     dep(
+        build_name="fmt",
+        deps_name="fmt",
+        cmake_dirs=[("fmt", make_lib("fmt/lib/cmake/fmt"))],
+        configure_args=[],
+    )
+
+    dep(
         build_name="graphviz",
         deps_name="graphviz",
         cmake_dirs=[("graphviz", make_lib("graphviz/lib/cmake/graphviz"))],

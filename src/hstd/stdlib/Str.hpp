@@ -5,7 +5,6 @@
 #include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/Vec.hpp>
-#include <format>
 
 namespace hstd {
 
@@ -107,10 +106,10 @@ inline hstd::Str operator+(char const* in, hstd::Str const& other) {
 
 
 template <class CharT>
-struct std::formatter<hstd::Str, CharT> : std::formatter<std::string, CharT> {
-    template <typename FormatContext>
-    auto format(hstd::Str const& p, FormatContext& ctx) const {
-        return std::formatter<std::string, CharT>::format(p.toBase(), ctx);
+struct fmt::formatter<hstd::Str, CharT> : fmt::formatter<std::string, CharT> {
+
+    hstd::fmt_iter format(hstd::Str const& p, fmt::format_context& ctx) const {
+        return fmt::formatter<std::string, CharT>::format(p.toBase(), ctx);
     }
 };
 

@@ -107,9 +107,9 @@ struct StdFormattableType {
 };
 
 template <>
-struct std::formatter<StdFormattableType> : std::formatter<std::string> {
-    auto format(StdFormattableType const& obj, format_context& ctx) const {
-        return std::formatter<std::string>::format(
+struct fmt::formatter<StdFormattableType> : fmt::formatter<std::string> {
+    hstd::fmt_iter format(StdFormattableType const& obj, format_context& ctx) const {
+        return fmt::formatter<std::string>::format(
             "std_fmt:" + std::to_string(obj.value), ctx);
     }
 };
@@ -132,9 +132,9 @@ struct BothFormattableType {
 };
 
 template <>
-struct std::formatter<BothFormattableType> : std::formatter<std::string> {
-    auto format(BothFormattableType const& obj, format_context& ctx) const {
-        return std::formatter<std::string>::format(
+struct fmt::formatter<BothFormattableType> : fmt::formatter<std::string> {
+    hstd::fmt_iter format(BothFormattableType const& obj, format_context& ctx) const {
+        return fmt::formatter<std::string>::format(
             "std_both:" + std::to_string(obj.value), ctx);
     }
 };

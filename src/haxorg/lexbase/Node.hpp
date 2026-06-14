@@ -10,7 +10,6 @@
 #include <hstd/stdlib/ColText.hpp>
 
 #include <haxorg/lexbase/Token.hpp>
-#include <format>
 
 #include <variant>
 
@@ -146,31 +145,32 @@ struct hstd::value_domain<org::parse::NodeId<N, K, IdBase, MaskType>> {
 
 
 template <typename N, typename K, typename V, typename M>
-struct std::formatter<org::parse::NodeId<N, K, V, M>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(
+struct fmt::formatter<org::parse::NodeId<N, K, V, M>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(
         org::parse::NodeId<N, K, V, M> const& p,
-        FormatContext&                        ctx) const {
-        std::formatter<std::string> fmt;
+        fmt::format_context&                  ctx) const {
+        fmt::formatter<std::string> fmt;
         return fmt.format(
-            p.format(std::format("NodeId<{}>", hstd::demangle(typeid(N).name()))), ctx);
+            p.format(fmt::format("NodeId<{}>", hstd::demangle(typeid(N).name()))), ctx);
     }
 };
 
 
 template <>
-struct std::formatter<std::monostate> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(std::monostate const& p, FormatContext& ctx) const {
-        std::formatter<std::string> fmt;
+struct fmt::formatter<std::monostate> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(std::monostate const& p, fmt::format_context& ctx) const {
+        fmt::formatter<std::string> fmt;
         return hstd::fmt_ctx("<std::monostate>", ctx);
     }
 };
 
 template <typename N, typename K, typename V, typename M>
-struct std::formatter<org::parse::Node<N, K, V, M>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::parse::Node<N, K, V, M> const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::parse::Node<N, K, V, M>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::parse::Node<N, K, V, M> const& p, fmt::format_context& ctx)
+        const {
         hstd::fmt_ctx("{", ctx);
         hstd::fmt_ctx(p.kind, ctx);
         if (p.isTerminal()) {

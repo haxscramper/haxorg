@@ -107,7 +107,7 @@ void TestProfiler::SetUp() {
             XRayLogRegisterStatus select = __xray_log_select_mode("xray-fdr");
             if (select != XRayLogRegisterStatus::XRAY_REGISTRATION_OK) {
                 throw std::logic_error(
-                    std::format(
+                    fmt::format(
                         "Failed to select xray-basic mode, the code was "
                         "'{}'",
                         (int)select));
@@ -117,7 +117,7 @@ void TestProfiler::SetUp() {
 
         {
             __perf_trace("cli", "Log init mode");
-            std::string options = std::format(
+            std::string options = fmt::format(
                 "buffer_size=16384:"
                 "buffer_max={}",
                 (1 << 16));
@@ -127,7 +127,7 @@ void TestProfiler::SetUp() {
 
             if (init_mode_status != XRayLogInitStatus::XRAY_LOG_INITIALIZED) {
                 throw std::logic_error(
-                    std::format(
+                    fmt::format(
                         "__xray_log_init_mode() failed, the code was '{}'",
                         (int)init_mode_status));
             }
@@ -141,7 +141,7 @@ void TestProfiler::SetUp() {
             auto patch_status = __xray_patch();
             if (patch_status != XRayPatchingStatus::SUCCESS) {
                 throw std::logic_error(
-                    std::format(
+                    fmt::format(
                         "__xray_patch() failed, the code was '{}'", (int)patch_status));
             }
         }
@@ -165,7 +165,7 @@ void TestProfiler::TearDown() {
         int profile_result = __llvm_profile_write_file();
         if (profile_result != 0) {
             throw std::logic_error(
-                std::format("Failed to write PGO data to '{}'", pgo_path.data()));
+                fmt::format("Failed to write PGO data to '{}'", pgo_path.data()));
         }
     }
 #endif
@@ -176,7 +176,7 @@ void TestProfiler::TearDown() {
         auto finalize_status = __xray_log_finalize();
         if (finalize_status != XRAY_LOG_FINALIZED) {
             throw std::logic_error(
-                std::format(
+                fmt::format(
                     "Failed to finalize XRAY Log, the status is, the code "
                     "was "
                     "'{}'",
@@ -189,7 +189,7 @@ void TestProfiler::TearDown() {
         auto flush_status = __xray_log_flushLog();
         if (flush_status != XRAY_LOG_FLUSHED) {
             throw std::logic_error(
-                std::format(
+                fmt::format(
                     "Failed to flush XRAY log, the status is "
                     "'{}'",
                     (int)flush_status));
@@ -201,7 +201,7 @@ void TestProfiler::TearDown() {
         XRayPatchingStatus status = __xray_unpatch();
         if (status != XRayPatchingStatus::SUCCESS) {
             throw std::logic_error(
-                std::format(
+                fmt::format(
                     "Failed to unpatch xray, the status is "
                     "'{}'",
                     (int)status));

@@ -126,9 +126,10 @@ struct [[refl]] ImmPathStep {
 } // namespace org::imm
 
 template <>
-struct std::formatter<org::imm::ImmPathStep> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::imm::ImmPathStep const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::imm::ImmPathStep> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::imm::ImmPathStep const& p, fmt::format_context& ctx)
+        const {
         return hstd::ReflPathFormatter<org::imm::ImmReflPathTag>{}.format(p.path, ctx);
     }
 };
@@ -1539,56 +1540,57 @@ struct std::hash<org::imm::ImmPath> {
 
 
 template <>
-struct std::formatter<org::imm::ImmAstStore*>
+struct fmt::formatter<org::imm::ImmAstStore*>
     : hstd::std_format_ptr_as_hex<org::imm::ImmAstStore> {};
 
 template <>
-struct std::formatter<org::imm::ImmAstReplaceEpoch*>
+struct fmt::formatter<org::imm::ImmAstReplaceEpoch*>
     : hstd::std_format_ptr_as_hex<org::imm::ImmAstReplaceEpoch> {};
 
 template <>
-struct std::formatter<org::imm::ImmAstContext*>
+struct fmt::formatter<org::imm::ImmAstContext*>
     : hstd::std_format_ptr_as_hex<org::imm::ImmAstContext> {};
 
 template <>
-struct std::formatter<org::imm::ParentPathMap*>
+struct fmt::formatter<org::imm::ParentPathMap*>
     : hstd::std_format_ptr_as_hex_and_value<org::imm::ParentPathMap> {};
 
 template <>
-struct std::formatter<org::imm::ImmAstTrackingMap*>
+struct fmt::formatter<org::imm::ImmAstTrackingMap*>
     : hstd::std_format_ptr_as_value<org::imm::ImmAstTrackingMap> {};
 
 
 template <>
-struct std::formatter<org::imm::ImmPath> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::imm::ImmPath const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::imm::ImmPath> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::imm::ImmPath const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}//{}", p.root, p.path), ctx);
     }
 };
 
 template <>
-struct std::formatter<org::imm::ImmUniqId> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::imm::ImmUniqId const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::imm::ImmUniqId> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::imm::ImmUniqId const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
 };
 
 
 template <>
-struct std::formatter<org::imm::ImmAstStore> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::imm::ImmAstStore const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::imm::ImmAstStore> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::imm::ImmAstStore const& p, fmt::format_context& ctx)
+        const {
         return hstd::fmt_ctx("ImmAstStore{}", ctx);
     }
 };
 
 
 template <>
-struct std::formatter<org::imm::ImmAdapter> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(org::imm::ImmAdapter const& p, FormatContext& ctx) const {
+struct fmt::formatter<org::imm::ImmAdapter> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::imm::ImmAdapter const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
 };

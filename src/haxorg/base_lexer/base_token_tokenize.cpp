@@ -58,7 +58,7 @@ struct Cursor {
         LOGIC_ASSERTION_CHECK_FMT(get() == c, "{}", c);
         if (p.TraceState) {
             p.message(
-                fmt("skip {} at {}", escape_literal(std::string{c}), format(5)),
+                hstd::fmt("skip {} at {}", escape_literal(std::string{c}), format(5)),
                 function,
                 line);
         }
@@ -193,7 +193,7 @@ struct Cursor {
             return false;
         } else if (get() == '\n') {
             if (p.TraceState) {
-                p.message(fmt("next line over at {}", format(5)), function, line);
+                p.message(hstd::fmt("next line over at {}", format(5)), function, line);
             }
 
             this->line++;
@@ -287,7 +287,8 @@ struct Cursor {
             lexy::trace_to<Rule>(
                 std::back_insert_iterator(str), lexy::zstring_input(input.data()), opts);
             p.message(
-                fmt("lexy view @ {}:{} {}",
+                hstd::fmt(
+                    "lexy view @ {}:{} {}",
                     line,
                     col,
                     escape_literal(view.substr(0, std::min<int>(40, view.size())))),
@@ -356,7 +357,7 @@ struct Cursor {
 
     std::string format(int ahead = 20) const {
         int end = std::min<int>(ahead, text.size() - pos);
-        return std::format(
+        return fmt::format(
             "col:{} line:{} pos:{}/{} text:{}",
             col,
             line,
@@ -392,7 +393,9 @@ struct Cursor {
         OrgToken const& tok,
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION()) {
-        if (p.TraceState) { p.message(fmt("{} {}", tok, format(10)), function, line); }
+        if (p.TraceState) {
+            p.message(hstd::fmt("{} {}", tok, format(10)), function, line);
+        }
         group->add(tok);
     }
 
@@ -469,7 +472,8 @@ struct Cursor {
             if (start_pos == this->pos) {
                 if (p.TraceState) {
                     p.message(
-                        fmt("No movement around pos {}: {}", start_pos, this->format()));
+                        hstd::fmt(
+                            "No movement around pos {}: {}", start_pos, this->format()));
                 }
             }
 
@@ -724,7 +728,7 @@ void switch_command(Cursor& c) {
         if (c.is_at('_', pos)) { ++pos; }
 
         if (c.is_iat(end, pos)) {
-            c.p.message(fmt("end {} {}", pos, c.format()));
+            c.p.message(hstd::fmt("end {} {}", pos, c.format()));
             pos += end.size();
             return pos;
         } else {
@@ -849,7 +853,7 @@ void switch_command(Cursor& c) {
             dsl::whitespace(dsl::ascii::space) + dsl::p<org_ident>>();
         if (span) {
             auto property_kind = normalize(Str{c.lexy_substr(0, *span)});
-            c.p.message(fmt("property kind {}", property_kind));
+            c.p.message(hstd::fmt("property kind {}", property_kind));
             if (property_kind == "description" || property_kind == "created"
                 || property_kind == "hashtag" || property_kind == "hashtagdef") {
                 head.kind = otk::CmdPropertyText;

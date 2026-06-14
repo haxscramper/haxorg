@@ -10,6 +10,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 
 
 using namespace hstd;
@@ -1003,15 +1004,15 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
 
     for (const auto& [path, value] : expectedValues) {
         auto it = visitedValues.find(path);
-        EXPECT_NE(it, visitedValues.end()) << fmt("No path {}", path);
+        EXPECT_NE(it, visitedValues.end()) << hstd::fmt("No path {}", path);
         if (value) {
             EXPECT_EQ(it->second, value.value())
-                << fmt("{} -> {} != {}", path, it->second, value);
+                << hstd::fmt("{} -> {} != {}", path, it->second, value);
         }
     }
 
     for (const auto& [path, value] : visitedValues) {
         auto it = expectedValues.find(path);
-        EXPECT_NE(it, expectedValues.end()) << fmt("Unexpected path {}", path);
+        EXPECT_NE(it, expectedValues.end()) << hstd::fmt("Unexpected path {}", path);
     }
 }

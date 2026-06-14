@@ -10,6 +10,7 @@
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#    include <hstd/stdlib/VecFormatter.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QMetaObject>
@@ -155,7 +156,7 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::get_graphviz(
 
     for (auto const& [name, info] : nodes) {
         if (info.is_cluster) {
-            std::string cluster_name = std::format("cluster_{}", name);
+            std::string cluster_name = fmt::format("cluster_{}", name);
             auto        cluster      = graph->newSubgraph(cluster_name);
             cluster->setLabel(name);
             clusters.insert_or_assign(name, cluster);
@@ -179,11 +180,11 @@ hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::get_graphviz(
 
         std::string label{};
         if (!call.jump_description.empty() && call.count > 1) {
-            label = std::format("{} ({})", call.jump_description, call.count);
+            label = fmt::format("{} ({})", call.jump_description, call.count);
         } else if (!call.jump_description.empty()) {
             label = call.jump_description;
         } else if (call.count > 1) {
-            label = std::format("({})", call.count);
+            label = fmt::format("({})", call.count);
         }
 
         if (!label.empty()) { edge->setLabel(label); }
@@ -202,7 +203,7 @@ std::string graphviz_processor::get_parent() {
 }
 
 void graphviz_processor::add_edge(std::string const& from, std::string const& to) {
-    std::string edge_key = std::format("{} -> {}", from, to);
+    std::string edge_key = fmt::format("{} -> {}", from, to);
     auto        it       = edges.find(edge_key);
     if (it != edges.end()) {
         if (it->second.jump_description == pending_jump) {
@@ -218,7 +219,7 @@ void graphviz_processor::add_edge(std::string const& from, std::string const& to
 }
 
 void hstd::log::graphviz_processor::track_signal_emit(signal_emit_info const& info) {
-    std::string full_name = std::format("{}", info.name);
+    std::string full_name = fmt::format("{}", info.name);
     if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
     nodes.insert_or_assign(
         full_name,
@@ -229,7 +230,7 @@ void hstd::log::graphviz_processor::track_signal_emit(signal_emit_info const& in
 }
 
 void hstd::log::graphviz_processor::track_slot_trigger(slot_trigger_info const& info) {
-    std::string full_name = std::format("{}", info.name);
+    std::string full_name = fmt::format("{}", info.name);
     call_stack.push(full_name);
     nodes.insert_or_assign(
         full_name,

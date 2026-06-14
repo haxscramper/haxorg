@@ -25,18 +25,18 @@ namespace stime    = std::chrono;
 namespace bd       = boost::describe;
 
 template <>
-struct std::formatter<Date> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(Date const& p, FormatContext& ctx) const {
-        return fmt_ctx(boost::gregorian::to_iso_extended_string(p), ctx);
+struct fmt::formatter<Date> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(Date const& p, fmt::format_context& ctx) const {
+        return hstd::fmt_ctx(boost::gregorian::to_iso_extended_string(p), ctx);
     }
 };
 
 template <>
-struct std::formatter<PTime> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(PTime const& p, FormatContext& ctx) const {
-        return fmt_ctx(boost::posix_time::to_iso_extended_string(p), ctx);
+struct fmt::formatter<PTime> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(PTime const& p, fmt::format_context& ctx) const {
+        return hstd::fmt_ctx(boost::posix_time::to_iso_extended_string(p), ctx);
     }
 };
 

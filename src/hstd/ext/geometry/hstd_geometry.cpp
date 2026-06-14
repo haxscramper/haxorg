@@ -92,3 +92,36 @@ Point Path::currentPosition() const {
 
     return current;
 }
+
+fmt::format_context::iterator fmt::formatter<hstd::ext::geometry::Point>::format(
+    hstd::ext::geometry::Point const& p,
+    fmt::format_context&              ctx) const {
+    return hstd::fmt_ctx(
+        hstd::fmt(
+            "Point({}, {})", hstd::format_number(p.x()), hstd::format_number(p.y())),
+        ctx);
+}
+fmt::format_context::iterator fmt::formatter<hstd::ext::geometry::Size>::format(
+    hstd::ext::geometry::Size const& p,
+    fmt::format_context&             ctx) const {
+    return hstd::fmt_ctx(
+        hstd::fmt("Size(width={}, height={})", p.width(), p.height()), ctx);
+}
+
+fmt::context::iterator fmt::formatter<hstd::ext::geometry::Rect>::format(
+    hstd::ext::geometry::Rect const& b,
+    format_context&                  ctx) const {
+    return hstd::fmt_ctx(
+        hstd::fmt(
+            "Rect({}, {}, {})",
+            b.min_corner(),
+            hstd::format_number(b.width()),
+            hstd::format_number(b.height())),
+        ctx);
+}
+
+hstd::fmt_iter fmt::formatter<hstd::ext::geometry::Path>::format(
+    hstd::ext::geometry::Path const& p,
+    fmt::format_context&             ctx) const {
+    return hstd::fmt_ctx(hstd::fmt("Path(commands={})", p.commands), ctx);
+}

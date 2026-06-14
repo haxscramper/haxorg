@@ -242,7 +242,7 @@ int main(int argc, char** argv) {
     git_libgit2_init();
     // Check whether threads can be enabled
     assert(git_libgit2_features() & GIT_FEATURE_THREADS);
-    std::string heads = fmt(".git/refs/heads/{}", config->cli.repo.branch);
+    std::string heads = hstd::fmt(".git/refs/heads/{}", config->cli.repo.branch);
 
     auto heads_path = config->repo_path() / heads;
     if (!fs::is_directory(config->repo_path())) {

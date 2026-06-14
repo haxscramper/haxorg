@@ -431,7 +431,7 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     }
 
     void setAttr(Str const& key, Point value) {
-        _this()->setAttr(key, std::format("{},{}", value.x(), value.y()));
+        _this()->setAttr(key, fmt::format("{},{}", value.x(), value.y()));
     }
 
     void setAttr(Str const& key, double value) {

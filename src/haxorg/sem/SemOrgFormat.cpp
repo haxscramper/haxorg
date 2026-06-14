@@ -25,7 +25,7 @@ std::string FormatTimeDelta(long delta_seconds) {
     long delta   = delta_seconds / 60;
     long hours   = delta / 60;
     long minutes = delta % 60;
-    return std::format("{}:{:02}", hours, minutes);
+    return fmt::format("{}:{:02}", hours, minutes);
 }
 
 std::string FormatPath(org::sem::SubtreePath const& path) { return join("/", path.path); }
@@ -210,7 +210,9 @@ auto Formatter::toString(SemId<Document> id, Context const& ctx) -> Res {
 
             if (col.property) { res += col.property.value(); }
 
-            if (col.propertyTitle) { res += fmt("({})", col.propertyTitle.value()); }
+            if (col.propertyTitle) {
+                res += hstd::fmt("({})", col.propertyTitle.value());
+            }
             using type = sem::ColumnView::Summary;
 
             if (col.summary) {
@@ -346,27 +348,28 @@ auto Formatter::toString(SemId<Document> id, Context const& ctx) -> Res {
                 }
                 case P::Kind::ExportLatexHeader: {
                     add(result,
-                        str(fmt(
+                        str(hstd::fmt(
                             "#+latex_header: {}", prop.getExportLatexHeader().header)));
                     break;
                 }
                 case P::Kind::ExportLatexClass: {
                     add(result,
-                        str(
-                            fmt("#+latex_header: {}",
-                                prop.getExportLatexClass().latexClass)));
+                        str(hstd::fmt(
+                            "#+latex_header: {}",
+                            prop.getExportLatexClass().latexClass)));
                     break;
                 }
                 case P::Kind::ExportLatexClassOptions: {
                     add(result,
-                        str(
-                            fmt("#+latex_class_options: {}",
-                                prop.getExportLatexClassOptions().options.at(0))));
+                        str(hstd::fmt(
+                            "#+latex_class_options: {}",
+                            prop.getExportLatexClassOptions().options.at(0))));
                     break;
                 }
                 default: {
                     throw std::logic_error(
-                        fmt("Unexpected document-level property: {}", prop.getKind()));
+                        hstd::fmt(
+                            "Unexpected document-level property: {}", prop.getKind()));
                 }
             }
         }
@@ -429,7 +432,7 @@ auto Formatter::toString(SemId<InlineFootnote> id, Context const& ctx) -> Res {
             str("]"),
         });
     } else {
-        return str(fmt("[fn:{}]", id->tag));
+        return str(hstd::fmt("[fn:{}]", id->tag));
     }
 }
 
@@ -449,7 +452,7 @@ Formatter::Res Formatter::toString(sem::LispCode const& id, Context const& ctx) 
             },
             [&](C::KeyValue const& kv) {
                 return b.line({
-                    str(fmt(":{} ", kv.name)),
+                    str(hstd::fmt(":{} ", kv.name)),
                     toString(kv.value.front(), ctx),
                 });
             },
@@ -465,7 +468,7 @@ Formatter::Res Formatter::toString(sem::LispCode const& id, Context const& ctx) 
             [&](C::Ident const& i) -> Res { return str(i.name); },
             [&](C::Real const& r) -> Res { return str(fmt1(r.value)); },
             [&](C::Number const& r) -> Res { return str(fmt1(r.value)); },
-            [&](C::Text const& r) -> Res { return str(fmt("\"{}\"", r.value)); },
+            [&](C::Text const& r) -> Res { return str(hstd::fmt("\"{}\"", r.value)); },
         },
         id.data);
 }
@@ -786,17 +789,17 @@ auto Formatter::toString(SemId<CmdCall> id, Context const& ctx) -> Res {
 
 auto Formatter::toString(SemId<CmdCustomRaw> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str(fmt("#+{}: {}", id->name, id->text))});
+    return b.line({str(hstd::fmt("#+{}: {}", id->name, id->text))});
 }
 
 auto Formatter::toString(SemId<CmdCustomArgs> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str(fmt("#+{}:", id->name)), toString(id->attrs, ctx)});
+    return b.line({str(hstd::fmt("#+{}:", id->name)), toString(id->attrs, ctx)});
 }
 
 auto Formatter::toString(SemId<CmdCustomText> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
-    return b.line({str(fmt("#+{}: ", id->name)), toString(id->text, ctx)});
+    return b.line({str(hstd::fmt("#+{}: ", id->name)), toString(id->text, ctx)});
 }
 
 auto Formatter::toString(SemId<CmdName> id, Context const& ctx) -> Res {
@@ -843,7 +846,7 @@ auto Formatter::toString(SemId<Call> id, Context const& ctx) -> Res {
 
     for (auto const& it : id->attrs.positional.items) {
         if (it.getString().contains(",")) {
-            parameters.push_back(str(fmt("={}=", it.getString())));
+            parameters.push_back(str(hstd::fmt("={}=", it.getString())));
         } else {
             parameters.push_back(str(it.getString()));
         }
@@ -851,7 +854,8 @@ auto Formatter::toString(SemId<Call> id, Context const& ctx) -> Res {
 
     for (auto const& key : sorted(id->attrs.named.keys())) {
         for (auto const& it : id->attrs.named.at(key).items) {
-            parameters.push_back(str(fmt("{}={}", it.name.value(), it.getString())));
+            parameters.push_back(
+                str(hstd::fmt("{}={}", it.name.value(), it.getString())));
         }
     }
 
@@ -975,9 +979,9 @@ auto Formatter::toString(SemId<Cell> id, Context const& ctx) -> Res {
 
 auto Formatter::toString(sem::SubtreeCompletion const& id, Context const& ctx) -> Res {
     if (id.isPercent) {
-        return str(fmt("[{}%]", id.done));
+        return str(hstd::fmt("[{}%]", id.done));
     } else {
-        return str(fmt("[{}/{}]", id.done, id.full));
+        return str(hstd::fmt("[{}/{}]", id.done, id.full));
     }
 }
 
@@ -1157,7 +1161,9 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
 
         if (id->todo) { lead.push_back(str(id->todo.value())); }
         if (id->isComment) { lead.push_back(str("COMMENT")); }
-        if (id->priority) { lead.push_back(str(fmt("[#{}]", id->priority.value()))); }
+        if (id->priority) {
+            lead.push_back(str(hstd::fmt("[#{}]", id->priority.value())));
+        }
         if (id->isArchived) { tags.push_back(str("ARCHIVE")); }
 
         if (!id->title->subnodes.empty()) { lead.push_back(toString(id->title, ctx)); }
@@ -1192,7 +1198,7 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
 
     if (!id->properties.empty() || id->treeId) {
         add(head, str(":PROPERTIES:"));
-        if (id->treeId) { add(head, str(fmt(":ID: {}", *id->treeId))); }
+        if (id->treeId) { add(head, str(hstd::fmt(":ID: {}", *id->treeId))); }
 
         for (auto const& prop : id->properties) {
             using P = sem::NamedProperty;
@@ -1200,131 +1206,133 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
                 case P::Kind::CustomSubtreeFlags: {
                     add(head,
                         b.line({
-                            str(fmt(":prop_args:{}:", prop.getCustomSubtreeFlags().name)),
+                            str(hstd::fmt(
+                                ":prop_args:{}:", prop.getCustomSubtreeFlags().name)),
                             toString(prop.getCustomSubtreeFlags().value, ctx),
                         }));
                     break;
                 }
                 case P::Kind::CustomSubtreeJson: {
                     add(head,
-                        str(
-                            fmt(":prop_json:{}: {}",
-                                prop.getCustomSubtreeJson().name,
-                                prop.getCustomSubtreeJson().value.dump(0))));
+                        str(hstd::fmt(
+                            ":prop_json:{}: {}",
+                            prop.getCustomSubtreeJson().name,
+                            prop.getCustomSubtreeJson().value.dump(0))));
                     break;
                 }
                 case P::Kind::ExportLatexCompiler: {
                     add(head,
-                        str(
-                            fmt(":latex_compiler: {}",
-                                prop.getExportLatexCompiler().compiler)));
+                        str(hstd::fmt(
+                            ":latex_compiler: {}",
+                            prop.getExportLatexCompiler().compiler)));
                     break;
                 }
                 case P::Kind::ExportOptions: {
                     add(head,
-                        str(
-                            fmt(":export_options:{}: {}",
-                                prop.getExportOptions().backend,
-                                prop.getExportOptions().values
-                                    | rv::transform([](Pair<Str, Str> const& pair) {
-                                          return fmt("{}:{}", pair.first, pair.second);
-                                      })
-                                    | rv::intersperse(" ") //
-                                    | rv::join             //
-                                    | rs::to<std::string>())));
+                        str(hstd::fmt(
+                            ":export_options:{}: {}",
+                            prop.getExportOptions().backend,
+                            prop.getExportOptions().values
+                                | rv::transform([](Pair<Str, Str> const& pair) {
+                                      return hstd::fmt("{}:{}", pair.first, pair.second);
+                                  })
+                                | rv::intersperse(" ") //
+                                | rv::join             //
+                                | rs::to<std::string>())));
                     break;
                 }
                 case P::Kind::ExportLatexClassOptions: {
                     add(head,
-                        str(
-                            fmt(":latex_class_options: {}",
-                                prop.getExportLatexClassOptions().options)));
+                        str(hstd::fmt(
+                            ":latex_class_options: {}",
+                            prop.getExportLatexClassOptions().options)));
                     break;
                 }
                 case P::Kind::CookieData: {
                     add(head,
-                        str(
-                            fmt(":cookie: {}{}",
-                                prop.getCookieData().source,
-                                prop.getCookieData().isRecursive ? " recursive" : "")));
+                        str(hstd::fmt(
+                            ":cookie: {}{}",
+                            prop.getCookieData().source,
+                            prop.getCookieData().isRecursive ? " recursive" : "")));
                     break;
                 }
                 case P::Kind::ExportLatexHeader: {
                     add(head,
-                        str(fmt(
+                        str(hstd::fmt(
                             ":latex_header: {}", prop.getExportLatexHeader().header)));
                     break;
                 }
                 case P::Kind::CustomId: {
-                    add(head, str(fmt(":custom_id: {}", prop.getCustomId().value)));
+                    add(head, str(hstd::fmt(":custom_id: {}", prop.getCustomId().value)));
                     break;
                 }
                 case P::Kind::ExportLatexClass: {
                     add(head,
-                        str(fmt(
+                        str(hstd::fmt(
                             ":latex_class: {}", prop.getExportLatexClass().latexClass)));
                     break;
                 }
                 case P::Kind::Trigger: {
-                    add(head, str(fmt(":trigger:")));
+                    add(head, str(hstd::fmt(":trigger:")));
                     break;
                 }
                 case P::Kind::ArchiveTodo: {
-                    add(head, str(fmt(":archive_todo: {}", prop.getArchiveTodo().todo)));
+                    add(head,
+                        str(hstd::fmt(":archive_todo: {}", prop.getArchiveTodo().todo)));
                     break;
                 }
                 case P::Kind::ArchiveTarget: {
                     add(head,
-                        str(
-                            fmt(":archive: {}::* {}",
-                                prop.getArchiveTarget().pattern,
-                                FormatPath(prop.getArchiveTarget().path))));
+                        str(hstd::fmt(
+                            ":archive: {}::* {}",
+                            prop.getArchiveTarget().pattern,
+                            FormatPath(prop.getArchiveTarget().path))));
                     break;
                 }
                 case P::Kind::ArchiveOlpath: {
                     add(head,
-                        str(
-                            fmt(":archive_olpath: {}",
-                                FormatPath(prop.getArchiveOlpath().path))));
+                        str(hstd::fmt(
+                            ":archive_olpath: {}",
+                            FormatPath(prop.getArchiveOlpath().path))));
                     break;
                 }
                 case P::Kind::ArchiveTime: {
                     add(head,
-                        str(
-                            fmt(":archive_time: [{}]",
-                                prop.getArchiveTime().time.format(
-                                    UserTime::Format::OrgFormat))));
+                        str(hstd::fmt(
+                            ":archive_time: [{}]",
+                            prop.getArchiveTime().time.format(
+                                UserTime::Format::OrgFormat))));
                     break;
                 }
                 case P::Kind::Ordered: {
                     add(head,
-                        str(fmt(
+                        str(hstd::fmt(
                             ":ordered: {}", prop.getOrdered().isOrdered ? "t" : "nil")));
                     break;
                 }
                 case P::Kind::Nonblocking: {
                     add(head,
-                        str(
-                            fmt(":nonblocking: {}",
-                                prop.getNonblocking().isBlocking ? "t" : "nil")));
+                        str(hstd::fmt(
+                            ":nonblocking: {}",
+                            prop.getNonblocking().isBlocking ? "t" : "nil")));
                     break;
                 }
                 case P::Kind::HashtagDef: {
                     add(head,
-                        str(
-                            fmt(":hashtag_def: {}",
-                                nestedHashtag(prop.getHashtagDef().hashtag))));
+                        str(hstd::fmt(
+                            ":hashtag_def: {}",
+                            nestedHashtag(prop.getHashtagDef().hashtag))));
                     break;
                 }
                 case P::Kind::CustomArgs: {
                     auto const& ca   = prop.getCustomArgs();
                     auto        line = b.line();
                     add(line,
-                        str(
-                            fmt(":{}:{}{} ",
-                                ca.name,
-                                ca.sub.value_or(""),
-                                ca.sub ? ":" : "")));
+                        str(hstd::fmt(
+                            ":{}:{}{} ",
+                            ca.name,
+                            ca.sub.value_or(""),
+                            ca.sub ? ":" : "")));
 
                     add(line, toString(ca.attrs, ctx));
                     add(head, line);
@@ -1332,22 +1340,23 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
                 }
                 case P::Kind::RadioId: {
                     add(head,
-                        str(fmt(":radio_id: {}", join(" ", prop.getRadioId().words))));
+                        str(hstd::fmt(
+                            ":radio_id: {}", join(" ", prop.getRadioId().words))));
                     break;
                 }
                 case P::Kind::Unnumbered: {
-                    add(head, str(fmt(":unnumbered:")));
+                    add(head, str(hstd::fmt(":unnumbered:")));
                     break;
                 }
                 case P::Kind::Blocker: {
-                    add(head, str(fmt(":blocker: {}", prop.getBlocker().blockers)));
+                    add(head, str(hstd::fmt(":blocker: {}", prop.getBlocker().blockers)));
                     break;
                 }
                 case P::Kind::ArchiveCategory: {
                     add(head,
-                        str(
-                            fmt(":archive_category: {}",
-                                prop.getArchiveCategory().category)));
+                        str(hstd::fmt(
+                            ":archive_category: {}",
+                            prop.getArchiveCategory().category)));
                     break;
                 }
                 case P::Kind::Created: {
@@ -1372,18 +1381,20 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
                     add(head,
                         b.line(
                             {str(":EFFORT: "),
-                             str(
-                                 fmt("{}:{}",
-                                     prop.getEffort().hours,
-                                     prop.getEffort().minutes))}));
+                             str(hstd::fmt(
+                                 "{}:{}",
+                                 prop.getEffort().hours,
+                                 prop.getEffort().minutes))}));
                     break;
                 }
                 case P::Kind::Visibility: {
-                    add(head, str(fmt(":visibility: {}", prop.getVisibility().level)));
+                    add(head,
+                        str(hstd::fmt(":visibility: {}", prop.getVisibility().level)));
                     break;
                 }
                 case P::Kind::ArchiveFile: {
-                    add(head, str(fmt(":archive_file: {}", prop.getArchiveFile().file)));
+                    add(head,
+                        str(hstd::fmt(":archive_file: {}", prop.getArchiveFile().file)));
                     break;
                 }
             }
@@ -1431,7 +1442,8 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
                     auto const& state = log->head.getState();
 
                     log_head = b.line({
-                        str(fmt("- State \"{}\" from \"{}\" ", state.to, state.from)),
+                        str(hstd::fmt(
+                            "- State \"{}\" from \"{}\" ", state.to, state.from)),
                         toString(state.on, ctx),
                     });
 
@@ -1457,10 +1469,10 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
                             toString(clock.from, ctx),
                             str("--"),
                             toString(clock.to.value(), ctx),
-                            str(
-                                fmt(" => {}",
-                                    FormatTimeDelta(
-                                        GetTimeDelta(clock.from, clock.to.value())))),
+                            str(hstd::fmt(
+                                " => {}",
+                                FormatTimeDelta(
+                                    GetTimeDelta(clock.from, clock.to.value())))),
                         });
                     } else {
                         log_head = b.line({
@@ -1633,11 +1645,11 @@ auto Formatter::toString(SemId<BlockExport> id, Context const& ctx) -> Res {
 }
 
 auto Formatter::toString(SemId<InlineExport> id, Context const& ctx) -> Res {
-    return str(fmt("@@{}:{}@@", id->exporter, id->content));
+    return str(hstd::fmt("@@{}:{}@@", id->exporter, id->content));
 }
 
 auto Formatter::toString(SemId<CmdExport> id, Context const& ctx) -> Res {
-    return str(fmt("#+export_{}: {}", id->exporter, id->content));
+    return str(hstd::fmt("#+export_{}: {}", id->exporter, id->content));
 }
 
 auto Formatter::toString(SemId<BlockExample> id, Context const& ctx) -> Res {

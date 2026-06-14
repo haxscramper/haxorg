@@ -64,34 +64,32 @@ std::string format_enum_value(OrgNodeKind kind);
 // 800-900ms and are instantiated in about 20 translation units.
 
 
-// clang-format off
-
 namespace hstd {
-using back_inserter_string_format_context = std::basic_format_context<std::back_insert_iterator<std::basic_string<char>>, char>;
+using back_inserter_string_format_context = std::
+    basic_format_context<std::back_insert_iterator<std::basic_string<char>>, char>;
 }
 
 
 template <>
-struct std::formatter<OrgTokenKind> : std::formatter<std::string> {
-    template <class FormatContext>
-    auto format(OrgTokenKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator {
+struct fmt::formatter<OrgTokenKind> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(OrgTokenKind const& value, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
     }
 };
 
 template <>
-struct std::formatter<OrgSemKind> : std::formatter<std::string> {
-    template <class FormatContext>
-    auto format(OrgSemKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator {
+struct fmt::formatter<OrgSemKind> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(OrgSemKind const& value, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
     }
 };
 
 template <>
-struct std::formatter<OrgNodeKind> : std::formatter<std::string> {
-    template <class FormatContext>
-    auto format(OrgNodeKind const& value, FormatContext& ctx) const -> typename FormatContext::iterator {
+struct fmt::formatter<OrgNodeKind> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    auto           format(OrgNodeKind const& value, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
     }
 };
-// clang-format on

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <hstd/stdlib/DynVariant.hpp>
+#include <fmt/format.h>
 
 struct Shape {
     enum struct Kind
@@ -198,11 +199,11 @@ TEST_F(DynVariantTest, VisitWithTypeSpecificLogic) {
     std::string result = hstd::dyn_visit(
         []<typename T>(std::shared_ptr<T> const& shape) -> std::string {
             if constexpr (std::is_same_v<T, Circle>) {
-                return std::format("Circle with radius {}", shape->radius);
+                return fmt::format("Circle with radius {}", shape->radius);
             } else if constexpr (std::is_same_v<T, Rectangle>) {
-                return std::format("Rectangle {}x{}", shape->width, shape->height);
+                return fmt::format("Rectangle {}x{}", shape->width, shape->height);
             } else {
-                return std::format(
+                return fmt::format(
                     "Triangle base {} height {}", shape->base, shape->height);
             }
         },
@@ -391,12 +392,12 @@ TEST(DynVariantNestedInParent, VectorOfParents) {
         std::string desc = hstd::dyn_visit(
             [&parent]<typename T>(std::shared_ptr<T> const& s) -> std::string {
                 if constexpr (std::is_same_v<T, Parent::Circle>) {
-                    return std::format("{}: Circle(r={})", parent.name, s->radius);
+                    return fmt::format("{}: Circle(r={})", parent.name, s->radius);
                 } else if constexpr (std::is_same_v<T, Parent::Rectangle>) {
-                    return std::format(
+                    return fmt::format(
                         "{}: Rect({}x{})", parent.name, s->width, s->height);
                 } else {
-                    return std::format(
+                    return fmt::format(
                         "{}: Tri(b={},h={})", parent.name, s->base, s->height);
                 }
             },
@@ -642,9 +643,9 @@ TEST(DynVariantManyTypes, VisitWithTypeSpecificBehavior) {
     std::string result = hstd::dyn_visit(
         []<typename T>(std::shared_ptr<T> const& n) -> std::string {
             if constexpr (std::is_same_v<T, Type15>) {
-                return std::format("Type15: {}", n->value);
+                return fmt::format("Type15: {}", n->value);
             } else {
-                return std::format("Other: {}", n->value);
+                return fmt::format("Other: {}", n->value);
             }
         },
         v);

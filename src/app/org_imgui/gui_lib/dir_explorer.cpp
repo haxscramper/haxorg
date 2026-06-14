@@ -213,7 +213,7 @@ struct DirNode : public SharedPtrApi<DirNode> {
 };
 
 std::string format_event(inotify_event const& event) {
-    std::string description = std::format(
+    std::string description = fmt::format(
         "Watch Descriptor: {}, Mask: {}, Cookie: {}, Length: {}, Name: {}",
         event.wd,
         event.mask,

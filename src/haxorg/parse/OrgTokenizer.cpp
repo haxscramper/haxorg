@@ -11,6 +11,7 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;
@@ -80,9 +81,9 @@ OrgFill fill(OrgLexer& lex) {
 }
 
 template <typename T>
-struct std::formatter<rs::subrange<T>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(rs::subrange<T> const& p, FormatContext& ctx) const {
+struct fmt::formatter<rs::subrange<T>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(rs::subrange<T> const& p, fmt::format_context& ctx) const {
         fmt_ctx("[", ctx);
         bool first = true;
         for (auto begin = rs::begin(p); begin != rs::end(p); begin = std::next(begin)) {
@@ -159,7 +160,7 @@ struct RecombineState {
 
 
     void next(OrgLexer& lex, int line = __builtin_LINE()) {
-        x_report(Print, .with_line(line).with_msg(fmt("next {}", lex.tok())));
+        x_report(Print, .with_line(line).with_msg(hstd::fmt("next {}", lex.tok())));
         lex.next();
     }
 
@@ -171,7 +172,7 @@ struct RecombineState {
 
 
     void skip(OrgLexer& lex, OrgTokenKind kind, int line = __builtin_LINE()) {
-        x_report(Print, .with_line(line).with_msg(fmt("skip {}", lex.tok())));
+        x_report(Print, .with_line(line).with_msg(hstd::fmt("skip {}", lex.tok())));
         lex.skip(kind);
     }
 
@@ -180,13 +181,14 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                fmt("add {} from {}", __to, lex.tok())));
+                hstd::fmt("add {} from {}", __to, lex.tok())));
         return res;
     }
 
     void pop(Opt<OrgTokenKind> expected = std::nullopt, int line = __builtin_LINE()) {
         auto res = d->out->add(lex.tok());
-        x_report(Push, .with_id(res).with_line(line).with_msg(fmt("pop {}", lex.tok())));
+        x_report(
+            Push, .with_id(res).with_line(line).with_msg(hstd::fmt("pop {}", lex.tok())));
         if (expected) {
             lex.skip(*expected);
         } else {
@@ -199,7 +201,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                fmt("add {} from {}", tok, lex.tok())));
+                hstd::fmt("add {} from {}", tok, lex.tok())));
         return res;
     }
 
@@ -211,7 +213,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                fmt("pop {} from {}", __to, lex.tok())));
+                hstd::fmt("pop {} from {}", __to, lex.tok())));
         if (expected) {
             lex.skip(*expected);
         } else {
@@ -229,7 +231,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                fmt("fake {} from {}", __to, lex.tok())));
+                hstd::fmt("fake {} from {}", __to, lex.tok())));
         return res;
     }
 
@@ -238,7 +240,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                fmt("fake {} from {}", __to, lex.tok())));
+                hstd::fmt("fake {} from {}", __to, lex.tok())));
         return res;
     }
 
@@ -290,7 +292,8 @@ struct RecombineState {
 
         if (TraceState) {
             print(
-                fmt("prev kind {} next kind {} prev_empty={} next_empty={}",
+                hstd::fmt(
+                    "prev kind {} next kind {} prev_empty={} next_empty={}",
                     prev ? prev->kind : otk::Unknown,
                     next ? next->kind : otk::Unknown,
                     prev_empty,
@@ -664,7 +667,8 @@ struct LineToken {
                 kind = *next;
             } else {
                 throw tokenizer_error::init(
-                    fmt("Unknown line command kind mapping {}, {}",
+                    hstd::fmt(
+                        "Unknown line command kind mapping {}, {}",
                         tokens.at(tokensOffset + 1),
                         tokens));
             }
@@ -674,7 +678,8 @@ struct LineToken {
             kind = Kind::BlockClose;
         } else {
             throw tokenizer_error::init(
-                fmt("Expected line command or closing block, but got {}", current.kind));
+                hstd::fmt(
+                    "Expected line command or closing block, but got {}", current.kind));
         }
     }
 
@@ -852,7 +857,9 @@ struct TokenVisitor {
             if (line_end.contains(it->kind)) {
                 auto span = IteratorSpan(start, std::next(it));
                 auto line = LineToken{span};
-                if (TraceState) { d->print(lex, fmt("{} {}", line.kind, line.tokens)); }
+                if (TraceState) {
+                    d->print(lex, hstd::fmt("{} {}", line.kind, line.tokens));
+                }
                 lines.push_back(line);
                 start = std::next(it);
             }
@@ -860,7 +867,7 @@ struct TokenVisitor {
 
         if (start != tokens->end()) {
             auto span = IteratorSpan(start, tokens->end());
-            if (TraceState) { d->print(lex, fmt("{}", span)); }
+            if (TraceState) { d->print(lex, hstd::fmt("{}", span)); }
             lines.push_back(LineToken{span});
         }
 
@@ -876,7 +883,7 @@ struct TokenVisitor {
             auto __scope  = d->begin_scope();
             auto end      = lines.end();
             auto nextline = [&]() { ++it; };
-            if (TraceState) { d->message(fmt("{} {}", it->kind, it->tokens)); }
+            if (TraceState) { d->message(hstd::fmt("{} {}", it->kind, it->tokens)); }
 
             auto start = it;
             switch (start->kind) {
@@ -939,7 +946,7 @@ struct TokenVisitor {
 
                 default: {
                     throw tokenizer_error::init(
-                        fmt("Unhandled line kind {} {}", start->kind, it->tokens));
+                        hstd::fmt("Unhandled line kind {} {}", start->kind, it->tokens));
                     return std::nullopt;
                 }
             }
@@ -982,7 +989,8 @@ struct GroupVisitorState {
         if (TraceState) {
             d->print(
                 lex,
-                fmt("    [{:<3}] fake  {:<48} indents {:<32}",
+                hstd::fmt(
+                    "    [{:<3}] fake  {:<48} indents {:<32}",
                     idx.getIndex(),
                     fmt1(kind),
                     fmt1(indentStack)),
@@ -1000,7 +1008,8 @@ struct GroupVisitorState {
         if (TraceState) {
             d->print(
                 lex,
-                fmt("    [{:<3}] token {:<48} indents {:<32}",
+                hstd::fmt(
+                    "    [{:<3}] token {:<48} indents {:<32}",
                     idx.getIndex(),
                     fmt1(tok),
                     fmt1(indentStack)),
@@ -1018,7 +1027,7 @@ struct GroupVisitorState {
         if (TraceState) {
             d->print(
                 lex,
-                fmt("  ADD LINE: indent={} kind={}", line.indent, line.kind),
+                hstd::fmt("  ADD LINE: indent={} kind={}", line.indent, line.kind),
                 code_line,
                 function);
         }
@@ -1081,7 +1090,8 @@ struct GroupVisitorState {
                                   char const* function = __builtin_FUNCTION()) {
                 if (TraceState) {
                     print1(
-                        fmt("indent: {}, gr.indent(): {} index {}",
+                        hstd::fmt(
+                            "indent: {}, gr.indent(): {} index {}",
                             ind,
                             gr.indent(),
                             gr_index),
@@ -1258,12 +1268,13 @@ struct GroupVisitorState {
         char const*      function  = __builtin_FUNCTION()) {
         if (TraceState) {
             print1(
-                fmt("[{}] line:{} indent={}{}",
+                hstd::fmt(
+                    "[{}] line:{} indent={}{}",
                     prefix,
                     line.kind,
                     line.indent,
                     line.kind == LK::ListItem
-                        ? fmt(" ListBreak:{}", line.isListBreakingItem())
+                        ? hstd::fmt(" ListBreak:{}", line.isListBreakingItem())
                         : ""),
                 level,
                 code_line,
@@ -1271,7 +1282,7 @@ struct GroupVisitorState {
 
             for (int token_idx = 0; token_idx < line.tokens.size(); ++token_idx) {
                 print1(
-                    fmt("[{}] {}", token_idx, line.tokens.at(token_idx)),
+                    hstd::fmt("[{}] {}", token_idx, line.tokens.at(token_idx)),
                     level + 1,
                     code_line,
                     function);
@@ -1286,7 +1297,8 @@ struct GroupVisitorState {
                 auto const& gr = groups.at(gr_index);
                 if (TraceState) {
                     print1(
-                        fmt("[{}] group:{} indent {}", gr_index, gr.kind, gr.indent()),
+                        hstd::fmt(
+                            "[{}] group:{} indent {}", gr_index, gr.kind, gr.indent()),
                         level);
                 }
 

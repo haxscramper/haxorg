@@ -67,15 +67,15 @@ struct compare_report {
 };
 
 template <typename T>
-    requires std::formattable<T, char>
+    requires fmt::formattable<T, char>
 std::string maybe_format(T const& value) {
-    return std::format("{}", value);
+    return fmt::format("{}", value);
 }
 
 template <typename T>
-    requires(!std::formattable<T, char>)
+    requires(!fmt::formattable<T, char>)
 std::string maybe_format(T const&) {
-    return fmt("<non-formattable {}>", demangle(typeid(T).name()));
+    return hstd::fmt("<non-formattable {}>", demangle(typeid(T).name()));
 }
 
 template <typename T>
@@ -87,7 +87,7 @@ void equality_compare_impl(
     if (!(lhs == rhs)) {
         out.push_back({
             .context = context,
-            .message = std::format(
+            .message = fmt::format(
                 "{} != {} on {} for {}",
                 escape_literal(maybe_format(lhs)),
                 escape_literal(maybe_format(rhs)),
@@ -150,7 +150,7 @@ struct reporting_comparator_key_value {
         for (auto const& lhs_only : lhs_keys - rhs_keys) {
             out.push_back({
                 .context = context,
-                .message = fmt(
+                .message = hstd::fmt(
                     "no key of type {} '{}' in lhs on {}",
                     value_metadata<K>::typeName(),
                     maybe_format(lhs_only),
@@ -161,7 +161,7 @@ struct reporting_comparator_key_value {
         for (auto const& rhs_only : rhs_keys - lhs_keys) {
             out.push_back({
                 .context = context,
-                .message = fmt(
+                .message = hstd::fmt(
                     "no key of type {} '{}' in rhs on {}",
                     value_metadata<K>::typeName(),
                     maybe_format(rhs_only),
@@ -181,7 +181,7 @@ struct reporting_comparator<std::optional<T>> {
         if (lhs.has_value() != rhs.has_value()) {
             out.push_back({
                 .context = context,
-                .message = fmt("on {}", __LINE__),
+                .message = hstd::fmt("on {}", __LINE__),
             });
         } else if (lhs.has_value()) {
             reporting_comparator<T>::compare(*lhs, *rhs, out, context);
@@ -238,7 +238,7 @@ struct reporting_comparator_indexed_sequence {
         if (lhs.size() != rhs.size()) {
             out.push_back({
                 .context = context,
-                .message = fmt(
+                .message = hstd::fmt(
                     "lhs.size() != rhs.size() ({} != {}) on {}",
                     lhs.size(),
                     rhs.size(),
@@ -252,7 +252,7 @@ struct reporting_comparator_indexed_sequence {
                     out,
                     context
                         + Vec<compare_context>{{
-                            .field = fmt("{}", i),
+                            .field = hstd::fmt("{}", i),
                             .type  = "Vec",
                         }});
             }
@@ -282,7 +282,7 @@ struct reporting_comparator<V> {
         if (lhs.index() != rhs.index()) {
             out.push_back({
                 .context = context,
-                .message = fmt(
+                .message = hstd::fmt(
                     "variant index differ {} != {} on {} for {}",
                     lhs.index(),
                     rhs.index(),
@@ -298,7 +298,7 @@ struct reporting_comparator<V> {
                         out,
                         context
                             + Vec<compare_context>{{
-                                .field = fmt("{}", lhs.index()),
+                                .field = hstd::fmt("{}", lhs.index()),
                                 .type  = "Variant",
                             }});
                 },
@@ -357,7 +357,7 @@ struct reporting_comparator<sem::SemId<T>> {
         if (lhs.isNil() != rhs.isNil()) {
             out.push_back({
                 .context = context,
-                .message = fmt(
+                .message = hstd::fmt(
                     "nil on {} -- lhs.isNil:{} rhs.isNil:{}",
                     __LINE__,
                     lhs.isNil(),
@@ -379,14 +379,15 @@ struct reporting_comparator<sem::SemId<sem::Org>> {
         if (lhs.isNil() != rhs.isNil()) {
             out.push_back({
                 .context = context,
-                .message = fmt("on {}", __LINE__),
+                .message = hstd::fmt("on {}", __LINE__),
             });
         } else if (lhs.isNil()) {
             // pass
         } else if (lhs->getKind() != rhs->getKind()) {
             out.push_back({
                 .context = context,
-                .message = fmt("kind mismatch {} != {}", lhs->getKind(), rhs->getKind()),
+                .message = hstd::fmt(
+                    "kind mismatch {} != {}", lhs->getKind(), rhs->getKind()),
             });
         } else {
             switch (lhs->getKind()) {
@@ -422,7 +423,7 @@ std::string dbgString(
     char const*          function = __builtin_FUNCTION(),
     int                  line     = __builtin_LINE(),
     char const*          file     = __builtin_FILE()) {
-    return fmt(
+    return hstd::fmt(
         "{}:{}\n{}",
         function,
         line,

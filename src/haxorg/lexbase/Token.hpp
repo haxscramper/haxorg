@@ -8,7 +8,6 @@
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <format>
 #include <hstd/stdlib/Opt.hpp>
 
 #include <haxorg/lexbase/Errors.hpp>
@@ -66,27 +65,27 @@ struct Token {
 
 
 template <hstd::StdFormattable K, typename V>
-struct std::formatter<org::parse::Token<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    FormatContext::iterator format(org::parse::Token<K, V> const& p, FormatContext& ctx)
+struct fmt::formatter<org::parse::Token<K, V>> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(org::parse::Token<K, V> const& p, fmt::format_context& ctx)
         const {
-        std::formatter<std::string> fmt;
+        fmt::formatter<std::string> fmt;
         fmt.format("Token<", ctx);
-        std::formatter<K>{}.format(p.kind, ctx);
+        fmt::formatter<K>{}.format(p.kind, ctx);
         fmt.format(">(", ctx);
-        std::formatter<V>{}.format(p.value, ctx);
+        fmt::formatter<V>{}.format(p.value, ctx);
         return fmt.format(")", ctx);
     }
 };
 
 
 template <typename K, typename V>
-struct std::formatter<org::parse::TokenId<K, V>> : std::formatter<std::string> {
-    template <typename FormatContext>
-    typename FormatContext::iterator format(
+struct fmt::formatter<org::parse::TokenId<K, V>> : fmt::formatter<std::string> {
+
+    typename hstd::fmt_iter format(
         org::parse::TokenId<K, V> const& p,
-        FormatContext&                   ctx) const {
-        std::formatter<std::string>                      fmt;
+        fmt::format_context&             ctx) const {
+        fmt::formatter<std::string>                      fmt;
         typename org::parse::TokenId<K, V>::FormatConfig conf{
             .name = hstd::demangle(typeid(K).name())};
         return fmt.format(p.format(conf), ctx);

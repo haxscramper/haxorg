@@ -504,9 +504,9 @@ class [[refl(R"({"default-constructor": false})")]] Report {
 
 
 template <>
-struct std::formatter<hstd::ext::CodeSpan> : std::formatter<std::string> {
-    template <typename FormatContext>
-    auto format(hstd::ext::CodeSpan const& p, FormatContext& ctx) const {
+struct fmt::formatter<hstd::ext::CodeSpan> : fmt::formatter<std::string> {
+
+    hstd::fmt_iter format(hstd::ext::CodeSpan const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(
             hstd::fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);
     }
@@ -514,7 +514,7 @@ struct std::formatter<hstd::ext::CodeSpan> : std::formatter<std::string> {
 
 
 template <>
-struct std::formatter<hstd::ext::CodeSpan*>
+struct fmt::formatter<hstd::ext::CodeSpan*>
     : public hstd::std_format_ptr_as_value<hstd::ext::CodeSpan> {
     using std_format_ptr_as_value<hstd::ext::CodeSpan>::format;
 };

@@ -22,7 +22,8 @@ void ExporterTree::visitField(int& i, char const* name, CVec<sem::SemId<sem::Org
         return;
     }
     if (skipAsTooNested()) {
-        writeSkip(fmt("too nested stack:{} max:{}", stack.size(), conf.maxTreeDepth));
+        writeSkip(
+            hstd::fmt("too nested stack:{} max:{}", stack.size(), conf.maxTreeDepth));
         return;
     }
 
@@ -52,7 +53,7 @@ void ExporterTree::treeRepr(sem::SemId<sem::Org> org, std::filesystem::path cons
         ExporterTree(os).evalTop(org);
     } else {
         throw FilesystemError::init(
-            std::format("Could not open file {} for writing tree repr", path));
+            fmt::format("Could not open file {} for writing tree repr", path));
     }
 }
 
@@ -67,7 +68,7 @@ ColText ExporterTree::treeRepr(sem::SemId<sem::Org> org, TreeReprConf const& con
 void ExporterTree::init(sem::SemId<sem::Org> org) {
     auto ctx = stack.back();
     indent();
-    os << os.green() << std::format("{}", org->getKind()) << os.end();
+    os << os.green() << fmt::format("{}", org->getKind()) << os.end();
 
     if (conf.withSubnodeIdx && ctx.subnodeIdx != -1) {
         os << " [" << ctx.subnodeIdx << "]";
@@ -100,7 +101,7 @@ void ExporterTree::writeSkip(
 template <typename T>
 void ExporterTree::visitField(int& arg, char const* name, T const& value) {
     if (skipAsEmpty(value)) {
-        writeSkip(fmt("  empty field {}", name), "\n");
+        writeSkip(hstd::fmt("  empty field {}", name), "\n");
         return;
     }
     // Location is printed as a part of 'init'
@@ -121,7 +122,7 @@ void ExporterTree::visitField(int& arg, char const* name, T const& value) {
     } else if constexpr (std::is_same_v<T, Str>) {
         os << " = " << os.yellow() << escape_literal(value) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, UserTime>) {
-        os << " = " << fmt("align:{} time:{}", value.align, value.format()) << "\n";
+        os << " = " << hstd::fmt("align:{} time:{}", value.align, value.format()) << "\n";
     } else {
         os << "\n";
         visit(arg, value);
@@ -151,7 +152,7 @@ void ExporterTree::visit(int& arg, T const& opt) {
     __scope();
     indent();
     if constexpr (std::is_enum<T>::value) {
-        os << os.red() << std::format("{}", opt) << os.end() << "\n";
+        os << os.red() << fmt::format("{}", opt) << os.end() << "\n";
     } else if constexpr (std::is_same_v<T, Str>) {
         if (conf.withTypeAnnotations) { os << value_metadata<T>::typeName(); }
 
