@@ -474,7 +474,7 @@ def gen_include_graph(
     ok_files: List[Path] = []
     files = list(get_script_root(ctx, "src").rglob("*.?pp"))
 
-    # files = files[:10]
+    files = files[20:40]
 
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [
@@ -536,7 +536,7 @@ def gen_include_graph(
                         ctx, f"include_graph/individual_include_graphs/{incd.name}").
                     with_suffix("")) + suffix)
 
-            log(CAT).info(f"Partial group graph in {sub_file}")
+            log(CAT).info(f"Partial group graph in {sub_file}.png")
             ensure_existing_dir(ctx, sub_file.parent)
             igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
 
