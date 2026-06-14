@@ -88,6 +88,17 @@ def create_include_tree_graph(
             "</TR>"
             "</TABLE>")
 
+    visible_subtree_cache: dict[int, bool] = {}
+
+    def has_visible_subtree(v: pb.IncludeVisit) -> bool:
+        key = id(v)
+        if key in visible_subtree_cache:
+            return visible_subtree_cache[key]
+
+        result = is_kept(v) or any(has_visible_subtree(ch) for ch in v.nested)
+        visible_subtree_cache[key] = result
+        return result
+
     def nested_rows_for(
             v: pb.IncludeVisit
     ) -> list[tuple[pb.IncludeVisit, int, int, str, int | None]]:
@@ -98,15 +109,15 @@ def create_include_tree_graph(
                 cumulative_used(ch),
                 int(ch.file_line_count),
                 ch.relative_path or ch.absolute_path or "<unknown>",
-                is_kept(ch),
+                has_visible_subtree(ch),
             ))
 
         rows.sort(key=lambda item: item[1], reverse=True)
 
         result: list[tuple[pb.IncludeVisit, int, int, str, int | None]] = []
         port_index = 0
-        for ch, used, lines, name, kept in rows:
-            if kept:
+        for ch, used, lines, name, has_visible in rows:
+            if has_visible:
                 result.append((ch, used, lines, name, port_index))
                 port_index += 1
             else:
@@ -195,191 +206,40 @@ def create_include_tree_graph(
         *,
         parent_id: str | None,
         parent_row_index: int | None,
-    ) -> str:
+    ) -> tuple[str, list[str]]:
         nonlocal seq
         node_id = f"n{seq}"
         seq += 1
 
         add_vertex_record(v, node_id, parent_id, parent_row_index)
-        dot.node(node_id, node_label(v))
+
+        visible = is_kept(v)
+        if visible:
+            dot.node(node_id, node_label(v))
+
+        visible_roots: list[str] = [node_id] if visible else []
 
         for ch, _used, _lines, _name, port_index in nested_rows_for(v):
-            if port_index is None:
-                continue
-
-            nested_id = emit(
+            child_id, child_visible_roots = emit(
                 ch,
                 parent_id=node_id,
                 parent_row_index=port_index,
             )
-            dot.edge(f"{node_id}:p{port_index}:e", nested_id)
+
             graph.add_edge(
                 node_id,
-                nested_id,
-                parent_row_index=port_index,
+                child_id,
+                parent_row_index=-1 if port_index is None else port_index,
             )
 
-        return node_id
+            if visible and port_index is not None:
+                for child_visible_id in child_visible_roots:
+                    dot.edge(f"{node_id}:p{port_index}:e", child_visible_id)
 
-    emit(visit, parent_id=None, parent_row_index=None)
+            if not visible:
+                visible_roots.extend(child_visible_roots)
+
+        return node_id, visible_roots
+
+    _root_id, _visible_roots = emit(visit, parent_id=None, parent_row_index=None)
     return dot, graph
-
-
-def write_include_tree_html(
-    dot: graphviz.Digraph,
-    graph: ig.Graph,
-    output_html: str | Path,
-    *,
-    root_dir: str | Path | None = None,
-) -> None:
-    svg = dot.pipe(format="svg").decode("utf-8")
-
-    doc = document(title="Include tree")
-    with doc:
-        with head():
-            meta(charset="utf-8")
-            style("""
-                html, body {
-                    margin: 0;
-                    padding: 0;
-                    height: 100%;
-                    font-family: sans-serif;
-                }
-
-                #app {
-                    width: 100%;
-                    height: 100vh;
-                    overflow: auto;
-                    background: #ffffff;
-                }
-
-                #app svg {
-                    width: max-content;
-                    height: auto;
-                    display: block;
-                }
-
-                .include-arrow-hit {
-                    cursor: pointer;
-                }
-
-                .include-focus {
-                    outline: 3px solid #ff9800;
-                    outline-offset: 4px;
-                }
-                """)
-
-        edge_list = graph.get_edgelist()
-        edge_names = [
-            (graph.vs[src]["name"], graph.vs[dst]["name"]) for src, dst in edge_list
-        ]
-        edge_rows = (list(graph.es["parent_row_index"]) if "parent_row_index"
-                     in graph.es.attribute_names() else [-1] * len(edge_list))
-
-        with body():
-            with div(id="app"):
-                raw(svg)
-            script(
-                raw(f"""
-                    const EDGE_DATA = {edge_list};
-                    const EDGE_ROWS = {edge_rows};
-                    const EDGE_NAMES = {edge_names};
-
-                    function getSvgRoot() {{
-                        return document.querySelector('#app svg');
-                    }}
-
-                    function getGraphRootGroup() {{
-                        const svg = getSvgRoot();
-                        if (!svg) {{
-                            return null;
-                        }}
-                        return svg.querySelector('g.graph');
-                    }}
-
-                    function getNodeGroup(nodeId) {{
-                        const graphRoot = getGraphRootGroup();
-                        if (!graphRoot) {{
-                            return null;
-                        }}
-                        const title = Array.from(graphRoot.querySelectorAll('g.node > title'))
-                            .find(el => el.textContent.trim() === nodeId);
-                        return title ? title.parentElement : null;
-                    }}
-
-                    function getEdgeGroup(parentId, nestedId) {{
-                        const graphRoot = getGraphRootGroup();
-                        if (!graphRoot) {{
-                            return null;
-                        }}
-                        const titleText = `${{parentId}}->${{nestedId}}`;
-                        const title = Array.from(graphRoot.querySelectorAll('g.edge > title'))
-                            .find(el => el.textContent.trim() === titleText);
-                        return title ? title.parentElement : null;
-                    }}
-
-                    function getArrowCell(parentId, rowIndex) {{
-                        const nodeGroup = getNodeGroup(parentId);
-                        if (!nodeGroup) {{
-                            return null;
-                        }}
-                        const texts = Array.from(nodeGroup.querySelectorAll('text'));
-                        const arrows = texts.filter(el => el.textContent.trim() === '→');
-                        return arrows[rowIndex] || null;
-                    }}
-
-                    function clearFocus() {{
-                        document.querySelectorAll('.include-focus').forEach(el => {{
-                            el.classList.remove('include-focus');
-                        }});
-                    }}
-
-                    function focusNode(nodeId) {{
-                        const nodeGroup = getNodeGroup(nodeId);
-                        if (!nodeGroup) {{
-                            return;
-                        }}
-                        clearFocus();
-                        nodeGroup.classList.add('include-focus');
-                        nodeGroup.scrollIntoView({{
-                            behavior: 'smooth',
-                            block: 'center',
-                            inline: 'center',
-                        }});
-                    }}
-
-                    function attachInteractivity() {{
-                        for (let i = 0; i < EDGE_NAMES.length; ++i) {{
-                            const [parentId, nestedId] = EDGE_NAMES[i];
-                            const rowIndex = EDGE_ROWS[i];
-                            const arrowText = getArrowCell(parentId, rowIndex);
-                            if (!arrowText) {{
-                                continue;
-                            }}
-
-                            const bbox = arrowText.getBBox();
-                            const svg = getSvgRoot();
-                            const ns = 'http://www.w3.org/2000/svg';
-                            const rect = document.createElementNS(ns, 'rect');
-                            rect.setAttribute('x', String(bbox.x - 4));
-                            rect.setAttribute('y', String(bbox.y - 2));
-                            rect.setAttribute('width', String(bbox.width + 8));
-                            rect.setAttribute('height', String(bbox.height + 4));
-                            rect.setAttribute('fill', 'transparent');
-                            rect.setAttribute('class', 'include-arrow-hit');
-
-                            rect.addEventListener('click', () => focusNode(nestedId));
-
-                            arrowText.parentElement.appendnested(rect);
-
-                            const edgeGroup = getEdgeGroup(parentId, nestedId);
-                            if (edgeGroup) {{
-                                edgeGroup.style.pointerEvents = 'none';
-                            }}
-                        }}
-                    }}
-
-                    window.addEventListener('load', attachInteractivity);
-                    """))
-
-    Path(output_html).write_text(doc.render(), encoding="utf-8")

@@ -507,11 +507,8 @@ def gen_include_graph(
                 f"include_graph/branching_include_graphs/{Path(tu.absoluteOriginal).name}_branch"
             )
 
-            gen_include_branching_graph.write_include_tree_html(
-                gg_branch, gg_igraph, output_html=outfile.with_suffix(".html"))
-
             gg_branch.render(str(outfile), format="png")
-            log().info(f"wrote {outfile}.png {outfile}.html")
+            log().info(f"wrote {outfile}.png")
 
         if tu.absoluteOriginal.endswith("hpp"):
             used_types: List[QualType] = list()

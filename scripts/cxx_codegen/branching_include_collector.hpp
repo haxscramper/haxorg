@@ -128,14 +128,41 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
     }
 
 
-    std::optional<PendingInclude> popPendingForParent(std::string const& parentPath) {
+    std::optional<PendingInclude> popPendingForParent(
+        std::string const& parentPath,
+        unsigned           includeLine,
+        std::string const& enteredPath) {
+
+        auto isParentMatch = [&](PendingInclude const& p) {
+            return p.IncludingFilePath == parentPath;
+        };
+
+        auto isStrongMatch = [&](PendingInclude const& p) {
+            if (!isParentMatch(p)) { return false; }
+            if (includeLine != 0 && p.PhysicalLine != includeLine) { return false; }
+            if (!enteredPath.empty() && !p.AbsolutePath.empty()
+                && p.AbsolutePath != enteredPath) {
+                return false;
+            }
+            return true;
+        };
+
         for (auto it = PendingIncludes.begin(); it != PendingIncludes.end(); ++it) {
-            if (it->IncludingFilePath == parentPath) {
+            if (isStrongMatch(*it)) {
                 PendingInclude result = *it;
                 PendingIncludes.erase(it);
                 return result;
             }
         }
+
+        for (auto it = PendingIncludes.begin(); it != PendingIncludes.end(); ++it) {
+            if (isParentMatch(*it)) {
+                PendingInclude result = *it;
+                PendingIncludes.erase(it);
+                return result;
+            }
+        }
+
         return std::nullopt;
     }
 
@@ -157,7 +184,10 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         std::string enteredPath = getRealPathForLoc(*SM, spelling);
         std::string parentPath  = ActiveStack.back().AbsolutePath;
 
-        auto pending = popPendingForParent(parentPath);
+        unsigned includeLine = 0;
+        if (spelling.isValid()) { includeLine = SM->getSpellingLineNumber(spelling); }
+
+        auto pending = popPendingForParent(parentPath, includeLine, enteredPath);
 
         IncludeVisit* nested = ActiveStack.back().Node->add_nested();
         nested->set_absolutepath(enteredPath);
