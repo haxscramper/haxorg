@@ -1,5 +1,5 @@
 from beartype import beartype
-from py_repository.repo_tasks.common import get_build_root
+from py_repository.repo_tasks.common import get_build_root, get_script_root
 from py_repository.repo_tasks.deps_build import build_develop_deps
 from py_repository.repo_tasks.examples_build import (
     build_examples,
@@ -51,6 +51,15 @@ def run_develop_ci(ctx: TaskContext) -> None:
     if conf.develop_ci_conf.test:
         ctx.run(generate_python_protobuf_files, ctx=ctx)
         ctx.run(run_py_tests, ctx=ctx)
+
+    if conf.develop_ci_conf.forensics:
+        from cxx_repository import code_forensics_cli
+        code_forensics_cli.main_impl(
+            code_forensics_cli.CodeForensicsCLI(
+                input=str(get_script_root(ctx)),
+                out=str(get_build_root(ctx).joinpath("develop_ci_forensics/db.sqlite")),
+                result_dir=str(get_build_root(ctx).joinpath("develop_ci_forensics")),
+            ))
 
     if conf.develop_ci_conf.example_run:
         ctx.run(run_examples, ctx=ctx)

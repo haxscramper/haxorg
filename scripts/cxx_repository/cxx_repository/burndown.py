@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from beartype.typing import Optional
 from cxx_repository.orm_model import (
@@ -14,6 +15,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from py_scriptutils.script_logging import log
 from py_scriptutils.tracer import TraceCollector
 from pydantic import BaseModel
 from sqlalchemy import Engine, func, select
@@ -22,12 +24,21 @@ from sqlalchemy.orm import aliased, sessionmaker
 
 
 class BurndownConfiguration(BaseModel, extra="forbid"):
+    output_path: Path = Path("burndown.png")
+    "Destination PNG file."
     min_date: Optional[datetime] = None
     max_date: Optional[datetime] = None
     sample_period: timedelta = timedelta(days=1)
     "How often the repository state is reconstructed (x-axis resolution)."
     band_period: timedelta = timedelta(days=365)
     "How lines are grouped by introduction time into stacked bands."
+    title: str = "Code burndown by introduction period"
+    xlabel: str = "Repository state at date"
+    ylabel: str = "Surviving lines"
+    band_label_format: str = "%Y-%m"
+    "strftime format used for stacked band legend labels."
+    figsize: tuple[float, float] = (14.0, 8.0)
+    dpi: int = 150
 
 
 def _bucket_start(ts: int, period: timedelta) -> int:
@@ -36,8 +47,7 @@ def _bucket_start(ts: int, period: timedelta) -> int:
     return (ts // secs) * secs
 
 
-def run_for(
-    engine: Engine, config: BurndownConfiguration = BurndownConfiguration()) -> None:
+def run_for(engine: Engine, config: BurndownConfiguration) -> None:
     Base.metadata.bind = engine  # type: ignore[attr-defined]
     session_maker = sessionmaker(bind=engine)
     session = session_maker()
@@ -131,17 +141,20 @@ def run_for(
     # Plot stacked area chart.
     x = [datetime.fromtimestamp(s, tz=timezone.utc) for s in sample_points]
     labels = [
-        datetime.fromtimestamp(b, tz=timezone.utc).strftime("%Y-%m") for b in all_bands
+        datetime.fromtimestamp(b, tz=timezone.utc).strftime(config.band_label_format)
+        for b in all_bands
     ]
 
-    fig, ax = plt.subplots(figsize=(14, 8))
+    fig, ax = plt.subplots(figsize=config.figsize)
     ax.stackplot(x, matrix, labels=labels)
-    ax.set_xlabel("Repository state at date")
-    ax.set_ylabel("Surviving lines")
-    ax.set_title("Code burndown by introduction period")
+    ax.set_xlabel(config.xlabel)
+    ax.set_ylabel(config.ylabel)
+    ax.set_title(config.title)
     ax.legend(loc="upper left", fontsize="small", ncol=2)
     fig.autofmt_xdate()
     fig.tight_layout()
-    plt.show()
+    fig.savefig(config.output_path, dpi=config.dpi)
+    plt.close(fig)
+    log(__name__).info(f"wrote {config.output_path.resolve()}")
 
     session.close()

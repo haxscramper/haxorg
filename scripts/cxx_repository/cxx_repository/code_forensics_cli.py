@@ -17,7 +17,22 @@ import rich_click as click
 class CodeForensicsCLI(BaseModel, extra="forbid"):
     input: str
     out: str
+    result_dir: str
     skip_if_exists: bool = False
+
+
+def main_impl(cli: CodeForensicsCLI):
+    Path(cli.out).parent.mkdir(parents=True, exist_ok=True)
+    if not Path(cli.out).exists() or not cli.skip_if_exists:
+        run_forensics(Path(cli.input), db=cli.out)
+
+    log().info(f"cli.out = {Path(cli.out).resolve()}")
+    engine = open_sqlite(Path(cli.out), orm_model.Base)
+
+    burndown.run_for(
+        engine,
+        burndown.BurndownConfiguration(
+            output_path=Path(cli.result_dir).joinpath("burndown.png")))
 
 
 @click.command()
@@ -28,14 +43,7 @@ def main(ctx: click.Context, **kwargs: Any):
                                          CodeForensicsCLI,
                                          cli_kwargs=get_user_provided_params(ctx))
 
-    Path(cli.out).parent.mkdir(parents=True, exist_ok=True)
-    if not Path(cli.out).exists() or not cli.skip_if_exists:
-        run_forensics(Path(cli.input), db=cli.out)
-
-    log().info(f"cli.out = {Path(cli.out).resolve()}")
-    engine = open_sqlite(Path(cli.out), orm_model.Base)
-
-    burndown.run_for(engine)
+    main_impl(cli)
 
 
 if __name__ == "__main__":
