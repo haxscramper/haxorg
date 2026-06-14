@@ -20,7 +20,7 @@ from py_codegen.refl_wrapper_graph import (
     get_used_types_rec,
     hash_qual_type,
 )
-from py_repository.code_analysis import gen_coverage_cookies
+from py_repository.code_analysis import gen_coverage_cookies, gen_include_branching_graph
 from py_repository.repo_tasks.command_execution import (
     run_command,
     run_command_with_json_args,
@@ -427,79 +427,6 @@ def create_project_file_subgraphs(
     return result
 
 
-def create_include_dag(visit: pb.IncludeVisit,
-                       visual_mode: Literal["tree", "dag"]) -> graphviz.Digraph:
-    if visual_mode not in ("tree", "dag"):
-        raise ValueError(f"Unsupported visual_mode: {visual_mode}")
-
-    dot = graphviz.Digraph("include_dag")
-    dot.attr("graph", rankdir="LR")
-    dot.attr("node", shape="plain")
-
-    cumulative_cache: dict[int, int] = {}
-
-    def cumulative_used(v: pb.IncludeVisit) -> int:
-        key = id(v)
-        if key in cumulative_cache:
-            return cumulative_cache[key]
-        total = int(v.used_line_count) + sum(cumulative_used(ch) for ch in v.nested)
-        cumulative_cache[key] = total
-        return total
-
-    def node_label(v: pb.IncludeVisit) -> str:
-        title = html.escape(v.relative_path or v.absolute_path or "<root>")
-        rows = [
-            f'<TR><TD COLSPAN="4"><B>{title}</B></TD></TR>',
-            "<TR><TD><B>include</B></TD><TD><B>used Σ</B></TD><TD><B>lines</B></TD><TD><B>to</B></TD></TR>",
-        ]
-
-        for i, ch in enumerate(v.nested):
-            rel = html.escape(ch.relative_path or ch.absolute_path)
-            used_sum = cumulative_used(ch)
-            lines = int(ch.file_line_count)
-            rows.append(f'<TR>'
-                        f"<TD ALIGN=\"LEFT\">{rel}</TD>"
-                        f"<TD>{used_sum}</TD>"
-                        f"<TD>{lines}</TD>"
-                        f'<TD PORT="p{i}">→</TD>'
-                        f"</TR>")
-
-        return ("<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">" +
-                "".join(rows) + "</TABLE>>")
-
-    seq = 0
-    dag_ids: dict[str, str] = {}
-    emitted: set[str] = set()
-
-    def get_node_id(v: pb.IncludeVisit) -> str:
-        nonlocal seq
-        if visual_mode == "tree":
-            nid = f"n{seq}"
-            seq += 1
-            return nid
-
-        key = v.absolute_path or v.relative_path
-        if key not in dag_ids:
-            dag_ids[key] = f"n{len(dag_ids)}"
-        return dag_ids[key]
-
-    def emit(v: pb.IncludeVisit, nid: str) -> None:
-        if visual_mode == "dag" and nid in emitted:
-            return
-
-        dot.node(nid, node_label(v))
-        emitted.add(nid)
-
-        for i, ch in enumerate(v.nested):
-            child_id = get_node_id(ch)
-            dot.edge(f"{nid}:p{i}:e", child_id)
-            emit(ch, child_id)
-
-    root_id = get_node_id(visit)
-    emit(visit, root_id)
-    return dot
-
-
 class TraceEvent(BaseModel, extra="forbid"):
     pid: int = 0
     tid: int = 0
@@ -571,14 +498,20 @@ def gen_include_graph(
 
         assert tu.absoluteOriginal
         if tu.main_file_include_tree:
-            gg_branch = create_include_dag(tu.main_file_include_tree, "dag")
+            gg_branch, gg_igraph = gen_include_branching_graph.create_include_tree_graph(
+                tu.main_file_include_tree,
+                root_dir=get_script_root(ctx).joinpath("src"),
+            )
             outfile = get_workflow_out(
                 ctx,
                 f"include_graph/branching_include_graphs/{Path(tu.absoluteOriginal).name}_branch"
             )
 
+            gen_include_branching_graph.write_include_tree_html(
+                gg_branch, gg_igraph, output_html=outfile.with_suffix(".html"))
+
             gg_branch.render(str(outfile), format="png")
-            log().info(f"wrote {outfile}.png")
+            log().info(f"wrote {outfile}.png {outfile}.html")
 
         if tu.absoluteOriginal.endswith("hpp"):
             used_types: List[QualType] = list()
