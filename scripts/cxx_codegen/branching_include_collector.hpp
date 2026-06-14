@@ -26,8 +26,7 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         std::filesystem::path p(rawPath);
         if (p.is_relative()) { p = std::filesystem::absolute(p); }
 
-        p = p.lexically_normal();
-        return p.string();
+        return std::filesystem::canonical(p).string();
     }
 
     static std::string getMainFileAbsolutePath(clang::CompilerInstance& CI) {
@@ -83,7 +82,7 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         IncludeVisit*                Node;
         clang::FileID                File;
         std::string                  AbsolutePath;
-        std::unordered_set<unsigned> ProcessedLines;
+        std::unordered_set<unsigned> SkippedLines;
     };
 
 
@@ -108,10 +107,9 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
         ActiveStack.push_back(
             VisitFrame{
-                .Node           = Root,
-                .File           = mainId,
-                .AbsolutePath   = Root->absolutepath(),
-                .ProcessedLines = {},
+                .Node         = Root,
+                .File         = mainId,
+                .AbsolutePath = Root->absolutepath(),
             });
 
         Root->set_filelinecount(countPhysicalLines(*SM, mainId));
@@ -127,20 +125,6 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         } else {
             return {};
         }
-    }
-
-    void markLine(clang::SourceLocation Loc) {
-        if (ActiveStack.empty()) { return; }
-
-        clang::SourceLocation spelling = SM->getSpellingLoc(Loc);
-        if (spelling.isInvalid()) { return; }
-
-        clang::FileID fid = SM->getFileID(spelling);
-        VisitFrame&   top = ActiveStack.back();
-        if (fid != top.File) { return; }
-
-        unsigned line = SM->getSpellingLineNumber(spelling);
-        if (line != 0) { top.ProcessedLines.insert(line); }
     }
 
 
@@ -192,13 +176,10 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
         ActiveStack.push_back(
             VisitFrame{
-                .Node           = nested,
-                .File           = enteredFile,
-                .AbsolutePath   = nested->absolutepath(),
-                .ProcessedLines = {},
+                .Node         = nested,
+                .File         = enteredFile,
+                .AbsolutePath = nested->absolutepath(),
             });
-
-        markLine(Loc);
     }
 
 
@@ -216,7 +197,6 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         clang::SrcMgr::CharacteristicKind) override {
 
         ensureRoot();
-        markLine(HashLoc);
 
         if (File && SM->isInMainFile(HashLoc)) {
             auto incl = Out->add_includes();
@@ -250,7 +230,6 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
             case clang::PPCallbacks::ExitFile:
                 if (!ActiveStack.empty() && ActiveStack.back().File == PrevFID) {
-                    markLine(Loc);
                     exitFile();
                 } else if (ActiveStack.size() > 1) {
                     exitFile();
@@ -262,62 +241,28 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         }
     }
 
-    void If(clang::SourceLocation Loc, clang::SourceRange, ConditionValueKind) override {
-        markLine(Loc);
-    }
+    void SourceRangeSkipped(clang::SourceRange Range, clang::SourceLocation) override {
+        if (ActiveStack.empty()) { return; }
 
-    void Elif(
-        clang::SourceLocation Loc,
-        clang::SourceRange,
-        ConditionValueKind,
-        clang::SourceLocation) override {
-        markLine(Loc);
-    }
+        clang::SourceLocation begin = SM->getSpellingLoc(Range.getBegin());
+        clang::SourceLocation end   = SM->getSpellingLoc(Range.getEnd());
+        if (begin.isInvalid() || end.isInvalid()) { return; }
 
-    void Ifdef(
-        clang::SourceLocation Loc,
-        clang::Token const&,
-        clang::MacroDefinition const&) override {
-        markLine(Loc);
-    }
+        clang::FileID fidBegin = SM->getFileID(begin);
+        clang::FileID fidEnd   = SM->getFileID(end);
+        if (fidBegin != fidEnd) { return; }
 
-    void Ifndef(
-        clang::SourceLocation Loc,
-        clang::Token const&,
-        clang::MacroDefinition const&) override {
-        markLine(Loc);
-    }
+        VisitFrame& top = ActiveStack.back();
+        if (fidBegin != top.File) { return; }
 
-    void Else(clang::SourceLocation Loc, clang::SourceLocation) override {
-        markLine(Loc);
-    }
+        unsigned lineBegin = SM->getSpellingLineNumber(begin);
+        unsigned lineEnd   = SM->getSpellingLineNumber(end);
+        if (lineBegin == 0 || lineEnd == 0) { return; }
+        if (lineEnd < lineBegin) { std::swap(lineBegin, lineEnd); }
 
-    void Endif(clang::SourceLocation Loc, clang::SourceLocation) override {
-        markLine(Loc);
-    }
-
-    void MacroDefined(clang::Token const& Tok, clang::MacroDirective const*) override {
-        markLine(Tok.getLocation());
-    }
-
-    void MacroUndefined(
-        clang::Token const& Tok,
-        clang::MacroDefinition const&,
-        clang::MacroDirective const*) override {
-        markLine(Tok.getLocation());
-    }
-
-    void MacroExpands(
-        clang::Token const&,
-        clang::MacroDefinition const&,
-        clang::SourceRange Range,
-        clang::MacroArgs const*) override {
-        markLine(Range.getBegin());
-    }
-
-    void PragmaDirective(clang::SourceLocation Loc, clang::PragmaIntroducerKind)
-        override {
-        markLine(Loc);
+        for (unsigned line = lineBegin; line <= lineEnd; ++line) {
+            top.SkippedLines.insert(line);
+        }
     }
 
 
@@ -326,8 +271,11 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
     void finalizeTop() {
         VisitFrame& top = ActiveStack.back();
 
-        unsigned selfLines = static_cast<unsigned>(top.ProcessedLines.size());
-        top.Node->set_directexpandedlines(selfLines);
+        unsigned total   = top.Node->filelinecount();
+        unsigned skipped = static_cast<unsigned>(top.SkippedLines.size());
+        unsigned direct  = (total > skipped) ? (total - skipped) : 0;
+
+        top.Node->set_usedlinecount(direct);
     }
 
     void exitFile() {

@@ -246,7 +246,7 @@ message IncludeVisit {
     uint32 FileLineCount = 3;
     /// Direct lines expanded from the included file,
     /// excluding all nested files.
-    uint32 DirectExpandedLines = 4;
+    uint32 UsedLineCount = 4;
     /// where in the file include happened
     uint32 IncludeLocationLine = 6;
     repeated IncludeVisit Nested = 7;
