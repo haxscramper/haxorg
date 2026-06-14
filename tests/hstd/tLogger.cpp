@@ -196,7 +196,7 @@ TEST_F(LoggerTest, StdFormatterSpecifications) {
 
     EXPECT_EQ(
         hstd::log::format_logger_arguments(
-            "Custom with spec: {:>15}", StdFormattableType{100}),
+            "Custom with spec: {:>15}", hstd::fmt1(StdFormattableType{100})),
         "Custom with spec:     std_fmt:100");
 }
 

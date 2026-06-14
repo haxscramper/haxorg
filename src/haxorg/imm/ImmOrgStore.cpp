@@ -18,6 +18,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
 
 using namespace org;
 using namespace org::imm;

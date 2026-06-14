@@ -107,7 +107,10 @@ template <typename... Args>
 std::string format_logger_arguments(LogFormatStr<Args...> fmt_str, Args const&... args) {
     auto formatted_args = std::make_tuple(format_logger_argument1<Args>(args)...);
     return std::apply(
-        [&fmt_str](auto const&... args_ref) { return fmt::format(fmt_str, args_ref...); },
+        [&fmt_str](auto const&... args_ref) {
+            return fmt::vformat(
+                fmt::string_view(fmt_str.get()), fmt::make_format_args(args_ref...));
+        },
         formatted_args);
 }
 

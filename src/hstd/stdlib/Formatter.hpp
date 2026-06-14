@@ -70,8 +70,7 @@ fmt::format_context::iterator fmt_ctx(T const& t, fmt::format_context& ctx) {
 }
 
 
-fmt::format_context::iterator fmt_ctx(char const* t, fmt::format_context& ctx) {
-    with_std_formatter(t);
+inline fmt::format_context::iterator fmt_ctx(char const* t, fmt::format_context& ctx) {
     return fmt::format_to(ctx.out(), "{}", t);
 }
 

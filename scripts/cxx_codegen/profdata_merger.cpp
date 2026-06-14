@@ -33,6 +33,7 @@
 
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 #include "reflection_demangler.hpp"
 #include "reflection_perf.hpp"
@@ -710,13 +711,13 @@ NO_COVERAGE void add_file_regions(
                         expanded_from_id = file_region_ids.at(id);
                     } else {
                         if (dbg) {
-                            LOG(INFO)
-                                << fmt("recursively adding region {} {} "
-                                       ".contains({}) -> {}",
-                                       id,
-                                       file_region_ids,
-                                       id,
-                                       file_region_ids.contains(id));
+                            LOG(INFO) << hstd::fmt(
+                                "recursively adding region {} {} "
+                                ".contains({}) -> {}",
+                                id,
+                                file_region_ids,
+                                id,
+                                file_region_ids.contains(id));
                         }
 
                         expanded_from_id = addRegion(id);
@@ -1090,7 +1091,7 @@ std::string generateInstantiateFunctionReport(BuildProfileCollection const& coll
         return totalDurB < totalDurA;
     });
 
-    hstd::fmt_iter formatDuration = [](int microseconds) -> std::string {
+    auto formatDuration = [](int microseconds) -> std::string {
         if (microseconds < 1000) { return fmt::format("{}µs", microseconds); }
         int ms          = microseconds / 1000;
         int remainingUs = microseconds % 1000;
