@@ -387,6 +387,7 @@ class ConvTu:
     enums: List[codegen_ir.GenTuEnum] = field(default_factory=list)
     typedefs: List[codegen_ir.GenTuTypedef] = field(default_factory=list)
     includes: List[codegen_ir.GenTuInclude] = field(default_factory=list)
+    main_file_include_tree: Optional[pb.IncludeVisit] = None
     absoluteOriginal: Optional[str] = None
 
     def get_all(self) -> List[codegen_ir.GenTuUnion]:
@@ -537,4 +538,5 @@ def conv_proto_file(path: Path, original: Optional[Path] = None) -> ConvTu:
         typedefs=[conv_proto_typedef(rec, original) for rec in unit.typedefs],
         functions=[conv_proto_function(rec, original) for rec in unit.functions],
         includes=[conv_proto_include(rec, original) for rec in unit.includes],
+        main_file_include_tree=unit.main_file_include_tree,
     )
