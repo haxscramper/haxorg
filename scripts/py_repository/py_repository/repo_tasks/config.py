@@ -110,6 +110,7 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     emscripten_deps: bool = True
     emscripten_build: bool = True
     emscripten_test: bool = True
+    forensics: bool = True
 
 
 class HaxorgExampleConfig(BaseModel, extra="forbid"):

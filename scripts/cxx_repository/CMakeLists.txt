@@ -26,7 +26,6 @@ target_link_libraries(
          OpenSSL::SSL
          OpenSSL::Crypto
          absl::base
-         absl::log
          absl::flags
          ${ZLIB_LIBRARIES}
          ${PCRE_LIBRARIES})

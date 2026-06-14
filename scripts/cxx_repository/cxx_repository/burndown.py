@@ -1,96 +1,160 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-from cxx_repository.orm_model import Base, ViewFullFileSectionLines
+from beartype.typing import Optional
+from cxx_repository.orm_model import (
+    Base,
+    FileSectionLines,
+    FileTrack,
+    FileTrackSection,
+    GitCommit,
+    LineData,
+    ViewFullFileSectionLines,
+)
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from py_scriptutils.script_logging import log
 from py_scriptutils.tracer import TraceCollector
-from sqlalchemy import Engine
-from sqlalchemy.orm import sessionmaker
+from pydantic import BaseModel
+from sqlalchemy import Engine, func, select
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import aliased, sessionmaker
 
 
-def format_epoch_to_date(epoch: float, date_format: str = "%Y-%m-%d") -> str:
-    return datetime.utcfromtimestamp(epoch).strftime(date_format)
+class BurndownConfiguration(BaseModel, extra="forbid"):
+    output_path: Path = Path("burndown.png")
+    "Destination PNG file."
+    min_date: Optional[datetime] = None
+    max_date: Optional[datetime] = None
+    sample_period: timedelta = timedelta(days=1)
+    "How often the repository state is reconstructed (x-axis resolution)."
+    band_period: timedelta = timedelta(days=365)
+    "How lines are grouped by introduction time into stacked bands."
+    title: str = "Code burndown by introduction period"
+    xlabel: str = "Repository state at date"
+    ylabel: str = "Surviving lines"
+    band_label_format: str = "%Y-%m"
+    "strftime format used for stacked band legend labels."
+    figsize: tuple[float, float] = (14.0, 8.0)
+    dpi: int = 150
 
 
-def run_for(engine: Engine) -> None:
-    trace = TraceCollector()
+def _bucket_start(ts: int, period: timedelta) -> int:
+    """Floor a posix timestamp to the start of its band bucket."""
+    secs = int(period.total_seconds())
+    return (ts // secs) * secs
 
+
+def run_for(engine: Engine, config: BurndownConfiguration) -> None:
     Base.metadata.bind = engine  # type: ignore[attr-defined]
-    sesion_maker = sessionmaker(bind=engine)
-    session = sesion_maker()
+    session_maker = sessionmaker(bind=engine)
+    session = session_maker()
 
-    # ORM-based SELECT query
-    query = session.query(ViewFullFileSectionLines.line_commit_time,
-                          ViewFullFileSectionLines.section_commit_time).limit(5000)
+    # Determine the global time range from commit timestamps.
+    bounds = session.execute(select(func.min(GitCommit.time),
+                                    func.max(GitCommit.time))).one()
+    db_min, db_max = bounds
+    if db_min is None:
+        return
 
-    line_time = "line_commit_time"
-    sect_time = "section_commit_time"
+    min_ts = (int(config.min_date.replace(
+        tzinfo=timezone.utc).timestamp()) if config.min_date else db_min)
+    max_ts = (int(config.max_date.replace(
+        tzinfo=timezone.utc).timestamp()) if config.max_date else db_max)
 
-    # Converting results to a DataFrame
-    print(query.statement)
-    df = pd.read_sql_query(query.statement,
-                           engine,
-                           dtype={
-                               line_time: "int32",
-                               sect_time: "int32"
-                           })
+    sample_secs = int(config.sample_period.total_seconds())
+    sample_points = list(range(min_ts, max_ts + 1, sample_secs))
 
-    # Close the session
+    # Subquery: every section with its commit time and track.
+    section_time = (select(
+        FileTrackSection.id.label("section_id"),
+        FileTrackSection.track.label("track"),
+        GitCommit.time.label("section_time"),
+    ).join(GitCommit, GitCommit.id == FileTrackSection.commit_id).subquery())
+
+    # Per-section line counts grouped by the birth bucket of each line.
+    # line birth time comes from the commit that introduced the LineData.
+    line_commit = aliased(GitCommit)
+    per_section_band = session.execute(
+        select(
+            section_time.c.section_id,
+            section_time.c.track,
+            section_time.c.section_time,
+            line_commit.time.label("line_time"),
+            func.count(FileSectionLines.id).label("n"),
+        ).join(FileSectionLines,
+               FileSectionLines.section == section_time.c.section_id).join(
+                   LineData, LineData.id == FileSectionLines.line_id).join(
+                       line_commit, line_commit.id == LineData.commit_id).group_by(
+                           section_time.c.section_id,
+                           section_time.c.track,
+                           section_time.c.section_time,
+                           line_commit.time,
+                       )).all()
+
+    # Index section data per track, sorted by section time, so that for a
+    # given sample date we can pick the latest applicable snapshot per track.
+    # track -> sorted list of (section_time, section_id)
+    track_sections: dict[int, list[tuple[int, int]]] = {}
+    # section_id -> {band_start_ts: line_count}
+    section_bands: dict[int, dict[int, int]] = {}
+
+    for row in per_section_band:
+        track_sections.setdefault(row.track, [])
+        section_bands.setdefault(row.section_id, {})
+        band = _bucket_start(row.line_time, config.band_period)
+        section_bands[row.section_id][band] = (
+            section_bands[row.section_id].get(band, 0) + row.n)
+
+    # Build the (section_time, section_id) lists once, deduplicated and sorted.
+    seen: dict[int, set[int]] = {}
+    for row in per_section_band:
+        seen.setdefault(row.track, set())
+        if row.section_id not in seen[row.track]:
+            seen[row.track].add(row.section_id)
+            track_sections[row.track].append((row.section_time, row.section_id))
+    for track in track_sections:
+        track_sections[track].sort()
+
+    all_bands = sorted({b for bands in section_bands.values() for b in bands})
+
+    # For each sample date, reconstruct the live line set: for each track take
+    # the latest section with section_time <= sample, accumulate its bands.
+    matrix = np.zeros((len(all_bands), len(sample_points)), dtype=np.int64)
+    band_index = {b: i for i, b in enumerate(all_bands)}
+
+    for col, sample in enumerate(sample_points):
+        for track, sections in track_sections.items():
+            chosen: Optional[int] = None
+            for sec_time, sec_id in sections:
+                if sec_time <= sample:
+                    chosen = sec_id
+                else:
+                    break
+            if chosen is None:
+                continue
+            for band, n in section_bands[chosen].items():
+                matrix[band_index[band], col] += n
+
+    # Plot stacked area chart.
+    x = [datetime.fromtimestamp(s, tz=timezone.utc) for s in sample_points]
+    labels = [
+        datetime.fromtimestamp(b, tz=timezone.utc).strftime(config.band_label_format)
+        for b in all_bands
+    ]
+
+    fig, ax = plt.subplots(figsize=config.figsize)
+    ax.stackplot(x, matrix, labels=labels)
+    ax.set_xlabel(config.xlabel)
+    ax.set_ylabel(config.ylabel)
+    ax.set_title(config.title)
+    ax.legend(loc="upper left", fontsize="small", ncol=2)
+    fig.autofmt_xdate()
+    fig.tight_layout()
+    fig.savefig(config.output_path, dpi=config.dpi)
+    plt.close(fig)
+    log(__name__).info(f"wrote {config.output_path.resolve()}")
+
     session.close()
-
-    # Constants for time resolution
-    LINE_TIME_RESOLUTION = 10
-    SECTION_TIME_RESOLUTION = 40
-
-    # Find min/max
-    min_line_time = df[line_time].min()
-    max_line_time = df[line_time].max()
-    min_section_time = df[sect_time].min()
-    max_section_time = df[sect_time].max()
-
-    # Create buckets
-    line_time_bins = np.linspace(min_line_time, max_line_time, LINE_TIME_RESOLUTION)
-    section_time_bins = np.linspace(min_section_time, max_section_time,
-                                    SECTION_TIME_RESOLUTION)
-
-    # Assign to buckets
-    df["line_time_bucket"] = pd.cut(
-        df[line_time],
-        bins=line_time_bins,
-        ordered=False,
-        labels=[
-            f"[{idx}] {format_epoch_to_date(left)} to {format_epoch_to_date(right)}"
-            for idx, (left,
-                      right) in enumerate(zip(line_time_bins[:-1], line_time_bins[1:]))
-        ])
-    df["section_time_bucket"] = pd.cut(df[sect_time], bins=section_time_bins)
-
-    # Group and count
-    grouped = df.groupby(
-        "section_time_bucket")["line_time_bucket"].value_counts().unstack(fill_value=0)
-
-    # Plot
-    fig, ax = plt.subplots(figsize=(10, 6))
-    grouped.plot(kind="bar", stacked=True, ax=ax)
-
-    # Title and labels
-    ax.set_title("Line Time Buckets within Each Section Time Bucket")
-    ax.set_xlabel("Section Time Buckets")
-    ax.set_ylabel("Count of Line Time Buckets")
-
-    # Format the x-axis as date
-    formatter: mdates.DateFormatter = mdates.DateFormatter("%Y-%m-%d")  # type: ignore
-    ax.xaxis.set_major_formatter(formatter)  # Adjust the format as needed
-
-    # Rotate x-ticks
-    plt.xticks(rotation=45, ha="right")  # Rotate and align right
-
-    # Place the legend outside the plot
-    ax.legend(loc="upper left", bbox_to_anchor=(1, 1))
-
-    # Adjust layout
-    plt.tight_layout()
-
-    plt.savefig("/tmp/aaa.png")

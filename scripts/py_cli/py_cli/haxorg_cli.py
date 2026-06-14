@@ -12,6 +12,7 @@ from py_scriptutils.toml_config_profiler import (
     DefaultWrapperValue,
     get_cli_model,
     get_user_provided_params,
+    get_wrap_options,
     make_config_provider,
     merge_cli_model,
     options_from_model,
@@ -204,15 +205,6 @@ def get_run(opts: RootOptions | click.Context) -> CliRunContext:
 
     else:
         return CliRunContext(get_opts(opts))
-
-
-@beartype
-def get_wrap_options(t: Any) -> Any:
-
-    def analysis_options(f: Any) -> Any:
-        return apply_options(f, options_from_model(t))
-
-    return analysis_options
 
 
 @beartype

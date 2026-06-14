@@ -10,8 +10,12 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/ext/logger.hpp>
+#include <fstream>
 
 #include "git_ir.hpp"
+#include "hstd/stdlib/Set.hpp"
 #include <hstd/system/reflection.hpp>
 
 using Date         = boost::gregorian::date;
@@ -89,11 +93,12 @@ struct cli_config_config {
     hstd::Vec<std::string> debug_commits = {};
     /// If verbose consistency checks are enabled (either explicitly or
     /// via debug commits), narrow down comparison verification to
-    /// paths in this list.
+    /// paths in this list. Provide additional logging/debug information
+    /// when processing these files.
     hstd::Vec<std::string> debug_paths = {};
     cli_diff_config        diffopts    = cli_diff_config{};
-    /// Only generate database for the first N commits.
-    hstd::Opt<int> max_commit_idx = std::nullopt;
+    /// Only generate database for the commit subset.
+    hstd::UnorderedSet<std::string> target_commit_subset;
 
     DESC_FIELDS(
         cli_config_config,
@@ -101,7 +106,7 @@ struct cli_config_config {
          debug_commits,
          debug_paths,
          diffopts,
-         max_commit_idx));
+         target_commit_subset));
 };
 
 struct cli_config {
@@ -163,7 +168,9 @@ struct walker_state {
             || config->cli.config.debug_paths.contains(path);
     }
 
-    bool should_debug_file(ir::FilePathId id) { return should_check_file(str(id)); }
+    bool should_debug_file(ir::FilePathId id) {
+        return config->cli.config.debug_paths.contains(str(id));
+    }
 
     bool should_debug_commit(ir::CommitId id) {
         return config->cli.config.debug_commits.contains(at(id).hash);
@@ -181,6 +188,49 @@ struct walker_state {
     hstd::Str const& str(ir::CommitId id) { return this->at(id).hash; }
     hstd::Str const& str(ir::StringId id) { return this->at(id).text; }
     hstd::Str const& str(ir::FilePathId id) { return this->str(content->at(id).path); }
+
+    void write_debug(std::ostream& os) {
+        for (auto const& [id, value] : content->multi.store<ir::FileTrack>().pairs()) {
+            // if (should_debug_file(value))
+            bool had_file = false;
+
+            for (ir::FileTrackSectionId section_id : value->sections) {
+                auto& section = content->at(section_id);
+                if ((!section.added_lines.empty() || !section.removed_lines.empty())
+                    && should_debug_file(section.path)) {
+                    if (!had_file) {
+                        os << "File\n";
+                        had_file = true;
+                    }
+                    os << fmt(
+                        "  Section [{}] = {} at {} +{} -{}\n",
+                        section_id,
+                        escape_literal(content->at(content->at(section.path).path).text),
+                        content->at(section.commit_id).hash.substr(0, 8),
+                        section.added_lines,
+                        section.removed_lines);
+
+                    for (auto const& [idx, line_id] : hstd::enumerate(section.lines)) {
+                        os << hstd::fmt(
+                            "   [{}] = ({}) {} {}\n",
+                            idx,
+                            line_id,
+                            hstd::rs::contains(section.added_lines, idx) ? "+" : " ",
+                            escape_literal(
+                                content->at(content->at(line_id).content).text));
+                    }
+                }
+            }
+        }
+    }
+
+    void dump_text_if_enabled() {
+        if (config->cli.out.text_dump) {
+            HSLOG_INFO("Text dump option specified, writing debug");
+            std::ofstream file{*config->cli.out.text_dump};
+            write_debug(file);
+        }
+    }
 };
 
 #endif // PROGRAM_STATE_HPP

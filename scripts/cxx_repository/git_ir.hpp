@@ -84,6 +84,7 @@ struct Commit {
     hstd::Vec<Action> actions;
 };
 
+/// \brief Single cross-section of the file at the specific point in commit history.
 struct FileTrackSection {
     using id_type = FileTrackSectionId;
     /// Id of the commit this version of the file was recorded in

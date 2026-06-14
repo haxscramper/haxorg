@@ -4,48 +4,28 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import enum
 import io
-import json
 from pathlib import Path
-from pprint import pprint
 import shutil
-from tempfile import mktemp, NamedTemporaryFile, TemporaryDirectory
+from tempfile import mktemp, TemporaryDirectory
 from types import TracebackType
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, List, Literal, Optional, Set, Type
-from cxx_repository import burndown
-from hypothesis import (
-    assume,
-    given,
-    note,
-    Phase,
-    seed,
-    settings,
-    strategies as st,
-    Verbosity,
-)
-from hypothesis.stateful import (
-    Bundle,
-    precondition,
-    rule,
-    RuleBasedStateMachine,
-    run_state_machine_as_test,
-)
+from beartype.typing import Any, Dict, List, Optional, Set, Type
+from cxx_repository.code_forensics import run_forensics
+import git
+from hypothesis import given, settings, strategies as st, Verbosity
 import pandas as pd
 import plumbum
 import plumbum.commands.base
-from py_scriptutils import configure_asan
-from py_scriptutils.auto_lldb import get_lldb_params
 from py_scriptutils.files import get_haxorg_repo_root_path
-from py_scriptutils.os_utils import gettempdir, json_path_serializer
-from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import merge_dicts
-from pydantic import BaseModel
+from py_scriptutils.os_utils import gettempdir
 import pytest
 from rich import box
 from rich.console import Console
-from rich.table import Column, Style, Table
+from rich.table import Table
 from sqlalchemy import create_engine, Engine
+
+CAT = __name__
 
 
 @beartype
@@ -113,7 +93,11 @@ def git_write_files(dir: Path, files: Dict[str, str]) -> None:
 
 @beartype
 def git_move_files(dir: Path, source: str, target: str) -> None:
-    dir.joinpath(source).rename(dir.joinpath(target))
+    source_p = dir.joinpath(source)
+    target_p = dir.joinpath(target)
+    assert source_p.exists(), f"source '{source}' does not exist"
+    assert not target_p.exists(), f"target file '{target}' already exists"
+    source_p.rename(target_p)
 
 
 @beartype
@@ -137,56 +121,24 @@ def git_commit(
 ) -> None:
     git_add(dir)
     git = get_git(dir)
-    git = git.with_env(GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
-                       GIT_COMMITTER_DATE=date.strftime("%Y-%m-%d %H:%M:%S"))
+    git = git.with_env(
+        GIT_AUTHOR_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
+        GIT_COMMITTER_DATE=date.strftime("%Y-%m-%d %H:%M:%S"),
+    )
     code, stdout, stderr = git.run(
         ("commit", f"--author={author} <{email}>", "-m", message), retcode=None)
 
     if code != 0 and not allow_fail:
-        log().warning("Failed to commit")
-        log().warning(stdout)
-        log().warning(stderr)
 
-
-@beartype
-def run_forensics(
-    dir: Path,
-    params: dict = dict(),
-    db: Optional[str] = None,
-    with_debugger: bool = False,
-    verbose_consistency_checks: bool = False,
-) -> tuple[int, str, str]:
-    tool_path = str(get_haxorg_repo_root_path().joinpath("build/haxorg/code_forensics"))
-
-    params = merge_dicts([{
-        "out": {
-            "db_path": db,
-        },
-        "config": {
-            "verbose_consistency_checks": verbose_consistency_checks,
-        },
-    }, params, {
-        "repo": {
-            "path": str(dir),
-            "branch": "master"
-        }
-    }])
-
-    if with_debugger:
-        run_parameters = [tool_path, *get_lldb_params(), "--", json.dumps(params)]
-        code, stdout, stderr = plumbum.local["lldb"].with_env(LD_PRELOAD="").run(
-            tuple(run_parameters))
-        print(run_parameters)
-        if code != 0:
-            log().warning(f"{tool_path} run failed")
-            log().warning(stdout)
-            log().warning(stderr)
-
-        return code, stdout, stderr
-
-    else:
-        return plumbum.local[tool_path].with_env(LD_PRELOAD="").run(
-            (json.dumps(params, default=json_path_serializer)))
+        assert False, f"""
+Failed to commit
+stdout:
+{stdout}
+stderr:
+{stderr}
+directory content:
+- {"\n- ".join(str(s) for s in dir.rglob("*") if ".git" not in str(s))}
+        """
 
 
 @beartype
@@ -222,8 +174,10 @@ class GitTestRepository:
             self.dir.__enter__()
 
         git_init_repo(self.git_dir())
-        git_write_files(self.git_dir(), self.start_files)
-        git_commit(self.git_dir(), self.init_message)
+        if self.start_files:
+            git_write_files(self.git_dir(), self.start_files)
+            git_add(self.git_dir())
+            git_commit(self.git_dir(), self.init_message)
 
         if self.fixed_db:
             self.db = self.fixed_db
@@ -390,28 +344,17 @@ def test_fast_forward_merge() -> None:
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-HAXORG_OUT_DB = gettempdir("test_haxorg_forensics.sqlite")
-
-
 @pytest.mark.skip()
 def test_haxorg_forensics() -> None:
+    build_res = get_haxorg_repo_root_path().joinpath("build/code_forensics")
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
             "out": {
-                "db_path": HAXORG_OUT_DB,
-                "log_file": gettempdir("test_haxorg_forensics.log"),
-                "perfetto": gettempdir("test_haxorg_forensics.pftrace"),
-            },
-            "config": {
-                "max_commit_idx": 250,
+                "db_path": str(build_res.joinpath("test_haxorg_forensics.sqlite")),
+                "log_file": str(build_res.joinpath("test_haxorg_forensics.log")),
+                "perfetto": str(build_res.joinpath("test_haxorg_forensics.pftrace")),
             },
         })
-
-
-@pytest.mark.skip()
-def test_haxorg_repo_burndown() -> None:
-    engine = create_engine("sqlite:///" + HAXORG_OUT_DB)
-    burndown.run_for(engine)
 
 
 file_names = st.text(
@@ -517,10 +460,11 @@ class GitFileEditStrategy:
 class GitOperation:
     operation: GitOperationKind
     filename: Optional[str] = None
-    new_name: Optional[str] = None  # Only used for 'rename' operation
+    new_name: Optional[str] = None
     file_content: Optional[List[str]] = None
     branch_to_checkout: Optional[str] = None
     branch_to_merge: Optional[str] = None
+    commit_message: Optional[str] = None
 
 
 @beartype
@@ -693,8 +637,8 @@ def run_repo_operations(repo: GitTestRepository, operations: List[GitOperation])
                 assert new_name is not None
                 git_move_files(repo.git_dir(), source=file, target=new_name)
 
-            case GitOperation(operation=GitOperationKind.REPO_COMMIT,):
-                git_commit(repo.git_dir(), "message", allow_fail=True)
+            case GitOperation(operation=GitOperationKind.REPO_COMMIT, commit_message=msg):
+                git_commit(repo.git_dir(), msg or "message", allow_fail=True)
 
             case GitOperation(
                 operation=GitOperationKind.FORK_BRANCH,
@@ -734,8 +678,20 @@ def run_repo_operations_test(
             with_debugger=with_debugger,
             params=params,
         )
-        # engine = repo.get_engine()
-        # print_connection_tables(engine=engine)
+
+
+@beartype
+@dataclass
+class InferredCommit:
+    commit_id: str
+    message: str
+    operations: List[GitOperation]
+    expected_files: Dict[str, List[str]]
+
+
+def get_commit_ids_for_path(repo_path: Path) -> List[str]:
+    src_repo = git.Repo(str(repo_path))
+    return [c.hexsha for c in src_repo.iter_commits("master")][::-1]
 
 
 @pytest.mark.test_release
@@ -778,6 +734,90 @@ def test_repo_operations_example_2() -> None:
             GitOperation(operation=GitOperationKind.CREATE_FILE, filename="WDmICkCg", file_content=["3bhx2yd4D22nkmQd"]),
             GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout="master", branch_to_merge="8RG9Q"),
             GitOperation(operation=GitOperationKind.CREATE_FILE, filename="IPwllW", file_content=["GHte9uhs1xNPohXX"])
+        ])
+    # yapf:enable
+
+
+@pytest.mark.test_release
+def test_edit_and_add_file_again() -> None:
+    # yapf:disable
+    run_repo_operations_test(
+        [
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker", file_content=["A", "B", "C", "D"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename="log_graph_tracker", file_content=["A", "B", "C"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="other", file_content=["ABC"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker2", file_content=["A", "B"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.RENAME_FILE, filename="log_graph_tracker2", new_name="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+        ])
+    # yapf:enable
+
+
+@pytest.mark.test_release
+def test_edit_and_add_file_again_with_fork() -> None:
+    # yapf:disable
+    run_repo_operations_test(
+        [
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="start", file_content=["init"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker", file_content=["A"] * 20 + ["B"] * 20),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+
+            # in branch 00001
+            GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout="00001"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename="log_graph_tracker", file_content=["A"] * 15 + ["B"] * 15),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="log_graph_tracker2", file_content=["A"] * 20 + ["B"] * 20 + ["Q"] * 20),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout="master", branch_to_merge="00001"),
+
+            # master
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="start2", file_content=["init"]),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+
+
+            # in branch 00002
+            GitOperation(operation=GitOperationKind.FORK_BRANCH, branch_to_checkout="00002"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.MODIFY_FILE, filename="log_graph_tracker2", file_content=["A"] * 15 + ["B"] * 15 + ["Q"] * 20),
+            GitOperation(operation=GitOperationKind.RENAME_FILE, filename="log_graph_tracker2", new_name="log_graph_tracker"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+
+            # master
+            GitOperation(operation=GitOperationKind.JOIN_BRANCH, branch_to_checkout="master", branch_to_merge="00002"),
+        ])
+    # yapf:enable
+
+
+@pytest.mark.test_release
+def test_repeated_delete() -> None:
+    # yapf:disable
+    run_repo_operations_test(
+        [
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 20),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 15),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 10),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.CREATE_FILE, filename="T", file_content=["A"] * 25),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
+            GitOperation(operation=GitOperationKind.DELETE_FILE, filename="T"),
+            GitOperation(operation=GitOperationKind.REPO_COMMIT),
         ])
     # yapf:enable
 
@@ -852,10 +892,11 @@ def test_repo_operations_example_4() -> None:
 @pytest.mark.test_release
 @given(multiple_files_strategy())
 @settings(
-    max_examples=20,
+    max_examples=40,
     deadline=2000,
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
-    phases=[Phase.explicit, Phase.reuse, Phase.generate])
+    # phases=[Phase.explicit, Phase.reuse, Phase.generate, Phase.shrink]
+)
 def test_strategic_repo_edits(operations: List[GitOperation]) -> None:
     run_repo_operations_test(operations)
