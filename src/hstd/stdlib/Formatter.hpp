@@ -51,9 +51,22 @@ std::string fmt1_maybe([[maybe_unused]] T const& t) {
 
 
 template <typename T>
+concept has_exact_pointer_formatter //
+    = std::is_pointer_v<T> && requires(T const& value, fmt::format_context& ctx) {
+          {
+              fmt::formatter<T>{}.format(value, ctx)
+          } -> std::same_as<fmt::format_context::iterator>;
+      };
+
+template <typename T>
 fmt::format_context::iterator fmt_ctx(T const& t, fmt::format_context& ctx) {
-    with_std_formatter(t);
-    return fmt::format_to(ctx.out(), "{}", t);
+    if constexpr (has_exact_pointer_formatter<T>) {
+        fmt::formatter<T> formatter;
+        return formatter.format(t, ctx);
+    } else {
+        with_std_formatter(t);
+        return fmt::format_to(ctx.out(), "{}", t);
+    }
 }
 
 

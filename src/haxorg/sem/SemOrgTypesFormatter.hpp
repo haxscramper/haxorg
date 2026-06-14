@@ -4,8 +4,8 @@
 #include <hstd/stdlib/Formatter.hpp>
 
 template <>
-struct fmt::formatter<org::sem::SemId<org::sem::Org>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::sem::SemId<org::sem::Org>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
         org::sem::SemId<org::sem::Org> const& p,
         fmt::format_context&                  ctx) const {
@@ -15,8 +15,8 @@ struct fmt::formatter<org::sem::SemId<org::sem::Org>> : fmt::formatter<std::stri
 
 
 template <typename T>
-struct fmt::formatter<org::sem::SemId<T>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::sem::SemId<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::sem::SemId<T> const& p, fmt::format_context& ctx) const {
         if (p.isNil()) {
             return hstd::fmt_ctx("<nil>", ctx);
@@ -27,8 +27,8 @@ struct fmt::formatter<org::sem::SemId<T>> : fmt::formatter<std::string> {
 };
 
 template <>
-struct fmt::formatter<org::sem::OrgJson> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::sem::OrgJson> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::sem::OrgJson const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(p.dump(0), ctx);
     }

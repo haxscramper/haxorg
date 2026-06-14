@@ -6,6 +6,8 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/PtrsFormatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 
 using namespace hstd;
 

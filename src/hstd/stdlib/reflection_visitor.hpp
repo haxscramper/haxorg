@@ -18,8 +18,8 @@
 #include <typeindex>
 
 template <>
-struct fmt::formatter<std::any> : fmt::formatter<std::string> {
-
+struct fmt::formatter<std::any> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(std::any const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(p.type().name(), ctx);
     }
@@ -314,8 +314,8 @@ struct ReflPathItem {
 
 
 template <typename Tag>
-struct ReflPathItemFormatter : fmt::formatter<std::string> {
-
+struct ReflPathItemFormatter {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(ReflPathItem<Tag> const& step, fmt::format_context& ctx) const {
         typename ReflTypeTraits<Tag>::AnyFormatterType anyFmt;
         if (step.isAnyKey()) {
@@ -439,8 +439,8 @@ struct ReflPathComparator {
 };
 
 template <typename Tag>
-struct ReflPathFormatter : fmt::formatter<std::string> {
-
+struct ReflPathFormatter {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(ReflPath<Tag> const& step, fmt::format_context& ctx) const {
         ReflPathItemFormatter<Tag> fmt{};
         for (auto const& it : enumerator(step.path)) {
@@ -1006,8 +1006,8 @@ inline std::size_t get_registered_field_count(std::type_index type_id) {
 
 
 template <typename Tag>
-struct fmt::formatter<hstd::ReflPath<Tag>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<hstd::ReflPath<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ReflPath<Tag> const& step, fmt::format_context& ctx)
         const {
         for (auto const& it : enumerator(step.path)) {
@@ -1029,8 +1029,8 @@ struct std::hash<hstd::ReflPath<Tag>> {
 };
 
 template <typename Tag>
-struct fmt::formatter<hstd::ReflPathItem<Tag>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<hstd::ReflPathItem<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ReflPathItem<Tag> const& step, fmt::format_context& ctx)
         const {
         step.visit([&](auto const& it) { ::hstd::fmt_ctx(it, ctx); });

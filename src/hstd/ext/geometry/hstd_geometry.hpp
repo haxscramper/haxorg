@@ -647,6 +647,12 @@ struct fmt::formatter<hstd::ext::geometry::Rect> {
         const;
 };
 
+template <>
+struct fmt::formatter<hstd::ext::geometry::Polygon> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(hstd::ext::geometry::Polygon const& b, fmt::format_context& ctx)
+        const;
+};
 
 namespace hstd {
 template <>

@@ -11,6 +11,7 @@
 #    include <hstd/stdlib/Formatter.hpp>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/stdlib/VecFormatter.hpp>
+#    include <hstd/stdlib/PairFormatter.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QMetaObject>

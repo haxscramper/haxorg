@@ -22,16 +22,16 @@
 #    include <src/hstd/ext/geometry/kiwi_ir.pb.h>
 
 template <>
-struct fmt::formatter<kiwi::Variable> : fmt::formatter<std::string> {
-
+struct fmt::formatter<kiwi::Variable> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(kiwi::Variable const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(p.name(), ctx);
     }
 };
 
 template <>
-struct fmt::formatter<kiwi::Term> : fmt::formatter<std::string> {
-
+struct fmt::formatter<kiwi::Term> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(kiwi::Term const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(p.variable(), ctx);
     }

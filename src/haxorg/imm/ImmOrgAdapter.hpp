@@ -90,8 +90,8 @@ org::imm::ImmId immer_from_sem(
 
 
 template <typename T>
-struct fmt::formatter<org::imm::ImmAdapterT<T>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmAdapterT<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmAdapterT<T> const& p, fmt::format_context& ctx)
         const {
         return hstd::fmt_ctx(p.id, ctx);

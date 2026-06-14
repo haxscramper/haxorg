@@ -12,6 +12,7 @@
 #include "../common.hpp"
 
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
 
 #if ORG_BUILD_WITH_QT
 #    include <QString>
@@ -107,10 +108,10 @@ struct StdFormattableType {
 };
 
 template <>
-struct fmt::formatter<StdFormattableType> : fmt::formatter<std::string> {
+struct fmt::formatter<StdFormattableType> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(StdFormattableType const& obj, format_context& ctx) const {
-        return fmt::formatter<std::string>::format(
-            "std_fmt:" + std::to_string(obj.value), ctx);
+        return hstd::fmt_ctx("std_fmt:" + std::to_string(obj.value), ctx);
     }
 };
 
@@ -133,9 +134,9 @@ struct BothFormattableType {
 
 template <>
 struct fmt::formatter<BothFormattableType> : fmt::formatter<std::string> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(BothFormattableType const& obj, format_context& ctx) const {
-        return fmt::formatter<std::string>::format(
-            "std_both:" + std::to_string(obj.value), ctx);
+        return hstd::fmt_ctx("std_both:" + std::to_string(obj.value), ctx);
     }
 };
 

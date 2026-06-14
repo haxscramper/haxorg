@@ -19,6 +19,7 @@
 #include "hstd/stdlib/Debug.hpp"
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 using namespace org::graph;
 using namespace hstd;

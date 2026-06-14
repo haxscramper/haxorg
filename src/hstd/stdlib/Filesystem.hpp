@@ -46,10 +46,10 @@ std::string readFile(fs::path const& target);
 
 
 template <>
-struct fmt::formatter<hstd::fs::path> : fmt::formatter<std::string> {
-    using FmtType = hstd::fs::path;
+struct fmt::formatter<hstd::fs::path> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    auto           format(FmtType const& p, fmt::format_context& ctx) const {
+
+    hstd::fmt_iter format(hstd::fs::path const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(p.native(), ctx);
     }
 };

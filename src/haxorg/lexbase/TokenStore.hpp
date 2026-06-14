@@ -127,8 +127,8 @@ struct Tokenizer {
 
 
 template <hstd::StdFormattable K, hstd::StdFormattable V>
-struct fmt::formatter<org::parse::TokenGroup<K, V>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::TokenGroup<K, V>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
         org::parse::TokenGroup<K, V> const& p,
         fmt::format_context&                ctx) {

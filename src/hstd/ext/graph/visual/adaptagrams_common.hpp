@@ -61,8 +61,8 @@ inline void add_rect(visual::VisGroup& g, vpsc::Rectangle const& shape) {
 } // namespace hstd::ext::graph::adapt
 
 template <>
-struct fmt::formatter<vpsc::Rectangle> : fmt::formatter<std::string> {
-
+struct fmt::formatter<vpsc::Rectangle> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(vpsc::Rectangle const& rect, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(
             hstd::fmt(

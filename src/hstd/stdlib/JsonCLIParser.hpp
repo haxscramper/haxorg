@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 namespace hstd {
 template <typename T>

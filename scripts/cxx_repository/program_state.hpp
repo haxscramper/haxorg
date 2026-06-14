@@ -17,6 +17,7 @@
 #include "git_ir.hpp"
 #include "hstd/stdlib/Set.hpp"
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using Date         = boost::gregorian::date;
 using PTime        = boost::posix_time::ptime;
@@ -25,16 +26,16 @@ namespace stime    = std::chrono;
 namespace bd       = boost::describe;
 
 template <>
-struct fmt::formatter<Date> : fmt::formatter<std::string> {
-
+struct fmt::formatter<Date> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(Date const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(boost::gregorian::to_iso_extended_string(p), ctx);
     }
 };
 
 template <>
-struct fmt::formatter<PTime> : fmt::formatter<std::string> {
-
+struct fmt::formatter<PTime> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(PTime const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(boost::posix_time::to_iso_extended_string(p), ctx);
     }
@@ -202,7 +203,7 @@ struct walker_state {
                         os << "File\n";
                         had_file = true;
                     }
-                    os << fmt(
+                    os << hstd::fmt(
                         "  Section [{}] = {} at {} +{} -{}\n",
                         section_id,
                         escape_literal(content->at(content->at(section.path).path).text),

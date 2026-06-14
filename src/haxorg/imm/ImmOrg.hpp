@@ -126,8 +126,8 @@ struct [[refl]] ImmPathStep {
 } // namespace org::imm
 
 template <>
-struct fmt::formatter<org::imm::ImmPathStep> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmPathStep> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmPathStep const& p, fmt::format_context& ctx)
         const {
         return hstd::ReflPathFormatter<org::imm::ImmReflPathTag>{}.format(p.path, ctx);
@@ -1561,16 +1561,16 @@ struct fmt::formatter<org::imm::ImmAstTrackingMap*>
 
 
 template <>
-struct fmt::formatter<org::imm::ImmPath> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmPath> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmPath const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}//{}", p.root, p.path), ctx);
     }
 };
 
 template <>
-struct fmt::formatter<org::imm::ImmUniqId> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmUniqId> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmUniqId const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }
@@ -1578,8 +1578,8 @@ struct fmt::formatter<org::imm::ImmUniqId> : fmt::formatter<std::string> {
 
 
 template <>
-struct fmt::formatter<org::imm::ImmAstStore> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmAstStore> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmAstStore const& p, fmt::format_context& ctx)
         const {
         return hstd::fmt_ctx("ImmAstStore{}", ctx);
@@ -1588,8 +1588,8 @@ struct fmt::formatter<org::imm::ImmAstStore> : fmt::formatter<std::string> {
 
 
 template <>
-struct fmt::formatter<org::imm::ImmAdapter> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmAdapter> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmAdapter const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
     }

@@ -1,4 +1,6 @@
 #include "hstd_geometry.hpp"
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd::ext::geometry;
 
@@ -124,4 +126,11 @@ hstd::fmt_iter fmt::formatter<hstd::ext::geometry::Path>::format(
     hstd::ext::geometry::Path const& p,
     fmt::format_context&             ctx) const {
     return hstd::fmt_ctx(hstd::fmt("Path(commands={})", p.commands), ctx);
+}
+
+hstd::fmt_iter fmt::formatter<hstd::ext::geometry::Polygon>::format(
+    hstd::ext::geometry::Polygon const& b,
+    format_context&                     ctx) const {
+    return hstd::fmt_ctx(
+        hstd::fmt("Polygon(points={})", hstd::Vec<Point>{b.begin(), b.end()}), ctx);
 }

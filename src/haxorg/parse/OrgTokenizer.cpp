@@ -13,6 +13,7 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 
+
 using namespace hstd;
 using namespace org::parse;
 
@@ -81,8 +82,8 @@ OrgFill fill(OrgLexer& lex) {
 }
 
 template <typename T>
-struct fmt::formatter<rs::subrange<T>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<rs::subrange<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(rs::subrange<T> const& p, fmt::format_context& ctx) const {
         fmt_ctx("[", ctx);
         bool first = true;

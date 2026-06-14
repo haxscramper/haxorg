@@ -563,7 +563,7 @@ struct fmt::formatter<T> {
     using FmtType = T;
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     auto           format(FmtType const& p, fmt::format_context& ctx) const {
-        return fmt::format_to(ctx.out(), std::to_string((int)p), ctx);
+        return fmt::format_to(ctx.out(), "{}", std::to_string((int)p));
     }
 };
 

@@ -28,6 +28,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 
 
 namespace {

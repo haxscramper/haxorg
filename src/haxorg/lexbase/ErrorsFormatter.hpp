@@ -5,8 +5,8 @@
 
 
 template <>
-struct fmt::formatter<org::parse::SourceLoc> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::SourceLoc> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::parse::SourceLoc const& p, fmt::format_context& ctx)
         const {
         hstd::fmt_ctx(p.line, ctx);

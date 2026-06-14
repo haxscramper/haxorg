@@ -65,29 +65,26 @@ struct Token {
 
 
 template <hstd::StdFormattable K, typename V>
-struct fmt::formatter<org::parse::Token<K, V>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::Token<K, V>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::parse::Token<K, V> const& p, fmt::format_context& ctx)
         const {
-        fmt::formatter<std::string> fmt;
-        fmt.format("Token<", ctx);
-        fmt::formatter<K>{}.format(p.kind, ctx);
-        fmt.format(">(", ctx);
-        fmt::formatter<V>{}.format(p.value, ctx);
-        return fmt.format(")", ctx);
+        hstd::fmt_ctx("Token<", ctx);
+        hstd::fmt_ctx(p.kind, ctx);
+        hstd::fmt_ctx(">(", ctx);
+        hstd::fmt_ctx(p.value, ctx);
+        return hstd::fmt_ctx(")", ctx);
     }
 };
 
 
 template <typename K, typename V>
-struct fmt::formatter<org::parse::TokenId<K, V>> : fmt::formatter<std::string> {
-
-    typename hstd::fmt_iter format(
-        org::parse::TokenId<K, V> const& p,
-        fmt::format_context&             ctx) const {
-        fmt::formatter<std::string>                      fmt;
+struct fmt::formatter<org::parse::TokenId<K, V>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(org::parse::TokenId<K, V> const& p, fmt::format_context& ctx)
+        const {
         typename org::parse::TokenId<K, V>::FormatConfig conf{
             .name = hstd::demangle(typeid(K).name())};
-        return fmt.format(p.format(conf), ctx);
+        return hstd::fmt_ctx(p.format(conf), ctx);
     }
 };

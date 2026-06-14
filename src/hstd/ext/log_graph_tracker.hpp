@@ -270,7 +270,7 @@ struct log_graph_tracker {
         hstd::Vec<hstd::Str> const& names,
         const Args&... args) {
         hstd::Vec<hstd::Pair<hstd::Str, hstd::Str>> result;
-        hstd::fmt_iter format_var = [](auto const& var) -> std::string {
+        auto format_var = [](auto const& var) -> std::string {
             using VarType = std::decay_t<decltype(var)>;
             if constexpr (hstd::log::has_log_value_formatter<VarType>) {
                 return hstd::log::log_value_formatter<VarType>{}.format(var);

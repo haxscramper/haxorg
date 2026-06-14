@@ -430,8 +430,8 @@ struct Lexer : public LexerCommon<K, V> {
 
 
 template <typename K, typename V>
-struct fmt::formatter<org::parse::LexerCommon<K, V>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::LexerCommon<K, V>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
         org::parse::LexerCommon<K, V> const& p,
         fmt::format_context&                 ctx) const {

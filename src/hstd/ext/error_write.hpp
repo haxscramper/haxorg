@@ -504,8 +504,8 @@ class [[refl(R"({"default-constructor": false})")]] Report {
 
 
 template <>
-struct fmt::formatter<hstd::ext::CodeSpan> : fmt::formatter<std::string> {
-
+struct fmt::formatter<hstd::ext::CodeSpan> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ext::CodeSpan const& p, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(
             hstd::fmt("<{}:{}..{}>", p.source(), p.start(), p.end()), ctx);

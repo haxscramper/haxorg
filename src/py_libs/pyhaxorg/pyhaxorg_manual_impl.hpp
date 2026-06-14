@@ -59,8 +59,8 @@
 
 
 template <>
-struct fmt::formatter<nanobind::callable> : fmt::formatter<std::string> {
-
+struct fmt::formatter<nanobind::callable> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(nanobind::callable const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx("nanobind::callable", ctx);
     }
@@ -403,7 +403,7 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
         } else {
             trace_instant(trace(VK::NewRes)
                               .with_node(node)
-                              .with_msg(fmt("no callback for {}", T::staticKind)));
+                              .with_msg(hstd::fmt("no callback for {}", T::staticKind)));
             return nanobind::none();
         }
     }

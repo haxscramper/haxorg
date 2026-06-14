@@ -30,6 +30,7 @@
 #include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd;
 using namespace hstd::log::record;

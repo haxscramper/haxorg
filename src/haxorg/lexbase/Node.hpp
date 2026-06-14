@@ -145,8 +145,8 @@ struct hstd::value_domain<org::parse::NodeId<N, K, IdBase, MaskType>> {
 
 
 template <typename N, typename K, typename V, typename M>
-struct fmt::formatter<org::parse::NodeId<N, K, V, M>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::NodeId<N, K, V, M>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
         org::parse::NodeId<N, K, V, M> const& p,
         fmt::format_context&                  ctx) const {
@@ -158,8 +158,8 @@ struct fmt::formatter<org::parse::NodeId<N, K, V, M>> : fmt::formatter<std::stri
 
 
 template <>
-struct fmt::formatter<std::monostate> : fmt::formatter<std::string> {
-
+struct fmt::formatter<std::monostate> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(std::monostate const& p, fmt::format_context& ctx) const {
         fmt::formatter<std::string> fmt;
         return hstd::fmt_ctx("<std::monostate>", ctx);
@@ -167,8 +167,8 @@ struct fmt::formatter<std::monostate> : fmt::formatter<std::string> {
 };
 
 template <typename N, typename K, typename V, typename M>
-struct fmt::formatter<org::parse::Node<N, K, V, M>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::Node<N, K, V, M>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::parse::Node<N, K, V, M> const& p, fmt::format_context& ctx)
         const {
         hstd::fmt_ctx("{", ctx);

@@ -5,8 +5,8 @@
 
 
 template <>
-struct fmt::formatter<org::parse::OrgNodeMono::Error> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::OrgNodeMono::Error> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
         org::parse::OrgNodeMono::Error const& p,
         fmt::format_context&                  ctx) const {

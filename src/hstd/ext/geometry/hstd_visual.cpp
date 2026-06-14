@@ -5,6 +5,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd::ext::visual {
 

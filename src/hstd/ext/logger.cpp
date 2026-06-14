@@ -523,8 +523,8 @@ void hstd::log::log_record::end() {
 
 
 template <>
-struct fmt::formatter<boost::log::attribute_name> : fmt::formatter<std::string> {
-
+struct fmt::formatter<boost::log::attribute_name> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(boost::log::attribute_name const& p, fmt::format_context& ctx)
         const {
         return fmt_ctx(p.string(), ctx);
@@ -532,8 +532,8 @@ struct fmt::formatter<boost::log::attribute_name> : fmt::formatter<std::string> 
 };
 
 template <>
-struct fmt::formatter<boost::log::attribute_value> : fmt::formatter<std::string> {
-
+struct fmt::formatter<boost::log::attribute_value> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(boost::log::attribute_value const& p, fmt::format_context& ctx)
         const {
         return fmt_ctx(p.get_type().pretty_name(), ctx);

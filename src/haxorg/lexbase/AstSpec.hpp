@@ -141,8 +141,8 @@ struct AstRange {
 
 
 template <typename Name>
-struct fmt::formatter<org::parse::AstRange<Name>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::parse::AstRange<Name>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::parse::AstRange<Name> const& p, fmt::format_context& ctx)
         const {
         switch (p.kind) {

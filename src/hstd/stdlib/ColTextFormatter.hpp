@@ -34,6 +34,6 @@ template <>
 struct fmt::formatter<hstd::ColText> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ColText const& p, fmt::format_context& ctx) const {
-        return fmt::formatter<std::string>{}.format(p.toString(false), ctx);
+        return hstd::fmt_ctx(p.toString(false), ctx);
     }
 };

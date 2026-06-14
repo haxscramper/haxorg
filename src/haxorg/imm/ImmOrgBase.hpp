@@ -80,8 +80,8 @@ struct [[refl]] ImmReflFieldId {
 } // namespace org::imm
 
 template <>
-struct fmt::formatter<org::imm::ImmReflFieldId> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmReflFieldId> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmReflFieldId const& p, fmt::format_context& ctx)
         const {
         return fmt_ctx(p.getName(), ctx);
@@ -152,8 +152,8 @@ struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
 };
 
 template <typename T>
-struct fmt::formatter<hstd::ext::ImmBox<T>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<hstd::ext::ImmBox<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ext::ImmBox<T> const& p, fmt::format_context& ctx) const {
         hstd::fmt_ctx("Box{", ctx);
         hstd::fmt_ctx(p.get(), ctx);
@@ -162,8 +162,8 @@ struct fmt::formatter<hstd::ext::ImmBox<T>> : fmt::formatter<std::string> {
 };
 
 template <>
-struct fmt::formatter<hstd::ext::ImmBox<std::string>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<hstd::ext::ImmBox<std::string>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
         hstd::ext::ImmBox<std::string> const& p,
         fmt::format_context&                  ctx) const {
@@ -174,8 +174,8 @@ struct fmt::formatter<hstd::ext::ImmBox<std::string>> : fmt::formatter<std::stri
 };
 
 template <>
-struct fmt::formatter<hstd::ext::ImmBox<hstd::Str>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<hstd::ext::ImmBox<hstd::Str>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ext::ImmBox<hstd::Str> const& p, fmt::format_context& ctx)
         const {
         hstd::fmt_ctx("Box{", ctx);
@@ -186,8 +186,8 @@ struct fmt::formatter<hstd::ext::ImmBox<hstd::Str>> : fmt::formatter<std::string
 
 
 template <typename T>
-struct fmt::formatter<hstd::ext::ImmSet<T>> : fmt::formatter<std::string> {
-
+struct fmt::formatter<hstd::ext::ImmSet<T>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ext::ImmSet<T> const& p, fmt::format_context& ctx) const {
         fmt::formatter<std::string> fmt;
         fmt.format("{", ctx);
@@ -365,8 +365,8 @@ struct [[refl]] ImmOrg {
 } // namespace org::imm
 
 template <>
-struct fmt::formatter<org::imm::ImmId> : fmt::formatter<std::string> {
-
+struct fmt::formatter<org::imm::ImmId> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmId const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(p.getReadableId(), ctx);
     }

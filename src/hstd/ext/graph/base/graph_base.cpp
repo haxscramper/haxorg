@@ -255,11 +255,10 @@ hstd::Opt<VertexID> IGraph::getParentVertex(
 }
 
 namespace {
-hstd::fmt_iter format_collection = hstd::rv::transform(
-                                       [](auto const& pair) -> std::string {
-                                           return pair.second->getStableID();
-                                       })
-                                 | hstd::rs::to<hstd::Vec>();
+auto format_collection //
+    = hstd::rv::transform(
+          [](auto const& pair) -> std::string { return pair.second->getStableID(); })
+    | hstd::rs::to<hstd::Vec>();
 } // namespace
 
 

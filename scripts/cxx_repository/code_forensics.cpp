@@ -19,6 +19,7 @@
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/SetSerde.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 #include "repo_profile.hpp"
 

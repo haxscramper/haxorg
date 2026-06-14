@@ -661,8 +661,8 @@ struct hash<Id> {
 
 template <typename Id>
     requires hstd::dod::IsIdType<Id> && hstd::DescribedRecord<Id>
-struct fmt::formatter<Id> : fmt::formatter<std::string> {
-
+struct fmt::formatter<Id> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(Id const& p, fmt::format_context& ctx) const {
         return hstd::fmt_ctx(p.format(), ctx);
     }

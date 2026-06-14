@@ -58,10 +58,9 @@ template <>
 struct fmt::formatter<yaml> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(yaml const& p, fmt::format_context& ctx) const {
-        fmt::formatter<std::string> fmt;
-        std::stringstream           os;
+        std::stringstream os;
         os << p;
-        return fmt.format(os.str(), ctx);
+        return hstd::fmt_ctx(os.str(), ctx);
     }
 };
 

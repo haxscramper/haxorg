@@ -9,6 +9,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 #pragma clang diagnostic error "-Wunused-result"
 

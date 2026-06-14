@@ -347,7 +347,7 @@ void init_fields_from_kwargs(R& value, nb::kwargs const& kwargs) {
             passed_kwargs.incl(hstd::Str(nb::str(it.first).c_str()));
         }
         throw std::logic_error(
-            fmt("Passed unknown field name {}", (passed_kwargs - used_kwargs)));
+            hstd::fmt("Passed unknown field name {}", (passed_kwargs - used_kwargs)));
     }
 }
 

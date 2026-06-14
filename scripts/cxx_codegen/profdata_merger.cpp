@@ -585,38 +585,39 @@ NO_COVERAGE int get_function_id(FunctionRecord const& f, queries& q, db_build_ct
 }
 
 
-template <typename T, typename FormatContext>
+template <typename T>
 NO_COVERAGE auto fmt_ctx_field(
     std::string const&   field_name,
     T const&             field_value,
     fmt::format_context& ctx) {
-    fmt_ctx(" ", ctx);
-    fmt_ctx(field_name, ctx);
-    fmt_ctx(" = ", ctx);
-    return fmt_ctx(field_value, ctx);
+    hstd::fmt_ctx(" ", ctx);
+    hstd::fmt_ctx(field_name, ctx);
+    hstd::fmt_ctx(" = ", ctx);
+    return hstd::fmt_ctx(field_value, ctx);
 }
 
 template <>
-struct fmt::formatter<CountedRegion> : fmt::formatter<std::string> {
-
+struct fmt::formatter<CountedRegion> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(CountedRegion const& p, fmt::format_context& ctx) const {
         fmt_ctx("{", ctx);
         fmt_ctx_field("ExecutionCount", p.ExecutionCount, ctx);
         fmt_ctx_field("FalseExecutionCount", p.FalseExecutionCount, ctx);
         fmt_ctx_field(
             "Loc",
-            fmt("[{}:{}..{}:{}]", p.LineStart, p.ColumnStart, p.LineEnd, p.ColumnEnd),
+            hstd::fmt(
+                "[{}:{}..{}:{}]", p.LineStart, p.ColumnStart, p.LineEnd, p.ColumnEnd),
             ctx);
         fmt_ctx_field("FileId", p.FileID, ctx);
         fmt_ctx_field("ExpandedFileID", p.ExpandedFileID, ctx);
         fmt_ctx_field("Kind", p.Kind, ctx);
-        return fmt_ctx("}", ctx);
+        return hstd::fmt_ctx("}", ctx);
     }
 };
 
 template <>
-struct fmt::formatter<CoverageSegment> : fmt::formatter<std::string> {
-
+struct fmt::formatter<CoverageSegment> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     NO_COVERAGE hstd::fmt_iter format(CoverageSegment const& p, fmt::format_context& ctx)
         const {
         fmt_ctx("{", ctx);
@@ -626,7 +627,7 @@ struct fmt::formatter<CoverageSegment> : fmt::formatter<std::string> {
         fmt_ctx_field("HasCount", p.HasCount, ctx);
         fmt_ctx_field("IsRegionEntry", p.IsRegionEntry, ctx);
         fmt_ctx_field("IsGapRegion", p.IsGapRegion, ctx);
-        return fmt_ctx(" }", ctx);
+        return hstd::fmt_ctx(" }", ctx);
     }
 };
 
@@ -747,7 +748,8 @@ NO_COVERAGE void add_file_regions(
             q.file_region.reset();
 
             if (dbg) {
-                LOG(INFO) << fmt("add region [{} -> {}] {} ", region_index, region_id, r);
+                LOG(INFO) << hstd::fmt(
+                    "add region [{} -> {}] {} ", region_index, region_id, r);
             }
 
             file_region_ids[region_index] = region_id;
@@ -760,7 +762,7 @@ NO_COVERAGE void add_file_regions(
                 addRegion(it.index());
             } else {
                 if (dbg) {
-                    LOG(INFO) << fmt("skip region [{}] {}", it.index(), it.value());
+                    LOG(INFO) << hstd::fmt("skip region [{}] {}", it.index(), it.value());
                 }
             }
         }
@@ -964,14 +966,14 @@ void process_runs(
 
 
     if (cli.profdata.coverage_mapping_dump) {
-        LOG(INFO) << fmt(
+        LOG(INFO) << hstd::fmt(
             "Coverage mapping dump to {}", cli.profdata.coverage_mapping_dump.value());
     }
 
     for (auto const& run : runs) {
         __perf_trace("main", "Insert run data");
         finally{flush_debug};
-        LOG(INFO) << fmt(
+        LOG(INFO) << hstd::fmt(
             "[{}/{}] Insert run data profile={} binary={}",
             run.index,
             full_run_size,
@@ -986,7 +988,8 @@ void process_runs(
 
         if (mapping.get() == nullptr) {
             throw std::logic_error(
-                fmt("Failed to load coverage mapping profile={} binary={}",
+                hstd::fmt(
+                    "Failed to load coverage mapping profile={} binary={}",
                     run.run.test_profile,
                     run.run.test_binary));
         }
@@ -995,9 +998,9 @@ void process_runs(
             auto j = to_json_eval(*mapping);
             auto path //
                 = fs::path{*cli.profdata.coverage_mapping_dump}
-                / fmt("coverage_mapping_{}.json", run.index);
+                / hstd::fmt("coverage_mapping_{}.json", run.index);
 
-            LOG(INFO) << fmt("coverage-mapping-dump={}", path);
+            LOG(INFO) << hstd::fmt("coverage-mapping-dump={}", path);
             writeFile(path, j.dump(2));
         }
 
