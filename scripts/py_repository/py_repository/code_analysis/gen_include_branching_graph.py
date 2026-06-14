@@ -66,8 +66,7 @@ def create_include_tree_graph(
             return cumulative_cache[key]
         total = int(v.used_line_count)
         for ch in v.nested:
-            if is_kept(ch):
-                total += cumulative_used(ch)
+            total += cumulative_used(ch)
         cumulative_cache[key] = total
         return total
 
@@ -89,20 +88,38 @@ def create_include_tree_graph(
             "</TR>"
             "</TABLE>")
 
+    def nested_rows_for(
+            v: pb.IncludeVisit
+    ) -> list[tuple[pb.IncludeVisit, int, int, str, int | None]]:
+        rows: list[tuple[pb.IncludeVisit, int, int, str, bool]] = []
+        for ch in v.nested:
+            rows.append((
+                ch,
+                cumulative_used(ch),
+                int(ch.file_line_count),
+                ch.relative_path or ch.absolute_path or "<unknown>",
+                is_kept(ch),
+            ))
+
+        rows.sort(key=lambda item: item[1], reverse=True)
+
+        result: list[tuple[pb.IncludeVisit, int, int, str, int | None]] = []
+        port_index = 0
+        for ch, used, lines, name, kept in rows:
+            if kept:
+                result.append((ch, used, lines, name, port_index))
+                port_index += 1
+            else:
+                result.append((ch, used, lines, name, None))
+
+        return result
+
     def node_label(v: pb.IncludeVisit) -> str:
         title = html.escape(v.relative_path or v.absolute_path or "<root>")
         physical = int(v.file_line_count)
         used_sum = cumulative_used(v)
 
-        children = [ch for ch in v.nested if is_kept(ch)]
-        child_rows = []
-        for ch in children:
-            used = cumulative_used(ch)
-            share = 0.0 if used_sum == 0 else (used / used_sum) * 100.0
-            rel = html.escape(ch.relative_path or ch.absolute_path or "<unknown>")
-            child_rows.append((rel, used, int(ch.file_line_count), share))
-
-        child_rows.sort(key=lambda item: item[1], reverse=True)
+        nested_rows = nested_rows_for(v)
 
         rows = [
             "<TR>",
@@ -123,14 +140,22 @@ def create_include_tree_graph(
             "</TR>",
         ]
 
-        for i, (rel, used, lines, share) in enumerate(child_rows):
+        for ch, used, lines, rel, port_index in nested_rows:
+            share = 0.0 if used_sum == 0 else (used / used_sum) * 100.0
             progress = progress_table_html(share)
+            rel_escaped = html.escape(rel)
+
+            if port_index is None:
+                to_cell = "<TD></TD>"
+            else:
+                to_cell = f'<TD PORT="p{port_index}">→</TD>'
+
             rows.append("<TR>"
-                        f'<TD ALIGN="LEFT">{rel}</TD>'
+                        f'<TD ALIGN="LEFT">{rel_escaped}</TD>'
                         f"<TD>{used}</TD>"
                         f"<TD>{lines}</TD>"
                         f"<TD>{progress}</TD>"
-                        f'<TD PORT="p{i}">→</TD>'
+                        f"{to_cell}"
                         "</TR>")
 
         return ("<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\">" +
@@ -178,29 +203,20 @@ def create_include_tree_graph(
         add_vertex_record(v, node_id, parent_id, parent_row_index)
         dot.node(node_id, node_label(v))
 
-        children = [ch for ch in v.nested if is_kept(ch)]
-        child_rows = []
-        for ch in children:
-            child_rows.append((
-                ch,
-                cumulative_used(ch),
-                int(ch.file_line_count),
-                ch.relative_path or ch.absolute_path or "<unknown>",
-            ))
+        for ch, _used, _lines, _name, port_index in nested_rows_for(v):
+            if port_index is None:
+                continue
 
-        child_rows.sort(key=lambda item: item[1], reverse=True)
-
-        for row_index, (ch, _used, _lines, _name) in enumerate(child_rows):
-            child_id = emit(
+            nested_id = emit(
                 ch,
                 parent_id=node_id,
-                parent_row_index=row_index,
+                parent_row_index=port_index,
             )
-            dot.edge(f"{node_id}:p{row_index}:e", child_id)
+            dot.edge(f"{node_id}:p{port_index}:e", nested_id)
             graph.add_edge(
                 node_id,
-                child_id,
-                parent_row_index=row_index,
+                nested_id,
+                parent_row_index=port_index,
             )
 
         return node_id
@@ -291,12 +307,12 @@ def write_include_tree_html(
                         return title ? title.parentElement : null;
                     }}
 
-                    function getEdgeGroup(parentId, childId) {{
+                    function getEdgeGroup(parentId, nestedId) {{
                         const graphRoot = getGraphRootGroup();
                         if (!graphRoot) {{
                             return null;
                         }}
-                        const titleText = `${{parentId}}->${{childId}}`;
+                        const titleText = `${{parentId}}->${{nestedId}}`;
                         const title = Array.from(graphRoot.querySelectorAll('g.edge > title'))
                             .find(el => el.textContent.trim() === titleText);
                         return title ? title.parentElement : null;
@@ -334,7 +350,7 @@ def write_include_tree_html(
 
                     function attachInteractivity() {{
                         for (let i = 0; i < EDGE_NAMES.length; ++i) {{
-                            const [parentId, childId] = EDGE_NAMES[i];
+                            const [parentId, nestedId] = EDGE_NAMES[i];
                             const rowIndex = EDGE_ROWS[i];
                             const arrowText = getArrowCell(parentId, rowIndex);
                             if (!arrowText) {{
@@ -352,11 +368,11 @@ def write_include_tree_html(
                             rect.setAttribute('fill', 'transparent');
                             rect.setAttribute('class', 'include-arrow-hit');
 
-                            rect.addEventListener('click', () => focusNode(childId));
+                            rect.addEventListener('click', () => focusNode(nestedId));
 
-                            arrowText.parentElement.appendChild(rect);
+                            arrowText.parentElement.appendnested(rect);
 
-                            const edgeGroup = getEdgeGroup(parentId, childId);
+                            const edgeGroup = getEdgeGroup(parentId, nestedId);
                             if (edgeGroup) {{
                                 edgeGroup.style.pointerEvents = 'none';
                             }}
