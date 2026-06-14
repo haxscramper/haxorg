@@ -1,5 +1,5 @@
 CREATE TABLE
-    IF NOT EXISTS FilePath (`id` INTEGER PRIMARY KEY, `file_path` STRING);
+    IF NOT EXISTS FilePath (`id` INTEGER PRIMARY KEY, `file_path` INTEGER REFERENCES String (id));
 
 CREATE TABLE
     IF NOT EXISTS GitCommit (
@@ -60,6 +60,7 @@ CREATE TABLE
 
 CREATE TABLE
     IF NOT EXISTS FileSectionLines (
+        `id` INTEGER PRIMARY KEY,
         `section` INTEGER REFERENCES FileTrackSection (id),
         `line_index` INTEGER,
         `line_id` INTEGER REFERENCES LineData (id)
@@ -97,4 +98,21 @@ FROM
     JOIN GitCommit AS GitLineCommit ON ViewJoinedFileSectionLines.line_commit = GitLineCommit.id
     JOIN GitCommit AS GitSectionCommit ON ViewJoinedFileSectionLines.section_commit = GitSectionCommit.id
     --
+;
+
+CREATE VIEW
+    ViewGitCommitISO8601Dates AS
+SELECT
+    id,
+    author,
+    hash,
+    message,
+    strftime('%Y-%m-%dT%H:%M:%S', time, 'unixepoch') ||
+    CASE
+        WHEN timezone >= 0 THEN '+'
+        ELSE '-'
+    END ||
+    printf('%02d:%02d', abs(timezone) / 60, abs(timezone) % 60) AS time_iso8601
+FROM
+    "GitCommit"
 ;

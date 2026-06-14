@@ -1,5 +1,10 @@
 workflow_run := "uv run --verbose --all-groups -C HAXORG_PY_SOURCE_DISTRIBUTION=1 ./scripts/py_repository/py_repository/repo_tasks/workflow.py run"
 
+uv_run := "uv run --verbose --all-groups -C HAXORG_PY_SOURCE_DISTRIBUTION=1"
+
+run_code_forensics:
+  {{uv_run}} scripts/cxx_repository/cxx_repository/code_forensics_cli.py \
+    --input . --out build/code_forensics_run/db.sqlite --skip_if_exists True
 
 run_develop_ci:
   {{workflow_run}} --task run_develop_ci \

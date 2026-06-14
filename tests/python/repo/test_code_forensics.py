@@ -4,49 +4,25 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import enum
 import io
-import json
 from pathlib import Path
-from pprint import pprint
 import shutil
-from tempfile import mktemp, NamedTemporaryFile, TemporaryDirectory
+from tempfile import mktemp, TemporaryDirectory
 from types import TracebackType
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, List, Literal, Optional, Set, Type
-from cxx_repository import burndown
+from beartype.typing import Any, Dict, List, Optional, Set, Type
+from cxx_repository.code_forensics import run_forensics
 import git
-from hypothesis import (
-    assume,
-    find,
-    given,
-    note,
-    Phase,
-    seed,
-    settings,
-    strategies as st,
-    Verbosity,
-)
-from hypothesis.stateful import (
-    Bundle,
-    precondition,
-    rule,
-    RuleBasedStateMachine,
-    run_state_machine_as_test,
-)
+from hypothesis import given, settings, strategies as st, Verbosity
 import pandas as pd
 import plumbum
 import plumbum.commands.base
-from py_scriptutils import configure_asan
-from py_scriptutils.auto_lldb import get_lldb_params
 from py_scriptutils.files import get_haxorg_repo_root_path
-from py_scriptutils.os_utils import gettempdir, json_path_serializer
-from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import merge_dicts
-from pydantic import BaseModel
+from py_scriptutils.os_utils import gettempdir
 import pytest
 from rich import box
 from rich.console import Console
-from rich.table import Column, Style, Table
+from rich.table import Table
 from sqlalchemy import create_engine, Engine
 
 CAT = __name__
@@ -163,47 +139,6 @@ stderr:
 directory content:
 - {"\n- ".join(str(s) for s in dir.rglob("*") if ".git" not in str(s))}
         """
-
-
-@beartype
-def run_forensics(
-    dir: Path,
-    params: dict = dict(),
-    db: Optional[str] = None,
-    with_debugger: bool = False,
-    verbose_consistency_checks: bool = False,
-) -> tuple[int, str, str]:
-    tool_path = str(get_haxorg_repo_root_path().joinpath("build/haxorg/code_forensics"))
-
-    params = merge_dicts([{
-        "out": {
-            "db_path": db,
-        },
-        "config": {
-            "verbose_consistency_checks": verbose_consistency_checks,
-        },
-    }, params, {
-        "repo": {
-            "path": str(dir),
-            "branch": "master"
-        }
-    }])
-
-    if with_debugger:
-        run_parameters = [tool_path, *get_lldb_params(), "--", json.dumps(params)]
-        code, stdout, stderr = plumbum.local["lldb"].with_env(LD_PRELOAD="").run(
-            tuple(run_parameters))
-        print(run_parameters)
-        if code != 0:
-            log().warning(f"{tool_path} run failed")
-            log().warning(stdout)
-            log().warning(stderr)
-
-        return code, stdout, stderr
-
-    else:
-        return plumbum.local[tool_path].with_env(LD_PRELOAD="").run(
-            (json.dumps(params, default=json_path_serializer)))
 
 
 @beartype
@@ -409,28 +344,17 @@ def test_fast_forward_merge() -> None:
         run_forensics(repo.git_dir(), db=str(repo.db))
 
 
-HAXORG_OUT_DB = gettempdir("test_haxorg_forensics.sqlite")
-
-
 @pytest.mark.skip()
 def test_haxorg_forensics() -> None:
+    build_res = get_haxorg_repo_root_path().joinpath("build/code_forensics")
     _, stdout, stderr = run_forensics(
         get_haxorg_repo_root_path(), {
             "out": {
-                "db_path": HAXORG_OUT_DB,
-                "log_file": gettempdir("test_haxorg_forensics.log"),
-                "perfetto": gettempdir("test_haxorg_forensics.pftrace"),
-            },
-            "config": {
-                "max_commit_idx": 250,
+                "db_path": str(build_res.joinpath("test_haxorg_forensics.sqlite")),
+                "log_file": str(build_res.joinpath("test_haxorg_forensics.log")),
+                "perfetto": str(build_res.joinpath("test_haxorg_forensics.pftrace")),
             },
         })
-
-
-@pytest.mark.skip()
-def test_haxorg_repo_burndown() -> None:
-    engine = create_engine("sqlite:///" + HAXORG_OUT_DB)
-    burndown.run_for(engine)
 
 
 file_names = st.text(
@@ -968,10 +892,11 @@ def test_repo_operations_example_4() -> None:
 @pytest.mark.test_release
 @given(multiple_files_strategy())
 @settings(
-    max_examples=20,
+    max_examples=40,
     deadline=2000,
     verbosity=Verbosity.normal,
     # Shrinking phase is very expensive and I don't see it yielding any particularly useful results
-    phases=[Phase.explicit, Phase.reuse, Phase.generate])
+    # phases=[Phase.explicit, Phase.reuse, Phase.generate, Phase.shrink]
+)
 def test_strategic_repo_edits(operations: List[GitOperation]) -> None:
     run_repo_operations_test(operations)

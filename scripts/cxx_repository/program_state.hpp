@@ -93,7 +93,8 @@ struct cli_config_config {
     hstd::Vec<std::string> debug_commits = {};
     /// If verbose consistency checks are enabled (either explicitly or
     /// via debug commits), narrow down comparison verification to
-    /// paths in this list.
+    /// paths in this list. Provide additional logging/debug information
+    /// when processing these files.
     hstd::Vec<std::string> debug_paths = {};
     cli_diff_config        diffopts    = cli_diff_config{};
     /// Only generate database for the commit subset.

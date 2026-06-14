@@ -176,6 +176,15 @@ def apply_options(f: Any, options: Any) -> Any:
 
 
 @beartype
+def get_wrap_options(t: Any) -> Any:
+
+    def analysis_options(f: Any) -> Any:
+        return apply_options(f, options_from_model(t))
+
+    return analysis_options
+
+
+@beartype
 def get_parent_directories(path: str) -> List[str]:
     path = os.path.abspath(path)  # Ensure path is absolute
     directories = []

@@ -118,7 +118,9 @@ void InsertFileTrackSections(
     dod::Store<ir::FileTrackSectionId, ir::FileTrackSection> const& fileTrackSections) {
     SQLite::Statement query(db, "INSERT INTO FileTrackSection VALUES (?, ?, ?, ?)");
 
-    SQLite::Statement lineQuery(db, "INSERT INTO FileSectionLines VALUES (?, ?, ?)");
+    SQLite::Statement lineQuery(
+        db,
+        "INSERT INTO FileSectionLines (section, line_index, line_id) VALUES (?, ?, ?)");
 
     for (const auto& [id, item] : fileTrackSections.pairs()) {
         query.bind(1, idcast(id.getValue()));
