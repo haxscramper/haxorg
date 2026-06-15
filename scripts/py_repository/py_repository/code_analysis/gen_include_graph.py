@@ -476,7 +476,7 @@ def gen_include_graph(
     ok_files: List[Path] = []
     files = list(get_script_root(ctx, "src").rglob("*.?pp"))
 
-    files = files[20:40]
+    # files = files[20:40]
 
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [

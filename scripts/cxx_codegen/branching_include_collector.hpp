@@ -72,10 +72,11 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
     }
 
     struct PendingInclude {
-        std::string IncludingFilePath;
-        std::string RelativePath;
-        std::string AbsolutePath;
-        unsigned    PhysicalLine = 0;
+        clang::FileID ParentFile;
+        std::string   RelativePath;
+        std::string   AbsolutePath;
+        unsigned      PhysicalLine = 0;
+        IncludeVisit* Node         = nullptr;
     };
 
     struct VisitFrame {
@@ -129,12 +130,12 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
 
 
     std::optional<PendingInclude> popPendingForParent(
-        std::string const& parentPath,
-        unsigned           includeLine,
-        std::string const& enteredPath) {
+        clang::FileID const& parentFile,
+        unsigned             includeLine,
+        std::string const&   enteredPath) {
 
         for (auto it = PendingIncludes.begin(); it != PendingIncludes.end(); ++it) {
-            if (it->IncludingFilePath != parentPath) { continue; }
+            if (it->ParentFile != parentFile) { continue; }
             if (includeLine == 0 || it->PhysicalLine != includeLine) { continue; }
             if (!enteredPath.empty() && !it->AbsolutePath.empty()
                 && it->AbsolutePath != enteredPath) {
@@ -161,34 +162,26 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         std::string enteredPath = normalizeAbsolutePath(fe->getName().str());
 
         clang::SourceLocation includeLoc = SM->getIncludeLoc(enteredFile);
-        std::string           parentPath;
-        unsigned              includeLine = 0;
-        if (includeLoc.isValid()) {
-            parentPath  = getRealPathForLoc(*SM, includeLoc);
-            includeLine = SM->getSpellingLineNumber(SM->getSpellingLoc(includeLoc));
-        } else {
-            parentPath = ActiveStack.back().AbsolutePath;
-        }
+        if (!includeLoc.isValid()) { return; }
 
-        auto pending = popPendingForParent(parentPath, includeLine, enteredPath);
+        clang::SourceLocation includeSpelling = SM->getSpellingLoc(includeLoc);
+        if (includeSpelling.isInvalid()) { return; }
 
-        IncludeVisit* nested = ActiveStack.back().Node->add_nested();
-        nested->set_absolutepath(enteredPath);
-        nested->set_filelinecount(countPhysicalLines(*SM, enteredFile));
+        clang::FileID parentFid   = SM->getFileID(includeSpelling);
+        unsigned      includeLine = SM->getSpellingLineNumber(includeSpelling);
 
-        if (pending) {
-            nested->set_relativepath(pending->RelativePath);
-            nested->set_includelocationline(pending->PhysicalLine);
-        } else {
-            nested->set_relativepath("");
-            nested->set_includelocationline(0);
-        }
+        auto pending = popPendingForParent(parentFid, includeLine, enteredPath);
+        if (!pending || !pending->Node) { return; }
+
+        IncludeVisit* node = pending->Node;
+        if (node->absolutepath().empty()) { node->set_absolutepath(enteredPath); }
+        node->set_filelinecount(countPhysicalLines(*SM, enteredFile));
 
         ActiveStack.push_back(
             VisitFrame{
-                .Node         = nested,
+                .Node         = node,
                 .File         = enteredFile,
-                .AbsolutePath = nested->absolutepath(),
+                .AbsolutePath = node->absolutepath(),
             });
     }
 
@@ -206,24 +199,37 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         clang::SrcMgr::CharacteristicKind) override {
 
         ensureRoot();
+        if (ActiveStack.empty()) { return; }
+
+        clang::SourceLocation spelling = SM->getSpellingLoc(HashLoc);
+        if (spelling.isInvalid()) { return; }
+
+        clang::FileID parentFid = SM->getFileID(spelling);
+        unsigned      line      = SM->getSpellingLineNumber(spelling);
+
+        IncludeVisit* nested = ActiveStack.back().Node->add_nested();
+        nested->set_relativepath(FileName.str());
+        nested->set_includelocationline(line);
+        if (File) {
+            nested->set_absolutepath(normalizeAbsolutePath(File->getName().str()));
+        } else {
+            nested->set_absolutepath("");
+        }
+
+        PendingInclude pending;
+        pending.ParentFile   = parentFid;
+        pending.RelativePath = FileName.str();
+        pending.PhysicalLine = line;
+        pending.Node         = nested;
+        if (File) { pending.AbsolutePath = normalizeAbsolutePath(File->getName().str()); }
+
+        PendingIncludes.push_back(std::move(pending));
 
         if (File && SM->isInMainFile(HashLoc)) {
             auto incl = Out->add_includes();
             incl->set_absolutepath(normalizeAbsolutePath(File->getName().str()));
             incl->set_relativepath(FileName.str());
         }
-
-        PendingInclude pending;
-        pending.IncludingFilePath = getRealPathForLoc(*SM, HashLoc);
-        pending.RelativePath      = FileName.str();
-        if (File) { pending.AbsolutePath = normalizeAbsolutePath(File->getName().str()); }
-
-        clang::SourceLocation spelling = SM->getSpellingLoc(HashLoc);
-        if (spelling.isValid()) {
-            pending.PhysicalLine = SM->getSpellingLineNumber(spelling);
-        }
-
-        PendingIncludes.push_back(std::move(pending));
     }
 
     void FileSkipped(
@@ -231,12 +237,14 @@ struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {
         clang::Token const&        FilenameTok,
         clang::SrcMgr::CharacteristicKind) override {
 
-        std::string parentPath = getRealPathForLoc(*SM, FilenameTok.getLocation());
-        unsigned    line       = SM->getSpellingLineNumber(
-            SM->getSpellingLoc(FilenameTok.getLocation()));
-        std::string skippedAbs = normalizeAbsolutePath(SkippedFile.getName().str());
+        clang::SourceLocation loc = SM->getSpellingLoc(FilenameTok.getLocation());
+        if (loc.isInvalid()) { return; }
 
-        (void)popPendingForParent(parentPath, line, skippedAbs);
+        clang::FileID parentFid  = SM->getFileID(loc);
+        unsigned      line       = SM->getSpellingLineNumber(loc);
+        std::string   skippedAbs = normalizeAbsolutePath(SkippedFile.getName().str());
+
+        (void)popPendingForParent(parentFid, line, skippedAbs);
     }
 
     void FileChanged(
