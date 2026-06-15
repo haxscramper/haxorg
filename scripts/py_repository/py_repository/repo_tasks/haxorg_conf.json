@@ -15,6 +15,7 @@
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
+      // "tests/python/refl/test_include_reflection.py",
       // "tests/python/repo/test_code_forensics.py",
       // "tests/python/repo/test_code_forensics.py::test_infer_current_dir_subset"
       // "tests/python/test_execution_tracker.py"

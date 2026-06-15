@@ -20,6 +20,31 @@ from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = __name__
 
+from rich.tree import Tree
+
+
+def include_visit_to_rich_tree(
+    root: pb.IncludeVisit,
+    absolute_prefix: str = "",
+    max_depth: int = 10,
+) -> Tree:
+
+    def build_label(node: pb.IncludeVisit) -> str:
+        return (
+            f"{node.relative_path} ({node.absolute_path.removeprefix(absolute_prefix)}) "
+            f"[dim](line {node.include_location_line}, "
+            f"used {node.used_line_count}/{node.file_line_count})[/dim]")
+
+    def add_children(tree: Tree, node: pb.IncludeVisit, depth: int) -> None:
+        for child in node.nested:
+            branch = tree.add(build_label(child))
+            if depth < max_depth:
+                add_children(branch, child, depth + 1)
+
+    tree = Tree(build_label(root))
+    add_children(tree, root, 0)
+    return tree
+
 
 @beartype
 def conv_proto_default(value: pb.Expr) -> Optional[str]:

@@ -14,7 +14,7 @@ import igraph
 from py_ci.data_build import get_deps_install_config
 from py_codegen.codegen_ir import GenTuInclude, QualType, QualTypeKind
 import py_codegen.proto_lib as pb
-from py_codegen.refl_read import conv_proto_file, ConvTu
+from py_codegen.refl_read import conv_proto_file, ConvTu, include_visit_to_rich_tree
 from py_codegen.refl_wrapper_graph import (
     get_declared_types_rec,
     get_used_types_rec,
@@ -33,6 +33,7 @@ from py_repository.repo_tasks.common import (
     get_workflow_out,
 )
 from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_scriptutils.rich_utils import render_rich
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
@@ -502,13 +503,22 @@ def gen_include_graph(
                 tu.main_file_include_tree,
                 root_dir=get_script_root(ctx).joinpath("src"),
             )
+
             outfile = get_workflow_out(
                 ctx,
                 f"include_graph/branching_include_graphs/{Path(tu.absoluteOriginal).name}_branch"
             )
 
-            gg_branch.render(str(outfile), format="png")
-            log().info(f"wrote {outfile}.png")
+            Path(str(outfile) + ".txt").write_text(
+                render_rich(
+                    include_visit_to_rich_tree(tu.main_file_include_tree,),
+                    color=False,
+                ).replace("│   ", "    ").replace("├── ", "    ").replace("└── ", "    "))
+
+            # FIXME: The render operation reports multiple instances of teh labels being too large for the
+            # cells in the HTML graph.
+            gg_branch.render(str(outfile), format="png", quiet=True)
+            log().info(f"wrote {outfile}.png {outfile}.txt")
 
         if tu.absoluteOriginal.endswith("hpp"):
             used_types: List[QualType] = list()
