@@ -9,7 +9,6 @@
 
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/strutils.hpp>
 
 
 /// \brief Data-oriented design primitives
@@ -27,6 +26,25 @@
 /// `dod::MultiStore` is an additional helper type to simplify management
 /// of multiple stores.
 namespace hstd::dod {
+
+struct FormatConfig {
+    std::string name         = "Id";
+    bool        withMask     = true;
+    char        mask_format  = 'b';
+    int         mask_pad_to  = 0;
+    char        index_format = ' ';
+    int         index_pad_to = 0;
+};
+
+namespace detail {
+std::string format_id(
+    uint64_t            mask,
+    uint64_t            index,
+    int                 mask_size,
+    FormatConfig const& conf,
+    bool                is_nil);
+}
+
 /// \brief DOD Id type
 ///
 /// \note It does not have a default constructor, if you need co construct
@@ -188,43 +206,13 @@ struct [[nodiscard]] Id {
     /// \brief  Compare full ID value for inequality
     bool operator!=(Id other) const noexcept { return getValue() != other.getValue(); }
 
-    struct FormatConfig {
-        std::string name         = "Id";
-        bool        withMask     = true;
-        char        mask_format  = 'b';
-        int         mask_pad_to  = 0;
-        char        index_format = ' ';
-        int         index_pad_to = 0;
-    };
-
     std::string format(std::string const& name) const {
         return format(FormatConfig{.name = name});
     }
 
     /// \brief Write strig representation of the ID into output stream
     std::string format(FormatConfig const& conf = FormatConfig{}) const {
-        std::string result;
-        if (conf.name.size() != 0) { result += conf.name + "("; }
-
-        if (conf.withMask) {
-            if (0 < mask_size) {
-                result += //
-                    hstd::format_integer_bits(
-                        getMask(), conf.mask_format, conf.mask_pad_to)
-                    + ":";
-            }
-        }
-
-        if (isNil()) {
-            result += "<nil>";
-        } else {
-            result += hstd::format_integer_bits(
-                getIndex(), conf.index_format, conf.index_pad_to);
-        }
-
-        if (conf.name.size() != 0) { result += ")"; }
-
-        return result;
+        return detail::format_id(getMask(), getIndex(), mask_size, conf, isNil());
     }
 
   public:

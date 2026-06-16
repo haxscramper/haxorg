@@ -82,8 +82,7 @@ struct fmt::formatter<org::parse::TokenId<K, V>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::parse::TokenId<K, V> const& p, fmt::format_context& ctx)
         const {
-        typename org::parse::TokenId<K, V>::FormatConfig conf{
-            .name = hstd::demangle(typeid(K).name())};
+        hstd::dod::FormatConfig conf{.name = hstd::demangle(typeid(K).name())};
         return hstd::fmt_ctx(p.format(conf), ctx);
     }
 };
