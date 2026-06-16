@@ -1,6 +1,7 @@
 #pragma once
 #include <hstd/system/exceptions.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <memory>
 
 namespace hstd {
 struct logic_unhandled_kind_error : CRTP_hexception<logic_unhandled_kind_error> {

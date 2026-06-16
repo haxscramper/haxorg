@@ -10,6 +10,7 @@
 #include <vector>
 #include <type_traits>
 #include <fmt/base.h>
+#include <stdexcept>
 
 
 namespace hstd {
