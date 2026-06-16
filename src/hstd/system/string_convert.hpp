@@ -4,6 +4,7 @@
 #include <string>
 #include <boost/mp11.hpp>
 #include <boost/describe.hpp>
+#include <fmt/format.h>
 
 
 namespace hstd {

@@ -536,8 +536,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     if (0 < failCount) {
         yaml converted_yaml  = toYaml(converted);
         yaml expected_yaml   = toYaml(expected);
-        auto converted_lines = Str(fmt1(converted_yaml)).split('\n');
-        auto expected_lines  = Str(fmt1(expected_yaml)).split('\n');
+        auto converted_lines = split(Str(fmt1(converted_yaml)), '\n');
+        auto expected_lines  = split(Str(fmt1(expected_yaml)), '\n');
 
         BacktrackRes sem_lcs = longestCommonSubsequence<Str>(
             converted_lines, expected_lines, [](Str const& lhs, Str const& rhs) -> bool {

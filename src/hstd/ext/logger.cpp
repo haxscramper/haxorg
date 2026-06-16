@@ -227,7 +227,7 @@ void format_log_record_data(
     };
 
     if (data.message.contains('\n')) {
-        auto split = data.message.split('\n');
+        auto split = hstd::split(data.message, '\n');
         write_trail(true);
         for (auto const& line : split) {
             strm << "\n";
@@ -293,7 +293,7 @@ struct log_differential_sink
         auto&         prev_fmt = factory->prev_run_format;
 
         auto prefixed_write = [&](Str const& prefix, Str const& text) {
-            for (auto const& line : text.split("\n")) { ofs << prefix << line << "\n"; }
+            for (auto const& line : split(text, "\n")) { ofs << prefix << line << "\n"; }
         };
 
         while (i < prev.size() || j < curr_run.size()) {

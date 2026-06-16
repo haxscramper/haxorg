@@ -392,7 +392,7 @@ struct GraphvizObjBase : CRTP_this_method<T> {
         Opt<Str> tmp;
         getAttr(key, tmp);
         if (tmp && !tmp->empty()) {
-            auto split = tmp->split(",");
+            auto split = hstd::split(*tmp, ",");
             value      = Point(split[0].toDouble(), split[1].toDouble());
         }
     }

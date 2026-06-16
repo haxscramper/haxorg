@@ -70,32 +70,6 @@ Str hstd::Str::replaceAll(Str const& from, Str const& to) const {
 
 char& Str::at(BackwardsIndex pos) { return at(size() - pos.value); }
 
-Vec<Str> hstd::Str::split(char delimiter) const {
-    Vec<Str>           tokens;
-    Str                token;
-    std::istringstream tokenStream(*this);
-
-    while (std::getline(tokenStream, token, delimiter)) { tokens.push_back(token); }
-
-    return tokens;
-}
-
-Vec<Str> hstd::Str::split(Str const& delimiter) const {
-    Vec<Str> tokens;
-    size_t   start = 0;
-    size_t   end   = this->find(delimiter);
-
-    while (end != std::string::npos) {
-        tokens.push_back(this->substr(start, end - start));
-        start = end + delimiter.length();
-        end   = this->find(delimiter, start);
-    }
-
-    tokens.push_back(this->substr(start, end));
-
-    return tokens;
-}
-
 float Str::toFloat() const { return std::stof(*this); }
 float Str::toDouble() const { return std::stod(*this); }
 int   Str::toInt() const { return std::stoi(*this); }
@@ -106,16 +80,6 @@ void Str::append(Str const& str) { std::string::append(str.toBase()); }
 int  Str::size() const { return static_cast<int>(std::string::size()); }
 bool Str::contains(char ch) const { return find(ch) != std::string::npos; }
 bool Str::contains(Str const& ch) const { return find(ch) != std::string::npos; }
-
-Str Str::join(Vec<Str> const& items) const {
-    Str res;
-    for (int i = 0; i < items.size(); ++i) {
-        if (0 < i) { res += ", "; }
-        res += items.at(i);
-    }
-
-    return res;
-}
 
 Str hstd::Str::repeated(int N) const {
     Str result;

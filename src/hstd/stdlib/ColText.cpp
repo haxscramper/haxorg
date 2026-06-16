@@ -198,7 +198,7 @@ void hstd::ColStream::write(ColText const& text) {
 }
 
 void ColStream::write_indented_after_first(Str const& text, int indent) {
-    auto lines = text.split('\n');
+    auto lines = hstd::split(text, '\n');
     if (lines.has(0)) { write(ColText{lines.at(0)}); }
     for (int i = 1; i < lines.size(); ++i) {
         write(ColText{"\n"});

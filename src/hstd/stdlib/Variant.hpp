@@ -155,7 +155,8 @@ struct hstd::value_metadata<hstd::Variant<Args...>> {
 
     static std::string typeName() {
         return Str{"Variant<"}
-             + Str{", "}.join(Vec<Str>{hstd::value_metadata<Args>::typeName()...})
+             + Str{hstd::join(
+                 Str{", "}, Vec<Str>{hstd::value_metadata<Args>::typeName()...})}
              + Str{">"};
     }
 };

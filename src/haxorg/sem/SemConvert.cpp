@@ -29,6 +29,7 @@
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 
 namespace {
@@ -149,7 +150,8 @@ Str strip_space(Str const& space) { return strip(space, CharSet{' '}, CharSet{' 
 
 org::sem::SubtreePath convertSubtreePath(Str const& path) {
     org::sem::SubtreePath res;
-    for (auto const& item : strip(path, CharSet{'*', ' '}, CharSet{' '}).split("/")) {
+    for (auto const& item :
+         hstd::split(strip(path, CharSet{'*', ' '}, CharSet{' '}), "/")) {
         res.path.push_back(strip_space(item));
     }
     return res;
@@ -681,8 +683,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         handled();
         Property::ExportOptions res;
         res.backend = get_text(one(a, N::Subname));
-        for (Str const& pair : get_values_text().split(' ')) {
-            auto kv           = pair.split(':');
+        for (Str const& pair : split(get_values_text(), ' ')) {
+            auto kv           = split(pair, ':');
             res.values[kv[0]] = kv[1];
         }
         result = Property(res);
@@ -697,7 +699,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name == "radioid") {
         handled();
         Property::RadioId radio;
-        for (Str const& pair : get_values_text().split(' ')) {
+        for (Str const& pair : split(get_values_text(), ' ')) {
             radio.words.push_back(pair);
         }
 
@@ -762,7 +764,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name == "cookiedata") {
         handled();
         NamedProperty::CookieData p;
-        for (auto const& arg : get_values_text().split(" ")) {
+        for (auto const& arg : split(get_values_text(), " ")) {
             auto norm = normalize(arg);
             if (norm == "todo") {
                 p.source = SubtreeTodoSource::Todo;
@@ -787,7 +789,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name == "effort") {
         handled();
         Str const&            value    = get_values_text();
-        Vec<Str>              duration = value.split(":");
+        Vec<Str>              duration = split(value, ":");
         NamedProperty::Effort prop;
 
         if (duration.size() == 1) {
@@ -846,9 +848,9 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name == "archive") {
         handled();
         NamedProperty::ArchiveTarget file{};
-        auto                         dsl = get_values_text().split("::");
+        auto                         dsl = split(get_values_text(), "::");
         file.pattern                     = dsl.at(0);
-        file.path.path = lstrip(dsl.at(1), CharSet{'*', ' '}).split("/");
+        file.path.path = split(lstrip(dsl.at(1), CharSet{'*', ' '}), "/");
         result         = NamedProperty{file};
     } else if (name == "archiveolpath") {
         handled();
@@ -858,14 +860,14 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name.starts_with("propjson")) {
         handled();
         NamedProperty::CustomSubtreeJson prop{};
-        auto name = strip(basename, CharSet{':'}, CharSet{':'}).split(':');
+        auto name = split(strip(basename, CharSet{':'}, CharSet{':'}), ':');
         if (name.has(1)) { prop.name = normalize(name.at(1)); }
         prop.value = json::parse(strip_space(get_text(one(a, N::Values))));
         result     = NamedProperty{prop};
     } else if (name.starts_with("propargs")) {
         handled();
         NamedProperty::CustomSubtreeFlags prop{};
-        auto name = strip(basename, CharSet{':'}, CharSet{':'}).split(':');
+        auto name = split(strip(basename, CharSet{':'}, CharSet{':'}), ':');
         if (name.has(1)) { prop.name = normalize(name.at(1)); }
         prop.value = convertAttrs(one(a, N::Values));
         result     = NamedProperty{prop};
@@ -877,8 +879,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
             })) {
         handled();
         NamedProperty::CustomArgs prop;
-        auto name = strip(get_text(one(a, N::Name)), CharSet{':'}, CharSet{':'})
-                        .split(':');
+        auto                      name = hstd::split(
+            strip(get_text(one(a, N::Name)), CharSet{':'}, CharSet{':'}), ':');
 
         prop.name = name.at(0);
         if (name.has(1)) { prop.sub = name.at(1); }
@@ -945,7 +947,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
                 res.full      = 100;
             } else {
                 res.isPercent = false;
-                auto split    = text.split("/");
+                auto split    = hstd::split(text, "/");
                 res.done      = split.at(0).toInt();
                 res.full      = split.at(1).toInt();
             }
@@ -1174,7 +1176,7 @@ OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
     int idx   = 0;
     sym->name = get_text(one(a, N::Name)).substr(1);
     for (const auto& sub : one(a, N::Args)) {
-        auto params = get_text(sub).split(" ");
+        auto params = split(get_text(sub), " ");
         for (int i = 0; i < params.size();) {
             if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
                 sym->parameters.push_back(
@@ -1251,7 +1253,7 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
             }
             link->target = LinkTarget{LinkTarget::SubtreeTitle{
                 .level = level,
-                .title = lstrip(target, CharSet{'*', ' '}).split("/"),
+                .title = split(lstrip(target, CharSet{'*', ' '}), "/"),
             }};
 
         } else {
@@ -2087,7 +2089,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(__args) {
     } else {
         sem::CmdInclude::OrgDocument doc{};
         if (include->path.contains("::")) {
-            auto split    = include->path.split("::");
+            auto split    = hstd::split(include->path, "::");
             include->path = split.at(0);
             auto second   = strip_space(split.at(1));
             if (second.starts_with("*")) {
@@ -2109,7 +2111,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(__args) {
     }
     if (auto arg = args.named.pop_opt("lines")) {
         Str      lines = strip(arg->items.at(0).getString(), CharSet{'"'}, CharSet{'"'});
-        Vec<Str> split = lines.split("-");
+        Vec<Str> split = hstd::split(lines, "-");
         if (lines.starts_with("-")) {
             include->lastLine = split.at(1).toInt();
         } else if (lines.ends_with("-")) {
@@ -2157,7 +2159,7 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
             value           = value.substr(1, value.size() - 2);
         }
 
-        auto split = value.split(':');
+        auto split = hstd::split(value, ':');
         if (!result.isQuoted && split.size() == 2 && !value.contains("::")) {
             AttrValue::FileReference fr{};
             fr.file      = split.at(0);
@@ -2191,7 +2193,7 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
                 dim.first = 0;
                 dim.last  = -1;
             } else {
-                auto split = axis.split(':');
+                auto split = hstd::split(axis, ':');
                 dim.first  = split.at(0).toInt();
                 if (split.has(1)) { dim.last = split.at(1).toInt(); }
             }
@@ -2749,9 +2751,9 @@ void OrgConverter::convertDocumentOptions(
     org::parse::OrgAdapter a) {
     auto item      = a.at(0);
     auto parseBool = [](Str const& value) { return value == "t" || value == "T"; };
-    for (auto const& value : get_text(item).split(' ')) {
+    for (auto const& value : split(get_text(item), ' ')) {
         if (value.contains(':')) {
-            auto split = value.split(':');
+            auto split = hstd::split(value, ':');
             auto head  = split[0];
             auto tail  = split[1];
             if (org_streq(head, "broken-links")) {
@@ -2923,7 +2925,7 @@ bool OrgConverter::updateDocument(SemId<Document>& doc, parse::OrgAdapter const&
         }
 
         case onk::CmdStartup: {
-            Vec<Str> args = strip_space(get_text(sub.at(0))).split(" ");
+            Vec<Str> args = split(strip_space(get_text(sub.at(0))), " ");
             Str      text = normalize(args.at(0));
             using K       = InitialSubtreeVisibility;
             if (text == "content") {

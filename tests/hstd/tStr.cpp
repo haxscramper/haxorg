@@ -66,8 +66,6 @@ TEST(StringOperationsTest, StringApi) {
     EXPECT_EQ((Str("0").replaceAll("0", "1")), Str("1"));
     EXPECT_EQ((Str("0000").replaceAll("0", "1")), Str("1111"));
     EXPECT_EQ((Str("0000").replaceAll("000", "1")), Str("10"));
-    EXPECT_EQ((Str("0-0-0").split("-")), (Vec<Str>{Str("0"), Str("0"), Str("0")}));
-    EXPECT_EQ((Str("0-0-0").split('-')), (Vec<Str>{Str("0"), Str("0"), Str("0")}));
     EXPECT_EQ(Str("1").repeated(4), Str("1111"));
 
     EXPECT_EQ(Str("1").toInt(), 1);

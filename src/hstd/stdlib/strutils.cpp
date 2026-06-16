@@ -1038,7 +1038,7 @@ Str hstd::strip(Str const& string, CharSet const& leading, CharSet const& traili
 
 Vec<Str> hstd::split(Str const& str, char ch) {
     Vec<Str> res;
-    for (const auto& it : str.split(ch)) { res.push_back(it); }
+    for (const auto& it : split(str, ch)) { res.push_back(it); }
     return res;
 }
 
@@ -1125,7 +1125,7 @@ Pair<Str, Str> hstd::visibleName(char ch) {
 }
 
 Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
-    auto lines = str.split('\n');
+    auto lines = split(str, '\n');
     for (auto& line : lines) { line = prefix + repeat(Str(space), spaces) + line; }
     return join("\n", lines);
 }
@@ -1558,7 +1558,7 @@ std::string hstd::format_table(
 
     for (const auto& row : rows) {
         for (int col = 0; col < row.size(); ++col) {
-            for (const auto& line : row[col].split('\n')) {
+            for (const auto& line : split(row[col], '\n')) {
                 col_widths[col] = std::max(col_widths[col], line.size());
             }
         }
@@ -1574,7 +1574,7 @@ std::string hstd::format_table(
 
         for (int col = 0; col < col_count; ++col) {
             if (col < row.size()) {
-                cell_lines[col] = row[col].split('\n');
+                cell_lines[col] = split(row[col], '\n');
             } else {
                 cell_lines[col] = {""};
             }
@@ -1610,4 +1610,20 @@ std::string hstd::format_table(
     }
 
     return out.str();
+}
+
+Vec<Str> hstd::split(Str const& value, Str const& delimiter) {
+    Vec<Str> tokens;
+    size_t   start = 0;
+    size_t   end   = value.find(delimiter);
+
+    while (end != std::string::npos) {
+        tokens.push_back(value.substr(start, end - start));
+        start = end + delimiter.length();
+        end   = value.find(delimiter, start);
+    }
+
+    tokens.push_back(value.substr(start, end));
+
+    return tokens;
 }

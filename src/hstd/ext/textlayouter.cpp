@@ -1133,7 +1133,7 @@ Str SimpleStringStore::toString(BlockId const& blc, Options const& opts) {
     }
 
     Vec<Str> fin;
-    for (const auto& line : result.split("\n")) {
+    for (const auto& line : split(result, "\n")) {
         fin.push_back(strip(line, CharSet{}, CharSet{' '}));
     }
 

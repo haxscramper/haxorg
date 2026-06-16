@@ -720,7 +720,7 @@ void check_tree_entry_consistency(
         section.track,
         state->at(track_id).sections.size() - 1);
 
-    auto content_lines = Str{content_ptr}.split('\n');
+    auto content_lines = hstd::split(Str{content_ptr}, '\n');
 
     std::string concat_content =                  //
         zip_longest(section.lines, content_lines) //

@@ -206,7 +206,7 @@ TEST_P(TestOrgParseCorpus, CorpusAll) {
     TestResult result = gtest_run_spec(params, getDebugDir());
 
     auto add_gtest_prefix = [](hstd::Str const& text) {
-        auto                     lines = text.split("\n");
+        auto                     lines = split(text, "\n");
         std::vector<std::string> filtered;
 
         int start = 0;
