@@ -85,40 +85,32 @@ struct [[refl]] SemId {
     /// \name Get pointer to the associated sem org node from ID
     ///
     /// {@
-    [[refl]] O*              get() { return value.get(); }
-    [[refl]] O const*        get() const { return value.get(); }
-    O*                       operator->() { return get(); }
-    O const*                 operator->() const { return get(); }
-    O&                       operator*() { return *value; }
-    O const&                 operator*() const { return *value; }
-    [[refl]] SemId<sem::Org> asOrg() const { return as<sem::Org>(); }
-    [[refl]] OrgSemKind      getNodeKind() const { return get()->getKind(); }
+    [[refl]] O*              get();
+    [[refl]] O const*        get() const;
+    O*                       operator->();
+    O const*                 operator->() const;
+    O&                       operator*();
+    O const&                 operator*() const;
+    [[refl]] SemId<sem::Org> asOrg() const;
+    [[refl]] OrgSemKind      getNodeKind() const;
 
-    [[refl(R"({"unique-name": "atIndex"})")]] SemId<sem::Org> at(int idx) {
-        return value->at(idx);
-    }
+    [[refl(R"({"unique-name": "atIndex"})")]] SemId<sem::Org>          at(int idx);
     [[refl(R"({"unique-name": "atIndexBackwards"})")]] SemId<sem::Org> at(
-        hstd::BackwardsIndex idx) {
-        return value->at(idx);
-    }
+        hstd::BackwardsIndex idx);
 
-    [[refl(R"({"unique-name": "getIndex"})")]] hstd::Opt<SemId<sem::Org>> get(int idx) {
-        return value->get(idx);
-    }
+    [[refl(R"({"unique-name": "getIndex"})")]] hstd::Opt<SemId<sem::Org>> get(int idx);
 
     [[refl(R"({"unique-name": "getIndexBackwards"})")]] hstd::Opt<SemId<sem::Org>> get(
-        hstd::BackwardsIndex idx) {
-        return value->get(idx);
-    }
+        hstd::BackwardsIndex idx);
 
     using SubnodeVec = hstd::Vec<SemId<org::sem::Org>>;
 
-    SubnodeVec::iterator       begin() { return value->subnodes.begin(); }
-    SubnodeVec::iterator       end() { return value->subnodes.end(); }
-    SubnodeVec::const_iterator begin() const { return value->subnodes.begin(); }
-    SubnodeVec::const_iterator end() const { return value->subnodes.end(); }
+    SubnodeVec::iterator       begin();
+    SubnodeVec::iterator       end();
+    SubnodeVec::const_iterator begin() const;
+    SubnodeVec::const_iterator end() const;
 
-    [[refl]] int size() const { return value->subnodes.size(); }
+    [[refl]] int size() const;
 
     template <typename T>
     SemId<T> asOpt() const {
@@ -247,11 +239,9 @@ struct [[refl(R"({
     SubnodeVec::const_iterator begin() const { return subnodes.begin(); }
     SubnodeVec::const_iterator end() const { return subnodes.end(); }
 
-    [[refl]] int size() const { return subnodes.size(); }
+    [[refl]] int size() const;
 
-    [[refl]] void insert(int pos, SemId<Org> node) {
-        subnodes.insert(begin() + pos, node);
-    }
+    [[refl]] void insert(int pos, SemId<Org> node);
 
     template <typename T>
     T* dyn_cast() {
@@ -315,15 +305,7 @@ struct [[refl(R"({
     hstd::Vec<SemId<Org>> getAllSubnodes() const;
 
     template <typename T>
-    hstd::Vec<SemId<T>> subAs() const {
-        hstd::Vec<SemId<T>> result;
-        for (auto const& sub : subnodes) {
-            if (sub->getKind() == T::staticKind) {
-                result.push_back(sub.template as<T>());
-            }
-        }
-        return result;
-    }
+    hstd::Vec<SemId<T>> subAs() const;
 
     BOOST_DESCRIBE_CLASS(Org, (), (subnodes), (), ());
 };
