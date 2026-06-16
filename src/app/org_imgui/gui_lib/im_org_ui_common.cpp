@@ -8,6 +8,7 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/SetFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd;
 

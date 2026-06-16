@@ -24,6 +24,10 @@
 #include <hstd/stdlib/ColTextHShow.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 
+#if !ORG_BUILD_EMCC
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#endif
+
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 
 using namespace hstd;

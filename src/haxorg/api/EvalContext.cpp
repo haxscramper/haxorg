@@ -12,6 +12,10 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <deque>
 
+#if !ORG_BUILD_EMCC
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#endif
+
 using namespace org;
 using namespace hstd;
 namespace {
