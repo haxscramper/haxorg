@@ -1,5 +1,5 @@
 from collections import defaultdict
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import as_completed, ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 import html
 from pathlib import Path
@@ -452,32 +452,13 @@ class TraceFile(BaseModel, extra="forbid"):
 
 
 @beartype
-def gen_include_graph(
+def collect_reflection_files(
     ctx: TaskContext,
+    files: List[Path],
     compile_commands: Path,
     header_commands: Path,
-) -> None:
-    header_compdb_content = run_command(
-        ctx,
-        "uv",
-        [
-            "run",
-            "compdb",
-            "-p",
-            compile_commands.parent,
-            "list",
-        ],
-        capture=True,
-    )
-
-    ctx_write_text(ctx, header_commands, header_compdb_content[1])
-    log(CAT).info(f"Wrote extended compilation database to {header_commands}")
-
+) -> List[Path]:
     ok_files: List[Path] = []
-    files = list(get_script_root(ctx, "src").rglob("*.?pp"))
-
-    # files = files[20:40]
-
     with ThreadPoolExecutor(max_workers=6) as executor:
         futures = [
             executor.submit(process_reflection_file, ctx, file, compile_commands,
@@ -489,62 +470,76 @@ def gen_include_graph(
             if result is not None:
                 ok_files.append(result)
 
-    conv_tus: List[ReflectionFile] = []
+    return ok_files
 
-    for f in ok_files:
-        tu = conv_proto_file(f)
-        tu_unit = pb.Tu.FromString(f.read_bytes())
-        tu_json = f.with_suffix(".json")
-        tu_json.write_text(tu_unit.to_json(indent=2))
 
-        assert tu.absoluteOriginal
-        if tu.main_file_include_tree:
-            gg_branch, gg_igraph = gen_include_branching_graph.create_include_tree_graph(
-                tu.main_file_include_tree,
-                root_dir=get_script_root(ctx).joinpath("src"),
-            )
+@beartype
+def gen_branching_include_graph(ctx: TaskContext, f: Path) -> None:
+    tu = conv_proto_file(f)
+    tu_unit = pb.Tu.FromString(f.read_bytes())
+    tu_json = f.with_suffix(".json")
+    tu_json.write_text(tu_unit.to_json(indent=2))
 
-            outfile = get_workflow_out(
-                ctx,
-                f"include_graph/branching_include_graphs/{Path(tu.absoluteOriginal).name}_branch"
-            )
+    assert tu.absoluteOriginal
+    if tu.main_file_include_tree:
+        gg_branch, gg_igraph = gen_include_branching_graph.create_include_tree_graph(
+            tu.main_file_include_tree,
+            root_dir=get_script_root(ctx).joinpath("src"),
+        )
 
-            Path(str(outfile) + ".txt").write_text(
-                render_rich(
-                    include_visit_to_rich_tree(tu.main_file_include_tree,),
-                    color=False,
-                ).replace("│   ", "    ").replace("├── ", "    ").replace("└── ", "    "))
+        outfile = get_workflow_out(
+            ctx,
+            f"include_graph/branching_include_graphs/{Path(tu.absoluteOriginal).name}_branch"
+        )
 
-            # FIXME: The render operation reports multiple instances of teh labels being too large for the
-            # cells in the HTML graph.
-            gg_branch.render(str(outfile), format="png", quiet=True)
-            log().info(f"wrote {outfile}.png {outfile}.txt")
+        Path(str(outfile) + ".txt").write_text(
+            render_rich(
+                include_visit_to_rich_tree(tu.main_file_include_tree,),
+                color=False,
+            ).replace("│   ", "    ").replace("├── ", "    ").replace("└── ", "    "))
 
-        if tu.absoluteOriginal.endswith("hpp"):
-            used_types: List[QualType] = list()
-            used_types_set = set()
-            for t in get_used_types_rec(tu, expanded_use=False):
-                thash = hash_qual_type(t, with_namespace=True)
-                if thash in used_types_set:
-                    continue
-                else:
-                    used_types_set.add(thash)
+        # FIXME: The render operation reports multiple instances of teh labels being too large for the
+        # cells in the HTML graph.
+        gg_branch.render(str(outfile), format="png", quiet=True)
+        log().info(f"wrote {outfile}.png {outfile}.txt")
 
-                if "describe" not in t.flatQualName():
-                    used_types.append(t)
 
-            declared_types = get_declared_types_rec(
-                tu,
-                expanded_use=False,
-            )
+@beartype
+def conv_reflection_file(f: Path) -> Optional[ReflectionFile]:
+    tu = conv_proto_file(f)
+    assert tu.absoluteOriginal
+    if not tu.absoluteOriginal.endswith("hpp"):
+        return None
 
-            conv_tus.append(
-                ReflectionFile(
-                    tu=tu,
-                    declaredTypes=declared_types,
-                    usedTypes=used_types,
-                ))
+    used_types: List[QualType] = list()
+    used_types_set = set()
+    for t in get_used_types_rec(tu, expanded_use=False):
+        thash = hash_qual_type(t, with_namespace=True)
+        if thash in used_types_set:
+            continue
+        else:
+            used_types_set.add(thash)
 
+        if "describe" not in t.flatQualName():
+            used_types.append(t)
+
+    declared_types = get_declared_types_rec(
+        tu,
+        expanded_use=False,
+    )
+
+    return ReflectionFile(
+        tu=tu,
+        declaredTypes=declared_types,
+        usedTypes=used_types,
+    )
+
+
+@beartype
+def gen_final_include_graph(
+    ctx: TaskContext,
+    conv_tus: List[ReflectionFile],
+) -> None:
     igraph_tus = create_include_graph(ctx, conv_tus)
 
     graphviz_tus = igraph_to_graphviz(igraph_tus)
@@ -569,3 +564,45 @@ def gen_include_graph(
     # generate_transitive_subgraph("_base")
     igraph_tus = remove_redundant_edges(igraph_tus)
     generate_transitive_subgraph("_reduced")
+
+
+@beartype
+def gen_include_graph(
+    ctx: TaskContext,
+    compile_commands: Path,
+    header_commands: Path,
+) -> None:
+    header_compdb_content = run_command(
+        ctx,
+        "uv",
+        [
+            "run",
+            "compdb",
+            "-p",
+            compile_commands.parent,
+            "list",
+        ],
+        capture=True,
+    )
+
+    ctx_write_text(ctx, header_commands, header_compdb_content[1])
+    log(CAT).info(f"Wrote extended compilation database to {header_commands}")
+
+    files = list(get_script_root(ctx, "src").rglob("*.?pp"))
+
+    # files = files[20:40]
+
+    ok_files = collect_reflection_files(ctx, files, compile_commands, header_commands)
+
+    with ProcessPoolExecutor(max_workers=20) as executor:
+        futures = [executor.submit(gen_branching_include_graph, ctx, f) for f in ok_files]
+        for future in as_completed(futures):
+            future.result()
+
+    conv_tus: List[ReflectionFile] = []
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        for result in executor.map(conv_reflection_file, ok_files):
+            if result is not None:
+                conv_tus.append(result)
+
+    gen_final_include_graph(ctx, conv_tus)
