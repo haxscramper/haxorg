@@ -23,6 +23,7 @@ from py_codegen.codegen_ir import (
     GenTuUnion,
     GenTypeMap,
 )
+import py_codegen.proto_lib as pb
 import py_codegen.refl_extract as ex
 from py_codegen.refl_read import ConvTu, QualType
 from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
@@ -183,6 +184,7 @@ def run_reflection_tool_provider(
 
     for file, content in text.items():
         full = Path(code_dir).joinpath(file)
+        full.parent.mkdir(exist_ok=True, parents=True)
         if full.exists():
             if full.read_text() != content:
                 full.write_text(content)
@@ -230,6 +232,27 @@ def get_struct(
     ).wraps[0].tu
     assert len(tu.structs) == 1
     return tu.structs[0]
+
+
+def get_include_tree(
+    text: Union[str, Dict[str, str]],
+    stable_test_dir: Path,
+    main_file_suffix: str,
+    code_dir_override: Optional[Path] = None,
+    **kwargs: Any,
+) -> pb.IncludeVisit:
+    code_dir = stable_test_dir
+    tus = run_reflection_tool_provider(
+        text,
+        code_dir_override or Path(code_dir),
+        output_dir=stable_test_dir,
+        **kwargs,
+    ).wraps
+    tu = next(it for it in tus
+              if it.tu.main_file_include_tree.absolute_path.endswith(main_file_suffix))
+
+    assert tu.tu.main_file_include_tree
+    return tu.tu.main_file_include_tree
 
 
 @beartype

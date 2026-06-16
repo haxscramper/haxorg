@@ -1,10 +1,11 @@
 from collections import defaultdict
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import as_completed, ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
+import html
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Tuple
+from beartype.typing import Any, Dict, List, Literal, Optional, Tuple
 import dominate
 import dominate.tags
 import dominate.util
@@ -13,13 +14,13 @@ import igraph
 from py_ci.data_build import get_deps_install_config
 from py_codegen.codegen_ir import GenTuInclude, QualType, QualTypeKind
 import py_codegen.proto_lib as pb
-from py_codegen.refl_read import conv_proto_file, ConvTu
+from py_codegen.refl_read import conv_proto_file, ConvTu, include_visit_to_rich_tree
 from py_codegen.refl_wrapper_graph import (
     get_declared_types_rec,
     get_used_types_rec,
     hash_qual_type,
 )
-from py_repository.code_analysis import gen_coverage_cookies
+from py_repository.code_analysis import gen_coverage_cookies, gen_include_branching_graph
 from py_repository.repo_tasks.command_execution import (
     run_command,
     run_command_with_json_args,
@@ -32,6 +33,7 @@ from py_repository.repo_tasks.common import (
     get_workflow_out,
 )
 from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_scriptutils.rich_utils import render_rich
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
@@ -450,6 +452,121 @@ class TraceFile(BaseModel, extra="forbid"):
 
 
 @beartype
+def collect_reflection_files(
+    ctx: TaskContext,
+    files: List[Path],
+    compile_commands: Path,
+    header_commands: Path,
+) -> List[Path]:
+    ok_files: List[Path] = []
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        futures = [
+            executor.submit(process_reflection_file, ctx, file, compile_commands,
+                            header_commands) for file in files
+        ]
+
+        for future in as_completed(futures):
+            result = future.result()
+            if result is not None:
+                ok_files.append(result)
+
+    return ok_files
+
+
+@beartype
+def gen_branching_include_graph(ctx: TaskContext, f: Path) -> None:
+    tu = conv_proto_file(f)
+    tu_unit = pb.Tu.FromString(f.read_bytes())
+    tu_json = f.with_suffix(".json")
+    tu_json.write_text(tu_unit.to_json(indent=2))
+
+    assert tu.absoluteOriginal
+    if tu.main_file_include_tree:
+        gg_branch, gg_igraph = gen_include_branching_graph.create_include_tree_graph(
+            tu.main_file_include_tree,
+            root_dir=get_script_root(ctx).joinpath("src"),
+        )
+
+        outfile = get_workflow_out(
+            ctx,
+            f"include_graph/branching_include_graphs/{Path(tu.absoluteOriginal).name}_branch"
+        )
+
+        Path(str(outfile) + ".txt").write_text(
+            render_rich(
+                include_visit_to_rich_tree(tu.main_file_include_tree,),
+                color=False,
+            ).replace("│   ", "    ").replace("├── ", "    ").replace("└── ", "    "))
+
+        # FIXME: The render operation reports multiple instances of teh labels being too large for the
+        # cells in the HTML graph.
+        gg_branch.render(str(outfile), format="png", quiet=True)
+        log().info(f"wrote {outfile}.png {outfile}.txt")
+
+
+@beartype
+def conv_reflection_file(f: Path) -> Optional[ReflectionFile]:
+    tu = conv_proto_file(f)
+    assert tu.absoluteOriginal
+    if not tu.absoluteOriginal.endswith("hpp"):
+        return None
+
+    used_types: List[QualType] = list()
+    used_types_set = set()
+    for t in get_used_types_rec(tu, expanded_use=False):
+        thash = hash_qual_type(t, with_namespace=True)
+        if thash in used_types_set:
+            continue
+        else:
+            used_types_set.add(thash)
+
+        if "describe" not in t.flatQualName():
+            used_types.append(t)
+
+    declared_types = get_declared_types_rec(
+        tu,
+        expanded_use=False,
+    )
+
+    return ReflectionFile(
+        tu=tu,
+        declaredTypes=declared_types,
+        usedTypes=used_types,
+    )
+
+
+@beartype
+def gen_final_include_graph(
+    ctx: TaskContext,
+    conv_tus: List[ReflectionFile],
+) -> None:
+    igraph_tus = create_include_graph(ctx, conv_tus)
+
+    graphviz_tus = igraph_to_graphviz(igraph_tus)
+    graphviz_file = get_workflow_out(ctx,
+                                     "include_graph/include_graph.png").with_suffix("")
+    graphviz_tus.render(graphviz_file, format="png")
+    log(CAT).info(f"Final grouped graph {graphviz_file}.png")
+
+    def generate_transitive_subgraph(suffix: str) -> None:
+        for subgraph, sub_vertex in create_project_file_subgraphs(igraph_tus):
+            incd: IncludeVertexData = subgraph.vs[sub_vertex.index]["include_data"]
+            sub_file = Path(
+                str(
+                    get_workflow_out(
+                        ctx, f"include_graph/individual_include_graphs/{incd.name}").
+                    with_suffix("")) + suffix)
+
+            log(CAT).info(f"Partial group graph in {sub_file}.png")
+            ensure_existing_dir(ctx, sub_file.parent)
+            igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
+
+    # generate_transitive_subgraph("_base")
+    igraph_tus = remove_redundant_edges(igraph_tus)
+    generate_transitive_subgraph("_reduced")
+
+
+@beartype
 def gen_include_graph(
     ctx: TaskContext,
     compile_commands: Path,
@@ -471,75 +588,21 @@ def gen_include_graph(
     ctx_write_text(ctx, header_commands, header_compdb_content[1])
     log(CAT).info(f"Wrote extended compilation database to {header_commands}")
 
-    ok_files: List[Path] = []
     files = list(get_script_root(ctx, "src").rglob("*.?pp"))
 
-    # files = files[:10]
+    # files = files[20:40]
 
-    with ThreadPoolExecutor(max_workers=6) as executor:
-        futures = [
-            executor.submit(process_reflection_file, ctx, file, compile_commands,
-                            header_commands) for file in files
-        ]
+    ok_files = collect_reflection_files(ctx, files, compile_commands, header_commands)
 
+    with ProcessPoolExecutor(max_workers=20) as executor:
+        futures = [executor.submit(gen_branching_include_graph, ctx, f) for f in ok_files]
         for future in as_completed(futures):
-            result = future.result()
-            if result is not None:
-                ok_files.append(result)
+            future.result()
 
     conv_tus: List[ReflectionFile] = []
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        for result in executor.map(conv_reflection_file, ok_files):
+            if result is not None:
+                conv_tus.append(result)
 
-    for f in ok_files:
-        tu = conv_proto_file(f)
-        tu_unit = pb.Tu.FromString(f.read_bytes())
-        tu_json = f.with_suffix(".json")
-        tu_json.write_text(tu_unit.to_json(indent=2))
-        if tu.absoluteOriginal.endswith("hpp"):
-            used_types: List[QualType] = list()
-            used_types_set = set()
-            for t in get_used_types_rec(tu, expanded_use=False):
-                thash = hash_qual_type(t, with_namespace=True)
-                if thash in used_types_set:
-                    continue
-                else:
-                    used_types_set.add(thash)
-
-                if "describe" not in t.flatQualName():
-                    used_types.append(t)
-
-            declared_types = get_declared_types_rec(
-                tu,
-                expanded_use=False,
-            )
-
-            conv_tus.append(
-                ReflectionFile(
-                    tu=tu,
-                    declaredTypes=declared_types,
-                    usedTypes=used_types,
-                ))
-
-    igraph_tus = create_include_graph(ctx, conv_tus)
-
-    graphviz_tus = igraph_to_graphviz(igraph_tus)
-    graphviz_file = get_workflow_out(ctx,
-                                     "include_graph/include_graph.png").with_suffix("")
-    graphviz_tus.render(graphviz_file, format="png")
-    log(CAT).info(f"Final grouped graph {graphviz_file}.png")
-
-    def generate_transitive_subgraph(suffix: str) -> None:
-        for subgraph, sub_vertex in create_project_file_subgraphs(igraph_tus):
-            incd: IncludeVertexData = subgraph.vs[sub_vertex.index]["include_data"]
-            sub_file = Path(
-                str(
-                    get_workflow_out(
-                        ctx, f"include_graph/individual_include_graphs/{incd.name}").
-                    with_suffix("")) + suffix)
-
-            log(CAT).info(f"Partial group graph in {sub_file}")
-            ensure_existing_dir(ctx, sub_file.parent)
-            igraph_to_graphviz(subgraph, target=sub_vertex).render(sub_file, format="png")
-
-    # generate_transitive_subgraph("_base")
-    igraph_tus = remove_redundant_edges(igraph_tus)
-    generate_transitive_subgraph("_reduced")
+    gen_final_include_graph(ctx, conv_tus)

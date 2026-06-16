@@ -239,6 +239,19 @@ message Record {
     bool IsDescribedRecord = 19;
 }
 
+message IncludeVisit {
+    string RelativePath = 1;
+    /// normalized absolute path to the included file.
+    string AbsolutePath = 2;
+    uint32 FileLineCount = 3;
+    /// Direct lines expanded from the included file,
+    /// excluding all nested files.
+    uint32 UsedLineCount = 4;
+    /// where in the file include happened
+    uint32 IncludeLocationLine = 6;
+    repeated IncludeVisit Nested = 7;
+}
+
 message TU {
     repeated Record records = 1;
     repeated Enum enums = 2;
@@ -247,4 +260,5 @@ message TU {
     repeated Include includes = 5;
     string AbsolutePath = 6;
     string Doc = 7;
+    IncludeVisit MainFileIncludeTree = 8;
 }

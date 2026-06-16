@@ -19,6 +19,7 @@
 #include <hstd/ext/logger.hpp>
 
 #include <clang/AST/NestedNameSpecifierBase.h>
+#include "branching_include_collector.hpp"
 
 namespace c = clang;
 using llvm::dyn_cast;
@@ -1652,6 +1653,10 @@ ReflASTConsumer::ReflASTConsumer(clang::CompilerInstance& CI, ReflectionCLI cons
         out.get(), &CI.getSourceManager());
     out->set_absolutepath(getMainFileAbsolutePath(CI));
     CI.getPreprocessor().addPPCallbacks(std::move(callback));
+
+    CI.getPreprocessor().addPPCallbacks(
+        std::make_unique<BranchingIncludeCollectorCallback>(
+            out.get(), &CI.getSourceManager(), &CI.getPreprocessor()));
 }
 
 void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {
