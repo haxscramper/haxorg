@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/dod_base.hpp>
 #include <bitset>
+#include <hstd/stdlib/dod_base_multi.hpp>
 
 using namespace hstd;
 

@@ -12,6 +12,7 @@
 #include <immer/flex_vector.hpp>
 #include <absl/log/log.h>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/dod_base_multi.hpp>
 
 template <hstd::dod::IsIdType T>
 auto operator<<(std::ostream& stream, T id) -> std::ostream& {

@@ -6,6 +6,7 @@
 #include <llvm/Support/JSON.h>
 #include <llvm/ADT/StringMap.h>
 #include <SQLiteCpp/SQLiteCpp.h>
+#include <hstd/stdlib/dod_base_intern.hpp>
 
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/dod_base.hpp>
