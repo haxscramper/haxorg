@@ -3,6 +3,7 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColTextSerde.hpp>
 #include <hstd/stdlib/ColTextHShow.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 using namespace hstd;
 
@@ -229,8 +230,9 @@ void hstd::hshow<std::string_view>::format(
     if (value.data() == nullptr) {
         os << "nil";
     } else {
-        auto __scope = os.style_scope();
-        bool first   = true;
+        auto __scope = finally_std{[&os, start = os.active]() { os.active = start; }};
+
+        bool first = true;
         os.yellow();
         std::string open_quote  = opts.get_use_ascii() ? "'" : "«";
         std::string close_quote = opts.get_use_ascii() ? "'" : "»";

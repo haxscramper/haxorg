@@ -126,43 +126,14 @@ struct EdgeCollectionID : public EdgeCollectionIDBase {
     static constexpr hstd::u16 IsCollectionMask   = 0b0000'0000'0000'0000;
 
     using EdgeCollectionIDBase::EdgeCollectionIDBase;
-    bool isHierarchy() const {
-        return hstd::masked_equals(t, CollectionTypeMask, IsHierarchyMask);
-    }
-    bool isCollection() const {
-        return hstd::masked_equals(t, CollectionTypeMask, IsCollectionMask);
-    }
+    bool isHierarchy() const;
+    bool isCollection() const;
 
-    static EdgeCollectionID FromHierarchy(hstd::u16 base) {
-        return EdgeCollectionID(
-            hstd::assign_masked(base, CollectionTypeMask, IsHierarchyMask));
-    }
+    static EdgeCollectionID FromHierarchy(hstd::u16 base);
+    static EdgeCollectionID FromCollection(hstd::u16 base);
 
-    static EdgeCollectionID FromCollection(hstd::u16 base) {
-        // first bit must not be set
-        return EdgeCollectionID(
-            hstd::assign_masked(base, CollectionTypeMask, IsCollectionMask));
-    }
-
-    void assert_is_collection() const {
-        LOGIC_ASSERTION_CHECK_FMT(
-            isCollection(),
-            "Collection ID has category {} ({}) which matches the "
-            "hierarchy mask: {}",
-            t,
-            hstd::format_integer_bits(t, 'b'),
-            hstd::format_integer_bits(IsHierarchyMask, 'b'));
-    }
-
-    void assert_is_hierarchy() const {
-        LOGIC_ASSERTION_CHECK_FMT(
-            isHierarchy(),
-            "Hierarchy ID has category {} ({}) which matches the "
-            "collection mask: {}",
-            t,
-            hstd::format_integer_bits(t, 'b'),
-            hstd::format_integer_bits(IsCollectionMask, 'b'));
-    }
+    void assert_is_collection() const;
+    void assert_is_hierarchy() const;
 
     /// \brief Default implementation of the hierarchy ID constructoir.
     ///
@@ -237,16 +208,11 @@ struct EdgeID : public EdgeIDBase {
     EdgeID(EdgeIDBase base) : EdgeIDBase{base} {}
 
     bool isHierarchyEdge() const { return EdgeCollectionID(getMask()).isHierarchy(); }
-
     bool isCollectionEdge() const { return EdgeCollectionID(getMask()).isCollection(); }
 
-    static EdgeID FromMasked(hstd::u64 value, EdgeCollectionID mask) {
-        return EdgeID(FromMaskedIdx(value, mask.t));
-    }
+    static EdgeID FromMasked(hstd::u64 value, EdgeCollectionID mask);
 
-    static EdgeID FromMasked(EdgeID base, EdgeCollectionID mask) {
-        return EdgeID(FromMaskedIdx(base.getIndex(), mask.t));
-    }
+    static EdgeID FromMasked(EdgeID base, EdgeCollectionID mask);
 
 
     DESC_FIELDS(EdgeID, ());

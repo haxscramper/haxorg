@@ -1,6 +1,5 @@
 #pragma once
 
-#include <concepts>
 #define PARENS ()
 
 #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))

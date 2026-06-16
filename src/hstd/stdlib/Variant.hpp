@@ -7,6 +7,7 @@
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 
 namespace hstd {

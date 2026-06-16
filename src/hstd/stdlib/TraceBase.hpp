@@ -7,6 +7,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 namespace hstd {
 
