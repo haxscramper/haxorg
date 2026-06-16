@@ -3,6 +3,7 @@
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
+#include <hstd/system/aux_templates.hpp>
 
 #include <span>
 #include <array>

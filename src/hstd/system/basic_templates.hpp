@@ -2,31 +2,25 @@
 
 #include <concepts>
 #include <limits>
+#include <typeinfo>
 
 #include <hstd/system/basic_typedefs.hpp>
-
-#ifdef __GNUG__
-#    include <cstdlib>
-#    include <cxxabi.h>
 
 namespace hstd {
 
 template <typename T>
 constexpr ::std::string_view get_type_name_fallback() {
-#    if defined(__clang__)
+#if defined(__clang__)
     ::std::string_view p = __PRETTY_FUNCTION__;
     return ::std::string_view(p.data() + 34, p.size() - 35);
-#    elif defined(__GNUG__)
+#elif defined(__GNUG__)
     std::string_view p = __PRETTY_FUNCTION__;
     return std::string_view(p.data() + 49, p.find(';', 49) - 49);
-#    else
+#else
     return "unknown";
-#    endif
-}
-} // namespace hstd
 #endif
+}
 
-namespace hstd {
 ::std::string demangle(char const* name);
 } // namespace hstd
 

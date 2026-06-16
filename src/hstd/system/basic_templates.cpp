@@ -2,6 +2,10 @@
 
 #include <memory>
 
+#ifdef __GNUG__
+#    include <cstdlib>
+#    include <cxxabi.h>
+
 std::string hstd::demangle(char const* name) {
 
     int status = -4; // some arbitrary value to eliminate the compiler
@@ -13,3 +17,9 @@ std::string hstd::demangle(char const* name) {
 
     return (status == 0) ? res.get() : name;
 }
+
+#else
+
+std::string hstd::demangle(char const* name) { return name; }
+
+#endif
