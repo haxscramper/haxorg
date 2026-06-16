@@ -3,6 +3,8 @@
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/OptSerde.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/Slice.hpp>
+#include <hstd/stdlib/Str.hpp>
 
 
 namespace hstd {
