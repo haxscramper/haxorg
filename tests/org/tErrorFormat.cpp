@@ -1,10 +1,12 @@
 #include <hstd/ext/error_write.hpp>
 #include <gtest/gtest.h>
+#include <hstd/stdlib/SliceFormatter.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/diffs.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include "../common.hpp"
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;

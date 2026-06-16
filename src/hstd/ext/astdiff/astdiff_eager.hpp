@@ -5,6 +5,7 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 namespace hstd::ext::diff {
 

@@ -5,6 +5,7 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 using namespace hstd;
 

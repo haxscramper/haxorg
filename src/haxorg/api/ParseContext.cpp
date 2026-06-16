@@ -4,8 +4,12 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/base_lexer/base_token_tokenize.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;

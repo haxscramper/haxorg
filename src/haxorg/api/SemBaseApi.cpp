@@ -19,6 +19,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <fstream>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <src/haxorg/serde/SemOrgProto.pb.h>

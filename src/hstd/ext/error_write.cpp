@@ -1,4 +1,5 @@
 #include <hstd/stdlib/sequtils.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/system/macros.hpp>
@@ -1406,4 +1407,9 @@ Id StrCache::add_path(hstd::fs::path const& path) {
     Id id = std::hash<std::string>{}(path.native());
     if (!names.get_right(id).has_value()) { add(id, getFileSource(path), path); }
     return id;
+}
+
+CodeSpan::CodeSpan(Id id, Slice<int> const& range) : id{id}, range{range} {
+    LOGIC_ASSERTION_CHECK_FMT(0 <= range.first, "{}", range.first);
+    LOGIC_ASSERTION_CHECK_FMT(range.first <= range.last, "{}", range);
 }

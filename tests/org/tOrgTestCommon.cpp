@@ -5,6 +5,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 bool enableFullTraceOnCli = false;
 void enable_full_trace_on_cli() { enableFullTraceOnCli = true; }

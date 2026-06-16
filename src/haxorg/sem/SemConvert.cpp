@@ -30,6 +30,7 @@
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 
 namespace {

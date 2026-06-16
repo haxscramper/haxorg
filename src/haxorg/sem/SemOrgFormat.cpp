@@ -6,6 +6,7 @@
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using namespace org::sem;
 using namespace hstd;

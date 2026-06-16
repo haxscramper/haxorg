@@ -6,6 +6,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <haxorg/api/EvalContext.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 template <typename T>
 struct JsonSerde<sem::SemId<T>> {

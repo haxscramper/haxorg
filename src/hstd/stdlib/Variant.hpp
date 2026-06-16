@@ -7,7 +7,6 @@
 #include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/strutils.hpp>
 
 
 namespace hstd {
@@ -155,10 +154,14 @@ struct hstd::value_metadata<hstd::Variant<Args...>> {
     }
 
     static std::string typeName() {
-        return Str{"Variant<"}
-             + Str{hstd::join(
-                 Str{", "}, Vec<Str>{hstd::value_metadata<Args>::typeName()...})}
-             + Str{">"};
+        std::string result = "Variant<";
+        auto sub = std::vector<std::string>{hstd::value_metadata<Args>::typeName()...};
+        for (size_t i = 0; i < sub.size(); ++i) {
+            if (i != 0) { result += ", "; }
+            result += sub.at(i);
+        }
+        result += ">";
+        return result;
     }
 };
 

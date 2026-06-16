@@ -15,6 +15,7 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <haxorg/api/EvalContext.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 using namespace org;
 using namespace hstd;

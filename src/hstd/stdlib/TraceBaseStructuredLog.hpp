@@ -8,6 +8,7 @@
 #include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Pair.hpp>
+#include <hstd/stdlib/Str.hpp>
 
 namespace hstd::log::record {
 using StrOrInt      = Variant<Str, int>;

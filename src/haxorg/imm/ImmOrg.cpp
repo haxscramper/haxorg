@@ -12,6 +12,7 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/imm/ImmOrgBase.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>
@@ -23,6 +24,7 @@
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/ColTextHShow.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>

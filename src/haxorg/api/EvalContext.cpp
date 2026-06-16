@@ -11,6 +11,9 @@
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <deque>
+#include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>

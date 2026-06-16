@@ -318,7 +318,8 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     /// that cannot be serialized to the simple string attributes.
     template <typename Rec, typename... Args>
     Rec* bindPayload(Str const& name, Args&&... args) {
-        Rec* result = (Rec*)agbindrec(_this()->get(), strdup(name), sizeof(Rec), false);
+        Rec* result = (Rec*)agbindrec(
+            _this()->get(), strdup(name.c_str()), sizeof(Rec), false);
         if (result != nullptr) {
             result = new (result) Rec(std::forward<Args>(args)...);
             return result;
@@ -329,13 +330,12 @@ struct GraphvizObjBase : CRTP_this_method<T> {
 
     template <typename Rec>
     Rec* getPayload(Str const& name) {
-        return (Rec*)aggetrec(_this()->get(), strdup(name), false);
+        return (Rec*)aggetrec(_this()->get(), strdup(name.c_str()), false);
     }
 
-    void delPayload(Str const& name) { agdelrec(_this()->get(), strdup(name)); }
+    void delPayload(Str const& name);
 
     Func<void(Str const&, Str const&)> setOverride;
-
 
     void setAttr(Str const& attribute, Str const& value, TextAlign direction) {
         setAttr(attribute, alignText(value, direction));
@@ -348,102 +348,27 @@ struct GraphvizObjBase : CRTP_this_method<T> {
         return res;
     }
 
-    bool hasAttr(Str const& attribute) {
-        return agget(_this()->get(), strdup(attribute)) != nullptr;
-    }
+    bool hasAttr(Str const& attribute);
 
-    void getAttr(Str const& attribute, Opt<Str>& value) const {
-        char* found = agget((void*)(_this()->get()), const_cast<char*>(attribute.data()));
+    void getAttr(Str const& attribute, Opt<Str>& value) const;
+    void getAttr(Str const& key, Opt<int>& value) const;
+    void getAttr(Str const& key, Opt<hstd::u64>& value) const;
+    void getAttr(Str const& key, Opt<double>& value) const;
+    void getAttr(Str const& key, Opt<bool>& value) const;
+    void getAttr(Str const& key, Opt<Point>& value) const;
 
-        if (found != nullptr) {
-            value = found;
-        } else {
-            value = std::nullopt;
-        }
-    }
+    void setHtmlAttr(Str attribute, Str const& value);
 
-    void getAttr(Str const& key, Opt<int>& value) const {
-        Opt<Str> tmp;
-        getAttr(key, tmp);
-        if (tmp && !tmp->empty()) { value = tmp->toInt(); }
-    }
-
-    void getAttr(Str const& key, Opt<hstd::u64>& value) const {
-        Opt<Str> tmp;
-        getAttr(key, tmp);
-        if (tmp && !tmp->empty()) { value = tmp->toU64(); }
-    }
-
-    void getAttr(Str const& key, Opt<double>& value) const {
-        Opt<Str> tmp;
-        getAttr(key, tmp);
-        if (tmp && !tmp->empty()) { value = tmp->toDouble(); }
-    }
-
-    void getAttr(Str const& key, Opt<bool>& value) const {
-        Opt<Str> tmp;
-        getAttr(key, tmp);
-        if (tmp && !tmp->empty()) { value = *tmp == "true"; }
-    }
-
-
-    void getAttr(Str const& key, Opt<Point>& value) const {
-        Opt<Str> tmp;
-        getAttr(key, tmp);
-        if (tmp && !tmp->empty()) {
-            auto split = hstd::split(*tmp, ",");
-            value      = Point(split[0].toDouble(), split[1].toDouble());
-        }
-    }
-
-    void setHtmlAttr(Str attribute, Str const& value) {
-        // Define the attribute if not already defined
-        Agsym_t* attr = agattr(
-            agraphof(_this()->get()), T::graphvizKind, attribute.data(), "");
-        if (!attr) {
-            throw std::runtime_error("Failed to define attribute: " + attribute);
-        }
-
-        // Set the raw value using `agxset` and `agstrdup_html`
-        agxset(
-            _this()->get(),
-            attr,
-            agstrdup_html(agraphof(_this()->get()), const_cast<char*>(value.c_str())));
-    }
-
-
-    void setAttr(Str attribute, Str const& value) {
-        if (setOverride) {
-            setOverride(attribute, value);
-        } else {
-            agsafeset(
-                _this()->get(), attribute.data(), const_cast<char*>(value.c_str()), "");
-        }
-    }
-
-    void setAttr(Str const& key, int value) {
-        _this()->setAttr(key, std::to_string(value));
-    }
-
-    void setAttr(Str const& key, hstd::u64 value) {
-        _this()->setAttr(key, std::to_string(value));
-    }
-
-    void setAttr(Str const& key, Point value) {
-        _this()->setAttr(key, fmt::format("{},{}", value.x(), value.y()));
-    }
-
-    void setAttr(Str const& key, double value) {
-        _this()->setAttr(key, std::to_string(value));
-    }
-
-
-    void setAttr(Str const& key, bool value) {
-        _this()->setAttr(key, Str(value ? "true" : "false"));
-    }
+    void setAttr(Str attribute, Str const& value);
+    void setAttr(Str const& key, int value);
+    void setAttr(Str const& key, hstd::u64 value);
+    void setAttr(Str const& key, Point value);
+    void setAttr(Str const& key, double value);
+    void setAttr(Str const& key, bool value);
 
     Agobj_s*       obj() { return (Agobj_s*)(_this()->get()); }
-    Agtag_s const& tag() { return obj()->tag; }
+    Agobj_s const* obj() const { return (Agobj_s const*)(_this()->get()); }
+    Agtag_s const& tag() const { return obj()->tag; }
 
     bool isAgraph() const { return tag().objtype == AGRAPH; }
     bool isAgnode() const { return tag().objtype == AGNODE; }
@@ -704,13 +629,7 @@ class GraphGroup
 
     std::string getPropertiesAsString() const;
 
-
-    hstd::SPtr<GraphGroup> newSubgraph(Str const& name) {
-        auto res = std::make_shared<GraphGroup>(
-            ctx, agsubg(graph, strdup("cluster_" + name), 1));
-
-        return res;
-    }
+    hstd::SPtr<GraphGroup> newSubgraph(Str const& name);
 
     void setSplines(Splines splines);
     void eachNode(Func<void(NodeAttribute)> cb);
@@ -737,24 +656,11 @@ class GraphGroup
 
     /// \brief Create a new graphviz graph node and return attribute handle
     /// for it.
-    hstd::SPtr<NodeAttribute> node(Str const& name) {
-        LOGIC_ASSERTION_CHECK(graph != nullptr, "");
-        auto existing_node = agnode(graph, const_cast<char*>(name.c_str()), 0);
-        if (existing_node != nullptr) {
-            throw hstd::ext::graph::layout::layout_error::init(
-                hstd::fmt("Node with name {} already exists in the graph", name));
-        }
-
-        auto tmp = std::make_shared<NodeAttribute>(graph, name);
-        return tmp;
-    }
+    hstd::SPtr<NodeAttribute> node(Str const& name);
 
     /// \brief Create new edge between two existing graph nodes, return
     /// graph edge attribute handle.
-    hstd::SPtr<EdgeAttribute> edge(NodeAttribute const& head, NodeAttribute const& tail) {
-        LOGIC_ASSERTION_CHECK(graph != nullptr, "");
-        return std::make_shared<EdgeAttribute>(graph, head, tail);
-    }
+    hstd::SPtr<EdgeAttribute> edge(NodeAttribute const& head, NodeAttribute const& tail);
 
     _GV_GRAPH_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
 
@@ -867,6 +773,7 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
+#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override {
         logic_todo_impl();
     }
@@ -878,6 +785,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
         IAttributeObject const*         vertex) override {
         logic_todo_impl();
     }
+#    endif
 
     EdgeAttribute edge;
     GraphGroup    graph;
@@ -887,9 +795,7 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
     Path getPath() const override;
 
-    std::string getRepr() const override { return edge.getPropertiesAsString(); }
-
-
+    std::string      getRepr() const override { return edge.getPropertiesAsString(); }
     visual::VisGroup getVisual(EdgeID const& selfId) const override;
 };
 

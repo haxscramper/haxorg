@@ -8,6 +8,7 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/test/corpusrunner.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/sem/perfetto_org.hpp>

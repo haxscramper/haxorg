@@ -13,6 +13,7 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include "ImmGetterApi.hpp"
+#include <hstd/stdlib/strutils.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/haxorg/imm/ImmOrgGraph.pb.h"
 #endif

@@ -4,6 +4,7 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Set.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using namespace hstd;
 using namespace org::sem;

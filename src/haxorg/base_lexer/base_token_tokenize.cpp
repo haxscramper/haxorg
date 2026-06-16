@@ -16,6 +16,7 @@
 #include <lexy/action/trace.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 
 #pragma clang diagnostic error "-Wswitch"

@@ -2,7 +2,7 @@
 
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Debug.hpp>
-
+#include <hstd/stdlib/SliceFormatter.hpp>
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/exporters/exportersimplesexpr.hpp>
@@ -27,6 +27,7 @@
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 using namespace org::test;
 using namespace hstd;

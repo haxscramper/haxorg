@@ -38,10 +38,7 @@ struct CodeSpan {
     DESC_FIELDS(CodeSpan, (id, range));
 
     CodeSpan() = default;
-    CodeSpan(Id id, Slice<int> const& range) : id{id}, range{range} {
-        LOGIC_ASSERTION_CHECK_FMT(0 <= range.first, "{}", range.first);
-        LOGIC_ASSERTION_CHECK_FMT(range.first <= range.last, "{}", range);
-    }
+    CodeSpan(Id id, Slice<int> const& range);
 
     /// \brief Get the identifier of the source that this Codespan refers
     /// to.

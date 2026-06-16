@@ -2,10 +2,12 @@
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 #include <sys/inotify.h>
 #include <unistd.h>

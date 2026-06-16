@@ -1,4 +1,3 @@
-#include "hstd/stdlib/Debug.hpp"
 #include <haxorg/parse/OrgParser.hpp>
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wformat-security"
@@ -10,6 +9,7 @@
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 #pragma clang diagnostic error "-Wunused-result"
 

@@ -78,6 +78,117 @@ Path getEdgeSpline(gv::EdgeAttribute const& edge, int scaling, Rect const& bbox)
 
 } // namespace
 
+template <typename T>
+void gv::GraphvizObjBase<T>::delPayload(Str const& name) {
+    agdelrec(_this()->get(), strdup(name));
+}
+
+template <typename T>
+bool gv::GraphvizObjBase<T>::hasAttr(Str const& attribute) {
+    return agget(_this()->get(), strdup(attribute)) != nullptr;
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::getAttr(Str const& attribute, Opt<Str>& value) const {
+    char* found = agget((void*)(_this()->get()), const_cast<char*>(attribute.data()));
+
+    if (found != nullptr) {
+        value = found;
+    } else {
+        value = std::nullopt;
+    }
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::getAttr(Str const& key, Opt<int>& value) const {
+    Opt<Str> tmp;
+    getAttr(key, tmp);
+    if (tmp && !tmp->empty()) { value = tmp->toInt(); }
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::getAttr(Str const& key, Opt<double>& value) const {
+    Opt<Str> tmp;
+    getAttr(key, tmp);
+    if (tmp && !tmp->empty()) { value = tmp->toDouble(); }
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::getAttr(Str const& key, Opt<bool>& value) const {
+    Opt<Str> tmp;
+    getAttr(key, tmp);
+    if (tmp && !tmp->empty()) { value = *tmp == "true"; }
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::getAttr(Str const& key, Opt<Point>& value) const {
+    Opt<Str> tmp;
+    getAttr(key, tmp);
+    if (tmp && !tmp->empty()) {
+        auto split = hstd::split(*tmp, ",");
+        value      = Point(split[0].toDouble(), split[1].toDouble());
+    }
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::setHtmlAttr(Str attribute, Str const& value) {
+    // Define the attribute if not already defined
+    Agsym_t* attr = agattr(
+        agraphof(_this()->get()), T::graphvizKind, attribute.data(), "");
+    if (!attr) { throw std::runtime_error("Failed to define attribute: " + attribute); }
+
+    // Set the raw value using `agxset` and `agstrdup_html`
+    agxset(
+        _this()->get(),
+        attr,
+        agstrdup_html(agraphof(_this()->get()), const_cast<char*>(value.c_str())));
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::setAttr(Str attribute, Str const& value) {
+    if (setOverride) {
+        setOverride(attribute, value);
+    } else {
+        agsafeset(_this()->get(), attribute.data(), const_cast<char*>(value.c_str()), "");
+    }
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::setAttr(Str const& key, int value) {
+    _this()->setAttr(key, std::to_string(value));
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::setAttr(Str const& key, u64 value) {
+    _this()->setAttr(key, std::to_string(value));
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::setAttr(Str const& key, Point value) {
+    _this()->setAttr(key, fmt::format("{},{}", value.x(), value.y()));
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::setAttr(Str const& key, double value) {
+    _this()->setAttr(key, std::to_string(value));
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::setAttr(Str const& key, bool value) {
+    _this()->setAttr(key, Str(value ? "true" : "false"));
+}
+
+template <typename T>
+void gv::GraphvizObjBase<T>::getAttr(Str const& key, Opt<u64>& value) const {
+    Opt<Str> tmp;
+    getAttr(key, tmp);
+    if (tmp && !tmp->empty()) { value = tmp->toU64(); }
+}
+
+template class gv::GraphvizObjBase<gv::NodeAttribute>;
+template class gv::GraphvizObjBase<gv::EdgeAttribute>;
+template class gv::GraphvizObjBase<gv::GraphGroup>;
+
 
 Str gv::escape(Str const& input) {
     Str escaped;
@@ -341,6 +452,26 @@ void gv::GraphGroup::render(
     hstd::logic_assertion_check_not_nil(algo);
     algo->renderToFile(path, *this, format);
 }
+
+hstd::SPtr<gv::NodeAttribute> hstd::ext::graph::gv::GraphGroup::node(Str const& name) {
+    LOGIC_ASSERTION_CHECK(graph != nullptr, "");
+    auto existing_node = agnode(graph, const_cast<char*>(name.c_str()), 0);
+    if (existing_node != nullptr) {
+        throw hstd::ext::graph::layout::layout_error::init(
+            hstd::fmt("Node with name {} already exists in the graph", name));
+    }
+
+    auto tmp = std::make_shared<NodeAttribute>(graph, name);
+    return tmp;
+}
+
+hstd::SPtr<gv::EdgeAttribute> hstd::ext::graph::gv::GraphGroup::edge(
+    NodeAttribute const& head,
+    NodeAttribute const& tail) {
+    LOGIC_ASSERTION_CHECK(graph != nullptr, "");
+    return std::make_shared<EdgeAttribute>(graph, head, tail);
+}
+
 
 hstd::SPtr<gv::EdgeAttribute> gv::GraphGroup::addEdge(EdgeID const& id) {
     auto attr = edge(
@@ -779,6 +910,13 @@ std::string gv::EdgeAttribute::getPropertiesAsString() const {
         result.pop_back();
     }
     return result;
+}
+
+hstd::SPtr<graph::gv::GraphGroup> graph::gv::GraphGroup::newSubgraph(Str const& name) {
+    auto res = std::make_shared<GraphGroup>(
+        ctx, agsubg(graph, strdup("cluster_" + name), 1));
+
+    return res;
 }
 
 
@@ -1373,6 +1511,7 @@ void readAttrs(Attr* self, Payload const& payload) {
 } // namespace
 
 #    if ORG_BUILD_WITH_PROTOBUF
+
 void hstd::ext::graph::gv::GraphGroup::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
