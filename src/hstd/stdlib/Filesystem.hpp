@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/system/exceptions.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 

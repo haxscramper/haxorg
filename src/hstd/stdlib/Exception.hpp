@@ -111,4 +111,15 @@ std::shared_ptr<T> validated_dynamic_cast(std::shared_ptr<Other> const& other) {
     return res;
 }
 
+template <typename T>
+std::shared_ptr<T> safe_wptr_lock(std::weak_ptr<T> const& ptr) {
+    std::shared_ptr<T> result = ptr.lock();
+    LOGIC_ASSERTION_CHECK(
+        result != nullptr,
+        "could not lock weak pointer -- managed object has already been "
+        "destroyed");
+    return result;
+}
+
+
 } // namespace hstd
