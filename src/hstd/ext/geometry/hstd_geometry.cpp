@@ -1,6 +1,7 @@
 #include "hstd_geometry.hpp"
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using namespace hstd::ext::geometry;
 

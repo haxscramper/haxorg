@@ -1,6 +1,5 @@
 #pragma once
 
-#include <hstd/stdlib/strutils.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/linestring.hpp>

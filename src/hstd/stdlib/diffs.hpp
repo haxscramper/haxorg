@@ -12,6 +12,7 @@
 #include <hstd/stdlib/ColTextFormatter.hpp>
 
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using std::operator""s;
 

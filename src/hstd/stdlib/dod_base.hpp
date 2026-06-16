@@ -1,6 +1,5 @@
 #pragma once
 
-#include <hstd/stdlib/strutils.hpp>
 #include <string>
 
 #include <hstd/system/all.hpp>
@@ -10,6 +9,7 @@
 
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 
 /// \brief Data-oriented design primitives

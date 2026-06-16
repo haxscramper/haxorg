@@ -6,7 +6,6 @@
 #include <hstd/stdlib/Func.hpp>
 
 #include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
 
 #include <haxorg/lexbase/Token.hpp>

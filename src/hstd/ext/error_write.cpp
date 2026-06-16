@@ -10,6 +10,7 @@
 #include <boost/preprocessor/seq.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/ColTextFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;
