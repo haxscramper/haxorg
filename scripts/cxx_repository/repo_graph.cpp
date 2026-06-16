@@ -1,8 +1,8 @@
 #include "repo_graph.hpp"
 
 #include <boost/graph/graphml.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd;
 

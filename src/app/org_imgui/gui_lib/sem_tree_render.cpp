@@ -1,10 +1,9 @@
 #include "sem_tree_render.hpp"
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <imgui.h>
-#include <haxorg/exporters/ExporterBase.hpp>
 #include <haxorg/exporters/Exporter.cpp>
-#include <hstd/stdlib/strutils.hpp>
+#include <haxorg/exporters/ExporterBase.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
+#include <imgui.h>
 
 #pragma clang diagnostic ignored "-Wc99-extensions"
 

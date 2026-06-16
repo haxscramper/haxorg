@@ -1,7 +1,7 @@
 #pragma once
 
-#include <haxorg/sem/SemOrg.hpp>
 #include <boost/mp11.hpp>
+#include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
 
 using boost::mp11::mp_for_each;

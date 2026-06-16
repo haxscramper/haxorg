@@ -1,28 +1,28 @@
 #pragma once
 
 #include <QAbstractItemModel>
-#include <QSortFilterProxyModel>
+#include <QCheckBox>
 #include <QColor>
+#include <QDialog>
 #include <QFont>
-#include <QWidget>
+#include <QFormLayout>
+#include <QHeaderView>
+#include <QKeyEvent>
+#include <QKeySequence>
+#include <QLineEdit>
+#include <QListWidgetItem>
+#include <QModelIndex>
+#include <QPushButton>
+#include <QShortcut>
+#include <QSortFilterProxyModel>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include <QFormLayout>
-#include <QCheckBox>
-#include <QPushButton>
-#include <QHeaderView>
-#include <QShortcut>
-#include <QKeySequence>
-#include <QModelIndex>
-#include <QDialog>
-#include <QListWidgetItem>
-#include <QLineEdit>
-#include <QKeyEvent>
-#include <hstd/stdlib/diffs.hpp>
+#include <QWidget>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/diffs.hpp>
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "shared_org_logic.hpp"
 

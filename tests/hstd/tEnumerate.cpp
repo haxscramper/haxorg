@@ -1,5 +1,5 @@
-#include <hstd/stdlib/Enumerate.hpp>
 #include <gtest/gtest.h>
+#include <hstd/stdlib/Enumerate.hpp>
 
 TEST(EnumerateTests, BasicEnumeration) {
     std::vector<int> v            = {1, 2, 3, 4};

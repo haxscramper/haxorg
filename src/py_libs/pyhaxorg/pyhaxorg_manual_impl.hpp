@@ -5,10 +5,10 @@
 
 #undef slots
 
+#include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/string.h>
-#include <nanobind/stl/vector.h>
-#include <nanobind/stl/map.h>
+#include <nanobind/ndarray.h>
+#include <nanobind/operators.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/filesystem.h>
 #include <nanobind/stl/function.h>
@@ -16,46 +16,45 @@
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/tuple.h>
 #include <nanobind/stl/unique_ptr.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>
-#include <nanobind/operators.h>
-#include <nanobind/make_iterator.h>
-#include <nanobind/ndarray.h>
+#include <nanobind/stl/vector.h>
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/Yaml.hpp>
 #include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/Yaml.hpp>
 
-#include <haxorg/sem/SemConvert.hpp>
+#include <haxorg/api/ParseContext.hpp>
+#include <haxorg/exporters/Exporter.hpp>
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
-#include <haxorg/exporters/Exporter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
-#include <hstd/stdlib/PtrsFormatter.hpp>
+#include <haxorg/sem/SemConvert.hpp>
+#include <haxorg/sem/SemOrgTypesFormatter.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/PairFormatter.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
 #include <hstd/stdlib/SetFormatter.hpp>
-#include <haxorg/sem/SemOrgTypesFormatter.hpp>
-#include <haxorg/api/ParseContext.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 // #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <src/haxorg/serde/SemOrgProto.pb.h>
 #endif
-#include <py_libs/py_type_casters.hpp>
 #include <py_libs/nanobind_utils.hpp>
+#include <py_libs/py_type_casters.hpp>
 
 #include <frameobject.h>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <hstd/stdlib/RangeSegmentation.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
+#include <hstd/stdlib/RangeSegmentation.hpp>
 
 
 template <>

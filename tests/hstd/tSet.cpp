@@ -1,6 +1,6 @@
+#include <gtest/gtest.h>
 #include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <gtest/gtest.h>
 
 using namespace hstd;
 

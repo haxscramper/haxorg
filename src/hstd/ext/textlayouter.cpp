@@ -1,16 +1,14 @@
 #include "textlayouter.hpp"
+#include <algorithm>
+#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/system/generator.hpp>
+#include <hstd/stdlib/Set.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/Set.hpp>
-#include <algorithm>
+#include <hstd/system/generator.hpp>
 #include <numeric>
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <sstream>
-#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd::layout;
 using namespace hstd;

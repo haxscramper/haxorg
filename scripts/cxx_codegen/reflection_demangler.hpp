@@ -1,12 +1,12 @@
 #pragma once
 
+#include <SQLiteCpp/SQLiteCpp.h>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/dod_base_intern.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
-#include <llvm/Support/JSON.h>
 #include <llvm/ADT/StringMap.h>
-#include <SQLiteCpp/SQLiteCpp.h>
-#include <hstd/stdlib/dod_base_intern.hpp>
+#include <llvm/Support/JSON.h>
 
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/dod_base.hpp>

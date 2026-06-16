@@ -2,10 +2,10 @@
 
 #include <string>
 
+#include <hstd/stdlib/Exception.hpp>
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/string_base.hpp>
-#include <hstd/stdlib/Exception.hpp>
 
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Vec.hpp>

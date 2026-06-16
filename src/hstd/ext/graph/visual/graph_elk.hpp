@@ -2,20 +2,20 @@
 
 #if ORG_BUILD_WITH_ELK
 
-#    include <hstd/ext/hstd_serde.hpp>
 #    include "elk_jni_wrapper.hpp"
-#    include <memory>
-#    include <hstd/stdlib/Exception.hpp>
-#    include <hstd/stdlib/Vec.hpp>
-#    include <hstd/stdlib/Json.hpp>
-#    include <hstd/stdlib/Str.hpp>
-#    include <hstd/system/reflection.hpp>
-#    include <hstd/stdlib/Opt.hpp>
-#    include <hstd/stdlib/JsonSerde.hpp>
-#    include <hstd/stdlib/JsonUse.hpp>
 #    include <hstd/ext/graph/base/graph_base.hpp>
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <hstd/ext/hstd_serde.hpp>
 #    include <hstd/stdlib/Debug.hpp>
+#    include <hstd/stdlib/Exception.hpp>
+#    include <hstd/stdlib/Json.hpp>
+#    include <hstd/stdlib/JsonSerde.hpp>
+#    include <hstd/stdlib/JsonUse.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/stdlib/Str.hpp>
+#    include <hstd/stdlib/Vec.hpp>
+#    include <hstd/system/reflection.hpp>
+#    include <memory>
 
 
 namespace hstd::ext::graph::elk {

@@ -1,8 +1,8 @@
 // trace_log_viewer.cpp
 #include "trace_log_viewer.hpp"
 
-#include <optional>
 #include <hstd/stdlib/Debug.hpp>
+#include <optional>
 
 TraceLogViewer::TraceLogViewer() = default;
 

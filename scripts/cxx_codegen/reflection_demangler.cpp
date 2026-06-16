@@ -4,7 +4,6 @@
 #include <llvm/DebugInfo/DWARF/DWARFContext.h>
 #include <llvm/DebugInfo/Symbolize/Symbolize.h>
 #include <llvm/Demangle/Demangle.h>
-#include <llvm/Demangle/Demangle.h>
 #include <llvm/Demangle/ItaniumDemangle.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -13,29 +12,24 @@
 #include <llvm/Object/Binary.h>
 #include <llvm/Object/ObjectFile.h>
 #include <llvm/Object/SymbolSize.h>
-#include <llvm/Object/SymbolSize.h>
 #include <llvm/ProfileData/Coverage/CoverageMappingReader.h>
-#include <llvm/ProfileData/InstrProfReader.h>
 #include <llvm/ProfileData/InstrProfReader.h>
 #include <llvm/ProfileData/InstrProfWriter.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/Error.h>
-#include <llvm/Support/Error.h>
 #include <llvm/Support/JSON.h>
 #include <llvm/Support/MD5.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Regex.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/VirtualFileSystem.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include <absl/hash/hash.h>
 #include <absl/log/log.h>
 #include <boost/describe.hpp>
 
 #include <hstd/ext/perfetto_aux.hpp>
-#include <hstd/stdlib/algorithms.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Formatter.hpp>
@@ -43,6 +37,7 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/system/macros.hpp>
 

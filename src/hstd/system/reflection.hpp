@@ -1,16 +1,16 @@
 #pragma once
 
-#include <string>
 #include <optional>
+#include <string>
 
-#include <boost/mp11.hpp>
 #include <boost/describe.hpp>
-#include <hstd/system/basic_typedefs.hpp>
-#include <hstd/system/basic_templates.hpp>
-#include <vector>
-#include <type_traits>
+#include <boost/mp11.hpp>
 #include <fmt/base.h>
+#include <hstd/system/basic_templates.hpp>
+#include <hstd/system/basic_typedefs.hpp>
 #include <stdexcept>
+#include <type_traits>
+#include <vector>
 
 
 namespace hstd {

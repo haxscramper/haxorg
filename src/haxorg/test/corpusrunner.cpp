@@ -1,33 +1,31 @@
 #include "corpusrunner.hpp"
 
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <haxorg/exporters/ExporterJson.hpp>
-#include <haxorg/exporters/exportertree.hpp>
-#include <haxorg/exporters/exportersimplesexpr.hpp>
-#include <haxorg/exporters/exporteryaml.hpp>
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/diffs.hpp>
-#include <fstream>
 #include <cstdlib>
-#include <haxorg/sem/perfetto_org.hpp>
-#include <haxorg/sem/SemOrgFormat.hpp>
+#include <fstream>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <hstd/ext/logger.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/YamlSerde.hpp>
-#include <hstd/stdlib/ColTextSerde.hpp>
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/stdlib/IntSetSerde.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/ext/bimap_wrap_serde.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
+#include <haxorg/exporters/ExporterJson.hpp>
+#include <haxorg/exporters/exportersimplesexpr.hpp>
+#include <haxorg/exporters/exportertree.hpp>
+#include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/ext/bimap_wrap_serde.hpp>
+#include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/ColTextSerde.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/IntSetSerde.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/YamlSerde.hpp>
+#include <hstd/stdlib/diffs.hpp>
 
 using namespace org::test;
 using namespace hstd;

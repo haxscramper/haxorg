@@ -4,24 +4,24 @@
 #pragma once
 
 #include "hstd/stdlib/Slice.hpp"
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <optional>
 #include <string>
 #include <utility>
-#include <memory>
-#include <functional>
-#include <optional>
-#include <iostream>
 
-#include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 #include <boost/describe.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/stdlib/Opt.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
+#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/system/reflection.hpp>
 
 
 namespace hstd::ext {

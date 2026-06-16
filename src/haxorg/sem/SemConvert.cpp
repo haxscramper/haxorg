@@ -1,36 +1,35 @@
+#include <haxorg/parse/OrgSpec.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <haxorg/parse/OrgSpec.hpp>
 
 #include <hstd/stdlib/Debug.hpp>
 
-#include <boost/preprocessor/facilities/overload.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
-#include <haxorg/sem/perfetto_org.hpp>
+#include <boost/preprocessor/facilities/overload.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 #include <lexy/dsl/identifier.hpp>
+#include <lexy/input/string_input.hpp>
 #include <lexy_ext/report_error.hpp>
-#include <lexy/input/string_input.hpp>
 
-#include <lexy/callback.hpp>
-#include <lexy/dsl.hpp>
-#include <lexy/input/string_input.hpp>
-#include <lexy/action/parse.hpp>
-#include <lexy/callback.hpp>
-#include <lexy/callback/container.hpp>
-#include <lexy/action/trace.hpp>
-#include <stack>
-#include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
+#include <lexy/action/parse.hpp>
+#include <lexy/action/trace.hpp>
+#include <lexy/callback.hpp>
+#include <lexy/callback/container.hpp>
+#include <lexy/dsl.hpp>
+#include <lexy/input/string_input.hpp>
+#include <stack>
 
 
 namespace {

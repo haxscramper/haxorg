@@ -40,12 +40,12 @@ Terminology used
 #pragma once
 
 
-#include "graph_common.hpp"
-#include "graph_vertex.hpp"
-#include "graph_edge.hpp"
 #include "graph_attribute.hpp"
+#include "graph_common.hpp"
+#include "graph_edge.hpp"
 #include "graph_hierarchy.hpp"
 #include "graph_port.hpp"
+#include "graph_vertex.hpp"
 
 /// \brief graph structure and visualization
 namespace hstd::ext::graph {

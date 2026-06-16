@@ -1,12 +1,12 @@
 #include "im_org_ui_common.hpp"
-#include <gui_lib/imgui_utils.hpp>
 #include "misc/cpp/imgui_stdlib.h"
-#include <haxorg/imm/ImmOrgEdit.hpp>
+#include <gui_lib/imgui_utils.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/sem/SemOrgFormat.hpp>
-#include <hstd/stdlib/PtrsFormatter.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <haxorg/imm/ImmOrgEdit.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/PtrsFormatter.hpp>
 #include <hstd/stdlib/SetFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 

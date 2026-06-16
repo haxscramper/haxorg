@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Span.hpp>
 
 template <typename T>
 struct fmt::formatter<hstd::Span<T>> {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <hstd/system/aux_utils.hpp>
+#include <memory>
 
 namespace hstd {
 

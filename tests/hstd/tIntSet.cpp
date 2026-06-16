@@ -1,6 +1,6 @@
+#include <gtest/gtest.h>
 #include <hstd/stdlib/IntSet.hpp>
 #include <hstd/stdlib/charsets.hpp>
-#include <gtest/gtest.h>
 
 using namespace hstd;
 

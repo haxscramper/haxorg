@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/ColText.hpp>
 #include <boost/preprocessor.hpp>
-#include <hstd/system/exceptions.hpp>
+#include <hstd/stdlib/ColText.hpp>
 #include <hstd/system/basic_templates.hpp>
+#include <hstd/system/exceptions.hpp>
 
 #include <iostream>
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/system/all.hpp>
 #include <hstd/stdlib/Slice.hpp>
+#include <hstd/system/all.hpp>
 
 namespace hstd {
 

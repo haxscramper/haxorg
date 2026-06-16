@@ -1,11 +1,11 @@
 #pragma once
 
-#include <boost/graph/adjacency_list.hpp>
-#include <unordered_map>
-#include <hstd/system/generator.hpp>
-#include <hstd/stdlib/Opt.hpp>
 #include <absl/log/log.h>
+#include <boost/graph/adjacency_list.hpp>
 #include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/system/generator.hpp>
+#include <unordered_map>
 
 #include "git_interface.hpp"
 
