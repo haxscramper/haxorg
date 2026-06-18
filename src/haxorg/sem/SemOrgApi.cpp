@@ -30,25 +30,6 @@ struct value_domain<org::sem::SubtreePeriod::Kind>
           org::sem::SubtreePeriod::Kind::Clocked,
           org::sem::SubtreePeriod::Kind::Repeated> {};
 
-namespace org::sem {
-sem::OrgIdVariant asVariant(SemId<Org> in) {
-#define __case(__Kind)                                                                   \
-    case OrgSemKind::__Kind: return in.as<__Kind>();
-
-    switch (in->getKind()) { EACH_SEM_ORG_KIND(__case) }
-
-#undef __case
-}
-
-sem::OrgPtrVariant asVariant(Org* in) {
-#define __case(__Kind)                                                                   \
-    case OrgSemKind::__Kind: return dynamic_cast<__Kind*>(in);
-    switch (in->getKind()) { EACH_SEM_ORG_KIND(__case) }
-#undef __case
-}
-
-} // namespace org::sem
-
 Org::Org() : subnodes({}) {}
 Org::Org(CVec<SemId<Org>> subnodes) : subnodes(subnodes) {}
 

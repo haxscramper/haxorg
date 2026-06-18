@@ -42,17 +42,6 @@ struct SemId;
 
 #define EACH_SEM_ORG_KIND_CSV(__CMD) SKIP_FIRST_ARG(EACH_SEM_ORG_KIND(__CMD))
 
-
-#define __id(I) , SemId<I>
-/// \brief Global variant of all sem node derivations
-using OrgIdVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__id)>;
-#undef __id
-
-#define __ptr(I) , I*
-/// \brief Global variant of all sem node derivations
-using OrgPtrVariant = std::variant<EACH_SEM_ORG_KIND_CSV(__ptr)>;
-#undef __ptr
-
 struct SemValue {
     int         getInt() const;
     std::string getString() const;
@@ -179,10 +168,6 @@ template <typename T>
 struct remove_sem_org<SemId<T>> {
     using type = hstd::remove_smart_pointer<T>::type;
 };
-
-sem::OrgIdVariant  asVariant(SemId<Org> in);
-sem::OrgPtrVariant asVariant(Org* in);
-
 
 /// \brief Base class for all org nodes. Provides essential baseline API
 /// and information.

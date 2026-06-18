@@ -194,9 +194,13 @@ void eachSubnodeRecImpl(
     org::SemSubnodeVisitor const& visitor,
     SemId<Org>                    org,
     bool                          originalBase) {
-    std::visit(
-        [&](auto const& node) { recVisitOrgNodesImpl(visitor, node, originalBase); },
-        asVariant(org));
+
+#define __case(__Kind)                                                                   \
+    case OrgSemKind::__Kind:                                                             \
+        return recVisitOrgNodesImpl(visitor, org.as<__Kind>(), originalBase);
+
+    switch (org->getKind()) { EACH_SEM_ORG_KIND(__case) }
+#undef __case
 }
 } // namespace
 
