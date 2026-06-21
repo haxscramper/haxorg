@@ -204,7 +204,6 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
         if (trace) {
             writeTreeRepr(node, getDebugFile((relative / "node.yaml").native()));
-
             writeTreeRepr(node, getDebugFile((relative / "node.txt").native()));
         }
 
