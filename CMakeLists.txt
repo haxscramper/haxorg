@@ -459,6 +459,8 @@ if(${ORG_BUILD_QT_GUI})
   add_subdirectory(src/app/org_viewer)
 endif()
 
+add_subdirectory(src/app/org_cli)
+
 if(${ORG_BUILD_IMGUI_GUI})
 
   find_package(glfw3 CONFIG REQUIRED)
