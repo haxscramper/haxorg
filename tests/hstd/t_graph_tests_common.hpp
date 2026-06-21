@@ -1,20 +1,20 @@
 #include <gtest/gtest.h>
 
 #include <hstd/ext/graph/base/graph_base.hpp>
-#include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #include <hstd/ext/graph/visual/adaptagrams_common.hpp>
 #include <hstd/ext/graph/visual/graph_elk.hpp>
+#include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #include <hstd/ext/graph/visual/graph_kiwi.hpp>
 
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
 
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
-#include <hstd/ext/geometry/hstd_geometry_test.hpp>
 #include "../common.hpp"
-#include <libcola/output_svg.h>
+#include <hstd/ext/geometry/hstd_geometry_test.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
+#include <libcola/output_svg.h>
 
 template <typename A, typename T>
 hstd::SPtr<A> as(hstd::SPtr<T> const& value) {

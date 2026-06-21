@@ -1,16 +1,17 @@
 #pragma once
 
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/algorithms.hpp>
-#include <hstd/stdlib/Vec.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/TraceBase.hpp>
-#include <math.h>
 #include <hstd/stdlib/ColTextFormatter.hpp>
+#include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/algorithms.hpp>
+#include <math.h>
 
+#include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/reflection.hpp>
 
 using std::operator""s;

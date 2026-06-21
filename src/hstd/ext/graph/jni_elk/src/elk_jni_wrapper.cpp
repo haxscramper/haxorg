@@ -1,7 +1,7 @@
 #if ORG_BUILD_WITH_ELK
 #    include "elk_jni_wrapper.hpp"
-#    include <jni.h>
 #    include <fmt/format.h>
+#    include <jni.h>
 
 
 #    include <dlfcn.h>

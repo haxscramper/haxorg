@@ -1,10 +1,9 @@
 #pragma once
 
-#include <hstd/system/basic_typedefs.hpp>
-#include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/system/basic_typedefs.hpp>
 #include <hstd/system/reflection.hpp>
 
 namespace hstd {
@@ -295,10 +294,6 @@ struct ColStream : public ColText {
 
     ColStream() : buffered(true) {};
     ColStream(std::ostream& os) : ostream(&os), buffered(false) {}
-
-    finally_std style_scope() {
-        return finally_std{[this, start = active]() { this->active = start; }};
-    }
 
     // clang-format off
     ColStream& red() { active.fg = TermColorFg8Bit::Red; return *this; }

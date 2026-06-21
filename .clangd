@@ -14,4 +14,3 @@ CompileFlags:
     - "-Wno-pedantic"
     - "-Wno-missing-field-initializers"
     - "-Wno-reorder-init-list"
-    - "--log=verbose"

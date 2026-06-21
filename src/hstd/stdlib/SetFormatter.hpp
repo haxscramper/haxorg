@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 template <typename T>
 struct fmt::formatter<hstd::UnorderedSet<T>>

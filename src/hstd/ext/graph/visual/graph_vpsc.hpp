@@ -1,13 +1,13 @@
 #pragma once
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS
-#    include <hstd/ext/graph/base/graph_base.hpp>
-#    include <hstd/ext/graph/visual/graph_visual.hpp>
-#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
-#    include <libdialect/hola.h>
 #    include <hstd/ext/bimap_wrap.hpp>
-#    include <hstd/stdlib/algorithms.hpp>
+#    include <hstd/ext/graph/base/graph_base.hpp>
+#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
+#    include <hstd/ext/graph/visual/graph_visual.hpp>
 #    include <hstd/ext/logger.hpp>
+#    include <hstd/stdlib/algorithms.hpp>
+#    include <libdialect/hola.h>
 
 namespace hstd::ext::graph::cst {
 

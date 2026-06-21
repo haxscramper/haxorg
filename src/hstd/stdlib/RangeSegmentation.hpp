@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/Pair.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 

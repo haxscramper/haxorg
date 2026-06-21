@@ -1,20 +1,21 @@
 #include "pyhaxorg_manual_impl.hpp"
 #include <haxorg/serde/SemOrgSerde.hpp>
 
-#include <haxorg/sem/SemOrgFormat.hpp>
-#include <haxorg/exporters/ExporterJson.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <haxorg/exporters/exporteryaml.hpp>
-#include <haxorg/exporters/exportertree.hpp>
-#include <hstd/stdlib/PairFormatter.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/SetFormatter.hpp>
 #include <datetime.h>
+#include <haxorg/exporters/ExporterJson.hpp>
+#include <haxorg/exporters/exportertree.hpp>
+#include <haxorg/exporters/exporteryaml.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/PairFormatter.hpp>
+#include <hstd/stdlib/SetFormatter.hpp>
 
+#include <haxorg/api/EvalContext.hpp>
 #include <haxorg/exporters/Exporter.cpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
-#include <haxorg/api/EvalContext.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
 
 using namespace org;
 using namespace hstd;

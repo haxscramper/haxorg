@@ -500,8 +500,12 @@ def gen_branching_include_graph(ctx: TaskContext, f: Path) -> None:
 
         # FIXME: The render operation reports multiple instances of teh labels being too large for the
         # cells in the HTML graph.
-        gg_branch.render(str(outfile), format="png", quiet=True)
-        log().info(f"wrote {outfile}.png {outfile}.txt")
+        try:
+            gg_branch.render(str(outfile), format="png", quiet=True)
+            log().info(f"wrote {outfile}.png {outfile}.txt")
+
+        except graphviz.CalledProcessError as err:
+            log().error(f"{err}", exc_info=err)
 
 
 @beartype

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <hstd/system/aux_utils.hpp>
-#include <hstd/stdlib/Exception.hpp>
+#include <memory>
 
 namespace hstd {
 
@@ -41,17 +40,6 @@ struct SharedPtrApi
         return const_cast<T*>(_this())->weak_from_this();
     }
 };
-
-template <typename T>
-SPtr<T> safe_wptr_lock(WPtr<T> const& ptr) {
-    SPtr<T> result = ptr.lock();
-    LOGIC_ASSERTION_CHECK(
-        result != nullptr,
-        "could not lock weak pointer -- managed object has already been "
-        "destroyed");
-    return result;
-}
-
 
 template <typename T>
 struct remove_smart_pointer {

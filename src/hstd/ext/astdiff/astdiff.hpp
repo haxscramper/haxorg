@@ -1,23 +1,23 @@
 #pragma once
 
-#include <hstd/system/reflection.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/system/generator.hpp>
+#include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/system/generator.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
 
-#include <iostream>
-#include <cassert>
-#include <queue>
 #include <algorithm>
-#include <unordered_set>
-#include <limits>
+#include <cassert>
 #include <functional>
 #include <hstd/stdlib/Formatter.hpp>
+#include <iostream>
+#include <limits>
+#include <queue>
+#include <unordered_set>
 
 #include "common.hpp"
 

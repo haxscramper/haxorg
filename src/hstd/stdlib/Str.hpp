@@ -1,10 +1,8 @@
 #pragma once
 
-#include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
-#include <hstd/stdlib/Pair.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/system/basic_typedefs.hpp>
 
 namespace hstd {
 
@@ -34,8 +32,6 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str : public std::
     char&                                          at(int pos);
     Str          replaceAll(Str const& from, Str const& to) const;
     char&        at(BackwardsIndex pos);
-    Vec<Str>     split(char delimiter) const;
-    Vec<Str>     split(Str const& delimiter) const;
     float        toFloat() const;
     float        toDouble() const;
     int          toInt() const;
@@ -46,7 +42,6 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str : public std::
     bool         contains(char ch) const;
     bool         contains(Str const& ch) const;
 
-    Str join(Vec<Str> const& items) const;
     Str repeated(int N) const;
 
     template <typename A, typename B>

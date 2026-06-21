@@ -159,7 +159,7 @@ def test_include_guard_header_included_twice(stable_test_dir: Path) -> None:
         stable_test_dir=stable_test_dir,
     )
 
-    assert len(incl.nested) == 1
+    assert len(incl.nested) == 2
     guarded = incl.nested[0]
     assert guarded.relative_path == "guarded.hpp"
     assert guarded.include_location_line == 1

@@ -2,23 +2,23 @@
 #include "repo_processing.hpp"
 #include "git_interface.hpp"
 #include "repo_graph.hpp"
+#include "repo_profile.hpp"
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
+#include <fstream>
 #include <git2/patch.h>
+#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Set.hpp>
-#include <immer/flex_vector_transient.hpp>
-#include <fstream>
-#include "repo_profile.hpp"
-#include <hstd/ext/logger.hpp>
-#include <boost/asio/thread_pool.hpp>
 #include <hstd/stdlib/strutils.hpp>
-#include <boost/asio/post.hpp>
+#include <immer/flex_vector_transient.hpp>
 
 #include <algorithm>
 
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/system/reflection.hpp>
 
 using namespace ir;
 using namespace hstd;
@@ -720,7 +720,7 @@ void check_tree_entry_consistency(
         section.track,
         state->at(track_id).sections.size() - 1);
 
-    auto content_lines = Str{content_ptr}.split('\n');
+    auto content_lines = hstd::split(Str{content_ptr}, '\n');
 
     std::string concat_content =                  //
         zip_longest(section.lines, content_lines) //

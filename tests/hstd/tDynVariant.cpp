@@ -1,7 +1,7 @@
-#include <gtest/gtest.h>
-#include <string>
-#include <hstd/stdlib/DynVariant.hpp>
 #include <fmt/format.h>
+#include <gtest/gtest.h>
+#include <hstd/stdlib/DynVariant.hpp>
+#include <string>
 
 struct Shape {
     enum struct Kind

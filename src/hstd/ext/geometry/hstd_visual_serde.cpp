@@ -2,10 +2,10 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <stdexcept>
 #    include <google/protobuf/struct.pb.h>
 #    include <google/protobuf/wrappers.pb.h>
 #    include <hstd/stdlib/Json.hpp>
+#    include <stdexcept>
 
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/ext/hstd_serde.hpp>

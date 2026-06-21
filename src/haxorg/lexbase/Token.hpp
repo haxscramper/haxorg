@@ -1,14 +1,13 @@
 #pragma once
 
-#include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/IntSet.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/dod_base.hpp>
 
 #include <haxorg/lexbase/Errors.hpp>
 #include <hstd/stdlib/Formatter.hpp>
@@ -83,8 +82,7 @@ struct fmt::formatter<org::parse::TokenId<K, V>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::parse::TokenId<K, V> const& p, fmt::format_context& ctx)
         const {
-        typename org::parse::TokenId<K, V>::FormatConfig conf{
-            .name = hstd::demangle(typeid(K).name())};
+        hstd::dod::FormatConfig conf{.name = hstd::demangle(typeid(K).name())};
         return hstd::fmt_ctx(p.format(conf), ctx);
     }
 };

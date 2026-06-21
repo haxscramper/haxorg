@@ -2,6 +2,7 @@
 
 #include <haxorg/lexbase/TokenStore.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 namespace org::parse {
 template <typename K, typename V>

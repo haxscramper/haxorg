@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/charsets.hpp>
-#include <hstd/system/generator.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/charsets.hpp>
+#include <hstd/system/generator.hpp>
 
 namespace hstd {
 
@@ -37,14 +37,17 @@ Str      strip(Str const& string, CharSet const& leading, CharSet const& trailin
 Str      lstrip(Str const& string, CharSet const& chars);
 Str      rstrip(Str const& string, CharSet const& chars);
 Vec<Str> split(Str const& str, char ch);
-Str      right_aligned(Str const& str, int n, char c = ' ');
-Str      left_aligned(Str const& str, int n, char c = ' ');
-Str      normalize(Str const& in);
-Str      repeat(Str const& str, int count);
-Str      escape_for_write(Str const& str, bool quote = true);
-int      rune_length(std::string const& str);
+Vec<Str> split(Str const& value, Str const& delimiter);
+
+Str  right_aligned(Str const& str, int n, char c = ' ');
+Str  left_aligned(Str const& str, int n, char c = ' ');
+Str  normalize(Str const& in);
+Str  repeat(Str const& str, int count);
+Str  escape_for_write(Str const& str, bool quote = true);
+int  rune_length(std::string const& str);
+bool iequals(std::string const& a, std::string const& b);
+
 std::vector<std::string> rune_chunks(std::string const& str);
-bool                     iequals(std::string const& a, std::string const& b);
 
 std::string format_number(double value);
 std::string format_table(

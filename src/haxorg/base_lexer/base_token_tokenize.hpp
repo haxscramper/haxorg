@@ -2,6 +2,7 @@
 
 #include <haxorg/base_lexer/base_token.hpp>
 #include <haxorg/lexbase/TokenStore.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
 
 namespace org::parse {
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;

@@ -1,17 +1,17 @@
 #ifndef TEXTLAYOUTER_HPP
 #define TEXTLAYOUTER_HPP
 
+#include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/system/aux_utils.hpp>
+#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
 #include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Opt.hpp>
+#include <hstd/system/aux_utils.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/reflection.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Str.hpp>
 
 
 /// \brief Text block layouts used in exporters and code generation

@@ -1,16 +1,15 @@
 #pragma once
 
-#include <hstd/stdlib/strutils.hpp>
 #include <string>
 
+#include <hstd/stdlib/Exception.hpp>
 #include <hstd/system/all.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/string_base.hpp>
-#include <hstd/stdlib/Exception.hpp>
 
 #include <hstd/stdlib/Slice.hpp>
-#include <hstd/stdlib/Map.hpp>
-
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/system/aux_templates.hpp>
 
 /// \brief Data-oriented design primitives
 ///
@@ -27,6 +26,25 @@
 /// `dod::MultiStore` is an additional helper type to simplify management
 /// of multiple stores.
 namespace hstd::dod {
+
+struct FormatConfig {
+    std::string name         = "Id";
+    bool        withMask     = true;
+    char        mask_format  = 'b';
+    int         mask_pad_to  = 0;
+    char        index_format = ' ';
+    int         index_pad_to = 0;
+};
+
+namespace detail {
+std::string format_id(
+    uint64_t            mask,
+    uint64_t            index,
+    int                 mask_size,
+    FormatConfig const& conf,
+    bool                is_nil);
+}
+
 /// \brief DOD Id type
 ///
 /// \note It does not have a default constructor, if you need co construct
@@ -188,43 +206,13 @@ struct [[nodiscard]] Id {
     /// \brief  Compare full ID value for inequality
     bool operator!=(Id other) const noexcept { return getValue() != other.getValue(); }
 
-    struct FormatConfig {
-        std::string name         = "Id";
-        bool        withMask     = true;
-        char        mask_format  = 'b';
-        int         mask_pad_to  = 0;
-        char        index_format = ' ';
-        int         index_pad_to = 0;
-    };
-
     std::string format(std::string const& name) const {
         return format(FormatConfig{.name = name});
     }
 
     /// \brief Write strig representation of the ID into output stream
     std::string format(FormatConfig const& conf = FormatConfig{}) const {
-        std::string result;
-        if (conf.name.size() != 0) { result += conf.name + "("; }
-
-        if (conf.withMask) {
-            if (0 < mask_size) {
-                result += //
-                    hstd::format_integer_bits(
-                        getMask(), conf.mask_format, conf.mask_pad_to)
-                    + ":";
-            }
-        }
-
-        if (isNil()) {
-            result += "<nil>";
-        } else {
-            result += hstd::format_integer_bits(
-                getIndex(), conf.index_format, conf.index_pad_to);
-        }
-
-        if (conf.name.size() != 0) { result += ")"; }
-
-        return result;
+        return detail::format_id(getMask(), getIndex(), mask_size, conf, isNil());
     }
 
   public:
@@ -388,7 +376,6 @@ struct Store {
 
     void reserve(int size) { content.reserve(size); }
 
-
     bool contains(Id id) const {
         // TODO add support for dedicated store mask that will be compared
         // in order to get better checking. Implement checking using
@@ -496,150 +483,6 @@ struct Store {
             // way of handing
         }
     }
-};
-
-
-/// \brief Stores values with with automatic deduplication
-///
-/// Interned data store - for values that can be hashed for deduplication.
-/// Provided type must be usable as a key for unordered associative
-/// continer.
-template <IsIdType Id, typename Val>
-struct InternStore {
-    InternStore() = default;
-
-    /// \brief Reverse ID mapping store
-    hstd::UnorderedMap<Val, Id> id_map;
-    /// \brief Underlying store for values
-    dod::Store<Id, Val> content;
-
-    DESC_FIELDS(InternStore, (id_map, content))
-
-    /// Add value to the store - if the value is already contained can
-    /// return previous ID
-    [[nodiscard]] auto add(
-        Val const&                               in,
-        std::optional<typename Id::id_mask_type> mask = std::nullopt) -> Id {
-        auto found = id_map.find(in);
-        if (found != id_map.end()) {
-            LOGIC_ASSERTION_CHECK(
-                !found->second.isNil(), "Implementation error, added ID cannot be nil");
-            return found->second;
-        } else {
-            auto result = mask.has_value() ? content.add(in, mask.value())
-                                           : content.add(in);
-            id_map.insert({in, result});
-            LOGIC_ASSERTION_CHECK(
-                !result.isNil(), "Implementation error, added ID cannot be nil");
-            return result;
-        }
-    }
-
-    /// \brief Value has already been interned in the store
-    auto contains(Val const& in) const -> bool { return id_map.find(in) != id_map.end(); }
-
-    bool empty() const { return size() == 0; }
-
-    /// \brief Number of elements
-    auto size() const -> int { return content.size(); }
-    /// \brief Get mutable reference at the content pointed at by the ID
-    auto at(Id id) -> Val& { return content.at(id); }
-    /// \brief Get immutable references at the content pointed at by the ID
-    auto at(Id id) const -> Val const& { return content.at(id); }
-
-    /// \brief Insert new value to the store if it has not already been
-    /// interned
-    ///
-    /// \copydoc Store::insert
-    void insert(Id id, Val const& value) {
-        if (!contains(value)) {
-            LOGIC_ASSERTION_CHECK(
-                !id.isNil(), "cannot use nil ID for interned store key");
-            content.insert(id, value);
-            id_map.insert({value, id});
-        }
-    }
-
-    /// \brief Return generator of the stored indices and values
-    auto pairs() const -> generator<std::pair<Id, CP<Val>>> { return content.pairs(); }
-
-    /// \copydoc Store::items
-    auto items() const -> generator<CP<Val>> { return content.items(); }
-    /// \copydoc Store::items
-    auto items() -> generator<Ptr<Val>> { return content.items(); }
-};
-
-
-/// \brief Wrapper for multiple different stores
-///
-/// Collecting of several different storage types, used as a boilerplate
-/// reduction helper - instead of wrapping around multiple `Store<Id, Val>`
-/// fields in the class, adding helper methods to access them via add/at
-/// you can write a `MultiStore<>` and list all the required data in the
-/// template parameter list. Supports both interned and non-interned
-/// storage solutions.
-template <typename... Args>
-struct MultiStore {
-    inline MultiStore() {}
-
-    //// \brief Get reference to the store that is associated with
-    /// Val
-    template <typename Val>
-        requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
-    auto store() -> Store<id_type_t<Val>, Val>& {
-        return std::get<Store<id_type_t<Val>, Val>>(stores);
-    }
-
-    /// \brief An overload for the interned store case
-    template <typename Val>
-        requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
-    auto store() -> InternStore<id_type_t<Val>, Val>& {
-        return std::get<InternStore<id_type_t<Val>, Val>>(stores);
-    }
-
-    /// \brief Get reference to the store that is associated with
-    /// Val
-    template <typename Val>
-        requires is_in_pack_v<Store<id_type_t<Val>, Val>, Args...>
-    auto store() const -> const Store<id_type_t<Val>, Val>& {
-        return std::get<Store<id_type_t<Val>, Val>>(stores);
-    }
-
-    /// \brief An overload for the interned store case
-    template <typename Val>
-        requires is_in_pack_v<InternStore<id_type_t<Val>, Val>, Args...>
-    auto store() const -> const InternStore<id_type_t<Val>, Val>& {
-        return std::get<InternStore<id_type_t<Val>, Val>>(stores);
-    }
-
-    /// Push value on one of the stores, inferring which one based on the
-    /// ID
-    template <typename Val>
-    [[nodiscard]] auto add(Val const& t) -> id_type_t<Val> {
-        return store<Val>().add(t);
-    }
-
-    /// Get value at one of the associated stores, inferring which one
-    /// based on the value type of the ID
-    template <dod::IsIdType Id>
-    auto at(Id id) -> value_type_t<Id>& {
-        return store<value_type_t<Id>>().at(id);
-    }
-
-    /// \copydoc Store::at
-    template <dod::IsIdType Id>
-    auto at(Id id) const -> value_type_t<Id> const& {
-        return store<value_type_t<Id>>().at(id);
-    }
-
-    /// \copydoc Store::insert
-    template <typename Id, typename Val>
-    void insert(Id id, Val const& val) {
-        return store<Val>().insert(id, val);
-    }
-
-  private:
-    std::tuple<Args...> stores; /// List of associated storage contianers
 };
 
 }; // namespace hstd::dod

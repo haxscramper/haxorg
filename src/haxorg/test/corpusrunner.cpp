@@ -1,32 +1,31 @@
 #include "corpusrunner.hpp"
 
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Debug.hpp>
-
-#include <haxorg/exporters/ExporterJson.hpp>
-#include <haxorg/exporters/exportertree.hpp>
-#include <haxorg/exporters/exportersimplesexpr.hpp>
-#include <haxorg/exporters/exporteryaml.hpp>
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/diffs.hpp>
-#include <fstream>
 #include <cstdlib>
-#include <haxorg/sem/perfetto_org.hpp>
-#include <haxorg/sem/SemOrgFormat.hpp>
+#include <fstream>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <hstd/ext/logger.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/YamlSerde.hpp>
-#include <hstd/stdlib/ColTextSerde.hpp>
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/stdlib/IntSetSerde.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/ext/bimap_wrap_serde.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
+#include <haxorg/exporters/ExporterJson.hpp>
+#include <haxorg/exporters/exportersimplesexpr.hpp>
+#include <haxorg/exporters/exportertree.hpp>
+#include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
+#include <haxorg/sem/SemOrgFormat.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/ext/bimap_wrap_serde.hpp>
+#include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/ColTextSerde.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/IntSetSerde.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/YamlSerde.hpp>
+#include <hstd/stdlib/diffs.hpp>
 
 using namespace org::test;
 using namespace hstd;
@@ -536,8 +535,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     if (0 < failCount) {
         yaml converted_yaml  = toYaml(converted);
         yaml expected_yaml   = toYaml(expected);
-        auto converted_lines = Str(fmt1(converted_yaml)).split('\n');
-        auto expected_lines  = Str(fmt1(expected_yaml)).split('\n');
+        auto converted_lines = split(Str(fmt1(converted_yaml)), '\n');
+        auto expected_lines  = split(Str(fmt1(expected_yaml)), '\n');
 
         BacktrackRes sem_lcs = longestCommonSubsequence<Str>(
             converted_lines, expected_lines, [](Str const& lhs, Str const& rhs) -> bool {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "graph_common.hpp"
 #include "graph_attribute.hpp"
+#include "graph_common.hpp"
 
 namespace hstd::ext::graph {
 

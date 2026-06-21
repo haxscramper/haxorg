@@ -1,10 +1,11 @@
-#include <hstd/ext/error_write.hpp>
-#include <gtest/gtest.h>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/diffs.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
 #include "../common.hpp"
+#include <gtest/gtest.h>
+#include <hstd/ext/error_write.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/diffs.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;
@@ -625,7 +626,7 @@ def multiline :: Str = match Some 5 in {
 
 hstd::Str remove_trailing(hstd::Str const& in) {
     hstd::Str noLeadTail = hstd::strip(in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
-    return hstd::own_view(noLeadTail.split('\n'))
+    return hstd::own_view(split(noLeadTail, '\n'))
          | rv::transform([](hstd::Str const& str) -> hstd::Str {
                return hstd::strip(str, CharSet{}, CharSet{' '});
            })

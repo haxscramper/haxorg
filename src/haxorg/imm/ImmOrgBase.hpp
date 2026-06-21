@@ -1,17 +1,17 @@
 #pragma once
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
-#include <hstd/stdlib/dod_base.hpp>
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <hstd/stdlib/Time.hpp>
+#include <hstd/stdlib/dod_base.hpp>
 
-#include <hstd/ext/immer.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/reflection_visitor.hpp>
 #include <haxorg/sem/SemOrgTypes.hpp>
+#include <hstd/ext/immer.hpp>
 #include <hstd/stdlib/Array.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/ColTextHShow.hpp>
+#include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/reflection_visitor.hpp>
 
 namespace org::imm {
 struct ImmReflFieldId;
@@ -34,13 +34,7 @@ using ImmReflPathItemBase = hstd::ReflPathItem<ImmReflPathTag>;
 using ImmReflPathBase     = hstd::ReflPath<ImmReflPathTag>;
 
 struct [[refl]] ImmReflFieldId {
-    [[refl]] hstd::Str getName() const {
-        if (typeId.has_value()) {
-            return hstd::get_registered_field_name(typeId.value(), index);
-        } else {
-            return hstd::fmt("field_{}", index);
-        }
-    }
+    [[refl]] hstd::Str getName() const;
 
     using offset_type = std::uint32_t;
 
@@ -51,12 +45,7 @@ struct [[refl]] ImmReflFieldId {
 
     static ImmReflFieldId FromIdParts(
         std::optional<std::type_index> typeId,
-        offset_type                    index) {
-        ImmReflFieldId res{};
-        res.typeId = typeId;
-        res.index  = index;
-        return res;
-    }
+        offset_type                    index);
 
     template <typename T, typename F>
     static ImmReflFieldId FromTypeField(F T::* fieldPtr) {
@@ -70,10 +59,7 @@ struct [[refl]] ImmReflFieldId {
 
     std::uint64_t getSerializableId() const { return index; }
 
-    static ImmReflFieldId fromSerializableId(std::uint64_t id) {
-        return ImmReflFieldId::FromIdParts(
-            std::nullopt, static_cast<offset_type>(id & 0xFFFFFFFF));
-    }
+    static ImmReflFieldId fromSerializableId(std::uint64_t id);
 };
 
 
@@ -166,22 +152,14 @@ struct fmt::formatter<hstd::ext::ImmBox<std::string>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
         hstd::ext::ImmBox<std::string> const& p,
-        fmt::format_context&                  ctx) const {
-        hstd::fmt_ctx("Box{", ctx);
-        hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
-        return hstd::fmt_ctx("}", ctx);
-    }
+        fmt::format_context&                  ctx) const;
 };
 
 template <>
 struct fmt::formatter<hstd::ext::ImmBox<hstd::Str>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(hstd::ext::ImmBox<hstd::Str> const& p, fmt::format_context& ctx)
-        const {
-        hstd::fmt_ctx("Box{", ctx);
-        hstd::fmt_ctx(hstd::escape_literal(p.get()), ctx);
-        return hstd::fmt_ctx("}", ctx);
-    }
+        const;
 };
 
 
@@ -245,10 +223,9 @@ struct [[refl]] ImmId : ImmIdBase {
     static const hstd::u64 NodeKindMask;
     static const hstd::u64 NodeKindOffset;
 
-    // clang-format off
-    static NodeIdxT   getNodeIdx(IdType id)    { return NodeIdxT((id & NodeIdxMask) >> NodeIdxOffset); }
-    static OrgSemKind getKind(IdType id)       { return OrgSemKind((id & NodeKindMask) >> NodeKindOffset); }
-    // clang-format on
+    static NodeIdxT getNodeIdx(IdType id);
+
+    static OrgSemKind getKind(IdType id);
 
     static IdType combineMask(OrgSemKind kind);
 
@@ -260,18 +237,18 @@ struct [[refl]] ImmId : ImmIdBase {
     }
 
     ImmId() : ImmIdBase{0} {};
-    static ImmId FromValue(hstd::u64 value) { return ImmId{ImmIdBase::FromValue(value)}; }
+    static ImmId FromValue(hstd::u64 value);
     ImmId(ImmIdBase const& base) : ImmIdBase{base} {};
 
     ImmId(OrgSemKind kind, NodeIdxT nodeIndex)
         : ImmIdBase{combineFullValue(kind, nodeIndex)} {}
 
-    [[refl]] OrgSemKind getKind() const { return ImmId::getKind(value); }
-    [[refl]] bool       is(OrgSemKind kind) const { return getKind() == kind; }
+    [[refl]] OrgSemKind getKind() const;
+    [[refl]] bool       is(OrgSemKind kind) const;
 
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
-    [[refl]] NodeIdxT getNodeIndex() const { return ImmId::getNodeIdx(value); }
+    [[refl]] NodeIdxT getNodeIndex() const;
 
     /// \brief Convert this node to one with specified kind
     template <typename T>
@@ -296,13 +273,10 @@ struct [[refl]] ImmId : ImmIdBase {
 
     void assertValid() const;
 
-    bool operator<(Id other) const noexcept { return getValue() < other.getValue(); }
-
-    bool operator<=(Id other) const noexcept { return getValue() <= other.getValue(); }
-
-    bool operator==(Id other) const noexcept { return getValue() == other.getValue(); }
-
-    bool operator!=(Id other) const noexcept { return getValue() != other.getValue(); }
+    bool operator<(Id other) const noexcept;
+    bool operator<=(Id other) const noexcept;
+    bool operator==(Id other) const noexcept;
+    bool operator!=(Id other) const noexcept;
 };
 
 template <typename T>
@@ -321,42 +295,20 @@ struct [[refl]] ImmOrg {
     virtual OrgSemKind               getKind() const = 0;
     virtual ~ImmOrg()                                = default;
 
-    ImmId at(int pos) const { return subnodes.at(pos); }
-    auto  begin() const { return subnodes.begin(); }
-    auto  end() const { return subnodes.end(); }
-    int   size() const { return subnodes.size(); }
-    int   indexOf(org::imm::ImmId subnode) const {
-        for (int i = 0; i < subnodes.size(); ++i) {
-            if (subnodes.at(i) == subnode) { return i; }
-        }
-        return -1;
-    }
+    ImmId                              at(int pos) const;
+    hstd::ext::ImmVec<ImmId>::iterator begin() const;
+    hstd::ext::ImmVec<ImmId>::iterator end() const;
+    int                                size() const;
+    int                                indexOf(org::imm::ImmId subnode) const;
 
-    bool is(SemSet const& kind) const { return kind.contains(getKind()); }
-    bool is(OrgSemKind kind) const { return getKind() == kind; }
+    bool is(SemSet const& kind) const;
+    bool is(OrgSemKind kind) const;
 
     template <typename T>
-    T const* dyn_cast() const {
-        return dynamic_cast<T const*>(this);
-    }
+    T const* dyn_cast() const;
 
     template <typename T>
-    T const* as() const {
-        auto res = dyn_cast<T>();
-        if (res == nullptr) {
-            if constexpr (std::is_abstract_v<T>) {
-                throw std::logic_error(
-                    hstd::fmt("Cannot cast node of kind {}", this->getKind()));
-            } else {
-                throw std::logic_error(
-                    hstd::fmt(
-                        "Cannot cast node of kind {} to kind {}",
-                        this->getKind(),
-                        T::staticKind));
-            }
-        }
-        return res;
-    }
+    T const* as() const;
 
     DESC_FIELDS(ImmOrg, (subnodes, loc));
 };

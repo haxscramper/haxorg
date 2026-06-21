@@ -1,24 +1,24 @@
 #include "git_ir.hpp"
 
-#include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <boost/thread/mutex.hpp>
 #include <fstream>
 
-#include "repo_processing.hpp"
 #include "program_state.hpp"
-#include <absl/log/log.h>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/Json.hpp>
+#include "repo_processing.hpp"
 #include <SQLiteCpp/SQLiteCpp.h>
-#include <absl/log/log_sink_registry.h>
-#include <absl/strings/str_split.h>
-#include <absl/strings/str_format.h>
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
+#include <absl/log/log.h>
+#include <absl/log/log_sink_registry.h>
+#include <absl/strings/str_format.h>
+#include <absl/strings/str_split.h>
 #include <hstd/ext/logger.hpp>
-#include <hstd/stdlib/SetSerde.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/SetSerde.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 
 #include "repo_profile.hpp"

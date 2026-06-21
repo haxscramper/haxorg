@@ -1,12 +1,11 @@
 #pragma once
 
-#include <variant>
+#include <hstd/stdlib/Func.hpp>
 #include <hstd/system/basic_templates.hpp>
-#include <hstd/system/macros.hpp>
 #include <hstd/system/exceptions.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/system/reflection.hpp>
 #include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
+#include <variant>
 
 
 namespace hstd {
@@ -154,9 +153,14 @@ struct hstd::value_metadata<hstd::Variant<Args...>> {
     }
 
     static std::string typeName() {
-        return Str{"Variant<"}
-             + Str{", "}.join(Vec<Str>{hstd::value_metadata<Args>::typeName()...})
-             + Str{">"};
+        std::string result = "Variant<";
+        auto sub = std::vector<std::string>{hstd::value_metadata<Args>::typeName()...};
+        for (size_t i = 0; i < sub.size(); ++i) {
+            if (i != 0) { result += ", "; }
+            result += sub.at(i);
+        }
+        result += ">";
+        return result;
     }
 };
 

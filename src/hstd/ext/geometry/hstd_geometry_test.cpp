@@ -1,13 +1,13 @@
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/ext/geometry/hstd_geometry_test.hpp>
-#include <boost/geometry/geometries/segment.hpp>
 #include <algorithm>
-#include <cmath>
-#include <limits>
-#include <boost/preprocessor/variadic/to_seq.hpp>
+#include <boost/geometry/geometries/segment.hpp>
 #include <boost/preprocessor/seq/for_each_i.hpp>
 #include <boost/preprocessor/seq/size.hpp>
 #include <boost/preprocessor/stringize.hpp>
+#include <boost/preprocessor/variadic/to_seq.hpp>
+#include <cmath>
+#include <hstd/ext/geometry/hstd_geometry_test.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <limits>
 
 namespace hstd::ext::geometry {
 namespace detail {

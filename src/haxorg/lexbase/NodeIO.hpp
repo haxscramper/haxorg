@@ -1,16 +1,16 @@
 #pragma once
 
 #include "haxorg/base_lexer/base_token.hpp"
-#include <haxorg/lexbase/Node.hpp>
-#include <haxorg/lexbase/Token.hpp>
 #include <haxorg/lexbase/AstSpec.hpp>
-#include <hstd/stdlib/algorithms.hpp>
-#include <haxorg/lexbase/TokenStore.hpp>
+#include <haxorg/lexbase/Node.hpp>
 #include <haxorg/lexbase/NodeStore.hpp>
+#include <haxorg/lexbase/Token.hpp>
+#include <haxorg/lexbase/TokenStore.hpp>
+#include <hstd/stdlib/algorithms.hpp>
 
 #include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Yaml.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/Yaml.hpp>
 
 namespace org::test {
 

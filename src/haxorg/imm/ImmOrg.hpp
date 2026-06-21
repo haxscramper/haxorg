@@ -9,14 +9,16 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <immer/map_transient.hpp>
-#if !ORG_BUILD_EMCC
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#endif
+
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/dod_base_intern.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <immer/vector_transient.hpp>
 
+namespace hstd::ext::graph::gv {
+class GraphGroup;
+}
 
 #define _declare_hash(__kind)                                                            \
     template <>                                                                          \

@@ -16,6 +16,7 @@
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/stdlib/Enumerate.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
+#    include <hstd/stdlib/strutils.hpp>
 
 namespace hstd::ext::kiwi_ir {
 
@@ -236,9 +237,9 @@ Vec<Str> ConstraintBase::getBuildRepr(hstd::Opt<RectMap> const& rects) const {
     if (rects) {
         for (auto const& c : build(rects.value())) {
             if (verbose_build_repr) {
-                joined.append(tree_repr(c).split("\n"));
+                joined.append(split(tree_repr(c), "\n"));
             } else {
-                joined.append(flat_repr(c).split("\n"));
+                joined.append(split(flat_repr(c), "\n"));
             }
         }
     }
@@ -442,7 +443,7 @@ Str MultiSeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
 
     auto     t_1   = Str{hstd::format_table(g_fmt, " => ", "")};
     auto     ind   = hstd::indent(t_1, 2);
-    Vec<Str> table = ind.split('\n');
+    Vec<Str> table = split(ind, '\n');
     joined.append(table);
     joined.append(getBuildRepr(rects));
 

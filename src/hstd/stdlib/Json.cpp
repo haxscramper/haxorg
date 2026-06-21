@@ -3,8 +3,8 @@
 #include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/Vec.hpp>
 
-#include <string>
 #include <hstd/stdlib/Func.hpp>
+#include <string>
 
 
 template class nlohmann::basic_json<>;

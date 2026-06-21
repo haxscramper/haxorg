@@ -2,14 +2,14 @@
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
 
-#include <boost/log/sinks.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/core/null_deleter.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/ext/log_graph_tracker.hpp>
 #include "../common.hpp"
+#include <boost/core/null_deleter.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks.hpp>
+#include <boost/make_shared.hpp>
+#include <boost/shared_ptr.hpp>
+#include <hstd/ext/log_graph_tracker.hpp>
+#include <hstd/stdlib/Map.hpp>
 
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/PairFormatter.hpp>

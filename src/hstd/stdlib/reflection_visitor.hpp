@@ -2,19 +2,19 @@
 
 #include "hstd/stdlib/Enumerate.hpp"
 #include "hstd/stdlib/Set.hpp"
-#include <hstd/system/aux_utils.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/stdlib/Vec.hpp>
-#include <hstd/stdlib/Span.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Map.hpp>
 #include <any>
-#include <set>
-#include <hstd/stdlib/algorithms.hpp>
 #include <boost/preprocessor.hpp>
+#include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Span.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/algorithms.hpp>
+#include <hstd/system/aux_utils.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
+#include <set>
 #include <typeindex>
 
 template <>

@@ -1,55 +1,8 @@
 #pragma once
 
-#include <functional>
-#include "macros.hpp"
-#include <cmath>
+#include <hstd/system/macros.hpp>
 
 namespace hstd {
-
-/// Trigger callback when exiting the scope. Ad-hoc RAII
-/// implementation
-template <typename Func>
-struct finally {
-    /// Callback function called in destructor
-    Func action;
-
-    /// Default constructor, use as ~funally{[](){ callback-action(); }}~
-    explicit finally(Func _action) : action(_action) {}
-
-    /// Overloaded constructor to run scope finalizer with some captured
-    /// value
-    template <typename T, typename Func1>
-    static finally init(Func1 _action, T const& value) {
-        return finally([value, _action]() { _action(value); });
-    }
-
-    /// Constructor for do-nothing default action
-    static finally nop() { return finally{finally::nop_impl}; }
-
-    ~finally() { action(); }
-
-  private:
-    static void nop_impl() {}
-};
-
-using finally_std = finally<std::function<void(void)>>;
-
-template <typename Func>
-bool no_exception(Func const& f) {
-    try {
-        f();
-        return true;
-    } catch (...) { return false; }
-}
-
-/// Overloading support for `std::visit`
-template <class... Ts>
-struct overloaded : Ts... {
-    using Ts::operator()...;
-};
-
-template <class... Ts>
-overloaded(Ts...) -> overloaded<Ts...>;
 
 /// Helper base type for defining CRTP classes
 template <typename T>
@@ -66,51 +19,6 @@ struct CRTP_this_method {
 #define __ploc()                                                                         \
     std::cout << __FILE__ << ":" << __LINE__ << " at " << __func__ << std::endl;
 
-
-/// Check if ~ptr~ falls in ~[start, start + size]~ range. Start and size
-/// addition will use pointer arichmetics to compute the size.
-template <typename T>
-bool is_within_memory_block(T const* ptr, T const* start, std::size_t size) {
-    T const* end = start + size;
-    return start <= ptr && ptr < end;
-}
-
-template <typename T>
-bool is_pointer_valid(T const* ptr, T const* start, std::size_t size) {
-    // check if the pointer is null or not within the memory block
-    return ptr != nullptr && is_within_memory_block(ptr, start, size);
-}
-
-template <typename T>
-std::ptrdiff_t pointer_distance(T const* first, T const* last) {
-    return last - first;
-}
-
-inline bool isclose(double a, double b, double rtol = 1e-5, double atol = 1e-8) {
-    return std::abs(a - b) <= atol + rtol * std::abs(b);
-}
-
-template <typename T>
-concept UnsignedInteger = std::unsigned_integral<T>;
-
-template <UnsignedInteger T>
-constexpr bool masked_equals(T base, T mask, T set_value) {
-    return (base & mask) == set_value;
-}
-
-template <UnsignedInteger T>
-constexpr T assign_masked(T base, T mask, T set_value) {
-    return (base & ~mask) | (set_value & mask);
-}
-
-template <UnsignedInteger T>
-constexpr T without_masked_bits(T base, T mask) {
-    return base & ~mask;
-}
-
-template <UnsignedInteger T>
-constexpr T masked_bits_right(T value, T mask, unsigned mask_size) {
-    return (value & mask) >> (sizeof(T) * 8 - mask_size);
-}
+bool isclose(double a, double b, double rtol = 1e-5, double atol = 1e-8);
 
 } // namespace hstd

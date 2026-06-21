@@ -2,53 +2,27 @@
 
 #include <concepts>
 #include <limits>
-#include <algorithm>
+#include <typeinfo>
 
 #include <hstd/system/basic_typedefs.hpp>
-
-
-#ifdef __GNUG__
-#    include <cstdlib>
-#    include <memory>
-#    include <cxxabi.h>
 
 namespace hstd {
 
 template <typename T>
-constexpr std::string_view get_type_name_fallback() {
-#    if defined(__clang__)
-    std::string_view p = __PRETTY_FUNCTION__;
-    return std::string_view(p.data() + 34, p.size() - 35);
-#    elif defined(__GNUG__)
+constexpr ::std::string_view get_type_name_fallback() {
+#if defined(__clang__)
+    ::std::string_view p = __PRETTY_FUNCTION__;
+    return ::std::string_view(p.data() + 34, p.size() - 35);
+#elif defined(__GNUG__)
     std::string_view p = __PRETTY_FUNCTION__;
     return std::string_view(p.data() + 49, p.find(';', 49) - 49);
-#    else
-    return "unknown";
-#    endif
-}
-
-
-inline std::string demangle(char const* name) {
-
-    int status = -4; // some arbitrary value to eliminate the compiler
-                     // warning
-
-    // enable c++11 by passing the flag -std=c++11 to g++
-    std::unique_ptr<char, void (*)(void*)> res{
-        abi::__cxa_demangle(name, NULL, NULL, &status), std::free};
-
-    return (status == 0) ? res.get() : name;
-}
-} // namespace hstd
-
 #else
-
-namespace hstd {
-// does nothing if not g++
-inline std::string demangle(char const* name) { return name; }
-} // namespace hstd
-
+    return "unknown";
 #endif
+}
+
+::std::string demangle(char const* name);
+} // namespace hstd
 
 namespace hstd {
 

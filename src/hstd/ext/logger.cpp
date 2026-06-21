@@ -1,6 +1,9 @@
 #include "logger.hpp"
 
 #if !ORG_BUILD_EMCC
+#    include <boost/algorithm/string.hpp>
+#    include <boost/algorithm/string/classification.hpp>
+#    include <boost/format.hpp>
 #    include <boost/log/attributes.hpp>
 #    include <boost/log/core.hpp>
 #    include <boost/log/expressions.hpp>
@@ -14,23 +17,20 @@
 #    include <boost/log/trivial.hpp>
 #    include <boost/log/utility/manipulators/add_value.hpp>
 #    include <boost/log/utility/setup/common_attributes.hpp>
-#    include <boost/algorithm/string.hpp>
-#    include <boost/algorithm/string/classification.hpp>
-#    include <boost/format.hpp>
 #    include <boost/property_map/property_map.hpp>
 #    include <hstd/stdlib/Enumerate.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
 
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
-#    include <stack>
-#    include <mutex>
-#    include <hstd/stdlib/Opt.hpp>
-#    include <boost/thread/shared_mutex.hpp>
 #    include <boost/thread/locks.hpp>
-#    include <fstream>
+#    include <boost/thread/shared_mutex.hpp>
 #    include <cpptrace/cpptrace.hpp>
+#    include <fstream>
 #    include <hstd/stdlib/JsonUse.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <mutex>
+#    include <stack>
 
 
 using namespace hstd;
@@ -227,7 +227,7 @@ void format_log_record_data(
     };
 
     if (data.message.contains('\n')) {
-        auto split = data.message.split('\n');
+        auto split = hstd::split(data.message, '\n');
         write_trail(true);
         for (auto const& line : split) {
             strm << "\n";
@@ -293,7 +293,7 @@ struct log_differential_sink
         auto&         prev_fmt = factory->prev_run_format;
 
         auto prefixed_write = [&](Str const& prefix, Str const& text) {
-            for (auto const& line : text.split("\n")) { ofs << prefix << line << "\n"; }
+            for (auto const& line : split(text, "\n")) { ofs << prefix << line << "\n"; }
         };
 
         while (i < prev.size() || j < curr_run.size()) {

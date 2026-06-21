@@ -1,14 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <variant>
-#include <type_traits>
-#include <memory>
-#include <variant>
-#include <type_traits>
+#include <boost/describe.hpp>
 #include <boost/mp11.hpp>
 #include <hstd/system/macros.hpp>
-#include <boost/describe.hpp>
+#include <memory>
+#include <type_traits>
+#include <variant>
 
 namespace hstd {
 

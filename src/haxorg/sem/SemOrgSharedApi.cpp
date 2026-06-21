@@ -1,14 +1,15 @@
 /// \file Implementation of methods shared for both sem AST and immutable
 /// AST
 
-#include <haxorg/imm/ImmOrg.hpp>
-#include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/Ranges.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
-#include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/stdlib/Formatter.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <haxorg/sem/SemOrg.hpp>
+#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/strutils.hpp>
 
 
 using namespace org;

@@ -116,7 +116,7 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
     hstd::ColText const& lhs,
     hstd::ColText const& rhs) {
     return __gtest_assert_eq_seq_format_text_compare(
-        __gtest_assert_eq_seq_fail_message(lhs.split('\n'), lhs.split('\n')), lhs, rhs);
+        __gtest_assert_eq_seq_fail_message(lhs.split('\n'), rhs.split('\n')), lhs, rhs);
 }
 
 std::string getJString(google::protobuf::Message const& message) {
