@@ -1,11 +1,11 @@
 #pragma once
 
+#include <haxorg/base_lexer/base_token.hpp>
+#include <haxorg/lexbase/Lexer.hpp>
+#include <haxorg/lexbase/NodeAdapter.hpp>
 #include <haxorg/lexbase/Token.hpp>
 #include <haxorg/lexbase/TokenStore.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
-#include <haxorg/lexbase/Lexer.hpp>
-#include <haxorg/base_lexer/base_token.hpp>
-#include <haxorg/lexbase/NodeAdapter.hpp>
 
 namespace org::parse {
 

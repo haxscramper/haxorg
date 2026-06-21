@@ -1,9 +1,9 @@
 #include <benchmark/benchmark.h>
-#include <vector>
-#include <immer/flex_vector.hpp>
-#include <immer/vector.hpp>
 #include <boost/container/small_vector.hpp>
 #include <hstd/stdlib/RecursivePathTracker.hpp>
+#include <immer/flex_vector.hpp>
+#include <immer/vector.hpp>
+#include <vector>
 #pragma clang diagnostic ignored "-Wclang-analyzer-deadcode.DeadStores"
 
 using namespace hstd;

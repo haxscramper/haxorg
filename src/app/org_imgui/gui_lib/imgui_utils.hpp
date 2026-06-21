@@ -1,15 +1,15 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/stdlib/TraceBase.hpp>
-#include <hstd/system/reflection.hpp>
-#include <hstd/ext/logger.hpp>
 #include "imgui.h"
 #include "imgui_internal.h"
+#include <GLFW/glfw3.h>
+#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/TraceBase.hpp>
+#include <hstd/system/reflection.hpp>
 
 #include <stb/stb_truetype.h>
 

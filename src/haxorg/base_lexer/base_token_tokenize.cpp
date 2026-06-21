@@ -1,22 +1,16 @@
 #include "base_token_tokenize.hpp"
-#include <haxorg/lexbase/TraceStructured.hpp>
 #include <cctype>
+#include <haxorg/lexbase/TraceStructured.hpp>
 
-#include <lexy/dsl.hpp>
-#include <lexy/callback.hpp>
-#include <lexy/action/parse.hpp>
-#include <lexy/input/string_input.hpp>
-#include <lexy/action/trace.hpp>
-#include <lexy/callback.hpp>
-#include <lexy/dsl.hpp>
-#include <lexy/input/string_input.hpp>
-#include <lexy/action/parse.hpp>
-#include <lexy/callback.hpp>
-#include <lexy/callback/container.hpp>
-#include <lexy/action/trace.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <lexy/action/parse.hpp>
+#include <lexy/action/trace.hpp>
+#include <lexy/callback.hpp>
+#include <lexy/callback/container.hpp>
+#include <lexy/dsl.hpp>
+#include <lexy/input/string_input.hpp>
 
 
 #pragma clang diagnostic error "-Wswitch"

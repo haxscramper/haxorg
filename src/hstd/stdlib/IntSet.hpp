@@ -2,11 +2,11 @@
 
 #include <bitset>
 
-#include <hstd/system/all.hpp>
-#include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/SetCommon.hpp>
-#include <hstd/system/basic_templates.hpp>
+#include <hstd/stdlib/Slice.hpp>
+#include <hstd/system/all.hpp>
 #include <hstd/system/aux_templates.hpp>
+#include <hstd/system/basic_templates.hpp>
 
 namespace hstd {
 

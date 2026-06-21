@@ -1,19 +1,18 @@
 #include "EvalContext.hpp"
-#include <haxorg/imm/ImmOrg.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <haxorg/api/SemBaseApi.hpp>
-#include <hstd/stdlib/OptSerde.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <haxorg/exporters/ExporterJson.hpp>
-#include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <deque>
+#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg/exporters/ExporterJson.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/OptSerde.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>

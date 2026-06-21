@@ -2,10 +2,10 @@
 
 #include <hstd/system/basic_templates.hpp>
 
-#include <hstd/system/exceptions.hpp>
-#include <hstd/stdlib/Pair.hpp>
 #include <hstd/stdlib/BackwardsIndex.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Pair.hpp>
+#include <hstd/system/exceptions.hpp>
 
 namespace hstd {
 template <typename A, typename B>

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/Set.hpp>
 
 namespace hstd {
 template <typename T>

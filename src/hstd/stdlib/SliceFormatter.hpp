@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Slice.hpp>
 
 template <typename T>
 struct fmt::formatter<hstd::Slice<T>> {

@@ -1,18 +1,18 @@
 #pragma once
 
-#include <cassert>
-#include <iostream>
-#include <filesystem>
-#include <unordered_map>
 #include "git_interface.hpp"
-#include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <immer/flex_vector.hpp>
 #include <absl/log/log.h>
+#include <cassert>
+#include <filesystem>
+#include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/dod_base.hpp>
 #include <hstd/stdlib/dod_base_multi.hpp>
+#include <immer/flex_vector.hpp>
+#include <iostream>
+#include <unordered_map>
 
 template <hstd::dod::IsIdType T>
 auto operator<<(std::ostream& stream, T id) -> std::ostream& {

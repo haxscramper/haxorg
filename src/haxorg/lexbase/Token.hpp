@@ -1,13 +1,13 @@
 #pragma once
 
-#include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Func.hpp>
+#include <hstd/stdlib/IntSet.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/dod_base.hpp>
 
 #include <haxorg/lexbase/Errors.hpp>
 #include <hstd/stdlib/Formatter.hpp>

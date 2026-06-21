@@ -1,8 +1,8 @@
 #pragma once
 
 #include <haxorg/lexbase/Token.hpp>
-#include <hstd/system/reflection.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
+#include <hstd/system/reflection.hpp>
 
 namespace org::parse {
 

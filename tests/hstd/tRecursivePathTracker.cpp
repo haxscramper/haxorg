@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
+#include <hstd/stdlib/RecursivePathTracker.hpp>
 #include <string>
 #include <vector>
-#include <hstd/stdlib/RecursivePathTracker.hpp>
 
 using namespace hstd;
 

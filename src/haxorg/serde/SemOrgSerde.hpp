@@ -5,8 +5,8 @@
 namespace org::algo {}
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
-#    include <src/haxorg/serde/SemOrgProto.pb.h>
 #    include <concepts>
+#    include <src/haxorg/serde/SemOrgProto.pb.h>
 
 namespace org::algo {
 

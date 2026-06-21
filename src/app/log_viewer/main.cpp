@@ -1,9 +1,9 @@
-#include "trace_log_viewer.hpp"
-#include <hstd/stdlib/JsonCLIParser.hpp>
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "trace_log_viewer.hpp"
 #include <GLFW/glfw3.h>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/JsonCLIParser.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 
 struct Conf {

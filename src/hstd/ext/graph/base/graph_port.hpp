@@ -2,11 +2,11 @@
 
 #include <boost/bimap/unordered_multiset_of.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
-#include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index_container.hpp>
 
-#include "graph_common.hpp"
 #include "graph_attribute.hpp"
+#include "graph_common.hpp"
 
 namespace bmi = boost::multi_index;
 

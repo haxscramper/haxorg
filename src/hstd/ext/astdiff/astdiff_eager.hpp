@@ -1,11 +1,11 @@
 #pragma once
 
 #include "common.hpp"
-#include <hstd/system/macros.hpp>
-#include <hstd/system/reflection.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Variant.hpp>
 #include <hstd/stdlib/Vec.hpp>
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
 
 namespace hstd::ext::diff {
 

@@ -4,8 +4,8 @@
 #ifndef REPO_PROCESSING_HPP
 #define REPO_PROCESSING_HPP
 
-#include <mutex>
 #include <boost/process.hpp>
+#include <mutex>
 
 #include "git_ir.hpp"
 #include "program_state.hpp"

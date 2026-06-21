@@ -1,12 +1,12 @@
 #pragma once
 
 #include <hstd/stdlib/Formatter.hpp>
-#include <string>
-#include <vector>
+#include <hstd/system/macros.hpp>
+#include <hstd/system/reflection.hpp>
 #include <map>
 #include <ostream>
-#include <hstd/system/reflection.hpp>
-#include <hstd/system/macros.hpp>
+#include <string>
+#include <vector>
 
 namespace hstd {
 class XmlNode {

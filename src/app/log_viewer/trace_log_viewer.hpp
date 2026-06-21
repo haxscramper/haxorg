@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 #include <functional>
+#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>

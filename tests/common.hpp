@@ -1,12 +1,12 @@
 #pragma once
 
-#include <google/protobuf/message.h>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/ext/logger.hpp>
-#include <hstd/stdlib/diffs.hpp>
-#include <hstd/stdlib/Outcome.hpp>
 #include <boost/preprocessor/facilities/overload.hpp>
+#include <google/protobuf/message.h>
+#include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/Outcome.hpp>
+#include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/diffs.hpp>
 
 struct TestParameters {
     hstd::Str corpusGlob;
