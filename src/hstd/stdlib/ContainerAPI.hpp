@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/stdlib/Vec.hpp>
 #include <hstd/system/aux_templates.hpp>
 #include <hstd/system/aux_utils.hpp>
+#include <hstd/stdlib/Vec.hpp>
 
 namespace hstd {
 template <typename Derived, typename Container, typename ValueType>

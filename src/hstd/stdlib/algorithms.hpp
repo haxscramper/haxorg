@@ -1,9 +1,9 @@
 #pragma once
 
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Span.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Span.hpp>
-#include <hstd/stdlib/Vec.hpp>
 
 #include <hstd/system/generator.hpp>
 

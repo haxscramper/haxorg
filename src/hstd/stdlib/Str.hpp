@@ -1,8 +1,8 @@
 #pragma once
 
+#include <hstd/system/basic_typedefs.hpp>
 #include <hstd/stdlib/Slice.hpp>
 #include <hstd/stdlib/Span.hpp>
-#include <hstd/system/basic_typedefs.hpp>
 
 namespace hstd {
 

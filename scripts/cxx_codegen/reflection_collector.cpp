@@ -1,25 +1,25 @@
 #include "reflection_collector.hpp"
 
-#include <absl/log/check.h>
-#include <absl/log/log.h>
-#include <google/protobuf/message.h>
-#include <google/protobuf/util/json_util.h>
 #include <llvm/Support/TimeProfiler.h>
+#include <absl/log/log.h>
+#include <absl/log/check.h>
+#include <google/protobuf/util/json_util.h>
+#include <google/protobuf/message.h>
 
+#include <llvm/Object/ObjectFile.h>
+#include <llvm/Object/ELFObjectFile.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/InitLLVM.h>
+#include <llvm/Demangle/Demangle.h>
+#include <llvm/ADT/StringRef.h>
+#include <llvm/Support/Error.h>
+#include <llvm/Support/raw_ostream.h>
 #include <fstream>
 #include <hstd/ext/logger.hpp>
-#include <llvm/ADT/StringRef.h>
-#include <llvm/Demangle/Demangle.h>
-#include <llvm/Object/ELFObjectFile.h>
-#include <llvm/Object/ObjectFile.h>
-#include <llvm/Support/CommandLine.h>
-#include <llvm/Support/Error.h>
-#include <llvm/Support/InitLLVM.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/raw_ostream.h>
 
-#include "branching_include_collector.hpp"
 #include <clang/AST/NestedNameSpecifierBase.h>
+#include "branching_include_collector.hpp"
 
 namespace c = clang;
 using llvm::dyn_cast;

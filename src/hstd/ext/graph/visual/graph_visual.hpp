@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hstd/stdlib/TraceBase.hpp"
 #include <hstd/ext/graph/base/graph_base.hpp>
+#include "hstd/stdlib/TraceBase.hpp"
 
 namespace hstd::ext::graph {
 

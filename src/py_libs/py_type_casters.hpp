@@ -1,12 +1,12 @@
 #pragma once
 
 #undef slots
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/algorithms.hpp>
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <nanobind/stl/optional.h>
+#include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Str.hpp>
 
 namespace nanobind {
 namespace detail {

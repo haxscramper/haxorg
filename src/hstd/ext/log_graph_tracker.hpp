@@ -6,17 +6,17 @@
 #        include <QObject>
 #    endif
 
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#    include <hstd/ext/logger.hpp>
+#    include <vector>
 #    include <memory>
-#    include <stack>
 #    include <string>
 #    include <unordered_map>
-#    include <vector>
+#    include <stack>
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#    include <hstd/ext/logger.hpp>
 
 #    if ORG_BUILD_WITH_QT
-#        include <QBuffer>
 #        include <QDebug>
+#        include <QBuffer>
 #    endif
 
 namespace hstd {

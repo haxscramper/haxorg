@@ -1,14 +1,14 @@
 #pragma once
 
 #include <boost/bimap.hpp>
-#include <boost/bimap/unordered_multiset_of.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
 #include <boost/bimap/vector_of.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <boost/bimap/unordered_multiset_of.hpp>
 #include <optional>
 #include <stdexcept>
+#include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Exception.hpp>
 
 namespace hstd::ext {
 

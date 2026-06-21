@@ -1,5 +1,5 @@
-#include <fmt/format.h>
 #include <hstd/system/string_base.hpp>
+#include <fmt/format.h>
 
 template <std::integral T>
 std::string format_string_to_hex(T const& value) {

@@ -62,7 +62,7 @@ BreakConstructorInitializers: BeforeComma
 # BreakInheritanceList: BeforeComma
 
 # Preprocessor
-SortIncludes: true
+SortIncludes: false
 IndentPPDirectives: AfterHash
 
 CommentPragmas: "#.*"

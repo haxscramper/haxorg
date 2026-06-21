@@ -1,11 +1,11 @@
 #include "graph_base.hpp"
 
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 #include <stack>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 using namespace hstd::ext::graph;
 

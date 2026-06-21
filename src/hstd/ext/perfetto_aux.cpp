@@ -5,8 +5,8 @@
 #    include <chrono>
 #    include <condition_variable>
 #    include <fstream>
-#    include <hstd/stdlib/Debug.hpp>
 #    include <thread>
+#    include <hstd/stdlib/Debug.hpp>
 
 
 #endif

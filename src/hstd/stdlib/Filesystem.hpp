@@ -1,11 +1,11 @@
 #pragma once
 
-#include <filesystem>
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/system/exceptions.hpp>
 #include <iostream>
 #include <string>
+#include <filesystem>
+#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/system/exceptions.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd {
 

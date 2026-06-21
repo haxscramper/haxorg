@@ -1,9 +1,9 @@
+#include <hstd/stdlib/Vec.hpp>
 #include <gtest/gtest.h>
 #include <hstd/ext/immer.hpp>
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
 #include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 using namespace hstd;
 

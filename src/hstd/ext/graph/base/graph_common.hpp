@@ -1,18 +1,18 @@
 #pragma once
 
-#include "hstd/stdlib/TraceBase.hpp"
-#include <boost/bimap.hpp>
-#include <boost/serialization/strong_typedef.hpp>
+#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/Map.hpp>
 #include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/ext/geometry/hstd_geometry.hpp>
-#include <hstd/ext/geometry/hstd_visual.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/stdlib/Set.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <boost/serialization/strong_typedef.hpp>
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/Set.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/ext/geometry/hstd_visual.hpp>
+#include <boost/bimap.hpp>
+#include "hstd/stdlib/TraceBase.hpp"
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/hstd/ext/graph/base/graph_base.pb.h"
 #endif

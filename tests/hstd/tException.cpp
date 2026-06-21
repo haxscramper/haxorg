@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <hstd/system/exceptions.hpp>
 #include <hstd/system/generator.hpp>
+#include <hstd/system/exceptions.hpp>
 
 
 using namespace hstd;

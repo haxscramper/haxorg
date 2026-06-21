@@ -1,9 +1,9 @@
 #include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/ColTextHShow.hpp>
-#include <hstd/stdlib/ColTextSerde.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/ColTextSerde.hpp>
+#include <hstd/stdlib/ColTextHShow.hpp>
+#include <hstd/stdlib/Func.hpp>
 
 using namespace hstd;
 

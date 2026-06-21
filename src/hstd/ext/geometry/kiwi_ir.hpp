@@ -7,11 +7,7 @@
 #    include <optional>
 #    include <variant>
 
-#    include <hstd/ext/geometry/hstd_geometry.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
-#    include <hstd/stdlib/Opt.hpp>
-#    include <hstd/stdlib/Variant.hpp>
-#    include <hstd/stdlib/Vec.hpp>
 #    include <hstd/stdlib/Xml.hpp>
 #    include <hstd/system/reflection.hpp>
 #    include <kiwi/constraint.h>
@@ -19,6 +15,10 @@
 #    include <kiwi/solver.h>
 #    include <kiwi/symbolics.h>
 #    include <kiwi/variable.h>
+#    include <hstd/stdlib/Vec.hpp>
+#    include <hstd/stdlib/Variant.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/ext/geometry/hstd_geometry.hpp>
 #    include <src/hstd/ext/geometry/kiwi_ir.pb.h>
 
 template <>

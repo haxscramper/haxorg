@@ -1,11 +1,11 @@
 #include "hstd/stdlib/Ranges.hpp"
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 #include "hstd_visual.hpp"
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/Xml.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 namespace hstd::ext::visual {
 

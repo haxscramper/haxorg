@@ -1,14 +1,14 @@
 #include "TraceBaseStructuredLog.hpp"
 
 #include <chrono>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/stdlib/OptSerde.hpp>
-#include <hstd/stdlib/Pair.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/OptSerde.hpp>
+#include <hstd/stdlib/Pair.hpp>
 
 void hstd::log::record::TraceEventBase::init_ids() {
     if (!pid) { pid = static_cast<int>(::getpid()); }

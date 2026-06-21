@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 using namespace hstd;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <algorithm>
 #include <iterator>
+#include <algorithm>
 #include <stdexcept>
 
 namespace hstd {

@@ -1,6 +1,6 @@
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-#    include <filesystem>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#    include <filesystem>
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Debug.hpp>
 

@@ -3,19 +3,19 @@
 #undef emit
 #undef slots
 
+#include <llvm/Support/CommandLine.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <filesystem>
+#include <llvm/Support/JSON.h>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
-#include <llvm/Support/CommandLine.h>
-#include <llvm/Support/JSON.h>
 
 #include "reflection_perf.hpp" // IWYU pragma: keep
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 
+#include "reflection_collector_frontend.hpp"
 #include "profdata_merger.hpp"
 #include "reflection_collector.hpp"
-#include "reflection_collector_frontend.hpp"
 
 
 static clang::ParsedAttrInfoRegistry::Add<ReflAttrInfo> ReflectionCollectorDef(

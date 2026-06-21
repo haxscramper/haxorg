@@ -1,25 +1,26 @@
 #pragma once
 
 #if ORG_BUILD_WITH_CGRAPH
-#    include <google/protobuf/descriptor.h>
-#    include <google/protobuf/message.h>
-#    include <graphviz/cgraph.h>
 #    include <graphviz/gvc.h>
-#    include <hstd/ext/graph/base/graph_base.hpp>
-#    include <hstd/ext/graph/visual/graph_visual.hpp>
-#    include <hstd/stdlib/Filesystem.hpp>
-#    include <hstd/stdlib/Func.hpp>
-#    include <hstd/stdlib/Opt.hpp>
-#    include <hstd/stdlib/Ptrs.hpp>
-#    include <hstd/stdlib/Variant.hpp>
-#    include <hstd/stdlib/Xml.hpp>
-#    include <hstd/system/all.hpp>
-#    include <hstd/system/generator.hpp>
-#    include <hstd/system/reflection.hpp>
-#    include <src/hstd/ext/graph/base/graph_base.pb.h>
-#    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
+#    include <graphviz/cgraph.h>
+#    include <string>
 #    include <stdexcept>
 #    include <string>
+#    include <hstd/system/all.hpp>
+#    include <hstd/stdlib/Ptrs.hpp>
+#    include <hstd/system/reflection.hpp>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/stdlib/Variant.hpp>
+#    include <hstd/stdlib/Func.hpp>
+#    include <hstd/system/generator.hpp>
+#    include <hstd/stdlib/Filesystem.hpp>
+#    include <hstd/ext/graph/base/graph_base.hpp>
+#    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <src/hstd/ext/graph/base/graph_base.pb.h>
+#    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
+#    include <google/protobuf/descriptor.h>
+#    include <google/protobuf/message.h>
+#    include <hstd/stdlib/Xml.hpp>
 
 #    define _attr_aligned(__Class, Method, key, Type)                                    \
         __Class* set##Method(Type const& value, TextAlign direction = TextAlign::Left) { \

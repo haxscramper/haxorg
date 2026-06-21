@@ -27,21 +27,21 @@
 #    include <hstd/stdlib/Json.hpp>
 #    include <hstd/stdlib/Opt.hpp>
 #    include <hstd/stdlib/Str.hpp>
-#    include <hstd/system/macros.hpp>
 #    include <hstd/system/reflection.hpp>
+#    include <hstd/system/macros.hpp>
 #    include <stack>
 
+#    include <hstd/stdlib/Set.hpp>
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
+#    include <hstd/stdlib/TraceBase.hpp>
 #    include <hstd/stdlib/ContainerAPI.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
-#    include <hstd/stdlib/Set.hpp>
-#    include <hstd/stdlib/TraceBase.hpp>
 #    include <hstd/stdlib/strutils.hpp>
 
 #    if ORG_BUILD_WITH_QT
-#        include <QBuffer>
 #        include <QDebug>
+#        include <QBuffer>
 #    endif
 
 namespace hstd::log {

@@ -1,8 +1,8 @@
 #pragma clang diagnostic error "-Wswitch"
 
 
-#include <haxorg/lexbase/TraceStructured.hpp>
 #include <haxorg/parse/OrgTokenizer.hpp>
+#include <haxorg/lexbase/TraceStructured.hpp>
 #include <hstd/stdlib/Json.hpp>
 
 using namespace org::parse;

@@ -1,9 +1,9 @@
+#include <hstd/stdlib/Str.hpp>
 #include <gtest/gtest.h>
+#include <hstd/stdlib/strutils.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/ColTextHShow.hpp>
-#include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
-#include <hstd/stdlib/strutils.hpp>
 
 #include "../common.hpp"
 

@@ -1,9 +1,6 @@
 #include "logger.hpp"
 
 #if !ORG_BUILD_EMCC
-#    include <boost/algorithm/string.hpp>
-#    include <boost/algorithm/string/classification.hpp>
-#    include <boost/format.hpp>
 #    include <boost/log/attributes.hpp>
 #    include <boost/log/core.hpp>
 #    include <boost/log/expressions.hpp>
@@ -17,20 +14,23 @@
 #    include <boost/log/trivial.hpp>
 #    include <boost/log/utility/manipulators/add_value.hpp>
 #    include <boost/log/utility/setup/common_attributes.hpp>
+#    include <boost/algorithm/string.hpp>
+#    include <boost/algorithm/string/classification.hpp>
+#    include <boost/format.hpp>
 #    include <boost/property_map/property_map.hpp>
 #    include <hstd/stdlib/Enumerate.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
 
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
-#    include <boost/thread/locks.hpp>
-#    include <boost/thread/shared_mutex.hpp>
-#    include <cpptrace/cpptrace.hpp>
-#    include <fstream>
-#    include <hstd/stdlib/JsonUse.hpp>
-#    include <hstd/stdlib/Opt.hpp>
-#    include <mutex>
 #    include <stack>
+#    include <mutex>
+#    include <hstd/stdlib/Opt.hpp>
+#    include <boost/thread/shared_mutex.hpp>
+#    include <boost/thread/locks.hpp>
+#    include <fstream>
+#    include <cpptrace/cpptrace.hpp>
+#    include <hstd/stdlib/JsonUse.hpp>
 
 
 using namespace hstd;

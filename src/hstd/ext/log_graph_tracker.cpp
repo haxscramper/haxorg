@@ -3,19 +3,19 @@
 #if !ORG_BUILD_EMCC
 
 #    if ORG_BUILD_WITH_CGRAPH
-#        include <graphviz/cgraph.h>
 #        include <graphviz/gvc.h>
+#        include <graphviz/cgraph.h>
 #    endif
 
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
-#    include <hstd/stdlib/PairFormatter.hpp>
+#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/stdlib/VecFormatter.hpp>
+#    include <hstd/stdlib/PairFormatter.hpp>
 
 #    if ORG_BUILD_WITH_QT
-#        include <QMetaMethod>
 #        include <QMetaObject>
+#        include <QMetaMethod>
 #    endif
 
 using namespace hstd::log;

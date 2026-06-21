@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstring>
-#include <hstd/system/aux_utils.hpp>
 #include <stdexcept>
 #include <string>
+#include <hstd/system/aux_utils.hpp>
 #if !ORG_BUILD_EMCC
 #    include <cpptrace/exceptions.hpp>
 #endif

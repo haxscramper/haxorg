@@ -1,17 +1,17 @@
 #include "mainwindow.hpp"
 
-#include "file_agenda_table.hpp"
-#include "shared_org_logic.hpp"
 #include <QApplication>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/system/reflection.hpp>
+#include <hstd/stdlib/Json.hpp>
+#include "shared_org_logic.hpp"
+#include "file_agenda_table.hpp"
+#include <hstd/stdlib/JsonSerde.hpp>
 
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/logger.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
+#include <hstd/ext/logger.hpp>
 
 struct MainArgs {
     std::string                infile;

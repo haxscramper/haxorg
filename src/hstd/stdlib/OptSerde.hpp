@@ -1,8 +1,8 @@
 #pragma once
 
+#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/stdlib/Opt.hpp>
 
 namespace hstd {
 template <typename T>

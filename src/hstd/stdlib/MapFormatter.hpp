@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Map.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 template <typename K, typename V>

@@ -1,11 +1,11 @@
-#include <absl/log/log.h>
 #include <gtest/gtest.h>
+#include <string>
+#include <absl/log/log.h>
+#include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Map.hpp>
 #include <hstd/stdlib/RangeSegmentation.hpp>
-#include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
-#include <string>
 
 using namespace hstd;
 

@@ -4,13 +4,13 @@
 
 #    include "hstd/ext/hstd_serde.hpp"
 #    include "hstd/system/exceptions.hpp"
-#    include <hstd/ext/bimap_wrap.hpp>
 #    include <hstd/ext/graph/base/graph_base.hpp>
-#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
-#    include <hstd/ext/graph/visual/graph_vpsc.hpp>
-#    include <hstd/ext/logger.hpp>
+#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
+#    include <hstd/ext/bimap_wrap.hpp>
 #    include <hstd/stdlib/algorithms.hpp>
+#    include <hstd/ext/logger.hpp>
+#    include <hstd/ext/graph/visual/graph_vpsc.hpp>
 
 #    include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>

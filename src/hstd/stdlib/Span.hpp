@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/Slice.hpp>
 #include <hstd/system/all.hpp>
-#include <optional>
+#include <hstd/stdlib/Slice.hpp>
 #include <span>
+#include <optional>
 
 
 namespace hstd {

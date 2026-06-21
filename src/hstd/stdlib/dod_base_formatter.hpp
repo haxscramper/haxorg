@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 
 
 template <hstd::dod::IsDescribedDodIdType Id>

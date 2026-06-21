@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/SetCommon.hpp>
-#include <hstd/stdlib/Vec.hpp>
 #include <hstd/system/all.hpp>
+#include <hstd/stdlib/SetCommon.hpp>
 #include <unordered_set>
+#include <hstd/stdlib/Vec.hpp>
 
 namespace hstd {
 

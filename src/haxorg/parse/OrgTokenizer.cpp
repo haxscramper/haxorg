@@ -1,15 +1,16 @@
 #include "OrgTokenizer.hpp"
 
-#include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 
-#include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/facilities/overload.hpp>
+#include <boost/preprocessor/facilities/empty.hpp>
+#include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/Formatter.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 
 

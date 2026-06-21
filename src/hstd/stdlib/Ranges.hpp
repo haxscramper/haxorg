@@ -1,10 +1,10 @@
 #pragma once
 
+#include <range/v3/all.hpp>
+#include <hstd/system/generator.hpp>
+#include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Pair.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
-#include <hstd/system/generator.hpp>
-#include <range/v3/all.hpp>
 
 namespace hstd {
 

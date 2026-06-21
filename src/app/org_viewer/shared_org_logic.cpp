@@ -1,6 +1,6 @@
 #include "shared_org_logic.hpp"
-#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/ext/logger.hpp>
 
 
 const std::unordered_set<std::string> COMPLETED_TASK_SET = {

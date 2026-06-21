@@ -1,8 +1,8 @@
 #include <hstd/ext/textlayouter.hpp>
-#include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/Ranges.hpp>
 
 #include <absl/log/log.h>
 

@@ -11,10 +11,10 @@
 #include <immer/map_transient.hpp>
 
 #include <boost/preprocessor.hpp>
-#include <hstd/stdlib/dod_base_intern.hpp>
 #include <hstd/stdlib/reflection_visitor.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <immer/vector_transient.hpp>
+#include <hstd/stdlib/dod_base_intern.hpp>
 
 namespace hstd::ext::graph::gv {
 class GraphGroup;
