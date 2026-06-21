@@ -109,10 +109,15 @@ Str hstd::strip(Str const& string, CharSet const& leading, CharSet const& traili
 }
 
 Vec<Str> hstd::split(Str const& str, char ch) {
-    Vec<Str> res;
-    for (const auto& it : split(str, ch)) { res.push_back(it); }
-    return res;
+    Vec<Str>           tokens;
+    Str                token;
+    std::istringstream tokenStream(str);
+
+    while (std::getline(tokenStream, token, ch)) { tokens.push_back(token); }
+
+    return tokens;
 }
+
 
 Vec<Str> hstd::split_keep_separator(Str const& str, CharSet sep) {
     Vec<Str> result;
