@@ -9,7 +9,13 @@
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/test/NodeTest.hpp>
+#include <hstd/ext/logger.hpp>
+#include <hstd/stdlib/IntSetSerde.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
 #include <optional>
 #include <string>
 #include <vector>
@@ -30,7 +36,7 @@ struct CliOpts {
     };
 
     struct ExportOpts {
-        struct JsonOpts {
+        struct Json {
             // TODO: Rename the fields to "show empty lists" with default value false.
             bool skipEmptyLists = false;
             bool skipLocation   = false;
@@ -38,45 +44,61 @@ struct CliOpts {
             bool skipNullFields = false;
             /// \brief Replace multi-character space with a single one on export.
             bool normalizeSpaces = false;
-            JsonOpts() {};
+            Json() {};
             DESC_FIELDS(
-                JsonOpts,
+                Json,
                 (skipEmptyLists, skipLocation, skipId, skipNullFields, normalizeSpaces));
         };
 
-        struct YamlOpts {
+        struct Yaml {
             bool skipNullFields  = false;
             bool skipFalseFields = false;
             bool skipZeroFields  = false;
             bool skipLocation    = false;
             bool skipId          = false;
             DESC_FIELDS(
-                YamlOpts,
+                Yaml,
                 (skipNullFields, skipFalseFields, skipZeroFields, skipLocation, skipId));
-            YamlOpts() {}
+            Yaml() {}
         };
 
-        struct TokenOpts {};
-        struct BaseTokenOpts {};
-        struct ParseNodesOpts {};
+        struct Token {
+            DESC_FIELDS(Token, ());
+        };
+        struct BaseToken {
+            DESC_FIELDS(BaseToken, ());
+        };
+        struct ParseNode {
+            DESC_FIELDS(ParseNode, ());
+        };
 
-        DECL_DESCRIBED_ENUM(ExportType, JSON, YAML, TOKEN, BASE_TOKEN, PARSE_NODE);
+        SUB_VARIANTS(Kind, Data, data, getKind, Json, Yaml, Token, BaseToken, ParseNode);
+        Data data;
 
-        using ExportTarget = std::
-            variant<JsonOpts, YamlOpts, TokenOpts, BaseTokenOpts, ParseNodesOpts>;
+        using ExportTarget = std::variant<Json, Yaml, Token, BaseToken, ParseNode>;
         ExportTarget               target;
         std::optional<std::string> exportTrace;
         std::string                input;
         std::string                output;
         ExportOpts() {}
-        DESC_FIELDS(ExportOpts, (exportTrace, input, output));
+        DESC_FIELDS(ExportOpts, (exportTrace, input, output, target, data));
     };
 
     using MainCmd = std::variant<ParseOpts, ExportOpts>;
     MainCmd cmd;
     bool    withIncludes = true;
     // FIXME: Add sub-variants to the JSON input parsing.
-    DESC_FIELDS(CliOpts, (withIncludes));
+    DESC_FIELDS(CliOpts, (withIncludes, loggingFlags, logFile, cmd));
+
+    DECL_DESCRIBED_ENUM(LoggingFlags, LogToStdout, LogToFile, None);
+    hstd::IntSet<LoggingFlags> loggingFlags{
+        LoggingFlags::LogToStdout,
+        LoggingFlags::LogToFile,
+    };
+
+    static constexpr char const* loggingFlags_opt = "logging-flags";
+    hstd::Opt<hstd::Str>         logFile;
+    static constexpr char const* logFile_opt = "root-log-file";
 };
 
 
@@ -118,36 +140,26 @@ CliOpts::ParseOpts parseParseCmd(std::vector<std::string> const& args) {
     if (vm.count("base-token-trace")) {
         opts.baseTokenTracePath = vm["base-token-trace"].as<std::string>();
     }
+
     if (vm.count("token-trace")) {
         opts.tokenTracePath = vm["token-trace"].as<std::string>();
     }
+
     if (vm.count("parse-trace")) {
         opts.parseTracePath = vm["parse-trace"].as<std::string>();
     }
+
     if (vm.count("sem-trace")) { opts.semTracePath = vm["sem-trace"].as<std::string>(); }
 
     return opts;
 }
 
-
-CliOpts::ExportOpts::JsonOpts parseJsonOpts(po::variables_map const& vm) {
-    CliOpts::ExportOpts::JsonOpts json;
-    json.skipEmptyLists  = vm["skip-empty-lists"].as<bool>();
-    json.skipLocation    = vm["skip-location"].as<bool>();
-    json.skipId          = vm["skip-id"].as<bool>();
-    json.skipNullFields  = vm["skip-null-fields"].as<bool>();
-    json.normalizeSpaces = vm["normalize-spaces"].as<bool>();
-    return json;
-}
-
-CliOpts::ExportOpts::YamlOpts parseYamlOpts(po::variables_map const& vm) {
-    CliOpts::ExportOpts::YamlOpts yaml;
-    yaml.skipNullFields  = vm["skip-null-fields"].as<bool>();
-    yaml.skipFalseFields = vm["skip-false-fields"].as<bool>();
-    yaml.skipZeroFields  = vm["skip-zero-fields"].as<bool>();
-    yaml.skipLocation    = vm["skip-location"].as<bool>();
-    yaml.skipId          = vm["skip-id"].as<bool>();
-    return yaml;
+template <typename E>
+std::string describe_enum() {
+    return hstd::join(
+        ", ",
+        hstd::own_view(hstd::describe_enumerators_as_array<E>())
+            | hstd::rv::transform([](E k) -> std::string { return hstd::fmt1(k); }));
 }
 
 CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
@@ -155,72 +167,64 @@ CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
         exitWithError("export: missing export type (expected 'json' or 'yaml')");
     }
 
-    CliOpts::ExportOpts::ExportType type;
-    std::string const&              typeStr = args.front();
-    if (typeStr == "json") {
-        type = CliOpts::ExportOpts::ExportType::JSON;
-    } else if (typeStr == "yaml") {
-        type = CliOpts::ExportOpts::ExportType::YAML;
-    } else if (typeStr == "-h" || typeStr == "--help") {
-        std::cout << "Usage: export <json|yaml> <input> <output> [options]\n";
-        std::exit(0);
+    std::string const& typeStr = args.front();
+    auto kind = hstd::from_string_insensitive<CliOpts::ExportOpts::Kind>(typeStr);
+    if (kind.has_value()) {
+        // pass
     } else {
-        exitWithError(
-            "export: unknown export type '" + typeStr + "' (expected 'json' or 'yaml')");
+        std::cout << fmt::format(
+            "Usage: export <{}> <input> <output> [options]\n",
+            describe_enum<CliOpts::ExportOpts::Kind>());
+        if (typeStr == "-h" || typeStr == "--help") {
+            std::exit(0);
+        } else {
+            exitWithError("export: unknown export type '" + typeStr + "'");
+        }
     }
 
     std::vector<std::string> rest(args.begin() + 1, args.end());
-
-    CliOpts::ExportOpts opts;
-
-    po::options_description common("export options");
+    CliOpts::ExportOpts      opts;
+    po::options_description  common("export options");
     common.add_options()                                                             //
         ("help,h", "show help for the export command")                               //
         ("input", po::value<std::string>(&opts.input)->required(), "input org file") //
         ("output", po::value<std::string>(&opts.output)->required(), "output file")  //
         ("export-trace", po::value<std::string>(), "export trace path");
 
-
-    po::options_description jsonDesc("json options");
-    jsonDesc.add_options() //
-        ("skip-empty-lists",
-         po::value<bool>()->default_value(true),
-         "skip empty lists on export") //
-        ("skip-location",
-         po::value<bool>()->default_value(true),
-         "skip location fields") //
-        ("skip-id",
-         po::value<bool>()->default_value(true),
-         "skip id fields") //
-        ("skip-null-fields",
-         po::value<bool>()->default_value(true),
-         "skip null fields") //
-        ("normalize-spaces",
-         po::value<bool>()->default_value(true),
-         "replace multi-character space with a single one") //
-        ;
-
-    po::options_description yamlDesc("yaml options");
-    yamlDesc.add_options()(
-        "skip-null-fields", po::value<bool>()->default_value(true), "skip null fields") //
-        ("skip-false-fields",
-         po::value<bool>()->default_value(true),
-         "skip false fields") //
-        ("skip-zero-fields",
-         po::value<bool>()->default_value(true),
-         "skip zero fields") //
-        ("skip-location",
-         po::value<bool>()->default_value(true),
-         "skip location fields")                                              //
-        ("skip-id", po::value<bool>()->default_value(true), "skip id fields") //
-        ;
-
+    using EK = CliOpts::ExportOpts::Kind;
     po::options_description desc;
     desc.add(common);
-    if (type == CliOpts::ExportOpts::ExportType::JSON) {
-        desc.add(jsonDesc);
-    } else {
-        desc.add(yamlDesc);
+    switch (kind.value()) {
+        case EK::Json: {
+            po::options_description jsonDesc("json options");
+            jsonDesc.add_options()
+                // clang-format off
+                ("skip-empty-lists", po::value<bool>()->default_value(true), "skip empty lists on export") //
+                ("skip-location", po::value<bool>()->default_value(true), "skip location fields") //
+                ("skip-id", po::value<bool>()->default_value(true), "skip id fields") //
+                ("skip-null-fields", po::value<bool>()->default_value(true), "skip null fields") //
+                ("normalize-spaces", po::value<bool>()->default_value(true), "replace multi-character space with a single one")
+                // clang-format on
+                ;
+            desc.add(jsonDesc);
+            break;
+        }
+        case EK::Yaml: {
+            po::options_description yamlDesc("yaml options");
+            yamlDesc.add_options()
+                // clang-format off
+                ("skip-null-fields", po::value<bool>()->default_value(true), "skip null fields") //
+                ("skip-false-fields", po::value<bool>()->default_value(true), "skip false fields") //
+                ("skip-zero-fields", po::value<bool>()->default_value(true), "skip zero fields") //
+                ("skip-location", po::value<bool>()->default_value(true), "skip location fields")                                              //
+                ("skip-id", po::value<bool>()->default_value(true), "skip id fields")
+                // clang-format on
+                ;
+            desc.add(yamlDesc);
+            break;
+        }
+        default: {
+        }
     }
 
     po::positional_options_description pos;
@@ -243,10 +247,39 @@ CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
         opts.exportTrace = vm["export-trace"].as<std::string>();
     }
 
-    if (type == CliOpts::ExportOpts::ExportType::JSON) {
-        opts.target = parseJsonOpts(vm);
-    } else {
-        opts.target = parseYamlOpts(vm);
+    switch (kind.value()) {
+        case EK::Json: {
+            CliOpts::ExportOpts::Json json;
+            json.skipEmptyLists  = vm["skip-empty-lists"].as<bool>();
+            json.skipLocation    = vm["skip-location"].as<bool>();
+            json.skipId          = vm["skip-id"].as<bool>();
+            json.skipNullFields  = vm["skip-null-fields"].as<bool>();
+            json.normalizeSpaces = vm["normalize-spaces"].as<bool>();
+            opts.target          = json;
+            break;
+        }
+        case EK::Yaml: {
+            CliOpts::ExportOpts::Yaml yaml;
+            yaml.skipNullFields  = vm["skip-null-fields"].as<bool>();
+            yaml.skipFalseFields = vm["skip-false-fields"].as<bool>();
+            yaml.skipZeroFields  = vm["skip-zero-fields"].as<bool>();
+            yaml.skipLocation    = vm["skip-location"].as<bool>();
+            yaml.skipId          = vm["skip-id"].as<bool>();
+            opts.target          = yaml;
+            break;
+        }
+        case EK::Token: {
+            opts.target = CliOpts::ExportOpts::Token{};
+            break;
+        }
+        case EK::BaseToken: {
+            opts.target = CliOpts::ExportOpts::BaseToken{};
+            break;
+        }
+        case EK::ParseNode: {
+            opts.target = CliOpts::ExportOpts::ParseNode{};
+            break;
+        }
     }
 
     return opts;
@@ -271,8 +304,12 @@ CliOpts parseCli(int argc, char** argv) {
     // strip the root-level --with-includes option out of `rest` so the
     // subcommand parsers don't choke on it
     po::options_description rootDesc;
-    rootDesc.add_options()                                                    //
-        ("with-includes", po::value<bool>(), "parse input with all includes") //
+    rootDesc.add_options()
+        // clang-format off
+        ("with-includes", po::value<bool>(), "parse input with all includes")
+        (CliOpts::loggingFlags_opt,  po::value<std::vector<std::string>>(), "set logging flag values")
+        (CliOpts::logFile_opt, po::value<std::string>(), "main log file for the CLI")
+        // clang-format on
         ;
 
     po::variables_map rootVm;
@@ -285,6 +322,24 @@ CliOpts parseCli(int argc, char** argv) {
 
     if (rootVm.count("with-includes")) {
         result.withIncludes = rootVm["with-includes"].as<bool>();
+    }
+
+
+    if (rootVm.count(CliOpts::loggingFlags_opt)) {
+        for (auto const& value :
+             rootVm[CliOpts::loggingFlags_opt].as<std::vector<std::string>>()) {
+            result.loggingFlags = hstd::IntSet<CliOpts::LoggingFlags>{};
+            auto parsed = hstd::from_string_insensitive<CliOpts::LoggingFlags>(value);
+            if (parsed.has_value()) {
+                result.loggingFlags.incl(parsed.value());
+            } else {
+                exitWithError(
+                    hstd::fmt(
+                        "Unexpected logging flag value: {} expected: {}",
+                        value,
+                        describe_enum<CliOpts::LoggingFlags>()));
+            }
+        }
     }
 
     rest = po::collect_unrecognized(parsedRoot.options, po::include_positional);
@@ -310,6 +365,20 @@ int main(int argc, char* argv[]) {
         = argc == 2 && std::string{argv[1]}.starts_with("/")
             ? hstd::parse_json_argc<CliOpts>(argc, argv)
             : parseCli(argc, argv);
+
+    hstd::log::clear_sink_backends();
+    if (opts.loggingFlags.contains(CliOpts::LoggingFlags::LogToFile)) {
+        // TODO: Get XDG-aware logging file location
+        hstd::log::push_sink(
+            hstd::log::init_file_sink(opts.logFile.value_or("/tmp/haxorg.log")));
+    }
+
+    if (opts.loggingFlags.contains(CliOpts::LoggingFlags::LogToStdout)) {
+        hstd::log::push_sink(hstd::log::init_stdout_sink());
+    }
+
+    HSLOG_INFO("starting");
+    HSLOG_TRACE("CLI opts: {}", opts);
 
     auto pathCB = [](std::string const& path) -> bool {
         // TODO: make this configurable
@@ -374,7 +443,7 @@ int main(int argc, char* argv[]) {
 
             std::visit(
                 hstd::overloaded{
-                    [&](CliOpts::ExportOpts::TokenOpts const& j) -> void {
+                    [&](CliOpts::ExportOpts::Token const& j) -> void {
                         params->onTokenizerDone =
                             [&](org::parse::OrgTokenGroup const& tokens,
                                 std::optional<int>               fragmentIndex) {
@@ -382,7 +451,7 @@ int main(int argc, char* argv[]) {
                                     group_json_repr(tokens, fragmentIndex));
                             };
                     },
-                    [&](CliOpts::ExportOpts::BaseTokenOpts const& j) -> void {
+                    [&](CliOpts::ExportOpts::BaseToken const& j) -> void {
                         params->onBaseTokenizeDone =
                             [&](org::parse::OrgTokenGroup const& tokens,
                                 std::optional<int>               fragmentIndex) {
@@ -390,7 +459,7 @@ int main(int argc, char* argv[]) {
                                     group_json_repr(tokens, fragmentIndex));
                             };
                     },
-                    [&](CliOpts::ExportOpts::ParseNodesOpts const& j) -> void {
+                    [&](CliOpts::ExportOpts::ParseNode const& j) -> void {
                         params->onParseDone = [&](org::parse::OrgNodeGroup const& tokens,
                                                   std::optional<int> fragmentIndex) {
                             parse_lefovers_export["parse_export"].push_back(
@@ -420,7 +489,7 @@ int main(int argc, char* argv[]) {
 
         std::visit(
             hstd::overloaded{
-                [&](CliOpts::ExportOpts::JsonOpts const& j) -> void {
+                [&](CliOpts::ExportOpts::Json const& j) -> void {
                     org::algo::ExporterJson exp;
                     exp.skipEmptyLists  = j.skipEmptyLists;
                     exp.skipId          = j.skipId;
@@ -430,7 +499,7 @@ int main(int argc, char* argv[]) {
                     auto res            = exp.evalTop(node.value());
                     hstd::writeFile(cmd.output, res.dump(2));
                 },
-                [&](CliOpts::ExportOpts::YamlOpts const& j) -> void {
+                [&](CliOpts::ExportOpts::Yaml const& j) -> void {
                     org::algo::ExporterYaml exp;
                     exp.skipNullFields  = j.skipNullFields;
                     exp.skipFalseFields = j.skipFalseFields;
@@ -440,13 +509,13 @@ int main(int argc, char* argv[]) {
                     auto res            = exp.evalTop(node.value());
                     hstd::writeFile(cmd.output, fmt::format("{}\n", res));
                 },
-                [&](CliOpts::ExportOpts::TokenOpts const& j) -> void {
+                [&](CliOpts::ExportOpts::Token const& j) -> void {
                     hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
                 },
-                [&](CliOpts::ExportOpts::BaseTokenOpts const& j) -> void {
+                [&](CliOpts::ExportOpts::BaseToken const& j) -> void {
                     hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
                 },
-                [&](CliOpts::ExportOpts::ParseNodesOpts const& j) -> void {
+                [&](CliOpts::ExportOpts::ParseNode const& j) -> void {
                     hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
                 },
             },

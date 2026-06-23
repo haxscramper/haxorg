@@ -125,6 +125,33 @@ namespace boost::describe {
 }
 
 template <class E>
+E string_to_enum_insensitive(char const* name) {
+    bool found = false;
+    E    r     = {};
+
+    ::boost::mp11::mp_for_each<::boost::describe::describe_enumerators<E>>([&](auto D) {
+        if (!found && strcasecmp(D.name, name) == 0) {
+            found = true;
+            r     = D.value;
+        }
+    });
+
+    if (found) {
+        return r;
+    } else {
+        throw_invalid_name(
+            name,
+#ifdef __cpp_rtti
+            typeid(E).name()
+#else
+            ""
+#endif
+        );
+    }
+}
+
+
+template <class E>
 E string_to_enum(char const* name) {
     bool found = false;
     E    r     = {};
@@ -165,6 +192,13 @@ concept SerializableEnum = IsEnum<T> && requires(T const& value) {
 template <typename T>
 concept NonSerializableEnum = IsEnum<T> && !SerializableEnum<T>;
 
+template <DescribedEnum E>
+std::optional<E> from_string_insensitive(std::string const& str) {
+    try {
+        std::string tmp = str;
+        return boost::describe::string_to_enum_insensitive<E>(tmp.c_str());
+    } catch (...) { return std::nullopt; }
+}
 
 template <DescribedEnum E>
 struct enum_serde<E> {

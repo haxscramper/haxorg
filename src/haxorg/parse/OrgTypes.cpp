@@ -34,3 +34,13 @@ std::string org::fieldname_to_code(std::string_view str) {
 
     return result;
 }
+
+hstd::fmt_iter fmt::formatter<hstd::SPtr<org::parse::OrgNodeMono::Error::Box>>::format(
+    hstd::SPtr<org::parse::OrgNodeMono::Error::Box> const& obj,
+    format_context&                                        ctx) const {
+    if (obj) {
+        return hstd::fmt_ctx(*obj, ctx);
+    } else {
+        return hstd::fmt_ctx("<nullptr>", ctx);
+    }
+}

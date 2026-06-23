@@ -169,6 +169,8 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
 
 sink_ptr init_file_sink(hstd::Str const& log_file_name);
 
+sink_ptr init_stdout_sink();
+
 inline sink_ptr init_file_sink(std::string const& log_file_name) {
     return init_file_sink(hstd::Str{log_file_name});
 }

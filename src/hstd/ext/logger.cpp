@@ -1,4 +1,6 @@
 #include "logger.hpp"
+#include <boost/core/null_deleter.hpp>
+#include <boost/log/sinks/text_ostream_backend.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <boost/algorithm/string.hpp>
@@ -265,6 +267,27 @@ sink_ptr hstd::log::init_file_sink(Str const& log_file_name) {
 
     return sink;
 }
+
+sink_ptr hstd::log::init_stdout_sink() {
+    typedef boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>
+        sink_t;
+
+    boost::shared_ptr<sink_t> sink{new sink_t()};
+
+    boost::shared_ptr<std::ostream> stream(&std::cout, boost::null_deleter());
+    sink->locked_backend()->add_stream(stream);
+    sink->locked_backend()->auto_flush(true);
+
+    sink->set_formatter(
+        [](boost::log::record_view const& rec, boost::log::formatting_ostream& strm) {
+            auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
+            LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
+            format_log_record_data(rec, strm, ref->data);
+        });
+
+    return sink;
+}
+
 
 struct log_differential_sink
     : public boost::log::sinks::
