@@ -1,4 +1,5 @@
 #include "haxorg/exporters/ExporterJson.hpp"
+#include "haxorg/exporters/exporteryaml.hpp"
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
 #include <boost/parser/parser.hpp>
@@ -6,6 +7,7 @@
 #include <fmt/base.h>
 #include <fmt/format.h>
 #include <haxorg/api/ParseContext.hpp>
+#include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/test/NodeTest.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
 #include <optional>
@@ -54,9 +56,14 @@ struct CliOpts {
             YamlOpts() {}
         };
 
-        DECL_DESCRIBED_ENUM(ExportType, JSON, YAML);
+        struct TokenOpts {};
+        struct BaseTokenOpts {};
+        struct ParseNodesOpts {};
 
-        using ExportTarget = std::variant<JsonOpts, YamlOpts>;
+        DECL_DESCRIBED_ENUM(ExportType, JSON, YAML, TOKEN, BASE_TOKEN, PARSE_NODE);
+
+        using ExportTarget = std::
+            variant<JsonOpts, YamlOpts, TokenOpts, BaseTokenOpts, ParseNodesOpts>;
         ExportTarget               target;
         std::optional<std::string> exportTrace;
         std::string                input;
@@ -304,9 +311,7 @@ int main(int argc, char* argv[]) {
             ? hstd::parse_json_argc<CliOpts>(argc, argv)
             : parseCli(argc, argv);
 
-    auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
-
-    directoryParsingOpts->shouldProcessPath = [](std::string const& path) -> bool {
+    auto pathCB = [](std::string const& path) -> bool {
         // TODO: make this configurable
         if (path.contains(".git") || path.contains(".trunk")) {
             return false;
@@ -326,38 +331,92 @@ int main(int argc, char* argv[]) {
         params->tokenTracePath     = cmd.tokenTracePath;
         params->semTracePath       = cmd.semTracePath;
 
+        auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
+
+        directoryParsingOpts->shouldProcessPath = pathCB;
+
         directoryParsingOpts->getParsedNode =
             [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
-            if (opts.withIncludes) {
-                return ctx.parseFileWithIncludes(path, directoryParsingOpts);
-            } else {
-                return ctx.parseFile(path);
-            }
+            return ctx.parseFileOpts(path, params);
         };
 
         if (hstd::fs::is_directory(input)) {
             ctx.parseDirectoryOpts(input, directoryParsingOpts);
         } else {
-            ctx.parseFileOpts(input, params);
+            if (opts.withIncludes) {
+                ctx.parseFileWithIncludes(input, directoryParsingOpts);
+            } else {
+                ctx.parseFileOpts(input, params);
+            }
         }
     } else {
-        auto const& cmd    = std::get<CliOpts::ExportOpts>(opts.cmd);
-        auto        params = org::parse::OrgParseParameters::shared();
+        auto const& cmd = std::get<CliOpts::ExportOpts>(opts.cmd);
 
-        directoryParsingOpts->getParsedNode =
-            [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
-            if (opts.withIncludes) {
-                return ctx.parseFileWithIncludes(path, directoryParsingOpts);
-            } else {
-                return ctx.parseFile(path);
-            }
+
+        auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
+
+        directoryParsingOpts->shouldProcessPath = pathCB;
+
+        json parse_lefovers_export{};
+
+        auto paramsForPath = [&](std::string const& path) {
+            auto params = org::parse::OrgParseParameters::shared();
+
+            auto group_json_repr = [&](auto const&        group,
+                                       std::optional<int> fragmentIndex) -> json {
+                return json::object({
+                    {"path", path},
+                    {"group", org::test::jsonRepr(group)},
+                    {"fragment_index",
+                     fragmentIndex.has_value() ? json{fragmentIndex.value()} : json{}},
+                });
+            };
+
+            std::visit(
+                hstd::overloaded{
+                    [&](CliOpts::ExportOpts::TokenOpts const& j) -> void {
+                        params->onTokenizerDone =
+                            [&](org::parse::OrgTokenGroup const& tokens,
+                                std::optional<int>               fragmentIndex) {
+                                parse_lefovers_export["tokenizer_export"].push_back(
+                                    group_json_repr(tokens, fragmentIndex));
+                            };
+                    },
+                    [&](CliOpts::ExportOpts::BaseTokenOpts const& j) -> void {
+                        params->onBaseTokenizeDone =
+                            [&](org::parse::OrgTokenGroup const& tokens,
+                                std::optional<int>               fragmentIndex) {
+                                parse_lefovers_export["base_tokenizer_export"].push_back(
+                                    group_json_repr(tokens, fragmentIndex));
+                            };
+                    },
+                    [&](CliOpts::ExportOpts::ParseNodesOpts const& j) -> void {
+                        params->onParseDone = [&](org::parse::OrgNodeGroup const& tokens,
+                                                  std::optional<int> fragmentIndex) {
+                            parse_lefovers_export["parse_export"].push_back(
+                                group_json_repr(tokens, fragmentIndex));
+                        };
+                    },
+                    [&](auto const& j) -> void {},
+                },
+                cmd.target);
+
+            return params;
         };
+
+        auto pathToNode = [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
+            return ctx.parseFileOpts(path, paramsForPath(path));
+        };
+
+        directoryParsingOpts->getParsedNode = pathToNode;
 
         hstd::fs::path input{cmd.input};
 
         auto node = hstd::fs::is_directory(input)
                       ? ctx.parseDirectoryOpts(input, directoryParsingOpts)
-                      : ctx.parseFileOpts(input, params);
+                      : (opts.withIncludes
+                             ? ctx.parseFileWithIncludes(input, directoryParsingOpts)
+                             : ctx.parseFileOpts(input, paramsForPath(input)));
 
         std::visit(
             hstd::overloaded{
@@ -371,7 +430,25 @@ int main(int argc, char* argv[]) {
                     auto res            = exp.evalTop(node.value());
                     hstd::writeFile(cmd.output, res.dump(2));
                 },
-                [&](CliOpts::ExportOpts::YamlOpts const& j) -> void {},
+                [&](CliOpts::ExportOpts::YamlOpts const& j) -> void {
+                    org::algo::ExporterYaml exp;
+                    exp.skipNullFields  = j.skipNullFields;
+                    exp.skipFalseFields = j.skipFalseFields;
+                    exp.skipZeroFields  = j.skipZeroFields;
+                    exp.skipLocation    = j.skipLocation;
+                    exp.skipId          = j.skipId;
+                    auto res            = exp.evalTop(node.value());
+                    hstd::writeFile(cmd.output, fmt::format("{}\n", res));
+                },
+                [&](CliOpts::ExportOpts::TokenOpts const& j) -> void {
+                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
+                },
+                [&](CliOpts::ExportOpts::BaseTokenOpts const& j) -> void {
+                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
+                },
+                [&](CliOpts::ExportOpts::ParseNodesOpts const& j) -> void {
+                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
+                },
             },
             cmd.target);
     }
