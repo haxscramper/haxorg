@@ -1,6 +1,6 @@
 add_executable(haxorg_cpp_org_cli)
 target_link_libraries(haxorg_cpp_org_cli PUBLIC haxorg absl::base absl::log absl::flags
-                                                Boost::program_options argparse::argparse)
+                                                argparse::argparse)
 set_common_files(haxorg_cpp_org_cli)
 set_target_output(haxorg_cpp_org_cli)
 set_target_flags(haxorg_cpp_org_cli)
