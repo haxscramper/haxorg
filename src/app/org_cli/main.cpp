@@ -2,10 +2,9 @@
 #include "haxorg/exporters/exporteryaml.hpp"
 #include "haxorg/serde/SemOrgSerde.hpp"
 #include "src/haxorg/serde/SemOrgProto.pb.h"
+#include <argparse/argparse.hpp>
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
-#include <boost/parser/parser.hpp>
-#include <boost/program_options.hpp>
 #include <fmt/base.h>
 #include <fmt/format.h>
 #include <fstream>
@@ -24,8 +23,6 @@
 #include <string>
 #include <vector>
 
-
-namespace po = boost::program_options;
 
 struct CliOpts {
     struct ParseOpts {
@@ -101,8 +98,9 @@ struct CliOpts {
         Data data;
 
         std::optional<std::string> exportTrace;
-        std::string                input;
-        std::string                output;
+        std::vector<std::string>   input;
+        // TODO: Support writing output result to stdout.
+        std::string output;
         ExportOpts() {}
         DESC_FIELDS(ExportOpts, (exportTrace, input, output, data));
     };
@@ -132,51 +130,6 @@ namespace {
     std::exit(1);
 }
 
-CliOpts::ParseOpts parseParseCmd(std::vector<std::string> const& args) {
-    CliOpts::ParseOpts opts;
-
-    po::options_description desc("parse options");
-    desc.add_options()("help,h", "show help for the parse command")(
-        "input",
-        po::value<std::string>(&opts.input)->required(),
-        "input file or directory")                                                     //
-        ("base-token-trace", po::value<std::string>(), "base token trace output path") //
-        ("token-trace", po::value<std::string>(), "token trace output path")           //
-        ("parse-trace", po::value<std::string>(), "parse trace output path")           //
-        ("sem-trace", po::value<std::string>(), "sem trace output path")               //
-        ;
-
-    po::positional_options_description pos;
-    pos.add("input", 1);
-
-    po::variables_map vm;
-    auto parsed = po::command_line_parser(args).options(desc).positional(pos).run();
-    po::store(parsed, vm);
-
-    if (vm.count("help")) {
-        std::cout << "Usage: parse <input> [options]\n" << desc << "\n";
-        std::exit(0);
-    }
-
-    po::notify(vm);
-
-    if (vm.count("base-token-trace")) {
-        opts.baseTokenTracePath = vm["base-token-trace"].as<std::string>();
-    }
-
-    if (vm.count("token-trace")) {
-        opts.tokenTracePath = vm["token-trace"].as<std::string>();
-    }
-
-    if (vm.count("parse-trace")) {
-        opts.parseTracePath = vm["parse-trace"].as<std::string>();
-    }
-
-    if (vm.count("sem-trace")) { opts.semTracePath = vm["sem-trace"].as<std::string>(); }
-
-    return opts;
-}
-
 template <typename E>
 std::string describe_enum() {
     return hstd::join(
@@ -200,126 +153,63 @@ E readEnumValue(std::string const& value, std::string const& message) {
     }
 }
 
-CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
-    if (args.empty()) {
-        exitWithError("export: missing export type (expected 'json' or 'yaml')");
-    }
+/// \brief Add a boolean option that takes an explicit `true`/`false` value and
+/// defaults to \p def when not provided on the command line.
+void addBoolOpt(
+    argparse::ArgumentParser& p,
+    char const*               name,
+    char const*               help,
+    bool                      def) {
+    p.add_argument(name).help(help).default_value(def).action(
+        [](std::string const& v) -> bool { return v == "true" || v == "1"; });
+}
 
-    std::string const& typeStr = args.front();
-    auto kind = hstd::from_string_insensitive<CliOpts::ExportOpts::Kind>(typeStr);
-    if (kind.has_value()) {
-        // pass
-    } else {
-        std::cout << fmt::format(
-            "Usage: export <{}> <input> <output> [options]\n",
-            describe_enum<CliOpts::ExportOpts::Kind>());
-        if (typeStr == "-h" || typeStr == "--help") {
-            std::exit(0);
-        } else {
-            exitWithError("export: unknown export type '" + typeStr + "'");
-        }
-    }
-
-    std::vector<std::string> rest(args.begin() + 1, args.end());
-    CliOpts::ExportOpts      opts;
-    po::options_description  common("export options");
-    common.add_options()                                                             //
-        ("help,h", "show help for the export command")                               //
-        ("input", po::value<std::string>(&opts.input)->required(), "input org file") //
-        ("output", po::value<std::string>(&opts.output)->required(), "output file")  //
-        ("export-trace", po::value<std::string>(), "export trace path");
-
+CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser const& export_cmd) {
     using EO = CliOpts::ExportOpts;
     using EK = EO::Kind;
-    po::options_description desc;
-    desc.add(common);
-    switch (kind.value()) {
-        case EK::Json: {
-            po::options_description desc("json options");
-            desc.add_options()
-                // clang-format off
-                ("skip-empty-lists", po::value<bool>()->default_value(true), "skip empty lists on export") //
-                ("skip-location", po::value<bool>()->default_value(true), "skip location fields") //
-                ("skip-id", po::value<bool>()->default_value(true), "skip id fields") //
-                ("skip-null-fields", po::value<bool>()->default_value(true), "skip null fields") //
-                ("normalize-spaces", po::value<bool>()->default_value(true), "replace multi-character space with a single one")
-                // clang-format on
-                ;
-            desc.add(desc);
-            break;
-        }
-        case EK::Yaml: {
-            po::options_description desc("yaml options");
-            desc.add_options()
-                // clang-format off
-                ("skip-null-fields", po::value<bool>()->default_value(true), "skip null fields") //
-                ("skip-false-fields", po::value<bool>()->default_value(true), "skip false fields") //
-                ("skip-zero-fields", po::value<bool>()->default_value(true), "skip zero fields") //
-                ("skip-location", po::value<bool>()->default_value(true), "skip location fields")                                              //
-                ("skip-id", po::value<bool>()->default_value(true), "skip id fields")
-                // clang-format on
-                ;
-            desc.add(desc);
-            break;
-        }
-        case EK::Proto: {
-            po::options_description desc("proto options");
-            desc.add_options()
-                // clang-format off
-                (EO::Proto::format_opt, po::value<std::string>(), "set protobuf export format")
-                // clang-format on
-                ;
-            break;
-        }
-        default: {
-        }
+
+    CliOpts::ExportOpts opts;
+    opts.input  = export_cmd.get<std::vector<std::string>>("--input");
+    opts.output = export_cmd.get<std::string>("--output");
+
+    if (auto v = export_cmd.present<std::string>("--export-trace")) {
+        opts.exportTrace = *v;
     }
 
-    po::positional_options_description pos;
-    pos.add("input", 1);
-    pos.add("output", 1);
-
-    po::variables_map vm;
-    auto parsed = po::command_line_parser(rest).options(desc).positional(pos).run();
-    po::store(parsed, vm);
-
-    if (vm.count("help")) {
-        std::cout << "Usage: export " << typeStr << " <input> <output> [options]\n"
-                  << desc << "\n";
-        std::exit(0);
-    }
-
-    po::notify(vm);
-
-    if (vm.count("export-trace")) {
-        opts.exportTrace = vm["export-trace"].as<std::string>();
+    std::string const& typeStr = export_cmd.get<std::string>("type");
+    auto               kind    = hstd::from_string_insensitive<EK>(typeStr);
+    if (!kind.has_value()) {
+        exitWithError(
+            "export: unknown export type '" + typeStr
+            + "' expected: " + describe_enum<EK>());
     }
 
     switch (kind.value()) {
         case EK::Json: {
             EO::Json json;
-            json.skipEmptyLists  = vm["skip-empty-lists"].as<bool>();
-            json.skipLocation    = vm["skip-location"].as<bool>();
-            json.skipId          = vm["skip-id"].as<bool>();
-            json.skipNullFields  = vm["skip-null-fields"].as<bool>();
-            json.normalizeSpaces = vm["normalize-spaces"].as<bool>();
+            json.skipEmptyLists  = export_cmd.get<bool>("--skip-empty-lists");
+            json.skipLocation    = export_cmd.get<bool>("--skip-location");
+            json.skipId          = export_cmd.get<bool>("--skip-id");
+            json.skipNullFields  = export_cmd.get<bool>("--skip-null-fields");
+            json.normalizeSpaces = export_cmd.get<bool>("--normalize-spaces");
             opts.data            = json;
             break;
         }
         case EK::Yaml: {
             EO::Yaml yaml;
-            yaml.skipNullFields  = vm["skip-null-fields"].as<bool>();
-            yaml.skipFalseFields = vm["skip-false-fields"].as<bool>();
-            yaml.skipZeroFields  = vm["skip-zero-fields"].as<bool>();
-            yaml.skipLocation    = vm["skip-location"].as<bool>();
-            yaml.skipId          = vm["skip-id"].as<bool>();
+            yaml.skipNullFields  = export_cmd.get<bool>("--skip-null-fields");
+            yaml.skipFalseFields = export_cmd.get<bool>("--skip-false-fields");
+            yaml.skipZeroFields  = export_cmd.get<bool>("--skip-zero-fields");
+            yaml.skipLocation    = export_cmd.get<bool>("--skip-location");
+            yaml.skipId          = export_cmd.get<bool>("--skip-id");
             opts.data            = yaml;
             break;
         }
         case EK::Proto: {
             EO::Proto res;
-            res.format = readEnumValue<EO::Proto::ProtoFormat>(
-                vm[EO::Proto::format_opt].as<std::string>(), "proto format");
+            if (auto v = export_cmd.present<std::string>("--format")) {
+                res.format = readEnumValue<EO::Proto::ProtoFormat>(*v, "proto format");
+            }
             opts.data = res;
             break;
         }
@@ -343,71 +233,107 @@ CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
 } // namespace
 
 CliOpts parseCli(int argc, char** argv) {
-    if (argc < 2) {
-        exitWithError(
-            "missing command\n"
-            "Usage: <program> <parse|export> ...\n"
-            "  parse  <input>\n"
-            "  export <json|yaml> <input> <output>");
-    }
+    using EO = CliOpts::ExportOpts;
+    using EK = EO::Kind;
 
-    std::string const        cmd = argv[1];
-    std::vector<std::string> rest(argv + 2, argv + argc);
+    argparse::ArgumentParser program("haxorg");
+
+    addBoolOpt(program, "--with-includes", "parse input with all includes", true);
+    program.add_argument(std::string{"--"} + CliOpts::loggingFlags_opt)
+        .help("set logging flag values")
+        .append();
+    program.add_argument(std::string{"--"} + CliOpts::logFile_opt)
+        .help("main log file for the CLI");
+
+    argparse::ArgumentParser parse_cmd("parse");
+    parse_cmd.add_description("parse input file or directory");
+    parse_cmd.add_argument("input").help("input file or directory");
+    parse_cmd.add_argument("--base-token-trace").help("base token trace output path");
+    parse_cmd.add_argument("--token-trace").help("token trace output path");
+    parse_cmd.add_argument("--parse-trace").help("parse trace output path");
+    parse_cmd.add_argument("--sem-trace").help("sem trace output path");
+    program.add_subparser(parse_cmd);
+
+    argparse::ArgumentParser export_cmd("export");
+    export_cmd.add_description("export parsed document");
+    export_cmd.add_argument("type").help("export type: " + describe_enum<EK>());
+    export_cmd.add_argument("--input")
+        .help("input org file (repeatable)")
+        .required()
+        .append();
+    export_cmd.add_argument("--output").help("output file").required();
+    export_cmd.add_argument("--export-trace").help("export trace path");
+
+    // json options
+    addBoolOpt(export_cmd, "--skip-empty-lists", "skip empty lists on export", true);
+    addBoolOpt(export_cmd, "--skip-location", "skip location fields", true);
+    addBoolOpt(export_cmd, "--skip-id", "skip id fields", true);
+    addBoolOpt(export_cmd, "--skip-null-fields", "skip null fields", true);
+    addBoolOpt(
+        export_cmd,
+        "--normalize-spaces",
+        "replace multi-character space with a single one",
+        true);
+    // yaml options
+    addBoolOpt(export_cmd, "--skip-false-fields", "skip false fields", true);
+    addBoolOpt(export_cmd, "--skip-zero-fields", "skip zero fields", true);
+    // proto options
+    export_cmd.add_argument(std::string{"--"} + EO::Proto::format_opt)
+        .help("set protobuf export format: " + describe_enum<EO::Proto::ProtoFormat>());
+    program.add_subparser(export_cmd);
+
+    try {
+        program.parse_args(argc, argv);
+    } catch (std::exception const& e) {
+        std::cerr << e.what() << "\n" << program;
+        std::exit(1);
+    }
 
     CliOpts result;
+    result.withIncludes = program.get<bool>("--with-includes");
 
-    // strip the root-level --with-includes option out of `rest` so the
-    // subcommand parsers don't choke on it
-    po::options_description rootDesc;
-    rootDesc.add_options()
-        // clang-format off
-        ("with-includes", po::value<bool>(), "parse input with all includes")
-        (CliOpts::loggingFlags_opt,  po::value<std::vector<std::string>>(), "set logging flag values")
-        (CliOpts::logFile_opt, po::value<std::string>(), "main log file for the CLI")
-        // clang-format on
-        ;
-
-    po::variables_map rootVm;
-    auto              parsedRoot = po::command_line_parser(rest)
-                                       .options(rootDesc)
-                                       .allow_unregistered()
-                                       .run();
-    po::store(parsedRoot, rootVm);
-    po::notify(rootVm);
-
-    if (rootVm.count("with-includes")) {
-        result.withIncludes = rootVm["with-includes"].as<bool>();
-    }
-
-
-    if (rootVm.count(CliOpts::loggingFlags_opt)) {
+    if (auto flags = program.present<std::vector<std::string>>(
+            std::string{"--"} + CliOpts::loggingFlags_opt)) {
         result.loggingFlags = hstd::IntSet<CliOpts::LoggingFlags>{};
-        for (auto const& value :
-             rootVm[CliOpts::loggingFlags_opt].as<std::vector<std::string>>()) {
+        for (auto const& value : *flags) {
             result.loggingFlags.incl(
                 readEnumValue<CliOpts::LoggingFlags>(value, "logging flag"));
         }
     }
 
-    rest = po::collect_unrecognized(parsedRoot.options, po::include_positional);
+    if (auto f = program.present<std::string>(std::string{"--"} + CliOpts::logFile_opt)) {
+        result.logFile = *f;
+    }
 
-    if (cmd == "parse") {
-        result.cmd = parseParseCmd(rest);
-    } else if (cmd == "export") {
-        result.cmd = parseExportCmd(rest);
-    } else if (cmd == "-h" || cmd == "--help") {
-        std::cout << "Usage: <program> <parse|export> ...\n"
-                     "  parse  <input>\n"
-                     "  export <json|yaml> <input> <output>\n";
-        std::exit(0);
+    if (program.is_subcommand_used("parse")) {
+        CliOpts::ParseOpts opts;
+        opts.input = parse_cmd.get<std::string>("input");
+        if (auto v = parse_cmd.present<std::string>("--base-token-trace")) {
+            opts.baseTokenTracePath = *v;
+        }
+        if (auto v = parse_cmd.present<std::string>("--token-trace")) {
+            opts.tokenTracePath = *v;
+        }
+        if (auto v = parse_cmd.present<std::string>("--parse-trace")) {
+            opts.parseTracePath = *v;
+        }
+        if (auto v = parse_cmd.present<std::string>("--sem-trace")) {
+            opts.semTracePath = *v;
+        }
+        result.cmd = opts;
+    } else if (program.is_subcommand_used("export")) {
+        result.cmd = buildExportOpts(export_cmd);
     } else {
-        exitWithError("unknown command '" + cmd + "' (expected 'parse' or 'export')");
+        std::cerr << "missing command (expected 'parse' or 'export')\n" << program;
+        std::exit(1);
     }
 
     return result;
 }
 
 int main(int argc, char* argv[]) {
+    // TODO: Support `@input-file` syntax for passing multiple options to the CLI from a
+    // file.
     auto opts //
         = argc == 2 && std::string{argv[1]}.starts_with("/")
             ? hstd::parse_json_argc<CliOpts>(argc, argv)
@@ -527,7 +453,8 @@ int main(int argc, char* argv[]) {
 
         directoryParsingOpts->getParsedNode = pathToNode;
 
-        hstd::fs::path input{cmd.input};
+        // TODO: Support multiple inputs and unify all parsed nodes into a single group.
+        hstd::fs::path input{cmd.input.at(0)};
 
         auto node = hstd::fs::is_directory(input)
                       ? ctx.parseDirectoryOpts(input, directoryParsingOpts)

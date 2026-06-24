@@ -346,6 +346,7 @@ if(${ORG_BUILD_EMCC})
   add_definitions(-DORG_BUILD_EMCC=1)
 else()
   add_definitions(-DORG_BUILD_EMCC=0)
+  find_package(argparse REQUIRED)
 endif()
 
 if(${ORG_BUILD_WITH_ELK})
