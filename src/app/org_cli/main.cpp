@@ -10,6 +10,10 @@
 #include <fstream>
 #include <google/protobuf/util/json_util.h>
 #include <haxorg/api/ParseContext.hpp>
+#include <haxorg/imm/ImmGetterApi.hpp>
+#include <haxorg/imm/ImmOrg.hpp>
+#include <haxorg/imm/ImmOrgEdit.hpp>
+#include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/test/NodeTest.hpp>
 #include <hstd/ext/logger.hpp>
@@ -85,6 +89,7 @@ struct CliOpts {
             Yaml() {}
         };
 
+
         struct Token {
             DESC_FIELDS(Token, ());
         };
@@ -104,6 +109,17 @@ struct CliOpts {
             DESC_FIELDS(Proto, (format));
         };
 
+        struct Map {
+            DECL_DESCRIBED_ENUM(MapFormat, Binary, Json);
+            MapFormat            format     = MapFormat::Binary;
+            hstd::Opt<hstd::Str> graphTrace = std::nullopt;
+
+            OPT_NAME(graphTrace_opt, "--graph-trace");
+            OPT_NAME(format_opt, "--format");
+            DESC_FIELDS(Map, (format));
+        };
+
+
         SUB_VARIANTS(
             Kind,
             Data,
@@ -114,7 +130,8 @@ struct CliOpts {
             Token,
             BaseToken,
             ParseNode,
-            Proto);
+            Proto,
+            Map);
 
         Data data;
 
@@ -242,6 +259,14 @@ CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser const& export_cmd) 
             opts.data = res;
             break;
         }
+        case EK::Map: {
+            EO::Map res;
+            if (auto v = export_cmd.present<std::string>(EO::Map::format_opt)) {
+                res.format = readEnumValue<EO::Map::MapFormat>(*v, "map format");
+            }
+            opts.data = res;
+            break;
+        }
         case EK::Token: {
             opts.data = EO::Token{};
             break;
@@ -311,6 +336,10 @@ CliOpts parseCli(int argc, char** argv) {
     // proto options
     export_cmd.add_argument(EO::Proto::format_opt)
         .help("set protobuf export format: " + describe_enum<EO::Proto::ProtoFormat>());
+    // map options
+    export_cmd.add_argument(EO::Map::format_opt)
+        .help("set map export format: " + describe_enum<EO::Map::MapFormat>());
+
     program.add_subparser(export_cmd);
 
     try {
@@ -493,6 +522,23 @@ int main(int argc, char* argv[]) {
                              ? ctx.parseFileWithIncludes(input, directoryParsingOpts)
                              : ctx.parseFileOpts(input, paramsForPath(input)));
 
+        auto write_proto_json = [&](google::protobuf::Message const& result) {
+            std::string                          json;
+            google::protobuf::json::PrintOptions j_opts;
+            j_opts.add_whitespace = true;
+            auto status           = google::protobuf::util::MessageToJsonString(
+                result, &json, j_opts);
+
+            hstd::writeFile(cmd.output, json);
+        };
+
+
+        auto write_proto_binary = [&](google::protobuf::Message const& result) {
+            std::ofstream out(cmd.output, std::ios::binary);
+            result.SerializeToOstream(&out);
+        };
+
+
         std::visit(
             hstd::overloaded{
                 [&](EO::Json const& j) -> void {
@@ -529,23 +575,26 @@ int main(int argc, char* argv[]) {
                     org::algo::proto_serde<
                         orgproto::AnyNode,
                         org::sem::SemId<org::sem::Org>>::write(&result, node.value());
-
-                    switch (p.format) {
-                        case EO::Proto::ProtoFormat::Json: {
-                            std::string                          json;
-                            google::protobuf::json::PrintOptions j_opts;
-                            j_opts.add_whitespace = true;
-                            auto status = google::protobuf::util::MessageToJsonString(
-                                result, &json, j_opts);
-
-                            hstd::writeFile(cmd.output, json);
-                            break;
-                        }
-                        case EO::Proto::ProtoFormat::Binary: {
-                            std::ofstream out(cmd.output, std::ios::binary);
-                            result.SerializeToOstream(&out);
-                            break;
-                        }
+                    if (p.format == EO::Proto::ProtoFormat::Json) {
+                        write_proto_json(result);
+                    } else {
+                        write_proto_binary(result);
+                    }
+                },
+                [&](EO::Map const& m) {
+                    org::graph::MapConfig::Ptr   conf{org::graph::MapConfig::shared()};
+                    org::imm::ImmAstContext::Ptr store{
+                        org::imm::ImmAstContext::init_start_context()};
+                    org::imm::ImmAstVersion version = store->addRoot(node.value());
+                    org::graph::MapGraphState::Ptr
+                         state   = org::graph::MapGraphState::shared(version.context);
+                    auto adapter = version.getRootAdapter();
+                    state->addNodeRec(adapter.ctx.lock(), adapter, conf);
+                    auto result = state->graph->get_serial();
+                    if (m.format == EO::Map::MapFormat::Json) {
+                        write_proto_json(*result);
+                    } else {
+                        write_proto_binary(*result);
                     }
                 },
             },
