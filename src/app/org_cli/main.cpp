@@ -1,11 +1,15 @@
 #include "haxorg/exporters/ExporterJson.hpp"
 #include "haxorg/exporters/exporteryaml.hpp"
+#include "haxorg/serde/SemOrgSerde.hpp"
+#include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
 #include <boost/parser/parser.hpp>
 #include <boost/program_options.hpp>
 #include <fmt/base.h>
 #include <fmt/format.h>
+#include <fstream>
+#include <google/protobuf/util/json_util.h>
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/test/NodeTest.hpp>
@@ -19,6 +23,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+
 
 namespace po = boost::program_options;
 
@@ -65,23 +70,41 @@ struct CliOpts {
         struct Token {
             DESC_FIELDS(Token, ());
         };
+
         struct BaseToken {
             DESC_FIELDS(BaseToken, ());
         };
+
         struct ParseNode {
             DESC_FIELDS(ParseNode, ());
         };
 
-        SUB_VARIANTS(Kind, Data, data, getKind, Json, Yaml, Token, BaseToken, ParseNode);
+        struct Proto {
+            DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json);
+            ProtoFormat                  format     = ProtoFormat::Binary;
+            static constexpr char const* format_opt = "format";
+            DESC_FIELDS(Proto, (format));
+        };
+
+        SUB_VARIANTS(
+            Kind,
+            Data,
+            data,
+            getKind,
+            Json,
+            Yaml,
+            Token,
+            BaseToken,
+            ParseNode,
+            Proto);
+
         Data data;
 
-        using ExportTarget = std::variant<Json, Yaml, Token, BaseToken, ParseNode>;
-        ExportTarget               target;
         std::optional<std::string> exportTrace;
         std::string                input;
         std::string                output;
         ExportOpts() {}
-        DESC_FIELDS(ExportOpts, (exportTrace, input, output, target, data));
+        DESC_FIELDS(ExportOpts, (exportTrace, input, output, data));
     };
 
     using MainCmd = std::variant<ParseOpts, ExportOpts>;
@@ -162,6 +185,21 @@ std::string describe_enum() {
             | hstd::rv::transform([](E k) -> std::string { return hstd::fmt1(k); }));
 }
 
+template <typename E>
+E readEnumValue(std::string const& value, std::string const& message) {
+    auto parsed = hstd::from_string_insensitive<E>(value);
+    if (parsed.has_value()) {
+        return parsed.value();
+    } else {
+        exitWithError(
+            hstd::fmt(
+                "unexpected value: {} expected: {} for {}",
+                value,
+                describe_enum<E>(),
+                message));
+    }
+}
+
 CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
     if (args.empty()) {
         exitWithError("export: missing export type (expected 'json' or 'yaml')");
@@ -191,13 +229,14 @@ CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
         ("output", po::value<std::string>(&opts.output)->required(), "output file")  //
         ("export-trace", po::value<std::string>(), "export trace path");
 
-    using EK = CliOpts::ExportOpts::Kind;
+    using EO = CliOpts::ExportOpts;
+    using EK = EO::Kind;
     po::options_description desc;
     desc.add(common);
     switch (kind.value()) {
         case EK::Json: {
-            po::options_description jsonDesc("json options");
-            jsonDesc.add_options()
+            po::options_description desc("json options");
+            desc.add_options()
                 // clang-format off
                 ("skip-empty-lists", po::value<bool>()->default_value(true), "skip empty lists on export") //
                 ("skip-location", po::value<bool>()->default_value(true), "skip location fields") //
@@ -206,12 +245,12 @@ CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
                 ("normalize-spaces", po::value<bool>()->default_value(true), "replace multi-character space with a single one")
                 // clang-format on
                 ;
-            desc.add(jsonDesc);
+            desc.add(desc);
             break;
         }
         case EK::Yaml: {
-            po::options_description yamlDesc("yaml options");
-            yamlDesc.add_options()
+            po::options_description desc("yaml options");
+            desc.add_options()
                 // clang-format off
                 ("skip-null-fields", po::value<bool>()->default_value(true), "skip null fields") //
                 ("skip-false-fields", po::value<bool>()->default_value(true), "skip false fields") //
@@ -220,7 +259,16 @@ CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
                 ("skip-id", po::value<bool>()->default_value(true), "skip id fields")
                 // clang-format on
                 ;
-            desc.add(yamlDesc);
+            desc.add(desc);
+            break;
+        }
+        case EK::Proto: {
+            po::options_description desc("proto options");
+            desc.add_options()
+                // clang-format off
+                (EO::Proto::format_opt, po::value<std::string>(), "set protobuf export format")
+                // clang-format on
+                ;
             break;
         }
         default: {
@@ -249,35 +297,42 @@ CliOpts::ExportOpts parseExportCmd(std::vector<std::string> const& args) {
 
     switch (kind.value()) {
         case EK::Json: {
-            CliOpts::ExportOpts::Json json;
+            EO::Json json;
             json.skipEmptyLists  = vm["skip-empty-lists"].as<bool>();
             json.skipLocation    = vm["skip-location"].as<bool>();
             json.skipId          = vm["skip-id"].as<bool>();
             json.skipNullFields  = vm["skip-null-fields"].as<bool>();
             json.normalizeSpaces = vm["normalize-spaces"].as<bool>();
-            opts.target          = json;
+            opts.data            = json;
             break;
         }
         case EK::Yaml: {
-            CliOpts::ExportOpts::Yaml yaml;
+            EO::Yaml yaml;
             yaml.skipNullFields  = vm["skip-null-fields"].as<bool>();
             yaml.skipFalseFields = vm["skip-false-fields"].as<bool>();
             yaml.skipZeroFields  = vm["skip-zero-fields"].as<bool>();
             yaml.skipLocation    = vm["skip-location"].as<bool>();
             yaml.skipId          = vm["skip-id"].as<bool>();
-            opts.target          = yaml;
+            opts.data            = yaml;
+            break;
+        }
+        case EK::Proto: {
+            EO::Proto res;
+            res.format = readEnumValue<EO::Proto::ProtoFormat>(
+                vm[EO::Proto::format_opt].as<std::string>(), "proto format");
+            opts.data = res;
             break;
         }
         case EK::Token: {
-            opts.target = CliOpts::ExportOpts::Token{};
+            opts.data = EO::Token{};
             break;
         }
         case EK::BaseToken: {
-            opts.target = CliOpts::ExportOpts::BaseToken{};
+            opts.data = EO::BaseToken{};
             break;
         }
         case EK::ParseNode: {
-            opts.target = CliOpts::ExportOpts::ParseNode{};
+            opts.data = EO::ParseNode{};
             break;
         }
     }
@@ -326,19 +381,11 @@ CliOpts parseCli(int argc, char** argv) {
 
 
     if (rootVm.count(CliOpts::loggingFlags_opt)) {
+        result.loggingFlags = hstd::IntSet<CliOpts::LoggingFlags>{};
         for (auto const& value :
              rootVm[CliOpts::loggingFlags_opt].as<std::vector<std::string>>()) {
-            result.loggingFlags = hstd::IntSet<CliOpts::LoggingFlags>{};
-            auto parsed = hstd::from_string_insensitive<CliOpts::LoggingFlags>(value);
-            if (parsed.has_value()) {
-                result.loggingFlags.incl(parsed.value());
-            } else {
-                exitWithError(
-                    hstd::fmt(
-                        "Unexpected logging flag value: {} expected: {}",
-                        value,
-                        describe_enum<CliOpts::LoggingFlags>()));
-            }
+            result.loggingFlags.incl(
+                readEnumValue<CliOpts::LoggingFlags>(value, "logging flag"));
         }
     }
 
@@ -419,7 +466,8 @@ int main(int argc, char* argv[]) {
             }
         }
     } else {
-        auto const& cmd = std::get<CliOpts::ExportOpts>(opts.cmd);
+        using EO        = CliOpts::ExportOpts;
+        auto const& cmd = std::get<EO>(opts.cmd);
 
 
         auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
@@ -443,7 +491,7 @@ int main(int argc, char* argv[]) {
 
             std::visit(
                 hstd::overloaded{
-                    [&](CliOpts::ExportOpts::Token const& j) -> void {
+                    [&](EO::Token const& j) -> void {
                         params->onTokenizerDone =
                             [&](org::parse::OrgTokenGroup const& tokens,
                                 std::optional<int>               fragmentIndex) {
@@ -451,7 +499,7 @@ int main(int argc, char* argv[]) {
                                     group_json_repr(tokens, fragmentIndex));
                             };
                     },
-                    [&](CliOpts::ExportOpts::BaseToken const& j) -> void {
+                    [&](EO::BaseToken const& j) -> void {
                         params->onBaseTokenizeDone =
                             [&](org::parse::OrgTokenGroup const& tokens,
                                 std::optional<int>               fragmentIndex) {
@@ -459,7 +507,7 @@ int main(int argc, char* argv[]) {
                                     group_json_repr(tokens, fragmentIndex));
                             };
                     },
-                    [&](CliOpts::ExportOpts::ParseNode const& j) -> void {
+                    [&](EO::ParseNode const& j) -> void {
                         params->onParseDone = [&](org::parse::OrgNodeGroup const& tokens,
                                                   std::optional<int> fragmentIndex) {
                             parse_lefovers_export["parse_export"].push_back(
@@ -468,7 +516,7 @@ int main(int argc, char* argv[]) {
                     },
                     [&](auto const& j) -> void {},
                 },
-                cmd.target);
+                cmd.data);
 
             return params;
         };
@@ -489,7 +537,7 @@ int main(int argc, char* argv[]) {
 
         std::visit(
             hstd::overloaded{
-                [&](CliOpts::ExportOpts::Json const& j) -> void {
+                [&](EO::Json const& j) -> void {
                     org::algo::ExporterJson exp;
                     exp.skipEmptyLists  = j.skipEmptyLists;
                     exp.skipId          = j.skipId;
@@ -499,7 +547,7 @@ int main(int argc, char* argv[]) {
                     auto res            = exp.evalTop(node.value());
                     hstd::writeFile(cmd.output, res.dump(2));
                 },
-                [&](CliOpts::ExportOpts::Yaml const& j) -> void {
+                [&](EO::Yaml const& j) -> void {
                     org::algo::ExporterYaml exp;
                     exp.skipNullFields  = j.skipNullFields;
                     exp.skipFalseFields = j.skipFalseFields;
@@ -509,16 +557,40 @@ int main(int argc, char* argv[]) {
                     auto res            = exp.evalTop(node.value());
                     hstd::writeFile(cmd.output, fmt::format("{}\n", res));
                 },
-                [&](CliOpts::ExportOpts::Token const& j) -> void {
+                [&](EO::Token const& j) -> void {
                     hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
                 },
-                [&](CliOpts::ExportOpts::BaseToken const& j) -> void {
+                [&](EO::BaseToken const& j) -> void {
                     hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
                 },
-                [&](CliOpts::ExportOpts::ParseNode const& j) -> void {
+                [&](EO::ParseNode const& j) -> void {
                     hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
+                },
+                [&](EO::Proto const& p) {
+                    orgproto::AnyNode result;
+                    org::algo::proto_serde<
+                        orgproto::AnyNode,
+                        org::sem::SemId<org::sem::Org>>::write(&result, node.value());
+
+                    switch (p.format) {
+                        case EO::Proto::ProtoFormat::Json: {
+                            std::string                          json;
+                            google::protobuf::json::PrintOptions j_opts;
+                            j_opts.add_whitespace = true;
+                            auto status = google::protobuf::util::MessageToJsonString(
+                                result, &json, j_opts);
+
+                            hstd::writeFile(cmd.output, json);
+                            break;
+                        }
+                        case EO::Proto::ProtoFormat::Binary: {
+                            std::ofstream out(cmd.output, std::ios::binary);
+                            result.SerializeToOstream(&out);
+                            break;
+                        }
+                    }
                 },
             },
-            cmd.target);
+            cmd.data);
     }
 }
