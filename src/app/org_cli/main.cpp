@@ -140,7 +140,6 @@ struct CliOpts {
         // TODO: Support writing output result to stdout.
         std::string output;
 
-        OPT_NAME(type_opt, "type");
         OPT_NAME(input_opt, "--input");
         OPT_NAME(output_opt, "--output");
         OPT_NAME(exportTrace_opt, "--export-trace");
@@ -177,6 +176,24 @@ namespace {
 }
 
 template <typename E>
+std::string lower_enum(E value) {
+    std::string result = hstd::fmt1(value);
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
+        return std::tolower(c);
+    });
+    return result;
+}
+
+template <typename E>
+std::string describe_subcommands() {
+    return hstd::join(
+        ", ",
+        hstd::own_view(hstd::describe_enumerators_as_array<E>())
+            | hstd::rv::transform([](E k) -> std::string { return lower_enum(k); }));
+}
+
+
+template <typename E>
 std::string describe_enum() {
     return hstd::join(
         ", ",
@@ -210,7 +227,7 @@ void addBoolOpt(
         [](std::string const& v) -> bool { return v == "true" || v == "1"; });
 }
 
-CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser const& export_cmd) {
+CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser& export_cmd) {
     using EO = CliOpts::ExportOpts;
     using EK = EO::Kind;
 
@@ -222,63 +239,48 @@ CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser const& export_cmd) 
         opts.exportTrace = *v;
     }
 
-    std::string const& typeStr = export_cmd.get<std::string>(EO::type_opt);
-    auto               kind    = hstd::from_string_insensitive<EK>(typeStr);
-    if (!kind.has_value()) {
+    if (export_cmd.is_subcommand_used(lower_enum(EK::Json))) {
+        auto&    sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Json));
+        EO::Json json;
+        json.skipEmptyLists  = sub.get<bool>(EO::Json::skipEmptyLists_opt);
+        json.skipLocation    = sub.get<bool>(EO::Json::skipLocation_opt);
+        json.skipId          = sub.get<bool>(EO::Json::skipId_opt);
+        json.skipNullFields  = sub.get<bool>(EO::Json::skipNullFields_opt);
+        json.normalizeSpaces = sub.get<bool>(EO::Json::normalizeSpaces_opt);
+        opts.data            = json;
+    } else if (export_cmd.is_subcommand_used(lower_enum(EK::Yaml))) {
+        auto&    sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Yaml));
+        EO::Yaml yaml;
+        yaml.skipNullFields  = sub.get<bool>(EO::Yaml::skipNullFields_opt);
+        yaml.skipFalseFields = sub.get<bool>(EO::Yaml::skipFalseFields_opt);
+        yaml.skipZeroFields  = sub.get<bool>(EO::Yaml::skipZeroFields_opt);
+        yaml.skipLocation    = sub.get<bool>(EO::Yaml::skipLocation_opt);
+        yaml.skipId          = sub.get<bool>(EO::Yaml::skipId_opt);
+        opts.data            = yaml;
+    } else if (export_cmd.is_subcommand_used(lower_enum(EK::Proto))) {
+        auto&     sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Proto));
+        EO::Proto res;
+        if (auto v = sub.present<std::string>(EO::Proto::format_opt)) {
+            res.format = readEnumValue<EO::Proto::ProtoFormat>(*v, "proto format");
+        }
+        opts.data = res;
+    } else if (export_cmd.is_subcommand_used(lower_enum(EK::Map))) {
+        auto&   sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Map));
+        EO::Map res;
+        if (auto v = sub.present<std::string>(EO::Map::format_opt)) {
+            res.format = readEnumValue<EO::Map::MapFormat>(*v, "map format");
+        }
+        opts.data = res;
+    } else if (export_cmd.is_subcommand_used(lower_enum(EK::Token))) {
+        opts.data = EO::Token{};
+    } else if (export_cmd.is_subcommand_used(lower_enum(EK::BaseToken))) {
+        opts.data = EO::BaseToken{};
+    } else if (export_cmd.is_subcommand_used(lower_enum(EK::ParseNode))) {
+        opts.data = EO::ParseNode{};
+    } else {
         exitWithError(
-            "export: unknown export type '" + typeStr
-            + "' expected: " + describe_enum<EK>());
-    }
-
-    switch (kind.value()) {
-        case EK::Json: {
-            EO::Json json;
-            json.skipEmptyLists  = export_cmd.get<bool>(EO::Json::skipEmptyLists_opt);
-            json.skipLocation    = export_cmd.get<bool>(EO::Json::skipLocation_opt);
-            json.skipId          = export_cmd.get<bool>(EO::Json::skipId_opt);
-            json.skipNullFields  = export_cmd.get<bool>(EO::Json::skipNullFields_opt);
-            json.normalizeSpaces = export_cmd.get<bool>(EO::Json::normalizeSpaces_opt);
-            opts.data            = json;
-            break;
-        }
-        case EK::Yaml: {
-            EO::Yaml yaml;
-            yaml.skipNullFields  = export_cmd.get<bool>(EO::Yaml::skipNullFields_opt);
-            yaml.skipFalseFields = export_cmd.get<bool>(EO::Yaml::skipFalseFields_opt);
-            yaml.skipZeroFields  = export_cmd.get<bool>(EO::Yaml::skipZeroFields_opt);
-            yaml.skipLocation    = export_cmd.get<bool>(EO::Yaml::skipLocation_opt);
-            yaml.skipId          = export_cmd.get<bool>(EO::Yaml::skipId_opt);
-            opts.data            = yaml;
-            break;
-        }
-        case EK::Proto: {
-            EO::Proto res;
-            if (auto v = export_cmd.present<std::string>(EO::Proto::format_opt)) {
-                res.format = readEnumValue<EO::Proto::ProtoFormat>(*v, "proto format");
-            }
-            opts.data = res;
-            break;
-        }
-        case EK::Map: {
-            EO::Map res;
-            if (auto v = export_cmd.present<std::string>(EO::Map::format_opt)) {
-                res.format = readEnumValue<EO::Map::MapFormat>(*v, "map format");
-            }
-            opts.data = res;
-            break;
-        }
-        case EK::Token: {
-            opts.data = EO::Token{};
-            break;
-        }
-        case EK::BaseToken: {
-            opts.data = EO::BaseToken{};
-            break;
-        }
-        case EK::ParseNode: {
-            opts.data = EO::ParseNode{};
-            break;
-        }
+            "export: missing export type subcommand, expected: "
+            + describe_subcommands<EK>());
     }
 
     return opts;
@@ -310,8 +312,8 @@ CliOpts parseCli(int argc, char** argv) {
     program.add_subparser(parse_cmd);
 
     argparse::ArgumentParser export_cmd("export");
-    export_cmd.add_description("export parsed document");
-    export_cmd.add_argument(EO::type_opt).help("export type: " + describe_enum<EK>());
+    export_cmd.add_description(
+        "export parsed document; pick a target: " + describe_subcommands<EK>());
     export_cmd.add_argument(EO::input_opt)
         .help("input org file (repeatable)")
         .required()
@@ -319,28 +321,56 @@ CliOpts parseCli(int argc, char** argv) {
     export_cmd.add_argument(EO::output_opt).help("output file").required();
     export_cmd.add_argument(EO::exportTrace_opt).help("export trace path");
 
-    // json options
+    argparse::ArgumentParser json_cmd(lower_enum(EK::Json));
+    json_cmd.add_description("export to json");
     addBoolOpt(
-        export_cmd, EO::Json::skipEmptyLists_opt, "skip empty lists on export", true);
-    addBoolOpt(export_cmd, EO::Json::skipLocation_opt, "skip location fields", true);
-    addBoolOpt(export_cmd, EO::Json::skipId_opt, "skip id fields", true);
-    addBoolOpt(export_cmd, EO::Json::skipNullFields_opt, "skip null fields", true);
+        json_cmd, EO::Json::skipEmptyLists_opt, "skip empty lists on export", true);
+    addBoolOpt(json_cmd, EO::Json::skipLocation_opt, "skip location fields", true);
+    addBoolOpt(json_cmd, EO::Json::skipId_opt, "skip id fields", true);
+    addBoolOpt(json_cmd, EO::Json::skipNullFields_opt, "skip null fields", true);
     addBoolOpt(
-        export_cmd,
+        json_cmd,
         EO::Json::normalizeSpaces_opt,
         "replace multi-character space with a single one",
         true);
-    // yaml options
-    addBoolOpt(export_cmd, EO::Yaml::skipFalseFields_opt, "skip false fields", true);
-    addBoolOpt(export_cmd, EO::Yaml::skipZeroFields_opt, "skip zero fields", true);
-    // proto options
-    export_cmd.add_argument(EO::Proto::format_opt)
+    export_cmd.add_subparser(json_cmd);
+
+    argparse::ArgumentParser yaml_cmd(lower_enum(EK::Yaml));
+    yaml_cmd.add_description("export to yaml");
+    addBoolOpt(yaml_cmd, EO::Yaml::skipNullFields_opt, "skip null fields", true);
+    addBoolOpt(yaml_cmd, EO::Yaml::skipFalseFields_opt, "skip false fields", true);
+    addBoolOpt(yaml_cmd, EO::Yaml::skipZeroFields_opt, "skip zero fields", true);
+    addBoolOpt(yaml_cmd, EO::Yaml::skipLocation_opt, "skip location fields", true);
+    addBoolOpt(yaml_cmd, EO::Yaml::skipId_opt, "skip id fields", true);
+    export_cmd.add_subparser(yaml_cmd);
+
+    argparse::ArgumentParser token_cmd(lower_enum(EK::Token));
+    token_cmd.add_description("export tokenizer result");
+    export_cmd.add_subparser(token_cmd);
+
+    argparse::ArgumentParser basetoken_cmd(lower_enum(EK::BaseToken));
+    basetoken_cmd.add_description("export base tokenizer result");
+    export_cmd.add_subparser(basetoken_cmd);
+
+    argparse::ArgumentParser parsenode_cmd(lower_enum(EK::ParseNode));
+    parsenode_cmd.add_description("export parse node result");
+    export_cmd.add_subparser(parsenode_cmd);
+
+    argparse::ArgumentParser proto_cmd(lower_enum(EK::Proto));
+    proto_cmd.add_description("export to protobuf");
+    proto_cmd.add_argument(EO::Proto::format_opt)
         .help("set protobuf export format: " + describe_enum<EO::Proto::ProtoFormat>());
-    // map options
-    export_cmd.add_argument(EO::Map::format_opt)
+    export_cmd.add_subparser(proto_cmd);
+
+    argparse::ArgumentParser map_cmd(lower_enum(EK::Map));
+    map_cmd.add_description("export to map");
+    map_cmd.add_argument(EO::Map::format_opt)
         .help("set map export format: " + describe_enum<EO::Map::MapFormat>());
+    map_cmd.add_argument(EO::Map::graphTrace_opt).help("graph trace output path");
+    export_cmd.add_subparser(map_cmd);
 
     program.add_subparser(export_cmd);
+
 
     try {
         program.parse_args(argc, argv);
