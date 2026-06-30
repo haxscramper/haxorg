@@ -1,5 +1,7 @@
 #pragma once
 
+#include "haxorg/base_lexer/base_token_tokenize.hpp"
+#include "haxorg/parse/OrgParserTypes.hpp"
 #include <haxorg/lexbase/SourceManager.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/ext/error_write.hpp>
@@ -41,6 +43,19 @@ struct [[refl(
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
     hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)> getFragments;
 
+    /// \brief Callbacks are triggered when the full file is parsed, or when the
+    /// individual fragment index is parsed. The indices for fragment iterations come from
+    /// the result of the `getFragments`.
+    hstd::Func<
+        void(org::parse::OrgTokenGroup const& tokens, std::optional<int> fragmentIndex)>
+        onBaseTokenizeDone;
+    hstd::Func<
+        void(org::parse::OrgTokenGroup const& tokens, std::optional<int> fragmentIndex)>
+        onTokenizerDone;
+    hstd::Func<
+        void(org::parse::OrgNodeGroup const& nodes, std::optional<int> fragmentIndex)>
+        onParseDone;
+
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
         (),
@@ -62,6 +77,7 @@ struct [[refl(
   "wrapper-name": "OrgDirectoryParseParameters"
 })")]] OrgDirectoryParseParameters
     : public hstd::SharedPtrApi<OrgDirectoryParseParameters> {
+    /// \brief Get a single parsed node, without recursively tracking includes.
     hstd::Func<sem::SemId<sem::Org>(std::string const& fullPath)> getParsedNode;
 
     hstd::Func<bool(std::string const& fullPath)>                      shouldProcessPath;

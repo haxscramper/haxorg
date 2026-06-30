@@ -2,92 +2,74 @@
 
 Org-mode parser with focus on scripting, structured data processing and ease of embedding in software.
 
-- Built for fast processing -- core is implemented in C++
-- With scripting in mind -- Python API, export to structured data (JSON, Yaml, S-expressions, protobuf)
-- Strictly defined schema -- strongly typed AST/DOM structure for individual nodes, auto-generated protobuf grammar, use vocabulary types in the data model.
-- Expressive debug capabilities -- built-in tracing framework for all document processing steps for ease of debugging
-- Extensive testing -- curated corpus of documents, fuzzy content generation for automatic bug detection using python hypothesis.
+* C++ CLI tool
 
-* Development phases
+#+begin_src bash
+conan build . -o "haxorg/*:use_cli=True"
+build/Release/haxorg_cpp_org_cli export --input README.org --output result.json json
+head -n20 result.json
+#+end_src
 
-Currently working on the [[https://github.com/haxscramper/haxorg/pull/3][second phase]] of the Python API, improving the ergonomics and adding more tests. Next step is to implement the CI for testing, documentation and artifact builds.
+#+begin_src json
+{
+  "absPath": "README.org",
+  "kind": "File",
+  "relPath": "",
+  "subnodes": [
+    {
+      "kind": "Document",
+      "loc": {},
+      "options": {
+        "exportConfig": {
+          "archivedTrees": "Headline",
+          "brokenLinks": "None",
+          "tagExport": "NotInToc",
+          "taskFiltering": "All"
+        },
+        "initialVisibility": "ShowEverything",
+        "kind": "DocumentOptions",
+        "loc": {}
+      },
+      "subnodes": [
+#+end_src
 
+* python API
 
+#+caption: example main.py file
+#+begin_src python
+import py_haxorg.pyhaxorg_wrap as org
 
-| Phase      | Status   | Notes                                                   |
-|------------+----------+---------------------------------------------------------|
-| C++ core   | [WIP] Alpha | Whole pipeline is complete, working on testing          |
-| Python API | [DONE] Alpha | Whole DOM model is exposed, working on API improvements |
-| C API      | [DONE] Alpha  | Make the library usable from virtually any PL           |
+ctx = org.ParseContext()
+node = ctx.parseString("*bold*", "<input>")
+assert node.getKind() == org.OrgSemKind.Document
+assert node[0].getKind() == org.OrgSemKind.Paragraph
+print(org.treeRepr(node))
+#+end_src
 
-** COMPLETED [WIP] C++ Core
+#+begin_src bash
+uv init --no-workspace
+uv add <haxorg-clone-location>/scripts/py_haxorg
+uv run main.py
+#+end_src
 
-- [DONE] Machine-readable data model -- describe the data model in machine-readable format and generate C++ code for it
-- [DONE] Data transform pipeline -- lexer, parser, sem convert
-- [DONE] Document test corpus -- yaml specification for the given/expected files
-- [DONE] WIP Org-mode AST back to string -- for document formatting and round-trip PBT testing (make random document, render, parse back, compare with original)
-
-** WIP [WIP] Python API
-
-- [DONE] Automatically wrap C++ data model for python -- done, tested, working on ergonomics improvements
-- [WIP] Implement common data format exporters -- (latex, HTML, XML, Pandoc)
-- [WIP] Use hypothesis for fuzz testing -- porting earlier C++ =google/fuzztest= implementation
-
-** TODO [TODO] C API
-
-- [TODO] Automatic wrapper of the C++ API to C
-- [TODO] Machine-readable description of the C API
-
-
-# * Tools
-#
-# ** ~haxorg~
-#
-# Main entry point for file manipulation -- python script implementing commands for export, analysis and file modifications.
-#
-# ** ~pyhaxorg~
-#
-# =pybind11= python module exposing the org-mode AST for scripting.
-#
-# ** TODO ~haxorg_lite~
-#
-# Not a fan of sprawling python dependencies when you only need to parse the file? Totally understandable. ~haxorg_lite~ is intended as a self-contained binary for the C++ parser core -- parse org-mode and output to json, yaml, binary protobuf, protobuf JSON, reformatted org-mode, S-expressions.
-#
-# Binary parser CLI comes in two versions -- json-parameters and switch parameters.
-# <example of json-parameters>
-# <example of switch-parameters>
-# The interfaces are fully interchangeable as they are automatically generated from the CLI structure description thanks to the boost.describe (read more on how reflection is used in this project)
-
-* Development considerations, planning, some questions
-
-** Why?
-
-There is no working and usable org-mode parser that can be decoupled from emacs /and even emacs one is absolute garbage/. Let's start with the 'canonical' implementation: aside from the fact it seems more like a huge collection of random regex rules, it barely has an AST, certainly not in a way that is ready for export into other consumers. Exporter customization system still mainly revolves around string manipulation. Very few parts are implemented as a data processing pipelines where you take in an AST and return some other content -- this is not limited to the exporters, org agenda customization is also a string processing. ~subtree.isRecurring()~ is easy to implement in the C++, but for emacs it is a ~re-search-forward~ with some ~rx~ hacks on top. And so on.
-
-So while the emacs is certainly a good org-mode editor, it does a terrible job at being org-mode processor (all default exports block the UI, batch exporting in CLI is something you need to hack around) unless you are planning to dive knee-deep into the lisp programming and figure out all the details of how things need to fit together. Adding support for new source block languages is also tricky. And be a lisp programmer, again. Most people aren't lisp programmers -- I'm not one, even after using emacs for 5+ years at this point. There are far more python and c++ programmers out there than lisp ones.
-
-This pretty much sums up the problem statement -- *implement an org-mode parser in some programming language that /I/ know and expose the interface in python for quicker scripting*. C++ fits the bill, so that's what I went with. Might've been a good opportunity to use Rust or Zig or some other PL, but as it turned out the C++ can be moved into a very ergonomic direction even without full syntax revamps like Carbon or =cppfront= (aka C++ Syntax 2).
-
-** How?
-
-*** Tooling, libraries used
-
-After I stated what in the world I'm doing here in this project, lets take a closer look at how I'm planning to actually carry this out. Let's go over the development tools first. The programming language is C++, specifically the latest C++23. Dependencies are managed by submodules because not all the libraries I used even have conan packaging (=fuzztest=, abseil, =libgit2= (1 year outdated), other things). And
-
-*** Feature parity
-
-Emacs is still the reference implementation, but sensible extensions taken either from the common packages or ones that I use personally (nested tags ~#parent##sub##[subsub1,subsub2]~, ~@mention~, admonition blocks and ~NOTE:~ prefixes) will be implemented and tested as well. AST structure will conform to whatever data model makes the most sense, not necessarily following the S-Expr blurbs at the [[https://orgmode.org/worg/org-syntax.html][org-syntax]].
-
-*** Testing
-
-Unit testing for the regular cxx code if possible, plus collection of test documents in the ~.yaml~ spec corpus ([[file:tests/org/corpus]]). Each test document goes through the whole lex-parse-sem process, then to ~AST->string~ formatter and parsed again. This ensures every test validates the whole processing pipeline, even if no intermediate assertions are provided. For more on testing, read the [[file:ARCHITECTURE.org]] section "Testing infrastructure".
-
-** Where?
-   :PROPERTIES:
-   :ID:       2e97816d-eb26-463c-9a9b-db60b15fdc55
-   :END:
-
-Where is the project on the roadmap at the moment, are there any fixed plans or it is just me bumping around the code and fixing things if I see anything that catches my attention this particular moment? Not in a formal sense at the moment, but a rough outline of the things I want to do is:
-
-- *Finish rewrite to the standard library types and RE-flex lexer* -- implementation with Qt types was working correctly as far back as August 2023, but since then I decided to completely drop dependency on Qt, use the RE-flex lexer instead of hand-rolled one and so some other things reorganizing the project. It has taken quite a bit of time, the main missing link being the new lexer implementation. Parser and sem convert don't have to change as much.
-- *Stabilize exposed python API* -- =nanobind= wrapper generation relies on the
+#+begin_example
+Document 0:1(1) Id(0)
+  options:
+    DocumentOptions 0:1(1) Id(0)
+      initialVisibility  = ShowEverything
+      exportConfig
+        brokenLinks  = None
+        tagExport  = NotInToc
+        taskFiltering  = All
+        archivedTrees  = Headline
+  subnodes:
+    [0]:
+      Paragraph 0:1(1) Id(0)
+        subnodes:
+          [0]:
+            Bold 0:1(1) Id(0)
+              subnodes:
+                [0]:
+                  Word 0:1(1) Id(0)
+                    text  = «bold»
+#+end_example

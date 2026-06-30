@@ -49,34 +49,36 @@ target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINAR
                                          $<INSTALL_INTERFACE:src>)
 
 if(${ORG_BUILD_TESTS})
-  add_executable(tests_org)
-  target_link_libraries(tests_org PUBLIC haxorg absl::base absl::log absl::flags)
-  set_common_files(tests_org)
-  set_target_output(tests_org)
-  set_target_flags(tests_org)
-  glob_add_sources2(TARGET tests_org LS_REGEX "${BASE}/tests/org/.*" SEARCH_BASE "${BASE}")
+  add_executable(haxorg_cpp_org_tests)
+  target_link_libraries(haxorg_cpp_org_tests PUBLIC haxorg absl::base absl::log absl::flags)
+  set_common_files(haxorg_cpp_org_tests)
+  set_target_output(haxorg_cpp_org_tests)
+  set_target_flags(haxorg_cpp_org_tests)
+  glob_add_sources2(TARGET haxorg_cpp_org_tests LS_REGEX "${BASE}/tests/org/.*" SEARCH_BASE
+                    "${BASE}")
 
   add_custom_command(
-    TARGET tests_org
+    TARGET haxorg_cpp_org_tests
     POST_BUILD
     COMMAND "${CMAKE_COMMAND}" -E create_symlink "${CMAKE_BINARY_DIR}"
             "${CMAKE_SOURCE_DIR}/build/haxorg")
 
-  target_sources(tests_org PRIVATE "${BASE}/tests/common.cpp")
-  target_sources(tests_org PRIVATE "${BASE}/tests/testprofiler.cpp")
-  target_link_libraries(tests_org PUBLIC haxorg GTest::gtest)
+  target_sources(haxorg_cpp_org_tests PRIVATE "${BASE}/tests/common.cpp")
+  target_sources(haxorg_cpp_org_tests PRIVATE "${BASE}/tests/testprofiler.cpp")
+  target_link_libraries(haxorg_cpp_org_tests PUBLIC haxorg GTest::gtest)
 
   if(${ORG_BUILD_WRAPPERS_C})
-    target_link_libraries(tests_org PUBLIC haxorg_c)
+    target_link_libraries(haxorg_cpp_org_tests PUBLIC haxorg_c)
   endif()
 
-  target_include_directories(tests_org PUBLIC "${BASE}/thirdparty/immer" "${BASE}/thirdparty/lager")
+  target_include_directories(haxorg_cpp_org_tests PUBLIC "${BASE}/thirdparty/immer"
+                                                         "${BASE}/thirdparty/lager")
 
-  add_executable(specrunner_org)
-  set_common_files(specrunner_org)
-  set_target_output(specrunner_org)
-  set_target_flags(specrunner_org)
-  glob_add_sources2(TARGET specrunner_org LS_REGEX "${BASE}/tests/specrunner/.*" SEARCH_BASE
-                    "${BASE}")
-  target_link_libraries(specrunner_org PUBLIC haxorg)
+  add_executable(haxorg_cpp_org_specrunner)
+  set_common_files(haxorg_cpp_org_specrunner)
+  set_target_output(haxorg_cpp_org_specrunner)
+  set_target_flags(haxorg_cpp_org_specrunner)
+  glob_add_sources2(TARGET haxorg_cpp_org_specrunner LS_REGEX "${BASE}/tests/specrunner/.*"
+                    SEARCH_BASE "${BASE}")
+  target_link_libraries(haxorg_cpp_org_specrunner PUBLIC haxorg)
 endif()

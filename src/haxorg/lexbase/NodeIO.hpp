@@ -1,6 +1,7 @@
 #pragma once
 
 #include "haxorg/base_lexer/base_token.hpp"
+#include "hstd/stdlib/JsonSerde.hpp"
 #include <haxorg/lexbase/AstSpec.hpp>
 #include <haxorg/lexbase/Node.hpp>
 #include <haxorg/lexbase/NodeStore.hpp>
@@ -10,6 +11,7 @@
 
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/Yaml.hpp>
 
 namespace org::test {
@@ -45,13 +47,11 @@ json jsonRepr(org::parse::NodeGroup<N, K, V, M> const& group, bool withStrings =
     json out = json::array();
     for (const auto& [id, node] : group.nodes.pairs()) {
         json item;
-        item["kind"] = to_string(node->kind);
+        item["kind"] = hstd::fmt1(node->kind);
         if (node->isTerminal()) {
             org::parse::TokenId<K, V> tokenId = node->getToken();
             item["tok_idx"]                   = tokenId.getIndex();
-            if (withStrings && group.hasData(id)) {
-                item["str"] = group.strVal(id).toBase();
-            }
+            if (withStrings) { item["str"] = hstd::to_json_eval(group.val(id)); }
         } else {
             item["extent"] = node->getExtent();
         }
@@ -186,8 +186,8 @@ json jsonRepr(org::parse::TokenGroup<K, V> const& group, bool withIdx = false) {
     for (const auto& [id, token] : group.tokens.pairs()) {
         json item;
         if (withIdx) { item["idx"] = id.getIndex(); }
-        item["kind"] = to_string(token->kind);
-        if (token->hasData()) { item["str"] = token->strVal().toBase(); }
+        item["kind"]  = hstd::fmt1(token->kind);
+        item["value"] = hstd::to_json_eval(token->value);
         out.push_back(item);
     }
     return out;

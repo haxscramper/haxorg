@@ -46,3 +46,12 @@ using OrgSet = hstd::IntSet<OrgNodeKind>;
 
 
 } // namespace org::parse
+
+
+template <>
+struct fmt::formatter<hstd::SPtr<org::parse::OrgNodeMono::Error::Box>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::SPtr<org::parse::OrgNodeMono::Error::Box> const& obj,
+        format_context&                                        ctx) const;
+};
