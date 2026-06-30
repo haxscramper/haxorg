@@ -33,8 +33,8 @@ jobs:
           cd /tmp/uv-example
 
           uv init --no-workspace
-          uv add "${{ github.workspace }}/scripts/py_haxorg"
-          cp "${{ github.workspace }}/.github/scripts/uv_example_main.py" ./main.py
+          uv add "$GITHUB_WORKSPACE/scripts/py_haxorg"
+          cp "$GITHUB_WORKSPACE/.github/scripts/uv_example_main.py" ./main.py
 
       - name: Verify package can be imported and used
         shell: bash
