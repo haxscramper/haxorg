@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/base_lexer/base_token_tokenize.hpp>
@@ -117,12 +118,19 @@ std::shared_ptr<hstd::ext::Cache> ParseContext::getDiagnosticStrings() {
 
 SourceFileId ParseContext::addSource(std::string const& path, std::string const& content)
     const {
+
     LOGIC_ASSERTION_CHECK_FMT(
-        path.contains("/") || (path.starts_with("<") && path.ends_with(">")),
-        "Source name must be a properly formatted path with `/`, or a "
+        fs::is_directory(path) || fs::is_regular_file(path)
+            || (path.starts_with("<") && path.ends_with(">")),
+        "Source name must be an existing path or a "
         "temporary path name `<something>`");
 
-    return source->addSource(path, content);
+    std::string resolved = path;
+    if (!(path.starts_with('<') && path.ends_with('>'))) {
+        resolved = fs::absolute(fs::path(path));
+    }
+
+    return source->addSource(resolved, content);
 }
 
 sem::SemId<sem::Org> ParseContext::parseFileOpts(

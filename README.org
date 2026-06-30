@@ -4,6 +4,72 @@ Org-mode parser with focus on scripting, structured data processing and ease of 
 
 * C++ CLI tool
 
-#+begin_src
-
+#+begin_src bash
+conan build . -o "haxorg/*:use_cli=True"
+build/Release/haxorg_cpp_org_cli export --input README.org --output result.json json
+head -n20 result.json
 #+end_src
+
+#+begin_src json
+{
+  "absPath": "README.org",
+  "kind": "File",
+  "relPath": "",
+  "subnodes": [
+    {
+      "kind": "Document",
+      "loc": {},
+      "options": {
+        "exportConfig": {
+          "archivedTrees": "Headline",
+          "brokenLinks": "None",
+          "tagExport": "NotInToc",
+          "taskFiltering": "All"
+        },
+        "initialVisibility": "ShowEverything",
+        "kind": "DocumentOptions",
+        "loc": {}
+      },
+      "subnodes": [
+#+end_src
+
+* python API
+
+#+caption: example main.py file
+#+begin_src python
+import py_haxorg.pyhaxorg_wrap as org
+
+ctx = org.ParseContext()
+node = ctx.parseString("*bold*", "<input>")
+assert node.getKind() == org.OrgSemKind.Document
+assert node[0].getKind() == org.OrgSemKind.Paragraph
+print(org.treeRepr(node))
+#+end_src
+
+#+begin_src bash
+uv init --no-workspace
+uv add <haxorg-clone-location>/scripts/py_haxorg
+uv run main.py
+#+end_src
+
+#+begin_example
+Document 0:1(1) Id(0)
+  options:
+    DocumentOptions 0:1(1) Id(0)
+      initialVisibility  = ShowEverything
+      exportConfig
+        brokenLinks  = None
+        tagExport  = NotInToc
+        taskFiltering  = All
+        archivedTrees  = Headline
+  subnodes:
+    [0]:
+      Paragraph 0:1(1) Id(0)
+        subnodes:
+          [0]:
+            Bold 0:1(1) Id(0)
+              subnodes:
+                [0]:
+                  Word 0:1(1) Id(0)
+                    text  = «bold»
+#+end_example

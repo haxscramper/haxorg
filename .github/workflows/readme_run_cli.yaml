@@ -1,0 +1,31 @@
+name: Readme run CLI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+
+    steps:
+    - run: dnf -y install git python-devel which unzip cmake ninja clang conan python3 python3-devel python3-pip curl wget git
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - run: curl -LsSf https://astral.sh/uv/install.sh | sh
+    - run: git config --global safe.directory "*"
+    - run: mkdir -p ~/.conan2/profiles
+    - run: cp scripts/py_ci/py_ci/conan_default_profile.ini ~/.conan2/profiles/default
+    - name: Build project and run CLI on README.org
+      shell: bash
+      run: |
+        set -euo pipefail
+        conan build . -vverbose --build=missing
+        cli="$(find build -type f -name haxorg_cpp_org_cli | head -n1)"
+        test -n "$cli"
+        "$cli" export --input README.org --output result.json json
+        cat result.json

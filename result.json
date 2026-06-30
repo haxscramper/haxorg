@@ -1,0 +1,281 @@
+{
+  "absPath": "README.org",
+  "kind": "File",
+  "relPath": "",
+  "subnodes": [
+    {
+      "kind": "Document",
+      "loc": {},
+      "options": {
+        "exportConfig": {
+          "archivedTrees": "Headline",
+          "brokenLinks": "None",
+          "tagExport": "NotInToc",
+          "taskFiltering": "All"
+        },
+        "initialVisibility": "ShowEverything",
+        "kind": "DocumentOptions",
+        "loc": {}
+      },
+      "subnodes": [
+        {
+          "kind": "Paragraph",
+          "loc": {},
+          "subnodes": [
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "Org-mode"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "parser"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "with"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "focus"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "on"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "scripting"
+            },
+            {
+              "kind": "Punctuation",
+              "loc": {},
+              "text": ","
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "structured"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "data"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "processing"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "and"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "ease"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "of"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "embedding"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "in"
+            },
+            {
+              "kind": "Space",
+              "loc": {},
+              "text": " "
+            },
+            {
+              "kind": "Word",
+              "loc": {},
+              "text": "software"
+            },
+            {
+              "kind": "Punctuation",
+              "loc": {},
+              "text": "."
+            }
+          ]
+        },
+        {
+          "kind": "Newline",
+          "loc": {},
+          "text": "\n\n"
+        },
+        {
+          "isArchived": false,
+          "isComment": false,
+          "kind": "Subtree",
+          "level": 1,
+          "loc": {},
+          "subnodes": [
+            {
+              "attrs": {
+                "named": {},
+                "positional": {}
+              },
+              "kind": "BlockCode",
+              "lines": [
+                {
+                  "parts": [
+                    {}
+                  ]
+                }
+              ],
+              "loc": {},
+              "switches": {
+                "named": {},
+                "positional": {}
+              }
+            },
+            {
+              "kind": "Newline",
+              "loc": {},
+              "text": "\n"
+            }
+          ],
+          "title": {
+            "kind": "Paragraph",
+            "loc": {},
+            "subnodes": [
+              {
+                "kind": "BigIdent",
+                "loc": {},
+                "text": "C"
+              },
+              {
+                "kind": "Punctuation",
+                "loc": {},
+                "text": "+"
+              },
+              {
+                "kind": "Punctuation",
+                "loc": {},
+                "text": "+"
+              },
+              {
+                "kind": "Space",
+                "loc": {},
+                "text": " "
+              },
+              {
+                "kind": "BigIdent",
+                "loc": {},
+                "text": "CLI"
+              },
+              {
+                "kind": "Space",
+                "loc": {},
+                "text": " "
+              },
+              {
+                "kind": "Word",
+                "loc": {},
+                "text": "tool"
+              }
+            ]
+          }
+        }
+      ],
+      "title": {
+        "kind": "Paragraph",
+        "loc": {},
+        "subnodes": [
+          {
+            "kind": "Paragraph",
+            "loc": {},
+            "subnodes": [
+              {
+                "kind": "Word",
+                "loc": {},
+                "text": "haxorg"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
