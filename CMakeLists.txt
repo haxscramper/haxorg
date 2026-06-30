@@ -82,6 +82,7 @@ option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
 option(ORG_BUILD_WITH_TRACY "Enable performance profiling using tracy" OFF)
 option(ORG_BUILD_WITH_QT "Enable Qt-related API" OFF)
 option(ORG_BUILD_WRAPPERS_C "Enable compilation of the C wrappers" ON)
+option(ORG_BUILD_CLI "Build C++ CLI tool" ON)
 
 # Optional targets for the build
 option(ORG_BUILD_EMCC "Building for emscripten target" OFF)
@@ -178,6 +179,7 @@ opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_PYHAXORG_BINDINGS)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_TRACY)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WRAPPERS_C)
 opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_IMGUI_GUI)
+opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_CLI)
 opt_1_excludes_opt_2(ORG_IS_CONAN_BUILD ORG_BUILD_IMGUI_GUI)
 opt_1_excludes_opt_2(ORG_IS_CONAN_BUILD ORG_BUILD_QT_GUI)
 
@@ -346,6 +348,9 @@ if(${ORG_BUILD_EMCC})
   add_definitions(-DORG_BUILD_EMCC=1)
 else()
   add_definitions(-DORG_BUILD_EMCC=0)
+endif()
+
+if(${ORG_BUILD_CLI})
   find_package(argparse REQUIRED)
 endif()
 
@@ -460,7 +465,9 @@ if(${ORG_BUILD_QT_GUI})
   add_subdirectory(src/app/org_viewer)
 endif()
 
-add_subdirectory(src/app/org_cli)
+if(${ORG_BUILD_CLI})
+  add_subdirectory(src/app/org_cli)
+endif()
 
 if(${ORG_BUILD_IMGUI_GUI})
 

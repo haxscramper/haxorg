@@ -102,6 +102,7 @@ struct CliOpts {
             DESC_FIELDS(ParseNode, ());
         };
 
+#if ORG_BUILD_WITH_PROTOBUF
         struct Proto {
             DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json);
             ProtoFormat format = ProtoFormat::Binary;
@@ -118,6 +119,7 @@ struct CliOpts {
             OPT_NAME(format_opt, "--format");
             DESC_FIELDS(Map, (format));
         };
+#endif
 
 
         SUB_VARIANTS(
@@ -257,6 +259,7 @@ CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser& export_cmd) {
         yaml.skipLocation    = sub.get<bool>(EO::Yaml::skipLocation_opt);
         yaml.skipId          = sub.get<bool>(EO::Yaml::skipId_opt);
         opts.data            = yaml;
+#if ORG_BUILD_WITH_PROTOBUF
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Proto))) {
         auto&     sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Proto));
         EO::Proto res;
@@ -271,6 +274,7 @@ CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser& export_cmd) {
             res.format = readEnumValue<EO::Map::MapFormat>(*v, "map format");
         }
         opts.data = res;
+#endif
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Token))) {
         opts.data = EO::Token{};
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::BaseToken))) {
@@ -294,6 +298,8 @@ CliOpts parseCli(int argc, char** argv) {
     using PO = CliOpts::ParseOpts;
 
     argparse::ArgumentParser program("haxorg");
+    program.add_epilog(
+        hstd::fmt("ORG_BUILD_WITH_PROTOBUF = {}", ORG_BUILD_WITH_PROTOBUF));
 
     addBoolOpt(program, CliOpts::withIncludes_opt, "parse input with all includes", true);
     program.add_argument(CliOpts::loggingFlags_opt)
@@ -356,6 +362,7 @@ CliOpts parseCli(int argc, char** argv) {
     parsenode_cmd.add_description("export parse node result");
     export_cmd.add_subparser(parsenode_cmd);
 
+#if ORG_BUILD_WITH_PROTOBUF
     argparse::ArgumentParser proto_cmd(lower_enum(EK::Proto));
     proto_cmd.add_description("export to protobuf");
     proto_cmd.add_argument(EO::Proto::format_opt)
@@ -368,6 +375,7 @@ CliOpts parseCli(int argc, char** argv) {
         .help("set map export format: " + describe_enum<EO::Map::MapFormat>());
     map_cmd.add_argument(EO::Map::graphTrace_opt).help("graph trace output path");
     export_cmd.add_subparser(map_cmd);
+#endif
 
     program.add_subparser(export_cmd);
 
@@ -600,6 +608,7 @@ int main(int argc, char* argv[]) {
                 [&](EO::ParseNode const& j) -> void {
                     hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
                 },
+#if ORG_BUILD_WITH_PROTOBUF
                 [&](EO::Proto const& p) {
                     orgproto::AnyNode result;
                     org::algo::proto_serde<
@@ -627,6 +636,7 @@ int main(int argc, char* argv[]) {
                         write_proto_binary(*result);
                     }
                 },
+#endif
             },
             cmd.data);
     }

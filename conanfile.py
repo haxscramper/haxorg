@@ -23,6 +23,7 @@ class HaxorgConan(ConanFile):
         "use_protobuf": [True, False],
         "use_python_bindings": [True, False],
         "use_emcc": [True, False],
+        "use_cli": [True, False],
     }
 
     default_options = {
@@ -32,6 +33,7 @@ class HaxorgConan(ConanFile):
         "use_protobuf": True,
         "use_cgraph": False,
         "use_emcc": False,
+        "use_cli": True,
     }
 
     def requirements(self):
@@ -50,6 +52,9 @@ class HaxorgConan(ConanFile):
             self.requires("lager/[>=0.1.1 <1]", **tr)
             self.requires("nlohmann_json/[>=3.12.0 <4]", **tr)
             self.requires("fmt/[>=12.1.0 <13]", **tr)
+
+            if self.options.use_cli:
+                self.requires("argparse/[>=3.2 <4]", **tr)
 
             # self.requires("zstd/[>=1.5.7 <2]")
             # self.requires("openssl/[>=3.6.1 <4]")
@@ -84,6 +89,7 @@ class HaxorgConan(ConanFile):
         tc.cache_variables[
             "ORG_BUILD_TEXT_LAYOUTER_BINDINGS"] = self.options.use_python_bindings
 
+        tc.cache_variables["ORG_BUILD_CLI"] = self.options.use_cli
         tc.cache_variables["ORG_BUILD_WITH_PROTOBUF"] = self.options.use_protobuf
         tc.cache_variables["ORG_BUILD_WITH_CGRAPH"] = self.options.use_cgraph
         tc.cache_variables["ORG_BUILD_WITH_ADAPTAGRAMS"] = False
@@ -134,6 +140,15 @@ class HaxorgConan(ConanFile):
              dst=os.path.join(self.package_folder, "lib"),
              keep_path=False)
 
+        if self.options.use_cli:
+            copy(self,
+                 "haxorg_cpp_org_cli",
+                 src=self.build_folder,
+                 dst=os.path.join(self.package_folder, "bin"),
+                 keep_path=False)
+
     def package_info(self):
         self.cpp_info.includedirs = ["include"]
         self.cpp_info.libs = ["haxorg", "hstd"]
+        if self.options.use_cli:
+            self.cpp_info.bindirs = ["bin"]
