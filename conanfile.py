@@ -47,7 +47,7 @@ class HaxorgConan(ConanFile):
             self.requires("foonathan-lexy/[>=2025.05.0 <2026]")
             self.requires("cctz/[>=2.4 <3]", **tr)
             self.requires("yaml-cpp/[>=0.8.0 <1]", **tr)
-            self.requires("range-v3/[>=0.12.0 <1]")
+            self.requires("range-v3/[>=0.12.0 <1]", **tr)
             self.requires("immer/[>=0.8.1 <1]", **tr)
             self.requires("lager/[>=0.1.1 <1]", **tr)
             self.requires("nlohmann_json/[>=3.12.0 <4]", **tr)
