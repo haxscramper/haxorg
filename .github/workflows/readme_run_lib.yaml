@@ -10,7 +10,7 @@ jobs:
     container: fedora:latest
 
     steps:
-      - run: dnf -y install git python3 python3-devel python3-pip curl
+      - run: dnf -y install git python3 python3-devel python3-pip curl cmake ninja-build clang conan which unzip wget
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,6 +19,8 @@ jobs:
 
       - run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - run: git config --global safe.directory "*"
+      - run: mkdir -p ~/.conan2/profiles
+      - run: cp scripts/py_ci/py_ci/conan_default_profile.ini ~/.conan2/profiles/default
 
       - name: Create example project and install local package
         shell: bash
@@ -26,12 +28,13 @@ jobs:
           set -euo pipefail
           export PATH="$HOME/.local/bin:$PATH"
 
+          rm -rf /tmp/uv-example
           mkdir /tmp/uv-example
           cd /tmp/uv-example
 
           uv init --no-workspace
-          uv add /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/scripts/py_haxorg
-          cp /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/.github/scripts/uv_example_main.py ./main.py
+          uv add "${{ github.workspace }}/scripts/py_haxorg"
+          cp "${{ github.workspace }}/.github/scripts/uv_example_main.py" ./main.py
 
       - name: Verify package can be imported and used
         shell: bash
