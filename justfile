@@ -82,3 +82,7 @@ run_include_graph_generation:
 run_codechecker:
   {{workflow_run}} --task docs_doxygen \
     run_codechecker_analysis
+
+
+dump_cli_stack:
+  lldb -p $(pgrep -f haxorg_cpp_org_cli) -o "thread backtrace all" -o "detach" -o "quit" > /tmp/trace.log

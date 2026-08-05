@@ -75,6 +75,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
     }
 };
 
+
 std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     OrgNodeKind kind,
     int         line,

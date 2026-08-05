@@ -1,3 +1,5 @@
+#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/from_current.hpp>
 #include <filesystem>
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
@@ -6,6 +8,7 @@
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
@@ -158,40 +161,96 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
     std::string const&                         string_id,
     std::shared_ptr<OrgParseParameters> const& opts) {
 
+    HSLOG_INFO("Parsing string '{}'", string_id);
+
     auto file_id = addSource(string_id, text);
 
-    if (opts->getFragments) {
-        auto                          fragments = opts->getFragments(text);
-        Vec<OrgConverter::InFragment> toConvert;
+    auto impl = [&]() {
+        if (opts->getFragments) {
+            auto                          fragments = opts->getFragments(text);
+            Vec<OrgConverter::InFragment> toConvert;
 
-        if (opts->baseTokenTracePath && fs::exists(opts->baseTokenTracePath.value())) {
-            fs::remove(opts->baseTokenTracePath.value());
-        }
+            if (opts->baseTokenTracePath
+                && fs::exists(opts->baseTokenTracePath.value())) {
+                fs::remove(opts->baseTokenTracePath.value());
+            }
 
-        if (opts->parseTracePath && fs::exists(opts->parseTracePath.value())) {
-            fs::remove(opts->parseTracePath.value());
-        }
+            if (opts->parseTracePath && fs::exists(opts->parseTracePath.value())) {
+                fs::remove(opts->parseTracePath.value());
+            }
 
-        if (opts->semTracePath && fs::exists(opts->semTracePath.value())) {
-            fs::remove(opts->semTracePath.value());
-        }
+            if (opts->semTracePath && fs::exists(opts->semTracePath.value())) {
+                fs::remove(opts->semTracePath.value());
+            }
 
-        if (opts->tokenTracePath && fs::exists(opts->tokenTracePath.value())) {
-            fs::remove(opts->tokenTracePath.value());
-        }
+            if (opts->tokenTracePath && fs::exists(opts->tokenTracePath.value())) {
+                fs::remove(opts->tokenTracePath.value());
+            }
 
-        Vec<org::parse::OrgTokenGroup> tokens;
-        Vec<org::parse::OrgNodeGroup>  nodes;
-        nodes.reserve(fragments.size());
-        tokens.reserve(fragments.size());
+            Vec<org::parse::OrgTokenGroup> tokens;
+            Vec<org::parse::OrgNodeGroup>  nodes;
+            nodes.reserve(fragments.size());
+            tokens.reserve(fragments.size());
 
-        for (auto const& frag : fragments) {
-            tokens.emplace_back();
-            nodes.emplace_back(&tokens.back());
-        }
+            for (auto const& frag : fragments) {
+                tokens.emplace_back();
+                nodes.emplace_back(&tokens.back());
+            }
 
-        for (int i = 0; i < fragments.size(); ++i) {
-            auto const&             frag = fragments.at(i);
+            for (int i = 0; i < fragments.size(); ++i) {
+                auto const&             frag = fragments.at(i);
+                org::parse::LexerParams p;
+                SPtr<std::ofstream>     fileTrace;
+                if (opts->baseTokenTracePath) {
+                    p.setTraceFile(opts->baseTokenTracePath.value());
+                    p.traceColored = false;
+                }
+
+                org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
+                    frag.text, p, file_id);
+                if (opts->onBaseTokenizeDone) { opts->onBaseTokenizeDone(baseTokens, i); }
+                org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
+
+                if (opts->tokenTracePath) {
+                    tokenizer.setTraceFile(*opts->tokenTracePath, false);
+                    tokenizer.traceColored = false;
+                }
+
+                tokenizer.convert(baseTokens);
+
+                org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
+                if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens.at(i), i); }
+                org::parse::OrgParser parser{&nodes.at(i)};
+                if (opts->parseTracePath) {
+                    parser.setTraceFile(*opts->parseTracePath, false);
+                    parser.traceColored = false;
+                }
+
+                auto id = parser.parseFull(lex);
+
+                if (opts->onParseDone) { opts->onParseDone(nodes.at(i), i); }
+
+                auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
+
+                // adapter.tr
+
+                toConvert.push_back(
+                    OrgConverter::InFragment{
+                        .baseLine = frag.baseLine,
+                        .baseCol  = frag.baseCol,
+                        .node     = adapter,
+                    });
+            }
+
+            sem::OrgConverter converter{};
+            if (opts->semTracePath) {
+                converter.setTraceFile(*opts->semTracePath);
+                converter.traceColored = false;
+            }
+
+            return converter.convertDocumentFragments(toConvert).unwrap();
+
+        } else {
             org::parse::LexerParams p;
             SPtr<std::ofstream>     fileTrace;
             if (opts->baseTokenTracePath) {
@@ -199,95 +258,61 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                 p.traceColored = false;
             }
 
-            org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
-                frag.text, p, file_id);
-            if (opts->onBaseTokenizeDone) { opts->onBaseTokenizeDone(baseTokens, i); }
-            org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
+            org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(text, p, file_id);
+            if (opts->onBaseTokenizeDone) {
+                opts->onBaseTokenizeDone(baseTokens, std::nullopt);
+            }
+
+            org::parse::OrgTokenGroup tokens;
+            org::parse::OrgTokenizer  tokenizer{&tokens};
 
             if (opts->tokenTracePath) {
-                tokenizer.setTraceFile(*opts->tokenTracePath, false);
+                tokenizer.setTraceFile(*opts->tokenTracePath);
                 tokenizer.traceColored = false;
             }
 
             tokenizer.convert(baseTokens);
 
-            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
-            if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens.at(i), i); }
-            org::parse::OrgParser parser{&nodes.at(i)};
+            if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens, std::nullopt); }
+
+            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
+
+            org::parse::OrgNodeGroup nodes{&tokens};
+            org::parse::OrgParser    parser{&nodes};
             if (opts->parseTracePath) {
-                parser.setTraceFile(*opts->parseTracePath, false);
+                parser.setTraceFile(*opts->parseTracePath);
                 parser.traceColored = false;
             }
 
-            auto id = parser.parseFull(lex);
+            auto              id = parser.parseFull(lex);
+            sem::OrgConverter converter{};
+            if (opts->semTracePath) {
+                converter.setTraceFile(*opts->semTracePath);
+                converter.traceColored = false;
+            }
 
-            if (opts->onParseDone) { opts->onParseDone(nodes.at(i), i); }
+            if (opts->onParseDone) { opts->onParseDone(nodes, std::nullopt); }
 
-            auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
-
-            // adapter.tr
-
-            toConvert.push_back(
-                OrgConverter::InFragment{
-                    .baseLine = frag.baseLine,
-                    .baseCol  = frag.baseCol,
-                    .node     = adapter,
-                });
+            return converter.convertDocument(org::parse::OrgAdapter(&nodes, id)).unwrap();
         }
+    };
 
-        sem::OrgConverter converter{};
-        if (opts->semTracePath) {
-            converter.setTraceFile(*opts->semTracePath);
-            converter.traceColored = false;
-        }
+    // CPPTRACE_TRY {
+    auto result  = impl();
+    auto cache   = getDiagnosticStrings();
+    auto reports = collectDiagnostics(result, cache);
 
-        return converter.convertDocumentFragments(toConvert).unwrap();
-
-    } else {
-        org::parse::LexerParams p;
-        SPtr<std::ofstream>     fileTrace;
-        if (opts->baseTokenTracePath) {
-            p.setTraceFile(opts->baseTokenTracePath.value());
-            p.traceColored = false;
-        }
-
-        org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(text, p, file_id);
-        if (opts->onBaseTokenizeDone) {
-            opts->onBaseTokenizeDone(baseTokens, std::nullopt);
-        }
-
-        org::parse::OrgTokenGroup tokens;
-        org::parse::OrgTokenizer  tokenizer{&tokens};
-
-        if (opts->tokenTracePath) {
-            tokenizer.setTraceFile(*opts->tokenTracePath);
-            tokenizer.traceColored = false;
-        }
-
-        tokenizer.convert(baseTokens);
-
-        if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens, std::nullopt); }
-
-        org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
-
-        org::parse::OrgNodeGroup nodes{&tokens};
-        org::parse::OrgParser    parser{&nodes};
-        if (opts->parseTracePath) {
-            parser.setTraceFile(*opts->parseTracePath);
-            parser.traceColored = false;
-        }
-
-        auto              id = parser.parseFull(lex);
-        sem::OrgConverter converter{};
-        if (opts->semTracePath) {
-            converter.setTraceFile(*opts->semTracePath);
-            converter.traceColored = false;
-        }
-
-        if (opts->onParseDone) { opts->onParseDone(nodes, std::nullopt); }
-
-        return converter.convertDocument(org::parse::OrgAdapter(&nodes, id)).unwrap();
+    for (auto const& report : reports) {
+        auto tmp = report;
+        HSLOG_ERROR("diagnostic output:\n{}", tmp.to_string(*cache, false));
     }
+
+    return result;
+    // }
+    // CPPTRACE_CATCH(const std::exception& e) {
+    //     HSLOG_WARNING("Failed to parse the file '{}'", string_id);
+    //     cpptrace::rethrow();
+    // }
 }
 
 

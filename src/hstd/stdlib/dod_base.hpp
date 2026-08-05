@@ -212,7 +212,11 @@ struct [[nodiscard]] Id {
 
     /// \brief Write strig representation of the ID into output stream
     std::string format(FormatConfig const& conf = FormatConfig{}) const {
-        return detail::format_id(getMask(), getIndex(), mask_size, conf, isNil());
+        if (isNil()) {
+            return "<nil>";
+        } else {
+            return detail::format_id(getMask(), getIndex(), mask_size, conf, isNil());
+        }
     }
 
   public:

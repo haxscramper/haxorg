@@ -73,7 +73,6 @@ local = [
   "py_codegen",
   "py_cli",
   "py_repository",
-  "py_wrappers",
   "cxx_repository",
   "py_haxorg",
 ]
@@ -99,7 +98,6 @@ py_scriptutils = { workspace = true }
 py_codegen = { workspace = true }
 py_cli = { workspace = true }
 py_repository = { workspace = true }
-py_wrappers = { workspace = true }
 cxx_repository = { workspace = true }
 py_haxorg = { workspace = true }
 

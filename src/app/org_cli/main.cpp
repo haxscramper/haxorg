@@ -453,14 +453,17 @@ int main(int argc, char* argv[]) {
 
     auto pathCB = [](std::string const& path) -> bool {
         // TODO: make this configurable
+        hstd::fs::path p{path};
         if (path.contains(".git") || path.contains(".trunk")) {
             return false;
-        } else {
+        } else if (path.ends_with(".org")) {
             return true;
+        } else {
+            return hstd::fs::is_directory(p);
         }
     };
 
-    org::parse::ParseContext ctx;
+    auto ctx = std::make_shared<org::parse::ParseContext>();
     if (std::holds_alternative<CliOpts::ParseOpts>(opts.cmd)) {
         auto const&    cmd = std::get<CliOpts::ParseOpts>(opts.cmd);
         hstd::fs::path input{cmd.input};
@@ -477,16 +480,16 @@ int main(int argc, char* argv[]) {
 
         directoryParsingOpts->getParsedNode =
             [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
-            return ctx.parseFileOpts(path, params);
+            return ctx->parseFileOpts(path, params);
         };
 
         if (hstd::fs::is_directory(input)) {
-            ctx.parseDirectoryOpts(input, directoryParsingOpts);
+            ctx->parseDirectoryOpts(input, directoryParsingOpts);
         } else {
             if (opts.withIncludes) {
-                ctx.parseFileWithIncludes(input, directoryParsingOpts);
+                ctx->parseFileWithIncludes(input, directoryParsingOpts);
             } else {
-                ctx.parseFileOpts(input, params);
+                ctx->parseFileOpts(input, params);
             }
         }
     } else {
@@ -546,7 +549,7 @@ int main(int argc, char* argv[]) {
         };
 
         auto pathToNode = [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
-            return ctx.parseFileOpts(path, paramsForPath(path));
+            return ctx->parseFileOpts(path, paramsForPath(path));
         };
 
         directoryParsingOpts->getParsedNode = pathToNode;
@@ -555,10 +558,10 @@ int main(int argc, char* argv[]) {
         hstd::fs::path input{cmd.input.at(0)};
 
         auto node = hstd::fs::is_directory(input)
-                      ? ctx.parseDirectoryOpts(input, directoryParsingOpts)
+                      ? ctx->parseDirectoryOpts(input, directoryParsingOpts)
                       : (opts.withIncludes
-                             ? ctx.parseFileWithIncludes(input, directoryParsingOpts)
-                             : ctx.parseFileOpts(input, paramsForPath(input)));
+                             ? ctx->parseFileWithIncludes(input, directoryParsingOpts)
+                             : ctx->parseFileOpts(input, paramsForPath(input)));
 
         auto write_proto_json = [&](google::protobuf::Message const& result) {
             std::string                          json;

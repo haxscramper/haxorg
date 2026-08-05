@@ -1,4 +1,5 @@
 #include "base_token_tokenize.hpp"
+#include "hstd/stdlib/Debug.hpp"
 #include <cctype>
 #include <haxorg/lexbase/TraceStructured.hpp>
 
@@ -363,22 +364,22 @@ struct Cursor {
 
     void range_token(
         OrgTokenKind kind,
-        int          start,
-        int          end,
+        Recall       start,
+        Recall       end,
         int          line     = __builtin_LINE(),
         char const*  function = __builtin_FUNCTION()) {
         OrgToken tok;
         tok->loc = org::parse::SourceLoc{
-            .column  = this->col,
-            .line    = this->line,
-            .pos     = start,
+            .column  = start.col,
+            .line    = start.line,
+            .pos     = start.pos,
             .file_id = file_id,
         };
         tok.kind = kind;
 
         tok.value.text = std::string{
-            text.begin() + start,
-            text.begin() + end,
+            text.begin() + start.pos,
+            text.begin() + end.pos,
         };
 
         token(tok, line, function);
@@ -403,10 +404,10 @@ struct Cursor {
         Args&&... args) {
         OrgToken tok;
         tok->loc = org::parse::SourceLoc{
+            .line    = this->line,
             .column  = this->col,
             .file_id = this->file_id,
             .pos     = this->pos,
-            .column  = this->col,
         };
 
         tok.kind = kind;
@@ -1543,13 +1544,13 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         case '\n': {
-            int start        = c.pos;
-            int end          = c.pos;
-            int newlineCount = 0;
+            auto start        = c.getRecall();
+            auto end          = c.getRecall();
+            int  newlineCount = 0;
             while (c.is_at('\n')) {
                 ++newlineCount;
                 c.next();
-                end         = c.pos;
+                end         = c.getRecall();
                 auto recall = c.getRecall();
                 while (c.is_at(' ')) { c.next(); }
 
@@ -1626,6 +1627,266 @@ void switch_regular_char(Cursor& c) {
 }
 } // namespace
 
+namespace {
+
+struct TokenAlignmentFailure {
+    int         tokenIndex;
+    std::string tokenKind;
+    std::string tokenText;
+    int         expectedLine;
+    int         expectedCol;
+    int         expectedPos;
+    int         providedLine;
+    int         providedCol;
+    int         providedPos;
+    bool        hasProvidedLoc;
+    std::string sourceContext;
+    std::string details;
+};
+
+struct TokenAlignmentReport {
+    int                                processedTokens;
+    int                                failingTokens;
+    std::vector<TokenAlignmentFailure> failures;
+};
+
+static void advanceLoc(std::string_view segment, int& line, int& col, int& pos) {
+    for (char ch : segment) {
+        if (ch == '\n') {
+            line += 1;
+            col = 0;
+        } else if ((static_cast<unsigned char>(ch) & 0xC0) != 0x80) {
+            col += 1;
+        }
+        pos += 1;
+    }
+}
+
+template <typename K>
+TokenAlignmentReport validateAndRealignOrgFillTokens(
+    std::string const&              text,
+    std::vector<Token<K, OrgFill>>& tokens,
+    int                             maxFailures) {
+    if (maxFailures <= 0) {
+        throw std::invalid_argument{
+            fmt::format("maxFailures must be positive, got {}", maxFailures)};
+    }
+
+    TokenAlignmentReport report{
+        .processedTokens = 0,
+        .failingTokens   = 0,
+        .failures        = {},
+    };
+
+    int textSize = static_cast<int>(text.size());
+    int line     = 0;
+    int col      = 0;
+    int pos      = 0;
+
+    auto contextAt = [&](int ctxPos) -> std::string {
+        if (ctxPos <= textSize) {
+            int len = std::min(60, textSize - ctxPos);
+            return text.substr(
+                static_cast<std::string::size_type>(ctxPos),
+                static_cast<std::string::size_type>(len));
+        } else {
+            return {};
+        }
+    };
+
+    int tokenCount = static_cast<int>(tokens.size());
+    for (int tokenIndex = 0; tokenIndex < tokenCount; tokenIndex += 1) {
+        auto& token = tokens.at(tokenIndex);
+        report.processedTokens += 1;
+
+        std::string tokenText = fmt::format("{}", token.value.text);
+        int         tokenLen  = static_cast<int>(tokenText.size());
+        std::string tokenDesc = fmt::format(
+            "{}({})", token.kind, escape_literal(token.value.text));
+
+        std::vector<std::string> details;
+        bool                     textMismatch = false;
+
+        bool directMatch = false;
+        if (pos <= textSize) {
+            if (tokenLen == 0) {
+                directMatch = true;
+            } else if (pos + tokenLen <= textSize) {
+                directMatch = text.compare(
+                                  static_cast<std::string::size_type>(pos),
+                                  static_cast<std::string::size_type>(tokenLen),
+                                  tokenText)
+                           == 0;
+            }
+        }
+
+        if (!directMatch) {
+            textMismatch = true;
+            int foundPos = -1;
+
+            if (tokenLen == 0) {
+                foundPos = pos;
+            } else if (pos <= textSize) {
+                auto found = text.find(
+                    tokenText, static_cast<std::string::size_type>(pos));
+                if (found != std::string::npos) { foundPos = static_cast<int>(found); }
+            }
+
+            if (foundPos == -1) {
+                if (pos == textSize && 0 < tokenLen) {
+                    details.push_back(
+                        fmt::format(
+                            "source exhausted at pos {}, token text has len {} and "
+                            "cannot be matched for {}",
+                            pos,
+                            tokenLen,
+                            tokenDesc));
+                } else {
+                    std::string actualSlice;
+                    if (pos <= textSize) {
+                        int actualLen = std::min(tokenLen, textSize - pos);
+                        actualSlice   = text.substr(
+                            static_cast<std::string::size_type>(pos),
+                            static_cast<std::string::size_type>(actualLen));
+                    }
+                    details.push_back(
+                        fmt::format(
+                            "token text not found in remaining source from pos {}, "
+                            "expected `{}`, got `{}` for {}",
+                            pos,
+                            tokenText,
+                            actualSlice,
+                            tokenDesc));
+                }
+            } else {
+                if (pos < foundPos) {
+                    std::string skipped = text.substr(
+                        static_cast<std::string::size_type>(pos),
+                        static_cast<std::string::size_type>(foundPos - pos));
+                    details.push_back(
+                        fmt::format(
+                            "misalignment before token: skipped {} chars before next "
+                            "token match at pos {}: `{}` for {}",
+                            foundPos - pos,
+                            foundPos,
+                            skipped,
+                            tokenDesc));
+                    advanceLoc(
+                        std::string_view{text}.substr(
+                            static_cast<std::string::size_type>(pos),
+                            static_cast<std::string::size_type>(foundPos - pos)),
+                        line,
+                        col,
+                        pos);
+                }
+            }
+        }
+
+        int expectedLine = line;
+        int expectedCol  = col;
+        int expectedPos  = pos;
+
+        bool hasProvidedLoc = token.value.loc.has_value();
+        int  providedLine   = -1;
+        int  providedCol    = -1;
+        int  providedPos    = -1;
+
+        if (hasProvidedLoc) {
+            auto const& provided = token.value.loc.value();
+            providedLine         = provided.line;
+            providedCol          = provided.column;
+            providedPos          = provided.pos;
+
+            if (provided.line != expectedLine || provided.column != expectedCol
+                || provided.pos != expectedPos) {
+                details.push_back(
+                    fmt::format(
+                        "location mismatch: provided (line={}, col={}, pos={}) expected "
+                        "(line={}, col={}, pos={}) for {}",
+                        provided.line,
+                        provided.column,
+                        provided.pos,
+                        expectedLine,
+                        expectedCol,
+                        expectedPos,
+                        tokenDesc));
+            }
+        }
+
+        token.value.loc = org::parse::SourceLoc{
+            .line   = expectedLine,
+            .column = expectedCol,
+            .pos    = expectedPos,
+        };
+
+        if (textMismatch) {
+            if (tokenLen == 0) {
+            } else if (expectedPos + tokenLen <= textSize) {
+                advanceLoc(
+                    std::string_view{text}.substr(
+                        static_cast<std::string::size_type>(expectedPos),
+                        static_cast<std::string::size_type>(tokenLen)),
+                    line,
+                    col,
+                    pos);
+            } else if (expectedPos <= textSize) {
+                int remaining = textSize - expectedPos;
+                if (0 < remaining) {
+                    advanceLoc(
+                        std::string_view{text}.substr(
+                            static_cast<std::string::size_type>(expectedPos),
+                            static_cast<std::string::size_type>(remaining)),
+                        line,
+                        col,
+                        pos);
+                }
+            }
+        } else {
+            if (tokenLen != 0) {
+                advanceLoc(
+                    std::string_view{text}.substr(
+                        static_cast<std::string::size_type>(expectedPos),
+                        static_cast<std::string::size_type>(tokenLen)),
+                    line,
+                    col,
+                    pos);
+            }
+        }
+
+        if (!details.empty()) {
+            report.failingTokens += 1;
+
+            std::string allDetails;
+            int         detailCount = static_cast<int>(details.size());
+            for (int detailIndex = 0; detailIndex < detailCount; detailIndex += 1) {
+                if (detailIndex != 0) { allDetails += " | "; }
+                allDetails += details.at(detailIndex);
+            }
+
+            report.failures.push_back(
+                TokenAlignmentFailure{
+                    .tokenIndex     = tokenIndex,
+                    .tokenKind      = fmt::format("{}", token.kind),
+                    .tokenText      = tokenText,
+                    .expectedLine   = expectedLine,
+                    .expectedCol    = expectedCol,
+                    .expectedPos    = expectedPos,
+                    .providedLine   = providedLine,
+                    .providedCol    = providedCol,
+                    .providedPos    = providedPos,
+                    .hasProvidedLoc = hasProvidedLoc,
+                    .sourceContext  = contextAt(expectedPos),
+                    .details        = allDetails,
+                });
+
+            if (maxFailures <= static_cast<int>(report.failures.size())) { break; }
+        }
+    }
+
+    return report;
+}
+} // namespace
+
 OrgTokenGroup org::parse::tokenize(
     std::string const&              text,
     org::parse::LexerParams const&  params,
@@ -1646,6 +1907,13 @@ OrgTokenGroup org::parse::tokenize(
     while (!c.eof()) {
         auto __guard = c.advance_guard();
         switch_regular_char(c);
+    }
+
+    auto report = validateAndRealignOrgFillTokens(text, result.tokens.content, 10);
+
+    if (0 < report.failures.size()) {
+        for (auto const& fail : report.failures) { _dbg(fail.details); }
+        LOGIC_ASSERTION_CHECK(false, "");
     }
 
     return result;

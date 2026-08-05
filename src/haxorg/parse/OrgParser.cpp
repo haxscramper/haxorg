@@ -203,20 +203,14 @@ OrgParser::ParseResult OrgParser::parseMacro(OrgLexer& lex) {
     TRY_SKIP(lex, otk::CurlyBegin);
     TRY_SKIP(lex, otk::CurlyBegin);
     TRY_SKIP(lex, otk::CurlyBegin);
-    token(onk::Word, TRY_POPX(lex, OrgTokSet{otk::Word}));
 
+    token(onk::Word, TRY_POPX(lex, OrgTokSet{otk::Word}));
     SUB_PARSE(CallArguments, lex);
 
-    for (int i = 0; i <= 2; ++i) {
-        if (lex.at(otk::CurlyEnd)) {
-            std::ignore = skip(lex, otk::CurlyEnd);
-        } else {
-            LOGIC_ASSERTION_CHECK_FMT(!hasClose, "");
-            return error_end(ErrorTable::MissingMacroClose, lex);
-        }
-    }
+    TRY_SKIP(lex, otk::CurlyEnd, MissingMacroClose);
+    TRY_SKIP(lex, otk::CurlyEnd, MissingMacroClose);
+    TRY_SKIP(lex, otk::CurlyEnd, MissingMacroClose);
 
-    LOGIC_ASSERTION_CHECK_FMT(hasClose, "");
     return macroGuard->end();
 }
 
@@ -604,6 +598,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             // synchronization points. Take the next token and try to parse
             // it. All paragraphs are processed with sub-lexers, so it is
             // safe to eagerly process everything.
+            auto guard  = advance_guard(&lex);
             std::ignore = _single();
         }
 
@@ -652,7 +647,6 @@ OrgParser::ParseResult OrgParser::parseLink(OrgLexer& lex) {
     } else {
         auto linkGuard = start(onk::Link);
         TRY_SKIP(lex, otk::LinkBegin);
-        // LOG(INFO) << fmt1(lex.tok()->line);
         switch (lex.kind()) {
             case otk::LinkProtocolHttp: {
                 token(onk::Word, TRY_POPX(lex, otk::LinkProtocolHttp));
@@ -698,6 +692,7 @@ OrgParser::ParseResult OrgParser::parseLink(OrgLexer& lex) {
                 token(onk::Word, TRY_POPX(lex, otk::LinkProtocol));
                 SubLexer sub{lex};
                 while (!lex.at(OrgTokSet{otk::LinkSplit, otk::LinkEnd})) {
+                    auto guard = advance_guard(&lex);
                     sub.add(pop(lex));
                 }
                 if (sub.empty()) {
@@ -711,7 +706,10 @@ OrgParser::ParseResult OrgParser::parseLink(OrgLexer& lex) {
         if (lex.at(otk::LinkSplit)) {
             TRY_SKIP(lex, otk::LinkSplit);
             SubLexer sub{lex};
-            while (lex.can_search(otk::LinkEnd)) { sub.add(pop(lex)); }
+            while (lex.can_search(otk::LinkEnd)) {
+                auto guard = advance_guard(&lex);
+                sub.add(pop(lex));
+            }
             if (sub.empty()) {
                 empty();
             } else {
@@ -2561,6 +2559,31 @@ std::string OrgParser::printLexerToString(OrgLexer& lex) const {
         os << os.yellow() << escape_for_write(t.value.text) << os.end()
            << hstd::fmt1(t.value);
     });
+}
+
+finally_std OrgParser::advance_guard(OrgLexer* lex, int line, char const* function) {
+    auto start_pos = lex->getPos();
+
+    std::string function_{function};
+    int         line_{line};
+
+    return hstd::finally_std{[this, start_pos, function_, line_, lex]() {
+        if (lex->getPos() == start_pos) {
+            if (TraceState) {
+                message(
+                    hstd::fmt("No movement around pos {}: {}", start_pos, lex->get()));
+            }
+        }
+
+        LOGIC_ASSERTION_CHECK_FMT(
+            start_pos != lex->getPos(),
+            "No movement around pos {}: {}, advance guard failed at "
+            "{}:{}",
+            start_pos,
+            lex->get(),
+            function_,
+            line_);
+    }};
 }
 
 

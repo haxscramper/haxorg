@@ -165,7 +165,8 @@ struct OrgParser : public hstd::OperationsTracer {
         bool        closed  = false;
         std::string debug;
 
-        NodeGuard(int startingDepth, OrgParser* parser, OrgId startId)
+
+        NodeGuard(int startingDepth, OrgParser* parser, OrgId startId = OrgId::Nil())
             : startingDepth{startingDepth}, parser{parser}, startId{startId} {}
 
         NodeGuard()                       = delete;
@@ -182,12 +183,15 @@ struct OrgParser : public hstd::OperationsTracer {
             char const*        function = __builtin_FUNCTION());
     };
 
+    hstd::finally_std advance_guard(
+        OrgLexer*   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     [[nodiscard]] std::unique_ptr<NodeGuard> start(
         OrgNodeKind kind,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
-
 
     void start_no_guard(
         OrgNodeKind kind,
