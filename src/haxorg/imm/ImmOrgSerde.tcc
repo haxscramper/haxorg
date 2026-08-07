@@ -1471,6 +1471,7 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> {
     assign_immer_field(result.properties, value.properties, ctx);
     assign_immer_field(result.exportConfig, value.exportConfig, ctx);
     assign_immer_field(result.fixedWidthSections, value.fixedWidthSections, ctx);
+    assign_immer_field(result.linkVisibility, value.linkVisibility, ctx);
     assign_immer_field(result.startupIndented, value.startupIndented, ctx);
     assign_immer_field(result.category, value.category, ctx);
     assign_immer_field(result.setupfile, value.setupfile, ctx);
@@ -1488,6 +1489,7 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> {
     assign_sem_field(result.properties, value.properties, ctx);
     assign_sem_field(result.exportConfig, value.exportConfig, ctx);
     assign_sem_field(result.fixedWidthSections, value.fixedWidthSections, ctx);
+    assign_sem_field(result.linkVisibility, value.linkVisibility, ctx);
     assign_sem_field(result.startupIndented, value.startupIndented, ctx);
     assign_sem_field(result.category, value.category, ctx);
     assign_sem_field(result.setupfile, value.setupfile, ctx);

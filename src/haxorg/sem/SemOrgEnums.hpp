@@ -1159,6 +1159,7 @@
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1173,6 +1174,7 @@
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1847,6 +1849,7 @@
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -1861,6 +1864,7 @@
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -1982,6 +1986,11 @@ BOOST_DESCRIBE_ENUM_BEGIN(CheckboxState)
   BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Empty)
   BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Partial)
 BOOST_DESCRIBE_ENUM_END(CheckboxState)
+enum class LinkVisibility : short int { LiteralLinks, DescriptiveLinks, };
+BOOST_DESCRIBE_ENUM_BEGIN(LinkVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, LiteralLinks)
+  BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, DescriptiveLinks)
+BOOST_DESCRIBE_ENUM_END(LinkVisibility)
 /// \brief Where to take todo completion statistics from
 enum class SubtreeTodoSource : short int {
   /// \brief Only count checkbox subnodes as a progress completion

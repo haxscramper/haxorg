@@ -9,6 +9,11 @@ enum CheckboxState {
   CheckboxState_Partial_f                                                           = 3;
 }
 
+enum LinkVisibility {
+  LinkVisibility_LiteralLinks_f                                                     = 0;
+  LinkVisibility_DescriptiveLinks_f                                                 = 1;
+}
+
 enum SubtreeTodoSource {
   SubtreeTodoSource_Checkbox_f                                                      = 0;
   SubtreeTodoSource_Todo_f                                                          = 1;
@@ -2178,13 +2183,14 @@ message DocumentOptions {
   repeated NamedProperty                           properties                       = 5;
   DocumentExportConfig                             exportConfig                     = 6;
   optional bool                                    fixedWidthSections               = 7;
-  optional bool                                    startupIndented                  = 8;
-  optional string                                  category                         = 9;
-  optional string                                  setupfile                        = 10;
-  optional int32                                   maxSubtreeLevelExport            = 11;
-  optional ColumnView                              columns                          = 12;
-  repeated TodoKeyword                             todoKeywords                     = 13;
-  repeated TodoKeyword                             doneKeywords                     = 14;
+  optional LinkVisibility                          linkVisibility                   = 8;
+  optional bool                                    startupIndented                  = 9;
+  optional string                                  category                         = 10;
+  optional string                                  setupfile                        = 11;
+  optional int32                                   maxSubtreeLevelExport            = 12;
+  optional ColumnView                              columns                          = 13;
+  repeated TodoKeyword                             todoKeywords                     = 14;
+  repeated TodoKeyword                             doneKeywords                     = 15;
   string                                           debug                            = 1000;
 }
 

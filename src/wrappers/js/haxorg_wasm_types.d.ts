@@ -8,6 +8,11 @@ export interface haxorg_wasm_module_auto {
     Partial: CheckboxState,
   }
   format_CheckboxState(value: CheckboxState): string;
+  LinkVisibility: {
+    LiteralLinks: LinkVisibility,
+    DescriptiveLinks: LinkVisibility,
+  }
+  format_LinkVisibility(value: LinkVisibility): string;
   SubtreeTodoSource: {
     Checkbox: SubtreeTodoSource,
     Todo: SubtreeTodoSource,
@@ -1484,6 +1489,10 @@ export enum CheckboxState {
   Done,
   Empty,
   Partial,
+}
+export enum LinkVisibility {
+  LiteralLinks,
+  DescriptiveLinks,
 }
 export enum SubtreeTodoSource {
   Checkbox,
@@ -3685,6 +3694,7 @@ export interface DocumentOptions {
   properties: haxorg_wasm.HstdVec<NamedProperty>
   exportConfig: DocumentExportConfig
   fixedWidthSections: haxorg_wasm.Optional<boolean>
+  linkVisibility: haxorg_wasm.Optional<LinkVisibility>
   startupIndented: haxorg_wasm.Optional<boolean>
   category: haxorg_wasm.Optional<Str>
   setupfile: haxorg_wasm.Optional<Str>
@@ -4201,6 +4211,7 @@ export interface ImmDocumentOptions {
   properties: ImmVecOfNamedProperty<NamedProperty>
   exportConfig: DocumentExportConfig
   fixedWidthSections: ImmBoxOfOptOfBool<haxorg_wasm.Optional<boolean>>
+  linkVisibility: ImmBoxOfOptOfLinkVisibility<haxorg_wasm.Optional<LinkVisibility>>
   startupIndented: ImmBoxOfOptOfBool<haxorg_wasm.Optional<boolean>>
   category: ImmBoxOfOptOfStr<haxorg_wasm.Optional<Str>>
   setupfile: ImmBoxOfOptOfStr<haxorg_wasm.Optional<Str>>
@@ -5004,6 +5015,7 @@ export interface ImmDocumentOptionsAdapter {
   getProperties(): ImmVecOfNamedProperty<NamedProperty>;
   getExportConfig(): DocumentExportConfig;
   getFixedWidthSections(): haxorg_wasm.Optional<boolean>;
+  getLinkVisibility(): haxorg_wasm.Optional<LinkVisibility>;
   getStartupIndented(): haxorg_wasm.Optional<boolean>;
   getCategory(): haxorg_wasm.Optional<Str>;
   getSetupfile(): haxorg_wasm.Optional<Str>;

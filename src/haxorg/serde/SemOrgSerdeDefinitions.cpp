@@ -2930,6 +2930,9 @@ void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptio
   if (in.fixedWidthSections) {
     out->set_fixedwidthsections(*in.fixedWidthSections);
   }
+  if (in.linkVisibility) {
+    out->set_linkvisibility(static_cast<orgproto::LinkVisibility>(*in.linkVisibility));
+  }
   if (in.startupIndented) {
     out->set_startupindented(*in.startupIndented);
   }
@@ -2956,6 +2959,9 @@ void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptio
   proto_serde<orgproto::DocumentExportConfig, org::sem::DocumentExportConfig>::read(out.exportconfig(), in.for_field(&org::sem::DocumentOptions::exportConfig));
   if (out.has_fixedwidthsections()) {
     proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.fixedwidthsections(), in.for_field(&org::sem::DocumentOptions::fixedWidthSections));
+  }
+  if (out.has_linkvisibility()) {
+    proto_serde<hstd::Opt<orgproto::LinkVisibility>, hstd::Opt<LinkVisibility>>::read(out.linkvisibility(), in.for_field(&org::sem::DocumentOptions::linkVisibility));
   }
   if (out.has_startupindented()) {
     proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.startupindented(), in.for_field(&org::sem::DocumentOptions::startupIndented));

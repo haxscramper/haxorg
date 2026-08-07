@@ -206,6 +206,7 @@ Opt<ImmAstReplace> setNewSubnodes(
                         // clang-format off
                         [&]<hstd::IsVariant V>(V const&) { fail_field(); },
                         [&]<hstd::IsEnum E>(E const&) { fail_field(); },
+                        [&]<DescribedEnum E>(ImmBox<Opt<E>> const&) { fail_field(); },
                         [&](ImmBox<Opt<int>> const&) { fail_field(); },
                         [&](ImmBox<int> const&) { fail_field(); },
                         [&](ImmBox<Opt<bool>> const&) { fail_field(); },

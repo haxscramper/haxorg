@@ -46,6 +46,25 @@ typename NodeGroup<N, K, V, M>::iterator NodeGroup<N, K, V, M>::end(
     return iterator(last, this);
 }
 
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::flat_extent_iterator NodeGroup<N, K, V, M>::begin_extent(
+    NodeGroup<N, K, V, M>::Id start) const {
+    if (start.getIndex() < size()) {
+        auto result = flat_extent_iterator(start, this);
+        result.check();
+        return result;
+    } else {
+        return end_extent(nodes.back());
+    }
+}
+
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::flat_extent_iterator NodeGroup<N, K, V, M>::end_extent(
+    NodeGroup<N, K, V, M>::Id last) const {
+    ++last;
+    return flat_extent_iterator(last, this);
+}
+
 
 template <typename N, typename K, typename V, typename M>
 Opt<Pair<typename NodeGroup<N, K, V, M>::iterator, typename NodeGroup<N, K, V, M>::iterator>> NodeGroup<

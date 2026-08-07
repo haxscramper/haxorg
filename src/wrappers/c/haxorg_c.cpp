@@ -2409,6 +2409,8 @@ haxorg_DocumentExportConfig haxorg_DocumentOptions_get_exportConfig(OrgContext* 
 
 haxorg_StdOptional haxorg_DocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::sem::DocumentOptions, std::optional<bool>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::fixedWidthSections); }
 
+haxorg_StdOptional haxorg_DocumentOptions_get_linkVisibility(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::sem::DocumentOptions, std::optional<LinkVisibility>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::linkVisibility); }
+
 haxorg_StdOptional haxorg_DocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::sem::DocumentOptions, std::optional<bool>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::startupIndented); }
 
 haxorg_StdOptional haxorg_DocumentOptions_get_category(OrgContext* org_context, haxorg_DocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::sem::DocumentOptions, std::optional<hstd::Str>, haxorg_DocumentOptions>(org_context, __this, &org::sem::DocumentOptions::category); }
@@ -2806,6 +2808,8 @@ haxorg_ImmVec haxorg_ImmDocumentOptions_get_properties(OrgContext* org_context, 
 haxorg_DocumentExportConfig haxorg_ImmDocumentOptions_get_exportConfig(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_DocumentExportConfig, org::imm::ImmDocumentOptions, org::sem::DocumentExportConfig, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::exportConfig); }
 
 haxorg_StdOptional haxorg_ImmDocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<std::optional<bool>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::fixedWidthSections); }
+
+haxorg_StdOptional haxorg_ImmDocumentOptions_get_linkVisibility(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<std::optional<LinkVisibility>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::linkVisibility); }
 
 haxorg_StdOptional haxorg_ImmDocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_ImmDocumentOptions __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::imm::ImmDocumentOptions, hstd::ext::ImmBox<std::optional<bool>>, haxorg_ImmDocumentOptions>(org_context, __this, &org::imm::ImmDocumentOptions::startupIndented); }
 
@@ -3716,6 +3720,8 @@ haxorg_ImmVec haxorg_ImmAdapterTOfImmDocumentOptions_getProperties_const(OrgCont
 haxorg_DocumentExportConfig haxorg_ImmAdapterTOfImmDocumentOptions_getExportConfig_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_DocumentExportConfig>(static_cast<org::sem::DocumentExportConfig(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getExportConfig), org_context, __this); }
 
 haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getFixedWidthSections_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections), org_context, __this); }
+
+haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getLinkVisibility_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<LinkVisibility> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getLinkVisibility), org_context, __this); }
 
 haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getStartupIndented_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this) { return org::bind::c::execute_cpp<haxorg_StdOptional>(static_cast<std::optional<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented), org_context, __this); }
 

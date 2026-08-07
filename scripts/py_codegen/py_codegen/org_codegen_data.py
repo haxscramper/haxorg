@@ -3062,7 +3062,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 vec_field(t_nest_shared("NamedProperty", []), "properties", GenTuDoc("")),
                 org_field(t_nest_shared("DocumentExportConfig", []), "exportConfig"),
                 opt_field(t_bool(), "fixedWidthSections"),
-                opt_field(t_nest_shared("LinkVisibility"), "linkVisibility"),
+                opt_field(t("LinkVisibility"), "linkVisibility"),
                 opt_field(t_bool(), "startupIndented"),
                 opt_field(t_str(), "category"),
                 opt_field(t_str(), "setupfile"),

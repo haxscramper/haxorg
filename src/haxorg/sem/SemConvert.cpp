@@ -239,9 +239,11 @@ Str get_text(
         return a.val().text;
     } else if (a.kind() == onk::Empty) {
         return "";
-    } else if (a.kind() == onk::InlineStmtList) {
+    } else if (a.kind() == onk::InlineStmtList || a.kind() == onk::Paragraph) {
         Str res;
-        for (auto const& it : a) { res += get_text(it); }
+        for (auto [begin, end] = a.full_flat_extent_pair(); begin != end; ++begin) {
+            if ((*begin).isTerminal()) { res += (*begin).val().text; }
+        }
         return res;
     } else {
         throw convert_logic_error::init(
@@ -2944,6 +2946,10 @@ bool OrgConverter::updateDocument(SemId<Document>& doc, parse::OrgAdapter const&
                 doc->options->initialVisibility = K::Show4Levels;
             } else if (text == "showeverything") {
                 doc->options->initialVisibility = K::ShowEverything;
+            } else if (text == "literallinks") {
+                doc->options->linkVisibility = LinkVisibility::LiteralLinks;
+            } else if (text == "descriptivelinks") {
+                doc->options->linkVisibility = LinkVisibility::DescriptiveLinks;
             } else {
                 throw convert_logic_error::init(
                     hstd::fmt(

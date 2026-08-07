@@ -134,6 +134,47 @@ struct NodeGroup {
     iterator begin(Id start) const;
     iterator end(Id last) const;
 
+    class flat_extent_iterator {
+      public:
+        Id               id;
+        NodeGroup const* group;
+
+      public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef Id                        value_type;
+        typedef Id*                       pointer;
+        typedef Id&                       reference;
+        typedef std::ptrdiff_t            difference_type;
+
+        flat_extent_iterator(Id _id, NodeGroup const* _group) : id(_id), group(_group) {}
+
+        Id operator*() const {
+            check();
+            return id;
+        }
+
+        void check() const {
+            LOGIC_ASSERTION_CHECK_FMT(
+                !id.isNil() && id.getIndex() < group->size(),
+                "CHeck node id iterator {} < {}",
+                id.getIndex(),
+                group->size());
+        }
+
+        flat_extent_iterator& operator++() {
+            LOGIC_ASSERTION_CHECK(group->nodes.contains(id), "");
+            id = id + 1;
+            return *this;
+        }
+
+        bool operator!=(flat_extent_iterator const& other) const {
+            return this->id != other.id;
+        }
+    };
+
+    flat_extent_iterator begin_extent(Id start) const;
+    flat_extent_iterator end_extent(Id last) const;
+
     /// \brief Get pair of start/end iterators for traversing content of
     /// the subnodes
     ///

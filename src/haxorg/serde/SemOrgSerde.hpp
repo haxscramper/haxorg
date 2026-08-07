@@ -147,6 +147,15 @@ struct proto_init<hstd::Opt<sem::SemId<T>>> {
     }
 };
 
+template <typename Proto, hstd::DescribedEnum T>
+struct proto_serde<Proto, T> {
+    static void write(Proto* out, T const& in) { *out = static_cast<Proto>(in.value); }
+
+    static void read(Proto const& out, proto_write_accessor<T> in) {
+        in.get() = static_cast<T>(out);
+    }
+};
+
 template <typename Proto, typename T>
 struct proto_serde<hstd::Opt<Proto>, hstd::Opt<T>> {
     static void write(Proto* out, hstd::Opt<T> const& in) {
