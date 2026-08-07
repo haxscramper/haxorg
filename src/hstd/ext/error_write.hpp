@@ -31,6 +31,7 @@ class ReportSource;
 
 /// \brief A trait implemented by `Source` caches.
 DECL_ID_TYPE(ReportSource, ReportSourceId, std::size_t);
+DECL_ID_TYPE(ReportLabel, ReportLabelId, std::size_t);
 
 // DECL_ID_TYPE(Commit, CommitId, std::size_t);
 
@@ -105,6 +106,7 @@ struct ReportSourceLine {
 ///
 /// In most cases, a source is a single input file.
 struct ReportSource {
+    using id_type = ReportSourceId;
     Vec<ReportSourceLine> lines;
     int                   len;
     ColText               content;
@@ -204,47 +206,40 @@ enum class LabelKind
 
 BOOST_DESCRIBE_ENUM(LabelKind, Inline, Multiline);
 
-struct Label {
+struct ReportLabel {
+    using id_type = ReportLabelId;
     /// \brief Give this label a message
-    Label& with_message(ColText const& msg) {
+    ReportLabel& with_message(ColText const& msg) {
         this->msg = msg;
         return *this;
     }
 
     /// \brief Give this label a highlight color
-    Label& with_color(ColStyle const& color) {
+    ReportLabel& with_color(ColStyle const& color) {
         this->color = color;
         return *this;
     }
 
     /// \brief Specify the order of this label relative to other labels
-    Label& with_order(int order) {
+    ReportLabel& with_order(int order) {
         this->order = order;
         return *this;
     }
 
     /// \brief Specify the priority of this label relative to other labels
-    Label& with_priority(int priority) {
+    ReportLabel& with_priority(int priority) {
         this->priority = priority;
         return *this;
     }
 
-    Label& with_span(ReportSourceId id, Slice<int> range) {
-        this->span = CodeSpan{id, range};
-        return *this;
-    }
 
+    ReportLabel clone() const { return *this; }
 
-    Label& with_id(int label_id) {
-        this->id = label_id;
-        return *this;
-    }
-
-    Label clone() const { return *this; }
+    ReportLabel(ReportLabelId selfId, CodeSpan span) : id{id}, span{span} {}
 
     /// \brief Unique ID to disambiguate different labels from each other
     /// and uniquely identify them.
-    int id;
+    ReportLabelId id;
     /// \brief Range of code this label applies to.
     CodeSpan               span;
     std::optional<ColText> msg      = std::nullopt;
@@ -252,15 +247,15 @@ struct Label {
     int                    order    = 0;
     int                    priority = 0;
 
-    DESC_FIELDS(Label, (span, msg, color, order, priority, id));
+    DESC_FIELDS(ReportLabel, (span, msg, color, order, priority, id));
 
-    bool operator==(Label const& other) const { return this->id == other.id; }
+    bool operator==(ReportLabel const& other) const { return this->id == other.id; }
 };
 
 /// \brief Metadata about the label.
 struct LabelInfo {
-    LabelKind kind;
-    Label     label;
+    LabelKind   kind;
+    ReportLabel label;
     DESC_FIELDS(LabelInfo, (kind, label));
 };
 
@@ -414,7 +409,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     hstd::Vec<ColText>             note     = {};
     hstd::Vec<ColText>             help     = {};
     std::pair<ReportSourceId, int> location = {ReportSourceId::Nil(), 0};
-    Vec<Label>                     labels   = {};
+    Vec<ReportLabel>               labels   = {};
     ReportRenderConfig             config   = ReportRenderConfig{};
 
     DESC_FIELDS(Report, (kind, code, msg, note, help, location, labels, config));
@@ -455,7 +450,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     }
 
     /// \brief Add a label to the report.
-    void add_label(Label const& label) { labels.push_back(label); }
+    void add_label(ReportLabel const& label) { labels.push_back(label); }
 
     /// \brief Add multiple labels to the report.
     template <typename Container>
@@ -464,7 +459,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     }
 
     /// \brief Add a label to the report.
-    Report& with_label(Label const& label) {
+    Report& with_label(ReportLabel const& label) {
         add_label(label);
         return *this;
     }
@@ -504,7 +499,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     }
 
     /// \brief Find all labels
-    static Vec<Label> build_multi_labels(Vec<LabelInfo> const& labels);
+    static Vec<ReportLabel> build_multi_labels(Vec<LabelInfo> const& labels);
 };
 
 } // namespace hstd::ext
