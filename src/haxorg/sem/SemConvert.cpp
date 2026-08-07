@@ -2945,7 +2945,11 @@ bool OrgConverter::updateDocument(SemId<Document>& doc, parse::OrgAdapter const&
             } else if (text == "showeverything") {
                 doc->options->initialVisibility = K::ShowEverything;
             } else {
-                throw convert_logic_error::init(text);
+                throw convert_logic_error::init(
+                    hstd::fmt(
+                        "could not convert initial subtree visibility value {} tree {}",
+                        text,
+                        sub.treeRepr(false)));
             }
 
             if (auto it = args.get(1); it.has_value()) {

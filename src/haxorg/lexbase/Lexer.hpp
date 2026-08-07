@@ -22,6 +22,17 @@ struct LexerCommon {
     V const&           val(int offset = 0) const { return tok(offset).value; }
     V&                 val(int offset = 0) { return in->at(get(offset)).value; }
 
+    virtual std::string getCurrentPosRepr(int offset = 0) const {
+        TokenId<K, V> offsetPos = pos + offset;
+        if (offsetPos.isNil()) {
+            return hstd::fmt(
+                "pos {}/{} nil @ last tok {}", offsetPos, in->size(), in->back());
+        } else {
+            return hstd::fmt(
+                "pos {}/{} @ {}", offsetPos.getIndex(), in->size(), in->at(offsetPos));
+        }
+    }
+
     hstd::Opt<hstd::CRw<Token<K, V>>> opt(int offset = 0) {
         if (hasNext(offset)) {
             return tok(offset);
@@ -354,10 +365,20 @@ struct SubLexer : public LexerCommon<K, V> {
     // not not accessible. I don't think this is caused by the shadowing
     // issue, but aside from that I don't really know.
     using LexerCommon<K, V>::pos;
+    using LexerCommon<K, V>::in;
 
     int                      subPos = 0;
     hstd::Vec<TokenId<K, V>> tokens;
 
+    std::string getCurrentPosRepr(int offset = 0) const override {
+        int offsetPos = subPos + offset;
+        return hstd::fmt(
+            "sub {}/{} ID {}: {}",
+            offsetPos,
+            tokens.size(),
+            tokens.at(offsetPos < tokens.size() ? offsetPos : tokens.high()),
+            LexerCommon<K, V>::getCurrentPosRepr(offset));
+    }
 
     bool empty() const { return tokens.empty(); }
     bool hasNext(int offset = 1) const override {
@@ -405,6 +426,7 @@ template <typename K, typename V>
 struct Lexer : public LexerCommon<K, V> {
     using LexerCommon<K, V>::pos;
     using LexerCommon<K, V>::in;
+
 
     void next(int offset = 1) override {
         if (hasNext(offset)) {

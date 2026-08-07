@@ -185,34 +185,26 @@ struct Cursor {
     }
 
     bool next(int line = __builtin_LINE(), char const* function = __builtin_FUNCTION()) {
-        if (text.size() <= pos) {
-            return false;
-        } else if (get() == '\n') {
-            if (p.TraceState) {
-                p.message(hstd::fmt("next line over at {}", format(5)), function, line);
-            }
-
-            this->line++;
-            col = 0;
-        } else {
-            col++;
-        }
-
-
-        pos++;
-        return pos < text.size();
+        return nextUnicode(line, function);
     }
 
     int is_at_unicode(int offset = 0) {
         return 0xF0 <= static_cast<unsigned char>(get(offset));
     }
 
-    bool nextUnicode() {
+    bool nextUnicode(
+        int         code_line     = __builtin_LINE(),
+        char const* code_function = __builtin_FUNCTION()) {
         if (text.size() <= pos) {
             return false;
         } else if (current() == '\n') {
+            if (p.TraceState) {
+                p.message(
+                    hstd::fmt("next line over at {}", format(5)), code_function, line);
+            }
+
             line++;
-            col = 1;
+            col = 0;
             pos++;
             return pos < text.size();
         } else {
@@ -1662,6 +1654,24 @@ static void advanceLoc(std::string_view segment, int& line, int& col, int& pos) 
     }
 }
 
+static std::string sourceLineAt(std::string const& text, int targetLine) {
+    int line     = 0;
+    int start    = 0;
+    int textSize = static_cast<int>(text.size());
+    for (int i = 0; i <= textSize; i += 1) {
+        if (i == textSize || text.at(i) == '\n') {
+            if (line == targetLine) {
+                return text.substr(
+                    static_cast<std::string::size_type>(start),
+                    static_cast<std::string::size_type>(i - start));
+            }
+            line += 1;
+            start = i + 1;
+        }
+    }
+    return {};
+}
+
 template <typename K>
 TokenAlignmentReport validateAndRealignOrgFillTokens(
     std::string const&              text,
@@ -1819,6 +1829,7 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
             .pos    = expectedPos,
         };
 
+        int tokenEndLine = expectedLine;
         if (textMismatch) {
             if (tokenLen == 0) {
             } else if (expectedPos + tokenLen <= textSize) {
@@ -1852,9 +1863,44 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
                     pos);
             }
         }
+        tokenEndLine = line;
 
         if (!details.empty()) {
             report.failingTokens += 1;
+
+            if (tokenEndLine == expectedLine) {
+                details.push_back(
+                    fmt::format(
+                        "token line {}: `{}`",
+                        expectedLine,
+                        sourceLineAt(text, expectedLine)));
+            } else {
+                details.push_back(
+                    fmt::format(
+                        R"(token spans lines {}..{}:
+start `{}`
+end `{}`)",
+                        expectedLine,
+                        tokenEndLine,
+                        sourceLineAt(text, expectedLine),
+                        sourceLineAt(text, tokenEndLine)));
+            }
+
+            std::string neighbors;
+            int         neighborStart = std::max(0, tokenIndex - 2);
+            int         neighborEnd   = std::min(tokenCount - 1, tokenIndex + 2);
+            for (int neighborIndex = neighborStart; neighborIndex <= neighborEnd;
+                 neighborIndex += 1) {
+                if (neighborIndex == tokenIndex) { continue; }
+                auto const& neighbor = tokens.at(neighborIndex);
+                if (!neighbors.empty()) { neighbors += ", "; }
+                neighbors += fmt::format(
+                    "\n  [{}]{}({})",
+                    neighborIndex,
+                    neighbor.kind,
+                    escape_literal(neighbor.value.text));
+            }
+            details.push_back(fmt::format("\nneighbor tokens: {}", neighbors));
 
             std::string allDetails;
             int         detailCount = static_cast<int>(details.size());
@@ -1912,7 +1958,9 @@ OrgTokenGroup org::parse::tokenize(
     auto report = validateAndRealignOrgFillTokens(text, result.tokens.content, 10);
 
     if (0 < report.failures.size()) {
-        for (auto const& fail : report.failures) { _dbg(fail.details); }
+        for (auto const& fail : report.failures) {
+            std::cout << fail.details << std::endl;
+        }
         LOGIC_ASSERTION_CHECK(false, "");
     }
 

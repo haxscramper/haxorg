@@ -691,7 +691,7 @@ OrgParser::ParseResult OrgParser::parseLink(OrgLexer& lex) {
             default:
                 token(onk::Word, TRY_POPX(lex, otk::LinkProtocol));
                 SubLexer sub{lex};
-                while (!lex.at(OrgTokSet{otk::LinkSplit, otk::LinkEnd})) {
+                while (lex.can_search(OrgTokSet{otk::LinkSplit, otk::LinkEnd})) {
                     auto guard = advance_guard(&lex);
                     sub.add(pop(lex));
                 }
@@ -2580,7 +2580,7 @@ finally_std OrgParser::advance_guard(OrgLexer* lex, int line, char const* functi
             "No movement around pos {}: {}, advance guard failed at "
             "{}:{}",
             start_pos,
-            lex->get(),
+            lex->getCurrentPosRepr(),
             function_,
             line_);
     }};
