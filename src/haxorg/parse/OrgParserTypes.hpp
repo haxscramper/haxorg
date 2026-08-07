@@ -12,6 +12,13 @@ namespace org::parse {
 
 using OrgToken = Token<OrgTokenKind, OrgFill>;
 
+template <>
+struct TokenUtils<OrgTokenKind, OrgFill> {
+    static hstd::Opt<SourceLoc> getLocation(OrgToken const& tok) {
+        return tok.value.loc.value();
+    }
+};
+
 using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
 using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;

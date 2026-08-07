@@ -841,7 +841,7 @@ TEST(PrintError, ByteColumn) {
         = Report(ReportKind::Error, id, 11)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  1 ReportLabel{
+                  ReportLabel{
                       ReportLabelId::FromValue(1),
                       CodeSpan{id, slice(0, 6)},
                   }

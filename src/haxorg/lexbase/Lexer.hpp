@@ -22,6 +22,20 @@ struct LexerCommon {
     V const&           val(int offset = 0) const { return tok(offset).value; }
     V&                 val(int offset = 0) { return in->at(get(offset)).value; }
 
+    SourceLoc getSourceLoc(Token<K, V> const& tok) {
+        if (auto loc = TokenUtils<K, V>::getLocation(tok); loc.has_value()) {
+            return loc.value();
+        } else if (!lastToken.has_value()) {
+            return SourceLoc{-1, -1};
+        } else if (
+            auto loc = TokenUtils<K, V>::getLocation(lastToken.value());
+            loc.has_value()) {
+            return loc;
+        } else {
+            return SourceLoc{-1, -1};
+        }
+    }
+
     virtual std::string getCurrentPosRepr(int offset = 0) const {
         TokenId<K, V> offsetPos = pos + offset;
         if (offsetPos.isNil()) {
@@ -275,7 +289,8 @@ struct LexerCommon {
                     "token "
                     "at index {}",
                     kind,
-                    pos.getIndex()));
+                    pos.getIndex()),
+                getSourceLoc(tok()));
 
         } else {
             throw UnexpectedCharError(
@@ -285,7 +300,7 @@ struct LexerCommon {
                     this->kind(),
                     pos.getIndex(),
                     this->tok(pos)),
-                pos.getIndex());
+                getSourceLoc(tok()));
         }
     }
 
