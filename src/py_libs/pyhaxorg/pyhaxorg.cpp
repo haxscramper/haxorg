@@ -1291,7 +1291,7 @@ node can have subnodes.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::ext::Cache>(m, "Cache")
+  nanobind::class_<hstd::ext::ReportSourceCache>(m, "Cache")
     ;
   nanobind::class_<hstd::ext::Report>(m, "Report")
     .def("__repr__", [](hstd::ext::Report const& _self) -> std::string {
@@ -1367,7 +1367,7 @@ node can have subnodes.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::Cache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
+    .def("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::ReportSourceCache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
     .def("addSource",
          static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource),
          nanobind::arg("path"),

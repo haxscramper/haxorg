@@ -453,7 +453,7 @@ void haxorg_OperationsTracer_sendMessage_const(OrgContext* org_context, haxorg_O
 
 void haxorg_destroy_OperationsTracer(OrgContext* org_context, haxorg_OperationsTracer* obj) { org::bind::c::execute_destroy<hstd::OperationsTracer>(org_context, obj); }
 
-void haxorg_destroy_Cache(OrgContext* org_context, haxorg_Cache* obj) { org::bind::c::execute_destroy<hstd::ext::Cache>(org_context, obj); }
+void haxorg_destroy_Cache(OrgContext* org_context, haxorg_Cache* obj) { org::bind::c::execute_destroy<hstd::ext::ReportSourceCache>(org_context, obj); }
 
 void haxorg_destroy_Report(OrgContext* org_context, haxorg_Report* obj) { org::bind::c::execute_destroy<hstd::ext::Report>(org_context, obj); }
 
@@ -481,7 +481,7 @@ haxorg_ParseContext haxorg_create_ParseContext_ParseContextDefault(OrgContext* o
 
 haxorg_ParseContext haxorg_create_ParseContext_ParseContextWithManager(OrgContext* org_context, haxorg_ParseSourceManager source) { return org::bind::c::execute_cpp<haxorg_ParseContext>(+[](std::shared_ptr<org::parse::SourceManager> const& source) -> org::parse::ParseContext { return org::parse::ParseContext(source); }, org_context, source); }
 
-haxorg_Cache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this) { return org::bind::c::execute_cpp<haxorg_Cache>(static_cast<std::shared_ptr<hstd::ext::Cache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings), org_context, __this); }
+haxorg_Cache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this) { return org::bind::c::execute_cpp<haxorg_Cache>(static_cast<std::shared_ptr<hstd::ext::ReportSourceCache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings), org_context, __this); }
 
 haxorg_ParseSourceFileId haxorg_ParseContext_addSource_const(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path, haxorg_StdString content) { return org::bind::c::execute_cpp<haxorg_ParseSourceFileId>(static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource), org_context, __this, path, content); }
 

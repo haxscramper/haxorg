@@ -2,6 +2,8 @@
 #include <hstd/stdlib/Formatter.hpp>
 
 std::string org::parse::SourceManager::getPath(SourceFileId const& id) const {
+    LOGIC_ASSERTION_CHECK_FMT(
+        path_ids.contains_right(id), "Cannot get file path for ID {}", id);
     return path_ids.at_left(id);
 }
 

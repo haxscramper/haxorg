@@ -17,8 +17,8 @@ using namespace hstd::ext;
 using namespace hstd;
 
 
-Characters Config::unicode() {
-    return Characters{
+ReportCharacters ReportRenderConfig::unicode() {
+    return ReportCharacters{
         .hbar       = Str("─"),
         .vbar       = Str("│"),
         .xbar       = Str("┼"),
@@ -41,8 +41,8 @@ Characters Config::unicode() {
     };
 }
 
-Characters Config::ascii() {
-    return Characters{
+ReportCharacters ReportRenderConfig::ascii() {
+    return ReportCharacters{
         .hbar       = Str("-"),
         .vbar       = Str("|"),
         .xbar       = Str("+"),
@@ -92,8 +92,8 @@ struct LineLabel {
     }
 
 struct Writer {
-    ColStream&    stream;
-    Config const* config;
+    ColStream&                stream;
+    ReportRenderConfig const* config;
 
     bool dbg_report() const { return config->debug_report_info; }
 
@@ -137,18 +137,18 @@ struct MarginContext {
     /// \brief Draw the label part of the margin, like horizontal end rows.
     _field(bool, draw_labels, false);
     _field(int, arrow_len, 0);
-    Line const& line;
+    ReportSourceLine const& line;
     /// \brief Information about the active report label that is being
     /// drawn.
     std::optional<std::pair<int, bool>> active_label = std::nullopt;
     Vec<LineLabel> const&               line_labels;
     std::optional<LineLabel> const&     margin_label;
-    std::shared_ptr<Source>             src;
+    std::shared_ptr<ReportSource>       src;
     /// \brief List of the multi-labels for this record. All multi-labels
     /// are visible for margin context. Margin column index maps to the
     /// multi-label indices.
-    Vec<Label> const& multi_labels;
-    Config const&     config;
+    Vec<Label> const&         multi_labels;
+    ReportRenderConfig const& config;
 
     // TODO: What second parameter in the tuple (the bool one) refers to?
     MarginContext& with_active_label(std::pair<int, bool> const& value) {
@@ -157,7 +157,7 @@ struct MarginContext {
     }
 
 
-    Characters const& draw() const { return config.char_set; }
+    ReportCharacters const& draw() const { return config.char_set; }
 
     finally_std scope(
         Str const& function    = Str{__builtin_FUNCTION()},
@@ -192,8 +192,8 @@ int get_arrow_len(MarginContext const& base) {
 /// Returns a single label with the start/end closest to the actual line
 /// span.
 std::optional<LineLabel> get_margin_label(
-    Line const&       line,
-    Vec<Label> const& multi_labels) {
+    ReportSourceLine const& line,
+    Vec<Label> const&       multi_labels) {
     std::optional<LineLabel> margin_label;
     int                      min_key = std::numeric_limits<int>::max();
     for (Label const& label : multi_labels) {
@@ -670,10 +670,10 @@ void write_line_label_arrows(MarginContext const& c, int row, int arrow_len) {
 }
 
 void collect_multiline_labels(
-    Vec<LineLabel>&       line_labels,
-    Line const&           line,
-    Vec<Label> const&     multi_labels,
-    Opt<LineLabel> const& margin_label) {
+    Vec<LineLabel>&         line_labels,
+    ReportSourceLine const& line,
+    Vec<Label> const&       multi_labels,
+    Opt<LineLabel> const&   margin_label) {
 
     for (Label const& label : multi_labels) {
         bool is_start = line.span().contains(label.span.start());
@@ -702,11 +702,11 @@ void collect_multiline_labels(
 }
 
 void collect_inline_labels(
-    Vec<LineLabel>&         line_labels,
-    Config const&           config,
-    Line const&             line,
-    Vec<LabelInfo> const&   labels,
-    std::shared_ptr<Source> src) {
+    Vec<LineLabel>&               line_labels,
+    ReportRenderConfig const&     config,
+    ReportSourceLine const&       line,
+    Vec<LabelInfo> const&         labels,
+    std::shared_ptr<ReportSource> src) {
     for (const LabelInfo& label_info : labels) {
         // if the line fully contains an inline label
         if (line.span().first <= label_info.label.span.start()
@@ -749,12 +749,12 @@ void collect_inline_labels(
 /// labels that are contained in the range of the single line, and ones
 /// that span multiple lines.
 Vec<LineLabel> build_line_labels(
-    Config const&           config,
-    Line const&             line,
-    Vec<LabelInfo> const&   labels,
-    Opt<LineLabel> const&   margin_label,
-    Vec<Label> const&       multi_labels,
-    std::shared_ptr<Source> src) {
+    ReportRenderConfig const&     config,
+    ReportSourceLine const&       line,
+    Vec<LabelInfo> const&         labels,
+    Opt<LineLabel> const&         margin_label,
+    Vec<Label> const&             multi_labels,
+    std::shared_ptr<ReportSource> src) {
     Vec<LineLabel> line_labels;
     collect_multiline_labels(line_labels, line, multi_labels, margin_label);
 
@@ -763,7 +763,7 @@ Vec<LineLabel> build_line_labels(
     return line_labels;
 }
 
-int get_line_number_width(Vec<SourceGroup> const& groups, Cache& cache) {
+int get_line_number_width(Vec<SourceGroup> const& groups, ReportSourceCache& cache) {
     int line_number_width = 0;
     for (const auto& group : groups) {
         Str  src_name = cache.display(group.src_id).value_or("<unknown>");
@@ -779,12 +779,12 @@ int get_line_number_width(Vec<SourceGroup> const& groups, Cache& cache) {
 /// \brief Write long horizontal part of the lines that connect the label
 /// to the target on some other line.
 void write_lines(
-    MarginContext const& c,
-    Line const&          line,
-    int                  arrow_len,
-    LineLabel const&     line_label,
-    int                  row,
-    bool                 is_first_label_line) {
+    MarginContext const&    c,
+    ReportSourceLine const& line,
+    int                     arrow_len,
+    LineLabel const&        line_label,
+    int                     row,
+    bool                    is_first_label_line) {
 
     // Lines
     auto chars = c.line_text.begin();
@@ -872,11 +872,11 @@ Vec<Label> Report::build_multi_labels(Vec<LabelInfo> const& labels) {
 }
 
 
-Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
+Vec<SourceGroup> Report::get_source_groups(ReportSourceCache* cache) const {
     Vec<SourceGroup> groups;
     for (const auto& label : labels) {
-        auto                    src_display = cache->display(label.span.source());
-        std::shared_ptr<Source> src         = cache->fetch(label.span.source());
+        auto                          src_display = cache->display(label.span.source());
+        std::shared_ptr<ReportSource> src         = cache->fetch(label.span.source());
         if (!src) { continue; }
 
         LOGIC_ASSERTION_CHECK_FMT(
@@ -932,22 +932,22 @@ Vec<SourceGroup> Report::get_source_groups(Cache* cache) const {
 
 
 struct ReportGroupContext {
-    Report const&           report;
-    int                     line_number_width;
-    std::shared_ptr<Source> src;
-    SourceGroup const&      group;
-    Vec<Label> const&       multi_labels;
-    Writer&                 op;
-    Config const&           config;
-    Cache&                  cache;
-    int                     group_idx;
-    Vec<SourceGroup> const& groups;
+    Report const&                 report;
+    int                           line_number_width;
+    std::shared_ptr<ReportSource> src;
+    SourceGroup const&            group;
+    Vec<Label> const&             multi_labels;
+    Writer&                       op;
+    ReportRenderConfig const&     config;
+    ReportSourceCache&            cache;
+    int                           group_idx;
+    Vec<SourceGroup> const&       groups;
 };
 
 void write_report_group_header(ReportGroupContext& c) {
 
-    std::shared_ptr<Source> src = c.cache.fetch(c.group.src_id);
-    Str src_name                = c.cache.display(c.group.src_id).value_or("<unknown>");
+    std::shared_ptr<ReportSource> src = c.cache.fetch(c.group.src_id);
+    Str src_name = c.cache.display(c.group.src_id).value_or("<unknown>");
 
     c.op.write(Str(" ").repeated(c.line_number_width + 2));
     c.op.write(
@@ -1075,7 +1075,7 @@ void write_report_group_source_lines(ReportGroupContext& c) {
         auto line_opt = c.src->line(line_idx);
         if (!line_opt) { continue; }
 
-        Line const&              line         = line_opt.value();
+        ReportSourceLine const&  line         = line_opt.value();
         std::optional<LineLabel> margin_label = get_margin_label(line, c.multi_labels);
 
         // Fine labels for the source line
@@ -1134,7 +1134,7 @@ void write_report_group_annotations(ReportGroupContext& c) {
         .is_line           = false,
         .is_gap            = false,
         .active_label      = std::pair{0, false},
-        .line              = Line{},
+        .line              = ReportSourceLine{},
         .margin_label      = null_label,
     };
 
@@ -1264,7 +1264,7 @@ void write_report_header(Report const& report, Writer& op) {
     }
 }
 
-void Report::write_for_stream(Cache& cache, ColStream& w) const {
+void Report::write_for_stream(ReportSourceCache& cache, ColStream& w) const {
     UnorderedMap<int, int> label_ids;
     for (auto const& [label_idx, l] : enumerate(labels)) {
         if (label_ids.contains(l.id)) {
@@ -1289,8 +1289,8 @@ void Report::write_for_stream(Cache& cache, ColStream& w) const {
     int line_number_width = get_line_number_width(groups, cache);
     // --- Source sections ---
     for (int group_idx = 0; group_idx < groups.size(); ++group_idx) {
-        SourceGroup const&      group = groups.at(group_idx);
-        std::shared_ptr<Source> src   = cache.fetch(group.src_id);
+        SourceGroup const&            group = groups.at(group_idx);
+        std::shared_ptr<ReportSource> src   = cache.fetch(group.src_id);
 
         // Generate a list of multi-line labels
         Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
@@ -1314,15 +1314,15 @@ void Report::write_for_stream(Cache& cache, ColStream& w) const {
     }
 }
 
-Source::Source(Str const& l) : content{l} {
+ReportSource::ReportSource(Str const& l) : content{l} {
     int offset = 0;
 
     if (l.empty()) {
-        Line l{.offset = offset, .len = 0};
+        ReportSourceLine l{.offset = offset, .len = 0};
         lines.push_back(l);
     } else {
         for (std::string const& line : split(l, '\n')) {
-            Line l{.offset = offset, .len = rune_length(line)};
+            ReportSourceLine l{.offset = offset, .len = rune_length(line)};
             offset += l.len + 1;
             lines.push_back(l);
         }
@@ -1331,16 +1331,19 @@ Source::Source(Str const& l) : content{l} {
     len = offset;
 }
 
-std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
+std::optional<ReportSource::OffsetLine> ReportSource::get_offset_line(int offset) {
     if (offset <= len) {
         auto it = std::lower_bound(
-            lines.begin(), lines.end(), offset, [](Line const& line, int offset) {
+            lines.begin(),
+            lines.end(),
+            offset,
+            [](ReportSourceLine const& line, int offset) {
                 return line.offset <= offset;
             });
         if (it != lines.begin()) { --it; }
         int idx = std::distance(lines.begin(), it);
         if (lines.has(idx)) {
-            Line const& line = lines[idx];
+            ReportSourceLine const& line = lines[idx];
             LOGIC_ASSERTION_CHECK_FMT(
                 line.offset <= offset,
                 "line.offset = {} <= offset = {}",
@@ -1355,7 +1358,7 @@ std::optional<Source::OffsetLine> Source::get_offset_line(int offset) {
     }
 }
 
-Slice<int> Source::get_line_range(CodeSpan const& span) {
+Slice<int> ReportSource::get_line_range(CodeSpan const& span) {
     std::optional<OffsetLine> start = get_offset_line(span.start());
     std::optional<OffsetLine> end   = get_offset_line(std::max(span.end(), span.start()));
 
@@ -1364,7 +1367,7 @@ Slice<int> Source::get_line_range(CodeSpan const& span) {
     return slice(start_idx, end_idx);
 }
 
-ColText Source::get_line_text(Line const& line) {
+ColText ReportSource::get_line_text(ReportSourceLine const& line) {
     if (line.len == 0) {
         return ColText{};
     } else {
@@ -1372,7 +1375,7 @@ ColText Source::get_line_text(Line const& line) {
     }
 }
 
-std::pair<char, int> Config::char_width(char c, int col) const {
+std::pair<char, int> ReportRenderConfig::char_width(char c, int col) const {
     if (c == '\t') {
         // Find the column that the tab should end at
         int tab_end = (col / tab_width + 1) * tab_width;
@@ -1387,7 +1390,10 @@ std::pair<char, int> Config::char_width(char c, int col) const {
     }
 }
 
-void StrCache::add(Id id, std::string const& source, std::string const& name) {
+void ReportSourceStrCache::add(
+    ReportSourceId     id,
+    std::string const& source,
+    std::string const& name) {
     auto knownName = names.get_right(id);
     LOGIC_ASSERTION_CHECK_FMT(
         !knownName.has_value() || knownName == name,
@@ -1398,18 +1404,18 @@ void StrCache::add(Id id, std::string const& source, std::string const& name) {
         knownName.value());
 
     if (!knownName.has_value()) {
-        sources[id] = std::make_shared<Source>(source);
+        sources[id] = std::make_shared<ReportSource>(source);
         names.add_unique(id, name);
     }
 }
 
-Id StrCache::add_path(hstd::fs::path const& path) {
-    Id id = std::hash<std::string>{}(path.native());
+ReportSourceId ReportSourceStrCache::add_path(hstd::fs::path const& path) {
+    ReportSourceId id = std::hash<std::string>{}(path.native());
     if (!names.get_right(id).has_value()) { add(id, getFileSource(path), path); }
     return id;
 }
 
-CodeSpan::CodeSpan(Id id, Slice<int> const& range) : id{id}, range{range} {
+CodeSpan::CodeSpan(ReportSourceId id, Slice<int> const& range) : id{id}, range{range} {
     LOGIC_ASSERTION_CHECK_FMT(0 <= range.first, "{}", range.first);
     LOGIC_ASSERTION_CHECK_FMT(range.first <= range.last, "{}", range);
 }

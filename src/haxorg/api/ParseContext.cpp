@@ -115,7 +115,7 @@ ParseContext::ParseContext() : source{std::make_shared<SourceManager>()} {}
 
 ParseContext::ParseContext(hstd::SPtr<SourceManager> const& source) : source{source} {}
 
-std::shared_ptr<hstd::ext::Cache> ParseContext::getDiagnosticStrings() {
+std::shared_ptr<hstd::ext::ReportSourceCache> ParseContext::getDiagnosticStrings() {
     return std::make_shared<org::parse::DiagnosticsParseContext>(shared_from_this());
 }
 
@@ -627,8 +627,8 @@ std::vector<std::string> OrgDirectoryParseParameters::getDirectoryEntries(
 
 
 hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
-    org::sem::SemId<sem::Org> const&         tree,
-    std::shared_ptr<hstd::ext::Cache> const& cache) {
+    org::sem::SemId<sem::Org> const&                     tree,
+    std::shared_ptr<hstd::ext::ReportSourceCache> const& cache) {
     hstd::Vec<ext::Report> result;
 
     org::eachSubnodeRec(tree, [&](sem::SemId<sem::Org> const& node) {
@@ -721,12 +721,13 @@ hstd::Vec<sem::SemId<ErrorGroup>> ParseContext::collectErrorNodes(
     return res;
 }
 
-std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(hstd::ext::Id const& id) {
+std::shared_ptr<ext::ReportSource> DiagnosticsParseContext::fetch(
+    hstd::ext::ReportSourceId const& id) {
     auto file_id = org::parse::SourceFileId::FromValue(id);
     if (!sources.contains(file_id)) {
         sources.insert_or_assign(
             file_id,
-            std::make_shared<hstd::ext::Source>(
+            std::make_shared<hstd::ext::ReportSource>(
                 context->source->getSourceContent(file_id)));
     }
 
@@ -734,6 +735,6 @@ std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(hstd::ext::Id const&
 }
 
 std::optional<std::string> DiagnosticsParseContext::display(
-    hstd::ext::Id const& id) const {
+    hstd::ext::ReportSourceId const& id) const {
     return context->source->getPath(org::parse::SourceFileId::FromValue(id));
 }
