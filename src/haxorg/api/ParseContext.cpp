@@ -637,8 +637,9 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                 using K       = org::sem::OrgDiagnostics::Kind;
                 auto const& d = item->diag;
 
-                auto getId = [&](org::parse::SourceLoc const& loc) {
-                    return loc.file_id.getValue();
+                auto getId =
+                    [&](org::parse::SourceLoc const& loc) -> ext::ReportSourceId {
+                    return ext::ReportSourceId::FromValue(loc.file_id.getValue());
                 };
 
                 switch (d.getKind()) {
@@ -652,8 +653,9 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                                 .with_code(err.errCode)
                                 .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
                                 .with_label(
-                                    ext::Label{1}
-                                        .with_span(id, slice(1, 2))
+                                    ext::ReportLabel{
+                                        ext::ReportLabelId::FromValue(1),
+                                        ext::CodeSpan{id, slice(1, 2)}}
                                         .with_message(err.detail)));
                         break;
                     }
@@ -662,8 +664,9 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                         auto const& err = d.getParseError();
                         auto        id  = getId(err.loc.value());
                         auto        l   = //
-                            ext::Label{1}
-                                .with_span(id, slice(err.loc->pos, err.loc->pos + 1))
+                            ext::ReportLabel{
+                                ext::ReportLabelId{1},
+                                ext::CodeSpan{id, slice(err.loc->pos, err.loc->pos + 1)}}
                                 .with_message(err.detail);
 
                         result.push_back(
@@ -679,11 +682,12 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                         auto const& err = d.getParseTokenError();
                         auto        id  = getId(err.loc);
                         auto        l   = //
-                            ext::Label{1}
-                                .with_span(
+                            ext::ReportLabel{
+                                ext::ReportLabelId{1},
+                                ext::CodeSpan{
                                     id,
                                     slice(
-                                        err.loc.pos, err.loc.pos + err.tokenText.size()))
+                                        err.loc.pos, err.loc.pos + err.tokenText.size())}}
                                 .with_message(err.detail);
 
                         result.push_back(
@@ -723,7 +727,7 @@ hstd::Vec<sem::SemId<ErrorGroup>> ParseContext::collectErrorNodes(
 
 std::shared_ptr<ext::ReportSource> DiagnosticsParseContext::fetch(
     hstd::ext::ReportSourceId const& id) {
-    auto file_id = org::parse::SourceFileId::FromValue(id);
+    auto file_id = org::parse::SourceFileId::FromValue(id.getValue());
     if (!sources.contains(file_id)) {
         sources.insert_or_assign(
             file_id,
@@ -736,5 +740,5 @@ std::shared_ptr<ext::ReportSource> DiagnosticsParseContext::fetch(
 
 std::optional<std::string> DiagnosticsParseContext::display(
     hstd::ext::ReportSourceId const& id) const {
-    return context->source->getPath(org::parse::SourceFileId::FromValue(id));
+    return context->source->getPath(org::parse::SourceFileId::FromValue(id.getValue()));
 }

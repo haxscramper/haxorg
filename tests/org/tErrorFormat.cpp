@@ -138,7 +138,7 @@ std::string pivotStringTable(std::string const& input) {
 
 struct PrintErrorTestSetup {
     ReportSourceStrCache sources;
-    ReportSourceId       id = ReportLabelId::FromValue(1);
+    ReportSourceId       id = ReportSourceId::FromValue(1);
     Report               report;
     Str                  str;
     Vec<ReportLabel>     labels;
@@ -771,12 +771,10 @@ TEST(PrintError, MultiByteChars) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{ReportLabelId::FromValue(1), CodeSpan{id, slice(0, 4)}}
                       .with_message("This is an äpplë"_ss))
               .with_label(
-                  ReportLabel{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{ReportLabelId::FromValue(2), CodeSpan{id, slice(9, 14)}}
                       .with_message("This is an örängë"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -843,12 +841,16 @@ TEST(PrintError, ByteColumn) {
         = Report(ReportKind::Error, id, 11)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 6))
+                  1 ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 6)},
+                  }
                       .with_message("This is an äpplë"_ss))
               .with_label(
-                  ReportLabel{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an örängë"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -871,7 +873,7 @@ Error: can't compare äpplës with örängës
 
 TEST(PrintError, LabelAtEndOfLongLine) {
     auto           __scope  = getDebugLogScope();
-    ReportSourceId id       = 0;
+    ReportSourceId id       = ReportSourceId::FromValue(1);
     hstd::Str      repeated = "";
     for (int i = 0; i < 100; ++i) { repeated += "apple == "; }
     hstd::Str            code = repeated + "orange"_ss;
@@ -882,8 +884,13 @@ TEST(PrintError, LabelAtEndOfLongLine) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(code.size() - 5, code.size() - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{
+                          id,
+                          slice(code.size() - 5, code.size() - 1),
+                      },
+                  }
                       .with_message("This is an orange"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -895,7 +902,7 @@ TEST(PrintError, LabelAtEndOfLongLine) {
 Error: can't compare apples with oranges
    ,-[ <unknown>:1:1 ]
    |
- 1 | apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == orange
+ 1 | apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == orange
    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ^^|^^
    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `--- This is an orange
 ---'
@@ -913,8 +920,10 @@ TEST(PrintError, LabelOfWidthZeroAtEndOfLine) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(8, 9))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(8, 9)},
+                  }
                       .with_message("Unexpected end of file"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -944,8 +953,10 @@ TEST(PrintError, EmptyInput) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 0))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
                       .with_message("No more fruit!"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -975,8 +986,10 @@ TEST(PrintError, EmptyInputHelp) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 0))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
                       .with_message("No more fruit!"_ss))
               .with_help("have you tried going to the farmer's market?"_ss)
               .with_config(
@@ -1010,8 +1023,10 @@ TEST(PrintError, EmptyInputNote) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 0))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
                       .with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
               .with_config(
@@ -1044,8 +1059,10 @@ TEST(PrintError, EmptyInputHelpNote) {
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 0))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
                       .with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
               .with_help("have you tried going to the farmer's market?"_ss)
@@ -1080,8 +1097,10 @@ TEST(PrintError, MultilineLabel) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice1<int>(0, code.size() - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice1<int>(0, code.size() - 1)},
+                  }
                       .with_message("illegal comparison"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -1113,12 +1132,16 @@ TEST(PrintError, PartiallyOverlappingLabels) {
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice1<int>(0, code.length() - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice1<int>(0, code.length() - 1)},
+                  }
                       .with_message("URL"_ss))
               .with_label(
-                  ReportLabel{2}
-                      .with_span(id, slice1<int>(0, colon_pos - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice1<int>(0, colon_pos - 1)},
+                  }
                       .with_message("scheme"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -1149,28 +1172,40 @@ TEST(PrintError, MultipleLabelsSameSpan) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("This is an apple"_ss))
               .with_label(
-                  ReportLabel{2}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("Have I mentioned that this is an apple?"_ss))
               .with_label(
-                  ReportLabel{3}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(3),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("No really, have I mentioned that?"_ss))
               .with_label(
-                  ReportLabel{4}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(4),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_label(
-                  ReportLabel{5}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(5),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("Have I mentioned that this is an orange?"_ss))
               .with_label(
-                  ReportLabel{6}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(6),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("No really, have I mentioned that?"_ss))
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
@@ -1210,12 +1245,16 @@ TEST(PrintError, Note) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("This is an apple"_ss))
               .with_label(
-                  ReportLabel{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_note("stop trying ... this is a fruitless endeavor"_ss)
               .with_config(
@@ -1250,12 +1289,16 @@ TEST(PrintError, Help) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("This is an apple"_ss))
               .with_label(
-                  ReportLabel{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
               .with_config(
@@ -1290,12 +1333,16 @@ TEST(PrintError, HelpAndNote) {
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  ReportLabel{ReportLabelId::FromValue(1)}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("This is an apple"_ss))
               .with_label(
-                  ReportLabel{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
               .with_note("stop trying ... this is a fruitless endeavor"_ss)

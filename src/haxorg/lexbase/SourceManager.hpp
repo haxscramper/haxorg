@@ -37,8 +37,8 @@ struct [[refl]] SourceManager {
 struct [[refl]] SourceLoc {
     [[refl]] int          line;
     [[refl]] int          column;
-    [[refl]] int          pos     = -1;
-    [[refl]] SourceFileId file_id = SourceFileId::Nil();
+    [[refl]] SourceFileId file_id;
+    [[refl]] int          pos = -1;
 
     bool operator==(SourceLoc const& other) const {
         return line == other.line && column == other.column && pos == other.pos
