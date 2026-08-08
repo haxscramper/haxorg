@@ -238,11 +238,16 @@ OrgParser::ParseResult OrgParser::parseCallArguments(OrgLexer& lex) {
     return stmtGuard->end();
 }
 
-static bool isAtLispAttrStart(OrgLexer& lex) {
+static bool isAtLispCollectionStart(OrgLexer& lex) {
     return lex.at(otk::ParBegin)   //
         || lex.at(otk::BraceBegin) //
         || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))
         || (lex.at(otk::SingleQuote) && lex.at(otk::BraceBegin, +1));
+}
+
+static bool isAtLispQuotedItem(OrgLexer& lex) {
+    // `:var s='nil` and similar
+    return lex.at(otk::SingleQuote) && (lex.at(otk::CmdRawArg, +1));
 }
 
 
@@ -278,7 +283,7 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
             empty();
         }
 
-        if (isAtLispAttrStart(lex)) {
+        if (isAtLispCollectionStart(lex) || isAtLispQuotedItem(lex)) {
             SUB_PARSE(AttrLisp, lex);
         } else if (lex.at(otk::CmdRawArg)) {
             token(onk::RawText, TRY_POPX(lex, otk::CmdRawArg));
@@ -350,7 +355,7 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
     auto __trace   = trace(lex);
     auto lispGuard = start(onk::AttrLisp);
 
-    if (isAtLispAttrStart(lex)) {
+    if (isAtLispCollectionStart(lex)) {
         auto parse_collection = [&](OrgNodeKind  start_node,
                                     OrgTokenKind begin_token,
                                     OrgTokenKind end_token) -> OrgParser::ParseResult {
@@ -388,6 +393,11 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
             SUB_PARSE_WITH_EXPR(do_parse(), ErrorTable::FallbackError, lex);
         }
 
+    } else if (isAtLispQuotedItem(lex)) {
+        auto guard = start(onk::LispQuoted);
+        TRY_SKIP(lex, otk::SingleQuote);
+        SUB_PARSE(AttrLisp, lex);
+        guard->end();
     } else {
         token(onk::RawText, pop(lex));
     }
