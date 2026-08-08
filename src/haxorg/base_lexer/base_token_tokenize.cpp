@@ -528,6 +528,7 @@ void switch_cmd_argument(Cursor& c) {
         case ']': c.token0(otk::BraceEnd, &advance1); break;
         case '=': c.token0(otk::Equals, &advance1); break;
         case ',': c.token0(otk::Comma, &advance1); break;
+        case '\'': c.token0(otk::SingleQuote, &advance1); break;
         case ' ': c.token1(otk::Whitespace, &advance_char1, ' '); break;
         case '\n': c.unhandled(); break;
         case '[': c.token0(otk::BraceBegin, &advance1); break;

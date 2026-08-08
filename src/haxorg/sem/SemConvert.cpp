@@ -2209,7 +2209,8 @@ sem::AttrValue OrgConverter::convertAttr(
                 dim.last  = -1;
             } else {
                 auto split = hstd::split(axis, ':');
-                dim.first  = split.at(0).toInt();
+                LOGIC_ASSERTION_CHECK_FMT(split.at(0).isInt(), "{}", a.treeRepr());
+                dim.first = split.at(0).toInt();
                 if (split.has(1)) { dim.last = split.at(1).toInt(); }
             }
             print(hstd::fmt("Attribute dimension span {}", dim));

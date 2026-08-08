@@ -76,6 +76,41 @@ int   Str::toInt() const { return std::stoi(*this); }
 i64   Str::toI64() const { return std::stoll(*this); }
 u64   Str::toU64() const { return std::stoull(*this); }
 
+bool Str::isFloat() const {
+    try {
+        toFloat();
+        return true;
+    } catch (...) { return false; }
+}
+
+bool Str::isDouble() const {
+    try {
+        toDouble();
+        return true;
+    } catch (...) { return false; }
+}
+
+bool Str::isInt() const {
+    try {
+        toInt();
+        return true;
+    } catch (...) { return false; }
+}
+
+bool Str::isI64() const {
+    try {
+        toI64();
+        return true;
+    } catch (...) { return false; }
+}
+
+bool Str::isU64() const {
+    try {
+        toU64();
+        return true;
+    } catch (...) { return false; }
+}
+
 void Str::append(Str const& str) { std::string::append(str.toBase()); }
 int  Str::size() const { return static_cast<int>(std::string::size()); }
 bool Str::contains(char ch) const { return find(ch) != std::string::npos; }

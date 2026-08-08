@@ -269,13 +269,15 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
             empty();
         }
 
-        if (lex.at(otk::ParBegin)) {
+        if (lex.at(otk::ParBegin)
+            || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))) {
             SUB_PARSE(AttrLisp, lex);
         } else if (lex.at(otk::CmdRawArg)) {
             token(onk::RawText, TRY_POPX(lex, otk::CmdRawArg));
         } else {
             empty();
         }
+
 
         if (lex.at(otk::BraceBegin)) {
             auto stmtGuard = start(onk::InlineStmtList);
@@ -338,8 +340,15 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
     __perf_trace("parsing", "parseAttrLisp");
     auto __trace   = trace(lex);
     auto lispGuard = start(onk::AttrLisp);
-    if (lex.at(otk::ParBegin)) {
+    if (lex.at(otk::ParBegin)
+        || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))) {
         auto stmtGuard = start(onk::InlineStmtList);
+        if (lex.at(otk::SingleQuote)) {
+            // quoted lisp value: '(a b c)
+            // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
+            token(onk::RawText, TRY_POPX(lex, otk::SingleQuote));
+        }
+
         TRY_SKIP(lex, otk::ParBegin);
         space(lex);
         while (lex.can_search(otk::ParEnd)) {
@@ -2551,7 +2560,9 @@ OrgId OrgParser::parseFull(OrgLexer& lex) {
     auto __trace = trace(lex);
     auto result  = parseTop(lex);
     extendSubtreeTrails(OrgId(0));
-    return result.assume_value().result.value();
+    auto id = result.assume_value().result.value();
+    if (TraceState) { message(org::parse::OrgAdapter(group, id).treeRepr()); }
+    return id;
 }
 
 std::string OrgParser::printLexerToString(OrgLexer& lex) const {
