@@ -125,6 +125,9 @@ export interface haxorg_wasm_module_auto {
     Attrs: OrgNodeKind,
     AttrValue: OrgNodeKind,
     AttrLisp: OrgNodeKind,
+    LispList: OrgNodeKind,
+    LispVector: OrgNodeKind,
+    LispQuoted: OrgNodeKind,
     CmdTitle: OrgNodeKind,
     CmdAuthor: OrgNodeKind,
     CmdCreator: OrgNodeKind,
@@ -604,7 +607,9 @@ export interface haxorg_wasm_module_auto {
   SequenceAnnotation: SequenceAnnotationConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
+  LispCodeQuoted: LispCodeQuotedConstructor;
   LispCodeList: LispCodeListConstructor;
+  LispCodeVector: LispCodeVectorConstructor;
   LispCodeKeyValue: LispCodeKeyValueConstructor;
   LispCodeNumber: LispCodeNumberConstructor;
   LispCodeText: LispCodeTextConstructor;
@@ -613,7 +618,9 @@ export interface haxorg_wasm_module_auto {
   LispCodeReal: LispCodeRealConstructor;
   LispCodeKind: {
     Call: LispCodeKind,
+    Quoted: LispCodeKind,
     List: LispCodeKind,
+    Vector: LispCodeKind,
     KeyValue: LispCodeKind,
     Number: LispCodeKind,
     Text: LispCodeKind,
@@ -1602,6 +1609,9 @@ export enum OrgNodeKind {
   Attrs,
   AttrValue,
   AttrLisp,
+  LispList,
+  LispVector,
+  LispQuoted,
   CmdTitle,
   CmdAuthor,
   CmdCreator,
@@ -2306,9 +2316,15 @@ export interface LispCode {
   isCall(): boolean;
   getCallConst(): LispCodeCall;
   getCallMut(): LispCodeCall;
+  isQuoted(): boolean;
+  getQuotedConst(): LispCodeQuoted;
+  getQuotedMut(): LispCodeQuoted;
   isList(): boolean;
   getListConst(): LispCodeList;
   getListMut(): LispCodeList;
+  isVector(): boolean;
+  getVectorConst(): LispCodeVector;
+  getVectorMut(): LispCodeVector;
   isKeyValue(): boolean;
   getKeyValueConst(): LispCodeKeyValue;
   getKeyValueMut(): LispCodeKeyValue;
@@ -2341,10 +2357,22 @@ export interface LispCodeCall {
   name: Str
   args: haxorg_wasm.HstdVec<LispCode>
 }
+export interface LispCodeQuotedConstructor { new(): LispCodeQuoted; }
+export interface LispCodeQuoted {
+  Quoted(): void;
+  __eq__(other: LispCodeQuoted): boolean;
+  items: haxorg_wasm.HstdVec<LispCode>
+}
 export interface LispCodeListConstructor { new(): LispCodeList; }
 export interface LispCodeList {
   List(): void;
   __eq__(other: LispCodeList): boolean;
+  items: haxorg_wasm.HstdVec<LispCode>
+}
+export interface LispCodeVectorConstructor { new(): LispCodeVector; }
+export interface LispCodeVector {
+  Vector(): void;
+  __eq__(other: LispCodeVector): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeKeyValueConstructor { new(): LispCodeKeyValue; }
@@ -2384,10 +2412,12 @@ export interface LispCodeReal {
   __eq__(other: LispCodeReal): boolean;
   value: number
 }
-export type LispCodeData = haxorg_wasm.StdVariant<LispCodeCall, LispCodeList, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal>;
+export type LispCodeData = haxorg_wasm.StdVariant<LispCodeCall, LispCodeQuoted, LispCodeList, LispCodeVector, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal>;
 export enum LispCodeKind {
   Call,
+  Quoted,
   List,
+  Vector,
   KeyValue,
   Number,
   Text,

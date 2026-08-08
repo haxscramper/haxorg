@@ -1,7 +1,9 @@
 /* clang-format off */
 void visit(R& res, sem::LispCode const& object);
 void visit(R& res, sem::LispCode::Call const& object);
+void visit(R& res, sem::LispCode::Quoted const& object);
 void visit(R& res, sem::LispCode::List const& object);
+void visit(R& res, sem::LispCode::Vector const& object);
 void visit(R& res, sem::LispCode::KeyValue const& object);
 void visit(R& res, sem::LispCode::Number const& object);
 void visit(R& res, sem::LispCode::Text const& object);

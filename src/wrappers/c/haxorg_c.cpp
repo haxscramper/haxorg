@@ -743,11 +743,23 @@ haxorg_LispCodeCall haxorg_LispCode_getCallConst_const(OrgContext* org_context, 
 
 haxorg_LispCodeCall haxorg_LispCode_getCallMut(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<haxorg_LispCodeCall>(static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCall), org_context, __this); }
 
+bool haxorg_LispCode_isQuoted_const(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isQuoted), org_context, __this); }
+
+haxorg_LispCodeQuoted haxorg_LispCode_getQuotedConst_const(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<haxorg_LispCodeQuoted>(static_cast<org::sem::LispCode::Quoted const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getQuoted), org_context, __this); }
+
+haxorg_LispCodeQuoted haxorg_LispCode_getQuotedMut(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<haxorg_LispCodeQuoted>(static_cast<org::sem::LispCode::Quoted&(org::sem::LispCode::*)()>(&org::sem::LispCode::getQuoted), org_context, __this); }
+
 bool haxorg_LispCode_isList_const(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isList), org_context, __this); }
 
 haxorg_LispCodeList haxorg_LispCode_getListConst_const(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<haxorg_LispCodeList>(static_cast<org::sem::LispCode::List const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getList), org_context, __this); }
 
 haxorg_LispCodeList haxorg_LispCode_getListMut(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<haxorg_LispCodeList>(static_cast<org::sem::LispCode::List&(org::sem::LispCode::*)()>(&org::sem::LispCode::getList), org_context, __this); }
+
+bool haxorg_LispCode_isVector_const(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isVector), org_context, __this); }
+
+haxorg_LispCodeVector haxorg_LispCode_getVectorConst_const(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<haxorg_LispCodeVector>(static_cast<org::sem::LispCode::Vector const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getVector), org_context, __this); }
+
+haxorg_LispCodeVector haxorg_LispCode_getVectorMut(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<haxorg_LispCodeVector>(static_cast<org::sem::LispCode::Vector&(org::sem::LispCode::*)()>(&org::sem::LispCode::getVector), org_context, __this); }
 
 bool haxorg_LispCode_isKeyValue_const(OrgContext* org_context, haxorg_LispCode __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isKeyValue), org_context, __this); }
 
@@ -797,6 +809,14 @@ bool haxorg_LispCodeCall___eq___const(OrgContext* org_context, haxorg_LispCodeCa
 
 void haxorg_destroy_LispCodeCall(OrgContext* org_context, haxorg_LispCodeCall* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Call>(org_context, obj); }
 
+haxorg_HstdVecOfLispCode haxorg_LispCodeQuoted_get_items(OrgContext* org_context, haxorg_LispCodeQuoted __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfLispCode, org::sem::LispCode::Quoted, hstd::Vec<org::sem::LispCode>, haxorg_LispCodeQuoted>(org_context, __this, &org::sem::LispCode::Quoted::items); }
+
+void haxorg_create_LispCodeQuoted_Quoted(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::LispCode::Quoted { return org::sem::LispCode::Quoted(); }, org_context); }
+
+bool haxorg_LispCodeQuoted___eq___const(OrgContext* org_context, haxorg_LispCodeQuoted __this, haxorg_LispCodeQuoted other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::Quoted::*)(org::sem::LispCode::Quoted const&) const>(&org::sem::LispCode::Quoted::operator==), org_context, __this, other); }
+
+void haxorg_destroy_LispCodeQuoted(OrgContext* org_context, haxorg_LispCodeQuoted* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Quoted>(org_context, obj); }
+
 haxorg_HstdVecOfLispCode haxorg_LispCodeList_get_items(OrgContext* org_context, haxorg_LispCodeList __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfLispCode, org::sem::LispCode::List, hstd::Vec<org::sem::LispCode>, haxorg_LispCodeList>(org_context, __this, &org::sem::LispCode::List::items); }
 
 void haxorg_create_LispCodeList_List(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::LispCode::List { return org::sem::LispCode::List(); }, org_context); }
@@ -804,6 +824,14 @@ void haxorg_create_LispCodeList_List(OrgContext* org_context) { return org::bind
 bool haxorg_LispCodeList___eq___const(OrgContext* org_context, haxorg_LispCodeList __this, haxorg_LispCodeList other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::List::*)(org::sem::LispCode::List const&) const>(&org::sem::LispCode::List::operator==), org_context, __this, other); }
 
 void haxorg_destroy_LispCodeList(OrgContext* org_context, haxorg_LispCodeList* obj) { org::bind::c::execute_destroy<org::sem::LispCode::List>(org_context, obj); }
+
+haxorg_HstdVecOfLispCode haxorg_LispCodeVector_get_items(OrgContext* org_context, haxorg_LispCodeVector __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfLispCode, org::sem::LispCode::Vector, hstd::Vec<org::sem::LispCode>, haxorg_LispCodeVector>(org_context, __this, &org::sem::LispCode::Vector::items); }
+
+void haxorg_create_LispCodeVector_Vector(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::LispCode::Vector { return org::sem::LispCode::Vector(); }, org_context); }
+
+bool haxorg_LispCodeVector___eq___const(OrgContext* org_context, haxorg_LispCodeVector __this, haxorg_LispCodeVector other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::LispCode::Vector::*)(org::sem::LispCode::Vector const&) const>(&org::sem::LispCode::Vector::operator==), org_context, __this, other); }
+
+void haxorg_destroy_LispCodeVector(OrgContext* org_context, haxorg_LispCodeVector* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Vector>(org_context, obj); }
 
 haxorg_HstdStr haxorg_LispCodeKeyValue_get_name(OrgContext* org_context, haxorg_LispCodeKeyValue __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::LispCode::KeyValue, hstd::Str, haxorg_LispCodeKeyValue>(org_context, __this, &org::sem::LispCode::KeyValue::name); }
 

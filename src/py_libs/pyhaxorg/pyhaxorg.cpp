@@ -501,6 +501,9 @@ NB_MODULE(pyhaxorg, m) {
     .value("Attrs", OrgNodeKind::Attrs, R"RAW(Arguments for the command block)RAW")
     .value("AttrValue", OrgNodeKind::AttrValue, R"RAW(:key name=value syntax)RAW")
     .value("AttrLisp", OrgNodeKind::AttrLisp, R"RAW(S-expression as an attribute value value)RAW")
+    .value("LispList", OrgNodeKind::LispList, R"RAW(`(a b c)` without quoting)RAW")
+    .value("LispVector", OrgNodeKind::LispVector, R"RAW([1 2 3 4]` without quoting)RAW")
+    .value("LispQuoted", OrgNodeKind::LispQuoted, R"RAW(Extra wrapping node for quoted elements)RAW")
     .value("CmdTitle", OrgNodeKind::CmdTitle, R"RAW(`#+title:` - full document title)RAW")
     .value("CmdAuthor", OrgNodeKind::CmdAuthor, R"RAW(`#+author:` Document author)RAW")
     .value("CmdCreator", OrgNodeKind::CmdCreator, R"RAW(`#+creator:` Document creator)RAW")
@@ -2078,6 +2081,27 @@ and a segment kind.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::sem::LispCode::Quoted>(m, "LispCodeQuoted")
+    .def(nanobind::init<>())
+    .def("__init__",
+         [](org::sem::LispCode::Quoted* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Quoted>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("items", &org::sem::LispCode::Quoted::items)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Quoted::*)(org::sem::LispCode::Quoted const&) const>(&org::sem::LispCode::Quoted::operator==),
+         nanobind::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Quoted const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Quoted const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
   nanobind::class_<org::sem::LispCode::List>(m, "LispCodeList")
     .def(nanobind::init<>())
     .def("__init__",
@@ -2095,6 +2119,27 @@ and a segment kind.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::LispCode::List const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::sem::LispCode::Vector>(m, "LispCodeVector")
+    .def(nanobind::init<>())
+    .def("__init__",
+         [](org::sem::LispCode::Vector* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Vector>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("items", &org::sem::LispCode::Vector::items)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Vector::*)(org::sem::LispCode::Vector const&) const>(&org::sem::LispCode::Vector::operator==),
+         nanobind::arg("other"))
+    .def("__repr__", [](org::sem::LispCode::Vector const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::LispCode::Vector const& _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -2229,7 +2274,9 @@ and a segment kind.)RAW")
   bind_enum_iterator<org::sem::LispCode::Kind>(m, "LispCodeKind", type_registry_guard);
   nanobind::enum_<org::sem::LispCode::Kind>(m, "LispCodeKind")
     .value("Call", org::sem::LispCode::Kind::Call)
+    .value("Quoted", org::sem::LispCode::Kind::Quoted)
     .value("List", org::sem::LispCode::Kind::List)
+    .value("Vector", org::sem::LispCode::Kind::Vector)
     .value("KeyValue", org::sem::LispCode::Kind::KeyValue)
     .value("Number", org::sem::LispCode::Kind::Number)
     .value("Text", org::sem::LispCode::Kind::Text)
@@ -2268,8 +2315,12 @@ and a segment kind.)RAW")
          nanobind::arg("other"))
     .def("isCall", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isCall))
     .def("getCall", static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCall))
+    .def("isQuoted", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isQuoted))
+    .def("getQuoted", static_cast<org::sem::LispCode::Quoted&(org::sem::LispCode::*)()>(&org::sem::LispCode::getQuoted))
     .def("isList", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isList))
     .def("getList", static_cast<org::sem::LispCode::List&(org::sem::LispCode::*)()>(&org::sem::LispCode::getList))
+    .def("isVector", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isVector))
+    .def("getVector", static_cast<org::sem::LispCode::Vector&(org::sem::LispCode::*)()>(&org::sem::LispCode::getVector))
     .def("isKeyValue", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isKeyValue))
     .def("getKeyValue", static_cast<org::sem::LispCode::KeyValue&(org::sem::LispCode::*)()>(&org::sem::LispCode::getKeyValue))
     .def("isNumber", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isNumber))

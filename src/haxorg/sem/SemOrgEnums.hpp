@@ -5,7 +5,9 @@
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(LispCode, Call, (Call)) \
+    __IMPL(LispCode, Quoted, (Quoted)) \
     __IMPL(LispCode, List, (List)) \
+    __IMPL(LispCode, Vector, (Vector)) \
     __IMPL(LispCode, KeyValue, (KeyValue)) \
     __IMPL(LispCode, Number, (Number)) \
     __IMPL(LispCode, Text, (Text)) \
@@ -120,7 +122,9 @@
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
     __IMPL(LispCode, (LispCode)) \
     __IMPL(LispCode::Call, (LispCode, Call)) \
+    __IMPL(LispCode::Quoted, (LispCode, Quoted)) \
     __IMPL(LispCode::List, (LispCode, List)) \
+    __IMPL(LispCode::Vector, (LispCode, Vector)) \
     __IMPL(LispCode::KeyValue, (LispCode, KeyValue)) \
     __IMPL(LispCode::Number, (LispCode, Number)) \
     __IMPL(LispCode::Text, (LispCode, Text)) \
@@ -2141,6 +2145,12 @@ enum class OrgNodeKind : short int {
   AttrValue,
   /// \brief S-expression as an attribute value value
   AttrLisp,
+  /// \brief `(a b c)` without quoting
+  LispList,
+  /// \brief [1 2 3 4]` without quoting
+  LispVector,
+  /// \brief Extra wrapping node for quoted elements
+  LispQuoted,
   /// \brief `#+title:` - full document title
   CmdTitle,
   /// \brief `#+author:` Document author
@@ -2353,6 +2363,9 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Attrs)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrValue)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrLisp)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispList)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispVector)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispQuoted)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdTitle)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdAuthor)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCreator)

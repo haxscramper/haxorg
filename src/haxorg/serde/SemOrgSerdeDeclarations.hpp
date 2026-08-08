@@ -92,9 +92,23 @@ struct org::algo::proto_serde<::orgproto::LispCode::Call, org::sem::LispCode::Ca
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Quoted, org::sem::LispCode::Quoted> {
+  static void write(::orgproto::LispCode::Quoted* out, org::sem::LispCode::Quoted const& in);
+  static void read(::orgproto::LispCode::Quoted const& out, proto_write_accessor<org::sem::LispCode::Quoted> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::LispCode::List, org::sem::LispCode::List> {
   static void write(::orgproto::LispCode::List* out, org::sem::LispCode::List const& in);
   static void read(::orgproto::LispCode::List const& out, proto_write_accessor<org::sem::LispCode::List> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::LispCode::Vector, org::sem::LispCode::Vector> {
+  static void write(::orgproto::LispCode::Vector* out, org::sem::LispCode::Vector const& in);
+  static void read(::orgproto::LispCode::Vector const& out, proto_write_accessor<org::sem::LispCode::Vector> in);
 };
 
 

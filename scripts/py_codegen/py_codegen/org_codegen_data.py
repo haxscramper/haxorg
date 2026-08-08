@@ -1533,7 +1533,23 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             DefaultEq=True,
                         ),
                         org_struct(
+                            t_nest_shared("Quoted", [t("LispCode")]),
+                            Fields=[
+                                vec_field(t_nest_shared("LispCode"), "items"),
+                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
+                        ),
+                        org_struct(
                             t_nest_shared("List", [t("LispCode")]),
+                            Fields=[
+                                vec_field(t_nest_shared("LispCode"), "items"),
+                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
+                        ),
+                        org_struct(
+                            t_nest_shared("Vector", [t("LispCode")]),
                             Fields=[
                                 vec_field(t_nest_shared("LispCode"), "items"),
                             ],
@@ -3432,6 +3448,9 @@ def get_org_node_kind_commands() -> List[GenTuEnumField]:
         efield("Attrs", "Arguments for the command block"),
         efield("AttrValue", ":key name=value syntax"),
         efield("AttrLisp", "S-expression as an attribute value value"),
+        efield("LispList", "`(a b c)` without quoting"),
+        efield("LispVector", "[1 2 3 4]` without quoting"),
+        efield("LispQuoted", "Extra wrapping node for quoted elements"),
         efield("CmdTitle", "`#+title:` - full document title"),
         efield("CmdAuthor", "`#+author:` Document author"),
         efield("CmdCreator", "`#+creator:` Document creator"),

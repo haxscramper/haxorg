@@ -139,107 +139,110 @@ class OrgNodeKind(Enum):
     Attrs = 22
     AttrValue = 23
     AttrLisp = 24
-    CmdTitle = 25
-    CmdAuthor = 26
-    CmdCreator = 27
-    CmdInclude = 28
-    CmdLanguage = 29
-    CmdEmail = 30
-    CmdAttr = 31
-    CmdStartup = 32
-    CmdName = 33
-    CmdCustomTextCommand = 34
-    CmdCustomArgsCommand = 35
-    CmdCustomRawCommand = 36
-    CmdResults = 37
-    CmdHeader = 38
-    CmdOptions = 39
-    CmdTblfm = 40
-    CmdCaption = 41
-    CmdResult = 42
-    CmdCallCode = 43
-    CmdFlag = 44
-    CmdLatexClass = 45
-    CmdLatexHeader = 46
-    CmdLatexCompiler = 47
-    CmdLatexClassOptions = 48
-    CmdHtmlHead = 49
-    CmdColumns = 50
-    CmdPropertyArgs = 51
-    CmdPropertyText = 52
-    CmdPropertyRaw = 53
-    CmdFiletags = 54
-    CmdKeywords = 55
-    BlockVerbatimMultiline = 56
-    CodeLine = 57
-    CodeText = 58
-    CodeTangle = 59
-    CodeCallout = 60
-    BlockCode = 61
-    BlockQuote = 62
-    BlockComment = 63
-    BlockCenter = 64
-    BlockVerse = 65
-    BlockExample = 66
-    BlockExport = 67
-    BlockDetails = 68
-    BlockSummary = 69
-    BlockDynamicFallback = 70
-    BigIdent = 71
-    Bold = 72
-    ErrorInfoToken = 73
-    ErrorSkipGroup = 74
-    ErrorSkipToken = 75
-    Italic = 76
-    Verbatim = 77
-    Backtick = 78
-    Underline = 79
-    Strike = 80
-    Quote = 81
-    Angle = 82
-    Monospace = 83
-    Par = 84
-    CriticMarkStructure = 85
-    InlineMath = 86
-    DisplayMath = 87
-    Space = 88
-    Punctuation = 89
-    Colon = 90
-    Word = 91
-    Escaped = 92
-    Newline = 93
-    RawLink = 94
-    Link = 95
-    Macro = 96
-    Symbol = 97
-    StaticActiveTime = 98
-    StaticInactiveTime = 99
-    DynamicActiveTime = 100
-    DynamicInactiveTime = 101
-    TimeRange = 102
-    SimpleTime = 103
-    HashTag = 104
-    MetaSymbol = 105
-    AtMention = 106
-    Placeholder = 107
-    RadioTarget = 108
-    Target = 109
-    SrcInlineCode = 110
-    InlineCallCode = 111
-    InlineExport = 112
-    InlineComment = 113
-    RawText = 114
-    SubtreeDescription = 115
-    SubtreeUrgency = 116
-    DrawerLogbook = 117
-    Drawer = 118
-    DrawerPropertyList = 119
-    DrawerProperty = 120
-    Subtree = 121
-    SubtreeTimes = 122
-    SubtreeStars = 123
-    SubtreeCompletion = 124
-    SubtreeImportance = 125
+    LispList = 25
+    LispVector = 26
+    LispQuoted = 27
+    CmdTitle = 28
+    CmdAuthor = 29
+    CmdCreator = 30
+    CmdInclude = 31
+    CmdLanguage = 32
+    CmdEmail = 33
+    CmdAttr = 34
+    CmdStartup = 35
+    CmdName = 36
+    CmdCustomTextCommand = 37
+    CmdCustomArgsCommand = 38
+    CmdCustomRawCommand = 39
+    CmdResults = 40
+    CmdHeader = 41
+    CmdOptions = 42
+    CmdTblfm = 43
+    CmdCaption = 44
+    CmdResult = 45
+    CmdCallCode = 46
+    CmdFlag = 47
+    CmdLatexClass = 48
+    CmdLatexHeader = 49
+    CmdLatexCompiler = 50
+    CmdLatexClassOptions = 51
+    CmdHtmlHead = 52
+    CmdColumns = 53
+    CmdPropertyArgs = 54
+    CmdPropertyText = 55
+    CmdPropertyRaw = 56
+    CmdFiletags = 57
+    CmdKeywords = 58
+    BlockVerbatimMultiline = 59
+    CodeLine = 60
+    CodeText = 61
+    CodeTangle = 62
+    CodeCallout = 63
+    BlockCode = 64
+    BlockQuote = 65
+    BlockComment = 66
+    BlockCenter = 67
+    BlockVerse = 68
+    BlockExample = 69
+    BlockExport = 70
+    BlockDetails = 71
+    BlockSummary = 72
+    BlockDynamicFallback = 73
+    BigIdent = 74
+    Bold = 75
+    ErrorInfoToken = 76
+    ErrorSkipGroup = 77
+    ErrorSkipToken = 78
+    Italic = 79
+    Verbatim = 80
+    Backtick = 81
+    Underline = 82
+    Strike = 83
+    Quote = 84
+    Angle = 85
+    Monospace = 86
+    Par = 87
+    CriticMarkStructure = 88
+    InlineMath = 89
+    DisplayMath = 90
+    Space = 91
+    Punctuation = 92
+    Colon = 93
+    Word = 94
+    Escaped = 95
+    Newline = 96
+    RawLink = 97
+    Link = 98
+    Macro = 99
+    Symbol = 100
+    StaticActiveTime = 101
+    StaticInactiveTime = 102
+    DynamicActiveTime = 103
+    DynamicInactiveTime = 104
+    TimeRange = 105
+    SimpleTime = 106
+    HashTag = 107
+    MetaSymbol = 108
+    AtMention = 109
+    Placeholder = 110
+    RadioTarget = 111
+    Target = 112
+    SrcInlineCode = 113
+    InlineCallCode = 114
+    InlineExport = 115
+    InlineComment = 116
+    RawText = 117
+    SubtreeDescription = 118
+    SubtreeUrgency = 119
+    DrawerLogbook = 120
+    Drawer = 121
+    DrawerPropertyList = 122
+    DrawerProperty = 123
+    Subtree = 124
+    SubtreeTimes = 125
+    SubtreeStars = 126
+    SubtreeCompletion = 127
+    SubtreeImportance = 128
 
 class OrgTokenKind(Enum):
     Ampersand = 1
@@ -986,7 +989,21 @@ class LispCodeCall:
     name: str
     args: list[LispCode]
 
+class LispCodeQuoted:
+    def __init__(self, items: list[LispCode]) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    items: list[LispCode]
+
 class LispCodeList:
+    def __init__(self, items: list[LispCode]) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    items: list[LispCode]
+
+class LispCodeVector:
     def __init__(self, items: list[LispCode]) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
@@ -1036,24 +1053,30 @@ class LispCodeReal:
     def __getattr__(self, name: str) -> object: ...
     value: float
 
-LispCodeData = StdVariant[LispCodeCall, LispCodeList, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal]
+LispCodeData = StdVariant[LispCodeCall, LispCodeQuoted, LispCodeList, LispCodeVector, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal]
 class LispCodeKind(Enum):
     Call = 1
-    List = 2
-    KeyValue = 3
-    Number = 4
-    Text = 5
-    Ident = 6
-    Boolean = 7
-    Real = 8
+    Quoted = 2
+    List = 3
+    Vector = 4
+    KeyValue = 5
+    Number = 6
+    Text = 7
+    Ident = 8
+    Boolean = 9
+    Real = 10
 
 class LispCode:
     def __init__(self) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def isCall(self) -> bool: ...
     def getCall(self) -> LispCodeCall: ...
+    def isQuoted(self) -> bool: ...
+    def getQuoted(self) -> LispCodeQuoted: ...
     def isList(self) -> bool: ...
     def getList(self) -> LispCodeList: ...
+    def isVector(self) -> bool: ...
+    def getVector(self) -> LispCodeVector: ...
     def isKeyValue(self) -> bool: ...
     def getKeyValue(self) -> LispCodeKeyValue: ...
     def isNumber(self) -> bool: ...

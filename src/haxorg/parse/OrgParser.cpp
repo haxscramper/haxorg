@@ -342,12 +342,13 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
     auto lispGuard = start(onk::AttrLisp);
     if (lex.at(otk::ParBegin)
         || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))) {
+        // quoted lisp value: '(a b c)
+        // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
+        bool isQuoted = lex.at(otk::SingleQuote);
+        if (isQuoted) { token(onk::RawText, TRY_POPX(lex, otk::SingleQuote)); }
+
         auto stmtGuard = start(onk::InlineStmtList);
-        if (lex.at(otk::SingleQuote)) {
-            // quoted lisp value: '(a b c)
-            // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
-            token(onk::RawText, TRY_POPX(lex, otk::SingleQuote));
-        }
+
 
         TRY_SKIP(lex, otk::ParBegin);
         space(lex);

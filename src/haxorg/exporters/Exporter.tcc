@@ -9,7 +9,13 @@ void Exporter<V, R>::visit(R& res, sem::LispCode::Call const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Quoted const& object) { __obj_field(res, object, items); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::List const& object) { __obj_field(res, object, items); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Vector const& object) { __obj_field(res, object, items); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::KeyValue const& object) {

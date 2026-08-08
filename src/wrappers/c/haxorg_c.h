@@ -154,6 +154,12 @@ enum haxorg_OrgNodeKind {
   haxorg_OrgNodeKind_AttrValue,
   /// \brief S-expression as an attribute value value
   haxorg_OrgNodeKind_AttrLisp,
+  /// \brief `(a b c)` without quoting
+  haxorg_OrgNodeKind_LispList,
+  /// \brief [1 2 3 4]` without quoting
+  haxorg_OrgNodeKind_LispVector,
+  /// \brief Extra wrapping node for quoted elements
+  haxorg_OrgNodeKind_LispQuoted,
   /// \brief `#+title:` - full document title
   haxorg_OrgNodeKind_CmdTitle,
   /// \brief `#+author:` Document author
@@ -432,7 +438,11 @@ struct haxorg_LispCode;
 
 struct haxorg_LispCodeCall;
 
+struct haxorg_LispCodeQuoted;
+
 struct haxorg_LispCodeList;
+
+struct haxorg_LispCodeVector;
 
 struct haxorg_LispCodeKeyValue;
 
@@ -1410,7 +1420,7 @@ struct haxorg_ImmCmdCallAdapter;
 
 struct haxorg_ImmCmdAttrAdapter;
 
-enum haxorg_LispCodeKind { haxorg_LispCodeKind_Call, haxorg_LispCodeKind_List, haxorg_LispCodeKind_KeyValue, haxorg_LispCodeKind_Number, haxorg_LispCodeKind_Text, haxorg_LispCodeKind_Ident, haxorg_LispCodeKind_Boolean, haxorg_LispCodeKind_Real, };
+enum haxorg_LispCodeKind { haxorg_LispCodeKind_Call, haxorg_LispCodeKind_Quoted, haxorg_LispCodeKind_List, haxorg_LispCodeKind_Vector, haxorg_LispCodeKind_KeyValue, haxorg_LispCodeKind_Number, haxorg_LispCodeKind_Text, haxorg_LispCodeKind_Ident, haxorg_LispCodeKind_Boolean, haxorg_LispCodeKind_Real, };
 enum haxorg_TblfmExprAxisRefPositionKind { haxorg_TblfmExprAxisRefPositionKind_Index, haxorg_TblfmExprAxisRefPositionKind_Name, };
 enum haxorg_TblfmExprKind { haxorg_TblfmExprKind_AxisRef, haxorg_TblfmExprKind_AxisName, haxorg_TblfmExprKind_IntLiteral, haxorg_TblfmExprKind_FloatLiteral, haxorg_TblfmExprKind_RangeRef, haxorg_TblfmExprKind_Call, haxorg_TblfmExprKind_Elisp, };
 /// \brief Flags for table format expression cell formulas
@@ -1995,8 +2005,18 @@ struct haxorg_LispCodeCall {
   haxorg_ptr_payload data;
 };
 
+/// \brief ['org', 'sem', 'LispCode', 'Quoted']
+struct haxorg_LispCodeQuoted {
+  haxorg_ptr_payload data;
+};
+
 /// \brief ['org', 'sem', 'LispCode', 'List']
 struct haxorg_LispCodeList {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'LispCode', 'Vector']
+struct haxorg_LispCodeVector {
   haxorg_ptr_payload data;
 };
 
@@ -4818,9 +4838,15 @@ HAXORG_C_API_LINKAGE bool haxorg_LispCode___eq___const(OrgContext* org_context, 
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isCall_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeCall haxorg_LispCode_getCallConst_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeCall haxorg_LispCode_getCallMut(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE bool haxorg_LispCode_isQuoted_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeQuoted haxorg_LispCode_getQuotedConst_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeQuoted haxorg_LispCode_getQuotedMut(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isList_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeList haxorg_LispCode_getListConst_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeList haxorg_LispCode_getListMut(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE bool haxorg_LispCode_isVector_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeVector haxorg_LispCode_getVectorConst_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeVector haxorg_LispCode_getVectorMut(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isKeyValue_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeKeyValue haxorg_LispCode_getKeyValueConst_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeKeyValue haxorg_LispCode_getKeyValueMut(OrgContext* org_context, haxorg_LispCode __this);
@@ -4845,10 +4871,18 @@ HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeCall_get_args(OrgCo
 HAXORG_C_API_LINKAGE void haxorg_create_LispCodeCall_Call(OrgContext* org_context);
 HAXORG_C_API_LINKAGE bool haxorg_LispCodeCall___eq___const(OrgContext* org_context, haxorg_LispCodeCall __this, haxorg_LispCodeCall other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeCall(OrgContext* org_context, haxorg_LispCodeCall* obj);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeQuoted_get_items(OrgContext* org_context, haxorg_LispCodeQuoted __this);
+HAXORG_C_API_LINKAGE void haxorg_create_LispCodeQuoted_Quoted(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_LispCodeQuoted___eq___const(OrgContext* org_context, haxorg_LispCodeQuoted __this, haxorg_LispCodeQuoted other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeQuoted(OrgContext* org_context, haxorg_LispCodeQuoted* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeList_get_items(OrgContext* org_context, haxorg_LispCodeList __this);
 HAXORG_C_API_LINKAGE void haxorg_create_LispCodeList_List(OrgContext* org_context);
 HAXORG_C_API_LINKAGE bool haxorg_LispCodeList___eq___const(OrgContext* org_context, haxorg_LispCodeList __this, haxorg_LispCodeList other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeList(OrgContext* org_context, haxorg_LispCodeList* obj);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeVector_get_items(OrgContext* org_context, haxorg_LispCodeVector __this);
+HAXORG_C_API_LINKAGE void haxorg_create_LispCodeVector_Vector(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_LispCodeVector___eq___const(OrgContext* org_context, haxorg_LispCodeVector __this, haxorg_LispCodeVector other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeVector(OrgContext* org_context, haxorg_LispCodeVector* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_LispCodeKeyValue_get_name(OrgContext* org_context, haxorg_LispCodeKeyValue __this);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeKeyValue_get_value(OrgContext* org_context, haxorg_LispCodeKeyValue __this);
 HAXORG_C_API_LINKAGE void haxorg_create_LispCodeKeyValue_KeyValue(OrgContext* org_context);

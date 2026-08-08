@@ -440,9 +440,36 @@ auto Formatter::toString(SemId<InlineFootnote> id, Context const& ctx) -> Res {
 
 Formatter::Res Formatter::toString(sem::LispCode const& id, Context const& ctx) {
     using C = sem::LispCode;
+
     return std::visit(
         overloaded{
             [&](C::Boolean const& b) -> Res { return str(b.value ? "t" : "nil"); },
+            [&](C::Quoted const& l) -> Res {
+                auto res = b.line({str("'")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                return res;
+            },
+            [&](C::Vector const& l) -> Res {
+                auto res = b.line({str("[")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                b.add_at(res, str("]"));
+                return res;
+            },
+            [&](C::List const& l) -> Res {
+                auto res = b.line({str("(")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                b.add_at(res, str(")"));
+                return res;
+            },
             [&](C::Call const& c) -> Res {
                 auto res = b.line({str("("), str(c.name)});
                 for (auto const& arg : c.args) {
@@ -457,15 +484,6 @@ Formatter::Res Formatter::toString(sem::LispCode const& id, Context const& ctx) 
                     str(hstd::fmt(":{} ", kv.name)),
                     toString(kv.value.front(), ctx),
                 });
-            },
-            [&](C::List const& l) -> Res {
-                auto res = b.line({str("(")});
-                for (auto const& it : enumerator(l.items)) {
-                    if (!it.is_first()) { b.add_at(res, str(" ")); }
-                    b.add_at(res, toString(it.value(), ctx));
-                }
-                b.add_at(res, str(")"));
-                return res;
             },
             [&](C::Ident const& i) -> Res { return str(i.name); },
             [&](C::Real const& r) -> Res { return str(fmt1(r.value)); },
