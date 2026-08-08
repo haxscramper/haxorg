@@ -248,7 +248,16 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                 converter.traceColored = false;
             }
 
-            return converter.convertDocumentFragments(toConvert).unwrap();
+            auto result = converter.convertDocumentFragments(toConvert).unwrap();
+            if (opts->onDiagnosticsCollected) {
+                for (int i = 0; i < result.size(); ++i) {
+                    auto cache   = getDiagnosticStrings();
+                    auto reports = collectDiagnostics(result.at(i), cache);
+                    opts->onDiagnosticsCollected(reports, i);
+                }
+            }
+
+            return result;
 
         } else {
             org::parse::LexerParams p;
@@ -293,26 +302,21 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
             if (opts->onParseDone) { opts->onParseDone(nodes, std::nullopt); }
 
-            return converter.convertDocument(org::parse::OrgAdapter(&nodes, id)).unwrap();
+            auto result = converter.convertDocument(org::parse::OrgAdapter(&nodes, id))
+                              .unwrap();
+
+            auto cache   = getDiagnosticStrings();
+            auto reports = collectDiagnostics(result, cache);
+            if (opts->onDiagnosticsCollected) {
+                opts->onDiagnosticsCollected(reports, std::nullopt);
+            }
+
+            return result;
         }
     };
 
-    // CPPTRACE_TRY {
-    auto result  = impl();
-    auto cache   = getDiagnosticStrings();
-    auto reports = collectDiagnostics(result, cache);
-
-    for (auto const& report : reports) {
-        auto tmp = report;
-        HSLOG_ERROR("diagnostic output:\n{}", tmp.to_string(*cache, false));
-    }
-
+    auto result = impl();
     return result;
-    // }
-    // CPPTRACE_CATCH(const std::exception& e) {
-    //     HSLOG_WARNING("Failed to parse the file '{}'", string_id);
-    //     cpptrace::rethrow();
-    // }
 }
 
 

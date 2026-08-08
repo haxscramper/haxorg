@@ -56,6 +56,10 @@ struct [[refl(
         void(org::parse::OrgNodeGroup const& nodes, std::optional<int> fragmentIndex)>
         onParseDone;
 
+    hstd::Func<
+        void(hstd::Vec<hstd::ext::Report> const&, std::optional<int> fragmentIndex)>
+        onDiagnosticsCollected;
+
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
         (),

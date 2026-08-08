@@ -165,8 +165,12 @@ struct CliOpts {
     };
 
     OPT_NAME(loggingFlags_opt, "--logging-flags");
+
     hstd::Opt<hstd::Str> logFile;
     OPT_NAME(logFile_opt, "--root-log-file");
+
+    hstd::Opt<hstd::Str> diagnosticsFile;
+    OPT_NAME(diagnosticsFile_opt, "--diagnostics-file");
 };
 
 
@@ -305,7 +309,15 @@ CliOpts parseCli(int argc, char** argv) {
     program.add_argument(CliOpts::loggingFlags_opt)
         .help("set logging flag values")
         .append();
-    program.add_argument(CliOpts::logFile_opt).help("main log file for the CLI");
+    program.add_argument(CliOpts::logFile_opt)
+        .help(
+            "main log file for the CLI. It will contain all the internal messages "
+            "(debug, tracing -- everything that the end user most likely not interested "
+            "in)");
+    program.add_argument(CliOpts::diagnosticsFile_opt)
+        .help(
+            "Optional file to write parse diagnostics (errors, warnings -- all sorts of "
+            "user-facing messages) to.");
 
     argparse::ArgumentParser parse_cmd("parse");
     parse_cmd.add_description("parse input file or directory");
@@ -403,6 +415,10 @@ CliOpts parseCli(int argc, char** argv) {
         result.logFile = *f;
     }
 
+    if (auto f = program.present<std::string>(CliOpts::diagnosticsFile_opt)) {
+        result.diagnosticsFile = *f;
+    }
+
     if (program.is_subcommand_used("parse")) {
         CliOpts::ParseOpts opts;
         opts.input = parse_cmd.get<std::string>(PO::input_opt);
@@ -464,17 +480,38 @@ int main(int argc, char* argv[]) {
     };
 
     auto ctx = std::make_shared<org::parse::ParseContext>();
+
+    std::ofstream fileOut;
+    std::ostream* diagOut = &std::cerr;
+    if (opts.diagnosticsFile) {
+        auto mode = std::ios::out;
+        mode |= std::ios::trunc;
+        fileOut.open(opts.diagnosticsFile.value(), mode);
+        diagOut = &fileOut;
+    }
+
+    auto onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& reports,
+                                      std::optional<int>                  fragmentIndex) {
+        auto cache = ctx->getDiagnosticStrings();
+        for (auto const& report : reports) {
+            auto tmp = report;
+            *diagOut << tmp.to_string(*cache, false) << std::endl;
+        }
+    };
+
     if (std::holds_alternative<CliOpts::ParseOpts>(opts.cmd)) {
         auto const&    cmd = std::get<CliOpts::ParseOpts>(opts.cmd);
         hstd::fs::path input{cmd.input};
 
-        auto params                = org::parse::OrgParseParameters::shared();
-        params->parseTracePath     = cmd.parseTracePath;
-        params->baseTokenTracePath = cmd.baseTokenTracePath;
-        params->tokenTracePath     = cmd.tokenTracePath;
-        params->semTracePath       = cmd.semTracePath;
+        auto params                    = org::parse::OrgParseParameters::shared();
+        params->parseTracePath         = cmd.parseTracePath;
+        params->baseTokenTracePath     = cmd.baseTokenTracePath;
+        params->tokenTracePath         = cmd.tokenTracePath;
+        params->semTracePath           = cmd.semTracePath;
+        params->onDiagnosticsCollected = onDiagnosticsCollected;
 
         auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
+
 
         directoryParsingOpts->shouldProcessPath = pathCB;
 
@@ -504,7 +541,8 @@ int main(int argc, char* argv[]) {
         json parse_lefovers_export{};
 
         auto paramsForPath = [&](std::string const& path) {
-            auto params = org::parse::OrgParseParameters::shared();
+            auto params                    = org::parse::OrgParseParameters::shared();
+            params->onDiagnosticsCollected = onDiagnosticsCollected;
 
             auto group_json_repr = [&](auto const&        group,
                                        std::optional<int> fragmentIndex) -> json {
