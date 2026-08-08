@@ -362,10 +362,10 @@ struct Cursor {
         char const*  function = __builtin_FUNCTION()) {
         OrgToken tok;
         tok->loc = org::parse::SourceLoc{
-            .column  = start.col,
             .line    = start.line,
-            .pos     = start.pos,
+            .column  = start.col,
             .file_id = file_id,
+            .pos     = start.pos,
         };
         tok.kind = kind;
 
@@ -1643,17 +1643,26 @@ struct TokenAlignmentReport {
     std::vector<TokenAlignmentFailure> failures;
 };
 
-static void advanceLoc(std::string_view segment, int& line, int& col, int& pos) {
+static void advanceLoc(
+    std::string_view segment,
+    int&             line,
+    int&             col,
+    int&             bytePos,
+    int&             charPos) {
     for (char ch : segment) {
         if (ch == '\n') {
             line += 1;
             col = 0;
+            charPos += 1;
         } else if ((static_cast<unsigned char>(ch) & 0xC0) != 0x80) {
+            // not a UTF-8 continuation byte: new character
             col += 1;
+            charPos += 1;
         }
-        pos += 1;
+        bytePos += 1;
     }
 }
+
 
 static std::string sourceLineAt(std::string const& text, int targetLine) {
     int line     = 0;
@@ -1675,10 +1684,10 @@ static std::string sourceLineAt(std::string const& text, int targetLine) {
 
 template <typename K>
 TokenAlignmentReport validateAndRealignOrgFillTokens(
-    std::string const&              text,
-    std::vector<Token<K, OrgFill>>& tokens,
-    int                             maxFailures,
-    org::parse::SourceFileId        file_id) {
+    std::string const&                    text,
+    std::vector<Token<K, OrgFill>> const& tokens,
+    int                                   maxFailures,
+    org::parse::SourceFileId              file_id) {
     if (maxFailures <= 0) {
         throw std::invalid_argument{
             fmt::format("maxFailures must be positive, got {}", maxFailures)};
@@ -1693,7 +1702,8 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
     int textSize = static_cast<int>(text.size());
     int line     = 0;
     int col      = 0;
-    int pos      = 0;
+    int pos      = 0; // byte offset into text
+    int charPos  = 0; // character (codepoint) offset
 
     auto contextAt = [&](int ctxPos) -> std::string {
         if (ctxPos <= textSize) {
@@ -1708,7 +1718,7 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
 
     int tokenCount = static_cast<int>(tokens.size());
     for (int tokenIndex = 0; tokenIndex < tokenCount; tokenIndex += 1) {
-        auto& token = tokens.at(tokenIndex);
+        auto const& token = tokens.at(tokenIndex);
         report.processedTokens += 1;
 
         std::string tokenText = fmt::format("{}", token.value.text);
@@ -1717,7 +1727,6 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
             "{}({})", token.kind, escape_literal(token.value.text));
 
         std::vector<std::string> details;
-        bool                     textMismatch = false;
 
         bool directMatch = false;
         if (pos <= textSize) {
@@ -1732,13 +1741,11 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
             }
         }
 
+        int matchPos = pos;
         if (!directMatch) {
-            textMismatch = true;
             int foundPos = -1;
 
-            if (tokenLen == 0) {
-                foundPos = pos;
-            } else if (pos <= textSize) {
+            if (tokenLen != 0 && pos <= textSize) {
                 auto found = text.find(
                     tokenText, static_cast<std::string::size_type>(pos));
                 if (found != std::string::npos) { foundPos = static_cast<int>(found); }
@@ -1771,32 +1778,32 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
                             tokenDesc));
                 }
             } else {
-                if (pos < foundPos) {
-                    std::string skipped = text.substr(
+                matchPos            = foundPos;
+                std::string skipped = text.substr(
+                    static_cast<std::string::size_type>(pos),
+                    static_cast<std::string::size_type>(foundPos - pos));
+                details.push_back(
+                    fmt::format(
+                        "misalignment before token: skipped {} chars before next "
+                        "token match at pos {}: `{}` for {}",
+                        foundPos - pos,
+                        foundPos,
+                        skipped,
+                        tokenDesc));
+                advanceLoc(
+                    std::string_view{text}.substr(
                         static_cast<std::string::size_type>(pos),
-                        static_cast<std::string::size_type>(foundPos - pos));
-                    details.push_back(
-                        fmt::format(
-                            "misalignment before token: skipped {} chars before next "
-                            "token match at pos {}: `{}` for {}",
-                            foundPos - pos,
-                            foundPos,
-                            skipped,
-                            tokenDesc));
-                    advanceLoc(
-                        std::string_view{text}.substr(
-                            static_cast<std::string::size_type>(pos),
-                            static_cast<std::string::size_type>(foundPos - pos)),
-                        line,
-                        col,
-                        pos);
-                }
+                        static_cast<std::string::size_type>(foundPos - pos)),
+                    line,
+                    col,
+                    pos,
+                    charPos);
             }
         }
 
         int expectedLine = line;
         int expectedCol  = col;
-        int expectedPos  = pos;
+        int expectedPos  = charPos;
 
         bool hasProvidedLoc = token.value.loc.has_value();
         int  providedLine   = -1;
@@ -1823,50 +1830,41 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
                         expectedPos,
                         tokenDesc));
             }
-        }
-
-        token.value.loc = org::parse::SourceLoc{
-            .line    = expectedLine,
-            .column  = expectedCol,
-            .file_id = file_id,
-            .pos     = expectedPos,
-        };
-
-        int tokenEndLine = expectedLine;
-        if (textMismatch) {
-            if (tokenLen == 0) {
-            } else if (expectedPos + tokenLen <= textSize) {
-                advanceLoc(
-                    std::string_view{text}.substr(
-                        static_cast<std::string::size_type>(expectedPos),
-                        static_cast<std::string::size_type>(tokenLen)),
-                    line,
-                    col,
-                    pos);
-            } else if (expectedPos <= textSize) {
-                int remaining = textSize - expectedPos;
-                if (0 < remaining) {
-                    advanceLoc(
-                        std::string_view{text}.substr(
-                            static_cast<std::string::size_type>(expectedPos),
-                            static_cast<std::string::size_type>(remaining)),
-                        line,
-                        col,
-                        pos);
-                }
-            }
         } else {
-            if (tokenLen != 0) {
-                advanceLoc(
-                    std::string_view{text}.substr(
-                        static_cast<std::string::size_type>(expectedPos),
-                        static_cast<std::string::size_type>(tokenLen)),
-                    line,
-                    col,
-                    pos);
-            }
+            details.push_back(
+                fmt::format(
+                    "token has no source location, expected (line={}, col={}, "
+                    "pos={}) for {}",
+                    expectedLine,
+                    expectedCol,
+                    expectedPos,
+                    tokenDesc));
         }
-        tokenEndLine = line;
+
+        // Advance the expected cursor past the token text without touching
+        // the token itself.
+        if (tokenLen != 0 && matchPos + tokenLen <= textSize) {
+            advanceLoc(
+                std::string_view{text}.substr(
+                    static_cast<std::string::size_type>(matchPos),
+                    static_cast<std::string::size_type>(tokenLen)),
+                line,
+                col,
+                pos,
+                charPos);
+        } else if (tokenLen != 0 && matchPos < textSize) {
+            int remaining = textSize - matchPos;
+            advanceLoc(
+                std::string_view{text}.substr(
+                    static_cast<std::string::size_type>(matchPos),
+                    static_cast<std::string::size_type>(remaining)),
+                line,
+                col,
+                pos,
+                charPos);
+        }
+
+        int tokenEndLine = line;
 
         if (!details.empty()) {
             report.failingTokens += 1;
@@ -1934,6 +1932,7 @@ end `{}`)",
 
     return report;
 }
+
 } // namespace
 
 OrgTokenGroup org::parse::tokenize(
