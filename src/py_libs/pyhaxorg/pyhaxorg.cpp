@@ -111,6 +111,7 @@ NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::NamedProperty>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<bool>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<int>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::TodoKeyword>)
@@ -235,6 +236,7 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>(m, "ImmBoxOfOptOfImmIdTOfImmTime", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<bool>>(m, "ImmBoxOfOptOfBool", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<LinkVisibility>>(m, "ImmBoxOfOptOfLinkVisibility", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<BlockVisibility>>(m, "ImmBoxOfOptOfBlockVisibility", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<int>>(m, "ImmBoxOfOptOfInt", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::ColumnView>>(m, "ImmBoxOfOptOfColumnView", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::TodoKeyword>(m, "ImmVecOfTodoKeyword", type_registry_guard);
@@ -313,6 +315,29 @@ NB_MODULE(pyhaxorg, m) {
          nanobind::arg("rhs"))
     .def("__hash__",
          [](LinkVisibility it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  bind_enum_iterator<BlockVisibility>(m, "BlockVisibility", type_registry_guard);
+  nanobind::enum_<BlockVisibility>(m, "BlockVisibility")
+    .value("HideBlocks", BlockVisibility::HideBlocks)
+    .value("NoHideBlocks", BlockVisibility::NoHideBlocks)
+    .def("__iter__", [](BlockVisibility const& _self) -> org::bind::python::PyEnumIterator<BlockVisibility> {
+                     return org::bind::python::PyEnumIterator<BlockVisibility>();
+                     })
+    .def("__int__", [](BlockVisibility const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](BlockVisibility const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](BlockVisibility lhs, BlockVisibility rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](BlockVisibility it) -> int {
          return static_cast<int>(it);
          })
     ;
@@ -6111,6 +6136,7 @@ and a segment kind.)RAW")
     .def_rw("exportConfig", &org::sem::DocumentOptions::exportConfig)
     .def_rw("fixedWidthSections", &org::sem::DocumentOptions::fixedWidthSections)
     .def_rw("linkVisibility", &org::sem::DocumentOptions::linkVisibility)
+    .def_rw("blockVisibility", &org::sem::DocumentOptions::blockVisibility)
     .def_rw("startupIndented", &org::sem::DocumentOptions::startupIndented)
     .def_rw("category", &org::sem::DocumentOptions::category)
     .def_rw("setupfile", &org::sem::DocumentOptions::setupfile)
@@ -7983,6 +8009,7 @@ and a segment kind.)RAW")
     .def("getExportConfig", static_cast<org::sem::DocumentExportConfig(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getExportConfig))
     .def("getFixedWidthSections", static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections))
     .def("getLinkVisibility", static_cast<hstd::Opt<LinkVisibility> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getLinkVisibility))
+    .def("getBlockVisibility", static_cast<hstd::Opt<BlockVisibility> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getBlockVisibility))
     .def("getStartupIndented", static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented))
     .def("getCategory", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory))
     .def("getSetupfile", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile))

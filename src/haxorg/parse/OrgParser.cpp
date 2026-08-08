@@ -274,9 +274,10 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
         IntSet<OrgTokenKind> eqTokens{
             otk::Equals, otk::VerbatimBegin, otk::VerbatimEnd, otk::VerbatimUnknown};
 
-        if (lex.at(otk::CmdRawArg) && lex.at(eqTokens, +1)) {
-            // `key=`
+        if (lex.at(otk::CmdRawArg) && lex.ahead({otk::Whitespace}, eqTokens, +1)) {
+            // `key=` or `KEY = 15`
             token(onk::RawText, TRY_POPX(lex, otk::CmdRawArg));
+            space(lex);
             TRY_SKIP(lex, eqTokens);
             space(lex);
         } else {

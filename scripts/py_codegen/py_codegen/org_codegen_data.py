@@ -1416,6 +1416,12 @@ def get_shared_sem_enums() -> List[GenTuEnum]:
             "DescriptiveLinks",
         ),
         d_simple_enum(
+            t("BlockVisibility"),
+            GenTuDoc(""),
+            "HideBlocks",
+            "NoHideBlocks",
+        ),
+        d_simple_enum(
             t("SubtreeTodoSource"),
             org_doc("Where to take todo completion statistics from"),
             efield("Checkbox", "Only count checkbox subnodes as a progress completion"),
@@ -3109,6 +3115,7 @@ def get_types() -> Sequence[GenTuStruct]:
                 org_field(t_nest_shared("DocumentExportConfig", []), "exportConfig"),
                 opt_field(t_bool(), "fixedWidthSections"),
                 opt_field(t("LinkVisibility"), "linkVisibility"),
+                opt_field(t("BlockVisibility"), "blockVisibility"),
                 opt_field(t_bool(), "startupIndented"),
                 opt_field(t_str(), "category"),
                 opt_field(t_str(), "setupfile"),

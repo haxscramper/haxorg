@@ -13,6 +13,11 @@ export interface haxorg_wasm_module_auto {
     DescriptiveLinks: LinkVisibility,
   }
   format_LinkVisibility(value: LinkVisibility): string;
+  BlockVisibility: {
+    HideBlocks: BlockVisibility,
+    NoHideBlocks: BlockVisibility,
+  }
+  format_BlockVisibility(value: BlockVisibility): string;
   SubtreeTodoSource: {
     Checkbox: SubtreeTodoSource,
     Todo: SubtreeTodoSource,
@@ -1508,6 +1513,10 @@ export enum CheckboxState {
 export enum LinkVisibility {
   LiteralLinks,
   DescriptiveLinks,
+}
+export enum BlockVisibility {
+  HideBlocks,
+  NoHideBlocks,
 }
 export enum SubtreeTodoSource {
   Checkbox,
@@ -3768,6 +3777,7 @@ export interface DocumentOptions {
   exportConfig: DocumentExportConfig
   fixedWidthSections: haxorg_wasm.Optional<boolean>
   linkVisibility: haxorg_wasm.Optional<LinkVisibility>
+  blockVisibility: haxorg_wasm.Optional<BlockVisibility>
   startupIndented: haxorg_wasm.Optional<boolean>
   category: haxorg_wasm.Optional<Str>
   setupfile: haxorg_wasm.Optional<Str>
@@ -4285,6 +4295,7 @@ export interface ImmDocumentOptions {
   exportConfig: DocumentExportConfig
   fixedWidthSections: ImmBoxOfOptOfBool<haxorg_wasm.Optional<boolean>>
   linkVisibility: ImmBoxOfOptOfLinkVisibility<haxorg_wasm.Optional<LinkVisibility>>
+  blockVisibility: ImmBoxOfOptOfBlockVisibility<haxorg_wasm.Optional<BlockVisibility>>
   startupIndented: ImmBoxOfOptOfBool<haxorg_wasm.Optional<boolean>>
   category: ImmBoxOfOptOfStr<haxorg_wasm.Optional<Str>>
   setupfile: ImmBoxOfOptOfStr<haxorg_wasm.Optional<Str>>
@@ -5089,6 +5100,7 @@ export interface ImmDocumentOptionsAdapter {
   getExportConfig(): DocumentExportConfig;
   getFixedWidthSections(): haxorg_wasm.Optional<boolean>;
   getLinkVisibility(): haxorg_wasm.Optional<LinkVisibility>;
+  getBlockVisibility(): haxorg_wasm.Optional<BlockVisibility>;
   getStartupIndented(): haxorg_wasm.Optional<boolean>;
   getCategory(): haxorg_wasm.Optional<Str>;
   getSetupfile(): haxorg_wasm.Optional<Str>;

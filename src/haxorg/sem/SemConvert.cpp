@@ -2474,12 +2474,21 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(__args) {
 }
 
 OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
-    auto           __trace = trace(a);
-    SemId<CmdName> result  = Sem<CmdName>(a);
-    auto           attr    = convertAttr(a.at(0).at(0), {AttrValue::Kind::TextValue});
-    LOGIC_ASSERTION_CHECK_FMT(
-        attr.isTextValue(), "{}\n{}\n", a.at(0).at(0).treeRepr(false), attr.getKind());
-    result->name = attr.getString();
+    auto           __trace  = trace(a);
+    SemId<CmdName> result   = Sem<CmdName>(a);
+    auto           cmd_args = a.at(0);
+    // edge case: `#+name:` with no arguments
+    if (0 < cmd_args.size()) {
+        auto attr = convertAttr(cmd_args.at(0), {AttrValue::Kind::TextValue});
+        LOGIC_ASSERTION_CHECK_FMT(
+            attr.isTextValue(),
+            "{}\n{}\n",
+            cmd_args.at(0).treeRepr(false),
+            attr.getKind());
+        result->name = attr.getString();
+    } else {
+        result->name = "";
+    }
     return result;
 }
 
@@ -3017,6 +3026,10 @@ bool OrgConverter::updateDocument(SemId<Document>& doc, parse::OrgAdapter const&
                 doc->options->linkVisibility = LinkVisibility::LiteralLinks;
             } else if (text == "descriptivelinks") {
                 doc->options->linkVisibility = LinkVisibility::DescriptiveLinks;
+            } else if (text == "hideblocks") {
+                doc->options->blockVisibility = BlockVisibility::HideBlocks;
+            } else if (text == "nohideblocks") {
+                doc->options->blockVisibility = BlockVisibility::NoHideBlocks;
             } else {
                 throw convert_logic_error::init(
                     hstd::fmt(

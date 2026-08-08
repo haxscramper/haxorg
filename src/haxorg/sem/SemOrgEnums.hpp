@@ -1170,6 +1170,7 @@
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1185,6 +1186,7 @@
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1860,6 +1862,7 @@
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -1875,6 +1878,7 @@
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -2001,6 +2005,11 @@ BOOST_DESCRIBE_ENUM_BEGIN(LinkVisibility)
   BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, LiteralLinks)
   BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, DescriptiveLinks)
 BOOST_DESCRIBE_ENUM_END(LinkVisibility)
+enum class BlockVisibility : short int { HideBlocks, NoHideBlocks, };
+BOOST_DESCRIBE_ENUM_BEGIN(BlockVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockVisibility, HideBlocks)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockVisibility, NoHideBlocks)
+BOOST_DESCRIBE_ENUM_END(BlockVisibility)
 /// \brief Where to take todo completion statistics from
 enum class SubtreeTodoSource : short int {
   /// \brief Only count checkbox subnodes as a progress completion

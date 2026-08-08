@@ -375,6 +375,18 @@ haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<LinkVisibili
                                                 .destroy = &VtableType::destroy,};
   return &vtable;
 }
+haxorg_ptr_payload org::bind::c::VTable<std::optional<BlockVisibility>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
+  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<BlockVisibility> const& __self) -> BlockVisibility const& { return __self.value(); }, org_context, __self);
+}
+void org::bind::c::VTable<std::optional<BlockVisibility>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
+  org::bind::c::execute_destroy<std::optional<BlockVisibility>, haxorg_StdOptional>(org_context, __self);
+}
+haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<BlockVisibility>>::get_vtable() {
+  using VtableType = org::bind::c::VTable<std::optional<BlockVisibility>>;
+  static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
+                                                .destroy = &VtableType::destroy,};
+  return &vtable;
+}
 haxorg_ptr_payload org::bind::c::VTable<std::optional<org::sem::ColumnView>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
   return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<org::sem::ColumnView> const& __self) -> org::sem::ColumnView const& { return __self.value(); }, org_context, __self);
 }

@@ -966,6 +966,7 @@ struct DocumentOptions : public org::sem::Org {
                                                         exportConfig,
                                                         fixedWidthSections,
                                                         linkVisibility,
+                                                        blockVisibility,
                                                         startupIndented,
                                                         category,
                                                         setupfile,
@@ -979,6 +980,7 @@ struct DocumentOptions : public org::sem::Org {
   org::sem::DocumentExportConfig exportConfig;
   hstd::Opt<bool> fixedWidthSections = std::nullopt;
   hstd::Opt<LinkVisibility> linkVisibility = std::nullopt;
+  hstd::Opt<BlockVisibility> blockVisibility = std::nullopt;
   hstd::Opt<bool> startupIndented = std::nullopt;
   hstd::Opt<hstd::Str> category = std::nullopt;
   hstd::Opt<hstd::Str> setupfile = std::nullopt;

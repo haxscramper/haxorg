@@ -1267,6 +1267,7 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, exportConfig);
   __org_field(res, object, fixedWidthSections);
   __org_field(res, object, linkVisibility);
+  __org_field(res, object, blockVisibility);
   __org_field(res, object, startupIndented);
   __org_field(res, object, category);
   __org_field(res, object, setupfile);

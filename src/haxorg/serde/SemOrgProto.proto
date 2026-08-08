@@ -14,6 +14,11 @@ enum LinkVisibility {
   LinkVisibility_DescriptiveLinks_f                                                 = 1;
 }
 
+enum BlockVisibility {
+  BlockVisibility_HideBlocks_f                                                      = 0;
+  BlockVisibility_NoHideBlocks_f                                                    = 1;
+}
+
 enum SubtreeTodoSource {
   SubtreeTodoSource_Checkbox_f                                                      = 0;
   SubtreeTodoSource_Todo_f                                                          = 1;
@@ -2223,13 +2228,14 @@ message DocumentOptions {
   DocumentExportConfig                             exportConfig                     = 6;
   optional bool                                    fixedWidthSections               = 7;
   optional LinkVisibility                          linkVisibility                   = 8;
-  optional bool                                    startupIndented                  = 9;
-  optional string                                  category                         = 10;
-  optional string                                  setupfile                        = 11;
-  optional int32                                   maxSubtreeLevelExport            = 12;
-  optional ColumnView                              columns                          = 13;
-  repeated TodoKeyword                             todoKeywords                     = 14;
-  repeated TodoKeyword                             doneKeywords                     = 15;
+  optional BlockVisibility                         blockVisibility                  = 9;
+  optional bool                                    startupIndented                  = 10;
+  optional string                                  category                         = 11;
+  optional string                                  setupfile                        = 12;
+  optional int32                                   maxSubtreeLevelExport            = 13;
+  optional ColumnView                              columns                          = 14;
+  repeated TodoKeyword                             todoKeywords                     = 15;
+  repeated TodoKeyword                             doneKeywords                     = 16;
   string                                           debug                            = 1000;
 }
 

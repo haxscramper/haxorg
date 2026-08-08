@@ -3013,6 +3013,9 @@ void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptio
   if (in.linkVisibility) {
     out->set_linkvisibility(static_cast<orgproto::LinkVisibility>(*in.linkVisibility));
   }
+  if (in.blockVisibility) {
+    out->set_blockvisibility(static_cast<orgproto::BlockVisibility>(*in.blockVisibility));
+  }
   if (in.startupIndented) {
     out->set_startupindented(*in.startupIndented);
   }
@@ -3042,6 +3045,9 @@ void org::algo::proto_serde<::orgproto::DocumentOptions, org::sem::DocumentOptio
   }
   if (out.has_linkvisibility()) {
     proto_serde<hstd::Opt<orgproto::LinkVisibility>, hstd::Opt<LinkVisibility>>::read(out.linkvisibility(), in.for_field(&org::sem::DocumentOptions::linkVisibility));
+  }
+  if (out.has_blockvisibility()) {
+    proto_serde<hstd::Opt<orgproto::BlockVisibility>, hstd::Opt<BlockVisibility>>::read(out.blockvisibility(), in.for_field(&org::sem::DocumentOptions::blockVisibility));
   }
   if (out.has_startupindented()) {
     proto_serde<hstd::Opt<bool>, hstd::Opt<bool>>::read(out.startupindented(), in.for_field(&org::sem::DocumentOptions::startupIndented));
