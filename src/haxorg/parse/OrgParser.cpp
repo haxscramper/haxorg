@@ -238,6 +238,13 @@ OrgParser::ParseResult OrgParser::parseCallArguments(OrgLexer& lex) {
     return stmtGuard->end();
 }
 
+static bool isAtLispAttrStart(OrgLexer& lex) {
+    return lex.at(otk::ParBegin)   //
+        || lex.at(otk::BraceBegin) //
+        || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))
+        || (lex.at(otk::SingleQuote) && lex.at(otk::BraceBegin, +1));
+}
+
 
 OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
     __perf_trace("parsing", "parseAttrColonKeyValue");
@@ -271,8 +278,7 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
             empty();
         }
 
-        if (lex.at(otk::ParBegin)
-            || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))) {
+        if (isAtLispAttrStart(lex)) {
             SUB_PARSE(AttrLisp, lex);
         } else if (lex.at(otk::CmdRawArg)) {
             token(onk::RawText, TRY_POPX(lex, otk::CmdRawArg));
@@ -338,28 +344,25 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
     return attrGuard->end();
 }
 
+
 OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
     __perf_trace("parsing", "parseAttrLisp");
     auto __trace   = trace(lex);
     auto lispGuard = start(onk::AttrLisp);
 
-    if (lex.at(otk::ParBegin)      //
-        || lex.at(otk::BraceBegin) //
-        || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))
-        || (lex.at(otk::SingleQuote) && lex.at(otk::BraceBegin, +1))) {
-
+    if (isAtLispAttrStart(lex)) {
         auto parse_collection = [&](OrgNodeKind  start_node,
                                     OrgTokenKind begin_token,
                                     OrgTokenKind end_token) -> OrgParser::ParseResult {
             auto stmtGuard = start(start_node);
 
-            TRY_SKIP(lex, otk::ParBegin);
+            TRY_SKIP(lex, begin_token);
             space(lex);
-            while (lex.can_search(begin_token)) {
+            while (lex.can_search(end_token)) {
                 SUB_PARSE(AttrLisp, lex);
                 space(lex);
             }
-            TRY_SKIP(lex, begin_token, MissingClosingParen);
+            TRY_SKIP(lex, end_token, MissingClosingParen);
             return stmtGuard->end();
         };
 

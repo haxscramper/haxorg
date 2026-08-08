@@ -2269,12 +2269,12 @@ LispCode OrgConverter::convertLisp(In a) {
     auto __trace = trace(a);
     using L      = sem::LispCode;
     L out;
-    if (a.getKind() == onk::AttrLisp) {
-        return convertLisp(one(a, N::Value));
-    } else if (a.getKind() == onk::InlineStmtList) {
+
+    auto aux_list = [this](In a, bool quoted) -> L {
+        L             out;
         Vec<LispCode> items;
         for (auto const& it : a) { items.push_back(convertLisp(it)); }
-        if (!items.empty() && items.front().isIdent()) {
+        if (!quoted && !items.empty() && items.front().isIdent()) {
             L::Call res;
             res.name = items.front().getIdent().name;
             if (items.has(1)) { res.args = Vec<LispCode>{items.at(slice(1, 1_B))}; }
@@ -2283,6 +2283,29 @@ LispCode OrgConverter::convertLisp(In a) {
             L::List res;
             res.items = items;
             out.data  = res;
+        }
+        return out;
+    };
+
+    if (a.getKind() == onk::AttrLisp) {
+        return convertLisp(one(a, N::Value));
+    } else if (a.getKind() == onk::LispQuoted) {
+        L::Quoted res;
+        for (auto const& it : a) {
+            if (it.getKind() == onk::LispList) {
+                res.items.push_back(aux_list(it, true));
+            } else {
+                res.items.push_back(convertLisp(it));
+            }
+        }
+        out.data = res;
+    } else if (a.getKind() == onk::LispList || a.getKind() == onk::LispVector) {
+        if (a.getKind() == onk::LispList) {
+            out = aux_list(a, false);
+        } else {
+            L::Vector res;
+            for (auto const& it : a) { res.items.push_back(convertLisp(it)); }
+            out.data = res;
         }
     } else {
         Str v = get_text(a);
