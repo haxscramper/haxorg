@@ -1,4 +1,5 @@
 #include <haxorg/parse/OrgParser.hpp>
+#include <hstd/ext/error_write.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
@@ -200,6 +201,14 @@ OrgNodeMono::Error OrgParser::error_value(
     if (failToken) {
         fail.err.loc       = failToken->value.loc.value();
         fail.err.tokenText = failToken->value.text;
+        LOGIC_ASSERTION_CHECK_FMT(manager != nullptr, "");
+
+        if (manager) {
+            int size = manager->getSourceContent(activeFileId).size();
+            LOGIC_ASSERTION_CHECK_FMT(fail.err.loc->pos < size, "");
+            LOGIC_ASSERTION_CHECK_FMT(
+                fail.err.loc->pos + fail.err.tokenText.size() < size, "");
+        }
     }
 
     box->data = fail;

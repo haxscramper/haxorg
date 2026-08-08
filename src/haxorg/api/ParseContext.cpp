@@ -220,7 +220,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
                 org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
                 if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens.at(i), i); }
-                org::parse::OrgParser parser{&nodes.at(i)};
+                org::parse::OrgParser parser{&nodes.at(i), file_id, source.get()};
                 if (opts->parseTracePath) {
                     parser.setTraceFile(*opts->parseTracePath, false);
                     parser.traceColored = false;
@@ -287,7 +287,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
 
             org::parse::OrgNodeGroup nodes{&tokens};
-            org::parse::OrgParser    parser{&nodes};
+            org::parse::OrgParser    parser{&nodes, file_id, source.get()};
             if (opts->parseTracePath) {
                 parser.setTraceFile(*opts->parseTracePath);
                 parser.traceColored = false;
@@ -659,7 +659,8 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                                 .with_label(
                                     ext::ReportLabel{
                                         ext::ReportLabelId::FromValue(1),
-                                        ext::CodeSpan{id, slice(1, 2)}}
+                                        cache->init_span(id, slice(1, 2)),
+                                    }
                                         .with_message(err.detail)));
                         break;
                     }
@@ -670,7 +671,9 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                         auto        l   = //
                             ext::ReportLabel{
                                 ext::ReportLabelId{1},
-                                ext::CodeSpan{id, slice(err.loc->pos, err.loc->pos + 1)}}
+                                cache->init_span(
+                                    id, slice(err.loc->pos, err.loc->pos + 1)),
+                            }
                                 .with_message(err.detail);
 
                         result.push_back(
@@ -685,14 +688,16 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                     case K::ParseTokenError: {
                         auto const& err = d.getParseTokenError();
                         auto        id  = getId(err.loc.value());
-                        auto        l   = //
+                        HSLOG_TRACE("{}", err.tokenText);
+                        auto l = //
                             ext::ReportLabel{
                                 ext::ReportLabelId{1},
-                                ext::CodeSpan{
+                                cache->init_span(
                                     id,
                                     slice(
                                         err.loc->pos,
-                                        err.loc->pos + err.tokenText.size())}}
+                                        err.loc->pos + err.tokenText.size())),
+                            }
                                 .with_message(err.detail);
 
                         result.push_back(

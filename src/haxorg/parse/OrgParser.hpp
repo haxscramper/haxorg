@@ -9,6 +9,10 @@
 
 #include <hstd/stdlib/TraceBase.hpp>
 
+namespace hstd::ext {
+class ReportSourceCache;
+}
+
 namespace org::parse {
 
 template <typename K, typename V>
@@ -314,11 +318,17 @@ struct OrgParser : public hstd::OperationsTracer {
 
     hstd::Func<void(Report const&)> reportHook;
     OrgNodeGroup*                   group = nullptr;
+    SourceFileId const&             activeFileId;
+    SourceManager const*            manager;
 
     /// \brief Identification for the current file being processed. Value
     /// from this field is passed to the source location for the failure
     /// diagnostics.
-    OrgParser(OrgNodeGroup* _group) : group{_group} {}
+    OrgParser(
+        OrgNodeGroup*        _group,
+        SourceFileId const&  activeFileId = SourceFileId::Nil(),
+        SourceManager const* manager      = nullptr)
+        : group{_group}, activeFileId{activeFileId}, manager{manager} {}
 
     void reserve(int size) { group->nodes.reserve(size); }
 

@@ -1828,8 +1828,8 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
         token.value.loc = org::parse::SourceLoc{
             .line    = expectedLine,
             .column  = expectedCol,
-            .pos     = expectedPos,
             .file_id = file_id,
+            .pos     = expectedPos,
         };
 
         int tokenEndLine = expectedLine;

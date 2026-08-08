@@ -1975,7 +1975,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeUrgency(OrgLexer& lex) {
 OrgParser::ParseResult OrgParser::parseSubtreeTitle(OrgLexer& lex) {
     auto __trace = trace(lex);
     space(lex);
-    SubLexer sub{lex};
+
 
     auto is_at_subtree_tags = [](OrgLexer& lex) {
         const IntSet<OrgTokenKind> tree_tags{
@@ -1998,15 +1998,26 @@ OrgParser::ParseResult OrgParser::parseSubtreeTitle(OrgLexer& lex) {
         return tag_end == lex.whole_fixed().end() || Newline.contains(tag_end->kind);
     };
 
+    SubLexer sub{lex};
+
     while (lex.can_search(Newline)     //
            && !is_at_subtree_tags(lex) //
            && !lex.at(otk::SubtreeCompletion)) {
         sub.add(pop(lex));
     }
 
+
     if (sub.empty()) {
+        OP_TRACER_MESSAGE(this, "Subtree title empty");
         empty();
     } else {
+        OP_TRACER_MESSAGE(
+            this,
+            "Parsing subtree title with {} tokens: [{}..{}]",
+            sub.tokens.size(),
+            sub.tok(sub.tokens.front()),
+            sub.tok(sub.tokens.back()));
+
         sub.start();
         SUB_PARSE(Paragraph, sub);
     }

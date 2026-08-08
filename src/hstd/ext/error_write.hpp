@@ -75,6 +75,8 @@ class [[refl]] ReportSourceCache {
     // Display the given ID. as a single inline value.
     virtual std::optional<std::string> display(ReportSourceId const& id) const = 0;
 
+    CodeSpan init_span(ReportSourceId id, Slice<int> const& range);
+
     DESC_FIELDS(ReportSourceCache, (fetch, display));
 
     virtual ~ReportSourceCache() = default;
@@ -232,10 +234,9 @@ struct ReportLabel {
         return *this;
     }
 
-
     ReportLabel clone() const { return *this; }
 
-    ReportLabel(ReportLabelId selfId, CodeSpan span) : id{id}, span{span} {}
+    ReportLabel(ReportLabelId selfId, CodeSpan span) : id{selfId}, span{span} {}
 
     /// \brief Unique ID to disambiguate different labels from each other
     /// and uniquely identify them.
