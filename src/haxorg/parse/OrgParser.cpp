@@ -106,13 +106,15 @@ const OrgTokSet BlockTerminator{
 };
 } // namespace
 
+
+#define SUB_PARSE_WITH_EXPR(__expr, __error, __lex)                                      \
+    BOOST_OUTCOME_TRYX(maybe_recursive_error_end(__expr, __error, __lex))
+
 #define SUB_PARSE_2(__kind, __lex)                                                       \
-    BOOST_OUTCOME_TRYX(maybe_recursive_error_end(                                        \
-        parse##__kind(__lex), ErrorTable::FallbackError, __lex))
+    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), ErrorTable::FallbackError, __lex)
 
 #define SUB_PARSE_3(__kind, __lex, __on_failure)                                         \
-    BOOST_OUTCOME_TRYX(maybe_recursive_error_end(                                        \
-        parse##__kind(__lex), ErrorTable::__on_failure, __lex))
+    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), ErrorTable::__on_failure, __lex)
 
 #define SUB_PARSE_IMPL(__count) BOOST_PP_CAT(SUB_PARSE_, __count)
 
@@ -340,24 +342,49 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
     __perf_trace("parsing", "parseAttrLisp");
     auto __trace   = trace(lex);
     auto lispGuard = start(onk::AttrLisp);
-    if (lex.at(otk::ParBegin)
-        || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))) {
-        // quoted lisp value: '(a b c)
-        // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
-        bool isQuoted = lex.at(otk::SingleQuote);
-        if (isQuoted) { token(onk::RawText, TRY_POPX(lex, otk::SingleQuote)); }
 
-        auto stmtGuard = start(onk::InlineStmtList);
+    if (lex.at(otk::ParBegin)      //
+        || lex.at(otk::BraceBegin) //
+        || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))
+        || (lex.at(otk::SingleQuote) && lex.at(otk::BraceBegin, +1))) {
 
+        auto parse_collection = [&](OrgNodeKind  start_node,
+                                    OrgTokenKind begin_token,
+                                    OrgTokenKind end_token) -> OrgParser::ParseResult {
+            auto stmtGuard = start(start_node);
 
-        TRY_SKIP(lex, otk::ParBegin);
-        space(lex);
-        while (lex.can_search(otk::ParEnd)) {
-            SUB_PARSE(AttrLisp, lex);
+            TRY_SKIP(lex, otk::ParBegin);
             space(lex);
+            while (lex.can_search(begin_token)) {
+                SUB_PARSE(AttrLisp, lex);
+                space(lex);
+            }
+            TRY_SKIP(lex, begin_token, MissingClosingParen);
+            return stmtGuard->end();
+        };
+
+        auto isList = lex.at(otk::ParBegin)
+                   || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1));
+
+        auto do_parse = [&]() -> OrgParser::ParseResult {
+            if (isList) {
+                return parse_collection(onk::LispList, otk::ParBegin, otk::ParEnd);
+            } else {
+                return parse_collection(onk::LispVector, otk::BraceBegin, otk::BraceEnd);
+            }
+        };
+
+        if (lex.at(otk::SingleQuote)) {
+            // quoted lisp value: '(a b c)
+            // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
+            auto guard = start(onk::LispQuoted);
+            TRY_SKIP(lex, otk::SingleQuote);
+            SUB_PARSE_WITH_EXPR(do_parse(), ErrorTable::FallbackError, lex);
+            guard->end();
+        } else {
+            SUB_PARSE_WITH_EXPR(do_parse(), ErrorTable::FallbackError, lex);
         }
-        TRY_SKIP(lex, otk::ParEnd, MissingClosingParen);
-        stmtGuard->end();
+
     } else {
         token(onk::RawText, pop(lex));
     }
