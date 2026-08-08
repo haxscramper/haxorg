@@ -1426,7 +1426,7 @@ CodeSpan::CodeSpan(ReportSourceId id, Slice<int> const& range) : id{id}, range{r
 CodeSpan ReportSourceCache::init_span(ReportSourceId id, Slice<int> const& range) {
     auto source = fetch(id);
     LOGIC_ASSERTION_CHECK_FMT(
-        range.first <= source->len && source->len <= range.last,
+        0 <= range.first && range.last < source->len,
         "Code range does not match tge source for ID {}, range was {} but source has len "
         "{}",
         id,

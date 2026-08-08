@@ -171,17 +171,21 @@ struct Cursor {
     }
 
     struct Recall {
-        int line = 0;
-        int col  = 0;
-        int pos  = 0;
+        int line     = 0;
+        int col      = 0;
+        int pos      = 0;
+        int char_pos = 0;
     };
 
-    Recall getRecall() const { return Recall{.line = line, .col = col, .pos = pos}; }
+    Recall getRecall() const {
+        return Recall{.line = line, .col = col, .pos = pos, .char_pos = char_pos};
+    }
 
     void setRecall(Recall const& r) {
-        this->line = r.line;
-        this->col  = r.col;
-        this->pos  = r.pos;
+        this->line     = r.line;
+        this->col      = r.col;
+        this->pos      = r.pos;
+        this->char_pos = r.char_pos;
     }
 
     bool next(int line = __builtin_LINE(), char const* function = __builtin_FUNCTION()) {
@@ -206,6 +210,7 @@ struct Cursor {
             line++;
             col = 0;
             pos++;
+            char_pos++;
             return pos < text.size();
         } else {
             unsigned char firstByte = static_cast<unsigned char>(text[pos]);
@@ -220,6 +225,7 @@ struct Cursor {
             }
 
             col++;
+            char_pos++;
             pos += charSize;
             pos = std::min<int>(pos, text.size());
 
@@ -331,10 +337,11 @@ struct Cursor {
     LexerParams              p;
     OrgTokenGroup*           group;
     std::string_view         text;
-    int                      pos     = 0;
-    int                      line    = 0;
-    int                      col     = 0;
-    org::parse::SourceFileId file_id = org::parse::SourceFileId::Nil();
+    int                      pos      = 0; // byte offset
+    int                      char_pos = 0; // character offset
+    int                      line     = 0;
+    int                      col      = 0;
+    org::parse::SourceFileId file_id  = org::parse::SourceFileId::Nil();
 
     void unhandled(
         int         line     = __builtin_LINE(),
@@ -360,13 +367,15 @@ struct Cursor {
         Recall       end,
         int          line     = __builtin_LINE(),
         char const*  function = __builtin_FUNCTION()) {
+
         OrgToken tok;
         tok->loc = org::parse::SourceLoc{
             .line    = start.line,
             .column  = start.col,
             .file_id = file_id,
-            .pos     = start.pos,
+            .pos     = start.char_pos,
         };
+
         tok.kind = kind;
 
         tok.value.text = std::string{
@@ -399,7 +408,7 @@ struct Cursor {
             .line    = this->line,
             .column  = this->col,
             .file_id = this->file_id,
-            .pos     = this->pos,
+            .pos     = this->char_pos,
         };
 
         tok.kind = kind;
