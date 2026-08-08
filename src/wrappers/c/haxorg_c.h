@@ -366,7 +366,7 @@ struct haxorg_Org;
 
 struct haxorg_OperationsTracer;
 
-struct haxorg_Cache;
+struct haxorg_ReportSourceCache;
 
 struct haxorg_Report;
 
@@ -1832,8 +1832,8 @@ struct haxorg_OperationsTracer {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['hstd', 'ext', 'Cache']
-struct haxorg_Cache {
+/// \brief ['hstd', 'ext', 'ReportSourceCache']
+struct haxorg_ReportSourceCache {
   haxorg_ptr_payload data;
 };
 
@@ -4639,8 +4639,8 @@ HAXORG_C_API_LINKAGE haxorg_ParseSourceFileId haxorg_ParseSourceManager_addSourc
 HAXORG_C_API_LINKAGE void haxorg_destroy_ParseSourceManager(OrgContext* org_context, haxorg_ParseSourceManager* obj);
 HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_line(OrgContext* org_context, haxorg_ParseSourceLoc __this);
 HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_column(OrgContext* org_context, haxorg_ParseSourceLoc __this);
-HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_pos(OrgContext* org_context, haxorg_ParseSourceLoc __this);
 HAXORG_C_API_LINKAGE haxorg_ParseSourceFileId haxorg_ParseSourceLoc_get_file_id(OrgContext* org_context, haxorg_ParseSourceLoc __this);
+HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_pos(OrgContext* org_context, haxorg_ParseSourceLoc __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ParseSourceLoc(OrgContext* org_context, haxorg_ParseSourceLoc* obj);
 HAXORG_C_API_LINKAGE haxorg_OrgJsonKind haxorg_OrgJson_getKind_const(OrgContext* org_context, haxorg_OrgJson __this);
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_OrgJson_getJsonString_const(OrgContext* org_context, haxorg_OrgJson __this);
@@ -4673,7 +4673,7 @@ HAXORG_C_API_LINKAGE haxorg_StdString haxorg_OperationsTracer_get_traceBuffer(Or
 HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_setTraceFileStr(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString outfile, bool overwrite);
 HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_sendMessage_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString value, haxorg_StdString function, int line, haxorg_StdString file);
 HAXORG_C_API_LINKAGE void haxorg_destroy_OperationsTracer(OrgContext* org_context, haxorg_OperationsTracer* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_Cache(OrgContext* org_context, haxorg_Cache* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ReportSourceCache(OrgContext* org_context, haxorg_ReportSourceCache* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Report(OrgContext* org_context, haxorg_Report* obj);
 HAXORG_C_API_LINKAGE int haxorg_ParseOrgParseFragment_get_baseLine(OrgContext* org_context, haxorg_ParseOrgParseFragment __this);
 HAXORG_C_API_LINKAGE int haxorg_ParseOrgParseFragment_get_baseCol(OrgContext* org_context, haxorg_ParseOrgParseFragment __this);
@@ -4687,7 +4687,7 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_OrgParseParameters(OrgContext* org_cont
 HAXORG_C_API_LINKAGE void haxorg_destroy_OrgDirectoryParseParameters(OrgContext* org_context, haxorg_OrgDirectoryParseParameters* obj);
 HAXORG_C_API_LINKAGE haxorg_ParseContext haxorg_create_ParseContext_ParseContextDefault(OrgContext* org_context);
 HAXORG_C_API_LINKAGE haxorg_ParseContext haxorg_create_ParseContext_ParseContextWithManager(OrgContext* org_context, haxorg_ParseSourceManager source);
-HAXORG_C_API_LINKAGE haxorg_Cache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this);
+HAXORG_C_API_LINKAGE haxorg_ReportSourceCache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this);
 HAXORG_C_API_LINKAGE haxorg_ParseSourceFileId haxorg_ParseContext_addSource_const(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path, haxorg_StdString content);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseFileOpts(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString file, haxorg_OrgParseParameters opts);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseFile(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString file);
@@ -4696,7 +4696,7 @@ HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseStringOpts(OrgCo
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ParseContext_parseDirectory(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ParseContext_parseDirectoryOpts(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path, haxorg_OrgDirectoryParseParameters opts);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseFileWithIncludes(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString file, haxorg_OrgDirectoryParseParameters opts);
-HAXORG_C_API_LINKAGE haxorg_HstdVecOfReport haxorg_ParseContext_collectDiagnostics(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree, haxorg_Cache cache);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfReport haxorg_ParseContext_collectDiagnostics(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree, haxorg_ReportSourceCache cache);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfSemIdOfErrorGroup haxorg_ParseContext_collectErrorNodes(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ParseContext(OrgContext* org_context, haxorg_ParseContext* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_ImmReflFieldId_getName_const(OrgContext* org_context, haxorg_ImmReflFieldId __this);

@@ -571,7 +571,7 @@ export interface haxorg_wasm_module_auto {
   OrgJson: OrgJsonConstructor;
   Org: OrgConstructor;
   OperationsTracer: OperationsTracerConstructor;
-  Cache: CacheConstructor;
+  ReportSourceCache: ReportSourceCacheConstructor;
   Report: ReportConstructor;
   ParseOrgParseFragment: ParseOrgParseFragmentConstructor;
   OrgParseParameters: OrgParseParametersConstructor;
@@ -2066,8 +2066,8 @@ export interface ParseSourceLocConstructor { new(): ParseSourceLoc; }
 export interface ParseSourceLoc {
   line: number
   column: number
-  pos: number
   file_id: ParseSourceFileId
+  pos: number
 }
 export interface OrgJsonConstructor { new(): OrgJson; }
 export interface OrgJson {
@@ -2106,8 +2106,8 @@ export interface OperationsTracer {
   activeLevel: number
   traceBuffer: string
 }
-export interface CacheConstructor { new(): Cache; }
-export interface Cache {  }
+export interface ReportSourceCacheConstructor { new(): ReportSourceCache; }
+export interface ReportSourceCache {  }
 export interface ReportConstructor { new(): Report; }
 export interface Report {  }
 export interface ParseOrgParseFragmentConstructor { new(): ParseOrgParseFragment; }
@@ -2129,7 +2129,7 @@ export interface ParseContextConstructor { new(): ParseContext; }
 export interface ParseContext {
   ParseContextDefault(): ParseContext;
   ParseContextWithManager(source: StdShared_ptrOfParseSourceManager<ParseSourceManager>): ParseContext;
-  getDiagnosticStrings(): StdShared_ptrOfCache<Cache>;
+  getDiagnosticStrings(): StdShared_ptrOfReportSourceCache<ReportSourceCache>;
   addSource(path: string, content: string): ParseSourceFileId;
   parseFileOpts(file: string, opts: OrgParseParameters): Org;
   parseFile(file: string): Org;
@@ -2138,7 +2138,7 @@ export interface ParseContext {
   parseDirectory(path: string): haxorg_wasm.Optional<Org>;
   parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
-  collectDiagnostics(tree: Org, cache: StdShared_ptrOfCache<Cache>): haxorg_wasm.HstdVec<Report>;
+  collectDiagnostics(tree: Org, cache: StdShared_ptrOfReportSourceCache<ReportSourceCache>): haxorg_wasm.HstdVec<Report>;
   collectErrorNodes(tree: Org): haxorg_wasm.HstdVec<ErrorGroup>;
 }
 export interface ImmReflFieldIdConstructor { new(): ImmReflFieldId; }

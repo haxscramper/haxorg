@@ -1177,8 +1177,8 @@ NB_MODULE(pyhaxorg, m) {
          nanobind::arg("result"))
     .def_rw("line", &org::parse::SourceLoc::line)
     .def_rw("column", &org::parse::SourceLoc::column)
-    .def_rw("pos", &org::parse::SourceLoc::pos)
     .def_rw("file_id", &org::parse::SourceLoc::file_id)
+    .def_rw("pos", &org::parse::SourceLoc::pos)
     .def("__repr__", [](org::parse::SourceLoc const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1291,7 +1291,7 @@ node can have subnodes.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::ext::ReportSourceCache>(m, "Cache")
+  nanobind::class_<hstd::ext::ReportSourceCache>(m, "ReportSourceCache")
     ;
   nanobind::class_<hstd::ext::Report>(m, "Report")
     .def("__repr__", [](hstd::ext::Report const& _self) -> std::string {
@@ -1400,7 +1400,7 @@ node can have subnodes.)RAW")
          nanobind::arg("file"),
          nanobind::arg("opts"))
     .def("collectDiagnostics",
-         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics),
+         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::ReportSourceCache> const&)>(&org::parse::ParseContext::collectDiagnostics),
          nanobind::arg("tree"),
          nanobind::arg("cache"))
     .def("collectErrorNodes",

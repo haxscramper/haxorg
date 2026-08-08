@@ -237,8 +237,8 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::parse::SourceLoc>("ParseSourceLoc")
     .property("line", &org::parse::SourceLoc::line)
     .property("column", &org::parse::SourceLoc::column)
-    .property("pos", &org::parse::SourceLoc::pos)
     .property("file_id", &org::parse::SourceLoc::file_id)
+    .property("pos", &org::parse::SourceLoc::pos)
     .constructor<>()
     ;
 }
@@ -281,7 +281,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("sendMessage", static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&) const>(&hstd::OperationsTracer::sendMessage))
     .constructor<>()
     ;
-  emscripten::class_<hstd::ext::Cache>("Cache")
+  emscripten::class_<hstd::ext::ReportSourceCache>("ReportSourceCache")
     ;
   emscripten::class_<hstd::ext::Report>("Report")
     ;
@@ -307,7 +307,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .smart_ptr<std::shared_ptr<org::parse::ParseContext>>("ParseContext")
     .constructor(&org::bind::js::holder_type_constructor<org::parse::ParseContext>)
     .constructor(&org::bind::js::holder_type_constructor<org::parse::ParseContext, std::shared_ptr<org::parse::SourceManager> const&>)
-    .function("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::Cache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
+    .function("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::ReportSourceCache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
     .function("addSource", static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource))
     .function("parseFileOpts", static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseFileOpts))
     .function("parseFile", static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseFile))
@@ -316,7 +316,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("parseDirectory", static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory))
     .function("parseDirectoryOpts", static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts))
     .function("parseFileWithIncludes", static_cast<org::sem::SemId<org::sem::File>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseFileWithIncludes))
-    .function("collectDiagnostics", static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics))
+    .function("collectDiagnostics", static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::ReportSourceCache> const&)>(&org::parse::ParseContext::collectDiagnostics))
     .function("collectErrorNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes))
     ;
   emscripten::class_<org::imm::ImmReflFieldId>("ImmReflFieldId")

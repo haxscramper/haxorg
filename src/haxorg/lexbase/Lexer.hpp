@@ -30,7 +30,7 @@ struct LexerCommon {
         } else if (
             auto loc = TokenUtils<K, V>::getLocation(lastToken.value());
             loc.has_value()) {
-            return loc;
+            return loc.value();
         } else {
             return SourceLoc{-1, -1};
         }

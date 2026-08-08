@@ -385,9 +385,9 @@ int haxorg_ParseSourceLoc_get_line(OrgContext* org_context, haxorg_ParseSourceLo
 
 int haxorg_ParseSourceLoc_get_column(OrgContext* org_context, haxorg_ParseSourceLoc __this) { return org::bind::c::get_cpp_field<int, org::parse::SourceLoc, int, haxorg_ParseSourceLoc>(org_context, __this, &org::parse::SourceLoc::column); }
 
-int haxorg_ParseSourceLoc_get_pos(OrgContext* org_context, haxorg_ParseSourceLoc __this) { return org::bind::c::get_cpp_field<int, org::parse::SourceLoc, int, haxorg_ParseSourceLoc>(org_context, __this, &org::parse::SourceLoc::pos); }
-
 haxorg_ParseSourceFileId haxorg_ParseSourceLoc_get_file_id(OrgContext* org_context, haxorg_ParseSourceLoc __this) { return org::bind::c::get_cpp_field<haxorg_ParseSourceFileId, org::parse::SourceLoc, org::parse::SourceFileId, haxorg_ParseSourceLoc>(org_context, __this, &org::parse::SourceLoc::file_id); }
+
+int haxorg_ParseSourceLoc_get_pos(OrgContext* org_context, haxorg_ParseSourceLoc __this) { return org::bind::c::get_cpp_field<int, org::parse::SourceLoc, int, haxorg_ParseSourceLoc>(org_context, __this, &org::parse::SourceLoc::pos); }
 
 void haxorg_destroy_ParseSourceLoc(OrgContext* org_context, haxorg_ParseSourceLoc* obj) { org::bind::c::execute_destroy<org::parse::SourceLoc>(org_context, obj); }
 
@@ -453,7 +453,7 @@ void haxorg_OperationsTracer_sendMessage_const(OrgContext* org_context, haxorg_O
 
 void haxorg_destroy_OperationsTracer(OrgContext* org_context, haxorg_OperationsTracer* obj) { org::bind::c::execute_destroy<hstd::OperationsTracer>(org_context, obj); }
 
-void haxorg_destroy_Cache(OrgContext* org_context, haxorg_Cache* obj) { org::bind::c::execute_destroy<hstd::ext::ReportSourceCache>(org_context, obj); }
+void haxorg_destroy_ReportSourceCache(OrgContext* org_context, haxorg_ReportSourceCache* obj) { org::bind::c::execute_destroy<hstd::ext::ReportSourceCache>(org_context, obj); }
 
 void haxorg_destroy_Report(OrgContext* org_context, haxorg_Report* obj) { org::bind::c::execute_destroy<hstd::ext::Report>(org_context, obj); }
 
@@ -481,7 +481,7 @@ haxorg_ParseContext haxorg_create_ParseContext_ParseContextDefault(OrgContext* o
 
 haxorg_ParseContext haxorg_create_ParseContext_ParseContextWithManager(OrgContext* org_context, haxorg_ParseSourceManager source) { return org::bind::c::execute_cpp<haxorg_ParseContext>(+[](std::shared_ptr<org::parse::SourceManager> const& source) -> org::parse::ParseContext { return org::parse::ParseContext(source); }, org_context, source); }
 
-haxorg_Cache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this) { return org::bind::c::execute_cpp<haxorg_Cache>(static_cast<std::shared_ptr<hstd::ext::ReportSourceCache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings), org_context, __this); }
+haxorg_ReportSourceCache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this) { return org::bind::c::execute_cpp<haxorg_ReportSourceCache>(static_cast<std::shared_ptr<hstd::ext::ReportSourceCache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings), org_context, __this); }
 
 haxorg_ParseSourceFileId haxorg_ParseContext_addSource_const(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path, haxorg_StdString content) { return org::bind::c::execute_cpp<haxorg_ParseSourceFileId>(static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource), org_context, __this, path, content); }
 
@@ -499,7 +499,7 @@ haxorg_StdOptional haxorg_ParseContext_parseDirectoryOpts(OrgContext* org_contex
 
 haxorg_SemIdOfOrg haxorg_ParseContext_parseFileWithIncludes(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString file, haxorg_OrgDirectoryParseParameters opts) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::File>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseFileWithIncludes), org_context, __this, file, opts); }
 
-haxorg_HstdVecOfReport haxorg_ParseContext_collectDiagnostics(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree, haxorg_Cache cache) { return org::bind::c::execute_cpp<haxorg_HstdVecOfReport>(static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::Cache> const&)>(&org::parse::ParseContext::collectDiagnostics), org_context, __this, tree, cache); }
+haxorg_HstdVecOfReport haxorg_ParseContext_collectDiagnostics(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree, haxorg_ReportSourceCache cache) { return org::bind::c::execute_cpp<haxorg_HstdVecOfReport>(static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::ReportSourceCache> const&)>(&org::parse::ParseContext::collectDiagnostics), org_context, __this, tree, cache); }
 
 haxorg_HstdVecOfSemIdOfErrorGroup haxorg_ParseContext_collectErrorNodes(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree) { return org::bind::c::execute_cpp<haxorg_HstdVecOfSemIdOfErrorGroup>(static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes), org_context, __this, tree); }
 
