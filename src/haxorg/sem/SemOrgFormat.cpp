@@ -689,6 +689,22 @@ auto Formatter::toString(sem::LinkTarget const& t, Context const& ctx) -> Res {
     return head;
 }
 
+Formatter::Res Formatter::toString(sem::TimeValue const& args, Context const& ctx) {
+    if (args.isFixedTime()) {
+        return b.line({
+            str(args.isActive ? "<" : "["),
+            str(args.getFixedTime().time.format(UserTime::Format::OrgFormat)),
+            str(args.isActive ? ">" : "]"),
+        });
+    } else {
+        return b.line({
+            str(args.isActive ? "<%%" : "[%%"),
+            toString(args.getDynamicTime().time, ctx),
+            str(args.isActive ? ">" : "]"),
+        });
+    }
+}
+
 auto Formatter::toString(SemId<Link> id, Context const& ctx) -> Res {
     if (id.isNil()) { return str("<nil>"); }
     auto const& t = id->target;
@@ -1382,10 +1398,8 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
                 case P::Kind::Created: {
                     add(head,
                         b.line({
-                            str(":CREATED: ["),
-                            str(prop.getCreated().time.format(
-                                UserTime::Format::OrgFormat)),
-                            str("]"),
+                            str(":CREATED: "),
+                            toString(prop.getCreated().time, ctx),
                         }));
                     break;
                 }

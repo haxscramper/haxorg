@@ -39,6 +39,15 @@ template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::Real const& object) { __obj_field(res, object, value); }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::TimeValue const& object) { __obj_field(res, object, isActive); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::TimeValue::FixedTime const& object) { __obj_field(res, object, time); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::TimeValue::DynamicTime const& object) { __obj_field(res, object, time); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm const& object) { __obj_field(res, object, exprs); }
 
 template <typename V, typename R>

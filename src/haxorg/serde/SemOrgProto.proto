@@ -628,6 +628,30 @@ message LispCode {
   string                                           debug                            = 1000;
 }
 
+message TimeValue {
+  message FixedTime {
+    hstd.UserTime                                  time                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message DynamicTime {
+    LispCode                                       time                             = 1;
+    string                                         debug                            = 1000;
+  }
+  message Data {
+    oneof kind {
+      TimeValue.FixedTime                          fixedtime                        = 1;
+      TimeValue.DynamicTime                        dynamictime                      = 2;
+    }
+  }
+  enum Kind {
+    Kind_FixedTime_f                                                                = 0;
+    Kind_DynamicTime_f                                                              = 1;
+  }
+  bool                                             isActive                         = 1;
+  TimeValue.Data                                   data                             = 2;
+  string                                           debug                            = 1000;
+}
+
 message Tblfm {
   message Expr {
     message AxisRef {
@@ -1289,7 +1313,7 @@ message NamedProperty {
     string                                         debug                            = 1000;
   }
   message Created {
-    hstd.UserTime                                  time                             = 1;
+    TimeValue                                      time                             = 1;
     string                                         debug                            = 1000;
   }
   message RadioId {

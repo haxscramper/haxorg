@@ -390,8 +390,9 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
         std::visit(
             overloaded{
                 [&](sem::NamedProperty::Created const& cr) {
+                    if (cr.time.isDynamicTime()) { return; }
                     SubtreePeriod period{};
-                    period.from = cr.time;
+                    period.from = cr.time.getFixedTime().time;
                     period.kind = SubtreePeriod::Kind::Created;
                     res.push_back(period);
                 },

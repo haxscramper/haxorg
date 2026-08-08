@@ -130,6 +130,44 @@ struct LispCode {
   org::sem::LispCode::Kind sub_variant_get_kind() const { return getKind(); }
 };
 
+struct TimeValue {
+  struct FixedTime {
+    BOOST_DESCRIBE_CLASS(FixedTime, (), (), (), (time));
+    hstd::UserTime time;
+    FixedTime() {  }
+    bool operator==(org::sem::TimeValue::FixedTime const& other) const;
+  };
+
+  struct DynamicTime {
+    BOOST_DESCRIBE_CLASS(DynamicTime, (), (), (), (time));
+    org::sem::LispCode time;
+    DynamicTime() {  }
+    bool operator==(org::sem::TimeValue::DynamicTime const& other) const;
+  };
+
+  using Data = std::variant<org::sem::TimeValue::FixedTime, org::sem::TimeValue::DynamicTime>;
+  enum class Kind : short int { FixedTime, DynamicTime, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, FixedTime, DynamicTime)
+  using variant_enum_type = org::sem::TimeValue::Kind;
+  using variant_data_type = org::sem::TimeValue::Data;
+  BOOST_DESCRIBE_CLASS(TimeValue, (), (), (), (isActive, data));
+  bool isActive = false;
+  org::sem::TimeValue::Data data;
+  TimeValue() {  }
+  bool operator==(org::sem::TimeValue const& other) const;
+  bool isFixedTime() const { return getKind() == Kind::FixedTime; }
+  org::sem::TimeValue::FixedTime const& getFixedTime() const { return hstd::variant_get<0>(data); }
+  org::sem::TimeValue::FixedTime& getFixedTime() { return hstd::variant_get<0>(data); }
+  bool isDynamicTime() const { return getKind() == Kind::DynamicTime; }
+  org::sem::TimeValue::DynamicTime const& getDynamicTime() const { return hstd::variant_get<1>(data); }
+  org::sem::TimeValue::DynamicTime& getDynamicTime() { return hstd::variant_get<1>(data); }
+  static org::sem::TimeValue::Kind getKind(org::sem::TimeValue::Data const& __input) { return static_cast<org::sem::TimeValue::Kind>(__input.index()); }
+  org::sem::TimeValue::Kind getKind() const { return getKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::TimeValue::Data const& sub_variant_get_data() const { return data; }
+  org::sem::TimeValue::Kind sub_variant_get_kind() const { return getKind(); }
+};
+
 struct Tblfm {
   struct Expr {
     struct AxisRef {
@@ -1225,7 +1263,7 @@ struct NamedProperty {
   struct Created {
     Created() {}
     BOOST_DESCRIBE_CLASS(Created, (), (), (), (time));
-    hstd::UserTime time;
+    org::sem::TimeValue time;
     bool operator==(org::sem::NamedProperty::Created const& other) const;
   };
 

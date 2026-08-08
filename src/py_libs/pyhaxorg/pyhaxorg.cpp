@@ -2343,6 +2343,97 @@ and a segment kind.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::sem::TimeValue::FixedTime>(m, "TimeValueFixedTime")
+    .def(nanobind::init<>())
+    .def("__init__",
+         [](org::sem::TimeValue::FixedTime* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::sem::TimeValue::FixedTime>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("time", &org::sem::TimeValue::FixedTime::time)
+    .def("__eq__",
+         static_cast<bool(org::sem::TimeValue::FixedTime::*)(org::sem::TimeValue::FixedTime const&) const>(&org::sem::TimeValue::FixedTime::operator==),
+         nanobind::arg("other"))
+    .def("__repr__", [](org::sem::TimeValue::FixedTime const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::TimeValue::FixedTime const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::sem::TimeValue::DynamicTime>(m, "TimeValueDynamicTime")
+    .def(nanobind::init<>())
+    .def("__init__",
+         [](org::sem::TimeValue::DynamicTime* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::sem::TimeValue::DynamicTime>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("time", &org::sem::TimeValue::DynamicTime::time)
+    .def("__eq__",
+         static_cast<bool(org::sem::TimeValue::DynamicTime::*)(org::sem::TimeValue::DynamicTime const&) const>(&org::sem::TimeValue::DynamicTime::operator==),
+         nanobind::arg("other"))
+    .def("__repr__", [](org::sem::TimeValue::DynamicTime const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::TimeValue::DynamicTime const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  bind_enum_iterator<org::sem::TimeValue::Kind>(m, "TimeValueKind", type_registry_guard);
+  nanobind::enum_<org::sem::TimeValue::Kind>(m, "TimeValueKind")
+    .value("FixedTime", org::sem::TimeValue::Kind::FixedTime)
+    .value("DynamicTime", org::sem::TimeValue::Kind::DynamicTime)
+    .def("__iter__", [](org::sem::TimeValue::Kind const& _self) -> org::bind::python::PyEnumIterator<org::sem::TimeValue::Kind> {
+                     return org::bind::python::PyEnumIterator<org::sem::TimeValue::Kind>();
+                     })
+    .def("__int__", [](org::sem::TimeValue::Kind const& _self) -> int {
+                    return static_cast<int>(_self);
+                    })
+    .def("__index__", [](org::sem::TimeValue::Kind const& _self) -> int {
+                      return static_cast<int>(_self);
+                      })
+    .def("__eq__",
+         [](org::sem::TimeValue::Kind lhs, org::sem::TimeValue::Kind rhs) -> bool {
+         return lhs == rhs;
+         },
+         nanobind::arg("rhs"))
+    .def("__hash__",
+         [](org::sem::TimeValue::Kind it) -> int {
+         return static_cast<int>(it);
+         })
+    ;
+  nanobind::class_<org::sem::TimeValue>(m, "TimeValue")
+    .def(nanobind::init<>())
+    .def("__init__",
+         [](org::sem::TimeValue* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::sem::TimeValue>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("isActive", &org::sem::TimeValue::isActive)
+    .def("__eq__",
+         static_cast<bool(org::sem::TimeValue::*)(org::sem::TimeValue const&) const>(&org::sem::TimeValue::operator==),
+         nanobind::arg("other"))
+    .def("isFixedTime", static_cast<bool(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::isFixedTime))
+    .def("getFixedTime", static_cast<org::sem::TimeValue::FixedTime&(org::sem::TimeValue::*)()>(&org::sem::TimeValue::getFixedTime))
+    .def("isDynamicTime", static_cast<bool(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::isDynamicTime))
+    .def("getDynamicTime", static_cast<org::sem::TimeValue::DynamicTime&(org::sem::TimeValue::*)()>(&org::sem::TimeValue::getDynamicTime))
+    .def("getKind", static_cast<org::sem::TimeValue::Kind(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::getKind))
+    .def("__repr__", [](org::sem::TimeValue const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::TimeValue const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position::Index>(m, "TblfmExprAxisRefPositionIndex")
     .def(nanobind::init<>())
     .def("__init__",

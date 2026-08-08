@@ -629,6 +629,14 @@ export interface haxorg_wasm_module_auto {
     Real: LispCodeKind,
   }
   format_LispCodeKind(value: LispCodeKind): string;
+  TimeValue: TimeValueConstructor;
+  TimeValueFixedTime: TimeValueFixedTimeConstructor;
+  TimeValueDynamicTime: TimeValueDynamicTimeConstructor;
+  TimeValueKind: {
+    FixedTime: TimeValueKind,
+    DynamicTime: TimeValueKind,
+  }
+  format_TimeValueKind(value: TimeValueKind): string;
   Tblfm: TblfmConstructor;
   TblfmExpr: TblfmExprConstructor;
   TblfmExprAxisRef: TblfmExprAxisRefConstructor;
@@ -2425,6 +2433,41 @@ export enum LispCodeKind {
   Boolean,
   Real,
 }
+export interface TimeValueConstructor { new(): TimeValue; }
+export interface TimeValue {
+  TimeValue(): void;
+  __eq__(other: TimeValue): boolean;
+  isFixedTime(): boolean;
+  getFixedTimeConst(): TimeValueFixedTime;
+  getFixedTimeMut(): TimeValueFixedTime;
+  isDynamicTime(): boolean;
+  getDynamicTimeConst(): TimeValueDynamicTime;
+  getDynamicTimeMut(): TimeValueDynamicTime;
+  getKindStatic(__input: TimeValueData): TimeValueKind;
+  getKind(): TimeValueKind;
+  sub_variant_get_name(): string;
+  sub_variant_get_data(): TimeValueData;
+  sub_variant_get_kind(): TimeValueKind;
+  isActive: boolean
+  data: TimeValueData
+}
+export interface TimeValueFixedTimeConstructor { new(): TimeValueFixedTime; }
+export interface TimeValueFixedTime {
+  FixedTime(): void;
+  __eq__(other: TimeValueFixedTime): boolean;
+  time: UserTime
+}
+export interface TimeValueDynamicTimeConstructor { new(): TimeValueDynamicTime; }
+export interface TimeValueDynamicTime {
+  DynamicTime(): void;
+  __eq__(other: TimeValueDynamicTime): boolean;
+  time: LispCode
+}
+export type TimeValueData = haxorg_wasm.StdVariant<TimeValueFixedTime, TimeValueDynamicTime>;
+export enum TimeValueKind {
+  FixedTime,
+  DynamicTime,
+}
 export interface TblfmConstructor { new(): Tblfm; }
 export interface Tblfm {
   __eq__(other: Tblfm): boolean;
@@ -3368,7 +3411,7 @@ export interface NamedPropertyUnnumbered { __eq__(other: NamedPropertyUnnumbered
 export interface NamedPropertyCreatedConstructor { new(): NamedPropertyCreated; }
 export interface NamedPropertyCreated {
   __eq__(other: NamedPropertyCreated): boolean;
-  time: UserTime
+  time: TimeValue
 }
 export interface NamedPropertyRadioIdConstructor { new(): NamedPropertyRadioId; }
 export interface NamedPropertyRadioId {

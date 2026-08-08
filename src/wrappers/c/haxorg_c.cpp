@@ -37,6 +37,7 @@
 
 
 
+
 bool haxorg_SemIdOfOrg_isNil_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::isNil), org_context, __this); }
 
 bool haxorg_SemIdOfOrg___eq___const(OrgContext* org_context, haxorg_SemIdOfOrg __this, haxorg_SemIdOfOrg other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::SemId<org::sem::Org>::*)(org::sem::SemId<org::sem::Org> const&) const>(&org::sem::SemId<org::sem::Org>::operator==), org_context, __this, other); }
@@ -884,6 +885,44 @@ bool haxorg_LispCodeReal___eq___const(OrgContext* org_context, haxorg_LispCodeRe
 void haxorg_destroy_LispCodeReal(OrgContext* org_context, haxorg_LispCodeReal* obj) { org::bind::c::execute_destroy<org::sem::LispCode::Real>(org_context, obj); }
 
 void haxorg_destroy_LispCode(OrgContext* org_context, haxorg_LispCode* obj) { org::bind::c::execute_destroy<org::sem::LispCode>(org_context, obj); }
+
+bool haxorg_TimeValue_get_isActive(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::get_cpp_field<bool, org::sem::TimeValue, bool, haxorg_TimeValue>(org_context, __this, &org::sem::TimeValue::isActive); }
+
+void haxorg_create_TimeValue_TimeValue(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::TimeValue { return org::sem::TimeValue(); }, org_context); }
+
+bool haxorg_TimeValue___eq___const(OrgContext* org_context, haxorg_TimeValue __this, haxorg_TimeValue other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::TimeValue::*)(org::sem::TimeValue const&) const>(&org::sem::TimeValue::operator==), org_context, __this, other); }
+
+bool haxorg_TimeValue_isFixedTime_const(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::isFixedTime), org_context, __this); }
+
+haxorg_TimeValueFixedTime haxorg_TimeValue_getFixedTimeConst_const(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::execute_cpp<haxorg_TimeValueFixedTime>(static_cast<org::sem::TimeValue::FixedTime const&(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::getFixedTime), org_context, __this); }
+
+haxorg_TimeValueFixedTime haxorg_TimeValue_getFixedTimeMut(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::execute_cpp<haxorg_TimeValueFixedTime>(static_cast<org::sem::TimeValue::FixedTime&(org::sem::TimeValue::*)()>(&org::sem::TimeValue::getFixedTime), org_context, __this); }
+
+bool haxorg_TimeValue_isDynamicTime_const(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::isDynamicTime), org_context, __this); }
+
+haxorg_TimeValueDynamicTime haxorg_TimeValue_getDynamicTimeConst_const(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::execute_cpp<haxorg_TimeValueDynamicTime>(static_cast<org::sem::TimeValue::DynamicTime const&(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::getDynamicTime), org_context, __this); }
+
+haxorg_TimeValueDynamicTime haxorg_TimeValue_getDynamicTimeMut(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::execute_cpp<haxorg_TimeValueDynamicTime>(static_cast<org::sem::TimeValue::DynamicTime&(org::sem::TimeValue::*)()>(&org::sem::TimeValue::getDynamicTime), org_context, __this); }
+
+haxorg_TimeValueKind haxorg_TimeValue_getKind_const(OrgContext* org_context, haxorg_TimeValue __this) { return org::bind::c::execute_cpp<haxorg_TimeValueKind>(static_cast<org::sem::TimeValue::Kind(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::getKind), org_context, __this); }
+
+haxorg_UserTime haxorg_TimeValueFixedTime_get_time(OrgContext* org_context, haxorg_TimeValueFixedTime __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::TimeValue::FixedTime, hstd::UserTime, haxorg_TimeValueFixedTime>(org_context, __this, &org::sem::TimeValue::FixedTime::time); }
+
+void haxorg_create_TimeValueFixedTime_FixedTime(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::TimeValue::FixedTime { return org::sem::TimeValue::FixedTime(); }, org_context); }
+
+bool haxorg_TimeValueFixedTime___eq___const(OrgContext* org_context, haxorg_TimeValueFixedTime __this, haxorg_TimeValueFixedTime other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::TimeValue::FixedTime::*)(org::sem::TimeValue::FixedTime const&) const>(&org::sem::TimeValue::FixedTime::operator==), org_context, __this, other); }
+
+void haxorg_destroy_TimeValueFixedTime(OrgContext* org_context, haxorg_TimeValueFixedTime* obj) { org::bind::c::execute_destroy<org::sem::TimeValue::FixedTime>(org_context, obj); }
+
+haxorg_LispCode haxorg_TimeValueDynamicTime_get_time(OrgContext* org_context, haxorg_TimeValueDynamicTime __this) { return org::bind::c::get_cpp_field<haxorg_LispCode, org::sem::TimeValue::DynamicTime, org::sem::LispCode, haxorg_TimeValueDynamicTime>(org_context, __this, &org::sem::TimeValue::DynamicTime::time); }
+
+void haxorg_create_TimeValueDynamicTime_DynamicTime(OrgContext* org_context) { return org::bind::c::execute_cpp<void>(+[]() -> org::sem::TimeValue::DynamicTime { return org::sem::TimeValue::DynamicTime(); }, org_context); }
+
+bool haxorg_TimeValueDynamicTime___eq___const(OrgContext* org_context, haxorg_TimeValueDynamicTime __this, haxorg_TimeValueDynamicTime other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::TimeValue::DynamicTime::*)(org::sem::TimeValue::DynamicTime const&) const>(&org::sem::TimeValue::DynamicTime::operator==), org_context, __this, other); }
+
+void haxorg_destroy_TimeValueDynamicTime(OrgContext* org_context, haxorg_TimeValueDynamicTime* obj) { org::bind::c::execute_destroy<org::sem::TimeValue::DynamicTime>(org_context, obj); }
+
+void haxorg_destroy_TimeValue(OrgContext* org_context, haxorg_TimeValue* obj) { org::bind::c::execute_destroy<org::sem::TimeValue>(org_context, obj); }
 
 haxorg_HstdVecOfTblfmAssign haxorg_Tblfm_get_exprs(OrgContext* org_context, haxorg_Tblfm __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfTblfmAssign, org::sem::Tblfm, hstd::Vec<org::sem::Tblfm::Assign>, haxorg_Tblfm>(org_context, __this, &org::sem::Tblfm::exprs); }
 
@@ -2027,7 +2066,7 @@ bool haxorg_NamedPropertyUnnumbered___eq___const(OrgContext* org_context, haxorg
 
 void haxorg_destroy_NamedPropertyUnnumbered(OrgContext* org_context, haxorg_NamedPropertyUnnumbered* obj) { org::bind::c::execute_destroy<org::sem::NamedProperty::Unnumbered>(org_context, obj); }
 
-haxorg_UserTime haxorg_NamedPropertyCreated_get_time(OrgContext* org_context, haxorg_NamedPropertyCreated __this) { return org::bind::c::get_cpp_field<haxorg_UserTime, org::sem::NamedProperty::Created, hstd::UserTime, haxorg_NamedPropertyCreated>(org_context, __this, &org::sem::NamedProperty::Created::time); }
+haxorg_TimeValue haxorg_NamedPropertyCreated_get_time(OrgContext* org_context, haxorg_NamedPropertyCreated __this) { return org::bind::c::get_cpp_field<haxorg_TimeValue, org::sem::NamedProperty::Created, org::sem::TimeValue, haxorg_NamedPropertyCreated>(org_context, __this, &org::sem::NamedProperty::Created::time); }
 
 bool haxorg_NamedPropertyCreated___eq___const(OrgContext* org_context, haxorg_NamedPropertyCreated __this, haxorg_NamedPropertyCreated other) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::NamedProperty::Created::*)(org::sem::NamedProperty::Created const&) const>(&org::sem::NamedProperty::Created::operator==), org_context, __this, other); }
 

@@ -547,7 +547,7 @@ def get_subtree_property_types() -> List[GenTuStruct]:
             t_nest_shared("Created", [t("NamedProperty")]),
             GenTuDoc(""),
             Nested=[GenTuPass("Created() {}")],
-            Fields=[GenTuField(t_user_time(), "time", GenTuDoc(""))],
+            Fields=[GenTuField(t_nest_shared("TimeValue"), "time", GenTuDoc(""))],
             Methods=[eq_method(t_nest_shared("Created", [t("NamedProperty")]))],
         ),
         org_struct(
@@ -1611,6 +1611,36 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 )
             ],
         ),
+        org_struct(t_nest_shared("TimeValue"),
+                   DefaultConstructor=True,
+                   DefaultEq=True,
+                   Nested=[
+                       GenTuTypeGroup(
+                           [
+                               org_struct(
+                                   t_nest_shared("FixedTime", [t("TimeValue")]),
+                                   Fields=[
+                                       org_field(t_user_time(), "time"),
+                                   ],
+                                   DefaultConstructor=True,
+                                   DefaultEq=True,
+                               ),
+                               org_struct(
+                                   t_nest_shared("DynamicTime", [t("TimeValue")]),
+                                   Fields=[
+                                       org_field(t_nest_shared("LispCode"), "time"),
+                                   ],
+                                   DefaultConstructor=True,
+                                   DefaultEq=True,
+                               ),
+                           ],
+                           enumName=t_nest_shared("Kind", [t("TimeValue")]),
+                           variantName=t_nest_shared("Data", [t("TimeValue")]),
+                       )
+                   ],
+                   Fields=[
+                       bool_field("isActive"),
+                   ]),
         org_struct(
             t_nest_shared("Tblfm"),
             Fields=[

@@ -14,6 +14,8 @@
     __IMPL(LispCode, Ident, (Ident)) \
     __IMPL(LispCode, Boolean, (Boolean)) \
     __IMPL(LispCode, Real, (Real)) \
+    __IMPL(TimeValue, FixedTime, (FixedTime)) \
+    __IMPL(TimeValue, DynamicTime, (DynamicTime)) \
     __IMPL(Tblfm, Expr, (Expr)) \
     __IMPL(Tblfm, Expr::AxisRef, (Expr, AxisRef)) \
     __IMPL(Tblfm, Expr::AxisRef::Position, (Expr, AxisRef, Position)) \
@@ -95,6 +97,7 @@
     __IMPL(OrgDiagnostics, InternalError, (InternalError))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(LispCode, Kind, (Kind)) \
+    __IMPL(TimeValue, Kind, (Kind)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
@@ -131,6 +134,9 @@
     __IMPL(LispCode::Ident, (LispCode, Ident)) \
     __IMPL(LispCode::Boolean, (LispCode, Boolean)) \
     __IMPL(LispCode::Real, (LispCode, Real)) \
+    __IMPL(TimeValue, (TimeValue)) \
+    __IMPL(TimeValue::FixedTime, (TimeValue, FixedTime)) \
+    __IMPL(TimeValue::DynamicTime, (TimeValue, DynamicTime)) \
     __IMPL(Tblfm, (Tblfm)) \
     __IMPL(Tblfm::Expr, (Tblfm, Expr)) \
     __IMPL(Tblfm::Expr::AxisRef, (Tblfm, Expr, AxisRef)) \

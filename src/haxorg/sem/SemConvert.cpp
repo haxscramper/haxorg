@@ -211,13 +211,29 @@ Opt<UserTime> ParseUserTime(std::string datetime, Opt<cctz::time_zone> const& zo
         if (cctz::parse(format.pattern, datetime, tz, &tp)) {
             return UserTime{
                 .time  = cctz::convert(tp, tz),
-                .align = format.align,
                 .zone  = zone,
+                .align = format.align,
             };
         }
     }
 
     return std::nullopt;
+}
+
+org::sem::TimeValue getTimeValue(org::sem::SemId<org::sem::Time> const& t) {
+    org::sem::TimeValue res;
+    res.isActive = t->isActive;
+    if (t->isStatic()) {
+        org::sem::TimeValue::FixedTime ft;
+        ft.time  = t->getStaticTime();
+        res.data = ft;
+    } else {
+        org::sem::TimeValue::DynamicTime dt;
+        dt.time  = t->getDynamic().expr;
+        res.data = dt;
+    }
+
+    return res;
 }
 
 void remove_empty_text(SemId<Org> node) {
@@ -740,7 +756,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         auto              par0 = par->at(0);
 
         if (par0->is(osk::Time)) {
-            created.time = par0.as<sem::Time>()->getStatic().time;
+            auto t       = par0.as<sem::Time>();
+            created.time = getTimeValue(t);
             result       = Property(created);
         } else {
             return SemError(

@@ -162,6 +162,27 @@ struct org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode> {
 
 
 template <>
+struct org::algo::proto_serde<::orgproto::TimeValue::FixedTime, org::sem::TimeValue::FixedTime> {
+  static void write(::orgproto::TimeValue::FixedTime* out, org::sem::TimeValue::FixedTime const& in);
+  static void read(::orgproto::TimeValue::FixedTime const& out, proto_write_accessor<org::sem::TimeValue::FixedTime> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::TimeValue::DynamicTime, org::sem::TimeValue::DynamicTime> {
+  static void write(::orgproto::TimeValue::DynamicTime* out, org::sem::TimeValue::DynamicTime const& in);
+  static void read(::orgproto::TimeValue::DynamicTime const& out, proto_write_accessor<org::sem::TimeValue::DynamicTime> in);
+};
+
+
+template <>
+struct org::algo::proto_serde<::orgproto::TimeValue, org::sem::TimeValue> {
+  static void write(::orgproto::TimeValue* out, org::sem::TimeValue const& in);
+  static void read(::orgproto::TimeValue const& out, proto_write_accessor<org::sem::TimeValue> in);
+};
+
+
+template <>
 struct org::algo::proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Index> {
   static void write(::orgproto::Tblfm::Expr::AxisRef::Position::Index* out, org::sem::Tblfm::Expr::AxisRef::Position::Index const& in);
   static void read(::orgproto::Tblfm::Expr::AxisRef::Position::Index const& out, proto_write_accessor<org::sem::Tblfm::Expr::AxisRef::Position::Index> in);

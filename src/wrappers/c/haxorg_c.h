@@ -456,6 +456,12 @@ struct haxorg_LispCodeBoolean;
 
 struct haxorg_LispCodeReal;
 
+struct haxorg_TimeValue;
+
+struct haxorg_TimeValueFixedTime;
+
+struct haxorg_TimeValueDynamicTime;
+
 struct haxorg_Tblfm;
 
 struct haxorg_TblfmExpr;
@@ -1421,6 +1427,7 @@ struct haxorg_ImmCmdCallAdapter;
 struct haxorg_ImmCmdAttrAdapter;
 
 enum haxorg_LispCodeKind { haxorg_LispCodeKind_Call, haxorg_LispCodeKind_Quoted, haxorg_LispCodeKind_List, haxorg_LispCodeKind_Vector, haxorg_LispCodeKind_KeyValue, haxorg_LispCodeKind_Number, haxorg_LispCodeKind_Text, haxorg_LispCodeKind_Ident, haxorg_LispCodeKind_Boolean, haxorg_LispCodeKind_Real, };
+enum haxorg_TimeValueKind { haxorg_TimeValueKind_FixedTime, haxorg_TimeValueKind_DynamicTime, };
 enum haxorg_TblfmExprAxisRefPositionKind { haxorg_TblfmExprAxisRefPositionKind_Index, haxorg_TblfmExprAxisRefPositionKind_Name, };
 enum haxorg_TblfmExprKind { haxorg_TblfmExprKind_AxisRef, haxorg_TblfmExprKind_AxisName, haxorg_TblfmExprKind_IntLiteral, haxorg_TblfmExprKind_FloatLiteral, haxorg_TblfmExprKind_RangeRef, haxorg_TblfmExprKind_Call, haxorg_TblfmExprKind_Elisp, };
 /// \brief Flags for table format expression cell formulas
@@ -2052,6 +2059,21 @@ struct haxorg_LispCodeReal {
 
 /// \brief ['org', 'sem', 'LispCode']
 struct haxorg_LispCode {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'TimeValue', 'FixedTime']
+struct haxorg_TimeValueFixedTime {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'TimeValue', 'DynamicTime']
+struct haxorg_TimeValueDynamicTime {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'TimeValue']
+struct haxorg_TimeValue {
   haxorg_ptr_payload data;
 };
 
@@ -4909,6 +4931,25 @@ HAXORG_C_API_LINKAGE void haxorg_create_LispCodeReal_Real(OrgContext* org_contex
 HAXORG_C_API_LINKAGE bool haxorg_LispCodeReal___eq___const(OrgContext* org_context, haxorg_LispCodeReal __this, haxorg_LispCodeReal other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeReal(OrgContext* org_context, haxorg_LispCodeReal* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCode(OrgContext* org_context, haxorg_LispCode* obj);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue_get_isActive(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE void haxorg_create_TimeValue_TimeValue(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue___eq___const(OrgContext* org_context, haxorg_TimeValue __this, haxorg_TimeValue other);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue_isFixedTime_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueFixedTime haxorg_TimeValue_getFixedTimeConst_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueFixedTime haxorg_TimeValue_getFixedTimeMut(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue_isDynamicTime_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueDynamicTime haxorg_TimeValue_getDynamicTimeConst_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueDynamicTime haxorg_TimeValue_getDynamicTimeMut(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueKind haxorg_TimeValue_getKind_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_UserTime haxorg_TimeValueFixedTime_get_time(OrgContext* org_context, haxorg_TimeValueFixedTime __this);
+HAXORG_C_API_LINKAGE void haxorg_create_TimeValueFixedTime_FixedTime(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValueFixedTime___eq___const(OrgContext* org_context, haxorg_TimeValueFixedTime __this, haxorg_TimeValueFixedTime other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_TimeValueFixedTime(OrgContext* org_context, haxorg_TimeValueFixedTime* obj);
+HAXORG_C_API_LINKAGE haxorg_LispCode haxorg_TimeValueDynamicTime_get_time(OrgContext* org_context, haxorg_TimeValueDynamicTime __this);
+HAXORG_C_API_LINKAGE void haxorg_create_TimeValueDynamicTime_DynamicTime(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValueDynamicTime___eq___const(OrgContext* org_context, haxorg_TimeValueDynamicTime __this, haxorg_TimeValueDynamicTime other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_TimeValueDynamicTime(OrgContext* org_context, haxorg_TimeValueDynamicTime* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_TimeValue(OrgContext* org_context, haxorg_TimeValue* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfTblfmAssign haxorg_Tblfm_get_exprs(OrgContext* org_context, haxorg_Tblfm __this);
 HAXORG_C_API_LINKAGE bool haxorg_Tblfm___eq___const(OrgContext* org_context, haxorg_Tblfm __this, haxorg_Tblfm other);
 HAXORG_C_API_LINKAGE bool haxorg_TblfmExpr___eq___const(OrgContext* org_context, haxorg_TblfmExpr __this, haxorg_TblfmExpr other);
@@ -5480,7 +5521,7 @@ HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyBlocker___eq___const(OrgContext* o
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyBlocker(OrgContext* org_context, haxorg_NamedPropertyBlocker* obj);
 HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyUnnumbered___eq___const(OrgContext* org_context, haxorg_NamedPropertyUnnumbered __this, haxorg_NamedPropertyUnnumbered other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyUnnumbered(OrgContext* org_context, haxorg_NamedPropertyUnnumbered* obj);
-HAXORG_C_API_LINKAGE haxorg_UserTime haxorg_NamedPropertyCreated_get_time(OrgContext* org_context, haxorg_NamedPropertyCreated __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValue haxorg_NamedPropertyCreated_get_time(OrgContext* org_context, haxorg_NamedPropertyCreated __this);
 HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyCreated___eq___const(OrgContext* org_context, haxorg_NamedPropertyCreated __this, haxorg_NamedPropertyCreated other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyCreated(OrgContext* org_context, haxorg_NamedPropertyCreated* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfStr haxorg_NamedPropertyRadioId_get_words(OrgContext* org_context, haxorg_NamedPropertyRadioId __this);

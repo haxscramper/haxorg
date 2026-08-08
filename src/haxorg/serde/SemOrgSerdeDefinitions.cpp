@@ -170,6 +170,52 @@ void org::algo::proto_serde<::orgproto::LispCode, org::sem::LispCode>::read(::or
   }
 }
 
+void org::algo::proto_serde<::orgproto::TimeValue::FixedTime, org::sem::TimeValue::FixedTime>::write(::orgproto::TimeValue::FixedTime* out, org::sem::TimeValue::FixedTime const& in) {
+  proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::write(out->mutable_time(), in.time);
+}
+
+void org::algo::proto_serde<::orgproto::TimeValue::FixedTime, org::sem::TimeValue::FixedTime>::read(::orgproto::TimeValue::FixedTime const& out, proto_write_accessor<org::sem::TimeValue::FixedTime> in) {
+  proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::read(out.time(), in.for_field(&org::sem::TimeValue::FixedTime::time));
+}
+
+void org::algo::proto_serde<::orgproto::TimeValue::DynamicTime, org::sem::TimeValue::DynamicTime>::write(::orgproto::TimeValue::DynamicTime* out, org::sem::TimeValue::DynamicTime const& in) {
+  proto_serde<orgproto::LispCode, org::sem::LispCode>::write(out->mutable_time(), in.time);
+}
+
+void org::algo::proto_serde<::orgproto::TimeValue::DynamicTime, org::sem::TimeValue::DynamicTime>::read(::orgproto::TimeValue::DynamicTime const& out, proto_write_accessor<org::sem::TimeValue::DynamicTime> in) {
+  proto_serde<orgproto::LispCode, org::sem::LispCode>::read(out.time(), in.for_field(&org::sem::TimeValue::DynamicTime::time));
+}
+
+void org::algo::proto_serde<::orgproto::TimeValue, org::sem::TimeValue>::write(::orgproto::TimeValue* out, org::sem::TimeValue const& in) {
+  out->set_isactive(in.isActive);
+  switch (in.data.index()) {
+    case 0:
+      proto_serde<orgproto::TimeValue::FixedTime, org::sem::TimeValue::FixedTime>::write(out->mutable_data()->mutable_fixedtime(), std::get<0>(in.data));
+      break;
+    case 1:
+      proto_serde<orgproto::TimeValue::DynamicTime, org::sem::TimeValue::DynamicTime>::write(out->mutable_data()->mutable_dynamictime(), std::get<1>(in.data));
+      break;
+  }
+}
+
+void org::algo::proto_serde<::orgproto::TimeValue, org::sem::TimeValue>::read(::orgproto::TimeValue const& out, proto_write_accessor<org::sem::TimeValue> in) {
+  in.for_field(&org::sem::TimeValue::isActive).get() = out.isactive();
+  switch (out.data().kind_case()) {
+    case ::orgproto::TimeValue::Data::kFixedtime:
+      in.for_field_variant<0>(&org::sem::TimeValue::data).get();
+      proto_serde<orgproto::TimeValue::FixedTime, org::sem::TimeValue::FixedTime>::read(out.data().fixedtime(), in.for_field_variant<0>(&org::sem::TimeValue::data));
+      break;
+    case ::orgproto::TimeValue::Data::kDynamictime:
+      in.for_field_variant<1>(&org::sem::TimeValue::data).get();
+      proto_serde<orgproto::TimeValue::DynamicTime, org::sem::TimeValue::DynamicTime>::read(out.data().dynamictime(), in.for_field_variant<1>(&org::sem::TimeValue::data));
+      break;
+    case ::orgproto::TimeValue::Data::KIND_NOT_SET: {
+      throw ::hstd::logic_assertion_error::init("Invalid incoming data -- KIND_NOT_SET for parsing variant field");
+      break;
+    }
+  }
+}
+
 void org::algo::proto_serde<::orgproto::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Index>::write(::orgproto::Tblfm::Expr::AxisRef::Position::Index* out, org::sem::Tblfm::Expr::AxisRef::Position::Index const& in) {
   out->set_index(in.index);
 }
@@ -1525,11 +1571,11 @@ void org::algo::proto_serde<::orgproto::NamedProperty::Unnumbered, org::sem::Nam
 }
 
 void org::algo::proto_serde<::orgproto::NamedProperty::Created, org::sem::NamedProperty::Created>::write(::orgproto::NamedProperty::Created* out, org::sem::NamedProperty::Created const& in) {
-  proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::write(out->mutable_time(), in.time);
+  proto_serde<orgproto::TimeValue, org::sem::TimeValue>::write(out->mutable_time(), in.time);
 }
 
 void org::algo::proto_serde<::orgproto::NamedProperty::Created, org::sem::NamedProperty::Created>::read(::orgproto::NamedProperty::Created const& out, proto_write_accessor<org::sem::NamedProperty::Created> in) {
-  proto_serde<orgproto::hstd::UserTime, hstd::UserTime>::read(out.time(), in.for_field(&org::sem::NamedProperty::Created::time));
+  proto_serde<orgproto::TimeValue, org::sem::TimeValue>::read(out.time(), in.for_field(&org::sem::NamedProperty::Created::time));
 }
 
 void org::algo::proto_serde<::orgproto::NamedProperty::RadioId, org::sem::NamedProperty::RadioId>::write(::orgproto::NamedProperty::RadioId* out, org::sem::NamedProperty::RadioId const& in) {
