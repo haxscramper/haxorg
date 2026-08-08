@@ -37,16 +37,33 @@ struct [[refl]] SourceManager {
 struct [[refl]] SourceLoc {
     [[refl]] int          line;
     [[refl]] int          column;
-    [[refl]] SourceFileId file_id = SourceFileId::Nil();
-    [[refl]] int          pos     = -1;
+    [[refl]] SourceFileId file_id;
+    [[refl]] int          pos = -1;
 
     bool operator==(SourceLoc const& other) const {
         return line == other.line && column == other.column && pos == other.pos
             && file_id == other.file_id;
     }
 
+    bool isValid() const { return line != -1 && column != -1 && !file_id.isNil(); }
+
     BOOST_DESCRIBE_CLASS(SourceLoc, (), (line, column, pos, file_id), (), ());
 };
 
 
 } // namespace org::parse
+
+namespace hstd {
+template <>
+struct SerdeDefaultProvider<org::parse::SourceLoc> {
+    static org::parse::SourceLoc get() {
+        return org::parse::SourceLoc{
+            .line    = -1,
+            .column  = -1,
+            .file_id = org::parse::SourceFileId::Nil(),
+        };
+    }
+
+    static void construct_at(void* ptr) { new (ptr) org::parse::SourceLoc(get()); };
+};
+} // namespace hstd

@@ -309,7 +309,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_int(), "parserLine"),
                 org_field(t("OrgTokenKind"), "tokenKind"),
                 org_field(t_str(), "tokenText"),
-                org_field(t("SourceLoc", [t("org"), t("parse")]), "loc"),
+                opt_field(t("SourceLoc", [t("org"), t("parse")]), "loc"),
                 org_field(t_str(), "errName"),
                 org_field(t_str(), "errCode"),
             ],

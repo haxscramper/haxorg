@@ -3444,7 +3444,7 @@ export interface OrgDiagnosticsParseTokenError {
   parserLine: number
   tokenKind: OrgTokenKind
   tokenText: Str
-  loc: ParseSourceLoc
+  loc: haxorg_wasm.Optional<ParseSourceLoc>
   errName: Str
   errCode: Str
 }

@@ -1098,7 +1098,7 @@ NB_MODULE(pyhaxorg, m) {
   nanobind::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
     .def("__init__",
          [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::UserTimeBreakdown();
+         hstd::SerdeDefaultProvider<hstd::UserTimeBreakdown>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1121,7 +1121,7 @@ NB_MODULE(pyhaxorg, m) {
   nanobind::class_<hstd::UserTime>(m, "UserTime")
     .def("__init__",
          [](hstd::UserTime* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::UserTime();
+         hstd::SerdeDefaultProvider<hstd::UserTime>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1171,7 +1171,7 @@ NB_MODULE(pyhaxorg, m) {
   nanobind::class_<org::parse::SourceLoc>(m, "ParseSourceLoc")
     .def("__init__",
          [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::SourceLoc();
+         hstd::SerdeDefaultProvider<org::parse::SourceLoc>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1191,7 +1191,7 @@ NB_MODULE(pyhaxorg, m) {
   nanobind::class_<org::sem::OrgJson>(m, "OrgJson")
     .def("__init__",
          [](org::sem::OrgJson* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgJson();
+         hstd::SerdeDefaultProvider<org::sem::OrgJson>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1260,7 +1260,7 @@ node can have subnodes.)RAW")
   nanobind::class_<hstd::OperationsTracer>(m, "OperationsTracer")
     .def("__init__",
          [](hstd::OperationsTracer* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::OperationsTracer();
+         hstd::SerdeDefaultProvider<hstd::OperationsTracer>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1306,7 +1306,7 @@ node can have subnodes.)RAW")
   nanobind::class_<org::parse::OrgParseFragment>(m, "ParseOrgParseFragment")
     .def("__init__",
          [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::OrgParseFragment();
+         hstd::SerdeDefaultProvider<org::parse::OrgParseFragment>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1325,7 +1325,7 @@ node can have subnodes.)RAW")
   nanobind::class_<org::parse::OrgParseParameters>(m, "OrgParseParameters")
     .def("__init__",
          [](org::parse::OrgParseParameters* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::OrgParseParameters();
+         hstd::SerdeDefaultProvider<org::parse::OrgParseParameters>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1345,7 +1345,7 @@ node can have subnodes.)RAW")
   nanobind::class_<org::parse::OrgDirectoryParseParameters>(m, "OrgDirectoryParseParameters")
     .def("__init__",
          [](org::parse::OrgDirectoryParseParameters* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::OrgDirectoryParseParameters();
+         hstd::SerdeDefaultProvider<org::parse::OrgDirectoryParseParameters>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1363,7 +1363,7 @@ node can have subnodes.)RAW")
     .def(nanobind::init<std::shared_ptr<org::parse::SourceManager> const&>())
     .def("__init__",
          [](org::parse::ParseContext* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::parse::ParseContext();
+         hstd::SerdeDefaultProvider<org::parse::ParseContext>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1421,7 +1421,7 @@ node can have subnodes.)RAW")
   nanobind::class_<org::imm::ImmId>(m, "ImmId")
     .def("__init__",
          [](org::imm::ImmId* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmId();
+         hstd::SerdeDefaultProvider<org::imm::ImmId>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1446,7 +1446,7 @@ node must not be nil)RAW")
   nanobind::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
     .def("__init__",
          [](org::imm::ImmPathStep* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmPathStep();
+         hstd::SerdeDefaultProvider<org::imm::ImmPathStep>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1462,7 +1462,7 @@ node must not be nil)RAW")
   nanobind::class_<org::imm::ImmPath>(m, "ImmPath")
     .def("__init__",
          [](org::imm::ImmPath* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmPath();
+         hstd::SerdeDefaultProvider<org::imm::ImmPath>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1483,7 +1483,7 @@ ImmPathStep documentation.)RAW")
   nanobind::class_<org::imm::ImmUniqId>(m, "ImmUniqId")
     .def("__init__",
          [](org::imm::ImmUniqId* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmUniqId();
+         hstd::SerdeDefaultProvider<org::imm::ImmUniqId>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1532,7 +1532,7 @@ created anew following the immutable ID structure.)RAW")
   nanobind::class_<org::imm::ImmAstVersion>(m, "ImmAstVersion")
     .def("__init__",
          [](org::imm::ImmAstVersion* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmAstVersion();
+         hstd::SerdeDefaultProvider<org::imm::ImmAstVersion>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1552,7 +1552,7 @@ created anew following the immutable ID structure.)RAW")
   nanobind::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
     .def("__init__",
          [](org::imm::ImmAdapter::TreeReprConf* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmAdapter::TreeReprConf();
+         hstd::SerdeDefaultProvider<org::imm::ImmAdapter::TreeReprConf>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1628,7 +1628,7 @@ field subset.)RAW")
   nanobind::class_<org::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
     .def("__init__",
          [](org::OrgYamlExportOpts* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::OrgYamlExportOpts();
+         hstd::SerdeDefaultProvider<org::OrgYamlExportOpts>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1649,7 +1649,7 @@ field subset.)RAW")
   nanobind::class_<org::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
     .def("__init__",
          [](org::OrgTreeExportOpts* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::OrgTreeExportOpts();
+         hstd::SerdeDefaultProvider<org::OrgTreeExportOpts>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1672,7 +1672,7 @@ field subset.)RAW")
   nanobind::class_<org::AstTrackingPath>(m, "AstTrackingPath")
     .def("__init__",
          [](org::AstTrackingPath* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingPath();
+         hstd::SerdeDefaultProvider<org::AstTrackingPath>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1693,7 +1693,7 @@ field subset.)RAW")
   nanobind::class_<org::AstTrackingAlternatives>(m, "AstTrackingAlternatives")
     .def("__init__",
          [](org::AstTrackingAlternatives* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingAlternatives();
+         hstd::SerdeDefaultProvider<org::AstTrackingAlternatives>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1711,7 +1711,7 @@ field subset.)RAW")
   nanobind::class_<org::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
     .def("__init__",
          [](org::AstTrackingGroup::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup::RadioTarget();
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup::RadioTarget>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1729,7 +1729,7 @@ field subset.)RAW")
   nanobind::class_<org::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
     .def("__init__",
          [](org::AstTrackingGroup::Single* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup::Single();
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup::Single>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1746,7 +1746,7 @@ field subset.)RAW")
   nanobind::class_<org::AstTrackingGroup::TrackedHashtag>(m, "AstTrackingGroupTrackedHashtag")
     .def("__init__",
          [](org::AstTrackingGroup::TrackedHashtag* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup::TrackedHashtag();
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup::TrackedHashtag>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1764,7 +1764,7 @@ field subset.)RAW")
   nanobind::class_<org::AstTrackingGroup>(m, "AstTrackingGroup")
     .def("__init__",
          [](org::AstTrackingGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingGroup();
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1788,7 +1788,7 @@ field subset.)RAW")
   nanobind::class_<org::AstTrackingMap>(m, "AstTrackingMap")
     .def("__init__",
          [](org::AstTrackingMap* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::AstTrackingMap();
+         hstd::SerdeDefaultProvider<org::AstTrackingMap>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1822,7 +1822,7 @@ field subset.)RAW")
   nanobind::class_<hstd::SequenceSegment>(m, "SequenceSegment")
     .def("__init__",
          [](hstd::SequenceSegment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceSegment();
+         hstd::SerdeDefaultProvider<hstd::SequenceSegment>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1845,7 +1845,7 @@ to create a point segment (spans 1 element).)RAW")
   nanobind::class_<hstd::SequenceSegmentGroup>(m, "SequenceSegmentGroup")
     .def("__init__",
          [](hstd::SequenceSegmentGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceSegmentGroup();
+         hstd::SerdeDefaultProvider<hstd::SequenceSegmentGroup>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1863,7 +1863,7 @@ to create a point segment (spans 1 element).)RAW")
   nanobind::class_<hstd::SequenceAnnotationTag>(m, "SequenceAnnotationTag")
     .def("__init__",
          [](hstd::SequenceAnnotationTag* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceAnnotationTag();
+         hstd::SerdeDefaultProvider<hstd::SequenceAnnotationTag>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1898,7 +1898,7 @@ different sequence segments from these ranges. The first one is
   nanobind::class_<hstd::SequenceAnnotation>(m, "SequenceAnnotation")
     .def("__init__",
          [](hstd::SequenceAnnotation* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) hstd::SequenceAnnotation();
+         hstd::SerdeDefaultProvider<hstd::SequenceAnnotation>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1923,7 +1923,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
     .def("__init__",
          [](org::bind::python::PyCodeEvalParameters* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::bind::python::PyCodeEvalParameters();
+         hstd::SerdeDefaultProvider<org::bind::python::PyCodeEvalParameters>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -1943,7 +1943,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
     .def("__init__",
          [](org::bind::python::ExporterPython* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::bind::python::ExporterPython();
+         hstd::SerdeDefaultProvider<org::bind::python::ExporterPython>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2060,7 +2060,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Call* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::Call();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Call>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2082,7 +2082,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::List* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::List();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::List>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2103,7 +2103,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::KeyValue* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::KeyValue();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::KeyValue>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2125,7 +2125,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Number* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::Number();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Number>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2146,7 +2146,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Text* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::Text();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Text>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2167,7 +2167,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Ident* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::Ident();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Ident>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2188,7 +2188,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Boolean* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::Boolean();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Boolean>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2209,7 +2209,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Real* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode::Real();
+         hstd::SerdeDefaultProvider<org::sem::LispCode::Real>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2259,7 +2259,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LispCode();
+         hstd::SerdeDefaultProvider<org::sem::LispCode>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2296,7 +2296,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position::Index* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::AxisRef::Position::Index();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisRef::Position::Index>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2317,7 +2317,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position::Name* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::AxisRef::Position::Name();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisRef::Position::Name>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2361,7 +2361,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::AxisRef::Position();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisRef::Position>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2385,7 +2385,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef>(m, "TblfmExprAxisRef")
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::AxisRef();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisRef>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2406,7 +2406,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr::AxisName>(m, "TblfmExprAxisName")
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisName* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::AxisName();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisName>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2426,7 +2426,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr::IntLiteral>(m, "TblfmExprIntLiteral")
     .def("__init__",
          [](org::sem::Tblfm::Expr::IntLiteral* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::IntLiteral();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::IntLiteral>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2446,7 +2446,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr::FloatLiteral>(m, "TblfmExprFloatLiteral")
     .def("__init__",
          [](org::sem::Tblfm::Expr::FloatLiteral* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::FloatLiteral();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::FloatLiteral>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2466,7 +2466,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr::RangeRef>(m, "TblfmExprRangeRef")
     .def("__init__",
          [](org::sem::Tblfm::Expr::RangeRef* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::RangeRef();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::RangeRef>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2487,7 +2487,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr::Call>(m, "TblfmExprCall")
     .def("__init__",
          [](org::sem::Tblfm::Expr::Call* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::Call();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::Call>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2508,7 +2508,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr::Elisp>(m, "TblfmExprElisp")
     .def("__init__",
          [](org::sem::Tblfm::Expr::Elisp* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr::Elisp();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::Elisp>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2556,7 +2556,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Expr>(m, "TblfmExpr")
     .def("__init__",
          [](org::sem::Tblfm::Expr* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Expr();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2626,7 +2626,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm::Assign>(m, "TblfmAssign")
     .def("__init__",
          [](org::sem::Tblfm::Assign* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm::Assign();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm::Assign>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2648,7 +2648,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Tblfm>(m, "Tblfm")
     .def("__init__",
          [](org::sem::Tblfm* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Tblfm();
+         hstd::SerdeDefaultProvider<org::sem::Tblfm>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2669,7 +2669,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::DimensionSpan* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AttrValue::DimensionSpan();
+         hstd::SerdeDefaultProvider<org::sem::AttrValue::DimensionSpan>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2691,7 +2691,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::TextValue* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AttrValue::TextValue();
+         hstd::SerdeDefaultProvider<org::sem::AttrValue::TextValue>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2712,7 +2712,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::FileReference* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AttrValue::FileReference();
+         hstd::SerdeDefaultProvider<org::sem::AttrValue::FileReference>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2734,7 +2734,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue::LispValue* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AttrValue::LispValue();
+         hstd::SerdeDefaultProvider<org::sem::AttrValue::LispValue>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2779,7 +2779,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::AttrValue* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AttrValue();
+         hstd::SerdeDefaultProvider<org::sem::AttrValue>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2813,7 +2813,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::HashTagFlat>(m, "HashTagFlat")
     .def("__init__",
          [](org::sem::HashTagFlat* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::HashTagFlat();
+         hstd::SerdeDefaultProvider<org::sem::HashTagFlat>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2860,7 +2860,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::TodoKeyword>(m, "TodoKeyword")
     .def("__init__",
          [](org::sem::TodoKeyword* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::TodoKeyword();
+         hstd::SerdeDefaultProvider<org::sem::TodoKeyword>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2883,7 +2883,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::HashTagText>(m, "HashTagText")
     .def("__init__",
          [](org::sem::HashTagText* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::HashTagText();
+         hstd::SerdeDefaultProvider<org::sem::HashTagText>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2912,7 +2912,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreePath>(m, "SubtreePath")
     .def("__init__",
          [](org::sem::SubtreePath* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreePath();
+         hstd::SerdeDefaultProvider<org::sem::SubtreePath>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2932,7 +2932,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::Raw>(m, "LinkTargetRaw")
     .def("__init__",
          [](org::sem::LinkTarget::Raw* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::Raw();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::Raw>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2952,7 +2952,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::Id>(m, "LinkTargetId")
     .def("__init__",
          [](org::sem::LinkTarget::Id* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::Id();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::Id>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2972,7 +2972,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::CustomId>(m, "LinkTargetCustomId")
     .def("__init__",
          [](org::sem::LinkTarget::CustomId* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::CustomId();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::CustomId>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -2992,7 +2992,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::SubtreeTitle>(m, "LinkTargetSubtreeTitle")
     .def("__init__",
          [](org::sem::LinkTarget::SubtreeTitle* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::SubtreeTitle();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::SubtreeTitle>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3013,7 +3013,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::Person>(m, "LinkTargetPerson")
     .def("__init__",
          [](org::sem::LinkTarget::Person* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::Person();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::Person>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3033,7 +3033,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::UserProtocol>(m, "LinkTargetUserProtocol")
     .def("__init__",
          [](org::sem::LinkTarget::UserProtocol* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::UserProtocol();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::UserProtocol>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3054,7 +3054,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::Internal>(m, "LinkTargetInternal")
     .def("__init__",
          [](org::sem::LinkTarget::Internal* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::Internal();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::Internal>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3074,7 +3074,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::Footnote>(m, "LinkTargetFootnote")
     .def("__init__",
          [](org::sem::LinkTarget::Footnote* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::Footnote();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::Footnote>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3094,7 +3094,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::File>(m, "LinkTargetFile")
     .def("__init__",
          [](org::sem::LinkTarget::File* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::File();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::File>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3114,7 +3114,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget::Attachment>(m, "LinkTargetAttachment")
     .def("__init__",
          [](org::sem::LinkTarget::Attachment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget::Attachment();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget::Attachment>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3165,7 +3165,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::LinkTarget>(m, "LinkTarget")
     .def("__init__",
          [](org::sem::LinkTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::LinkTarget();
+         hstd::SerdeDefaultProvider<org::sem::LinkTarget>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3229,7 +3229,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Priority>(m, "SubtreeLogHeadPriority")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Priority* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Priority();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Priority>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3252,7 +3252,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Note>(m, "SubtreeLogHeadNote")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Note* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Note();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Note>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3272,7 +3272,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Refile>(m, "SubtreeLogHeadRefile")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Refile* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Refile();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Refile>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3293,7 +3293,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Clock>(m, "SubtreeLogHeadClock")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Clock* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Clock();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Clock>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3314,7 +3314,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::State>(m, "SubtreeLogHeadState")
     .def("__init__",
          [](org::sem::SubtreeLogHead::State* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::State();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::State>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3336,7 +3336,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Deadline>(m, "SubtreeLogHeadDeadline")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Deadline* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Deadline();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Deadline>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3358,7 +3358,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Schedule>(m, "SubtreeLogHeadSchedule")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Schedule* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Schedule();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Schedule>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3380,7 +3380,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Tag>(m, "SubtreeLogHeadTag")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Tag* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Tag();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Tag>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3402,7 +3402,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead::Unknown>(m, "SubtreeLogHeadUnknown")
     .def("__init__",
          [](org::sem::SubtreeLogHead::Unknown* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead::Unknown();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead::Unknown>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3451,7 +3451,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLogHead>(m, "SubtreeLogHead")
     .def("__init__",
          [](org::sem::SubtreeLogHead* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLogHead();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3489,7 +3489,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeCompletion>(m, "SubtreeCompletion")
     .def("__init__",
          [](org::sem::SubtreeCompletion* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeCompletion();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeCompletion>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3511,7 +3511,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::AttrList>(m, "AttrList")
     .def("__init__",
          [](org::sem::AttrList* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AttrList();
+         hstd::SerdeDefaultProvider<org::sem::AttrList>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3531,7 +3531,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::AttrGroup>(m, "AttrGroup")
     .def("__init__",
          [](org::sem::AttrGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AttrGroup();
+         hstd::SerdeDefaultProvider<org::sem::AttrGroup>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3598,7 +3598,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgCodeEvalInput::Var* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgCodeEvalInput::Var();
+         hstd::SerdeDefaultProvider<org::sem::OrgCodeEvalInput::Var>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3699,7 +3699,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgCodeEvalInput>(m, "OrgCodeEvalInput")
     .def("__init__",
          [](org::sem::OrgCodeEvalInput* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgCodeEvalInput();
+         hstd::SerdeDefaultProvider<org::sem::OrgCodeEvalInput>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3729,7 +3729,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgCodeEvalOutput>(m, "OrgCodeEvalOutput")
     .def("__init__",
          [](org::sem::OrgCodeEvalOutput* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgCodeEvalOutput();
+         hstd::SerdeDefaultProvider<org::sem::OrgCodeEvalOutput>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3779,7 +3779,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ColumnView::Summary::CheckboxAggregate>(m, "ColumnViewSummaryCheckboxAggregate")
     .def("__init__",
          [](org::sem::ColumnView::Summary::CheckboxAggregate* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ColumnView::Summary::CheckboxAggregate();
+         hstd::SerdeDefaultProvider<org::sem::ColumnView::Summary::CheckboxAggregate>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3825,7 +3825,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ColumnView::Summary::MathAggregate>(m, "ColumnViewSummaryMathAggregate")
     .def("__init__",
          [](org::sem::ColumnView::Summary::MathAggregate* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ColumnView::Summary::MathAggregate();
+         hstd::SerdeDefaultProvider<org::sem::ColumnView::Summary::MathAggregate>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3870,7 +3870,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ColumnView::Summary>(m, "ColumnViewSummary")
     .def("__init__",
          [](org::sem::ColumnView::Summary* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ColumnView::Summary();
+         hstd::SerdeDefaultProvider<org::sem::ColumnView::Summary>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3894,7 +3894,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ColumnView::Column>(m, "ColumnViewColumn")
     .def("__init__",
          [](org::sem::ColumnView::Column* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ColumnView::Column();
+         hstd::SerdeDefaultProvider<org::sem::ColumnView::Column>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3917,7 +3917,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ColumnView>(m, "ColumnView")
     .def("__init__",
          [](org::sem::ColumnView* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ColumnView();
+         hstd::SerdeDefaultProvider<org::sem::ColumnView>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3937,7 +3937,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCodeLine::Part::Raw>(m, "BlockCodeLinePartRaw")
     .def("__init__",
          [](org::sem::BlockCodeLine::Part::Raw* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCodeLine::Part::Raw();
+         hstd::SerdeDefaultProvider<org::sem::BlockCodeLine::Part::Raw>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3957,7 +3957,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCodeLine::Part::Callout>(m, "BlockCodeLinePartCallout")
     .def("__init__",
          [](org::sem::BlockCodeLine::Part::Callout* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCodeLine::Part::Callout();
+         hstd::SerdeDefaultProvider<org::sem::BlockCodeLine::Part::Callout>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -3977,7 +3977,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCodeLine::Part::Tangle>(m, "BlockCodeLinePartTangle")
     .def("__init__",
          [](org::sem::BlockCodeLine::Part::Tangle* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCodeLine::Part::Tangle();
+         hstd::SerdeDefaultProvider<org::sem::BlockCodeLine::Part::Tangle>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4021,7 +4021,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCodeLine::Part>(m, "BlockCodeLinePart")
     .def("__init__",
          [](org::sem::BlockCodeLine::Part* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCodeLine::Part();
+         hstd::SerdeDefaultProvider<org::sem::BlockCodeLine::Part>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4047,7 +4047,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCodeLine>(m, "BlockCodeLine")
     .def("__init__",
          [](org::sem::BlockCodeLine* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCodeLine();
+         hstd::SerdeDefaultProvider<org::sem::BlockCodeLine>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4067,7 +4067,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::DocumentExportConfig::TaskExport>(m, "DocumentExportConfigTaskExport")
     .def("__init__",
          [](org::sem::DocumentExportConfig::TaskExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentExportConfig::TaskExport();
+         hstd::SerdeDefaultProvider<org::sem::DocumentExportConfig::TaskExport>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4185,7 +4185,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::DocumentExportConfig::DoExport>(m, "DocumentExportConfigDoExport")
     .def("__init__",
          [](org::sem::DocumentExportConfig::DoExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentExportConfig::DoExport();
+         hstd::SerdeDefaultProvider<org::sem::DocumentExportConfig::DoExport>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4205,7 +4205,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::DocumentExportConfig::ExportFixed>(m, "DocumentExportConfigExportFixed")
     .def("__init__",
          [](org::sem::DocumentExportConfig::ExportFixed* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentExportConfig::ExportFixed();
+         hstd::SerdeDefaultProvider<org::sem::DocumentExportConfig::ExportFixed>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4248,7 +4248,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::DocumentExportConfig>(m, "DocumentExportConfig")
     .def("__init__",
          [](org::sem::DocumentExportConfig* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentExportConfig();
+         hstd::SerdeDefaultProvider<org::sem::DocumentExportConfig>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4332,7 +4332,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreePeriod>(m, "SubtreePeriod")
     .def("__init__",
          [](org::sem::SubtreePeriod* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreePeriod();
+         hstd::SerdeDefaultProvider<org::sem::SubtreePeriod>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4354,7 +4354,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Nonblocking>(m, "NamedPropertyNonblocking")
     .def("__init__",
          [](org::sem::NamedProperty::Nonblocking* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Nonblocking();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Nonblocking>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4374,7 +4374,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ArchiveTime>(m, "NamedPropertyArchiveTime")
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveTime* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ArchiveTime();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveTime>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4394,7 +4394,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ArchiveFile>(m, "NamedPropertyArchiveFile")
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveFile* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ArchiveFile();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveFile>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4414,7 +4414,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ArchiveOlpath>(m, "NamedPropertyArchiveOlpath")
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveOlpath* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ArchiveOlpath();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveOlpath>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4434,7 +4434,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ArchiveTarget>(m, "NamedPropertyArchiveTarget")
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ArchiveTarget();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveTarget>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4455,7 +4455,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ArchiveCategory>(m, "NamedPropertyArchiveCategory")
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveCategory* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ArchiveCategory();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveCategory>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4475,7 +4475,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ArchiveTodo>(m, "NamedPropertyArchiveTodo")
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveTodo* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ArchiveTodo();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveTodo>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4495,7 +4495,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Trigger>(m, "NamedPropertyTrigger")
     .def("__init__",
          [](org::sem::NamedProperty::Trigger* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Trigger();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Trigger>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4514,7 +4514,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ExportLatexClass>(m, "NamedPropertyExportLatexClass")
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexClass* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ExportLatexClass();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ExportLatexClass>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4534,7 +4534,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::CookieData>(m, "NamedPropertyCookieData")
     .def("__init__",
          [](org::sem::NamedProperty::CookieData* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::CookieData();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::CookieData>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4555,7 +4555,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ExportLatexClassOptions>(m, "NamedPropertyExportLatexClassOptions")
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexClassOptions* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ExportLatexClassOptions();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ExportLatexClassOptions>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4575,7 +4575,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ExportLatexHeader>(m, "NamedPropertyExportLatexHeader")
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexHeader* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ExportLatexHeader();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ExportLatexHeader>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4595,7 +4595,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ExportLatexCompiler>(m, "NamedPropertyExportLatexCompiler")
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexCompiler* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ExportLatexCompiler();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ExportLatexCompiler>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4615,7 +4615,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Ordered>(m, "NamedPropertyOrdered")
     .def("__init__",
          [](org::sem::NamedProperty::Ordered* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Ordered();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Ordered>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4635,7 +4635,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Effort>(m, "NamedPropertyEffort")
     .def("__init__",
          [](org::sem::NamedProperty::Effort* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Effort();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Effort>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4681,7 +4681,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Visibility>(m, "NamedPropertyVisibility")
     .def("__init__",
          [](org::sem::NamedProperty::Visibility* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Visibility();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Visibility>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4701,7 +4701,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::ExportOptions>(m, "NamedPropertyExportOptions")
     .def("__init__",
          [](org::sem::NamedProperty::ExportOptions* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::ExportOptions();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::ExportOptions>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4722,7 +4722,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Blocker>(m, "NamedPropertyBlocker")
     .def("__init__",
          [](org::sem::NamedProperty::Blocker* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Blocker();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Blocker>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4742,7 +4742,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Unnumbered>(m, "NamedPropertyUnnumbered")
     .def("__init__",
          [](org::sem::NamedProperty::Unnumbered* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Unnumbered();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Unnumbered>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4761,7 +4761,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::Created>(m, "NamedPropertyCreated")
     .def("__init__",
          [](org::sem::NamedProperty::Created* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::Created();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::Created>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4781,7 +4781,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::RadioId>(m, "NamedPropertyRadioId")
     .def("__init__",
          [](org::sem::NamedProperty::RadioId* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::RadioId();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::RadioId>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4801,7 +4801,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::HashtagDef>(m, "NamedPropertyHashtagDef")
     .def("__init__",
          [](org::sem::NamedProperty::HashtagDef* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::HashtagDef();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::HashtagDef>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4821,7 +4821,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::CustomArgs>(m, "NamedPropertyCustomArgs")
     .def("__init__",
          [](org::sem::NamedProperty::CustomArgs* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::CustomArgs();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::CustomArgs>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4843,7 +4843,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::CustomRaw>(m, "NamedPropertyCustomRaw")
     .def("__init__",
          [](org::sem::NamedProperty::CustomRaw* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::CustomRaw();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::CustomRaw>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4864,7 +4864,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::CustomId>(m, "NamedPropertyCustomId")
     .def("__init__",
          [](org::sem::NamedProperty::CustomId* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::CustomId();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::CustomId>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4884,7 +4884,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::CustomSubtreeJson>(m, "NamedPropertyCustomSubtreeJson")
     .def("__init__",
          [](org::sem::NamedProperty::CustomSubtreeJson* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::CustomSubtreeJson();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::CustomSubtreeJson>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4905,7 +4905,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty::CustomSubtreeFlags>(m, "NamedPropertyCustomSubtreeFlags")
     .def("__init__",
          [](org::sem::NamedProperty::CustomSubtreeFlags* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty::CustomSubtreeFlags();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty::CustomSubtreeFlags>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -4974,7 +4974,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NamedProperty>(m, "NamedProperty")
     .def("__init__",
          [](org::sem::NamedProperty* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NamedProperty();
+         hstd::SerdeDefaultProvider<org::sem::NamedProperty>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5055,7 +5055,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgDiagnostics::ParseTokenError>(m, "OrgDiagnosticsParseTokenError")
     .def("__init__",
          [](org::sem::OrgDiagnostics::ParseTokenError* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgDiagnostics::ParseTokenError();
+         hstd::SerdeDefaultProvider<org::sem::OrgDiagnostics::ParseTokenError>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5083,7 +5083,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgDiagnostics::ParseError>(m, "OrgDiagnosticsParseError")
     .def("__init__",
          [](org::sem::OrgDiagnostics::ParseError* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgDiagnostics::ParseError();
+         hstd::SerdeDefaultProvider<org::sem::OrgDiagnostics::ParseError>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5109,7 +5109,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgDiagnostics::IncludeError>(m, "OrgDiagnosticsIncludeError")
     .def("__init__",
          [](org::sem::OrgDiagnostics::IncludeError* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgDiagnostics::IncludeError();
+         hstd::SerdeDefaultProvider<org::sem::OrgDiagnostics::IncludeError>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5131,7 +5131,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgDiagnostics::ConvertError>(m, "OrgDiagnosticsConvertError")
     .def("__init__",
          [](org::sem::OrgDiagnostics::ConvertError* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgDiagnostics::ConvertError();
+         hstd::SerdeDefaultProvider<org::sem::OrgDiagnostics::ConvertError>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5158,7 +5158,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgDiagnostics::InternalError>(m, "OrgDiagnosticsInternalError")
     .def("__init__",
          [](org::sem::OrgDiagnostics::InternalError* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgDiagnostics::InternalError();
+         hstd::SerdeDefaultProvider<org::sem::OrgDiagnostics::InternalError>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5208,7 +5208,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::OrgDiagnostics>(m, "OrgDiagnostics")
     .def("__init__",
          [](org::sem::OrgDiagnostics* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::OrgDiagnostics();
+         hstd::SerdeDefaultProvider<org::sem::OrgDiagnostics>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5414,7 +5414,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::NoNode, org::sem::Org>(m, "NoNode")
     .def("__init__",
          [](org::sem::NoNode* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::NoNode();
+         hstd::SerdeDefaultProvider<org::sem::NoNode>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5430,7 +5430,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ErrorItem, org::sem::Org>(m, "ErrorItem")
     .def("__init__",
          [](org::sem::ErrorItem* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorItem();
+         hstd::SerdeDefaultProvider<org::sem::ErrorItem>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5447,7 +5447,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ErrorGroup, org::sem::Org>(m, "ErrorGroup")
     .def("__init__",
          [](org::sem::ErrorGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorGroup();
+         hstd::SerdeDefaultProvider<org::sem::ErrorGroup>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5501,7 +5501,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::StmtList, org::sem::Org>(m, "StmtList")
     .def("__init__",
          [](org::sem::StmtList* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::StmtList();
+         hstd::SerdeDefaultProvider<org::sem::StmtList>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5517,7 +5517,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Empty, org::sem::Org>(m, "Empty")
     .def("__init__",
          [](org::sem::Empty* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Empty();
+         hstd::SerdeDefaultProvider<org::sem::Empty>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5589,7 +5589,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Time::Repeat>(m, "TimeRepeat")
     .def("__init__",
          [](org::sem::Time::Repeat* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Time::Repeat();
+         hstd::SerdeDefaultProvider<org::sem::Time::Repeat>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5609,7 +5609,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Time::Static* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Time::Static();
+         hstd::SerdeDefaultProvider<org::sem::Time::Static>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5629,7 +5629,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Time::Dynamic* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Time::Dynamic();
+         hstd::SerdeDefaultProvider<org::sem::Time::Dynamic>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5669,7 +5669,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Time, org::sem::Org>(m, "Time")
     .def("__init__",
          [](org::sem::Time* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Time();
+         hstd::SerdeDefaultProvider<org::sem::Time>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5698,7 +5698,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::TimeRange, org::sem::Org>(m, "TimeRange")
     .def("__init__",
          [](org::sem::TimeRange* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::TimeRange();
+         hstd::SerdeDefaultProvider<org::sem::TimeRange>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5717,7 +5717,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Macro, org::sem::Org>(m, "Macro")
     .def("__init__",
          [](org::sem::Macro* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Macro();
+         hstd::SerdeDefaultProvider<org::sem::Macro>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5735,7 +5735,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Symbol::Param>(m, "SymbolParam")
     .def("__init__",
          [](org::sem::Symbol::Param* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Symbol::Param();
+         hstd::SerdeDefaultProvider<org::sem::Symbol::Param>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5753,7 +5753,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Symbol, org::sem::Org>(m, "Symbol")
     .def("__init__",
          [](org::sem::Symbol* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Symbol();
+         hstd::SerdeDefaultProvider<org::sem::Symbol>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5772,7 +5772,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ErrorSkipGroup, org::sem::Org>(m, "ErrorSkipGroup")
     .def("__init__",
          [](org::sem::ErrorSkipGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorSkipGroup();
+         hstd::SerdeDefaultProvider<org::sem::ErrorSkipGroup>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5791,7 +5791,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::RadioTarget, org::sem::Org>(m, "RadioTarget")
     .def("__init__",
          [](org::sem::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::RadioTarget();
+         hstd::SerdeDefaultProvider<org::sem::RadioTarget>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5808,7 +5808,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Latex, org::sem::Org>(m, "Latex")
     .def("__init__",
          [](org::sem::Latex* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Latex();
+         hstd::SerdeDefaultProvider<org::sem::Latex>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5824,7 +5824,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::SubtreeLog, org::sem::Org>(m, "SubtreeLog")
     .def("__init__",
          [](org::sem::SubtreeLog* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::SubtreeLog();
+         hstd::SerdeDefaultProvider<org::sem::SubtreeLog>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5845,7 +5845,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Subtree, org::sem::Org>(m, "Subtree")
     .def("__init__",
          [](org::sem::Subtree* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Subtree();
+         hstd::SerdeDefaultProvider<org::sem::Subtree>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5904,7 +5904,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ColonExample, org::sem::Org>(m, "ColonExample")
     .def("__init__",
          [](org::sem::ColonExample* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ColonExample();
+         hstd::SerdeDefaultProvider<org::sem::ColonExample>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5920,7 +5920,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Call, org::sem::Org>(m, "Call")
     .def("__init__",
          [](org::sem::Call* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Call();
+         hstd::SerdeDefaultProvider<org::sem::Call>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5939,7 +5939,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ListItem, org::sem::Org>(m, "ListItem")
     .def("__init__",
          [](org::sem::ListItem* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ListItem();
+         hstd::SerdeDefaultProvider<org::sem::ListItem>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5960,7 +5960,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::DocumentOptions, org::sem::Org>(m, "DocumentOptions")
     .def("__init__",
          [](org::sem::DocumentOptions* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentOptions();
+         hstd::SerdeDefaultProvider<org::sem::DocumentOptions>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -5996,7 +5996,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::DocumentFragment, org::sem::Org>(m, "DocumentFragment")
     .def("__init__",
          [](org::sem::DocumentFragment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentFragment();
+         hstd::SerdeDefaultProvider<org::sem::DocumentFragment>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6040,7 +6040,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CriticMarkup, org::sem::Org>(m, "CriticMarkup")
     .def("__init__",
          [](org::sem::CriticMarkup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CriticMarkup();
+         hstd::SerdeDefaultProvider<org::sem::CriticMarkup>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6057,7 +6057,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Document, org::sem::Org>(m, "Document")
     .def("__init__",
          [](org::sem::Document* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Document();
+         hstd::SerdeDefaultProvider<org::sem::Document>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6089,7 +6089,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::FileTarget, org::sem::Org>(m, "FileTarget")
     .def("__init__",
          [](org::sem::FileTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::FileTarget();
+         hstd::SerdeDefaultProvider<org::sem::FileTarget>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6111,7 +6111,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::TextSeparator, org::sem::Org>(m, "TextSeparator")
     .def("__init__",
          [](org::sem::TextSeparator* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::TextSeparator();
+         hstd::SerdeDefaultProvider<org::sem::TextSeparator>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6127,7 +6127,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::DocumentGroup, org::sem::Org>(m, "DocumentGroup")
     .def("__init__",
          [](org::sem::DocumentGroup* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::DocumentGroup();
+         hstd::SerdeDefaultProvider<org::sem::DocumentGroup>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6143,7 +6143,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::File::Document>(m, "FileDocument")
     .def("__init__",
          [](org::sem::File::Document* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::File::Document();
+         hstd::SerdeDefaultProvider<org::sem::File::Document>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6159,7 +6159,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::File::Attachment>(m, "FileAttachment")
     .def("__init__",
          [](org::sem::File::Attachment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::File::Attachment();
+         hstd::SerdeDefaultProvider<org::sem::File::Attachment>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6175,7 +6175,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::File::Source>(m, "FileSource")
     .def("__init__",
          [](org::sem::File::Source* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::File::Source();
+         hstd::SerdeDefaultProvider<org::sem::File::Source>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6215,7 +6215,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::File, org::sem::Org>(m, "File")
     .def("__init__",
          [](org::sem::File* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::File();
+         hstd::SerdeDefaultProvider<org::sem::File>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6240,7 +6240,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Directory, org::sem::Org>(m, "Directory")
     .def("__init__",
          [](org::sem::Directory* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Directory();
+         hstd::SerdeDefaultProvider<org::sem::Directory>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6258,7 +6258,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Symlink, org::sem::Org>(m, "Symlink")
     .def("__init__",
          [](org::sem::Symlink* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Symlink();
+         hstd::SerdeDefaultProvider<org::sem::Symlink>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6276,7 +6276,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeIncludeBase")
     .def("__init__",
          [](org::sem::CmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude::IncludeBase();
+         hstd::SerdeDefaultProvider<org::sem::CmdInclude::IncludeBase>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6292,7 +6292,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdInclude::Example, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeExample")
     .def("__init__",
          [](org::sem::CmdInclude::Example* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude::Example();
+         hstd::SerdeDefaultProvider<org::sem::CmdInclude::Example>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6308,7 +6308,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdInclude::Export, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeExport")
     .def("__init__",
          [](org::sem::CmdInclude::Export* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude::Export();
+         hstd::SerdeDefaultProvider<org::sem::CmdInclude::Export>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6325,7 +6325,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdInclude::Custom, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeCustom")
     .def("__init__",
          [](org::sem::CmdInclude::Custom* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude::Custom();
+         hstd::SerdeDefaultProvider<org::sem::CmdInclude::Custom>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6342,7 +6342,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdInclude::Src, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeSrc")
     .def("__init__",
          [](org::sem::CmdInclude::Src* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude::Src();
+         hstd::SerdeDefaultProvider<org::sem::CmdInclude::Src>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6359,7 +6359,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdInclude::OrgDocument, org::sem::CmdInclude::IncludeBase>(m, "CmdIncludeOrgDocument")
     .def("__init__",
          [](org::sem::CmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude::OrgDocument();
+         hstd::SerdeDefaultProvider<org::sem::CmdInclude::OrgDocument>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6405,7 +6405,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdInclude, org::sem::Org>(m, "CmdInclude")
     .def("__init__",
          [](org::sem::CmdInclude* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdInclude();
+         hstd::SerdeDefaultProvider<org::sem::CmdInclude>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6611,7 +6611,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
     .def("__init__",
          [](org::imm::ImmTime::Repeat* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmTime::Repeat();
+         hstd::SerdeDefaultProvider<org::imm::ImmTime::Repeat>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6634,7 +6634,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmTime::Static* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmTime::Static();
+         hstd::SerdeDefaultProvider<org::imm::ImmTime::Static>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6657,7 +6657,7 @@ and a segment kind.)RAW")
     .def(nanobind::init<>())
     .def("__init__",
          [](org::imm::ImmTime::Dynamic* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmTime::Dynamic();
+         hstd::SerdeDefaultProvider<org::imm::ImmTime::Dynamic>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6700,7 +6700,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmSymbol::Param>(m, "ImmSymbolParam")
     .def("__init__",
          [](org::imm::ImmSymbol::Param* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmSymbol::Param();
+         hstd::SerdeDefaultProvider<org::imm::ImmSymbol::Param>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6721,7 +6721,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmFile::Document>(m, "ImmFileDocument")
     .def("__init__",
          [](org::imm::ImmFile::Document* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmFile::Document();
+         hstd::SerdeDefaultProvider<org::imm::ImmFile::Document>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6740,7 +6740,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmFile::Attachment>(m, "ImmFileAttachment")
     .def("__init__",
          [](org::imm::ImmFile::Attachment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmFile::Attachment();
+         hstd::SerdeDefaultProvider<org::imm::ImmFile::Attachment>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6759,7 +6759,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmFile::Source>(m, "ImmFileSource")
     .def("__init__",
          [](org::imm::ImmFile::Source* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmFile::Source();
+         hstd::SerdeDefaultProvider<org::imm::ImmFile::Source>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6802,7 +6802,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeIncludeBase")
     .def("__init__",
          [](org::imm::ImmCmdInclude::IncludeBase* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::IncludeBase();
+         hstd::SerdeDefaultProvider<org::imm::ImmCmdInclude::IncludeBase>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6821,7 +6821,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Example, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExample")
     .def("__init__",
          [](org::imm::ImmCmdInclude::Example* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Example();
+         hstd::SerdeDefaultProvider<org::imm::ImmCmdInclude::Example>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6840,7 +6840,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Export, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeExport")
     .def("__init__",
          [](org::imm::ImmCmdInclude::Export* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Export();
+         hstd::SerdeDefaultProvider<org::imm::ImmCmdInclude::Export>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6860,7 +6860,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Custom, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeCustom")
     .def("__init__",
          [](org::imm::ImmCmdInclude::Custom* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Custom();
+         hstd::SerdeDefaultProvider<org::imm::ImmCmdInclude::Custom>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6880,7 +6880,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::Src, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeSrc")
     .def("__init__",
          [](org::imm::ImmCmdInclude::Src* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::Src();
+         hstd::SerdeDefaultProvider<org::imm::ImmCmdInclude::Src>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6900,7 +6900,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmCmdInclude::OrgDocument, org::imm::ImmCmdInclude::IncludeBase>(m, "ImmCmdIncludeOrgDocument")
     .def("__init__",
          [](org::imm::ImmCmdInclude::OrgDocument* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::imm::ImmCmdInclude::OrgDocument();
+         hstd::SerdeDefaultProvider<org::imm::ImmCmdInclude::OrgDocument>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6962,7 +6962,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdCustomRaw, org::sem::Stmt>(m, "CmdCustomRaw")
     .def("__init__",
          [](org::sem::CmdCustomRaw* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCustomRaw();
+         hstd::SerdeDefaultProvider<org::sem::CmdCustomRaw>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -6981,7 +6981,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdCustomText, org::sem::Stmt>(m, "CmdCustomText")
     .def("__init__",
          [](org::sem::CmdCustomText* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCustomText();
+         hstd::SerdeDefaultProvider<org::sem::CmdCustomText>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7000,7 +7000,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Link, org::sem::Stmt>(m, "Link")
     .def("__init__",
          [](org::sem::Link* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Link();
+         hstd::SerdeDefaultProvider<org::sem::Link>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7018,7 +7018,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockComment, org::sem::Stmt>(m, "BlockComment")
     .def("__init__",
          [](org::sem::BlockComment* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockComment();
+         hstd::SerdeDefaultProvider<org::sem::BlockComment>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7034,7 +7034,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Paragraph, org::sem::Stmt>(m, "Paragraph")
     .def("__init__",
          [](org::sem::Paragraph* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Paragraph();
+         hstd::SerdeDefaultProvider<org::sem::Paragraph>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7061,7 +7061,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::List, org::sem::Stmt>(m, "List")
     .def("__init__",
          [](org::sem::List* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::List();
+         hstd::SerdeDefaultProvider<org::sem::List>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7083,7 +7083,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::HashTag, org::sem::Inline>(m, "HashTag")
     .def("__init__",
          [](org::sem::HashTag* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::HashTag();
+         hstd::SerdeDefaultProvider<org::sem::HashTag>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7100,7 +7100,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::InlineFootnote, org::sem::Inline>(m, "InlineFootnote")
     .def("__init__",
          [](org::sem::InlineFootnote* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::InlineFootnote();
+         hstd::SerdeDefaultProvider<org::sem::InlineFootnote>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7118,7 +7118,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::InlineExport, org::sem::Inline>(m, "InlineExport")
     .def("__init__",
          [](org::sem::InlineExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::InlineExport();
+         hstd::SerdeDefaultProvider<org::sem::InlineExport>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7136,7 +7136,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Escaped, org::sem::Leaf>(m, "Escaped")
     .def("__init__",
          [](org::sem::Escaped* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Escaped();
+         hstd::SerdeDefaultProvider<org::sem::Escaped>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7152,7 +7152,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Newline, org::sem::Leaf>(m, "Newline")
     .def("__init__",
          [](org::sem::Newline* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Newline();
+         hstd::SerdeDefaultProvider<org::sem::Newline>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7168,7 +7168,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Space, org::sem::Leaf>(m, "Space")
     .def("__init__",
          [](org::sem::Space* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Space();
+         hstd::SerdeDefaultProvider<org::sem::Space>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7184,7 +7184,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Word, org::sem::Leaf>(m, "Word")
     .def("__init__",
          [](org::sem::Word* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Word();
+         hstd::SerdeDefaultProvider<org::sem::Word>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7200,7 +7200,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::AtMention, org::sem::Leaf>(m, "AtMention")
     .def("__init__",
          [](org::sem::AtMention* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::AtMention();
+         hstd::SerdeDefaultProvider<org::sem::AtMention>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7216,7 +7216,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::RawText, org::sem::Leaf>(m, "RawText")
     .def("__init__",
          [](org::sem::RawText* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::RawText();
+         hstd::SerdeDefaultProvider<org::sem::RawText>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7232,7 +7232,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Punctuation, org::sem::Leaf>(m, "Punctuation")
     .def("__init__",
          [](org::sem::Punctuation* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Punctuation();
+         hstd::SerdeDefaultProvider<org::sem::Punctuation>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7248,7 +7248,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Placeholder, org::sem::Leaf>(m, "Placeholder")
     .def("__init__",
          [](org::sem::Placeholder* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Placeholder();
+         hstd::SerdeDefaultProvider<org::sem::Placeholder>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7264,7 +7264,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BigIdent, org::sem::Leaf>(m, "BigIdent")
     .def("__init__",
          [](org::sem::BigIdent* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BigIdent();
+         hstd::SerdeDefaultProvider<org::sem::BigIdent>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7280,7 +7280,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::TextTarget, org::sem::Leaf>(m, "TextTarget")
     .def("__init__",
          [](org::sem::TextTarget* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::TextTarget();
+         hstd::SerdeDefaultProvider<org::sem::TextTarget>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7296,7 +7296,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::ErrorSkipToken, org::sem::Leaf>(m, "ErrorSkipToken")
     .def("__init__",
          [](org::sem::ErrorSkipToken* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::ErrorSkipToken();
+         hstd::SerdeDefaultProvider<org::sem::ErrorSkipToken>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7312,7 +7312,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Bold, org::sem::Markup>(m, "Bold")
     .def("__init__",
          [](org::sem::Bold* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Bold();
+         hstd::SerdeDefaultProvider<org::sem::Bold>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7328,7 +7328,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Underline, org::sem::Markup>(m, "Underline")
     .def("__init__",
          [](org::sem::Underline* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Underline();
+         hstd::SerdeDefaultProvider<org::sem::Underline>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7344,7 +7344,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Monospace, org::sem::Markup>(m, "Monospace")
     .def("__init__",
          [](org::sem::Monospace* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Monospace();
+         hstd::SerdeDefaultProvider<org::sem::Monospace>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7360,7 +7360,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::MarkQuote, org::sem::Markup>(m, "MarkQuote")
     .def("__init__",
          [](org::sem::MarkQuote* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::MarkQuote();
+         hstd::SerdeDefaultProvider<org::sem::MarkQuote>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7376,7 +7376,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Verbatim, org::sem::Markup>(m, "Verbatim")
     .def("__init__",
          [](org::sem::Verbatim* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Verbatim();
+         hstd::SerdeDefaultProvider<org::sem::Verbatim>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7392,7 +7392,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Italic, org::sem::Markup>(m, "Italic")
     .def("__init__",
          [](org::sem::Italic* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Italic();
+         hstd::SerdeDefaultProvider<org::sem::Italic>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7408,7 +7408,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Strike, org::sem::Markup>(m, "Strike")
     .def("__init__",
          [](org::sem::Strike* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Strike();
+         hstd::SerdeDefaultProvider<org::sem::Strike>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7424,7 +7424,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Par, org::sem::Markup>(m, "Par")
     .def("__init__",
          [](org::sem::Par* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Par();
+         hstd::SerdeDefaultProvider<org::sem::Par>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7518,7 +7518,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdCreator, org::sem::Cmd>(m, "CmdCreator")
     .def("__init__",
          [](org::sem::CmdCreator* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCreator();
+         hstd::SerdeDefaultProvider<org::sem::CmdCreator>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7535,7 +7535,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdAuthor, org::sem::Cmd>(m, "CmdAuthor")
     .def("__init__",
          [](org::sem::CmdAuthor* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdAuthor();
+         hstd::SerdeDefaultProvider<org::sem::CmdAuthor>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7552,7 +7552,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdEmail, org::sem::Cmd>(m, "CmdEmail")
     .def("__init__",
          [](org::sem::CmdEmail* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdEmail();
+         hstd::SerdeDefaultProvider<org::sem::CmdEmail>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7569,7 +7569,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdLanguage, org::sem::Cmd>(m, "CmdLanguage")
     .def("__init__",
          [](org::sem::CmdLanguage* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdLanguage();
+         hstd::SerdeDefaultProvider<org::sem::CmdLanguage>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7586,7 +7586,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdCustomArgs, org::sem::Cmd>(m, "CmdCustomArgs")
     .def("__init__",
          [](org::sem::CmdCustomArgs* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCustomArgs();
+         hstd::SerdeDefaultProvider<org::sem::CmdCustomArgs>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7604,7 +7604,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdTblfm, org::sem::Cmd>(m, "CmdTblfm")
     .def("__init__",
          [](org::sem::CmdTblfm* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdTblfm();
+         hstd::SerdeDefaultProvider<org::sem::CmdTblfm>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7621,7 +7621,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Cell, org::sem::Cmd>(m, "Cell")
     .def("__init__",
          [](org::sem::Cell* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Cell();
+         hstd::SerdeDefaultProvider<org::sem::Cell>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7638,7 +7638,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Row, org::sem::Cmd>(m, "Row")
     .def("__init__",
          [](org::sem::Row* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Row();
+         hstd::SerdeDefaultProvider<org::sem::Row>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7884,7 +7884,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCenter, org::sem::Block>(m, "BlockCenter")
     .def("__init__",
          [](org::sem::BlockCenter* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCenter();
+         hstd::SerdeDefaultProvider<org::sem::BlockCenter>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7900,7 +7900,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockQuote, org::sem::Block>(m, "BlockQuote")
     .def("__init__",
          [](org::sem::BlockQuote* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockQuote();
+         hstd::SerdeDefaultProvider<org::sem::BlockQuote>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7916,7 +7916,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockVerse, org::sem::Block>(m, "BlockVerse")
     .def("__init__",
          [](org::sem::BlockVerse* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockVerse();
+         hstd::SerdeDefaultProvider<org::sem::BlockVerse>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7932,7 +7932,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockDynamicFallback, org::sem::Block>(m, "BlockDynamicFallback")
     .def("__init__",
          [](org::sem::BlockDynamicFallback* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockDynamicFallback();
+         hstd::SerdeDefaultProvider<org::sem::BlockDynamicFallback>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7949,7 +7949,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockExample, org::sem::Block>(m, "BlockExample")
     .def("__init__",
          [](org::sem::BlockExample* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockExample();
+         hstd::SerdeDefaultProvider<org::sem::BlockExample>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7965,7 +7965,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockExport, org::sem::Block>(m, "BlockExport")
     .def("__init__",
          [](org::sem::BlockExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockExport();
+         hstd::SerdeDefaultProvider<org::sem::BlockExport>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -7984,7 +7984,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockAdmonition, org::sem::Block>(m, "BlockAdmonition")
     .def("__init__",
          [](org::sem::BlockAdmonition* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockAdmonition();
+         hstd::SerdeDefaultProvider<org::sem::BlockAdmonition>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8000,7 +8000,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCodeEvalResult, org::sem::Block>(m, "BlockCodeEvalResult")
     .def("__init__",
          [](org::sem::BlockCodeEvalResult* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCodeEvalResult();
+         hstd::SerdeDefaultProvider<org::sem::BlockCodeEvalResult>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8018,7 +8018,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::BlockCode, org::sem::Block>(m, "BlockCode")
     .def("__init__",
          [](org::sem::BlockCode* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::BlockCode();
+         hstd::SerdeDefaultProvider<org::sem::BlockCode>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8041,7 +8041,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::Table, org::sem::Block>(m, "Table")
     .def("__init__",
          [](org::sem::Table* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::Table();
+         hstd::SerdeDefaultProvider<org::sem::Table>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8178,7 +8178,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdCaption, org::sem::Attached>(m, "CmdCaption")
     .def("__init__",
          [](org::sem::CmdCaption* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCaption();
+         hstd::SerdeDefaultProvider<org::sem::CmdCaption>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8195,7 +8195,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdColumns, org::sem::Attached>(m, "CmdColumns")
     .def("__init__",
          [](org::sem::CmdColumns* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdColumns();
+         hstd::SerdeDefaultProvider<org::sem::CmdColumns>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8212,7 +8212,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdName, org::sem::Attached>(m, "CmdName")
     .def("__init__",
          [](org::sem::CmdName* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdName();
+         hstd::SerdeDefaultProvider<org::sem::CmdName>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8229,7 +8229,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdCall, org::sem::Attached>(m, "CmdCall")
     .def("__init__",
          [](org::sem::CmdCall* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdCall();
+         hstd::SerdeDefaultProvider<org::sem::CmdCall>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8251,7 +8251,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdAttr, org::sem::Attached>(m, "CmdAttr")
     .def("__init__",
          [](org::sem::CmdAttr* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdAttr();
+         hstd::SerdeDefaultProvider<org::sem::CmdAttr>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
@@ -8268,7 +8268,7 @@ and a segment kind.)RAW")
   nanobind::class_<org::sem::CmdExport, org::sem::Attached>(m, "CmdExport")
     .def("__init__",
          [](org::sem::CmdExport* result, nanobind::kwargs const& kwargs) -> void {
-         new(result) org::sem::CmdExport();
+         hstd::SerdeDefaultProvider<org::sem::CmdExport>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))

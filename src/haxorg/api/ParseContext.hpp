@@ -174,3 +174,17 @@ struct DiagnosticsParseContext : public hstd::ext::ReportSourceCache {
 
 
 } // namespace org::parse
+
+namespace hstd {
+template <>
+struct SerdeDefaultProvider<org::parse::OrgParseParameters> {
+    static void construct_at(void* ptr) { new (ptr) org::parse::OrgParseParameters(); }
+};
+
+template <>
+struct SerdeDefaultProvider<org::parse::OrgDirectoryParseParameters> {
+    static void construct_at(void* ptr) {
+        new (ptr) org::parse::OrgDirectoryParseParameters();
+    }
+};
+} // namespace hstd

@@ -2105,7 +2105,7 @@ haxorg_OrgTokenKind haxorg_OrgDiagnosticsParseTokenError_get_tokenKind(OrgContex
 
 haxorg_HstdStr haxorg_OrgDiagnosticsParseTokenError_get_tokenText(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::OrgDiagnostics::ParseTokenError, hstd::Str, haxorg_OrgDiagnosticsParseTokenError>(org_context, __this, &org::sem::OrgDiagnostics::ParseTokenError::tokenText); }
 
-haxorg_ParseSourceLoc haxorg_OrgDiagnosticsParseTokenError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this) { return org::bind::c::get_cpp_field<haxorg_ParseSourceLoc, org::sem::OrgDiagnostics::ParseTokenError, org::parse::SourceLoc, haxorg_OrgDiagnosticsParseTokenError>(org_context, __this, &org::sem::OrgDiagnostics::ParseTokenError::loc); }
+haxorg_StdOptional haxorg_OrgDiagnosticsParseTokenError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this) { return org::bind::c::get_cpp_field<haxorg_StdOptional, org::sem::OrgDiagnostics::ParseTokenError, std::optional<org::parse::SourceLoc>, haxorg_OrgDiagnosticsParseTokenError>(org_context, __this, &org::sem::OrgDiagnostics::ParseTokenError::loc); }
 
 haxorg_HstdStr haxorg_OrgDiagnosticsParseTokenError_get_errName(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this) { return org::bind::c::get_cpp_field<haxorg_HstdStr, org::sem::OrgDiagnostics::ParseTokenError, hstd::Str, haxorg_OrgDiagnosticsParseTokenError>(org_context, __this, &org::sem::OrgDiagnostics::ParseTokenError::errName); }
 

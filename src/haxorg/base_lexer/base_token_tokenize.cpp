@@ -1676,7 +1676,8 @@ template <typename K>
 TokenAlignmentReport validateAndRealignOrgFillTokens(
     std::string const&              text,
     std::vector<Token<K, OrgFill>>& tokens,
-    int                             maxFailures) {
+    int                             maxFailures,
+    org::parse::SourceFileId        file_id) {
     if (maxFailures <= 0) {
         throw std::invalid_argument{
             fmt::format("maxFailures must be positive, got {}", maxFailures)};
@@ -1824,9 +1825,10 @@ TokenAlignmentReport validateAndRealignOrgFillTokens(
         }
 
         token.value.loc = org::parse::SourceLoc{
-            .line   = expectedLine,
-            .column = expectedCol,
-            .pos    = expectedPos,
+            .line    = expectedLine,
+            .column  = expectedCol,
+            .pos     = expectedPos,
+            .file_id = file_id,
         };
 
         int tokenEndLine = expectedLine;
@@ -1955,7 +1957,8 @@ OrgTokenGroup org::parse::tokenize(
         switch_regular_char(c);
     }
 
-    auto report = validateAndRealignOrgFillTokens(text, result.tokens.content, 10);
+    auto report = validateAndRealignOrgFillTokens(
+        text, result.tokens.content, 10, file_id);
 
     if (0 < report.failures.size()) {
         for (auto const& fail : report.failures) {

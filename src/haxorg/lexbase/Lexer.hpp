@@ -26,13 +26,13 @@ struct LexerCommon {
         if (auto loc = TokenUtils<K, V>::getLocation(tok); loc.has_value()) {
             return loc.value();
         } else if (!lastToken.has_value()) {
-            return SourceLoc{-1, -1};
+            return hstd::SerdeDefaultProvider<SourceLoc>::get();
         } else if (
             auto loc = TokenUtils<K, V>::getLocation(lastToken.value());
             loc.has_value()) {
             return loc.value();
         } else {
-            return SourceLoc{-1, -1};
+            return hstd::SerdeDefaultProvider<SourceLoc>::get();
         }
     }
 

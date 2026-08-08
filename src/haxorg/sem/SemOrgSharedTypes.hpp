@@ -1398,7 +1398,7 @@ struct OrgDiagnostics {
     int parserLine;
     OrgTokenKind tokenKind;
     hstd::Str tokenText;
-    org::parse::SourceLoc loc;
+    hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
     hstd::Str errName;
     hstd::Str errCode;
     bool operator==(org::sem::OrgDiagnostics::ParseTokenError const& other) const;

@@ -114,7 +114,10 @@ struct convert<org::parse::OrgFill> {
     }
     static bool decode(Node const& in, org::parse::OrgFill& out) {
         if (in["text"]) { out.text = in["text"].as<hstd::Str>(); }
-        if (in["loc"]) { out.loc = in["loc"].as<org::parse::SourceLoc>(); }
+        if (in["loc"]) {
+            out.loc = hstd::SerdeDefaultProvider<org::parse::SourceLoc>::get();
+            convert<org::parse::SourceLoc>::decode(in["loc"], out.loc.value());
+        }
         return true;
     }
 };

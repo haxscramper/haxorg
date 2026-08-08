@@ -157,7 +157,8 @@ struct SerdeDefaultProvider {};
 
 template <DefaultConstructible T>
 struct SerdeDefaultProvider<T> {
-    static T get() { return T{}; }
+    static T    get() { return T{}; }
+    static void construct_at(void* ptr) { new (ptr) T(get()); };
 };
 
 template <>

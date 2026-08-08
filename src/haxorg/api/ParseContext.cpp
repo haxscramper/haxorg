@@ -680,14 +680,15 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
 
                     case K::ParseTokenError: {
                         auto const& err = d.getParseTokenError();
-                        auto        id  = getId(err.loc);
+                        auto        id  = getId(err.loc.value());
                         auto        l   = //
                             ext::ReportLabel{
                                 ext::ReportLabelId{1},
                                 ext::CodeSpan{
                                     id,
                                     slice(
-                                        err.loc.pos, err.loc.pos + err.tokenText.size())}}
+                                        err.loc->pos,
+                                        err.loc->pos + err.tokenText.size())}}
                                 .with_message(err.detail);
 
                         result.push_back(

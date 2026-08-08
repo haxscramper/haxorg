@@ -1382,7 +1382,7 @@ message OrgDiagnostics {
     int32                                          parserLine                       = 4;
     OrgTokenKind                                   tokenKind                        = 5;
     string                                         tokenText                        = 6;
-    org.parse.SourceLoc                            loc                              = 7;
+    optional org.parse.SourceLoc                   loc                              = 7;
     string                                         errName                          = 8;
     string                                         errCode                          = 9;
     string                                         debug                            = 1000;
