@@ -2138,7 +2138,19 @@ OrgConverter::ConvResult<AtMention> OrgConverter::convertAtMention(__args) {
     return SemLeaf<AtMention>(a);
 }
 
-sem::AttrValue OrgConverter::convertAttr(__args) {
+template <hstd::DescribedEnum E>
+hstd::IntSet<E> full_enum_set() {
+    hstd::IntSet<E> result;
+    for (E value : hstd::describe_enumerators_as_array<E>()) { result.incl(value); }
+    return result;
+}
+
+static hstd::IntSet<org::sem::AttrValue::Kind> AllAttrValues{
+    full_enum_set<org::sem::AttrValue::Kind>()};
+
+sem::AttrValue OrgConverter::convertAttr(
+    __args,
+    hstd::IntSet<org::sem::AttrValue::Kind> allowedTypes) {
     auto           __trace = trace(a);
     sem::AttrValue result;
 
@@ -2162,7 +2174,8 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
         }
 
         auto split = hstd::split(value, ':');
-        if (!result.isQuoted && split.size() == 2 && !value.contains("::")) {
+        if (allowedTypes.contains(AttrValue::Kind::FileReference) && !result.isQuoted
+            && split.size() == 2 && !value.contains("::")) {
             AttrValue::FileReference fr{};
             fr.file      = split.at(0);
             fr.reference = split.at(1);
@@ -2204,6 +2217,14 @@ sem::AttrValue OrgConverter::convertAttr(__args) {
         }
     }
 
+    LOGIC_ASSERTION_CHECK_FMT(
+        allowedTypes.contains(result.getKind()),
+        "Failed to convert input node into the allowed attribute types: got {} but only "
+        "{} are allowed, from node {}\n",
+        result.getKind(),
+        allowedTypes,
+        a.treeRepr(false));
+
     return result;
 }
 
@@ -2229,10 +2250,12 @@ sem::AttrGroup OrgConverter::convertAttrs(__args) {
     };
 
     if (a.getKind() == onk::Attrs) {
-        for (auto const& item : one(a, N::Values)) { push_argument(convertAttr(item)); }
+        for (auto const& item : one(a, N::Values)) {
+            push_argument(convertAttr(item, AllAttrValues));
+        }
     } else if (a.getKind() == onk::InlineStmtList) {
         for (auto const& it : a) {
-            push_argument(convertAttr(it)); //
+            push_argument(convertAttr(it, AllAttrValues)); //
         }
     } else {
         LOGIC_ASSERTION_CHECK_FMT(a.getKind() == onk::Empty, "{}", a.treeRepr());
@@ -2412,7 +2435,10 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(__args) {
 OrgConverter::ConvResult<CmdName> OrgConverter::convertCmdName(__args) {
     auto           __trace = trace(a);
     SemId<CmdName> result  = Sem<CmdName>(a);
-    result->name           = convertAttr(a.at(0).at(0)).getString();
+    auto           attr    = convertAttr(a.at(0).at(0), {AttrValue::Kind::TextValue});
+    LOGIC_ASSERTION_CHECK_FMT(
+        attr.isTextValue(), "{}\n{}\n", a.at(0).at(0).treeRepr(false), attr.getKind());
+    result->name = attr.getString();
     return result;
 }
 

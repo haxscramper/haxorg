@@ -484,11 +484,18 @@ int main(int argc, char* argv[]) {
     std::ofstream fileOut;
     std::ostream* diagOut = &std::cerr;
     if (opts.diagnosticsFile) {
-        auto mode = std::ios::out;
-        mode |= std::ios::trunc;
-        fileOut.open(opts.diagnosticsFile.value(), mode);
+        auto const& path = hstd::fs::path{opts.diagnosticsFile.value().toBase()};
+        std::filesystem::create_directories(path.parent_path());
+        fileOut.open(path, std::ios::out | std::ios::trunc);
+        if (!fileOut.is_open()) {
+            throw std::runtime_error(
+                hstd::fmt("failed to open diagnostics file {}", path));
+        }
+        HSLOG_INFO("using diag file {}", path);
         diagOut = &fileOut;
     }
+
+    *diagOut << "" << std::endl;
 
     auto onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& reports,
                                       std::optional<int>                  fragmentIndex) {

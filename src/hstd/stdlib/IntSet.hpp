@@ -149,6 +149,9 @@ struct [[refl(R"({
         buildSet(*this, args...);
     }
 
+    IntSet(IntSet<T> const& other) = default;
+
+
     class iterator {
       private:
         std::size_t    index;

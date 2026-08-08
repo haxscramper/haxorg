@@ -219,7 +219,7 @@ struct OrgConverter : public hstd::OperationsTracer {
 
     bool updateDocument(SemId<Document>& doc, parse::OrgAdapter const& sub);
 
-    sem::AttrValue convertAttr(In);
+    sem::AttrValue convertAttr(In, hstd::IntSet<AttrValue::Kind> allowedTypes);
     sem::AttrGroup convertAttrs(In);
     sem::LispCode  convertLisp(In);
 
