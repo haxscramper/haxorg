@@ -1070,6 +1070,26 @@ std::optional<int> is_at_table_separator(Cursor& c, int skip) {
     }
 }
 
+
+void lex_latex_inline(Cursor& c, std::string const& close, OrgTokenKind end) {
+    int offset = 0;
+    while (c.has_pos(offset) && !c.is_at('\n', offset)) {
+        if (c.is_at(close, offset)
+            // for delimiters not starting with a backslash (`$`, `$$`),
+            // skip escaped occurrences like `\$`
+            && !(close.at(0) != '\\' && 0 < offset && c.is_at('\\', offset - 1))) {
+            break;
+        }
+        ++offset;
+    }
+
+    if (c.is_at(close, offset)) {
+        if (0 < offset) { c.token_adv(otk::LatexInlineRaw, offset); }
+        c.token_adv(end, close.size());
+    }
+}
+
+
 void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
         int skip = 0;
@@ -1200,13 +1220,15 @@ void switch_regular_char(Cursor& c) {
         case '`': c.token0(otk::Backtick, &advance1); break;
         case '$': {
             if (c.is_at('$', +1)) {
-                c.token_adv(otk::DoubleDollar, 2);
+                c.token_adv(otk::LatexDollar2Begin, 2);
+                lex_latex_inline(c, "$$", otk::LatexDollar2End);
             } else {
-                c.token0(otk::Dollar, &advance1);
+                c.token_adv(otk::LatexDollar1Begin, 1);
+                lex_latex_inline(c, "$", otk::LatexDollar1End);
             }
-
             break;
         }
+
         case '!': c.token0(otk::Exclamation, &advance1); break;
         case '&': c.token0(otk::Ampersand, &advance1); break;
         case '/': c.token0(otk::ForwardSlash, &advance1); break;
@@ -1221,7 +1243,13 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         case '\\': {
-            if (c.is_at_all_of(1, &is_alpha_char)) {
+            if (c.is_at_all_of(0, '\\', '(')) {
+                c.token_adv(otk::LatexParBegin, 2);
+                lex_latex_inline(c, "\\)", otk::LatexParEnd);
+            } else if (c.is_at_all_of(0, '\\', '[')) {
+                c.token_adv(otk::LatexBraceBegin, 2);
+                lex_latex_inline(c, "\\]", otk::LatexBraceEnd);
+            } else if (c.is_at_all_of(1, &is_alpha_char)) {
                 c.token0(otk::Symbol, [](Cursor& c) {
                     c.skip('\\');
                     advance_word(c);
@@ -1233,6 +1261,7 @@ void switch_regular_char(Cursor& c) {
             }
             break;
         }
+
         case '[': {
             static constexpr auto link_continuation = LEXY_CHAR_CLASS(
                 "oident",
