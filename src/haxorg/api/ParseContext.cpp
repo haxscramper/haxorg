@@ -688,8 +688,7 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                     case K::ParseTokenError: {
                         auto const& err = d.getParseTokenError();
                         auto        id  = getId(err.loc.value());
-                        HSLOG_TRACE("{}", err.tokenText);
-                        auto l = //
+                        auto        l   = //
                             ext::ReportLabel{
                                 ext::ReportLabelId{1},
                                 cache->init_span(

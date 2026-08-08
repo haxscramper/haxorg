@@ -786,6 +786,7 @@ NB_MODULE(pyhaxorg, m) {
     .value("Date", OrgTokenKind::Date)
     .value("Dedent", OrgTokenKind::Dedent)
     .value("Dollar", OrgTokenKind::Dollar)
+    .value("DoubleDollar", OrgTokenKind::DoubleDollar, R"RAW(Inline latex)RAW")
     .value("DoubleAngleBegin", OrgTokenKind::DoubleAngleBegin)
     .value("DoubleAngleEnd", OrgTokenKind::DoubleAngleEnd)
     .value("DoubleColon", OrgTokenKind::DoubleColon)

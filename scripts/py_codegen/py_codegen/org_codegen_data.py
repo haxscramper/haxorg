@@ -3677,6 +3677,7 @@ def get_org_token_kind() -> List[GenTuEnumField]:
         efield("Date", ""),
         efield("Dedent", ""),
         efield("Dollar", ""),
+        efield("DoubleDollar", "Inline latex"),
         efield("DoubleAngleBegin", ""),
         efield("DoubleAngleEnd", ""),
         efield("DoubleColon", ""),

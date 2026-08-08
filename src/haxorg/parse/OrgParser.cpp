@@ -2669,7 +2669,7 @@ bool OrgParser::at(OrgLexer const& lex, OrgExpectable const& item) {
 }
 
 
-void assertValidStructure(OrgNodeGroup* group, OrgId id) {
+void assertValidStructure(OrgNodeGroup const* group, OrgId id) {
     using Id = OrgNodeGroup::Id;
 
     Func<void(Id)> aux;
@@ -2807,7 +2807,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 // Structural correctness checks -- mostly for
                 // debugging of the implementation, malformed incoming
                 // data is not expected.
-                assertValidStructure(parser->group, tree);
+                if (parser->TraceState) { assertValidStructure(parser->group, tree); }
                 LOGIC_ASSERTION_CHECK_FMT(treeSlice.last <= g.nodes.back(), "");
                 LOGIC_ASSERTION_CHECK_FMT(stmtSlice.last <= g.nodes.back(), "");
                 LOGIC_ASSERTION_CHECK_FMT(

@@ -192,8 +192,8 @@ struct Cursor {
         return nextUnicode(line, function);
     }
 
-    int is_at_unicode(int offset = 0) {
-        return 0xF0 <= static_cast<unsigned char>(get(offset));
+    bool is_at_unicode(int offset = 0) {
+        return 0xC0 <= static_cast<unsigned char>(get(offset));
     }
 
     bool nextUnicode(
@@ -1198,7 +1198,15 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         case '`': c.token0(otk::Backtick, &advance1); break;
-        case '$': c.token0(otk::Dollar, &advance1); break;
+        case '$': {
+            if (c.is_at('$', +1)) {
+                c.token_adv(otk::DoubleDollar, 2);
+            } else {
+                c.token0(otk::Dollar, &advance1);
+            }
+
+            break;
+        }
         case '!': c.token0(otk::Exclamation, &advance1); break;
         case '&': c.token0(otk::Ampersand, &advance1); break;
         case '/': c.token0(otk::ForwardSlash, &advance1); break;
