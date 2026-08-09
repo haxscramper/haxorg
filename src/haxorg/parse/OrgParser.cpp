@@ -1090,7 +1090,9 @@ OrgParser::ParseResult OrgParser::parseTimeRange(OrgLexer& lex) {
         SUB_PARSE(TimeStamp, lex);
         TRY_SKIP(lex, otk::DoubleDash);
         SUB_PARSE(TimeStamp, lex);
-        if (lex.ahead({otk::Whitespace}, {otk::TimeArrow})) {
+        if (lex.ahead(
+                {otk::Whitespace}, as_vec(otk::TimeArrow, otk::Whitespace, otk::Time))
+            || lex.ahead({otk::Whitespace}, as_vec(otk::TimeArrow, otk::Time))) {
             space(lex);
             TRY_SKIP(lex, otk::TimeArrow);
             space(lex);

@@ -12,6 +12,7 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
 using namespace hstd;
@@ -671,6 +672,10 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                     return ext::ReportSourceId::FromValue(loc.file_id.getValue());
                 };
 
+                auto getLocSpan = [&](org::parse::SourceLoc const& loc, int size) {
+                    return cache->init_span(getId(loc), slice(loc.pos, loc.pos + size));
+                };
+
                 switch (d.getKind()) {
                     case K::ConvertError: {
                         auto const& err = d.getConvertError();
@@ -680,18 +685,15 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                             goto missing_location;
                         }
 
-                        auto id = getId(err.loc.value());
-
                         result.push_back(
-                            ext::Report(ext::ReportKind::Error, id, 0)
+                            ext::Report(ext::ReportKind::Error, getId(err.loc.value()), 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
                                 .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
                                 .with_label(
                                     ext::ReportLabel{
                                         ext::ReportLabelId::FromValue(1),
-                                        cache->init_span(id, slice(1, 2)),
-                                    }
+                                        getLocSpan(err.loc.value(), 1)}
                                         .with_message(err.detail)));
                         break;
                     }
@@ -704,17 +706,13 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                             goto missing_location;
                         }
 
-                        auto id = getId(err.loc.value());
-                        auto l  = //
+                        auto l = //
                             ext::ReportLabel{
-                                ext::ReportLabelId{1},
-                                cache->init_span(
-                                    id, slice(err.loc->pos, err.loc->pos + 1)),
-                            }
+                                ext::ReportLabelId{1}, getLocSpan(err.loc.value(), 1)}
                                 .with_message(err.detail);
 
                         result.push_back(
-                            ext::Report(ext::ReportKind::Error, id, 0)
+                            ext::Report(ext::ReportKind::Error, getId(err.loc.value()), 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
                                 .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
@@ -730,20 +728,15 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                             goto missing_location;
                         }
 
-                        auto id = getId(err.loc.value());
-                        auto l  = //
+
+                        auto l = //
                             ext::ReportLabel{
                                 ext::ReportLabelId{1},
-                                cache->init_span(
-                                    id,
-                                    slice(
-                                        err.loc->pos,
-                                        err.loc->pos + err.tokenText.size())),
-                            }
+                                getLocSpan(err.loc.value(), err.tokenText.size())}
                                 .with_message(err.detail);
 
                         result.push_back(
-                            ext::Report(ext::ReportKind::Error, id, 0)
+                            ext::Report(ext::ReportKind::Error, getId(err.loc.value()), 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
                                 .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))

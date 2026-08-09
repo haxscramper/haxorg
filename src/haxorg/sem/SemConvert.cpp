@@ -59,9 +59,8 @@ org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
 
 struct ErrorTable {
 #define P_ERROR(__fieldname, __short, __long)                                            \
-    static const inline org::sem::OrgDiagnostics::ConvertError                           \
-        __fieldname = ConvertErrorInit(                                                  \
-            #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
+    const org::sem::OrgDiagnostics::ConvertError __fieldname = ConvertErrorInit(         \
+        #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
 
     P_ERROR(MissingLogHashtag, "No hashtag provided for the 'tag' value", "");
     P_ERROR(
@@ -118,7 +117,10 @@ struct ErrorTable {
 #undef P_ERROR
 };
 
+ErrorTable __table;
+
 } // namespace
+
 
 template <typename T>
 org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
@@ -476,7 +478,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             if (auto tag = node_after("tag", {osk::HashTag})) {
                 res.tag = tag->as<sem::HashTag>()->text;
             } else {
-                return SemError(a, MakeConvert(a, ErrorTable::MissingLogHashtag));
+                return SemError(a, MakeConvert(a, __table.MissingLogHashtag));
             }
 
             if (auto on = time_after("on")) { res.on = on.value()->getStaticTime(); }
@@ -495,7 +497,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             if (auto state = node_after("state", {osk::BigIdent})) {
                 states.to = state.value().as<sem::BigIdent>()->text;
             } else {
-                return SemError(a, MakeConvert(a, ErrorTable::MissingCurrentState));
+                return SemError(a, MakeConvert(a, __table.MissingCurrentState));
             }
             if (auto from = node_after("from", {osk::BigIdent})) {
                 states.from = from.value().as<sem::BigIdent>()->text;
@@ -525,7 +527,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
             if (auto time = time_after("on")) {
                 refile.on = time.value()->getStaticTime();
             } else {
-                return SemError(a, MakeConvert(a, ErrorTable::MissingRefileTime));
+                return SemError(a, MakeConvert(a, __table.MissingRefileTime));
             }
 
             if (!link.empty()) { refile.from = link.at(0)->target; }
@@ -755,14 +757,14 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
                 if (def.hashtag.head.empty()) {
                     def.hashtag = tag.value->text;
                 } else {
-                    return SemError(a, MakeConvert(a, ErrorTable::OverloadedHashtagDef));
+                    return SemError(a, MakeConvert(a, __table.OverloadedHashtagDef));
                 }
             } else {
                 return SemError(
                     a,
                     MakeConvert(
                         a,
-                        ErrorTable::UnexpectedHashtagDefNode,
+                        __table.UnexpectedHashtagDefNode,
                         hstd::fmt("Found {}", tag->getKind())));
             }
         }
@@ -771,8 +773,9 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name == "created") {
         handled();
         Property::Created created;
-        auto              par  = convertParagraph(one(a, N::Values)).value();
-        auto              par0 = par->at(0);
+        auto              par_node = one(a, N::Values);
+        auto              par      = convertParagraph(par_node).value();
+        auto              par0     = par->at(0);
 
         if (par0->is(osk::Time)) {
             auto t       = par0.as<sem::Time>();
@@ -780,11 +783,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
             result       = Property(created);
         } else {
             return SemError(
-                a,
+                par_node,
                 MakeConvert(
-                    a,
-                    ErrorTable::UnexpectedCreatedValue,
-                    hstd::fmt("found {} at {}", par0->getKind(), getLocMsg(a))));
+                    par_node,
+                    __table.UnexpectedCreatedValue,
+                    hstd::fmt("found {} at {}", par0->getKind(), getLocMsg(par_node))));
         }
 
     } else if (name == "visibility") {
@@ -817,7 +820,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
                     a,
                     MakeConvert(
                         a,
-                        ErrorTable::UnexpectedCookieData,
+                        __table.UnexpectedCookieData,
                         hstd::fmt("Unexpected cookie data parameter: {}", arg)));
             }
         }
@@ -1033,7 +1036,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
             auto time = timeResult.value();
 
             if (!time->isStatic()) {
-                return SemError(a, MakeConvert(a, ErrorTable::ExpectedStaticSubtreeTime));
+                return SemError(a, MakeConvert(a, __table.ExpectedStaticSubtreeTime));
             }
 
             if (org_streq(kind->text, "closed")) {
@@ -1047,7 +1050,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
                     a,
                     MakeConvert(
                         a,
-                        ErrorTable::UnexpectedSubtreeTimeName,
+                        __table.UnexpectedSubtreeTimeName,
                         hstd::fmt("The value was '{}'", kind)));
             }
         }
@@ -1165,7 +1168,7 @@ OrgConverter::ConvResult<Time> OrgConverter::convertTime(__args) {
             return SemError(
                 a,
                 MakeConvert(
-                    a, ErrorTable::TimeFormatFail, hstd::fmt("Format '{}'", datetime)));
+                    a, __table.TimeFormatFail, hstd::fmt("Format '{}'", datetime)));
         }
     }
 
@@ -1395,7 +1398,7 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
                 a,
                 MakeConvert(
                     a,
-                    ErrorTable::UnexpectedCheckboxValue,
+                    __table.UnexpectedCheckboxValue,
                     hstd::fmt("got value '{}'", text)));
         }
     }
@@ -1845,8 +1848,7 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
         return res;
     } else {
         return SemError(
-            a,
-            MakeConvert(a, ErrorTable::TableExpressionFail, join("\n", result.errors())));
+            a, MakeConvert(a, __table.TableExpressionFail, join("\n", result.errors())));
     }
 }
 
@@ -2505,8 +2507,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(__args) {
         return result;
     } else {
         return SemError(
-            a,
-            MakeConvert(a, ErrorTable::ColumnExpressionFail, join("\n", spec.errors())));
+            a, MakeConvert(a, __table.ColumnExpressionFail, join("\n", spec.errors())));
     }
 
     return result;
@@ -2993,7 +2994,7 @@ void OrgConverter::convertDocumentOptions(
                     a,
                     MakeConvert(
                         a,
-                        ErrorTable::UnexpectedDocumentOption,
+                        __table.UnexpectedDocumentOption,
                         hstd::fmt(
                             "Value {}, "
                             "head:'{}', "
@@ -3009,9 +3010,7 @@ void OrgConverter::convertDocumentOptions(
             opts->push_back(SemError(
                 a,
                 MakeConvert(
-                    a,
-                    ErrorTable::UnexpectedDocumentOption,
-                    hstd::fmt("value {}", value))));
+                    a, __table.UnexpectedDocumentOption, hstd::fmt("value {}", value))));
         }
     }
 }

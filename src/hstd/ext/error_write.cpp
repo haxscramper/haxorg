@@ -912,10 +912,9 @@ Vec<SourceGroup> Report::get_source_groups(ReportSourceCache* cache) const {
             .label = label,
         };
 
-        auto it = std::find_if(
-            groups.begin(), groups.end(), [&](SourceGroup const& group) {
-                return group.src_id == label.span.source();
-            });
+        auto it = std::ranges::find_if(groups, [&](SourceGroup const& group) {
+            return group.src_id == label.span.source();
+        });
 
         if (it != groups.end()) {
             it->span.first = std::min(it->span.first, label.span.start());
