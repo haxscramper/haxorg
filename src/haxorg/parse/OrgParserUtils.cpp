@@ -12,9 +12,9 @@ std::string OrgParser::getLocMsg(OrgLexer const& lex) {
     std::string result;
     std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());
 
-    if (auto loc = getLoc(lex)) {
-        result = hstd::fmt(
-            "{}:{} (tok {}, pos {})", loc->line, loc->column, pos, loc->pos);
+    if (auto token = lex.getLocToken()) {
+        auto loc = token.value()->loc.value();
+        result = hstd::fmt("{}:{} (tok {}, pos {})", loc.line, loc.column, pos, loc.pos);
     } else {
         result = hstd::fmt("(tok {})", pos);
     }
@@ -22,27 +22,6 @@ std::string OrgParser::getLocMsg(OrgLexer const& lex) {
     return result;
 }
 
-
-Opt<SourceLoc> OrgParser::getLoc(OrgLexer const& lex) {
-    if (lex.finished()) {
-        return std::nullopt;
-    } else {
-        for (int offset = 0; lex.hasNext(-offset) || lex.hasNext(offset); ++offset) {
-            // Try incrementally widening lookarounds on the current
-            // lexer position until there is a token that has proper
-            // location information.
-            for (int i : Vec<int>{-1, 1}) {
-                if (lex.hasNext(offset * i)) {
-                    OrgToken tok = lex.tok(offset * i);
-                    if (!tok->isFake()) { return tok.value.loc.value(); }
-                    // If offset falls out of the lexer range on both
-                    // ends, terminate lookup.
-                }
-            }
-        }
-        return std::nullopt;
-    }
-}
 
 struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
     Builder& with_node(OrgId const& node) {
@@ -68,8 +47,8 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
         this->report = OrgParser::Report{
             OperationsMsg{
                 .file     = file,
-                .line     = line,
                 .function = function,
+                .line     = line,
             },
             .kind = kind,
         };
@@ -191,12 +170,8 @@ OrgNodeMono::Error OrgParser::error_value(
     fail.err.parserLine     = line;
     fail.err.errCode        = message.errCode;
     fail.err.errName        = message.errName;
-    std::optional<OrgToken> failToken;
-    if (lex.finished()) {
-        if (lex.lastToken) { failToken = lex.lastToken.value(); }
-    } else {
-        failToken = lex.tok();
-    }
+
+    auto failToken = lex.getLocToken();
 
     if (failToken) {
         fail.err.loc       = failToken->value.loc.value();

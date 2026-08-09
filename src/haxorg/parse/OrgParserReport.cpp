@@ -48,7 +48,7 @@ void OrgParser::report(Report const& in) {
         if (in.lex != nullptr) {
             ValueLexPosition val;
             val.maxPos = in.lex->in->size();
-            val.loc    = this->getLoc(*in.lex);
+            val.loc    = in.lex->getLoc();
 
             if (!in.lex->pos.isNil()) { val.nowPos = in.lex->pos.getIndex(); }
 
@@ -98,7 +98,7 @@ void OrgParser::report(Report const& in) {
         auto getLoc = [&]() -> std::string {
             std::string res;
             if (in.lex != nullptr) {
-                Opt<SourceLoc> loc = this->getLoc(*in.lex);
+                Opt<SourceLoc> loc = in.lex->getLoc();
                 if (loc.has_value()) {
                     res = hstd::fmt("{}:{} ", loc->line, loc->column);
                 }

@@ -10,6 +10,7 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
@@ -121,6 +122,7 @@ std::shared_ptr<hstd::ext::ReportSourceCache> ParseContext::getDiagnosticStrings
 
 SourceFileId ParseContext::addSource(std::string const& path, std::string const& content)
     const {
+    __perf_trace("api", "parse context add source");
 
     LOGIC_ASSERTION_CHECK_FMT(
         fs::is_directory(path) || fs::is_regular_file(path)
@@ -160,6 +162,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
     const std::string                          text,
     std::string const&                         string_id,
     std::shared_ptr<OrgParseParameters> const& opts) {
+    __perf_trace("api", "parseStringOpts");
 
     HSLOG_INFO("Parsing string '{}'", string_id);
 
@@ -563,7 +566,7 @@ void postProcessFileReferences(
 Opt<sem::SemId<Org>> ParseContext::parseDirectoryOpts(
     std::string const&                                  root,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
-
+    __perf_trace("api", "parseDirectoryOpts");
     DirectoryParseState state;
     return parsePathAux(this, fs::absolute(root), root, opts, state);
 }
@@ -649,7 +652,13 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                 switch (d.getKind()) {
                     case K::ConvertError: {
                         auto const& err = d.getConvertError();
-                        auto        id  = getId(err.loc.value());
+
+                        if (!err.loc) {
+                            HSLOG_ERROR("Could not get location from {}", err);
+                            goto missing_location;
+                        }
+
+                        auto id = getId(err.loc.value());
 
                         result.push_back(
                             ext::Report(ext::ReportKind::Error, id, 0)
@@ -667,8 +676,14 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
 
                     case K::ParseError: {
                         auto const& err = d.getParseError();
-                        auto        id  = getId(err.loc.value());
-                        auto        l   = //
+
+                        if (!err.loc) {
+                            HSLOG_ERROR("Could not get location from {}", err);
+                            goto missing_location;
+                        }
+
+                        auto id = getId(err.loc.value());
+                        auto l  = //
                             ext::ReportLabel{
                                 ext::ReportLabelId{1},
                                 cache->init_span(
@@ -687,8 +702,14 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
 
                     case K::ParseTokenError: {
                         auto const& err = d.getParseTokenError();
-                        auto        id  = getId(err.loc.value());
-                        auto        l   = //
+
+                        if (!err.loc) {
+                            HSLOG_ERROR("Could not get location from {}", err);
+                            goto missing_location;
+                        }
+
+                        auto id = getId(err.loc.value());
+                        auto l  = //
                             ext::ReportLabel{
                                 ext::ReportLabelId{1},
                                 cache->init_span(
@@ -716,6 +737,8 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                         throw hstd::logic_unhandled_kind_error::init(d.getKind());
                     }
                 }
+
+            missing_location:
             }
         }
     });

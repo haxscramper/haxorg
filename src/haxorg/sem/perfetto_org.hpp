@@ -11,6 +11,7 @@ PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("cli").SetDescription("CLI"),
     perfetto::Category("imm").SetDescription("Immutable AST operations"),
     perfetto::Category("mmpa").SetDescription("Mind map operations"),
-    perfetto::Category("convert").SetDescription("Convert"));
+    perfetto::Category("convert").SetDescription("Convert"),
+    perfetto::Category("api").SetDescription("Higher-level API functions"));
 
 #endif

@@ -8,11 +8,17 @@ namespace org::parse {
 template <typename K, typename V>
 struct LexerCommon {
   public:
-    TokenGroup<K, V>*      in;
-    TokenId<K, V>          pos;
-    hstd::Opt<Token<K, V>> lastToken;
+    TokenGroup<K, V>* in;
+    TokenId<K, V>     pos;
+    /// \brief Token where lexer was previously positioned at
+    hstd::Opt<TokenId<K, V>> lastToken;
     LexerCommon(TokenGroup<K, V>* _in, TokenId<K, V> startPos = TokenId<K, V>(0))
         : in(_in), pos(startPos) {}
+
+
+    bool hasTokenForId(TokenId<K, V> id) const {
+        return 0 <= id.getIndex() && id.getIndex() < in->size();
+    }
 
     K                  kind(int offset = 0) const { return tok(offset).kind; }
     Token<K, V>&       tok(TokenId<K, V> id) { return in->at(id); }
@@ -22,13 +28,74 @@ struct LexerCommon {
     V const&           val(int offset = 0) const { return tok(offset).value; }
     V&                 val(int offset = 0) { return in->at(get(offset)).value; }
 
+    hstd::Opt<TokenId<K, V>> getLocTokenId() const {
+        std::optional<TokenId<K, V>> locId;
+
+        if (finished()) {
+            if (lastToken) {
+                locId = lastToken.value();
+            } else {
+                locId = pos;
+            }
+        } else {
+            locId = get();
+        }
+
+        if (locId.has_value() && !hasTokenForId(locId.value())) {
+            if (in->tokens.empty()) {
+                return std::nullopt;
+            } else {
+                locId = in->tokens.back();
+            }
+        }
+
+        for (int offset = 0; hasNext(-offset) || hasNext(offset); ++offset) {
+            // Try incrementally widening lookarounds on the current
+            // lexer position until there is a token that has proper
+            // location information.
+            for (int i : hstd::Vec<int>{-1, 1}) {
+                auto offsetId = locId.value() + (offset * i);
+                if (hasTokenForId(offsetId)) {
+                    Token<K, V> tok = this->tok(offsetId);
+                    if (!tok->isFake()) { return offsetId; }
+                    // If offset falls out of the lexer range on both
+                    // ends, terminate lookup.
+                }
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    hstd::Opt<Token<K, V>> getLocToken() const {
+        auto id = getLocTokenId();
+        if (id) {
+            return tok(id.value());
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    hstd::Opt<SourceLoc> getLoc() const {
+        if (auto lt = getLocToken()) {
+            return lt.value()->loc.value();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    bool hasLocationForToken(TokenId<K, V> const& tok) const {
+        auto loc = TokenUtils<K, V>::getLocation(tok);
+        return loc.has_value();
+    }
+
     SourceLoc getSourceLoc(Token<K, V> const& tok) {
         if (auto loc = TokenUtils<K, V>::getLocation(tok); loc.has_value()) {
             return loc.value();
         } else if (!lastToken.has_value()) {
             return hstd::SerdeDefaultProvider<SourceLoc>::get();
         } else if (
-            auto loc = TokenUtils<K, V>::getLocation(lastToken.value());
+            auto loc = TokenUtils<K, V>::getLocation(this->tok(lastToken.value()));
             loc.has_value()) {
             return loc.value();
         } else {
@@ -418,7 +485,7 @@ struct SubLexer : public LexerCommon<K, V> {
     void next(int offset = 1) override {
         // TODO boundary checking
         if (hasNext(offset)) {
-            this->lastToken = this->tok();
+            this->lastToken = this->get();
             subPos += offset;
             pos = tokens.at(subPos);
         } else {
@@ -442,10 +509,9 @@ struct Lexer : public LexerCommon<K, V> {
     using LexerCommon<K, V>::pos;
     using LexerCommon<K, V>::in;
 
-
     void next(int offset = 1) override {
         if (hasNext(offset)) {
-            this->lastToken = this->tok();
+            this->lastToken = this->get();
             pos             = pos + offset;
         } else {
             pos = TokenId<K, V>::Nil();

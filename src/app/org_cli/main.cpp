@@ -27,6 +27,9 @@
 #include <string>
 #include <vector>
 
+#include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/ext/perfetto_aux_impl_template.hpp>
+
 #define OPT_NAME(__field, __value) static constexpr char const* __field = __value;
 
 struct CliOpts {
@@ -171,6 +174,9 @@ struct CliOpts {
 
     hstd::Opt<hstd::Str> diagnosticsFile;
     OPT_NAME(diagnosticsFile_opt, "--diagnostics-file");
+
+    hstd::Opt<hstd::Str> perfFile;
+    OPT_NAME(perfFile_opt, "--perf-file");
 };
 
 
@@ -318,6 +324,10 @@ CliOpts parseCli(int argc, char** argv) {
         .help(
             "Optional file to write parse diagnostics (errors, warnings -- all sorts of "
             "user-facing messages) to.");
+    program.add_argument(CliOpts::perfFile_opt)
+        .help(
+            "Optional file to write perfetto profiling diagnostics to (the code must be "
+            "compiled with perfetto enabled)");
 
     argparse::ArgumentParser parse_cmd("parse");
     parse_cmd.add_description("parse input file or directory");
@@ -419,6 +429,10 @@ CliOpts parseCli(int argc, char** argv) {
         result.diagnosticsFile = *f;
     }
 
+    if (auto f = program.present<std::string>(CliOpts::perfFile_opt)) {
+        result.perfFile = *f;
+    }
+
     if (program.is_subcommand_used("parse")) {
         CliOpts::ParseOpts opts;
         opts.input = parse_cmd.get<std::string>(PO::input_opt);
@@ -496,6 +510,19 @@ int main(int argc, char* argv[]) {
     }
 
     *diagOut << "" << std::endl;
+
+#ifdef ORG_BUILD_WITH_PERFETTO
+
+    std::unique_ptr<perfetto::TracingSession>
+        tracing_session = opts.perfFile ? StartProcessTracing("Perfetto track example")
+                                        : std::unique_ptr<perfetto::TracingSession>{};
+
+    hstd::finally end_trace{[&]() {
+        if (opts.perfFile) {
+            StopTracing(std::move(tracing_session), opts.perfFile.value().toBase());
+        }
+    }};
+#endif
 
     auto onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& reports,
                                       std::optional<int>                  fragmentIndex) {

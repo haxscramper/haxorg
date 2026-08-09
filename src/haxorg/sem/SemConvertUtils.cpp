@@ -64,7 +64,11 @@ OrgConverter::ConvertError OrgConverter::wrapError(
 
 Opt<org::parse::SourceLoc> OrgConverter::getLoc(parse::OrgAdapter const& adapter) {
     if (adapter.isTerminal()) {
-        return adapter.val().loc.value();
+        if (adapter.val().loc) {
+            return adapter.val().loc.value();
+        } else {
+            return std::nullopt;
+        }
     } else if (adapter.isMono()) {
         return std::nullopt;
 

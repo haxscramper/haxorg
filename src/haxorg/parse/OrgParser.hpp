@@ -334,8 +334,6 @@ struct OrgParser : public hstd::OperationsTracer {
 
     void setReportHook(hstd::Func<void(Report const&)> in) { reportHook = in; }
 
-    static hstd::Opt<SourceLoc> getLoc(OrgLexer const& lex);
-
     hstd::Slice<OrgId> parseText(OrgLexer& lex);
 
     /// First pass of the text processing pass. Fold all known text
