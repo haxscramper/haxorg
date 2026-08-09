@@ -94,6 +94,64 @@ OrgId OrgParser::end_impl(std::string const& desc, int line, char const* functio
     return res;
 }
 
+OrgNodeMono::Error OrgParser::error_value(
+    std::string const&                                msg,
+    hstd::Opt<sem::OrgDiagnostics::ParseError> const& message,
+    OrgLexer const&                                   lex,
+    int                                               line,
+    char const*                                       function) {
+    org::sem::OrgDiagnostics::ParseError err;
+    if (message) { err = message.value(); }
+
+    if (err.detail.empty()) {
+        err.detail = msg;
+    } else {
+        err.detail += "\n\n" + msg;
+    }
+
+    if (TraceState) {
+        report(Builder(OrgParser::ReportKind::Error, nullptr, line, function)
+                   .with_msg(msg)
+                   .report);
+    }
+
+    return error_value(err, lex, line, function);
+}
+
+OrgNodeMono::Error OrgParser::error_value(
+    org::sem::OrgDiagnostics::ParseError const& message,
+    OrgLexer const&                             lex,
+    int                                         line,
+    char const*                                 function) {
+    auto box = std::make_shared<OrgNodeMono::Error::Box>();
+    org::parse::OrgNodeMono::Error::Box::ParseTokenFail fail;
+    fail.err.brief          = message.brief;
+    fail.err.detail         = message.detail;
+    fail.err.parserFunction = function;
+    fail.err.parserLine     = line;
+    fail.err.errCode        = message.errCode;
+    fail.err.errName        = message.errName;
+
+    auto failToken = lex.getLocToken();
+
+    if (failToken) {
+        fail.err.loc       = failToken->value.loc.value();
+        fail.err.tokenText = failToken->value.text;
+        LOGIC_ASSERTION_CHECK_FMT(manager != nullptr, "");
+
+        if (manager) {
+            int size = manager->getSourceContent(activeFileId).size();
+            LOGIC_ASSERTION_CHECK_FMT(fail.err.loc->pos < size, "");
+            LOGIC_ASSERTION_CHECK_FMT(
+                fail.err.loc->pos + fail.err.tokenText.size() < size, "");
+        }
+    }
+
+    box->data = fail;
+
+    return OrgNodeMono::Error{.box = box};
+}
+
 OrgParser::ParseResult OrgParser::error_end(
     OrgNodeMono::Error const& err,
     int                       line,
@@ -157,39 +215,6 @@ OrgId OrgParser::token(OrgNodeKind kind, OrgTokenId tok, int line, char const* f
     return res;
 }
 
-OrgNodeMono::Error OrgParser::error_value(
-    org::sem::OrgDiagnostics::ParseError const& message,
-    OrgLexer const&                             lex,
-    int                                         line,
-    char const*                                 function) {
-    auto box = std::make_shared<OrgNodeMono::Error::Box>();
-    org::parse::OrgNodeMono::Error::Box::ParseTokenFail fail;
-    fail.err.brief          = message.brief;
-    fail.err.detail         = message.detail;
-    fail.err.parserFunction = function;
-    fail.err.parserLine     = line;
-    fail.err.errCode        = message.errCode;
-    fail.err.errName        = message.errName;
-
-    auto failToken = lex.getLocToken();
-
-    if (failToken) {
-        fail.err.loc       = failToken->value.loc.value();
-        fail.err.tokenText = failToken->value.text;
-        LOGIC_ASSERTION_CHECK_FMT(manager != nullptr, "");
-
-        if (manager) {
-            int size = manager->getSourceContent(activeFileId).size();
-            LOGIC_ASSERTION_CHECK_FMT(fail.err.loc->pos < size, "");
-            LOGIC_ASSERTION_CHECK_FMT(
-                fail.err.loc->pos + fail.err.tokenText.size() < size, "");
-        }
-    }
-
-    box->data = fail;
-
-    return OrgNodeMono::Error{.box = box};
-}
 
 OrgId OrgParser::error_token(
     OrgNodeMono::Error const& err,
@@ -242,22 +267,7 @@ OrgParser::ParseResult OrgParser::expect(
             getLocMsg(lex),
             lex.finished() ? "<lexer-finished>" : fmt1(lex.kind()));
 
-        org::sem::OrgDiagnostics::ParseError err;
-        if (message) { err = message.value(); }
-
-        if (err.detail.empty()) {
-            err.detail = msg;
-        } else {
-            err.detail += "\n\n" + msg;
-        }
-
-        if (TraceState) {
-            report(Builder(OrgParser::ReportKind::Error, nullptr, line, function)
-                       .with_msg(msg)
-                       .report);
-        }
-
-        return error_end(error_value(err, lex, line, function));
+        return error_end(error_value(msg, message, lex, line, function));
     }
 }
 

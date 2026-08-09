@@ -95,13 +95,6 @@ struct fmt::formatter<rs::subrange<T>> {
     }
 };
 
-const IntSet<OrgTokenKind> line_end{
-    otk::Newline,
-    otk::MediumNewline,
-    otk::LongNewline,
-    otk::EndOfFile,
-};
-
 
 namespace {
 
@@ -376,7 +369,7 @@ struct RecombineState {
                 break;
             case otk::CmdPropertyText:
                 pop_as(otk::CmdRawArg);
-                while (!lex.at(line_end)) { map_interpreted_token(); }
+                while (!lex.at(OrgTokenLineEnd)) { map_interpreted_token(); }
                 break;
             default:
         }
@@ -384,7 +377,7 @@ struct RecombineState {
         switch (next.kind) {
             case otk::CmdSrcBegin:
                 add_fake(otk::CmdContentBegin);
-                if (lex.at(line_end)) { lex.next(); }
+                if (lex.at(OrgTokenLineEnd)) { lex.next(); }
                 break;
             default:
         }
@@ -399,7 +392,7 @@ struct RecombineState {
     };
 
     void map_command_args() {
-        while (lex.can_search(line_end)) { pop_as(lex.kind()); }
+        while (lex.can_search(OrgTokenLineEnd)) { pop_as(lex.kind()); }
     }
 
     void map_interpreted_token() {
@@ -594,66 +587,13 @@ struct LineToken {
 
     BOOST_DESCRIBE_CLASS(LineToken, (), (kind, tokens, indent), (), ());
 
-    IntSet<OrgTokenKind> CmdBlockClose{
-        otk::CmdSrcEnd,
-        otk::CmdCenterEnd,
-        otk::CmdExampleEnd,
-        otk::CmdQuoteEnd,
-        otk::CmdExportEnd,
-        otk::CmdVerseEnd,
-        otk::CmdCommentEnd,
-        otk::CmdTableEnd,
-        otk::CmdRowEnd,
-        otk::CmdCellEnd,
-        otk::CmdDynamicBlockEnd,
-    };
-
-    IntSet<OrgTokenKind> CmdBlockOpen{
-        otk::CmdCenterBegin,
-        otk::CmdExportBegin,
-        otk::CmdExampleBegin,
-        otk::CmdSrcBegin,
-        otk::CmdQuoteBegin,
-        otk::CmdVerseBegin,
-        otk::CmdCommentBegin,
-        otk::CmdTableBegin,
-        otk::CmdRowBegin,
-        otk::CmdCellBegin,
-        otk::CmdDynamicBlockBegin,
-    };
-
-    IntSet<OrgTokenKind> CmdBlockLine{
-        otk::CmdTitle,         otk::CmdHeader,
-        otk::CmdName,          otk::CmdInclude,
-        otk::CmdResults,       otk::CmdCaption,
-        otk::CmdColumns,       otk::CmdAttr,
-        otk::CmdAttr,          otk::CmdPropertyArgs,
-        otk::CmdPropertyRaw,   otk::CmdPropertyText,
-        otk::CmdOptions,       otk::CmdFiletags,
-        otk::CmdTblfm,         otk::CmdLatexClass,
-        otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
-        otk::CmdLatexHeader,   otk::CmdStartup,
-        otk::CmdRow,           otk::CmdCell,
-        otk::CmdAuthor,        otk::CmdCustomRaw,
-        otk::CmdDescription,   otk::CmdLinkRaw,
-        otk::CmdEmailRaw,      otk::CmdLatexHeaderExtraRaw,
-        otk::CmdDateRaw,       otk::CmdLanguage,
-        otk::CmdBindRaw,       otk::CmdCategoryRaw,
-        otk::CmdSeqTodoRaw,    otk::CmdTagsRaw,
-        otk::CmdPrioritiesRaw, otk::CmdMacroRaw,
-        otk::CmdSetupfileRaw,  otk::CmdExcludeTagsRaw,
-        otk::CmdHtmlHeadRaw,   otk::CmdSelectTagsRaw,
-        otk::CmdDrawersRaw,    otk::CmdConstants,
-        otk::CmdCreator,       otk::CmdCall,
-        otk::CmdKeywordsRaw,
-    };
 
     Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {
-        if (CmdBlockLine.contains(kind)) {
+        if (OrgTokenCmdBlockLine.contains(kind)) {
             return Kind::Line;
-        } else if (CmdBlockOpen.contains(kind)) {
+        } else if (OrgTokenCmdBlockOpen.contains(kind)) {
             return Kind::BlockOpen;
-        } else if (CmdBlockClose.contains(kind)) {
+        } else if (OrgTokenCmdBlockClose.contains(kind)) {
             return Kind::BlockClose;
         } else {
             return std::nullopt;
@@ -674,7 +614,7 @@ struct LineToken {
             }
 
 
-        } else if (CmdBlockClose.contains(current.kind)) {
+        } else if (OrgTokenCmdBlockClose.contains(current.kind)) {
             kind = Kind::BlockClose;
         } else {
             throw tokenizer_error::init(
@@ -705,8 +645,9 @@ struct LineToken {
                 case otk::LineCommand: setLineCommandKind(tokens, 1); break;
 
                 default: {
-                    kind = CmdBlockClose.contains(next->get().kind) ? Kind::BlockClose
-                                                                    : Kind::IndentedLine;
+                    kind = OrgTokenCmdBlockClose.contains(next->get().kind)
+                             ? Kind::BlockClose
+                             : Kind::IndentedLine;
                     break;
                 }
             }
@@ -772,7 +713,8 @@ struct LineToken {
             case otk::TreeClock: kind = Kind::ListItem; break;
 
             default: {
-                kind = CmdBlockClose.contains(first.kind) ? Kind::BlockClose : Kind::Line;
+                kind = OrgTokenCmdBlockClose.contains(first.kind) ? Kind::BlockClose
+                                                                  : Kind::Line;
                 break;
             }
         }
@@ -854,7 +796,7 @@ struct TokenVisitor {
         auto           start  = tokens->begin();
 
         for (auto it = tokens->begin(); it != tokens->end(); ++it) {
-            if (line_end.contains(it->kind)) {
+            if (OrgTokenLineEnd.contains(it->kind)) {
                 auto span = IteratorSpan(start, std::next(it));
                 auto line = LineToken{span};
                 if (TraceState) {
@@ -1190,8 +1132,9 @@ struct GroupVisitorState {
                     for (auto const& line : sub.getLeaf().lines) {
                         auto const& t = line.tokens;
                         if ((t.size() == 2 && t.at(0)->text.empty()
-                             && line_end.contains(t.at(1).kind))
-                            || (t.size() == 1 && line_end.contains(t.at(0).kind))) {
+                             && OrgTokenLineEnd.contains(t.at(1).kind))
+                            || (t.size() == 1
+                                && OrgTokenLineEnd.contains(t.at(0).kind))) {
                             continue;
                         } else if (!line.tokens.empty()) {
                             minIndent = std::min(line.indent, minIndent);

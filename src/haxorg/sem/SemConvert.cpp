@@ -333,9 +333,10 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
 
 OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
     auto __trace = trace(a);
-    auto result  = Sem<HashTag>(a);
+    if (IsErrorInfoToken(a)) { return SemError(a, {convertErrorItem(a).value()}); }
 
-    auto aux = [this](this auto&& self, org::parse::OrgAdapter a)
+    auto result = Sem<HashTag>(a);
+    auto aux    = [this](this auto&& self, org::parse::OrgAdapter a)
         -> hstd::Result<sem::HashTagText, SemId<ErrorGroup>> {
         if (IsErrorInfoToken(a)) { return SemError(a, {convertErrorItem(a).value()}); }
         if (IsErrorInfoToken(a.at(0))) {
@@ -1003,11 +1004,15 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     {
         auto __field = field(N::Tags, a);
         for (const auto& hash : one(a, N::Tags)) {
-            auto tag = convertHashTag(hash).value();
-            if (tag->text.head == "ARCHIVE") {
-                tree->isArchived = true;
+            auto tag = convertHashTag(hash);
+            if (tag.isError()) {
+                tree->push_back(tag.error());
             } else {
-                tree->tags.push_back(tag);
+                if (tag.value()->text.head == "ARCHIVE") {
+                    tree->isArchived = true;
+                } else {
+                    tree->tags.push_back(tag.value());
+                }
             }
         }
     }

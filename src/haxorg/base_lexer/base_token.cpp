@@ -19,3 +19,60 @@ hstd::fmt_iter fmt::formatter<org::parse::OrgFill>::format(
     }
     return ctx.out();
 }
+
+using otk = OrgTokenKind;
+
+
+hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockClose{
+    otk::CmdSrcEnd,
+    otk::CmdCenterEnd,
+    otk::CmdExampleEnd,
+    otk::CmdQuoteEnd,
+    otk::CmdExportEnd,
+    otk::CmdVerseEnd,
+    otk::CmdCommentEnd,
+    otk::CmdTableEnd,
+    otk::CmdRowEnd,
+    otk::CmdCellEnd,
+    otk::CmdDynamicBlockEnd,
+};
+
+hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockOpen{
+    otk::CmdCenterBegin,
+    otk::CmdExportBegin,
+    otk::CmdExampleBegin,
+    otk::CmdSrcBegin,
+    otk::CmdQuoteBegin,
+    otk::CmdVerseBegin,
+    otk::CmdCommentBegin,
+    otk::CmdTableBegin,
+    otk::CmdRowBegin,
+    otk::CmdCellBegin,
+    otk::CmdDynamicBlockBegin,
+};
+
+hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockLine{
+    otk::CmdTitle,         otk::CmdHeader,
+    otk::CmdName,          otk::CmdInclude,
+    otk::CmdResults,       otk::CmdCaption,
+    otk::CmdColumns,       otk::CmdAttr,
+    otk::CmdAttr,          otk::CmdPropertyArgs,
+    otk::CmdPropertyRaw,   otk::CmdPropertyText,
+    otk::CmdOptions,       otk::CmdFiletags,
+    otk::CmdTblfm,         otk::CmdLatexClass,
+    otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
+    otk::CmdLatexHeader,   otk::CmdStartup,
+    otk::CmdRow,           otk::CmdCell,
+    otk::CmdAuthor,        otk::CmdCustomRaw,
+    otk::CmdDescription,   otk::CmdLinkRaw,
+    otk::CmdEmailRaw,      otk::CmdLatexHeaderExtraRaw,
+    otk::CmdDateRaw,       otk::CmdLanguage,
+    otk::CmdBindRaw,       otk::CmdCategoryRaw,
+    otk::CmdSeqTodoRaw,    otk::CmdTagsRaw,
+    otk::CmdPrioritiesRaw, otk::CmdMacroRaw,
+    otk::CmdSetupfileRaw,  otk::CmdExcludeTagsRaw,
+    otk::CmdHtmlHeadRaw,   otk::CmdSelectTagsRaw,
+    otk::CmdDrawersRaw,    otk::CmdConstants,
+    otk::CmdCreator,       otk::CmdCall,
+    otk::CmdKeywordsRaw,
+};

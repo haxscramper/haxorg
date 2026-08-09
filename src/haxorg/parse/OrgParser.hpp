@@ -208,6 +208,13 @@ struct OrgParser : public hstd::OperationsTracer {
         char const*        function = __builtin_FUNCTION());
 
     OrgNodeMono::Error error_value(
+        std::string const&                                     msg,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message,
+        OrgLexer const&                                        lex,
+        int                                                    line = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
+
+    OrgNodeMono::Error error_value(
         org::sem::OrgDiagnostics::ParseError const& message,
         OrgLexer const&                             lex,
         int                                         line     = __builtin_LINE(),

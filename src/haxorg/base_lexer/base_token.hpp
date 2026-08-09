@@ -15,6 +15,19 @@ struct OrgFill {
 
 using OrgToken   = Token<OrgTokenKind, OrgFill>;
 using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
+
+
+extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockClose;
+extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockOpen;
+extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockLine;
+
+inline hstd::IntSet<OrgTokenKind> const OrgTokenLineEnd{
+    OrgTokenKind::Newline,
+    OrgTokenKind::MediumNewline,
+    OrgTokenKind::LongNewline,
+    OrgTokenKind::EndOfFile,
+};
+
 } // namespace org::parse
 
 

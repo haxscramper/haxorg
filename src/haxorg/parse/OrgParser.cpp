@@ -40,19 +40,23 @@ org::sem::OrgDiagnostics::ParseError ParseErrorInit(
 
 struct ErrorTable {
 #define P_ERROR(__fieldname, __short, __long)                                            \
-    static const inline org::sem::OrgDiagnostics::ParseError                             \
-        __fieldname = ParseErrorInit(                                                    \
-            #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
+    const org::sem::OrgDiagnostics::ParseError __fieldname = ParseErrorInit(             \
+        #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
 
     P_ERROR(FallbackError, "Default fallback error", "");
     P_ERROR(UnexpectedToken, "Found unexpected token during parsing", "");
     P_ERROR(MissingClosingParen, "Expected closing `)`", "");
     P_ERROR(MissingClosingBracket, "Expected closing `]`", "");
     P_ERROR(
+        MissingClosingColonOnSubtreeTags,
+        "Expected trailing ':' on the subtree tags",
+        "");
+    P_ERROR(
         MissingMacroClose,
         "Expected `}}}` after macro close",
         "Inline macro call can be either `{{{macro-name}}}` or "
         "`{{{macro-name(arg1, arg2)}}}`.");
+    P_ERROR(UnexpectedClosingCommand, "Unexpected closing command without opening", "");
     P_ERROR(
         UnexpectedTableElement,
         "Unexpected element at the top table level.",
@@ -106,26 +110,26 @@ const OrgTokSet BlockTerminator{
 };
 } // namespace
 
+ErrorTable __table;
 
 #define SUB_PARSE_WITH_EXPR(__expr, __error, __lex)                                      \
     BOOST_OUTCOME_TRYX(maybe_recursive_error_end(__expr, __error, __lex))
 
 #define SUB_PARSE_2(__kind, __lex)                                                       \
-    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), ErrorTable::FallbackError, __lex)
+    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), __table.FallbackError, __lex)
 
 #define SUB_PARSE_3(__kind, __lex, __on_failure)                                         \
-    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), ErrorTable::__on_failure, __lex)
+    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), __table.__on_failure, __lex)
 
 #define SUB_PARSE_IMPL(__count) BOOST_PP_CAT(SUB_PARSE_, __count)
 
 #define SUB_PARSE(...) SUB_PARSE_IMPL(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__))(__VA_ARGS__)
 
-
 #define TRY_SKIP_2(__lex, __expected)                                                    \
-    BOOST_OUTCOME_TRY(skip(__lex, __expected, ErrorTable::UnexpectedToken))
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, __table.UnexpectedToken))
 
 #define TRY_SKIP_3(__lex, __expected, __message)                                         \
-    BOOST_OUTCOME_TRY(skip(__lex, __expected, ErrorTable::__message))
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, __table.__message))
 
 #define TRY_SKIP_IMPL(__count) BOOST_PP_CAT(TRY_SKIP_, __count)
 
@@ -389,10 +393,10 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
             // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
             auto guard = start(onk::LispQuoted);
             TRY_SKIP(lex, otk::SingleQuote);
-            SUB_PARSE_WITH_EXPR(do_parse(), ErrorTable::FallbackError, lex);
+            SUB_PARSE_WITH_EXPR(do_parse(), __table.FallbackError, lex);
             guard->end();
         } else {
-            SUB_PARSE_WITH_EXPR(do_parse(), ErrorTable::FallbackError, lex);
+            SUB_PARSE_WITH_EXPR(do_parse(), __table.FallbackError, lex);
         }
 
     } else if (isAtLispQuotedItem(lex)) {
@@ -1368,7 +1372,7 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
                     break;
                 }
                 default: {
-                    return error_end(ErrorTable::UnexpectedTableElement, lex);
+                    return error_end(__table.UnexpectedTableElement, lex);
                 }
             }
         }
@@ -1877,7 +1881,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 otk::ColonArgumentsProperty,
                 otk::ColonPropertyText}
                  .contains(head)) {
-            return error_end(ErrorTable::MissingPropertyContinuation, lex);
+            return error_end(__table.MissingPropertyContinuation, lex);
         }
 
         auto propertyGuard = start(onk::DrawerProperty);
@@ -2036,7 +2040,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeTags(OrgLexer& lex) {
             TRY_SKIP(lex, otk::Colon);
             SUB_PARSE(HashTag, lex);
         }
-        TRY_SKIP(lex, OrgTokSet{otk::Colon} + Newline);
+        TRY_SKIP(lex, OrgTokSet{otk::Colon} + Newline, MissingClosingColonOnSubtreeTags);
         return stmtGuard->end();
     } else {
         return ParseOk{empty()};
@@ -2490,9 +2494,15 @@ OrgParser::ParseResult OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-
         default: {
-            throw fatalError(lex, hstd::fmt("Unhandled command kind {}", lex.kind(+1)));
+            if (OrgTokenCmdBlockClose.contains(cmd_kind)) {
+                TRY_SKIP(lex, otk::CmdPrefix);
+                TRY_SKIP(lex, cmd_kind);
+                return error_end(__table.MissingClosingBracket, lex);
+            } else {
+                throw fatalError(
+                    lex, hstd::fmt("Unhandled command kind {}", lex.kind(+1)));
+            }
         }
     }
 
