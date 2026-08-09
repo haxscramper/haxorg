@@ -154,23 +154,37 @@ struct [[refl]] OperationsTracer {
 };
 
 
-namespace {
+namespace tracer_detail {
+inline hstd::OperationsTracer const* __get_tracer_obj(hstd::OperationsTracer const* t) {
+    return t;
+}
+inline hstd::OperationsTracer const* __get_tracer_obj(hstd::OperationsTracer const& t) {
+    return &t;
+}
+inline hstd::OperationsTracer const* __get_tracer_obj(
+    hstd::SPtr<hstd::OperationsTracer> const& t) {
+    return t.get();
+}
 inline bool __is_trace_state(hstd::OperationsTracer const& t) { return t.TraceState; }
 inline bool __is_trace_state(hstd::OperationsTracer const* t) { return t->TraceState; }
 inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
     return t->TraceState;
 }
-} // namespace
+} // namespace tracer_detail
 
 #define OP_TRACER_MESSAGE(__tracer, __format, ...)                                       \
-    if (::hstd::__is_trace_state(__tracer)) {                                            \
-        __tracer->message(__tracer->fmt_message(__format __VA_OPT__(, ) __VA_ARGS__));   \
+    if (::hstd::tracer_detail::__is_trace_state(__tracer)) {                             \
+        ::hstd::tracer_detail::__get_tracer_obj(__tracer)->message(                      \
+            ::hstd::tracer_detail::__get_tracer_obj(__tracer)->fmt_message(              \
+                __format __VA_OPT__(, ) __VA_ARGS__));                                   \
     }
 
 #define OP_TRACER_MESSAGE_SCOPE_HANDLE(__tracer, __format, ...)                          \
-    ::hstd::__is_trace_state(__tracer) ? __tracer->begin_scope(__tracer->fmt_message(    \
-                                             __format __VA_OPT__(, ) __VA_ARGS__))       \
-                                       : __tracer->begin_scope();
+    ::hstd::tracer_detail::__is_trace_state(__tracer)                                    \
+        ? ::hstd::tracer_detail::__get_tracer_obj(__tracer)->begin_scope(                \
+              ::hstd::tracer_detail::__get_tracer_obj(__tracer)->fmt_message(            \
+                  __format __VA_OPT__(, ) __VA_ARGS__))                                  \
+        : ::hstd::tracer_detail::__get_tracer_obj(__tracer)->begin_scope();
 
 #define OP_TRACER_MESSAGE_SCOPE(__tracer, __format, ...)                                 \
     auto BOOST_PP_CAT(__scope, __COUNTER__) = OP_TRACER_MESSAGE_SCOPE_HANDLE(            \

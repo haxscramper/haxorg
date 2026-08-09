@@ -403,9 +403,11 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     auto node_after = [&](Str const&    word,
                           SemSet const& target) -> Opt<sem::SemId<sem::Org>> {
         auto __trace = trace(a, "node_after");
-        print(
-            hstd::fmt(
-                "Searching for '{}' after '{}' in {}", target, word, par0->subnodes));
+        if (TraceState) {
+            print(
+                hstd::fmt(
+                    "Searching for '{}' after '{}' in {}", target, word, par0->subnodes));
+        }
         for (int i = 0; i < par0.size(); ++i) {
             if (auto w = par0.at(i)->dyn_cast<sem::Leaf>();
                 w != nullptr && normalize(w->text) == word) {

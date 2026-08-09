@@ -467,11 +467,8 @@ struct Cursor {
 
         return finally_std{[this, start_pos, function_, line_]() {
             if (start_pos == this->pos) {
-                if (p.TraceState) {
-                    p.message(
-                        hstd::fmt(
-                            "No movement around pos {}: {}", start_pos, this->format()));
-                }
+                OP_TRACER_MESSAGE(
+                    p, "No movement around pos {}: {}", start_pos, this->format());
             }
 
             LOGIC_ASSERTION_CHECK_FMT(
@@ -524,12 +521,8 @@ void advace_charset(Cursor& c, CharSet const& set) {
     while (c.has_text() && set.contains(c.get())) { c.next(); }
 }
 
-#define MSG(__text)                                                                      \
-    if (c.p.TraceState) { c.p.message(__text); }
 
 namespace {
-
-
 void switch_cmd_argument(Cursor& c) {
     switch (c.get()) {
         case '(': c.token0(otk::ParBegin, &advance1); break;
@@ -726,7 +719,7 @@ void switch_command(Cursor& c) {
         if (c.is_at('_', pos)) { ++pos; }
 
         if (c.is_iat(end, pos)) {
-            c.p.message(hstd::fmt("end {} {}", pos, c.format()));
+            OP_TRACER_MESSAGE(c.p, "end {} {}", pos, c.format());
             pos += end.size();
             return pos;
         } else {
@@ -851,7 +844,7 @@ void switch_command(Cursor& c) {
             dsl::whitespace(dsl::ascii::space) + dsl::p<org_ident>>();
         if (span) {
             auto property_kind = normalize(Str{c.lexy_substr(0, *span)});
-            c.p.message(hstd::fmt("property kind {}", property_kind));
+            OP_TRACER_MESSAGE(c.p, "property kind {}", property_kind);
             if (property_kind == "description" || property_kind == "created"
                 || property_kind == "hashtag" || property_kind == "hashtagdef") {
                 head.kind = otk::CmdPropertyText;
@@ -906,7 +899,7 @@ void switch_word(Cursor& c) {
         c.token0(otk::RawText, [](Cursor& c) {
             int open = 1;
             while (c.has_text()) {
-                c.p.message(c.format());
+                OP_TRACER_MESSAGE(c.p, "{}", c.format());
                 switch (c.get()) {
                     case '{': {
                         ++open;
@@ -1729,7 +1722,7 @@ static std::string sourceLineAt(std::string const& text, int targetLine) {
 }
 
 template <typename K>
-TokenAlignmentReport validateAndRealignOrgFillTokens(
+TokenAlignmentReport validateOrgFillTokens(
     std::string const&                    text,
     std::vector<Token<K, OrgFill>> const& tokens,
     int                                   maxFailures,
@@ -2003,14 +1996,15 @@ OrgTokenGroup org::parse::tokenize(
         switch_regular_char(c);
     }
 
-    auto report = validateAndRealignOrgFillTokens(
-        text, result.tokens.content, 10, file_id);
+    if (params.validateTokens) {
+        auto report = validateOrgFillTokens(text, result.tokens.content, 10, file_id);
 
-    if (0 < report.failures.size()) {
-        for (auto const& fail : report.failures) {
-            std::cout << fail.details << std::endl;
+        if (0 < report.failures.size()) {
+            for (auto const& fail : report.failures) {
+                std::cout << fail.details << std::endl;
+            }
+            LOGIC_ASSERTION_CHECK(false, "");
         }
-        LOGIC_ASSERTION_CHECK(false, "");
     }
 
     return result;

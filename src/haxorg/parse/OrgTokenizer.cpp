@@ -883,7 +883,7 @@ struct TokenVisitor {
             auto __scope  = d->begin_scope();
             auto end      = lines.end();
             auto nextline = [&]() { ++it; };
-            if (TraceState) { d->message(hstd::fmt("{} {}", it->kind, it->tokens)); }
+            OP_TRACER_MESSAGE(d, "{} {}", it->kind, it->tokens);
 
             auto start = it;
             switch (start->kind) {

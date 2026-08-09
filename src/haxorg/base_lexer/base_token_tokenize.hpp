@@ -7,7 +7,9 @@
 namespace org::parse {
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
 
-struct LexerParams : hstd::OperationsTracer {};
+struct LexerParams : hstd::OperationsTracer {
+    bool validateTokens = false;
+};
 
 
 OrgTokenGroup tokenize(
