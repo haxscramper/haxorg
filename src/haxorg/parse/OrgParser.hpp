@@ -250,6 +250,12 @@ struct OrgParser : public hstd::OperationsTracer {
         int                                         line     = __builtin_LINE(),
         char const*                                 function = __builtin_FUNCTION());
 
+    ParseResult maybe_recursive_error_no_propagate(
+        ParseResult const& res,
+        OrgLexer&          lex,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
+
 
     OrgId fake(
         OrgNodeKind kind,

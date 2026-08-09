@@ -110,20 +110,22 @@ const OrgTokSet BlockTerminator{
 };
 } // namespace
 
-ErrorTable __table;
+ErrorTable const __table;
 
-#define SUB_PARSE_WITH_EXPR(__expr, __error, __lex)                                      \
+#define SUB_PARSE_WITH_EXPR_PROPAGATE(__expr, __error, __lex)                            \
     BOOST_OUTCOME_TRYX(maybe_recursive_error_end(__expr, __error, __lex))
 
-#define SUB_PARSE_2(__kind, __lex)                                                       \
-    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), __table.FallbackError, __lex)
+#define SUB_PARSE_WITH_EXPR(__expr, __lex)                                               \
+    BOOST_OUTCOME_TRYX(maybe_recursive_error_no_propagate(__expr, __lex))
 
-#define SUB_PARSE_3(__kind, __lex, __on_failure)                                         \
-    SUB_PARSE_WITH_EXPR(parse##__kind(__lex), __table.__on_failure, __lex)
+/// \brief Call `parse<kind>` for sub-expression, unpack the error and create additional
+/// error token on failure.
+#define SUB_PARSE_PROPAGATE(__kind, __lex, __on_failure)                                 \
+    SUB_PARSE_WITH_EXPR_PROPAGATE(parse##__kind(__lex), __table.__on_failure, __lex)
 
-#define SUB_PARSE_IMPL(__count) BOOST_PP_CAT(SUB_PARSE_, __count)
-
-#define SUB_PARSE(...) SUB_PARSE_IMPL(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__))(__VA_ARGS__)
+/// \brief Call `parse<kind>` for processing and unpack the return value. Does not
+/// generate a secondary wrapper for the parsed code.
+#define SUB_PARSE(__kind, __lex) SUB_PARSE_WITH_EXPR(parse##__kind(__lex), __lex)
 
 #define TRY_SKIP_2(__lex, __expected)                                                    \
     BOOST_OUTCOME_TRY(skip(__lex, __expected, __table.UnexpectedToken))
@@ -393,10 +395,10 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
             // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
             auto guard = start(onk::LispQuoted);
             TRY_SKIP(lex, otk::SingleQuote);
-            SUB_PARSE_WITH_EXPR(do_parse(), __table.FallbackError, lex);
+            SUB_PARSE_WITH_EXPR(do_parse(), lex);
             guard->end();
         } else {
-            SUB_PARSE_WITH_EXPR(do_parse(), __table.FallbackError, lex);
+            SUB_PARSE_WITH_EXPR(do_parse(), lex);
         }
 
     } else if (isAtLispQuotedItem(lex)) {
@@ -502,7 +504,6 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::StrikeBegin: _begin(onk::Strike); break;
             case otk::StrikeEnd: _end(onk::Strike); break;
             case otk::StrikeUnknown: _unknown(onk::Strike); break;
-
             case otk::Whitespace: token(onk::Space, pop(lex)); break;
             case otk::CurlyBegin: {
                 if (lex.at(Vec{otk::CurlyBegin, otk::CurlyBegin, otk::CurlyBegin})) {
@@ -996,8 +997,13 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
 
         // timezone
         if (lex.at(otk::StrikeBegin) && lex.at(otk::Number, +1)) {
+            // `+04`, `+1000`
             skip(lex);
             token(onk::RawText, TRY_POPX(lex, otk::Number));
+            space(lex);
+        } else if (lex.at(otk::BigIdent)) {
+            // UTC
+            token(onk::RawText, TRY_POPX(lex, otk::BigIdent));
             space(lex);
         } else {
             empty();
@@ -1032,8 +1038,8 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 
 OrgParser::ParseResult OrgParser::parseTimeRange(OrgLexer& lex) {
-    auto            __trace = trace(lex);
-    const OrgTokSet times{
+    auto                   __trace = trace(lex);
+    static const OrgTokSet times{
         otk::BraceBegin,
         otk::BraceEnd,
         otk::AngleBegin,

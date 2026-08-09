@@ -226,6 +226,18 @@ OrgId OrgParser::error_token(
     return token(error);
 }
 
+OrgParser::ParseResult OrgParser::maybe_recursive_error_no_propagate(
+    ParseResult const& res,
+    OrgLexer&          lex,
+    int                line,
+    char const*        function) {
+    if (res.has_value()) {
+        return res;
+    } else {
+        return ParseFail{};
+    }
+}
+
 OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
     ParseResult const&                          res,
     org::sem::OrgDiagnostics::ParseError const& on_fail_message,
@@ -265,7 +277,7 @@ OrgParser::ParseResult OrgParser::expect(
             line,
             item,
             getLocMsg(lex),
-            lex.finished() ? "<lexer-finished>" : fmt1(lex.kind()));
+            lex.formatState());
 
         return error_end(error_value(msg, message, lex, line, function));
     }

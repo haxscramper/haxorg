@@ -15,8 +15,14 @@ using OrgToken = Token<OrgTokenKind, OrgFill>;
 template <>
 struct TokenUtils<OrgTokenKind, OrgFill> {
     static hstd::Opt<SourceLoc> getLocation(OrgToken const& tok) {
-        return tok.value.loc.value();
+        if (tok.value.loc) {
+            return tok.value.loc.value();
+        } else {
+            return std::nullopt;
+        }
     }
+
+    static std::string getText(OrgToken const& tok) { return tok.value.text; }
 };
 
 using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;

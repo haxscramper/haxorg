@@ -220,6 +220,15 @@ struct LexerCommon {
 
     using TokenFormatCb = hstd::Func<void(hstd::ColStream&, Token<K, V> const&)>;
 
+    static void TokenFormatCbDefault(hstd::ColStream& os, Token<K, V> const& tok) {
+        auto loc = TokenUtils<K, V>::getLocation(tok);
+        os << hstd::fmt(
+            "{}({}{})",
+            tok.kind,
+            loc.has_value() ? hstd::fmt("{}:{} ", loc->line, loc->column) : "",
+            hstd::escape_for_write(TokenUtils<K, V>::getText(tok)));
+    }
+
     void print(hstd::ColStream& os, TokenFormatCb format, PrintParams const& params)
         const {
         if (params.withPos) {
@@ -247,14 +256,25 @@ struct LexerCommon {
         }
     }
 
+    std::string formatState() const {
+        if (finished()) {
+            return "<lexer-finished>";
+        } else {
+            PrintParams params;
+            params.startOffset = -3;
+            return printToString(params);
+        }
+    }
 
-    std::string printToString(TokenFormatCb format, bool colored = false) const {
+    std::string printToString(
+        TokenFormatCb format  = &TokenFormatCbDefault,
+        bool          colored = false) const {
         return printToString(PrintParams{}, format, colored);
     }
 
     std::string printToString(
         PrintParams   params,
-        TokenFormatCb format,
+        TokenFormatCb format  = &TokenFormatCbDefault,
         bool          colored = false) const {
         std::stringstream stream;
         hstd::ColStream   out{stream};
@@ -353,8 +373,7 @@ struct LexerCommon {
             throw UnexpectedEndError(
                 hstd::fmt(
                     "Unexpected end encountered while trying to skip {} "
-                    "token "
-                    "at index {}",
+                    "token at index {}",
                     kind,
                     pos.getIndex()),
                 getSourceLoc(tok()));
