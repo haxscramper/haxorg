@@ -138,6 +138,85 @@ struct OrgConverter : public hstd::OperationsTracer {
     };
 
   public:
+    struct ErrorTable {
+        static org::sem::OrgDiagnostics::ConvertError ConvertErrorInit(
+            std::string_view   name,
+            std::string        code,
+            std::string const& brief,
+            std::string const& detail) {
+            org::sem::OrgDiagnostics::ConvertError result;
+            result.brief   = brief;
+            result.errCode = code;
+            result.errName = std::string{name};
+            result.detail  = detail;
+            return result;
+        }
+
+
+#define P_ERROR(__fieldname, __short, __long)                                            \
+    const org::sem::OrgDiagnostics::ConvertError __fieldname = ConvertErrorInit(         \
+        #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
+
+        P_ERROR(MissingLogHashtag, "No hashtag provided for the 'tag' value", "");
+        P_ERROR(
+            MissingCurrentState,
+            "No current state provided for the subtree state log "
+            "change",
+            "");
+
+        P_ERROR(MissingRefileTime, "No 'on' time for the refiled subtree log", "");
+
+        P_ERROR(
+            OverloadedHashtagDef,
+            "Only one hashtag is allowed in definition",
+            ":hashtag_def: property can contain only one "
+            "definition, to assign multiple definitions "
+            "to the subtree use repeated `:hashtag_def:` "
+            "property blocks.");
+
+        P_ERROR(
+            UnexpectedHashtagDefNode,
+            "Hashtag definition can only contain space or hashtag nodes",
+            "");
+
+        P_ERROR(UnexpectedCreatedValue, "Expected timestamp for :CREATED: property", "");
+
+        P_ERROR(
+            UnexpectedCookieData,
+            "Unexpected COOKIE_DATA property value.",
+            "Expected 'todo', 'recursive', 'both' or 'checkbox'.");
+
+        P_ERROR(
+            ExpectedStaticSubtreeTime,
+            "Subtree times are expected to have static time.",
+            "");
+
+        P_ERROR(
+            UnexpectedSubtreeTimeName,
+            "Accepted subtree time kinds are 'closed', "
+            "'deadline', 'scheduled'",
+            "");
+
+        P_ERROR(TimeFormatFail, "Could not parse datetime entry.", "");
+
+        P_ERROR(UnexpectedCheckboxValue, "Unexpected list item checkbox.", "");
+        P_ERROR(TableExpressionFail, "Failed to parse `#+tblfm`", "");
+        P_ERROR(
+            ColumnExpressionFail,
+            "Could not parse formatting expression for column command",
+            "");
+
+        P_ERROR(UnexpectedDocumentOption, "Unexpected document option", "");
+        P_ERROR(IncludeFailure, "Cannot resolve include", "");
+
+#undef P_ERROR
+    };
+
+
+    ErrorTable const error_table;
+
+
+  public:
     hstd::Opt<SemId<ErrorGroup>> convertPropertyList(SemId<Subtree>&, In);
     hstd::Opt<SemId<ErrorGroup>> convertSubtreeDrawer(SemId<Subtree>&, In);
     hstd::Vec<ConvResult<Org>>   flatConvertAttached(hstd::Vec<In> items);

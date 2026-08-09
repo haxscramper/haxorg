@@ -25,53 +25,6 @@ using TokSet = IntSet<OrgTokenKind>;
 namespace {
 
 
-org::sem::OrgDiagnostics::ParseError ParseErrorInit(
-    std::string_view   name,
-    std::string        code,
-    std::string const& brief,
-    std::string const& detail) {
-    org::sem::OrgDiagnostics::ParseError result;
-    result.errName = std::string{name};
-    result.errCode = code;
-    result.brief   = brief;
-    result.detail  = detail;
-    return result;
-}
-
-struct ErrorTable {
-#define P_ERROR(__fieldname, __short, __long)                                            \
-    const org::sem::OrgDiagnostics::ParseError __fieldname = ParseErrorInit(             \
-        #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
-
-    P_ERROR(FallbackError, "Default fallback error", "");
-    P_ERROR(UnexpectedToken, "Found unexpected token during parsing", "");
-    P_ERROR(MissingClosingParen, "Expected closing `)`", "");
-    P_ERROR(MissingClosingBracket, "Expected closing `]`", "");
-    P_ERROR(
-        MissingClosingColonOnSubtreeTags,
-        "Expected trailing ':' on the subtree tags",
-        "");
-    P_ERROR(
-        MissingMacroClose,
-        "Expected `}}}` after macro close",
-        "Inline macro call can be either `{{{macro-name}}}` or "
-        "`{{{macro-name(arg1, arg2)}}}`.");
-    P_ERROR(UnexpectedClosingCommand, "Unexpected closing command without opening", "");
-    P_ERROR(
-        UnexpectedTableElement,
-        "Unexpected element at the top table level.",
-        "Block-style table can only have pipe-style (leading `|`) or "
-        "CMD-style rows (`#+row`).");
-    P_ERROR(
-        MissingPropertyContinuation,
-        "Missing propery block continuation after the `:property:` start",
-        ":properties: must be immediately followed by the property list "
-        "starting from the next line");
-
-#undef P_ERROR
-};
-
-
 const OrgTokSet Newline{
     otk::Newline,
     otk::LongNewline,
@@ -110,7 +63,6 @@ const OrgTokSet BlockTerminator{
 };
 } // namespace
 
-ErrorTable const __table;
 
 #define SUB_PARSE_WITH_EXPR_PROPAGATE(__expr, __error, __lex)                            \
     BOOST_OUTCOME_TRYX(maybe_recursive_error_end(__expr, __error, __lex))
@@ -121,17 +73,17 @@ ErrorTable const __table;
 /// \brief Call `parse<kind>` for sub-expression, unpack the error and create additional
 /// error token on failure.
 #define SUB_PARSE_PROPAGATE(__kind, __lex, __on_failure)                                 \
-    SUB_PARSE_WITH_EXPR_PROPAGATE(parse##__kind(__lex), __table.__on_failure, __lex)
+    SUB_PARSE_WITH_EXPR_PROPAGATE(parse##__kind(__lex), error_table.__on_failure, __lex)
 
 /// \brief Call `parse<kind>` for processing and unpack the return value. Does not
 /// generate a secondary wrapper for the parsed code.
 #define SUB_PARSE(__kind, __lex) SUB_PARSE_WITH_EXPR(parse##__kind(__lex), __lex)
 
 #define TRY_SKIP_2(__lex, __expected)                                                    \
-    BOOST_OUTCOME_TRY(skip(__lex, __expected, __table.UnexpectedToken))
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, error_table.UnexpectedToken))
 
 #define TRY_SKIP_3(__lex, __expected, __message)                                         \
-    BOOST_OUTCOME_TRY(skip(__lex, __expected, __table.__message))
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, error_table.__message))
 
 #define TRY_SKIP_IMPL(__count) BOOST_PP_CAT(TRY_SKIP_, __count)
 
@@ -1391,7 +1343,7 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
                     break;
                 }
                 default: {
-                    return error_end(__table.UnexpectedTableElement, lex);
+                    return error_end(error_table.UnexpectedTableElement, lex);
                 }
             }
         }
@@ -1900,7 +1852,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 otk::ColonArgumentsProperty,
                 otk::ColonPropertyText}
                  .contains(head)) {
-            return error_end(__table.MissingPropertyContinuation, lex);
+            return error_end(error_table.MissingPropertyContinuation, lex);
         }
 
         auto propertyGuard = start(onk::DrawerProperty);
@@ -2517,7 +2469,7 @@ OrgParser::ParseResult OrgParser::parseLineCommand(OrgLexer& lex) {
             if (OrgTokenCmdBlockClose.contains(cmd_kind)) {
                 TRY_SKIP(lex, otk::CmdPrefix);
                 TRY_SKIP(lex, cmd_kind);
-                return error_end(__table.MissingClosingBracket, lex);
+                return error_end(error_table.MissingClosingBracket, lex);
             } else {
                 throw fatalError(
                     lex, hstd::fmt("Unhandled command kind {}", lex.kind(+1)));

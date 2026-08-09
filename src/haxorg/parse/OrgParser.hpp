@@ -53,6 +53,57 @@ struct OrgParser : public hstd::OperationsTracer {
         OrgLexer const*  lex  = nullptr;
     };
 
+  public:
+    struct ErrorTable {
+        static org::sem::OrgDiagnostics::ParseError ParseErrorInit(
+            std::string_view   name,
+            std::string        code,
+            std::string const& brief,
+            std::string const& detail) {
+            org::sem::OrgDiagnostics::ParseError result;
+            result.errName = std::string{name};
+            result.errCode = code;
+            result.brief   = brief;
+            result.detail  = detail;
+            return result;
+        }
+
+#define P_ERROR(__fieldname, __short, __long)                                            \
+    const org::sem::OrgDiagnostics::ParseError __fieldname = ParseErrorInit(             \
+        #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
+
+        P_ERROR(FallbackError, "Default fallback error", "");
+        P_ERROR(UnexpectedToken, "Found unexpected token during parsing", "");
+        P_ERROR(MissingClosingParen, "Expected closing `)`", "");
+        P_ERROR(MissingClosingBracket, "Expected closing `]`", "");
+        P_ERROR(
+            MissingClosingColonOnSubtreeTags,
+            "Expected trailing ':' on the subtree tags",
+            "");
+        P_ERROR(
+            MissingMacroClose,
+            "Expected `}}}` after macro close",
+            "Inline macro call can be either `{{{macro-name}}}` or "
+            "`{{{macro-name(arg1, arg2)}}}`.");
+        P_ERROR(
+            UnexpectedClosingCommand,
+            "Unexpected closing command without opening",
+            "");
+        P_ERROR(
+            UnexpectedTableElement,
+            "Unexpected element at the top table level.",
+            "Block-style table can only have pipe-style (leading `|`) or "
+            "CMD-style rows (`#+row`).");
+        P_ERROR(
+            MissingPropertyContinuation,
+            "Missing propery block continuation after the `:property:` start",
+            ":properties: must be immediately followed by the property list "
+            "starting from the next line");
+
+#undef P_ERROR
+    };
+
+    ErrorTable const error_table;
 
   public:
     struct ParseFail {};
