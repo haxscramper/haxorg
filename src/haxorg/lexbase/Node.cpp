@@ -194,10 +194,8 @@ void NodeGroup<N, K, V, M>::treeRepr(
         os << os.cyan() << hstd::fmt("[{}]", subnodeIdx) << os.end();
     }
 
-    if (conf.withTreeMask) { os << hstd::fmt(" MASK:{}", node.getMask()); }
-
     if (conf.withTreeId) {
-        os << " " << os.blue() << hstd::fmt("ID:{}", node.getUnmasked()) << os.end();
+        os << " " << os.blue() << hstd::fmt("ID:{}", node) << os.end();
     }
 
     if (at(node).isTerminal()) {
@@ -205,9 +203,16 @@ void NodeGroup<N, K, V, M>::treeRepr(
         if (tok.isNil()) {
             os << " # " << os.cyan() << "<nil>" << os.end();
         } else {
-            os << " # " << fmt1(tok.getUnmasked()) << " " << os.green()
-               << fmt1(at(tok).kind) << os.end() << " " << os.yellow()
-               << fmt1(at(tok).value) << os.end();
+            os << " # "               //
+               << fmt1(tok)           //
+               << " "                 //
+               << os.green()          //
+               << fmt1(at(tok).kind)  //
+               << os.end()            //
+               << " "                 //
+               << os.yellow()         //
+               << fmt1(at(tok).value) //
+               << os.end();
         }
     } else {
         if (conf.withExt) { os << hstd::fmt(" EXT:{}", at(node).getExtent()); }

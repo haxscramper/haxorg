@@ -637,6 +637,15 @@ void OrgParser::textFold(OrgLexer& lex) {
                 break;
             }
 
+            case otk::SubtreeStars: {
+                throw fatalError(
+                    lex,
+                    "Encountered subtree stars while performing text fold: this is an "
+                    "internal logical level in the parser, subtree stars should only be "
+                    "processed by the subtree parsing logic. Likely this indicates "
+                    "overly eager sub-lexer extraction, or synchronization gone wrong.");
+            }
+
             default: {
                 token(onk::Punctuation, pop(lex));
                 break;
@@ -1258,7 +1267,7 @@ OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
         auto     listGuard = start(onk::StmtList); // Cell content
         SubLexer sub{lex};
         skip(lex);
-        OrgTokSet CellEnd{otk::Pipe, otk::TrailingPipe};
+        OrgTokSet CellEnd = OrgTokSet{otk::Pipe, otk::TrailingPipe} + OrgTokenLineEnd;
         OrgTokSet CellStart{otk::Pipe, otk::LeadingPipe};
         while (lex.can_search(CellEnd)) {
             if (lex.at(otk::Whitespace)
@@ -1268,6 +1277,7 @@ OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
                 sub.add(pop(lex));
             }
         }
+
         if (sub.empty()) {
             auto guard = start(onk::Paragraph);
             guard->end();
@@ -1279,6 +1289,7 @@ OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
         listGuard->end();
         cellGuard->end();
     }
+
     BOOST_OUTCOME_TRY(skip(lex, otk::TrailingPipe));
     if (lex.at(Newline)) { skip(lex); }
 

@@ -309,23 +309,26 @@ OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
         }
 
         for (auto const& in_cell : one(in_row, N::Body)) {
-            SemId<Cell> cell = Sem<Cell>(in_cell);
-            if (auto args = one(in_cell, N::Args);
-                args.getKind() == onk::InlineStmtList) {
-                cell->isBlock = true;
-                cell->attrs   = convertAttrs(args);
-            }
+            if (IsErrorInfoToken(in_cell)) {
+                row->push_back(SemError(in_cell, {convertErrorItem(in_cell).value()}));
+            } else {
+                SemId<Cell> cell = Sem<Cell>(in_cell);
+                if (auto args = one(in_cell, N::Args);
+                    args.getKind() == onk::InlineStmtList) {
+                    cell->isBlock = true;
+                    cell->attrs   = convertAttrs(args);
+                }
 
-            for (auto const& sub : one(in_cell, N::Body)) {
-                cell->push_back(convert(sub));
-            }
+                for (auto const& sub : one(in_cell, N::Body)) {
+                    cell->push_back(convert(sub));
+                }
 
-            row->cells.push_back(cell);
+                row->cells.push_back(cell);
+            }
         }
 
         result->rows.push_back(row);
     }
-
 
     return result;
 };
@@ -1212,25 +1215,39 @@ OrgConverter::ConvResult<Macro> OrgConverter::convertMacro(__args) {
 OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
     __perf_trace("convert", "convertSymbol");
     auto __trace = trace(a);
-    auto sym     = Sem<Symbol>(a);
+    if (IsErrorInfoToken(a)) { return SemError(a, {convertErrorItem(a).value()}); }
+
+    auto sym = Sem<Symbol>(a);
 
     int idx   = 0;
     sym->name = get_text(one(a, N::Name)).substr(1);
     for (const auto& sub : one(a, N::Args)) {
-        auto params = split(get_text(sub), " ");
-        for (int i = 0; i < params.size();) {
-            if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
-                sym->parameters.push_back(
-                    Symbol::Param{.key = params.at(i), .value = params.at(i + 1)});
-                i += 2;
-            } else {
-                sym->parameters.push_back(Symbol::Param{.value = params.at(i)});
-                i += 1;
+        if (IsErrorInfoToken(sub)) {
+            // Alternative placement is also possible: make Symbol::Param into the
+            // org-node, and put it there. But it would mean the narrowly defined data
+            // structure for the symbol parameters now gets a catch-all escape hatch, or
+            // becomes a variant or something equally annoying to handle.
+            sym->subnodes.push_back(SemError(sub, {convertErrorItem(sub).value()}));
+        } else {
+            auto params = split(get_text(sub), " ");
+            for (int i = 0; i < params.size();) {
+                if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
+                    sym->parameters.push_back(
+                        Symbol::Param{.key = params.at(i), .value = params.at(i + 1)});
+                    i += 2;
+                } else {
+                    sym->parameters.push_back(Symbol::Param{.value = params.at(i)});
+                    i += 1;
+                }
             }
         }
     }
 
-    for (const auto& sub : one(a, N::Body)) { sym->positional.push_back(convert(sub)); }
+    if (has(a, N::Body)) {
+        for (const auto& sub : one(a, N::Body)) {
+            sym->positional.push_back(convert(sub));
+        }
+    }
 
     return sym;
 }
@@ -2831,8 +2848,18 @@ parse::OrgAdapter OrgConverter::one(parse::OrgAdapter node, OrgSpecName name) {
     LOGIC_ASSERTION_CHECK_FMT(
         !ErrorKinds.contains(node.getKind()),
         "Attempting to index into a named field of the error info "
-        "token");
+        "token for node ID {}",
+        node.id);
     return spec->getSingleSubnode(node, name);
+}
+
+bool OrgConverter::has(parse::OrgAdapter node, OrgSpecName name) {
+    LOGIC_ASSERTION_CHECK_FMT(
+        !ErrorKinds.contains(node.getKind()),
+        "Attempting to index into a named field of the error info "
+        "token for node ID {}",
+        node.id);
+    return spec->hasSingleSubnode(node, name);
 }
 
 hstd::Vec<parse::OrgAdapter> OrgConverter::many(
@@ -2841,7 +2868,8 @@ hstd::Vec<parse::OrgAdapter> OrgConverter::many(
     LOGIC_ASSERTION_CHECK_FMT(
         !ErrorKinds.contains(node.getKind()),
         "Attempting to index into a named field of the error info "
-        "token");
+        "token for node ID {}",
+        node.id);
 
     return spec->getMultipleSubnode(node, name);
 }

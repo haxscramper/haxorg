@@ -100,6 +100,7 @@ struct OrgConverter : public hstd::OperationsTracer {
     OrgConverter() { spec = getOrgSpec(); }
 
     org::parse::OrgAdapter one(org::parse::OrgAdapter node, OrgSpecName name);
+    bool                   has(org::parse::OrgAdapter node, OrgSpecName name);
 
     hstd::Vec<org::parse::OrgAdapter> many(org::parse::OrgAdapter node, OrgSpecName name);
 

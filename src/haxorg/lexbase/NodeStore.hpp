@@ -206,7 +206,6 @@ struct NodeGroup {
 
     struct TreeReprConf {
         bool withTokenMask  = false;
-        bool withTreeMask   = false;
         bool withTreeId     = true;
         bool withSubnodeIdx = true;
         bool flushEach      = false;

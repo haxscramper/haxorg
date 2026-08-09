@@ -691,6 +691,11 @@ struct AstSpec {
         return node.at(getSingleSubnodeIdx(node, name));
     }
 
+    bool hasSingleSubnode(Node const& node, Name const& name) const {
+        auto idx = getSingleSubnodeIdx(node, name);
+        return 0 <= idx && idx < node.size();
+    }
+
     hstd::Vec<Node> getMultipleSubnode(Node const& node, Name const& name) const {
         if (nodeRanges.at(node.getKind()).contains(name)) {
             hstd::Vec<Node> result;
