@@ -326,8 +326,11 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             auto result = converter.convertDocument(org::parse::OrgAdapter(&nodes, id))
                               .unwrap();
 
-            auto cache   = getDiagnosticStrings();
+            auto cache = getDiagnosticStrings();
+            __perf_trace_begin("api", "collect diagnostics");
             auto reports = collectDiagnostics(result, cache);
+            __perf_trace_end("api");
+
             if (opts->onDiagnosticsCollected) {
                 __perf_trace("api", "user diagnostics callback");
                 opts->onDiagnosticsCollected(reports, std::nullopt);

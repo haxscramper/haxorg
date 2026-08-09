@@ -86,7 +86,7 @@ run_codechecker:
 dump_cli_stack:
   lldb -p $(pgrep -f haxorg_cpp_org_cli) -o "thread backtrace all" -o "detach" -o "quit" > /tmp/trace.log
 
-profile_perf_cli path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' freq='1000' perf_file='/tmp/perf.pftrace':
+profile_perf_cli path freq='1000' bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
     perf record --freq={{freq}} --call-graph dwarf -- {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}}
 
 profile_heaptrack_cli path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
