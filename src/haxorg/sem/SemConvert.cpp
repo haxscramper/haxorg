@@ -335,14 +335,23 @@ OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
     auto __trace = trace(a);
     auto result  = Sem<HashTag>(a);
 
-    Func<sem::HashTagText(org::parse::OrgAdapter)> aux;
-    aux = [&aux, this](org::parse::OrgAdapter a) -> sem::HashTagText {
+    auto aux = [this](this auto&& self, org::parse::OrgAdapter a)
+        -> hstd::Result<sem::HashTagText, SemId<ErrorGroup>> {
+        if (IsErrorInfoToken(a)) { return SemError(a, {convertErrorItem(a).value()}); }
+        if (IsErrorInfoToken(a.at(0))) {
+            return SemError(a.at(0), {convertErrorItem(a.at(0)).value()});
+        }
+
         sem::HashTagText text;
         text.head = strip(get_text(a.at(0)), CharSet{'#'}, CharSet{});
         if (1 < a.size()) {
             for (auto& node : a.at(slice(1, 1_B))) {
-                auto conv = aux(node);
-                text.subtags.push_back(conv);
+                auto conv = self(node);
+                if (conv) {
+                    text.subtags.push_back(conv.assume_value());
+                } else {
+                    return conv;
+                }
             }
         }
         return text;
@@ -353,7 +362,11 @@ OrgConverter::ConvResult<HashTag> OrgConverter::convertHashTag(__args) {
     if (1 < a.size()) {
         for (auto& node : a.at(slice(1, 1_B))) {
             auto conv = aux(node);
-            text.subtags.push_back(conv);
+            if (conv) {
+                text.subtags.push_back(conv.assume_value());
+            } else {
+                return conv.assume_error();
+            }
         }
     }
 
@@ -1004,8 +1017,10 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
                 (parse::OrgSet{onk::BigIdent, onk::Word}.contains(it.at(0).kind())),
                 "{}",
                 it.treeRepr(false));
-            auto kind = convertWord(it.at(0)).value();
-            auto time = convertTime(it.at(1)).value();
+            auto kind       = convertWord(it.at(0)).value();
+            auto timeResult = convertTime(it.at(1));
+            if (timeResult.isError()) { return timeResult.error(); }
+            auto time = timeResult.value();
 
             if (!time->isStatic()) {
                 return SemError(a, MakeConvert(a, ErrorTable::ExpectedStaticSubtreeTime));

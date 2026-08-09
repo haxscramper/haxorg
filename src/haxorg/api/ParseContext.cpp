@@ -211,9 +211,12 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
                 org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
                     frag.text, p, file_id);
-                if (opts->onBaseTokenizeDone) { opts->onBaseTokenizeDone(baseTokens, i); }
-                org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
+                if (opts->onBaseTokenizeDone) {
+                    __perf_trace("api", "user post base tokenize callback");
+                    opts->onBaseTokenizeDone(baseTokens, i);
+                }
 
+                org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
                 if (opts->tokenTracePath) {
                     tokenizer.setTraceFile(*opts->tokenTracePath, false);
                     tokenizer.traceColored = false;
@@ -222,7 +225,11 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                 tokenizer.convert(baseTokens);
 
                 org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
-                if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens.at(i), i); }
+                if (opts->onTokenizerDone) {
+                    __perf_trace("api", "user post-tokenize callback");
+                    opts->onTokenizerDone(tokens.at(i), i);
+                }
+
                 org::parse::OrgParser parser{&nodes.at(i), file_id, source.get()};
                 if (opts->parseTracePath) {
                     parser.setTraceFile(*opts->parseTracePath, false);
@@ -231,7 +238,10 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
                 auto id = parser.parseFull(lex);
 
-                if (opts->onParseDone) { opts->onParseDone(nodes.at(i), i); }
+                if (opts->onParseDone) {
+                    __perf_trace("api", "user post-parse callback");
+                    opts->onParseDone(nodes.at(i), i);
+                }
 
                 auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
 
@@ -253,6 +263,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
             auto result = converter.convertDocumentFragments(toConvert).unwrap();
             if (opts->onDiagnosticsCollected) {
+                __perf_trace("api", "user diagnostics callback");
                 for (int i = 0; i < result.size(); ++i) {
                     auto cache   = getDiagnosticStrings();
                     auto reports = collectDiagnostics(result.at(i), cache);
@@ -272,6 +283,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
             org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(text, p, file_id);
             if (opts->onBaseTokenizeDone) {
+                __perf_trace("api", "user post base tokenize callback");
                 opts->onBaseTokenizeDone(baseTokens, std::nullopt);
             }
 
@@ -285,7 +297,10 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
             tokenizer.convert(baseTokens);
 
-            if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens, std::nullopt); }
+            if (opts->onTokenizerDone) {
+                __perf_trace("api", "user post-tokenize callback");
+                opts->onTokenizerDone(tokens, std::nullopt);
+            }
 
             org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
 
@@ -303,7 +318,10 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                 converter.traceColored = false;
             }
 
-            if (opts->onParseDone) { opts->onParseDone(nodes, std::nullopt); }
+            if (opts->onParseDone) {
+                __perf_trace("api", "user post-parse callback");
+                opts->onParseDone(nodes, std::nullopt);
+            }
 
             auto result = converter.convertDocument(org::parse::OrgAdapter(&nodes, id))
                               .unwrap();
@@ -311,6 +329,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             auto cache   = getDiagnosticStrings();
             auto reports = collectDiagnostics(result, cache);
             if (opts->onDiagnosticsCollected) {
+                __perf_trace("api", "user diagnostics callback");
                 opts->onDiagnosticsCollected(reports, std::nullopt);
             }
 
