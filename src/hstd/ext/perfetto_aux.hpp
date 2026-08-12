@@ -52,13 +52,27 @@ void __tracy_zone_text(Zone& zone, std::string const& text) {
     zone.Text(text.c_str(), text.size());
 }
 
-#define __perf_trace_impl(__varname, n, ...)                               \
-    ZoneNamed(__varname, true);                                            \
-    ZoneTextV(__varname, n, __tracy_string_length(n)); \
-    TRACY_ZONE_VARS(__varname, __VA_ARGS__);
+template <typename Zone, typename T>
+void __tracy_zone_variable(Zone& zone, char const* name, T const& value) {
+    if constexpr (std::is_arithmetic_v<T>) {
+        auto s = std::string(name) + "=" + std::to_string(value);
+        zone.Text(s.c_str(), s.size());
+    } else {
+        auto s = std::string(name) + "=" + value;
+        zone.Text(s.c_str(), s.size());
+    }
+}
 
-#define TRACY_ZONE_VARS(varname, ...) TRACY_ZONE_VARS_EVAL(__tracy_TRACY_ZONE_VARS_IMPL(varname, __VA_ARGS__))
+
+#define __perf_trace_impl(__varname, n, ...)                        \
+    ZoneNamed(__varname, true);                                     \
+    ZoneTextV(__varname, n, __tracy_string_length(n));              \
+    __VA_OPT__(TRACY_ZONE_VARS(__varname, __VA_ARGS__);)
+
+#define TRACY_ZONE_VARS(varname, ...) \
+    TRACY_ZONE_VARS_EVAL(__tracy_TRACY_ZONE_VARS_IMPL(varname, __VA_ARGS__))
 #define TRACY_ZONE_VARS_EVAL(...) __VA_ARGS__
+
 
 #define __tracy_TRACY_ZONE_VARS_IMPL(varname, a1, a2, ...) \
     ; __tracy_zone_variable(varname, #a1, a2); __VA_OPT__(__tracy_TRACY_ZONE_VARS_IMPL2(varname, __VA_ARGS__))
@@ -77,6 +91,15 @@ void __tracy_zone_text(Zone& zone, std::string const& text) {
 #define __tracy_TRACY_ZONE_VARS_IMPL8(varname, a1, a2, ...) \
     ; __tracy_zone_variable(varname, #a1, a2);
 
+
+#    define __perf_trace(c, n, ...) \
+        __perf_trace_impl(___tracy_zone, n __VA_OPT__(, ) __VA_ARGS__)
+
+#    define __perf_trace_begin(c, n, ...)                     \
+        ZoneTransient(__perf_ctx, n, true);                   \
+        __VA_OPT__(TRACY_ZONE_VARS(__perf_ctx, __VA_ARGS__);)
+
+#    define __perf_trace_end(c, ...) __perf_ctx.End();
 
 
 #else
