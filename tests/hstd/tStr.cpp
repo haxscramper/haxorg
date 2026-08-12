@@ -47,16 +47,16 @@ TEST(StringOperationsTest, StringMutations) {
 }
 
 TEST(StringOperationsTest, StringApi) {
-    StrView pref1 = Str("?$??").dropPrefix("?");
+    Str pref1 = Str{Str("?$??").dropPrefix("?")};
     EXPECT_EQ(pref1, "$??");
 
-    StrView pref2 = Str("XXXX").dropPrefix("YYY");
+    Str pref2 = Str{Str("XXXX").dropPrefix("YYY")};
     EXPECT_EQ(pref2, "XXXX");
 
-    StrView suff1 = Str("??$?").dropSuffix("?");
+    Str suff1 = Str{Str("??$?").dropSuffix("?")};
     EXPECT_EQ(suff1, "??$");
 
-    StrView suff2 = Str("XXXX").dropSuffix("YYY");
+    Str suff2 = Str{Str("XXXX").dropSuffix("YYY")};
     EXPECT_EQ(suff2, "XXXX");
 
     EXPECT_EQ(Str("0").at(0), '0');

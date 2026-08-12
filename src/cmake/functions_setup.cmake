@@ -57,6 +57,10 @@ function(set_target_flags_impl)
   elseif(${ORG_BUILD_ASSUME_CLANG})
     # FIXME: Adding attribute configurations here does not propagate them to the compiler.
   endif()
+  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wdangling")
+  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=dangling")
+  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wlifetime-safety-all")
+  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=lifetime-safety-all")
   add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
 
   set_target_properties(

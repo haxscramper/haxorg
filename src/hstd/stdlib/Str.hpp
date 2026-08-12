@@ -18,8 +18,8 @@ class StrCommon {
     bool         contains(char ch) const;
     bool         contains(StrView const& ch) const;
     StrView      substr(int start, int count = -1) const [[clang::lifetimebound]];
-    StrView      dropPrefix(StrView const& prefix) const [[clang::lifetimebound]];
-    StrView      dropSuffix(StrView const& suffix) const [[clang::lifetimebound]];
+    StrView      dropPrefix(StrView const& prefix) const;
+    StrView      dropSuffix(StrView const& suffix) const;
     [[refl(R"({"unique-name": "atIndex"})")]] char at(int pos) const;
     float                                          toFloat() const;
     double                                         toDouble() const;
@@ -40,7 +40,7 @@ class StrCommon {
     Derived const& self() const [[clang::lifetimebound]];
 };
 
-class StrView
+class [[gsl::Pointer]] StrView
     : public std::string_view
     , public StrCommon<StrView> {
   public:
@@ -51,11 +51,11 @@ class StrView
     using StrCommon<StrView>::substr;
 
     StrView() = default;
-    StrView(std::string_view view);
-    StrView(std::string const& view);
+    StrView(std::string_view view [[clang::lifetimebound]]);
+    StrView(std::string const& view [[clang::lifetimebound]]);
     [[refl(R"({"unique-name": "StrViewFromCString"})")]] StrView(char const* conv);
     StrView(char const* conv, int size);
-    StrView(Str const& str);
+    StrView(Str const& str [[clang::lifetimebound]]);
 
     std::string_view asStdView() const [[clang::lifetimebound]];
 
@@ -76,7 +76,7 @@ class StrView
     Str str() const;
 };
 
-struct [[refl(R"({"backend": {"target-backends": ["c"]}})")]] Str
+struct [[refl(R"({"backend": {"target-backends": ["c"]}})"), gsl::Owner]] Str
     : public std::string
     , public StrCommon<Str> {
     using std::string::operator[];

@@ -378,7 +378,7 @@ struct Cursor {
 
         tok.kind = kind;
 
-        tok.value.text = std::string{
+        tok.value.text = std::string_view{
             text.begin() + start.pos,
             text.begin() + end.pos,
         };
@@ -417,7 +417,7 @@ struct Cursor {
         adv(*this, args...);
         int end = pos;
 
-        tok.value.text = std::string{
+        tok.value.text = std::string_view{
             text.begin() + start,
             text.begin() + end,
         };

@@ -129,8 +129,7 @@ struct convert<hstd::StrView> {
         return result;
     }
     static bool decode(Node const& in, hstd::StrView& out) {
-        out = in.as<std::string>();
-        return true;
+        throw hstd::logic_unreachable_error::init("Cannot de-serialize view");
     }
 };
 

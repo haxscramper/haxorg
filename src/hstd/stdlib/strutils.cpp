@@ -209,9 +209,12 @@ Pair<Str, Str> hstd::visibleName(char ch) {
 }
 
 Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
-    auto lines = split(str, '\n');
-    for (auto& line : lines) { line = prefix + repeat(Str(space), spaces) + Str{line}; }
-    return join("\n", lines);
+    auto     lines = split(str, '\n');
+    Vec<Str> res;
+    for (auto& line : lines) {
+        res.push_back(prefix + repeat(Str(space), spaces) + Str{line});
+    }
+    return join("\n", res);
 }
 
 Str hstd::normalize(StrView in) {

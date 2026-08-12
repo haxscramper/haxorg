@@ -32,15 +32,19 @@ Str            indent(Str const& str, int spaces, char space = ' ', Str prefix =
 
 Vec<Str>           visibleUnicodeName(hstd::StrView str, bool useUnicode = true);
 Vec<Str>           visibleUnicodeName(Str const& str, bool useUnicode = true);
-Vec<hstd::StrView> split_keep_separator(hstd::StrView str, CharSet sep = {' '});
-hstd::StrView      strip(
-    hstd::StrView  string,
+Vec<hstd::StrView> split_keep_separator(
+    hstd::StrView str [[clang::lifetimebound]],
+    CharSet       sep = {' '});
+hstd::StrView strip(
+    hstd::StrView  string [[clang::lifetimebound]],
     CharSet const& leading,
     CharSet const& trailing);
-hstd::StrView      lstrip(hstd::StrView string, CharSet const& chars);
-hstd::StrView      rstrip(hstd::StrView string, CharSet const& chars);
-Vec<hstd::StrView> split(hstd::StrView str, char ch);
-Vec<hstd::StrView> split(hstd::StrView value, hstd::StrView delimiter);
+hstd::StrView lstrip(hstd::StrView string [[clang::lifetimebound]], CharSet const& chars);
+hstd::StrView rstrip(hstd::StrView string [[clang::lifetimebound]], CharSet const& chars);
+Vec<hstd::StrView> split(hstd::StrView str [[clang::lifetimebound]], char ch);
+Vec<hstd::StrView> split(
+    hstd::StrView value [[clang::lifetimebound]],
+    hstd::StrView delimiter);
 
 Str  right_aligned(Str const& str, int n, char c = ' ');
 Str  left_aligned(Str const& str, int n, char c = ' ');

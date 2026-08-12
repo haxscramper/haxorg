@@ -12,7 +12,9 @@ struct LexerCommon {
     TokenId<K, V>     pos;
     /// \brief Token where lexer was previously positioned at
     hstd::Opt<TokenId<K, V>> lastToken;
-    LexerCommon(TokenGroup<K, V>* _in, TokenId<K, V> startPos = TokenId<K, V>(0))
+    LexerCommon(
+        TokenGroup<K, V>* _in [[clang::lifetimebound]],
+        TokenId<K, V>     startPos = TokenId<K, V>(0))
         : in(_in), pos(startPos) {}
 
 
@@ -20,13 +22,20 @@ struct LexerCommon {
         return 0 <= id.getIndex() && id.getIndex() < in->size();
     }
 
-    K                  kind(int offset = 0) const { return tok(offset).kind; }
-    Token<K, V>&       tok(TokenId<K, V> id) { return in->at(id); }
-    Token<K, V> const& tok(TokenId<K, V> id) const { return in->at(id); }
+    K kind(int offset = 0) const { return tok(offset).kind; }
+
+    Token<K, V>& tok(TokenId<K, V> id) [[clang::lifetimebound]] { return in->at(id); }
+    Token<K, V> const& tok(TokenId<K, V> id) const [[clang::lifetimebound]] {
+        return in->at(id);
+    }
+
     Token<K, V> const& tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K, V>      get(int offset = 0) const { return pos + offset; }
-    V const&           val(int offset = 0) const { return tok(offset).value; }
-    V&                 val(int offset = 0) { return in->at(get(offset)).value; }
+    V const&           val(int offset = 0) const [[clang::lifetimebound]] {
+        return tok(offset).value;
+    }
+
+    V& val(int offset = 0) [[clang::lifetimebound]] { return in->at(get(offset)).value; }
 
     hstd::Opt<TokenId<K, V>> getLocTokenId() const {
         std::optional<TokenId<K, V>> locId;

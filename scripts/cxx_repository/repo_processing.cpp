@@ -719,7 +719,10 @@ void check_tree_entry_consistency(
         section.track,
         state->at(track_id).sections.size() - 1);
 
-    auto content_lines = hstd::split(Str{content_ptr}, '\n');
+    auto content_lines = hstd::own_view(hstd::split(Str{content_ptr}, '\n'))
+                       | hstd::rv::transform(
+                             [](hstd::StrView sv) -> hstd::Str { return hstd::Str{sv}; })
+                       | hstd::rs::to<hstd::Vec>();
 
     std::string concat_content =                  //
         zip_longest(section.lines, content_lines) //

@@ -74,7 +74,9 @@ using Property = org::sem::NamedProperty;
 namespace {
 bool org_streq(StrView str1, StrView str2) { return normalize(str1) == normalize(str2); }
 
-StrView strip_space(StrView space) { return strip(space, CharSet{' '}, CharSet{' '}); }
+StrView strip_space(StrView space [[clang::lifetimebound]]) {
+    return strip(space, CharSet{' '}, CharSet{' '});
+}
 
 org::sem::SubtreePath convertSubtreePath(StrView path) {
     org::sem::SubtreePath res;
@@ -633,12 +635,14 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
 
     if (IsErrorInfoToken(a)) { return SemError(a, {convertErrorItem(a).value()}); }
 
-    StrView basename = strip(get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'});
+    Str basename = Str{strip(get_text(one(a, N::Name)), CharSet{' ', ':'}, CharSet{':'})};
     std::string name = normalize(basename);
 
     auto __trace = trace(a, hstd::fmt("property-'{}' (base: '{}')", name, basename));
 
-    auto get_values_text = [&]() { return strip_space(get_text(one(a, N::Values))); };
+    auto get_values_text = [&]() {
+        return Str{strip_space(get_text(one(a, N::Values)))};
+    };
 
     auto handled = [&](int         line     = __builtin_LINE(),
                        char const* function = __builtin_FUNCTION()) {
@@ -658,11 +662,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         result = Property(res);
     } else if (name == "id") {
         handled();
-        tree->treeId = Str{get_values_text()};
+        tree->treeId = get_values_text();
     } else if (name == "customid") {
         handled();
         Property::CustomId id;
-        id.value = Str{get_values_text()};
+        id.value = get_values_text();
         result   = Property{id};
     } else if (name == "radioid") {
         handled();
@@ -760,7 +764,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
 
     } else if (name == "effort") {
         handled();
-        StrView               value    = get_values_text();
+        Str                   value    = get_values_text();
         Vec<StrView>          duration = split(value, ":");
         NamedProperty::Effort prop;
 
@@ -775,12 +779,12 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name == "archivefile") {
         handled();
         NamedProperty::ArchiveFile file{};
-        file.file = Str{get_values_text()};
+        file.file = get_values_text();
         result    = NamedProperty{file};
     } else if (name == "archivetime") {
         handled();
         NamedProperty::ArchiveTime prop{};
-        StrView                    time = get_values_text();
+        Str                        time = get_values_text();
         Slice<int>                 span = slice(0, time.size() - 1);
         Opt<cctz::time_zone>       zone;
         if (time.at(3_B) == '+' || time.at(3_B) == '-') {
@@ -810,18 +814,18 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
     } else if (name == "archivecategory") {
         handled();
         NamedProperty::ArchiveCategory file{};
-        file.category = Str{get_values_text()};
+        file.category = get_values_text();
         result        = NamedProperty{file};
     } else if (name == "archivetodo") {
         handled();
         NamedProperty::ArchiveTodo file{};
-        file.todo = Str{get_values_text()};
+        file.todo = get_values_text();
         result    = NamedProperty{file};
     } else if (name == "archive") {
         handled();
         NamedProperty::ArchiveTarget file{};
-        auto                         dsl = split(get_values_text(), "::");
-        file.pattern                     = Str{dsl.at(0)};
+        auto dsl       = hstd::own_view(split(get_values_text(), "::")) | str_view_to_str;
+        file.pattern   = Str{dsl.at(0)};
         file.path.path = hstd::own_view(split(lstrip(dsl.at(1), CharSet{'*', ' '}), "/"))
                        | str_view_to_str;
         result         = NamedProperty{file};
@@ -852,8 +856,11 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
             })) {
         handled();
         NamedProperty::CustomArgs prop;
-        auto                      name = hstd::split(
-            strip(get_text(one(a, N::Name)), CharSet{':'}, CharSet{':'}), ':');
+        auto                      name = hstd::own_view(
+                                             hstd::split(
+                                                 strip(get_text(one(a, N::Name)), CharSet{':'}, CharSet{':'}),
+                                                 ':'))
+                                       | str_view_to_str;
 
         prop.name = Str{name.at(0)};
         if (name.has(1)) { prop.sub = Str{name.at(1)}; }
@@ -865,7 +872,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         NamedProperty::CustomRaw prop;
         prop.name = Str{basename};
         if (one(a, N::Values).kind() == onk::RawText) {
-            prop.value = Str{get_values_text()};
+            prop.value = get_values_text();
         } else {
             prop.value = get_text(one(a, N::Values));
         }
@@ -913,7 +920,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         auto __field    = field(N::Completion, a);
         auto completion = one(a, N::Completion);
         if (completion.kind() != onk::Empty) {
-            auto text = strip(get_text(completion), CharSet{'['}, CharSet{']'});
+            auto text = Str{strip(get_text(completion), CharSet{'['}, CharSet{']'})};
             sem::SubtreeCompletion res;
             if (text.ends_with("%")) {
                 res.isPercent = true;
@@ -1165,7 +1172,7 @@ OrgConverter::ConvResult<Symbol> OrgConverter::convertSymbol(__args) {
             // becomes a variant or something equally annoying to handle.
             sym->subnodes.push_back(SemError(sub, {convertErrorItem(sub).value()}));
         } else {
-            auto params = split(get_text(sub), " ");
+            auto params = hstd::own_view(split(get_text(sub), " ")) | str_view_to_str;
             for (int i = 0; i < params.size();) {
                 if (params.at(i).starts_with(":") && (i + 1) < params.size()) {
                     sym->parameters.push_back(
@@ -1228,7 +1235,9 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
     __perf_trace("convert", "convertLink");
     auto __trace   = trace(a);
     auto link      = Sem<Link>(a);
-    auto getTarget = [&]() { return lstrip(get_text(one(a, N::Link)), CharSet{':'}); };
+    auto getTarget = [&]() {
+        return Str{lstrip(get_text(one(a, N::Link)), CharSet{':'})};
+    };
     if (a.kind() == onk::RawLink) {
         link->target = LinkTarget{LinkTarget::Raw{.text = get_text(a)}};
 
@@ -1236,7 +1245,7 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         link->target = LinkTarget{
             LinkTarget::Footnote{.target = get_text(one(a, N::Definition))}};
     } else if (one(a, N::Protocol).kind() == onk::Empty) {
-        StrView target = getTarget();
+        Str target = getTarget();
         if (target.starts_with(".") || target.starts_with("/")) {
             link->target = LinkTarget{LinkTarget::File{.file = Str{target}}};
         } else if (target.starts_with("*")) {
@@ -1321,8 +1330,8 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
     }
 
     if (one(a, N::Checkbox).kind() != onk::Empty) {
-        StrView text = strip(
-            get_text(one(a, N::Checkbox)), CharSet{'[', ' '}, CharSet{' ', ']'});
+        Str text = Str{
+            strip(get_text(one(a, N::Checkbox)), CharSet{'[', ' '}, CharSet{' ', ']'})};
 
         if (TraceState) {
             print(hstd::fmt("Normalized checkbox: {}", escape_literal(text)));
@@ -1777,7 +1786,7 @@ OrgConverter::ConvResult<CmdTblfm> OrgConverter::convertCmdTblfm(__args) {
     auto res     = Sem<CmdTblfm>(a);
 
 
-    StrView expr = strip_space(get_text(one(a, N::Values)));
+    Str expr = Str{strip_space(get_text(one(a, N::Values)))};
 
     auto result = run_lexy_parse<tblfmt_grammar::tblfmt>(expr, this);
 
@@ -2118,7 +2127,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(__args) {
         include->getOrgDocument().onlyContent = only->items.at(0).getBool();
     }
     if (auto arg = args.named.pop_opt("lines")) {
-        StrView lines = strip(arg->items.at(0).getString(), CharSet{'"'}, CharSet{'"'});
+        Str lines = Str{strip(arg->items.at(0).getString(), CharSet{'"'}, CharSet{'"'})};
         Vec<StrView> split = hstd::split(lines, "-");
         if (lines.starts_with("-")) {
             include->lastLine = split.at(1).toInt();
@@ -2447,7 +2456,7 @@ OrgConverter::ConvResult<CmdColumns> OrgConverter::convertCmdColumns(__args) {
     auto              __trace = trace(a);
     SemId<CmdColumns> result  = Sem<CmdColumns>(a);
 
-    StrView expr = strip_space(get_text(one(a, N::Args)));
+    Str expr = Str{strip_space(get_text(one(a, N::Args)))};
 
     auto spec = run_lexy_parse<columns_grammar::columns>(expr, this);
 
@@ -3007,9 +3016,10 @@ bool OrgConverter::updateDocument(SemId<Document>& doc, parse::OrgAdapter const&
         }
 
         case onk::CmdStartup: {
-            Vec<StrView> args = split(strip_space(get_text(sub.at(0))), " ");
-            Str          text = normalize(args.at(0));
-            using K           = InitialSubtreeVisibility;
+            Vec<Str> args = hstd::own_view(split(strip_space(get_text(sub.at(0))), " "))
+                          | str_view_to_str;
+            Str      text = normalize(args.at(0));
+            using K       = InitialSubtreeVisibility;
             if (text == "content") {
                 doc->options->initialVisibility = K::Content;
             } else if (text == "overview") {
@@ -3043,7 +3053,9 @@ bool OrgConverter::updateDocument(SemId<Document>& doc, parse::OrgAdapter const&
             }
 
             if (auto it = args.get(1); it.has_value()) {
-                if (org_streq(*it, "indent")) { doc->options->startupIndented = true; }
+                if (org_streq(it.value().get(), "indent"_str_view)) {
+                    doc->options->startupIndented = true;
+                }
             }
 
             return true;
