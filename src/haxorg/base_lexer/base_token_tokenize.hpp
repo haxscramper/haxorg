@@ -13,7 +13,7 @@ struct LexerParams : hstd::OperationsTracer {
 
 
 OrgTokenGroup tokenize(
-    std::string const&              text,
+    std::string const&              text [[clang::lifetimebound]],
     LexerParams const&              params,
     org::parse::SourceFileId const& file_id);
 

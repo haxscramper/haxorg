@@ -214,7 +214,7 @@ struct RecombineState {
         }
     }
 
-    OrgFill loc_fill(Str const& text = "") {
+    OrgFill loc_fill(std::string_view text = "") {
         return OrgFill{.text = text, .loc = lex.tok()->loc};
     }
 

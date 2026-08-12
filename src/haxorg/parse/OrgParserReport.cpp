@@ -60,7 +60,7 @@ void OrgParser::report(Report const& in) {
                             .index = in.lex->pos.isNil()
                                        ? -1
                                        : static_cast<int>(in.lex->pos.getIndex() + i),
-                            .value = in.lex->tok(i).value.text,
+                            .value = std::string{in.lex->tok(i).value.text},
                         });
                 }
             }

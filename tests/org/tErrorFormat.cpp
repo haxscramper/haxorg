@@ -661,9 +661,9 @@ def multiline :: Str = match Some 5 in {
 }
 
 hstd::Str remove_trailing(hstd::Str const& in) {
-    hstd::Str noLeadTail = hstd::strip(in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
-    return hstd::own_view(split(noLeadTail, '\n'))
-         | rv::transform([](hstd::Str const& str) -> hstd::Str {
+    std::string_view noLeadTail = hstd::strip(in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
+    return hstd::own_view(hstd::split(noLeadTail, '\n'))
+         | rv::transform([](hstd::Str const& str) -> std::string_view {
                return hstd::strip(str, CharSet{}, CharSet{' '});
            })
          | hstd::rv_intersperse_newline_join;

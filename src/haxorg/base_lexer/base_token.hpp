@@ -7,7 +7,7 @@
 namespace org::parse {
 
 struct OrgFill {
-    hstd::Str                        text;
+    std::string_view                 text;
     hstd::Opt<org::parse::SourceLoc> loc;
     bool                             isFake() const { return !loc.has_value(); }
     DESC_FIELDS(OrgFill, (text, loc));

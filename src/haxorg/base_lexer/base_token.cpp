@@ -5,7 +5,7 @@ hstd::fmt_iter fmt::formatter<org::parse::OrgFill>::format(
     org::parse::OrgFill const& p,
     format_context&            ctx) const {
     ::hstd::fmt_ctx("<", ctx);
-    ::hstd::fmt_ctx(escape_for_write(p.text), ctx);
+    ::hstd::fmt_ctx(hstd::escape_for_write(p.text), ctx);
     ::hstd::fmt_ctx(">", ctx);
     if (p.loc.has_value()) {
         ::hstd::fmt_ctx(":", ctx);

@@ -88,45 +88,51 @@ Str hstd::styledUnicodeMapping(Str const& str, AsciiStyle style) {
     return result;
 }
 
-Str hstd::strip(Str const& string, CharSet const& leading, CharSet const& trailing) {
-    if (0 < string.size()) {
-        Span<char> view = string.toSpan();
-        LOGIC_ASSERTION_CHECK(view.data() != nullptr, "View data cannot be nullptr");
-        char* end = view.data() + string.size();
-
-        while (0 < view.size() && leading.contains(view.at(0))) {
-            view.moveStart(1, end);
-        }
-
-        while (0 < view.size() && trailing.contains(view.at(1_B))) {
-            view.moveEnd(-1, end);
-        }
-
-        return Str(view);
-    } else {
-        return Str();
+std::string_view hstd::strip(
+    std::string_view string,
+    CharSet const&   leading,
+    CharSet const&   trailing) {
+    while (!string.empty() && leading.contains(string.front())) {
+        string.remove_prefix(1);
     }
+
+    while (!string.empty() && trailing.contains(string.back())) {
+        string.remove_suffix(1);
+    }
+
+    return string;
 }
 
-Vec<Str> hstd::split(Str const& str, char ch) {
-    Vec<Str>           tokens;
-    Str                token;
-    std::istringstream tokenStream(str);
+std::string_view hstd::lstrip(std::string_view string, CharSet const& chars) {
+    return strip(string, chars, {});
+}
 
-    while (std::getline(tokenStream, token, ch)) { tokens.push_back(token); }
+std::string_view hstd::rstrip(std::string_view string, CharSet const& chars) {
+    return strip(string, {}, chars);
+}
 
+Vec<std::string_view> hstd::split(std::string_view str, char ch) {
+    Vec<std::string_view> tokens;
+    while (true) {
+        auto pos = str.find(ch);
+        if (pos == std::string_view::npos) {
+            tokens.push_back(str);
+            break;
+        }
+        tokens.push_back(str.substr(0, pos));
+        str.remove_prefix(pos + 1);
+    }
     return tokens;
 }
 
-
-Vec<Str> hstd::split_keep_separator(Str const& str, CharSet sep) {
-    Vec<Str> result;
-    int      prev = 0, curr = 0;
-    while (curr < str.length()) {
+Vec<std::string_view> hstd::split_keep_separator(std::string_view str, CharSet sep) {
+    Vec<std::string_view> result;
+    size_t                prev = 0, curr = 0;
+    while (curr < str.size()) {
         if (sep.contains(str[curr])) {
             if (prev != curr) { result.push_back(str.substr(prev, curr - prev)); }
             prev = curr;
-            while (curr < str.length() - 1 && str[curr + 1] == str[curr]) { curr++; }
+            while (curr + 1 < str.size() && str[curr + 1] == str[curr]) { curr++; }
             result.push_back(str.substr(prev, curr - prev + 1));
             curr++;
             prev = curr;
@@ -137,6 +143,7 @@ Vec<Str> hstd::split_keep_separator(Str const& str, CharSet sep) {
     if (prev < curr) { result.push_back(str.substr(prev, curr - prev)); }
     return result;
 }
+
 
 Vec<Str> hstd::visibleUnicodeName(std::string_view str, bool useUnicode) {
     Vec<Str> result;
@@ -203,7 +210,7 @@ Pair<Str, Str> hstd::visibleName(char ch) {
 
 Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
     auto lines = split(str, '\n');
-    for (auto& line : lines) { line = prefix + repeat(Str(space), spaces) + line; }
+    for (auto& line : lines) { line = prefix + repeat(Str(space), spaces) + Str{line}; }
     return join("\n", lines);
 }
 
@@ -245,7 +252,7 @@ Str hstd::right_aligned(Str const& str, int n, char c) {
     return res;
 }
 
-Str hstd::escape_for_write(Str const& str, bool quote) {
+Str hstd::escape_for_write(std::string_view str, bool quote) {
     Str res;
     res.reserve(str.size());
     if (quote) { res += "\""; }
@@ -315,14 +322,6 @@ std::vector<std::string> hstd::rune_chunks(std::string const& str) {
         i += len;
     }
     return runes;
-}
-
-Str hstd::lstrip(Str const& string, CharSet const& chars) {
-    return strip(string, chars, {});
-}
-
-Str hstd::rstrip(Str const& string, CharSet const& chars) {
-    return strip(string, {}, chars);
 }
 
 Str hstd::wrap_text(Vec<Str> const& words, int maxWidth, bool justified) {
@@ -636,7 +635,7 @@ std::string hstd::format_table(
     for (const auto& row : rows) {
         for (int col = 0; col < row.size(); ++col) {
             for (const auto& line : split(row[col], '\n')) {
-                col_widths[col] = std::max(col_widths[col], line.size());
+                col_widths[col] = std::max<int>(col_widths[col], line.size());
             }
         }
     }
@@ -646,12 +645,12 @@ std::string hstd::format_table(
     for (int row_idx = 0; row_idx < rows.size(); ++row_idx) {
         auto const& row = rows[row_idx];
 
-        Vec<Vec<Str>> cell_lines(col_count);
-        int           row_height = 1;
+        Vec<Vec<std::string_view>> cell_lines(col_count);
+        int                        row_height = 1;
 
         for (int col = 0; col < col_count; ++col) {
             if (col < row.size()) {
-                cell_lines[col] = split(row[col], '\n');
+                cell_lines[col] = hstd::split(row[col], '\n');
             } else {
                 cell_lines[col] = {""};
             }
@@ -689,18 +688,18 @@ std::string hstd::format_table(
     return out.str();
 }
 
-Vec<Str> hstd::split(Str const& value, Str const& delimiter) {
-    Vec<Str> tokens;
-    size_t   start = 0;
-    size_t   end   = value.find(delimiter);
+Vec<std::string_view> hstd::split(std::string_view value, std::string_view delimiter) {
+    Vec<std::string_view> tokens;
+    size_t                start = 0;
+    size_t                end   = value.find(delimiter);
 
-    while (end != std::string::npos) {
+    while (end != std::string_view::npos) {
         tokens.push_back(value.substr(start, end - start));
         start = end + delimiter.length();
         end   = value.find(delimiter, start);
     }
 
-    tokens.push_back(value.substr(start, end));
+    tokens.push_back(value.substr(start));
 
     return tokens;
 }

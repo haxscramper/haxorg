@@ -30,20 +30,23 @@ Str join(Str const& sep, generator<T>&& list) {
 Pair<Str, Str> visibleName(char ch);
 Str            indent(Str const& str, int spaces, char space = ' ', Str prefix = "");
 
-Vec<Str> visibleUnicodeName(std::string_view str, bool useUnicode = true);
-Vec<Str> visibleUnicodeName(Str const& str, bool useUnicode = true);
-Vec<Str> split_keep_separator(Str const& str, CharSet sep = {' '});
-Str      strip(Str const& string, CharSet const& leading, CharSet const& trailing);
-Str      lstrip(Str const& string, CharSet const& chars);
-Str      rstrip(Str const& string, CharSet const& chars);
-Vec<Str> split(Str const& str, char ch);
-Vec<Str> split(Str const& value, Str const& delimiter);
+Vec<Str>              visibleUnicodeName(std::string_view str, bool useUnicode = true);
+Vec<Str>              visibleUnicodeName(Str const& str, bool useUnicode = true);
+Vec<std::string_view> split_keep_separator(std::string_view str, CharSet sep = {' '});
+std::string_view      strip(
+    std::string_view string,
+    CharSet const&   leading,
+    CharSet const&   trailing);
+std::string_view      lstrip(std::string_view string, CharSet const& chars);
+std::string_view      rstrip(std::string_view string, CharSet const& chars);
+Vec<std::string_view> split(std::string_view str, char ch);
+Vec<std::string_view> split(std::string_view value, std::string_view delimiter);
 
 Str  right_aligned(Str const& str, int n, char c = ' ');
 Str  left_aligned(Str const& str, int n, char c = ' ');
 Str  normalize(Str const& in);
 Str  repeat(Str const& str, int count);
-Str  escape_for_write(Str const& str, bool quote = true);
+Str  escape_for_write(std::string_view str, bool quote = true);
 int  rune_length(std::string const& str);
 bool iequals(std::string const& a, std::string const& b);
 

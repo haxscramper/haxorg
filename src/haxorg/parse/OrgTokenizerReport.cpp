@@ -44,7 +44,7 @@ void OrgTokenizer::report(Report const& in) {
             res.token = ValueToken{
                 .kind  = fmt1(at(in.id).kind),
                 .index = static_cast<int>(in.id.getIndex()),
-                .value = at(in.id)->text,
+                .value = std::string{at(in.id)->text},
             };
 
             res.loc = at(in.id)->loc;

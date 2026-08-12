@@ -104,6 +104,13 @@ inline hstd::Str operator+(char const* in, hstd::Str const& other) {
     return res;
 }
 
+inline hstd::Str operator+(char const* in, std::string_view other) {
+    hstd::Str res;
+    res.append(in);
+    res.append(hstd::Str{other});
+    return res;
+}
+
 
 template <class CharT>
 struct fmt::formatter<hstd::Str, CharT> : fmt::formatter<std::string, CharT> {

@@ -662,7 +662,7 @@ void switch_command(Cursor& c) {
         if (c.is_at(':')) { c.next(); }
     });
     auto head      = c.pop_token();
-    auto norm_head = normalize(head->text);
+    auto norm_head = normalize(std::string{head->text});
 
     auto head_raw = [&](int         line     = __builtin_LINE(),
                         char const* function = __builtin_FUNCTION()) {
