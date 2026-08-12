@@ -1478,7 +1478,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         }
     }();
 
-    std::string tmp = lex.val().text;
+    auto tmp = Str{lex.val().text};
     skip(lex);
 
     if (lex.at(Newline)) {

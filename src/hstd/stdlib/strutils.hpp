@@ -8,7 +8,7 @@
 namespace hstd {
 
 template <typename T>
-Str join(Str const& sep, generator<T>& list) {
+Str join(StrView const& sep, generator<T>& list) {
     Str os;
     int index = 0;
     for (const auto& it : list) {
@@ -21,7 +21,7 @@ Str join(Str const& sep, generator<T>& list) {
 
 
 template <typename T>
-Str join(Str const& sep, generator<T>&& list) {
+Str join(StrView const& sep, generator<T>&& list) {
     auto tmp = std::move(list);
     return join(sep, tmp);
 }
@@ -30,27 +30,27 @@ Str join(Str const& sep, generator<T>&& list) {
 Pair<Str, Str> visibleName(char ch);
 Str            indent(Str const& str, int spaces, char space = ' ', Str prefix = "");
 
-Vec<Str>              visibleUnicodeName(std::string_view str, bool useUnicode = true);
-Vec<Str>              visibleUnicodeName(Str const& str, bool useUnicode = true);
-Vec<std::string_view> split_keep_separator(std::string_view str, CharSet sep = {' '});
-std::string_view      strip(
-    std::string_view string,
-    CharSet const&   leading,
-    CharSet const&   trailing);
-std::string_view      lstrip(std::string_view string, CharSet const& chars);
-std::string_view      rstrip(std::string_view string, CharSet const& chars);
-Vec<std::string_view> split(std::string_view str, char ch);
-Vec<std::string_view> split(std::string_view value, std::string_view delimiter);
+Vec<Str>           visibleUnicodeName(hstd::StrView str, bool useUnicode = true);
+Vec<Str>           visibleUnicodeName(Str const& str, bool useUnicode = true);
+Vec<hstd::StrView> split_keep_separator(hstd::StrView str, CharSet sep = {' '});
+hstd::StrView      strip(
+    hstd::StrView  string,
+    CharSet const& leading,
+    CharSet const& trailing);
+hstd::StrView      lstrip(hstd::StrView string, CharSet const& chars);
+hstd::StrView      rstrip(hstd::StrView string, CharSet const& chars);
+Vec<hstd::StrView> split(hstd::StrView str, char ch);
+Vec<hstd::StrView> split(hstd::StrView value, hstd::StrView delimiter);
 
 Str  right_aligned(Str const& str, int n, char c = ' ');
 Str  left_aligned(Str const& str, int n, char c = ' ');
-Str  normalize(Str const& in);
+Str  normalize(StrView in);
 Str  repeat(Str const& str, int count);
-Str  escape_for_write(std::string_view str, bool quote = true);
-int  rune_length(std::string const& str);
+Str  escape_for_write(hstd::StrView str, bool quote = true);
+int  rune_length(StrView str);
 bool iequals(std::string const& a, std::string const& b);
 
-std::vector<std::string> rune_chunks(std::string const& str);
+std::vector<StrView> rune_chunks(StrView str [[clang::lifetimebound]]);
 
 std::string format_number(double value);
 std::string format_table(
@@ -63,7 +63,7 @@ std::string format_table(
 /// \brief Escape string literal, converting newline and other (TODO)
 /// control characters into unicode.
 std::string escape_literal(std::string const& in);
-std::string escape_literal(std::string_view const& in);
+std::string escape_literal(hstd::StrView const& in);
 void        validate_utf8(std::string const& str);
 
 std::string format_integer_bits(uint64_t value, char fmt, int pad_to = 0);

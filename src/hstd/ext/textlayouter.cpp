@@ -1130,10 +1130,10 @@ Str SimpleStringStore::toString(BlockId const& blc, Options const& opts) {
         }
     }
 
-    Vec<Str> fin;
+    Vec<StrView> fin;
     for (const auto& line : split(result, "\n")) {
         fin.push_back(strip(line, CharSet{}, CharSet{' '}));
     }
 
-    return join("\n", fin);
+    return join(std::string_view{"\n"}, fin);
 }

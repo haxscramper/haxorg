@@ -136,7 +136,7 @@ OrgNodeMono::Error OrgParser::error_value(
 
     if (failToken) {
         fail.err.loc       = failToken->value.loc.value();
-        fail.err.tokenText = failToken->value.text;
+        fail.err.tokenText = Str{failToken->value.text};
         LOGIC_ASSERTION_CHECK_FMT(manager != nullptr, "");
 
         if (manager) {

@@ -161,8 +161,7 @@ struct RecombineState {
         x_report(Print, .with_line(line).with_msg(msg));
     }
 
-    std::string const& tok_str(int offset = 0) const { return lex.tok(offset)->text; }
-
+    StrView const& tok_str(int offset = 0) const { return lex.tok(offset)->text; }
 
     void skip(OrgLexer& lex, OrgTokenKind kind, int line = __builtin_LINE()) {
         x_report(Print, .with_line(line).with_msg(hstd::fmt("skip {}", lex.tok())));
@@ -396,12 +395,12 @@ struct RecombineState {
     }
 
     void map_interpreted_token() {
-        auto               __trace  = trace("", __LINE__, "[map]");
-        OrgTokenId         start    = lex.pos;
-        OrgToken const&    tok      = lex.tok();
-        OrgFill const&     val      = tok.value;
-        std::string const& str      = tok.value.text;
-        auto               map_kind = lex.kind();
+        auto            __trace  = trace("", __LINE__, "[map]");
+        OrgTokenId      start    = lex.pos;
+        OrgToken const& tok      = lex.tok();
+        OrgFill const&  val      = tok.value;
+        StrView         str      = tok.value.text;
+        auto            map_kind = lex.kind();
 
         switch (map_kind) {
             case otk::LineCommand: map_line_command(); break;
@@ -425,11 +424,25 @@ struct RecombineState {
 
                     if (buf.back().value.text.ends_with('"')) {
                         OrgToken merged = buf.front();
-                        merged->text    = "";
-                        for (auto const& it : enumerator(buf)) {
-                            merged->text += it.value()->text;
+
+                        const std::string_view first = buf.front().value.text;
+                        const std::string_view last  = buf.back().value.text;
+
+                        char const* begin = first.data();
+                        char const* end   = last.data() + last.size();
+
+                        // Optional debug safety check: enforce back-to-back layout
+                        for (std::size_t i = 1; i < buf.size(); ++i) {
+                            const auto prev = buf[i - 1].value.text;
+                            const auto cur  = buf[i].value.text;
+                            assert(prev.data() + prev.size() == cur.data());
                         }
+
+                        merged->text = std::string_view(
+                            begin, static_cast<std::size_t>(end - begin));
+
                         add(merged);
+
                     } else {
                         for (auto const& tok : buf) { add(tok); }
                     }

@@ -168,6 +168,12 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// \brief Append elements from \arg other vector
     void append(Container const& other) { _this()->append(other.begin(), other.end()); }
 
+
+    template <typename OtherIterable>
+    void append_with_reconstruction(OtherIterable const& other) {
+        for (auto const& it : other) { _this()->push_back(T{it}); }
+    }
+
     /// \brief copy multiple elements referred to by span to the fector
     void append(std::span<T> const& other) {
         _this()->append(other.begin(), other.end());

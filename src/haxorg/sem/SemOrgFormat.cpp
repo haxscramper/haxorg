@@ -143,20 +143,22 @@ auto Formatter::toString(SemId<Macro> id, Context const& ctx) -> Res {
 }
 
 std::string nestedHashtag(org::sem::HashTagText const& hash) {
+    std::string res = hash.head;
     if (hash.subtags.empty()) {
-        return hash.head;
+        // pass
     } else if (hash.subtags.size() == 1) {
-        return hash.head + "##" + nestedHashtag(hash.subtags.at(0));
+        res += "##";
+        res += nestedHashtag(hash.subtags.at(0));
     } else {
-        return hash.head + "##["
-             + (hash.subtags                   //
-                | rv::transform(nestedHashtag) //
-                | rv::intersperse(",")         //
-                | rv::join                     //
-                | rs::to<std::string>()        //
-                )
-             + "]";
+        res += "##[";
+        res += hash.subtags                 //
+             | rv::transform(nestedHashtag) //
+             | rv::intersperse(",")         //
+             | rv::join                     //
+             | rs::to<std::string>();       //
+        res += "]";
     }
+    return res;
 }
 
 

@@ -237,9 +237,13 @@ Vec<Str> ConstraintBase::getBuildRepr(hstd::Opt<RectMap> const& rects) const {
     if (rects) {
         for (auto const& c : build(rects.value())) {
             if (verbose_build_repr) {
-                joined.append(split(tree_repr(c), "\n"));
+                for (auto const& l : split(tree_repr(c), "\n")) {
+                    joined.push_back(Str{l});
+                }
             } else {
-                joined.append(split(flat_repr(c), "\n"));
+                for (auto const& l : split(flat_repr(c), "\n")) {
+                    joined.push_back(Str{l});
+                }
             }
         }
     }
@@ -441,10 +445,10 @@ Str MultiSeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     joined.push_back(
         fmt::format("MultiSeparateConstraint(step={:g} strength={})", step, strength));
 
-    auto     t_1   = Str{hstd::format_table(g_fmt, " => ", "")};
-    auto     ind   = hstd::indent(t_1, 2);
-    Vec<Str> table = split(ind, '\n');
-    joined.append(table);
+    auto         t_1   = Str{hstd::format_table(g_fmt, " => ", "")};
+    auto         ind   = hstd::indent(t_1, 2);
+    Vec<StrView> table = split(ind, '\n');
+    joined.append_with_reconstruction(table);
     joined.append(getBuildRepr(rects));
 
     return hstd::join("\n", joined);

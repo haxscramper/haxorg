@@ -1322,7 +1322,7 @@ ReportSource::ReportSource(Str const& l) : content{l} {
         ReportSourceLine l{.offset = offset, .len = 0};
         lines.push_back(l);
     } else {
-        for (std::string const& line : split(l, '\n')) {
+        for (hstd::StrView const& line : split(l, '\n')) {
             ReportSourceLine l{.offset = offset, .len = rune_length(line)};
             offset += l.len + 1;
             lines.push_back(l);

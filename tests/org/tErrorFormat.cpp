@@ -180,7 +180,7 @@ struct PrintErrorTestSetup {
 
                 own_view(rune_chunks(str)) //
                     | rv::enumerate
-                    | rv::transform([](Pair<int, std::string> const& l) -> std::string {
+                    | rv::transform([](Pair<int, StrView> const& l) -> std::string {
                           return hstd::fmt("[{}] {}", l.first, escape_literal(l.second));
                       })
                     | rv::intersperse("\n") //
@@ -266,7 +266,7 @@ TEST(PrintError, StringBuilder1) {
 
             own_view(rune_chunks(str)) //
                 | rv::enumerate
-                | rv::transform([](Pair<int, std::string> const& l) -> std::string {
+                | rv::transform([](Pair<int, StrView> const& l) -> std::string {
                       return hstd::fmt("[{}] {}", l.first, escape_literal(l.second));
                   })
                 | rv::intersperse("\n") //
@@ -663,8 +663,8 @@ def multiline :: Str = match Some 5 in {
 hstd::Str remove_trailing(hstd::Str const& in) {
     std::string_view noLeadTail = hstd::strip(in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
     return hstd::own_view(hstd::split(noLeadTail, '\n'))
-         | rv::transform([](hstd::Str const& str) -> std::string_view {
-               return hstd::strip(str, CharSet{}, CharSet{' '});
+         | rv::transform([](StrView str) -> Str {
+               return Str{hstd::strip(str, CharSet{}, CharSet{' '})};
            })
          | hstd::rv_intersperse_newline_join;
 }

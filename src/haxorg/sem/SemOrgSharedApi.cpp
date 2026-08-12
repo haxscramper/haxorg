@@ -587,6 +587,7 @@ Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
     }
 }
 
+
 template <typename Handle>
 auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
     using Select = SemOrImmType<
@@ -602,7 +603,8 @@ auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
             auto k = normalize(*kind);
             if (is_kind(sub_h, OrgSemKind::CmdAttr)) {
                 auto attr = org_cast<sem::CmdAttr>(sub_h);
-                if ((k.starts_with("attr") && normalize(attr->target) == k)
+                if ((k.starts_with("attr")
+                     && normalize(hstd::ext::get_str_view(attr->target)) == k)
                     || (normalize("attr_" + attr->target) == k)) {
                     result.push_back(sub_h);
                 }

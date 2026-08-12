@@ -264,7 +264,7 @@ struct get_value_format<T> {
     static std::string get(
         org::imm::ImmAdapterT<T> const& t,
         ImmTreeReprContext const&       ctx) {
-        return hstd::escape_for_write(t.value().text);
+        return hstd::escape_for_write(get_str_view(t.value().text));
     }
 };
 

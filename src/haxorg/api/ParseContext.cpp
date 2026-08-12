@@ -495,7 +495,7 @@ void postProcessInclude(
                     sem::BlockCodeLine lineNode;
                     lineNode.parts.push_back(
                         sem::BlockCodeLine::Part{
-                            sem::BlockCodeLine::Part::Raw{.code = line}});
+                            sem::BlockCodeLine::Part::Raw{.code = Str{line}}});
                     code->lines.push_back(lineNode);
                 }
                 break;
@@ -507,7 +507,7 @@ void postProcessInclude(
                 auto source = readFile(full.value());
                 for (auto const& line : split(source, '\n')) {
                     auto raw  = sem::SemId<sem::RawText>();
-                    raw->text = line;
+                    raw->text = Str{line};
                     code->push_back(raw);
                 }
                 break;
