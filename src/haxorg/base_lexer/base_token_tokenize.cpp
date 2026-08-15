@@ -337,11 +337,12 @@ struct Cursor {
     LexerParams              p;
     OrgTokenGroup*           group;
     std::string_view         text;
-    int                      pos      = 0; // byte offset
-    int                      char_pos = 0; // character offset
-    int                      line     = 0;
-    int                      col      = 0;
-    org::parse::SourceFileId file_id  = org::parse::SourceFileId::Nil();
+    int                      pos           = 0; // byte offset
+    int                      char_pos      = 0; // character offset
+    int                      line          = 0;
+    int                      col           = 0;
+    org::parse::SourceFileId file_id       = org::parse::SourceFileId::Nil();
+    bool                     enable_guards = true;
 
     void unhandled(
         int         line     = __builtin_LINE(),
@@ -457,29 +458,35 @@ struct Cursor {
 
     OrgToken pop_token() { return group->tokens.content.pop_back_v(); }
 
-    hstd::finally_std advance_guard(
+
+    std::optional<hstd::finally_std> advance_guard(
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
-        int start_pos = this->pos;
+        if (enable_guards) {
 
-        std::string function_{function};
-        int         line_{line};
+            int start_pos = this->pos;
 
-        return finally_std{[this, start_pos, function_, line_]() {
-            if (start_pos == this->pos) {
-                OP_TRACER_MESSAGE(
-                    p, "No movement around pos {}: {}", start_pos, this->format());
-            }
+            std::string function_{function};
+            int         line_{line};
 
-            LOGIC_ASSERTION_CHECK_FMT(
-                start_pos != this->pos,
-                "No movement around pos {}: {}, advance guard failed at "
-                "{}:{}",
-                start_pos,
-                this->format(),
-                function_,
-                line_);
-        }};
+            return finally_std{[this, start_pos, function_, line_]() {
+                if (start_pos == this->pos) {
+                    OP_TRACER_MESSAGE(
+                        p, "No movement around pos {}: {}", start_pos, this->format());
+                }
+
+                LOGIC_ASSERTION_CHECK_FMT(
+                    start_pos != this->pos,
+                    "No movement around pos {}: {}, advance guard failed at "
+                    "{}:{}",
+                    start_pos,
+                    this->format(),
+                    function_,
+                    line_);
+            }};
+        } else {
+            return std::nullopt;
+        }
     }
 };
 
@@ -1980,15 +1987,17 @@ OrgTokenGroup org::parse::tokenize(
     org::parse::SourceFileId const& file_id) {
     __perf_trace("lexing", "base lexer run");
     OrgTokenGroup result;
+    result.tokens.reserve(text.size() / 5);
     LOGIC_ASSERTION_CHECK(!file_id.isNil(), "");
 
     if (text.empty()) { return result; }
 
     Cursor c{
-        .p       = params,
-        .group   = &result,
-        .text    = text,
-        .file_id = file_id,
+        .p             = params,
+        .group         = &result,
+        .text          = text,
+        .file_id       = file_id,
+        .enable_guards = params.validateTokens,
     };
 
     while (!c.eof()) {
