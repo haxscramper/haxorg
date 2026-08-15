@@ -8,6 +8,8 @@
 using namespace hstd;
 using namespace org::parse;
 
+// TODO: Split into the "get token" and "format" parts, so it would be possible to dump
+// the lexer location state without string formatting.
 std::string OrgParser::getLocMsg(OrgLexer const& lex) {
     std::string result;
     std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());

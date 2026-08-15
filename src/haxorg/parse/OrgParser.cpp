@@ -24,6 +24,7 @@ using TokSet = IntSet<OrgTokenKind>;
 
 namespace {
 
+OrgTokSet SpaceTokens{otk::Whitespace, otk::LeadingSpace};
 
 const OrgTokSet Newline{
     otk::Newline,
@@ -93,7 +94,7 @@ const OrgTokSet BlockTerminator{
 #define TRY_POPX(__lex, __expression) BOOST_OUTCOME_TRYX(pop(__lex, __expression))
 
 void OrgParser::space(OrgLexer& lex, int line, char const* function) {
-    while (lex.at(OrgTokSet{otk::Whitespace, otk::LeadingSpace})) {
+    while (lex.at(SpaceTokens)) {
         std::ignore = skip(lex, std::nullopt, std::nullopt, line, function);
     }
 }
@@ -2607,27 +2608,28 @@ std::string OrgParser::printLexerToString(OrgLexer& lex) const {
     });
 }
 
-finally_std OrgParser::advance_guard(OrgLexer* lex, int line, char const* function) {
-    auto start_pos = lex->getPos();
+OrgParser::advance_guard_obj::~advance_guard_obj() {
+    LOGIC_ASSERTION_CHECK_FMT(
+        start_pos != lex->getPos(),
+        "No movement around pos {}: {}, advance guard failed at "
+        "{}:{}",
+        start_pos,
+        lex->getCurrentPosRepr(),
+        function,
+        line);
+}
 
-    std::string function_{function};
-    int         line_{line};
 
-    return hstd::finally_std{[this, start_pos, function_, line_, lex]() {
-        if (lex->getPos() == start_pos) {
-            OP_TRACER_MESSAGE(
-                this, "No movement around pos {}: {}", start_pos, lex->get());
-        }
-
-        LOGIC_ASSERTION_CHECK_FMT(
-            start_pos != lex->getPos(),
-            "No movement around pos {}: {}, advance guard failed at "
-            "{}:{}",
-            start_pos,
-            lex->getCurrentPosRepr(),
-            function_,
-            line_);
-    }};
+OrgParser::advance_guard_obj OrgParser::advance_guard(
+    OrgLexer*   lex,
+    int         line,
+    char const* function) {
+    return advance_guard_obj{
+        .line      = line,
+        .function  = function,
+        .lex       = lex,
+        .start_pos = lex->getPos(),
+    };
 }
 
 
@@ -2738,7 +2740,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
     auto& g = *parser->group;
     while (id <= g.nodes.back()) {
         // NOTE: 'back' returns the last node, not one-past-last
-        OrgNode node = g.at(id);
+        OrgNode const& node = g.at(id);
         if (node.kind == onk::Subtree) {
             OP_TRACER_MESSAGE(parser, "Found subtree on the lower level {}", id.format());
             OrgId const tree = id;

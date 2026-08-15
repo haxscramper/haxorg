@@ -238,7 +238,15 @@ struct OrgParser : public hstd::OperationsTracer {
             char const*        function = __builtin_FUNCTION());
     };
 
-    hstd::finally_std advance_guard(
+    struct advance_guard_obj {
+        int         line;
+        char const* function;
+        OrgLexer*   lex;
+        OrgTokenId  start_pos;
+        ~advance_guard_obj();
+    };
+
+    advance_guard_obj advance_guard(
         OrgLexer*   lex,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());

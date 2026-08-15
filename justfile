@@ -93,10 +93,13 @@ profile_heaptrack_cli path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='
     heaptrack {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}}
 
 profile_valgrind tool path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
-    valgrind --tool={{tool}}  --{{tool}}-out-file=/tmp/{{tool}}.out.haxorg_cli {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}} --last-stage BaseLex
+    valgrind --tool={{tool}}  --{{tool}}-out-file=/tmp/{{tool}}.out.haxorg_cli {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}}
 
-profile_callgrind_annotate file outfile:
-  callgrind_annotate --auto=yes --include={{file}} /tmp/callgrind.out.haxorg_cli > {{outfile}}
+profile_valgrind_view tool:
+  kcachegrind /tmp/{{tool}}.out.haxorg_cli
+
+profile_callgrind_annotate *files:
+  callgrind_annotate --auto=no /tmp/callgrind.out.haxorg_cli {{files}} > /tmp/haxorg_callgrind_annotate.txt
 
 profile_perf_view:
   hotspot perf.data
