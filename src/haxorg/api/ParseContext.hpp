@@ -41,6 +41,10 @@ struct [[refl(
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
+
+    DECL_DESCRIBED_ENUM(LastParseStage, BaseLex, RecombineLex, Parse, SemConvert);
+    LastParseStage lastStage = LastParseStage::SemConvert;
+
     hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)> getFragments;
 
     /// \brief Callbacks are triggered when the full file is parsed, or when the

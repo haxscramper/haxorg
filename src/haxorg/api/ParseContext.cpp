@@ -169,7 +169,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
     auto file_id = addSource(string_id, text);
 
-    auto impl = [&]() {
+    auto impl = [&]() -> org::sem::SemId<org::sem::Org> {
         if (opts->getFragments) {
             auto                          fragments = opts->getFragments(text);
             Vec<OrgConverter::InFragment> toConvert;
@@ -288,6 +288,10 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                 opts->onBaseTokenizeDone(baseTokens, std::nullopt);
             }
 
+            if (opts->lastStage == OrgParseParameters::LastParseStage::BaseLex) {
+                return nullptr;
+            }
+
             org::parse::OrgTokenGroup tokens;
             org::parse::OrgTokenizer  tokenizer{&tokens};
 
@@ -303,6 +307,11 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                 opts->onTokenizerDone(tokens, std::nullopt);
             }
 
+            if (opts->lastStage == OrgParseParameters::LastParseStage::RecombineLex) {
+                return nullptr;
+            }
+
+
             org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
 
             org::parse::OrgNodeGroup nodes{&tokens};
@@ -312,7 +321,12 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                 parser.traceColored = false;
             }
 
-            auto              id = parser.parseFull(lex);
+            auto id = parser.parseFull(lex);
+
+            if (opts->lastStage == OrgParseParameters::LastParseStage::Parse) {
+                return nullptr;
+            }
+
             sem::OrgConverter converter{};
             if (opts->semTracePath) {
                 converter.setTraceFile(*opts->semTracePath);
