@@ -77,6 +77,32 @@ struct NodeGroup {
     /// \brief Remove all nodes starting from a position `id`
     void removeTail(Id id);
 
+    static void TreeFormatCbDefault(
+        hstd::ColStream& os,
+        NodeT const&     node,
+        Id const&        id) {
+        os << hstd::fmt("{}({})", node.kind, id);
+    }
+
+    using FormatCbType = std::function<void(hstd::ColStream&, NodeT const&, Id const&)>;
+
+    void printToString(
+        hstd::ColStream&    os,
+        FormatCbType const& format = &TreeFormatCbDefault) const {
+        os << hstd::fmt("[nodes:{} pending:{} ", nodes.size(), pendingTrees.size());
+        for (auto const& id : pendingTrees) {
+            os << " ";
+            format(os, nodes.at(id), id);
+        }
+        os << "]";
+    }
+
+    std::string formatState(FormatCbType const& format = &TreeFormatCbDefault) const {
+        hstd::ColStream os;
+        printToString(os, format);
+        return os.toString(false);
+    }
+
     Node<N, K, V, M> const& lastPending() const { return nodes.at(pendingTrees.back()); }
 
     /// \brief Return reference to the node *object* at specified ID

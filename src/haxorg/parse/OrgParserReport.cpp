@@ -82,15 +82,11 @@ void OrgParser::report(Report const& in) {
 
     } else {
         os << repeat("  ", getLevel());
-        auto print_token = [](ColStream& os, OrgToken const& t) {
-            os << escape_for_write(t->text);
-        };
-
         auto printTokens = [&]() {
             if (in.lex != nullptr) {
                 os << " [";
                 OrgLexer::PrintParams params;
-                in.lex->print(os, print_token, params);
+                in.lex->print(os, &OrgLexer::TokenFormatCbDefault, params);
                 os << "]";
             }
         };

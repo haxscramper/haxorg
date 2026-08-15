@@ -252,6 +252,7 @@ struct LexerCommon {
             os << os.red() << " finished" << os.end();
         } else {
             for (int i = params.startOffset; i < params.maxTokens && hasNext(i); ++i) {
+                os << " ";
                 auto const& t = tok(i);
                 format(os, t);
             }

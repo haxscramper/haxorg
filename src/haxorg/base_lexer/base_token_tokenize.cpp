@@ -1100,6 +1100,86 @@ void lex_latex_inline(Cursor& c, std::string const& close, OrgTokenKind end) {
     }
 }
 
+inline bool is_monospace_pre_ok(Cursor const& c) {
+    // org: opening `~` must follow bol/whitespace or an opening paren/quote.
+    // NB: has_pos(-1) is buggy at pos==0, so index text directly.
+    if (c.pos == 0) { return true; }
+    char p = c.text[c.pos - 1];
+    return p == ' ' || p == '\n' || p == '\t' || p == '(' || p == '[' || p == '{'
+        || p == '\'' || p == '"';
+}
+
+inline bool is_monospace_post_char(char c) {
+    switch (c) {
+        case ' ':
+        case '\t':
+        case '\n':
+        case ')':
+        case ']':
+        case '}':
+        case '.':
+        case ',':
+        case ';':
+        case ':':
+        case '!':
+        case '?':
+        case '\'':
+        case '"': return true;
+        default: return false;
+    }
+}
+
+/// \brief Find the offset of the closing `~` relative to the opening `~` at
+/// the current cursor position, or nullopt. Never scans past the end of the
+/// current paragraph: stops at blank lines and at lines that would start a
+/// new element (command, subtree, list item, table row).
+///
+/// Org-mode parser/lexer/whatever seems to scan the buffer and segment it into the
+/// regions and only then identify paragraphs to parse in the buffer. This approach is not
+/// possible with the haxorg parser logic, so instead the monospace code has to scan ahead
+/// and determine the real boundary.
+static std::optional<int> find_monospace_close(Cursor& c) {
+    if (!is_monospace_pre_ok(c)) { return std::nullopt; }
+    // Body must open with a non-space, non-`~` char on the same line.
+    if (!c.has_pos(+1) || c.is_at(' ', +1) || c.is_at('\n', +1) || c.is_at('~', +1)) {
+        return std::nullopt;
+    }
+
+    for (int offset = 1; c.has_pos(offset); ++offset) {
+        if (c.is_at('\n', offset)) {
+            // May cross a line break only if the next line continues the
+            // same paragraph.
+            int look = offset + 1;
+            while (c.has_pos(look) && c.is_at(' ', look)) { ++look; }
+            if (!c.has_pos(look)) { return std::nullopt; }
+            // approximation of the logic in the `org-element-paragraph-parser` to find
+            // the region edges.
+            if (c.is_at('\n', look)                              // blank line
+                || c.is_at_any_of(look, '#', '*', '|')           // cmd/stars/table
+                || c.is_at_all_of(look, '-', ' ')                // list item
+                || c.is_at_all_of(look, '+', ' ')                // list item
+                || c.is_at_all_of(look, is_digit_fast, '.', ' ') // 1. item
+                || c.is_at_all_of(look, is_digit_fast, ')', ' ')) {
+                return std::nullopt;
+            }
+            continue;
+        }
+
+        if (c.is_at('~', offset)) {
+            // org: body cannot contain `~` at all — any `~` that is not a
+            // valid close invalidates the whole opening.
+            if (c.is_at(' ', offset - 1) || c.is_at('\n', offset - 1)) {
+                return std::nullopt;
+            }
+            if (!c.has_pos(offset + 1) || is_monospace_post_char(c.get(offset + 1))) {
+                return offset;
+            }
+            return std::nullopt;
+        }
+    }
+    return std::nullopt;
+}
+
 
 void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
@@ -1517,45 +1597,16 @@ void switch_regular_char(Cursor& c) {
                 c.token1(otk::CriticReplaceEnd, &advance_count, 3);
             } else if (c.is_at("~>")) {
                 c.token1(otk::CriticReplaceMiddle, &advance_count, 2);
+            } else if (auto close = find_monospace_close(c)) {
+                c.token_adv(otk::Tilda, 1);
+                if (1 < *close) { c.token_adv(otk::RawText, *close - 1); }
+                c.token_adv(otk::Tilda, 1);
             } else {
-                if (c.has_pos(-1) && c.is_at(' ', -1)) {
-                    c.token0(otk::Tilda, &advance1);
-
-                    int offset = 0;
-                    while (c.has_pos(offset + +1)) {
-                        if (c.is_at('~', offset) && !(is_alnum_fast(c.get(offset + 1)))) {
-                            break;
-                        } else if (c.is_at('\n', offset)) {
-                            int newlineOffset = offset;
-                            int newlineCount  = 0;
-                            while (c.is_at('\n', newlineOffset)) {
-                                ++newlineCount;
-                                ++newlineOffset;
-                                while (c.is_at(' ', newlineOffset)) { ++newlineOffset; }
-
-                                if (!c.is_at('\n', newlineOffset)) { break; }
-                            }
-
-                            if (newlineCount == 1) {
-                                offset = newlineOffset;
-                            } else {
-                                break;
-                            }
-                        } else {
-                            ++offset;
-                        }
-                    }
-
-                    if (c.is_at('~', offset)) {
-                        c.token_adv(otk::RawText, offset);
-                        c.token0(otk::Tilda, &advance1);
-                    }
-                } else {
-                    c.token0(otk::Tilda, &advance1);
-                }
+                c.token0(otk::Tilda, &advance1);
             }
             break;
         }
+
         case '-': {
             if (c.is_at("-----")) {
                 c.token1(otk::TextSeparator, &advance_char1, '-');

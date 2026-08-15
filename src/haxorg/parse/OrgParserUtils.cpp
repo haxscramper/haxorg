@@ -275,11 +275,12 @@ OrgParser::ParseResult OrgParser::expect(
         return ParseOk{};
     } else {
         auto msg = hstd::fmt(
-            "{}: Expected token {} {} but got '{}'",
+            "{}: Expected token {} {} but got '{}' while parsing {}",
             line,
             item,
             getLocMsg(lex),
-            lex.formatState());
+            lex.formatState(),
+            group->formatState());
 
         return error_end(error_value(msg, message, lex, line, function));
     }
