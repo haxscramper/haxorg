@@ -301,6 +301,7 @@ int hstd::rune_length(StrView str) {
 // This is mostly for fancy rendering, so should be ok as it is, but really
 // it ought to be a generator of string view slices.
 std::vector<StrView> hstd::rune_chunks(StrView str) {
+    validate_utf8(str);
     std::vector<StrView> runes;
     for (int i = 0; i < str.size();) {
         int           len  = 0;
@@ -458,25 +459,67 @@ std::string hstd::escape_literal(hstd::StrView const& in) {
     std::string res;
     res.reserve(in.size() + 2);
     res += "«";
-    for (char c : in) {
-        if (c == '\n') {
-            res += "␤";
 
+    auto hexEscape = [&res](unsigned char b) {
+        char const* digits = "0123456789ABCDEF";
+        res += "\\x";
+        res += digits[b >> 4];
+        res += digits[b & 0x0F];
+    };
+
+    for (int i = 0; i < (int)in.size();) {
+        unsigned char b = static_cast<unsigned char>(in.at(i));
+
+        if (b == '\n') {
+            res += "␤";
+            i += 1;
+            continue;
+        }
+
+        int len = 0;
+        if (b <= 0x7F) {
+            len = 1;
+        } else if ((b >> 5) == 0b110 && 0xC2 <= b) {
+            len = 2;
+        } else if ((b >> 4) == 0b1110) {
+            len = 3;
+        } else if ((b >> 3) == 0b11110 && b <= 0xF4) {
+            len = 4;
+        }
+
+        bool valid = len > 0 && i + len <= (int)in.size();
+        for (int j = 1; valid && j < len; ++j) {
+            unsigned char c = static_cast<unsigned char>(in.at(i + j));
+            if ((c >> 6) != 0b10) { valid = false; }
+        }
+        if (valid && len == 3) {
+            unsigned char c1 = static_cast<unsigned char>(in.at(i + 1));
+            if ((b == 0xE0 && c1 < 0xA0) || (b == 0xED && c1 > 0x9F)) { valid = false; }
+        }
+        if (valid && len == 4) {
+            unsigned char c1 = static_cast<unsigned char>(in.at(i + 1));
+            if ((b == 0xF0 && c1 < 0x90) || (b == 0xF4 && c1 > 0x8F)) { valid = false; }
+        }
+
+        if (valid) {
+            res.append(in.toBase().substr(i, len));
+            i += len;
         } else {
-            res += c;
+            hexEscape(b);
+            i += 1;
         }
     }
 
     res += "»";
-
     return res;
 }
+
 
 std::string hstd::escape_literal(std::string const& in) {
     return escape_literal(hstd::StrView{in});
 }
 
-void hstd::validate_utf8(std::string const& str) {
+void hstd::validate_utf8(StrView str) {
     unsigned char const* bytes = reinterpret_cast<const unsigned char*>(str.data());
     size_t               len   = str.size();
 

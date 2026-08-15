@@ -170,8 +170,9 @@ void remove_empty_text(SemId<Org> node) {
     auto& s = node->subnodes;
     if (s.at(0)->is(OrgSemKind::Paragraph) && s.at(0).size() == 0) { s.erase(s.begin()); }
 
-    while ((s.back()->is(OrgSemKind::Paragraph) && s.back().size() == 0)
-           || (s.back()->is(OrgSemKind::Newline))) {
+    while (0 < s.size()
+           && ((s.back()->is(OrgSemKind::Paragraph) && s.back().size() == 0)
+               || (s.back()->is(OrgSemKind::Newline)))) {
         s.pop_back();
     }
 }

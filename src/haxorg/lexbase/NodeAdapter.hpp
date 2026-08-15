@@ -60,6 +60,16 @@ struct NodeAdapter {
         group->treeRepr(os, id, level, conf);
     }
 
+    std::string format() const {
+        std::stringstream buffer;
+        hstd::ColStream   text{buffer};
+        text.colored = false;
+        typename NodeGroupType::TreeReprConf conf;
+        conf.maxDepth = 2;
+        group->treeRepr(text, id, 0, conf);
+        return buffer.str();
+    }
+
     std::string treeRepr(bool colored = false) const {
         std::stringstream buffer;
         hstd::ColStream   text{buffer};

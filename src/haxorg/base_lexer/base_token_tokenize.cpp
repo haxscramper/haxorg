@@ -22,12 +22,15 @@ using namespace org::report;
 
 namespace dsl = lexy::dsl;
 
-
 namespace {
-bool is_digit_char(char c) { return std::isdigit(c); }
-bool is_alpha_char(char c) { return std::isalpha(c); }
-} // namespace
 
+inline bool is_alpha_fast(char c) {
+    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
+}
+
+inline bool is_digit_fast(char c) { return '0' <= c && c <= '9'; }
+inline bool is_alnum_fast(char c) { return is_alpha_fast(c) || is_digit_fast(c); }
+} // namespace
 
 struct Cursor {
     char current() const {
@@ -39,7 +42,7 @@ struct Cursor {
     }
 
     char get(int offset = 0) const {
-        LOGIC_ASSERTION_CHECK_FMT(has_pos(offset), "{}", format());
+        if (enable_guards) { LOGIC_ASSERTION_CHECK_FMT(has_pos(offset), "{}", format()); }
         return text[pos + offset];
     }
 
@@ -51,7 +54,7 @@ struct Cursor {
         char        c,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
-        LOGIC_ASSERTION_CHECK_FMT(get() == c, "{}", c);
+        if (enable_guards) { LOGIC_ASSERTION_CHECK_FMT(get() == c, "{}", c); }
         if (p.TraceState) {
             p.message(
                 hstd::fmt("skip {} at {}", escape_literal(std::string{c}), format(5)),
@@ -119,9 +122,9 @@ struct Cursor {
     /// matching variadic argument list. The first argument is matched for
     /// offset 0, the sceond for offset 1 etc. Arguments can be character
     /// literals like `' '` to check for space, or unary predicates, like
-    /// `std::isalnum`.
+    /// `is_alnum_fast`.
     ///
-    /// Usage example `c.is_at_all_of(1, '-', std::isalnum)`
+    /// Usage example `c.is_at_all_of(1, '-', is_alnum_fast)`
     template <typename T, typename... Args>
     bool is_at_all_of(int offset, T first, Args... rest) const {
         bool matches = is_at_thing(offset, first);
@@ -145,7 +148,7 @@ struct Cursor {
 
     bool is_at(std::string const& text, int offset = 0) const {
         for (int i = 0; i < text.size(); ++i) {
-            if (!has_pos(i + offset) || get(i + offset) != text.at(i)) { return false; }
+            if (!has_pos(i + offset) || get(i + offset) != text[i]) { return false; }
         }
 
         return true;
@@ -154,7 +157,7 @@ struct Cursor {
     bool is_iat(std::string const& text, int offset = 0) const {
         for (int i = 0; i < text.size(); ++i) {
             if (std::tolower(static_cast<unsigned char>(get(i + offset)))
-                != std::tolower(static_cast<unsigned char>(text.at(i)))) {
+                != std::tolower(static_cast<unsigned char>(text[i]))) {
                 return false;
             }
         }
@@ -199,39 +202,45 @@ struct Cursor {
     bool nextUnicode(
         int         code_line     = __builtin_LINE(),
         char const* code_function = __builtin_FUNCTION()) {
-        if (text.size() <= pos) {
-            return false;
-        } else if (current() == '\n') {
-            if (p.TraceState) {
-                p.message(
-                    hstd::fmt("next line over at {}", format(5)), code_function, line);
-            }
+        if (text.size() <= pos) { return false; }
 
-            line++;
-            col = 0;
+        unsigned char firstByte = static_cast<unsigned char>(text[pos]);
+
+        if (firstByte < 0x80) {
+            if (firstByte == '\n') {
+                if (p.TraceState) {
+                    p.message(
+                        hstd::fmt("next line over at {}", format(5)),
+                        code_function,
+                        code_line);
+                }
+                line++;
+                col = 0;
+            } else {
+                col++;
+            }
             pos++;
             char_pos++;
             return pos < text.size();
-        } else {
-            unsigned char firstByte = static_cast<unsigned char>(text[pos]);
-            size_t        charSize  = 1;
-
-            if (0xF0 <= firstByte) {
-                charSize = 4;
-            } else if (0xE0 <= firstByte) {
-                charSize = 3;
-            } else if (0xC0 <= firstByte) {
-                charSize = 2;
-            }
-
-            col++;
-            char_pos++;
-            pos += charSize;
-            pos = std::min<int>(pos, text.size());
-
-            return pos < text.size();
         }
+
+        size_t charSize = 1;
+        if (0xF0 <= firstByte) {
+            charSize = 4;
+        } else if (0xE0 <= firstByte) {
+            charSize = 3;
+        } else if (0xC0 <= firstByte) {
+            charSize = 2;
+        }
+
+        col++;
+        char_pos++;
+        pos += charSize;
+        if (text.size() < pos) { pos = text.size(); }
+
+        return pos < text.size();
     }
+
 
     std::string_view lexy_substr(int offset_start, int size) const {
         auto start = text.begin() + pos + offset_start;
@@ -336,7 +345,7 @@ struct Cursor {
 
     LexerParams              p;
     OrgTokenGroup*           group;
-    std::string_view         text;
+    StrView                  text;
     int                      pos           = 0; // byte offset
     int                      char_pos      = 0; // character offset
     int                      line          = 0;
@@ -352,14 +361,17 @@ struct Cursor {
     }
 
     std::string format(int ahead = 20) const {
-        int end = std::min<int>(ahead, text.size() - pos);
-        return fmt::format(
+        hstd::validate_utf8(text);
+        int  end    = std::min<int>(ahead, text.size() - pos);
+        auto result = fmt::format(
             "col:{} line:{} pos:{}/{} text:{}",
             col,
             line,
             pos,
             text.size(),
-            pos < text.size() ? escape_literal(text.substr(pos, end)) : "<eol>");
+            pos + end < text.size() ? escape_literal(text.substr(pos, end)) : "<eol>");
+        hstd::validate_utf8(result);
+        return result;
     }
 
     void range_token(
@@ -465,11 +477,9 @@ struct Cursor {
         if (enable_guards) {
 
             int start_pos = this->pos;
+            int line_{line};
 
-            std::string function_{function};
-            int         line_{line};
-
-            return finally_std{[this, start_pos, function_, line_]() {
+            return finally_std{[this, start_pos, function, line_]() {
                 if (start_pos == this->pos) {
                     OP_TRACER_MESSAGE(
                         p, "No movement around pos {}: {}", start_pos, this->format());
@@ -481,7 +491,7 @@ struct Cursor {
                     "{}:{}",
                     start_pos,
                     this->format(),
-                    function_,
+                    function,
                     line_);
             }};
         } else {
@@ -498,26 +508,27 @@ void advance_count(Cursor& c, int count) {
 
 void advance1(Cursor& c) { c.next(); }
 
+
 void advance_word(Cursor& c) {
-    while (c.has_text() && std::isalnum(c.get())) { c.next(); }
-    while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1) && std::isalnum(c.get(+1))) {
-        while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1) && std::isalnum(c.get(+1))) {
+    while (c.has_text() && is_alnum_fast(c.get())) { c.next(); }
+    while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1) && is_alnum_fast(c.get(+1))) {
+        while (c.is_at_any_of(0, '-', '_') && c.has_pos(+1) && is_alnum_fast(c.get(+1))) {
             c.next();
         }
-        while (c.has_text() && std::isalnum(c.get())) { c.next(); }
+        while (c.has_text() && is_alnum_fast(c.get())) { c.next(); }
     }
 
     if (c.is_at('\'')) { c.next(); }
-    while (c.has_text() && std::isalnum(c.get())) { c.next(); }
+    while (c.has_text() && is_alnum_fast(c.get())) { c.next(); }
 }
 
 void advance_number(Cursor& c) {
     if (c.is_at('-')) { c.next(); }
-    while (c.has_text() && (std::isdigit(c.get()) || c.get() == '_')) { c.next(); }
+    while (c.has_text() && (is_digit_fast(c.get()) || c.get() == '_')) { c.next(); }
 }
 
 void advance_ident(Cursor& c) {
-    while (c.has_text() && (std::isalnum(c.get()) || c.get() == '_')) { c.next(); }
+    while (c.has_text() && (is_alnum_fast(c.get()) || c.get() == '_')) { c.next(); }
 }
 
 void advance_char1(Cursor& c, char ch) {
@@ -560,12 +571,12 @@ void switch_cmd_argument(Cursor& c) {
             break;
         }
         case ':': {
-            if (c.has_pos(+1) && std::isalnum(c.get(+1))) {
+            if (c.has_pos(+1) && is_alnum_fast(c.get(+1))) {
                 c.token0(otk::CmdColonIdent, [](Cursor& c) {
                     c.skip(':');
                     while (
                         c.has_text()
-                        && (std::isalnum(c.get()) || c.get() == '_' || c.get() == '-')) {
+                        && (is_alnum_fast(c.get()) || c.get() == '_' || c.get() == '-')) {
                         c.next();
                     }
                 });
@@ -878,7 +889,7 @@ void switch_subtree_head(Cursor& c) {
     __perf_trace("tokens", "subtree head");
     switch (c.get()) {
         case '[': {
-            if (c.is_at('#', +1) && c.has_pos(+2) && std::isalnum(c.get(+2))) {
+            if (c.is_at('#', +1) && c.has_pos(+2) && is_alnum_fast(c.get(+2))) {
                 c.token0(otk::SubtreePriority, [](Cursor& c) {
                     c.skip('[');
                     c.skip('#');
@@ -1039,7 +1050,7 @@ void switch_time_repeater(Cursor& c) {
     });
 
     c.token0(otk::TimeRepeaterDuration, [](Cursor& c) {
-        while (c.has_text() && std::isdigit(c.get())) {
+        while (c.has_text() && is_digit_fast(c.get())) {
             advance_number(c);
             advance_ident(c);
         }
@@ -1249,7 +1260,7 @@ void switch_regular_char(Cursor& c) {
             } else if (c.is_at_all_of(0, '\\', '[')) {
                 c.token_adv(otk::LatexBraceBegin, 2);
                 lex_latex_inline(c, "\\]", otk::LatexBraceEnd);
-            } else if (c.is_at_all_of(1, &is_alpha_char)) {
+            } else if (c.is_at_all_of(1, &is_alpha_fast)) {
                 c.token0(otk::Symbol, [](Cursor& c) {
                     c.skip('\\');
                     advance_word(c);
@@ -1453,7 +1464,7 @@ void switch_regular_char(Cursor& c) {
                 c.token0(otk::Comment, [](Cursor& c) {
                     while (c.can_search('\n')) { c.next(); }
                 });
-            } else if (c.is_at_all_of(1, &is_alpha_char)) {
+            } else if (c.is_at_all_of(1, &is_alpha_fast)) {
                 c.token0(otk::HashIdent, [](Cursor& c) {
                     c.skip('#');
                     advance_word(c);
@@ -1464,7 +1475,7 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         case '@': {
-            if (c.has_pos(1) && std::isalpha(c.get(1))) {
+            if (c.has_pos(1) && is_alpha_fast(c.get(1))) {
                 c.token0(otk::At, [](Cursor& c) {
                     c.next();
                     advance_word(c);
@@ -1512,7 +1523,7 @@ void switch_regular_char(Cursor& c) {
 
                     int offset = 0;
                     while (c.has_pos(offset + +1)) {
-                        if (c.is_at('~', offset) && !(std::isalnum(c.get(offset + 1)))) {
+                        if (c.is_at('~', offset) && !(is_alnum_fast(c.get(offset + 1)))) {
                             break;
                         } else if (c.is_at('\n', offset)) {
                             int newlineOffset = offset;
@@ -1614,9 +1625,9 @@ void switch_regular_char(Cursor& c) {
             break;
         }
         default: {
-            if (std::isalpha(c.get())) {
+            if (is_alpha_fast(c.get())) {
                 switch_word(c);
-            } else if (std::isdigit(c.get())) {
+            } else if (is_digit_fast(c.get())) {
                 if (auto span = c.try_lexy_patt<
                                 dsl::digit<> + dsl::digit<> + dsl::lit_c<':'>
                                 + dsl::digit<> + dsl::digit<> + dsl::lit_c<':'>
@@ -1649,7 +1660,7 @@ void switch_regular_char(Cursor& c) {
                     c.token_adv(otk::Word, *span);
                 } else {
                     c.token0(otk::Number, [](Cursor& c) {
-                        while (c.is_at_all_of(0, is_digit_char)) { c.next(); }
+                        while (c.is_at_all_of(0, is_digit_fast)) { c.next(); }
                     });
                 }
             } else {

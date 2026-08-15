@@ -241,7 +241,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
                 if (opts->onParseDone) {
                     __perf_trace("api", "user post-parse callback");
-                    opts->onParseDone(nodes.at(i), i);
+                    opts->onParseDone(nodes.at(i), id, i);
                 }
 
                 auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
@@ -335,7 +335,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
             if (opts->onParseDone) {
                 __perf_trace("api", "user post-parse callback");
-                opts->onParseDone(nodes, std::nullopt);
+                opts->onParseDone(nodes, id, std::nullopt);
             }
 
             auto result = converter.convertDocument(org::parse::OrgAdapter(&nodes, id))

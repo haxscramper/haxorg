@@ -217,6 +217,8 @@ void NodeGroup<N, K, V, M>::treeRepr(
     } else {
         if (conf.withExt) { os << hstd::fmt(" EXT:{}", at(node).getExtent()); }
 
+        if (conf.maxDepth <= level) { return; }
+
         auto [begin, end] = subnodesOf(node).value();
         int  idx          = 0;
         auto id           = end.id;

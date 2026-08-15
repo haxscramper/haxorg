@@ -40,6 +40,10 @@ struct CliOpts {
         hstd::Opt<std::string> tokenTracePath     = std::nullopt;
         hstd::Opt<std::string> parseTracePath     = std::nullopt;
         hstd::Opt<std::string> semTracePath       = std::nullopt;
+        hstd::Opt<std::string> baseTokenDumpPath  = std::nullopt;
+        hstd::Opt<std::string> tokenDumpPath      = std::nullopt;
+        hstd::Opt<std::string> parseDumpPath      = std::nullopt;
+        hstd::Opt<std::string> semDumpPath        = std::nullopt;
 
         org::parse::OrgParseParameters::LastParseStage
             lastStage = org::parse::OrgParseParameters::LastParseStage::SemConvert;
@@ -50,6 +54,10 @@ struct CliOpts {
         OPT_NAME(parseTracePath_opt, "--parse-trace");
         OPT_NAME(semTracePath_opt, "--sem-trace");
         OPT_NAME(lastStage_opt, "--last-stage");
+        OPT_NAME(baseTokenDumpPath_opt, "--base-token-dump");
+        OPT_NAME(tokenDumpPath_opt, "--token-dump");
+        OPT_NAME(parseDumpPath_opt, "--parse-dump");
+        OPT_NAME(semDumpPath_opt, "--sem-dump");
 
         ParseOpts() {}
         DESC_FIELDS(ParseOpts, (input, baseTokenTracePath, tokenTracePath, semTracePath));
@@ -341,6 +349,10 @@ CliOpts parseCli(int argc, char** argv) {
     parse_cmd.add_argument(PO::tokenTracePath_opt).help("token trace output path");
     parse_cmd.add_argument(PO::parseTracePath_opt).help("parse trace output path");
     parse_cmd.add_argument(PO::semTracePath_opt).help("sem trace output path");
+    parse_cmd.add_argument(PO::baseTokenDumpPath_opt).help("base token dump output path");
+    parse_cmd.add_argument(PO::tokenDumpPath_opt).help("token dump output path");
+    parse_cmd.add_argument(PO::parseDumpPath_opt).help("parse dump output path");
+    parse_cmd.add_argument(PO::semDumpPath_opt).help("sem dump output path");
     parse_cmd.add_argument(PO::lastStage_opt)
         .help(
             "Stop parsing at the specified stage, this is a primarily for "
@@ -460,6 +472,18 @@ CliOpts parseCli(int argc, char** argv) {
         if (auto v = parse_cmd.present<std::string>(PO::semTracePath_opt)) {
             opts.semTracePath = *v;
         }
+        if (auto v = parse_cmd.present<std::string>(PO::baseTokenDumpPath_opt)) {
+            opts.baseTokenDumpPath = *v;
+        }
+        if (auto v = parse_cmd.present<std::string>(PO::tokenDumpPath_opt)) {
+            opts.tokenDumpPath = *v;
+        }
+        if (auto v = parse_cmd.present<std::string>(PO::parseDumpPath_opt)) {
+            opts.parseDumpPath = *v;
+        }
+        if (auto v = parse_cmd.present<std::string>(PO::semDumpPath_opt)) {
+            opts.semDumpPath = *v;
+        }
         if (auto v = parse_cmd.present<std::string>(PO::lastStage_opt)) {
             opts.lastStage = readEnumValue<
                 org::parse::OrgParseParameters::LastParseStage>(*v, "last parse stage");
@@ -561,6 +585,14 @@ int main(int argc, char* argv[]) {
         params->onDiagnosticsCollected = onDiagnosticsCollected;
         params->lastStage              = cmd.lastStage;
 
+        params->onParseDone = [&](org::parse::OrgNodeGroup const& nodes,
+                                  org::parse::OrgId               id,
+                                  std::optional<int>              fragmentIndex) {
+            if (cmd.parseDumpPath) {
+                hstd::writeFile(cmd.parseDumpPath.value(), nodes.treeRepr(id));
+            }
+        };
+
         auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
 
 
@@ -625,6 +657,7 @@ int main(int argc, char* argv[]) {
                     },
                     [&](EO::ParseNode const& j) -> void {
                         params->onParseDone = [&](org::parse::OrgNodeGroup const& tokens,
+                                                  org::parse::OrgId               id,
                                                   std::optional<int> fragmentIndex) {
                             parse_lefovers_export["parse_export"].push_back(
                                 group_json_repr(tokens, fragmentIndex));

@@ -56,8 +56,10 @@ struct [[refl(
     hstd::Func<
         void(org::parse::OrgTokenGroup const& tokens, std::optional<int> fragmentIndex)>
         onTokenizerDone;
-    hstd::Func<
-        void(org::parse::OrgNodeGroup const& nodes, std::optional<int> fragmentIndex)>
+    hstd::Func<void(
+        org::parse::OrgNodeGroup const& nodes,
+        OrgId                           id,
+        std::optional<int>              fragmentIndex)>
         onParseDone;
 
     hstd::Func<

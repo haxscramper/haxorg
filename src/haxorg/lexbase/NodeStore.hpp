@@ -210,6 +210,7 @@ struct NodeGroup {
         bool withSubnodeIdx = true;
         bool flushEach      = false;
         bool withExt        = true;
+        int  maxDepth       = 50;
 
         enum class WritePos
         {

@@ -68,7 +68,7 @@ std::string format_table(
 /// control characters into unicode.
 std::string escape_literal(std::string const& in);
 std::string escape_literal(hstd::StrView const& in);
-void        validate_utf8(std::string const& str);
+void        validate_utf8(StrView str);
 
 std::string format_integer_bits(uint64_t value, char fmt, int pad_to = 0);
 

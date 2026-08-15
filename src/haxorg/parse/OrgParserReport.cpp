@@ -118,7 +118,7 @@ void OrgParser::report(Report const& in) {
                     "{} {} ID:{} @{}",
                     (in.kind == ReportKind::StartNode ? "+" : "-"),
                     group->at(id).kind,
-                    id.getUnmasked(),
+                    id,
                     in.line);
             }
         };
@@ -161,7 +161,7 @@ void OrgParser::report(Report const& in) {
                 os << fmt::format(
                     "  add {} ID:{} @{} with '{}'",
                     group->at(id).kind,
-                    id.getUnmasked(),
+                    id,
                     in.line,
                     escape_literal(
                         group->at(id).isMono() ? "<mono>" : group->val(id).text));
