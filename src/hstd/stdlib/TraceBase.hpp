@@ -28,15 +28,22 @@ struct OperationsMsg {
 struct OperationsTracer;
 
 struct [[refl]] OperationsTracer {
+  private:
+    [[refl]] mutable int activeLevel = 0;
+
+  public:
     [[refl]] bool              TraceState      = false;
     [[refl]] bool              traceToFile     = false;
     [[refl]] bool              traceToBuffer   = false;
     [[refl]] bool              traceStructured = false;
     [[refl]] bool              traceColored    = true;
-    [[refl]] mutable int       activeLevel     = 0;
     hstd::Opt<fs::path>        traceFile;
     [[refl]] std::string       traceBuffer;
     mutable SPtr<std::ostream> stream;
+
+    void incLevel() const;
+    void decLevel() const;
+    int  getLevel() const;
 
 
     void begin_scope_event(

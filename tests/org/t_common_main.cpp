@@ -15,10 +15,6 @@ const char* __asan_default_options() { return "verbosity=1:detect_leaks=0"; }
 
 
 int main(int argc, char** argv) {
-#if ORG_FORCE_UNSAFE_BUILD
-    LOGIC_ASSERTION_CHECK(false, "Cannot run tests with unsafe build enabled");
-#endif
-
     hstd::log::clear_sink_backends();
     hstd::log::push_sink(hstd::log::init_file_sink("/tmp/t_common_main.log"));
 #ifdef ORG_BUILD_WITH_PERFETTO

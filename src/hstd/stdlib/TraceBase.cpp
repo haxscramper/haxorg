@@ -187,6 +187,17 @@ void OperationsTracer::stacktraceMessage() const {
 }
 
 
+void OperationsTracer::incLevel() const {
+    LOGIC_ASSERTION_CHECK_FMT(0 <= activeLevel, "");
+    ++activeLevel;
+}
+void OperationsTracer::decLevel() const {
+    --activeLevel;
+    LOGIC_ASSERTION_CHECK_FMT(0 <= activeLevel, "");
+}
+
+int OperationsTracer::getLevel() const { return activeLevel; }
+
 void OperationsTracer::begin_scope_event(
     Opt<std::string> const& value,
     char const*             function,

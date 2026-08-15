@@ -222,9 +222,11 @@ Pair<int, int> getSpan(
         endPos = s.last;
     }
 
-#if !(ORG_FORCE_UNSAFE_BUILD)
     if (checkRange
-        && !((0 <= startPos && startPos < size) && (0 <= endPos && endPos < size))) {
+        && !(
+            (0 <= startPos && startPos < size) && //
+            (0 <= endPos && endPos < size) &&     //
+            (startPos <= endPos))) {
         throw hstd::range_error::init(
             fmt::format(
                 "Container index is out of range: real span range is "
@@ -235,8 +237,6 @@ Pair<int, int> getSpan(
                 s,
                 size));
     }
-
-#endif
 
     return {startPos, endPos};
 }

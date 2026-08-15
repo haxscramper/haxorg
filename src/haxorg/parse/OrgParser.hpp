@@ -372,7 +372,15 @@ struct OrgParser : public hstd::OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-    std::optional<hstd::finally_std> trace(
+    struct org_parser_trace_state {
+        OrgParser*  parser;
+        OrgLexer*   lexer;
+        int         line;
+        char const* function;
+        ~org_parser_trace_state();
+    };
+
+    org_parser_trace_state trace(
         OrgLexer&              lex,
         hstd::Opt<std::string> msg      = std::nullopt,
         int                    line     = __builtin_LINE(),

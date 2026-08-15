@@ -18,7 +18,7 @@ void OrgParser::report(Report const& in) {
     if (reportHook) { reportHook(in); }
 
     if (in.kind == ReportKind::EnterParse || in.kind == ReportKind::StartNode) {
-        ++activeLevel;
+        incLevel();
     }
 
     ColStream os = getStream();
@@ -28,7 +28,7 @@ void OrgParser::report(Report const& in) {
         using namespace org::report;
 
         EntryParser res;
-        res.depth = activeLevel;
+        res.depth = getLevel();
 #define __kind(K)                                                                        \
     case ReportKind::K: {                                                                \
         res.kind = EntryParser::Kind::K;                                                 \
@@ -81,7 +81,7 @@ void OrgParser::report(Report const& in) {
         os << to_json_eval(res).dump();
 
     } else {
-        os << repeat("  ", activeLevel);
+        os << repeat("  ", getLevel());
         auto print_token = [](ColStream& os, OrgToken const& t) {
             os << escape_for_write(t->text);
         };
@@ -200,6 +200,6 @@ void OrgParser::report(Report const& in) {
     endStream(os);
 
     if (in.kind == ReportKind::LeaveParse || in.kind == ReportKind::EndNode) {
-        --activeLevel;
+        decLevel();
     }
 }

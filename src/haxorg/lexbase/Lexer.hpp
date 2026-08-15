@@ -253,13 +253,6 @@ struct LexerCommon {
         } else {
             for (int i = params.startOffset; i < params.maxTokens && hasNext(i); ++i) {
                 auto const& t = tok(i);
-                if (os.colored) {
-                    os << " "
-                       << styledUnicodeMapping(
-                              fmt::format("{}", t.kind), hstd::AsciiStyle::Italic);
-                } else {
-                    os << " " << fmt::format("{}", t.kind);
-                }
                 format(os, t);
             }
         }

@@ -311,7 +311,17 @@ OrgParser::ParseResult OrgParser::skip(
     return ParseOk{};
 }
 
-std::optional<finally_std> OrgParser::trace(
+
+OrgParser::org_parser_trace_state::~org_parser_trace_state() {
+    if (parser != nullptr) {
+        parser->report(Builder(OrgParser::ReportKind::LeaveParse, nullptr, line, function)
+                           .with_lex(*lexer)
+                           .report);
+    }
+}
+
+
+OrgParser::org_parser_trace_state OrgParser::trace(
     OrgLexer&        lex,
     Opt<std::string> msg,
     int              line,
@@ -321,14 +331,15 @@ std::optional<finally_std> OrgParser::trace(
                    .with_lex(lex)
                    .report);
 
-        return finally_std([line, function, this, &lex]() {
-            report(Builder(OrgParser::ReportKind::LeaveParse, nullptr, line, function)
-                       .with_lex(lex)
-                       .report);
-        });
+        return org_parser_trace_state{
+            .parser   = this,
+            .lexer    = &lex,
+            .line     = line,
+            .function = function,
+        };
 
     } else {
-        return std::nullopt;
+        return org_parser_trace_state{};
     }
 }
 

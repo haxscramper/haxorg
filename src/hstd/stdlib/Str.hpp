@@ -123,7 +123,7 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})"), gsl::Owner]] Str
     StrView at(HSlice<A, B> const& s, bool checkRange = true) const
         [[clang::lifetimebound]] {
         const auto [start, end] = getSpan(StrCommon<Str>::size(), s, checkRange);
-        return StrView(this->data() + start, end);
+        return StrView(this->data() + start, end - start);
     }
 
     template <typename A, typename B>

@@ -14,14 +14,14 @@ void OrgTokenizer::report(Report const& in) {
 
 
     using fg = TermColorFg8Bit;
-    if (in.kind == ReportKind::Enter) { ++activeLevel; }
+    if (in.kind == ReportKind::Enter) { incLevel(); }
 
     ColStream os = getStream();
 
     if (traceStructured) {
         using namespace org::report;
         EntryTokenizer res;
-        res.depth = activeLevel;
+        res.depth = getLevel();
 
 #define __kind(K)                                                                        \
     case ReportKind::K: {                                                                \
@@ -53,7 +53,7 @@ void OrgTokenizer::report(Report const& in) {
         os << to_json_eval(res).dump();
 
     } else {
-        os << repeat("  ", activeLevel + in.extraIndent);
+        os << repeat("  ", getLevel() + in.extraIndent);
 
 
         auto getLoc = [&]() -> std::string {
@@ -122,5 +122,5 @@ void OrgTokenizer::report(Report const& in) {
 
     endStream(os);
 
-    if (in.kind == ReportKind::Leave) { --activeLevel; }
+    if (in.kind == ReportKind::Leave) { decLevel(); }
 }

@@ -1,5 +1,6 @@
 #include <haxorg/parse/OrgSpec.hpp>
 #include <haxorg/sem/SemConvert.hpp>
+#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/Func.hpp>
 
 #include <hstd/stdlib/Debug.hpp>
@@ -790,10 +791,15 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         Opt<cctz::time_zone>       zone;
         if (time.at(3_B) == '+' || time.at(3_B) == '-') {
             span.last -= 3;
-            zone = ConvertToTimeZone(Str{time.at(slice(2_B, 1_B))}.toBase());
+            auto        zone_view = time.at(slice(2_B, 1_B));
+            char const* data      = zone_view.data();
+            int         zone_size = zone_view.size();
+            HSLOG_DEBUG("zone size {}", zone_size);
+            zone = ConvertToTimeZone(Str{zone_view}.toBase());
         } else if (time.at(5_B) == '+' || time.at(5_B) == '-') {
             span.last -= 5;
-            zone = ConvertToTimeZone(Str{time.at(slice(4_B, 1_B))}.toBase());
+            auto zone_view = time.at(slice(4_B, 1_B));
+            zone           = ConvertToTimeZone(Str{zone_view}.toBase());
         }
 
         auto          datetime = Str{time.at(span)}.toBase();

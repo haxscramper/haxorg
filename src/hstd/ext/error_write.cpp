@@ -231,8 +231,8 @@ Pair<bool, bool> is_gap_and_skip_line(
     bool is_skip = false;
     // Skip this line if we don't have labels for it
     if (line_labels.size() == 0 && !c.margin_label.has_value()) {
-        bool within_label = std::any_of(
-            c.multi_labels.begin(), c.multi_labels.end(), [&](ReportLabel const& label) {
+        bool within_label = std::ranges::any_of(
+            c.multi_labels, [&](ReportLabel const& label) {
                 return label.span.contains(c.line.span().first);
             });
         if (!is_gap && within_label) {
@@ -254,13 +254,10 @@ Pair<bool, bool> is_gap_and_skip_line(
 bool sort_line_labels(MarginContext const& c, Vec<LineLabel>& line_labels) {
 
     // Sort the labels by their columns
-    std::sort(
-        line_labels.begin(),
-        line_labels.end(),
-        [](LineLabel const& a, LineLabel const& b) {
-            return std::make_tuple(a.label.order, a.col, !a.label.span.start())
-                 < std::make_tuple(b.label.order, b.col, !b.label.span.start());
-        });
+    std::ranges::sort(line_labels, [](LineLabel const& a, LineLabel const& b) {
+        return std::make_tuple(a.label.order, a.col, !a.label.span.start())
+             < std::make_tuple(b.label.order, b.col, !b.label.span.start());
+    });
 
     return true;
 }
@@ -563,11 +560,10 @@ Opt<CRw<ReportLabel>> get_highlight(
     for (const auto& l : base.multi_labels) { candidates.push_back(l); }
     for (const auto& l : base.line_labels) { candidates.push_back(l.label); }
 
-    auto it = std::min_element(
-        candidates.begin(), candidates.end(), [&](auto const& a, auto const& b) {
-            return std::make_tuple(-a.get().priority, a.get().span.len())
-                 < std::make_tuple(-b.get().priority, b.get().span.len());
-        });
+    auto it = std::ranges::min_element(candidates, [&](auto const& a, auto const& b) {
+        return std::make_tuple(-a.get().priority, a.get().span.len())
+             < std::make_tuple(-b.get().priority, b.get().span.len());
+    });
 
 
     if (it != candidates.end() && it->get().span.contains(base.line.offset + col)) {
@@ -589,11 +585,10 @@ auto get_underline(MarginContext const& c, int col) -> Opt<LineLabel> {
 
     if (candidates.empty()) { return std::nullopt; }
 
-    return *std::min_element(
-        candidates.begin(), candidates.end(), [&](CRw<LineLabel> a, CRw<LineLabel> b) {
-            return std::make_tuple(-a.get().label.priority, a.get().label.span.len())
-                 < std::make_tuple(-b.get().label.priority, b.get().label.span.len());
-        });
+    return *std::ranges::min_element(candidates, [&](CRw<LineLabel> a, CRw<LineLabel> b) {
+        return std::make_tuple(-a.get().label.priority, a.get().label.span.len())
+             < std::make_tuple(-b.get().label.priority, b.get().label.span.len());
+    });
 };
 
 void write_line_label_arrows(MarginContext const& c, int row, int arrow_len) {
@@ -961,9 +956,11 @@ void write_report_group_header(ReportGroupContext& c) {
     c.op.write(src_name);
 
     // File name & reference
-    int location = (c.group.src_id == c.report.location.first)
-                     ? c.report.location.second
-                     : c.group.labels[0].label.span.start();
+    int location = c.group.labels[0].label.span.start();
+
+    if (c.group.src_id == c.report.location.first && c.report.location.second > 0) {
+        location = c.report.location.second;
+    }
 
     auto offset_line = src->get_offset_line(location);
 
@@ -1092,15 +1089,15 @@ void write_report_group_source_lines(ReportGroupContext& c) {
         // Create margin context for drawing this source code line.
         MarginContext base{
             .w                 = c.op,
-            .config            = c.report.config,
-            .multi_labels      = c.multi_labels,
-            .line_labels       = line_labels,
-            .src               = c.src,
+            .line_text         = c.src->get_line_text(line),
             .source_line_idx   = line_idx,
             .line_number_width = c.line_number_width,
             .line              = line,
+            .line_labels       = line_labels,
             .margin_label      = margin_label,
-            .line_text         = c.src->get_line_text(line),
+            .src               = c.src,
+            .multi_labels      = c.multi_labels,
+            .config            = c.report.config,
         };
 
         auto [is_skip, is_gap_upd] = is_gap_and_skip_line(base, is_gap, line_labels);
@@ -1125,18 +1122,18 @@ void write_report_group_annotations(ReportGroupContext& c) {
     Opt<LineLabel> null_label = std::nullopt;
     MarginContext  base{
         .w                 = c.op,
-        .config            = c.report.config,
-        .multi_labels      = c.multi_labels,
-        .line_labels       = {},
-        .src               = c.src,
         .source_line_idx   = 0,
-        .line_number_width = c.line_number_width,
-        .draw_labels       = true,
         .is_line           = false,
         .is_gap            = false,
-        .active_label      = std::pair{0, false},
+        .line_number_width = c.line_number_width,
+        .draw_labels       = true,
         .line              = ReportSourceLine{},
+        .active_label      = std::pair{0, false},
+        .line_labels       = {},
         .margin_label      = null_label,
+        .src               = c.src,
+        .multi_labels      = c.multi_labels,
+        .config            = c.report.config,
     };
 
     // Render text for a trailing elements that come after the report

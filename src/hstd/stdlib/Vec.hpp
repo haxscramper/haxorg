@@ -49,7 +49,6 @@ struct IndexedBase : public CRTP_this_method<Container> {
     }
 
     void checkIdx(int idx) const {
-#if !(ORG_FORCE_UNSAFE_BUILD)
         if (idx < 0) {
             throw hstd::range_error::init("Operation does not support negative indices");
         } else if (!(idx < _this()->size())) {
@@ -57,7 +56,6 @@ struct IndexedBase : public CRTP_this_method<Container> {
                 std::string("Value out of range. idx < size(): ") + std::to_string(idx)
                 + std::string(" !< ") + std::to_string(_this()->size()));
         }
-#endif
     }
 
     /// \brief Last accessible index of the vector, useful for slicing etc.
