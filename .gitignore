@@ -552,5 +552,3 @@ CMakeUserPresets.json
 .qtcreator
 .haxscramper-code-index.sqlite
 **/*.pb.**
-callgrind.out.*
-cachegrind.out.*

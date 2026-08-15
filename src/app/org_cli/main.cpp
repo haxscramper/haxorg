@@ -41,15 +41,11 @@ struct CliOpts {
         hstd::Opt<std::string> parseTracePath     = std::nullopt;
         hstd::Opt<std::string> semTracePath       = std::nullopt;
 
-        org::parse::OrgParseParameters::LastParseStage
-            lastStage = org::parse::OrgParseParameters::LastParseStage::SemConvert;
-
         OPT_NAME(input_opt, "input");
         OPT_NAME(baseTokenTracePath_opt, "--base-token-trace");
         OPT_NAME(tokenTracePath_opt, "--token-trace");
         OPT_NAME(parseTracePath_opt, "--parse-trace");
         OPT_NAME(semTracePath_opt, "--sem-trace");
-        OPT_NAME(lastStage_opt, "--last-stage");
 
         ParseOpts() {}
         DESC_FIELDS(ParseOpts, (input, baseTokenTracePath, tokenTracePath, semTracePath));
@@ -203,7 +199,7 @@ std::string lower_enum(E value) {
 template <typename E>
 std::string describe_subcommands() {
     return hstd::join(
-        ", "_str_view,
+        ", ",
         hstd::own_view(hstd::describe_enumerators_as_array<E>())
             | hstd::rv::transform([](E k) -> std::string { return lower_enum(k); }));
 }
@@ -212,7 +208,7 @@ std::string describe_subcommands() {
 template <typename E>
 std::string describe_enum() {
     return hstd::join(
-        ", "_str_view,
+        ", ",
         hstd::own_view(hstd::describe_enumerators_as_array<E>())
             | hstd::rv::transform([](E k) -> std::string { return hstd::fmt1(k); }));
 }
@@ -341,14 +337,6 @@ CliOpts parseCli(int argc, char** argv) {
     parse_cmd.add_argument(PO::tokenTracePath_opt).help("token trace output path");
     parse_cmd.add_argument(PO::parseTracePath_opt).help("parse trace output path");
     parse_cmd.add_argument(PO::semTracePath_opt).help("sem trace output path");
-    parse_cmd.add_argument(PO::lastStage_opt)
-        .help(
-            "Stop parsing at the specified stage, this is a primarily for "
-            "debugging/profiling individual stages, unless the last stage is set to "
-            "SemConvert, the parser will not try to collect any diagnostics or return "
-            "any values. Allowed values "
-            + describe_enum<org::parse::OrgParseParameters::LastParseStage>());
-
     program.add_subparser(parse_cmd);
 
     argparse::ArgumentParser export_cmd("export");
@@ -460,10 +448,6 @@ CliOpts parseCli(int argc, char** argv) {
         if (auto v = parse_cmd.present<std::string>(PO::semTracePath_opt)) {
             opts.semTracePath = *v;
         }
-        if (auto v = parse_cmd.present<std::string>(PO::lastStage_opt)) {
-            opts.lastStage = readEnumValue<
-                org::parse::OrgParseParameters::LastParseStage>(*v, "last parse stage");
-        }
         result.cmd = opts;
     } else if (program.is_subcommand_used("export")) {
         result.cmd = buildExportOpts(export_cmd);
@@ -559,7 +543,6 @@ int main(int argc, char* argv[]) {
         params->tokenTracePath         = cmd.tokenTracePath;
         params->semTracePath           = cmd.semTracePath;
         params->onDiagnosticsCollected = onDiagnosticsCollected;
-        params->lastStage              = cmd.lastStage;
 
         auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
 

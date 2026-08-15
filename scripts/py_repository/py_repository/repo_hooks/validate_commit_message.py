@@ -22,7 +22,6 @@ TYPES: dict[str, str] = {
     "chore": "Updating grunt tasks etc; no production code change",
     "wip": "Intermediate commit",
     "clean": "Simplification of the code",
-    "perf": "Performance improvements",
 }
 
 SCOPES: dict[str, str] = {
