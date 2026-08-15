@@ -59,6 +59,7 @@ option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adapt
 option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
 option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
 option(ORG_SEPARATE_DEBUG_SYMBOLS "Strip debug symbols into separate `.debug` file" OFF)
+option(ORG_FORCE_UNSAFE_BUILD "Disable all runtime/index checks" OFF)
 
 option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" OFF)
 
@@ -343,6 +344,12 @@ endif()
 
 find_package(Boost REQUIRED COMPONENTS ALL)
 message(STATUS "Boost_DIR = ${Boost_DIR}")
+
+if(${ORG_FORCE_UNSAFE_BUILD})
+  add_definitions(-DORG_FORCE_UNSAFE_BUILD=1)
+else()
+  add_definitions(-DORG_FORCE_UNSAFE_BUILD=0)
+endif()
 
 if(${ORG_BUILD_EMCC})
   add_definitions(-DORG_BUILD_EMCC=1)

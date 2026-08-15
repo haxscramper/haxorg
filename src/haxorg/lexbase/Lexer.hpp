@@ -324,21 +324,42 @@ struct LexerCommon {
 
 
     bool at(hstd::CVec<K> kind, int offset = 0) const {
-        if (!hasNext(offset)) {
+        if (!hasNext(offset + kind.size())) {
             return false;
         } else {
             for (const auto& [idx, kind] : enumerate(kind)) {
-                if (!hasNext(idx + offset) || tok(idx + offset).kind != kind) {
-                    return false;
-                }
+                if (tok(idx + offset).kind != kind) { return false; }
             }
             return true;
         }
     }
 
-    bool can_search(K kind) { return !finished() && !at(kind); }
-    bool can_search(hstd::IntSet<K> kind) { return !finished() && !at(kind); }
-    bool can_search(hstd::Vec<K> kind) { return !finished() && !at(kind); }
+    bool can_search(K kind) {
+        if (hasNext()) {
+            return tok().kind != kind;
+        } else {
+            return false;
+        }
+    }
+    bool can_search(hstd::IntSet<K> kind) {
+        if (hasNext()) {
+            return !kind.contains(tok().kind);
+        } else {
+            return false;
+        }
+    }
+
+    bool can_search(hstd::Vec<K> kind) {
+        if (hasNext()) {
+            for (auto const& expected : kind) {
+                if (tok().kind == expected) { return false; }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     bool at(hstd::IntSet<K> kind, int offset = 0) const {
         return hasNext(offset) && kind.contains(tok(offset).kind);
@@ -547,13 +568,20 @@ struct Lexer : public LexerCommon<K, V> {
     }
 
     bool hasNext(int offset = 1) const override {
-        if (pos.isNil() || (pos + offset).isNil()) {
-            return false;
-        } else {
-            auto idx = (pos + offset).getIndex();
-            return (0 <= idx) && (idx < in->size());
+        if (pos.isNil()) { return false; }
+
+        auto index = pos.getIndex();
+
+        if (in->size() <= index) { return false; }
+
+        if (offset < 0) {
+            auto distance = static_cast<decltype(index)>(-offset);
+            return distance <= index;
         }
+
+        return static_cast<decltype(index)>(offset) < in->size() - index;
     }
+
 
     Lexer(TokenGroup<K, V>* in) : LexerCommon<K, V>(in) {}
 };

@@ -311,7 +311,7 @@ OrgParser::ParseResult OrgParser::skip(
     return ParseOk{};
 }
 
-finally_std OrgParser::trace(
+std::optional<finally_std> OrgParser::trace(
     OrgLexer&        lex,
     Opt<std::string> msg,
     int              line,
@@ -328,7 +328,7 @@ finally_std OrgParser::trace(
         });
 
     } else {
-        return finally_std::nop();
+        return std::nullopt;
     }
 }
 
