@@ -1843,6 +1843,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
     __perf_trace("parsing", "parseSubtreeProperties");
     auto __trace = trace(lex);
     TRY_SKIP(lex, otk::ColonProperties);
+    // <<parser/missing-continuation-lines>>
     TRY_SKIP(lex, otk::Newline, MissingPropertyContinuation);
     auto propertyListGuard = start(onk::DrawerPropertyList);
     while (lex.can_search(otk::ColonEnd)) {

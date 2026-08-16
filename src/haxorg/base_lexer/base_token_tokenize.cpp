@@ -1286,112 +1286,234 @@ static std::optional<int> find_monospace_close(Cursor& c) {
     return std::nullopt;
 }
 
+void switch_start_of_the_line(Cursor& c) {
+    OP_TRACER_MESSAGE(c.p, "Start of the line");
+    int skip = 0;
+
+    auto leading_space = [&](int         line     = __builtin_LINE(),
+                             char const* function = __builtin_FUNCTION()) {
+        if (0 < skip) { c.token_adv(otk::LeadingSpace, skip, line, function); }
+    };
+
+    while (c.is_at(' ', skip)) { ++skip; }
+
+    auto property_subname = [&](int pos) -> int {
+        if (auto sub = c.try_lexy_patt<dsl::p<org_ident> + dsl::lit_c<':'>>(pos)) {
+            pos += *sub;
+        }
+        return pos;
+    };
+
+    if (auto span = check_leading(c, '-', skip)) {
+        c.token1(otk::LeadingMinus, &advance_count, *span + skip);
+    } else if (auto span = check_leading(c, '+', skip)) {
+        c.token_adv(otk::LeadingPlus, *span + skip);
+    } else if (auto span = check_leading(c, '|', skip)) {
+        c.token_adv(otk::LeadingPipe, *span + skip);
+    } else if (auto span = is_at_table_separator(c, skip)) {
+        c.token_adv(otk::TableSeparator, *span + skip);
+    } else if (auto span = c.try_lexy_patt<LEXY_ILIT("clock:")>(skip)) {
+        c.token_adv(otk::TreeClock, *span + skip);
+        while (c.can_search('\n')) { switch_regular_char(c); }
+    } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":end:")>(skip)) {
+        c.token_adv(otk::ColonEnd, *span + skip);
+    } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {
+        // The lexer does not check for the follow-up after the line, the
+        // proper diagnostics and handling is done at in the
+        // [[parser/missing-continuation-lines]] code in the final parser. Elisp
+        // org-mode parser just treats it as a paragraph, but I prefer to have a
+        // proper diagnostics to disambiguate the intention without fallbacks to the
+        // paragraphs.
+        c.token_adv(otk::ColonProperties, *span + skip);
+    } else if (
+        auto span = c.try_lexy_patt<
+                    dsl::digits<> + (dsl::lit_c<'.'> | dsl::lit_c<')'>)+dsl::lit_c<' '>>(
+            skip)) {
+        c.token_adv(otk::LeadingNumber, *span - 1 + skip);
+    } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":logbook:")>(skip)) {
+        c.token_adv(otk::ColonLogbook, *span + skip);
+    } else if (
+        auto span = c.try_lexy_patt<
+                    dsl::lit_c<':'> + dsl::p<argument_properties> + dsl::lit_c<':'>>(
+            skip)) {
+        c.token_adv(otk::ColonArgumentsProperty, property_subname(*span + skip));
+        while (c.can_search('\n')) { switch_cmd_argument(c); }
+    } else if (
+        auto span = c.try_lexy_patt<
+                    dsl::lit_c<':'> + dsl::p<text_properties> + dsl::lit_c<':'>>(skip)) {
+        c.token_adv(otk::ColonPropertyText, property_subname(*span + skip));
+        while (c.can_search('\n')) { switch_regular_char(c); }
+    } else if (
+        auto
+            span = c.try_lexy_patt<dsl::lit_c<':'> + dsl::p<org_ident> + dsl::lit_c<':'>>(
+                skip)) {
+
+        c.token_adv(otk::ColonLiteralProperty, property_subname(*span + skip));
+        c.token0(otk::RawText, [](Cursor& c) {
+            while (c.can_search('\n')) { c.next(); }
+        });
+    } else if (auto span = check_leading(c, ':', skip)) {
+        leading_space();
+        int pos = *span;
+        while (c.can_search('\n', pos)) { ++pos; }
+        c.token_adv(otk::ColonExampleLine, pos);
+    } else if (c.is_at_all_of(skip, '#', '+')) {
+        leading_space();
+        switch_command(c);
+    } else if (c.is_at_all_of(skip, '#', ' ')) {
+        c.token0(otk::Comment, [](Cursor& c) {
+            while (c.can_search('\n')) { c.next(); }
+        });
+    } else if (0 < skip) {
+        leading_space();
+    } else if (c.is_at("----")) {
+        int off = 0;
+        while (c.is_at('-', off)) { ++off; }
+        while (c.is_at(' ', off)) { ++off; }
+        if (!c.has_pos(off) || c.is_at('\n', off)) {
+            c.token1(otk::TextSeparator, &advance_char1, '-');
+        } else {
+            c.token0(otk::Minus, &advance1);
+        }
+    }
+}
+
+void switch_opening_bracket(Cursor& c) {
+    static constexpr auto link_continuation = LEXY_CHAR_CLASS(
+        "oident",
+        dsl::ascii::alpha_digit_underscore //
+            / LEXY_LIT("-")                //
+            / LEXY_LIT("*")                //
+            / LEXY_LIT("#")                //
+            / LEXY_LIT("*")                //
+            / LEXY_LIT(".")                //
+            / LEXY_LIT("/")                //
+    );
+
+    static constexpr auto link_end = dsl::literal_set(LEXY_LIT("]]"), LEXY_LIT("]["));
+
+    if (auto span = c.try_lexy_patt<
+                    dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'%'>
+                    + dsl::lit_c<']'>>()) {
+        c.token_adv(otk::SubtreeCompletion, *span);
+
+    } else if (
+        auto span = c.try_lexy_patt<
+                    dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'/'> + dsl::digits<>
+                    + dsl::lit_c<']'>>()) {
+        c.token_adv(otk::SubtreeCompletion, *span);
+    } else if (c.is_at_all_of(0, '[', '%', '%')) {
+        c.token1(otk::InactiveDynamicTimeContent, &advance_count, 3);
+    } else if (
+        auto span = c.try_lexy_patt<
+                    dsl::lit_c<'['> + dsl::lit_c<'#'>
+                    + dsl::ascii::alpha_underscore + dsl::lit_c<']'>>()) {
+        c.token_adv(otk::SubtreePriority, *span);
+    } else if (
+        auto span = c.try_lexy_patt<
+                    dsl::lit_c<'['>
+                    + (dsl::lit_c<'x'>   //
+                       | dsl::lit_c<'X'> //
+                       | dsl::lit_c<' '> //
+                       | dsl::lit_c<'-'> //
+                       )
+                    + dsl::lit_c<']'>>()) {
+        c.token_adv(otk::Checkbox, *span);
+    } else if (
+        auto span = c.try_lexy_patt<
+                    dsl::not_followed_by(LEXY_ILIT("[fn:"), dsl::lit_c<':'>)
+                    + dsl::p<org_ident> + dsl::lit_c<']'>>()) {
+        c.token_adv(otk::FootnoteLinked, *span);
+    } else if (auto span = c.try_lexy_patt<LEXY_ILIT("[fn::")>()) {
+        c.token_adv(otk::FootnoteInlineBegin, *span);
+    } else if (
+        auto span = c.try_lexy_patt<
+                    LEXY_LIT("[[") + dsl::p<org_ident> + dsl::lit_c<':'>>()) {
+        c.token_adv(otk::LinkBegin, 2);
+
+        if (c.is_iat("http")) {
+            switch_word(c);
+        } else if (c.is_iat("file")) {
+            c.token_adv(otk::LinkProtocolFile, 4);
+            auto span = c.try_lexy_patt<dsl::until(link_end)>();
+            c.token_adv(otk::LinkTarget, *span - 2);
+        } else if (c.is_iat("attachment")) {
+            c.token0(otk::LinkProtocolAttachment, &advance_ident);
+            auto span = c.try_lexy_patt<dsl::until(link_end)>();
+            c.token_adv(otk::LinkTarget, *span - 2);
+        } else if (c.is_iat("id")) {
+            c.token0(otk::LinkProtocolId, &advance_ident);
+            auto span = c.try_lexy_patt<dsl::until(link_end)>();
+            c.token_adv(otk::LinkTarget, *span - 2);
+        } else if (c.is_iat("id")) {
+            c.token0(otk::LinkProtocolId, &advance_ident);
+            auto span = c.try_lexy_patt<dsl::until(link_end)>();
+            c.token_adv(otk::LinkTarget, *span - 2);
+        } else {
+            int offset = 0;
+            while (c.has_pos(offset) && !c.is_at_any_of(offset, ']', ':', '\n')) {
+                ++offset;
+            }
+
+            if (c.is_at(':', offset)) {
+                c.token_adv(otk::LinkProtocol, offset + 1);
+            } else {
+                c.token_adv(otk::LinkProtocolInternal, offset);
+            }
+        }
+
+    } else if (
+        auto span = c.try_lexy_patt<
+                    LEXY_LIT("[[") + link_continuation + dsl::until(link_end)>()) {
+        c.token_adv(otk::LinkBegin, 2);
+        switch (c.get()) {
+            case '*': {
+                auto span = c.try_lexy_patt<dsl::until(link_end)>();
+                c.token_adv(otk::LinkProtocolTitle, *span - 2);
+
+                break;
+            }
+            case '#': {
+                c.token_adv(otk::LinkProtocolCustomId, 1);
+                auto span = c.try_lexy_patt<dsl::until(link_end)>();
+                c.token_adv(otk::LinkTarget, *span - 2);
+                break;
+            }
+            case '/': {
+                auto span = c.try_lexy_patt<dsl::until(link_end)>();
+                c.token_adv(otk::LinkTargetFile, *span - 2);
+                break;
+            }
+            case '.': {
+                auto span = c.try_lexy_patt<dsl::until(link_end)>();
+                c.token_adv(otk::LinkTargetFile, *span - 2);
+                break;
+            }
+            default: {
+                int offset = 0;
+                while (c.has_pos(offset) && !c.is_at_any_of(offset, ']', ':', '\n')) {
+                    ++offset;
+                }
+
+                if (c.is_at(':', offset)) {
+                    c.token_adv(otk::LinkProtocol, offset + 1);
+                } else {
+                    c.token_adv(otk::LinkProtocolInternal, offset);
+                }
+                break;
+            }
+        }
+
+    } else {
+        c.token0(otk::BraceBegin, &advance1);
+    }
+}
 
 void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
-        OP_TRACER_MESSAGE(c.p, "Start of the line");
-        int skip = 0;
-
-        auto leading_space = [&](int         line     = __builtin_LINE(),
-                                 char const* function = __builtin_FUNCTION()) {
-            if (0 < skip) { c.token_adv(otk::LeadingSpace, skip, line, function); }
-        };
-
-        while (c.is_at(' ', skip)) { ++skip; }
-
-        auto property_subname = [&](int pos) -> int {
-            if (auto sub = c.try_lexy_patt<dsl::p<org_ident> + dsl::lit_c<':'>>(pos)) {
-                pos += *sub;
-            }
-            return pos;
-        };
-
-        if (auto span = check_leading(c, '-', skip)) {
-            c.token1(otk::LeadingMinus, &advance_count, *span + skip);
-            return;
-        } else if (auto span = check_leading(c, '+', skip)) {
-            c.token_adv(otk::LeadingPlus, *span + skip);
-            return;
-        } else if (auto span = check_leading(c, '|', skip)) {
-            c.token_adv(otk::LeadingPipe, *span + skip);
-            return;
-        } else if (auto span = is_at_table_separator(c, skip)) {
-            c.token_adv(otk::TableSeparator, *span + skip);
-            return;
-        } else if (auto span = c.try_lexy_patt<LEXY_ILIT("clock:")>(skip)) {
-            c.token_adv(otk::TreeClock, *span + skip);
-            while (c.can_search('\n')) { switch_regular_char(c); }
-            return;
-        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":end:")>(skip)) {
-            c.token_adv(otk::ColonEnd, *span + skip);
-            return;
-        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {
-            // The lexer does not check for the follow-up after the line, the
-            // proper diagnostics and handling is done at in the
-            // [[parser/missing-continuation-lines]] code in the final parser. Elisp
-            // org-mode parser just treats it as a paragraph, but I prefer to have a
-            // proper diagnostics to disambiguate the intention without fallbacks to the
-            // paragraphs.
-            c.token_adv(otk::ColonProperties, *span + skip);
-            return;
-        } else if (
-            auto span = c.try_lexy_patt<
-                        dsl::digits<>
-                        + (dsl::lit_c<'.'> | dsl::lit_c<')'>)+dsl::lit_c<' '>>(skip)) {
-            c.token_adv(otk::LeadingNumber, *span - 1 + skip);
-            return;
-        } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":logbook:")>(skip)) {
-            c.token_adv(otk::ColonLogbook, *span + skip);
-            return;
-        } else if (
-            auto span = c.try_lexy_patt<
-                        dsl::lit_c<':'> + dsl::p<argument_properties> + dsl::lit_c<':'>>(
-                skip)) {
-            c.token_adv(otk::ColonArgumentsProperty, property_subname(*span + skip));
-            while (c.can_search('\n')) { switch_cmd_argument(c); }
-            return;
-        } else if (
-            auto span = c.try_lexy_patt<
-                        dsl::lit_c<':'> + dsl::p<text_properties> + dsl::lit_c<':'>>(
-                skip)) {
-            c.token_adv(otk::ColonPropertyText, property_subname(*span + skip));
-            while (c.can_search('\n')) { switch_regular_char(c); }
-            return;
-        } else if (
-            auto span = c.try_lexy_patt<
-                        dsl::lit_c<':'> + dsl::p<org_ident> + dsl::lit_c<':'>>(skip)) {
-
-            c.token_adv(otk::ColonLiteralProperty, property_subname(*span + skip));
-            c.token0(otk::RawText, [](Cursor& c) {
-                while (c.can_search('\n')) { c.next(); }
-            });
-            return;
-        } else if (auto span = check_leading(c, ':', skip)) {
-            leading_space();
-            int pos = *span;
-            while (c.can_search('\n', pos)) { ++pos; }
-            c.token_adv(otk::ColonExampleLine, pos);
-            return;
-        } else if (c.is_at_all_of(skip, '#', '+')) {
-            leading_space();
-            switch_command(c);
-            return;
-        } else if (0 < skip) {
-            leading_space();
-            return;
-        } else if (c.is_at("----")) {
-            int off = 0;
-            while (c.is_at('-', off)) { ++off; }
-            while (c.is_at(' ', off)) { ++off; }
-            if (!c.has_pos(off) || c.is_at('\n', off)) {
-                c.token1(otk::TextSeparator, &advance_char1, '-');
-            } else {
-                c.token0(otk::Minus, &advance1);
-            }
-            return;
-        }
+        switch_start_of_the_line(c);
+        return;
     }
-
 
     switch (c.get()) {
         case '*': {
@@ -1477,137 +1599,7 @@ void switch_regular_char(Cursor& c) {
         }
 
         case '[': {
-            static constexpr auto link_continuation = LEXY_CHAR_CLASS(
-                "oident",
-                dsl::ascii::alpha_digit_underscore //
-                    / LEXY_LIT("-")                //
-                    / LEXY_LIT("*")                //
-                    / LEXY_LIT("#")                //
-                    / LEXY_LIT("*")                //
-                    / LEXY_LIT(".")                //
-                    / LEXY_LIT("/")                //
-            );
-
-            static constexpr auto link_end = dsl::literal_set(
-                LEXY_LIT("]]"), LEXY_LIT("]["));
-
-            if (auto span = c.try_lexy_patt<
-                            dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'%'>
-                            + dsl::lit_c<']'>>()) {
-                c.token_adv(otk::SubtreeCompletion, *span);
-
-            } else if (
-                auto span = c.try_lexy_patt<
-                            dsl::lit_c<'['> + dsl::digits<> + dsl::lit_c<'/'>
-                            + dsl::digits<> + dsl::lit_c<']'>>()) {
-                c.token_adv(otk::SubtreeCompletion, *span);
-            } else if (c.is_at_all_of(0, '[', '%', '%')) {
-                c.token1(otk::InactiveDynamicTimeContent, &advance_count, 3);
-            } else if (
-                auto span = c.try_lexy_patt<
-                            dsl::lit_c<'['> + dsl::lit_c<'#'>
-                            + dsl::ascii::alpha_underscore + dsl::lit_c<']'>>()) {
-                c.token_adv(otk::SubtreePriority, *span);
-            } else if (
-                auto span = c.try_lexy_patt<
-                            dsl::lit_c<'['>
-                            + (dsl::lit_c<'x'>   //
-                               | dsl::lit_c<'X'> //
-                               | dsl::lit_c<' '> //
-                               | dsl::lit_c<'-'> //
-                               )
-                            + dsl::lit_c<']'>>()) {
-                c.token_adv(otk::Checkbox, *span);
-            } else if (
-                auto span = c.try_lexy_patt<
-                            dsl::not_followed_by(LEXY_ILIT("[fn:"), dsl::lit_c<':'>)
-                            + dsl::p<org_ident> + dsl::lit_c<']'>>()) {
-                c.token_adv(otk::FootnoteLinked, *span);
-            } else if (auto span = c.try_lexy_patt<LEXY_ILIT("[fn::")>()) {
-                c.token_adv(otk::FootnoteInlineBegin, *span);
-            } else if (
-                auto span = c.try_lexy_patt<
-                            LEXY_LIT("[[") + dsl::p<org_ident> + dsl::lit_c<':'>>()) {
-                c.token_adv(otk::LinkBegin, 2);
-
-                if (c.is_iat("http")) {
-                    switch_word(c);
-                } else if (c.is_iat("file")) {
-                    c.token_adv(otk::LinkProtocolFile, 4);
-                    auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                    c.token_adv(otk::LinkTarget, *span - 2);
-                } else if (c.is_iat("attachment")) {
-                    c.token0(otk::LinkProtocolAttachment, &advance_ident);
-                    auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                    c.token_adv(otk::LinkTarget, *span - 2);
-                } else if (c.is_iat("id")) {
-                    c.token0(otk::LinkProtocolId, &advance_ident);
-                    auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                    c.token_adv(otk::LinkTarget, *span - 2);
-                } else if (c.is_iat("id")) {
-                    c.token0(otk::LinkProtocolId, &advance_ident);
-                    auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                    c.token_adv(otk::LinkTarget, *span - 2);
-                } else {
-                    int offset = 0;
-                    while (c.has_pos(offset) && !c.is_at_any_of(offset, ']', ':', '\n')) {
-                        ++offset;
-                    }
-
-                    if (c.is_at(':', offset)) {
-                        c.token_adv(otk::LinkProtocol, offset + 1);
-                    } else {
-                        c.token_adv(otk::LinkProtocolInternal, offset);
-                    }
-                }
-
-            } else if (
-                auto
-                    span = c.try_lexy_patt<
-                           LEXY_LIT("[[") + link_continuation + dsl::until(link_end)>()) {
-                c.token_adv(otk::LinkBegin, 2);
-                switch (c.get()) {
-                    case '*': {
-                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                        c.token_adv(otk::LinkProtocolTitle, *span - 2);
-
-                        break;
-                    }
-                    case '#': {
-                        c.token_adv(otk::LinkProtocolCustomId, 1);
-                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                        c.token_adv(otk::LinkTarget, *span - 2);
-                        break;
-                    }
-                    case '/': {
-                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                        c.token_adv(otk::LinkTargetFile, *span - 2);
-                        break;
-                    }
-                    case '.': {
-                        auto span = c.try_lexy_patt<dsl::until(link_end)>();
-                        c.token_adv(otk::LinkTargetFile, *span - 2);
-                        break;
-                    }
-                    default: {
-                        int offset = 0;
-                        while (c.has_pos(offset)
-                               && !c.is_at_any_of(offset, ']', ':', '\n')) {
-                            ++offset;
-                        }
-
-                        if (c.is_at(':', offset)) {
-                            c.token_adv(otk::LinkProtocol, offset + 1);
-                        } else {
-                            c.token_adv(otk::LinkProtocolInternal, offset);
-                        }
-                        break;
-                    }
-                }
-
-            } else {
-                c.token0(otk::BraceBegin, &advance1);
-            }
+            switch_opening_bracket(c);
             break;
         }
         case ':': {
@@ -1663,10 +1655,6 @@ void switch_regular_char(Cursor& c) {
         case '#': {
             if (c.is_at('#', +1)) {
                 c.token1(otk::DoubleHash, &advance_count, 2);
-            } else if (c.is_at(' ', +1)) {
-                c.token0(otk::Comment, [](Cursor& c) {
-                    while (c.can_search('\n')) { c.next(); }
-                });
             } else if (c.is_at_all_of(1, &is_alpha_fast)) {
                 c.token0(otk::HashIdent, [](Cursor& c) {
                     c.skip('#');
