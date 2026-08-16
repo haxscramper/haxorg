@@ -369,7 +369,7 @@ struct Cursor {
             line,
             pos,
             text.size(),
-            pos + end < text.size() ? escape_literal(text.substr(pos, end)) : "<eol>");
+            pos + end < text.size() ? escape_literal(text.substr(pos, end)) : "[EOL]");
         hstd::validate_utf8(result);
         return result;
     }
@@ -427,8 +427,17 @@ struct Cursor {
         tok.kind = kind;
 
         int start = pos;
-        adv(*this, args...);
+        {
+            auto __guard = advance_guard();
+            adv(*this, args...);
+        }
         int end = pos;
+        LOGIC_ASSERTION_CHECK_FMT(
+            start != end,
+            "Token callback at {}:{} produced token of size 0 for the current state {}",
+            function,
+            line,
+            format());
 
         tok.value.text = std::string_view{
             text.begin() + start,
@@ -470,32 +479,41 @@ struct Cursor {
 
     OrgToken pop_token() { return group->tokens.content.pop_back_v(); }
 
-
-    std::optional<hstd::finally_std> advance_guard(
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION()) {
-        if (enable_guards) {
-
-            int start_pos = this->pos;
-            int line_{line};
-
-            return finally_std{[this, start_pos, function, line_]() {
-                if (start_pos == this->pos) {
+    struct advance_guard_obj {
+        Cursor*     c;
+        int         start_pos;
+        int         line;
+        char const* function;
+        ~advance_guard_obj() {
+            if (c != nullptr) {
+                if (start_pos == c->pos) {
                     OP_TRACER_MESSAGE(
-                        p, "No movement around pos {}: {}", start_pos, this->format());
+                        c->p, "No movement around pos {}: {}", start_pos, c->format());
                 }
 
                 LOGIC_ASSERTION_CHECK_FMT(
-                    start_pos != this->pos,
+                    start_pos != c->pos,
                     "No movement around pos {}: {}, advance guard failed at "
                     "{}:{}",
                     start_pos,
-                    this->format(),
+                    c->format(),
                     function,
-                    line_);
-            }};
+                    line);
+            }
+        }
+    };
+
+    advance_guard_obj advance_guard(
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION()) {
+        if (enable_guards) {
+            return advance_guard_obj{
+                .c        = this,
+                .line     = line,
+                .function = function,
+            };
         } else {
-            return std::nullopt;
+            return advance_guard_obj{};
         }
     }
 };
@@ -673,7 +691,7 @@ struct org_ident {
 
 void switch_command(Cursor& c) {
     __perf_trace("tokens", "command");
-    auto __scope = c.p.begin_scope();
+    auto __scope = c.p.begin_scope("switch command");
     c.token1(otk::LineCommand, &advance_count, 2);
     c.token0(otk::Word, [](Cursor& c) {
         advance_ident(c);
@@ -710,6 +728,31 @@ void switch_command(Cursor& c) {
             auto __guard = c.advance_guard();
             switch_regular_char(c);
         }
+    };
+
+    /// \brief Scan forward for a line matching `^[ \t]*#+end_<name>[ \t]*$` (case-insensitive).
+    /// Returns absolute position of the end line start, or nullopt if the block is
+    /// unclosed.
+    auto find_block_end = [&](std::string const& name) -> std::optional<int> {
+        int off = 0;
+        while (c.has_pos(off)) {
+            int p = off;
+            while (c.is_at(' ', p) || c.is_at('\t', p)) { ++p; }
+            if (c.is_at('#', p) && c.is_at('+', p + 1) && c.is_iat("end", p + 2)) {
+                p += 5;
+                if (c.is_at('_', p)) { ++p; }
+                if (c.is_iat(name, p)) {
+                    p += name.size();
+                    while (c.is_at(' ', p) || c.is_at('\t', p)) { ++p; }
+                    // org requires [ \t]*$ after the name — trailing junk disqualifies
+                    // the line
+                    if (!c.has_pos(p) || c.is_at('\n', p)) { return c.position() + off; }
+                }
+            }
+            while (c.has_pos(off) && !c.is_at('\n', off)) { ++off; }
+            if (c.is_at('\n', off)) { ++off; }
+        }
+        return std::nullopt;
     };
 
 
@@ -808,10 +851,17 @@ void switch_command(Cursor& c) {
             head.kind = otk::CmdSrcBegin;
             head_args();
             c.token0(otk::Newline, &advance1);
-            int offset;
-            while ((offset = get_end_block_offset("src")) == -1) {
+            auto end_pos = find_block_end("src");
+            if (!end_pos) {
+                OP_TRACER_MESSAGE(
+                    c.p, "Could not find the closing block for the source code");
+                return;
+            }
+            while (c.position() < *end_pos) {
                 auto __guard = c.advance_guard();
-                if (c.is_at_all_of(0, '<', '<')) {
+                if (c.is_at('\n')) {
+                    c.token0(otk::Newline, &advance1);
+                } else if (c.is_at_all_of(0, '<', '<')) {
                     c.token1(otk::DoubleAngleBegin, &advance_count, 2);
                 } else if (c.is_at_all_of(0, '>', '>')) {
                     c.token1(otk::DoubleAngleEnd, &advance_count, 2);
@@ -825,9 +875,8 @@ void switch_command(Cursor& c) {
                         }
                     });
                 }
-                if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
             }
-            c.token1(otk::CmdSrcEnd, &advance_count, offset);
+            c.token1(otk::CmdSrcEnd, &advance_count, get_end_block_offset("src"));
         } else {
             head.kind = otk::CmdDynamicBlockBegin;
             head_args();
@@ -1182,7 +1231,9 @@ static std::optional<int> find_monospace_close(Cursor& c) {
 
 
 void switch_regular_char(Cursor& c) {
+    OP_TRACER_MESSAGE(c.p, "Switch regular char, col={}", c.col);
     if (c.col == 0) {
+        OP_TRACER_MESSAGE(c.p, "Start of the line");
         int skip = 0;
 
         auto leading_space = [&](int         line     = __builtin_LINE(),

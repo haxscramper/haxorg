@@ -923,3 +923,38 @@ items:
   - name: "Multiple startup options"
     source: |
       #+startup: literallinks showeverything
+
+  - name: Unclosed blocks
+    source: |
+      #+begin_src cpp
+      int main() {}
+      (no end tag, 500 more lines of text)
+
+  - name: Nested unclosed blocks
+    source: |
+      #+begin_src cpp
+
+      #+begin_src cpp
+      int main() {}
+      (no end tag, 500 more lines of text)
+      #+end_src
+
+  - name: Unclosed blocks with wrong indentation and lists
+    source:  |
+      - some random thing #+begin_src
+
+        #+end_src
+      - another list item
+        #+begin_src
+
+      #+end_src
+      - not clear
+        #+begin_src cpp
+        #+begin_src cpp
+
+      #+begin_src
+
+      #+begin_src cpp
+      int main() {}
+      (no end tag, 500 more lines of text)
+      #+end_src
