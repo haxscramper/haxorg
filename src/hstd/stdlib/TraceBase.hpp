@@ -7,11 +7,10 @@
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Json.hpp>
 #include <hstd/stdlib/Opt.hpp>
+#include <hstd/stdlib/Variant.hpp>
 #include <hstd/system/reflection.hpp>
 
-#include <cstdint>
 #include <span>
-#include <variant>
 
 namespace hstd {
 
@@ -34,17 +33,28 @@ struct OperationsTracer;
 struct [[refl]] OperationsTracer {
   public:
     struct ScopeFilter {
-        struct Positive {
-            std::string segment;
-        };
-        struct Negative {
-            std::string segment;
-        };
-        struct Any {};
-        struct AnyVarargs {};
+        struct FilterComponent {
+            struct Positive {
+                std::string segment;
+                DESC_FIELDS(Positive, (segment));
+            };
+            struct Negative {
+                std::string segment;
+                DESC_FIELDS(Negative, (segment));
+            };
+            struct Any {
+                DESC_FIELDS(Any, ());
+            };
+            struct AnyVarargs {
+                DESC_FIELDS(AnyVarargs, ())
+            };
 
-        using FilterComponent = std::variant<Positive, Negative, Any, AnyVarargs>;
-        using List            = std::vector<std::vector<FilterComponent>>;
+            SUB_VARIANTS(Kind, Data, data, getKind, Positive, Negative, Any, AnyVarargs);
+            Data data;
+            DESC_FIELDS(FilterComponent, (data));
+        };
+
+        using List = std::vector<std::vector<FilterComponent>>;
 
         /// \brief Replace the filter list. Negative is only allowed as the
         /// first component of a pattern (gitignore-style `!` prefix).
@@ -53,20 +63,17 @@ struct [[refl]] OperationsTracer {
         /// \brief Check whether a scope (list of segments) passes the filters.
         bool enabled(std::vector<std::string> const& scope) const;
 
-      private:
-        enum class Decision : uint8_t
-        {
-            Hide,
-            Show
-        };
+        DECL_DESCRIBED_ENUM(Decision, Hide, Show);
 
         struct Pattern {
             bool                         negated = false;
             std::vector<FilterComponent> body;
+            DESC_FIELDS(Pattern, (negated, body));
         };
 
         std::vector<Pattern> patterns;
-        Decision             defaultDecision = Decision::Show;
+
+        DESC_FIELDS(ScopeFilter, (patterns));
 
         static bool matchBody(
             std::span<const FilterComponent> pat,

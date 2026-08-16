@@ -4,15 +4,17 @@
 #include <hstd/stdlib/Span.hpp>
 
 template <typename T>
-struct fmt::formatter<hstd::Span<T>> {
-    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(hstd::Span<T> const& p, fmt::format_context& ctx) const {
-        hstd::fmt_ctx("[", ctx);
-        for (int i = 0; i < p.size(); ++i) {
-            if (0 < i) { hstd::fmt_ctx(", ", ctx); }
-            hstd::fmt_ctx(p.at(i), ctx);
-        }
+struct fmt::formatter<hstd::Span<T>>
+    : hstd::std_item_iterator_formatter<T, hstd::Span<T>> {};
 
-        return hstd::fmt_ctx("]", ctx);
-    }
-};
+template <typename T>
+struct fmt::formatter<hstd::Span<const T>>
+    : hstd::std_item_iterator_formatter<const T, hstd::Span<const T>> {};
+
+template <typename T>
+struct fmt::formatter<std::span<T>>
+    : hstd::std_item_iterator_formatter<T, std::span<T>> {};
+
+template <typename T>
+struct fmt::formatter<std::span<const T>>
+    : hstd::std_item_iterator_formatter<const T, std::span<const T>> {};

@@ -10,6 +10,7 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/SpanFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 
 

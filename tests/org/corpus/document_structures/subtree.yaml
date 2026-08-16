@@ -150,7 +150,3 @@ items:
 
       ** DONE Sarah's part                                            :subtask:
       ** TODO Buy printing supplies                                   :subtask:
-
-  - name: Inline footnote definition
-    source: |
-      [fn:name:inline definition]

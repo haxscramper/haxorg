@@ -998,3 +998,17 @@ items:
       | a |
       |-
       | b |
+
+
+  - name: Inline footnote definition
+    source: |
+      [fn:name:inline definition]
+
+
+  - name: Tilda in the code 1
+    souce: |
+      x-~y~
+
+  - name: Tilde in the code 2
+    source: |
+      ~y~-z

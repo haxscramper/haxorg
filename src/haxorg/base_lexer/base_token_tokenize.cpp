@@ -1212,11 +1212,10 @@ void lex_latex_inline(Cursor& c, std::string const& close, OrgTokenKind end) {
 }
 
 inline bool is_monospace_pre_ok(Cursor const& c) {
-    // org: opening `~` must follow bol/whitespace or an opening paren/quote.
-    // NB: has_pos(-1) is buggy at pos==0, so index text directly.
+    // org opening set: bol/whitespace or - ( ' " {
     if (c.pos == 0) { return true; }
     char p = c.text[c.pos - 1];
-    return p == ' ' || p == '\n' || p == '\t' || p == '(' || p == '[' || p == '{'
+    return p == ' ' || p == '\n' || p == '\t' || p == '-' || p == '(' || p == '{'
         || p == '\'' || p == '"';
 }
 
@@ -1225,34 +1224,38 @@ inline bool is_monospace_post_char(char c) {
         case ' ':
         case '\t':
         case '\n':
+        case '-':
         case ')':
         case ']':
         case '}':
+        case '[':
         case '.':
         case ',':
         case ';':
         case ':':
         case '!':
         case '?':
+        case '\\':
         case '\'':
         case '"': return true;
         default: return false;
     }
 }
 
-/// \brief Find the offset of the closing `~` relative to the opening `~` at
-/// the current cursor position, or nullopt. Never scans past the end of the
-/// current paragraph: stops at blank lines and at lines that would start a
-/// new element (command, subtree, list item, table row).
+
+/// \brief Find the offset of the closing `delim` relative to the opening
+/// `delim` at the current cursor position, or nullopt. Never scans past the
+/// end of the current paragraph: stops at blank lines and at lines that
+/// would start a new element (command, subtree, list item, table row).
 ///
 /// Org-mode parser/lexer/whatever seems to scan the buffer and segment it into the
 /// regions and only then identify paragraphs to parse in the buffer. This approach is not
 /// possible with the haxorg parser logic, so instead the monospace code has to scan ahead
 /// and determine the real boundary.
-static std::optional<int> find_monospace_close(Cursor& c) {
+static std::optional<int> find_monospace_close(Cursor& c, char delim) {
     if (!is_monospace_pre_ok(c)) { return std::nullopt; }
-    // Body must open with a non-space, non-`~` char on the same line.
-    if (!c.has_pos(+1) || c.is_at(' ', +1) || c.is_at('\n', +1) || c.is_at('~', +1)) {
+    // Body must open with a non-space, non-delimiter char on the same line.
+    if (!c.has_pos(+1) || c.is_at(' ', +1) || c.is_at('\n', +1) || c.is_at(delim, +1)) {
         return std::nullopt;
     }
 
@@ -1276,9 +1279,9 @@ static std::optional<int> find_monospace_close(Cursor& c) {
             continue;
         }
 
-        if (c.is_at('~', offset)) {
-            // org: body cannot contain `~` at all — any `~` that is not a
-            // valid close invalidates the whole opening.
+        if (c.is_at(delim, offset)) {
+            // org: body cannot contain the delimiter at all — any occurrence
+            // that is not a valid close invalidates the whole opening.
             if (c.is_at(' ', offset - 1) || c.is_at('\n', offset - 1)) {
                 return std::nullopt;
             }
@@ -1290,7 +1293,6 @@ static std::optional<int> find_monospace_close(Cursor& c) {
     }
     return std::nullopt;
 }
-
 bool switch_start_of_the_line(Cursor& c) {
     auto __scope = c.p.begin_scope("switch start of the line:");
     int  skip    = 0;
@@ -1578,12 +1580,14 @@ void switch_regular_char(Cursor& c) {
         }
         case '`': c.token0(otk::Backtick, &advance1); break;
         case '$': {
-            if (c.is_at('$', +1)) {
+            if (c.is_at('$', +1) && c.is_at_any_of(+2, ' ', '\t', '\n', ',', '.', ';')) {
                 c.token_adv(otk::LatexDollar2Begin, 2);
                 lex_latex_inline(c, "$$", otk::LatexDollar2End);
-            } else {
+            } else if (c.is_at_any_of(+1, ' ', '\t', '\n', ',', '.', ';')) {
                 c.token_adv(otk::LatexDollar1Begin, 1);
                 lex_latex_inline(c, "$", otk::LatexDollar1End);
+            } else {
+                c.token0(otk::Dollar, &advance1);
             }
             break;
         }
@@ -1609,6 +1613,10 @@ void switch_regular_char(Cursor& c) {
                 c.token_adv(otk::LatexBraceBegin, 2);
                 lex_latex_inline(c, "\\]", otk::LatexBraceEnd);
             } else if (c.is_at_all_of(1, &is_alpha_fast)) {
+                // Full symbol syntax expression is handled in the parser, lexer only
+                // detects the `\\xyz` syntax. Org-mode has a list of allowed entities
+                // that is pulled from runtime variable, but for a general-purpose parser
+                // this is not a good approach.
                 c.token0(otk::Symbol, [](Cursor& c) {
                     c.skip('\\');
                     advance_word(c);
@@ -1716,22 +1724,30 @@ void switch_regular_char(Cursor& c) {
             }
             break;
         }
+
         case '=': {
             if (c.is_at_all_of(1, '=', '}')) {
                 c.token1(otk::CriticHighlightEnd, &advance_count, 3);
             } else if (c.is_at('>', +1)) {
                 c.token1(otk::TimeArrow, &advance_count, 2);
+            } else if (auto close = find_monospace_close(c, '=')) {
+                // org verbatim: same delimiter rules as ~ code
+                c.token_adv(otk::VerbatimBegin, 1);
+                if (1 < *close) { c.token_adv(otk::RawText, *close - 1); }
+                c.token_adv(otk::VerbatimEnd, 1);
             } else {
                 c.token0(otk::Equals, &advance1);
             }
             break;
         }
+
+
         case '~': {
             if (c.is_at("~~}")) {
                 c.token1(otk::CriticReplaceEnd, &advance_count, 3);
             } else if (c.is_at("~>")) {
                 c.token1(otk::CriticReplaceMiddle, &advance_count, 2);
-            } else if (auto close = find_monospace_close(c)) {
+            } else if (auto close = find_monospace_close(c, '~')) {
                 c.token_adv(otk::Tilda, 1);
                 if (1 < *close) { c.token_adv(otk::RawText, *close - 1); }
                 c.token_adv(otk::Tilda, 1);
@@ -1740,6 +1756,7 @@ void switch_regular_char(Cursor& c) {
             }
             break;
         }
+
 
         case '-': {
             if (c.is_at("--}")) {
@@ -2195,9 +2212,9 @@ OrgTokenGroup org::parse::tokenize(
         .enable_guards = params.validateTokens,
     };
 
-    using SF = hstd::OperationsTracer::ScopeFilter;
+    using SFC = hstd::OperationsTracer::ScopeFilter::FilterComponent;
     c.p.setScopeFilters({
-        {SF::AnyVarargs(), SF::Positive("lexy")},
+        {SFC{SFC::AnyVarargs()}, SFC{SFC::Positive("lexy")}},
     });
 
     while (!c.eof()) {
