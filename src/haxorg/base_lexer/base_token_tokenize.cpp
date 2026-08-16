@@ -1079,6 +1079,10 @@ void switch_word(Cursor& c) {
         }
         case 's':
         case 'S':
+            // Scheduled etc. are only considered a proper subtree times at the start of
+            // the line, but tracking the `SCHEDULED: [complex multi-token timestamp]
+            // DEADLINE: [...` in the lexer is not very practical the decision is
+            // postponed until the `parseSubtreeTimes` in the parser;
             if (c.is_at("SCHEDULED:")) {
                 c.token_adv(otk::TreeTime, 10);
                 return;
@@ -1287,7 +1291,7 @@ static std::optional<int> find_monospace_close(Cursor& c) {
     return std::nullopt;
 }
 
-void switch_start_of_the_line(Cursor& c) {
+bool switch_start_of_the_line(Cursor& c) {
     auto __scope = c.p.begin_scope("switch start of the line:");
     int  skip    = 0;
 
@@ -1313,9 +1317,14 @@ void switch_start_of_the_line(Cursor& c) {
         c.token_adv(otk::LeadingPipe, *span + skip);
     } else if (auto span = is_at_table_separator(c, skip)) {
         c.token_adv(otk::TableSeparator, *span + skip);
+    } else if (c.is_at('|', skip)) {
+        // `|-` is allowed as a table separator
+        c.token_adv(otk::LeadingPipe, 1 + skip);
     } else if (auto span = c.try_lexy_patt<LEXY_ILIT("clock:")>(skip)) {
         c.token_adv(otk::TreeClock, *span + skip);
         while (c.can_search('\n')) { switch_regular_char(c); }
+    } else if (auto span = c.try_lexy_patt<LEXY_ILIT("%%(")>(skip)) {
+        c.token_adv(otk::AgendaDiaryTimeContent, *span + skip);
     } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":end:")>(skip)) {
         c.token_adv(otk::ColonEnd, *span + skip);
     } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {
@@ -1367,7 +1376,7 @@ void switch_start_of_the_line(Cursor& c) {
         });
     } else if (0 < skip) {
         leading_space();
-    } else if (c.is_at("----")) {
+    } else if (c.is_at("-----")) {
         int off = 0;
         while (c.is_at('-', off)) { ++off; }
         while (c.is_at(' ', off)) { ++off; }
@@ -1376,7 +1385,11 @@ void switch_start_of_the_line(Cursor& c) {
         } else {
             c.token0(otk::Minus, &advance1);
         }
+    } else {
+        return false;
     }
+
+    return true;
 }
 
 void switch_opening_bracket(Cursor& c) {
@@ -1429,6 +1442,11 @@ void switch_opening_bracket(Cursor& c) {
         c.token_adv(otk::FootnoteInlineBegin, *span);
     } else if (
         auto span = c.try_lexy_patt<
+                    LEXY_ILIT("[fn:") + dsl::p<org_ident> + dsl::lit_c<':'>>()) {
+        // labeled inline definition
+        c.token_adv(otk::FootnoteInlineBegin, *span);
+    } else if (
+        auto span = c.try_lexy_patt<
                     LEXY_LIT("[[") + dsl::p<org_ident> + dsl::lit_c<':'>>()) {
         c.token_adv(otk::LinkBegin, 2);
 
@@ -1451,6 +1469,8 @@ void switch_opening_bracket(Cursor& c) {
             auto span = c.try_lexy_patt<dsl::until(link_end)>();
             c.token_adv(otk::LinkTarget, *span - 2);
         } else {
+            // All other link protocols don't require special handling and can be
+            // processed as a sequence of basic token words.
             int offset = 0;
             while (c.has_pos(offset) && !c.is_at_any_of(offset, ']', ':', '\n')) {
                 ++offset;
@@ -1512,9 +1532,7 @@ void switch_opening_bracket(Cursor& c) {
 
 void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
-        auto __guard = c.advance_guard();
-        switch_start_of_the_line(c);
-        return;
+        if (switch_start_of_the_line(c)) { return; }
     }
 
     auto __scope = c.p.begin_scope("switch regular char");
@@ -1752,6 +1770,7 @@ void switch_regular_char(Cursor& c) {
             } else if (c.is_at_all_of(1, '>', '>')) {
                 c.token1(otk::CriticCommentBegin, &advance_count, 3);
             } else {
+                // Macro parsing and lexing is handled in the parser layer.
                 c.token1(otk::CurlyBegin, &advance_count, 1);
             }
             break;

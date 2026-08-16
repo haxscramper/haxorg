@@ -332,6 +332,12 @@ char* haxorg_Str_data(OrgContext* org_context, haxorg_HstdStr __this) { return o
 
 char const* haxorg_Str_data_const(OrgContext* org_context, haxorg_HstdStr __this) { return org::bind::c::execute_cpp<char const*>(static_cast<char const*(hstd::Str::*)() const>(&hstd::Str::data), org_context, __this); }
 
+haxorg_HstdStr haxorg_Str_dropPrefix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr prefix) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str(hstd::Str::*)(hstd::Str const&) const>(&hstd::Str::dropPrefix), org_context, __this, prefix); }
+
+haxorg_HstdStr haxorg_Str_dropSuffix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr suffix) { return org::bind::c::execute_cpp<haxorg_HstdStr>(static_cast<hstd::Str(hstd::Str::*)(hstd::Str const&) const>(&hstd::Str::dropSuffix), org_context, __this, suffix); }
+
+char haxorg_Str_atIndex_const(OrgContext* org_context, haxorg_HstdStr __this, int pos) { return org::bind::c::execute_cpp<char>(static_cast<char(hstd::Str::*)(int) const>(&hstd::Str::at), org_context, __this, pos); }
+
 int haxorg_Str_size_const(OrgContext* org_context, haxorg_HstdStr __this) { return org::bind::c::execute_cpp<int>(static_cast<int(hstd::Str::*)() const>(&hstd::Str::size), org_context, __this); }
 
 void haxorg_destroy_HstdStr(OrgContext* org_context, haxorg_HstdStr* obj) { org::bind::c::execute_destroy<hstd::Str>(org_context, obj); }

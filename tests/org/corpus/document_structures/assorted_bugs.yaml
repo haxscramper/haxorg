@@ -992,3 +992,9 @@ items:
         :properties: but this is actually a paragraph
         :somevalue: for some reason I'm starting lines with property-like text
         :end: this is also junk
+
+  - name: Partial table separator
+    source: |
+      | a |
+      |-
+      | b |

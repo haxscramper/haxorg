@@ -892,6 +892,8 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
             otk::ActiveDynamicTimeContent,
         });
 
+    auto endToken = active ? otk::AngleEnd : otk::BraceEnd;
+
     ParseResult result = ParseOk{};
 
     if (lex.at(
@@ -923,6 +925,15 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
 
 
         std::ignore = aux();
+
+        if (!lex.at(endToken)) {
+            SubLexer sub{lex};
+            while (lex.can_search(endToken)) { sub.add(pop(lex)); }
+            sub.start();
+            // `<%%(diary-block 8 20 2026 8 25 2026) all-day prep window>` is allowed
+            // syntax
+            SUB_PARSE(Paragraph, sub);
+        }
 
         result = timeGuard->end();
     } else {
@@ -994,7 +1005,7 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
         }
     }
 
-    TRY_SKIP(lex, active ? otk::AngleEnd : otk::BraceEnd);
+    TRY_SKIP(lex, endToken);
     return result;
 }
 

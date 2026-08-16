@@ -3152,5 +3152,10 @@ org::sem::OrgConverter::ConvResult<Document> OrgConverter::convertDocument(__arg
         doc->subnodes.push_back(it.unwrap());
     }
 
+    if (canTrace()) {
+        auto os = getStream();
+        org::algo::ExporterTree{os}.evalTop(doc);
+    }
+
     return doc;
 }

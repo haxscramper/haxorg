@@ -3686,11 +3686,15 @@ def get_org_token_kind() -> List[GenTuEnumField]:
         efield("DoubleSlash", ""),
         efield("ActiveDynamicTimeContent", ""),
         efield("InactiveDynamicTimeContent", ""),
+        efield(
+            "AgendaDiaryTimeContent",
+            "`%%(` at the start of the line in the subtree, denoting the start of the dynamic agenda."
+        ),
         efield("EndOfFile", ""),
         efield("Equals", ""),
         efield("Escaped", ""),
         efield("Exclamation", ""),
-        efield("FootnoteInlineBegin", ""),
+        efield("FootnoteInlineBegin", "`[fn::` with the inline definition"),
         efield("FootnoteLinked", ""),
         efield("ForwardSlash", ""),
         efield("HashIdent", ""),
