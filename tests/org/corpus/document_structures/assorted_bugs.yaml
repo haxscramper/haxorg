@@ -958,3 +958,12 @@ items:
       int main() {}
       (no end tag, 500 more lines of text)
       #+end_src
+  - name: Unterminated begin example
+    source: |
+      #+begin_example
+      asdfasdfasdf
+      asadfasdf
+  - name: Dynamic-begin-like command
+    source: |
+      #+beginner: random command, not a begin block
+      #+endnotes: whatver asdfasdf??

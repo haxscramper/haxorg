@@ -798,6 +798,12 @@ void switch_command(Cursor& c) {
     } else if (norm_head.starts_with("attr")) {
         head.kind = otk::CmdAttr;
         head_args();
+    } else if (norm_head == "begin") { // bare "#+begin:" — dynamic block, name in args
+        head.kind = otk::CmdDynamicBegin;
+        head_args();
+    } else if (norm_head == "end") { // bare "#+end:" — dynamic block end
+        head.kind = otk::CmdDynamicEnd;
+        head_args();
     } else if (norm_head.starts_with("begin")) {
         auto block_kind = norm_head.substr(5);
         if (block_kind == "quote") {
@@ -894,29 +900,38 @@ void switch_command(Cursor& c) {
             }
             c.token1(otk::CmdSrcEnd, &advance_count, get_end_block_offset("src"));
         } else {
-            head.kind = otk::CmdDynamicBlockBegin;
-            head_args();
+            head.kind = otk::
+                CmdCustomRaw; // e.g. "#+beginner:" is a plain keyword, not a block
+            head_raw();
         }
     } else if (norm_head.starts_with("end")) {
         auto block_kind = norm_head.substr(3);
         if (block_kind == "quote") {
             head.kind = otk::CmdQuoteEnd;
+            head_args();
         } else if (block_kind == "cell") {
             head.kind = otk::CmdCellEnd;
+            head_args();
         } else if (block_kind == "center") {
             head.kind = otk::CmdCenterEnd;
+            head_args();
         } else if (block_kind == "comment") {
             head.kind = otk::CmdCommentEnd;
+            head_args();
         } else if (block_kind == "verse") {
             head.kind = otk::CmdVerseEnd;
+            head_args();
         } else if (block_kind == "row") {
             head.kind = otk::CmdRowEnd;
+            head_args();
         } else if (block_kind == "table") {
             head.kind = otk::CmdTableEnd;
+            head_args();
         } else {
-            head.kind = otk::CmdDynamicBlockEnd;
+            // e.g. "#+endnote:" is a plain keyword, not a block end
+            head.kind = otk::CmdCustomRaw;
+            head_raw();
         }
-        head_args();
     } else if (norm_head == "begin") { // `#+begin:` w/o clarifications
         head.kind = otk::CmdDynamicBegin;
         head_args();
