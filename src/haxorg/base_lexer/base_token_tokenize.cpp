@@ -825,28 +825,44 @@ void switch_command(Cursor& c) {
             head.kind = otk::CmdExportBegin;
             head_args();
             c.token0(otk::Newline, &advance1);
-            int offset;
-            while ((offset = get_end_block_offset("export")) == -1) {
-                auto __guard = c.advance_guard();
-                c.token0(otk::CmdExportLine, [](Cursor& c) {
-                    while (c.can_search('\n')) { c.next(); }
-                });
-                if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
+            auto end_pos = find_block_end("export");
+            if (!end_pos) {
+                OP_TRACER_MESSAGE(
+                    c.p, "Could not find the closing block for the export block");
+                return;
             }
-            c.token1(otk::CmdExportEnd, &advance_count, offset);
+            while (c.position() < *end_pos) {
+                auto __guard = c.advance_guard();
+                if (c.is_at('\n')) {
+                    c.token0(otk::Newline, &advance1);
+                } else {
+                    c.token0(otk::CmdExportLine, [](Cursor& c) {
+                        while (c.can_search('\n')) { c.next(); }
+                    });
+                }
+            }
+            c.token1(otk::CmdExportEnd, &advance_count, get_end_block_offset("export"));
         } else if (block_kind == "example") {
             head.kind = otk::CmdExampleBegin;
             head_args();
             c.token0(otk::Newline, &advance1);
-            int offset;
-            while ((offset = get_end_block_offset("example")) == -1) {
-                auto __guard = c.advance_guard();
-                c.token0(otk::CmdExampleLine, [](Cursor& c) {
-                    while (c.can_search('\n')) { c.next(); }
-                });
-                if (c.is_at('\n')) { c.token0(otk::Newline, &advance1); }
+            auto end_pos = find_block_end("example");
+            if (!end_pos) {
+                OP_TRACER_MESSAGE(
+                    c.p, "Could not find the closing block for the example block");
+                return;
             }
-            c.token1(otk::CmdExampleEnd, &advance_count, offset);
+            while (c.position() < *end_pos) {
+                auto __guard = c.advance_guard();
+                if (c.is_at('\n')) {
+                    c.token0(otk::Newline, &advance1);
+                } else {
+                    c.token0(otk::CmdExampleLine, [](Cursor& c) {
+                        while (c.can_search('\n')) { c.next(); }
+                    });
+                }
+            }
+            c.token1(otk::CmdExampleEnd, &advance_count, get_end_block_offset("example"));
         } else if (block_kind == "src") {
             head.kind = otk::CmdSrcBegin;
             head_args();
