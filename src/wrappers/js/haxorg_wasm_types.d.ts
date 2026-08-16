@@ -395,6 +395,7 @@ export interface haxorg_wasm_module_auto {
     LeadingPipe: OrgTokenKind,
     LeadingPlus: OrgTokenKind,
     LeadingSpace: OrgTokenKind,
+    LeadingCharacter: OrgTokenKind,
     LineCommand: OrgTokenKind,
     LinkBegin: OrgTokenKind,
     LinkDescriptionBegin: OrgTokenKind,
@@ -1049,6 +1050,7 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: CmdIncludeKind,
   }
   format_CmdIncludeKind(value: CmdIncludeKind): string;
+  ReportSourceStrCache: ReportSourceStrCacheConstructor;
   ImmIdTNoNode: ImmIdTNoNodeConstructor;
   ImmIdTErrorItem: ImmIdTErrorItemConstructor;
   ImmIdTErrorGroup: ImmIdTErrorGroupConstructor;
@@ -1898,6 +1900,7 @@ export enum OrgTokenKind {
   LeadingPipe,
   LeadingPlus,
   LeadingSpace,
+  LeadingCharacter,
   LineCommand,
   LinkBegin,
   LinkDescriptionBegin,
@@ -2141,12 +2144,10 @@ export interface OperationsTracerConstructor { new(): OperationsTracer; }
 export interface OperationsTracer {
   setTraceFileStr(outfile: string, overwrite: boolean): void;
   sendMessage(value: string, function_: string, line: number, file: string): void;
-  TraceState: boolean
   traceToFile: boolean
   traceToBuffer: boolean
   traceStructured: boolean
   traceColored: boolean
-  activeLevel: number
   traceBuffer: string
 }
 export interface ReportSourceCacheConstructor { new(): ReportSourceCache; }
@@ -3946,6 +3947,8 @@ export enum CmdIncludeKind {
   Src,
   OrgDocument,
 }
+export interface ReportSourceStrCacheConstructor { new(): ReportSourceStrCache; }
+export interface ReportSourceStrCache {  }
 export interface ImmIdTNoNodeConstructor { new(): ImmIdTNoNode; }
 export interface ImmIdTNoNode {  }
 export interface ImmIdTErrorItemConstructor { new(): ImmIdTErrorItem; }

@@ -1409,8 +1409,7 @@ void ReflASTVisitor::fillSharedRecordData(Record* rec, clang::RecordDecl const* 
             specialization = llvm::dyn_cast<clang::ClassTemplateSpecializationDecl>(
                 Decl)) {
         rec->set_isexplicitinstantiation(true);
-        const clang::TemplateArgumentList& args //
-            = specialization->getTemplateArgs();
+        clang::TemplateArgumentList const& args = specialization->getTemplateArgs();
 
         for (unsigned i = 0; i < args.size(); ++i) {
             auto param = rec->add_explicittemplateparams();
@@ -1431,6 +1430,16 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
           || visitMode == VisitMode::AllMainTranslationUnit) //
          && shouldVisit(Decl)                                //
          && isToplevelDecl)) {
+
+        if (!Decl->isThisDeclarationADefinition()) {
+            HSLOG_TRACE(
+                "VisitCXXRecordDecl {} -- not a definition, early exit",
+                formatDeclLocation(Decl));
+            return true;
+        }
+
+        HSLOG_TRACE("VisitRecordDecl {}", formatDeclLocation(Decl));
+        HSLOG_DEPTH_SCOPE_ANON();
         log_visit(Decl);
 
         llvm::TimeTraceScope timeScope{
@@ -1567,8 +1576,19 @@ bool ReflASTVisitor::VisitTypedefDecl(c::TypedefDecl* Decl) {
 bool ReflASTVisitor::VisitRecordDecl(c::RecordDecl* Decl) {
     c::TypedefDecl* Typedef   = findTypedefForDecl(Decl, Ctx);
     c::FieldDecl*   FieldDecl = findFieldForDecl(Decl, Ctx);
+
+    if (!Decl->isThisDeclarationADefinition()) {
+        HSLOG_TRACE(
+            "VisitRecordDecl {} -- not a definition, early exit",
+            formatDeclLocation(Decl));
+        return true;
+    }
+
+
     HSLOG_TRACE("VisitRecordDecl {}", formatDeclLocation(Decl));
     HSLOG_DEPTH_SCOPE_ANON();
+
+
     if (Decl->getNameAsString().empty() && Typedef == nullptr) {
         log_visit(nullptr, "empty name and no typedef " + Decl->getNameAsString());
         return true;

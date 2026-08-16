@@ -2645,6 +2645,8 @@ enum class OrgTokenKind : short int {
   LeadingPipe,
   LeadingPlus,
   LeadingSpace,
+  /// \brief a)
+  LeadingCharacter,
   LineCommand,
   LinkBegin,
   LinkDescriptionBegin,
@@ -2881,6 +2883,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingPipe)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingPlus)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingSpace)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingCharacter)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LineCommand)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LinkBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LinkDescriptionBegin)

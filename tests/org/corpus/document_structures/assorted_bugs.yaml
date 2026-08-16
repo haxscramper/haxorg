@@ -1004,9 +1004,8 @@ items:
     source: |
       [fn:name:inline definition]
 
-
   - name: Tilda in the code 1
-    souce: |
+    source: |
       x-~y~
 
   - name: Tilde in the code 2

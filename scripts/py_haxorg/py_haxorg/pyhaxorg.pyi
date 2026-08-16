@@ -407,83 +407,84 @@ class OrgTokenKind(Enum):
     LeadingPipe = 155
     LeadingPlus = 156
     LeadingSpace = 157
-    LineCommand = 158
-    LinkBegin = 159
-    LinkDescriptionBegin = 160
-    LinkDescriptionEnd = 161
-    LinkEnd = 162
-    LinkFull = 163
-    LinkProtocol = 164
-    LinkProtocolAttachment = 165
-    LinkProtocolCustomId = 166
-    LinkProtocolFile = 167
-    LinkProtocolHttp = 168
-    LinkProtocolId = 169
-    LinkProtocolInternal = 170
-    LinkProtocolTitle = 171
-    LinkSplit = 172
-    LinkTarget = 173
-    LinkTargetBegin = 174
-    LinkTargetEnd = 175
-    LinkTargetFile = 176
-    ListBegin = 177
-    ListEnd = 178
-    ListItemBegin = 179
-    ListItemEnd = 180
-    LongNewline = 181
-    MediumNewline = 182
-    Minus = 183
-    MiscUnicode = 184
-    MonospaceBegin = 185
-    MonospaceEnd = 186
-    MonospaceUnknown = 187
-    Newline = 188
-    Number = 189
-    ParBegin = 190
-    ParEnd = 191
-    Percent = 192
-    Pipe = 193
-    Placeholder = 194
-    Plus = 195
-    Punctuation = 196
-    RawText = 197
-    SameIndent = 198
-    Semicolon = 199
-    SingleQuote = 200
-    SrcContent = 201
-    StmtListBegin = 202
-    StmtListEnd = 203
-    StrikeBegin = 204
-    StrikeEnd = 205
-    StrikeUnknown = 206
-    SubtreeCompletion = 207
-    SubtreePriority = 208
-    SubtreeStars = 209
-    Symbol = 210
-    TableSeparator = 211
-    TextSeparator = 212
-    TextSrcBegin = 213
-    Tilda = 214
-    Time = 215
-    TimeArrow = 216
-    TimeRepeaterDuration = 217
-    TimeRepeaterSpec = 218
-    TimeWarnPeriod = 219
-    TrailingPipe = 220
-    TreeClock = 221
-    TreeTime = 222
-    TripleAngleBegin = 223
-    TripleAngleEnd = 224
-    Underline = 225
-    UnderlineBegin = 226
-    UnderlineEnd = 227
-    UnderlineUnknown = 228
-    Unknown = 229
-    VerbatimBegin = 230
-    VerbatimEnd = 231
-    VerbatimUnknown = 232
-    Whitespace = 233
-    Word = 234
+    LeadingCharacter = 158
+    LineCommand = 159
+    LinkBegin = 160
+    LinkDescriptionBegin = 161
+    LinkDescriptionEnd = 162
+    LinkEnd = 163
+    LinkFull = 164
+    LinkProtocol = 165
+    LinkProtocolAttachment = 166
+    LinkProtocolCustomId = 167
+    LinkProtocolFile = 168
+    LinkProtocolHttp = 169
+    LinkProtocolId = 170
+    LinkProtocolInternal = 171
+    LinkProtocolTitle = 172
+    LinkSplit = 173
+    LinkTarget = 174
+    LinkTargetBegin = 175
+    LinkTargetEnd = 176
+    LinkTargetFile = 177
+    ListBegin = 178
+    ListEnd = 179
+    ListItemBegin = 180
+    ListItemEnd = 181
+    LongNewline = 182
+    MediumNewline = 183
+    Minus = 184
+    MiscUnicode = 185
+    MonospaceBegin = 186
+    MonospaceEnd = 187
+    MonospaceUnknown = 188
+    Newline = 189
+    Number = 190
+    ParBegin = 191
+    ParEnd = 192
+    Percent = 193
+    Pipe = 194
+    Placeholder = 195
+    Plus = 196
+    Punctuation = 197
+    RawText = 198
+    SameIndent = 199
+    Semicolon = 200
+    SingleQuote = 201
+    SrcContent = 202
+    StmtListBegin = 203
+    StmtListEnd = 204
+    StrikeBegin = 205
+    StrikeEnd = 206
+    StrikeUnknown = 207
+    SubtreeCompletion = 208
+    SubtreePriority = 209
+    SubtreeStars = 210
+    Symbol = 211
+    TableSeparator = 212
+    TextSeparator = 213
+    TextSrcBegin = 214
+    Tilda = 215
+    Time = 216
+    TimeArrow = 217
+    TimeRepeaterDuration = 218
+    TimeRepeaterSpec = 219
+    TimeWarnPeriod = 220
+    TrailingPipe = 221
+    TreeClock = 222
+    TreeTime = 223
+    TripleAngleBegin = 224
+    TripleAngleEnd = 225
+    Underline = 226
+    UnderlineBegin = 227
+    UnderlineEnd = 228
+    UnderlineUnknown = 229
+    Unknown = 230
+    VerbatimBegin = 231
+    VerbatimEnd = 232
+    VerbatimUnknown = 233
+    Whitespace = 234
+    Word = 235
 
 class OrgJsonKind(Enum):
     Null = 1
@@ -675,17 +676,15 @@ class Org:
     subnodes: list[SemId]
 
 class OperationsTracer:
-    def __init__(self, TraceState: bool, traceToFile: bool, traceToBuffer: bool, traceStructured: bool, traceColored: bool, activeLevel: int, traceBuffer: str) -> None: ...
+    def __init__(self, traceToFile: bool, traceToBuffer: bool, traceStructured: bool, traceColored: bool, traceBuffer: str) -> None: ...
     def setTraceFileStr(self, outfile: str, overwrite: bool) -> None: ...
     def sendMessage(self, value: str, function: str, line: int, file: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    TraceState: bool
     traceToFile: bool
     traceToBuffer: bool
     traceStructured: bool
     traceColored: bool
-    activeLevel: int
     traceBuffer: str
 
 class ReportSourceCache:
@@ -2979,6 +2978,11 @@ class CmdInclude(Org):
     path: str
     firstLine: Optional[int]
     lastLine: Optional[int]
+
+class ReportSourceStrCache(ReportSourceCache):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
 
 class ImmIdTNoNode(ImmId):
     def __init__(self) -> None: ...

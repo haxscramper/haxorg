@@ -146,7 +146,7 @@ struct ReportSource {
     DESC_FIELDS(ReportSource, (lines, len));
 };
 
-class ReportSourceStrCache : public ReportSourceCache {
+class [[refl]] ReportSourceStrCache : public ReportSourceCache {
 
     /// Cache interface
   public:

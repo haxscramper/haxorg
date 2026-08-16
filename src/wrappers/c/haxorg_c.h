@@ -509,6 +509,8 @@ enum haxorg_OrgTokenKind {
   haxorg_OrgTokenKind_LeadingPipe,
   haxorg_OrgTokenKind_LeadingPlus,
   haxorg_OrgTokenKind_LeadingSpace,
+  /// \brief a)
+  haxorg_OrgTokenKind_LeadingCharacter,
   haxorg_OrgTokenKind_LineCommand,
   haxorg_OrgTokenKind_LinkBegin,
   haxorg_OrgTokenKind_LinkDescriptionBegin,
@@ -986,6 +988,8 @@ struct haxorg_CmdIncludeCustom;
 struct haxorg_CmdIncludeSrc;
 
 struct haxorg_CmdIncludeOrgDocument;
+
+struct haxorg_ReportSourceStrCache;
 
 struct haxorg_ImmNoNode;
 
@@ -3031,6 +3035,11 @@ struct haxorg_CmdInclude {
   haxorg_ptr_payload data;
 };
 
+/// \brief ['hstd', 'ext', 'ReportSourceStrCache']
+struct haxorg_ReportSourceStrCache {
+  haxorg_ptr_payload data;
+};
+
 /// \brief ['org', 'imm', 'ImmNoNode']
 struct haxorg_ImmNoNode {
   haxorg_ptr_payload data;
@@ -4893,10 +4902,6 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_BackwardsIndex(OrgContext* org_context,
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_create_Str_StrFromCString(OrgContext* org_context, char const* conv);
 HAXORG_C_API_LINKAGE char* haxorg_Str_data(OrgContext* org_context, haxorg_HstdStr __this);
 HAXORG_C_API_LINKAGE char const* haxorg_Str_data_const(OrgContext* org_context, haxorg_HstdStr __this);
-HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_Str_dropPrefix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr prefix);
-HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_Str_dropSuffix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr suffix);
-HAXORG_C_API_LINKAGE char haxorg_Str_atIndex_const(OrgContext* org_context, haxorg_HstdStr __this, int pos);
-HAXORG_C_API_LINKAGE int haxorg_Str_size_const(OrgContext* org_context, haxorg_HstdStr __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdStr(OrgContext* org_context, haxorg_HstdStr* obj);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_UserTimeBreakdown_get_year(OrgContext* org_context, haxorg_UserTimeBreakdown __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_UserTimeBreakdown_get_month(OrgContext* org_context, haxorg_UserTimeBreakdown __this);
@@ -4944,12 +4949,10 @@ HAXORG_C_API_LINKAGE void haxorg_Org_insert(OrgContext* org_context, haxorg_Org 
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_Org_at_const(OrgContext* org_context, haxorg_Org __this, int idx);
 HAXORG_C_API_LINKAGE bool haxorg_Org_is_const(OrgContext* org_context, haxorg_Org __this, haxorg_OrgSemKind kind);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Org(OrgContext* org_context, haxorg_Org* obj);
-HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_TraceState(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceToFile(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceToBuffer(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceStructured(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceColored(OrgContext* org_context, haxorg_OperationsTracer __this);
-HAXORG_C_API_LINKAGE int haxorg_OperationsTracer_get_activeLevel(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_OperationsTracer_get_traceBuffer(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_setTraceFileStr(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString outfile, bool overwrite);
 HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_sendMessage_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString value, haxorg_StdString function, int line, haxorg_StdString file);
@@ -6057,6 +6060,7 @@ HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_CmdIncludeOrgDocument_get_minLeve
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_CmdIncludeOrgDocument_get_customIdTarget(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeOrgDocument(OrgContext* org_context, haxorg_CmdIncludeOrgDocument* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdInclude(OrgContext* org_context, haxorg_CmdInclude* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ReportSourceStrCache(OrgContext* org_context, haxorg_ReportSourceStrCache* obj);
 HAXORG_C_API_LINKAGE bool haxorg_ImmNoNode___eq___const(OrgContext* org_context, haxorg_ImmNoNode __this, haxorg_ImmNoNode other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmNoNode(OrgContext* org_context, haxorg_ImmNoNode* obj);
 HAXORG_C_API_LINKAGE haxorg_OrgDiagnostics haxorg_ImmErrorItem_get_diag(OrgContext* org_context, haxorg_ImmErrorItem __this);

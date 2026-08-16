@@ -114,10 +114,8 @@ struct ParseSpec {
         std::string const& relDebug,
         bool               create = true) const;
 
-    struct SpecValidationError : public std::runtime_error {
-        explicit SpecValidationError(std::string const& message)
-            : std::runtime_error(message) {}
-    };
+    struct SpecValidationError
+        : public hstd::CRTP_hexception<SpecValidationError, hstd::runtime_error> {};
 
     enum class ExpectedMode
     {

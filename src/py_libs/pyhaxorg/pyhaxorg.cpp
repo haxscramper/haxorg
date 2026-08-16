@@ -22,6 +22,7 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include "pyhaxorg_manual_impl.hpp"
+NB_MAKE_OPAQUE(hstd::StrCommon<hstd::Str>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
 NB_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
@@ -147,6 +148,7 @@ NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegmentGroup>)
 NB_MODULE(pyhaxorg, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
+  org::bind::python::bind_hstdStrCommon<hstd::Str>(m, "StrCommonOfStr", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::OrgJson>(m, "HstdVecOfOrgJson", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::OrgJson>(m, "StdVecOfOrgJson", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "HstdVecOfSemIdOfOrg", type_registry_guard);
@@ -826,6 +828,7 @@ NB_MODULE(pyhaxorg, m) {
     .value("LeadingPipe", OrgTokenKind::LeadingPipe)
     .value("LeadingPlus", OrgTokenKind::LeadingPlus)
     .value("LeadingSpace", OrgTokenKind::LeadingSpace)
+    .value("LeadingCharacter", OrgTokenKind::LeadingCharacter, R"RAW(a))RAW")
     .value("LineCommand", OrgTokenKind::LineCommand)
     .value("LinkBegin", OrgTokenKind::LinkBegin)
     .value("LinkDescriptionBegin", OrgTokenKind::LinkDescriptionBegin)
@@ -1300,12 +1303,10 @@ node can have subnodes.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("TraceState", &hstd::OperationsTracer::TraceState)
     .def_rw("traceToFile", &hstd::OperationsTracer::traceToFile)
     .def_rw("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
     .def_rw("traceStructured", &hstd::OperationsTracer::traceStructured)
     .def_rw("traceColored", &hstd::OperationsTracer::traceColored)
-    .def_rw("activeLevel", &hstd::OperationsTracer::activeLevel)
     .def_rw("traceBuffer", &hstd::OperationsTracer::traceBuffer)
     .def("setTraceFileStr",
          static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
@@ -6604,6 +6605,22 @@ and a segment kind.)RAW")
                      })
     .def("__getattr__",
          [](org::sem::CmdInclude const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::ext::ReportSourceStrCache, hstd::ext::ReportSourceCache>(m, "ReportSourceStrCache")
+    .def("__init__",
+         [](hstd::ext::ReportSourceStrCache* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::ext::ReportSourceStrCache>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("__repr__", [](hstd::ext::ReportSourceStrCache const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::ext::ReportSourceStrCache const& _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
