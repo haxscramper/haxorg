@@ -1370,6 +1370,16 @@ void switch_regular_char(Cursor& c) {
         } else if (0 < skip) {
             leading_space();
             return;
+        } else if (c.is_at("----")) {
+            int off = 0;
+            while (c.is_at('-', off)) { ++off; }
+            while (c.is_at(' ', off)) { ++off; }
+            if (!c.has_pos(off) || c.is_at('\n', off)) {
+                c.token1(otk::TextSeparator, &advance_char1, '-');
+            } else {
+                c.token0(otk::Minus, &advance1);
+            }
+            return;
         }
     }
 
@@ -1712,9 +1722,7 @@ void switch_regular_char(Cursor& c) {
         }
 
         case '-': {
-            if (c.is_at("-----")) {
-                c.token1(otk::TextSeparator, &advance_char1, '-');
-            } else if (c.is_at("--}")) {
+            if (c.is_at("--}")) {
                 c.token1(otk::CriticDeleteEnd, &advance_count, 3);
             } else if (c.is_at("--")) {
                 c.token1(otk::DoubleDash, &advance_count, 2);
@@ -2180,6 +2188,11 @@ OrgTokenGroup org::parse::tokenize(
             }
             LOGIC_ASSERTION_CHECK(false, "");
         }
+    }
+
+    if (params.TraceState) {
+        auto os = c.p.getStream();
+        result.printToString(os);
     }
 
     return result;

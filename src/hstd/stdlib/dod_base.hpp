@@ -457,7 +457,7 @@ struct Store {
     bool empty() const { return size() == 0; }
 
     /// \brief Get generator for all stored indices and pairs
-    auto pairs() const -> generator<std::pair<Id, CP<T>>> {
+    auto pairs() const -> generator<std::pair<Id, T const*>> {
         const int size = content.size();
         for (int i = 0; i < size; ++i) {
             co_yield {Id{Id::FromIndex(i)}, &content.at(i)};
@@ -465,7 +465,7 @@ struct Store {
     }
 
     /// \brief Return generator for stored values
-    auto items() const -> generator<CP<T>> {
+    auto items() const -> generator<T const*> {
         for (const auto& it : content) { co_yield &it; }
     }
 

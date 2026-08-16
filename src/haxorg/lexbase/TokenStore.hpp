@@ -65,6 +65,17 @@ struct TokenGroup {
 
     int  size() const { return tokens.size(); }
     void resize(int size, TokenT const& value = TokenT()) { tokens.resize(size, value); }
+
+    void printToString(hstd::ColStream& os) const {
+        os << hstd::fmt("size:{} capacity:{}\n", size(), tokens.content.capacity());
+        std::size_t maxWidth = 0;
+        for (auto const& [id, token] : tokens.pairs()) {
+            maxWidth = std::max(maxWidth, hstd::fmt("[{}]", id).size());
+        }
+        for (auto const& [id, token] : tokens.pairs()) {
+            os << hstd::fmt("{:<{}} = {}\n", hstd::fmt("[{}]", id), maxWidth, *token);
+        }
+    }
 };
 
 

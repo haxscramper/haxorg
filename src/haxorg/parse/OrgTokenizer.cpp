@@ -1300,6 +1300,10 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
         __perf_trace("tokens", "recombine");
         recombine_state.recombine_impl();
     }
+    if (TraceState) {
+        auto os = getStream();
+        recombine_state.d->out->printToString(os);
+    }
 }
 
 void OrgTokenizer::convert(OrgTokenGroup& input) {

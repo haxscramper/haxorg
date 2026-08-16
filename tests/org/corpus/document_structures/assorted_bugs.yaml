@@ -976,3 +976,10 @@ items:
     source: |
       #+begin:
       missing begin content
+
+  - name: Separator line in the middle of the text
+    source: |
+      foo ----- bar
+      --------
+      - ------------
+      --------- -
