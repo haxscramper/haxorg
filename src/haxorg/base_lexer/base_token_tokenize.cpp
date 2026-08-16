@@ -701,6 +701,7 @@ void switch_command(Cursor& c) {
 
     auto head = c.pop_token();
     if (!head->text.ends_with(":")) {
+        // [[lex/backgracking-fallback]]
         auto line_start = c.pop_token();
         line_start.kind = otk::Punctuation;
         // not a keyword: push the head token back as a punctuation followed by the
@@ -819,6 +820,8 @@ void switch_command(Cursor& c) {
             head.kind = otk::CmdDynamicBegin;
             head_args();
         } else {
+            // TODO: Come up with some sort of warning-level token to denote the
+            // ambiguities in the parser logic. [[lex/backgracking-fallback]]
             auto line_start = c.pop_token();
             line_start.kind = otk::Punctuation;
             c.token(line_start);
@@ -1323,6 +1326,12 @@ void switch_regular_char(Cursor& c) {
             c.token_adv(otk::ColonEnd, *span + skip);
             return;
         } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {
+            // The lexer does not check for the follow-up after the line, the
+            // proper diagnostics and handling is done at in the
+            // [[parser/missing-continuation-lines]] code in the final parser. Elisp
+            // org-mode parser just treats it as a paragraph, but I prefer to have a
+            // proper diagnostics to disambiguate the intention without fallbacks to the
+            // paragraphs.
             c.token_adv(otk::ColonProperties, *span + skip);
             return;
         } else if (

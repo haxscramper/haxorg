@@ -983,3 +983,12 @@ items:
       --------
       - ------------
       --------- -
+
+  - name: Missing property continuation
+    # Lex should process this line as a property-like thing, and the parser
+    # should display the error annotation here.
+    source: |
+      * random
+        :properties: but this is actually a paragraph
+        :somevalue: for some reason I'm starting lines with property-like text
+        :end: this is also junk
