@@ -99,7 +99,7 @@ std::string OrgConverter::getLocMsg(parse::OrgAdapter const& adapter) {
 void OrgConverter::report(OrgConverter::Report const& in) {
     using fg = TermColorFg8Bit;
 
-    if (!TraceState) { return; }
+    if (!canTrace()) { return; }
 
     auto getLoc = [&]() -> std::string {
         std::string res;
@@ -245,7 +245,7 @@ finally_std OrgConverter::trace(
     Opt<Str>    subname,
     int         line,
     char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::Enter, nullptr, line, function)
                    .with_node(adapter)
                    .with_msg(subname)
@@ -270,7 +270,7 @@ finally_std OrgConverter::field(
     Opt<Str>    subname,
     int         line,
     char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::EnterField, nullptr, line, function)
                    .with_node(adapter)
                    .with_msg(subname)
@@ -291,7 +291,7 @@ finally_std OrgConverter::field(
 }
 
 void OrgConverter::print_json(SemId<Org> semResult, int line, char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::Json, nullptr, line, function)
                    .with_sem(semResult)
                    .report);
@@ -299,7 +299,7 @@ void OrgConverter::print_json(SemId<Org> semResult, int line, char const* functi
 }
 
 void OrgConverter::print(std::string msg, int line, char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::Print, nullptr, line, function)
                    .with_msg(msg)
                    .report);

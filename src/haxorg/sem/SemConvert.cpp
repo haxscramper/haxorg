@@ -339,7 +339,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
     auto node_after = [&](Str const&    word,
                           SemSet const& target) -> Opt<sem::SemId<sem::Org>> {
         auto __trace = trace(a, "node_after");
-        if (TraceState) {
+        if (canTrace()) {
             print(
                 hstd::fmt(
                     "Searching for '{}' after '{}' in {}", target, word, par0->subnodes));
@@ -347,13 +347,13 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
         for (int i = 0; i < par0.size(); ++i) {
             if (auto w = par0.at(i)->dyn_cast<sem::Leaf>();
                 w != nullptr && normalize(w->text) == word) {
-                if (TraceState) {
+                if (canTrace()) {
                     print(hstd::fmt("[{}] = {}({})", i, w->getKind(), w->text));
                 }
                 auto offset = i + 1;
                 while (offset < par0.size()) {
                     auto t = par0.at(offset);
-                    if (TraceState) {
+                    if (canTrace()) {
                         print(hstd::fmt("[{}] = {}", offset, t->getKind()));
                     }
                     if ((SemSet{osk::Word} - target).contains(t->getKind())) {
@@ -477,7 +477,7 @@ OrgConverter::ConvResult<SubtreeLog> OrgConverter::convertSubtreeLog(__args) {
 
         } else if (words.has(0) && words.at(0) == "priority") {
             auto __trace = trace(a, "priority");
-            if (TraceState) { print(hstd::fmt("words {}", words)); }
+            if (canTrace()) { print(hstd::fmt("words {}", words)); }
             Vec<SemId<Time>>     times      = filter_subnodes<Time>(par0, limit);
             Vec<SemId<BigIdent>> priorities = filter_subnodes<BigIdent>(par0, limit);
             auto                 priority   = Log::Priority{};
@@ -648,7 +648,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
 
     auto handled = [&](int         line     = __builtin_LINE(),
                        char const* function = __builtin_FUNCTION()) {
-        if (TraceState) { print(hstd::fmt("handled '{}'", name), line, function); }
+        if (canTrace()) { print(hstd::fmt("handled '{}'", name), line, function); }
     };
 
 
@@ -682,8 +682,8 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         handled();
         Property::HashtagDef def;
         auto                 par = convertParagraph(one(a, N::Values)).value();
-        if (TraceState) { print(hstd::fmt("{}", a.treeRepr())); }
-        if (TraceState) {
+        if (canTrace()) { print(hstd::fmt("{}", a.treeRepr())); }
+        if (canTrace()) {
             print(hstd::fmt("{}", ExporterTree::treeRepr(par).toString(false)));
         }
         for (int i = 0; i < par.size(); ++i) {
@@ -1277,7 +1277,7 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
     } else {
         Str protocol_raw = get_text(one(a, N::Protocol));
         Str protocol     = normalize(get_text(one(a, N::Protocol)));
-        if (TraceState) {
+        if (canTrace()) {
             print(hstd::fmt("Protocol is '{}', normalized {}", protocol_raw, protocol));
         }
         if (protocol == "http" || protocol == "https") {
@@ -1340,7 +1340,7 @@ OrgConverter::ConvResult<ListItem> OrgConverter::convertListItem(__args) {
         Str text = Str{
             strip(get_text(one(a, N::Checkbox)), CharSet{'[', ' '}, CharSet{' ', ']'})};
 
-        if (TraceState) {
+        if (canTrace()) {
             print(hstd::fmt("Normalized checkbox: {}", escape_literal(text)));
         }
 
@@ -1770,7 +1770,7 @@ struct CollectErrors {
 
 template <typename Rule>
 auto run_lexy_parse(StrView expr, OrgConverter* conv) {
-    if (conv->TraceState) {
+    if (conv->canTrace()) {
         std::string        str;
         lexy::string_input input{expr.data(), expr.data() + expr.size()};
 
@@ -2012,7 +2012,7 @@ OrgConverter::ConvResult<BlockExport> OrgConverter::convertBlockExport(__args) {
             if (idx < size) { eexport->content += get_text(item); }
         }
     } catch (parse::FieldAccessError const& e) {
-        if (TraceState) { print(e.what()); }
+        if (canTrace()) { print(e.what()); }
     }
 
     return eexport;
@@ -2027,7 +2027,7 @@ OrgConverter::ConvResult<BlockCenter> OrgConverter::convertBlockCenter(__args) {
             res->push_back(aux);
         }
     } catch (parse::FieldAccessError const& e) {
-        if (TraceState) { print(e.what()); }
+        if (canTrace()) { print(e.what()); }
     }
     return res;
 }
@@ -2045,7 +2045,7 @@ OrgConverter::ConvResult<BlockQuote> OrgConverter::convertBlockQuote(__args) {
             quote->push_back(sub.unwrap());
         }
     } catch (parse::FieldAccessError const& e) {
-        if (TraceState) { print(e.what()); }
+        if (canTrace()) { print(e.what()); }
     }
 
     return quote;
@@ -2059,7 +2059,7 @@ OrgConverter::ConvResult<BlockComment> OrgConverter::convertBlockComment(__args)
             result->push_back(sub.unwrap());
         }
     } catch (parse::FieldAccessError const& e) {
-        if (TraceState) { print(e.what()); }
+        if (canTrace()) { print(e.what()); }
     }
     return result;
 }
@@ -2079,7 +2079,7 @@ OrgConverter::ConvResult<CmdInclude> OrgConverter::convertCmdInclude(__args) {
     auto              args    = convertAttrs(one(a, N::Args));
     include->path             = args.positional.items.at(0).getString();
 
-    if (TraceState) { print(hstd::fmt("args: {}", args)); }
+    if (canTrace()) { print(hstd::fmt("args: {}", args)); }
 
     if (auto kind = args.positional.items.get(1)) {
         Str ks = kind.value().get().getString();
@@ -2178,19 +2178,19 @@ sem::AttrValue OrgConverter::convertAttr(
 
     if (one(a, N::Name).getKind() != onk::Empty) {
         result.name = Str{lstrip(get_text(one(a, N::Name)), CharSet{':'})};
-        if (TraceState) { print(hstd::fmt("Result name '{}'", result.name.value())); }
+        if (canTrace()) { print(hstd::fmt("Result name '{}'", result.name.value())); }
     }
 
     if (one(a, N::Subname).getKind() != onk::Empty) {
         result.varname = get_text(one(a, N::Subname));
-        if (TraceState) {
+        if (canTrace()) {
             print(hstd::fmt("Result varname '{}'", result.varname.value()));
         }
     }
 
     if (one(a, N::Value).getKind() == onk::RawText) {
         Str value = get_text(one(a, N::Value));
-        if (TraceState) { print(hstd::fmt("Text value is '{}'", value)); }
+        if (canTrace()) { print(hstd::fmt("Text value is '{}'", value)); }
 
         if (value.starts_with('"') && value.ends_with('"')) {
             result.isQuoted = true;
@@ -2203,24 +2203,24 @@ sem::AttrValue OrgConverter::convertAttr(
             AttrValue::FileReference fr{};
             fr.file      = Str{split.at(0)};
             fr.reference = Str{split.at(1)};
-            if (TraceState) { print(hstd::fmt("Attribute is file reference {}", fr)); }
+            if (canTrace()) { print(hstd::fmt("Attribute is file reference {}", fr)); }
             result.data = fr;
         } else {
             AttrValue::TextValue tv{};
             tv.value = value;
-            if (TraceState) { print(hstd::fmt("Attribute is text value {}", tv)); }
+            if (canTrace()) { print(hstd::fmt("Attribute is text value {}", tv)); }
 
             result.data = tv;
         }
     } else if (one(a, N::Value).getKind() == onk::AttrLisp) {
         AttrValue::LispValue ev{};
         ev.code = convertLisp(one(a, N::Value));
-        if (TraceState) { print("Attribute is lisp value"); }
+        if (canTrace()) { print("Attribute is lisp value"); }
         result.data = ev;
     } else {
         AttrValue::TextValue tv{};
         tv.value += get_text(one(a, N::Value));
-        if (TraceState) { print(hstd::fmt("Attribute is text value {}", tv)); }
+        if (canTrace()) { print(hstd::fmt("Attribute is text value {}", tv)); }
         result.data = tv;
     }
 
@@ -2237,7 +2237,7 @@ sem::AttrValue OrgConverter::convertAttr(
                 dim.first = split.at(0).toInt();
                 if (split.has(1)) { dim.last = split.at(1).toInt(); }
             }
-            if (TraceState) { print(hstd::fmt("Attribute dimension span {}", dim)); }
+            if (canTrace()) { print(hstd::fmt("Attribute dimension span {}", dim)); }
             result.span.push_back(dim);
         }
     }
@@ -2514,7 +2514,7 @@ SemId<ErrorItem> OrgConverter::SemErrorItem(
     char const*                     function) {
     auto res  = Sem<ErrorItem>(adapter);
     res->diag = diag;
-    if (TraceState) { print(hstd::fmt("{}", diag), line, function); }
+    if (canTrace()) { print(hstd::fmt("{}", diag), line, function); }
     return res;
 }
 

@@ -64,7 +64,7 @@ std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     char const* function) {
     int const startingDepth = treeDepth();
     auto      res           = group->startTree(kind);
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::StartNode, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -76,7 +76,7 @@ std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
 
 void OrgParser::start_no_guard(OrgNodeKind kind, int line, char const* function) {
     auto res = group->startTree(kind);
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::StartNode, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -87,7 +87,7 @@ void OrgParser::start_no_guard(OrgNodeKind kind, int line, char const* function)
 OrgId OrgParser::end_impl(std::string const& desc, int line, char const* function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->endTree();
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::EndNode, nullptr, line, function)
                    .with_node(res)
                    .with_msg(desc)
@@ -111,7 +111,7 @@ OrgNodeMono::Error OrgParser::error_value(
         err.detail += "\n\n" + msg;
     }
 
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::Error, nullptr, line, function)
                    .with_msg(msg)
                    .report);
@@ -170,7 +170,7 @@ void OrgParser::fail(
     char const*     function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->failTree(replace);
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::FailTree, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -180,7 +180,7 @@ void OrgParser::fail(
 
 OrgId OrgParser::fake(OrgNodeKind kind, int line, char const* function) {
     auto res = group->token(kind, group->tokens->add(OrgToken(OrgTokenKind::Unknown)));
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::AddToken, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -191,7 +191,7 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, char const* function) {
 
 OrgId OrgParser::token(OrgNode const& node, int line, char const* function) {
     auto res = group->token(node);
-    if (TraceState) {
+    if (canTrace()) {
         std::string msg;
         if (node.isMono()) {
             if (node.getMono().isError()) {
@@ -209,7 +209,7 @@ OrgId OrgParser::token(OrgNode const& node, int line, char const* function) {
 OrgId OrgParser::token(OrgNodeKind kind, OrgTokenId tok, int line, char const* function) {
     auto res = group->token(kind, tok);
 
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::AddToken, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -292,7 +292,7 @@ OrgParser::LexResult OrgParser::pop(
     int                line,
     char const*        function) {
     if (tok) { BOOST_OUTCOME_TRY(expect(lex, *tok, std::nullopt, line, function)); }
-    if (TraceState) { print(hstd::fmt("pop {}", lex.tok()), &lex, line, function); }
+    if (canTrace()) { print(hstd::fmt("pop {}", lex.tok()), &lex, line, function); }
     return lex.pop();
 }
 
@@ -306,7 +306,7 @@ OrgParser::ParseResult OrgParser::skip(
 
     if (item) { BOOST_OUTCOME_TRY(expect(lex, *item, message, line, function)); }
 
-    if (TraceState) { print(hstd::fmt("skip {}", lex.tok()), &lex, line, function); }
+    if (canTrace()) { print(hstd::fmt("skip {}", lex.tok()), &lex, line, function); }
 
     lex.next();
     return ParseOk{};
@@ -327,7 +327,7 @@ OrgParser::org_parser_trace_state OrgParser::trace(
     Opt<std::string> msg,
     int              line,
     char const*      function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::EnterParse, nullptr, line, function)
                    .with_lex(lex)
                    .report);
@@ -349,7 +349,7 @@ void OrgParser::print(
     OrgLexer*          lexer,
     int                line,
     char const*        function) {
-    if (TraceState) {
+    if (canTrace()) {
         auto build = Builder(OrgParser::ReportKind::Print, nullptr, line, function)
                          .with_msg(msg);
 
@@ -363,7 +363,7 @@ parse_error OrgParser::fatalError(
     Str const&      msg,
     int             line,
     char const*     function) {
-    if (TraceState) {
+    if (canTrace()) {
         auto build = Builder(OrgParser::ReportKind::Error, nullptr, line, function)
                          .with_msg(msg)
                          .with_lex(lex);

@@ -55,7 +55,7 @@ struct Cursor {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
         if (enable_guards) { LOGIC_ASSERTION_CHECK_FMT(get() == c, "{}", c); }
-        if (p.TraceState) {
+        if (p.canTrace()) {
             p.message(
                 hstd::fmt("skip {} at {}", escape_literal(std::string{c}), format(5)),
                 function,
@@ -208,7 +208,7 @@ struct Cursor {
 
         if (firstByte < 0x80) {
             if (firstByte == '\n') {
-                if (p.TraceState) {
+                if (p.canTrace()) {
                     p.message(
                         hstd::fmt("next line over at {}", format(5)),
                         code_function,
@@ -279,7 +279,8 @@ struct Cursor {
         int         offset   = 0,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION()) {
-        if (p.TraceState) {
+        if (p.canTrace()) {
+            auto               __scope = p.begin_scope(std::nullopt, "lexy");
             std::string        str;
             lexy::string_input input = lexy_input(offset);
 
@@ -297,7 +298,6 @@ struct Cursor {
                     escape_literal(view.substr(0, std::min<int>(40, view.size())))),
                 function,
                 line);
-            auto __scope = p.begin_scope();
             p.message(str, function, line);
         }
 
@@ -404,7 +404,7 @@ struct Cursor {
         OrgToken const& tok,
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION()) {
-        if (p.TraceState) {
+        if (p.canTrace()) {
             p.message(hstd::fmt("{} {}", tok, format(10)), function, line);
         }
         group->add(tok);
@@ -2174,6 +2174,11 @@ OrgTokenGroup org::parse::tokenize(
         .enable_guards = params.validateTokens,
     };
 
+    using SF = hstd::OperationsTracer::ScopeFilter;
+    c.p.setScopeFilters({
+        {SF::AnyVarargs(), SF::Positive("lexy")},
+    });
+
     while (!c.eof()) {
         auto __guard = c.advance_guard();
         switch_regular_char(c);
@@ -2190,7 +2195,7 @@ OrgTokenGroup org::parse::tokenize(
         }
     }
 
-    if (params.TraceState) {
+    if (params.canTrace()) {
         auto os = c.p.getStream();
         result.printToString(os);
     }

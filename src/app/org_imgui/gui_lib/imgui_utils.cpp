@@ -193,18 +193,18 @@ void ImRenderTraceRecord::StartTrace() {
 void ImRenderTraceRecord::EndTrace() { TraceState = false; }
 
 void ImRenderTraceRecord::PushRecord(ImRenderTraceRecord const& rec) {
-    if (TraceState) { stack.push_back(rec); }
+    if (canTrace()) { stack.push_back(rec); }
 }
 
 void ImRenderTraceRecord::PushUnitRecord(ImRenderTraceRecord const& rec) {
-    if (TraceState) {
+    if (canTrace()) {
         if (stack.empty()) { stack.push_back(ImRenderTraceRecord::init()); }
         stack.back().nested.push_back(rec);
     }
 }
 
 void ImRenderTraceRecord::PopRecord() {
-    if (TraceState) { PushUnitRecord(stack.pop_back_v()); }
+    if (canTrace()) { PushUnitRecord(stack.pop_back_v()); }
 }
 
 ImRenderTraceRecord ImRenderTraceRecord::init(
@@ -212,7 +212,7 @@ ImRenderTraceRecord ImRenderTraceRecord::init(
     int         line,
     char const* file) {
     ImRenderTraceRecord res;
-    if (TraceState) {
+    if (canTrace()) {
         res.function         = function;
         res.line             = line;
         res.file             = file;
@@ -229,7 +229,7 @@ bool ImRenderTraceRecord::ImRenderBegin(
     char const* function,
     int         line,
     char const* file) {
-    if (TraceState) {
+    if (canTrace()) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
         if (im_id) { rec.im_id = im_id; }
@@ -244,7 +244,7 @@ void ImRenderTraceRecord::ImRenderUnit(
     char const* function,
     int         line,
     char const* file) {
-    if (TraceState) {
+    if (canTrace()) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
         if (im_id) { rec.im_id = im_id; }
@@ -258,7 +258,7 @@ bool ImRenderTraceRecord::ImRenderExpr(
     char const* function,
     int         line,
     char const* file) {
-    if (TraceState) {
+    if (canTrace()) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
         rec.im_id       = hstd::fmt("Evaluated to {}", expr);
@@ -276,7 +276,7 @@ void ImRenderTraceRecord::ImRenderUnit(
     char const*        function,
     int                line,
     char const*        file) {
-    if (TraceState) {
+    if (canTrace()) {
         auto rec        = ImRenderTraceRecord::init(function, line, file);
         rec.im_function = im_function;
         rec.im_id       = im_id;

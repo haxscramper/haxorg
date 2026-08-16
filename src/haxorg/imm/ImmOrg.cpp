@@ -663,7 +663,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                             auto adapter = ctx.lock()->adaptUnrooted(node).as<N>();
                             __perf_trace("imm", "track names");
                             for (auto const& name : adapter.getName()) {
-                                if (ctx.lock()->debug->TraceState) {
+                                if (ctx.lock()->debug->canTrace()) {
                                     message(
                                         hstd::fmt(
                                             "Tracking name '{}' for node {}",
@@ -693,7 +693,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
             [&](org::imm::ImmSubtree const& subtree) {
                 __perf_trace("imm", "track subtree");
                 if (auto id = subtree.treeId.get(); id) {
-                    if (ctx.lock()->debug->TraceState) {
+                    if (ctx.lock()->debug->canTrace()) {
                         message(hstd::fmt("Subtree ID {}", id.value()));
                     }
                     if (add) {
@@ -705,7 +705,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
 
                 for (auto const& id :
                      org::getSubtreeProperties<sem::NamedProperty::CustomId>(subtree)) {
-                    if (ctx.lock()->debug->TraceState) {
+                    if (ctx.lock()->debug->canTrace()) {
                         message(hstd::fmt("Subtree custom ID {}", id.value));
                     }
                     if (add) {
@@ -734,7 +734,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                 auto par = ctx.lock()->adaptUnrooted(node).as<org::imm::ImmParagraph>();
                 if (par.isFootnoteDefinition()) {
                     auto id = par.getFootnoteName().value();
-                    if (ctx.lock()->debug->TraceState) {
+                    if (ctx.lock()->debug->canTrace()) {
                         message(hstd::fmt("Footnote ID {}", id));
                     }
                     if (add) {
@@ -1330,7 +1330,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     Vec<ImmAdapter>          sub   = node.sub(withPath);
     Vec<ImmSubnodeGroup>     result;
 
-    if (ctx->debug->TraceState) {
+    if (ctx->debug->canTrace()) {
         ctx->debug->message(
             hstd::fmt(
                 "Radio targets count {} using context {:#010x}",

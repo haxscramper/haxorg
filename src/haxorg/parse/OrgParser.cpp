@@ -2784,7 +2784,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 // Structural correctness checks -- mostly for
                 // debugging of the implementation, malformed incoming
                 // data is not expected.
-                if (parser->TraceState) { assertValidStructure(parser->group, tree); }
+                if (parser->canTrace()) { assertValidStructure(parser->group, tree); }
                 LOGIC_ASSERTION_CHECK_FMT(treeSlice.last <= g.nodes.back(), "");
                 LOGIC_ASSERTION_CHECK_FMT(stmtSlice.last <= g.nodes.back(), "");
                 LOGIC_ASSERTION_CHECK_FMT(
@@ -2819,7 +2819,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
 void OrgParser::extendSubtreeTrails(OrgId position) {
     __perf_trace("parsing", "extendSubtreeTrails");
     extendSubtreeTrailsImpl(this, position, 0);
-    if (this->TraceState) { assertValidStructure(group, position); }
+    if (this->canTrace()) { assertValidStructure(group, position); }
 }
 
 OrgParser::ParseOk OrgParser::NodeGuard::end(

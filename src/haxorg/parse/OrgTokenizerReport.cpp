@@ -9,7 +9,7 @@ using namespace org::parse;
 using namespace hstd;
 
 void OrgTokenizer::report(Report const& in) {
-    if (!TraceState) { return; }
+    if (!canTrace()) { return; }
     if (reportHook) { reportHook(in); }
 
 

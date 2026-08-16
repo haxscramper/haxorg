@@ -75,13 +75,13 @@ struct [[refl]] OperationsTracer {
     };
 
   private:
-    [[refl]] mutable int             activeLevel = 0;
+    mutable int                      activeLevel = 0;
     mutable std::vector<std::string> activeScopes;
     mutable bool                     scopeEnabled = true;
     ScopeFilter                      scopeFilter;
+    mutable bool                     TraceState = false;
 
   public:
-    [[refl]] bool              TraceState      = false;
     [[refl]] bool              traceToFile     = false;
     [[refl]] bool              traceToBuffer   = false;
     [[refl]] bool              traceStructured = false;
@@ -95,6 +95,8 @@ struct [[refl]] OperationsTracer {
     int  getLevel() const;
     void addScope(std::string const& scope) const;
     void popScope(std::string const& scope) const;
+    bool getTraceState() const { return TraceState; }
+    void setTraceState(bool value) const { TraceState = value; }
 
     std::vector<std::string> const& getScope() const;
 

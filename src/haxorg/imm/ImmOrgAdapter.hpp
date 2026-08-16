@@ -108,9 +108,9 @@ inline org::imm::ImmAstEditContext* ___get_context(org::imm::ImmAstEditContext& 
 }
 
 inline bool ___is_debug(org::imm::ImmAstEditContext& p) {
-    return p.ctx.lock()->debug->TraceState;
+    return p.ctx.lock()->debug->canTrace();
 }
-inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) { return p->debug->TraceState; }
+inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) { return p->debug->canTrace(); }
 } // namespace org::details
 
 #define AST_EDIT_TRACE() ::org::details::___is_debug(ctx)

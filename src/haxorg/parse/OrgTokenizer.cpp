@@ -41,7 +41,7 @@ struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
 };
 
 #define x_report(kind, ...)                                                              \
-    if (TraceState) {                                                                    \
+    if (d->canTrace()) {                                                                 \
         this->report(                                                                    \
             (::Builder(lex, OrgTokenizer::ReportKind::kind) __VA_ARGS__).report);        \
     }
@@ -102,7 +102,6 @@ namespace {
 struct RecombineState {
     OrgTokenizer* d;
     OrgLexer&     lex;
-    bool const&   TraceState;
 
     void report(OrgTokenizer::Report const& report) { d->report(report); }
 
@@ -110,7 +109,7 @@ struct RecombineState {
         std::optional<std::string> msg      = std::nullopt,
         int                        line     = __builtin_LINE(),
         char const*                function = __builtin_FUNCTION()) {
-        if (TraceState) {
+        if (d->canTrace()) {
             ::OrgTokenizer::Report rep;
             rep.line     = line;
             rep.function = function;
@@ -132,8 +131,7 @@ struct RecombineState {
     }
 
 
-    RecombineState(OrgTokenizer* d, OrgLexer& lex)
-        : d(d), lex(lex), TraceState(d->TraceState) {}
+    RecombineState(OrgTokenizer* d, OrgLexer& lex) : d(d), lex(lex) {}
 
     auto prev_token() -> Opt<OrgToken> {
         if (lex.hasNext(-1)) {
@@ -282,7 +280,7 @@ struct RecombineState {
         bool prev_empty = !prev || EmptyToken.contains(prev->kind);
         bool next_empty = !next || EmptyToken.contains(next->kind);
 
-        if (TraceState) {
+        if (d->canTrace()) {
             print(
                 hstd::fmt(
                     "prev kind {} next kind {} prev_empty={} next_empty={}",
@@ -801,7 +799,6 @@ using GK = GroupToken::Kind;
 
 struct TokenVisitor {
     OrgTokenizer*  d;
-    bool const&    TraceState;
     Vec<LineToken> to_lines(OrgLexer& lex) {
         __perf_trace("tokens", "to_lines");
         Vec<LineToken> lines;
@@ -812,7 +809,7 @@ struct TokenVisitor {
             if (OrgTokenLineEnd.contains(it->kind)) {
                 auto span = IteratorSpan(start, std::next(it));
                 auto line = LineToken{span};
-                if (TraceState) {
+                if (d->canTrace()) {
                     d->print(lex, hstd::fmt("{} {}", line.kind, line.tokens));
                 }
                 lines.push_back(line);
@@ -822,7 +819,7 @@ struct TokenVisitor {
 
         if (start != tokens->end()) {
             auto span = IteratorSpan(start, tokens->end());
-            if (TraceState) { d->print(lex, hstd::fmt("{}", span)); }
+            if (d->canTrace()) { d->print(lex, hstd::fmt("{}", span)); }
             lines.push_back(LineToken{span});
         }
 
@@ -927,11 +924,9 @@ struct TokenVisitor {
 struct GroupVisitorState {
     OrgTokenizer* d;
     OrgLexer&     lex;
-    bool const&   TraceState;
     OrgTokenGroup regroup;
 
-    GroupVisitorState(OrgTokenizer* d, OrgLexer& lex)
-        : d(d), lex(lex), TraceState(d->TraceState) {
+    GroupVisitorState(OrgTokenizer* d, OrgLexer& lex) : d(d), lex(lex) {
         regroup.tokens.reserve(lex.in->size());
     }
 
@@ -941,7 +936,7 @@ struct GroupVisitorState {
         int          line     = __builtin_LINE(),
         char const*  function = __builtin_FUNCTION()) {
         auto idx = regroup.add(OrgToken{kind});
-        if (TraceState) {
+        if (d->canTrace()) {
             d->print(
                 lex,
                 hstd::fmt(
@@ -960,7 +955,7 @@ struct GroupVisitorState {
         int             line     = __builtin_LINE(),
         char const*     function = __builtin_FUNCTION()) {
         auto idx = regroup.add(tok);
-        if (TraceState) {
+        if (d->canTrace()) {
             d->print(
                 lex,
                 hstd::fmt(
@@ -979,7 +974,7 @@ struct GroupVisitorState {
         CVec<int>         ind,
         int               code_line = __builtin_LINE(),
         char const*       function  = __builtin_FUNCTION()) {
-        if (TraceState) {
+        if (d->canTrace()) {
             d->print(
                 lex,
                 hstd::fmt("  ADD LINE: indent={} kind={}", line.indent, line.kind),
@@ -1043,7 +1038,7 @@ struct GroupVisitorState {
             auto const& gr  = groups.at(gr_index);
             auto        dbg = [&](int         line     = __builtin_LINE(),
                                   char const* function = __builtin_FUNCTION()) {
-                if (TraceState) {
+                if (d->canTrace()) {
                     print1(
                         hstd::fmt(
                             "indent: {}, gr.indent(): {} index {}",
@@ -1222,7 +1217,7 @@ struct GroupVisitorState {
         int              level,
         int              code_line = __builtin_LINE(),
         char const*      function  = __builtin_FUNCTION()) {
-        if (TraceState) {
+        if (d->canTrace()) {
             print1(
                 hstd::fmt(
                     "[{}] line:{} indent={}{}",
@@ -1251,7 +1246,7 @@ struct GroupVisitorState {
         rec_print_group = [&](Vec<GroupToken> const& groups, int level) {
             for (int gr_index = 0; gr_index < groups.size(); ++gr_index) {
                 auto const& gr = groups.at(gr_index);
-                if (TraceState) {
+                if (d->canTrace()) {
                     print1(
                         hstd::fmt(
                             "[{}] group:{} indent {}", gr_index, gr.kind, gr.indent()),
@@ -1281,15 +1276,15 @@ struct GroupVisitorState {
 void OrgTokenizer::recombine(OrgLexer& lex) {
     // Convert stream of leading space indentations into indent, dedent
     // and 'same indent' tokens.
-    TokenVisitor      token{this, this->TraceState};
+    TokenVisitor      token{this};
     Vec<LineToken>    lines = token.to_lines(lex);
     Vec<GroupToken>   root  = token.to_groups(lines);
     GroupVisitorState visitor{this, lex};
 
-    if (TraceState) {
+    if (canTrace()) {
         for (auto const& line : lines) { visitor.print_line(line, "", 0); }
     }
-    if (TraceState) { visitor.print_groups(root); }
+    if (canTrace()) { visitor.print_groups(root); }
     {
         __perf_trace("tokens", "rec convert groups");
         visitor.rec_convert_groups(root);
@@ -1300,7 +1295,7 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
         __perf_trace("tokens", "recombine");
         recombine_state.recombine_impl();
     }
-    if (TraceState) {
+    if (canTrace()) {
         auto os = getStream();
         recombine_state.d->out->printToString(os);
     }
@@ -1323,7 +1318,7 @@ void OrgTokenizer::print(
     int                line,
     char const*        function,
     int                extraIndent) {
-    if (TraceState) {
+    if (canTrace()) {
         auto rep = Builder(lex, OrgTokenizer::ReportKind::Print, __FILE__, line, function)
                        .with_msg(msg)
                        .report;

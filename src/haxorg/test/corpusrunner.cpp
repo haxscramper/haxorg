@@ -876,8 +876,8 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     Str const&       relDebug) {
     __perf_trace("cli", "lex");
 
-    p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
-    if (p.tokenizer->TraceState) {
+    p.tokenizer->setTraceState(spec.debug.traceAll || spec.debug.traceLex);
+    if (p.tokenizer->canTrace()) {
         p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log", relDebug));
         p.tokenizer->traceColored = false;
     }
@@ -942,8 +942,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
     auto writeImpl = getOrgParseWriteParams(p.spec.get(), &p.nodes, &parseAddedOnLine);
 
 
-    p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
-    if (p.parser->TraceState) {
+    p.parser->setTraceState(spec.debug.traceAll || spec.debug.traceParse);
+    if (p.parser->canTrace()) {
         p.parser->traceColored = false;
         p.parser->setTraceFile(spec.debugFile("trace_parse.log", relDebug));
     }
@@ -1015,8 +1015,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     __perf_trace("cli", "sem convert");
     sem::OrgConverter converter{};
 
-    converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
-    if (converter.TraceState) {
+    converter.setTraceState(spec.debug.traceAll || spec.debug.traceSem);
+    if (converter.canTrace()) {
         converter.setTraceFile(spec.debugFile("trace_sem.log", relDebug));
     }
 

@@ -96,7 +96,7 @@ struct single_layout_run_state {
         kiwi_ir::Layout layout(kiwi_rects, kiwi_constraints);
 
         static int kiwi_run_counter = 0;
-        if (run->TraceState) {
+        if (run->canTrace()) {
             layout.to_graphviz(run->getAdjacentToTraceFile(
                 fmt::format("kiwi_solver_run_{}.png", hstd::fmt1(kiwi_run_counter))));
         }
@@ -105,7 +105,7 @@ struct single_layout_run_state {
         layout.verify_constraints();
         auto solved = layout.solve();
 
-        if (run->TraceState) {
+        if (run->canTrace()) {
             run->writeAdjacentToTraceFile(
                 fmt::format("kiwi_solver_run_{}.svg", hstd::fmt1(kiwi_run_counter)),
                 layout.to_svg(hstd::fmt1(kiwi_run_counter)).to_string(2));

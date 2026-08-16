@@ -160,7 +160,7 @@ void traceNodeResolve(
     MapNodeResolveResult const& resolved_node,
     std::shared_ptr<MapConfig>  conf,
     hgraph::VertexID const&     mapNode) {
-    if (state->graph->TraceState) {
+    if (state->graph->canTrace()) {
         auto node    = state->graph->get(mapNode);
         auto attr    = state->graph->getAttr(mapNode);
         auto __scope = state->graph->begin_scope();

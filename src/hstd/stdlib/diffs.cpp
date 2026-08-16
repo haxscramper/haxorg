@@ -729,7 +729,7 @@ struct fuzzy_result {
 
 // FIXME: Remove the special macro and use the regular OP_TRACER_MESSAGE macro here.
 #define LG(__msg)                                                                        \
-    if (m.TraceState) {                                                                  \
+    if (m.canTrace()) {                                                                  \
         m.message(                                                                       \
             OperationsMsg{                                                               \
                 .line     = __LINE__,                                                    \
