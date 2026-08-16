@@ -967,3 +967,12 @@ items:
     source: |
       #+beginner: random command, not a begin block
       #+endnotes: whatver asdfasdf??
+
+  - name: Cmd-like start without colon
+    source: |
+      #+notakeyword some text
+
+  - name: Begin without name
+    source: |
+      #+begin:
+      missing begin content

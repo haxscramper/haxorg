@@ -297,6 +297,7 @@ struct Cursor {
                     escape_literal(view.substr(0, std::min<int>(40, view.size())))),
                 function,
                 line);
+            auto __scope = p.begin_scope();
             p.message(str, function, line);
         }
 
@@ -697,7 +698,18 @@ void switch_command(Cursor& c) {
         advance_ident(c);
         if (c.is_at(':')) { c.next(); }
     });
-    auto head      = c.pop_token();
+
+    auto head = c.pop_token();
+    if (!head->text.ends_with(":")) {
+        auto line_start = c.pop_token();
+        line_start.kind = otk::Punctuation;
+        // not a keyword: push the head token back as a punctuation followed by the
+        // regular word
+        c.token(line_start);
+        c.token(head);
+        return;
+    }
+
     auto norm_head = normalize(std::string{head->text});
 
     auto head_raw = [&](int         line     = __builtin_LINE(),
@@ -798,9 +810,20 @@ void switch_command(Cursor& c) {
     } else if (norm_head.starts_with("attr")) {
         head.kind = otk::CmdAttr;
         head_args();
-    } else if (norm_head == "begin") { // bare "#+begin:" — dynamic block, name in args
-        head.kind = otk::CmdDynamicBegin;
-        head_args();
+    } else if (norm_head == "begin") {
+        // bare "#+begin:" — dynamic block, name in args
+        int off = 0;
+        while (c.is_at(' ', off)) { ++off; }
+        if (c.has_pos(off) && !c.is_at('\n', off)) {
+            // name required: "#+begin:" alone is a paragraph
+            head.kind = otk::CmdDynamicBegin;
+            head_args();
+        } else {
+            auto line_start = c.pop_token();
+            line_start.kind = otk::Punctuation;
+            c.token(line_start);
+            c.token(head);
+        }
     } else if (norm_head == "end") { // bare "#+end:" — dynamic block end
         head.kind = otk::CmdDynamicEnd;
         head_args();
@@ -1262,7 +1285,6 @@ static std::optional<int> find_monospace_close(Cursor& c) {
 
 
 void switch_regular_char(Cursor& c) {
-    OP_TRACER_MESSAGE(c.p, "Switch regular char, col={}", c.col);
     if (c.col == 0) {
         OP_TRACER_MESSAGE(c.p, "Start of the line");
         int skip = 0;
