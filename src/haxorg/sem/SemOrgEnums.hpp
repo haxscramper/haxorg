@@ -2525,10 +2525,8 @@ enum class OrgTokenKind : short int {
   CmdDateRaw,
   CmdDescription,
   CmdDrawersRaw,
-  CmdDynamicBegin,
   CmdDynamicBlockBegin,
   CmdDynamicBlockEnd,
-  CmdDynamicEnd,
   CmdEmailRaw,
   CmdExampleBegin,
   CmdExampleEnd,
@@ -2765,10 +2763,8 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDateRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDescription)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDrawersRaw)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBlockBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBlockEnd)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicEnd)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdEmailRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdExampleBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdExampleEnd)

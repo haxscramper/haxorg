@@ -819,10 +819,10 @@ void switch_command(Cursor& c) {
         int off = 0;
         while (c.is_at(' ', off)) { ++off; }
         if (c.has_pos(off) && !c.is_at('\n', off)) {
-            // name required: "#+begin:" alone is a paragraph
-            head.kind = otk::CmdDynamicBegin;
+            head.kind = otk::CmdDynamicBlockBegin;
             head_args();
         } else {
+            // name required: "#+begin:" alone is a paragraph
             // TODO: Come up with some sort of warning-level token to denote the
             // ambiguities in the parser logic. [[lex/backgracking-fallback]]
             auto line_start = c.pop_token();
@@ -831,7 +831,7 @@ void switch_command(Cursor& c) {
             c.token(head);
         }
     } else if (norm_head == "end") { // bare "#+end:" — dynamic block end
-        head.kind = otk::CmdDynamicEnd;
+        head.kind = otk::CmdDynamicBlockEnd;
         head_args();
     } else if (norm_head.starts_with("begin")) {
         auto block_kind = norm_head.substr(5);
@@ -962,10 +962,10 @@ void switch_command(Cursor& c) {
             head_raw();
         }
     } else if (norm_head == "begin") { // `#+begin:` w/o clarifications
-        head.kind = otk::CmdDynamicBegin;
+        head.kind = otk::CmdDynamicBlockBegin;
         head_args();
     } else if (norm_head == "end") {
-        head.kind = otk::CmdDynamicEnd;
+        head.kind = otk::CmdDynamicBlockEnd;
     } else if (norm_head.starts_with("property")) {
         auto span = c.try_lexy_patt<
             dsl::whitespace(dsl::ascii::space) + dsl::p<org_ident>>();
