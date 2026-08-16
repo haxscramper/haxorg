@@ -9,6 +9,7 @@
     "real_time_output_print": false,
     "use_warnings"          : false
   },
+
   "py_test_conf": {
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",

@@ -9,6 +9,10 @@
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/system/reflection.hpp>
 
+#include <cstdint>
+#include <span>
+#include <variant>
+
 namespace hstd {
 
 struct OperationsMsg {
@@ -28,8 +32,53 @@ struct OperationsMsg {
 struct OperationsTracer;
 
 struct [[refl]] OperationsTracer {
+  public:
+    struct ScopeFilter {
+        struct Positive {
+            std::string segment;
+        };
+        struct Negative {
+            std::string segment;
+        };
+        struct Any {};
+        struct AnyVarargs {};
+
+        using FilterComponent = std::variant<Positive, Negative, Any, AnyVarargs>;
+        using List            = std::vector<std::vector<FilterComponent>>;
+
+        /// \brief Replace the filter list. Negative is only allowed as the
+        /// first component of a pattern (gitignore-style `!` prefix).
+        void setFilters(List const& filters);
+
+        /// \brief Check whether a scope (list of segments) passes the filters.
+        bool enabled(std::vector<std::string> const& scope) const;
+
+      private:
+        enum class Decision : uint8_t
+        {
+            Hide,
+            Show
+        };
+
+        struct Pattern {
+            bool                         negated = false;
+            std::vector<FilterComponent> body;
+        };
+
+        std::vector<Pattern> patterns;
+        Decision             defaultDecision = Decision::Show;
+
+        static bool matchBody(
+            std::span<const FilterComponent> pat,
+            std::span<const std::string>     segs);
+        Decision decide(std::span<const std::string> segs) const;
+    };
+
   private:
-    [[refl]] mutable int activeLevel = 0;
+    [[refl]] mutable int             activeLevel = 0;
+    mutable std::vector<std::string> activeScopes;
+    mutable bool                     scopeEnabled = true;
+    ScopeFilter                      scopeFilter;
 
   public:
     [[refl]] bool              TraceState      = false;
@@ -44,7 +93,14 @@ struct [[refl]] OperationsTracer {
     void incLevel() const;
     void decLevel() const;
     int  getLevel() const;
+    void addScope(std::string const& scope) const;
+    void popScope(std::string const& scope) const;
 
+    std::vector<std::string> const& getScope() const;
+
+    void setScopeFilters(ScopeFilter::List const& filters);
+
+    bool canTrace() const { return TraceState && scopeEnabled; }
 
     void begin_scope_event(
         Opt<std::string> const& value    = std::nullopt,
@@ -62,7 +118,7 @@ struct [[refl]] OperationsTracer {
     [[nodiscard]] inline std::string fmt_message(
         fmt::format_string<_Args...> __fmt,
         _Args&&... __args) const {
-        if (TraceState) {
+        if (canTrace()) {
             auto store = fmt::make_format_args(__args...);
             return fmt::vformat(__fmt.get(), fmt::format_args(store));
         } else {
@@ -81,11 +137,13 @@ struct [[refl]] OperationsTracer {
 
     struct ScopeHandle {
         OperationsTracer* tracer;
+        Opt<std::string>  scope_name = std::nullopt;
         void              start(
-            Opt<std::string> const& value    = std::nullopt,
-            char const*             function = __builtin_FUNCTION(),
-            int                     line     = __builtin_LINE(),
-            char const*             file     = __builtin_FILE());
+            Opt<std::string> const& value      = std::nullopt,
+            Opt<std::string> const& scope_name = std::nullopt,
+            char const*             function   = __builtin_FUNCTION(),
+            int                     line       = __builtin_LINE(),
+            char const*             file       = __builtin_FILE());
 
         void end(
             Opt<std::string> const& value    = std::nullopt,
@@ -101,11 +159,11 @@ struct [[refl]] OperationsTracer {
     ScopeHandle begin_scope_nop() const { return ScopeHandle{nullptr}; }
 
     ScopeHandle begin_scope(
-        Opt<std::string> const& value    = std::nullopt,
-        char const*             function = __builtin_FUNCTION(),
-        int                     line     = __builtin_LINE(),
-        char const*             file     = __builtin_FILE()) const;
-
+        Opt<std::string> const& value      = std::nullopt,
+        Opt<std::string> const& scope_name = std::nullopt,
+        char const*             function   = __builtin_FUNCTION(),
+        int                     line       = __builtin_LINE(),
+        char const*             file       = __builtin_FILE()) const;
 
     finally_std scopeTrace(bool state);
     OperationsTracer() {}
@@ -172,22 +230,22 @@ inline hstd::OperationsTracer const* __get_tracer_obj(
     hstd::SPtr<hstd::OperationsTracer> const& t) {
     return t.get();
 }
-inline bool __is_trace_state(hstd::OperationsTracer const& t) { return t.TraceState; }
-inline bool __is_trace_state(hstd::OperationsTracer const* t) { return t->TraceState; }
-inline bool __is_trace_state(hstd::SPtr<hstd::OperationsTracer> const& t) {
-    return t->TraceState;
+inline bool __can_trace(hstd::OperationsTracer const& t) { return t.canTrace(); }
+inline bool __can_trace(hstd::OperationsTracer const* t) { return t->canTrace(); }
+inline bool __can_trace(hstd::SPtr<hstd::OperationsTracer> const& t) {
+    return t->canTrace();
 }
 } // namespace tracer_detail
 
 #define OP_TRACER_MESSAGE(__tracer, __format, ...)                                       \
-    if (::hstd::tracer_detail::__is_trace_state(__tracer)) {                             \
+    if (::hstd::tracer_detail::__can_trace(__tracer)) {                                  \
         ::hstd::tracer_detail::__get_tracer_obj(__tracer)->message(                      \
             ::hstd::tracer_detail::__get_tracer_obj(__tracer)->fmt_message(              \
                 __format __VA_OPT__(, ) __VA_ARGS__));                                   \
     }
 
 #define OP_TRACER_MESSAGE_SCOPE_HANDLE(__tracer, __format, ...)                          \
-    ::hstd::tracer_detail::__is_trace_state(__tracer)                                    \
+    ::hstd::tracer_detail::__can_trace(__tracer)                                         \
         ? ::hstd::tracer_detail::__get_tracer_obj(__tracer)->begin_scope(                \
               ::hstd::tracer_detail::__get_tracer_obj(__tracer)->fmt_message(            \
                   __format __VA_OPT__(, ) __VA_ARGS__))                                  \

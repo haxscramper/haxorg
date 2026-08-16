@@ -509,9 +509,10 @@ struct Cursor {
         char const* function = __builtin_FUNCTION()) {
         if (enable_guards) {
             return advance_guard_obj{
-                .c        = this,
-                .line     = line,
-                .function = function,
+                .c         = this,
+                .line      = line,
+                .function  = function,
+                .start_pos = this->pos,
             };
         } else {
             return advance_guard_obj{};
@@ -1287,8 +1288,8 @@ static std::optional<int> find_monospace_close(Cursor& c) {
 }
 
 void switch_start_of_the_line(Cursor& c) {
-    OP_TRACER_MESSAGE(c.p, "Start of the line");
-    int skip = 0;
+    auto __scope = c.p.begin_scope("switch start of the line:");
+    int  skip    = 0;
 
     auto leading_space = [&](int         line     = __builtin_LINE(),
                              char const* function = __builtin_FUNCTION()) {
@@ -1511,10 +1512,12 @@ void switch_opening_bracket(Cursor& c) {
 
 void switch_regular_char(Cursor& c) {
     if (c.col == 0) {
+        auto __guard = c.advance_guard();
         switch_start_of_the_line(c);
         return;
     }
 
+    auto __scope = c.p.begin_scope("switch regular char");
     switch (c.get()) {
         case '*': {
             if (c.col == 0

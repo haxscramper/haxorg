@@ -51,7 +51,7 @@ void OperationsTracer::writeAdjacentToTraceFile(
     char const* function,
     int         line,
     char const* file) const {
-    if (TraceState) {
+    if (canTrace()) {
         auto result = getAdjacentToTraceFile(suffix);
         writeToTraceFile(result, text, with_message, function, line, file);
     }
@@ -111,7 +111,7 @@ void OperationsTracer::message(
     char const*        function,
     int                line,
     char const*        file) const {
-    if (TraceState) {
+    if (canTrace()) {
         message(
             OperationsMsg{
                 .level    = activeLevel,
@@ -124,7 +124,7 @@ void OperationsTracer::message(
 }
 
 void OperationsTracer::message(OperationsMsg const& value) const {
-    if (TraceState) {
+    if (canTrace()) {
         auto os = getStream();
         if (traceStructured) {
             log::record::InstantEvent event;
@@ -198,6 +198,31 @@ void OperationsTracer::decLevel() const {
 
 int OperationsTracer::getLevel() const { return activeLevel; }
 
+void OperationsTracer::addScope(std::string const& scope) const {
+    activeScopes.push_back(scope);
+    scopeEnabled = scopeFilter.enabled(activeScopes);
+}
+
+void OperationsTracer::popScope(std::string const& scope) const {
+    LOGIC_ASSERTION_CHECK(!activeScopes.empty(), "scope stack underflow");
+    LOGIC_ASSERTION_CHECK_FMT(
+        activeScopes.back() == scope,
+        "scope stack mismatch: expected '{}', got '{}'",
+        activeScopes.back(),
+        scope);
+    activeScopes.pop_back();
+    scopeEnabled = scopeFilter.enabled(activeScopes);
+}
+
+std::vector<std::string> const& OperationsTracer::getScope() const {
+    return activeScopes;
+}
+
+void OperationsTracer::setScopeFilters(ScopeFilter::List const& filters) {
+    scopeFilter.setFilters(filters);
+    scopeEnabled = scopeFilter.enabled(activeScopes);
+}
+
 void OperationsTracer::begin_scope_event(
     Opt<std::string> const& value,
     char const*             function,
@@ -238,12 +263,13 @@ void OperationsTracer::end_scope_event(
 
 hstd::OperationsTracer::ScopeHandle OperationsTracer::begin_scope(
     Opt<std::string> const& value,
+    Opt<std::string> const& scope_name,
     char const*             function,
     int                     line,
     char const*             file) const {
 
     ScopeHandle res{const_cast<OperationsTracer*>(this)};
-    res.start(value, function, line, file);
+    res.start(value, scope_name, function, line, file);
     return res;
 }
 
@@ -261,9 +287,12 @@ void OperationsMsg::use_stacktrace_as_msg() {
 
 void hstd::OperationsTracer::ScopeHandle::start(
     Opt<std::string> const& value,
+    Opt<std::string> const& scope_name,
     char const*             function,
     int                     line,
     char const*             file) {
+    this->scope_name = scope_name;
+    if (scope_name) { tracer->addScope(*scope_name); }
     tracer->begin_scope_event(value, function, line, file);
 }
 
@@ -273,5 +302,75 @@ void hstd::OperationsTracer::ScopeHandle::end(
     int                     line,
     char const*             file) {
     tracer->end_scope_event(value, function, line, file);
+    if (scope_name) { tracer->popScope(*scope_name); }
     tracer = nullptr;
+}
+
+void OperationsTracer::ScopeFilter::setFilters(List const& filters) {
+    patterns.clear();
+    bool hasPositive = false;
+    for (auto const& f : filters) {
+        LOGIC_ASSERTION_CHECK(!f.empty(), "empty filter pattern");
+        Pattern p;
+        size_t  start = 0;
+        if (auto const* n = std::get_if<Negative>(&f.front())) {
+            p.negated = true;
+            p.body.push_back(Positive{n->segment});
+            start = 1;
+        }
+        for (size_t i = start; i < f.size(); ++i) {
+            LOGIC_ASSERTION_CHECK(
+                !std::holds_alternative<Negative>(f[i]),
+                "Negative component is only allowed as the first pattern element");
+            p.body.push_back(f[i]);
+        }
+        hasPositive |= !p.negated;
+        patterns.push_back(std::move(p));
+    }
+    defaultDecision = hasPositive ? Decision::Hide : Decision::Show;
+}
+
+static bool consumes_one(
+    OperationsTracer::ScopeFilter::FilterComponent const& c,
+    std::string const&                                    seg) {
+    using SF = OperationsTracer::ScopeFilter;
+    if (auto const* p = std::get_if<SF::Positive>(&c)) { return seg == p->segment; }
+    return std::holds_alternative<SF::Any>(c);
+}
+
+bool OperationsTracer::ScopeFilter::matchBody(
+    std::span<const FilterComponent> pat,
+    std::span<const std::string>     segs) {
+    size_t         i = 0, j = 0;
+    std::ptrdiff_t star_i = -1, star_j = -1;
+    while (j < segs.size()) {
+        if (i < pat.size() && consumes_one(pat[i], segs[j])) {
+            ++i;
+            ++j;
+        } else if (i < pat.size() && std::holds_alternative<AnyVarargs>(pat[i])) {
+            star_i = i;
+            star_j = j;
+            ++i;
+        } else if (star_i != -1) {
+            i = star_i + 1;
+            j = ++star_j;
+        } else {
+            return false;
+        }
+    }
+    while (i < pat.size() && std::holds_alternative<AnyVarargs>(pat[i])) { ++i; }
+    return i == pat.size();
+}
+
+OperationsTracer::ScopeFilter::Decision OperationsTracer::ScopeFilter::decide(
+    std::span<const std::string> segs) const {
+    Decision d = defaultDecision;
+    for (auto const& p : patterns) {
+        if (matchBody(p.body, segs)) { d = p.negated ? Decision::Hide : Decision::Show; }
+    }
+    return d;
+}
+
+bool OperationsTracer::ScopeFilter::enabled(std::vector<std::string> const& scope) const {
+    return decide(scope) == Decision::Show;
 }
