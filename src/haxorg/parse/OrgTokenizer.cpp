@@ -585,9 +585,10 @@ struct LineToken {
         IndentedLine,
         Property);
 
-    Span<OrgToken> tokens;
-    int            indent = 0;
-    Kind           kind   = Kind::None;
+    Span<OrgToken>                   tokens;
+    int                              indent = 0;
+    Kind                             kind   = Kind::None;
+    org::parse::SourceManager const* mgr;
 
     bool isListBreakingItem() const {
         if (auto last = tokens.get(1_B)) {
@@ -620,9 +621,8 @@ struct LineToken {
             } else {
                 throw tokenizer_error::init(
                     hstd::fmt(
-                        "Unknown line command kind mapping {}, {}",
-                        tokens.at(tokensOffset + 1),
-                        tokens));
+                        "Unknown line command kind mapping {}",
+                        org::parse::format_token(mgr, tokens.at(tokensOffset + 1))));
             }
 
 
@@ -631,7 +631,8 @@ struct LineToken {
         } else {
             throw tokenizer_error::init(
                 hstd::fmt(
-                    "Expected line command or closing block, but got {}", current.kind));
+                    "Expected line command or closing block, but got {}",
+                    org::parse::format_token(mgr, current)));
         }
     }
 
@@ -732,7 +733,8 @@ struct LineToken {
         }
     }
 
-    LineToken(Span<OrgToken> const& tokens) : tokens(tokens) {
+    LineToken(Span<OrgToken> const& tokens, org::parse::SourceManager const* mgr)
+        : tokens(tokens), mgr{mgr} {
         if (!tokens.empty()) { updateForTokens(); }
     }
 };
@@ -743,9 +745,11 @@ struct GroupToken {
 
     struct Nested {
         Vec<GroupToken> subgroups{};
-        LineToken       begin{{}};
-        LineToken       end{{}};
+        LineToken       begin;
+        LineToken       end;
         DESC_FIELDS(Nested, (subgroups, begin, end));
+
+        Nested(org::parse::SourceManager const* mgr) : begin{{}, mgr}, end{{}, mgr} {}
     };
 
     struct Leaf {
@@ -781,7 +785,11 @@ struct GroupToken {
     }
 
     void push_back(Span<LineToken> lines, Kind kind) {
-        getNested().subgroups.push_back(GroupToken{.data = Leaf{lines}, .kind = kind});
+        getNested().subgroups.push_back(
+            GroupToken{
+                .kind = kind,
+                .data = Leaf{lines},
+            });
     }
 
 
@@ -809,7 +817,7 @@ struct TokenVisitor {
         for (auto it = tokens->begin(); it != tokens->end(); ++it) {
             if (OrgTokenLineEnd.contains(it->kind)) {
                 auto span = IteratorSpan(start, std::next(it));
-                auto line = LineToken{span};
+                auto line = LineToken{span, d->mgr};
                 if (d->canTrace()) {
                     d->print(lex, hstd::fmt("{} {}", line.kind, line.tokens));
                 }
@@ -821,7 +829,7 @@ struct TokenVisitor {
         if (start != tokens->end()) {
             auto span = IteratorSpan(start, tokens->end());
             if (d->canTrace()) { d->print(lex, hstd::fmt("{}", span)); }
-            lines.push_back(LineToken{span});
+            lines.push_back(LineToken{span, d->mgr});
         }
 
         return lines;
@@ -850,8 +858,9 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
+                        .kind = GK::Line,
                         .data = GroupToken::Leaf{IteratorSpan(start, it)},
-                        .kind = GK::Line};
+                    };
                 }
 
                 case LK::ListItem: {
@@ -862,12 +871,13 @@ struct TokenVisitor {
                     }
 
                     return GroupToken{
+                        .kind = GK::ListItem,
                         .data = GroupToken::Leaf{IteratorSpan(start, it)},
-                        .kind = GK::ListItem};
+                    };
                 }
 
                 case LK::BlockOpen: {
-                    GroupToken::Nested sub;
+                    GroupToken::Nested sub{d->mgr};
                     sub.begin = *it;
                     nextline();
                     while (it != end && it->kind != LK::BlockClose) {
@@ -879,22 +889,27 @@ struct TokenVisitor {
                         nextline();
                     }
 
-                    return GroupToken{.data = sub, .kind = GK::Block};
+                    return GroupToken{
+                        .kind = GK::Block,
+                        .data = sub,
+                    };
                 }
 
                 case LK::Property: {
                     while (it != end && it->kind == LK::Property) { nextline(); }
 
                     return GroupToken{
+                        .kind = GK::Properties,
                         .data = GroupToken::Leaf{IteratorSpan(start, it)},
-                        .kind = GK::Properties};
+                    };
                 }
 
                 case LK::BlockClose: {
                     nextline();
                     return GroupToken{
+                        .kind = GK::Line,
                         .data = GroupToken::Leaf{IteratorSpan(start, it)},
-                        .kind = GK::Line};
+                    };
                 }
 
                 default: {
@@ -1162,10 +1177,10 @@ struct GroupVisitorState {
                                 OrgToken tmp;
                                 tmp.kind  = tok.kind;
                                 tmp.value = OrgFill{
-                                    .loc  = tok.value.loc,
                                     .text = tok.value.text.empty()
                                               ? tok.value.text
                                               : tok.value.text.substr(minIndent),
+                                    .loc  = tok.value.loc,
                                 };
 
                                 add_base(tmp, ind);

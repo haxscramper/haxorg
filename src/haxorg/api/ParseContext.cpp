@@ -217,7 +217,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
                     opts->onBaseTokenizeDone(baseTokens, i);
                 }
 
-                org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
+                org::parse::OrgTokenizer tokenizer{&tokens.at(i), source.get()};
                 if (opts->tokenTracePath) {
                     tokenizer.setTraceFile(*opts->tokenTracePath, false);
                     tokenizer.traceColored = false;
@@ -294,7 +294,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             }
 
             org::parse::OrgTokenGroup tokens;
-            org::parse::OrgTokenizer  tokenizer{&tokens};
+            org::parse::OrgTokenizer  tokenizer{&tokens, source.get()};
 
             if (opts->tokenTracePath) {
                 tokenizer.setTraceFile(*opts->tokenTracePath);

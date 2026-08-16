@@ -826,8 +826,11 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     }
 
     __perf_trace("cli", "tokenize base");
+    LOGIC_ASSERTION_CHECK(!spec.specFile.empty(), "");
+    auto spec_source_path = hstd::fmt("<{}-{}>", spec.specFile, spec.specLocation.line);
+    _dbg(spec_source_path);
     p.tokenizeBase(
-        spec.source, params, p.parseContext->addSource("<spec-base-lex>", spec.source));
+        spec.source, params, p.parseContext->addSource(spec_source_path, spec.source));
 
     if (spec.debug.traceAll || spec.debug.printBaseLexed
         || spec.debug.printBaseLexedToFile) {

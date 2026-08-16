@@ -76,3 +76,21 @@ hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockLine{
     otk::CmdCreator,       otk::CmdCall,
     otk::CmdKeywordsRaw,
 };
+
+std::string org::parse::format_token_location(
+    SourceManager const* mgr,
+    OrgToken const&      token) {
+    if (auto loc = token->loc) {
+        return hstd::fmt("{}:{}:{}", mgr->getPath(loc->file_id), loc->line, loc->column);
+    } else {
+        return "<no-location>";
+    }
+}
+
+std::string org::parse::format_token(SourceManager const* mgr, OrgToken const& token) {
+    return hstd::fmt(
+        "{}({} @{})",
+        token.kind,
+        hstd::escape_literal(token.value.text),
+        format_token_location(mgr, token));
+}

@@ -128,10 +128,11 @@ struct ParseSpec {
 
     ParseSpec() {}
 
-    static ParseSpec FromSource(std::string&& context) {
+    static ParseSpec FromSource(std::string&& context, std::string const& specFile) {
         ParseSpec spec;
-        spec.source = std::move(context);
-        spec.name   = "<source>";
+        spec.specFile = specFile;
+        spec.source   = std::move(context);
+        spec.name     = specFile;
         return spec;
     }
 

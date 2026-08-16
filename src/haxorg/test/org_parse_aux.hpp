@@ -35,10 +35,11 @@ struct MockFull {
         spec   = getOrgSpec();
         parser = std::make_shared<org::parse::OrgParser>(&nodes);
         parser->setTraceState(tracedParser);
-        tokenizer = std::make_shared<org::parse::OrgTokenizer>(&tokens);
+        parseContext = std::make_shared<org::parse::ParseContext>();
+        tokenizer    = std::make_shared<org::parse::OrgTokenizer>(
+            &tokens, parseContext->source.get());
         tokenizer->setTraceState(tracedLexer);
         nodes.tokens = &tokens;
-        parseContext = std::make_shared<org::parse::ParseContext>();
     }
 
     org::parse::OrgAdapter a(int idx) {

@@ -1,3 +1,4 @@
+#include "hstd/stdlib/Debug.hpp"
 #include <boost/mp11.hpp>
 #include <filesystem>
 #include <haxorg/test/NodeTest.hpp>
@@ -144,6 +145,7 @@ ParseSpec::ParseSpec(
     std::string const& specFile,
     std::string const& testRoot)
     : specFile(specFile) {
+    LOGIC_ASSERTION_CHECK(!specFile.empty(), "");
     specLocation = node.Mark();
 
     if (!node["source"] && !node["file"]) {

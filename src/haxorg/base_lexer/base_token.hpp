@@ -16,6 +16,12 @@ struct OrgFill {
 using OrgToken   = Token<OrgTokenKind, OrgFill>;
 using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
 
+std::string format_token_location(
+    org::parse::SourceManager const* mgr,
+    OrgToken const&                  token);
+
+std::string format_token(org::parse::SourceManager const* mgr, OrgToken const& token);
+
 
 extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockClose;
 extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockOpen;
