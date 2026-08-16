@@ -548,7 +548,9 @@ void advance_number(Cursor& c) {
 }
 
 void advance_ident(Cursor& c) {
-    while (c.has_text() && (is_alnum_fast(c.get()) || c.get() == '_')) { c.next(); }
+    while (c.has_text() && (is_alnum_fast(c.get()) || c.get() == '_' || c.get() == '-')) {
+        c.next();
+    }
 }
 
 void advance_char1(Cursor& c, char ch) {
@@ -1062,7 +1064,7 @@ void switch_word(Cursor& c) {
     switch (c.get()) {
         case 'h':
         case 'H': {
-            if (c.is_iat("http")) {
+            if (c.is_iat("https:") || c.is_iat("http:")) {
                 c.token0(otk::LinkProtocolHttp, [](Cursor& c) {
                     advance_count(c, 4);
                     if (c.is_at_any_of(0, 's', 'S')) { c.next(); }

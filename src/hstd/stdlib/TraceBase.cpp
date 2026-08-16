@@ -390,7 +390,6 @@ OperationsTracer::ScopeFilter::Decision OperationsTracer::ScopeFilter::decide(
     for (auto const& p : patterns) {
         if (matchBody(p.body, segs)) { d = p.negated ? Decision::Show : Decision::Hide; }
     }
-    _dfmt(patterns, segs, d);
     return d;
 }
 

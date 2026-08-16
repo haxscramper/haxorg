@@ -3720,6 +3720,7 @@ def get_org_token_kind() -> List[GenTuEnumField]:
         efield("LeadingPipe", ""),
         efield("LeadingPlus", ""),
         efield("LeadingSpace", ""),
+        efield("LeadingCharacter", "a)"),
         efield("LineCommand", ""),
         efield("LinkBegin", ""),
         efield("LinkDescriptionBegin", ""),

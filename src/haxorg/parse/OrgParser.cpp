@@ -1729,7 +1729,14 @@ OrgParser::ParseResult OrgParser::parseListItem(OrgLexer& lex) {
     space(lex);
     // counter, 1
     {
-        empty(); // TODO parse counter
+        if (lex.at(Vec<otk>{otk::BraceBegin, otk::At, otk::Number, otk::BraceEnd})) {
+            TRY_SKIP(lex, otk::BraceBegin);
+            TRY_SKIP(lex, otk::At);
+            token(onk::Counter, TRY_POPX(lex, otk::Number));
+            TRY_SKIP(lex, otk::BraceEnd);
+        } else {
+            empty();
+        }
     }
     // checkbox 2
     {

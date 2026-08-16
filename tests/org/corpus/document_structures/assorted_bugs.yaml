@@ -1012,3 +1012,7 @@ items:
   - name: Tilde in the code 2
     source: |
       ~y~-z
+
+  - name: Dash in the command name
+    source: |
+      #+latex-header: \usepackage{x}
