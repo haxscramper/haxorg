@@ -252,7 +252,7 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(3, N::Cells),
             })},
         SpecPair{
-            onk::AttrLisp,
+            onk::LispExpr,
             OrgPattern({
                 fieldN(0, N::Value),
             })},

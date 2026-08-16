@@ -1324,7 +1324,9 @@ bool switch_start_of_the_line(Cursor& c) {
         c.token_adv(otk::TreeClock, *span + skip);
         while (c.can_search('\n')) { switch_regular_char(c); }
     } else if (auto span = c.try_lexy_patt<LEXY_ILIT("%%(")>(skip)) {
-        c.token_adv(otk::AgendaDiaryTimeContent, *span + skip);
+        leading_space();
+        c.token_adv(otk::AgendaDiaryTimeContent, 2);
+        c.token0(otk::ParBegin, &advance1);
     } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":end:")>(skip)) {
         c.token_adv(otk::ColonEnd, *span + skip);
     } else if (auto span = c.try_lexy_patt<LEXY_ILIT(":properties:")>(skip)) {

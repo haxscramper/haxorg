@@ -154,7 +154,7 @@ enum haxorg_OrgNodeKind {
   /// \brief :key name=value syntax
   haxorg_OrgNodeKind_AttrValue,
   /// \brief S-expression as an attribute value value
-  haxorg_OrgNodeKind_AttrLisp,
+  haxorg_OrgNodeKind_LispExpr,
   /// \brief `(a b c)` without quoting
   haxorg_OrgNodeKind_LispList,
   /// \brief [1 2 3 4]` without quoting
@@ -302,6 +302,7 @@ enum haxorg_OrgNodeKind {
   haxorg_OrgNodeKind_StaticActiveTime,
   haxorg_OrgNodeKind_StaticInactiveTime,
   haxorg_OrgNodeKind_DynamicActiveTime,
+  haxorg_OrgNodeKind_DiaryTime,
   /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
   haxorg_OrgNodeKind_DynamicInactiveTime,
   /// \brief Date and time range format - two `orgDateTime` entries

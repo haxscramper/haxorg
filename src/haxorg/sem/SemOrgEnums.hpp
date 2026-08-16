@@ -2159,7 +2159,7 @@ enum class OrgNodeKind : short int {
   /// \brief :key name=value syntax
   AttrValue,
   /// \brief S-expression as an attribute value value
-  AttrLisp,
+  LispExpr,
   /// \brief `(a b c)` without quoting
   LispList,
   /// \brief [1 2 3 4]` without quoting
@@ -2307,6 +2307,7 @@ enum class OrgNodeKind : short int {
   StaticActiveTime,
   StaticInactiveTime,
   DynamicActiveTime,
+  DiaryTime,
   /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
   DynamicInactiveTime,
   /// \brief Date and time range format - two `orgDateTime` entries
@@ -2377,7 +2378,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Cmd)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Attrs)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrValue)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrLisp)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispExpr)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispList)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispVector)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispQuoted)
@@ -2457,6 +2458,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, StaticActiveTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, StaticInactiveTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DynamicActiveTime)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DiaryTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DynamicInactiveTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, TimeRange)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SimpleTime)

@@ -120,7 +120,7 @@ struct OrgParser : public hstd::OperationsTracer {
     ParseResult parseMacro(OrgLexer& lex);
     ParseResult parseCallArguments(OrgLexer& lex);
     ParseResult parseAttrValue(OrgLexer& lex);
-    ParseResult parseAttrLisp(OrgLexer& lex);
+    ParseResult parseLispExpr(OrgLexer& lex);
     ParseResult parseLink(OrgLexer& lex);
     ParseResult parseInlineMath(OrgLexer& lex);
     ParseResult parseSymbol(OrgLexer& lex);

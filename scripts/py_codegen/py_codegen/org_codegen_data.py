@@ -3412,6 +3412,7 @@ def get_org_node_kind_text() -> List[GenTuEnumField]:
         efield("StaticActiveTime"),
         efield("StaticInactiveTime"),
         efield("DynamicActiveTime"),
+        efield("DiaryTime"),
         efield(
             "DynamicInactiveTime",
             "Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later",
@@ -3484,7 +3485,7 @@ def get_org_node_kind_commands() -> List[GenTuEnumField]:
         ),
         efield("Attrs", "Arguments for the command block"),
         efield("AttrValue", ":key name=value syntax"),
-        efield("AttrLisp", "S-expression as an attribute value value"),
+        efield("LispExpr", "S-expression as an attribute value value"),
         efield("LispList", "`(a b c)` without quoting"),
         efield("LispVector", "[1 2 3 4]` without quoting"),
         efield("LispQuoted", "Extra wrapping node for quoted elements"),

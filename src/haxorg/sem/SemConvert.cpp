@@ -2212,7 +2212,7 @@ sem::AttrValue OrgConverter::convertAttr(
 
             result.data = tv;
         }
-    } else if (one(a, N::Value).getKind() == onk::AttrLisp) {
+    } else if (one(a, N::Value).getKind() == onk::LispExpr) {
         AttrValue::LispValue ev{};
         ev.code = convertLisp(one(a, N::Value));
         if (canTrace()) { print("Attribute is lisp value"); }
@@ -2311,7 +2311,7 @@ LispCode OrgConverter::convertLisp(In a) {
         return out;
     };
 
-    if (a.getKind() == onk::AttrLisp) {
+    if (a.getKind() == onk::LispExpr) {
         return convertLisp(one(a, N::Value));
     } else if (a.getKind() == onk::LispQuoted) {
         L::Quoted res;

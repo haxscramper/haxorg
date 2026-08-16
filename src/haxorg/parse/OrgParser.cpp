@@ -245,7 +245,7 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
         }
 
         if (isAtLispCollectionStart(lex) || isAtLispQuotedItem(lex)) {
-            SUB_PARSE(AttrLisp, lex);
+            SUB_PARSE(LispExpr, lex);
         } else if (lex.at(otk::CmdRawArg)) {
             token(onk::RawText, TRY_POPX(lex, otk::CmdRawArg));
         } else {
@@ -311,10 +311,10 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
 }
 
 
-OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
-    __perf_trace("parsing", "parseAttrLisp");
+OrgParser::ParseResult OrgParser::parseLispExpr(OrgLexer& lex) {
+    __perf_trace("parsing", "parseLispExpr");
     auto __trace   = trace(lex);
-    auto lispGuard = start(onk::AttrLisp);
+    auto lispGuard = start(onk::LispExpr);
 
     if (isAtLispCollectionStart(lex)) {
         auto parse_collection = [&](OrgNodeKind  start_node,
@@ -325,7 +325,7 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
             TRY_SKIP(lex, begin_token);
             space(lex);
             while (lex.can_search(end_token)) {
-                SUB_PARSE(AttrLisp, lex);
+                SUB_PARSE(LispExpr, lex);
                 space(lex);
             }
             TRY_SKIP(lex, end_token, MissingClosingParen);
@@ -357,7 +357,7 @@ OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
     } else if (isAtLispQuotedItem(lex)) {
         auto guard = start(onk::LispQuoted);
         TRY_SKIP(lex, otk::SingleQuote);
-        SUB_PARSE(AttrLisp, lex);
+        SUB_PARSE(LispExpr, lex);
         guard->end();
     } else {
         token(onk::RawText, pop(lex));
@@ -500,6 +500,14 @@ void OrgParser::textFold(OrgLexer& lex) {
 
             case otk::Placeholder: {
                 SUB_PARSE(Placeholder, lex);
+                break;
+            }
+
+            case otk::AgendaDiaryTimeContent: {
+                auto guard = start(onk::DiaryTime);
+                TRY_SKIP(lex, otk::AgendaDiaryTimeContent);
+                SUB_PARSE(LispExpr, lex);
+                guard->end();
                 break;
             }
 
@@ -906,25 +914,7 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
             TRY_SKIP(lex, otk::InactiveDynamicTimeContent);
         }
 
-        std::function<ParseResult()> aux;
-        aux = [&]() -> ParseResult {
-            if (lex.at(otk::ParBegin)) {
-                auto stmtGuard = start(onk::InlineStmtList);
-                TRY_SKIP(lex, otk::ParBegin);
-                space(lex);
-                while (lex.can_search(otk::ParEnd)) {
-                    SUB_PARSE(AttrLisp, lex);
-                    space(lex);
-                }
-                TRY_SKIP(lex, otk::ParEnd);
-                return stmtGuard->end();
-            } else {
-                return ParseOk{token(onk::RawText, pop(lex))};
-            }
-        };
-
-
-        std::ignore = aux();
+        SUB_PARSE(LispExpr, lex);
 
         if (!lex.at(endToken)) {
             SubLexer sub{lex};
