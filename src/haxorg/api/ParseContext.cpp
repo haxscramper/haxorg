@@ -276,7 +276,8 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
         } else {
             org::parse::LexerParams p;
-            SPtr<std::ofstream>     fileTrace;
+            p.validateTokens = opts->validateBaseTokens;
+            SPtr<std::ofstream> fileTrace;
             if (opts->baseTokenTracePath) {
                 p.setTraceFile(opts->baseTokenTracePath.value());
                 p.traceColored = false;

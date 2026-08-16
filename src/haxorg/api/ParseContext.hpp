@@ -42,6 +42,8 @@ struct [[refl(
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
 
+    bool validateBaseTokens = false;
+
     DECL_DESCRIBED_ENUM(LastParseStage, BaseLex, RecombineLex, Parse, SemConvert);
     LastParseStage lastStage = LastParseStage::SemConvert;
 

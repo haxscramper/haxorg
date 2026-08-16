@@ -4,6 +4,7 @@
 #include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <argparse/argparse.hpp>
 #include <boost/describe.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/mp11.hpp>
 #include <fmt/base.h>
 #include <fmt/format.h>
@@ -32,6 +33,18 @@
 
 #define OPT_NAME(__field, __value) static constexpr char const* __field = __value;
 
+#define OPT_GET(__cmd, __opts, __field, __type)                                          \
+    if (auto __value = __cmd.present<__type>(__opts.__field##_opt);                      \
+        __value.has_value()) {                                                           \
+        __opts.__field = __value.value();                                                \
+    }
+
+#define OPT_GET_ENUM(__cmd, __opts, __field, __type)                                     \
+    if (auto __value = __cmd.present<std::string>(__opts.__field##_opt);                 \
+        __value.has_value()) {                                                           \
+        __opts.__field = readEnumValue<__type>(__value.value(), "");                     \
+    }
+
 struct CliOpts {
     struct ParseOpts {
         /// \brief input file or directory
@@ -44,6 +57,7 @@ struct CliOpts {
         hstd::Opt<std::string> tokenDumpPath      = std::nullopt;
         hstd::Opt<std::string> parseDumpPath      = std::nullopt;
         hstd::Opt<std::string> semDumpPath        = std::nullopt;
+        bool                   validateBaseTokens = false;
 
         org::parse::OrgParseParameters::LastParseStage
             lastStage = org::parse::OrgParseParameters::LastParseStage::SemConvert;
@@ -58,6 +72,7 @@ struct CliOpts {
         OPT_NAME(tokenDumpPath_opt, "--token-dump");
         OPT_NAME(parseDumpPath_opt, "--parse-dump");
         OPT_NAME(semDumpPath_opt, "--sem-dump");
+        OPT_NAME(validateBaseTokens_opt, "--validate-base-tokens");
 
         ParseOpts() {}
         DESC_FIELDS(ParseOpts, (input, baseTokenTracePath, tokenTracePath, semTracePath));
@@ -266,35 +281,31 @@ CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser& export_cmd) {
     if (export_cmd.is_subcommand_used(lower_enum(EK::Json))) {
         auto&    sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Json));
         EO::Json json;
-        json.skipEmptyLists  = sub.get<bool>(EO::Json::skipEmptyLists_opt);
-        json.skipLocation    = sub.get<bool>(EO::Json::skipLocation_opt);
-        json.skipId          = sub.get<bool>(EO::Json::skipId_opt);
-        json.skipNullFields  = sub.get<bool>(EO::Json::skipNullFields_opt);
-        json.normalizeSpaces = sub.get<bool>(EO::Json::normalizeSpaces_opt);
-        opts.data            = json;
+        OPT_GET(sub, json, skipEmptyLists, bool);
+        OPT_GET(sub, json, skipLocation, bool);
+        OPT_GET(sub, json, skipId, bool);
+        OPT_GET(sub, json, skipNullFields, bool);
+        OPT_GET(sub, json, normalizeSpaces, bool);
+        opts.data = json;
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Yaml))) {
         auto&    sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Yaml));
         EO::Yaml yaml;
-        yaml.skipNullFields  = sub.get<bool>(EO::Yaml::skipNullFields_opt);
-        yaml.skipFalseFields = sub.get<bool>(EO::Yaml::skipFalseFields_opt);
-        yaml.skipZeroFields  = sub.get<bool>(EO::Yaml::skipZeroFields_opt);
-        yaml.skipLocation    = sub.get<bool>(EO::Yaml::skipLocation_opt);
-        yaml.skipId          = sub.get<bool>(EO::Yaml::skipId_opt);
-        opts.data            = yaml;
+        OPT_GET(sub, yaml, skipNullFields, bool);
+        OPT_GET(sub, yaml, skipFalseFields, bool);
+        OPT_GET(sub, yaml, skipZeroFields, bool);
+        OPT_GET(sub, yaml, skipLocation, bool);
+        OPT_GET(sub, yaml, skipId, bool);
+        opts.data = yaml;
 #if ORG_BUILD_WITH_PROTOBUF
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Proto))) {
         auto&     sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Proto));
         EO::Proto res;
-        if (auto v = sub.present<std::string>(EO::Proto::format_opt)) {
-            res.format = readEnumValue<EO::Proto::ProtoFormat>(*v, "proto format");
-        }
+        OPT_GET_ENUM(sub, res, format, EO::Proto::ProtoFormat);
         opts.data = res;
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Map))) {
         auto&   sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Map));
         EO::Map res;
-        if (auto v = sub.present<std::string>(EO::Map::format_opt)) {
-            res.format = readEnumValue<EO::Map::MapFormat>(*v, "map format");
-        }
+        OPT_GET_ENUM(sub, res, format, EO::Map::MapFormat);
         opts.data = res;
 #endif
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Token))) {
@@ -313,6 +324,26 @@ CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser& export_cmd) {
 }
 
 } // namespace
+
+static std::vector<std::string> expandAtFiles(int argc, char** argv) {
+    std::vector<std::string> args;
+    args.reserve(argc);
+    for (int i = 0; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg.size() > 1 && arg[0] == '@') {
+            std::ifstream in{arg.substr(1)};
+            if (!in) {
+                throw std::runtime_error{"cannot open response file: " + arg.substr(1)};
+            }
+            std::string tok;
+            while (in >> tok) { args.push_back(std::move(tok)); }
+        } else {
+            args.push_back(std::move(arg));
+        }
+    }
+    return args;
+}
+
 
 CliOpts parseCli(int argc, char** argv) {
     using EO = CliOpts::ExportOpts;
@@ -353,6 +384,10 @@ CliOpts parseCli(int argc, char** argv) {
     parse_cmd.add_argument(PO::tokenDumpPath_opt).help("token dump output path");
     parse_cmd.add_argument(PO::parseDumpPath_opt).help("parse dump output path");
     parse_cmd.add_argument(PO::semDumpPath_opt).help("sem dump output path");
+    parse_cmd.add_argument(PO::validateBaseTokens_opt)
+        .help(
+            "Whether to check the base tokens for consistency. This is a dev/debug "
+            "option");
     parse_cmd.add_argument(PO::lastStage_opt)
         .help(
             "Stop parsing at the specified stage, this is a primarily for "
@@ -426,10 +461,23 @@ CliOpts parseCli(int argc, char** argv) {
     program.add_subparser(export_cmd);
 
 
+    auto expanded = expandAtFiles(argc, argv);
     try {
-        program.parse_args(argc, argv);
+        std::vector<char*> expandedPtrs;
+        expandedPtrs.reserve(expanded.size());
+        for (auto& s : expanded) { expandedPtrs.push_back(s.data()); }
+
+        program.parse_args(expandedPtrs.size(), expandedPtrs.data());
     } catch (std::exception const& e) {
-        std::cerr << e.what() << "\n" << program;
+        std::cerr << hstd::fmt(
+            R"({}
+{}
+Full argument list was:
+{})",
+            e.what(),
+            program.help().str(),
+            expanded);
+
         std::exit(1);
     }
 
@@ -460,34 +508,22 @@ CliOpts parseCli(int argc, char** argv) {
     if (program.is_subcommand_used("parse")) {
         CliOpts::ParseOpts opts;
         opts.input = parse_cmd.get<std::string>(PO::input_opt);
-        if (auto v = parse_cmd.present<std::string>(PO::baseTokenTracePath_opt)) {
-            opts.baseTokenTracePath = *v;
+        OPT_GET(parse_cmd, opts, baseTokenTracePath, std::string);
+        OPT_GET(parse_cmd, opts, tokenTracePath, std::string);
+        OPT_GET(parse_cmd, opts, parseTracePath, std::string);
+        OPT_GET(parse_cmd, opts, semTracePath, std::string);
+        OPT_GET(parse_cmd, opts, baseTokenDumpPath, std::string);
+        OPT_GET(parse_cmd, opts, tokenDumpPath, std::string);
+        OPT_GET(parse_cmd, opts, parseDumpPath, std::string);
+        OPT_GET(parse_cmd, opts, semDumpPath, std::string);
+        if (auto v = parse_cmd.present<std::string>(opts.validateBaseTokens_opt)) {
+            // TODO: boost lexical cast fails here, but writing a template function that
+            // extracts the user-provided varibles in a sensible manner (e.g. interpreting
+            // "true" string as `true` value, which is pretty fucking obvious IMO).
+            opts.validateBaseTokens = v.value() == "true";
         }
-        if (auto v = parse_cmd.present<std::string>(PO::tokenTracePath_opt)) {
-            opts.tokenTracePath = *v;
-        }
-        if (auto v = parse_cmd.present<std::string>(PO::parseTracePath_opt)) {
-            opts.parseTracePath = *v;
-        }
-        if (auto v = parse_cmd.present<std::string>(PO::semTracePath_opt)) {
-            opts.semTracePath = *v;
-        }
-        if (auto v = parse_cmd.present<std::string>(PO::baseTokenDumpPath_opt)) {
-            opts.baseTokenDumpPath = *v;
-        }
-        if (auto v = parse_cmd.present<std::string>(PO::tokenDumpPath_opt)) {
-            opts.tokenDumpPath = *v;
-        }
-        if (auto v = parse_cmd.present<std::string>(PO::parseDumpPath_opt)) {
-            opts.parseDumpPath = *v;
-        }
-        if (auto v = parse_cmd.present<std::string>(PO::semDumpPath_opt)) {
-            opts.semDumpPath = *v;
-        }
-        if (auto v = parse_cmd.present<std::string>(PO::lastStage_opt)) {
-            opts.lastStage = readEnumValue<
-                org::parse::OrgParseParameters::LastParseStage>(*v, "last parse stage");
-        }
+        OPT_GET_ENUM(
+            parse_cmd, opts, lastStage, org::parse::OrgParseParameters::LastParseStage);
         result.cmd = opts;
     } else if (program.is_subcommand_used("export")) {
         result.cmd = buildExportOpts(export_cmd);
@@ -498,6 +534,7 @@ CliOpts parseCli(int argc, char** argv) {
 
     return result;
 }
+
 
 int main(int argc, char* argv[]) {
     // TODO: Support `@input-file` syntax for passing multiple options to the CLI from a
@@ -584,6 +621,7 @@ int main(int argc, char* argv[]) {
         params->semTracePath           = cmd.semTracePath;
         params->onDiagnosticsCollected = onDiagnosticsCollected;
         params->lastStage              = cmd.lastStage;
+        params->validateBaseTokens     = cmd.validateBaseTokens;
 
         params->onParseDone = [&](org::parse::OrgNodeGroup const& nodes,
                                   org::parse::OrgId               id,
