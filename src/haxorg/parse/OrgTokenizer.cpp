@@ -1173,14 +1173,19 @@ struct GroupVisitorState {
                 for (auto const& sub : nest.subgroups) {
                     for (auto const& line : sub.getLeaf().lines) {
                         for (auto const& [idx, tok] : enumerate(line.tokens)) {
-                            if (idx == 0) {
+                            // First token on the non-empty line trimmed by removing a
+                            // part part of the substring
+                            if (idx == 0 && tok.kind != otk::Newline) {
                                 OrgToken tmp;
+                                auto     loc_copy = tok.value.loc;
+                                loc_copy->column += minIndent;
+                                loc_copy->pos += minIndent;
                                 tmp.kind  = tok.kind;
                                 tmp.value = OrgFill{
                                     .text = tok.value.text.empty()
                                               ? tok.value.text
                                               : tok.value.text.substr(minIndent),
-                                    .loc  = tok.value.loc,
+                                    .loc  = loc_copy,
                                 };
 
                                 add_base(tmp, ind);

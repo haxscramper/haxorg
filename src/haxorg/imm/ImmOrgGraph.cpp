@@ -954,9 +954,6 @@ VertexID MapGraph::addNode(
     hstd::SPtr<MapNode> const&     node,
     hstd::SPtr<MapNodeProp> const& prop) {
     node->addAttribute(prop);
-    HSLOG_DEBUG("{} {}", node->getStableId(), node->id->loc);
-    // HSLOG_TRACE_STACKTRACE(debug);
-    // HSLOG_DEBUG("node tree", node->id.treeReprString());
     auto res = nodes.add(node);
     id_map.insert_or_assign(node->id.uniq(), res);
     trackVertex(res);

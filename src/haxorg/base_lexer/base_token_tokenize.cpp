@@ -727,13 +727,15 @@ void switch_command(Cursor& c) {
     auto head_raw = [&](int         line     = __builtin_LINE(),
                         char const* function = __builtin_FUNCTION()) {
         c.token(head, line, function);
-        c.token0(
-            otk::RawText,
-            [](Cursor& c) {
-                while (c.can_search('\n')) { c.next(); }
-            },
-            line,
-            function);
+        if (c.can_search('\n')) {
+            c.token0(
+                otk::RawText,
+                [](Cursor& c) {
+                    while (c.can_search('\n')) { c.next(); }
+                },
+                line,
+                function);
+        }
     };
 
     auto head_args = [&](int         line     = __builtin_LINE(),
