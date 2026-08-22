@@ -68,6 +68,35 @@ void map_only_nested_node(
     for (auto const& sub : it.subnodes()) { node.push_back(mapper.map(sub)); }
 }
 
+template <std::size_t N>
+struct FixedString {
+    char value[N];
+
+    constexpr FixedString(char const (&text)[N]) { std::copy_n(text, N, value); }
+};
+
+template <typename Oneof, FixedString KindField = "kind">
+Xml map_oneof_type(
+    Oneof const& value,
+    std::string const&,
+    hstd::ProtoXmlMapper const& mapper) {
+    auto const* descriptor = value.GetDescriptor();
+    auto const* reflection = value.GetReflection();
+    auto const* kind       = descriptor->FindOneofByName(KindField.value);
+
+    auto const* active_field = reflection->GetOneofFieldDescriptor(value, kind);
+
+    if (active_field == nullptr) {
+        throw hstd::logic_error::init("Oneof type has no active kind");
+    }
+
+    if (active_field->cpp_type() != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
+        throw hstd::logic_error::init("Oneof kind is not a message");
+    }
+
+    return mapper.map(reflection->GetMessage(value, active_field));
+}
+
 
 hstd::ProtoXmlMapper make_proto_xml_mapper() {
     return hstd::ProtoXmlMapper{
@@ -93,29 +122,8 @@ hstd::ProtoXmlMapper make_proto_xml_mapper() {
             make_map(&map_only_nested_node<orgproto::Par>),
             make_map(&map_only_nested_node<orgproto::Paragraph>),
             make_map(&map_only_nested_node<orgproto::ColonExample>),
-            make_map(
-                +[](orgproto::AnyNode const& value,
-                    std::string const&,
-                    hstd::ProtoXmlMapper const& mapper) -> Xml {
-                    auto const* descriptor = value.GetDescriptor();
-                    auto const* reflection = value.GetReflection();
-                    auto const* kind       = descriptor->FindOneofByName("kind");
-
-                    auto const* active_field = reflection->GetOneofFieldDescriptor(
-                        value, kind);
-
-                    if (active_field == nullptr) {
-                        throw hstd::logic_error::init("AnyNode has no active kind");
-                    }
-
-                    if (active_field->cpp_type()
-                        != google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-                        throw hstd::logic_error::init("AnyNode kind is not a message");
-                    }
-
-                    return mapper.map(reflection->GetMessage(value, active_field));
-                }),
-
+            make_map(&map_oneof_type<orgproto::AnyNode>),
+            make_map(&map_oneof_type<orgproto::NamedProperty::Data>),
             make_map(+[](orgproto::hstd_UserTime const& loc,
                          Xml&                           node,
                          hstd::ProtoXmlMapper const&    mapper) {
