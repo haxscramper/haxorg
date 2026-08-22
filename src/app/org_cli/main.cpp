@@ -1,6 +1,6 @@
 #include "haxorg/exporters/ExporterJson.hpp"
 #include "haxorg/exporters/exporteryaml.hpp"
-#include "haxorg/serde/SemOrgSerde.hpp"
+#include "proto_to_xml.hpp"
 #include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <argparse/argparse.hpp>
 #include <boost/describe.hpp>
@@ -44,6 +44,8 @@
         __value.has_value()) {                                                           \
         __opts.__field = readEnumValue<__type>(__value.value(), "");                     \
     }
+
+hstd::ProtoXmlMapper make_proto_xml_mapper();
 
 struct CliOpts {
     struct ParseOpts {
@@ -133,16 +135,16 @@ struct CliOpts {
         };
 
 #if ORG_BUILD_WITH_PROTOBUF
+        DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json, Xml);
+
         struct Proto {
-            DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json);
             ProtoFormat format = ProtoFormat::Binary;
             OPT_NAME(format_opt, "--format");
             DESC_FIELDS(Proto, (format));
         };
 
         struct Map {
-            DECL_DESCRIBED_ENUM(MapFormat, Binary, Json);
-            MapFormat            format     = MapFormat::Binary;
+            ProtoFormat          format     = ProtoFormat::Binary;
             hstd::Opt<hstd::Str> graphTrace = std::nullopt;
 
             OPT_NAME(graphTrace_opt, "--graph-trace");
@@ -300,12 +302,12 @@ CliOpts::ExportOpts buildExportOpts(argparse::ArgumentParser& export_cmd) {
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Proto))) {
         auto&     sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Proto));
         EO::Proto res;
-        OPT_GET_ENUM(sub, res, format, EO::Proto::ProtoFormat);
+        OPT_GET_ENUM(sub, res, format, EO::ProtoFormat);
         opts.data = res;
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Map))) {
         auto&   sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Map));
         EO::Map res;
-        OPT_GET_ENUM(sub, res, format, EO::Map::MapFormat);
+        OPT_GET_ENUM(sub, res, format, EO::ProtoFormat);
         opts.data = res;
 #endif
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Token))) {
@@ -447,13 +449,13 @@ CliOpts parseCli(int argc, char** argv) {
     argparse::ArgumentParser proto_cmd(lower_enum(EK::Proto));
     proto_cmd.add_description("export to protobuf");
     proto_cmd.add_argument(EO::Proto::format_opt)
-        .help("set protobuf export format: " + describe_enum<EO::Proto::ProtoFormat>());
+        .help("set protobuf export format: " + describe_enum<EO::ProtoFormat>());
     export_cmd.add_subparser(proto_cmd);
 
     argparse::ArgumentParser map_cmd(lower_enum(EK::Map));
     map_cmd.add_description("export to map");
     map_cmd.add_argument(EO::Map::format_opt)
-        .help("set map export format: " + describe_enum<EO::Map::MapFormat>());
+        .help("set map export format: " + describe_enum<EO::ProtoFormat>());
     map_cmd.add_argument(EO::Map::graphTrace_opt).help("graph trace output path");
     export_cmd.add_subparser(map_cmd);
 #endif
@@ -739,6 +741,20 @@ int main(int argc, char* argv[]) {
             result.SerializeToOstream(&out);
         };
 
+        auto write_proto_xml = [&](google::protobuf::Message const& result) {
+            auto          mapper = make_proto_xml_mapper();
+            std::ofstream out(cmd.output);
+            mapper.map(result).serialize(out);
+        };
+
+        auto write_proto_result = [&](google::protobuf::Message const& result,
+                                      EO::ProtoFormat const&           format) {
+            switch (format) {
+                case EO::ProtoFormat::Json: write_proto_json(result); break;
+                case EO::ProtoFormat::Binary: write_proto_binary(result); break;
+                case EO::ProtoFormat::Xml: write_proto_xml(result); break;
+            }
+        };
 
         std::visit(
             hstd::overloaded{
@@ -777,11 +793,7 @@ int main(int argc, char* argv[]) {
                     org::algo::proto_serde<
                         orgproto::AnyNode,
                         org::sem::SemId<org::sem::Org>>::write(&result, node.value());
-                    if (p.format == EO::Proto::ProtoFormat::Json) {
-                        write_proto_json(result);
-                    } else {
-                        write_proto_binary(result);
-                    }
+                    write_proto_result(result, p.format);
                 },
                 [&](EO::Map const& m) {
                     org::graph::MapConfig::Ptr   conf{org::graph::MapConfig::shared()};
@@ -793,11 +805,7 @@ int main(int argc, char* argv[]) {
                     auto adapter = version.getRootAdapter();
                     state->addNodeRec(adapter.ctx.lock(), adapter, conf);
                     auto result = state->graph->get_serial();
-                    if (m.format == EO::Map::MapFormat::Json) {
-                        write_proto_json(*result);
-                    } else {
-                        write_proto_binary(*result);
-                    }
+                    write_proto_result(*result, m.format);
                 },
 #endif
             },
