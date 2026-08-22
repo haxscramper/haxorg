@@ -449,11 +449,11 @@ hstd::Str ImmPath::getSimplePathFormat() const {
 }
 
 hstd::Str ImmUniqId::getSimplePathFormat() const {
-    return hstd::fmt("{}->{}", path.getSimplePathFormat(), id);
+    return hstd::fmt("{}-{}", path.getSimplePathFormat(), id);
 }
 
 hstd::Str ImmAdapter::getSimplePathFormat() const {
-    return hstd::fmt("{}->{}", path.getSimplePathFormat(), id);
+    return hstd::fmt("{}-{}", path.getSimplePathFormat(), id);
 }
 
 Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {

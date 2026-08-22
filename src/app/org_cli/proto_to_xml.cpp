@@ -66,9 +66,11 @@ XmlNode ProtoXmlMapper::map(
     std::string tag = root_tag.empty() ? std::string{descriptor->name()} : root_tag;
 
     auto const override = overrides.find(std::string{descriptor->full_name()});
-    if (override != overrides.end()) { return override->second(message, tag, *this); }
-
-    return map_default(message, tag);
+    if (override != overrides.end()) {
+        return override->second(message, tag, *this);
+    } else {
+        return map_default(message, tag);
+    }
 }
 
 XmlNode ProtoXmlMapper::map_default(
@@ -99,12 +101,17 @@ XmlNode ProtoXmlMapper::map_field(
 
     if (!field.is_repeated()) {
         if (field.cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-            return map(
-                reflection->GetMessage(message, &field), std::string{field.name()});
-        }
+            auto const& field_message = reflection->GetMessage(message, &field);
 
-        return map_scalar(message, field, std::string{field.name()});
+            XmlNode field_node(std::string{field.name()});
+            field_node.push_back(map(field_message));
+            return field_node;
+        } else {
+
+            return map_scalar(message, field, std::string{field.name()});
+        }
     }
+
 
     XmlNode result(std::string{field.name()});
 
