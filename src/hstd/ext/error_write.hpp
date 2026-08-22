@@ -521,3 +521,10 @@ struct fmt::formatter<hstd::ext::CodeSpan*>
     : public hstd::std_format_ptr_as_value<hstd::ext::CodeSpan> {
     using std_format_ptr_as_value<hstd::ext::CodeSpan>::format;
 };
+
+
+template <>
+struct fmt::formatter<hstd::ext::ReportSource*>
+    : public hstd::std_format_ptr_as_value<hstd::ext::ReportSource> {
+    using std_format_ptr_as_value<hstd::ext::ReportSource>::format;
+};

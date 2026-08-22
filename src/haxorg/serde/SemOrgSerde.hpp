@@ -437,14 +437,10 @@ struct proto_serde<Proto, sem::Org> {
         proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
             out->mutable_subnodes(), in.subnodes);
         out->set_statickind(static_cast<orgproto::OrgSemKind>(in.getKind()));
-#    if false
         if (in.loc) {
-            proto_serde<
-                orgproto::org_parse_SourceLoc,
-                org::parse::SourceLoc>::
-                write(out->mutable_loc(), in.loc.value());
+            proto_serde<orgproto::org_parse_SourceLoc, org::parse::SourceLoc>::write(
+                out->mutable_loc(), in.loc.value());
         }
-#    endif
     }
 
     static void read(Proto const& out, proto_write_accessor<sem::Org> in) {

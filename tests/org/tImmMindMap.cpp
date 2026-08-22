@@ -716,7 +716,7 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
         "- ",
         "Two items in a list\n",
     };
-    return join("", text);
+    return join(""_str_view, text);
 }
 
 using osk = OrgSemKind;

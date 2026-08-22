@@ -663,9 +663,9 @@ hstd::log::log_record log_associative_collection(
             .function(__FUNCTION__)                                                      \
             .severity(::hstd::log::severity_level::__severity)
 
-#    define HSLOG_TRACE_STACKTRACE(__cat, __severity)                                    \
+#    define HSLOG_TRACE_STACKTRACE(__severity)                                           \
         if (::hstd::log::is_log_accepted(::hstd::log::severity_level::__severity)) {     \
-            HSLOG_INIT(__cat, __severity).fmt_stacktrace().end();                        \
+            HSLOG_INIT(__severity).fmt_stacktrace().end();                               \
         }
 
 #    define HSLOG_TRACE(...) __ORG_LOG_IMPL(trace, __VA_ARGS__)

@@ -16,9 +16,9 @@
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/haxorg/imm/ImmOrgGraph.pb.h"
 #endif
-#include "hstd/stdlib/Debug.hpp"
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
+#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/SetFormatter.hpp>
 
@@ -221,6 +221,14 @@ hgraph::VertexID MapGraphState::addNode(
     updateResolvedEdges(shared_from_this(), resolved, conf);
 
     return res;
+}
+
+bool MapGraphState::canAddNode(imm::ImmAdapter const& node) const {
+    if (getGraph()->isRegisteredNode(node.uniq())) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 
@@ -836,12 +844,12 @@ void org::graph::MapGraphState::addNodeRec(
             case OrgSemKind::Paragraph: {
                 auto par = node.as<imm::ImmParagraph>();
                 if (org::graph::hasGraphAnnotations(par)) {
-                    std::ignore = addNode(node, conf);
+                    if (canAddNode(node)) { std::ignore = addNode(node, conf); }
                 } else {
                     auto group = imm::getSubnodeGroups(ast, node, false);
                     if (rs::any_of(
                             group, [](auto const& it) { return it.isRadioTarget(); })) {
-                        std::ignore = addNode(node, conf);
+                        if (canAddNode(node)) { std::ignore = addNode(node, conf); }
                     }
                 }
                 break;
@@ -849,7 +857,7 @@ void org::graph::MapGraphState::addNodeRec(
             case OrgSemKind::Subtree: {
                 if (auto tree = node.as<imm::ImmSubtree>();
                     org::graph::hasGraphAnnotations(tree)) {
-                    std::ignore = addNode(node, conf);
+                    if (canAddNode(node)) { std::ignore = addNode(node, conf); }
                 }
 
                 for (auto const& it : node) { self(it); }
@@ -921,3 +929,28 @@ void MapEdgeCollection::readSerial(
     IEdgeCollection::readSerial(in, graph, factory);
 }
 #endif
+
+VertexID MapGraph::addNode(
+    hstd::SPtr<MapNode> const&     node,
+    hstd::SPtr<MapNodeProp> const& prop) {
+    node->addAttribute(prop);
+    HSLOG_DEBUG("{} {}", node->getStableId(), node->id->loc);
+    // HSLOG_TRACE_STACKTRACE(debug);
+    // HSLOG_DEBUG("node tree", node->id.treeReprString());
+    auto res = nodes.add(node);
+    id_map.insert_or_assign(node->id.uniq(), res);
+    trackVertex(res);
+    return res;
+}
+
+EdgeID MapGraph::addEdge(
+    hstd::SPtr<MapEdge> const&     edge,
+    hstd::SPtr<MapEdgeProp> const& prop,
+    hstd::ext::graph::VertexID     source,
+    hstd::ext::graph::VertexID     target) {
+    edge->addAttribute(prop);
+    auto res = edges->add(edge);
+    LOGIC_ASSERTION_CHECK(edges->hasEdge(res), "");
+    edges->trackEdge(res, source, target);
+    return res;
+}

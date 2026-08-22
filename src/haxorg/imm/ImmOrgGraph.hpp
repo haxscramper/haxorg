@@ -1,4 +1,5 @@
 #pragma once
+
 #if !ORG_BUILD_EMCC
 #    include <boost/graph/properties.hpp>
 #endif
@@ -325,25 +326,13 @@ struct MapGraph
         hstd::SPtr<MapEdge> const&     edge,
         hstd::SPtr<MapEdgeProp> const& prop,
         hgraph::VertexID               source,
-        hgraph::VertexID               target) {
-        edge->addAttribute(prop);
-        auto res = edges->add(edge);
-        LOGIC_ASSERTION_CHECK(edges->hasEdge(res), "");
-        edges->trackEdge(res, source, target);
-        return res;
-    }
+        hgraph::VertexID               target);
 
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
     hgraph::VertexID addNode(
         hstd::SPtr<MapNode> const&     node,
-        hstd::SPtr<MapNodeProp> const& prop) {
-        node->addAttribute(prop);
-        auto res = nodes.add(node);
-        id_map.insert_or_assign(node->id.uniq(), res);
-        trackVertex(res);
-        return res;
-    }
+        hstd::SPtr<MapNodeProp> const& prop);
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
     struct GvConfig {
@@ -436,6 +425,8 @@ struct MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
     hgraph::VertexID addNode(
         org::imm::ImmAdapter const&       node,
         std::shared_ptr<MapConfig> const& conf);
+
+    bool canAddNode(org::imm::ImmAdapter const& node) const;
 
     void addNodeRec(
         std::shared_ptr<org::imm::ImmAstContext> const& ast,
