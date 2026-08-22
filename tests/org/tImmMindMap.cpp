@@ -508,10 +508,31 @@ TEST_F(ImmMapApi, TrivialDescriptionList) {
   :end:
 
 #+attr_list: :attached subtree
-- [[id-target]]
+- [[id:id-target]]
 )"_ss);
 
     addNodeRec(getRootAdapters());
+
+    ASSERT_EQ(getRootAdapters().size(), 1);
+    auto n = getRootAdapters().back();
+    n.id.assertValid();
+
+    EXPECT_TRUE(n.ctx.lock()->currentTrack->subtrees.contains("id-target"));
+    EXPECT_TRUE(n.ctx.lock()->currentTrack->subtrees.contains("id-source"));
+    EXPECT_TRUE(getVersion().getContext()->currentTrack->subtrees.contains("id-target"));
+    EXPECT_TRUE(getVersion().getContext()->currentTrack->subtrees.contains("id-source"));
+
+    auto item = n.at({2, 0, 0});
+    auto list = n.at({2, 0});
+
+
+    EXPECT_EQ2(item.getKind(), OrgSemKind::ListItem);
+    EXPECT_EQ2(list.getKind(), OrgSemKind::List);
+    EXPECT_TRUE(imm::isLinkedListItemNode(item));
+    EXPECT_TRUE(imm::hasAnyInternalLinks(item));
+    EXPECT_EQ2(imm::getAllInternalLinks(item).size(), 1);
+    EXPECT_FALSE(imm::isPartOfInternalLinkedListItem(item));
+    EXPECT_FALSE(imm::isInternalLinkedRegularList(list));
 
     EXPECT_EQ(getGraph()->getVertexCount(), 2);
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
@@ -530,7 +551,7 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsSameLink) {
   :end:
 
 #+attr_list: :attached subtree
-- [[id-target]]
+- [[id:id-target]]
 
 * other subtree
   :properties:
@@ -538,7 +559,7 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsSameLink) {
   :end:
 
 #+attr_list: :attached subtree
-- [[id-target]]
+- [[id:id-target]]
 )"_ss);
 
     addNodeRec(getRootAdapters());
@@ -563,7 +584,7 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsDuplicate) {
   :end:
 
 #+attr_list: :attached subtree
-- [[id-target]]
+- [[id:id-target]]
 
 * other subtree
   :properties:
@@ -571,7 +592,7 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsDuplicate) {
   :end:
 
 #+attr_list: :attached subtree
-- [[id-target]]
+- [[id:id-target]]
 )"_ss);
 
     addNodeRec(getRootAdapters());
@@ -917,7 +938,7 @@ DocBlock fromAst(imm::ImmAdapter const& id) {
         }
 
         default: {
-            if (!org::imm::isAttachedDescriptionList(id)) {
+            if (!org::imm::isAttachedSubtreeList(id)) {
                 result.items.push_back(DocItem{.id = id});
             }
 

@@ -896,21 +896,26 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     }
 
     ImmAdapter(ImmPath const& path, ImmAstContext::WPtr ctx)
-        : id{hstd::safe_wptr_lock(ctx)->at(path)}, ctx{ctx}, path{path} {}
+        : id{hstd::safe_wptr_lock(ctx)->at(path)}, ctx{ctx}, path{path} {
+        this->id.assertValid();
+    }
 
     ImmAdapter(ImmUniqId id, ImmAstContext::WPtr ctx)
         : id{id.id}, ctx{ctx}, path{id.path} {
         hstd::safe_wptr_lock(ctx);
+        this->id.assertValid();
     }
 
     ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
         : id{id}, ctx{ctx}, path{path} {
         hstd::safe_wptr_lock(ctx);
+        this->id.assertValid();
     }
 
     ImmAdapter(org::imm::ImmAdapter const& other)
         : id{other.id}, ctx{other.ctx}, path{other.path} {
         if (!other.isNil()) { hstd::safe_wptr_lock(other.ctx); }
+        this->id.assertValid();
     }
 
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
@@ -1050,8 +1055,13 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     [[refl(R"({"unique-name": "atPath"})")]] ImmAdapter at(
         hstd::Vec<int> const& path,
         bool                  withPath = true) const {
+        this->id.assertValid();
         auto res = *this;
-        for (int idx : path) { res = res.at(idx); }
+        res.id.assertValid();
+        for (int idx : path) {
+            res = res.at(idx);
+            res.id.assertValid();
+        }
         return res;
     }
 

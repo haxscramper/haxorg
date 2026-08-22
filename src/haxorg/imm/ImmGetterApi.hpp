@@ -6,20 +6,47 @@
 #include <hstd/stdlib/Outcome.hpp>
 
 namespace org::imm {
+
+namespace keywords {
+constexpr std::string attached_list_keyword = "attached";
+constexpr std::string attached_list_target  = "subtree";
+} // namespace keywords
+
+
 bool isDescriptionItem(org::imm::ImmAdapter const& node);
 bool isLinkedDescriptionItemNode(org::imm::ImmAdapter const& n);
+bool isLinkedListItemNode(org::imm::ImmAdapter const& n);
 
-bool isLinkedDescriptionItem(org::imm::ImmAdapter const& n);
+/// \brief Check if link matches any of the known internal protocols, or is not an
+/// explicitly external link.
+bool isInternalLink(org::imm::ImmAdapterT<org::imm::ImmLink> const& link);
+
+/// \brief Check itself is an internal link or has any recursive link subnodes,
+/// recurisively.
+bool hasAnyInternalLinks(org::imm::ImmAdapter const& n);
+
+hstd::Vec<org::imm::ImmAdapterT<org::imm::ImmLink>> getAllInternalLinks(
+    org::imm::ImmAdapter const& n);
+
+/// \brief Check if node is a description list item with internal link in the header.
+/// This returns true for any list item that is a part of the linked description list
+/// item.
+bool isPartOfDescriptionListItem(org::imm::ImmAdapter const& n);
+bool isPartOfInternalLinkedListItem(org::imm::ImmAdapter const& n);
+
 /// \brief Check if getBoxedNode is a description list. By design, having
 /// at least one description list item in the description list makes the
 /// whole list into a linked description as well.
-bool isLinkedDescriptionList(org::imm::ImmAdapter const& n);
+bool isInternalLinkedDescriptionList(org::imm::ImmAdapter const& n);
+
+/// \brief Check if the
+bool isInternalLinkedRegularList(org::imm::ImmAdapter const& n);
 
 /// \brief Check if a node is placed in the description list item or *is* a
 /// description list item.
 bool isInSubtreeDescriptionList(org::imm::ImmAdapter const& n);
 
-bool isAttachedDescriptionList(org::imm::ImmAdapter const& n);
+bool isAttachedSubtreeList(org::imm::ImmAdapter const& n);
 
 template <typename T>
 hstd::outcome::result<T, std::string> getStructuredProperty(

@@ -433,6 +433,27 @@ class [[refl(R"({
         Splice_Impl(result, std::forward<Args>(args)...);
         return result;
     }
+
+    template <typename Res, typename Func>
+    Vec<Res> map(Func const& cb) {
+        Vec<Res> result;
+        for (auto const& it : *this) { result.push_back_idx(cb(it)); }
+        return result;
+    }
+
+    template <typename Func>
+    Vec<T> filter(Func const& cb) {
+        Vec<T> result;
+        for (auto const& it : *this) {
+            if (cb(it)) { result.push_back_idx(it); }
+        }
+        return result;
+    }
+
+    template <typename Range>
+    auto map_range(Range const& range) {
+        return *this | range;
+    }
 };
 
 template <typename T, typename... Args>

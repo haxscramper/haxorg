@@ -32,7 +32,8 @@ using slk = org::sem::LinkTarget::Kind;
 
 bool org::graph::isMmapIgnored(ImmAdapter const& n) {
     return isInSubtreeDescriptionList(n)
-        || (isLinkedDescriptionList(n) && isAttachedDescriptionList(n));
+        || (isAttachedSubtreeList(n)
+            && (isInternalLinkedDescriptionList(n) || isInternalLinkedRegularList(n)));
 }
 
 static const IntSet<slk> SkipLinks{
@@ -266,16 +267,13 @@ Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
     // outgoing link to the parent subtree. It is the only supported
     // way to provide an extensive label between subtree nodes.
     for (auto const& list : tree.subAs<ImmList>()) {
-        if (auto attached = list.getListAttrs("attached");
-            attached.has(0) && attached.at(0).getString() == "subtree") {
-            OP_TRACER_MESSAGE(graph, "Subtree has list");
+        if (org::imm::isAttachedSubtreeList(list)) {
+            OP_TRACER_MESSAGE(graph, "Subtree {} has list {}", tree.id, list.id);
             for (auto const& item : list.subAs<ImmListItem>()) {
-                OP_TRACER_MESSAGE(graph, "{}", item.id);
-                if (isLinkedDescriptionItemNode(item)) {
-                    OP_TRACER_MESSAGE(graph, "List has description item");
-                    for (auto const& link :
-                         item.pass(item->header->value()).subAs<ImmLink>()) {
-                        OP_TRACER_MESSAGE(graph, "List item contains link {}", link);
+                auto visit_link =
+                    [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link) {
+                        OP_TRACER_MESSAGE(
+                            graph, "List item {} contains link {}", item.id, link);
                         // Description list header might contain
                         // non-link elements. These are ignored in the
                         // mind map.
@@ -286,11 +284,29 @@ Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
                             }
                             unresolved.push_back(MapLink{map_link});
                         }
+                    };
+
+                if (isLinkedDescriptionItemNode(item)) {
+                    for (auto const& link :
+                         item.pass(item->header->value()).subAs<ImmLink>()) {
+                        visit_link(link);
+                    }
+                } else if (isLinkedListItemNode(item)) {
+                    for (auto const& link : getAllInternalLinks(item)) {
+                        visit_link(link);
                     }
                 }
             }
         }
     }
+
+    OP_TRACER_MESSAGE(
+        graph,
+        "Collected {} unresolved items for subtree {}: {}",
+        unresolved.size(),
+        tree.id,
+        unresolved.map<hstd::Str>(
+            [](MapLink const& it) { return it.getLink().link.getSimplePathFormat(); }));
 
     return unresolved;
 }
@@ -308,8 +324,8 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
         state->graph,
         "box:{} desc-item:{} desc-list:{}",
         node.id.getReadableId(),
-        isLinkedDescriptionItem(node),
-        isLinkedDescriptionList(node));
+        isPartOfDescriptionListItem(node),
+        isInternalLinkedDescriptionList(node));
 
     auto result = std::make_shared<MapNodeProp>();
 
@@ -373,9 +389,12 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
                 .source = g->getImmID(source),
             });
     } else {
-        OP_TRACER_MESSAGE(g, "footnotes {}", state->ast->currentTrack->footnotes);
-        OP_TRACER_MESSAGE(g, "subtrees {}", state->ast->currentTrack->subtrees);
-        OP_TRACER_MESSAGE(g, "names {}", state->ast->currentTrack->names);
+        OP_TRACER_MESSAGE(
+            g,
+            "footnotes {} subtrees {} names {}",
+            state->ast->currentTrack->footnotes,
+            state->ast->currentTrack->subtrees,
+            state->ast->currentTrack->names);
 
         auto add_edge = [&](imm::ImmId const& target) {
             auto adapters = state->ast->getAdaptersFor(target);

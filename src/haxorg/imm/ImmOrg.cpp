@@ -117,7 +117,10 @@ void ImmId::assertValid() const {
     if (!isNil()) {
         LOGIC_ASSERTION_CHECK_FMT(
             getKind() != OrgSemKind::NoNode,
-            "Valid ID must have a kind different from 'NoNode'");
+            "Valid ID must have a kind different from 'NoNode', got value {:0{}b}:{}",
+            getMask(),
+            ImmIdMaskSize,
+            getIndex());
     }
 }
 
@@ -157,7 +160,7 @@ const ImmOrg* ImmAstStore::at(ImmId index) const {
 }
 
 
-void org::eachSubnodeRec(ImmAdapter id, bool withPath, org::ImmSubnodeVisitor cb) {
+void org::eachSubnodeRec(ImmAdapter const& id, bool withPath, org::ImmSubnodeVisitor cb) {
     cb(id);
     for (auto const& sub : id.getAllSubnodes(id.path, withPath)) {
         eachSubnodeRec(sub, withPath, cb);
@@ -286,7 +289,7 @@ void treeReprRec(ImmAdapter id, ColStream& os, ImmTreeReprContext const& ctx) {
     // TODO: Align the subtree kind and readable ID using fixed width
     // padding on the subtree.
     os << hstd::fmt("{} {}", id->getKind(), id.id.getReadableId());
-    if (!ctx.path.empty()) { os << hstd::fmt(" PATH:{}", ctx.path); }
+    if (!ctx.path.empty()) { os << hstd::fmt(" PATH:[{}]", id.getSimplePathFormat()); }
     bool printed_field_repr    = false;
     auto print_detailed_fields = [&]() {
         switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& value) {
@@ -568,18 +571,18 @@ Vec<ImmAdapter> ImmAdapter::getParentChain(bool withSelf) const {
 ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
     auto const& nodes = ctx.lock()->at(id)->subnodes;
     LOGIC_ASSERTION_CHECK_FMT(
-        idx < nodes.size(),
+        0 <= idx && idx < nodes.size(),
         "Node with ID {} does not have subnode at index {}, subnode count {}",
         id,
         idx,
         nodes.size());
     if (withPath) {
         return at(
-            nodes[idx],
+            nodes.at(idx),
             ImmPathStep::FieldIdx(
                 ImmReflFieldId::FromTypeField<ImmOrg>(&ImmOrg::subnodes), idx));
     } else {
-        return ImmAdapter{nodes[idx], ctx, {}};
+        return ImmAdapter{nodes.at(idx), ctx, {}};
     }
 }
 
