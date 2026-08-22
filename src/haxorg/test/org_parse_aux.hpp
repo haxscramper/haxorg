@@ -65,7 +65,13 @@ struct MockFull {
 
     void tokenizeConvert() { tokenizer->convert(baseTokens); }
 
-    void parse() { (void)parser->parseFull(lex); }
+    void parse(
+        org::parse::SourceFileId const&  activeFileId,
+        org::parse::SourceManager const* manager) {
+        parser->manager      = manager;
+        parser->activeFileId = activeFileId;
+        (void)parser->parseFull(lex);
+    }
 
     void run(
         std::string const&             content,
@@ -73,7 +79,7 @@ struct MockFull {
         auto file_id = parseContext->addSource("<mock-full-run>", content);
         tokenizeBase(content, p, file_id);
         tokenizeConvert();
-        parse();
+        parse(file_id, parseContext->source.get());
     }
 
     sem::SemId<sem::Org> toNode() {

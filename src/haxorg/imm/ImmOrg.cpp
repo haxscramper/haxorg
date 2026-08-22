@@ -521,13 +521,20 @@ Vec<ImmAdapter> ImmAdapter::getParentChain(bool withSelf) const {
 }
 
 ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
+    auto const& nodes = ctx.lock()->at(id)->subnodes;
+    LOGIC_ASSERTION_CHECK_FMT(
+        idx < nodes.size(),
+        "Node with ID {} does not have subnode at index {}, subnode count {}",
+        id,
+        idx,
+        nodes.size());
     if (withPath) {
         return at(
-            ctx.lock()->at(id)->subnodes.at(idx),
+            nodes[idx],
             ImmPathStep::FieldIdx(
                 ImmReflFieldId::FromTypeField<ImmOrg>(&ImmOrg::subnodes), idx));
     } else {
-        return ImmAdapter{ctx.lock()->at(id)->subnodes.at(idx), ctx, {}};
+        return ImmAdapter{nodes[idx], ctx, {}};
     }
 }
 

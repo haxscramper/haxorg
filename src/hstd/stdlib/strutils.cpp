@@ -214,7 +214,7 @@ Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
     for (auto& line : lines) {
         res.push_back(prefix + repeat(Str(space), spaces) + Str{line});
     }
-    return join("\n", res);
+    return join("\n"_str_view, res);
 }
 
 Str hstd::normalize(StrView in) {
@@ -228,6 +228,13 @@ Str hstd::normalize(StrView in) {
             }
         }
     }
+    return res;
+}
+
+Str hstd::lower(StrView in) {
+    Str res;
+    res.reserve(in.size());
+    for (char c : in) { res += tolower(c); }
     return res;
 }
 

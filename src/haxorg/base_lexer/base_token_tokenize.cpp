@@ -703,8 +703,18 @@ void switch_command(Cursor& c) {
     });
 
     auto head = c.pop_token();
-    if (!head->text.ends_with(":")) {
-        // [[lex/backgracking-fallback]]
+
+    auto norm_head  = hstd::normalize(head->text);
+    auto lower_head = hstd::lower(head->text);
+
+    // `#+begin:` -- ok
+    // `#+begin_src` -- ok
+    // `#+begin` -- not ok, re-map to paragraph
+    // `#+end` -- not ok, to paragraph
+    // `#+end_src` -- ok
+    if (!head->text.ends_with(":")
+        && !(lower_head.starts_with("begin_") || lower_head.starts_with("end_"))) {
+        // [[lex/backtracking-fallback]]
         auto line_start = c.pop_token();
         line_start.kind = otk::Punctuation;
         // not a keyword: push the head token back as a punctuation followed by the
@@ -713,8 +723,6 @@ void switch_command(Cursor& c) {
         c.token(head);
         return;
     }
-
-    auto norm_head = normalize(std::string{head->text});
 
     auto head_raw = [&](int         line     = __builtin_LINE(),
                         char const* function = __builtin_FUNCTION()) {
@@ -824,7 +832,7 @@ void switch_command(Cursor& c) {
         } else {
             // name required: "#+begin:" alone is a paragraph
             // TODO: Come up with some sort of warning-level token to denote the
-            // ambiguities in the parser logic. [[lex/backgracking-fallback]]
+            // ambiguities in the parser logic. [[lex/backtracking-fallback]]
             auto line_start = c.pop_token();
             line_start.kind = otk::Punctuation;
             c.token(line_start);

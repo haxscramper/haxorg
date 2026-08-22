@@ -341,7 +341,7 @@ if(NOT ${ORG_BUILD_EMCC})
   find_package(cpptrace CONFIG REQUIRED)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS ALL)
+find_package(Boost REQUIRED COMPONENTS process describe preprocessor headers log)
 message(STATUS "Boost_DIR = ${Boost_DIR}")
 
 if(${ORG_BUILD_EMCC})

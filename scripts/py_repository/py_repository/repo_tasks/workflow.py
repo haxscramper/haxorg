@@ -90,6 +90,7 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
     log(CAT).info(opts.config_override)
 
     if context.config.force_subprocess_tracking:
+        log(CAT).warning(f"force_subprocess_tracking is enabled, configuring haxorg")
         haxorg_build.configure_cmake_haxorg(ctx=context)
         haxorg_build.build_targets(ctx=context, targets=["executor_tracker"])
 

@@ -398,7 +398,7 @@ struct OrgParser : public hstd::OperationsTracer {
 
     hstd::Func<void(Report const&)> reportHook;
     OrgNodeGroup*                   group = nullptr;
-    SourceFileId const&             activeFileId;
+    SourceFileId                    activeFileId;
     SourceManager const*            manager;
 
     /// \brief Identification for the current file being processed. Value
@@ -406,7 +406,7 @@ struct OrgParser : public hstd::OperationsTracer {
     /// diagnostics.
     OrgParser(
         OrgNodeGroup*        _group,
-        SourceFileId const&  activeFileId = SourceFileId::Nil(),
+        SourceFileId         activeFileId = SourceFileId::Nil(),
         SourceManager const* manager      = nullptr)
         : group{_group}, activeFileId{activeFileId}, manager{manager} {}
 

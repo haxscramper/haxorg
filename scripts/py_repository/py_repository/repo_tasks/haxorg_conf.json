@@ -3,7 +3,7 @@
   "debug": false,
   "use_unchanged_tasks": true,
   "use_dependencies": true,
-  "force_subprocess_tracking": true,
+  "force_subprocess_tracking": false,
   "build_conf": {
     "cmake_generator"       : "Ninja",
     "real_time_output_print": false,

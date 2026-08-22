@@ -311,7 +311,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
     org::graph::MapGraphState::Ptr getState() const { return state; }
 
     void init_with(Str const& text) {
-        auto node = testParseString(text);
+        auto node = testParseString(text, getDebugFile("parse/init"));
         writeTreeRepr(node, getDebugFile("repr.yaml"));
         init_with(node);
         writeTreeRepr(getLastRootAdapter(), getDebugFile("repr.txt"));

@@ -49,6 +49,7 @@ Vec<hstd::StrView> split(
 Str  right_aligned(Str const& str, int n, char c = ' ');
 Str  left_aligned(Str const& str, int n, char c = ' ');
 Str  normalize(StrView in);
+Str  lower(StrView in);
 Str  repeat(Str const& str, int count);
 Str  escape_for_write(hstd::StrView str, bool quote = true);
 int  rune_length(StrView str);
