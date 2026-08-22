@@ -1,11 +1,15 @@
 #include "proto_to_xml.hpp"
 
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 #include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/reflection.h>
 
 #include <array>
 #include <charconv>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <string_view>
 #include <system_error>
@@ -15,35 +19,15 @@ namespace hstd {
 namespace {
 
 std::string base64_encode(std::string_view input) {
-    static constexpr std::string_view alphabet{
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"
-        "0123456789+/"};
+    using Base64Iterator = boost::archive::iterators::base64_from_binary<
+        boost::archive::iterators::
+            transform_width<std::string_view::const_iterator, 6, 8>>;
 
-    std::string result;
-    result.reserve(((input.size() + 2) / 3) * 4);
-
-    for (std::size_t index = 0; index < input.size(); index += 3) {
-        auto const first  = static_cast<unsigned char>(input[index]);
-        auto const second = index + 1 < input.size()
-                              ? static_cast<unsigned char>(input[index + 1])
-                              : 0;
-        auto const third  = index + 2 < input.size()
-                              ? static_cast<unsigned char>(input[index + 2])
-                              : 0;
-
-        auto const value = static_cast<unsigned int>(first) << 16
-                         | static_cast<unsigned int>(second) << 8
-                         | static_cast<unsigned int>(third);
-
-        result.push_back(alphabet[(value >> 18) & 0x3f]);
-        result.push_back(alphabet[(value >> 12) & 0x3f]);
-        result.push_back(index + 1 < input.size() ? alphabet[(value >> 6) & 0x3f] : '=');
-        result.push_back(index + 2 < input.size() ? alphabet[value & 0x3f] : '=');
-    }
-
+    std::string result(Base64Iterator(input.begin()), Base64Iterator(input.end()));
+    result.append((3 - input.size() % 3) % 3, '=');
     return result;
 }
+
 
 template <typename T>
 std::string number_to_string(T value) {
@@ -101,6 +85,13 @@ void ProtoXmlMapper::populate(google::protobuf::Message const& message, XmlNode&
 void ProtoXmlMapper::populate_default(
     google::protobuf::Message const& message,
     XmlNode&                         node) const {
+    auto const* descriptor = message.GetDescriptor();
+
+    if (descriptor->full_name() == "google.protobuf.Any"
+        && append_any_payload(message, node)) {
+        return;
+    }
+
     auto const* reflection = message.GetReflection();
 
     std::vector<google::protobuf::FieldDescriptor const*> fields;
@@ -108,6 +99,53 @@ void ProtoXmlMapper::populate_default(
 
     for (auto const* field : fields) { append_field(message, *field, node); }
 }
+
+bool ProtoXmlMapper::append_any_payload(
+    google::protobuf::Message const& message,
+    XmlNode&                         node) const {
+    auto const* any_descriptor = message.GetDescriptor();
+    auto const* reflection     = message.GetReflection();
+
+    auto const* type_url_field = any_descriptor->FindFieldByName("type_url");
+    auto const* value_field    = any_descriptor->FindFieldByName("value");
+
+    if (type_url_field == nullptr || value_field == nullptr) { return false; }
+
+    std::string const type_url = reflection->GetString(message, type_url_field);
+    std::string const payload  = reflection->GetString(message, value_field);
+
+    auto const separator = type_url.rfind('/');
+    if (separator == std::string::npos || separator + 1 == type_url.size()) {
+        return false;
+    }
+
+    std::string const message_name = type_url.substr(separator + 1);
+
+    auto const* pool               = any_descriptor->file()->pool();
+    auto const* payload_descriptor = pool->FindMessageTypeByName(message_name);
+
+    if (payload_descriptor == nullptr) { return false; }
+
+    google::protobuf::DynamicMessageFactory factory(pool);
+    factory.SetDelegateToGeneratedFactory(true);
+
+    auto const* prototype = factory.GetPrototype(payload_descriptor);
+    if (prototype == nullptr) { return false; }
+
+    std::unique_ptr<google::protobuf::Message> decoded(prototype->New());
+    if (!decoded->ParseFromString(payload)) { return false; }
+
+    XmlNode type_url_node("type_url");
+    type_url_node.set_text(type_url);
+    node.push_back(std::move(type_url_node));
+
+    XmlNode payload_node(std::string{payload_descriptor->name()});
+    populate(*decoded, payload_node);
+    node.push_back(std::move(payload_node));
+
+    return true;
+}
+
 
 void ProtoXmlMapper::append_field(
     google::protobuf::Message const&         message,
@@ -212,9 +250,9 @@ std::string ProtoXmlMapper::scalar_to_string(
 
             if (field.type() == google::protobuf::FieldDescriptor::TYPE_BYTES) {
                 return base64_encode(value);
+            } else {
+                return value;
             }
-
-            return value;
         }
 
         case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE: break;

@@ -32,6 +32,10 @@ class ProtoXmlMapper {
         google::protobuf::FieldDescriptor const& field,
         XmlNode&                                 parent) const;
 
+    bool append_any_payload(google::protobuf::Message const& message, XmlNode& node)
+        const;
+
+
     std::string scalar_to_string(
         google::protobuf::Message const&         message,
         google::protobuf::FieldDescriptor const& field,
