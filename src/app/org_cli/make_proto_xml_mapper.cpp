@@ -13,10 +13,12 @@ std::pair<std::string, hstd::ProtoXmlMapper::Override> make_map(
         CB{
             [cb](
                 google::protobuf::Message const& message,
-                Xml&                             node,
+                std::string const&               name,
                 hstd::ProtoXmlMapper const&      mapper) {
                 auto const& value = dynamic_cast<T const&>(message);
+                Xml         node{name};
                 cb(value, node, mapper);
+                return node;
             },
         },
     };
@@ -34,6 +36,13 @@ hstd::ProtoXmlMapper make_proto_xml_mapper() {
                 node.set_attr("pos", loc.pos());
 
                 if (loc.has_file()) { node.set_attr("file", loc.file().id()); }
+            }),
+            make_map(+[](orgproto::hstd_UserTime const& loc,
+                         Xml&                           node,
+                         hstd::ProtoXmlMapper const&    mapper) {
+                node.set_attr("time", loc.time());
+                if (loc.has_zone()) { node.set_attr("zone", loc.zone()); }
+                node.set_attr("align", loc.align());
             }),
             make_map(+[](hstd::ext::graph::proto::IEdge const& loc,
                          Xml&                                  node,

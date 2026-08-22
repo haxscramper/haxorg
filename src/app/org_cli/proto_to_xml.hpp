@@ -4,6 +4,7 @@
 #include <hstd/stdlib/Xml.hpp>
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -11,8 +12,10 @@ namespace hstd {
 
 class ProtoXmlMapper {
   public:
-    using Override = std::function<
-        void(google::protobuf::Message const&, XmlNode&, ProtoXmlMapper const&)>;
+    using Override = std::function<XmlNode(
+        google::protobuf::Message const&,
+        std::string const&,
+        ProtoXmlMapper const&)>;
 
     using OverrideMap = std::unordered_map<std::string, Override>;
 
@@ -22,19 +25,23 @@ class ProtoXmlMapper {
         google::protobuf::Message const& message,
         std::string const&               root_tag = {}) const;
 
-    void populate(google::protobuf::Message const& message, XmlNode& node) const;
-
   private:
-    void populate_default(google::protobuf::Message const& message, XmlNode& node) const;
-
-    void append_field(
-        google::protobuf::Message const&         message,
-        google::protobuf::FieldDescriptor const& field,
-        XmlNode&                                 parent) const;
-
-    bool append_any_payload(google::protobuf::Message const& message, XmlNode& node)
+    XmlNode map_default(google::protobuf::Message const& message, std::string const& tag)
         const;
 
+    XmlNode map_field(
+        google::protobuf::Message const&         message,
+        google::protobuf::FieldDescriptor const& field) const;
+
+    XmlNode map_scalar(
+        google::protobuf::Message const&         message,
+        google::protobuf::FieldDescriptor const& field,
+        std::string                              tag,
+        int                                      repeated_index = -1) const;
+
+    std::optional<XmlNode> map_any_payload(
+        google::protobuf::Message const& message,
+        std::string const&               tag) const;
 
     std::string scalar_to_string(
         google::protobuf::Message const&         message,
