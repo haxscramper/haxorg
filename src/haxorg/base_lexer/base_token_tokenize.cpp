@@ -1373,9 +1373,12 @@ bool switch_start_of_the_line(Cursor& c) {
                 skip)) {
 
         c.token_adv(otk::ColonLiteralProperty, property_subname(*span + skip));
-        c.token0(otk::RawText, [](Cursor& c) {
-            while (c.can_search('\n')) { c.next(); }
-        });
+        // literal property might have no value at all
+        if (c.can_search('\n')) {
+            c.token0(otk::RawText, [](Cursor& c) {
+                while (c.can_search('\n')) { c.next(); }
+            });
+        }
     } else if (auto span = check_leading(c, ':', skip)) {
         leading_space();
         int pos = *span;

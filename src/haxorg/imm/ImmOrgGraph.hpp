@@ -117,7 +117,7 @@ struct MapNode
     MapNode(
         org::imm::ImmAdapter const&   id,
         hstd::Opt<std::string> const& stable_id = std::nullopt)
-        : hgraph::IVertex{stable_id.value_or(id.id.getReadableId())}, id{id} {}
+        : hgraph::IVertex{stable_id.value_or(id.getSimplePathFormat())}, id{id} {}
 
     bool operator==(MapNode const& other) const { return this->id == other.id; }
 

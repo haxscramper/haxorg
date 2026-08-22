@@ -826,7 +826,8 @@ void org::graph::MapGraphState::addNodeRec(
         __perf_trace("mmpa", "Recursive add node", kind, fmt1(node.getKind()));
 
         auto __tmp = graph->begin_scope(
-            graph->fmt_message("recursive add {}", node), "addNodeRec");
+            graph->fmt_message("recursive add {}", node), std::nullopt, "addNodeRec");
+
         switch (node->getKind()) {
             case OrgSemKind::File:
             case OrgSemKind::Directory:

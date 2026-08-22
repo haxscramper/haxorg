@@ -67,3 +67,13 @@ struct SerdeDefaultProvider<org::parse::SourceLoc> {
     static void construct_at(void* ptr) { new (ptr) org::parse::SourceLoc(get()); };
 };
 } // namespace hstd
+
+template <>
+struct fmt::formatter<org::parse::SourceLoc> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(org::parse::SourceLoc const& p, fmt::format_context& ctx)
+        const {
+        return hstd::fmt_ctx(
+            hstd::fmt("{}({}:{}:{})", p.file_id, p.line, p.column, p.pos), ctx);
+    }
+};

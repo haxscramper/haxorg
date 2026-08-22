@@ -326,7 +326,7 @@ void treeReprRec(ImmAdapter id, ColStream& os, ImmTreeReprContext const& ctx) {
 
         for (auto const& sub : id.getAllSubnodes(std::nullopt)) {
             os.indent((ctx.level + 1) * 2);
-            os << hstd::fmt("{}", sub.path);
+            os << hstd::fmt("{}", sub.getSimplePathFormat());
             os << "\n";
             treeReprRec(sub, os, ctx.addLevel(printed_field_repr ? 3 : 2));
         }
@@ -406,6 +406,51 @@ bool ImmAdapter::isIndirectParentOf(ImmAdapter const& other) const {
     }
 
     return false;
+}
+
+hstd::Str ImmPath::getSimplePathFormat() const {
+    hstd::Vec<hstd::Str> result;
+    result.push_back(hstd::fmt("{}//", root));
+    using K = org::imm::ImmReflPathItemBase::Kind;
+    for (auto const& steps : path) {
+        auto const& p = steps.path.path;
+        if (p.size() == 2 && p.at(0).isFieldName()
+            && p.at(0).getFieldName().name.getName() == "subnodes" && p.at(1).isIndex()) {
+            result.push_back(hstd::fmt(".{}", p.at(1).getIndex().index));
+        } else {
+            for (auto const& step : p) {
+
+                switch (step.getKind()) {
+                    case K::Deref: {
+                        result.push_back("<deref>");
+                        break;
+                    }
+                    case K::AnyKey: {
+                        result.push_back(
+                            hstd::fmt("[{}]", step.getAnyKey().get<hstd::Str>()));
+                        break;
+                    }
+                    case K::FieldName: {
+                        result.push_back(hstd::fmt(".{}", step.getFieldName().name));
+                        break;
+                    }
+                    case K::Index: {
+                        result.push_back(hstd::fmt(".{}", step.getIndex().index));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return hstd::join(""_str_view, result);
+}
+
+hstd::Str ImmUniqId::getSimplePathFormat() const {
+    return hstd::fmt("{}->{}", path.getSimplePathFormat(), id);
+}
+
+hstd::Str ImmAdapter::getSimplePathFormat() const {
+    return hstd::fmt("{}->{}", path.getSimplePathFormat(), id);
 }
 
 Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {

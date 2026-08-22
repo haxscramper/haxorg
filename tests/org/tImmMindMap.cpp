@@ -495,6 +495,91 @@ Paragraph [[id:subtree-id]]
     runExternalizedLayoutPipeline();
 }
 
+TEST_F(ImmMapApi, TrivialDescriptionList) {
+    init_with(R"(
+* subtree
+  :properties:
+  :id: id-target
+  :end:
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id-target]]
+)"_ss);
+
+    addNodeRec(getRootAdapters());
+
+    EXPECT_EQ(getGraph()->getVertexCount(), 2);
+    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
+}
+
+TEST_F(ImmMapApi, MultipleIncomingTargetsSameLink) {
+    init_with(R"(
+* subtree
+  :properties:
+  :id: id-target
+  :end:
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id-target]]
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id-target]]
+)"_ss);
+
+    addNodeRec(getRootAdapters());
+
+    EXPECT_EQ(getGraph()->getVertexCount(), 3);
+    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
+}
+
+
+TEST_F(ImmMapApi, MultipleIncomingTargetsDuplicate) {
+    // the incoming subtree is directly copy-pasted here, the intention is to check how
+    // the graph detection will handle the immutable AST deduplication and ID sharing.
+    init_with(R"(
+* subtree
+  :properties:
+  :id: id-target
+  :end:
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id-target]]
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id-target]]
+)"_ss);
+
+    addNodeRec(getRootAdapters());
+
+    EXPECT_EQ(getGraph()->getVertexCount(), 3);
+    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
+}
+
 
 TEST_F(ImmMapApi, SubtreeBacklinks) {
     init_with({

@@ -205,6 +205,8 @@ struct [[refl]] ImmPath {
         return root < other.root
             && hstd::itemwise_less_than(path, other.path, std::less<ImmPathStep>{});
     }
+
+    hstd::Str getSimplePathFormat() const;
 };
 
 /// \brief ID uniquely identifying specific position in the AST
@@ -238,6 +240,8 @@ struct [[refl]] ImmUniqId {
         res.id   = id;
         return res;
     }
+
+    hstd::Str getSimplePathFormat() const;
 
     bool operator==(ImmUniqId const& it) const { return id == it.id && path == it.path; }
 
@@ -1007,6 +1011,8 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
 
     hstd::Vec<ImmAdapter> getParentChain(bool withSelf = true) const;
 
+    hstd::Str getSimplePathFormat() const;
+
     bool operator==(ImmAdapter const& id) const { return this->id == id.id; }
 
     void assert_not_nil() const {
@@ -1566,7 +1572,7 @@ template <>
 struct fmt::formatter<org::imm::ImmPath> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmPath const& p, fmt::format_context& ctx) const {
-        return hstd::fmt_ctx(hstd::fmt("{}//{}", p.root, p.path), ctx);
+        return hstd::fmt_ctx(p.getSimplePathFormat(), ctx);
     }
 };
 
@@ -1574,7 +1580,7 @@ template <>
 struct fmt::formatter<org::imm::ImmUniqId> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmUniqId const& p, fmt::format_context& ctx) const {
-        return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
+        return hstd::fmt_ctx(p.getSimplePathFormat(), ctx);
     }
 };
 
@@ -1593,6 +1599,6 @@ template <>
 struct fmt::formatter<org::imm::ImmAdapter> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(org::imm::ImmAdapter const& p, fmt::format_context& ctx) const {
-        return hstd::fmt_ctx(hstd::fmt("{}->{}", p.path, p.id), ctx);
+        return hstd::fmt_ctx(p.getSimplePathFormat(), ctx);
     }
 };
