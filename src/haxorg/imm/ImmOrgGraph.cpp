@@ -30,7 +30,7 @@ using osk = OrgSemKind;
 using slk = org::sem::LinkTarget::Kind;
 
 
-bool org::graph::isMmapIgnored(ImmAdapter const& n) {
+bool org::graph::isMmapIgnored(org::imm::ImmAdapter const& n) {
     return isInSubtreeDescriptionList(n)
         || (isAttachedSubtreeList(n)
             && (isInternalLinkedDescriptionList(n) || isInternalLinkedRegularList(n)));
@@ -41,12 +41,12 @@ static const IntSet<slk> SkipLinks{
     slk::Attachment,
 };
 
-bool org::graph::hasGraphAnnotations(ImmAdapterT<ImmSubtree> const& par) {
+bool org::graph::hasGraphAnnotations(org::imm::ImmAdapterT<ImmSubtree> const& par) {
     return par->treeId->has_value()
         || !getSubtreeProperties<sem::NamedProperty::RadioId>(par.value()).empty();
 }
 
-bool org::graph::hasGraphAnnotations(ImmAdapterT<ImmParagraph> const& par) {
+bool org::graph::hasGraphAnnotations(org::imm::ImmAdapterT<ImmParagraph> const& par) {
     for (auto const& node : par.sub(false)) {
         if (node.is(OrgSemKind::RadioTarget)) {
             return true;
@@ -190,8 +190,8 @@ void traceNodeResolve(
 }
 
 
-hgraph::VertexID MapGraphState::addNode(
-    imm::ImmAdapter const&            node,
+hgraph::VertexID org::graph::MapGraphState::addNode(
+    org::imm::ImmAdapter const&       node,
     std::shared_ptr<MapConfig> const& conf) {
     __perf_trace("mmpa", "add node");
 
@@ -224,15 +224,6 @@ hgraph::VertexID MapGraphState::addNode(
     return res;
 }
 
-bool MapGraphState::canAddNode(imm::ImmAdapter const& node) const {
-    if (getGraph()->isRegisteredNode(node.uniq())) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-
 static const SemSet NestedNodes{
     OrgSemKind::Subtree,
     OrgSemKind::Document,
@@ -242,7 +233,7 @@ static const SemSet NestedNodes{
 
 
 Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
-    ImmAdapterT<ImmLink> link) const {
+    org::imm::ImmAdapterT<org::imm::ImmLink> link) const {
     if (SkipLinks.contains(link->target.getKind())) {
         return std::nullopt;
     } else {
@@ -261,7 +252,7 @@ Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
 
 
 Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
-    ImmAdapterT<ImmSubtree> tree) const {
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> tree) const {
     Vec<MapLink> unresolved;
     // Description lists with links in header are attached as the
     // outgoing link to the parent subtree. It is the only supported
@@ -314,7 +305,7 @@ Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
 
 SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     MapGraphState const* state,
-    ImmAdapter           node) {
+    org::imm::ImmAdapter node) {
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
@@ -712,9 +703,9 @@ using namespace hstd::ext::graph;
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 
-hstd::SPtr<gv::GraphGroup> MapGraph::GvConfig::toGraphviz(
-    imm::ImmAstContext::Ptr const& ctx,
-    MapGraph::Ptr const&           graph) {
+hstd::SPtr<gv::GraphGroup> org::graph::MapGraph::GvConfig::toGraphviz(
+    org::imm::ImmAstContext::Ptr const& ctx,
+    MapGraph::Ptr const&                graph) {
     hstd::SPtr<gv::GraphGroup> res = gv::GraphGroup::newRootGraph(run, "g"_ss);
 
     LOGIC_ASSERTION_CHECK(run->getGroups()->getEdges().size() == 0, "");
@@ -761,9 +752,9 @@ MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-gv::Record MapGraph::GvConfig::getNodeLabel(
-    ImmAdapter const&       node,
-    MapNodeProp::Ptr const& prop) const {
+gv::Record org::graph::MapGraph::GvConfig::getNodeLabel(
+    org::imm::ImmAdapter const& node,
+    MapNodeProp::Ptr const&     prop) const {
     using Record = gv::Record;
     Record rec;
     rec.setEscaped("ID", fmt1(node.id));
@@ -834,9 +825,26 @@ gv::Record MapGraph::GvConfig::getNodeLabel(
 
 void org::graph::MapGraphState::addNodeRec(
     std::shared_ptr<org::imm::ImmAstContext> const& ast,
-    ImmAdapter const&                               node,
+    org::imm::ImmAdapter const&                     node,
     std::shared_ptr<MapConfig> const&               conf) {
-    auto aux = [&](this auto&& self, ImmAdapter const& node) {
+
+    auto add_node_impl =
+        [&](ImmAdapter const&                  node,
+            hstd::Opt<hgraph::VertexID> const& parent) -> hgraph::VertexID {
+        auto vertex = addNode(node, conf);
+        if (parent.has_value()) {
+            auto edge = std::make_shared<MapEdge>(hstd::fmt1(
+                graph->edges->edges.getNextId(graph->edges->getCollectionID().t)));
+            auto attr = std::make_shared<MapEdgeProp>();
+            graph->addEdge(edge, attr, parent.value(), vertex);
+        }
+
+        return vertex;
+    };
+
+    auto aux = [&](this auto&&                        self,
+                   ImmAdapter const&                  node,
+                   hstd::Opt<hgraph::VertexID> const& parent) {
         if (isMmapIgnored(node)) {
             OP_TRACER_MESSAGE(graph, "mmap ignored {}", node);
             return;
@@ -852,35 +860,39 @@ void org::graph::MapGraphState::addNodeRec(
             case OrgSemKind::Directory:
             case OrgSemKind::Symlink:
             case OrgSemKind::Document: {
-                for (auto const& it : node) { self(it); }
+                for (auto const& it : node) { self(it, std::nullopt); }
                 break;
             }
             case OrgSemKind::CmdInclude:
             case OrgSemKind::ListItem:
             case OrgSemKind::List: {
-                for (auto const& it : node) { self(it); }
+                for (auto const& it : node) { self(it, parent); }
                 break;
             }
             case OrgSemKind::Paragraph: {
                 auto par = node.as<imm::ImmParagraph>();
                 if (org::graph::hasGraphAnnotations(par)) {
-                    if (canAddNode(node)) { std::ignore = addNode(node, conf); }
+                    std::ignore = add_node_impl(node, parent);
                 } else {
                     auto group = imm::getSubnodeGroups(ast, node, false);
                     if (rs::any_of(
                             group, [](auto const& it) { return it.isRadioTarget(); })) {
-                        if (canAddNode(node)) { std::ignore = addNode(node, conf); }
+                        std::ignore = add_node_impl(node, parent);
                     }
                 }
                 break;
             }
             case OrgSemKind::Subtree: {
+                hstd::Opt<hgraph::VertexID> subtree;
                 if (auto tree = node.as<imm::ImmSubtree>();
                     org::graph::hasGraphAnnotations(tree)) {
-                    if (canAddNode(node)) { std::ignore = addNode(node, conf); }
+                    subtree = add_node_impl(node, parent);
                 }
 
-                for (auto const& it : node) { self(it); }
+                for (auto const& it : node) {
+                    self(it, subtree.has_value() ? subtree : parent);
+                }
+
                 break;
             }
             default: {
@@ -888,16 +900,16 @@ void org::graph::MapGraphState::addNodeRec(
         }
     };
 
-    aux(node);
+    aux(node, std::nullopt);
 }
 
 std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
-    std::shared_ptr<imm::ImmAstContext> ast) {
+    std::shared_ptr<org::imm::ImmAstContext> ast) {
     return MapGraphState::FromAstContext(ast);
 }
 
-hstd::Opt<Str> MapNode::getFootnoteName(
-    std::shared_ptr<imm::ImmAstContext> const& context) const {
+hstd::Opt<Str> org::graph::MapNode::getFootnoteName(
+    std::shared_ptr<org::imm::ImmAstContext> const& context) const {
     if (auto par = getAdapter().asOpt<org::imm::ImmParagraph>();
         par && par->isFootnoteDefinition()) {
         return par->getFootnoteName();
@@ -923,8 +935,8 @@ void org::graph::MapNode::writeSerial(
 #endif
 
 
-hstd::Opt<Str> MapNode::getSubtreeId(
-    std::shared_ptr<imm::ImmAstContext> const& context) const {
+hstd::Opt<Str> org::graph::MapNode::getSubtreeId(
+    std::shared_ptr<org::imm::ImmAstContext> const& context) const {
     if (auto tree = getAdapter().asOpt<org::imm::ImmSubtree>();
         tree && tree.value()->treeId.get()) {
         return tree.value()->treeId->value();
@@ -934,7 +946,7 @@ hstd::Opt<Str> MapNode::getSubtreeId(
 }
 
 #if ORG_BUILD_WITH_PROTOBUF
-void MapEdgeCollection::writeSerial(
+void org::graph::MapEdgeCollection::writeSerial(
     hstd::ext::graph::proto::IEdgeCollection* out,
     hstd::ext::graph::IGraph const*           graph) const {
     IEdgeCollection::writeSerial(out, graph);
@@ -942,7 +954,7 @@ void MapEdgeCollection::writeSerial(
     out->mutable_payload()->PackFrom(tag);
 }
 
-void MapEdgeCollection::readSerial(
+void org::graph::MapEdgeCollection::readSerial(
     hstd::ext::graph::proto::IEdgeCollection const* in,
     hstd::ext::graph::IGraph const*                 graph,
     hstd::ext::graph::IGraphSerialReaderFactory*    factory) {
@@ -950,7 +962,7 @@ void MapEdgeCollection::readSerial(
 }
 #endif
 
-VertexID MapGraph::addNode(
+VertexID org::graph::MapGraph::addNode(
     hstd::SPtr<MapNode> const&     node,
     hstd::SPtr<MapNodeProp> const& prop) {
     node->addAttribute(prop);
@@ -960,7 +972,7 @@ VertexID MapGraph::addNode(
     return res;
 }
 
-EdgeID MapGraph::addEdge(
+EdgeID org::graph::MapGraph::addEdge(
     hstd::SPtr<MapEdge> const&     edge,
     hstd::SPtr<MapEdgeProp> const& prop,
     hstd::ext::graph::VertexID     source,
@@ -971,3 +983,27 @@ EdgeID MapGraph::addEdge(
     edges->trackEdge(res, source, target);
     return res;
 }
+
+
+#if ORG_BUILD_WITH_PROTOBUF
+void org::graph::MapEdge::readSerial(
+    hstd::ext::graph::proto::IEdge const*        in,
+    hstd::ext::graph::IGraph const*              graph,
+    hstd::ext::graph::IGraphSerialReaderFactory* factory) {
+    throw hstd::ext::graph::serde_error::init(
+        "imm org map graph does not support de-serialization, build "
+        "immutable AST context and build the graph from it.");
+}
+
+void org::graph::MapEdge::writeSerial(
+    hstd::ext::graph::proto::IEdge* out,
+    hstd::ext::graph::IGraph const* graph,
+    hstd::ext::graph::EdgeID const& self_id) const {
+    IEdge::writeSerial(out, graph, self_id);
+    proto::MapEdgePayload payload;
+    payload.set_kind(static_cast<proto::MapEdgePayload::EdgeKind>(kind));
+
+    out->mutable_payload()->PackFrom(payload);
+}
+
+#endif

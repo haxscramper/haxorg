@@ -601,6 +601,28 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsDuplicate) {
     EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
 }
 
+TEST_F(ImmMapApi, NestedNonAttachedLinks) {
+    init_with(R"(
+* subtree one
+  :properties:
+  :id: subtree-one
+  :end:
+
+* subtree two
+  :properties:
+  :id: subtree-two
+  :end:
+
+- regular list
+- another list item [[id:subtree-one]]
+)");
+
+    addNodeRec(getRootAdapters());
+    // two subtrees, and one list item linking to subtree
+    EXPECT_EQ(getGraph()->getVertexCount(), 3);
+    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
+    EXPECT_EQ(getState()->unresolved.size(), 0);
+}
 
 TEST_F(ImmMapApi, SubtreeBacklinks) {
     init_with({
@@ -633,6 +655,7 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
     writeRepresentation();
     runExternalizedLayoutPipeline();
 }
+
 
 TEST_F(ImmMapApi, RadioTargetsForward) {
     init_with(R"(

@@ -171,16 +171,19 @@ struct MapEdge
     DESC_FIELDS(MapEdge, ());
     using hgraph::IEdge::IEdge;
 
+    DECL_DESCRIBED_ENUM(EdgeKind, DirectLink, Nested);
+    EdgeKind kind;
 
 #if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IEdge const*        in,
         hstd::ext::graph::IGraph const*              graph,
-        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {
-        throw hstd::ext::graph::serde_error::init(
-            "imm org map graph does not support de-serialization, build "
-            "immutable AST context and build the graph from it.");
-    }
+        hstd::ext::graph::IGraphSerialReaderFactory* factory) override;
+
+    void writeSerial(
+        hstd::ext::graph::proto::IEdge* out,
+        hstd::ext::graph::IGraph const* graph,
+        hstd::ext::graph::EdgeID const& self_id) const override;
 #endif
 };
 
@@ -325,8 +328,8 @@ struct MapGraph
     hgraph::EdgeID addEdge(
         hstd::SPtr<MapEdge> const&     edge,
         hstd::SPtr<MapEdgeProp> const& prop,
-        hgraph::VertexID               source,
-        hgraph::VertexID               target);
+        hstd::ext::graph::VertexID     source,
+        hstd::ext::graph::VertexID     target);
 
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
@@ -425,8 +428,6 @@ struct MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
     hgraph::VertexID addNode(
         org::imm::ImmAdapter const&       node,
         std::shared_ptr<MapConfig> const& conf);
-
-    bool canAddNode(org::imm::ImmAdapter const& node) const;
 
     void addNodeRec(
         std::shared_ptr<org::imm::ImmAstContext> const& ast,

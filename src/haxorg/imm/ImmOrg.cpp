@@ -726,7 +726,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                                 OP_TRACER_FUNC_MESSAGE(
                                     ctx,
                                     "updateTracking",
-                                    "Tracking name '{}' for node {}",
+                                    "Tracking name '{}' pfor node {}",
                                     name,
                                     node);
 
