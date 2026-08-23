@@ -896,6 +896,7 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
     auto __trace = trace(a);
     auto tree    = Sem<Subtree>(a);
 
+    tree->loc   = getLoc(one(a, N::Prefix));
     tree->level = get_text(one(a, N::Prefix)).size();
 
     {

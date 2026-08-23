@@ -51,18 +51,21 @@ struct CliOpts {
     struct ParseOpts {
         /// \brief input file or directory
         std::string            input;
-        hstd::Opt<std::string> baseTokenTracePath = std::nullopt;
-        hstd::Opt<std::string> tokenTracePath     = std::nullopt;
-        hstd::Opt<std::string> parseTracePath     = std::nullopt;
-        hstd::Opt<std::string> semTracePath       = std::nullopt;
-        hstd::Opt<std::string> baseTokenDumpPath  = std::nullopt;
-        hstd::Opt<std::string> tokenDumpPath      = std::nullopt;
-        hstd::Opt<std::string> parseDumpPath      = std::nullopt;
-        hstd::Opt<std::string> semDumpPath        = std::nullopt;
-        bool                   validateBaseTokens = false;
+        hstd::Opt<std::string> baseTokenTracePath  = std::nullopt;
+        hstd::Opt<std::string> tokenTracePath      = std::nullopt;
+        hstd::Opt<std::string> parseTracePath      = std::nullopt;
+        hstd::Opt<std::string> semTracePath        = std::nullopt;
+        hstd::Opt<std::string> baseTokenDumpPath   = std::nullopt;
+        hstd::Opt<std::string> tokenDumpPath       = std::nullopt;
+        hstd::Opt<std::string> parseDumpPath       = std::nullopt;
+        hstd::Opt<std::string> semDumpPath         = std::nullopt;
+        hstd::Opt<std::string> immVerboseDumpPath  = std::nullopt;
+        hstd::Opt<std::string> immDumpPath         = std::nullopt;
+        hstd::Opt<std::string> immTrackingDumpPath = std::nullopt;
+        bool                   validateBaseTokens  = false;
 
         org::parse::OrgParseParameters::LastParseStage
-            lastStage = org::parse::OrgParseParameters::LastParseStage::SemConvert;
+            lastStage = org::parse::OrgParseParameters::LastParseStage::ImmConvert;
 
         OPT_NAME(input_opt, "input");
         OPT_NAME(baseTokenTracePath_opt, "--base-token-trace");
@@ -75,9 +78,25 @@ struct CliOpts {
         OPT_NAME(parseDumpPath_opt, "--parse-dump");
         OPT_NAME(semDumpPath_opt, "--sem-dump");
         OPT_NAME(validateBaseTokens_opt, "--validate-base-tokens");
+        OPT_NAME(immVerboseDumpPath_opt, "--imm-verbose-dump");
+        OPT_NAME(immDumpPath_opt, "--imm-dump");
+        OPT_NAME(immTrackingDumpPath_opt, "--imm-tracking-dump");
 
         ParseOpts() {}
-        DESC_FIELDS(ParseOpts, (input, baseTokenTracePath, tokenTracePath, semTracePath));
+        DESC_FIELDS(
+            ParseOpts,
+            (input,
+             baseTokenTracePath,
+             tokenTracePath,
+             semTracePath,
+             baseTokenDumpPath,
+             tokenDumpPath,
+             parseDumpPath,
+             semDumpPath,
+             immVerboseDumpPath,
+             immDumpPath,
+             immTrackingDumpPath,
+             validateBaseTokens));
     };
 
     struct ExportOpts {
@@ -386,6 +405,11 @@ CliOpts parseCli(int argc, char** argv) {
     parse_cmd.add_argument(PO::tokenDumpPath_opt).help("token dump output path");
     parse_cmd.add_argument(PO::parseDumpPath_opt).help("parse dump output path");
     parse_cmd.add_argument(PO::semDumpPath_opt).help("sem dump output path");
+    parse_cmd.add_argument(PO::immDumpPath_opt).help("Non-verbose dump of immutable AST");
+    parse_cmd.add_argument(PO::immVerboseDumpPath_opt)
+        .help("Verbose dump of immutable AST");
+    parse_cmd.add_argument(PO::immTrackingDumpPath_opt)
+        .help("Dump of immutable AST tracking information");
     parse_cmd.add_argument(PO::validateBaseTokens_opt)
         .help(
             "Whether to check the base tokens for consistency. This is a dev/debug "
@@ -518,6 +542,9 @@ Full argument list was:
         OPT_GET(parse_cmd, opts, tokenDumpPath, std::string);
         OPT_GET(parse_cmd, opts, parseDumpPath, std::string);
         OPT_GET(parse_cmd, opts, semDumpPath, std::string);
+        OPT_GET(parse_cmd, opts, immDumpPath, std::string);
+        OPT_GET(parse_cmd, opts, immVerboseDumpPath, std::string);
+        OPT_GET(parse_cmd, opts, immTrackingDumpPath, std::string);
         if (auto v = parse_cmd.present<std::string>(opts.validateBaseTokens_opt)) {
             // TODO: boost lexical cast fails here, but writing a template function that
             // extracts the user-provided varibles in a sensible manner (e.g. interpreting
@@ -629,7 +656,7 @@ int main(int argc, char* argv[]) {
                                   org::parse::OrgId               id,
                                   std::optional<int>              fragmentIndex) {
             if (cmd.parseDumpPath) {
-                hstd::writeFile(cmd.parseDumpPath.value(), nodes.treeRepr(id));
+                hstd::writeFile(cmd.parseDumpPath.value(), nodes.treeRepr(id), true);
             }
         };
 
@@ -643,13 +670,49 @@ int main(int argc, char* argv[]) {
             return ctx->parseFileOpts(path, params);
         };
 
+        org::sem::SemId<org::sem::Org> node;
+
         if (hstd::fs::is_directory(input)) {
-            ctx->parseDirectoryOpts(input, directoryParsingOpts);
+            node = ctx->parseDirectoryOpts(input, directoryParsingOpts).value();
         } else {
             if (opts.withIncludes) {
-                ctx->parseFileWithIncludes(input, directoryParsingOpts);
+                node = ctx->parseFileWithIncludes(input, directoryParsingOpts);
             } else {
-                ctx->parseFileOpts(input, params);
+                node = ctx->parseFileOpts(input, params);
+            }
+        }
+
+        if (cmd.lastStage == org::parse::OrgParseParameters::LastParseStage::ImmConvert) {
+            auto store    = org::imm::ImmAstContext::init_start_context();
+            auto version  = store->init(node);
+            auto imm_node = version.getRootAdapter();
+
+            if (cmd.immDumpPath) {
+                hstd::writeFile(
+                    cmd.immDumpPath.value(),
+                    imm_node.treeRepr(org::imm::ImmAdapter::TreeReprConf{})
+                        .toString(false),
+                    true);
+            }
+
+            if (cmd.immVerboseDumpPath) {
+                hstd::writeFile(
+                    cmd.immVerboseDumpPath.value(),
+                    imm_node
+                        .treeRepr(
+                            org::imm::ImmAdapter::TreeReprConf{
+                                .withAuxFields  = true,
+                                .withReflFields = true,
+                            })
+                        .toString(false),
+                    true);
+            }
+
+            if (cmd.immTrackingDumpPath) {
+                hstd::writeFile(
+                    cmd.immTrackingDumpPath.value(),
+                    version.getContext()->currentTrack->toString().toString(false),
+                    true);
             }
         }
     } else {
@@ -732,7 +795,7 @@ int main(int argc, char* argv[]) {
             auto status           = google::protobuf::util::MessageToJsonString(
                 result, &json, j_opts);
 
-            hstd::writeFile(cmd.output, json);
+            hstd::writeFile(cmd.output, json, true);
         };
 
 
@@ -766,7 +829,7 @@ int main(int argc, char* argv[]) {
                     exp.skipNullFields  = j.skipNullFields;
                     exp.normalizeSpaces = j.normalizeSpaces;
                     auto res            = exp.evalTop(node.value());
-                    hstd::writeFile(cmd.output, res.dump(2));
+                    hstd::writeFile(cmd.output, res.dump(2), true);
                 },
                 [&](EO::Yaml const& j) -> void {
                     org::algo::ExporterYaml exp;
@@ -776,16 +839,16 @@ int main(int argc, char* argv[]) {
                     exp.skipLocation    = j.skipLocation;
                     exp.skipId          = j.skipId;
                     auto res            = exp.evalTop(node.value());
-                    hstd::writeFile(cmd.output, fmt::format("{}\n", res));
+                    hstd::writeFile(cmd.output, fmt::format("{}\n", res), true);
                 },
                 [&](EO::Token const& j) -> void {
-                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
+                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2), true);
                 },
                 [&](EO::BaseToken const& j) -> void {
-                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
+                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2), true);
                 },
                 [&](EO::ParseNode const& j) -> void {
-                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2));
+                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2), true);
                 },
 #if ORG_BUILD_WITH_PROTOBUF
                 [&](EO::Proto const& p) {

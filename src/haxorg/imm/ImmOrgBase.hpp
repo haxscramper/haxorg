@@ -331,16 +331,3 @@ struct hstd::ReflVisitor<org::imm::ImmId, org::imm::ImmReflPathTag>
 template <typename T>
 struct hstd::ReflVisitor<org::imm::ImmIdT<T>, org::imm::ImmReflPathTag>
     : hstd::ReflVisitorLeafType<org::imm::ImmIdT<T>, org::imm::ImmReflPathTag> {};
-
-
-template <>
-struct hstd::hshow<org::imm::ImmId> {
-    static void format(
-        hstd::ColStream&        s,
-        org::imm::ImmId const&  value,
-        hstd::hshow_opts const& opts) {
-        auto copy = opts;
-        copy.with_use_quotes(false);
-        hshow_ctx(s, value.format(), copy);
-    }
-};

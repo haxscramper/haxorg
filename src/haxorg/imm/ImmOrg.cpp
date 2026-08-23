@@ -1181,10 +1181,7 @@ ColText ImmAstTrackingMap::toString() const {
         auto keys = map.keys();
         for (auto const& key : sorted(keys)) {
             os.indent(2);
-            hshow_ctx(os, key, opts);
-            os << ": ";
-            hshow_ctx(os, map.at(key), opts);
-            os << "\n";
+            os << hstd::fmt("{}: {}\n", key, map.at(key));
         }
     };
 

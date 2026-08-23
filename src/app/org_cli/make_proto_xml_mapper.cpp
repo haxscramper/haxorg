@@ -124,6 +124,8 @@ hstd::ProtoXmlMapper make_proto_xml_mapper() {
             make_map(&map_only_nested_node<orgproto::ColonExample>),
             make_map(&map_oneof_type<orgproto::AnyNode>),
             make_map(&map_oneof_type<orgproto::NamedProperty::Data>),
+            make_map(&map_oneof_type<orgproto::LinkTarget::Data>),
+            make_map(&map_oneof_type<orgproto::SubtreeLogHead::LogEntry>),
             make_map(+[](orgproto::hstd_UserTime const& loc,
                          Xml&                           node,
                          hstd::ProtoXmlMapper const&    mapper) {

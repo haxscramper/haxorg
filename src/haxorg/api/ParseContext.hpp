@@ -44,8 +44,14 @@ struct [[refl(
 
     bool validateBaseTokens = false;
 
-    DECL_DESCRIBED_ENUM(LastParseStage, BaseLex, RecombineLex, Parse, SemConvert);
-    LastParseStage lastStage = LastParseStage::SemConvert;
+    DECL_DESCRIBED_ENUM(
+        LastParseStage,
+        BaseLex,
+        RecombineLex,
+        Parse,
+        SemConvert,
+        ImmConvert);
+    LastParseStage lastStage = LastParseStage::ImmConvert;
 
     hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)> getFragments;
 

@@ -27,7 +27,10 @@ struct IoContext {
     SPtr<std::ostream> stream;
 };
 
-void writeFile(fs::path const& target, std::string const& content);
+void writeFile(
+    fs::path const&    target,
+    std::string const& content,
+    bool               createParentDir = false);
 void createDirectory(fs::path const& target, bool parents = true, bool existsOk = true);
 
 void writeDebugFile(
