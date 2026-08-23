@@ -1279,9 +1279,9 @@ struct [[refl]] ImmAdapterStmtAPI : ImmAdapterOrgAPI {
         hstd::Opt<hstd::Str> const& param) const;
     virtual hstd::Opt<org::sem::AttrValue> getFirstAttr(hstd::Str const& kind) const;
 
-    hstd::Vec<ImmAdapter> getCaption() const;
-    hstd::Vec<hstd::Str>  getName() const;
-    hstd::Vec<ImmAdapter> getAttached(
+    hstd::Vec<ImmAdapter> getAttachedBlockCaptions() const;
+    hstd::Vec<hstd::Str>  getAttachedBlockNames() const;
+    hstd::Vec<ImmAdapter> getAttachedBlockAttrs(
         hstd::Opt<hstd::Str> const& kind = std::nullopt) const;
 };
 

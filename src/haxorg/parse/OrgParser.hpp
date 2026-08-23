@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/Set.hpp"
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
 #include <hstd/stdlib/Exception.hpp>

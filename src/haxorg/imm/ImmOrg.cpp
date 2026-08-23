@@ -721,7 +721,8 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                         {
                             auto adapter = ctx.lock()->adaptUnrooted(node).as<N>();
                             __perf_trace("imm", "track names");
-                            for (auto const& name : adapter.getName()) {
+                            hstd::Vec<hstd::Str> names = adapter.getAttachedBlockNames();
+                            for (hstd::Str const& name : names) {
                                 OP_TRACER_FUNC_MESSAGE(
                                     ctx,
                                     "updateTracking",

@@ -1870,3 +1870,36 @@ TEST(OrgParseSem, CriticMarkup) {
     { auto n = get(R"({==is==})"); }
     { auto n = get(R"({>>is<<})"); }
 }
+
+TEST(OrgParseSem, SubtreeAndCustomBlock) {
+    auto s = parseOne<sem::Subtree>(
+        R"(**** TODO Hypergraph edge bends
+     :PROPERTIES:
+     :CREATED:  [2025-11-12 Wed 14:24:43 +04]
+     :END:
+:LOGBOOK:
+CLOCK: [2025-11-12 Wed 19:11:58 +04]--[2025-11-12 Wed 20:47:19 +04] =>  1:36
+- State "WIP"        from "TODO"       [2025-11-12 Wed 19:11:58 +04]
+- State "TODO"       from "WIP"        [2025-11-12 Wed 20:47:20 +04]
+:END:
+#+begin_description
+Include curved bends in hyperedge polygons if the size of the edge allows this.
+#+end_description
+)",
+        getDebugFile("init"));
+    EXPECT_EQ(s->getCleanTitle(), "TODO Hypergraph edge bends"_ss);
+    EXPECT_EQ(s->getTodoKeyword().value(), "TODO");
+    EXPECT_EQ(s->level, 4);
+    EXPECT_TRUE(s->getProperty("created").value().isCreated());
+    auto log = s->logbook;
+    EXPECT_EQ(log.size(), 3);
+    EXPECT_TRUE(log.at(0)->head.isClock());
+    EXPECT_TRUE(log.at(1)->head.isState());
+    EXPECT_TRUE(log.at(2)->head.isState());
+
+    EXPECT_EQ2(s.at(0)->getKind(), OrgSemKind::BlockDynamicFallback);
+    auto body = s.at(0).as<sem::BlockDynamicFallback>();
+    EXPECT_EQ2(body->name, "description");
+    EXPECT_EQ2(body.size(), 1);
+    EXPECT_EQ2(body.at(0)->getKind(), OrgSemKind::Paragraph);
+}

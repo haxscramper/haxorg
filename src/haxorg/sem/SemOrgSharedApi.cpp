@@ -789,19 +789,19 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
 
 // clang-format off
 
-Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getCaption() const {
+Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getAttachedBlockCaptions() const {
     Vec<imm::ImmAdapter> result;
     CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getCaption(a1); });
     return result;
 }
 
-Vec<Str> imm::ImmAdapterStmtAPI::getName() const {
+Vec<Str> imm::ImmAdapterStmtAPI::getAttachedBlockNames() const {
     Vec<Str> result;
     CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getName(a1); });
     return result;
 }
 
-Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) const {
+Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getAttachedBlockAttrs(Opt<Str> const& kind) const {
     Vec<imm::ImmAdapter> result;
     CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttached(a1, a2); }, kind);
     return result;
@@ -1124,7 +1124,8 @@ Vec<Str> org::getDfsLeafText(imm::ImmAdapter const& id, SemSet const& filter) {
 
 Str org::getCleanText(sem::SemId<sem::Org> const& id) {
     return join(
-        "", org::getDfsFuncEval<Str>(id, [](sem::SemId<sem::Org> const& id) -> Opt<Str> {
+        ""_str_view,
+        org::getDfsFuncEval<Str>(id, [](sem::SemId<sem::Org> const& id) -> Opt<Str> {
             if (auto space = id.asOpt<sem::Space>()) {
                 return " ";
             } else {
@@ -1135,7 +1136,8 @@ Str org::getCleanText(sem::SemId<sem::Org> const& id) {
 
 Str org::getCleanText(imm::ImmAdapter const& id) {
     return join(
-        "", org::getDfsFuncEval<Str>(id, false, [](imm::ImmAdapter const& a) -> Opt<Str> {
+        ""_str_view,
+        org::getDfsFuncEval<Str>(id, false, [](imm::ImmAdapter const& a) -> Opt<Str> {
             if (auto space = a.dyn_cast<imm::ImmSpace>()) {
                 return " ";
             } else {
