@@ -1217,6 +1217,15 @@ OrgConverter::ConvResult<Paragraph> OrgConverter::convertParagraph(__args) {
         par->subnodes.pop_back();
     }
 
+    if (!par->loc) {
+        for (auto const& sub : par->subnodes) {
+            if (sub->loc) {
+                par->loc = sub->loc;
+                break;
+            }
+        }
+    }
+
     return par;
 }
 

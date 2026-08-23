@@ -12,7 +12,8 @@ message MapNodePayload {
 message MapEdgePayload {
   enum EdgeKind {
     DIRECT_LINK = 0;
-    NESTED = 1;
+    NESTED_STATEMENT_ELEMENT = 1;
+    NESTED_SUBTREE = 2;
   }
 
   EdgeKind kind = 1;

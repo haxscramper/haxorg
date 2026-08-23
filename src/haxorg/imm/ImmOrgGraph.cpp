@@ -673,6 +673,14 @@ void org::graph::MapGraphState::addNodeRec(
         if (parent.has_value()) {
             auto edge = std::make_shared<MapEdge>(hstd::fmt1(
                 graph->edges->edges.getNextId(graph->edges->getCollectionID().t)));
+            if (graph->getCastVertex<MapNode>(parent.value())
+                    ->getAdapter()
+                    .is(OrgSemKind::Subtree)
+                && node.is(OrgSemKind::Subtree)) {
+                edge->kind = MapEdge::EdgeKind::NestedSubtree;
+            } else {
+                edge->kind = MapEdge::EdgeKind::NestedStatementElement;
+            }
             auto attr = std::make_shared<MapEdgeProp>();
             graph->addEdge(edge, attr, parent.value(), vertex);
         }
