@@ -30,6 +30,7 @@ const OrgTokSet Newline{
     otk::Newline,
     otk::LongNewline,
     otk::MediumNewline,
+    otk::EndOfFile,
 };
 
 const OrgTokSet ParagraphTerminator{
@@ -50,6 +51,7 @@ const OrgTokSet ParagraphTerminator{
     otk::Indent,
     otk::Dedent,
     otk::SameIndent,
+    otk::EndOfFile,
 };
 
 OrgTokSet ListStarts{

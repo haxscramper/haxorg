@@ -2504,7 +2504,7 @@ OrgConverter::ConvResult<InlineExport> OrgConverter::convertInlineExport(__args)
     auto                __trace = trace(a);
     SemId<InlineExport> result  = Sem<InlineExport>(a);
     result->exporter            = Str{lstrip(get_text(one(a, N::Name)), CharSet{'@'})};
-    result->content             = Str{get_text(one(a, N::Body)).at(slice(1, 3_B))};
+    result->content             = Str{get_text(one(a, N::Body)).at(slice(1, 2_B))};
     return result;
 }
 

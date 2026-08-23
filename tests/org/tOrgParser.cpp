@@ -916,7 +916,8 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 
     {
-        auto t = parseOne<sem::Subtree>(R"(* Title :tag1:tag2:)");
+        auto t = parseOne<sem::Subtree>(
+            R"(* Title :tag1:tag2:)", getDebugFile("tags/init"));
         EXPECT_EQ(t->tags.size(), 2);
         EXPECT_EQ(t->tags.at(0)->text.head, "tag1"_ss);
         EXPECT_EQ(t->tags.at(1)->text.head, "tag2"_ss);
@@ -1032,7 +1033,7 @@ TEST(OrgParseSem, TextParsing) {
     }
     {
         auto par = parseOne<sem::Paragraph>(
-            R"(@@html:<b>@@bold text@@html:</b>@@)", getDebugFile("inline_export"));
+            R"(@@html:<b>@@bold text@@html:</b>@@)", getDebugFile("export/inline"));
         EXPECT_EQ(par.size(), 5);
         EXPECT_EQ(par.at(0)->getKind(), OrgSemKind::InlineExport);
         EXPECT_EQ(par.at(1)->getKind(), OrgSemKind::Word);
