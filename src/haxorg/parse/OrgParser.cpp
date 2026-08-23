@@ -1453,7 +1453,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     TRY_SKIP(lex, otk::CmdPrefix);
     auto __trace = trace(lex);
 
-    bool isDynamic = lex.kind() == otk::CmdDynamicBlockBegin;
+    bool isDynamic = lex.kind() == otk::CmdCustomTextBlockBegin;
 
 
     std::unique_ptr<NodeGuard> guard = [&]() -> std::unique_ptr<NodeGuard> {
@@ -1463,6 +1463,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             case otk::CmdQuoteBegin: return start(onk::BlockQuote);
             case otk::CmdCommentBegin: return start(onk::BlockComment);
             case otk::CmdDynamicBlockBegin: return start(onk::BlockDynamicFallback);
+            case otk::CmdCustomTextBlockBegin: return start(onk::BlockCustomText);
             default: throw fatalError(lex, "unhandled token");
         }
     }();
@@ -1473,6 +1474,9 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             case otk::CmdCenterBegin: return otk::CmdCenterEnd;
             case otk::CmdQuoteBegin: return otk::CmdQuoteEnd;
             case otk::CmdCommentBegin: return otk::CmdCommentEnd;
+            case otk::CmdCustomTextBlockBegin:
+                token(onk::Word, lex.get());
+                return otk::CmdCustomTextBlockEnd;
             case otk::CmdDynamicBlockBegin:
                 token(onk::Word, lex.get());
                 return otk::CmdDynamicBlockEnd;
@@ -1985,9 +1989,8 @@ OrgParser::ParseResult OrgParser::parseSubtreeTitle(OrgLexer& lex) {
     };
 
     SubLexer sub{lex};
-
-    while (lex.can_search(Newline)     //
-           && !is_at_subtree_tags(lex) //
+    while ((lex.can_search(Newline) || lex.is_last_token()) //
+           && !is_at_subtree_tags(lex)                      //
            && !lex.at(otk::SubtreeCompletion)) {
         sub.add(pop(lex));
     }
@@ -2547,6 +2550,7 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
                 case otk::CmdCenterBegin:
                 case otk::CmdCommentBegin:
                 case otk::CmdDynamicBlockBegin:
+                case otk::CmdCustomTextBlockBegin:
                 case otk::CmdQuoteBegin: {
                     return parseTextWrapCommand(lex);
                 }
@@ -2561,7 +2565,9 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
         }
         default: {
             SubLexer sub{lex};
-            while (lex.can_search(ParagraphTerminator)) { sub.add(lex.pop()); }
+            while (lex.can_search(ParagraphTerminator) || lex.is_last_token()) {
+                sub.add(lex.pop());
+            }
 
             if (sub.empty()) {
                 lex.next();

@@ -240,8 +240,12 @@ enum haxorg_OrgNodeKind {
   haxorg_OrgNodeKind_BlockDetails,
   /// \brief `#+begin_summary` section
   haxorg_OrgNodeKind_BlockSummary,
-  /// \brief #+begin_<any> section
+  /// \brief #+begin: <name> section
   haxorg_OrgNodeKind_BlockDynamicFallback,
+  /// \brief #+begin_<any> section for text blocks
+  haxorg_OrgNodeKind_BlockCustomText,
+  /// \brief #+begin_<any> section for raw content blocks
+  haxorg_OrgNodeKind_BlockCustomRaw,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
   haxorg_OrgNodeKind_BigIdent,
   /// \brief Region of text with formatting, which contains standalone words -
@@ -389,8 +393,17 @@ enum haxorg_OrgTokenKind {
   haxorg_OrgTokenKind_CmdDateRaw,
   haxorg_OrgTokenKind_CmdDescription,
   haxorg_OrgTokenKind_CmdDrawersRaw,
+  /// \brief `#+begin:` with the unspecified name
   haxorg_OrgTokenKind_CmdDynamicBlockBegin,
+  /// \brief `#+end:` matching with `#+begin:`
   haxorg_OrgTokenKind_CmdDynamicBlockEnd,
+  /// \brief `#+begin_` with the text content inside
+  haxorg_OrgTokenKind_CmdCustomTextBlockBegin,
+  haxorg_OrgTokenKind_CmdCustomTextBlockEnd,
+  /// \brief `#+begin_` block with the raw string
+  haxorg_OrgTokenKind_CmdCustomRawBlockBegin,
+  haxorg_OrgTokenKind_CmdCustomRawBlockLine,
+  haxorg_OrgTokenKind_CmdCustomRawBlockEnd,
   haxorg_OrgTokenKind_CmdEmailRaw,
   haxorg_OrgTokenKind_CmdExampleBegin,
   haxorg_OrgTokenKind_CmdExampleEnd,

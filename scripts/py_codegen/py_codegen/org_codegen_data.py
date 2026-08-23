@@ -3473,7 +3473,9 @@ def get_org_node_kind_blocks() -> List[GenTuEnumField]:
         efield("BlockExport"),
         efield("BlockDetails", "`#+begin_details`  section"),
         efield("BlockSummary", "`#+begin_summary` section"),
-        efield("BlockDynamicFallback", "#+begin_<any> section"),
+        efield("BlockDynamicFallback", "#+begin: <name> section"),
+        efield("BlockCustomText", "#+begin_<any> section for text blocks"),
+        efield("BlockCustomRaw", "#+begin_<any> section for raw content blocks"),
     ]
 
 
@@ -3599,8 +3601,13 @@ def get_org_token_kind() -> List[GenTuEnumField]:
         efield("CmdDateRaw", ""),
         efield("CmdDescription", ""),
         efield("CmdDrawersRaw", ""),
-        efield("CmdDynamicBlockBegin", ""),
-        efield("CmdDynamicBlockEnd", ""),
+        efield("CmdDynamicBlockBegin", "`#+begin:` with the unspecified name"),
+        efield("CmdDynamicBlockEnd", "`#+end:` matching with `#+begin:`"),
+        efield("CmdCustomTextBlockBegin", "`#+begin_` with the text content inside"),
+        efield("CmdCustomTextBlockEnd", ""),
+        efield("CmdCustomRawBlockBegin", "`#+begin_` block with the raw string"),
+        efield("CmdCustomRawBlockLine", ""),
+        efield("CmdCustomRawBlockEnd", ""),
         efield("CmdEmailRaw", ""),
         efield("CmdExampleBegin", ""),
         efield("CmdExampleEnd", ""),

@@ -35,6 +35,8 @@ hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockClose{
     otk::CmdRowEnd,
     otk::CmdCellEnd,
     otk::CmdDynamicBlockEnd,
+    otk::CmdCustomRawBlockEnd,
+    otk::CmdCustomTextBlockEnd,
 };
 
 hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockOpen{
@@ -49,6 +51,8 @@ hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockOpen{
     otk::CmdRowBegin,
     otk::CmdCellBegin,
     otk::CmdDynamicBlockBegin,
+    otk::CmdCustomRawBlockBegin,
+    otk::CmdCustomTextBlockBegin,
 };
 
 hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockLine{

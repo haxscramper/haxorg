@@ -2245,8 +2245,12 @@ enum class OrgNodeKind : short int {
   BlockDetails,
   /// \brief `#+begin_summary` section
   BlockSummary,
-  /// \brief #+begin_<any> section
+  /// \brief #+begin: <name> section
   BlockDynamicFallback,
+  /// \brief #+begin_<any> section for text blocks
+  BlockCustomText,
+  /// \brief #+begin_<any> section for raw content blocks
+  BlockCustomRaw,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
   BigIdent,
   /// \brief Region of text with formatting, which contains standalone words -
@@ -2428,6 +2432,8 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDetails)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockSummary)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDynamicFallback)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockCustomText)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockCustomRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BigIdent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Bold)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorInfoToken)
@@ -2525,8 +2531,17 @@ enum class OrgTokenKind : short int {
   CmdDateRaw,
   CmdDescription,
   CmdDrawersRaw,
+  /// \brief `#+begin:` with the unspecified name
   CmdDynamicBlockBegin,
+  /// \brief `#+end:` matching with `#+begin:`
   CmdDynamicBlockEnd,
+  /// \brief `#+begin_` with the text content inside
+  CmdCustomTextBlockBegin,
+  CmdCustomTextBlockEnd,
+  /// \brief `#+begin_` block with the raw string
+  CmdCustomRawBlockBegin,
+  CmdCustomRawBlockLine,
+  CmdCustomRawBlockEnd,
   CmdEmailRaw,
   CmdExampleBegin,
   CmdExampleEnd,
@@ -2765,6 +2780,11 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDrawersRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBlockBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBlockEnd)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomTextBlockBegin)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomTextBlockEnd)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomRawBlockBegin)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomRawBlockLine)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomRawBlockEnd)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdEmailRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdExampleBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdExampleEnd)

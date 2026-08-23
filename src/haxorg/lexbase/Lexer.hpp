@@ -19,6 +19,7 @@ struct LexerCommon {
 
 
     bool hasTokenForId(TokenId<K, V> id) const {
+        LOGIC_ASSERTION_CHECK(!id.isNil(), "");
         return 0 <= id.getIndex() && id.getIndex() < in->size();
     }
 
@@ -41,11 +42,7 @@ struct LexerCommon {
         std::optional<TokenId<K, V>> locId;
 
         if (finished()) {
-            if (lastToken) {
-                locId = lastToken.value();
-            } else {
-                locId = pos;
-            }
+            if (lastToken) { locId = lastToken.value(); }
         } else {
             locId = get();
         }
@@ -328,6 +325,8 @@ struct LexerCommon {
         }
     }
 
+    bool is_last_token() const { return !finished() && !hasNext(1); }
+
     bool can_search(K kind) {
         if (hasNext()) {
             return tok().kind != kind;
@@ -511,7 +510,10 @@ struct SubLexer : public LexerCommon<K, V> {
         return !pos.isNil() && (0 <= idx) && (idx < tokens.size());
     }
 
-    void add(TokenId<K, V> const& tok) { tokens.push_back(tok); }
+    void add(TokenId<K, V> const& tok) {
+        LOGIC_ASSERTION_CHECK(!tok.isNil(), "");
+        tokens.push_back(tok);
+    }
     void start() { pos = tokens.at(0); }
 
     void setPos(TokenId<K, V> id) override {

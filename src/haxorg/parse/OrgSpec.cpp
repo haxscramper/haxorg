@@ -186,6 +186,13 @@ std::unique_ptr<OrgSpec> getOrgSpec() {
                 fieldN(slice(2, 1_B), N::Body, {onk::RawText, onk::Empty}),
             })},
         SpecPair{
+            onk::BlockCustomText,
+            OrgPattern({
+                fieldN(0, N::Name, {onk::Word}),
+                fieldN(1, N::Args, {onk::Attrs, onk::Empty}),
+                fieldN(slice(2, 1_B), N::Body, {onk::StmtList, onk::Empty}),
+            })},
+        SpecPair{
             onk::ColonExample,
             OrgPattern({
                 fieldN(slice(0, 1_B), N::Body, {onk::RawText, onk::Empty}),

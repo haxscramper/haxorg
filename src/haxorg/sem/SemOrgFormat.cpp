@@ -1218,10 +1218,10 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
             }));
         }
 
-        add(title, b.join(lead, str(" ")));
+        if (!lead.empty()) { add(title, b.join(lead, str(" "))); }
     }
 
-    Res head = b.stack({title});
+    Res head = b.at(title).size() == 0 ? b.stack() : b.stack({title});
 
     if (id->scheduled) {
         add(head, b.line({str("SCHEDULED: "), toString(*id->scheduled, ctx)}));

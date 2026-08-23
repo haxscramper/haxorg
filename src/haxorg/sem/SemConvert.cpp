@@ -2803,7 +2803,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdCustomTextCommand: return convertCmdCustomText(a).unwrap();
         case onk::CmdCustomArgsCommand: return convertCmdCustomArgs(a).unwrap();
         case onk::CriticMarkStructure: return convertCriticMarkup(a).unwrap();
-        case onk::BlockDynamicFallback: return convertBlockDynamicFallback(a).unwrap();
+        case onk::BlockCustomText: return convertBlockDynamicFallback(a).unwrap();
         default: {
             return SemError(
                 a, MakeInternal(hstd::fmt("ERR Unknown content {}", a.getKind())));

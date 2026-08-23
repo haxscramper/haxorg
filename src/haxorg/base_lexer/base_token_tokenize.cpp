@@ -938,9 +938,48 @@ void switch_command(Cursor& c) {
                 }
             }
             c.token1(otk::CmdSrcEnd, &advance_count, get_end_block_offset("src"));
+        } else if (lower_head.starts_with("begin_")) {
+            hstd::Vec<hstd::Str> raw_blocks{"begin_custom_raw_block"};
+            // NOTE: This is a possible customization point for the extra raw blocks. For
+            // now this is hardcoded and not customizable, in the future I will need to
+            // decide if this makes sense.
+            hstd::Opt<std::string> found_raw_block;
+            for (auto const& raw_block : raw_blocks) {
+                if (lower_head == raw_block) { found_raw_block = raw_block; }
+            }
+
+            if (found_raw_block.has_value()) {
+                head.kind = otk::CmdCustomRawBlockBegin;
+                head_args();
+                c.token0(otk::Newline, &advance1);
+                auto block_name = found_raw_block->substr("begin_"_str_view.size());
+                auto end_pos    = find_block_end(block_name);
+                if (!end_pos) {
+                    OP_TRACER_MESSAGE(
+                        c.p, "Could not find the closing block for the example block");
+                    return;
+                }
+                while (c.position() < *end_pos) {
+                    auto __guard = c.advance_guard();
+                    if (c.is_at('\n')) {
+                        c.token0(otk::Newline, &advance1);
+                    } else {
+                        c.token0(otk::CmdExampleLine, [](Cursor& c) {
+                            while (c.can_search('\n')) { c.next(); }
+                        });
+                    }
+                }
+                c.token1(
+                    otk::CmdCustomRawBlockEnd,
+                    &advance_count,
+                    get_end_block_offset(block_name));
+            } else {
+                head.kind = otk::CmdCustomTextBlockBegin;
+                head_args();
+            }
         } else {
-            head.kind = otk::
-                CmdCustomRaw; // e.g. "#+beginner:" is a plain keyword, not a block
+            // e.g. "#+beginner:" is a plain keyword, not a block
+            head.kind = otk::CmdCustomRaw;
             head_raw();
         }
     } else if (norm_head.starts_with("end")) {
@@ -966,6 +1005,11 @@ void switch_command(Cursor& c) {
         } else if (block_kind == "table") {
             head.kind = otk::CmdTableEnd;
             head_args();
+        } else if (lower_head.starts_with("end_")) {
+            // No explicit handling for the custom raw block end -- it is lexer
+            // immediately in the same block as the begin
+            head.kind = otk::CmdCustomTextBlockEnd;
+            head_raw();
         } else {
             // e.g. "#+endnote:" is a plain keyword, not a block end
             head.kind = otk::CmdCustomRaw;

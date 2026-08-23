@@ -10,9 +10,10 @@ using namespace hstd;
 
 
 TEST(OrgParseSem, NamedPropertyModification) {
-    auto doc = testParseString(R"(* Subtree)");
+    auto doc = testParseString(R"(* Subtree)", getDebugFile("parse/init"));
 
     auto tree = doc.at(0).as<sem::Subtree>();
+    EXPECT_EQ(tree->getCleanTitle(), "Subtree"_ss);
     tree->setPropertyStrValue("123", "bookmark_pos");
 
     Str formatted = org::formatToString(doc);
@@ -28,7 +29,7 @@ TEST(OrgParseSem, LinkAttachedGet1) {
         R"(#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
 )",
-        getDebugFile("LinkAttachedGet1"));
+        getDebugFile("parse/init"));
 
     EXPECT_EQ2(doc->getKind(), OrgSemKind::Document);
     auto par = doc->subnodes.at(0);
@@ -47,29 +48,29 @@ TEST(OrgParseSem, LinkAttachedGet1) {
 }
 
 TEST(OrgParseSem, TracerOperations1) {
-    auto                text = R"(
+    auto                text = std::string(R"(
 * Subtree
   :properties:
   :key: value
   :end:
-)";
+)");
     org::test::MockFull p{"<test>", true, true};
-    fs::path            tokenizer_trace{"/tmp/TraceOperations1_tokenizer_trace.txt"};
+    fs::path            tokenizer_trace{getDebugFile("parse/tokenizer_trace.txt")};
     p.tokenizer->setTraceFile(tokenizer_trace);
     p.tokenizer->traceStructured = true;
 
-    fs::path parser_trace{"/tmp/TraceOperations1_parser_trace.txt"};
+    fs::path parser_trace{getDebugFile("parse/parser_trace.txt")};
     p.parser->setTraceFile(parser_trace);
     p.parser->traceStructured = true;
 
     sem::OrgConverter converter{};
-    fs::path          sem_trace{"/tmp/TraceOperations1_sem_trace.txt"};
+    fs::path          sem_trace{getDebugFile("parse/sem_trace.txt")};
     converter.setTraceFile(sem_trace);
     converter.traceStructured = true;
 
 
     org::parse::LexerParams params;
-    fs::path                lex_trace{"/tmp/TraceOperations1_lex_trace.txt"};
+    fs::path                lex_trace{getDebugFile("parse/lex_trace.txt")};
     params.setTraceFile(lex_trace);
     params.traceStructured = true;
     p.run(text, params);
@@ -80,7 +81,7 @@ TEST(OrgParseSem, TracerOperations1) {
                         .value();
 
     org::algo::ExporterJson exp{};
-    fs::path                exp_trace{"/tmp/TraceOperations1_exp_trace.txt"};
+    fs::path                exp_trace{getDebugFile("parse/exp_trace.txt")};
     exp.setTraceFile(exp_trace);
     exp.traceStructured = true;
     exp.evalTop(document);
@@ -89,7 +90,8 @@ TEST(OrgParseSem, TracerOperations1) {
 
 TEST(OrgParseSem, ParagraphBody) {
     {
-        auto par = parseOne<sem::Paragraph>("NOTE: content");
+        auto par = parseOne<sem::Paragraph>(
+            "NOTE: content", getDebugFile("note_content/parse"));
         EXPECT_TRUE(par->hasAdmonition());
         EXPECT_EQ(par->getAdmonitions().at(0), "NOTE");
         EXPECT_FALSE(par.isNil());
@@ -99,7 +101,7 @@ TEST(OrgParseSem, ParagraphBody) {
     }
 
     {
-        auto par = parseOne<sem::Paragraph>("NOTE:");
+        auto par = parseOne<sem::Paragraph>("NOTE:", getDebugFile("note_empty/parse"));
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 0);
@@ -114,7 +116,7 @@ TEST(OrgParseSem, ParagraphBody) {
 
     {
         auto par = parseOne<sem::Paragraph>(
-            "[fn:footnote] content", getDebugFile("paragraph_body_footnote"));
+            "[fn:footnote] content", getDebugFile("note_footnote/parse"));
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 1);
@@ -122,7 +124,8 @@ TEST(OrgParseSem, ParagraphBody) {
     }
 
     {
-        auto par = parseOne<sem::Paragraph>("[fn::inline footnote] content");
+        auto par = parseOne<sem::Paragraph>(
+            "[fn::inline footnote] content", getDebugFile("note_inline/parse"));
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 3);
@@ -135,7 +138,8 @@ TEST(OrgParseSem, CustomBlocks) {
     auto block = parseOne<sem::BlockDynamicFallback>(
         R"(#+begin_random_content
 body of the random
-#+end_random_content)");
+#+end_random_content)",
+        getDebugFile("parse/init"));
 
     EXPECT_EQ(block->name, "randomcontent");
     auto body = block.at(0);
@@ -150,7 +154,8 @@ TEST(OrgParseSem, BlockAttachment) {
             R"(#+caption: example *caption*
 #+begin_example
 content
-#+end_example)");
+#+end_example)",
+            getDebugFile("caption/init"));
 
         auto caption = block->getCaption();
         // dbgString(caption);
@@ -167,7 +172,8 @@ content
             R"(#+name: example-block-one
 #+begin_example
 content
-#+end_example)");
+#+end_example)",
+            getDebugFile("name/init"));
 
         auto name = block->getName();
         EXPECT_EQ(name.size(), 1);
@@ -183,7 +189,7 @@ TEST(OrgParseSem, SubtreeProperties) {
   :PROPERTIES:
   :COOKIE_DATA: todo recursive
   :END:)",
-            getDebugFile("cookie_data"));
+            getDebugFile("cookie_data/init"));
 
         auto p = org::getSubtreeProperties<NP::CookieData>(t);
         EXPECT_EQ(p.size(), 1);
@@ -205,7 +211,7 @@ TEST(OrgParseSem, SubtreeProperties) {
      :ARCHIVE:  %s_archive::* Misc
      :END:
 )",
-            getDebugFile("trace"));
+            getDebugFile("trace/init"));
 
         // dbgString(tree);
 
@@ -1274,7 +1280,7 @@ BIG_IDENT
 other
 )"};
 
-    auto doc = parseOne<sem::Document>(text, getDebugFile("test_markup"));
+    auto doc = parseOne<sem::Document>(text, getDebugFile("parse/init"));
 
     auto get = [&](CVec<int> path) {
         auto result = doc.asOrg();
@@ -1314,7 +1320,7 @@ TEST(OrgParseSem, IncludeCommand) {
     };
 
     {
-        auto i = get(R"(#+include: data.org)", getDebugFile("include_command_item"));
+        auto i = get(R"(#+include: data.org)", getDebugFile("parse/init"));
         EXPECT_EQ2(i->path, "data.org"_ss);
     }
     {
