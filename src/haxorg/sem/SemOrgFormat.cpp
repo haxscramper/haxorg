@@ -1218,7 +1218,6 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
             }));
         }
 
-
         add(title, b.join(lead, str(" ")));
     }
 

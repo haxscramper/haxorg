@@ -33,6 +33,10 @@
 
 #define OPT_NAME(__field, __value) static constexpr char const* __field = __value;
 
+#define OPT_FIELD(__field, __value, __type, __default_value)                             \
+    OPT_NAME(__field##_opt, __value);                                                    \
+    __type __field = __default_value;
+
 #define OPT_GET(__cmd, __opts, __field, __type)                                          \
     if (auto __value = __cmd.present<__type>(__opts.__field##_opt);                      \
         __value.has_value()) {                                                           \
@@ -50,37 +54,28 @@ hstd::ProtoXmlMapper make_proto_xml_mapper();
 struct CliOpts {
     struct ParseOpts {
         /// \brief input file or directory
-        std::string            input;
-        hstd::Opt<std::string> baseTokenTracePath  = std::nullopt;
-        hstd::Opt<std::string> tokenTracePath      = std::nullopt;
-        hstd::Opt<std::string> parseTracePath      = std::nullopt;
-        hstd::Opt<std::string> semTracePath        = std::nullopt;
-        hstd::Opt<std::string> baseTokenDumpPath   = std::nullopt;
-        hstd::Opt<std::string> tokenDumpPath       = std::nullopt;
-        hstd::Opt<std::string> parseDumpPath       = std::nullopt;
-        hstd::Opt<std::string> semDumpPath         = std::nullopt;
-        hstd::Opt<std::string> immVerboseDumpPath  = std::nullopt;
-        hstd::Opt<std::string> immDumpPath         = std::nullopt;
-        hstd::Opt<std::string> immTrackingDumpPath = std::nullopt;
-        bool                   validateBaseTokens  = false;
+        using OS = hstd::Opt<std::string>;
 
-        org::parse::OrgParseParameters::LastParseStage
-            lastStage = org::parse::OrgParseParameters::LastParseStage::ImmConvert;
+        OPT_FIELD(input, "input", std::string, "");
+        OPT_FIELD(
+            lastStage,
+            "--last-stage",
+            org::parse::OrgParseParameters::LastParseStage,
+            org::parse::OrgParseParameters::LastParseStage::ImmConvert);
+        OPT_FIELD(validateBaseTokens, "--validate-base-tokens", bool, false);
 
-        OPT_NAME(input_opt, "input");
-        OPT_NAME(baseTokenTracePath_opt, "--base-token-trace");
-        OPT_NAME(tokenTracePath_opt, "--token-trace");
-        OPT_NAME(parseTracePath_opt, "--parse-trace");
-        OPT_NAME(semTracePath_opt, "--sem-trace");
-        OPT_NAME(lastStage_opt, "--last-stage");
-        OPT_NAME(baseTokenDumpPath_opt, "--base-token-dump");
-        OPT_NAME(tokenDumpPath_opt, "--token-dump");
-        OPT_NAME(parseDumpPath_opt, "--parse-dump");
-        OPT_NAME(semDumpPath_opt, "--sem-dump");
-        OPT_NAME(validateBaseTokens_opt, "--validate-base-tokens");
-        OPT_NAME(immVerboseDumpPath_opt, "--imm-verbose-dump");
-        OPT_NAME(immDumpPath_opt, "--imm-dump");
-        OPT_NAME(immTrackingDumpPath_opt, "--imm-tracking-dump");
+        OPT_FIELD(baseTokenTracePath, "--base-token-trace", OS, std::nullopt);
+        OPT_FIELD(tokenTracePath, "--token-trace", OS, std::nullopt);
+        OPT_FIELD(parseTracePath, "--parse-trace", OS, std::nullopt);
+        OPT_FIELD(semTracePath, "--sem-trace", OS, std::nullopt);
+        OPT_FIELD(baseTokenDumpPath, "--base-token-dump", OS, std::nullopt);
+        OPT_FIELD(tokenDumpPath, "--token-dump", OS, std::nullopt);
+        OPT_FIELD(parseDumpPath, "--parse-dump", OS, std::nullopt);
+        OPT_FIELD(semDumpPath, "--sem-dump", OS, std::nullopt);
+        OPT_FIELD(immVerboseDumpPath, "--imm-verbose-dump", OS, std::nullopt);
+        OPT_FIELD(immDumpPath, "--imm-dump", OS, std::nullopt);
+        OPT_FIELD(immTrackingDumpPath, "--imm-tracking-dump", OS, std::nullopt);
+        OPT_FIELD(immAstTracePath, "--imm-convert-trace", OS, std::nullopt);
 
         ParseOpts() {}
         DESC_FIELDS(
@@ -406,6 +401,7 @@ CliOpts parseCli(int argc, char** argv) {
     parse_cmd.add_argument(PO::parseDumpPath_opt).help("parse dump output path");
     parse_cmd.add_argument(PO::semDumpPath_opt).help("sem dump output path");
     parse_cmd.add_argument(PO::immDumpPath_opt).help("Non-verbose dump of immutable AST");
+    parse_cmd.add_argument(PO::immAstTracePath_opt).help("Trace imm ast construct");
     parse_cmd.add_argument(PO::immVerboseDumpPath_opt)
         .help("Verbose dump of immutable AST");
     parse_cmd.add_argument(PO::immTrackingDumpPath_opt)
@@ -544,6 +540,7 @@ Full argument list was:
         OPT_GET(parse_cmd, opts, semDumpPath, std::string);
         OPT_GET(parse_cmd, opts, immDumpPath, std::string);
         OPT_GET(parse_cmd, opts, immVerboseDumpPath, std::string);
+        OPT_GET(parse_cmd, opts, immAstTracePath, std::string);
         OPT_GET(parse_cmd, opts, immTrackingDumpPath, std::string);
         if (auto v = parse_cmd.present<std::string>(opts.validateBaseTokens_opt)) {
             // TODO: boost lexical cast fails here, but writing a template function that
@@ -683,7 +680,10 @@ int main(int argc, char* argv[]) {
         }
 
         if (cmd.lastStage == org::parse::OrgParseParameters::LastParseStage::ImmConvert) {
-            auto store    = org::imm::ImmAstContext::init_start_context();
+            auto store = org::imm::ImmAstContext::init_start_context();
+            if (cmd.immAstTracePath) {
+                store->debug->setTraceFile(cmd.immAstTracePath.value());
+            }
             auto version  = store->init(node);
             auto imm_node = version.getRootAdapter();
 

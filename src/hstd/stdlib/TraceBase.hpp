@@ -269,6 +269,15 @@ inline bool __can_trace(T const& t) {
         ::hstd::tracer_detail::__get_tracer_obj(__tracer)->message(__VA_ARGS__);         \
     }
 
+
+#define OP_TRACER_FUNC_MESSAGE(__tracer, __func, __format, ...)                          \
+    if (::hstd::tracer_detail::__can_trace(__tracer)) {                                  \
+        ::hstd::tracer_detail::__get_tracer_obj(__tracer)->message(                      \
+            ::hstd::tracer_detail::__get_tracer_obj(__tracer)->fmt_message(              \
+                __format __VA_OPT__(, ) __VA_ARGS__),                                    \
+            __func);                                                                     \
+    }
+
 #define OP_TRACER_MESSAGE(__tracer, __format, ...)                                       \
     if (::hstd::tracer_detail::__can_trace(__tracer)) {                                  \
         ::hstd::tracer_detail::__get_tracer_obj(__tracer)->message(                      \

@@ -667,7 +667,6 @@ concept ProvidesImmApi //
    || std::is_same_v<API, typename imm_api_type<T>::api_type>;
 
 void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
-
     auto edit_radio_targets = [&](auto const& words, ImmId const& target) {
         auto&             rt    = transientTrack.radioTargets;
         auto              word  = words.at(0);
@@ -723,8 +722,12 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                             auto adapter = ctx.lock()->adaptUnrooted(node).as<N>();
                             __perf_trace("imm", "track names");
                             for (auto const& name : adapter.getName()) {
-                                OP_TRACER_MESSAGE(
-                                    ctx, "Tracking name '{}' for node {}", name, node);
+                                OP_TRACER_FUNC_MESSAGE(
+                                    ctx,
+                                    "updateTracking",
+                                    "Tracking name '{}' for node {}",
+                                    name,
+                                    node);
 
                                 if (add) {
                                     transientTrack.names.set(name, node);
@@ -749,7 +752,8 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
             [&](org::imm::ImmSubtree const& subtree) {
                 __perf_trace("imm", "track subtree");
                 if (auto id = subtree.treeId.get(); id) {
-                    OP_TRACER_MESSAGE(ctx, "Subtree ID {}", id.value());
+                    OP_TRACER_FUNC_MESSAGE(
+                        ctx, "updateTracking", "Subtree ID {}", id.value());
                     if (add) {
                         transientTrack.subtrees.set(*id, node);
                     } else {
@@ -759,7 +763,8 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
 
                 for (auto const& id :
                      org::getSubtreeProperties<sem::NamedProperty::CustomId>(subtree)) {
-                    OP_TRACER_MESSAGE(ctx, "Subtree custom ID {}", id.value);
+                    OP_TRACER_FUNC_MESSAGE(
+                        ctx, "updateTracking", "Subtree custom ID {}", id.value);
                     if (add) {
                         transientTrack.customIds.set(id.value, node);
                     } else {

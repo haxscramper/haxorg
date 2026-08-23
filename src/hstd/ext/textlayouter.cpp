@@ -514,6 +514,9 @@ Opt<Solution::Ptr> doOptStackLayout(
         }
     }
 
+    LOGIC_ASSERTION_CHECK_FMT(
+        !solnCandidates.empty(), "No solution candidates for stacked block {}", self);
+
     Solution::Ptr soln = vSumSolution(solnCandidates);
 
     // Under some odd circumstances involving comments, we may have a
@@ -647,7 +650,7 @@ Opt<Solution::Ptr> doOptVerbLayout(
 
     Layout::Ptr   layout = Layout::shared(lElts);
     int           span   = 0;
-    Solution::Ptr sf;
+    Solution::Ptr sf     = Solution::shared();
     if (0 < opts.leftMargin) { // Prevent incoherent solutions
         sf->add(0, span, 0, 0, layout);
     }
@@ -800,6 +803,125 @@ void Block::add(CVec<BlockId> others) {
         data);
 }
 
+bool BlockStore::canProduceLayout(BlockId const& id, UnorderedMap<BlockId, bool>& cache)
+    const {
+    if (cache.contains(id)) { return cache.at(id); }
+
+    Block const& block = at(id);
+    bool         result;
+
+    switch (block.getKind()) {
+        case Block::Kind::Empty: {
+            result = false;
+            break;
+        }
+
+        case Block::Kind::Text:
+        case Block::Kind::Verb: {
+            result = true;
+            break;
+        }
+
+        case Block::Kind::Line: {
+            result = rs::any_of(block.getLine().elements, [&](BlockId const& child) {
+                return canProduceLayout(child, cache);
+            });
+            break;
+        }
+
+        case Block::Kind::Stack: {
+            result = rs::any_of(block.getStack().elements, [&](BlockId const& child) {
+                return canProduceLayout(child, cache);
+            });
+            break;
+        }
+
+        case Block::Kind::Choice: {
+            result = rs::any_of(block.getChoice().elements, [&](BlockId const& child) {
+                return canProduceLayout(child, cache);
+            });
+            break;
+        }
+
+        case Block::Kind::Wrap: {
+            result = !block.getWrap().wrapElements.empty()
+                  && rs::all_of(block.getWrap().wrapElements, [&](BlockId const& child) {
+                         return canProduceLayout(child, cache);
+                     });
+            break;
+        }
+    }
+
+    cache[id] = result;
+    return result;
+}
+
+void BlockStore::validateLayoutTree(BlockId const& root) const {
+    UnorderedSet<BlockId>       visited;
+    UnorderedMap<BlockId, bool> productivity;
+
+    Func<void(BlockId const&)> validate;
+    validate = [&](BlockId const& id) {
+        if (visited.contains(id)) { return; }
+        visited.incl(id);
+
+        Block const& block = at(id);
+
+        auto validateChildren = [&](CVec<BlockId> children) {
+            for (BlockId const& child : children) { validate(child); }
+        };
+
+        switch (block.getKind()) {
+            case Block::Kind::Empty:
+            case Block::Kind::Text:
+            case Block::Kind::Verb: break;
+
+            case Block::Kind::Line: validateChildren(block.getLine().elements); break;
+
+            case Block::Kind::Stack: {
+                validateChildren(block.getStack().elements);
+
+                LOGIC_ASSERTION_CHECK_FMT(
+                    block.getStack().elements.empty()
+                        || canProduceLayout(id, productivity),
+                    "Stack {} has elements but none can produce a layout:\n{}",
+                    id,
+                    const_cast<BlockStore*>(this)->toTreeRepr(
+                        id, TreeReprConf{.maxDepth = 120}));
+                break;
+            }
+
+            case Block::Kind::Choice: {
+                validateChildren(block.getChoice().elements);
+
+                LOGIC_ASSERTION_CHECK_FMT(
+                    !block.getChoice().elements.empty()
+                        && canProduceLayout(id, productivity),
+                    "Choice {} has no layout-producing alternative:\n{}",
+                    id,
+                    const_cast<BlockStore*>(this)->toTreeRepr(
+                        id, TreeReprConf{.maxDepth = 120}));
+                break;
+            }
+
+            case Block::Kind::Wrap: {
+                validateChildren(block.getWrap().wrapElements);
+
+                LOGIC_ASSERTION_CHECK_FMT(
+                    canProduceLayout(id, productivity),
+                    "Wrap {} is empty or contains a non-layout-producing element:\n{}",
+                    id,
+                    const_cast<BlockStore*>(this)->toTreeRepr(
+                        id, TreeReprConf{.maxDepth = 120}));
+                break;
+            }
+        }
+    };
+
+    validate(root);
+}
+
+
 void BlockStore::add_at(BlockId const& id, BlockId const& next) {
     if (at(next).isLine() || at(next).isStack()) {
         if (at(next).size() == 0) {
@@ -817,16 +939,16 @@ void BlockStore::add_at(BlockId const& id, Vec<BlockId> const& next) {
     for (auto const& it : next) { at(id).add(it); }
 }
 
-BlockId BlockStore::text(LytStrSpan const& t) {
-    return store.add(Block(Block::Text{.text = t}));
+BlockId BlockStore::text(LytStrSpan const& t, const std::source_location location) {
+    return store.add(Block(Block::Text{.text = t}, location));
 }
 
-BlockId BlockStore::line(Vec<BlockId> const& l) {
-    return store.add(Block(Block::Line{.elements = l}));
+BlockId BlockStore::line(Vec<BlockId> const& l, const std::source_location location) {
+    return store.add(Block(Block::Line{.elements = l}, location));
 }
 
-BlockId BlockStore::stack(Vec<BlockId> const& l) {
-    return store.add(Block(Block::Stack{.elements = l}));
+BlockId BlockStore::stack(Vec<BlockId> const& l, const std::source_location location) {
+    return store.add(Block(Block::Stack{.elements = l}, location));
 }
 
 BlockId BlockStore::spatial(bool isVertical, Vec<BlockId> const& l) {
@@ -853,8 +975,8 @@ BlockId BlockStore::join(
     return res;
 }
 
-BlockId BlockStore::choice(Vec<BlockId> const& l) {
-    return store.add(Block(Block::Choice{.elements = l}));
+BlockId BlockStore::choice(Vec<BlockId> const& l, const std::source_location location) {
+    return store.add(Block(Block::Choice{.elements = l}, location));
 }
 
 BlockId BlockStore::space(int count) {
@@ -909,8 +1031,17 @@ BlockId BlockStore::horizontal(Vec<BlockId> const& blocks, BlockId const& sep) {
 }
 
 Vec<Layout::Ptr> BlockStore::toLayouts(BlockId id, Options const& opts) {
+    validateLayoutTree(id);
+
     Opt<Solution::Ptr> rest;
     auto               sln = doOptLayout(*this, id, rest, opts);
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        sln.has_value(),
+        "Root block {} does not produce a layout:\n{}",
+        id,
+        toTreeRepr(id, TreeReprConf{.maxDepth = 120}));
+
     return sln.value()->layouts;
 }
 
@@ -947,6 +1078,7 @@ std::string BlockStore::toTreeRepr(BlockId root, TreeReprConf const& conf) {
 
         if (bl.isBreaking) { os << "is-breaking "; }
         if (bl.breakMult != 1) { os << "break-mult " << fmt1(bl.breakMult); }
+        if (bl.debug) { os << " " << bl.debug.value(); }
 
         switch (bl.getKind()) {
             case Block::Kind::Line: {

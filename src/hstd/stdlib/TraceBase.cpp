@@ -118,11 +118,11 @@ void OperationsTracer::message(
     if (canTrace()) {
         message(
             OperationsMsg{
-                .level    = activeLevel,
-                .function = function,
-                .line     = line,
                 .msg      = value,
                 .file     = file,
+                .function = function,
+                .line     = line,
+                .level    = activeLevel,
             });
     }
 }

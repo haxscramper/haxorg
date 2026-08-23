@@ -12,6 +12,7 @@
 #include <hstd/system/aux_utils.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/reflection.hpp>
+#include <source_location>
 
 
 /// \brief Text block layouts used in exporters and code generation
@@ -300,21 +301,36 @@ struct Block {
     int  breakMult = 1;      /// Local line break cost change
     Data data;
 
+    hstd::Opt<std::string> debug;
+
     Block() = default;
     Block(Data const& data) : data(data) {}
+    Block(Data const& data, const std::source_location location)
+        : data(data), debug{hstd::fmt("{}", location.line())} {}
 };
 
 
 struct BlockStore {
     dod::Store<BlockId, Block> store;
 
+    bool canProduceLayout(BlockId const& id, UnorderedMap<BlockId, bool>& cache) const;
+    void validateLayoutTree(BlockId const& root) const;
+
     Block&  at(BlockId const& id) { return store.at(id); }
     void    add_at(BlockId const& id, BlockId const& next);
     void    add_at(BlockId const& id, Vec<BlockId> const& next);
-    BlockId text(LytStrSpan const& t);
-    BlockId line(Vec<BlockId> const& l = {});
-    BlockId stack(Vec<BlockId> const& l = {});
-    BlockId choice(Vec<BlockId> const& l = {});
+    BlockId text(
+        LytStrSpan const&          t,
+        const std::source_location location = std::source_location::current());
+    BlockId line(
+        Vec<BlockId> const&        l        = {},
+        const std::source_location location = std::source_location::current());
+    BlockId stack(
+        Vec<BlockId> const&        l        = {},
+        const std::source_location location = std::source_location::current());
+    BlockId choice(
+        Vec<BlockId> const&        l        = {},
+        const std::source_location location = std::source_location::current());
     BlockId space(int count);
     BlockId empty() { return store.add(Block(Block::Empty{})); }
     BlockId spatial(bool isVertical, Vec<BlockId> const& l = {});
@@ -323,7 +339,8 @@ struct BlockStore {
     BlockId vertical(Vec<BlockId> const& blocks, BlockId const& sep);
     BlockId horizontal(Vec<BlockId> const& blocks, BlockId const& sep);
 
-    BlockId surround_non_empty(BlockId content, BlockId before, BlockId after) {
+    Block const& at(BlockId const& id) const { return store.at(id); }
+    BlockId      surround_non_empty(BlockId content, BlockId before, BlockId after) {
         if (store.at(content).size() == 0) {
             return space(0);
         } else {
