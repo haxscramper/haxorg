@@ -30,10 +30,14 @@ using osk = OrgSemKind;
 using slk = org::sem::LinkTarget::Kind;
 
 
-bool org::graph::isMmapIgnored(org::imm::ImmAdapter const& n) {
-    return isInSubtreeDescriptionList(n)
-        || (isAttachedSubtreeList(n)
-            && (isInternalLinkedDescriptionList(n) || isInternalLinkedRegularList(n)));
+hstd::Opt<Str> org::graph::MapNode::getSubtreeId(
+    std::shared_ptr<org::imm::ImmAstContext> const& context) const {
+    if (auto tree = getAdapter().asOpt<org::imm::ImmSubtree>();
+        tree && tree.value()->treeId.get()) {
+        return tree.value()->treeId->value();
+    } else {
+        return std::nullopt;
+    }
 }
 
 static const IntSet<slk> SkipLinks{
@@ -190,38 +194,14 @@ void traceNodeResolve(
 }
 
 
-hgraph::VertexID org::graph::MapGraphState::addNode(
-    org::imm::ImmAdapter const&       node,
-    std::shared_ptr<MapConfig> const& conf) {
-    __perf_trace("mmpa", "add node");
-
-    auto attr = conf->getInitialNodeProp(this, node);
-    OP_TRACER_MESSAGE(graph, "initial node prop unresolved:{}", attr->unresolved);
-    auto graph_node = MapNode::shared(node);
-    auto res        = getGraph()->addNode(graph_node, attr);
-    OP_TRACER_MESSAGE(
-        graph,
-        "added node:{} unresolved:{}",
-        graph->getDebug(res),
-        getGraph()->getAttr(res)->unresolved);
-
-
-    MapNodeResolveResult resolved = getResolvedNodeInsert(shared_from_this(), res, conf);
-
-    // debug-print node resolution state
-    traceNodeResolve(shared_from_this(), resolved, conf, res);
-
-    // Iterate over all known unresolved nodes and adjust node property
-    // values in the graph to account for new property changes.
-    removeUnresolvedNodeProps(this, resolved, res, unresolved, conf);
-
-    // Collect new list of unresolved nodes for the changes.
-    updateUnresolvedNodeTracking(shared_from_this(), resolved, res, conf);
-
-    // Add all resolved edges to the graph
-    updateResolvedEdges(shared_from_this(), resolved, conf);
-
-    return res;
+hstd::Opt<Str> org::graph::MapNode::getFootnoteName(
+    std::shared_ptr<org::imm::ImmAstContext> const& context) const {
+    if (auto par = getAdapter().asOpt<org::imm::ImmParagraph>();
+        par && par->isFootnoteDefinition()) {
+        return par->getFootnoteName();
+    } else {
+        return std::nullopt;
+    }
 }
 
 static const SemSet NestedNodes{
@@ -232,74 +212,27 @@ static const SemSet NestedNodes{
 };
 
 
-Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
-    org::imm::ImmAdapterT<org::imm::ImmLink> link) const {
-    if (SkipLinks.contains(link->target.getKind())) {
-        return std::nullopt;
-    } else {
-        return MapLink{MapLink::Link{
-            .link = link.uniq(),
-            .description //
-            = link->description.get()
-                ? Vec{link.at(link->description.get().value().toId(),
-                              ImmPathStep::FieldDeref(
-                                  ImmReflFieldId::FromTypeField(&ImmLink::description)))
-                          .uniq()}
-                : Vec<ImmUniqId>{},
-        }};
-    }
+hgraph::EdgeID org::graph::MapGraph::addEdge(
+    hstd::SPtr<MapEdge> const&     edge,
+    hstd::SPtr<MapEdgeProp> const& prop,
+    hstd::ext::graph::VertexID     source,
+    hstd::ext::graph::VertexID     target) {
+    edge->addAttribute(prop);
+    auto res = edges->add(edge);
+    LOGIC_ASSERTION_CHECK(edges->hasEdge(res), "");
+    edges->trackEdge(res, source, target);
+    return res;
 }
 
 
-Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
-    org::imm::ImmAdapterT<org::imm::ImmSubtree> tree) const {
-    Vec<MapLink> unresolved;
-    // Description lists with links in header are attached as the
-    // outgoing link to the parent subtree. It is the only supported
-    // way to provide an extensive label between subtree nodes.
-    for (auto const& list : tree.subAs<ImmList>()) {
-        if (org::imm::isAttachedSubtreeList(list)) {
-            OP_TRACER_MESSAGE(graph, "Subtree {} has list {}", tree.id, list.id);
-            for (auto const& item : list.subAs<ImmListItem>()) {
-                auto visit_link =
-                    [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link) {
-                        OP_TRACER_MESSAGE(
-                            graph, "List item {} contains link {}", item.id, link);
-                        // Description list header might contain
-                        // non-link elements. These are ignored in the
-                        // mind map.
-                        if (!SkipLinks.contains(link->target.getKind())) {
-                            MapLink::Link map_link{.link = link.uniq()};
-                            for (auto const& sub : item.sub()) {
-                                map_link.description.push_back(sub.uniq());
-                            }
-                            unresolved.push_back(MapLink{map_link});
-                        }
-                    };
-
-                if (isLinkedDescriptionItemNode(item)) {
-                    for (auto const& link :
-                         item.pass(item->header->value()).subAs<ImmLink>()) {
-                        visit_link(link);
-                    }
-                } else if (isLinkedListItemNode(item)) {
-                    for (auto const& link : getAllInternalLinks(item)) {
-                        visit_link(link);
-                    }
-                }
-            }
-        }
-    }
-
-    OP_TRACER_MESSAGE(
-        graph,
-        "Collected {} unresolved items for subtree {}: {}",
-        unresolved.size(),
-        tree.id,
-        unresolved.map<hstd::Str>(
-            [](MapLink const& it) { return it.getLink().link.getSimplePathFormat(); }));
-
-    return unresolved;
+hgraph::VertexID org::graph::MapGraph::addNode(
+    hstd::SPtr<MapNode> const&     node,
+    hstd::SPtr<MapNodeProp> const& prop) {
+    node->addAttribute(prop);
+    auto res = nodes.add(node);
+    id_map.insert_or_assign(node->id.uniq(), res);
+    trackVertex(res);
+    return res;
 }
 
 
@@ -359,133 +292,38 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     return result;
 }
 
-Vec<MapLinkResolveResult> org::graph::getResolveTarget(
-    MapGraphState::Ptr const&  state,
-    hgraph::VertexID const&    source,
-    MapLink const&             link,
-    std::shared_ptr<MapConfig> conf) {
-    auto g = state->graph;
-    OP_TRACER_MESSAGE(g, "Get resolve targets {} {}", source, link);
+hgraph::VertexID org::graph::MapGraphState::addNode(
+    org::imm::ImmAdapter const&       node,
+    std::shared_ptr<MapConfig> const& conf) {
+    __perf_trace("mmpa", "add node");
 
-    Vec<MapLinkResolveResult> result;
-
-    if (link.isRadio()) {
-        // Unresolved radio link already contains all the information for
-        // creating edge. This only happens when the node itself has not
-        // been added to the graph.
-        result.push_back(
-            MapLinkResolveResult{
-                .link   = link,
-                .target = link.getRadio().target,
-                .source = g->getImmID(source),
-            });
-    } else {
-        OP_TRACER_MESSAGE(
-            g,
-            "footnotes {} subtrees {} names {}",
-            state->ast->currentTrack->footnotes,
-            state->ast->currentTrack->subtrees,
-            state->ast->currentTrack->names);
-
-        auto add_edge = [&](imm::ImmId const& target) {
-            auto adapters = state->ast->getAdaptersFor(target);
-            LOGIC_ASSERTION_CHECK_FMT(
-                !adapters.empty(),
-                "Target node {} does not have any parent adapters tracked",
-                target);
-
-            for (auto const& full : adapters) {
-                result.push_back(
-                    MapLinkResolveResult{
-                        .link   = link,
-                        .target = full.uniq(),
-                        .source = g->getImmID(source),
-                    });
-            }
-        };
-
-        MapLink::Link const& spec         = link.getLink();
-        auto                 link_adapter = state->ast->adapt(spec.link).as<ImmLink>();
-        switch (link_adapter->target.getKind()) {
-            case slk::Id: {
-                auto text = link_adapter->target.getId().text;
-                if (auto target = state->ast->currentTrack->subtrees.get(text)) {
-                    OP_TRACER_MESSAGE(
-                        g, "Subtree ID {} on {} resolved to {}", text, source, *target);
-                    add_edge(*target);
-                } else {
-                    OP_TRACER_MESSAGE(g, "Not subtree with ID {}", text);
-                }
-                break;
-            }
-
-            case slk::CustomId: {
-                auto text = link_adapter->target.getCustomId().text;
-                if (auto target = state->ast->currentTrack->customIds.get(text)) {
-                    OP_TRACER_MESSAGE(
-                        g,
-                        "Subtree custom ID {} on {} resolved to {}",
-                        text,
-                        source,
-                        *target);
-                    add_edge(*target);
-                } else {
-                    OP_TRACER_MESSAGE(g, "Not subtree with custom ID {}", text);
-                }
-                break;
-            }
-
-            case slk::Footnote: {
-                Str const& text = link_adapter->target.getFootnote().target;
-                if (auto target = state->ast->currentTrack->footnotes.get(text)) {
-                    OP_TRACER_MESSAGE(
-                        g,
-                        "Footnote name {} on {} resolved to {}",
-                        text,
-                        source,
-                        *target);
-                    add_edge(*target);
-                } else {
-                    OP_TRACER_MESSAGE(g, "No footnote with ID {}", text);
-                }
-                break;
-            }
-
-            case slk::Internal: {
-                Str const& text = link_adapter->target.getInternal().target;
-                if (auto target = state->ast->currentTrack->names.get(text)) {
-                    OP_TRACER_MESSAGE(
-                        g,
-                        "Internal link name '{}' on '{}' resolved to "
-                        "named node '{}'",
-                        text,
-                        source,
-                        *target);
-                    add_edge(*target);
-                } else {
-                    OP_TRACER_MESSAGE(g, "No internal link with ID '{}'", text);
-                }
-                break;
-            }
-
-            case slk::File:
-            case slk::Attachment:
-            case slk::Person:
-            case slk::SubtreeTitle:
-            case slk::UserProtocol: {
-                break;
-            }
-
-            default: {
-                throw logic_unreachable_error::init(
-                    hstd::fmt(
-                        "Unhandled link kind '{}'", link_adapter->target.getKind()));
-            }
-        }
-    }
+    auto attr = conf->getInitialNodeProp(this, node);
+    OP_TRACER_MESSAGE(graph, "initial node prop unresolved:{}", attr->unresolved);
+    auto graph_node = MapNode::shared(node);
+    auto res        = getGraph()->addNode(graph_node, attr);
+    OP_TRACER_MESSAGE(
+        graph,
+        "added node:{} unresolved:{}",
+        graph->getDebug(res),
+        getGraph()->getAttr(res)->unresolved);
 
 
-    return result;
+    MapNodeResolveResult resolved = getResolvedNodeInsert(shared_from_this(), res, conf);
+
+    // debug-print node resolution state
+    traceNodeResolve(shared_from_this(), resolved, conf, res);
+
+    // Iterate over all known unresolved nodes and adjust node property
+    // values in the graph to account for new property changes.
+    removeUnresolvedNodeProps(this, resolved, res, unresolved, conf);
+
+    // Collect new list of unresolved nodes for the changes.
+    updateUnresolvedNodeTracking(shared_from_this(), resolved, res, conf);
+
+    // Add all resolved edges to the graph
+    updateResolvedEdges(shared_from_this(), resolved, conf);
+
+    return res;
 }
 
 namespace {
@@ -703,55 +541,6 @@ using namespace hstd::ext::graph;
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 
-hstd::SPtr<gv::GraphGroup> org::graph::MapGraph::GvConfig::toGraphviz(
-    org::imm::ImmAstContext::Ptr const& ctx,
-    MapGraph::Ptr const&                graph) {
-    hstd::SPtr<gv::GraphGroup> res = gv::GraphGroup::newRootGraph(run, "g"_ss);
-
-    LOGIC_ASSERTION_CHECK(run->getGroups()->getEdges().size() == 0, "");
-    LOGIC_ASSERTION_CHECK(res->run->getGraph()->getVertexCount() == 0, "");
-    LOGIC_ASSERTION_CHECK(res->run->getGroups()->getVertexCount() == 0, "");
-
-    auto rg = state.graph->addVertex();
-    run->setRootGroupAttribute(rg, res);
-    // base ID <-> mapped ID
-    hstd::ext::Unordered1to1Bimap<VertexID, VertexID> ids;
-
-    auto get_mapped = [&](VertexID id) -> VertexID { return ids.at_right(id); };
-
-    for (auto const& [it, imm_id, prop] : graph->getProperties()) {
-        if (acceptNode(it)) {
-            auto mapped_id = state.graph->addVertex(imm_id.getReadableId());
-            ids.add_unique(it, mapped_id);
-            state.hierarchy->trackVertex(mapped_id);
-            auto nesting_id = state.hierarchy->trackSubVertexRelation(rg, mapped_id);
-            OP_TRACER_MESSAGE(
-                run, "Nesting ID {} {}", nesting_id, run->getDebug(nesting_id));
-
-            auto node = res->addVertex(nesting_id);
-            node->setAttr("org_id", imm_id.getReadableId());
-            node->setHtmlNodeRecord(getNodeLabel(ctx->adapt(imm_id), prop));
-        }
-    }
-
-    for (auto const& [eid, prop] : graph->getEdges()) {
-        if (acceptNode(graph->getSource(eid)) && acceptNode(graph->getTarget(eid))
-            && acceptEdge(eid)) {
-            auto mapped_edge = state.graph->addEdge(
-                get_mapped(graph->getTarget(eid)), get_mapped(graph->getSource(eid)));
-            auto edge = res->addEdge(mapped_edge);
-        }
-    }
-
-    return res;
-}
-#endif
-
-MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
-
-MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
-
-#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 gv::Record org::graph::MapGraph::GvConfig::getNodeLabel(
     org::imm::ImmAdapter const& node,
     MapNodeProp::Ptr const&     prop) const {
@@ -820,6 +609,55 @@ gv::Record org::graph::MapGraph::GvConfig::getNodeLabel(
     }
 
     return rec;
+}
+#endif
+
+MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
+
+MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
+
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
+hstd::SPtr<gv::GraphGroup> org::graph::MapGraph::GvConfig::toGraphviz(
+    org::imm::ImmAstContext::Ptr const& ctx,
+    MapGraph::Ptr const&                graph) {
+    hstd::SPtr<gv::GraphGroup> res = gv::GraphGroup::newRootGraph(run, "g"_ss);
+
+    LOGIC_ASSERTION_CHECK(run->getGroups()->getEdges().size() == 0, "");
+    LOGIC_ASSERTION_CHECK(res->run->getGraph()->getVertexCount() == 0, "");
+    LOGIC_ASSERTION_CHECK(res->run->getGroups()->getVertexCount() == 0, "");
+
+    auto rg = state.graph->addVertex();
+    run->setRootGroupAttribute(rg, res);
+    // base ID <-> mapped ID
+    hstd::ext::Unordered1to1Bimap<VertexID, VertexID> ids;
+
+    auto get_mapped = [&](VertexID id) -> VertexID { return ids.at_right(id); };
+
+    for (auto const& [it, imm_id, prop] : graph->getProperties()) {
+        if (acceptNode(it)) {
+            auto mapped_id = state.graph->addVertex(imm_id.getReadableId());
+            ids.add_unique(it, mapped_id);
+            state.hierarchy->trackVertex(mapped_id);
+            auto nesting_id = state.hierarchy->trackSubVertexRelation(rg, mapped_id);
+            OP_TRACER_MESSAGE(
+                run, "Nesting ID {} {}", nesting_id, run->getDebug(nesting_id));
+
+            auto node = res->addVertex(nesting_id);
+            node->setAttr("org_id", imm_id.getReadableId());
+            node->setHtmlNodeRecord(getNodeLabel(ctx->adapt(imm_id), prop));
+        }
+    }
+
+    for (auto const& [eid, prop] : graph->getEdges()) {
+        if (acceptNode(graph->getSource(eid)) && acceptNode(graph->getTarget(eid))
+            && acceptEdge(eid)) {
+            auto mapped_edge = state.graph->addEdge(
+                get_mapped(graph->getTarget(eid)), get_mapped(graph->getSource(eid)));
+            auto edge = res->addEdge(mapped_edge);
+        }
+    }
+
+    return res;
 }
 #endif
 
@@ -903,18 +741,72 @@ void org::graph::MapGraphState::addNodeRec(
     aux(node, std::nullopt);
 }
 
-std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
-    std::shared_ptr<org::imm::ImmAstContext> ast) {
-    return MapGraphState::FromAstContext(ast);
+Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
+    org::imm::ImmAdapterT<org::imm::ImmSubtree> tree) const {
+    Vec<MapLink> unresolved;
+    // Description lists with links in header are attached as the
+    // outgoing link to the parent subtree. It is the only supported
+    // way to provide an extensive label between subtree nodes.
+    for (auto const& list : tree.subAs<ImmList>()) {
+        if (org::imm::isAttachedSubtreeList(list)) {
+            OP_TRACER_MESSAGE(graph, "Subtree {} has list {}", tree.id, list.id);
+            for (auto const& item : list.subAs<ImmListItem>()) {
+                auto visit_link =
+                    [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link) {
+                        OP_TRACER_MESSAGE(
+                            graph, "List item {} contains link {}", item.id, link);
+                        // Description list header might contain
+                        // non-link elements. These are ignored in the
+                        // mind map.
+                        if (!SkipLinks.contains(link->target.getKind())) {
+                            MapLink::Link map_link{.link = link.uniq()};
+                            for (auto const& sub : item.sub()) {
+                                map_link.description.push_back(sub.uniq());
+                            }
+                            unresolved.push_back(MapLink{map_link});
+                        }
+                    };
+
+                if (isLinkedDescriptionItemNode(item)) {
+                    for (auto const& link :
+                         item.pass(item->header->value()).subAs<ImmLink>()) {
+                        visit_link(link);
+                    }
+                } else if (isLinkedListItemNode(item)) {
+                    for (auto const& link : getAllInternalLinks(item)) {
+                        visit_link(link);
+                    }
+                }
+            }
+        }
+    }
+
+    OP_TRACER_MESSAGE(
+        graph,
+        "Collected {} unresolved items for subtree {}: {}",
+        unresolved.size(),
+        tree.id,
+        unresolved.map<hstd::Str>(
+            [](MapLink const& it) { return it.getLink().link.getSimplePathFormat(); }));
+
+    return unresolved;
 }
 
-hstd::Opt<Str> org::graph::MapNode::getFootnoteName(
-    std::shared_ptr<org::imm::ImmAstContext> const& context) const {
-    if (auto par = getAdapter().asOpt<org::imm::ImmParagraph>();
-        par && par->isFootnoteDefinition()) {
-        return par->getFootnoteName();
-    } else {
+Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
+    org::imm::ImmAdapterT<org::imm::ImmLink> link) const {
+    if (SkipLinks.contains(link->target.getKind())) {
         return std::nullopt;
+    } else {
+        return MapLink{MapLink::Link{
+            .link = link.uniq(),
+            .description //
+            = link->description.get()
+                ? Vec{link.at(link->description.get().value().toId(),
+                              ImmPathStep::FieldDeref(
+                                  ImmReflFieldId::FromTypeField(&ImmLink::description)))
+                          .uniq()}
+                : Vec<ImmUniqId>{},
+        }};
     }
 }
 
@@ -935,55 +827,10 @@ void org::graph::MapNode::writeSerial(
 #endif
 
 
-hstd::Opt<Str> org::graph::MapNode::getSubtreeId(
-    std::shared_ptr<org::imm::ImmAstContext> const& context) const {
-    if (auto tree = getAdapter().asOpt<org::imm::ImmSubtree>();
-        tree && tree.value()->treeId.get()) {
-        return tree.value()->treeId->value();
-    } else {
-        return std::nullopt;
-    }
+std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
+    std::shared_ptr<org::imm::ImmAstContext> ast) {
+    return MapGraphState::FromAstContext(ast);
 }
-
-#if ORG_BUILD_WITH_PROTOBUF
-void org::graph::MapEdgeCollection::writeSerial(
-    hstd::ext::graph::proto::IEdgeCollection* out,
-    hstd::ext::graph::IGraph const*           graph) const {
-    IEdgeCollection::writeSerial(out, graph);
-    proto::MapEdgeCollectionPayload tag;
-    out->mutable_payload()->PackFrom(tag);
-}
-
-void org::graph::MapEdgeCollection::readSerial(
-    hstd::ext::graph::proto::IEdgeCollection const* in,
-    hstd::ext::graph::IGraph const*                 graph,
-    hstd::ext::graph::IGraphSerialReaderFactory*    factory) {
-    IEdgeCollection::readSerial(in, graph, factory);
-}
-#endif
-
-VertexID org::graph::MapGraph::addNode(
-    hstd::SPtr<MapNode> const&     node,
-    hstd::SPtr<MapNodeProp> const& prop) {
-    node->addAttribute(prop);
-    auto res = nodes.add(node);
-    id_map.insert_or_assign(node->id.uniq(), res);
-    trackVertex(res);
-    return res;
-}
-
-EdgeID org::graph::MapGraph::addEdge(
-    hstd::SPtr<MapEdge> const&     edge,
-    hstd::SPtr<MapEdgeProp> const& prop,
-    hstd::ext::graph::VertexID     source,
-    hstd::ext::graph::VertexID     target) {
-    edge->addAttribute(prop);
-    auto res = edges->add(edge);
-    LOGIC_ASSERTION_CHECK(edges->hasEdge(res), "");
-    edges->trackEdge(res, source, target);
-    return res;
-}
-
 
 #if ORG_BUILD_WITH_PROTOBUF
 void org::graph::MapEdge::readSerial(
@@ -1004,6 +851,159 @@ void org::graph::MapEdge::writeSerial(
     payload.set_kind(static_cast<proto::MapEdgePayload::EdgeKind>(kind));
 
     out->mutable_payload()->PackFrom(payload);
+}
+#endif
+
+Vec<MapLinkResolveResult> org::graph::getResolveTarget(
+    MapGraphState::Ptr const&  state,
+    hgraph::VertexID const&    source,
+    MapLink const&             link,
+    std::shared_ptr<MapConfig> conf) {
+    auto g = state->graph;
+    OP_TRACER_MESSAGE(g, "Get resolve targets {} {}", source, link);
+
+    Vec<MapLinkResolveResult> result;
+
+    if (link.isRadio()) {
+        // Unresolved radio link already contains all the information for
+        // creating edge. This only happens when the node itself has not
+        // been added to the graph.
+        result.push_back(
+            MapLinkResolveResult{
+                .link   = link,
+                .target = link.getRadio().target,
+                .source = g->getImmID(source),
+            });
+    } else {
+        OP_TRACER_MESSAGE(
+            g,
+            "footnotes {} subtrees {} names {}",
+            state->ast->currentTrack->footnotes,
+            state->ast->currentTrack->subtrees,
+            state->ast->currentTrack->names);
+
+        auto add_edge = [&](imm::ImmId const& target) {
+            auto adapters = state->ast->getAdaptersFor(target);
+            LOGIC_ASSERTION_CHECK_FMT(
+                !adapters.empty(),
+                "Target node {} does not have any parent adapters tracked",
+                target);
+
+            for (auto const& full : adapters) {
+                result.push_back(
+                    MapLinkResolveResult{
+                        .link   = link,
+                        .target = full.uniq(),
+                        .source = g->getImmID(source),
+                    });
+            }
+        };
+
+        MapLink::Link const& spec         = link.getLink();
+        auto                 link_adapter = state->ast->adapt(spec.link).as<ImmLink>();
+        switch (link_adapter->target.getKind()) {
+            case slk::Id: {
+                auto text = link_adapter->target.getId().text;
+                if (auto target = state->ast->currentTrack->subtrees.get(text)) {
+                    OP_TRACER_MESSAGE(
+                        g, "Subtree ID {} on {} resolved to {}", text, source, *target);
+                    add_edge(*target);
+                } else {
+                    OP_TRACER_MESSAGE(g, "Not subtree with ID {}", text);
+                }
+                break;
+            }
+
+            case slk::CustomId: {
+                auto text = link_adapter->target.getCustomId().text;
+                if (auto target = state->ast->currentTrack->customIds.get(text)) {
+                    OP_TRACER_MESSAGE(
+                        g,
+                        "Subtree custom ID {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target);
+                    add_edge(*target);
+                } else {
+                    OP_TRACER_MESSAGE(g, "Not subtree with custom ID {}", text);
+                }
+                break;
+            }
+
+            case slk::Footnote: {
+                Str const& text = link_adapter->target.getFootnote().target;
+                if (auto target = state->ast->currentTrack->footnotes.get(text)) {
+                    OP_TRACER_MESSAGE(
+                        g,
+                        "Footnote name {} on {} resolved to {}",
+                        text,
+                        source,
+                        *target);
+                    add_edge(*target);
+                } else {
+                    OP_TRACER_MESSAGE(g, "No footnote with ID {}", text);
+                }
+                break;
+            }
+
+            case slk::Internal: {
+                Str const& text = link_adapter->target.getInternal().target;
+                if (auto target = state->ast->currentTrack->names.get(text)) {
+                    OP_TRACER_MESSAGE(
+                        g,
+                        "Internal link name '{}' on '{}' resolved to "
+                        "named node '{}'",
+                        text,
+                        source,
+                        *target);
+                    add_edge(*target);
+                } else {
+                    OP_TRACER_MESSAGE(g, "No internal link with ID '{}'", text);
+                }
+                break;
+            }
+
+            case slk::File:
+            case slk::Attachment:
+            case slk::Person:
+            case slk::SubtreeTitle:
+            case slk::UserProtocol: {
+                break;
+            }
+
+            default: {
+                throw logic_unreachable_error::init(
+                    hstd::fmt(
+                        "Unhandled link kind '{}'", link_adapter->target.getKind()));
+            }
+        }
+    }
+
+
+    return result;
+}
+
+bool org::graph::isMmapIgnored(org::imm::ImmAdapter const& n) {
+    return isInSubtreeDescriptionList(n)
+        || (isAttachedSubtreeList(n)
+            && (isInternalLinkedDescriptionList(n) || isInternalLinkedRegularList(n)));
+}
+
+
+#if ORG_BUILD_WITH_PROTOBUF
+void org::graph::MapEdgeCollection::writeSerial(
+    hstd::ext::graph::proto::IEdgeCollection* out,
+    hstd::ext::graph::IGraph const*           graph) const {
+    IEdgeCollection::writeSerial(out, graph);
+    proto::MapEdgeCollectionPayload tag;
+    out->mutable_payload()->PackFrom(tag);
+}
+
+void org::graph::MapEdgeCollection::readSerial(
+    hstd::ext::graph::proto::IEdgeCollection const* in,
+    hstd::ext::graph::IGraph const*                 graph,
+    hstd::ext::graph::IGraphSerialReaderFactory*    factory) {
+    IEdgeCollection::readSerial(in, graph, factory);
 }
 
 #endif
