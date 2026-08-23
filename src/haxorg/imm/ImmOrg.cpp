@@ -651,6 +651,11 @@ SPtr<ImmAstContext> ImmAstEditContext::finish() { return ctx.lock()->finishEdit(
 
 ImmAstStore& ImmAstEditContext::store() { return *ctx.lock()->store; }
 
+hstd::OperationsTracer const* org::imm::ImmAstEditContext::get_tracer_obj() const {
+    return ctx.lock()->debug.get();
+}
+
+
 template <org::imm::IsImmOrgValueType T>
 struct imm_api_type {
     using api_type = typename ImmAdapterT<T>::api_type;
@@ -703,7 +708,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
     auto search_radio_targets = [&](ImmAdapter const& id) {
         __perf_trace("imm", "search radio targets");
         for (auto const& target : id.subAs<org::imm::ImmRadioTarget>(false)) {
-            message(hstd::fmt("Node {} contains radio target {}", node, target));
+            OP_TRACER_MESSAGE(ctx, "Node {} contains radio target {}", node, target);
             edit_radio_targets(target->words, target.id);
         }
     };
@@ -718,13 +723,9 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                             auto adapter = ctx.lock()->adaptUnrooted(node).as<N>();
                             __perf_trace("imm", "track names");
                             for (auto const& name : adapter.getName()) {
-                                if (ctx.lock()->debug->canTrace()) {
-                                    message(
-                                        hstd::fmt(
-                                            "Tracking name '{}' for node {}",
-                                            name,
-                                            node));
-                                }
+                                OP_TRACER_MESSAGE(
+                                    ctx, "Tracking name '{}' for node {}", name, node);
+
                                 if (add) {
                                     transientTrack.names.set(name, node);
                                 } else {
@@ -748,9 +749,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
             [&](org::imm::ImmSubtree const& subtree) {
                 __perf_trace("imm", "track subtree");
                 if (auto id = subtree.treeId.get(); id) {
-                    if (ctx.lock()->debug->canTrace()) {
-                        message(hstd::fmt("Subtree ID {}", id.value()));
-                    }
+                    OP_TRACER_MESSAGE(ctx, "Subtree ID {}", id.value());
                     if (add) {
                         transientTrack.subtrees.set(*id, node);
                     } else {
@@ -760,9 +759,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
 
                 for (auto const& id :
                      org::getSubtreeProperties<sem::NamedProperty::CustomId>(subtree)) {
-                    if (ctx.lock()->debug->canTrace()) {
-                        message(hstd::fmt("Subtree custom ID {}", id.value));
-                    }
+                    OP_TRACER_MESSAGE(ctx, "Subtree custom ID {}", id.value);
                     if (add) {
                         transientTrack.customIds.set(id.value, node);
                     } else {
@@ -789,9 +786,7 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
                 auto par = ctx.lock()->adaptUnrooted(node).as<org::imm::ImmParagraph>();
                 if (par.isFootnoteDefinition()) {
                     auto id = par.getFootnoteName().value();
-                    if (ctx.lock()->debug->canTrace()) {
-                        message(hstd::fmt("Footnote ID {}", id));
-                    }
+                    OP_TRACER_MESSAGE(ctx, "Footnote ID {}", id);
                     if (add) {
                         transientTrack.footnotes.set(id, node);
                     } else {
@@ -805,14 +800,6 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
 }
 
 hstd::SPtr<OperationsTracer> ImmAstEditContext::debug() { return ctx.lock()->debug; }
-
-void ImmAstEditContext::message(
-    std::string const& value,
-    char const*        function,
-    int                line,
-    char const*        file) {
-    ctx.lock()->debug->message(value, function, line, file);
-}
 
 template <typename T>
 struct value_metadata<hstd::ext::ImmVec<T>> {
@@ -1321,11 +1308,8 @@ RadioTargetSearchResult tryRadioTargetSearch(
         auto atSource   = sub.at(groupingIdx + sourceOffset);
         auto sourceWord = atSource->dyn_cast<org::imm::ImmLeaf>();
         if (sourceWord == nullptr) {
-            ctx->debug->message(
-                hstd::fmt(
-                    "Source word at offset {} is not "
-                    "a leaf",
-                    sourceOffset));
+            OP_TRACER_MESSAGE(
+                ctx, "Source word at offset {} is not a leaf", sourceOffset);
             // Source word at position is not a final
             // leaf, radio target tracking us used only
             // in the flat leaf sequences.
@@ -1335,16 +1319,16 @@ RadioTargetSearchResult tryRadioTargetSearch(
                 auto range    = slice(groupingIdx, groupingIdx + sourceOffset);
                 result.target = ImmSubnodeGroup::RadioTarget{
                     .target = targetId, .nodes = Vec<ImmAdapter>{sub.at(range)}};
-                ctx->debug->message(
-                    hstd::fmt(
-                        "Fully matched radio target "
-                        "offset, subnode range {} is a "
-                        "radio target linked with {}",
-                        range,
-                        targetId));
+                OP_TRACER_MESSAGE(
+                    ctx,
+                    "Fully matched radio target "
+                    "offset, subnode range {} is a "
+                    "radio target linked with {}",
+                    range,
+                    targetId);
                 auto __scope = ctx->debug->begin_scope();
                 for (auto const& it : result.target->nodes) {
-                    ctx->debug->message(hstd::fmt("- target {}", it));
+                    OP_TRACER_MESSAGE(ctx, "- target {}", it);
                 }
                 result.nextGroupIdx = groupingIdx + sourceOffset;
                 // Successfully found radio target,
@@ -1382,36 +1366,34 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     Vec<ImmAdapter>          sub   = node.sub(withPath);
     Vec<ImmSubnodeGroup>     result;
 
-    if (ctx->debug->canTrace()) {
-        ctx->debug->message(
-            hstd::fmt(
-                "Radio targets count {} using context {:#010x}",
-                track.radioTargets.size(),
-                reinterpret_cast<intptr_t>(ctx.get())));
+    OP_TRACER_MESSAGE(
+        ctx,
+        "Radio targets count {} using context {:#010x}",
+        track.radioTargets.size(),
+        reinterpret_cast<intptr_t>(ctx.get()));
 
-        for (auto const& [key, value] : track.radioTargets) {
-            ctx->debug->message(_dfmt_expr(key, value));
-        }
-
-        ctx->debug->message(hstd::fmt("Get subnode groups for {}", node.uniq()));
+    for (auto const& [key, value] : track.radioTargets) {
+        OP_TRACER_MESSAGE(ctx, "{}", _dfmt_expr(key, value));
     }
+
+    OP_TRACER_MESSAGE(ctx, "Get subnode groups for {}", node.uniq());
     auto __scope = ctx->debug->begin_scope();
 
     for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
         ImmAdapter const& it = sub.at(groupingIdx);
         if (auto leaf = it->dyn_cast<ImmLeaf>();
             leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
-            ctx->debug->message(hstd::fmt("Subnode {} is leaf", groupingIdx));
+            OP_TRACER_MESSAGE(ctx, "Subnode {} is leaf", groupingIdx);
             Vec<ImmId> const* radioTargets = track.radioTargets.find(leaf->text.get());
             if (radioTargets == nullptr) {
-                ctx->debug->message(
-                    hstd::fmt("No radio target starting with word '{}'", leaf->text));
+                OP_TRACER_MESSAGE(
+                    ctx, "No radio target starting with word '{}'", leaf->text);
                 result.push_back(ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
             } else {
-                ctx->debug->message(hstd::fmt("Found potential radio targets"));
+                OP_TRACER_MESSAGE(ctx, "Found potential radio targets");
                 RadioTargetSearchResult searchResult;
                 for (ImmId const& radioId : *radioTargets) {
-                    ctx->debug->message(hstd::fmt("Trying radio ID {}", radioId));
+                    OP_TRACER_MESSAGE(ctx, "Trying radio ID {}", radioId);
                     auto __scope      = ctx->debug->begin_scope();
                     auto radioAdapter = it.ctx.lock()->adaptUnrooted(radioId);
 
@@ -1426,9 +1408,8 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                         for (auto const& id :
                              org::getSubtreeProperties<sem::NamedProperty::RadioId>(
                                  subtree.value())) {
-                            ctx->debug->message(
-                                hstd::fmt(
-                                    "Searcing for radio target with words {}", id.words));
+                            OP_TRACER_MESSAGE(
+                                ctx, "Searcing for radio target with words {}", id.words);
                             searchResult = tryRadioTargetSearch(
                                 id.words, sub, groupingIdx, subtree.id, ctx);
                             if (searchResult.target) { goto radio_search_exit; }
@@ -1445,7 +1426,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
 
             radio_search_exit:
                 if (searchResult.target) {
-                    ctx->debug->message("Found radio ID target");
+                    OP_TRACER_MESSAGE(ctx, "Found radio ID target");
                     result.push_back(ImmSubnodeGroup{searchResult.target.value()});
                     groupingIdx = searchResult.nextGroupIdx;
                 } else {
@@ -1483,8 +1464,8 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
 
 
     {
-        auto _s = ctx->debug->begin_scope("Final result grouping");
-        for (auto const& it : result) { ctx->debug->message(hstd::fmt("Final {}", it)); }
+        OP_TRACER_MESSAGE_SCOPE(ctx, "Final result grouping");
+        for (auto const& it : result) { OP_TRACER_MESSAGE(ctx, "Final {}", it); }
     }
 
     int totalNodes = 0;

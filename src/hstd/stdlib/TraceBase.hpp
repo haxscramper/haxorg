@@ -97,6 +97,8 @@ struct [[refl]] OperationsTracer {
     [[refl]] std::string       traceBuffer;
     mutable SPtr<std::ostream> stream;
 
+    hstd::OperationsTracer const* get_tracer_obj() const { return this; }
+
     void incLevel() const;
     void decLevel() const;
     int  getLevel() const;
@@ -229,22 +231,43 @@ struct [[refl]] OperationsTracer {
 
 
 namespace tracer_detail {
-inline hstd::OperationsTracer const* __get_tracer_obj(hstd::OperationsTracer const* t) {
-    return t;
+
+template <typename T>
+inline hstd::OperationsTracer const* __get_tracer_obj(std::shared_ptr<T> const& t) {
+    return t->get_tracer_obj();
 }
-inline hstd::OperationsTracer const* __get_tracer_obj(hstd::OperationsTracer const& t) {
-    return &t;
+
+template <typename T>
+inline hstd::OperationsTracer const* __get_tracer_obj(std::weak_ptr<T> const& t) {
+    return t.lock()->get_tracer_obj();
 }
-inline hstd::OperationsTracer const* __get_tracer_obj(
-    hstd::SPtr<hstd::OperationsTracer> const& t) {
-    return t.get();
+
+
+template <typename T>
+inline hstd::OperationsTracer const* __get_tracer_obj(T const* t) {
+    return t->get_tracer_obj();
 }
-inline bool __can_trace(hstd::OperationsTracer const& t) { return t.canTrace(); }
-inline bool __can_trace(hstd::OperationsTracer const* t) { return t->canTrace(); }
-inline bool __can_trace(hstd::SPtr<hstd::OperationsTracer> const& t) {
-    return t->canTrace();
+
+template <typename T>
+inline hstd::OperationsTracer const* __get_tracer_obj(T* t) {
+    return t->get_tracer_obj();
+}
+
+template <typename T>
+inline hstd::OperationsTracer const* __get_tracer_obj(T const& t) {
+    return t.get_tracer_obj();
+}
+
+template <typename T>
+inline bool __can_trace(T const& t) {
+    return __get_tracer_obj(t)->canTrace();
 }
 } // namespace tracer_detail
+
+#define OP_TRACER_MESSAGE_PASS(__tracer, ...)                                            \
+    if (::hstd::tracer_detail::__can_trace(__tracer)) {                                  \
+        ::hstd::tracer_detail::__get_tracer_obj(__tracer)->message(__VA_ARGS__);         \
+    }
 
 #define OP_TRACER_MESSAGE(__tracer, __format, ...)                                       \
     if (::hstd::tracer_detail::__can_trace(__tracer)) {                                  \

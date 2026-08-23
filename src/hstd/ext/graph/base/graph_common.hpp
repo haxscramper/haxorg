@@ -265,6 +265,8 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
     virtual hstd::SPtr<IPort>               newPort(proto::IPort const* port)   = 0;
     virtual hstd::SPtr<layout::IConstraint> newConstraint(
         proto::IConstraint const* constraint) = 0;
+
+    hstd::OperationsTracer const* get_tracer_obj() const { return this; }
 };
 #endif
 

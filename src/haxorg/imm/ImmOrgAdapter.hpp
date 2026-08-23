@@ -97,23 +97,3 @@ struct fmt::formatter<org::imm::ImmAdapterT<T>> {
         return hstd::fmt_ctx(p.id, ctx);
     }
 };
-
-
-namespace org::details {
-inline org::imm::ImmAstContext* ___get_context(org::imm::ImmAstContext::Ptr p) {
-    return p.get();
-}
-inline org::imm::ImmAstEditContext* ___get_context(org::imm::ImmAstEditContext& p) {
-    return &p;
-}
-
-inline bool ___is_debug(org::imm::ImmAstEditContext& p) {
-    return p.ctx.lock()->debug->canTrace();
-}
-inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) { return p->debug->canTrace(); }
-} // namespace org::details
-
-#define AST_EDIT_TRACE() ::org::details::___is_debug(ctx)
-
-#define AST_EDIT_MSG(...)                                                                \
-    if (AST_EDIT_TRACE()) { ::org::details::___get_context(ctx)->message(__VA_ARGS__); }

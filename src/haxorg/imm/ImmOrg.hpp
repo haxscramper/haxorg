@@ -392,17 +392,13 @@ struct ImmAstEditContext {
     hstd::SPtr<ImmAstContext>  finish();
     ImmAstStore&               store();
 
+    hstd::OperationsTracer const* get_tracer_obj() const;
+
     /// \brief Add or remove tracking data associated with the value for
     /// the node
     void updateTracking(org::imm::ImmId const& node, bool add);
 
     hstd::SPtr<hstd::OperationsTracer> debug();
-
-    void message(
-        std::string const& value,
-        char const*        function = __builtin_FUNCTION(),
-        int                line     = __builtin_LINE(),
-        char const*        file     = __builtin_FILE());
 
     ImmAstContext* operator->() { return hstd::safe_wptr_lock(ctx).get(); }
 };
@@ -596,6 +592,8 @@ struct
     hstd::SPtr<ImmAstTrackingMap> currentTrack;
 
     DESC_FIELDS(ImmAstContext, (store, currentTrack));
+
+    hstd::OperationsTracer const* get_tracer_obj() const { return debug.get(); }
 
     ImmParentIdVec const& getParentIds(ImmId const& it) const {
         return currentTrack->getParentIds(it);

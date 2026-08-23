@@ -71,14 +71,14 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
     auto ft = fmt1(target);
     auto fr = fmt1(replaced);
     auto w  = std::max(ft.size(), fr.size());
-    AST_EDIT_MSG(hstd::fmt("| Original ID:{:<{}} {}", ft, w, target.value<T>()));
-    AST_EDIT_MSG(hstd::fmt("| Replaced ID:{:<{}} {}", fr, w, value));
+    OP_TRACER_MESSAGE(ctx, "| Original ID:{:<{}} {}", ft, w, target.value<T>());
+    OP_TRACER_MESSAGE(ctx, "| Replaced ID:{:<{}} {}", fr, w, value);
 
     ctx.updateTracking(target.id, false);
     ctx.updateTracking(result_node, true);
 
     auto dbg = [&](std::string section) {
-        AST_EDIT_MSG(hstd::fmt("{}", section));
+        OP_TRACER_MESSAGE(ctx, "{}", section);
         auto        __scope = ctx.debug()->begin_scope();
         auto const& imm     = ctx.ctx.lock()->currentTrack->parents;
         auto const& mut     = ctx.transientTrack.parents;
@@ -87,12 +87,12 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
         for (auto const& [key, value] : imm) { keys.incl(key); }
         for (auto const& [key, value] : mut) { keys.incl(key); }
         for (auto const& key : sorted(keys | rs::to<Vec>())) {
-            AST_EDIT_MSG(
-                hstd::fmt(
-                    "key {:<24} imm {:<32} mut {:<32}",
-                    fmt1(key),
-                    imm.find(key) == nullptr ? "" : fmt1(imm.at(key)),
-                    mut.find(key) == nullptr ? "" : fmt1(mut.at(key))));
+            OP_TRACER_MESSAGE(
+                ctx,
+                "key {:<24} imm {:<32} mut {:<32}",
+                fmt1(key),
+                imm.find(key) == nullptr ? "" : fmt1(imm.at(key)),
+                mut.find(key) == nullptr ? "" : fmt1(mut.at(key)));
         }
     };
 
@@ -107,10 +107,10 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
     // LOG(INFO) << fmt("{} -> {}", replaced, target.uniq());
 
     if (replaced == target.uniq()) {
-        AST_EDIT_MSG(
-            hstd::fmt(
-                "Original and replaced have the same ID -- node value did "
-                "not change, no replacement action needed"));
+        OP_TRACER_MESSAGE(
+            ctx,
+            "Original and replaced have the same ID -- node value did "
+            "not change, no replacement action needed");
         return std::nullopt;
     } else {
         return ImmAstReplace{
@@ -298,7 +298,8 @@ ImmAdapter getUpdateTarget(
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
     Opt<ImmUniqId> edit = replace.map.get(node.uniq());
-    AST_EDIT_MSG(hstd::fmt("Node {} direct edit:{}", node.id, edit), "aux");
+    OP_TRACER_MESSAGE_PASS(
+        ctx, hstd::fmt("Node {} direct edit:{}", node.id, edit), "aux");
 
     // If there were no modifications to the original node, use its
     // direct subnodes. Otherwise, take a newer version of the node
@@ -313,35 +314,34 @@ UnorderedSet<ImmUniqId> getEditParents(
     UnorderedSet<ImmUniqId> editParents;
 
     for (auto const& act : replace.allReplacements()) {
-        AST_EDIT_MSG(hstd::fmt("Parent chain for", act.original));
+        OP_TRACER_MESSAGE(ctx, "Parent chain for", act.original);
         for (auto const& parent :
              ctx->adapt(act.original.value()).getParentChain(false)) {
-            AST_EDIT_MSG(hstd::fmt("> {}", parent.uniq()));
+            OP_TRACER_MESSAGE(ctx, "> {}", parent.uniq());
             editParents.incl(parent.uniq());
         }
     }
 
-    AST_EDIT_MSG("Edit replaces");
-    if (AST_EDIT_TRACE()) {
+    {
+        OP_TRACER_MESSAGE_SCOPE(ctx, "Edit replaces");
         auto __scope = ctx.debug()->begin_scope();
         for (auto const& key : replace.allReplacements()) {
-            AST_EDIT_MSG(hstd::fmt("[{}] -> {}", key.original, key.replaced));
+            OP_TRACER_MESSAGE(ctx, "[{}] -> {}", key.original, key.replaced);
         }
     }
 
-    AST_EDIT_MSG("Node replace map");
-    if (AST_EDIT_TRACE()) {
+    {
+        OP_TRACER_MESSAGE_SCOPE(ctx, "Node replace map");
         auto __scope = ctx.debug()->begin_scope();
         for (auto const& key : sorted(replace.nodeReplaceMap.keys())) {
-            AST_EDIT_MSG(hstd::fmt("[{}] -> {}", key, replace.nodeReplaceMap.at(key)));
+            OP_TRACER_MESSAGE(ctx, "[{}] -> {}", key, replace.nodeReplaceMap.at(key));
         }
     }
 
-    AST_EDIT_MSG("Edit parents");
-    if (AST_EDIT_TRACE()) {
-        auto __scope = ctx.debug()->begin_scope();
+    {
+        OP_TRACER_MESSAGE_SCOPE(ctx, "Edit parents");
         for (auto const& key : sorted(editParents | rs::to<Vec>())) {
-            AST_EDIT_MSG(hstd::fmt("[{}]", key));
+            OP_TRACER_MESSAGE(ctx, "[{}]", key);
         }
     }
 
@@ -401,11 +401,11 @@ ImmId recurseUpdateSubnodes(
             | rv::transform([](org::imm::ImmAdapter const& it) -> ImmId { return it.id; })
             | rs::to<Vec>();
         if (flatUpdatedSubnodes == targetSubnodes) {
-            AST_EDIT_MSG(
-                hstd::fmt(
-                    "Updated subnodes for {} are the same as target {}",
-                    node,
-                    updateTarget));
+            OP_TRACER_MESSAGE(
+                ctx,
+                "Updated subnodes for {} are the same as target {}",
+                node,
+                updateTarget);
 
             result->replaced.set(
                 ImmAstReplace{
@@ -415,7 +415,8 @@ ImmId recurseUpdateSubnodes(
 
             return updateTarget.id;
         } else {
-            AST_EDIT_MSG(
+            OP_TRACER_MESSAGE_PASS(
+                ctx,
                 hstd::fmt(
                     "Updated subnodes changed: updated:{} != "
                     "target({}):{}",
@@ -434,11 +435,11 @@ ImmId recurseUpdateSubnodes(
         // was updated, return a new version, otherwise return the same
         // node.
         if (auto edit = replace.map.get(node.uniq()); edit) {
-            AST_EDIT_MSG(hstd::fmt("Replace {} -> {}", node.uniq(), *edit));
+            OP_TRACER_MESSAGE(ctx, "Replace {} -> {}", node.uniq(), *edit);
             result->replaced.incl({node.uniq(), *edit});
             return edit->id;
         } else {
-            AST_EDIT_MSG(hstd::fmt("No changes in {}", node), "aux");
+            OP_TRACER_MESSAGE_PASS(ctx, hstd::fmt("No changes in {}", node), "aux");
             return node.id;
         }
     }
@@ -449,14 +450,14 @@ ImmAstReplaceEpoch::Ptr ImmAstStore::cascadeUpdate(
     ImmAstReplaceGroup const& replace,
     ImmAstEditContext&        ctx) {
     __perf_trace("imm", "cascadeUpdate");
-    AST_EDIT_MSG("Start cascade update");
+    OP_TRACER_MESSAGE(ctx, "Start cascade update");
     auto                    __scope     = ctx.debug()->begin_scope();
     UnorderedSet<ImmUniqId> editParents = getEditParents(replace, ctx);
 
     ImmAstReplaceEpoch::Ptr result = ImmAstReplaceEpoch::shared();
-    AST_EDIT_MSG(hstd::fmt("Main root {}", root));
+    OP_TRACER_MESSAGE(ctx, "Main root {}", root);
     result->root = recurseUpdateSubnodes(root, replace, ctx, editParents, result);
-    AST_EDIT_MSG(hstd::fmt("Replace {}", result->replaced));
+    OP_TRACER_MESSAGE(ctx, "Replace {}", result->replaced);
     return result;
 }
 
