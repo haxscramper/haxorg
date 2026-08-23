@@ -2565,9 +2565,7 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
         }
         default: {
             SubLexer sub{lex};
-            while (lex.can_search(ParagraphTerminator) || lex.is_last_token()) {
-                sub.add(lex.pop());
-            }
+            while (lex.can_search(ParagraphTerminator)) { sub.add(lex.pop()); }
 
             if (sub.empty()) {
                 lex.next();
@@ -2588,7 +2586,7 @@ OrgParser::ParseResult OrgParser::parseTop(OrgLexer& lex) {
     __perf_trace("parsing", "parseTop");
     auto __trace       = trace(lex);
     auto stmtListGuard = start(onk::StmtList);
-    while (!lex.finished()) {
+    while (lex.can_search(otk::EndOfFile)) {
         if (lex.at(otk::Comment)) {
             skip(lex);
         } else {

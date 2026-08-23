@@ -32,7 +32,7 @@ struct NodeAdapter {
 
     NodeAdapter<N, K, V, M>(NodeGroupType const* group, NodeIdType id)
         : group(group), id(id) {
-        LOGIC_ASSERTION_CHECK(group->nodes.contains(id), "");
+        LOGIC_ASSERTION_CHECK_FMT(group->nodes.contains(id), "{}", id);
     }
 
     NodeAdapter() : group(nullptr), id(NodeIdType::Nil()) {}
@@ -173,7 +173,7 @@ struct NodeAdapter {
     std::pair<flat_extent_iterator, flat_extent_iterator> full_flat_extent_pair() const {
         return {
             flat_extent_iterator(group->begin_extent(id)),
-            flat_extent_iterator(group->end_extent(id + group->at(id).getExtent() + 1)),
+            flat_extent_iterator(group->end_extent(id + group->at(id).getExtent())),
         };
     }
 };

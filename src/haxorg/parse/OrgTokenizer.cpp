@@ -47,6 +47,16 @@ struct Builder : OperationsMsgBulder<Builder, OrgTokenizer::Report> {
             (::Builder(lex, OrgTokenizer::ReportKind::kind) __VA_ARGS__).report);        \
     }
 
+namespace {
+std::string report_location(OrgLexer const& lex) {
+    if (lex.finished()) {
+        return "<EOF>";
+    } else {
+        return hstd::fmt("{}", lex.tok());
+    }
+}
+} // namespace
+
 
 struct tokenizer_error : CRTP_hexception<tokenizer_error> {};
 
@@ -172,14 +182,16 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                hstd::fmt("add {} from {}", __to, lex.tok())));
+                hstd::fmt("add {} from {}", __to, report_location(lex))));
         return res;
     }
 
     void pop(Opt<OrgTokenKind> expected = std::nullopt, int line = __builtin_LINE()) {
         auto res = d->out->add(lex.tok());
         x_report(
-            Push, .with_id(res).with_line(line).with_msg(hstd::fmt("pop {}", lex.tok())));
+            Push,
+            .with_id(res).with_line(line).with_msg(
+                hstd::fmt("pop {}", report_location(lex))));
         if (expected) {
             lex.skip(*expected);
         } else {
@@ -192,7 +204,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                hstd::fmt("add {} from {}", tok, lex.tok())));
+                hstd::fmt("add {} from {}", tok, report_location(lex))));
         return res;
     }
 
@@ -204,7 +216,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                hstd::fmt("pop {} from {}", __to, lex.tok())));
+                hstd::fmt("pop {} from {}", __to, report_location(lex))));
         if (expected) {
             lex.skip(*expected);
         } else {
@@ -222,7 +234,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                hstd::fmt("fake {} from {}", __to, lex.tok())));
+                hstd::fmt("fake {} from {}", __to, report_location(lex))));
         return res;
     }
 
@@ -231,7 +243,7 @@ struct RecombineState {
         x_report(
             Push,
             .with_id(res).with_line(line).with_msg(
-                hstd::fmt("fake {} from {}", __to, lex.tok())));
+                hstd::fmt("fake {} from {}", __to, report_location(lex))));
         return res;
     }
 
@@ -1320,6 +1332,8 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
         auto os = getStream();
         recombine_state.d->out->printToString(os);
     }
+
+    recombine_state.add(OrgToken{otk::EndOfFile});
 }
 
 void OrgTokenizer::convert(OrgTokenGroup& input) {

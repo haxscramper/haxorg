@@ -1123,7 +1123,7 @@ TEST(OrgParseSem, ColumnView) {
 
 TEST(OrgParseSem, List) {
     {
-        auto l = parseOne<sem::List>("- Desc :: value");
+        auto l = parseOne<sem::List>("- Desc :: value", getDebugFile("desc_list/init"));
         EXPECT_EQ(l.size(), 1);
         auto it = l.at(0).as<sem::ListItem>();
         EXPECT_EQ(it->getCleanHeader().value(), "Desc");
@@ -1132,7 +1132,7 @@ TEST(OrgParseSem, List) {
         EXPECT_EQ(conv.node.at(0).as<imm::ImmListItem>().getCleanHeader(), "Desc");
     }
     {
-        auto l = parseOne<sem::List>("- Item");
+        auto l = parseOne<sem::List>("- Item", getDebugFile("list/init"));
         EXPECT_EQ(l.size(), 1);
         org::insertListItemBody(l, 0, {parseOne<sem::Paragraph>("Item2")});
         EXPECT_EQ(l.size(), 2);
