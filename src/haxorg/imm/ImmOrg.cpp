@@ -707,7 +707,12 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
     auto search_radio_targets = [&](ImmAdapter const& id) {
         __perf_trace("imm", "search radio targets");
         for (auto const& target : id.subAs<org::imm::ImmRadioTarget>(false)) {
-            OP_TRACER_MESSAGE(ctx, "Node {} contains radio target {}", node, target);
+            OP_TRACER_MESSAGE(
+                ctx,
+                "Node {} contains radio target {} at {}",
+                node,
+                target,
+                ctx.lock()->adaptUnrooted(node).treeReprString());
             edit_radio_targets(target->words, target.id);
         }
     };

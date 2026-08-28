@@ -1194,7 +1194,10 @@ OrgParser::ParseResult OrgParser::parseAngleTarget(OrgLexer& lex) {
     auto end   = radio ? otk::TripleAngleEnd : otk::DoubleAngleEnd;
     auto begin = radio ? otk::TripleAngleBegin : otk::DoubleAngleBegin;
 
-    if (lex.ahead(OrgTokSet{otk::Whitespace, otk::Word, begin}, end)) {
+    // TODO: Check if other elements are allowed in the radio target, or it is only a
+    // clean identifier.
+    if (lex.at(OrgTokSet{otk::RawText, otk::Word, otk::BigIdent}, +1)
+        && lex.ahead(OrgTokSet{otk::Whitespace, otk::Word, begin}, end)) {
         TRY_SKIP(lex, begin);
         auto radioGuard = start(onk::RadioTarget);
         while (lex.can_search(end)) {
@@ -1875,7 +1878,13 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
         token(onk::RawText, TRY_POPX(lex, head));
         switch (head) {
             case otk::ColonLiteralProperty: {
-                token(onk::RawText, TRY_POPX(lex, otk::RawText));
+                // Literal properties with empty text will not have any follow-up raw text
+                // after them.
+                if (lex.at(Newline)) {
+                    empty();
+                } else {
+                    token(onk::RawText, TRY_POPX(lex, otk::RawText));
+                }
                 break;
             }
 

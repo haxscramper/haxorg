@@ -1015,3 +1015,13 @@ items:
   - name: Dash in the command name
     source: |
       #+latex-header: \usepackage{x}
+
+
+  - name: "Unterminated source code block"
+    source: |
+      [2026-04-17 Fri 23:46] src_c++{[[refl]] std::string toColaString() const {} in =adaptagrams_ir.hpp:118= at ~496f2970~
+
+
+  - name: "Looks like radio target, but no body"
+    source: |
+      random <<>>

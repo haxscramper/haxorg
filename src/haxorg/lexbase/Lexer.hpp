@@ -248,10 +248,26 @@ struct LexerCommon {
         if (finished()) {
             os << os.red() << " finished" << os.end();
         } else {
-            for (int i = params.startOffset; i < params.maxTokens && hasNext(i); ++i) {
-                os << " ";
-                auto const& t = tok(i);
-                format(os, t);
+            if (params.startOffset < 0) {
+                os << " prev tokens:";
+                for (int i = params.startOffset; i < 0 && hasNext(i); ++i) {
+                    os << " ";
+                    auto const& t = tok(i);
+                    format(os, t);
+                }
+                os << " current tokens:";
+                for (int i = 0; i < params.maxTokens && hasNext(i); ++i) {
+                    os << " ";
+                    auto const& t = tok(i);
+                    format(os, t);
+                }
+            } else {
+                for (int i = params.startOffset; i < params.maxTokens && hasNext(i);
+                     ++i) {
+                    os << " ";
+                    auto const& t = tok(i);
+                    format(os, t);
+                }
             }
         }
     }

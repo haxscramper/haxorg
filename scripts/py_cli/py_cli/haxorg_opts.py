@@ -174,25 +174,6 @@ class ClockTimeAnalysisOptions(BaseModel, extra="forbid"):
     outfile: Path
 
 
-class TagSortingOptions(BaseModel, extra="forbid"):
-    input_dir: Path = Field(
-        description="Input file or directory to analyze files in",
-        default_factory=lambda: Path(),
-    )
-
-    output_dir: Path = Field(description="Directory for all output files")
-
-    tag_glossary_file: ReadableFilePath = Field(
-        description=
-        "org-mode file describing the tags. The structure of the file is not important, just that it uses tags in some way",
-        default_factory=lambda: Path(),
-    )
-
-    autocomplete_file: Optional[Path] = Field(
-        default=None,
-        description="Optional file with one tag per line for autocomplete purposes")
-
-
 class TodoCollectorOptions(BaseModel, extra="forbid"):
     infile: List[Path]
     outdir: Path

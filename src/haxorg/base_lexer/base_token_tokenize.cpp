@@ -1146,7 +1146,8 @@ void switch_word(Cursor& c) {
                 auto span = c.try_lexy_patt<
                             dsl::ascii::case_folding(LEXY_LIT("src"))
                             + dsl::opt(dsl::lit_c<'_'>)
-                            + dsl::while_one(dsl::ascii::alpha_digit_underscore)>()) {
+                            + dsl::while_one(dsl::ascii::alpha_digit_underscore)
+                            + dsl::lit_c<'{'>>()) {
                 c.token_adv(otk::TextSrcBegin, *span);
                 lex_inline_src();
                 return;
