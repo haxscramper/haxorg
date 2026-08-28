@@ -675,7 +675,7 @@ class ProtoBuilder():
                             QualType(
                                 Name="proto_serde",
                                 Params=[proto_param_type, base],
-                                Spaces=[codegen_ir.n_org_algo()],
+                                Spaces=[codegen_ir.n_hstd_serde()],
                             ),
                             "write",
                             [out, _in],
@@ -687,7 +687,7 @@ class ProtoBuilder():
                             QualType(
                                 Name="proto_serde",
                                 Params=[proto_param_type, base],
-                                Spaces=[codegen_ir.n_org_algo()],
+                                Spaces=[codegen_ir.n_hstd_serde()],
                             ),
                             "read",
                             [
@@ -765,14 +765,14 @@ class ProtoBuilder():
                 writer_specialization = QualType(
                     Name="proto_serde",
                     Params=[proto_param_type, org_param_type],
-                    Spaces=[codegen_ir.n_org_algo()],
+                    Spaces=[codegen_ir.n_hstd_serde()],
                 )
 
                 result.append((
                     cpp.RecordParams(
                         name=cpp.QualType(
                             Name="proto_serde",
-                            Spaces=[codegen_ir.n_org_algo()],
+                            Spaces=[codegen_ir.n_hstd_serde()],
                         ),
                         doc=cpp.DocParams(""),
                         NameParams=[proto_param_type, org_param_type],

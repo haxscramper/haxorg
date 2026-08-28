@@ -848,7 +848,7 @@ int main(int argc, char* argv[]) {
 #if ORG_BUILD_WITH_PROTOBUF
                 [&](EO::Proto const& p) {
                     orgproto::AnyNode result;
-                    org::algo::proto_serde<
+                    hstd::serde::proto_serde<
                         orgproto::AnyNode,
                         org::sem::SemId<org::sem::Org>>::write(&result, node.value());
                     write_proto_result(result, p.format);

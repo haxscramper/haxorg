@@ -229,8 +229,7 @@ struct log_record {
              function,
              depth,
              source_scope,
-             source_id,
-             metadata));
+             source_id));
 
         std::size_t hash() const;
         // log_data();

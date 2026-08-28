@@ -182,7 +182,9 @@ void structured_format_log_record_data(
     boost::log::record_view const&  rec,
     boost::log::formatting_ostream& strm,
     log_record::log_data const&     data) {
-    strm << hstd::to_json_eval(data) << "\n";
+    auto j = hstd::to_json_eval(data);
+    if (data.metadata != nullptr) { j["metadata"] = *data.metadata; }
+    strm << j << "\n";
 }
 
 void format_log_record_data(
