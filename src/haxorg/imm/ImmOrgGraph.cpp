@@ -204,13 +204,6 @@ hstd::Opt<Str> org::graph::MapNode::getFootnoteName(
     }
 }
 
-static const SemSet NestedNodes{
-    OrgSemKind::Subtree,
-    OrgSemKind::Document,
-    OrgSemKind::ListItem,
-    OrgSemKind::StmtList,
-};
-
 
 hgraph::EdgeID org::graph::MapGraph::addEdge(
     hstd::SPtr<MapEdge> const&     edge,
@@ -242,7 +235,6 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     // `- [[link-to-something]] :: Description` is stored as a description
     // field and is collected from the list item. So all boxes with
     // individual list items are dropped here.
-    LOGIC_ASSERTION_CHECK_FMT(!isMmapIgnored(node), "Node {} is ignored for mmap", node);
 
     OP_TRACER_MESSAGE(
         state->graph,
@@ -268,15 +260,10 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
         }
     };
 
-    if (auto tree = node.asOpt<ImmSubtree>()) {
-        result->unresolved.append(state->getUnresolvedSubtreeLinks(tree.value()));
-    } else if (
-        auto par = node.asOpt<ImmParagraph>(); par && par->isFootnoteDefinition()) {
-        auto sub = par->sub();
-        for (auto const& it : enumerator(sub)) {
-            if (!it.is_first()) { eachSubnodeRec(it.value(), true, register_used_links); }
+    if (SemSet{
+            OrgSemKind::Paragraph,
         }
-    } else if (!NestedNodes.contains(node->getKind())) {
+            .contains(node->getKind())) {
         auto __tmp = state->graph->begin_scope("registering nested outgoing links");
         org::eachSubnodeRec(node, true, register_used_links);
     }
@@ -690,55 +677,28 @@ void org::graph::MapGraphState::addNodeRec(
 
     auto aux = [&](this auto&&                        self,
                    ImmAdapter const&                  node,
-                   hstd::Opt<hgraph::VertexID> const& parent) {
-        if (isMmapIgnored(node)) {
-            OP_TRACER_MESSAGE(graph, "mmap ignored {}", node);
-            return;
-        }
-
+                   hstd::Opt<hgraph::VertexID> const& parent) -> void {
         __perf_trace("mmpa", "Recursive add node", kind, fmt1(node.getKind()));
 
         auto __tmp = graph->begin_scope(
             graph->fmt_message("recursive add {}", node), std::nullopt, "addNodeRec");
 
+
         switch (node->getKind()) {
             case OrgSemKind::File:
             case OrgSemKind::Directory:
             case OrgSemKind::Symlink:
-            case OrgSemKind::Document: {
-                for (auto const& it : node) { self(it, std::nullopt); }
-                break;
-            }
+            case OrgSemKind::Document:
             case OrgSemKind::CmdInclude:
             case OrgSemKind::ListItem:
+            case OrgSemKind::Subtree:
             case OrgSemKind::List: {
-                for (auto const& it : node) { self(it, parent); }
+                auto added = add_node_impl(node, parent);
+                for (auto const& it : node) { self(it, added); }
                 break;
             }
             case OrgSemKind::Paragraph: {
-                auto par = node.as<imm::ImmParagraph>();
-                if (org::graph::hasGraphAnnotations(par)) {
-                    std::ignore = add_node_impl(node, parent);
-                } else {
-                    auto group = imm::getSubnodeGroups(ast, node, false);
-                    if (rs::any_of(
-                            group, [](auto const& it) { return it.isRadioTarget(); })) {
-                        std::ignore = add_node_impl(node, parent);
-                    }
-                }
-                break;
-            }
-            case OrgSemKind::Subtree: {
-                hstd::Opt<hgraph::VertexID> subtree;
-                if (auto tree = node.as<imm::ImmSubtree>();
-                    org::graph::hasGraphAnnotations(tree)) {
-                    subtree = add_node_impl(node, parent);
-                }
-
-                for (auto const& it : node) {
-                    self(it, subtree.has_value() ? subtree : parent);
-                }
-
+                std::ignore = add_node_impl(node, parent);
                 break;
             }
             default: {
@@ -749,56 +709,6 @@ void org::graph::MapGraphState::addNodeRec(
     aux(node, std::nullopt);
 }
 
-Vec<MapLink> org::graph::MapGraphState::getUnresolvedSubtreeLinks(
-    org::imm::ImmAdapterT<org::imm::ImmSubtree> tree) const {
-    Vec<MapLink> unresolved;
-    // Description lists with links in header are attached as the
-    // outgoing link to the parent subtree. It is the only supported
-    // way to provide an extensive label between subtree nodes.
-    for (auto const& list : tree.subAs<ImmList>()) {
-        if (org::imm::isAttachedSubtreeList(list)) {
-            OP_TRACER_MESSAGE(graph, "Subtree {} has list {}", tree.id, list.id);
-            for (auto const& item : list.subAs<ImmListItem>()) {
-                auto visit_link =
-                    [&](org::imm::ImmAdapterT<org::imm::ImmLink> const& link) {
-                        OP_TRACER_MESSAGE(
-                            graph, "List item {} contains link {}", item.id, link);
-                        // Description list header might contain
-                        // non-link elements. These are ignored in the
-                        // mind map.
-                        if (!SkipLinks.contains(link->target.getKind())) {
-                            MapLink::Link map_link{.link = link.uniq()};
-                            for (auto const& sub : item.sub()) {
-                                map_link.description.push_back(sub.uniq());
-                            }
-                            unresolved.push_back(MapLink{map_link});
-                        }
-                    };
-
-                if (isLinkedDescriptionItemNode(item)) {
-                    for (auto const& link :
-                         item.pass(item->header->value()).subAs<ImmLink>()) {
-                        visit_link(link);
-                    }
-                } else if (isLinkedListItemNode(item)) {
-                    for (auto const& link : getAllInternalLinks(item)) {
-                        visit_link(link);
-                    }
-                }
-            }
-        }
-    }
-
-    OP_TRACER_MESSAGE(
-        graph,
-        "Collected {} unresolved items for subtree {}: {}",
-        unresolved.size(),
-        tree.id,
-        unresolved.map<hstd::Str>(
-            [](MapLink const& it) { return it.getLink().link.getSimplePathFormat(); }));
-
-    return unresolved;
-}
 
 Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
     org::imm::ImmAdapterT<org::imm::ImmLink> link) const {
@@ -990,13 +900,6 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
 
     return result;
 }
-
-bool org::graph::isMmapIgnored(org::imm::ImmAdapter const& n) {
-    return isInSubtreeDescriptionList(n)
-        || (isAttachedSubtreeList(n)
-            && (isInternalLinkedDescriptionList(n) || isInternalLinkedRegularList(n)));
-}
-
 
 #if ORG_BUILD_WITH_PROTOBUF
 void org::graph::MapEdgeCollection::writeSerial(

@@ -261,7 +261,12 @@ struct MapGraph
 
     MapGraph() : edges{std::make_shared<MapEdgeCollection>()} { addCollection(edges); }
 
-    hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const { return id_map.at(id); }
+    hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            id_map.contains(id), "Unique ID {} is not mapped to the graph node", id);
+        return id_map.at(id);
+    }
+
 
     hgraph::VertexID getVertexID(org::imm::ImmAdapter const& ad) const {
         return getVertexID(ad.uniq());
@@ -269,6 +274,14 @@ struct MapGraph
 
     org::imm::ImmUniqId getImmID(hgraph::VertexID id) const {
         return getCastVertex<MapNode>(id)->id.uniq();
+    }
+
+    MapNode const* get(org::imm::ImmAdapter const& ad) const {
+        return get(getVertexID(ad));
+    }
+
+    MapNode const* get(org::imm::ImmUniqId const& id) const {
+        return get(getVertexID(id));
     }
 
     MapNode const* get(hgraph::VertexID id) const {
@@ -434,11 +447,6 @@ struct MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
         org::imm::ImmAdapter const&                     node,
         std::shared_ptr<MapConfig> const&               conf);
 
-    /// \brief Get all outgoing links used in the subtree. This will scan
-    /// the subtree and its sub-nodes for the attached description lists.
-    hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
-        org::imm::ImmAdapterT<org::imm::ImmSubtree> node) const;
-
     /// \brief Get the unresolved link used in the specified node. Returns
     /// only one link per node, if it is present. This function will not
     /// recursively scan the node, it will only return the link if it is
@@ -488,8 +496,6 @@ MapNodeResolveResult getResolvedNodeInsert(
 
 bool hasGraphAnnotations(org::imm::ImmAdapterT<org::imm::ImmParagraph> const& par);
 bool hasGraphAnnotations(org::imm::ImmAdapterT<org::imm::ImmSubtree> const& par);
-
-bool isMmapIgnored(org::imm::ImmAdapter const& n);
 
 } // namespace org::graph
 

@@ -522,20 +522,62 @@ TEST_F(ImmMapApi, TrivialDescriptionList) {
     EXPECT_TRUE(getVersion().getContext()->currentTrack->subtrees.contains("id-target"));
     EXPECT_TRUE(getVersion().getContext()->currentTrack->subtrees.contains("id-source"));
 
-    auto item = n.at({2, 0, 0});
-    auto list = n.at({2, 0});
+    auto g = getGraph();
+
+    // Root document is an entry in the graph structure
 
 
+    auto tree_target = n.at(1);
+    auto tree_source = n.at(2);
+    auto item        = n.at({2, 0, 0});
+    auto list        = n.at({2, 0});
+    auto par         = n.at({2, 0, 0, 0});
+
+    EXPECT_EQ(n.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_source.getKind(), OrgSemKind::Subtree);
     EXPECT_EQ2(item.getKind(), OrgSemKind::ListItem);
     EXPECT_EQ2(list.getKind(), OrgSemKind::List);
+    EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_target), nullptr);
+    EXPECT_NE(g->get(tree_source), nullptr);
+    EXPECT_NE(g->get(item), nullptr);
+    EXPECT_NE(g->get(list), nullptr);
+    EXPECT_NE(g->get(n), nullptr);
+    EXPECT_NE(g->get(par), nullptr);
+
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(n), g->getVertexID(tree_target)));
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(n), g->getVertexID(tree_source)));
+
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(tree_source), g->getVertexID(list)));
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(list), g->getVertexID(item)));
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(item), g->getVertexID(par)));
+
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(par), g->getVertexID(tree_target)));
+    EXPECT_FALSE(g->hasEdge(g->getVertexID(tree_source), g->getVertexID(tree_target)));
+
     EXPECT_TRUE(imm::isLinkedListItemNode(item));
     EXPECT_TRUE(imm::hasAnyInternalLinks(item));
     EXPECT_EQ2(imm::getAllInternalLinks(item).size(), 1);
     EXPECT_FALSE(imm::isPartOfInternalLinkedListItem(item));
     EXPECT_FALSE(imm::isInternalLinkedRegularList(list));
 
-    EXPECT_EQ(getGraph()->getVertexCount(), 2);
-    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 1);
+    // document
+    // subtree 1
+    // subtree 2
+    // list in the subtree
+    // list item
+    // paragraph
+    EXPECT_EQ(g->getVertexCount(), 6);
+    // structural nesting edges
+    //   document -> subtree source
+    //   document -> subtree target
+    //   subtree source -> subtree target
+    //   subtree source -> list -> list item -> paragraph
+    // reference edges
+    //   paragraph -> subtree target
+    EXPECT_EQ(g->getSummedEdgeCount(), 6);
 }
 
 TEST_F(ImmMapApi, MultipleIncomingTargetsSameLink) {
