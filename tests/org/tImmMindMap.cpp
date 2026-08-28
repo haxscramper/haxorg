@@ -573,8 +573,9 @@ TEST_F(ImmMapApi, TrivialDescriptionList) {
     // structural nesting edges
     //   document -> subtree source
     //   document -> subtree target
-    //   subtree source -> subtree target
-    //   subtree source -> list -> list item -> paragraph
+    //   subtree source -> list
+    //   list -> list item
+    //   list item -> paragraph
     // reference edges
     //   paragraph -> subtree target
     EXPECT_EQ(g->getSummedEdgeCount(), 6);
@@ -606,8 +607,37 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsSameLink) {
 
     addNodeRec(getRootAdapters());
 
-    EXPECT_EQ(getGraph()->getVertexCount(), 3);
-    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
+    auto g   = getGraph();
+    auto doc = getRootAdapters().back();
+
+    auto tree_target = doc.at(1);
+    auto tree_other1 = doc.at(2);
+    auto tree_other2 = doc.at(3);
+
+    auto list1 = tree_other1.at(0);
+    auto list2 = tree_other2.at(0);
+
+    auto par1 = list1.at({0, 0});
+    auto par2 = list2.at({0, 0});
+
+    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other2.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
+    EXPECT_EQ(list2.getKind(), OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_target), nullptr);
+    EXPECT_NE(g->get(tree_other1), nullptr);
+    EXPECT_NE(g->get(tree_other2), nullptr);
+
+    EXPECT_FALSE(g->hasEdge(tree_other1, tree_target));
+    EXPECT_FALSE(g->hasEdge(tree_other2, tree_target));
+    EXPECT_TRUE(g->hasEdge(par1, tree_target));
+    EXPECT_TRUE(g->hasEdge(par2, tree_target));
 }
 
 
@@ -639,8 +669,37 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsDuplicate) {
 
     addNodeRec(getRootAdapters());
 
-    EXPECT_EQ(getGraph()->getVertexCount(), 3);
-    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
+    auto g   = getGraph();
+    auto doc = getRootAdapters().back();
+
+    auto tree_target = doc.at(1);
+    auto tree_other1 = doc.at(2);
+    auto tree_other2 = doc.at(3);
+
+    auto list1 = tree_other1.at(0);
+    auto list2 = tree_other2.at(0);
+
+    auto par1 = list1.at({0, 0});
+    auto par2 = list2.at({0, 0});
+
+    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other2.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
+    EXPECT_EQ(list2.getKind(), OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_target), nullptr);
+    EXPECT_NE(g->get(tree_other1), nullptr);
+    EXPECT_NE(g->get(tree_other2), nullptr);
+
+    EXPECT_FALSE(g->hasEdge(tree_other1, tree_target));
+    EXPECT_FALSE(g->hasEdge(tree_other2, tree_target));
+    EXPECT_TRUE(g->hasEdge(par1, tree_target));
+    EXPECT_TRUE(g->hasEdge(par2, tree_target));
 }
 
 TEST_F(ImmMapApi, NestedNonAttachedLinks) {
@@ -660,10 +719,32 @@ TEST_F(ImmMapApi, NestedNonAttachedLinks) {
 )");
 
     addNodeRec(getRootAdapters());
-    // two subtrees, and one list item linking to subtree
-    EXPECT_EQ(getGraph()->getVertexCount(), 3);
-    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
-    EXPECT_EQ(getState()->unresolved.size(), 0);
+
+    auto g   = getGraph();
+    auto doc = getRootAdapters().back();
+
+    auto tree_one = doc.at(1);
+    auto tree_two = doc.at(2);
+
+    auto list1 = tree_two.at(0);
+
+    auto par1 = list1.at({0, 0});
+    auto par2 = list1.at({1, 0});
+
+    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree_one.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_two.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_one), nullptr);
+    EXPECT_NE(g->get(tree_two), nullptr);
+
+    EXPECT_FALSE(g->hasEdge(tree_two, tree_one));
+    EXPECT_FALSE(g->hasEdge(par1, tree_one));
+    EXPECT_TRUE(g->hasEdge(par2, tree_one));
 }
 
 TEST_F(ImmMapApi, SubtreeBacklinks) {
@@ -690,9 +771,36 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 
     addNodeRec(getRootAdapters());
 
-    EXPECT_EQ(getGraph()->getVertexCount(), 2);
-    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
-    EXPECT_EQ(getState()->unresolved.size(), 0);
+    auto doc1 = getRootAdapters().at(0);
+    auto doc2 = getRootAdapters().at(1);
+
+    auto tree1 = doc1.at(1);
+    auto tree2 = doc2.at(1);
+
+    auto item1 = tree1.at({0, 0});
+    auto item2 = tree2.at({0, 0});
+
+    auto par1 = item1.at(0);
+    auto par2 = item2.at(0);
+
+    auto g = getGraph();
+
+    EXPECT_EQ(doc1.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc2.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree2.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(item1.getKind(), OrgSemKind::ListItem);
+    EXPECT_EQ(item2.getKind(), OrgSemKind::ListItem);
+
+    EXPECT_NE(g->get(doc1), nullptr);
+    EXPECT_NE(g->get(doc2), nullptr);
+
+    EXPECT_NE(g->get(par1), nullptr);
+    EXPECT_NE(g->get(par2), nullptr);
+
+    EXPECT_TRUE(g->hasEdge(doc1, tree1));
+    EXPECT_TRUE(g->hasEdge(doc2, tree2));
 
     writeRepresentation();
     runExternalizedLayoutPipeline();

@@ -268,7 +268,6 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
         org::eachSubnodeRec(node, true, register_used_links);
     }
 
-
     OP_TRACER_MESSAGE(
         state->graph,
         "box:{} unresolved:{}",
@@ -653,14 +652,18 @@ void org::graph::MapGraphState::addNodeRec(
     org::imm::ImmAdapter const&                     node,
     std::shared_ptr<MapConfig> const&               conf) {
 
-    auto add_node_impl =
-        [&](ImmAdapter const&                  node,
-            hstd::Opt<hgraph::VertexID> const& parent) -> hgraph::VertexID {
+    auto add_node_impl = [&](ImmAdapter const&                  node,
+                             hstd::Opt<hgraph::VertexID> const& parent,
+                             hstd::Opt<MapEdge::EdgeKind> edge_override = std::nullopt)
+        -> hgraph::VertexID {
         auto vertex = addNode(node, conf);
         if (parent.has_value()) {
             auto edge = std::make_shared<MapEdge>(hstd::fmt1(
                 graph->edges->edges.getNextId(graph->edges->getCollectionID().t)));
-            if (graph->getCastVertex<MapNode>(parent.value())
+            if (edge_override) {
+                edge->kind = edge_override.value();
+            } else if (
+                graph->getCastVertex<MapNode>(parent.value())
                     ->getAdapter()
                     .is(OrgSemKind::Subtree)
                 && node.is(OrgSemKind::Subtree)) {
@@ -677,7 +680,8 @@ void org::graph::MapGraphState::addNodeRec(
 
     auto aux = [&](this auto&&                        self,
                    ImmAdapter const&                  node,
-                   hstd::Opt<hgraph::VertexID> const& parent) -> void {
+                   hstd::Opt<hgraph::VertexID> const& parent,
+                   hstd::Opt<MapEdge::EdgeKind> edge_override = std::nullopt) -> void {
         __perf_trace("mmpa", "Recursive add node", kind, fmt1(node.getKind()));
 
         auto __tmp = graph->begin_scope(
@@ -690,10 +694,21 @@ void org::graph::MapGraphState::addNodeRec(
             case OrgSemKind::Symlink:
             case OrgSemKind::Document:
             case OrgSemKind::CmdInclude:
-            case OrgSemKind::ListItem:
             case OrgSemKind::Subtree:
             case OrgSemKind::List: {
                 auto added = add_node_impl(node, parent);
+                for (auto const& it : node) { self(it, added); }
+                break;
+            }
+            case OrgSemKind::ListItem: {
+                auto item  = node.as<ImmListItem>();
+                auto added = add_node_impl(node, parent);
+                if (item.isDescriptionItem()) {
+                    self(
+                        item.getHeader().value(),
+                        added,
+                        MapEdge::EdgeKind::DescriptionListHead);
+                }
                 for (auto const& it : node) { self(it, added); }
                 break;
             }

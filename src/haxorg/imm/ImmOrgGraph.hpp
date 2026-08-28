@@ -171,7 +171,12 @@ struct MapEdge
     DESC_FIELDS(MapEdge, ());
     using hgraph::IEdge::IEdge;
 
-    DECL_DESCRIBED_ENUM(EdgeKind, DirectLink, NestedStatementElement, NestedSubtree);
+    DECL_DESCRIBED_ENUM(
+        EdgeKind,
+        DirectLink,
+        NestedStatementElement,
+        NestedSubtree,
+        DescriptionListHead);
     EdgeKind kind;
 
 #if ORG_BUILD_WITH_PROTOBUF
