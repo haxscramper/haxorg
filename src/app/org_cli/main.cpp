@@ -52,10 +52,9 @@
 hstd::ProtoXmlMapper make_proto_xml_mapper();
 
 struct CliOpts {
+    using OS = hstd::Opt<std::string>;
     struct ParseOpts {
         /// \brief input file or directory
-        using OS = hstd::Opt<std::string>;
-
         OPT_FIELD(input, "input", std::string, "");
         OPT_FIELD(
             lastStage,
@@ -212,14 +211,10 @@ struct CliOpts {
 
     OPT_NAME(loggingFlags_opt, "--logging-flags");
 
-    hstd::Opt<hstd::Str> logFile;
-    OPT_NAME(logFile_opt, "--root-log-file");
-
-    hstd::Opt<hstd::Str> diagnosticsFile;
-    OPT_NAME(diagnosticsFile_opt, "--diagnostics-file");
-
-    hstd::Opt<hstd::Str> perfFile;
-    OPT_NAME(perfFile_opt, "--perf-file");
+    OPT_FIELD(logStructured, "--log-structured", bool, false);
+    OPT_FIELD(logFile, "--root-log-file", OS, std::nullopt);
+    OPT_FIELD(diagnosticsFile, "--diagnostics-file", OS, std::nullopt);
+    OPT_FIELD(perfFile, "--perf-file", OS, std::nullopt);
 };
 
 
@@ -572,13 +567,13 @@ int main(int argc, char* argv[]) {
 
     hstd::log::clear_sink_backends();
     if (opts.loggingFlags.contains(CliOpts::LoggingFlags::LogToFile)) {
-        // TODO: Get XDG-aware logging file location
+        LOGIC_ASSERTION_CHECK(opts.logFile.has_value(), "Expected value for log file");
         hstd::log::push_sink(
-            hstd::log::init_file_sink(opts.logFile.value_or("/tmp/haxorg.log")));
+            hstd::log::init_file_sink(opts.logFile.value(), opts.logStructured));
     }
 
     if (opts.loggingFlags.contains(CliOpts::LoggingFlags::LogToStdout)) {
-        hstd::log::push_sink(hstd::log::init_stdout_sink());
+        hstd::log::push_sink(hstd::log::init_stdout_sink(opts.logStructured));
     }
 
     HSLOG_INFO("starting");
@@ -601,7 +596,7 @@ int main(int argc, char* argv[]) {
     std::ofstream fileOut;
     std::ostream* diagOut = &std::cerr;
     if (opts.diagnosticsFile) {
-        auto const& path = hstd::fs::path{opts.diagnosticsFile.value().toBase()};
+        auto const& path = hstd::fs::path{opts.diagnosticsFile.value()};
         std::filesystem::create_directories(path.parent_path());
         fileOut.open(path, std::ios::out | std::ios::trunc);
         if (!fileOut.is_open()) {
@@ -622,7 +617,7 @@ int main(int argc, char* argv[]) {
 
     hstd::finally end_trace{[&]() {
         if (opts.perfFile) {
-            StopTracing(std::move(tracing_session), opts.perfFile.value().toBase());
+            StopTracing(std::move(tracing_session), opts.perfFile.value());
         }
     }};
 #endif

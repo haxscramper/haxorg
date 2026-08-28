@@ -1,4 +1,5 @@
 #include "logger.hpp"
+#include "hstd/stdlib/JsonSerde.hpp"
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
 
@@ -177,6 +178,13 @@ void hstd::log::clear_sink_backends() { log_sink_manager::instance().set_sinks({
 
 namespace {
 
+void structured_format_log_record_data(
+    boost::log::record_view const&  rec,
+    boost::log::formatting_ostream& strm,
+    log_record::log_data const&     data) {
+    strm << hstd::to_json_eval(data) << "\n";
+}
+
 void format_log_record_data(
     boost::log::record_view const&  rec,
     boost::log::formatting_ostream& strm,
@@ -193,7 +201,7 @@ void format_log_record_data(
                      11, 9 /*Extract HH:MM:SS*/)
                      + std::string{" "}
                : "",
-            join(".", data.source_scope));
+            join("."_str_view, data.source_scope));
     }
 
     if (!prefix.empty()) { prefix += " "; }
@@ -244,7 +252,7 @@ void format_log_record_data(
 }
 } // namespace
 
-sink_ptr hstd::log::init_file_sink(Str const& log_file_name) {
+sink_ptr hstd::log::init_file_sink(Str const& log_file_name, bool structured) {
 
     auto& logger = global_logger::get();
 
@@ -259,16 +267,21 @@ sink_ptr hstd::log::init_file_sink(Str const& log_file_name) {
         )};
 
     sink->set_formatter(
-        [](boost::log::record_view const& rec, boost::log::formatting_ostream& strm) {
+        [structured](
+            boost::log::record_view const& rec, boost::log::formatting_ostream& strm) {
             auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
             LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
-            format_log_record_data(rec, strm, ref->data);
+            if (structured) {
+                structured_format_log_record_data(rec, strm, ref->data);
+            } else {
+                format_log_record_data(rec, strm, ref->data);
+            }
         });
 
     return sink;
 }
 
-sink_ptr hstd::log::init_stdout_sink() {
+sink_ptr hstd::log::init_stdout_sink(bool structured) {
     typedef boost::log::sinks::synchronous_sink<boost::log::sinks::text_ostream_backend>
         sink_t;
 
@@ -279,10 +292,15 @@ sink_ptr hstd::log::init_stdout_sink() {
     sink->locked_backend()->auto_flush(true);
 
     sink->set_formatter(
-        [](boost::log::record_view const& rec, boost::log::formatting_ostream& strm) {
+        [structured](
+            boost::log::record_view const& rec, boost::log::formatting_ostream& strm) {
             auto ref = rec[HSLOG_RECORD_FIELD].extract<log_record>();
             LOGIC_ASSERTION_CHECK(!!ref, "Log record view missing data");
-            format_log_record_data(rec, strm, ref->data);
+            if (structured) {
+                structured_format_log_record_data(rec, strm, ref->data);
+            } else {
+                format_log_record_data(rec, strm, ref->data);
+            }
         });
 
     return sink;
@@ -399,6 +417,11 @@ log_record& log_record::source_scope_add(Str const& scope) {
 
 log_record& log_record::source_id(Str const& id) {
     data.source_id = id;
+    return *this;
+}
+
+log_record& log_record::metadata(json const& metadata) {
+    data.metadata = std::make_shared<json>(metadata);
     return *this;
 }
 
