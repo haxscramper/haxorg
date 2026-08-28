@@ -95,6 +95,19 @@ profile_heaptrack_cli path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='
 profile_valgrind tool path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
     valgrind --tool={{tool}}  --{{tool}}-out-file=/tmp/{{tool}}.out.haxorg_cli {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}}
 
+profile_valgrind_graph tool path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
+    valgrind \
+      --tool={{tool}} \
+      --{{tool}}-out-file=/tmp/{{tool}}.out.haxorg_cli \
+      {{bin}} \
+      --perf-file {{perf_file}} \
+      export \
+      --input {{path}} \
+      --output /tmp/result.proto \
+      map \
+      --format Binary
+
+
 profile_valgrind_view tool:
   kcachegrind /tmp/{{tool}}.out.haxorg_cli
 
