@@ -74,7 +74,7 @@ message IPortCollection {
   google.protobuf.Any payload = 2;
 }
 
-message IGraphProto {
+message IGraph {
   repeated IEdgeCollection collections = 1;
   repeated IVertexHierarchy hierarchies = 2;
   repeated IVertex vertices = 3;

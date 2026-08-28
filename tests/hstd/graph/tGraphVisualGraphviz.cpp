@@ -151,7 +151,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
 
     root->render(getDebugFile("result-1.png"));
 
-    hstd::ext::graph::proto::IGraphProto ig;
+    hstd::ext::graph::proto::IGraph ig;
     run->getGraph()->writeSerial(&ig);
     writeFile(getDebugFile("result.json"), getJString(ig));
 

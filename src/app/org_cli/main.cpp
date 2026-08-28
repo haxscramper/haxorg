@@ -225,10 +225,7 @@ struct CliOpts {
     OPT_NAME(withIncludes_opt, "--with-includes");
 
     DECL_DESCRIBED_ENUM(LoggingFlags, LogToStdout, LogToFile, None);
-    hstd::IntSet<LoggingFlags> loggingFlags{
-        LoggingFlags::LogToStdout,
-        LoggingFlags::LogToFile,
-    };
+    hstd::IntSet<LoggingFlags> loggingFlags{LoggingFlags::LogToStdout};
 
     OPT_NAME(loggingFlags_opt, "--logging-flags");
 
@@ -577,7 +574,6 @@ Full argument list was:
     return result;
 }
 
-
 int main(int argc, char* argv[]) {
     // TODO: Support `@input-file` syntax for passing multiple options to the CLI from a
     // file.
@@ -878,31 +874,39 @@ int main(int argc, char* argv[]) {
                 },
 #if ORG_BUILD_WITH_PROTOBUF
                 [&](EO::Proto const& p) {
+                    HSLOG_INFO("Converting parse result to protobuf");
                     orgproto::ParseResult result;
                     hstd::serde::write_serde(result.mutable_node(), node.value());
                     hstd::serde::write_serde(result.mutable_sources(), *ctx->source);
                     hstd::serde::write_serde(result.mutable_reports(), reports);
+                    HSLOG_INFO("Serializing protobuf result to output file");
                     write_proto_result(result, p.format);
                 },
                 [&](EO::Map const& m) {
                     org::graph::MapConfig::Ptr   conf{org::graph::MapConfig::shared()};
                     org::imm::ImmAstContext::Ptr store{
                         org::imm::ImmAstContext::init_start_context()};
+                    HSLOG_INFO("Converting to immutable AST");
                     org::imm::ImmAstVersion version = store->addRoot(node.value());
                     org::graph::MapGraphState::Ptr
                          state   = org::graph::MapGraphState::shared(version.context);
                     auto adapter = version.getRootAdapter();
+                    HSLOG_INFO("Building immutable AST graph");
                     state->addNodeRec(adapter.ctx.lock(), adapter, conf);
 
+                    HSLOG_INFO("Writing graph to protobuf data");
                     org::graph::proto::GraphResult result;
                     result.set_allocated_graph(state->graph->get_serial().release());
                     hstd::serde::write_serde(result.mutable_sources(), *ctx->source);
                     hstd::serde::write_serde(result.mutable_reports(), reports);
 
+                    HSLOG_INFO("Serializing protobuf result to output file");
                     write_proto_result(result, m.format);
                 },
 #endif
             },
             cmd.data);
     }
+
+    HSLOG_INFO("Done file processing");
 }

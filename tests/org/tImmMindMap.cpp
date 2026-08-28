@@ -199,9 +199,9 @@ class TestFactory : public IGraphSerialReaderFactory {
 
 #endif
 
-std::unique_ptr<proto::IGraphProto> get_layout_structure(
-    std::unique_ptr<proto::IGraphProto> const& in) {
-    auto out = std::make_unique<proto::IGraphProto>();
+std::unique_ptr<proto::IGraph> get_layout_structure(
+    std::unique_ptr<proto::IGraph> const& in) {
+    auto out = std::make_unique<proto::IGraph>();
 
     auto        out_hierarchy = out->add_hierarchies();
     std::string rg_id{"root-vertex"};
@@ -252,8 +252,7 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
 }
 
 #if ORG_BUILD_WITH_PROTOBUF
-std::unique_ptr<proto::IGraphProto> run_layout(
-    std::unique_ptr<proto::IGraphProto> const& proto) {
+std::unique_ptr<proto::IGraph> run_layout(std::unique_ptr<proto::IGraph> const& proto) {
     TestFactory factory;
     factory.setTraceFile(getDebugFile("graph_serial_read.log"));
 
@@ -273,7 +272,7 @@ std::unique_ptr<proto::IGraphProto> run_layout(
 
     factory.run->setTraceFile(getDebugFile("serial_read_layout.log"));
     factory.run->runFullLayout();
-    auto result = std::make_unique<proto::IGraphProto>();
+    auto result = std::make_unique<proto::IGraph>();
     graph->writeSerial(result.get());
     writeFile(getDebugFile("serial_layout_result.json"), getJString(*result));
     return result;
