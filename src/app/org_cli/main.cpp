@@ -19,6 +19,7 @@
 #include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/lexbase/NodeIO.hpp>
 #include <haxorg/test/NodeTest.hpp>
+#include <hstd/ext/error_write_proto.hpp>
 #include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/IntSetSerde.hpp>
 #include <hstd/stdlib/JsonCLIParser.hpp>
@@ -52,6 +53,24 @@
     }
 
 hstd::ProtoXmlMapper make_proto_xml_mapper();
+
+struct ParseReports {
+    std::string       formatted;
+    hstd::ext::Report report;
+};
+
+template <>
+struct hstd::serde::proto_serde<orgproto::ParseReport, ParseReports> {
+    static void write(orgproto::ParseReport* out, ParseReports const& in) {
+        out->set_formatted(in.formatted);
+        hstd::serde::write_serde(out->mutable_report(), in.report);
+    }
+
+    static void read(orgproto::ParseReport const& in, ParseReports* out) {
+        out->formatted = in.formatted();
+        hstd::serde::read_serde(in.report(), &out->report);
+    }
+};
 
 struct CliOpts {
     using OS = hstd::Opt<std::string>;
@@ -721,13 +740,20 @@ int main(int argc, char* argv[]) {
 
         json parse_lefovers_export{};
 
-        hstd::Vec<hstd::ext::Report> reports;
+        hstd::Vec<ParseReports> reports;
 
         auto paramsForPath = [&](std::string const& path) {
             auto params                    = org::parse::OrgParseParameters::shared();
             params->onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& tmp,
                                                  std::optional<int> fragmentIndex) {
-                reports.append(tmp);
+                auto cache = ctx->getDiagnosticStrings();
+                for (auto const& rep : tmp) {
+                    reports.push_back(
+                        ParseReports{
+                            .formatted = rep.to_string(*cache, false),
+                            .report    = rep,
+                        });
+                }
             };
 
             auto group_json_repr = [&](auto const&        group,

@@ -29,6 +29,6 @@ message MapEdgeCollectionPayload {
 
 message GraphResult {
   .hstd.ext.graph.proto.IGraphProto graph = 1;
-  repeated .hstd.ext.error_write.Report reports = 2;
+  repeated .orgproto.ParseReport reports = 2;
   .orgproto.SourceManager sources = 3;
 }

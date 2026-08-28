@@ -16,8 +16,13 @@ message SourceManager {
   repeated Source path_ids = 1;
 }
 
+message ParseReport {
+  .hstd.ext.error_write.Report report =1;
+  string formatted = 2;
+}
+
 message ParseResult {
   orgproto.AnyNode node = 1;
-  repeated .hstd.ext.error_write.Report reports = 2;
+  repeated ParseReport reports = 2;
   SourceManager sources = 3;
 }
