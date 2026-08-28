@@ -1,6 +1,8 @@
 #include "haxorg/exporters/ExporterJson.hpp"
 #include "haxorg/exporters/exporteryaml.hpp"
 #include "proto_to_xml.hpp"
+#include "src/haxorg/imm/ImmOrgGraph.pb.h"
+#include "src/haxorg/serde/OrgApiProto.pb.h"
 #include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <argparse/argparse.hpp>
 #include <boost/describe.hpp>
@@ -622,15 +624,6 @@ int main(int argc, char* argv[]) {
     }};
 #endif
 
-    auto onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& reports,
-                                      std::optional<int>                  fragmentIndex) {
-        auto cache = ctx->getDiagnosticStrings();
-        for (auto const& report : reports) {
-            auto tmp = report;
-            *diagOut << tmp.to_string(*cache, false) << std::endl;
-        }
-    };
-
     if (std::holds_alternative<CliOpts::ParseOpts>(opts.cmd)) {
         auto const&    cmd = std::get<CliOpts::ParseOpts>(opts.cmd);
         hstd::fs::path input{cmd.input};
@@ -640,9 +633,16 @@ int main(int argc, char* argv[]) {
         params->baseTokenTracePath     = cmd.baseTokenTracePath;
         params->tokenTracePath         = cmd.tokenTracePath;
         params->semTracePath           = cmd.semTracePath;
-        params->onDiagnosticsCollected = onDiagnosticsCollected;
-        params->lastStage              = cmd.lastStage;
-        params->validateBaseTokens     = cmd.validateBaseTokens;
+        params->onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& reports,
+                                             std::optional<int> fragmentIndex) {
+            auto cache = ctx->getDiagnosticStrings();
+            for (auto const& report : reports) {
+                auto tmp = report;
+                *diagOut << tmp.to_string(*cache, false) << std::endl;
+            }
+        };
+        params->lastStage          = cmd.lastStage;
+        params->validateBaseTokens = cmd.validateBaseTokens;
 
         params->onParseDone = [&](org::parse::OrgNodeGroup const& nodes,
                                   org::parse::OrgId               id,
@@ -721,9 +721,14 @@ int main(int argc, char* argv[]) {
 
         json parse_lefovers_export{};
 
+        hstd::Vec<hstd::ext::Report> reports;
+
         auto paramsForPath = [&](std::string const& path) {
             auto params                    = org::parse::OrgParseParameters::shared();
-            params->onDiagnosticsCollected = onDiagnosticsCollected;
+            params->onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& tmp,
+                                                 std::optional<int> fragmentIndex) {
+                reports.append(tmp);
+            };
 
             auto group_json_repr = [&](auto const&        group,
                                        std::optional<int> fragmentIndex) -> json {
@@ -847,10 +852,10 @@ int main(int argc, char* argv[]) {
                 },
 #if ORG_BUILD_WITH_PROTOBUF
                 [&](EO::Proto const& p) {
-                    orgproto::AnyNode result;
-                    hstd::serde::proto_serde<
-                        orgproto::AnyNode,
-                        org::sem::SemId<org::sem::Org>>::write(&result, node.value());
+                    orgproto::ParseResult result;
+                    hstd::serde::write_serde(result.mutable_node(), node.value());
+                    hstd::serde::write_serde(result.mutable_sources(), *ctx->source);
+                    hstd::serde::write_serde(result.mutable_reports(), reports);
                     write_proto_result(result, p.format);
                 },
                 [&](EO::Map const& m) {
@@ -862,8 +867,13 @@ int main(int argc, char* argv[]) {
                          state   = org::graph::MapGraphState::shared(version.context);
                     auto adapter = version.getRootAdapter();
                     state->addNodeRec(adapter.ctx.lock(), adapter, conf);
-                    auto result = state->graph->get_serial();
-                    write_proto_result(*result, m.format);
+
+                    org::graph::proto::GraphResult result;
+                    result.set_allocated_graph(state->graph->get_serial().release());
+                    hstd::serde::write_serde(result.mutable_sources(), *ctx->source);
+                    hstd::serde::write_serde(result.mutable_reports(), reports);
+
+                    write_proto_result(result, m.format);
                 },
 #endif
             },

@@ -49,3 +49,22 @@ org::parse::SourceFileId org::parse::SourceManager::addSource(
 org::parse::SourceFileId org::parse::SourceManager::getId(std::string const& path) const {
     return path_ids.at_right(path);
 }
+
+#if ORG_BUILD_WITH_PROTOBUF
+
+void hstd::serde::proto_serde<orgproto::SourceManager, org::parse::SourceManager>::read(
+    orgproto::SourceManager const& in,
+    org::parse::SourceManager*     out) {}
+
+void hstd::serde::proto_serde<orgproto::SourceManager, org::parse::SourceManager>::write(
+    orgproto::SourceManager*         out,
+    org::parse::SourceManager const& in) {
+    for (auto const& [file_id, file_content] : in.store.pairs()) {
+        auto p = out->add_path_ids();
+        p->set_content(file_content->content);
+        p->set_source_name(file_content->path);
+        p->mutable_file_id()->set_id(file_id.value);
+    }
+}
+
+#endif

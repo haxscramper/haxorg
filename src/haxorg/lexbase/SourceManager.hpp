@@ -5,6 +5,11 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/dod_base.hpp>
 
+#if ORG_BUILD_WITH_PROTOBUF
+#    include "src/haxorg/serde/OrgApiProto.pb.h"
+#    include <hstd/ext/hstd_serde.hpp>
+#endif
+
 namespace org::parse {
 
 DECL_ID_TYPE_MASKED_WITH_ATTR(
@@ -77,3 +82,13 @@ struct fmt::formatter<org::parse::SourceLoc> {
             hstd::fmt("{}({}:{}:{})", p.file_id, p.line, p.column, p.pos), ctx);
     }
 };
+
+#if ORG_BUILD_WITH_PROTOBUF
+
+template <>
+struct hstd::serde::proto_serde<orgproto::SourceManager, org::parse::SourceManager> {
+    static void write(orgproto::SourceManager* out, org::parse::SourceManager const& in);
+    static void read(orgproto::SourceManager const& in, org::parse::SourceManager* out);
+};
+
+#endif

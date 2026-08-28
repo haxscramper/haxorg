@@ -2,6 +2,9 @@ syntax = "proto3";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 import "src/haxorg/serde/SemOrgProto.proto";
+import "src/haxorg/serde/OrgApiProto.proto";
+import "src/hstd/ext/error_write.proto";
+import "src/hstd/ext/graph/base/graph_base.proto";
 
 package org.graph.proto;
 
@@ -23,3 +26,9 @@ message MapEdgePayload {
 message MapEdgeCollectionPayload {
 
 };
+
+message GraphResult {
+  .hstd.ext.graph.proto.IGraphProto graph = 1;
+  repeated .hstd.ext.error_write.Report reports = 2;
+  .orgproto.SourceManager sources = 3;
+}
