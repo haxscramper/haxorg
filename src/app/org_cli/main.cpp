@@ -574,17 +574,436 @@ Full argument list was:
     return result;
 }
 
+struct SharedContext {
+    CliOpts                                   opts;
+    std::shared_ptr<org::parse::ParseContext> parseContext;
+    std::ofstream                             diagnosticsFile;
+    std::ostream*                             diagnosticsOut = &std::cerr;
+
+    explicit SharedContext(CliOpts options)
+        : opts{std::move(options)}
+        , parseContext{std::make_shared<org::parse::ParseContext>()} {
+        if (opts.diagnosticsFile) {
+            auto const path = hstd::fs::path{opts.diagnosticsFile.value()};
+            std::filesystem::create_directories(path.parent_path());
+
+            diagnosticsFile.open(path, std::ios::out | std::ios::trunc);
+            if (!diagnosticsFile.is_open()) {
+                throw std::runtime_error(
+                    hstd::fmt("failed to open diagnostics file {}", path));
+            }
+
+            HSLOG_INFO("using diag file {}", path);
+            diagnosticsOut = &diagnosticsFile;
+        }
+
+        *diagnosticsOut << "" << std::endl;
+    }
+
+    bool shouldProcessPath(std::string const& path) const {
+        // TODO: make this configurable
+        hstd::fs::path filesystemPath{path};
+
+        if (path.contains(".git") || path.contains(".trunk")) {
+            return false;
+        } else if (path.ends_with(".org")) {
+            return true;
+        } else {
+            return hstd::fs::is_directory(filesystemPath);
+        }
+    }
+};
+
+
+struct ParseCommandContext {
+    CliOpts::ParseOpts const&                    cmd;
+    org::parse::OrgParseParameters::Ptr          params;
+    org::parse::OrgDirectoryParseParameters::Ptr directoryParams;
+
+    explicit ParseCommandContext(CliOpts::ParseOpts const& command)
+        : cmd{command}
+        , params{org::parse::OrgParseParameters::shared()}
+        , directoryParams{org::parse::OrgDirectoryParseParameters::shared()} {}
+
+    void configure(SharedContext& shared) {
+        params->parseTracePath     = cmd.parseTracePath;
+        params->baseTokenTracePath = cmd.baseTokenTracePath;
+        params->tokenTracePath     = cmd.tokenTracePath;
+        params->semTracePath       = cmd.semTracePath;
+        params->lastStage          = cmd.lastStage;
+        params->validateBaseTokens = cmd.validateBaseTokens;
+
+        params->onDiagnosticsCollected = std::bind_front(
+            &ParseCommandContext::onDiagnosticsCollected, this, std::ref(shared));
+
+        params->onParseDone = std::bind_front(&ParseCommandContext::onParseDone, this);
+
+        directoryParams->shouldProcessPath = std::bind_front(
+            &SharedContext::shouldProcessPath, &shared);
+
+        directoryParams->getParsedNode = std::bind_front(
+            &ParseCommandContext::parsePath, this, std::ref(shared));
+    }
+
+    void onDiagnosticsCollected(
+        SharedContext&                      shared,
+        hstd::Vec<hstd::ext::Report> const& reports,
+        std::optional<int>                  fragmentIndex) {
+        auto cache = shared.parseContext->getDiagnosticStrings();
+
+        for (auto const& report : reports) {
+            auto copy = report;
+            *shared.diagnosticsOut << copy.to_string(*cache, false) << std::endl;
+        }
+    }
+
+    void onParseDone(
+        org::parse::OrgNodeGroup const& nodes,
+        org::parse::OrgId               id,
+        std::optional<int>              fragmentIndex) {
+        if (cmd.parseDumpPath) {
+            hstd::writeFile(cmd.parseDumpPath.value(), nodes.treeRepr(id), true);
+        }
+    }
+
+    org::sem::SemId<org::sem::Org> parsePath(
+        SharedContext&     shared,
+        std::string const& path) {
+        return shared.parseContext->parseFileOpts(path, params);
+    }
+
+    void writeImmutableDumps(org::sem::SemId<org::sem::Org> const& node) const {
+        auto store = org::imm::ImmAstContext::init_start_context();
+
+        if (cmd.immAstTracePath) {
+            store->debug->setTraceFile(cmd.immAstTracePath.value());
+        }
+
+        auto version = store->init(node);
+        auto immNode = version.getRootAdapter();
+
+        if (cmd.immDumpPath) {
+            hstd::writeFile(
+                cmd.immDumpPath.value(),
+                immNode.treeRepr(org::imm::ImmAdapter::TreeReprConf{}).toString(false),
+                true);
+        }
+
+        if (cmd.immVerboseDumpPath) {
+            hstd::writeFile(
+                cmd.immVerboseDumpPath.value(),
+                immNode
+                    .treeRepr(
+                        org::imm::ImmAdapter::TreeReprConf{
+                            .withAuxFields  = true,
+                            .withReflFields = true,
+                        })
+                    .toString(false),
+                true);
+        }
+
+        if (cmd.immTrackingDumpPath) {
+            hstd::writeFile(
+                cmd.immTrackingDumpPath.value(),
+                version.getContext()->currentTrack->toString().toString(false),
+                true);
+        }
+    }
+};
+
+
+void runParseCommand(SharedContext& shared, ParseCommandContext& parseContext) {
+    parseContext.configure(shared);
+
+    hstd::fs::path                 input{parseContext.cmd.input};
+    org::sem::SemId<org::sem::Org> node;
+
+    if (hstd::fs::is_directory(input)) {
+        node = shared.parseContext
+                   ->parseDirectoryOpts(input, parseContext.directoryParams)
+                   .value();
+    } else if (shared.opts.withIncludes) {
+        node = shared.parseContext->parseFileWithIncludes(
+            input, parseContext.directoryParams);
+    } else {
+        node = shared.parseContext->parseFileOpts(input, parseContext.params);
+    }
+
+    if (parseContext.cmd.lastStage
+        == org::parse::OrgParseParameters::LastParseStage::ImmConvert) {
+        parseContext.writeImmutableDumps(node);
+    }
+}
+
+
+struct ExportCommandContext {
+    using EO = CliOpts::ExportOpts;
+
+    EO const&                                    cmd;
+    org::parse::OrgDirectoryParseParameters::Ptr directoryParams;
+    json                                         parseLeftoversExport{};
+    hstd::Vec<ParseReports>                      reports;
+
+    explicit ExportCommandContext(EO const& command)
+        : cmd{command}
+        , directoryParams{org::parse::OrgDirectoryParseParameters::shared()} {}
+
+    void configure(SharedContext& shared) {
+        directoryParams->shouldProcessPath = std::bind_front(
+            &SharedContext::shouldProcessPath, &shared);
+
+        directoryParams->getParsedNode = std::bind_front(
+            &ExportCommandContext::parsePath, this, std::ref(shared));
+    }
+
+    void onDiagnosticsCollected(
+        SharedContext&                      shared,
+        hstd::Vec<hstd::ext::Report> const& collected,
+        std::optional<int>                  fragmentIndex) {
+        auto cache = shared.parseContext->getDiagnosticStrings();
+
+        for (auto const& report : collected) {
+            reports.push_back(
+                ParseReports{
+                    .formatted = report.to_string(*cache, false),
+                    .report    = report,
+                });
+        }
+    }
+
+    template <typename Group>
+    json groupJsonRepresentation(
+        std::string const& path,
+        Group const&       group,
+        std::optional<int> fragmentIndex) const {
+        return json::object({
+            {"path", path},
+            {"group", org::test::jsonRepr(group)},
+            {
+                "fragment_index",
+                fragmentIndex.has_value() ? json{fragmentIndex.value()} : json{},
+            },
+        });
+    }
+
+    void onTokenizerDone(
+        std::string const&               path,
+        org::parse::OrgTokenGroup const& tokens,
+        std::optional<int>               fragmentIndex) {
+        parseLeftoversExport["tokenizer_export"].push_back(
+            groupJsonRepresentation(path, tokens, fragmentIndex));
+    }
+
+    void onBaseTokenizerDone(
+        std::string const&               path,
+        org::parse::OrgTokenGroup const& tokens,
+        std::optional<int>               fragmentIndex) {
+        parseLeftoversExport["base_tokenizer_export"].push_back(
+            groupJsonRepresentation(path, tokens, fragmentIndex));
+    }
+
+    void onParseDone(
+        std::string const&              path,
+        org::parse::OrgNodeGroup const& nodes,
+        org::parse::OrgId               id,
+        std::optional<int>              fragmentIndex) {
+        parseLeftoversExport["parse_export"].push_back(
+            groupJsonRepresentation(path, nodes, fragmentIndex));
+    }
+
+    org::parse::OrgParseParameters::Ptr paramsForPath(
+        SharedContext&     shared,
+        std::string const& path) {
+        auto params = org::parse::OrgParseParameters::shared();
+
+        params->onDiagnosticsCollected = std::bind_front(
+            &ExportCommandContext::onDiagnosticsCollected, this, std::ref(shared));
+
+        if (std::holds_alternative<EO::Token>(cmd.data)) {
+            params->onTokenizerDone = std::bind_front(
+                &ExportCommandContext::onTokenizerDone, this, path);
+        } else if (std::holds_alternative<EO::BaseToken>(cmd.data)) {
+            params->onBaseTokenizeDone = std::bind_front(
+                &ExportCommandContext::onBaseTokenizerDone, this, path);
+        } else if (std::holds_alternative<EO::ParseNode>(cmd.data)) {
+            params->onParseDone = std::bind_front(
+                &ExportCommandContext::onParseDone, this, path);
+        }
+
+        return params;
+    }
+
+    org::sem::SemId<org::sem::Org> parsePath(
+        SharedContext&     shared,
+        std::string const& path) {
+        return shared.parseContext->parseFileOpts(path, paramsForPath(shared, path));
+    }
+
+    void writeProtoJson(google::protobuf::Message const& result) const {
+        std::string jsonOutput;
+
+        google::protobuf::json::PrintOptions options;
+        options.add_whitespace = true;
+
+        auto status = google::protobuf::util::MessageToJsonString(
+            result, &jsonOutput, options);
+
+        hstd::writeFile(cmd.output, jsonOutput, true);
+    }
+
+    void writeProtoBinary(google::protobuf::Message const& result) const {
+        std::ofstream output{cmd.output, std::ios::binary};
+        result.SerializeToOstream(&output);
+    }
+
+    void writeProtoXml(google::protobuf::Message const& result) const {
+        auto          mapper = make_proto_xml_mapper();
+        std::ofstream output{cmd.output};
+        mapper.map(result).serialize(output);
+    }
+
+    void writeProtoResult(google::protobuf::Message const& result, EO::ProtoFormat format)
+        const {
+        switch (format) {
+            case EO::ProtoFormat::Json: writeProtoJson(result); break;
+
+            case EO::ProtoFormat::Binary: writeProtoBinary(result); break;
+
+            case EO::ProtoFormat::Xml: writeProtoXml(result); break;
+        }
+    }
+
+    void exportJson(org::sem::SemId<org::sem::Org> const& node, EO::Json const& options)
+        const {
+        org::algo::ExporterJson exporter;
+        exporter.skipEmptyLists  = options.skipEmptyLists;
+        exporter.skipId          = options.skipId;
+        exporter.skipLocation    = options.skipLocation;
+        exporter.skipNullFields  = options.skipNullFields;
+        exporter.normalizeSpaces = options.normalizeSpaces;
+
+        auto result = exporter.evalTop(node);
+        hstd::writeFile(cmd.output, result.dump(2), true);
+    }
+
+    void exportYaml(org::sem::SemId<org::sem::Org> const& node, EO::Yaml const& options)
+        const {
+        org::algo::ExporterYaml exporter;
+        exporter.skipNullFields  = options.skipNullFields;
+        exporter.skipFalseFields = options.skipFalseFields;
+        exporter.skipZeroFields  = options.skipZeroFields;
+        exporter.skipLocation    = options.skipLocation;
+        exporter.skipId          = options.skipId;
+
+        auto result = exporter.evalTop(node);
+        hstd::writeFile(cmd.output, fmt::format("{}\n", result), true);
+    }
+
+    void exportParseLeftovers() const {
+        hstd::writeFile(cmd.output, parseLeftoversExport.dump(2), true);
+    }
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void exportProto(
+        SharedContext&                        shared,
+        org::sem::SemId<org::sem::Org> const& node,
+        EO::Proto const&                      options) const {
+        HSLOG_INFO("Converting parse result to protobuf");
+
+        orgproto::ParseResult result;
+        hstd::serde::write_serde(result.mutable_node(), node);
+        hstd::serde::write_serde(result.mutable_sources(), *shared.parseContext->source);
+        hstd::serde::write_serde(result.mutable_reports(), reports);
+
+        HSLOG_INFO("Serializing protobuf result to output file");
+        writeProtoResult(result, options.format);
+    }
+
+    void exportMap(
+        SharedContext&                        shared,
+        org::sem::SemId<org::sem::Org> const& node,
+        EO::Map const&                        options) const {
+        auto config = org::graph::MapConfig::shared();
+        auto store  = org::imm::ImmAstContext::init_start_context();
+
+        HSLOG_INFO("Converting to immutable AST");
+        org::imm::ImmAstVersion version = store->addRoot(node);
+
+        auto state   = org::graph::MapGraphState::shared(version.context);
+        auto adapter = version.getRootAdapter();
+
+        HSLOG_INFO("Building immutable AST graph");
+        state->addNodeRec(adapter.ctx.lock(), adapter, config);
+
+        HSLOG_INFO("Writing graph to protobuf data");
+        org::graph::proto::GraphResult result;
+        result.set_allocated_graph(state->graph->get_serial().release());
+
+        hstd::serde::write_serde(result.mutable_sources(), *shared.parseContext->source);
+        hstd::serde::write_serde(result.mutable_reports(), reports);
+
+        HSLOG_INFO("Serializing protobuf result to output file");
+        writeProtoResult(result, options.format);
+    }
+#endif
+};
+
+
+void runExportCommand(SharedContext& shared, ExportCommandContext& exportContext) {
+    using EO = CliOpts::ExportOpts;
+
+    exportContext.configure(shared);
+
+    // TODO: Support multiple inputs and unify all parsed nodes into a single group.
+    hstd::fs::path input{exportContext.cmd.input.at(0)};
+
+    auto node = hstd::fs::is_directory(input)
+                  ? shared.parseContext->parseDirectoryOpts(
+                        input, exportContext.directoryParams)
+                  : (shared.opts.withIncludes
+                         ? shared.parseContext->parseFileWithIncludes(
+                               input, exportContext.directoryParams)
+                         : shared.parseContext->parseFileOpts(
+                               input,
+                               exportContext.paramsForPath(shared, input.string())));
+
+    LOGIC_ASSERTION_CHECK_FMT(node.has_value(), "Failed to parse input {}", input);
+
+    std::visit(
+        hstd::overloaded{
+            [&](EO::Json const& options) {
+                exportContext.exportJson(node.value(), options);
+            },
+            [&](EO::Yaml const& options) {
+                exportContext.exportYaml(node.value(), options);
+            },
+            [&](EO::Token const&) { exportContext.exportParseLeftovers(); },
+            [&](EO::BaseToken const&) { exportContext.exportParseLeftovers(); },
+            [&](EO::ParseNode const&) { exportContext.exportParseLeftovers(); },
+#if ORG_BUILD_WITH_PROTOBUF
+            [&](EO::Proto const& options) {
+                exportContext.exportProto(shared, node.value(), options);
+            },
+            [&](EO::Map const& options) {
+                exportContext.exportMap(shared, node.value(), options);
+            },
+#endif
+        },
+        exportContext.cmd.data);
+}
+
+
 int main(int argc, char* argv[]) {
-    // TODO: Support `@input-file` syntax for passing multiple options to the CLI from a
-    // file.
     auto opts //
         = argc == 2 && std::string{argv[1]}.starts_with("/")
             ? hstd::parse_json_argc<CliOpts>(argc, argv)
             : parseCli(argc, argv);
 
     hstd::log::clear_sink_backends();
+
     if (opts.loggingFlags.contains(CliOpts::LoggingFlags::LogToFile)) {
         LOGIC_ASSERTION_CHECK(opts.logFile.has_value(), "Expected value for log file");
+
         hstd::log::push_sink(
             hstd::log::init_file_sink(opts.logFile.value(), opts.logStructured));
     }
@@ -596,316 +1015,31 @@ int main(int argc, char* argv[]) {
     HSLOG_INFO("starting");
     HSLOG_TRACE("CLI opts: {}", opts);
 
-    auto pathCB = [](std::string const& path) -> bool {
-        // TODO: make this configurable
-        hstd::fs::path p{path};
-        if (path.contains(".git") || path.contains(".trunk")) {
-            return false;
-        } else if (path.ends_with(".org")) {
-            return true;
-        } else {
-            return hstd::fs::is_directory(p);
-        }
-    };
-
-    auto ctx = std::make_shared<org::parse::ParseContext>();
-
-    std::ofstream fileOut;
-    std::ostream* diagOut = &std::cerr;
-    if (opts.diagnosticsFile) {
-        auto const& path = hstd::fs::path{opts.diagnosticsFile.value()};
-        std::filesystem::create_directories(path.parent_path());
-        fileOut.open(path, std::ios::out | std::ios::trunc);
-        if (!fileOut.is_open()) {
-            throw std::runtime_error(
-                hstd::fmt("failed to open diagnostics file {}", path));
-        }
-        HSLOG_INFO("using diag file {}", path);
-        diagOut = &fileOut;
-    }
-
-    *diagOut << "" << std::endl;
+    SharedContext shared{std::move(opts)};
 
 #ifdef ORG_BUILD_WITH_PERFETTO
-
     std::unique_ptr<perfetto::TracingSession>
-        tracing_session = opts.perfFile ? StartProcessTracing("Perfetto track example")
-                                        : std::unique_ptr<perfetto::TracingSession>{};
+        tracingSession = shared.opts.perfFile
+                           ? StartProcessTracing("Perfetto track example")
+                           : std::unique_ptr<perfetto::TracingSession>{};
 
-    hstd::finally end_trace{[&]() {
-        if (opts.perfFile) {
-            StopTracing(std::move(tracing_session), opts.perfFile.value());
+    hstd::finally endTrace{[&]() {
+        if (shared.opts.perfFile) {
+            StopTracing(std::move(tracingSession), shared.opts.perfFile.value());
         }
     }};
 #endif
 
-    if (std::holds_alternative<CliOpts::ParseOpts>(opts.cmd)) {
-        auto const&    cmd = std::get<CliOpts::ParseOpts>(opts.cmd);
-        hstd::fs::path input{cmd.input};
+    if (std::holds_alternative<CliOpts::ParseOpts>(shared.opts.cmd)) {
+        auto const& command = std::get<CliOpts::ParseOpts>(shared.opts.cmd);
 
-        auto params                    = org::parse::OrgParseParameters::shared();
-        params->parseTracePath         = cmd.parseTracePath;
-        params->baseTokenTracePath     = cmd.baseTokenTracePath;
-        params->tokenTracePath         = cmd.tokenTracePath;
-        params->semTracePath           = cmd.semTracePath;
-        params->onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& reports,
-                                             std::optional<int> fragmentIndex) {
-            auto cache = ctx->getDiagnosticStrings();
-            for (auto const& report : reports) {
-                auto tmp = report;
-                *diagOut << tmp.to_string(*cache, false) << std::endl;
-            }
-        };
-        params->lastStage          = cmd.lastStage;
-        params->validateBaseTokens = cmd.validateBaseTokens;
-
-        params->onParseDone = [&](org::parse::OrgNodeGroup const& nodes,
-                                  org::parse::OrgId               id,
-                                  std::optional<int>              fragmentIndex) {
-            if (cmd.parseDumpPath) {
-                hstd::writeFile(cmd.parseDumpPath.value(), nodes.treeRepr(id), true);
-            }
-        };
-
-        auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
-
-
-        directoryParsingOpts->shouldProcessPath = pathCB;
-
-        directoryParsingOpts->getParsedNode =
-            [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
-            return ctx->parseFileOpts(path, params);
-        };
-
-        org::sem::SemId<org::sem::Org> node;
-
-        if (hstd::fs::is_directory(input)) {
-            node = ctx->parseDirectoryOpts(input, directoryParsingOpts).value();
-        } else {
-            if (opts.withIncludes) {
-                node = ctx->parseFileWithIncludes(input, directoryParsingOpts);
-            } else {
-                node = ctx->parseFileOpts(input, params);
-            }
-        }
-
-        if (cmd.lastStage == org::parse::OrgParseParameters::LastParseStage::ImmConvert) {
-            auto store = org::imm::ImmAstContext::init_start_context();
-            if (cmd.immAstTracePath) {
-                store->debug->setTraceFile(cmd.immAstTracePath.value());
-            }
-            auto version  = store->init(node);
-            auto imm_node = version.getRootAdapter();
-
-            if (cmd.immDumpPath) {
-                hstd::writeFile(
-                    cmd.immDumpPath.value(),
-                    imm_node.treeRepr(org::imm::ImmAdapter::TreeReprConf{})
-                        .toString(false),
-                    true);
-            }
-
-            if (cmd.immVerboseDumpPath) {
-                hstd::writeFile(
-                    cmd.immVerboseDumpPath.value(),
-                    imm_node
-                        .treeRepr(
-                            org::imm::ImmAdapter::TreeReprConf{
-                                .withAuxFields  = true,
-                                .withReflFields = true,
-                            })
-                        .toString(false),
-                    true);
-            }
-
-            if (cmd.immTrackingDumpPath) {
-                hstd::writeFile(
-                    cmd.immTrackingDumpPath.value(),
-                    version.getContext()->currentTrack->toString().toString(false),
-                    true);
-            }
-        }
+        ParseCommandContext parseContext{command};
+        runParseCommand(shared, parseContext);
     } else {
-        using EO        = CliOpts::ExportOpts;
-        auto const& cmd = std::get<EO>(opts.cmd);
+        auto const& command = std::get<CliOpts::ExportOpts>(shared.opts.cmd);
 
-
-        auto directoryParsingOpts = org::parse::OrgDirectoryParseParameters::shared();
-
-        directoryParsingOpts->shouldProcessPath = pathCB;
-
-        json parse_lefovers_export{};
-
-        hstd::Vec<ParseReports> reports;
-
-        auto paramsForPath = [&](std::string const& path) {
-            auto params                    = org::parse::OrgParseParameters::shared();
-            params->onDiagnosticsCollected = [&](hstd::Vec<hstd::ext::Report> const& tmp,
-                                                 std::optional<int> fragmentIndex) {
-                auto cache = ctx->getDiagnosticStrings();
-                for (auto const& rep : tmp) {
-                    reports.push_back(
-                        ParseReports{
-                            .formatted = rep.to_string(*cache, false),
-                            .report    = rep,
-                        });
-                }
-            };
-
-            auto group_json_repr = [&](auto const&        group,
-                                       std::optional<int> fragmentIndex) -> json {
-                return json::object({
-                    {"path", path},
-                    {"group", org::test::jsonRepr(group)},
-                    {"fragment_index",
-                     fragmentIndex.has_value() ? json{fragmentIndex.value()} : json{}},
-                });
-            };
-
-            std::visit(
-                hstd::overloaded{
-                    [&](EO::Token const& j) -> void {
-                        params->onTokenizerDone =
-                            [&](org::parse::OrgTokenGroup const& tokens,
-                                std::optional<int>               fragmentIndex) {
-                                parse_lefovers_export["tokenizer_export"].push_back(
-                                    group_json_repr(tokens, fragmentIndex));
-                            };
-                    },
-                    [&](EO::BaseToken const& j) -> void {
-                        params->onBaseTokenizeDone =
-                            [&](org::parse::OrgTokenGroup const& tokens,
-                                std::optional<int>               fragmentIndex) {
-                                parse_lefovers_export["base_tokenizer_export"].push_back(
-                                    group_json_repr(tokens, fragmentIndex));
-                            };
-                    },
-                    [&](EO::ParseNode const& j) -> void {
-                        params->onParseDone = [&](org::parse::OrgNodeGroup const& tokens,
-                                                  org::parse::OrgId               id,
-                                                  std::optional<int> fragmentIndex) {
-                            parse_lefovers_export["parse_export"].push_back(
-                                group_json_repr(tokens, fragmentIndex));
-                        };
-                    },
-                    [&](auto const& j) -> void {},
-                },
-                cmd.data);
-
-            return params;
-        };
-
-        auto pathToNode = [&](std::string const& path) -> org::sem::SemId<org::sem::Org> {
-            return ctx->parseFileOpts(path, paramsForPath(path));
-        };
-
-        directoryParsingOpts->getParsedNode = pathToNode;
-
-        // TODO: Support multiple inputs and unify all parsed nodes into a single group.
-        hstd::fs::path input{cmd.input.at(0)};
-
-        auto node = hstd::fs::is_directory(input)
-                      ? ctx->parseDirectoryOpts(input, directoryParsingOpts)
-                      : (opts.withIncludes
-                             ? ctx->parseFileWithIncludes(input, directoryParsingOpts)
-                             : ctx->parseFileOpts(input, paramsForPath(input)));
-
-        auto write_proto_json = [&](google::protobuf::Message const& result) {
-            std::string                          json;
-            google::protobuf::json::PrintOptions j_opts;
-            j_opts.add_whitespace = true;
-            auto status           = google::protobuf::util::MessageToJsonString(
-                result, &json, j_opts);
-
-            hstd::writeFile(cmd.output, json, true);
-        };
-
-
-        auto write_proto_binary = [&](google::protobuf::Message const& result) {
-            std::ofstream out(cmd.output, std::ios::binary);
-            result.SerializeToOstream(&out);
-        };
-
-        auto write_proto_xml = [&](google::protobuf::Message const& result) {
-            auto          mapper = make_proto_xml_mapper();
-            std::ofstream out(cmd.output);
-            mapper.map(result).serialize(out);
-        };
-
-        auto write_proto_result = [&](google::protobuf::Message const& result,
-                                      EO::ProtoFormat const&           format) {
-            switch (format) {
-                case EO::ProtoFormat::Json: write_proto_json(result); break;
-                case EO::ProtoFormat::Binary: write_proto_binary(result); break;
-                case EO::ProtoFormat::Xml: write_proto_xml(result); break;
-            }
-        };
-
-        std::visit(
-            hstd::overloaded{
-                [&](EO::Json const& j) -> void {
-                    org::algo::ExporterJson exp;
-                    exp.skipEmptyLists  = j.skipEmptyLists;
-                    exp.skipId          = j.skipId;
-                    exp.skipLocation    = j.skipLocation;
-                    exp.skipNullFields  = j.skipNullFields;
-                    exp.normalizeSpaces = j.normalizeSpaces;
-                    auto res            = exp.evalTop(node.value());
-                    hstd::writeFile(cmd.output, res.dump(2), true);
-                },
-                [&](EO::Yaml const& j) -> void {
-                    org::algo::ExporterYaml exp;
-                    exp.skipNullFields  = j.skipNullFields;
-                    exp.skipFalseFields = j.skipFalseFields;
-                    exp.skipZeroFields  = j.skipZeroFields;
-                    exp.skipLocation    = j.skipLocation;
-                    exp.skipId          = j.skipId;
-                    auto res            = exp.evalTop(node.value());
-                    hstd::writeFile(cmd.output, fmt::format("{}\n", res), true);
-                },
-                [&](EO::Token const& j) -> void {
-                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2), true);
-                },
-                [&](EO::BaseToken const& j) -> void {
-                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2), true);
-                },
-                [&](EO::ParseNode const& j) -> void {
-                    hstd::writeFile(cmd.output, parse_lefovers_export.dump(2), true);
-                },
-#if ORG_BUILD_WITH_PROTOBUF
-                [&](EO::Proto const& p) {
-                    HSLOG_INFO("Converting parse result to protobuf");
-                    orgproto::ParseResult result;
-                    hstd::serde::write_serde(result.mutable_node(), node.value());
-                    hstd::serde::write_serde(result.mutable_sources(), *ctx->source);
-                    hstd::serde::write_serde(result.mutable_reports(), reports);
-                    HSLOG_INFO("Serializing protobuf result to output file");
-                    write_proto_result(result, p.format);
-                },
-                [&](EO::Map const& m) {
-                    org::graph::MapConfig::Ptr   conf{org::graph::MapConfig::shared()};
-                    org::imm::ImmAstContext::Ptr store{
-                        org::imm::ImmAstContext::init_start_context()};
-                    HSLOG_INFO("Converting to immutable AST");
-                    org::imm::ImmAstVersion version = store->addRoot(node.value());
-                    org::graph::MapGraphState::Ptr
-                         state   = org::graph::MapGraphState::shared(version.context);
-                    auto adapter = version.getRootAdapter();
-                    HSLOG_INFO("Building immutable AST graph");
-                    state->addNodeRec(adapter.ctx.lock(), adapter, conf);
-
-                    HSLOG_INFO("Writing graph to protobuf data");
-                    org::graph::proto::GraphResult result;
-                    result.set_allocated_graph(state->graph->get_serial().release());
-                    hstd::serde::write_serde(result.mutable_sources(), *ctx->source);
-                    hstd::serde::write_serde(result.mutable_reports(), reports);
-
-                    HSLOG_INFO("Serializing protobuf result to output file");
-                    write_proto_result(result, m.format);
-                },
-#endif
-            },
-            cmd.data);
+        ExportCommandContext exportContext{command};
+        runExportCommand(shared, exportContext);
     }
 
     HSLOG_INFO("Done file processing");
