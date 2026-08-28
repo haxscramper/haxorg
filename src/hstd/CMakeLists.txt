@@ -65,6 +65,16 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     "${BASE}/src/hstd/ext/graph/visual/graph_visual.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_geometry.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_visual.proto")
+
+  haxorg_add_protobuf(
+    TARGET
+    hstd
+    UNIQUE_TARGET
+    hstd_proto_error_write
+    IMPORT_DIRS
+    "${BASE}"
+    PROTO_SOURCES
+    "${BASE}/src/hstd/ext/error_write.proto")
 endif()
 
 # Graph processing and visualization

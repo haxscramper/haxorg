@@ -1,0 +1,192 @@
+syntax = "proto3";
+
+package hstd.ext.error_write;
+
+message TermColorFg8Bit {
+  int32 value = 1;
+}
+
+message TermColorBg8Bit {
+  int32 value = 1;
+}
+
+message Style {
+  int32 value = 1;
+}
+
+message ColStyle {
+  TermColorFg8Bit fg = 1;
+  TermColorBg8Bit bg = 2;
+  repeated Style style = 3;
+}
+
+message ColRune {
+  string rune = 1;
+  ColStyle style = 2;
+}
+
+message ColText {
+  repeated ColRune runes = 1;
+}
+
+
+message ReportSourceId {
+  uint64 value = 1;
+}
+
+message ReportLabelId {
+  uint64 value = 1;
+}
+
+message IntSlice {
+  int32 first = 1;
+  int32 last = 2;
+}
+
+message CodeSpan {
+  ReportSourceId id = 1;
+  IntSlice range = 2;
+}
+
+// ReportSourceCache is an abstract runtime interface in C++ and has no
+// serializable fields.
+message ReportSourceCache {}
+
+message ReportSourceLine {
+  int32 offset = 1;
+  int32 len = 2;
+}
+
+message ReportSource {
+  message OffsetLine {
+    ReportSourceLine line = 1;
+    int32 idx = 2;
+    int32 col = 3;
+  }
+
+  repeated ReportSourceLine lines = 1;
+  int32 len = 2;
+  ColText content = 3;
+}
+
+message ReportSourceStrCache {
+  message SourceEntry {
+    ReportSourceId id = 1;
+    ReportSource source = 2;
+  }
+
+  message NameEntry {
+    ReportSourceId id = 1;
+    string name = 2;
+  }
+
+  repeated SourceEntry sources = 1;
+  repeated NameEntry names = 2;
+
+  // The C++ getFileSource callback is runtime behavior and cannot be
+  // represented in protobuf.
+}
+
+message ReportCharacters {
+  string hbar = 1;
+  string vbar = 2;
+  string xbar = 3;
+  string vbar_break = 4;
+  string vbar_gap = 5;
+
+  string uarrow = 6;
+  string rarrow = 7;
+
+  string ltop = 8;
+  string mtop = 9;
+  string rtop = 10;
+  string lbot = 11;
+  string rbot = 12;
+  string mbot = 13;
+
+  string lbox = 14;
+  string rbox = 15;
+
+  string lcross = 16;
+  string rcross = 17;
+
+  string underbar = 18;
+  string underline = 19;
+}
+
+enum LabelKind {
+  Inline = 0;
+  Multiline = 1;
+}
+
+message ReportLabel {
+  ReportLabelId id = 1;
+  CodeSpan span = 2;
+  optional ColText msg = 3;
+  ColStyle color = 4;
+  int32 order = 5;
+  int32 priority = 6;
+}
+
+message LabelInfo {
+  LabelKind kind = 1;
+  ReportLabel label = 2;
+}
+
+message SourceGroup {
+  ReportSourceId src_id = 1;
+  IntSlice span = 2;
+  repeated LabelInfo labels = 3;
+}
+
+enum ReportKind {
+  Error = 0;
+  Warning = 1;
+  Advice = 2;
+  Custom = 3;
+}
+
+enum LabelAttach {
+  Start = 0;
+  Middle = 1;
+  End = 2;
+}
+
+message ReportRenderConfig {
+  ColStyle error_color = 1;
+  ColStyle warning_color = 2;
+  ColStyle advice_color = 3;
+  ColStyle margin_color = 4;
+  ColStyle unimportant_color = 5;
+  ColStyle note_color = 6;
+
+  bool cross_gap = 7;
+  LabelAttach label_attach = 8;
+  bool compact = 9;
+  bool underlines = 10;
+  bool multiline_arrows = 11;
+  bool color = 12;
+  int32 tab_width = 13;
+
+  bool debug_writes = 14;
+  bool debug_scopes = 15;
+  bool debug_report_info = 16;
+
+  ReportCharacters char_set = 17;
+}
+
+message Report {
+  message Location {
+    ReportSourceId source_id = 1;
+    int32 offset = 2;
+  }
+
+  ReportKind kind = 1;
+  optional string code = 2;
+  optional ColText msg = 3;
+  repeated ColText note = 4;
+  repeated ColText help = 5;
+  Location location = 6;
+  repeated ReportLabel labels = 7;
+  ReportRenderConfig config = 8;
+}
