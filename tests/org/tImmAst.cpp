@@ -57,15 +57,16 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     for (auto const& k : sliceT<OrgSemKind>()) {
         if (k != OrgSemKind::NoNode) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
-                N                         tmp{};
-                ReflRecursiveVisitContext ctx;
-                Vec<imm::ImmReflPath>     paths;
+                N                            tmp{};
+                ReflRecursiveVisitContext    ctx;
+                Vec<imm::ImmValueAccessPath> paths;
                 reflVisitAll<N>(
                     tmp,
-                    imm::ImmReflPath{},
+                    imm::ImmValueAccessPath{},
                     ctx,
-                    [&]<typename T>(imm::ImmReflVisitCtx const& path, T const& value) {
-                        paths.push_back(imm::ImmReflPath::FromCtx(path));
+                    [&]<typename T>(
+                        imm::ImmValueAccessPathCtx const& path, T const& value) {
+                        paths.push_back(path.toPath());
                     });
             });
         }

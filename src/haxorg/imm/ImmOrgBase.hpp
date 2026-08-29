@@ -30,8 +30,8 @@ struct ImmReflPathTag {
     using field_name_type = ImmReflFieldId;
 };
 
-using ImmReflPathItem = hstd::ReflPathItem<ImmReflPathTag>;
-using ImmReflPath     = hstd::ReflPath<ImmReflPathTag>;
+using ImmAccessStep      = hstd::ReflAccessStep<ImmReflPathTag>;
+using ImmValueAccessPath = hstd::ReflValueAccessPath<ImmReflPathTag>;
 
 
 struct [[refl]] ImmReflFieldId {
@@ -82,7 +82,7 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
     using AnyHasherType    = AnyHasher<Str>;
     using AnyEqualType     = AnyEqual<Str>;
 
-    using ReflPathStoreType = immer::vector<ReflPathItem<org::imm::ImmReflPathTag>>;
+    using ReflPathStoreType = immer::vector<ReflAccessStep<org::imm::ImmReflPathTag>>;
 
     template <typename T>
     static org::imm::ImmReflPathTag::field_name_type InitFieldName(
@@ -91,15 +91,16 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
         return org::imm::ImmReflFieldId::FromTypeField<T>(field.pointer);
     }
 
-    static ReflPath<org::imm::ImmReflPathTag> AddPathItem(
-        ReflPath<org::imm::ImmReflPathTag>     res,
-        ReflPathItem<org::imm::ImmReflPathTag> item) {
-        return ReflPath<org::imm::ImmReflPathTag>{res.path.push_back(item)};
+    static ReflValueAccessPath<org::imm::ImmReflPathTag> AddPathItem(
+        ReflValueAccessPath<org::imm::ImmReflPathTag> res,
+        ReflAccessStep<org::imm::ImmReflPathTag>      item) {
+        return ReflValueAccessPath<org::imm::ImmReflPathTag>{res.path.push_back(item)};
     }
 };
 
 namespace org::imm {
-using ImmReflVisitCtx = hstd::ReflPath<org::imm::ImmReflPathTag>::VisitCtx;
+using ImmValueAccessPathCtx = hstd::ReflValueAccessPath<
+    org::imm::ImmReflPathTag>::VisitCtx;
 }
 
 template <typename K, typename V, typename Tag>
@@ -126,7 +127,7 @@ struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
     /// box is presumed non-null, matching the previous `visit` behavior.
     template <typename Func>
     static void visitEach(hstd::ext::ImmBox<T> const& value, Func const& cb) {
-        cb(ReflPathItem<Tag>::FromDeref(), value.get());
+        cb(ReflAccessStep<Tag>::FromDeref(), value.get());
     }
 };
 

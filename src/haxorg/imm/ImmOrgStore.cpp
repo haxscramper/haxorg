@@ -122,10 +122,10 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
 
 /// \brief Reflection path in the parent node, and the subnode that needs
 /// to be assigned to the specified place.
-using SubnodeAssignTarget = Pair<org::imm::ImmReflPath, ImmId>;
+using SubnodeAssignTarget = Pair<org::imm::ImmValueAccessPath, ImmId>;
 /// \brief Group of subnode values to assign to the given path in the
 /// parent node.
-using SubnodeVecAssignPair = Pair<org::imm::ImmReflPath, Vec<SubnodeAssignTarget>>;
+using SubnodeVecAssignPair = Pair<org::imm::ImmValueAccessPath, Vec<SubnodeAssignTarget>>;
 using SubnodeAssignGroup   = hstd::Vec<SubnodeVecAssignPair>;
 
 /// \brief Group a flat list of subnode updates into assignment group so
@@ -149,9 +149,9 @@ SubnodeAssignGroup groupUpdatedSubnodes(Vec<SubnodeAssignTarget> const& updatedS
                       == b.first.first().getFieldName().name;
               })
         | rv::transform([](auto const& group) -> SubnodeVecAssignPair {
-              ReflPath path = group.front().first;
+              ReflValueAccessPath path = group.front().first;
               return std::make_pair(
-                  path, group | rs::to<Vec<Pair<org::imm::ImmReflPath, ImmId>>>());
+                  path, group | rs::to<Vec<Pair<org::imm::ImmValueAccessPath, ImmId>>>());
           })
         | rs::to<SubnodeAssignGroup>();
 
@@ -286,8 +286,8 @@ Opt<ImmAstReplace> setNewSubnodes(
                     // overload to avoid unexpected fallbacks if new types
                     // are used in the node fields.
                     [&]<typename F>(
-                        ReflPathItem<org::imm::ImmReflPathTag> const& step,
-                        F const&                                      value) {
+                        ReflAccessStep<org::imm::ImmReflPathTag> const& step,
+                        F const&                                        value) {
                         if (step == field) { dispatch(value); }
                     });
             }
@@ -516,7 +516,7 @@ const ImmOrg* ImmAstContext::at(ImmId id) const {
     return res;
 }
 
-ImmId ImmAstContext::at(ImmId node, ImmPathStep const& item) const {
+ImmId ImmAstContext::at(ImmId node, ImmSubnodeAccessStep const& item) const {
     node.assertValid();
     if (item.path.isSingle() && item.path.first().isIndex()) {
         return value<org::imm::ImmOrg>(node).subnodes.at(
@@ -545,7 +545,7 @@ ImmId ImmAstContext::at(ImmId node, ImmPathStep const& item) const {
     }
 }
 
-ImmId ImmAstContext::at(ImmPath const& item) const {
+ImmId ImmAstContext::at(ImmTreeAccessPath const& item) const {
     auto result = item.root;
     for (auto const& step : item.path) { result = at(result, step); }
     return result;

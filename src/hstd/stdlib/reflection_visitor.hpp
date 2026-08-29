@@ -89,8 +89,9 @@ struct ReflTypeTraits {
 };
 
 
+/// \brief Single step to access sub-element in the target reflection value.
 template <typename Tag>
-struct ReflPathItem {
+struct ReflAccessStep {
     /// \brief Target field is a vector.
     struct Index {
         int index;
@@ -122,7 +123,7 @@ struct ReflPathItem {
         bool operator==(Deref const& other) const { return true; }
     };
 
-    ReflPathItem(ReflPathItem const& other) : kind(other.kind) {
+    ReflAccessStep(ReflAccessStep const& other) : kind(other.kind) {
         switch (kind) {
             case Kind::Index: new (&data.index) Index(other.data.index); break;
             case Kind::FieldName:
@@ -133,7 +134,7 @@ struct ReflPathItem {
         }
     }
 
-    void operator=(ReflPathItem const& other) {
+    void operator=(ReflAccessStep const& other) {
         kind = other.kind;
         switch (kind) {
             case Kind::Index: data.index = other.data.index; break;
@@ -143,24 +144,24 @@ struct ReflPathItem {
         }
     }
 
-    ReflPathItem(Index const& idx) : kind(Kind::Index), data(idx) {}
-    ReflPathItem(FieldName const& field) : kind(Kind::FieldName), data(field) {}
-    ReflPathItem(AnyKey const& key) : kind(Kind::AnyKey), data(key) {}
-    ReflPathItem(Deref const& ref) : kind(Kind::Deref), data(ref) {}
+    ReflAccessStep(Index const& idx) : kind(Kind::Index), data(idx) {}
+    ReflAccessStep(FieldName const& field) : kind(Kind::FieldName), data(field) {}
+    ReflAccessStep(AnyKey const& key) : kind(Kind::AnyKey), data(key) {}
+    ReflAccessStep(Deref const& ref) : kind(Kind::Deref), data(ref) {}
 
-    static ReflPathItem FromFieldName(Tag::field_name_type const& name) {
-        return ReflPathItem{FieldName{.name = name}};
+    static ReflAccessStep FromFieldName(Tag::field_name_type const& name) {
+        return ReflAccessStep{FieldName{.name = name}};
     }
 
-    static ReflPathItem FromDeref() { return ReflPathItem{Deref{}}; }
+    static ReflAccessStep FromDeref() { return ReflAccessStep{Deref{}}; }
 
-    static ReflPathItem FromIndex(int const& name) {
-        return ReflPathItem{Index{.index = name}};
+    static ReflAccessStep FromIndex(int const& name) {
+        return ReflAccessStep{Index{.index = name}};
     }
 
     template <typename K>
-    static ReflPathItem FromAnyKey(K const& name) {
-        return ReflPathItem{AnyKey{.key = std::any(name)}};
+    static ReflAccessStep FromAnyKey(K const& name) {
+        return ReflAccessStep{AnyKey{.key = std::any(name)}};
     }
 
     // Using union instead of std::variant because the former one is at
@@ -179,7 +180,7 @@ struct ReflPathItem {
         ~DataUnion() {}
     };
 
-    ~ReflPathItem() {
+    ~ReflAccessStep() {
         switch (kind) {
             case Kind::Index: data.index.~Index(); break;
             case Kind::FieldName: data.fieldName.~FieldName(); break;
@@ -210,7 +211,7 @@ struct ReflPathItem {
 
 
     DECL_DESCRIBED_ENUM(Kind, Index, FieldName, AnyKey, Deref);
-    DESC_FIELDS(ReflPathItem, (data, kind));
+    DESC_FIELDS(ReflAccessStep, (data, kind));
 
     Kind      getKind() const { return kind; }
     Kind      kind;
@@ -277,7 +278,7 @@ struct ReflPathItem {
     }
 
 
-    bool operator==(ReflPathItem const& it) const {
+    bool operator==(ReflAccessStep const& it) const {
         if (it.getKind() == getKind()) {
             switch (kind) {
                 case Kind::AnyKey: return data.anyKey == it.data.anyKey;
@@ -290,7 +291,7 @@ struct ReflPathItem {
         }
     }
 
-    bool operator<(ReflPathItem const& it) const {
+    bool operator<(ReflAccessStep const& it) const {
         if (getKind() == it.getKind()) {
             switch (getKind()) {
                 case Kind::AnyKey: {
@@ -316,7 +317,8 @@ struct ReflPathItem {
 template <typename Tag>
 struct ReflPathItemFormatter {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(ReflPathItem<Tag> const& step, fmt::format_context& ctx) const {
+    hstd::fmt_iter format(ReflAccessStep<Tag> const& step, fmt::format_context& ctx)
+        const {
         typename ReflTypeTraits<Tag>::AnyFormatterType anyFmt;
         if (step.isAnyKey()) {
             fmt_ctx(anyFmt(step.getAnyKey().key), ctx);
@@ -329,43 +331,44 @@ struct ReflPathItemFormatter {
 };
 
 
+/// \brief Sequence of steps to access direct or nested sub-element of the target type.
 template <typename Tag>
-struct ReflPath {
+struct ReflValueAccessPath {
     using Store = ReflTypeTraits<Tag>::ReflPathStoreType;
     Store path;
-    DESC_FIELDS(ReflPath, (path));
-    ReflPathItem<Tag> const& at(int idx) const { return path.at(idx); }
+    DESC_FIELDS(ReflValueAccessPath, (path));
+    ReflAccessStep<Tag> const& at(int idx) const { return path.at(idx); }
 
     struct VisitCtx {
-        Vec<ReflPathItem<Tag>> steps;
-        using StepStore = Vec<ReflPathItem<Tag>>;
+        Vec<ReflAccessStep<Tag>> steps;
+        using StepStore = Vec<ReflAccessStep<Tag>>;
 
-        ReflPath toPath() const {
+        ReflValueAccessPath toPath() const {
             if constexpr (std::is_same_v<std::remove_cvref_t<Store>, VisitCtx>) {
-                return ReflPath(steps);
+                return ReflValueAccessPath(steps);
             } else {
-                return ReflPath{Store{steps.begin(), steps.end()}};
+                return ReflValueAccessPath{Store{steps.begin(), steps.end()}};
             }
         }
 
-        void push_back(ReflPathItem<Tag> const& item) { steps.push_back(item); }
+        void push_back(ReflAccessStep<Tag> const& item) { steps.push_back(item); }
         void pop_back() { steps.pop_back(); }
     };
 
     using iterator = VisitCtx::StepStore::iterator;
 
-    ReflPath() {}
-    ReflPath(iterator begin, iterator end) : path{begin, end} {}
-    ReflPath(Store path) : path{path} {}
+    ReflValueAccessPath() {}
+    ReflValueAccessPath(iterator begin, iterator end) : path{begin, end} {}
+    ReflValueAccessPath(Store path) : path{path} {}
 
-    ReflPath(ReflPathItem<Tag> const& single) : path{{single}} {}
+    ReflValueAccessPath(ReflAccessStep<Tag> const& single) : path{{single}} {}
 
     bool isSingle() const { return path.size() == 1; }
 
-    ReflPathItem<Tag> const& first() const { return path.at(0); }
-    ReflPathItem<Tag> const& last() const { return path.back(); }
+    ReflAccessStep<Tag> const& first() const { return path.at(0); }
+    ReflAccessStep<Tag> const& last() const { return path.back(); }
 
-    ReflPath dropPrefix(ReflPath const& other) {
+    ReflValueAccessPath dropPrefix(ReflValueAccessPath const& other) {
         auto begin = path.begin();
         for (int i = 0; i < path.size(); ++i) {
             if (i < other.path.size()) {
@@ -373,48 +376,50 @@ struct ReflPath {
                 ++begin;
             }
         }
-        return ReflPath{Store{begin, path.end()}};
+        return ReflValueAccessPath{Store{begin, path.end()}};
     }
 
-    Pair<ReflPathItem<Tag>, ReflPath> split() const {
+    Pair<ReflAccessStep<Tag>, ReflValueAccessPath> split() const {
         if (path.size() == 1) {
             return {path.front(), {}};
         } else {
-            return Pair<ReflPathItem<Tag>, ReflPath>{
-                path.front(), ReflPath{Store{path.begin() + 1, path.end()}}};
+            return Pair<ReflAccessStep<Tag>, ReflValueAccessPath>{
+                path.front(), ReflValueAccessPath{Store{path.begin() + 1, path.end()}}};
         }
     }
 
-    ReflPath addFieldName(Tag::field_name_type const& name) const {
-        return add(ReflPathItem<Tag>{typename ReflPathItem<Tag>::FieldName{name}});
+    ReflValueAccessPath addFieldName(Tag::field_name_type const& name) const {
+        return add(ReflAccessStep<Tag>{typename ReflAccessStep<Tag>::FieldName{name}});
     }
 
-    ReflPath add(ReflPath const& item) const {
+    ReflValueAccessPath add(ReflValueAccessPath const& item) const {
         auto res = *this;
         res.path.append(item.path);
         return res;
     }
 
-    ReflPath add(ReflPathItem<Tag> const& item) const {
+    ReflValueAccessPath add(ReflAccessStep<Tag> const& item) const {
         return ReflTypeTraits<Tag>::AddPathItem(*this, item);
     }
 
     bool empty() const { return path.empty(); }
 
-    bool operator==(ReflPath const& other) const { return path.operator==(other.path); }
+    bool operator==(ReflValueAccessPath const& other) const {
+        return path.operator==(other.path);
+    }
 
     template <typename Cmp>
-    bool lessThan(ReflPath const& other, Cmp const& cmp) const {
+    bool lessThan(ReflValueAccessPath const& other, Cmp const& cmp) const {
         return itemwise_less_than(path, other.path, cmp);
     }
 
-    bool operator<(ReflPath const& other) const { return path < other.path; }
+    bool operator<(ReflValueAccessPath const& other) const { return path < other.path; }
 };
 
 
 template <typename Tag>
 struct ReflPathHasher {
-    std::size_t operator()(ReflPath<Tag> const& it) const noexcept {
+    std::size_t operator()(ReflValueAccessPath<Tag> const& it) const noexcept {
         std::size_t                                 result = 0;
         typename ReflTypeTraits<Tag>::AnyHasherType anyHasher;
         for (auto const& it : it.path) {
@@ -430,8 +435,9 @@ struct ReflPathHasher {
 
 template <typename Tag>
 struct ReflPathComparator {
-    std::size_t operator()(ReflPath<Tag> const& lhs, ReflPath<Tag> const& rhs)
-        const noexcept {
+    std::size_t operator()(
+        ReflValueAccessPath<Tag> const& lhs,
+        ReflValueAccessPath<Tag> const& rhs) const noexcept {
         typename ReflTypeTraits<Tag>::AnyEqualType anyEq;
         if (lhs.path.size() == rhs.path.size()) {
             for (int i = 0; i < lhs.path.size(); ++i) {
@@ -458,7 +464,8 @@ struct ReflPathComparator {
 template <typename Tag>
 struct ReflPathFormatter {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(ReflPath<Tag> const& step, fmt::format_context& ctx) const {
+    hstd::fmt_iter format(ReflValueAccessPath<Tag> const& step, fmt::format_context& ctx)
+        const {
         ReflPathItemFormatter<Tag> fmt{};
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { fmt_ctx(">>", ctx); }
@@ -518,7 +525,7 @@ struct ReflVisitor<T, Tag> {
     static void visitEach(T const& value, Func const& cb) {
         for_each_field_with_base_value<T>(
             value, [&]<typename B>(B const& base, auto const& ptr) {
-                cb(ReflPathItem<Tag>::FromFieldName(
+                cb(ReflAccessStep<Tag>::FromFieldName(
                        ReflTypeTraits<Tag>::InitFieldName(base, ptr)),
                    value.*ptr.pointer);
             });
@@ -538,11 +545,11 @@ struct ReflVisitorKeyValue {
             Vec<K> keys;
             for (auto const& [key, _] : value) { keys.push_back(key); }
             for (auto const& key : sorted(keys)) {
-                cb(ReflPathItem<Tag>::FromAnyKey(key), value.at(key));
+                cb(ReflAccessStep<Tag>::FromAnyKey(key), value.at(key));
             }
         } else {
             for (auto const& key : value.keys()) {
-                cb(ReflPathItem<Tag>::FromAnyKey(key), value.at(key));
+                cb(ReflAccessStep<Tag>::FromAnyKey(key), value.at(key));
             }
         }
     }
@@ -556,7 +563,7 @@ struct ReflVisitorIndexed {
     template <typename Func>
     static void visitEach(Indexed const& value, Func const& cb) {
         for (int i = 0; i < value.size(); ++i) {
-            cb(ReflPathItem<Tag>::FromIndex(i), value.at(i));
+            cb(ReflAccessStep<Tag>::FromIndex(i), value.at(i));
         }
     }
 };
@@ -577,7 +584,7 @@ struct ReflVisitorUnorderedIndexed {
     static void visitEach(Unordered const& value, Func const& cb) {
         int index = 0;
         for (auto const& item : getSorted(value)) {
-            cb(ReflPathItem<Tag>::FromIndex(index++), item);
+            cb(ReflAccessStep<Tag>::FromIndex(index++), item);
         }
     }
 };
@@ -589,7 +596,7 @@ struct ReflVisitor<Opt<T>, Tag> {
     /// is engaged, using a deref step. Empty optionals yield no elements.
     template <typename Func>
     static void visitEach(Opt<T> const& value, Func const& cb) {
-        if (value.has_value()) { cb(ReflPathItem<Tag>::FromDeref(), value.value()); }
+        if (value.has_value()) { cb(ReflAccessStep<Tag>::FromDeref(), value.value()); }
     }
 };
 
@@ -610,7 +617,7 @@ struct ReflVisitor<std::shared_ptr<T>, Tag> {
     /// deref step. Null pointers yield no elements.
     template <typename Func>
     static void visitEach(std::shared_ptr<T> const& value, Func const& cb) {
-        if (value) { cb(ReflPathItem<Tag>::FromDeref(), *value); }
+        if (value) { cb(ReflAccessStep<Tag>::FromDeref(), *value); }
     }
 };
 
@@ -618,7 +625,7 @@ template <typename T, typename Tag>
 struct ReflVisitor<std::unique_ptr<T>, Tag> {
     template <typename Func>
     static void visitEach(std::unique_ptr<T> const& value, Func const& cb) {
-        if (value) { cb(ReflPathItem<Tag>::FromDeref(), *value); }
+        if (value) { cb(ReflAccessStep<Tag>::FromDeref(), *value); }
     }
 };
 
@@ -649,7 +656,7 @@ struct ReflVisitor<std::tuple<Args...>, Tag> {
     template <typename Func>
     static void visitEach(std::tuple<Args...> const& value, Func const& cb) {
         [&]<std::size_t... Idx>(std::index_sequence<Idx...>) {
-            (cb(ReflPathItem<Tag>::FromIndex(int(Idx)), std::get<Idx>(value)), ...);
+            (cb(ReflAccessStep<Tag>::FromIndex(int(Idx)), std::get<Idx>(value)), ...);
         }(std::index_sequence_for<Args...>{});
     }
 };
@@ -659,8 +666,8 @@ struct ReflVisitor<Pair<T1, T2>, Tag> {
     /// \brief Enumerate `first` at index 0 and `second` at index 1.
     template <typename Func>
     static void visitEach(Pair<T1, T2> const& value, Func const& cb) {
-        cb(ReflPathItem<Tag>::FromIndex(0), value.first);
-        cb(ReflPathItem<Tag>::FromIndex(1), value.second);
+        cb(ReflAccessStep<Tag>::FromIndex(0), value.first);
+        cb(ReflAccessStep<Tag>::FromIndex(1), value.second);
     }
 };
 
@@ -671,7 +678,9 @@ struct ReflVisitor<T, Tag> {
     template <typename Func>
     static void visitEach(T const& value, Func const& cb) {
         std::visit(
-            [&](auto const& it) { cb(ReflPathItem<Tag>::FromIndex(value.index()), it); },
+            [&](auto const& it) {
+                cb(ReflAccessStep<Tag>::FromIndex(value.index()), it);
+            },
             value);
     }
 };
@@ -760,10 +769,10 @@ struct ReflVisitor<std::nullptr_t, Tag> : ReflVisitorLeafType<std::nullptr_t, Ta
 /// \brief Collect enumeration steps of the immediate sub-elements of
 /// `item` into a vector. Retained for callers that materialize the list.
 template <typename T, typename Tag>
-Vec<ReflPathItem<Tag>> reflSubItems(T const& item) {
-    Vec<ReflPathItem<Tag>> result;
+Vec<ReflAccessStep<Tag>> reflSubItems(T const& item) {
+    Vec<ReflAccessStep<Tag>> result;
     ReflVisitor<T, Tag>::visitEach(
-        item, [&]<typename F>(ReflPathItem<Tag> const& step, F const&) {
+        item, [&]<typename F>(ReflAccessStep<Tag> const& step, F const&) {
             result.push_back(step);
         });
     return result;
@@ -788,15 +797,15 @@ struct ReflRecursiveVisitContext {
 namespace details {
 template <typename T, typename Tag, typename Func>
 void reflVisitAll(
-    T const&                          value,
-    typename ReflPath<Tag>::VisitCtx& step_context,
-    ReflRecursiveVisitContext&        ctx,
-    Func const&                       cb) {
+    T const&                                     value,
+    typename ReflValueAccessPath<Tag>::VisitCtx& step_context,
+    ReflRecursiveVisitContext&                   ctx,
+    Func const&                                  cb) {
     cb(std::as_const(step_context), value);
     if (ctx.canRecurse(value)) {
         ctx.visit(value);
         ReflVisitor<std::remove_cvref_t<T>, Tag>::visitEach(
-            value, [&]<typename F>(ReflPathItem<Tag> const& step, F const& fieldValue) {
+            value, [&]<typename F>(ReflAccessStep<Tag> const& step, F const& fieldValue) {
                 step_context.push_back(step);
                 details::reflVisitAll<F, Tag>(fieldValue, step_context, ctx, cb);
                 step_context.pop_back();
@@ -808,11 +817,11 @@ void reflVisitAll(
 
 template <typename T, typename Tag, typename Func>
 void reflVisitAll(
-    T const&                   value,
-    ReflPath<Tag> const&       path,
-    ReflRecursiveVisitContext& ctx,
-    Func const&                cb) {
-    typename ReflPath<Tag>::VisitCtx step_context;
+    T const&                        value,
+    ReflValueAccessPath<Tag> const& path,
+    ReflRecursiveVisitContext&      ctx,
+    Func const&                     cb) {
+    typename ReflValueAccessPath<Tag>::VisitCtx step_context;
     for (auto const& it : path.path) { step_context.steps.push_back(it); }
     details::reflVisitAll<std::remove_cvref_t<T>, Tag, Func>(
         value, step_context, ctx, cb);
@@ -822,20 +831,20 @@ void reflVisitAll(
 template <typename T, typename Func, typename Tag>
 void reflVisitDirectItems(T const& value, Func const& cb) {
     ReflVisitor<T, Tag>::visitEach(
-        value, [&]<typename F>(ReflPathItem<Tag> const& step, F const& fieldValue) {
+        value, [&]<typename F>(ReflAccessStep<Tag> const& step, F const& fieldValue) {
             cb(step, fieldValue);
         });
 }
 
 
 template <typename T, typename Func, typename Tag>
-void reflVisitPath(T const& value, ReflPath<Tag> const& path, Func const& cb) {
+void reflVisitPath(T const& value, ReflValueAccessPath<Tag> const& path, Func const& cb) {
     if (path.empty()) {
         cb(value);
     } else {
         auto [head, tail] = path.split();
         ReflVisitor<T, Tag>::visitEach(
-            value, [&]<typename F>(ReflPathItem<Tag> const& step, F const& fieldValue) {
+            value, [&]<typename F>(ReflAccessStep<Tag> const& step, F const& fieldValue) {
                 if (step == head) { reflVisitPath<F>(fieldValue, tail, cb); }
             });
     }
@@ -942,10 +951,11 @@ inline std::size_t get_registered_field_count(std::type_index type_id) {
 
 
 template <typename Tag>
-struct fmt::formatter<hstd::ReflPath<Tag>> {
+struct fmt::formatter<hstd::ReflValueAccessPath<Tag>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(hstd::ReflPath<Tag> const& step, fmt::format_context& ctx)
-        const {
+    hstd::fmt_iter format(
+        hstd::ReflValueAccessPath<Tag> const& step,
+        fmt::format_context&                  ctx) const {
         for (auto const& it : enumerator(step.path)) {
             if (!it.is_first()) { ::hstd::fmt_ctx(">>", ctx); }
             ::hstd::fmt_ctx(it.value(), ctx);
@@ -956,8 +966,8 @@ struct fmt::formatter<hstd::ReflPath<Tag>> {
 
 
 template <typename Tag>
-struct std::hash<hstd::ReflPath<Tag>> {
-    std::size_t operator()(hstd::ReflPath<Tag> const& it) const noexcept {
+struct std::hash<hstd::ReflValueAccessPath<Tag>> {
+    std::size_t operator()(hstd::ReflValueAccessPath<Tag> const& it) const noexcept {
         std::size_t result = 0;
         ::hstd::hax_hash_combine(result, it.path);
         return result;
@@ -965,9 +975,9 @@ struct std::hash<hstd::ReflPath<Tag>> {
 };
 
 template <typename Tag>
-struct fmt::formatter<hstd::ReflPathItem<Tag>> {
+struct fmt::formatter<hstd::ReflAccessStep<Tag>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(hstd::ReflPathItem<Tag> const& step, fmt::format_context& ctx)
+    hstd::fmt_iter format(hstd::ReflAccessStep<Tag> const& step, fmt::format_context& ctx)
         const {
         step.visit([&](auto const& it) { ::hstd::fmt_ctx(it, ctx); });
         return ::hstd::fmt_ctx("", ctx);
@@ -976,20 +986,20 @@ struct fmt::formatter<hstd::ReflPathItem<Tag>> {
 
 
 template <typename Tag>
-struct std::hash<hstd::ReflPathItem<Tag>> {
-    std::size_t operator()(hstd::ReflPathItem<Tag> const& it) const noexcept {
+struct std::hash<hstd::ReflAccessStep<Tag>> {
+    std::size_t operator()(hstd::ReflAccessStep<Tag> const& it) const noexcept {
         std::size_t result = 0;
         it.visit(
             ::hstd::overloaded{
-                [&](hstd::ReflPathItem<Tag>::Deref) {},
-                [&](hstd::ReflPathItem<Tag>::AnyKey value) {
+                [&](hstd::ReflAccessStep<Tag>::Deref) {},
+                [&](hstd::ReflAccessStep<Tag>::AnyKey value) {
                     typename hstd::ReflTypeTraits<Tag>::AnyHasherType h;
                     result = h(value.key);
                 },
-                [&](hstd::ReflPathItem<Tag>::Index value) {
+                [&](hstd::ReflAccessStep<Tag>::Index value) {
                     ::hstd::hax_hash_combine(result, value.index);
                 },
-                [&](hstd::ReflPathItem<Tag>::FieldName value) {
+                [&](hstd::ReflAccessStep<Tag>::FieldName value) {
                     ::hstd::hax_hash_combine(result, value.name);
                 },
             });

@@ -510,15 +510,15 @@ void haxorg_destroy_ImmId(OrgContext* org_context, haxorg_ImmId* obj) { org::bin
 
 void haxorg_destroy_ImmOrg(OrgContext* org_context, haxorg_ImmOrg* obj) { org::bind::c::execute_destroy<org::imm::ImmOrg>(org_context, obj); }
 
-void haxorg_destroy_ImmPathStep(OrgContext* org_context, haxorg_ImmPathStep* obj) { org::bind::c::execute_destroy<org::imm::ImmPathStep>(org_context, obj); }
+void haxorg_destroy_ImmPathStep(OrgContext* org_context, haxorg_ImmPathStep* obj) { org::bind::c::execute_destroy<org::imm::ImmSubnodeAccessStep>(org_context, obj); }
 
-haxorg_ImmId haxorg_ImmPath_get_root(OrgContext* org_context, haxorg_ImmPath __this) { return org::bind::c::get_cpp_field<haxorg_ImmId, org::imm::ImmPath, org::imm::ImmId, haxorg_ImmPath>(org_context, __this, &org::imm::ImmPath::root); }
+haxorg_ImmId haxorg_ImmPath_get_root(OrgContext* org_context, haxorg_ImmPath __this) { return org::bind::c::get_cpp_field<haxorg_ImmId, org::imm::ImmTreeAccessPath, org::imm::ImmId, haxorg_ImmPath>(org_context, __this, &org::imm::ImmTreeAccessPath::root); }
 
-haxorg_ImmPathStore haxorg_ImmPath_get_path(OrgContext* org_context, haxorg_ImmPath __this) { return org::bind::c::get_cpp_field<haxorg_ImmPathStore, org::imm::ImmPath, org::imm::ImmPath::Store, haxorg_ImmPath>(org_context, __this, &org::imm::ImmPath::path); }
+haxorg_ImmPathStore haxorg_ImmPath_get_path(OrgContext* org_context, haxorg_ImmPath __this) { return org::bind::c::get_cpp_field<haxorg_ImmPathStore, org::imm::ImmTreeAccessPath, org::imm::ImmTreeAccessPath::Store, haxorg_ImmPath>(org_context, __this, &org::imm::ImmTreeAccessPath::path); }
 
-bool haxorg_ImmPath_empty_const(OrgContext* org_context, haxorg_ImmPath __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmPath::*)() const>(&org::imm::ImmPath::empty), org_context, __this); }
+bool haxorg_ImmPath_empty_const(OrgContext* org_context, haxorg_ImmPath __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmTreeAccessPath::*)() const>(&org::imm::ImmTreeAccessPath::empty), org_context, __this); }
 
-void haxorg_destroy_ImmPath(OrgContext* org_context, haxorg_ImmPath* obj) { org::bind::c::execute_destroy<org::imm::ImmPath>(org_context, obj); }
+void haxorg_destroy_ImmPath(OrgContext* org_context, haxorg_ImmPath* obj) { org::bind::c::execute_destroy<org::imm::ImmTreeAccessPath>(org_context, obj); }
 
 void haxorg_destroy_ImmUniqId(OrgContext* org_context, haxorg_ImmUniqId* obj) { org::bind::c::execute_destroy<org::imm::ImmUniqId>(org_context, obj); }
 
@@ -566,7 +566,7 @@ haxorg_StdOptional haxorg_ImmAdapter_getParent_const(OrgContext* org_context, ha
 
 int haxorg_ImmAdapter_getSelfIndex_const(OrgContext* org_context, haxorg_ImmAdapter __this) { return org::bind::c::execute_cpp<int>(static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex), org_context, __this); }
 
-haxorg_ImmAdapter haxorg_ImmAdapter_atPathStep_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmId id, haxorg_ImmPathStep idx) { return org::bind::c::execute_cpp<haxorg_ImmAdapter>(static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at), org_context, __this, id, idx); }
+haxorg_ImmAdapter haxorg_ImmAdapter_atPathStep_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmId id, haxorg_ImmPathStep idx) { return org::bind::c::execute_cpp<haxorg_ImmAdapter>(static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmSubnodeAccessStep) const>(&org::imm::ImmAdapter::at), org_context, __this, id, idx); }
 
 haxorg_ImmAdapter haxorg_ImmAdapter_atField_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmReflFieldId field) { return org::bind::c::execute_cpp<haxorg_ImmAdapter>(static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at), org_context, __this, field); }
 

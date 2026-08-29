@@ -743,7 +743,7 @@ Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
             .description //
             = link->description.get()
                 ? Vec{link.at(link->description.get().value().toId(),
-                              ImmPathStep::FieldDeref(
+                              ImmSubnodeAccessStep::FieldDeref(
                                   ImmReflFieldId::FromTypeField(&ImmLink::description)))
                           .uniq()}
                 : Vec<ImmUniqId>{},

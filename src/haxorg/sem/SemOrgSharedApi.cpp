@@ -952,12 +952,13 @@ ListFormattingMode sem::List::getListFormattingMode() const {
 imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterSubtreeAPI::getTitle() const {
     return pass(
         getThisT<imm::ImmSubtree>()->title,
-        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
+        ImmSubnodeAccessStep::Field(
+            imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
 }
 imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterCmdCaptionAPI::getText() const {
     return pass(
         getThisT<imm::ImmCmdCaption>()->text,
-        ImmPathStep::Field(
+        ImmSubnodeAccessStep::Field(
             imm::ImmReflFieldId::FromTypeField(&imm::ImmCmdCaption::text)));
 }
 
@@ -969,7 +970,7 @@ Opt<imm::ImmAdapter> imm::ImmAdapterListItemAPI::getHeader() const {
     } else {
         return pass(
             it->header->value(),
-            ImmPathStep::FieldDeref(
+            ImmSubnodeAccessStep::FieldDeref(
                 imm::ImmReflFieldId::FromTypeField(&imm::ImmListItem::header)));
     }
 }

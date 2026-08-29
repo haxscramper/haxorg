@@ -31,7 +31,7 @@ NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::Report>)
 NB_MAKE_OPAQUE(std::vector<hstd::ext::Report>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorGroup>>)
-NB_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmPathStep>)
+NB_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSubnodeAccessStep>)
 NB_MAKE_OPAQUE(hstd::Vec<int>)
 NB_MAKE_OPAQUE(std::vector<int>)
 NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
@@ -157,7 +157,7 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<hstd::ext::Report>(m, "StdVecOfReport", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorGroup>>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
-  org::bind::python::bind_immerflex_vector<org::imm::ImmPathStep>(m, "ImmVecOfImmPathStep", type_registry_guard);
+  org::bind::python::bind_immerflex_vector<org::imm::ImmSubnodeAccessStep>(m, "ImmVecOfImmPathStep", type_registry_guard);
   org::bind::python::bind_hstdVec<int>(m, "HstdVecOfInt", type_registry_guard);
   org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
   org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
@@ -1485,39 +1485,39 @@ node must not be nil)RAW")
     ;
   nanobind::class_<org::imm::ImmOrg>(m, "ImmOrg")
     ;
-  nanobind::class_<org::imm::ImmPathStep>(m, "ImmPathStep")
+  nanobind::class_<org::imm::ImmSubnodeAccessStep>(m, "ImmPathStep")
     .def("__init__",
-         [](org::imm::ImmPathStep* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmPathStep>::construct_at(result);
+         [](org::imm::ImmSubnodeAccessStep* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmSubnodeAccessStep>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("__repr__", [](org::imm::ImmPathStep const& _self) -> std::string {
+    .def("__repr__", [](org::imm::ImmSubnodeAccessStep const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmPathStep const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmSubnodeAccessStep const& _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmPath>(m, "ImmPath")
+  nanobind::class_<org::imm::ImmTreeAccessPath>(m, "ImmPath")
     .def("__init__",
-         [](org::imm::ImmPath* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmPath>::construct_at(result);
+         [](org::imm::ImmTreeAccessPath* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmTreeAccessPath>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def_rw("root", &org::imm::ImmPath::root, R"RAW(\brief Root ID node)RAW")
-    .def_rw("path", &org::imm::ImmPath::path, R"RAW(\brief Sequence of jumps from the root of the document down to the
+    .def_rw("root", &org::imm::ImmTreeAccessPath::root, R"RAW(\brief Root ID node)RAW")
+    .def_rw("path", &org::imm::ImmTreeAccessPath::path, R"RAW(\brief Sequence of jumps from the root of the document down to the
 specified target node. For the path iteration structure see \see
 ImmPathStep documentation.)RAW")
-    .def("empty", static_cast<bool(org::imm::ImmPath::*)() const>(&org::imm::ImmPath::empty), R"RAW(\brief Empty path refers to the root of the document)RAW")
-    .def("__repr__", [](org::imm::ImmPath const& _self) -> std::string {
+    .def("empty", static_cast<bool(org::imm::ImmTreeAccessPath::*)() const>(&org::imm::ImmTreeAccessPath::empty), R"RAW(\brief Empty path refers to the root of the document)RAW")
+    .def("__repr__", [](org::imm::ImmTreeAccessPath const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
     .def("__getattr__",
-         [](org::imm::ImmPath const& _self, std::string const& name) -> nanobind::object {
+         [](org::imm::ImmTreeAccessPath const& _self, std::string const& name) -> nanobind::object {
          return org::bind::python::py_getattr_impl(_self, name);
          },
          nanobind::arg("name"))
@@ -1636,7 +1636,7 @@ field subset.)RAW")
     .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
     .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at),
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmSubnodeAccessStep) const>(&org::imm::ImmAdapter::at),
          nanobind::arg("id"),
          nanobind::arg("idx"))
     .def("at",

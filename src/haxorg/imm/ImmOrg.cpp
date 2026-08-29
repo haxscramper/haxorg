@@ -359,7 +359,7 @@ void treeReprRec(ImmAdapter id, ColStream& os, ImmTreeReprContext const& ctx) {
 
 Str ImmAdapter::selfSelect() const {
     Str result = "root";
-    for (ImmPathStep const& step : path.path) {
+    for (ImmSubnodeAccessStep const& step : path.path) {
         auto const& i = step.path.path;
         if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()
             && i.at(0).getFieldName().name.getName() == "subnodes") {
@@ -411,10 +411,10 @@ bool ImmAdapter::isIndirectParentOf(ImmAdapter const& other) const {
     return false;
 }
 
-hstd::Str ImmPath::getSimplePathFormat() const {
+hstd::Str ImmTreeAccessPath::getSimplePathFormat() const {
     hstd::Vec<hstd::Str> result;
     result.push_back(hstd::fmt("{}//", root));
-    using K = org::imm::ImmReflPathItem::Kind;
+    using K = org::imm::ImmAccessStep::Kind;
     for (auto const& steps : path) {
         auto const& p = steps.path.path;
         if (p.size() == 2 && p.at(0).isFieldName()
@@ -488,25 +488,25 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
         [](ImmAdapter const& ad) { return ad->is(OrgSemKind::Subtree); });
 }
 
-Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> const& rootPath, bool withPath)
-    const {
+Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
+    Opt<ImmTreeAccessPath> const& rootPath,
+    bool                          withPath) const {
     Vec<ImmAdapter> result;
     auto const&     root = *this;
 
-    visitAllSubnodes([&](ImmReflPath const& parent, ImmId const& id) {
+    visitAllSubnodes([&](ImmValueAccessPathCtx const& parent, ImmId const& id) {
         if (withPath) {
             if (rootPath) {
-                ImmPath path;
+                ImmTreeAccessPath path;
                 path      = *rootPath;
-                path.path = path.path.push_back(ImmPathStep{parent});
+                path.path = path.path.push_back(ImmSubnodeAccessStep{parent.toPath()});
                 result.push_back(root.pass(id, path));
             } else {
-                ImmPath path;
+                ImmTreeAccessPath path;
                 path.root = this->id;
-                path.path = path.path.push_back(ImmPathStep{parent});
+                path.path = path.path.push_back(ImmSubnodeAccessStep{parent.toPath()});
                 result.push_back(root.pass(id, path));
             }
-
         } else {
             result.push_back(root.ctx.lock()->adaptUnrooted(id));
         }
@@ -516,12 +516,12 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> const& rootPath, bool wi
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
-    Opt<ImmPath> const&                rootPath,
+    Opt<ImmTreeAccessPath> const&      rootPath,
     bool                               withPath,
     Opt<Func<bool(ImmAdapter)>> const& acceptFilter) const {
-    Vec<ImmAdapter>                                    result;
-    Func<void(ImmAdapter const&, ImmPath const& root)> aux;
-    aux = [&](ImmAdapter const& it, ImmPath const& root) {
+    Vec<ImmAdapter>                                              result;
+    Func<void(ImmAdapter const&, ImmTreeAccessPath const& root)> aux;
+    aux = [&](ImmAdapter const& it, ImmTreeAccessPath const& root) {
         if (!acceptFilter.has_value() || acceptFilter.value()(it)) {
             result.push_back(it);
             for (auto const& sub : it.getAllSubnodes(root, withPath)) {
@@ -533,17 +533,22 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
     return result;
 }
 
-Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(ImmId const& subnode) const {
-    Vec<ImmPathStep> result;
+Vec<ImmSubnodeAccessStep> ImmAdapter::getRelativeSubnodePaths(
+    ImmId const& subnode) const {
+    Vec<ImmSubnodeAccessStep> result;
     visitAllSubnodes(
         overloaded{
-            [&](ImmReflPath const& parent, ImmId const& id) {
-                if (id == subnode) { result.push_back(ImmPathStep{parent}); }
+            [&](ImmValueAccessPathCtx const& parent, ImmId const& id) {
+                if (id == subnode) {
+                    result.push_back(ImmSubnodeAccessStep{parent.toPath()});
+                }
             },
-            [&]<typename K>(ImmReflPath const& parent, ImmIdT<K> const& id) {
-                if (id.toId() == subnode) { result.push_back(ImmPathStep{parent}); }
+            [&]<typename K>(ImmValueAccessPathCtx const& parent, ImmIdT<K> const& id) {
+                if (id.toId() == subnode) {
+                    result.push_back(ImmSubnodeAccessStep{parent.toPath()});
+                }
             },
-            [&](ImmReflPath const& parent, auto const& other) {},
+            [&](ImmValueAccessPathCtx const& parent, auto const& other) {},
         });
 
     return result;
@@ -554,11 +559,11 @@ Vec<ImmAdapter> ImmAdapter::getParentChain(bool withSelf) const {
     for (auto const& span : path.pathSpans()) {
         result.push_back(
             ImmAdapter{
-                ImmPath{path.root, span},
+                ImmTreeAccessPath{path.root, span},
                 ctx,
             });
     }
-    result.push_back(ImmAdapter{ImmPath{path.root}, ctx});
+    result.push_back(ImmAdapter{ImmTreeAccessPath{path.root}, ctx});
     return result;
 }
 
@@ -573,7 +578,7 @@ ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
     if (withPath) {
         return at(
             nodes.at(idx),
-            ImmPathStep::FieldIdx(
+            ImmSubnodeAccessStep::FieldIdx(
                 ImmReflFieldId::FromTypeField<ImmOrg>(&ImmOrg::subnodes), idx));
     } else {
         return ImmAdapter{nodes.at(idx), ctx, {}};
@@ -1093,7 +1098,7 @@ ImmAdapter ImmAstVersion::getRootAdapter() const {
     return ImmAdapter{
         epoch->getRoot(),
         context,
-        ImmPath{epoch->getRoot()},
+        ImmTreeAccessPath{epoch->getRoot()},
     };
 }
 
@@ -1223,16 +1228,16 @@ ParentPathMap ImmAstTrackingMap::getParentsFor(ImmId const& it, ImmAstContext co
 }
 
 namespace {
-Vec<ImmPath> aux_get_paths_form(
+Vec<ImmTreeAccessPath> aux_get_paths_form(
     ImmAstTrackingMap const& map,
     ImmId const&             id,
     ImmAstContext const*     ctx) {
-    Vec<ImmPath> result;
+    Vec<ImmTreeAccessPath> result;
     for (auto const& [parentId, parentPaths] : map.getParentsFor(id, ctx)) {
         auto auxRes = aux_get_paths_form(map, parentId, ctx);
         if (auxRes.empty()) {
             for (auto const& full : parentPaths) {
-                ImmPath path;
+                ImmTreeAccessPath path;
                 path.root = parentId;
                 path.path = path.path.push_back(full);
                 result.push_back(path);
@@ -1240,8 +1245,8 @@ Vec<ImmPath> aux_get_paths_form(
         } else {
             for (auto const& added : auxRes) {
                 for (auto const& full : parentPaths) {
-                    ImmPath path = added;
-                    path.path    = path.path.push_back(full);
+                    ImmTreeAccessPath path = added;
+                    path.path              = path.path.push_back(full);
                     result.push_back(path);
                 }
             }
@@ -1503,12 +1508,12 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     return result;
 }
 
-std::size_t std::hash<org::imm::ImmReflPathItem>::operator()(
-    org::imm::ImmReflPathItem const& it) const noexcept {
+std::size_t std::hash<org::imm::ImmAccessStep>::operator()(
+    org::imm::ImmAccessStep const& it) const noexcept {
     hstd::AnyHasher<hstd::Str> hasher;
     std::size_t                result = 0;
     hstd::hax_hash_combine(result, it.getKind());
-    using K = org::imm::ImmReflPathItem::Kind;
+    using K = org::imm::ImmAccessStep::Kind;
     switch (it.getKind()) {
         case K::Index: hstd::hax_hash_combine(result, it.getIndex().index); break;
         case K::FieldName: hstd::hax_hash_combine(result, it.getFieldName().name); break;
@@ -1519,20 +1524,20 @@ std::size_t std::hash<org::imm::ImmReflPathItem>::operator()(
     return result;
 }
 
-std::size_t std::hash<org::imm::ImmPathStep>::operator()(
-    org::imm::ImmPathStep const& step) const noexcept {
+std::size_t std::hash<org::imm::ImmSubnodeAccessStep>::operator()(
+    org::imm::ImmSubnodeAccessStep const& step) const noexcept {
     hstd::AnyHasher<hstd::Str> hasher;
     std::size_t                result = 0;
     for (int i = 0; i < step.path.path.size(); ++i) {
-        org::imm::ImmReflPathItem const& it = step.path.path.at(i);
+        org::imm::ImmAccessStep const& it = step.path.path.at(i);
         hstd::hax_hash_combine(result, i);
         hstd::hax_hash_combine(result, it);
     }
     return result;
 }
 
-std::size_t std::hash<org::imm::ImmPath>::operator()(
-    org::imm::ImmPath const& it) const noexcept {
+std::size_t std::hash<org::imm::ImmTreeAccessPath>::operator()(
+    org::imm::ImmTreeAccessPath const& it) const noexcept {
     std::size_t result = 0;
     hstd::hax_hash_combine(result, it.root);
     hstd::hax_hash_combine(result, it.path);

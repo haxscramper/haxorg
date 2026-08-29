@@ -92,34 +92,36 @@ struct ImmAstTrackingMap;
 /// `.subnodes` field of the root paragraph can be targeted with the
 /// general reflection visitor, but for the immutable AST this is not
 /// necessary, as the path should transition between AST *nodes*.
-struct [[refl]] ImmPathStep {
+struct [[refl]] ImmSubnodeAccessStep {
     /// \brief path from the root of the immer node to the next ImmId
     /// element.
-    ImmReflPath path;
-    DESC_FIELDS(ImmPathStep, (path));
-    bool operator==(ImmPathStep const& other) const { return path == other.path; }
+    ImmValueAccessPath path;
+    DESC_FIELDS(ImmSubnodeAccessStep, (path));
+    bool operator==(ImmSubnodeAccessStep const& other) const {
+        return path == other.path;
+    }
 
-    static ImmPathStep FieldIdx(ImmReflFieldId const& field, int idx) {
-        return ImmPathStep{ImmReflPath{{
-            ImmReflPathItem::FromFieldName(field),
-            ImmReflPathItem::FromIndex(idx),
+    static ImmSubnodeAccessStep FieldIdx(ImmReflFieldId const& field, int idx) {
+        return ImmSubnodeAccessStep{ImmValueAccessPath{{
+            ImmAccessStep::FromFieldName(field),
+            ImmAccessStep::FromIndex(idx),
         }}};
     }
 
-    static ImmPathStep Field(ImmReflFieldId const& field) {
-        return ImmPathStep{ImmReflPath{{
-            ImmReflPathItem::FromFieldName(field),
+    static ImmSubnodeAccessStep Field(ImmReflFieldId const& field) {
+        return ImmSubnodeAccessStep{ImmValueAccessPath{{
+            ImmAccessStep::FromFieldName(field),
         }}};
     }
 
-    static ImmPathStep FieldDeref(ImmReflFieldId const& field) {
-        return ImmPathStep{ImmReflPath{{
-            ImmReflPathItem::FromFieldName(field),
-            ImmReflPathItem::FromDeref(),
+    static ImmSubnodeAccessStep FieldDeref(ImmReflFieldId const& field) {
+        return ImmSubnodeAccessStep{ImmValueAccessPath{{
+            ImmAccessStep::FromFieldName(field),
+            ImmAccessStep::FromDeref(),
         }}};
     }
 
-    bool operator<(ImmPathStep const& other) const {
+    bool operator<(ImmSubnodeAccessStep const& other) const {
         return path.lessThan(
             other.path, hstd::ReflPathComparator<org::imm::ImmReflPathTag>{});
     }
@@ -128,10 +130,11 @@ struct [[refl]] ImmPathStep {
 } // namespace org::imm
 
 template <>
-struct fmt::formatter<org::imm::ImmPathStep> {
+struct fmt::formatter<org::imm::ImmSubnodeAccessStep> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(org::imm::ImmPathStep const& p, fmt::format_context& ctx)
-        const {
+    hstd::fmt_iter format(
+        org::imm::ImmSubnodeAccessStep const& p,
+        fmt::format_context&                  ctx) const {
         return hstd::ReflPathFormatter<org::imm::ImmReflPathTag>{}.format(p.path, ctx);
     }
 };
@@ -139,8 +142,8 @@ struct fmt::formatter<org::imm::ImmPathStep> {
 
 namespace org::imm {
 /// \brief Full path from the root of the document to a specific node.
-struct [[refl]] ImmPath {
-    [[refl]] typedef immer::flex_vector<ImmPathStep> Store;
+struct [[refl]] ImmTreeAccessPath {
+    [[refl]] typedef immer::flex_vector<ImmSubnodeAccessStep> Store;
     /// \brief Root ID node
     [[refl]] ImmId root;
     /// \brief Sequence of jumps from the root of the document down to the
@@ -149,28 +152,29 @@ struct [[refl]] ImmPath {
     [[refl]] Store path;
 
 
-    DESC_FIELDS(ImmPath, (root, path));
+    DESC_FIELDS(ImmTreeAccessPath, (root, path));
 
     /// \brief Empty path refers to the root of the document
     [[refl]] bool empty() const { return path.empty(); }
 
     /// \brief Construct default path that refers to a `Nil` root
-    ImmPath() : root{ImmId::Nil()} {}
+    ImmTreeAccessPath() : root{ImmId::Nil()} {}
     /// \brief Path referring to the root directly
-    ImmPath(ImmId root) : root{root} {};
+    ImmTreeAccessPath(ImmId root) : root{root} {};
     /// \brief Path referring to a direct sub-element of the root (one jump
     /// from the root node)
-    ImmPath(ImmId root, org::imm::ImmReflPath const& step0)
-        : root{root}, path{ImmPathStep{step0}} {}
+    ImmTreeAccessPath(ImmId root, org::imm::ImmValueAccessPath const& step0)
+        : root{root}, path{ImmSubnodeAccessStep{step0}} {}
     /// \brief Path referring to a direct sub-element (one jump from the
     /// root)
-    ImmPath(ImmId root, ImmPathStep const& step0) : root{root}, path{{step0}} {}
+    ImmTreeAccessPath(ImmId root, ImmSubnodeAccessStep const& step0)
+        : root{root}, path{{step0}} {}
     /// \brief Path referring to some nested element in the tree (any
     /// number of jumps)
-    ImmPath(ImmId root, Store const& path) : root{root}, path{path} {}
+    ImmTreeAccessPath(ImmId root, Store const& path) : root{root}, path{path} {}
     /// \brief Path referring to some nested element in the tree (any
     /// number of jumps)
-    ImmPath(ImmId root, hstd::Span<ImmPathStep> const& span)
+    ImmTreeAccessPath(ImmId root, hstd::Span<ImmSubnodeAccessStep> const& span)
         : root{root}, path{span.begin(), span.end()} {}
 
     /// \brief Generate sequence of spans for each jump step, starting from
@@ -178,7 +182,7 @@ struct [[refl]] ImmPath {
     ///
     /// \note Spans will not include the empty span (targeting the root
     /// node itself)
-    hstd::generator<immer::flex_vector<ImmPathStep>> pathSpans(
+    hstd::generator<immer::flex_vector<ImmSubnodeAccessStep>> pathSpans(
         /// \brief Starting from the leaf will generate the largest path
         /// span first, and then will decrease it in steps. Starting from
         /// the root will go from the span of size 1 and increase it until
@@ -192,18 +196,23 @@ struct [[refl]] ImmPath {
     }
 
     /// \brief Remove one jump from the path and return a new version
-    ImmPath pop() const { return ImmPath{root, path.erase(path.size() - 1)}; }
+    ImmTreeAccessPath pop() const {
+        return ImmTreeAccessPath{root, path.erase(path.size() - 1)};
+    }
 
     /// \brief Add one jump step from the path and return a new version.
-    ImmPath add(ImmPathStep const& it) const { return ImmPath{root, path.push_back(it)}; }
+    ImmTreeAccessPath add(ImmSubnodeAccessStep const& it) const {
+        return ImmTreeAccessPath{root, path.push_back(it)};
+    }
 
-    bool operator==(ImmPath const& other) const {
+    bool operator==(ImmTreeAccessPath const& other) const {
         return root == other.root && path.operator==(other.path);
     }
 
-    bool operator<(ImmPath const& other) const {
+    bool operator<(ImmTreeAccessPath const& other) const {
         return root < other.root
-            && hstd::itemwise_less_than(path, other.path, std::less<ImmPathStep>{});
+            && hstd::itemwise_less_than(
+                   path, other.path, std::less<ImmSubnodeAccessStep>{});
     }
 
     hstd::Str getSimplePathFormat() const;
@@ -228,8 +237,8 @@ struct [[refl]] ImmPath {
 ///   in the document.
 /// - Each *unique* ID refers to a specific node in the document.
 struct [[refl]] ImmUniqId {
-    ImmId   id;
-    ImmPath path;
+    ImmId             id;
+    ImmTreeAccessPath path;
     DESC_FIELDS(ImmUniqId, (id, path));
 
     std::string getReadableId() const { return id.getReadableId(); }
@@ -267,7 +276,7 @@ namespace org::imm {
 struct ImmAdapter;
 using ImmStrIdMap          = hstd::ext::ImmMap<hstd::Str, ImmId>;
 using ImmHashTagIdMap      = hstd::ext::ImmMap<sem::HashTagFlat, ImmId>;
-using ImmParentPathVec     = hstd::SmallVec<ImmPathStep, 4>;
+using ImmParentPathVec     = hstd::SmallVec<ImmSubnodeAccessStep, 4>;
 using ImmParentIdVec       = hstd::SmallVec<ImmId, 4>;
 using ParentPathMap        = hstd::UnorderedMap<ImmId, ImmParentPathVec>;
 using RadioTargetMap       = hstd::ext::ImmMap<hstd::Str, hstd::Vec<ImmId>>;
@@ -670,12 +679,12 @@ struct
 
 
     /// \brief Traverse one path step down the tree structure.
-    ImmId at(ImmId node, ImmPathStep const& item) const;
+    ImmId at(ImmId node, ImmSubnodeAccessStep const& item) const;
     /// \brief Get tree ID targeted by the path, starting from the `item`
     /// root value. Note: `ImmAstContext` itself does not track the current
     /// root of whatever document you are working with, this function is
     /// only useful if there is already a full path.
-    ImmId at(ImmPath const& item) const;
+    ImmId at(ImmTreeAccessPath const& item) const;
 
     /// \brief Dump AST context information for debugging
     void format(hstd::ColStream& os, std::string const& prefix = "") const;
@@ -824,7 +833,7 @@ struct ImmAdapterT;
 struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     ImmId               id;
     ImmAstContext::WPtr ctx;
-    ImmPath             path;
+    ImmTreeAccessPath   path;
 
     DESC_FIELDS(ImmAdapter, (id, ctx, path));
 
@@ -862,13 +871,13 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return hstd::safe_wptr_lock(ctx)->at(id)->subnodes.size();
     }
 
-    iterator              begin() const { return iterator(this); }
-    iterator              end() const { return iterator(this, size()); }
-    [[refl]] bool         isNil() const { return id.isNil(); }
-    [[refl]] bool         isRoot() const { return path.empty(); }
-    org::imm::ImmReflPath flatPath() const {
-        org::imm::ImmReflPath result;
-        auto                  tmp = result.path.transient();
+    iterator                     begin() const { return iterator(this); }
+    iterator                     end() const { return iterator(this, size()); }
+    [[refl]] bool                isNil() const { return id.isNil(); }
+    [[refl]] bool                isRoot() const { return path.empty(); }
+    org::imm::ImmValueAccessPath flatPath() const {
+        org::imm::ImmValueAccessPath result;
+        auto                         tmp = result.path.transient();
         for (auto const& it : path.path) {
             for (auto const& item : it.path.path) { tmp.push_back(item); }
         }
@@ -883,17 +892,17 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
 
     [[refl]] OrgSemKind getKind() const { return id.getKind(); }
 
-    org::imm::ImmReflPathItem const& lastPath() const {
+    org::imm::ImmAccessStep const& lastPath() const {
         return path.path.back().path.last();
     }
 
-    ImmPathStep const& lastStep() const { return path.path.back(); }
+    ImmSubnodeAccessStep const& lastStep() const { return path.path.back(); }
 
-    org::imm::ImmReflPathItem const& firstPath() const {
+    org::imm::ImmAccessStep const& firstPath() const {
         return path.path.front().path.first();
     }
 
-    ImmAdapter(ImmPath const& path, ImmAstContext::WPtr ctx)
+    ImmAdapter(ImmTreeAccessPath const& path, ImmAstContext::WPtr ctx)
         : id{hstd::safe_wptr_lock(ctx)->at(path)}, ctx{ctx}, path{path} {
         this->id.assertValid();
     }
@@ -904,7 +913,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         this->id.assertValid();
     }
 
-    ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
+    ImmAdapter(ImmId id, ImmAstContext::WPtr ctx, ImmTreeAccessPath const& path)
         : id{id}, ctx{ctx}, path{path} {
         hstd::safe_wptr_lock(ctx);
         this->id.assertValid();
@@ -918,7 +927,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
 
     ImmAdapter() : id{ImmId::Nil()}, ctx{}, path{ImmId::Nil()} {}
 
-    ImmAdapter pass(ImmId id, ImmPath const& path) const {
+    ImmAdapter pass(ImmId id, ImmTreeAccessPath const& path) const {
         return ImmAdapter(id, ctx, path);
     }
 
@@ -1016,26 +1025,28 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
                 {},
                 visitCtx,
                 hstd::overloaded{
-                    [&](ImmReflVisitCtx const& parent, ImmId const& id) {
+                    [&](ImmValueAccessPathCtx const& parent, ImmId const& id) {
                         std::invoke(func, parent, id);
                     },
-                    [&]<typename K>(ImmReflVisitCtx const& parent, ImmIdT<K> const& id) {
+                    [&]<typename K>(
+                        ImmValueAccessPathCtx const& parent, ImmIdT<K> const& id) {
                         std::invoke(func, parent, id.toId());
                     },
-                    [&](ImmReflVisitCtx const&, auto const&) {},
+                    [&](ImmValueAccessPathCtx const&, auto const&) {},
                 });
         });
     }
 
     hstd::Vec<ImmAdapter> getAllSubnodes(
-        hstd::Opt<ImmPath> const& rootPath,
-        bool                      withPath = true) const;
+        hstd::Opt<ImmTreeAccessPath> const& rootPath,
+        bool                                withPath = true) const;
+
     hstd::Vec<ImmAdapter> getAllSubnodesDFS(
-        hstd::Opt<ImmPath> const&                      rootPath,
+        hstd::Opt<ImmTreeAccessPath> const&            rootPath,
         bool                                           withPath     = true,
         const hstd::Opt<hstd::Func<bool(ImmAdapter)>>& acceptFilter = std::nullopt) const;
 
-    hstd::Vec<ImmPathStep> getRelativeSubnodePaths(ImmId const& subnode) const;
+    hstd::Vec<ImmSubnodeAccessStep> getRelativeSubnodePaths(ImmId const& subnode) const;
 
     hstd::Vec<ImmAdapter> getParentChain(bool withSelf = true) const;
 
@@ -1059,8 +1070,9 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return dynamic_cast<T const*>(get());
     }
 
-    [[refl(R"({"unique-name": "atPathStep"})")]] ImmAdapter at(ImmId id, ImmPathStep idx)
-        const {
+    [[refl(R"({"unique-name": "atPathStep"})")]] ImmAdapter at(
+        ImmId                id,
+        ImmSubnodeAccessStep idx) const {
         return ImmAdapter{id, ctx, path.add(idx)};
     }
 
@@ -1068,8 +1080,9 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         ImmReflFieldId const& field) const {
         return at(
             hstd::safe_wptr_lock(ctx)->at(
-                id, ImmPathStep{{org::imm::ImmReflPathItem::FromFieldName(field)}}),
-            ImmPathStep::Field(field));
+                id,
+                ImmSubnodeAccessStep{{org::imm::ImmAccessStep::FromFieldName(field)}}),
+            ImmSubnodeAccessStep::Field(field));
     }
 
     [[refl(R"({"unique-name": "atIndex"})")]] ImmAdapter at(int idx, bool withPath = true)
@@ -1222,14 +1235,15 @@ struct ImmAdapterTBase : ImmAdapter {
     ImmAdapterT<F> getField(ImmIdT<F> T::* fieldPtr) const;
 
     template <typename F>
-    ImmAdapterT<F> getField(ImmIdT<F> T::* fieldPtr, ImmPathStep const& step) const;
+    ImmAdapterT<F> getField(ImmIdT<F> T::* fieldPtr, ImmSubnodeAccessStep const& step)
+        const;
 
-    ImmAdapterTBase(ImmPath const& path, ImmAstContext::WPtr ctx)
+    ImmAdapterTBase(ImmTreeAccessPath const& path, ImmAstContext::WPtr ctx)
         : ImmAdapter{path, ctx} {}
 
     ImmAdapterTBase(ImmUniqId id, ImmAstContext::WPtr ctx) : ImmAdapter{id, ctx} {}
 
-    ImmAdapterTBase(ImmId id, ImmAstContext::WPtr ctx, ImmPath const& path)
+    ImmAdapterTBase(ImmId id, ImmAstContext::WPtr ctx, ImmTreeAccessPath const& path)
         : ImmAdapter{id, ctx, path} {}
 
     ImmAdapterTBase(org::imm::ImmAdapter const& other) : ImmAdapter{other} {}
@@ -1278,19 +1292,19 @@ struct [[refl]] ImmAdapterVirtualBase {
     /// \brief create a new adapter pointing to the sub-element of the
     /// current one
     template <typename T>
-    ImmAdapterT<T> pass(ImmIdT<T> const& id, ImmPathStep const& step) const {
+    ImmAdapterT<T> pass(ImmIdT<T> const& id, ImmSubnodeAccessStep const& step) const {
         return ImmAdapterT<T>{id, getThis()->ctx, getThis()->path.add(step)};
     }
 
     /// \brief create a new adapter pointing to the sub-element of the
     /// current one
-    ImmAdapter pass(ImmIdT<ImmOrg> const& id, ImmPathStep const& step) const {
+    ImmAdapter pass(ImmIdT<ImmOrg> const& id, ImmSubnodeAccessStep const& step) const {
         return ImmAdapter{id, getThis()->ctx, getThis()->path.add(step)};
     }
 
     /// \brief create a new adapter pointing to the sub-element of the
     /// current one
-    ImmAdapter pass(ImmId const& id, ImmPathStep const& step) const {
+    ImmAdapter pass(ImmId const& id, ImmSubnodeAccessStep const& step) const {
         return ImmAdapter{id, getThis()->ctx, getThis()->path.add(step)};
     }
 };
@@ -1497,7 +1511,7 @@ template <typename T>
 ImmAdapter get_adapter_field(ImmAdapterT<T> const* self, ImmId T::* field_ptr) {
     return self->ImmAdapterVirtualBase::pass(
         self->value().*field_ptr,
-        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+        ImmSubnodeAccessStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
 }
 
 /// \brief Generate adapter accessing the node field
@@ -1509,7 +1523,7 @@ hstd::Opt<ImmAdapter> get_adapter_field(
     if (field.get().has_value()) {
         return self->ImmAdapterVirtualBase::pass(
             field.get().value(),
-            ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+            ImmSubnodeAccessStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
     } else {
         return std::nullopt;
     }
@@ -1520,7 +1534,7 @@ template <typename T, typename F>
 ImmAdapterT<F> get_adapter_field(ImmAdapterT<T> const* self, ImmIdT<F> T::* field_ptr) {
     return self->ImmAdapterVirtualBase::pass(
         self->value().*field_ptr,
-        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+        ImmSubnodeAccessStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
 }
 
 /// \brief Generate adapter accessing the node field
@@ -1532,7 +1546,7 @@ hstd::Opt<ImmAdapterT<F>> get_adapter_field(
     if (field.get().has_value()) {
         return self->ImmAdapterVirtualBase::pass(
             field.get().value(),
-            ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+            ImmSubnodeAccessStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
     } else {
         return std::nullopt;
     }
@@ -1543,7 +1557,7 @@ template <typename T>
 ImmAdapter get_adapter_field(ImmAdapterT<T> const* self, ImmIdT<ImmOrg> T::* field_ptr) {
     return self->ImmAdapterVirtualBase::pass(
         self->value().*field_ptr,
-        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+        ImmSubnodeAccessStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
 }
 
 /// \brief Generate adapter accessing the node field
@@ -1555,7 +1569,7 @@ hstd::Opt<ImmAdapter> get_adapter_field(
     if (field.get().has_value()) {
         return self->ImmAdapterVirtualBase::pass(
             field.get().value(),
-            ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
+            ImmSubnodeAccessStep::Field(imm::ImmReflFieldId::FromTypeField(field_ptr)));
     } else {
         return std::nullopt;
     }
@@ -1565,18 +1579,18 @@ hstd::Opt<ImmAdapter> get_adapter_field(
 } // namespace org::imm
 
 template <>
-struct std::hash<org::imm::ImmReflPathItem> {
-    std::size_t operator()(org::imm::ImmReflPathItem const& it) const noexcept;
+struct std::hash<org::imm::ImmAccessStep> {
+    std::size_t operator()(org::imm::ImmAccessStep const& it) const noexcept;
 };
 
 template <>
-struct std::hash<org::imm::ImmPathStep> {
-    std::size_t operator()(org::imm::ImmPathStep const& step) const noexcept;
+struct std::hash<org::imm::ImmSubnodeAccessStep> {
+    std::size_t operator()(org::imm::ImmSubnodeAccessStep const& step) const noexcept;
 };
 
 template <>
-struct std::hash<org::imm::ImmPath> {
-    std::size_t operator()(org::imm::ImmPath const& it) const noexcept;
+struct std::hash<org::imm::ImmTreeAccessPath> {
+    std::size_t operator()(org::imm::ImmTreeAccessPath const& it) const noexcept;
 };
 
 
@@ -1602,9 +1616,10 @@ struct fmt::formatter<org::imm::ImmAstTrackingMap*>
 
 
 template <>
-struct fmt::formatter<org::imm::ImmPath> {
+struct fmt::formatter<org::imm::ImmTreeAccessPath> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(org::imm::ImmPath const& p, fmt::format_context& ctx) const {
+    hstd::fmt_iter format(org::imm::ImmTreeAccessPath const& p, fmt::format_context& ctx)
+        const {
         return hstd::fmt_ctx(p.getSimplePathFormat(), ctx);
     }
 };

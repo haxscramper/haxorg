@@ -23,8 +23,8 @@ inline ImmAdapterT<F> ImmAdapterTBase<T>::getField(
 template <typename T>
 template <typename F>
 ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::imm::ImmIdT<F> T::* fieldPtr,
-    ImmPathStep const&       step) const {
+    org::imm::ImmIdT<F> T::*    fieldPtr,
+    ImmSubnodeAccessStep const& step) const {
     return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, path.add(step)};
 }
 
