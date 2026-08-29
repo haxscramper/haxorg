@@ -40,6 +40,12 @@ std::unique_ptr<perfetto::TracingSession> StartTracing() {
     return tracing_session;
 }
 
+void StopTracing(std::unique_ptr<perfetto::TracingSession> tracing_session) {
+    perfetto::TrackEvent::Flush();
+    tracing_session->StopBlocking();
+}
+
+
 void StopTracing(
     std::unique_ptr<perfetto::TracingSession> tracing_session,
     std::filesystem::path const&              out_path) {

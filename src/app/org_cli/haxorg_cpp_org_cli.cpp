@@ -38,10 +38,7 @@ int main(int argc, char* argv[]) {
 #ifdef ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession>
         tracingSession = shared.opts.perfFile
-                           ? StartProcessTracingWithImmediateFlush(
-                                 "haxorg_cpp_org_cli",
-                                 shared.opts.perfFile.value(),
-                                 std::chrono::milliseconds{5000})
+                           ? StartProcessTracing("haxorg_cpp_org_cli")
                            : std::unique_ptr<perfetto::TracingSession>{};
 
 #endif
@@ -60,4 +57,10 @@ int main(int argc, char* argv[]) {
     }
 
     HSLOG_INFO("Done file processing");
+
+#ifdef ORG_BUILD_WITH_PERFETTO
+    if (shared.opts.perfFile) {
+        StopTracing(std::move(tracingSession), shared.opts.perfFile.value());
+    }
+#endif
 }

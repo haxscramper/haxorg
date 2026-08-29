@@ -103,6 +103,7 @@ void __tracy_zone_variable(Zone& zone, char const* name, T const& value) {
 
 
 #else
+#    define TRACE_COUNTER(...)
 #    define __perf_trace(c, n, ...)
 #    define __perf_trace_begin(c, ...)
 #    define __perf_trace_end(c, ...)

@@ -95,11 +95,21 @@ profile_heaptrack_cli bin opts_path:
 profile_valgrind tool bin opts_path:
     valgrind --tool={{tool}}  --{{tool}}-out-file=build/{{tool}}.out.haxorg_cli {{bin}} {{opts_path}}
 
-profile_valgrind_view tool:
-  kcachegrind build/{{tool}}.out.haxorg_cli
 
-profile_callgrind_annotate *files:
-  callgrind_annotate --auto=no build/callgrind.out.haxorg_cli {{files}} > build/haxorg_callgrind_annotate.txt
+# by default, kcachegrind is incapable of properly reading the specified path verbatim -- it tries
+# to read everything around it, some things like `build/callgrind.out.haxorg_cli-2026-08-29T19:09:31+04:00`
+# or whatnot -- and the actual specified path is given lowest priority, so to make justfile actually
+# work as expected, I need to do this hack.
+profile_valgrind_view path:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' EXIT
+    cp "{{path}}" "$tmpdir/profile"
+    kcachegrind "$tmpdir/profile"
+
+profile_callgrind_annotate out_file *files:
+  callgrind_annotate --auto=no {{out_file}} {{files}} > build/haxorg_callgrind_annotate.txt
 
 profile_perf_view:
   hotspot perf.data

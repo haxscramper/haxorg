@@ -513,6 +513,12 @@ struct ImmAstStore {
         return const_cast<ImmAstKindStore<T>*>(getStoreImpl<T>());
     }
 
+    struct Counters {
+        int added_node_count{};
+    };
+
+    Counters counters;
+
 #define _kind(__Kind) ImmAstKindStore<Imm##__Kind> store##__Kind;
     EACH_SEM_ORG_KIND(_kind)
 #undef _kind

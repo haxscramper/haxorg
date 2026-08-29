@@ -157,22 +157,31 @@ void org::cli::ExportCommandContext::exportMap(
     auto store  = org::imm::ImmAstContext::init_start_context();
 
     HSLOG_INFO("Converting to immutable AST");
+    __perf_trace_begin("cli", "Convert to immutable AST");
     org::imm::ImmAstVersion version = store->addRoot(node);
+    __perf_trace_end("cli");
 
     auto state   = org::graph::MapGraphState::shared(version.context);
     auto adapter = version.getRootAdapter();
 
     HSLOG_INFO("Building immutable AST graph");
+    __perf_trace_begin("cli", "Convert to graph");
     state->addNodeRec(adapter.ctx.lock(), adapter, config);
+    __perf_trace_end("cli");
 
     HSLOG_INFO("Writing graph to protobuf data");
+
     org::graph::proto::GraphResult result;
+    __perf_trace_begin("cli", "Convert graph to protobuf");
     result.set_allocated_graph(state->graph->get_serial().release());
+    __perf_trace_end("cli");
 
     hstd::serde::write_serde(result.mutable_sources(), *shared.parseContext->source);
     hstd::serde::write_serde(result.mutable_reports(), reports);
 
     HSLOG_INFO("Serializing protobuf result to output file");
+    __perf_trace_begin("cli", "Write protobuf out");
     writeProtoResult(result, options.format);
+    __perf_trace_end("cli");
 }
 #endif

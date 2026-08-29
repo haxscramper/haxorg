@@ -489,6 +489,8 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
         OrgSemKind::File,
     };
 
+    TRACE_COUNTER("imm", "added_nodes", ++counters.added_node_count);
+
     if (AddTrackingKinds.contains(data->getKind())) {
         __perf_trace("imm", "ImmAstStore::Add", "kind", fmt1(data->getKind()));
         return impl();

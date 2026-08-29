@@ -1264,10 +1264,13 @@ Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(ImmId const& it, ImmAstContext con
     }
 
     std::sort(result.begin(), result.end());
+    TRACE_EVENT_INSTANT(
+        "imm", "getAdaptersFor", "id", it.getValue(), "adapter_count", result.size());
     return result;
 }
 
 Vec<ImmAdapter> ImmAstContext::getAdaptersFor(ImmId const& it) const {
+    __perf_trace("imm", "getAdaptersFor", "id_value", it.getValue());
     Vec<ImmAdapter> result;
     for (auto const& id : getPathsFor(it)) { result.push_back(adapt(id)); }
     return result;

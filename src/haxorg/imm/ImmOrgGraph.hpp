@@ -197,6 +197,8 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
   public:
     hstd::UnorderedIncrementalStore<hgraph::EdgeID, hstd::SPtr<MapEdge>> edges;
 
+    int getNumEdges() const override { return edges.size(); }
+
     hgraph::EdgeCollectionID getCollectionID() const override {
         return hgraph::EdgeCollectionID::FromCollectionTypePointer(this);
     }
@@ -434,6 +436,16 @@ struct MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
     std::shared_ptr<MapGraph>                graph;
     std::shared_ptr<org::imm::ImmAstContext> ast;
     std::shared_ptr<MapGraph>                getGraph() const { return graph; }
+
+    struct Counters {
+        int visited_node_counter{};
+    };
+
+    Counters counters;
+
+    hstd::UnorderedMap<org::imm::ImmId, hstd::Vec<org::imm::ImmAdapter>> cache;
+
+    hstd::Vec<org::imm::ImmAdapter> const& getAdaptersFor(org::imm::ImmId const& id);
 
     MapGraphState(org::imm::ImmAstContext::Ptr ast)
         : ast{ast}, graph{std::make_shared<MapGraph>()} {};

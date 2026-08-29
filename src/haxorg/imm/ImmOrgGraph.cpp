@@ -214,6 +214,8 @@ hgraph::EdgeID org::graph::MapGraph::addEdge(
     auto res = edges->add(edge);
     LOGIC_ASSERTION_CHECK(edges->hasEdge(res), "");
     edges->trackEdge(res, source, target);
+
+    TRACE_COUNTER("graph", "edge_count", edges->getNumEdges());
     return res;
 }
 
@@ -225,6 +227,8 @@ hgraph::VertexID org::graph::MapGraph::addNode(
     auto res = nodes.add(node);
     id_map.insert_or_assign(node->id.uniq(), res);
     trackVertex(res);
+
+    TRACE_COUNTER("graph", "vertex_count", getVertexCount());
     return res;
 }
 
@@ -276,6 +280,15 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
 
 
     return result;
+}
+
+hstd::Vec<org::imm::ImmAdapter> const& org::graph::MapGraphState::getAdaptersFor(
+    org::imm::ImmId const& id) {
+    if (!cache.contains(id)) {
+        cache.insert_or_assign(id, ast->getAdaptersFor(id));
+        TRACE_COUNTER("graph", "adapter_cache", cache.size());
+    }
+    return cache.at(id);
 }
 
 hgraph::VertexID org::graph::MapGraphState::addNode(
@@ -683,7 +696,7 @@ void add_node_rec_aux(
     hstd::Opt<hgraph::VertexID> const& parent,
     std::shared_ptr<MapConfig> const&  conf,
     hstd::Opt<MapEdge::EdgeKind>       edge_override = std::nullopt) {
-    __perf_trace("graph", "Recursive add node", kind, fmt1(node.getKind()));
+    TRACE_COUNTER("graph", "visited_nodes", ++state->counters.visited_node_counter);
 
     auto __tmp = state->graph->begin_scope(
         state->graph->fmt_message("recursive add {}", node), std::nullopt, "addNodeRec");
@@ -824,7 +837,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
             state->ast->currentTrack->names);
 
         auto add_edge = [&](imm::ImmId const& target) {
-            auto adapters = state->ast->getAdaptersFor(target);
+            auto adapters = state->getAdaptersFor(target);
             LOGIC_ASSERTION_CHECK_FMT(
                 !adapters.empty(),
                 "Target node {} does not have any parent adapters tracked",
