@@ -122,10 +122,10 @@ hstd::Opt<ImmAstReplace> ImmAstStore::setNode(
 
 /// \brief Reflection path in the parent node, and the subnode that needs
 /// to be assigned to the specified place.
-using SubnodeAssignTarget = Pair<org::imm::ImmReflPathBase, ImmId>;
+using SubnodeAssignTarget = Pair<org::imm::ImmReflPath, ImmId>;
 /// \brief Group of subnode values to assign to the given path in the
 /// parent node.
-using SubnodeVecAssignPair = Pair<org::imm::ImmReflPathBase, Vec<SubnodeAssignTarget>>;
+using SubnodeVecAssignPair = Pair<org::imm::ImmReflPath, Vec<SubnodeAssignTarget>>;
 using SubnodeAssignGroup   = hstd::Vec<SubnodeVecAssignPair>;
 
 /// \brief Group a flat list of subnode updates into assignment group so
@@ -151,7 +151,7 @@ SubnodeAssignGroup groupUpdatedSubnodes(Vec<SubnodeAssignTarget> const& updatedS
         | rv::transform([](auto const& group) -> SubnodeVecAssignPair {
               ReflPath path = group.front().first;
               return std::make_pair(
-                  path, group | rs::to<Vec<Pair<org::imm::ImmReflPathBase, ImmId>>>());
+                  path, group | rs::to<Vec<Pair<org::imm::ImmReflPath, ImmId>>>());
           })
         | rs::to<SubnodeAssignGroup>();
 
@@ -194,97 +194,101 @@ Opt<ImmAstReplace> setNewSubnodes(
                         function);
                 };
 
-                ReflVisitor<K, org::imm::ImmReflPathTag>::visit(
+                auto dispatch = overloaded{
+                    // assignment to subnodes only works for fields
+                    // that contain IDs.
+                    // clang-format off
+                    [&fail_field]<hstd::IsVariant V>(V const&) { fail_field(); },
+                    [&fail_field]<hstd::IsEnum E>(E const&) { fail_field(); },
+                    [&fail_field]<DescribedEnum E>(ImmBox<Opt<E>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<int>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<int> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<bool>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<bool> const&) { fail_field(); },
+                    [&fail_field](bool const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<sem::AttrGroup>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<sem::HashTagText>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<sem::SubtreeCompletion>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<UserTime>> const&) { fail_field(); },
+                    [&fail_field](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
+                    [&fail_field](ImmBox<sem::Tblfm> const&) { fail_field(); },
+                    [&fail_field](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<Str>> const&) { fail_field(); },
+                    [&fail_field](org::parse::SourceLoc const&) { fail_field(); },
+                    [&fail_field](hstd::Opt<org::parse::SourceLoc> const&) { fail_field(); },
+                    [&fail_field](ImmBox<Str> const&) { fail_field(); },
+                    [&fail_field](ImmVec<Str> const&) { fail_field(); },
+                    [&fail_field](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
+                    [&fail_field](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
+                    [&fail_field](ImmVec<sem::NamedProperty> const&) { fail_field(); },
+                    [&fail_field](ImmVec<sem::TodoKeyword> const&) { fail_field(); },
+                    [&fail_field](sem::LinkTarget const&) { fail_field(); },
+                    [&fail_field](sem::ColumnView const&) { fail_field(); },
+                    [&fail_field](ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
+                    [&fail_field](sem::DocumentExportConfig const&) { fail_field(); },
+                    [&fail_field](sem::AttrValue const&) { fail_field(); },
+                    [&fail_field](sem::TodoKeyword const&) { fail_field(); },
+                    [&fail_field](sem::SubtreeLogHead const&) { fail_field(); },
+                    [&fail_field](sem::OrgCodeEvalOutput const&) { fail_field(); },
+                    [&fail_field](sem::OrgDiagnostics const&) { fail_field(); },
+                    [&fail_field](Vec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
+                    [&fail_field](ImmVec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
+                    // clang-format on
+                    [&]<typename FK>(ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const& f) {
+                        LOGIC_ASSERTION_CHECK_FMT(
+                            fieldGroup.second.size() == 1,
+                            "Assignment to single field cannot have "
+                            "multiple values");
+                        mut_cast(f) = fieldGroup.second.at(0).second;
+                    },
+                    [&]<typename FK>(org::imm::ImmIdT<FK> const& f) {
+                        LOGIC_ASSERTION_CHECK_FMT(
+                            fieldGroup.second.size() == 1,
+                            "Assignment to single field cannot have "
+                            "multiple values");
+                        mut_cast(f) = fieldGroup.second.at(0).second;
+                    },
+                    [&]<typename FK>(ImmVec<ImmIdT<FK>> const& f) {
+                        // <<vector_field_assignment>> overwrite the
+                        // node fields with a new value.
+                        hstd::Vec<ImmIdT<FK>> convKinds;
+                        for (auto const& it : fieldGroup.second) {
+                            convKinds.push_back(it.second.as<FK>());
+                        }
+                        mut_cast(f) = ImmVec<ImmIdT<FK>>{
+                            convKinds.begin(), convKinds.end()};
+                    },
+                    [&](ImmVec<ImmId> const& f) {
+                        hstd::Vec<ImmId> convKinds;
+                        for (auto const& it : fieldGroup.second) {
+                            convKinds.push_back(it.second);
+                        }
+                        mut_cast(f) = ImmVec<ImmId>{
+                            convKinds.begin(),
+                            convKinds.end(),
+                        };
+                    },
+                    [&]<typename FK>(ImmMap<Str, org::imm::ImmIdT<FK>> const& f) {
+                        auto transient = f.transient();
+                        for (auto const& key : fieldGroup.second) {
+                            transient.set(
+                                key.first.at(1).getAnyKey().get<Str>(),
+                                key.second.as<FK>());
+                        }
+                        mut_cast(f) = transient.persistent();
+                    },
+                };
+
+                ReflVisitor<K, org::imm::ImmReflPathTag>::visitEach(
                     node,
-                    field,
                     // All field types are explicitly handled in the
                     // overload to avoid unexpected fallbacks if new types
                     // are used in the node fields.
-                    overloaded{
-                        // assignment to subnodes only works for fields
-                        // that contain IDs.
-                        // clang-format off
-                        [&]<hstd::IsVariant V>(V const&) { fail_field(); },
-                        [&]<hstd::IsEnum E>(E const&) { fail_field(); },
-                        [&]<DescribedEnum E>(ImmBox<Opt<E>> const&) { fail_field(); },
-                        [&](ImmBox<Opt<int>> const&) { fail_field(); },
-                        [&](ImmBox<int> const&) { fail_field(); },
-                        [&](ImmBox<Opt<bool>> const&) { fail_field(); },
-                        [&](ImmBox<bool> const&) { fail_field(); },
-                        [&](bool const&) { fail_field(); },
-                        [&](ImmBox<Opt<sem::BlockCodeEvalResult>> const&) { fail_field(); },
-                        [&](ImmBox<Opt<sem::AttrGroup>> const&) { fail_field(); },
-                        [&](ImmBox<Opt<sem::HashTagText>> const&) { fail_field(); },
-                        [&](ImmBox<Opt<sem::SubtreeCompletion>> const&) { fail_field(); },
-                        [&](ImmBox<Opt<UserTime>> const&) { fail_field(); },
-                        [&](ImmBox<sem::BlockCodeEvalResult> const&) { fail_field(); },
-                        [&](ImmBox<sem::Tblfm> const&) { fail_field(); },
-                        [&](ImmBox<sem::Tblfm::Assign::Flag> const&) { fail_field(); },
-                        [&](ImmBox<Opt<Str>> const&) { fail_field(); },
-                        [&](org::parse::SourceLoc const&) { fail_field(); },
-                        [&](hstd::Opt<org::parse::SourceLoc> const&) { fail_field(); },
-                        [&](ImmBox<Str> const&) { fail_field(); },
-                        [&](ImmVec<Str> const&) { fail_field(); },
-                        [&](ImmVec<org::imm::ImmSymbol::Param> const&) { fail_field(); },
-                        [&](ImmVec<sem::BlockCodeLine> const&) { fail_field(); },
-                        [&](ImmVec<sem::NamedProperty> const&) { fail_field(); },
-                        [&](ImmVec<sem::TodoKeyword> const&) { fail_field(); },
-                        [&](sem::LinkTarget const&) { fail_field(); },
-                        [&](sem::ColumnView const&) { fail_field(); },
-                        [&](ImmBox<Opt<sem::ColumnView>> const&) { fail_field(); },
-                        [&](sem::DocumentExportConfig const&) { fail_field(); },
-                        [&](sem::AttrValue const&) { fail_field(); },
-                        [&](sem::TodoKeyword const&) { fail_field(); },
-                        [&](sem::SubtreeLogHead const&) { fail_field(); },
-                        [&](sem::OrgCodeEvalOutput const&) { fail_field(); },
-                        [&](sem::OrgDiagnostics const&) { fail_field(); },
-                        [&](Vec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
-                        [&](ImmVec<sem::OrgCodeEvalOutput> const&) { fail_field(); },
-                        // clang-format on
-                        [&]<typename FK>(
-                            ImmBox<hstd::Opt<org::imm::ImmIdT<FK>>> const& f) {
-                            LOGIC_ASSERTION_CHECK_FMT(
-                                fieldGroup.second.size() == 1,
-                                "Assignment to single field cannot have "
-                                "multiple values");
-                            mut_cast(f) = fieldGroup.second.at(0).second;
-                        },
-                        [&]<typename FK>(org::imm::ImmIdT<FK> const& f) {
-                            LOGIC_ASSERTION_CHECK_FMT(
-                                fieldGroup.second.size() == 1,
-                                "Assignment to single field cannot have "
-                                "multiple values");
-                            mut_cast(f) = fieldGroup.second.at(0).second;
-                        },
-                        [&]<typename FK>(ImmVec<ImmIdT<FK>> const& f) {
-                            // <<vector_field_assignment>> overwrite the
-                            // node fields with a new value.
-                            hstd::Vec<ImmIdT<FK>> convKinds;
-                            for (auto const& it : fieldGroup.second) {
-                                convKinds.push_back(it.second.as<FK>());
-                            }
-                            mut_cast(f) = ImmVec<ImmIdT<FK>>{
-                                convKinds.begin(), convKinds.end()};
-                        },
-                        [&](ImmVec<ImmId> const& f) {
-                            hstd::Vec<ImmId> convKinds;
-                            for (auto const& it : fieldGroup.second) {
-                                convKinds.push_back(it.second);
-                            }
-                            mut_cast(f) = ImmVec<ImmId>{
-                                convKinds.begin(),
-                                convKinds.end(),
-                            };
-                        },
-                        [&]<typename FK>(ImmMap<Str, org::imm::ImmIdT<FK>> const& f) {
-                            auto transient = f.transient();
-                            for (auto const& key : fieldGroup.second) {
-                                transient.set(
-                                    key.first.at(1).getAnyKey().get<Str>(),
-                                    key.second.as<FK>());
-                            }
-                            mut_cast(f) = transient.persistent();
-                        },
+                    [&]<typename F>(
+                        ReflPathItem<org::imm::ImmReflPathTag> const& step,
+                        F const&                                      value) {
+                        if (step == field) { dispatch(value); }
                     });
             }
 

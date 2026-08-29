@@ -30,8 +30,9 @@ struct ImmReflPathTag {
     using field_name_type = ImmReflFieldId;
 };
 
-using ImmReflPathItemBase = hstd::ReflPathItem<ImmReflPathTag>;
-using ImmReflPathBase     = hstd::ReflPath<ImmReflPathTag>;
+using ImmReflPathItem = hstd::ReflPathItem<ImmReflPathTag>;
+using ImmReflPath     = hstd::ReflPath<ImmReflPathTag>;
+
 
 struct [[refl]] ImmReflFieldId {
     [[refl]] hstd::Str getName() const;
@@ -97,6 +98,9 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
     }
 };
 
+namespace org::imm {
+using ImmReflVisitCtx = hstd::ReflPath<org::imm::ImmReflPathTag>::VisitCtx;
+}
 
 template <typename K, typename V, typename Tag>
 struct hstd::ReflVisitor<immer::map<K, V>, Tag>
@@ -118,22 +122,11 @@ struct hstd::ReflVisitor<immer::flex_vector<T>, Tag>
 
 template <typename T, typename Tag>
 struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
-    /// \brief Apply callback to passed value if the path points to it,
-    /// otherwise follow the path down the data structure.
+    /// \brief Enumerate the pointee of the box using a deref step. The
+    /// box is presumed non-null, matching the previous `visit` behavior.
     template <typename Func>
-    static void visit(
-        hstd::ext::ImmBox<T> const& value,
-        ReflPathItem<Tag> const&    step,
-        Func const&                 cb) {
-        LOGIC_ASSERTION_CHECK(step.isDeref(), hstd::enum_to_string(step.getKind()));
-        cb(value.get());
-    }
-
-
-    static Vec<ReflPathItem<Tag>> subitems(hstd::ext::ImmBox<T> const& value) {
-        Vec<ReflPathItem<Tag>> result;
-        result.push_back(ReflPathItem<Tag>::FromDeref());
-        return result;
+    static void visitEach(hstd::ext::ImmBox<T> const& value, Func const& cb) {
+        cb(ReflPathItem<Tag>::FromDeref(), value.get());
     }
 };
 

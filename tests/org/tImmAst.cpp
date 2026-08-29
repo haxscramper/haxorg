@@ -59,13 +59,13 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
                 N                         tmp{};
                 ReflRecursiveVisitContext ctx;
-                Vec<imm::ImmReflPathBase> paths;
+                Vec<imm::ImmReflPath>     paths;
                 reflVisitAll<N>(
                     tmp,
-                    imm::ImmReflPathBase{},
+                    imm::ImmReflPath{},
                     ctx,
-                    [&]<typename T>(imm::ImmReflPathBase const& path, T const& value) {
-                        paths.push_back(path);
+                    [&]<typename T>(imm::ImmReflVisitCtx const& path, T const& value) {
+                        paths.push_back(imm::ImmReflPath::FromCtx(path));
                     });
             });
         }

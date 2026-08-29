@@ -414,7 +414,7 @@ bool ImmAdapter::isIndirectParentOf(ImmAdapter const& other) const {
 hstd::Str ImmPath::getSimplePathFormat() const {
     hstd::Vec<hstd::Str> result;
     result.push_back(hstd::fmt("{}//", root));
-    using K = org::imm::ImmReflPathItemBase::Kind;
+    using K = org::imm::ImmReflPathItem::Kind;
     for (auto const& steps : path) {
         auto const& p = steps.path.path;
         if (p.size() == 2 && p.at(0).isFieldName()
@@ -490,40 +490,28 @@ Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodes(Opt<ImmPath> const& rootPath, bool withPath)
     const {
-    Vec<ImmAdapter>           result;
-    auto const&               root = *this;
-    ReflRecursiveVisitContext visitCtx;
+    Vec<ImmAdapter> result;
+    auto const&     root = *this;
 
-    auto add_id = [&](ImmReflPathBase const& parent, ImmId const& id) {
+    visitAllSubnodes([&](ImmReflPath const& parent, ImmId const& id) {
         if (withPath) {
-            ImmPath path;
             if (rootPath) {
-                path = *rootPath;
+                ImmPath path;
+                path      = *rootPath;
+                path.path = path.path.push_back(ImmPathStep{parent});
+                result.push_back(root.pass(id, path));
             } else {
+                ImmPath path;
                 path.root = this->id;
+                path.path = path.path.push_back(ImmPathStep{parent});
+                result.push_back(root.pass(id, path));
             }
-            path.path = path.path.push_back(ImmPathStep{parent});
-            result.push_back(root.pass(id, path));
+
         } else {
             result.push_back(root.ctx.lock()->adaptUnrooted(id));
         }
-    };
-
-    switch_node_value(id, ctx.lock(), [&]<typename T>(T const& value) {
-        reflVisitAll<T, ImmReflPathTag>(
-            value,
-            {},
-            visitCtx,
-            overloaded{
-                [&](ImmReflPathBase const& parent, ImmId const& id) {
-                    add_id(parent, id);
-                },
-                [&]<typename K>(ImmReflPathBase const& parent, ImmIdT<K> const& id) {
-                    add_id(parent, id.toId());
-                },
-                [&](ImmReflPathBase const& parent, auto const& other) {},
-            });
     });
+
     return result;
 }
 
@@ -547,10 +535,16 @@ Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
 
 Vec<ImmPathStep> ImmAdapter::getRelativeSubnodePaths(ImmId const& subnode) const {
     Vec<ImmPathStep> result;
-    for (auto const& sub : getAllSubnodes(std::nullopt)) {
-        LOGIC_ASSERTION_CHECK_FMT(sub.path.path.size() == 1, "");
-        if (sub.id == subnode) { result.push_back(sub.path.path.at(0)); }
-    }
+    visitAllSubnodes(
+        overloaded{
+            [&](ImmReflPath const& parent, ImmId const& id) {
+                if (id == subnode) { result.push_back(ImmPathStep{parent}); }
+            },
+            [&]<typename K>(ImmReflPath const& parent, ImmIdT<K> const& id) {
+                if (id.toId() == subnode) { result.push_back(ImmPathStep{parent}); }
+            },
+            [&](ImmReflPath const& parent, auto const& other) {},
+        });
 
     return result;
 }
@@ -1509,12 +1503,12 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     return result;
 }
 
-std::size_t std::hash<org::imm::ImmReflPathItemBase>::operator()(
-    org::imm::ImmReflPathItemBase const& it) const noexcept {
+std::size_t std::hash<org::imm::ImmReflPathItem>::operator()(
+    org::imm::ImmReflPathItem const& it) const noexcept {
     hstd::AnyHasher<hstd::Str> hasher;
     std::size_t                result = 0;
     hstd::hax_hash_combine(result, it.getKind());
-    using K = org::imm::ImmReflPathItemBase::Kind;
+    using K = org::imm::ImmReflPathItem::Kind;
     switch (it.getKind()) {
         case K::Index: hstd::hax_hash_combine(result, it.getIndex().index); break;
         case K::FieldName: hstd::hax_hash_combine(result, it.getFieldName().name); break;
@@ -1530,7 +1524,7 @@ std::size_t std::hash<org::imm::ImmPathStep>::operator()(
     hstd::AnyHasher<hstd::Str> hasher;
     std::size_t                result = 0;
     for (int i = 0; i < step.path.path.size(); ++i) {
-        org::imm::ImmReflPathItemBase const& it = step.path.path.at(i);
+        org::imm::ImmReflPathItem const& it = step.path.path.at(i);
         hstd::hax_hash_combine(result, i);
         hstd::hax_hash_combine(result, it);
     }

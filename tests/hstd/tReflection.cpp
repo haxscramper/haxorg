@@ -588,16 +588,16 @@ TEST(ReflectionVisitor, FieldNames) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path, ReflData const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, ReflData const& field) {
                 visitNames.push_back("ReflData");
             },
-            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, std::string const& field) {
                 visitNames.push_back("std::string");
             },
-            [&](ReflPath<ReflTag1> const& path, int const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, int const& field) {
                 visitNames.push_back("int");
             },
-            [&](ReflPath<ReflTag1> const& path, char const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, char const& field) {
                 visitNames.push_back("char");
             },
         });
@@ -633,11 +633,11 @@ TEST(ReflectionVisitor, UnorderedMap) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const&             path,
+            [&](ReflPath<ReflTag1>::VisitCtx const&   path,
                 UnorderedMap<std::string, int> const& field) {
                 visitNames.push_back("map");
             },
-            [&](ReflPath<ReflTag1> const& path, int const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, int const& field) {
                 visitNames.push_back("int");
             },
         });
@@ -669,10 +669,10 @@ TEST(ReflectionVisitor, Vector) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path, Vec<std::string> const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, Vec<std::string> const& field) {
                 visitNames.push_back("vec");
             },
-            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, std::string const& field) {
                 visitNames.push_back("std::string");
             },
         });
@@ -729,7 +729,8 @@ struct DataStructure {
 TEST(ReflectionVisitor, ComplexDataStructure) {
 
     DataStructure data;
-    ReflVisitor<DataStructure, ReflTag1>::subitems(data);
+    ReflVisitor<DataStructure, ReflTag1>::visitEach(
+        data, [](ReflPath<ReflTag1> const& path, auto const& value) {});
 
     std::vector<std::string>  visitNames;
     ReflRecursiveVisitContext ctx;
@@ -738,48 +739,61 @@ TEST(ReflectionVisitor, ComplexDataStructure) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path, DataStructure const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, DataStructure const& field) {
                 visitNames.push_back("DataStructure");
             },
-            [&](ReflPath<ReflTag1> const& path, std::unordered_set<int> const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path,
+                std::unordered_set<int> const&      field) {
                 visitNames.push_back("std::unordered_set<int>");
             },
-            [&](ReflPath<ReflTag1> const&                   path,
+            [&](ReflPath<ReflTag1>::VisitCtx const&         path,
                 std::unordered_map<std::string, int> const& field) {
                 visitNames.push_back("std::unordered_map<std::string, int>");
             },
-            [&](ReflPath<ReflTag1> const& path, std::vector<std::string> const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path,
+                std::vector<std::string> const&     field) {
                 visitNames.push_back("std::vector<std::string>");
             },
-            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, std::string const& field) {
                 visitNames.push_back("std::string");
             },
-            [&](ReflPath<ReflTag1> const& path, CustomData const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, CustomData const& field) {
                 visitNames.push_back("CustomData");
             },
-            [&](ReflPath<ReflTag1> const& path, VariantType const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, VariantType const& field) {
                 visitNames.push_back("VariantType");
             },
-            [&](ReflPath<ReflTag1> const&          path,
-                std::pair<int, std::string> const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path,
+                std::pair<int, std::string> const&  field) {
                 visitNames.push_back("std::pair<int, std::string>");
             },
-            [&](ReflPath<ReflTag1> const& path, TupleType const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, TupleType const& field) {
                 visitNames.push_back("TupleType");
             },
-            [&](ReflPath<ReflTag1> const& path, std::nullptr_t const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, std::nullptr_t const& field) {
                 visitNames.push_back("std::nullptr_t");
             },
-            [&](ReflPath<ReflTag1> const& path, std::optional<int> const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path,
+                std::optional<int> const&           field) {
                 visitNames.push_back("std::optional<int>");
             },
-            [&](ReflPath<ReflTag1> const& path, int const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path, int const& field) {
                 visitNames.push_back("int");
             },
-            [&](ReflPath<ReflTag1> const& path, std::shared_ptr<int> const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path,
+                std::shared_ptr<int> const&         field) {
                 visitNames.push_back("std::shared_ptr<int>");
             },
-            [&](ReflPath<ReflTag1> const& path, std::unique_ptr<int> const& field) {
+            [&](ReflPath<ReflTag1>::VisitCtx const& path,
+                std::reference_wrapper<int> const&  field) {
+                visitNames.push_back("std::reference_wrapper<int>");
+            },
+            [&](ReflPath<ReflTag1>::VisitCtx const&      path,
+                std::reference_wrapper<const int> const& field) {
+                visitNames.push_back("std::reference_wrapper<const int>");
+            },
+            [&](ReflPath<ReflTag1>::VisitCtx const& path,
+                std::unique_ptr<int> const&         field) {
                 visitNames.push_back("std::unique_ptr<int>");
             },
         });
@@ -836,10 +850,13 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
                               visitedValues;
     ReflRecursiveVisitContext ctx;
     reflVisitAll<DataStructure, ReflTag1>(
-        data, {}, ctx, overloaded{[&](ReflPath<ReflTag1> const& path, auto const& field) {
+        data,
+        {},
+        ctx,
+        overloaded{[&](ReflPath<ReflTag1>::VisitCtx const& path, auto const& field) {
             std::stringstream ss;
             ss << fmt1(field);
-            visitedValues[path] = ss.str();
+            visitedValues[path.toPath()] = ss.str();
         }});
 
     std::unordered_map<
