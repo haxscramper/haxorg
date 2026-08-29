@@ -71,7 +71,7 @@ void removeUnresolvedNodeProps(
     hgraph::VertexID const&     newNode,
     hgraph::VertexIDSet const&  existingUnresolved,
     std::shared_ptr<MapConfig>  conf) {
-    __perf_trace("mmpa", "remove unresolved node props");
+    __perf_trace("graph", "remove unresolved node props");
     for (auto const& op : resolved_node.resolved) {
         OP_TRACER_MESSAGE(state->graph, "removing unresolved node props {}", op);
         auto remove_resolved = [&](hgraph::VertexID node) {
@@ -103,7 +103,7 @@ void updateUnresolvedNodeTracking(
     MapNodeResolveResult const& resolved_node,
     hgraph::VertexID const&     newNode,
     std::shared_ptr<MapConfig>  conf) {
-    __perf_trace("mmpa", "update unresolved node tracking");
+    __perf_trace("graph", "update unresolved node tracking");
     auto attr = state->graph->getAttr(newNode);
     OP_TRACER_MESSAGE(
         state->graph,
@@ -281,7 +281,7 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
 hgraph::VertexID org::graph::MapGraphState::addNode(
     org::imm::ImmAdapter const&       node,
     std::shared_ptr<MapConfig> const& conf) {
-    __perf_trace("mmpa", "add node");
+    __perf_trace("graph", "add node");
 
     auto attr = conf->getInitialNodeProp(this, node);
     OP_TRACER_MESSAGE(graph, "initial node prop unresolved:{}", attr->unresolved);
@@ -324,7 +324,7 @@ struct resolve_state {
     std::shared_ptr<MapConfig> const& conf;
 
     void collect_radio_targets() {
-        __perf_trace("mmpa", "collect_radio_targets");
+        __perf_trace("graph", "collect_radio_targets");
         auto __scope = g->begin_scope("Collecting radio targets in graph");
 
         auto found_radio_target_node = [&](ImmAdapter const& radio) {
@@ -380,7 +380,7 @@ struct resolve_state {
     }
 
     void attempt_attribute_resolve() {
-        __perf_trace("mmpa", "attempt_attribute_resolve");
+        __perf_trace("graph", "attempt_attribute_resolve");
         auto original_unresolved = attr->unresolved;
         attr->unresolved.clear();
         auto __scope = g->begin_scope();
@@ -406,7 +406,7 @@ struct resolve_state {
     }
 
     void process_global_pending_unresolved() {
-        __perf_trace("mmpa", "process_global_pending_unresolved");
+        __perf_trace("graph", "process_global_pending_unresolved");
         OP_TRACER_MESSAGE(g, "Process unresolved for state");
         auto __scope = g->begin_scope();
         for (hgraph::VertexID const& nodeWithUnresolved : state->unresolved) {
@@ -478,7 +478,7 @@ MapNodeResolveResult org::graph::getResolvedNodeInsert(
     MapGraphState::Ptr const&  state,
     hgraph::VertexID const&    node_id,
     std::shared_ptr<MapConfig> conf) {
-    __perf_trace("mmpa", "getResolvedNodeInsert");
+    __perf_trace("graph", "getResolvedNodeInsert");
     MapNodeResolveResult result;
 
     auto g       = state->graph;
@@ -647,81 +647,89 @@ hstd::SPtr<gv::GraphGroup> org::graph::MapGraph::GvConfig::toGraphviz(
 }
 #endif
 
+namespace {
+hgraph::VertexID add_single_node(
+    org::graph::MapGraphState*         state,
+    ImmAdapter const&                  node,
+    hstd::Opt<hgraph::VertexID> const& parent,
+    std::shared_ptr<MapConfig> const&  conf,
+    hstd::Opt<MapEdge::EdgeKind>       edge_override = std::nullopt) {
+    auto vertex = state->addNode(node, conf);
+    if (parent.has_value()) {
+        auto edge = std::make_shared<MapEdge>(
+            hstd::fmt1(state->graph->edges->edges.getNextId(
+                state->graph->edges->getCollectionID().t)));
+        if (edge_override) {
+            edge->kind = edge_override.value();
+        } else if (
+            state->graph->getCastVertex<MapNode>(parent.value())
+                ->getAdapter()
+                .is(OrgSemKind::Subtree)
+            && node.is(OrgSemKind::Subtree)) {
+            edge->kind = MapEdge::EdgeKind::NestedSubtree;
+        } else {
+            edge->kind = MapEdge::EdgeKind::NestedStatementElement;
+        }
+        auto attr = std::make_shared<MapEdgeProp>();
+        state->graph->addEdge(edge, attr, parent.value(), vertex);
+    }
+
+    return vertex;
+}
+
+void add_node_rec_aux(
+    org::graph::MapGraphState*         state,
+    ImmAdapter const&                  node,
+    hstd::Opt<hgraph::VertexID> const& parent,
+    std::shared_ptr<MapConfig> const&  conf,
+    hstd::Opt<MapEdge::EdgeKind>       edge_override = std::nullopt) {
+    __perf_trace("graph", "Recursive add node", kind, fmt1(node.getKind()));
+
+    auto __tmp = state->graph->begin_scope(
+        state->graph->fmt_message("recursive add {}", node), std::nullopt, "addNodeRec");
+
+    switch (node->getKind()) {
+        case OrgSemKind::File:
+        case OrgSemKind::Directory:
+        case OrgSemKind::Symlink:
+        case OrgSemKind::Document:
+        case OrgSemKind::CmdInclude:
+        case OrgSemKind::Subtree:
+        case OrgSemKind::List: {
+            auto added = add_single_node(state, node, parent, conf);
+            for (auto const& it : node) { add_node_rec_aux(state, it, added, conf); }
+            break;
+        }
+        case OrgSemKind::ListItem: {
+            auto item  = node.as<ImmListItem>();
+            auto added = add_single_node(state, node, parent, conf);
+            if (item.isDescriptionItem()) {
+                add_node_rec_aux(
+                    state,
+                    item.getHeader().value(),
+                    added,
+                    conf,
+                    MapEdge::EdgeKind::DescriptionListHead);
+            }
+            for (auto const& it : node) { add_node_rec_aux(state, it, added, conf); }
+            break;
+        }
+        case OrgSemKind::Paragraph: {
+            std::ignore = add_single_node(state, node, parent, conf);
+            break;
+        }
+        default: {
+        }
+    }
+}
+
+} // namespace
+
 void org::graph::MapGraphState::addNodeRec(
     std::shared_ptr<org::imm::ImmAstContext> const& ast,
     org::imm::ImmAdapter const&                     node,
     std::shared_ptr<MapConfig> const&               conf) {
-
-    auto add_node_impl = [&](ImmAdapter const&                  node,
-                             hstd::Opt<hgraph::VertexID> const& parent,
-                             hstd::Opt<MapEdge::EdgeKind> edge_override = std::nullopt)
-        -> hgraph::VertexID {
-        auto vertex = addNode(node, conf);
-        if (parent.has_value()) {
-            auto edge = std::make_shared<MapEdge>(hstd::fmt1(
-                graph->edges->edges.getNextId(graph->edges->getCollectionID().t)));
-            if (edge_override) {
-                edge->kind = edge_override.value();
-            } else if (
-                graph->getCastVertex<MapNode>(parent.value())
-                    ->getAdapter()
-                    .is(OrgSemKind::Subtree)
-                && node.is(OrgSemKind::Subtree)) {
-                edge->kind = MapEdge::EdgeKind::NestedSubtree;
-            } else {
-                edge->kind = MapEdge::EdgeKind::NestedStatementElement;
-            }
-            auto attr = std::make_shared<MapEdgeProp>();
-            graph->addEdge(edge, attr, parent.value(), vertex);
-        }
-
-        return vertex;
-    };
-
-    auto aux = [&](this auto&&                        self,
-                   ImmAdapter const&                  node,
-                   hstd::Opt<hgraph::VertexID> const& parent,
-                   hstd::Opt<MapEdge::EdgeKind> edge_override = std::nullopt) -> void {
-        __perf_trace("mmpa", "Recursive add node", kind, fmt1(node.getKind()));
-
-        auto __tmp = graph->begin_scope(
-            graph->fmt_message("recursive add {}", node), std::nullopt, "addNodeRec");
-
-
-        switch (node->getKind()) {
-            case OrgSemKind::File:
-            case OrgSemKind::Directory:
-            case OrgSemKind::Symlink:
-            case OrgSemKind::Document:
-            case OrgSemKind::CmdInclude:
-            case OrgSemKind::Subtree:
-            case OrgSemKind::List: {
-                auto added = add_node_impl(node, parent);
-                for (auto const& it : node) { self(it, added); }
-                break;
-            }
-            case OrgSemKind::ListItem: {
-                auto item  = node.as<ImmListItem>();
-                auto added = add_node_impl(node, parent);
-                if (item.isDescriptionItem()) {
-                    self(
-                        item.getHeader().value(),
-                        added,
-                        MapEdge::EdgeKind::DescriptionListHead);
-                }
-                for (auto const& it : node) { self(it, added); }
-                break;
-            }
-            case OrgSemKind::Paragraph: {
-                std::ignore = add_node_impl(node, parent);
-                break;
-            }
-            default: {
-            }
-        }
-    };
-
-    aux(node, std::nullopt);
+    add_node_rec_aux(this, node, std::nullopt, conf);
 }
 
 

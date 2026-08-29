@@ -86,33 +86,20 @@ run_codechecker:
 dump_cli_stack:
   lldb -p $(pgrep -f haxorg_cpp_org_cli) -o "thread backtrace all" -o "detach" -o "quit" > /tmp/trace.log
 
-profile_perf_cli path freq='1000' bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
-    perf record --freq={{freq}} --call-graph dwarf -- {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}}
+profile_perf_cli bin opts_path freq='3000':
+    perf record --freq={{freq}} --call-graph dwarf -- {{bin}} {{opts_path}}
 
-profile_heaptrack_cli path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
-    heaptrack {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}}
+profile_heaptrack_cli bin opts_path:
+    heaptrack {{bin}} {{opts_path}}
 
-profile_valgrind tool path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
-    valgrind --tool={{tool}}  --{{tool}}-out-file=/tmp/{{tool}}.out.haxorg_cli {{bin}} --diagnostics-file {{diag}} --perf-file {{perf_file}} parse {{path}}
-
-profile_valgrind_graph tool path bin='build/haxorg_debug_qt/haxorg_cpp_org_cli' diag='/tmp/haxorg_tests/diags.txt' perf_file='/tmp/perf.pftrace':
-    valgrind \
-      --tool={{tool}} \
-      --{{tool}}-out-file=/tmp/{{tool}}.out.haxorg_cli \
-      {{bin}} \
-      --perf-file {{perf_file}} \
-      export \
-      --input {{path}} \
-      --output /tmp/result.proto \
-      map \
-      --format Binary
-
+profile_valgrind tool bin opts_path:
+    valgrind --tool={{tool}}  --{{tool}}-out-file=build/{{tool}}.out.haxorg_cli {{bin}} {{opts_path}}
 
 profile_valgrind_view tool:
-  kcachegrind /tmp/{{tool}}.out.haxorg_cli
+  kcachegrind build/{{tool}}.out.haxorg_cli
 
 profile_callgrind_annotate *files:
-  callgrind_annotate --auto=no /tmp/callgrind.out.haxorg_cli {{files}} > /tmp/haxorg_callgrind_annotate.txt
+  callgrind_annotate --auto=no build/callgrind.out.haxorg_cli {{files}} > build/haxorg_callgrind_annotate.txt
 
 profile_perf_view:
   hotspot perf.data

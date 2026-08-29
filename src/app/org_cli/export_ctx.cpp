@@ -7,6 +7,7 @@
 #include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <google/protobuf/util/json_util.h>
 #include <haxorg/imm/ImmOrgGraph.hpp>
+#include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/logger.hpp>
 
 
@@ -45,6 +46,16 @@ void org::cli::ExportCommandContext::writeProtoJson(
     hstd::writeFile(cmd.output, jsonOutput, true);
 }
 
+void org::cli::ExportCommandContext::writeProtoResult(
+    google::protobuf::Message const& result,
+    EO::ProtoFormat                  format) const {
+    __perf_trace("cli", "write proto result");
+    switch (format) {
+        case EO::ProtoFormat::Json: writeProtoJson(result); break;
+        case EO::ProtoFormat::Binary: writeProtoBinary(result); break;
+        case EO::ProtoFormat::Xml: writeProtoXml(result); break;
+    }
+}
 void org::cli::ExportCommandContext::exportJson(
     org::sem::SemId<org::sem::Org> const& node,
     EO::Json const&                       options) const {
@@ -76,6 +87,7 @@ void org::cli::ExportCommandContext::exportYaml(
 void org::cli::runExportCommand(
     SharedContext&        shared,
     ExportCommandContext& exportContext) {
+    __perf_trace("cli", "run export command");
     using EO = CliOpts::ExportOpts;
 
     exportContext.configure(shared);
@@ -124,6 +136,7 @@ void org::cli::ExportCommandContext::exportProto(
     SharedContext&                        shared,
     org::sem::SemId<org::sem::Org> const& node,
     EO::Proto const&                      options) const {
+    __perf_trace("cli", "export protobuf");
     HSLOG_INFO("Converting parse result to protobuf");
 
     orgproto::ParseResult result;
@@ -139,6 +152,7 @@ void org::cli::ExportCommandContext::exportMap(
     SharedContext&                        shared,
     org::sem::SemId<org::sem::Org> const& node,
     EO::Map const&                        options) const {
+    __perf_trace("cli", "export map");
     auto config = org::graph::MapConfig::shared();
     auto store  = org::imm::ImmAstContext::init_start_context();
 

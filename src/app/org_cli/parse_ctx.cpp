@@ -1,4 +1,5 @@
 #include "parse_ctx.hpp"
+#include <haxorg/sem/perfetto_org.hpp>
 
 void org::cli::ParseCommandContext::configure(SharedContext& shared) {
     params->parseTracePath     = cmd.parseTracePath;
@@ -85,6 +86,7 @@ void org::cli::ParseCommandContext::writeImmutableDumps(
 }
 
 void org::cli::runParseCommand(SharedContext& shared, ParseCommandContext& parseContext) {
+    __perf_trace("cli", "run parse command");
     parseContext.configure(shared);
 
     hstd::fs::path                 input{parseContext.cmd.input};

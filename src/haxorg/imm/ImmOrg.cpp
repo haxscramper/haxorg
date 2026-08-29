@@ -747,7 +747,8 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
             { /*_dfmt(node, nodeValue); */ },
         });
 
-    if (!SemSet{OrgSemKind::Subtree, OrgSemKind::Paragraph}.contains(node.getKind())) {
+    if (auto kind = node.getKind();
+        kind != OrgSemKind::Subtree && kind == OrgSemKind::Paragraph) {
         return;
     }
 
@@ -1227,35 +1228,39 @@ ParentPathMap ImmAstTrackingMap::getParentsFor(ImmId const& it, ImmAstContext co
     }
 }
 
-Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(ImmId const& it, ImmAstContext const* ctx)
-    const {
-    Func<Vec<ImmPath>(ImmId const& id)> aux;
-    aux = [&](ImmId const& id) -> Vec<ImmPath> {
-        Vec<ImmPath> result;
-        for (auto const& [parentId, parentPaths] : getParentsFor(id, ctx)) {
-            auto auxRes = aux(parentId);
-            if (auxRes.empty()) {
+namespace {
+Vec<ImmPath> aux_get_paths_form(
+    ImmAstTrackingMap const& map,
+    ImmId const&             id,
+    ImmAstContext const*     ctx) {
+    Vec<ImmPath> result;
+    for (auto const& [parentId, parentPaths] : map.getParentsFor(id, ctx)) {
+        auto auxRes = aux_get_paths_form(map, parentId, ctx);
+        if (auxRes.empty()) {
+            for (auto const& full : parentPaths) {
+                ImmPath path;
+                path.root = parentId;
+                path.path = path.path.push_back(full);
+                result.push_back(path);
+            }
+        } else {
+            for (auto const& added : auxRes) {
                 for (auto const& full : parentPaths) {
-                    ImmPath path;
-                    path.root = parentId;
-                    path.path = path.path.push_back(full);
+                    ImmPath path = added;
+                    path.path    = path.path.push_back(full);
                     result.push_back(path);
-                }
-            } else {
-                for (auto const& added : auxRes) {
-                    for (auto const& full : parentPaths) {
-                        ImmPath path = added;
-                        path.path    = path.path.push_back(full);
-                        result.push_back(path);
-                    }
                 }
             }
         }
-        return result;
-    };
+    }
+    return result;
+}
+} // namespace
 
+Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(ImmId const& it, ImmAstContext const* ctx)
+    const {
     Vec<ImmUniqId> result;
-    for (auto const& path : aux(it)) {
+    for (auto const& path : aux_get_paths_form(*this, it, ctx)) {
         result.push_back(ImmUniqId{.path = path, .id = it});
     }
 
@@ -1286,16 +1291,19 @@ ImmAstEditContext ImmAstContext::getEditContext() {
     };
 }
 
+namespace {
+SemSet TrackingParentDefaultSet{
+    OrgSemKind::Space,
+    OrgSemKind::Word,
+    OrgSemKind::BigIdent,
+    OrgSemKind::Time,
+    OrgSemKind::Punctuation,
+    OrgSemKind::Newline,
+};
+}
+
 bool imm::isTrackingParentDefault(ImmAdapter const& node) {
-    return !SemSet{
-        OrgSemKind::Space,
-        OrgSemKind::Word,
-        OrgSemKind::BigIdent,
-        OrgSemKind::Time,
-        OrgSemKind::Punctuation,
-        OrgSemKind::Newline,
-    }
-                .contains(node.getKind());
+    return !TrackingParentDefaultSet.contains(node.getKind());
 }
 
 namespace {

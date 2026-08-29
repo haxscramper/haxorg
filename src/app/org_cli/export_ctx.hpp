@@ -107,15 +107,7 @@ struct ExportCommandContext {
     }
 
     void writeProtoResult(google::protobuf::Message const& result, EO::ProtoFormat format)
-        const {
-        switch (format) {
-            case EO::ProtoFormat::Json: writeProtoJson(result); break;
-
-            case EO::ProtoFormat::Binary: writeProtoBinary(result); break;
-
-            case EO::ProtoFormat::Xml: writeProtoXml(result); break;
-        }
-    }
+        const;
 
     void exportJson(org::sem::SemId<org::sem::Org> const& node, EO::Json const& options)
         const;

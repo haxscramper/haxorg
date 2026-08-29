@@ -1,7 +1,15 @@
 #include "perfetto_aux.hpp"
 
 #ifdef ORG_BUILD_WITH_PERFETTO
+#    include <chrono>
+#    include <cstdint>
+#    include <filesystem>
 #    include <fstream>
+#    include <memory>
+#    include <system_error>
+
+#    include <fcntl.h>
+#    include <unistd.h>
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
@@ -62,6 +70,46 @@ std::unique_ptr<perfetto::TracingSession> StartProcessTracing(
     perfetto::protos::gen::TrackDescriptor desc = process_track.Serialize();
     desc.mutable_process()->set_process_name(procesName);
     perfetto::TrackEvent::SetTrackDescriptor(process_track, desc);
+    return tracing_session;
+}
+
+std::unique_ptr<perfetto::TracingSession> StartProcessTracingWithImmediateFlush(
+    std::string const&              process_name,
+    std::filesystem::path const&    out_path,
+    std::chrono::milliseconds const flush_frequency) {
+    InitializePerfetto();
+
+    perfetto::TraceConfig config;
+    config.add_buffers()->set_size_kb(64 * 1024);
+
+    auto* data_source = config.add_data_sources()->mutable_config();
+    data_source->set_name("track_event");
+
+    config.set_write_into_file(true);
+    config.set_file_write_period_ms(static_cast<std::uint32_t>(flush_frequency.count()));
+
+    int const fd = ::open(
+        out_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+
+    if (fd == -1) {
+        throw std::system_error(
+            errno, std::generic_category(), "Failed to open Perfetto trace output");
+    }
+
+    auto tracing_session = perfetto::Tracing::NewTrace();
+    tracing_session->Setup(config, fd);
+    ::close(fd);
+
+    tracing_session->StartBlocking();
+
+    perfetto::ProcessTrack const process_track = perfetto::ProcessTrack::Current();
+
+    perfetto::protos::gen::TrackDescriptor descriptor = process_track.Serialize();
+
+    descriptor.mutable_process()->set_process_name(process_name);
+    perfetto::TrackEvent::SetTrackDescriptor(process_track, descriptor);
+    perfetto::TrackEvent::Flush();
+
     return tracing_session;
 }
 
