@@ -414,7 +414,8 @@ struct ImmAstEditContext {
 
 
 struct ImmSemSerdeConfig {
-    bool with_location = true;
+    bool with_location            = true;
+    bool with_structural_subnodes = true;
 };
 
 template <org::imm::IsImmOrgValueType T>

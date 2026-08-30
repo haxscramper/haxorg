@@ -773,8 +773,12 @@ void org::graph::MapNode::writeSerial(
     out->set_type("org::graph::MapNode");
     proto::MapNodePayload payload;
 
+    ImmSemSerdeConfig config;
+    config.with_structural_subnodes = false;
+    config.with_location            = false;
+
     hstd::serde::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
-        payload.mutable_node(), org::imm::sem_from_immer(id.id, *id.ctx.lock()));
+        payload.mutable_node(), org::imm::sem_from_immer(id.id, *id.ctx.lock(), config));
 
     out->mutable_payload()->PackFrom(payload);
 }

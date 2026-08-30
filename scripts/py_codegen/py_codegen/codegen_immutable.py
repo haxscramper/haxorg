@@ -5,8 +5,9 @@ from beartype import beartype
 from beartype.typing import Any, List, Sequence, Tuple
 from py_codegen import codegen_ir
 import py_codegen.astbuilder_cpp as cpp
-from py_codegen.codegen_ir import GenTuFunction, n_org, QualType
+from py_codegen.codegen_ir import GenTuField, GenTuFunction, n_org, QualType
 from py_haxorg.astbuilder import astbuilder_utils
+from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
 from py_scriptutils.script_logging import log
 
@@ -449,32 +450,63 @@ def get_imm_serde(
                     )
                 ]
 
+                def get_field_writer_call(field: GenTuField):
+                    return ast.Call(
+                        func=ast.string("assign_immer_field"),
+                        Args=[
+                            ast.string(f"result.{field.Name}"),
+                            ast.string(f"value.{field.Name}"),
+                            ast.string("ctx"),
+                            ast.string("config"),
+                        ],
+                        Stmt=True,
+                    )
+
+                def get_field_reader_call(field: GenTuField):
+                    return ast.Call(
+                        func=ast.string("assign_sem_field"),
+                        Args=[
+                            ast.string(f"result.{field.Name}"),
+                            ast.string(f"value.{field.Name}"),
+                            ast.string("ctx"),
+                            ast.string("config"),
+                        ],
+                        Stmt=True,
+                    )
+
                 def field_aux(sub: codegen_ir.GenTuStruct) -> None:
                     for field in sub.Fields:
-                        if not field.IsStatic:
-                            writer_body.append(
-                                ast.Call(
-                                    func=ast.string("assign_immer_field"),
-                                    Args=[
-                                        ast.string(f"result.{field.Name}"),
-                                        ast.string(f"value.{field.Name}"),
-                                        ast.string("ctx"),
-                                        ast.string("config"),
-                                    ],
-                                    Stmt=True,
-                                ))
+                        if field.IsStatic:
+                            continue
 
+                        def check_cond(cond_method: str, then: BlockId, **xcall_kwargs):
+                            return ast.IfStmt(
+                                cpp.IfStmtParams(Branches=[
+                                    cpp.IfStmtParams.Branch(
+                                        Cond=ast.XCall(cond_method, **xcall_kwargs),
+                                        Then=then,
+                                    )
+                                ]))
+
+                        if field.Name == "loc":
+                            writer_body.append(
+                                check_cond("addLocations", get_field_writer_call(field)))
                             reader_body.append(
-                                ast.Call(
-                                    func=ast.string("assign_sem_field"),
-                                    Args=[
-                                        ast.string(f"result.{field.Name}"),
-                                        ast.string(f"value.{field.Name}"),
-                                        ast.string("ctx"),
-                                        ast.string("config"),
-                                    ],
-                                    Stmt=True,
-                                ))
+                                check_cond("addLocations", get_field_reader_call(field)))
+
+                        elif field.Name == "subnodes":
+                            writer_body.append(
+                                check_cond("addSubnodes",
+                                           get_field_writer_call(field),
+                                           args=[ast.string("value")]))
+                            reader_body.append(
+                                check_cond("addSubnodes",
+                                           get_field_reader_call(field),
+                                           args=[ast.string("value")]))
+
+                        else:
+                            writer_body.append(get_field_writer_call(field))
+                            reader_body.append(get_field_reader_call(field))
 
                     for base in sub.Bases:
                         assert sub.Name.Name != base.Name, f"{sub.Name} ->>>> {base}"

@@ -663,12 +663,41 @@ using ImmId_t = org::imm::ImmId;
 template <typename Sem, typename Imm>
 struct ImmSemSerde;
 
+namespace {
+static const SemSet StructuralSubnodes{
+    OrgSemKind::Subtree,
+    OrgSemKind::File,
+    OrgSemKind::Directory,
+    OrgSemKind::Symlink,
+    OrgSemKind::StmtList,
+    OrgSemKind::List,
+    OrgSemKind::ListItem,
+};
+}
+
 struct ImmSemSerdeBase {
     ImmSemSerdeConfig const* config;
 
     ImmSemSerdeBase(ImmSemSerdeConfig const* config) : config{config} {}
 
     bool addLocations() const { return config->with_location; }
+
+    // TODO: Current check is a temporary implementation, to cut off the largest lists of
+    // subnodes on export. Right now this is only used as an output size optimization for
+    // the imm org graph protobuf writer, to avoid copying the whole document O^2 times
+    // into the result. Ideally, the decision for subnode tracking must have proper
+    // context to determine what to add and what not to.
+    template <sem::IsOrg T>
+    bool addSubnodes(T const& sem_org) const {
+        return config->with_structural_subnodes
+            || !StructuralSubnodes.contains(sem_org.staticKind);
+    }
+
+    template <imm::IsImmOrg T>
+    bool addSubnodes(T const& imm_org) const {
+        return config->with_structural_subnodes
+            || !StructuralSubnodes.contains(imm_org.staticKind);
+    }
 
     template <typename Sem, typename Imm>
     Imm to_immer_rec(Sem const& value, ImmAstEditContext& ctx) {
@@ -692,7 +721,7 @@ struct ImmSemSerde<SemId_t, ImmId_t> : public ImmSemSerdeBase {
     }
 
     SemId_t from_immer(ImmId_t const& id, ImmAstContext const& ctx) {
-        return ctx.store->get(id, ctx);
+        return ctx.store->get(id, ctx, *config);
     }
 };
 

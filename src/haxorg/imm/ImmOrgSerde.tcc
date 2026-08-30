@@ -3,14 +3,22 @@ template <>
 struct ImmSemSerde<org::sem::NoNode, org::imm::ImmNoNode> : public ImmSemSerdeBase {
   org::imm::ImmNoNode to_immer(org::sem::NoNode const& value, ImmAstEditContext& ctx) {
     org::imm::ImmNoNode result = hstd::SerdeDefaultProvider<org::imm::ImmNoNode>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::NoNode from_immer(org::imm::ImmNoNode const& value, ImmAstContext const& ctx) {
     org::sem::NoNode result = hstd::SerdeDefaultProvider<org::sem::NoNode>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -20,15 +28,23 @@ struct ImmSemSerde<org::sem::ErrorItem, org::imm::ImmErrorItem> : public ImmSemS
   org::imm::ImmErrorItem to_immer(org::sem::ErrorItem const& value, ImmAstEditContext& ctx) {
     org::imm::ImmErrorItem result = hstd::SerdeDefaultProvider<org::imm::ImmErrorItem>::get();
     assign_immer_field(result.diag, value.diag, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::ErrorItem from_immer(org::imm::ImmErrorItem const& value, ImmAstContext const& ctx) {
     org::sem::ErrorItem result = hstd::SerdeDefaultProvider<org::sem::ErrorItem>::get();
     assign_sem_field(result.diag, value.diag, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -38,15 +54,23 @@ struct ImmSemSerde<org::sem::ErrorGroup, org::imm::ImmErrorGroup> : public ImmSe
   org::imm::ImmErrorGroup to_immer(org::sem::ErrorGroup const& value, ImmAstEditContext& ctx) {
     org::imm::ImmErrorGroup result = hstd::SerdeDefaultProvider<org::imm::ImmErrorGroup>::get();
     assign_immer_field(result.diagnostics, value.diagnostics, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::ErrorGroup from_immer(org::imm::ImmErrorGroup const& value, ImmAstContext const& ctx) {
     org::sem::ErrorGroup result = hstd::SerdeDefaultProvider<org::sem::ErrorGroup>::get();
     assign_sem_field(result.diagnostics, value.diagnostics, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -55,14 +79,22 @@ template <>
 struct ImmSemSerde<org::sem::StmtList, org::imm::ImmStmtList> : public ImmSemSerdeBase {
   org::imm::ImmStmtList to_immer(org::sem::StmtList const& value, ImmAstEditContext& ctx) {
     org::imm::ImmStmtList result = hstd::SerdeDefaultProvider<org::imm::ImmStmtList>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::StmtList from_immer(org::imm::ImmStmtList const& value, ImmAstContext const& ctx) {
     org::sem::StmtList result = hstd::SerdeDefaultProvider<org::sem::StmtList>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -71,14 +103,22 @@ template <>
 struct ImmSemSerde<org::sem::Empty, org::imm::ImmEmpty> : public ImmSemSerdeBase {
   org::imm::ImmEmpty to_immer(org::sem::Empty const& value, ImmAstEditContext& ctx) {
     org::imm::ImmEmpty result = hstd::SerdeDefaultProvider<org::imm::ImmEmpty>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Empty from_immer(org::imm::ImmEmpty const& value, ImmAstContext const& ctx) {
     org::sem::Empty result = hstd::SerdeDefaultProvider<org::sem::Empty>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -90,8 +130,12 @@ struct ImmSemSerde<org::sem::CmdCaption, org::imm::ImmCmdCaption> : public ImmSe
     assign_immer_field(result.text, value.text, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdCaption from_immer(org::imm::ImmCmdCaption const& value, ImmAstContext const& ctx) {
@@ -99,8 +143,12 @@ struct ImmSemSerde<org::sem::CmdCaption, org::imm::ImmCmdCaption> : public ImmSe
     assign_sem_field(result.text, value.text, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -112,8 +160,12 @@ struct ImmSemSerde<org::sem::CmdCreator, org::imm::ImmCmdCreator> : public ImmSe
     assign_immer_field(result.text, value.text, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdCreator from_immer(org::imm::ImmCmdCreator const& value, ImmAstContext const& ctx) {
@@ -121,8 +173,12 @@ struct ImmSemSerde<org::sem::CmdCreator, org::imm::ImmCmdCreator> : public ImmSe
     assign_sem_field(result.text, value.text, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -134,8 +190,12 @@ struct ImmSemSerde<org::sem::CmdAuthor, org::imm::ImmCmdAuthor> : public ImmSemS
     assign_immer_field(result.text, value.text, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdAuthor from_immer(org::imm::ImmCmdAuthor const& value, ImmAstContext const& ctx) {
@@ -143,8 +203,12 @@ struct ImmSemSerde<org::sem::CmdAuthor, org::imm::ImmCmdAuthor> : public ImmSemS
     assign_sem_field(result.text, value.text, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -156,8 +220,12 @@ struct ImmSemSerde<org::sem::CmdEmail, org::imm::ImmCmdEmail> : public ImmSemSer
     assign_immer_field(result.text, value.text, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdEmail from_immer(org::imm::ImmCmdEmail const& value, ImmAstContext const& ctx) {
@@ -165,8 +233,12 @@ struct ImmSemSerde<org::sem::CmdEmail, org::imm::ImmCmdEmail> : public ImmSemSer
     assign_sem_field(result.text, value.text, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -178,8 +250,12 @@ struct ImmSemSerde<org::sem::CmdLanguage, org::imm::ImmCmdLanguage> : public Imm
     assign_immer_field(result.text, value.text, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdLanguage from_immer(org::imm::ImmCmdLanguage const& value, ImmAstContext const& ctx) {
@@ -187,8 +263,12 @@ struct ImmSemSerde<org::sem::CmdLanguage, org::imm::ImmCmdLanguage> : public Imm
     assign_sem_field(result.text, value.text, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -200,8 +280,12 @@ struct ImmSemSerde<org::sem::CmdColumns, org::imm::ImmCmdColumns> : public ImmSe
     assign_immer_field(result.view, value.view, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdColumns from_immer(org::imm::ImmCmdColumns const& value, ImmAstContext const& ctx) {
@@ -209,8 +293,12 @@ struct ImmSemSerde<org::sem::CmdColumns, org::imm::ImmCmdColumns> : public ImmSe
     assign_sem_field(result.view, value.view, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -222,8 +310,12 @@ struct ImmSemSerde<org::sem::CmdName, org::imm::ImmCmdName> : public ImmSemSerde
     assign_immer_field(result.name, value.name, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdName from_immer(org::imm::ImmCmdName const& value, ImmAstContext const& ctx) {
@@ -231,8 +323,12 @@ struct ImmSemSerde<org::sem::CmdName, org::imm::ImmCmdName> : public ImmSemSerde
     assign_sem_field(result.name, value.name, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -245,8 +341,12 @@ struct ImmSemSerde<org::sem::CmdCustomArgs, org::imm::ImmCmdCustomArgs> : public
     assign_immer_field(result.isAttached, value.isAttached, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdCustomArgs from_immer(org::imm::ImmCmdCustomArgs const& value, ImmAstContext const& ctx) {
@@ -255,8 +355,12 @@ struct ImmSemSerde<org::sem::CmdCustomArgs, org::imm::ImmCmdCustomArgs> : public
     assign_sem_field(result.isAttached, value.isAttached, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -269,8 +373,12 @@ struct ImmSemSerde<org::sem::CmdCustomRaw, org::imm::ImmCmdCustomRaw> : public I
     assign_immer_field(result.isAttached, value.isAttached, ctx, config);
     assign_immer_field(result.text, value.text, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdCustomRaw from_immer(org::imm::ImmCmdCustomRaw const& value, ImmAstContext const& ctx) {
@@ -279,8 +387,12 @@ struct ImmSemSerde<org::sem::CmdCustomRaw, org::imm::ImmCmdCustomRaw> : public I
     assign_sem_field(result.isAttached, value.isAttached, ctx, config);
     assign_sem_field(result.text, value.text, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -293,8 +405,12 @@ struct ImmSemSerde<org::sem::CmdCustomText, org::imm::ImmCmdCustomText> : public
     assign_immer_field(result.isAttached, value.isAttached, ctx, config);
     assign_immer_field(result.text, value.text, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdCustomText from_immer(org::imm::ImmCmdCustomText const& value, ImmAstContext const& ctx) {
@@ -303,8 +419,12 @@ struct ImmSemSerde<org::sem::CmdCustomText, org::imm::ImmCmdCustomText> : public
     assign_sem_field(result.isAttached, value.isAttached, ctx, config);
     assign_sem_field(result.text, value.text, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -321,8 +441,12 @@ struct ImmSemSerde<org::sem::CmdCall, org::imm::ImmCmdCall> : public ImmSemSerde
     assign_immer_field(result.result, value.result, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdCall from_immer(org::imm::ImmCmdCall const& value, ImmAstContext const& ctx) {
@@ -335,8 +459,12 @@ struct ImmSemSerde<org::sem::CmdCall, org::imm::ImmCmdCall> : public ImmSemSerde
     assign_sem_field(result.result, value.result, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -348,8 +476,12 @@ struct ImmSemSerde<org::sem::CmdTblfm, org::imm::ImmCmdTblfm> : public ImmSemSer
     assign_immer_field(result.expr, value.expr, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdTblfm from_immer(org::imm::ImmCmdTblfm const& value, ImmAstContext const& ctx) {
@@ -357,8 +489,12 @@ struct ImmSemSerde<org::sem::CmdTblfm, org::imm::ImmCmdTblfm> : public ImmSemSer
     assign_sem_field(result.expr, value.expr, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -368,15 +504,23 @@ struct ImmSemSerde<org::sem::HashTag, org::imm::ImmHashTag> : public ImmSemSerde
   org::imm::ImmHashTag to_immer(org::sem::HashTag const& value, ImmAstEditContext& ctx) {
     org::imm::ImmHashTag result = hstd::SerdeDefaultProvider<org::imm::ImmHashTag>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::HashTag from_immer(org::imm::ImmHashTag const& value, ImmAstContext const& ctx) {
     org::sem::HashTag result = hstd::SerdeDefaultProvider<org::sem::HashTag>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -387,16 +531,24 @@ struct ImmSemSerde<org::sem::InlineFootnote, org::imm::ImmInlineFootnote> : publ
     org::imm::ImmInlineFootnote result = hstd::SerdeDefaultProvider<org::imm::ImmInlineFootnote>::get();
     assign_immer_field(result.tag, value.tag, ctx, config);
     assign_immer_field(result.definition, value.definition, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::InlineFootnote from_immer(org::imm::ImmInlineFootnote const& value, ImmAstContext const& ctx) {
     org::sem::InlineFootnote result = hstd::SerdeDefaultProvider<org::sem::InlineFootnote>::get();
     assign_sem_field(result.tag, value.tag, ctx, config);
     assign_sem_field(result.definition, value.definition, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -407,16 +559,24 @@ struct ImmSemSerde<org::sem::InlineExport, org::imm::ImmInlineExport> : public I
     org::imm::ImmInlineExport result = hstd::SerdeDefaultProvider<org::imm::ImmInlineExport>::get();
     assign_immer_field(result.exporter, value.exporter, ctx, config);
     assign_immer_field(result.content, value.content, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::InlineExport from_immer(org::imm::ImmInlineExport const& value, ImmAstContext const& ctx) {
     org::sem::InlineExport result = hstd::SerdeDefaultProvider<org::sem::InlineExport>::get();
     assign_sem_field(result.exporter, value.exporter, ctx, config);
     assign_sem_field(result.content, value.content, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -427,16 +587,24 @@ struct ImmSemSerde<org::sem::Time, org::imm::ImmTime> : public ImmSemSerdeBase {
     org::imm::ImmTime result = hstd::SerdeDefaultProvider<org::imm::ImmTime>::get();
     assign_immer_field(result.isActive, value.isActive, ctx, config);
     assign_immer_field(result.time, value.time, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Time from_immer(org::imm::ImmTime const& value, ImmAstContext const& ctx) {
     org::sem::Time result = hstd::SerdeDefaultProvider<org::sem::Time>::get();
     assign_sem_field(result.isActive, value.isActive, ctx, config);
     assign_sem_field(result.time, value.time, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -497,16 +665,24 @@ struct ImmSemSerde<org::sem::TimeRange, org::imm::ImmTimeRange> : public ImmSemS
     org::imm::ImmTimeRange result = hstd::SerdeDefaultProvider<org::imm::ImmTimeRange>::get();
     assign_immer_field(result.from, value.from, ctx, config);
     assign_immer_field(result.to, value.to, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::TimeRange from_immer(org::imm::ImmTimeRange const& value, ImmAstContext const& ctx) {
     org::sem::TimeRange result = hstd::SerdeDefaultProvider<org::sem::TimeRange>::get();
     assign_sem_field(result.from, value.from, ctx, config);
     assign_sem_field(result.to, value.to, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -517,16 +693,24 @@ struct ImmSemSerde<org::sem::Macro, org::imm::ImmMacro> : public ImmSemSerdeBase
     org::imm::ImmMacro result = hstd::SerdeDefaultProvider<org::imm::ImmMacro>::get();
     assign_immer_field(result.name, value.name, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Macro from_immer(org::imm::ImmMacro const& value, ImmAstContext const& ctx) {
     org::sem::Macro result = hstd::SerdeDefaultProvider<org::sem::Macro>::get();
     assign_sem_field(result.name, value.name, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -538,8 +722,12 @@ struct ImmSemSerde<org::sem::Symbol, org::imm::ImmSymbol> : public ImmSemSerdeBa
     assign_immer_field(result.name, value.name, ctx, config);
     assign_immer_field(result.parameters, value.parameters, ctx, config);
     assign_immer_field(result.positional, value.positional, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Symbol from_immer(org::imm::ImmSymbol const& value, ImmAstContext const& ctx) {
@@ -547,8 +735,12 @@ struct ImmSemSerde<org::sem::Symbol, org::imm::ImmSymbol> : public ImmSemSerdeBa
     assign_sem_field(result.name, value.name, ctx, config);
     assign_sem_field(result.parameters, value.parameters, ctx, config);
     assign_sem_field(result.positional, value.positional, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -574,15 +766,23 @@ struct ImmSemSerde<org::sem::Escaped, org::imm::ImmEscaped> : public ImmSemSerde
   org::imm::ImmEscaped to_immer(org::sem::Escaped const& value, ImmAstEditContext& ctx) {
     org::imm::ImmEscaped result = hstd::SerdeDefaultProvider<org::imm::ImmEscaped>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Escaped from_immer(org::imm::ImmEscaped const& value, ImmAstContext const& ctx) {
     org::sem::Escaped result = hstd::SerdeDefaultProvider<org::sem::Escaped>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -592,15 +792,23 @@ struct ImmSemSerde<org::sem::Newline, org::imm::ImmNewline> : public ImmSemSerde
   org::imm::ImmNewline to_immer(org::sem::Newline const& value, ImmAstEditContext& ctx) {
     org::imm::ImmNewline result = hstd::SerdeDefaultProvider<org::imm::ImmNewline>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Newline from_immer(org::imm::ImmNewline const& value, ImmAstContext const& ctx) {
     org::sem::Newline result = hstd::SerdeDefaultProvider<org::sem::Newline>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -610,15 +818,23 @@ struct ImmSemSerde<org::sem::Space, org::imm::ImmSpace> : public ImmSemSerdeBase
   org::imm::ImmSpace to_immer(org::sem::Space const& value, ImmAstEditContext& ctx) {
     org::imm::ImmSpace result = hstd::SerdeDefaultProvider<org::imm::ImmSpace>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Space from_immer(org::imm::ImmSpace const& value, ImmAstContext const& ctx) {
     org::sem::Space result = hstd::SerdeDefaultProvider<org::sem::Space>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -628,15 +844,23 @@ struct ImmSemSerde<org::sem::Word, org::imm::ImmWord> : public ImmSemSerdeBase {
   org::imm::ImmWord to_immer(org::sem::Word const& value, ImmAstEditContext& ctx) {
     org::imm::ImmWord result = hstd::SerdeDefaultProvider<org::imm::ImmWord>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Word from_immer(org::imm::ImmWord const& value, ImmAstContext const& ctx) {
     org::sem::Word result = hstd::SerdeDefaultProvider<org::sem::Word>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -646,15 +870,23 @@ struct ImmSemSerde<org::sem::AtMention, org::imm::ImmAtMention> : public ImmSemS
   org::imm::ImmAtMention to_immer(org::sem::AtMention const& value, ImmAstEditContext& ctx) {
     org::imm::ImmAtMention result = hstd::SerdeDefaultProvider<org::imm::ImmAtMention>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::AtMention from_immer(org::imm::ImmAtMention const& value, ImmAstContext const& ctx) {
     org::sem::AtMention result = hstd::SerdeDefaultProvider<org::sem::AtMention>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -664,15 +896,23 @@ struct ImmSemSerde<org::sem::RawText, org::imm::ImmRawText> : public ImmSemSerde
   org::imm::ImmRawText to_immer(org::sem::RawText const& value, ImmAstEditContext& ctx) {
     org::imm::ImmRawText result = hstd::SerdeDefaultProvider<org::imm::ImmRawText>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::RawText from_immer(org::imm::ImmRawText const& value, ImmAstContext const& ctx) {
     org::sem::RawText result = hstd::SerdeDefaultProvider<org::sem::RawText>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -682,15 +922,23 @@ struct ImmSemSerde<org::sem::Punctuation, org::imm::ImmPunctuation> : public Imm
   org::imm::ImmPunctuation to_immer(org::sem::Punctuation const& value, ImmAstEditContext& ctx) {
     org::imm::ImmPunctuation result = hstd::SerdeDefaultProvider<org::imm::ImmPunctuation>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Punctuation from_immer(org::imm::ImmPunctuation const& value, ImmAstContext const& ctx) {
     org::sem::Punctuation result = hstd::SerdeDefaultProvider<org::sem::Punctuation>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -700,15 +948,23 @@ struct ImmSemSerde<org::sem::Placeholder, org::imm::ImmPlaceholder> : public Imm
   org::imm::ImmPlaceholder to_immer(org::sem::Placeholder const& value, ImmAstEditContext& ctx) {
     org::imm::ImmPlaceholder result = hstd::SerdeDefaultProvider<org::imm::ImmPlaceholder>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Placeholder from_immer(org::imm::ImmPlaceholder const& value, ImmAstContext const& ctx) {
     org::sem::Placeholder result = hstd::SerdeDefaultProvider<org::sem::Placeholder>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -718,15 +974,23 @@ struct ImmSemSerde<org::sem::BigIdent, org::imm::ImmBigIdent> : public ImmSemSer
   org::imm::ImmBigIdent to_immer(org::sem::BigIdent const& value, ImmAstEditContext& ctx) {
     org::imm::ImmBigIdent result = hstd::SerdeDefaultProvider<org::imm::ImmBigIdent>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BigIdent from_immer(org::imm::ImmBigIdent const& value, ImmAstContext const& ctx) {
     org::sem::BigIdent result = hstd::SerdeDefaultProvider<org::sem::BigIdent>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -736,15 +1000,23 @@ struct ImmSemSerde<org::sem::TextTarget, org::imm::ImmTextTarget> : public ImmSe
   org::imm::ImmTextTarget to_immer(org::sem::TextTarget const& value, ImmAstEditContext& ctx) {
     org::imm::ImmTextTarget result = hstd::SerdeDefaultProvider<org::imm::ImmTextTarget>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::TextTarget from_immer(org::imm::ImmTextTarget const& value, ImmAstContext const& ctx) {
     org::sem::TextTarget result = hstd::SerdeDefaultProvider<org::sem::TextTarget>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -754,15 +1026,23 @@ struct ImmSemSerde<org::sem::ErrorSkipToken, org::imm::ImmErrorSkipToken> : publ
   org::imm::ImmErrorSkipToken to_immer(org::sem::ErrorSkipToken const& value, ImmAstEditContext& ctx) {
     org::imm::ImmErrorSkipToken result = hstd::SerdeDefaultProvider<org::imm::ImmErrorSkipToken>::get();
     assign_immer_field(result.text, value.text, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::ErrorSkipToken from_immer(org::imm::ImmErrorSkipToken const& value, ImmAstContext const& ctx) {
     org::sem::ErrorSkipToken result = hstd::SerdeDefaultProvider<org::sem::ErrorSkipToken>::get();
     assign_sem_field(result.text, value.text, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -772,15 +1052,23 @@ struct ImmSemSerde<org::sem::ErrorSkipGroup, org::imm::ImmErrorSkipGroup> : publ
   org::imm::ImmErrorSkipGroup to_immer(org::sem::ErrorSkipGroup const& value, ImmAstEditContext& ctx) {
     org::imm::ImmErrorSkipGroup result = hstd::SerdeDefaultProvider<org::imm::ImmErrorSkipGroup>::get();
     assign_immer_field(result.skipped, value.skipped, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::ErrorSkipGroup from_immer(org::imm::ImmErrorSkipGroup const& value, ImmAstContext const& ctx) {
     org::sem::ErrorSkipGroup result = hstd::SerdeDefaultProvider<org::sem::ErrorSkipGroup>::get();
     assign_sem_field(result.skipped, value.skipped, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -789,14 +1077,22 @@ template <>
 struct ImmSemSerde<org::sem::Bold, org::imm::ImmBold> : public ImmSemSerdeBase {
   org::imm::ImmBold to_immer(org::sem::Bold const& value, ImmAstEditContext& ctx) {
     org::imm::ImmBold result = hstd::SerdeDefaultProvider<org::imm::ImmBold>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Bold from_immer(org::imm::ImmBold const& value, ImmAstContext const& ctx) {
     org::sem::Bold result = hstd::SerdeDefaultProvider<org::sem::Bold>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -805,14 +1101,22 @@ template <>
 struct ImmSemSerde<org::sem::Underline, org::imm::ImmUnderline> : public ImmSemSerdeBase {
   org::imm::ImmUnderline to_immer(org::sem::Underline const& value, ImmAstEditContext& ctx) {
     org::imm::ImmUnderline result = hstd::SerdeDefaultProvider<org::imm::ImmUnderline>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Underline from_immer(org::imm::ImmUnderline const& value, ImmAstContext const& ctx) {
     org::sem::Underline result = hstd::SerdeDefaultProvider<org::sem::Underline>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -821,14 +1125,22 @@ template <>
 struct ImmSemSerde<org::sem::Monospace, org::imm::ImmMonospace> : public ImmSemSerdeBase {
   org::imm::ImmMonospace to_immer(org::sem::Monospace const& value, ImmAstEditContext& ctx) {
     org::imm::ImmMonospace result = hstd::SerdeDefaultProvider<org::imm::ImmMonospace>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Monospace from_immer(org::imm::ImmMonospace const& value, ImmAstContext const& ctx) {
     org::sem::Monospace result = hstd::SerdeDefaultProvider<org::sem::Monospace>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -837,14 +1149,22 @@ template <>
 struct ImmSemSerde<org::sem::MarkQuote, org::imm::ImmMarkQuote> : public ImmSemSerdeBase {
   org::imm::ImmMarkQuote to_immer(org::sem::MarkQuote const& value, ImmAstEditContext& ctx) {
     org::imm::ImmMarkQuote result = hstd::SerdeDefaultProvider<org::imm::ImmMarkQuote>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::MarkQuote from_immer(org::imm::ImmMarkQuote const& value, ImmAstContext const& ctx) {
     org::sem::MarkQuote result = hstd::SerdeDefaultProvider<org::sem::MarkQuote>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -853,14 +1173,22 @@ template <>
 struct ImmSemSerde<org::sem::Verbatim, org::imm::ImmVerbatim> : public ImmSemSerdeBase {
   org::imm::ImmVerbatim to_immer(org::sem::Verbatim const& value, ImmAstEditContext& ctx) {
     org::imm::ImmVerbatim result = hstd::SerdeDefaultProvider<org::imm::ImmVerbatim>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Verbatim from_immer(org::imm::ImmVerbatim const& value, ImmAstContext const& ctx) {
     org::sem::Verbatim result = hstd::SerdeDefaultProvider<org::sem::Verbatim>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -869,14 +1197,22 @@ template <>
 struct ImmSemSerde<org::sem::Italic, org::imm::ImmItalic> : public ImmSemSerdeBase {
   org::imm::ImmItalic to_immer(org::sem::Italic const& value, ImmAstEditContext& ctx) {
     org::imm::ImmItalic result = hstd::SerdeDefaultProvider<org::imm::ImmItalic>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Italic from_immer(org::imm::ImmItalic const& value, ImmAstContext const& ctx) {
     org::sem::Italic result = hstd::SerdeDefaultProvider<org::sem::Italic>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -885,14 +1221,22 @@ template <>
 struct ImmSemSerde<org::sem::Strike, org::imm::ImmStrike> : public ImmSemSerdeBase {
   org::imm::ImmStrike to_immer(org::sem::Strike const& value, ImmAstEditContext& ctx) {
     org::imm::ImmStrike result = hstd::SerdeDefaultProvider<org::imm::ImmStrike>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Strike from_immer(org::imm::ImmStrike const& value, ImmAstContext const& ctx) {
     org::sem::Strike result = hstd::SerdeDefaultProvider<org::sem::Strike>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -901,14 +1245,22 @@ template <>
 struct ImmSemSerde<org::sem::Par, org::imm::ImmPar> : public ImmSemSerdeBase {
   org::imm::ImmPar to_immer(org::sem::Par const& value, ImmAstEditContext& ctx) {
     org::imm::ImmPar result = hstd::SerdeDefaultProvider<org::imm::ImmPar>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Par from_immer(org::imm::ImmPar const& value, ImmAstContext const& ctx) {
     org::sem::Par result = hstd::SerdeDefaultProvider<org::sem::Par>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -918,15 +1270,23 @@ struct ImmSemSerde<org::sem::RadioTarget, org::imm::ImmRadioTarget> : public Imm
   org::imm::ImmRadioTarget to_immer(org::sem::RadioTarget const& value, ImmAstEditContext& ctx) {
     org::imm::ImmRadioTarget result = hstd::SerdeDefaultProvider<org::imm::ImmRadioTarget>::get();
     assign_immer_field(result.words, value.words, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::RadioTarget from_immer(org::imm::ImmRadioTarget const& value, ImmAstContext const& ctx) {
     org::sem::RadioTarget result = hstd::SerdeDefaultProvider<org::sem::RadioTarget>::get();
     assign_sem_field(result.words, value.words, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -935,14 +1295,22 @@ template <>
 struct ImmSemSerde<org::sem::Latex, org::imm::ImmLatex> : public ImmSemSerdeBase {
   org::imm::ImmLatex to_immer(org::sem::Latex const& value, ImmAstEditContext& ctx) {
     org::imm::ImmLatex result = hstd::SerdeDefaultProvider<org::imm::ImmLatex>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Latex from_immer(org::imm::ImmLatex const& value, ImmAstContext const& ctx) {
     org::sem::Latex result = hstd::SerdeDefaultProvider<org::sem::Latex>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -954,8 +1322,12 @@ struct ImmSemSerde<org::sem::Link, org::imm::ImmLink> : public ImmSemSerdeBase {
     assign_immer_field(result.description, value.description, ctx, config);
     assign_immer_field(result.target, value.target, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Link from_immer(org::imm::ImmLink const& value, ImmAstContext const& ctx) {
@@ -963,8 +1335,12 @@ struct ImmSemSerde<org::sem::Link, org::imm::ImmLink> : public ImmSemSerdeBase {
     assign_sem_field(result.description, value.description, ctx, config);
     assign_sem_field(result.target, value.target, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -975,16 +1351,24 @@ struct ImmSemSerde<org::sem::BlockCenter, org::imm::ImmBlockCenter> : public Imm
     org::imm::ImmBlockCenter result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCenter>::get();
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockCenter from_immer(org::imm::ImmBlockCenter const& value, ImmAstContext const& ctx) {
     org::sem::BlockCenter result = hstd::SerdeDefaultProvider<org::sem::BlockCenter>::get();
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -995,16 +1379,24 @@ struct ImmSemSerde<org::sem::BlockQuote, org::imm::ImmBlockQuote> : public ImmSe
     org::imm::ImmBlockQuote result = hstd::SerdeDefaultProvider<org::imm::ImmBlockQuote>::get();
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockQuote from_immer(org::imm::ImmBlockQuote const& value, ImmAstContext const& ctx) {
     org::sem::BlockQuote result = hstd::SerdeDefaultProvider<org::sem::BlockQuote>::get();
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1014,15 +1406,23 @@ struct ImmSemSerde<org::sem::BlockComment, org::imm::ImmBlockComment> : public I
   org::imm::ImmBlockComment to_immer(org::sem::BlockComment const& value, ImmAstEditContext& ctx) {
     org::imm::ImmBlockComment result = hstd::SerdeDefaultProvider<org::imm::ImmBlockComment>::get();
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockComment from_immer(org::imm::ImmBlockComment const& value, ImmAstContext const& ctx) {
     org::sem::BlockComment result = hstd::SerdeDefaultProvider<org::sem::BlockComment>::get();
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1033,16 +1433,24 @@ struct ImmSemSerde<org::sem::BlockVerse, org::imm::ImmBlockVerse> : public ImmSe
     org::imm::ImmBlockVerse result = hstd::SerdeDefaultProvider<org::imm::ImmBlockVerse>::get();
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockVerse from_immer(org::imm::ImmBlockVerse const& value, ImmAstContext const& ctx) {
     org::sem::BlockVerse result = hstd::SerdeDefaultProvider<org::sem::BlockVerse>::get();
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1054,8 +1462,12 @@ struct ImmSemSerde<org::sem::BlockDynamicFallback, org::imm::ImmBlockDynamicFall
     assign_immer_field(result.name, value.name, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockDynamicFallback from_immer(org::imm::ImmBlockDynamicFallback const& value, ImmAstContext const& ctx) {
@@ -1063,8 +1475,12 @@ struct ImmSemSerde<org::sem::BlockDynamicFallback, org::imm::ImmBlockDynamicFall
     assign_sem_field(result.name, value.name, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1075,16 +1491,24 @@ struct ImmSemSerde<org::sem::BlockExample, org::imm::ImmBlockExample> : public I
     org::imm::ImmBlockExample result = hstd::SerdeDefaultProvider<org::imm::ImmBlockExample>::get();
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockExample from_immer(org::imm::ImmBlockExample const& value, ImmAstContext const& ctx) {
     org::sem::BlockExample result = hstd::SerdeDefaultProvider<org::sem::BlockExample>::get();
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1097,8 +1521,12 @@ struct ImmSemSerde<org::sem::BlockExport, org::imm::ImmBlockExport> : public Imm
     assign_immer_field(result.content, value.content, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockExport from_immer(org::imm::ImmBlockExport const& value, ImmAstContext const& ctx) {
@@ -1107,8 +1535,12 @@ struct ImmSemSerde<org::sem::BlockExport, org::imm::ImmBlockExport> : public Imm
     assign_sem_field(result.content, value.content, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1119,16 +1551,24 @@ struct ImmSemSerde<org::sem::BlockAdmonition, org::imm::ImmBlockAdmonition> : pu
     org::imm::ImmBlockAdmonition result = hstd::SerdeDefaultProvider<org::imm::ImmBlockAdmonition>::get();
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockAdmonition from_immer(org::imm::ImmBlockAdmonition const& value, ImmAstContext const& ctx) {
     org::sem::BlockAdmonition result = hstd::SerdeDefaultProvider<org::sem::BlockAdmonition>::get();
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1141,8 +1581,12 @@ struct ImmSemSerde<org::sem::BlockCodeEvalResult, org::imm::ImmBlockCodeEvalResu
     assign_immer_field(result.node, value.node, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockCodeEvalResult from_immer(org::imm::ImmBlockCodeEvalResult const& value, ImmAstContext const& ctx) {
@@ -1151,8 +1595,12 @@ struct ImmSemSerde<org::sem::BlockCodeEvalResult, org::imm::ImmBlockCodeEvalResu
     assign_sem_field(result.node, value.node, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1167,8 +1615,12 @@ struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> : public ImmSemS
     assign_immer_field(result.switches, value.switches, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::BlockCode from_immer(org::imm::ImmBlockCode const& value, ImmAstContext const& ctx) {
@@ -1179,8 +1631,12 @@ struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> : public ImmSemS
     assign_sem_field(result.switches, value.switches, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1191,16 +1647,24 @@ struct ImmSemSerde<org::sem::SubtreeLog, org::imm::ImmSubtreeLog> : public ImmSe
     org::imm::ImmSubtreeLog result = hstd::SerdeDefaultProvider<org::imm::ImmSubtreeLog>::get();
     assign_immer_field(result.head, value.head, ctx, config);
     assign_immer_field(result.desc, value.desc, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::SubtreeLog from_immer(org::imm::ImmSubtreeLog const& value, ImmAstContext const& ctx) {
     org::sem::SubtreeLog result = hstd::SerdeDefaultProvider<org::sem::SubtreeLog>::get();
     assign_sem_field(result.head, value.head, ctx, config);
     assign_sem_field(result.desc, value.desc, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1224,8 +1688,12 @@ struct ImmSemSerde<org::sem::Subtree, org::imm::ImmSubtree> : public ImmSemSerde
     assign_immer_field(result.isComment, value.isComment, ctx, config);
     assign_immer_field(result.isArchived, value.isArchived, ctx, config);
     assign_immer_field(result.priority, value.priority, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Subtree from_immer(org::imm::ImmSubtree const& value, ImmAstContext const& ctx) {
@@ -1245,8 +1713,12 @@ struct ImmSemSerde<org::sem::Subtree, org::imm::ImmSubtree> : public ImmSemSerde
     assign_sem_field(result.isComment, value.isComment, ctx, config);
     assign_sem_field(result.isArchived, value.isArchived, ctx, config);
     assign_sem_field(result.priority, value.priority, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1258,8 +1730,12 @@ struct ImmSemSerde<org::sem::Cell, org::imm::ImmCell> : public ImmSemSerdeBase {
     assign_immer_field(result.isBlock, value.isBlock, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Cell from_immer(org::imm::ImmCell const& value, ImmAstContext const& ctx) {
@@ -1267,8 +1743,12 @@ struct ImmSemSerde<org::sem::Cell, org::imm::ImmCell> : public ImmSemSerdeBase {
     assign_sem_field(result.isBlock, value.isBlock, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1281,8 +1761,12 @@ struct ImmSemSerde<org::sem::Row, org::imm::ImmRow> : public ImmSemSerdeBase {
     assign_immer_field(result.isBlock, value.isBlock, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Row from_immer(org::imm::ImmRow const& value, ImmAstContext const& ctx) {
@@ -1291,8 +1775,12 @@ struct ImmSemSerde<org::sem::Row, org::imm::ImmRow> : public ImmSemSerdeBase {
     assign_sem_field(result.isBlock, value.isBlock, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1305,8 +1793,12 @@ struct ImmSemSerde<org::sem::Table, org::imm::ImmTable> : public ImmSemSerdeBase
     assign_immer_field(result.isBlock, value.isBlock, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Table from_immer(org::imm::ImmTable const& value, ImmAstContext const& ctx) {
@@ -1315,8 +1807,12 @@ struct ImmSemSerde<org::sem::Table, org::imm::ImmTable> : public ImmSemSerdeBase
     assign_sem_field(result.isBlock, value.isBlock, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1326,15 +1822,23 @@ struct ImmSemSerde<org::sem::Paragraph, org::imm::ImmParagraph> : public ImmSemS
   org::imm::ImmParagraph to_immer(org::sem::Paragraph const& value, ImmAstEditContext& ctx) {
     org::imm::ImmParagraph result = hstd::SerdeDefaultProvider<org::imm::ImmParagraph>::get();
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Paragraph from_immer(org::imm::ImmParagraph const& value, ImmAstContext const& ctx) {
     org::sem::Paragraph result = hstd::SerdeDefaultProvider<org::sem::Paragraph>::get();
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1343,14 +1847,22 @@ template <>
 struct ImmSemSerde<org::sem::ColonExample, org::imm::ImmColonExample> : public ImmSemSerdeBase {
   org::imm::ImmColonExample to_immer(org::sem::ColonExample const& value, ImmAstEditContext& ctx) {
     org::imm::ImmColonExample result = hstd::SerdeDefaultProvider<org::imm::ImmColonExample>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::ColonExample from_immer(org::imm::ImmColonExample const& value, ImmAstContext const& ctx) {
     org::sem::ColonExample result = hstd::SerdeDefaultProvider<org::sem::ColonExample>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1362,8 +1874,12 @@ struct ImmSemSerde<org::sem::CmdAttr, org::imm::ImmCmdAttr> : public ImmSemSerde
     assign_immer_field(result.target, value.target, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdAttr from_immer(org::imm::ImmCmdAttr const& value, ImmAstContext const& ctx) {
@@ -1371,8 +1887,12 @@ struct ImmSemSerde<org::sem::CmdAttr, org::imm::ImmCmdAttr> : public ImmSemSerde
     assign_sem_field(result.target, value.target, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1385,8 +1905,12 @@ struct ImmSemSerde<org::sem::CmdExport, org::imm::ImmCmdExport> : public ImmSemS
     assign_immer_field(result.content, value.content, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdExport from_immer(org::imm::ImmCmdExport const& value, ImmAstContext const& ctx) {
@@ -1395,8 +1919,12 @@ struct ImmSemSerde<org::sem::CmdExport, org::imm::ImmCmdExport> : public ImmSemS
     assign_sem_field(result.content, value.content, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1408,8 +1936,12 @@ struct ImmSemSerde<org::sem::Call, org::imm::ImmCall> : public ImmSemSerdeBase {
     assign_immer_field(result.name, value.name, ctx, config);
     assign_immer_field(result.attrs, value.attrs, ctx, config);
     assign_immer_field(result.isCommand, value.isCommand, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Call from_immer(org::imm::ImmCall const& value, ImmAstContext const& ctx) {
@@ -1417,8 +1949,12 @@ struct ImmSemSerde<org::sem::Call, org::imm::ImmCall> : public ImmSemSerdeBase {
     assign_sem_field(result.name, value.name, ctx, config);
     assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.isCommand, value.isCommand, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1428,15 +1964,23 @@ struct ImmSemSerde<org::sem::List, org::imm::ImmList> : public ImmSemSerdeBase {
   org::imm::ImmList to_immer(org::sem::List const& value, ImmAstEditContext& ctx) {
     org::imm::ImmList result = hstd::SerdeDefaultProvider<org::imm::ImmList>::get();
     assign_immer_field(result.attached, value.attached, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::List from_immer(org::imm::ImmList const& value, ImmAstContext const& ctx) {
     org::sem::List result = hstd::SerdeDefaultProvider<org::sem::List>::get();
     assign_sem_field(result.attached, value.attached, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1448,8 +1992,12 @@ struct ImmSemSerde<org::sem::ListItem, org::imm::ImmListItem> : public ImmSemSer
     assign_immer_field(result.checkbox, value.checkbox, ctx, config);
     assign_immer_field(result.header, value.header, ctx, config);
     assign_immer_field(result.bullet, value.bullet, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::ListItem from_immer(org::imm::ImmListItem const& value, ImmAstContext const& ctx) {
@@ -1457,8 +2005,12 @@ struct ImmSemSerde<org::sem::ListItem, org::imm::ImmListItem> : public ImmSemSer
     assign_sem_field(result.checkbox, value.checkbox, ctx, config);
     assign_sem_field(result.header, value.header, ctx, config);
     assign_sem_field(result.bullet, value.bullet, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1480,8 +2032,12 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> : pu
     assign_immer_field(result.columns, value.columns, ctx, config);
     assign_immer_field(result.todoKeywords, value.todoKeywords, ctx, config);
     assign_immer_field(result.doneKeywords, value.doneKeywords, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::DocumentOptions from_immer(org::imm::ImmDocumentOptions const& value, ImmAstContext const& ctx) {
@@ -1499,8 +2055,12 @@ struct ImmSemSerde<org::sem::DocumentOptions, org::imm::ImmDocumentOptions> : pu
     assign_sem_field(result.columns, value.columns, ctx, config);
     assign_sem_field(result.todoKeywords, value.todoKeywords, ctx, config);
     assign_sem_field(result.doneKeywords, value.doneKeywords, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1511,16 +2071,24 @@ struct ImmSemSerde<org::sem::DocumentFragment, org::imm::ImmDocumentFragment> : 
     org::imm::ImmDocumentFragment result = hstd::SerdeDefaultProvider<org::imm::ImmDocumentFragment>::get();
     assign_immer_field(result.baseLine, value.baseLine, ctx, config);
     assign_immer_field(result.baseCol, value.baseCol, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::DocumentFragment from_immer(org::imm::ImmDocumentFragment const& value, ImmAstContext const& ctx) {
     org::sem::DocumentFragment result = hstd::SerdeDefaultProvider<org::sem::DocumentFragment>::get();
     assign_sem_field(result.baseLine, value.baseLine, ctx, config);
     assign_sem_field(result.baseCol, value.baseCol, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1530,15 +2098,23 @@ struct ImmSemSerde<org::sem::CriticMarkup, org::imm::ImmCriticMarkup> : public I
   org::imm::ImmCriticMarkup to_immer(org::sem::CriticMarkup const& value, ImmAstEditContext& ctx) {
     org::imm::ImmCriticMarkup result = hstd::SerdeDefaultProvider<org::imm::ImmCriticMarkup>::get();
     assign_immer_field(result.kind, value.kind, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CriticMarkup from_immer(org::imm::ImmCriticMarkup const& value, ImmAstContext const& ctx) {
     org::sem::CriticMarkup result = hstd::SerdeDefaultProvider<org::sem::CriticMarkup>::get();
     assign_sem_field(result.kind, value.kind, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1555,8 +2131,12 @@ struct ImmSemSerde<org::sem::Document, org::imm::ImmDocument> : public ImmSemSer
     assign_immer_field(result.language, value.language, ctx, config);
     assign_immer_field(result.options, value.options, ctx, config);
     assign_immer_field(result.exportFileName, value.exportFileName, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Document from_immer(org::imm::ImmDocument const& value, ImmAstContext const& ctx) {
@@ -1569,8 +2149,12 @@ struct ImmSemSerde<org::sem::Document, org::imm::ImmDocument> : public ImmSemSer
     assign_sem_field(result.language, value.language, ctx, config);
     assign_sem_field(result.options, value.options, ctx, config);
     assign_sem_field(result.exportFileName, value.exportFileName, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1585,8 +2169,12 @@ struct ImmSemSerde<org::sem::FileTarget, org::imm::ImmFileTarget> : public ImmSe
     assign_immer_field(result.restrictToHeadlines, value.restrictToHeadlines, ctx, config);
     assign_immer_field(result.targetId, value.targetId, ctx, config);
     assign_immer_field(result.regexp, value.regexp, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::FileTarget from_immer(org::imm::ImmFileTarget const& value, ImmAstContext const& ctx) {
@@ -1597,8 +2185,12 @@ struct ImmSemSerde<org::sem::FileTarget, org::imm::ImmFileTarget> : public ImmSe
     assign_sem_field(result.restrictToHeadlines, value.restrictToHeadlines, ctx, config);
     assign_sem_field(result.targetId, value.targetId, ctx, config);
     assign_sem_field(result.regexp, value.regexp, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1607,14 +2199,22 @@ template <>
 struct ImmSemSerde<org::sem::TextSeparator, org::imm::ImmTextSeparator> : public ImmSemSerdeBase {
   org::imm::ImmTextSeparator to_immer(org::sem::TextSeparator const& value, ImmAstEditContext& ctx) {
     org::imm::ImmTextSeparator result = hstd::SerdeDefaultProvider<org::imm::ImmTextSeparator>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::TextSeparator from_immer(org::imm::ImmTextSeparator const& value, ImmAstContext const& ctx) {
     org::sem::TextSeparator result = hstd::SerdeDefaultProvider<org::sem::TextSeparator>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1623,14 +2223,22 @@ template <>
 struct ImmSemSerde<org::sem::DocumentGroup, org::imm::ImmDocumentGroup> : public ImmSemSerdeBase {
   org::imm::ImmDocumentGroup to_immer(org::sem::DocumentGroup const& value, ImmAstEditContext& ctx) {
     org::imm::ImmDocumentGroup result = hstd::SerdeDefaultProvider<org::imm::ImmDocumentGroup>::get();
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::DocumentGroup from_immer(org::imm::ImmDocumentGroup const& value, ImmAstContext const& ctx) {
     org::sem::DocumentGroup result = hstd::SerdeDefaultProvider<org::sem::DocumentGroup>::get();
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1642,8 +2250,12 @@ struct ImmSemSerde<org::sem::File, org::imm::ImmFile> : public ImmSemSerdeBase {
     assign_immer_field(result.relPath, value.relPath, ctx, config);
     assign_immer_field(result.absPath, value.absPath, ctx, config);
     assign_immer_field(result.data, value.data, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::File from_immer(org::imm::ImmFile const& value, ImmAstContext const& ctx) {
@@ -1651,8 +2263,12 @@ struct ImmSemSerde<org::sem::File, org::imm::ImmFile> : public ImmSemSerdeBase {
     assign_sem_field(result.relPath, value.relPath, ctx, config);
     assign_sem_field(result.absPath, value.absPath, ctx, config);
     assign_sem_field(result.data, value.data, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1699,16 +2315,24 @@ struct ImmSemSerde<org::sem::Directory, org::imm::ImmDirectory> : public ImmSemS
     org::imm::ImmDirectory result = hstd::SerdeDefaultProvider<org::imm::ImmDirectory>::get();
     assign_immer_field(result.relPath, value.relPath, ctx, config);
     assign_immer_field(result.absPath, value.absPath, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Directory from_immer(org::imm::ImmDirectory const& value, ImmAstContext const& ctx) {
     org::sem::Directory result = hstd::SerdeDefaultProvider<org::sem::Directory>::get();
     assign_sem_field(result.relPath, value.relPath, ctx, config);
     assign_sem_field(result.absPath, value.absPath, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1719,16 +2343,24 @@ struct ImmSemSerde<org::sem::Symlink, org::imm::ImmSymlink> : public ImmSemSerde
     org::imm::ImmSymlink result = hstd::SerdeDefaultProvider<org::imm::ImmSymlink>::get();
     assign_immer_field(result.isDirectory, value.isDirectory, ctx, config);
     assign_immer_field(result.absPath, value.absPath, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::Symlink from_immer(org::imm::ImmSymlink const& value, ImmAstContext const& ctx) {
     org::sem::Symlink result = hstd::SerdeDefaultProvider<org::sem::Symlink>::get();
     assign_sem_field(result.isDirectory, value.isDirectory, ctx, config);
     assign_sem_field(result.absPath, value.absPath, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
@@ -1741,8 +2373,12 @@ struct ImmSemSerde<org::sem::CmdInclude, org::imm::ImmCmdInclude> : public ImmSe
     assign_immer_field(result.firstLine, value.firstLine, ctx, config);
     assign_immer_field(result.lastLine, value.lastLine, ctx, config);
     assign_immer_field(result.data, value.data, ctx, config);
-    assign_immer_field(result.loc, value.loc, ctx, config);
-    assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
   org::sem::CmdInclude from_immer(org::imm::ImmCmdInclude const& value, ImmAstContext const& ctx) {
@@ -1751,8 +2387,12 @@ struct ImmSemSerde<org::sem::CmdInclude, org::imm::ImmCmdInclude> : public ImmSe
     assign_sem_field(result.firstLine, value.firstLine, ctx, config);
     assign_sem_field(result.lastLine, value.lastLine, ctx, config);
     assign_sem_field(result.data, value.data, ctx, config);
-    assign_sem_field(result.loc, value.loc, ctx, config);
-    assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
     return result;
   }
 };
