@@ -605,6 +605,7 @@ export interface haxorg_wasm_module_auto {
   ImmSubnodeAccessStep: ImmSubnodeAccessStepConstructor;
   ImmTreeAccessPath: ImmTreeAccessPathConstructor;
   ImmUniqId: ImmUniqIdConstructor;
+  ImmSemSerdeConfig: ImmSemSerdeConfigConstructor;
   ImmAstReplaceEpoch: ImmAstReplaceEpochConstructor;
   ImmAstContext: ImmAstContextConstructor;
   ImmAstVersion: ImmAstVersionConstructor;
@@ -2216,13 +2217,15 @@ export interface ImmTreeAccessPath {
 }
 export interface ImmUniqIdConstructor { new(): ImmUniqId; }
 export interface ImmUniqId {  }
+export interface ImmSemSerdeConfigConstructor { new(): ImmSemSerdeConfig; }
+export interface ImmSemSerdeConfig {  }
 export interface ImmAstReplaceEpochConstructor { new(): ImmAstReplaceEpoch; }
 export interface ImmAstReplaceEpoch {  }
 export interface ImmAstContextConstructor { new(): ImmAstContext; }
 export interface ImmAstContext {
   addRoot(data: Org): ImmAstVersion;
   getEmptyVersion(): ImmAstVersion;
-  get(id: ImmId): Org;
+  get(id: ImmId, config: ImmSemSerdeConfig): Org;
 }
 export interface ImmAstVersionConstructor { new(): ImmAstVersion; }
 export interface ImmAstVersion {

@@ -648,6 +648,8 @@ struct haxorg_ImmTreeAccessPath;
 
 struct haxorg_ImmUniqId;
 
+struct haxorg_ImmSemSerdeConfig;
+
 struct haxorg_ImmAstReplaceEpoch;
 
 struct haxorg_ImmAstContext;
@@ -2160,6 +2162,11 @@ struct haxorg_ImmTreeAccessPath {
 
 /// \brief ['org', 'imm', 'ImmUniqId']
 struct haxorg_ImmUniqId {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'imm', 'ImmSemSerdeConfig']
+struct haxorg_ImmSemSerdeConfig {
   haxorg_ptr_payload data;
 };
 
@@ -5008,10 +5015,11 @@ HAXORG_C_API_LINKAGE haxorg_ImmTreeAccessPathStore haxorg_ImmTreeAccessPath_get_
 HAXORG_C_API_LINKAGE bool haxorg_ImmTreeAccessPath_empty_const(OrgContext* org_context, haxorg_ImmTreeAccessPath __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmTreeAccessPath(OrgContext* org_context, haxorg_ImmTreeAccessPath* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmUniqId(OrgContext* org_context, haxorg_ImmUniqId* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmSemSerdeConfig(OrgContext* org_context, haxorg_ImmSemSerdeConfig* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmAstReplaceEpoch(OrgContext* org_context, haxorg_ImmAstReplaceEpoch* obj);
 HAXORG_C_API_LINKAGE haxorg_ImmAstVersion haxorg_ImmAstContext_addRoot(OrgContext* org_context, haxorg_ImmAstContext __this, haxorg_SemIdOfOrg data);
 HAXORG_C_API_LINKAGE haxorg_ImmAstVersion haxorg_ImmAstContext_getEmptyVersion(OrgContext* org_context, haxorg_ImmAstContext __this);
-HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ImmAstContext_get(OrgContext* org_context, haxorg_ImmAstContext __this, haxorg_ImmId id);
+HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ImmAstContext_get(OrgContext* org_context, haxorg_ImmAstContext __this, haxorg_ImmId id, haxorg_ImmSemSerdeConfig config);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmAstContext(OrgContext* org_context, haxorg_ImmAstContext* obj);
 HAXORG_C_API_LINKAGE haxorg_ImmId haxorg_ImmAstVersion_getRoot_const(OrgContext* org_context, haxorg_ImmAstVersion __this);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAstVersion_getRootAdapter_const(OrgContext* org_context, haxorg_ImmAstVersion __this);

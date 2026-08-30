@@ -737,7 +737,7 @@ struct ImmSemSerde<sem::SemId<SemType>, org::imm::ImmIdT<ImmType>>
     sem::SemId<SemType> from_immer(
         org::imm::ImmIdT<ImmType> const& id,
         ImmAstContext const&             ctx) {
-        return ctx.store->get(id, ctx).template as<SemType>();
+        return ctx.store->get(id, ctx, *config).template as<SemType>();
     }
 };
 
@@ -942,7 +942,9 @@ sem::SemId<sem::Org> imm::sem_from_immer(
 }
 
 
-sem::SemId<sem::Org> ImmAstContext::get(ImmId id) { return store->get(id, *this); }
+sem::SemId<sem::Org> ImmAstContext::get(ImmId id, ImmSemSerdeConfig const& config) {
+    return store->get(id, *this, config);
+}
 
 template <IsImmOrgValueType ImmType>
 ImmId_t imm::ImmAstKindStore<ImmType>::add(SemId_t data, ImmAstEditContext& ctx) {

@@ -31,7 +31,7 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
     auto               store      = imm::ImmAstContext::init_start_context();
     sem::SemId         write_node = testParseString(source);
     imm::ImmAstVersion v1         = store->addRoot(write_node);
-    sem::SemId         read_node  = v1.context->get(v1.getRoot());
+    sem::SemId read_node = v1.context->get(v1.getRoot(), org::imm::ImmSemSerdeConfig{});
 
     Vec<compare_report> out;
 

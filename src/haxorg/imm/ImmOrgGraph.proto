@@ -14,13 +14,15 @@ message MapNodePayload {
 
 message MapEdgePayload {
   enum EdgeKind {
-    DIRECT_LINK = 0;
-    NESTED_STATEMENT_ELEMENT = 1;
-    NESTED_SUBTREE = 2;
-    DESCRIPTION_LIST_HEAD = 3;
+    DEFAULT = 0;
+    DIRECT_LINK = 1;
+    NESTED_STATEMENT_ELEMENT = 2;
+    NESTED_SUBTREE = 3;
+    DESCRIPTION_LIST_HEAD = 4;
   }
 
   EdgeKind kind = 1;
+  optional orgproto.AnyNode node = 2;
 }
 
 

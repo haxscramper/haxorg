@@ -149,9 +149,10 @@ void updateResolvedEdges(
     std::shared_ptr<MapConfig>  conf) {
     for (auto const& op : resolved_node.resolved) {
         OP_TRACER_MESSAGE(s->graph, "add edge {}-{}", op.source, op.target);
-        auto edge = std::make_shared<MapEdge>(hstd::fmt1(
+        auto edge  = std::make_shared<MapEdge>(hstd::fmt1(
             s->graph->edges->edges.getNextId(s->graph->edges->getCollectionID().t)));
-        auto attr = std::make_shared<MapEdgeProp>();
+        edge->kind = MapEdge::EdgeKind::DirectLink;
+        auto attr  = std::make_shared<MapEdgeProp>();
         s->graph->addEdge(
             edge,
             attr,
@@ -807,7 +808,6 @@ void org::graph::MapEdge::writeSerial(
     IEdge::writeSerial(out, graph, self_id);
     proto::MapEdgePayload payload;
     payload.set_kind(static_cast<proto::MapEdgePayload::EdgeKind>(kind));
-
     out->mutable_payload()->PackFrom(payload);
 }
 #endif

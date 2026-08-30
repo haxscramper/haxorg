@@ -413,7 +413,7 @@ struct ImmAstEditContext {
 };
 
 
-struct ImmSemSerdeConfig {
+struct [[refl]] ImmSemSerdeConfig {
     bool with_location            = true;
     bool with_structural_subnodes = true;
 };
@@ -583,7 +583,7 @@ struct ImmAstStore {
     sem::SemId<sem::Org> get(
         org::imm::ImmId          id,
         ImmAstContext const&     ctx,
-        ImmSemSerdeConfig const& config = ImmSemSerdeConfig{});
+        ImmSemSerdeConfig const& config);
 };
 
 struct ImmAstVersion;
@@ -668,7 +668,9 @@ struct
     /// \note value interning does not matter in this case b/c there is
     /// only one AST structure associated with the ID, the fact it might be
     /// replicated several times is irrelevant.
-    [[refl]] sem::SemId<sem::Org> get(org::imm::ImmId id);
+    [[refl]] sem::SemId<sem::Org> get(
+        org::imm::ImmId          id,
+        ImmSemSerdeConfig const& config);
 
     /// \brief Get reference to immutable AST value associated with teh ID>
     template <typename T>

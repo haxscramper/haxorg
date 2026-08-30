@@ -1538,6 +1538,8 @@ ImmPathStep documentation.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::imm::ImmSemSerdeConfig>(m, "ImmSemSerdeConfig")
+    ;
   nanobind::class_<org::imm::ImmAstReplaceEpoch>(m, "ImmAstReplaceEpoch")
     .def("__repr__", [](org::imm::ImmAstReplaceEpoch const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1558,8 +1560,9 @@ state of the tree.)RAW")
     .def("getEmptyVersion", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)()>(&org::imm::ImmAstContext::getEmptyVersion), R"RAW(\brief Create empty AST version with no edits, no root, and linked
 to the current context.)RAW")
     .def("get",
-         static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId)>(&org::imm::ImmAstContext::get),
+         static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId, org::imm::ImmSemSerdeConfig const&)>(&org::imm::ImmAstContext::get),
          nanobind::arg("id"),
+         nanobind::arg("config"),
          R"RAW(\brief Convert immutable AST tree to the sem AST -- the sem AST is
 created anew following the immutable ID structure.)RAW")
     .def("__repr__", [](org::imm::ImmAstContext const& _self) -> std::string {

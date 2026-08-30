@@ -173,11 +173,13 @@ struct MapEdge
 
     DECL_DESCRIBED_ENUM(
         EdgeKind,
+        Default,
         DirectLink,
         NestedStatementElement,
         NestedSubtree,
         DescriptionListHead);
-    EdgeKind kind;
+
+    EdgeKind kind = EdgeKind::Default;
 
 #if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
