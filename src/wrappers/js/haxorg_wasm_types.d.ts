@@ -602,8 +602,8 @@ export interface haxorg_wasm_module_auto {
   ImmReflFieldId: ImmReflFieldIdConstructor;
   ImmId: ImmIdConstructor;
   ImmOrg: ImmOrgConstructor;
-  ImmPathStep: ImmPathStepConstructor;
-  ImmPath: ImmPathConstructor;
+  ImmSubnodeAccessStep: ImmSubnodeAccessStepConstructor;
+  ImmTreeAccessPath: ImmTreeAccessPathConstructor;
   ImmUniqId: ImmUniqIdConstructor;
   ImmAstReplaceEpoch: ImmAstReplaceEpochConstructor;
   ImmAstContext: ImmAstContextConstructor;
@@ -2206,13 +2206,13 @@ export interface ImmId {
 }
 export interface ImmOrgConstructor { new(): ImmOrg; }
 export interface ImmOrg {  }
-export interface ImmPathStepConstructor { new(): ImmPathStep; }
-export interface ImmPathStep {  }
-export interface ImmPathConstructor { new(): ImmPath; }
-export interface ImmPath {
+export interface ImmSubnodeAccessStepConstructor { new(): ImmSubnodeAccessStep; }
+export interface ImmSubnodeAccessStep {  }
+export interface ImmTreeAccessPathConstructor { new(): ImmTreeAccessPath; }
+export interface ImmTreeAccessPath {
   empty(): boolean;
   root: ImmId
-  path: ImmPathStore
+  path: ImmTreeAccessPathStore
 }
 export interface ImmUniqIdConstructor { new(): ImmUniqId; }
 export interface ImmUniqId {  }
@@ -2245,7 +2245,7 @@ export interface ImmAdapter {
   isSubnodeOf(other: ImmAdapter): boolean;
   getParent(): haxorg_wasm.Optional<ImmAdapter>;
   getSelfIndex(): number;
-  atPathStep(id: ImmId, idx: ImmPathStep): ImmAdapter;
+  atPathStep(id: ImmId, idx: ImmSubnodeAccessStep): ImmAdapter;
   atField(field: ImmReflFieldId): ImmAdapter;
   atIndex(idx: number, withPath: boolean): ImmAdapter;
   atPath(path: haxorg_wasm.HstdVec<number>, withPath: boolean): ImmAdapter;
@@ -2352,7 +2352,7 @@ export interface SequenceAnnotation {
 }
 export type ImmIdIdType = U64;
 export type ImmIdNodeIdxT = U32;
-export type ImmPathStore = haxorg_wasm.ImmVec<ImmPathStep>;
+export type ImmTreeAccessPathStore = haxorg_wasm.ImmVec<ImmSubnodeAccessStep>;
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   LispCode(): void;

@@ -157,7 +157,7 @@ NB_MODULE(pyhaxorg, m) {
   org::bind::python::bind_stdvector<hstd::ext::Report>(m, "StdVecOfReport", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorGroup>>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
-  org::bind::python::bind_immerflex_vector<org::imm::ImmSubnodeAccessStep>(m, "ImmVecOfImmPathStep", type_registry_guard);
+  org::bind::python::bind_immerflex_vector<org::imm::ImmSubnodeAccessStep>(m, "ImmVecOfImmSubnodeAccessStep", type_registry_guard);
   org::bind::python::bind_hstdVec<int>(m, "HstdVecOfInt", type_registry_guard);
   org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
   org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
@@ -1485,7 +1485,7 @@ node must not be nil)RAW")
     ;
   nanobind::class_<org::imm::ImmOrg>(m, "ImmOrg")
     ;
-  nanobind::class_<org::imm::ImmSubnodeAccessStep>(m, "ImmPathStep")
+  nanobind::class_<org::imm::ImmSubnodeAccessStep>(m, "ImmSubnodeAccessStep")
     .def("__init__",
          [](org::imm::ImmSubnodeAccessStep* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::imm::ImmSubnodeAccessStep>::construct_at(result);
@@ -1501,7 +1501,7 @@ node must not be nil)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<org::imm::ImmTreeAccessPath>(m, "ImmPath")
+  nanobind::class_<org::imm::ImmTreeAccessPath>(m, "ImmTreeAccessPath")
     .def("__init__",
          [](org::imm::ImmTreeAccessPath* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::imm::ImmTreeAccessPath>::construct_at(result);

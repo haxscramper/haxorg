@@ -17,7 +17,7 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdvector_bind<hstd::ext::Report>(g, "StdVecOfReport");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::ErrorGroup>>(g, "HstdVecOfSemIdOfErrorGroup");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::ErrorGroup>>(g, "StdVecOfSemIdOfErrorGroup");
-  org::bind::js::immerflex_vector_bind<org::imm::ImmPathStep>(g, "ImmVecOfImmPathStep");
+  org::bind::js::immerflex_vector_bind<org::imm::ImmSubnodeAccessStep>(g, "ImmVecOfImmSubnodeAccessStep");
   org::bind::js::stdoptional_bind<org::imm::ImmAdapter>(g, "StdOptionalOfImmAdapter");
   org::bind::js::hstdVec_bind<int>(g, "HstdVecOfInt");
   org::bind::js::stdvector_bind<int>(g, "StdVecOfInt");
@@ -335,13 +335,13 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::imm::ImmOrg>("ImmOrg")
     ;
-  emscripten::class_<org::imm::ImmPathStep>("ImmPathStep")
+  emscripten::class_<org::imm::ImmSubnodeAccessStep>("ImmSubnodeAccessStep")
     .constructor<>()
     ;
-  emscripten::class_<org::imm::ImmPath>("ImmPath")
-    .property("root", &org::imm::ImmPath::root)
-    .property("path", &org::imm::ImmPath::path)
-    .function("empty", static_cast<bool(org::imm::ImmPath::*)() const>(&org::imm::ImmPath::empty))
+  emscripten::class_<org::imm::ImmTreeAccessPath>("ImmTreeAccessPath")
+    .property("root", &org::imm::ImmTreeAccessPath::root)
+    .property("path", &org::imm::ImmTreeAccessPath::path)
+    .function("empty", static_cast<bool(org::imm::ImmTreeAccessPath::*)() const>(&org::imm::ImmTreeAccessPath::empty))
     .constructor<>()
     ;
   emscripten::class_<org::imm::ImmUniqId>("ImmUniqId")
@@ -376,7 +376,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("isSubnodeOf", static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf))
     .function("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
     .function("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
-    .function("atPathStep", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmPathStep) const>(&org::imm::ImmAdapter::at))
+    .function("atPathStep", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmSubnodeAccessStep) const>(&org::imm::ImmAdapter::at))
     .function("atField", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at))
     .function("atIndex", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at))
     .function("atPath", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at))

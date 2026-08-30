@@ -412,6 +412,11 @@ struct ImmAstEditContext {
     ImmAstContext* operator->() { return hstd::safe_wptr_lock(ctx).get(); }
 };
 
+
+struct ImmSemSerdeConfig {
+    bool with_location = true;
+};
+
 template <org::imm::IsImmOrgValueType T>
 struct ImmAstKindStore {
     using NodeType = T;
@@ -428,7 +433,10 @@ struct ImmAstKindStore {
     ImmId    add(T const& value, ImmAstEditContext& ctx);
     ImmId    add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    sem::SemId<sem::Org> get(org::imm::ImmId id, ImmAstContext const& ctx);
+    sem::SemId<sem::Org> get(
+        org::imm::ImmId          id,
+        ImmAstContext const&     ctx,
+        ImmSemSerdeConfig const* config);
 };
 
 struct ImmAstReplace {
@@ -571,7 +579,10 @@ struct ImmAstStore {
 
     ImmId add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx);
 
-    sem::SemId<sem::Org> get(org::imm::ImmId id, ImmAstContext const& ctx);
+    sem::SemId<sem::Org> get(
+        org::imm::ImmId          id,
+        ImmAstContext const&     ctx,
+        ImmSemSerdeConfig const& config = ImmSemSerdeConfig{});
 };
 
 struct ImmAstVersion;

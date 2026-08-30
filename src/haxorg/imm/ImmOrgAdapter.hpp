@@ -80,11 +80,16 @@ struct sem_to_imm_map {};
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
-sem::SemId<sem::Org> sem_from_immer(org::imm::ImmId const& id, ImmAstContext const& ctx);
+
+sem::SemId<sem::Org> sem_from_immer(
+    org::imm::ImmId const&   id,
+    ImmAstContext const&     ctx,
+    ImmSemSerdeConfig const& config = ImmSemSerdeConfig{});
 
 org::imm::ImmId immer_from_sem(
     org::sem::SemId<org::sem::Org> const& id,
-    ImmAstEditContext&                    ctx);
+    ImmAstEditContext&                    ctx,
+    ImmSemSerdeConfig const&              config = ImmSemSerdeConfig{});
 
 }; // namespace org::imm
 

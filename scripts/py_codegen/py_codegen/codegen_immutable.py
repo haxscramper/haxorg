@@ -459,6 +459,7 @@ def get_imm_serde(
                                         ast.string(f"result.{field.Name}"),
                                         ast.string(f"value.{field.Name}"),
                                         ast.string("ctx"),
+                                        ast.string("config"),
                                     ],
                                     Stmt=True,
                                 ))
@@ -470,6 +471,7 @@ def get_imm_serde(
                                         ast.string(f"result.{field.Name}"),
                                         ast.string(f"value.{field.Name}"),
                                         ast.string("ctx"),
+                                        ast.string("config"),
                                     ],
                                     Stmt=True,
                                 ))
@@ -488,37 +490,29 @@ def get_imm_serde(
                 writer_body.append(ast.Return(ast.string("result")))
                 reader_body.append(ast.Return(ast.string("result")))
 
-                writer = cpp.MethodDeclParams(
-                    Params=cpp.FunctionParams(
-                        Name="to_immer",
-                        ResultTy=imm_type,
-                        Args=[
-                            cpp.ParmVarParams(name="value", type=sem_type.asConstRef()),
-                            cpp.ParmVarParams(
-                                name="ctx",
-                                type=QualType(Name="ImmAstEditContext").asRef()),
-                        ],
-                        Body=writer_body,
-                        AllowOneLine=False,
-                    ),
-                    IsStatic=True,
-                )
+                writer = cpp.MethodDeclParams(Params=cpp.FunctionParams(
+                    Name="to_immer",
+                    ResultTy=imm_type,
+                    Args=[
+                        cpp.ParmVarParams(name="value", type=sem_type.asConstRef()),
+                        cpp.ParmVarParams(
+                            name="ctx", type=QualType(Name="ImmAstEditContext").asRef()),
+                    ],
+                    Body=writer_body,
+                    AllowOneLine=False,
+                ),)
 
-                reader = cpp.MethodDeclParams(
-                    Params=cpp.FunctionParams(
-                        Name="from_immer",
-                        ResultTy=sem_type,
-                        Args=[
-                            cpp.ParmVarParams(name="value", type=imm_type.asConstRef()),
-                            cpp.ParmVarParams(
-                                name="ctx",
-                                type=QualType(Name="ImmAstContext").asConstRef()),
-                        ],
-                        Body=reader_body,
-                        AllowOneLine=False,
-                    ),
-                    IsStatic=True,
-                )
+                reader = cpp.MethodDeclParams(Params=cpp.FunctionParams(
+                    Name="from_immer",
+                    ResultTy=sem_type,
+                    Args=[
+                        cpp.ParmVarParams(name="value", type=imm_type.asConstRef()),
+                        cpp.ParmVarParams(
+                            name="ctx", type=QualType(Name="ImmAstContext").asConstRef()),
+                    ],
+                    Body=reader_body,
+                    AllowOneLine=False,
+                ),)
 
                 rec = cpp.RecordParams(
                     name=QualType(Name="ImmSemSerde"),
@@ -526,6 +520,7 @@ def get_imm_serde(
                     Template=cpp.GenTuTemplateParams(
                         Stacks=[codegen_ir.GenTuTemplateGroup(Params=[])]),
                     members=[writer, reader],
+                    bases=[QualType(Name="ImmSemSerdeBase")],
                 )
 
                 serde.append(codegen_ir.GenTuPass(ast.Record(rec)))

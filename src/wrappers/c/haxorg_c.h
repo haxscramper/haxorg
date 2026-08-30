@@ -642,9 +642,9 @@ struct haxorg_ImmId;
 
 struct haxorg_ImmOrg;
 
-struct haxorg_ImmPathStep;
+struct haxorg_ImmSubnodeAccessStep;
 
-struct haxorg_ImmPath;
+struct haxorg_ImmTreeAccessPath;
 
 struct haxorg_ImmUniqId;
 
@@ -2148,13 +2148,13 @@ struct haxorg_ImmOrg {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'imm', 'ImmPathStep']
-struct haxorg_ImmPathStep {
+/// \brief ['org', 'imm', 'ImmSubnodeAccessStep']
+struct haxorg_ImmSubnodeAccessStep {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'imm', 'ImmPath']
-struct haxorg_ImmPath {
+/// \brief ['org', 'imm', 'ImmTreeAccessPath']
+struct haxorg_ImmTreeAccessPath {
   haxorg_ptr_payload data;
 };
 
@@ -2260,7 +2260,7 @@ struct haxorg_SequenceAnnotation {
 
 typedef uint64_t haxorg_ImmIdIdType;
 typedef uint32_t haxorg_ImmIdNodeIdxT;
-typedef haxorg_immer_flex_vector haxorg_ImmPathStore;
+typedef haxorg_immer_flex_vector haxorg_ImmTreeAccessPathStore;
 /// \brief ['org', 'sem', 'LispCode', 'Call']
 struct haxorg_LispCodeCall {
   haxorg_ptr_payload data;
@@ -5002,11 +5002,11 @@ HAXORG_C_API_LINKAGE haxorg_ImmIdNodeIdxT haxorg_ImmId_getNodeIndex_const(OrgCon
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_ImmId_getReadableId_const(OrgContext* org_context, haxorg_ImmId __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmId(OrgContext* org_context, haxorg_ImmId* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmOrg(OrgContext* org_context, haxorg_ImmOrg* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_ImmPathStep(OrgContext* org_context, haxorg_ImmPathStep* obj);
-HAXORG_C_API_LINKAGE haxorg_ImmId haxorg_ImmPath_get_root(OrgContext* org_context, haxorg_ImmPath __this);
-HAXORG_C_API_LINKAGE haxorg_ImmPathStore haxorg_ImmPath_get_path(OrgContext* org_context, haxorg_ImmPath __this);
-HAXORG_C_API_LINKAGE bool haxorg_ImmPath_empty_const(OrgContext* org_context, haxorg_ImmPath __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_ImmPath(OrgContext* org_context, haxorg_ImmPath* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmSubnodeAccessStep(OrgContext* org_context, haxorg_ImmSubnodeAccessStep* obj);
+HAXORG_C_API_LINKAGE haxorg_ImmId haxorg_ImmTreeAccessPath_get_root(OrgContext* org_context, haxorg_ImmTreeAccessPath __this);
+HAXORG_C_API_LINKAGE haxorg_ImmTreeAccessPathStore haxorg_ImmTreeAccessPath_get_path(OrgContext* org_context, haxorg_ImmTreeAccessPath __this);
+HAXORG_C_API_LINKAGE bool haxorg_ImmTreeAccessPath_empty_const(OrgContext* org_context, haxorg_ImmTreeAccessPath __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmTreeAccessPath(OrgContext* org_context, haxorg_ImmTreeAccessPath* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmUniqId(OrgContext* org_context, haxorg_ImmUniqId* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmAstReplaceEpoch(OrgContext* org_context, haxorg_ImmAstReplaceEpoch* obj);
 HAXORG_C_API_LINKAGE haxorg_ImmAstVersion haxorg_ImmAstContext_addRoot(OrgContext* org_context, haxorg_ImmAstContext __this, haxorg_SemIdOfOrg data);
@@ -5030,7 +5030,7 @@ HAXORG_C_API_LINKAGE bool haxorg_ImmAdapter_isIndirectParentOf_const(OrgContext*
 HAXORG_C_API_LINKAGE bool haxorg_ImmAdapter_isSubnodeOf_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmAdapter other);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapter_getParent_const(OrgContext* org_context, haxorg_ImmAdapter __this);
 HAXORG_C_API_LINKAGE int haxorg_ImmAdapter_getSelfIndex_const(OrgContext* org_context, haxorg_ImmAdapter __this);
-HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atPathStep_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmId id, haxorg_ImmPathStep idx);
+HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atPathStep_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmId id, haxorg_ImmSubnodeAccessStep idx);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atField_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmReflFieldId field);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atIndex_const(OrgContext* org_context, haxorg_ImmAdapter __this, int idx, bool withPath);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atPath_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_HstdVecOfInt path, bool withPath);

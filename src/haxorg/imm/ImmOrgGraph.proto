@@ -17,6 +17,7 @@ message MapEdgePayload {
     DIRECT_LINK = 0;
     NESTED_STATEMENT_ELEMENT = 1;
     NESTED_SUBTREE = 2;
+    DESCRIPTION_LIST_HEAD = 3;
   }
 
   EdgeKind kind = 1;
