@@ -12,7 +12,9 @@
 namespace google::protobuf {
 class Struct;
 class Value;
+class Message;
 } // namespace google::protobuf
+
 
 namespace hstd::serde {
 
@@ -212,6 +214,10 @@ struct proto_serde<float, float> {
     static void write(float* out, float const& in) { *out = in; }
     static void read(float const& out, proto_write_accessor<float> in) { in.get() = out; }
 };
+
+
+std::string getJString(google::protobuf::Message const& message);
+
 
 } // namespace hstd::serde
 #endif

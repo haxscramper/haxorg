@@ -12,7 +12,9 @@ struct DiagramCommandContext {
 
     static void                 getSubcommand(argparse::ArgumentParser& diagram_cmd);
     static CliOpts::DiagramOpts parseCommand(argparse::ArgumentParser& diagram_cmd);
+
+    void run(SharedContext& shared);
 };
 
-void runDiagramCommand(SharedContext& shared, DiagramCommandContext& parseContext);
+
 } // namespace org::cli

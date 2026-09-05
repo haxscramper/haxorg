@@ -219,9 +219,3 @@ inline ::testing::AssertionResult ThrowsWithTextContainsAll(
 #define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)                            \
     EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(                              \
         [&]() { (void)(expr); }, {__VA_ARGS__})))
-
-namespace google::protobuf {
-class Message;
-}
-
-std::string getJString(google::protobuf::Message const& message);

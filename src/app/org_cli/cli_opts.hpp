@@ -31,7 +31,7 @@ struct CliOpts {
     DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json, Xml);
 
     struct DiagramOpts {
-        DECL_DESCRIBED_ENUM(InputFormat, Binary, Json, JsonSimplified);
+        DECL_DESCRIBED_ENUM(InputFormat, Binary, Json);
 
         OPT_FIELD(input, "input", std::string, "");
         OPT_FIELD(output, "output", std::string, "");

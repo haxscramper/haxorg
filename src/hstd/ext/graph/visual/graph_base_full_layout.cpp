@@ -11,6 +11,7 @@ using namespace hstd::ext::graph;
 
 namespace {
 void layout_run_full_layout(layout::LayoutRun* run) {
+    hstd::logic_assertion_check_not_nil(run);
     auto __scope = run->begin_scope(
         hstd::fmt(
             "run full layout for the graph with root IDs {}",

@@ -1,6 +1,7 @@
 /// \file Immutable AST mind map tests
 
 
+#include "hstd/ext/graph/visual/visual_factory.hpp"
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
@@ -13,186 +14,40 @@ using namespace hstd::ext::graph;
 
 
 #if ORG_BUILD_WITH_PROTOBUF
-class TestFactory : public IGraphSerialReaderFactory {
-  public:
-    hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
-        proto::IVertexHierarchy const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        if (in->payload().Is<proto::TrivialVertexHierarchyPayload>()) {
-            return std::make_shared<TrivialHierarchy>();
+class TestFactory : public hstd::ext::graph::VisualFactory {
+    using hstd::ext::graph::VisualFactory::VisualFactory;
+
+    hstd::SPtr<hstd::ext::graph::IVertex> newVertex(proto::IVertex const* in) override {
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+            return std::make_shared<org::graph::MapNode>();
         } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
+            return VisualFactory::newVertex(in);
         }
     }
 
-    hstd::SPtr<IEdgeCollection> newEdgeCollection(
-        proto::IEdgeCollection const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+    hstd::SPtr<hstd::ext::graph::IPortCollection> newPortCollection(
+        proto::IPortCollection const* in) {
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+            logic_todo_impl();
+        } else {
+            return VisualFactory::newPortCollection(in);
+        }
+    }
+
+    hstd::SPtr<hstd::ext::graph::IEdgeCollection> newEdgeCollection(
+        proto::IEdgeCollection const* in) {
         if (in->payload().Is<org::graph::proto::MapEdgeCollectionPayload>()) {
             return std::make_shared<org::graph::MapEdgeCollection>();
-        } else if (in->payload().Is<proto::TrivialEdgeCollectionPayload>()) {
-            return std::make_shared<TrivialEdgeCollection>(
-                EdgeCollectionID{static_cast<hstd::u16>(in->collection_id())});
         } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
+            return VisualFactory::newEdgeCollection(in);
         }
     }
 
-    hstd::SPtr<IPortCollection> newPortCollection(
-        proto::IPortCollection const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-    }
-
-
-    hstd::SPtr<layout::LayoutRun> run;
-    hstd::SPtr<IGraph>            graph;
-
-    hstd::SPtr<IAttribute> newAttribute(
-        proto::IAttribute const* in,
-        IGraph const*            graph,
-        IAttributeObject const*  parent) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-
-        if (!run) {
-            if (this->graph->getPorts().empty()) {
-                this->graph->addPorts(std::make_shared<TrivialPortCollection>());
-            }
-
-            run = std::make_shared<layout::LayoutRun>(
-                this->graph,
-                this->graph->getCollections().at(0)->getCollectionID(),
-                this->graph->getPorts().at(0)->getCollectionID(),
-                this->graph->getHierarchies().at(0)->getCollectionID());
-        }
-
-        if (in->payload().Is<gv::proto::GroupAttributePayload>()) {
-            auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-            gv::proto::GroupAttributePayload pl;
-            in->payload().UnpackTo(&pl);
-
-            if (pl.has_parent_stable_id()) {
-                return graph
-                    ->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
-                    ->getUniqueAttribute<gv::GraphGroup>()
-                    ->newSubgraph(vertex->getStableId());
-            } else {
-                return gv::GraphGroup::newRootGraph(run, vertex->getStableId());
-            }
-        } else if (in->payload().Is<gv::proto::NodeAttributePayload>()) {
-            auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-            gv::proto::NodeAttributePayload pl;
-            in->payload().UnpackTo(&pl);
-            LOGIC_ASSERTION_CHECK_FMT(
-                !pl.parent_stable_id().empty(),
-                "Parent stable ID cannot be set to empty, graphviz "
-                "attribute for node '{}' must have the parent ID "
-                "specified",
-                vertex->getStableId());
-
-            return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
-                ->getUniqueAttribute<gv::GraphGroup>()
-                ->node(vertex->getStableId());
-        } else if (in->payload().Is<gv::proto::EdgeAttributePayload>()) {
-            auto vertex = hstd::validated_dynamic_cast<IEdge>(parent);
-            gv::proto::EdgeAttributePayload pl;
-            in->payload().UnpackTo(&pl);
-            LOGIC_ASSERTION_CHECK_FMT(
-                !pl.parent_stable_id().empty(),
-                "Parent stable ID cannot be set to empty, graphviz "
-                "attribute for node '{}' must have the parent ID "
-                "specified",
-                vertex->getStableId());
-
-            auto edge_id = graph->getEdgeIDByStableId(vertex->getStableId());
-
-            return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
-                ->getUniqueAttribute<gv::GraphGroup>()
-                ->edge(
-                    *graph->getVertex(graph->getSource(edge_id))
-                         ->getUniqueAttribute<gv::NodeAttribute>(),
-                    *graph->getVertex(graph->getTarget(edge_id))
-                         ->getUniqueAttribute<gv::NodeAttribute>());
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-    }
-
-    hstd::SPtr<IVertex> newVertex(proto::IVertex const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        hstd::SPtr<IVertex> res;
-        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
-            res = std::make_shared<org::graph::MapNode>();
-        } else if (in->payload().Is<proto::TrivialVertexPayload>()) {
-            res = std::make_shared<TrivialVertex>(in->stable_id());
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-
-        return res;
-    }
-
-    hstd::SPtr<layout::IConstraint> newConstraint(proto::IConstraint const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        hstd::SPtr<layout::IConstraint> res;
-        if (false) {
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-
-        return res;
-    }
-
-
-    hstd::SPtr<IEdge> newEdge(proto::IEdge const* edge) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            edge->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*edge));
-
-        if (edge->payload().Is<proto::TrivialEdgePayload>()) {
-            return std::make_shared<TrivialEdge>(edge->stable_id());
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(edge->payload().type_url());
-        }
-    }
-
-    hstd::SPtr<IPort> newPort(proto::IPort const* port) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            port->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*port));
-
+    hstd::SPtr<IPort> newPort(proto::IPort const* port) {
         if (port->payload().Is<org::graph::proto::MapNodePayload>()) {
+            logic_todo_impl();
         } else {
-            throw hstd::logic_unhandled_kind_error::init(port->payload().type_url());
+            return VisualFactory::newPort(port);
         }
     }
 };
@@ -253,14 +108,15 @@ std::unique_ptr<proto::IGraph> get_layout_structure(
 
 #if ORG_BUILD_WITH_PROTOBUF
 std::unique_ptr<proto::IGraph> run_layout(std::unique_ptr<proto::IGraph> const& proto) {
-    TestFactory factory;
+    auto        graph = std::make_shared<TrivialGraphBase>();
+    TestFactory factory{graph};
     factory.setTraceFile(getDebugFile("graph_serial_read.log"));
 
     auto proto_layout = get_layout_structure(proto);
-    writeFile(getDebugFile("proto_laoyout_initial.json"), getJString(*proto_layout));
+    writeFile(
+        getDebugFile("proto_laoyout_initial.json"),
+        hstd::serde::getJString(*proto_layout));
 
-    auto graph    = std::make_shared<TrivialGraphBase>();
-    factory.graph = graph;
     graph->readSerial(proto_layout.get(), &factory);
     graph
         ->getVertex(
@@ -274,7 +130,8 @@ std::unique_ptr<proto::IGraph> run_layout(std::unique_ptr<proto::IGraph> const& 
     factory.run->runFullLayout();
     auto result = std::make_unique<proto::IGraph>();
     graph->writeSerial(result.get());
-    writeFile(getDebugFile("serial_layout_result.json"), getJString(*result));
+    writeFile(
+        getDebugFile("serial_layout_result.json"), hstd::serde::getJString(*result));
     return result;
 }
 #endif
@@ -390,7 +247,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
     void writeRepresentation() {
         writeGraphviz(getDebugFile("graph.png"));
         auto serial = state->graph->get_serial();
-        writeFile(getDebugFile("serial.json"), getJString(*serial));
+        writeFile(getDebugFile("serial.json"), hstd::serde::getJString(*serial));
     }
 
     void runExternalizedLayoutPipeline() {

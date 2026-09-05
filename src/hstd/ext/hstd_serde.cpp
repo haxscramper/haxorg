@@ -3,6 +3,7 @@
 #if ORG_BUILD_WITH_PROTOBUF
 
 #    include <google/protobuf/struct.pb.h>
+#    include <google/protobuf/util/json_util.h>
 #    include <google/protobuf/wrappers.pb.h>
 #    include <hstd/stdlib/JsonUse.hpp>
 
@@ -69,6 +70,17 @@ json value_to_json(::google::protobuf::Value const& in) {
     }
 
     throw std::runtime_error("Invalid protobuf Value kind");
+}
+
+
+std::string getJString(google::protobuf::Message const& message) {
+    std::string                          json;
+    google::protobuf::json::PrintOptions j_opts;
+    j_opts.add_whitespace = true;
+    auto status = google::protobuf::util::MessageToJsonString(message, &json, j_opts);
+
+    LOGIC_ASSERTION_CHECK(status.ok(), "");
+    return json;
 }
 
 

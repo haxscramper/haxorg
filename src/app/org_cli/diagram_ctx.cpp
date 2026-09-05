@@ -1,4 +1,6 @@
 #include "diagram_ctx.hpp"
+#include "hstd/ext/graph/visual/visual_factory.hpp"
+#include <google/protobuf/util/json_util.h>
 
 using DO = org::cli::CliOpts::DiagramOpts;
 
@@ -24,6 +26,41 @@ void org::cli::DiagramCommandContext::getSubcommand(
             + describe_enum<CliOpts::DiagramOpts::InputFormat>());
 }
 
-void org::cli::runDiagramCommand(
-    SharedContext&         shared,
-    DiagramCommandContext& parseContext) {}
+void org::cli::DiagramCommandContext::run(SharedContext& shared) {
+    auto graph = std::make_shared<hstd::ext::graph::TrivialGraphBase>();
+    hstd::ext::graph::VisualFactory factory{graph};
+
+    hstd::ext::graph::proto::IGraph proto_layout;
+
+    std::ifstream stream{cmd.input, std::ios::binary};
+    if (!stream) { throw std::runtime_error("Failed to open input file: " + cmd.input); }
+
+    switch (cmd.input_format) {
+        case DO::InputFormat::Binary: {
+            if (!proto_layout.ParseFromIstream(&stream)) {
+                throw std::runtime_error("Failed to parse protobuf input: " + cmd.input);
+            }
+            break;
+        }
+
+        case DO::InputFormat::Json: {
+            const std::string json{
+                std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
+
+            const auto status = google::protobuf::util::JsonStringToMessage(
+                json, &proto_layout);
+
+            if (!status.ok()) {
+                throw std::runtime_error(
+                    "Failed to parse protobuf JSON input: " + status.ToString());
+            }
+            break;
+        }
+    }
+
+    graph->readSerial(&proto_layout, &factory);
+    factory.run->runFullLayout();
+    auto result = std::make_unique<hstd::ext::graph::proto::IGraph>();
+    graph->writeSerial(result.get());
+    shared.writeProtoResult(cmd.output, *result, cmd.format);
+}

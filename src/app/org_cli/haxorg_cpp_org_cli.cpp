@@ -1,5 +1,6 @@
 #include <app/org_cli/cli_opts.hpp>
 #include <app/org_cli/common_ctx.hpp>
+#include <app/org_cli/diagram_ctx.hpp>
 #include <app/org_cli/export_ctx.hpp>
 #include <app/org_cli/parse_ctx.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
@@ -44,16 +45,19 @@ int main(int argc, char* argv[]) {
 #endif
 
     __perf_trace("cli", "run subcommands");
-    if (std::holds_alternative<org::cli::CliOpts::ParseOpts>(shared.opts.cmd)) {
-        auto const& command = std::get<org::cli::CliOpts::ParseOpts>(shared.opts.cmd);
-
-        org::cli::ParseCommandContext parseContext{command};
-        runParseCommand(shared, parseContext);
+    if (auto command = std::get_if<org::cli::CliOpts::ParseOpts>(&shared.opts.cmd)) {
+        org::cli::ParseCommandContext ctx{*command};
+        ctx.run(shared);
+    } else if (
+        auto command = std::get_if<org::cli::CliOpts::DiagramOpts>(&shared.opts.cmd)) {
+        org::cli::DiagramCommandContext ctx{*command};
+        ctx.run(shared);
+    } else if (
+        auto command = std::get_if<org::cli::CliOpts::ExportOpts>(&shared.opts.cmd)) {
+        org::cli::ExportCommandContext ctx{*command};
+        ctx.run(shared);
     } else {
-        auto const& command = std::get<org::cli::CliOpts::ExportOpts>(shared.opts.cmd);
-
-        org::cli::ExportCommandContext exportContext{command};
-        runExportCommand(shared, exportContext);
+        throw hstd::logic_unhandled_kind_error::init("Unexpected CLI subcommand variant");
     }
 
     HSLOG_INFO("Done file processing");

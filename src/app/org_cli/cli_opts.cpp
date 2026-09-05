@@ -126,7 +126,7 @@ Full argument list was:
     } else if (program.is_subcommand_used("export")) {
         result.cmd = ExportCommandContext::parseCommand(export_cmd);
     } else if (program.is_subcommand_used("diagram")) {
-        result.cmd = DiagramCommandContext::parseCommand(export_cmd);
+        result.cmd = DiagramCommandContext::parseCommand(diagram_cmd);
     } else {
         std::cerr << "missing command (expected 'parse' or 'export')\n" << program;
         std::exit(1);

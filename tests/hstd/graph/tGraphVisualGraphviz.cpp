@@ -153,7 +153,7 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizSameLayoutClusters) {
 
     hstd::ext::graph::proto::IGraph ig;
     run->getGraph()->writeSerial(&ig);
-    writeFile(getDebugFile("result.json"), getJString(ig));
+    writeFile(getDebugFile("result.json"), hstd::serde::getJString(ig));
 
     EXPECT_EQ(run->getDirectlyNestedEdges(rg_id).size(), 0);
     EXPECT_EQ(run->getDirectVertices(sg_id1).size(), 3);

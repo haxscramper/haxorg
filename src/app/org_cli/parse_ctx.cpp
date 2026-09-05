@@ -144,26 +144,22 @@ void org::cli::ParseCommandContext::getSubcommand(argparse::ArgumentParser& pars
             + describe_enum<org::parse::OrgParseParameters::LastParseStage>());
 }
 
-void org::cli::runParseCommand(SharedContext& shared, ParseCommandContext& parseContext) {
+void org::cli::ParseCommandContext::run(SharedContext& shared) {
     __perf_trace("cli", "run parse command");
-    parseContext.configure(shared);
+    configure(shared);
 
-    hstd::fs::path                 input{parseContext.cmd.input};
+    hstd::fs::path                 input{cmd.input};
     org::sem::SemId<org::sem::Org> node;
 
     if (hstd::fs::is_directory(input)) {
-        node = shared.parseContext
-                   ->parseDirectoryOpts(input, parseContext.directoryParams)
-                   .value();
+        node = shared.parseContext->parseDirectoryOpts(input, directoryParams).value();
     } else if (shared.opts.withIncludes) {
-        node = shared.parseContext->parseFileWithIncludes(
-            input, parseContext.directoryParams);
+        node = shared.parseContext->parseFileWithIncludes(input, directoryParams);
     } else {
-        node = shared.parseContext->parseFileOpts(input, parseContext.params);
+        node = shared.parseContext->parseFileOpts(input, params);
     }
 
-    if (parseContext.cmd.lastStage
-        == org::parse::OrgParseParameters::LastParseStage::ImmConvert) {
-        parseContext.writeImmutableDumps(node);
+    if (cmd.lastStage == org::parse::OrgParseParameters::LastParseStage::ImmConvert) {
+        writeImmutableDumps(node);
     }
 }

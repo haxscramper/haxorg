@@ -36,7 +36,9 @@ struct ParseCommandContext {
 
     static void               getSubcommand(argparse::ArgumentParser& parse_cmd);
     static CliOpts::ParseOpts parseCommand(argparse::ArgumentParser& parse_cmd);
+
+    void run(SharedContext& shared);
 };
 
-void runParseCommand(SharedContext& shared, ParseCommandContext& parseContext);
+
 } // namespace org::cli

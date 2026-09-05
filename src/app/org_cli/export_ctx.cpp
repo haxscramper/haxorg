@@ -62,50 +62,38 @@ void org::cli::ExportCommandContext::exportYaml(
     hstd::writeFile(cmd.output, fmt::format("{}\n", result), true);
 }
 
-void org::cli::runExportCommand(
-    SharedContext&        shared,
-    ExportCommandContext& exportContext) {
+void org::cli::ExportCommandContext::run(SharedContext& shared) {
     __perf_trace("cli", "run export command");
     using EO = CliOpts::ExportOpts;
 
-    exportContext.configure(shared);
+    configure(shared);
 
     // TODO: Support multiple inputs and unify all parsed nodes into a single group.
-    hstd::fs::path input{exportContext.cmd.input.at(0)};
+    hstd::fs::path input{cmd.input.at(0)};
 
     auto node = hstd::fs::is_directory(input)
-                  ? shared.parseContext->parseDirectoryOpts(
-                        input, exportContext.directoryParams)
+                  ? shared.parseContext->parseDirectoryOpts(input, directoryParams)
                   : (shared.opts.withIncludes
                          ? shared.parseContext->parseFileWithIncludes(
-                               input, exportContext.directoryParams)
+                               input, directoryParams)
                          : shared.parseContext->parseFileOpts(
-                               input,
-                               exportContext.paramsForPath(shared, input.string())));
+                               input, paramsForPath(shared, input.string())));
 
     LOGIC_ASSERTION_CHECK_FMT(node.has_value(), "Failed to parse input {}", input);
 
     std::visit(
         hstd::overloaded{
-            [&](EO::Json const& options) {
-                exportContext.exportJson(node.value(), options);
-            },
-            [&](EO::Yaml const& options) {
-                exportContext.exportYaml(node.value(), options);
-            },
-            [&](EO::Token const&) { exportContext.exportIrReprs(); },
-            [&](EO::BaseToken const&) { exportContext.exportIrReprs(); },
-            [&](EO::ParseNode const&) { exportContext.exportIrReprs(); },
+            [&](EO::Json const& options) { exportJson(node.value(), options); },
+            [&](EO::Yaml const& options) { exportYaml(node.value(), options); },
+            [&](EO::Token const&) { exportIrReprs(); },
+            [&](EO::BaseToken const&) { exportIrReprs(); },
+            [&](EO::ParseNode const&) { exportIrReprs(); },
 #if ORG_BUILD_WITH_PROTOBUF
-            [&](EO::Proto const& options) {
-                exportContext.exportProto(shared, node.value(), options);
-            },
-            [&](EO::Map const& options) {
-                exportContext.exportMap(shared, node.value(), options);
-            },
+            [&](EO::Proto const& options) { exportProto(shared, node.value(), options); },
+            [&](EO::Map const& options) { exportMap(shared, node.value(), options); },
 #endif
         },
-        exportContext.cmd.data);
+        cmd.data);
 }
 
 

@@ -115,8 +115,9 @@ struct ExportCommandContext {
 
     static void                getSubcommand(argparse::ArgumentParser& parse_cmd);
     static CliOpts::ExportOpts parseCommand(argparse::ArgumentParser& parse_cmd);
+
+    void run(SharedContext& shared);
 };
 
 
-void runExportCommand(SharedContext& shared, ExportCommandContext& exportContext);
 } // namespace org::cli
