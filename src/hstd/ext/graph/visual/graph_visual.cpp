@@ -351,7 +351,7 @@ void layout::IVertexLayoutAttribute::writeSerial(
     IGraph const*             graph) const {
     hstd::ext::graph::layout::proto::IGroupLayoutAttributePayload payload;
     hstd::serde::write_serde(payload.mutable_bbox(), getBBox());
-    out->mutable_payload()->PackFrom(&payload);
+    out->mutable_payload()->PackFrom(payload);
 }
 
 void hstd::ext::graph::layout::IEdgeLayoutAttribute::writeSerial(
@@ -359,7 +359,7 @@ void hstd::ext::graph::layout::IEdgeLayoutAttribute::writeSerial(
     IGraph const*             graph) const {
     hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload payload;
     hstd::serde::write_serde(payload.mutable_path(), getPath());
-    out->mutable_payload()->PackFrom(&payload);
+    out->mutable_payload()->PackFrom(payload);
 }
 
 

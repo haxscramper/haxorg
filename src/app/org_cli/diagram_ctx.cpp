@@ -1,6 +1,9 @@
 #include "diagram_ctx.hpp"
 #include "hstd/ext/graph/visual/visual_factory.hpp"
 #include <google/protobuf/util/json_util.h>
+#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
 
 using DO = org::cli::CliOpts::DiagramOpts;
 
@@ -12,6 +15,7 @@ org::cli::CliOpts::DiagramOpts org::cli::DiagramCommandContext::parseCommand(
     OPT_GET(diagram_cmd, opts, serial_read_log, std::string);
     OPT_GET(diagram_cmd, opts, layout_log, std::string);
     OPT_GET(diagram_cmd, opts, output_visual, std::string);
+    OPT_GET(diagram_cmd, opts, output_visual_json, std::string);
     OPT_GET(diagram_cmd, opts, output_visual_debug, bool);
     OPT_GET_ENUM(diagram_cmd, opts, format, CliOpts::ProtoFormat);
     OPT_GET_ENUM(diagram_cmd, opts, input_format, CliOpts::DiagramOpts::InputFormat);
@@ -26,6 +30,8 @@ void org::cli::DiagramCommandContext::getSubcommand(
         .help("log for the serial data reader");
     diagram_cmd.add_argument(DO::output_visual_opt)
         .help("SVG with the diagram debug output");
+    diagram_cmd.add_argument(DO::output_visual_json_opt)
+        .help("JSON with the diagram debug output");
     diagram_cmd.add_argument(DO::output_visual_debug_opt)
         .help("Write SVG with additional debug information");
     diagram_cmd.add_argument(DO::layout_log_opt).help("log for the layout run");
@@ -74,11 +80,18 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
     if (cmd.layout_log) { factory.run->setTraceFile(cmd.layout_log.value()); }
     factory.run->runFullLayout();
 
-    if (cmd.output_visual) {
+    if (cmd.output_visual || cmd.output_visual_json) {
         auto visual = factory.run->getVisual();
-        hstd::writeFile(
-            cmd.output_visual.value(),
-            hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+        if (cmd.output_visual) {
+            hstd::writeFile(
+                cmd.output_visual.value(),
+                hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+        }
+
+        if (cmd.output_visual_json) {
+            hstd::writeFile(
+                cmd.output_visual_json.value(), hstd::to_json_eval(visual).dump(2));
+        }
     }
 
     auto result = std::make_unique<hstd::ext::graph::proto::IGraph>();

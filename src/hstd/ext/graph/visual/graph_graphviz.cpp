@@ -606,25 +606,26 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
     }
 }
 
-void gv::Layout::createLayout(GraphGroup const& graph) {
+void gv::Layout::createLayout(GraphGroup const& graph, bool debug_write) {
     agseterr(AGERR);
     hstd::logic_assertion_check_not_nil(this);
     auto g    = const_cast<Agraph_t*>(graph.get());
     auto algo = strdup(layoutTypeToString(layout).c_str());
     LOGIC_ASSERTION_CHECK(algo != nullptr, "");
     LOGIC_ASSERTION_CHECK(std::string{algo} != "", "");
-    // _dbg("agwrite before layout");
-    // agwrite(g, stderr);
+    if (debug_write) {
+        std::cerr << "agwrite before layout" << std::endl;
+        agwrite(g, stderr);
 
-    // char* margin = agget(g, (char*)"margin");
-    // fprintf(stderr, "graph margin: %s\n", margin ? margin : "(null)");
+        char* margin = agget(g, (char*)"margin");
+        fprintf(stderr, "graph margin: %s\n", margin ? margin : "(null)");
 
-    // char* pad = agget(g, (char*)"pad");
-    // fprintf(stderr, "graph pad: %s\n", pad ? pad : "(null)");
+        char* pad = agget(g, (char*)"pad");
+        fprintf(stderr, "graph pad: %s\n", pad ? pad : "(null)");
 
-    // char* bb = agget(g, (char*)"bb");
-    // fprintf(stderr, "graph bb (before layout): %s\n", bb ? bb :
-    // "(null)");
+        char* bb = agget(g, (char*)"bb");
+        fprintf(stderr, "graph bb (before layout): %s\n", bb ? bb : "(null)");
+    }
 
     hstd::logic_assertion_check_not_nil(gvc.get());
     hstd::logic_assertion_check_not_nil(g);
@@ -636,10 +637,13 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     // 'dot' here is the name of the rendering backend.
     res = gvRender(gvc.get(), g, "xdot", NULL);
     if (res != 0) { throw std::logic_error("Could not execute render for the layout"); }
-    // _dbg("agwrite after layout");
-    // bb = agget(g, (char*)"bb");
-    // fprintf(stderr, "graph bb (after layout): %s\n", bb ? bb :
-    // "(null)"); agwrite(g, stderr);
+
+    if (debug_write) {
+        std::cerr << "agwrite after layout" << std::endl;
+        char* bb = agget(g, (char*)"bb");
+        fprintf(stderr, "graph bb (after layout): %s\n", bb ? bb : "(null)");
+        agwrite(g, stderr);
+    }
 }
 
 void gv::Layout::freeLayout(GraphGroup graph) {
@@ -743,9 +747,14 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
             // iterate over edges/vertices to insert graphviz attributes to
             // enable post-layout association.
             for (auto const& vertex : run->getDirectVertices(id)) {
-                // run->message(hstd::fmt("vertex {}", vertex));
-                run->getVertexVisualAttribute<NodeAttribute>(vertex)->setAttr(
-                    id_attr, vertex.getValue());
+                auto attr = run->getVertexVisualAttribute<NodeAttribute>(vertex);
+                run->message(
+                    hstd::fmt(
+                        "vertex {} width {} height {}",
+                        vertex,
+                        attr->getWidth(),
+                        attr->getHeight()));
+                attr->setAttr(id_attr, vertex.getValue());
             }
 
             for (auto const& edge : run->getDirectlyNestedEdges(id)) {
@@ -762,12 +771,13 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     }
 
     hstd::logic_assertion_check_not_nil(rootGroup);
-    rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup);
+    rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup, true);
 
     layout::IPlacementAlgorithm::Result result;
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
+        OP_TRACER_MESSAGE(run, "node -> {}", node.getPropertiesAsString());
         if (hstd::Opt<hstd::u64> _tmp;
             node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
             auto id   = VertexID::FromValue(_tmp.value());
@@ -883,15 +893,16 @@ gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedInchesWH(
 
 
 Rect gv::GraphVertexLayoutAttribute::getBBox() const {
-    return getNodeRectangle(graph, node, getGraphBBox(graph));
+    return getNodeRectangle(graph, node, getGraphBBox(graph)) / gv::scaling;
 }
 
 
 Path gv::GraphEdgeLayoutAttribute::getPath() const {
     return getEdgeSpline(
-        edge,
-        graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
-        getGraphBBox(graph));
+               edge,
+               graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
+               getGraphBBox(graph))
+         / gv::scaling;
 }
 
 
@@ -1203,6 +1214,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         result.elements.push_back(labelElem);
     }
 
+    result /= gv::scaling;
     return result;
 }
 
@@ -1281,12 +1293,14 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) c
         result.elements.push_back(makeLabelElement(info->tail_label, bbox.height()));
     }
 
+    result /= gv::scaling;
     return result;
 }
 
 visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId) const {
     visual::VisGroup result;
-    result.offset = Point{graph.x(), graph.y()};
+    auto             graph = this->graph;
+    result.offset          = Point{graph.x(), graph.y()};
 
     result.custom.extra                           = json::object();
     result.custom.extra["graphviz"]["group_name"] = group->name();
@@ -1364,6 +1378,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
         }
     }
 
+    result /= gv::scaling;
     return result;
 }
 
@@ -1553,9 +1568,9 @@ void hstd::ext::graph::gv::NodeAttribute::readSerial(
     IGraphSerialReaderFactory*      factory,
     IAttributeObject const*         vertex) {
     layout::IVertexVisualAttribute::readSerial(in, graph, factory, vertex);
-    readAttrs(
-        this,
-        hstd::serde::unpack_attr_payload<proto::NodeAttributePayload>(in->payload()));
+    auto payload = hstd::serde::unpack_attr_payload<proto::NodeAttributePayload>(
+        in->payload());
+    readAttrs(this, payload);
 
     OP_TRACER_MESSAGE(
         factory,
@@ -1568,6 +1583,8 @@ void hstd::ext::graph::gv::NodeAttribute::readSerial(
         "Graphivz node requires width and height to be set for layout, input protobuf "
         "does not contain width/height: {}",
         hstd::serde::getJString(*in));
+
+    setAttr("fixedsize", true);
 }
 
 void hstd::ext::graph::gv::EdgeAttribute::writeSerial(

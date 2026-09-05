@@ -44,6 +44,11 @@ struct CliOpts {
             std::nullopt);
         OPT_FIELD(layout_log, "--layout-log", hstd::Opt<std::string>, std::nullopt);
         OPT_FIELD(output_visual, "--output-visual", hstd::Opt<std::string>, std::nullopt);
+        OPT_FIELD(
+            output_visual_json,
+            "--output-visual-json",
+            hstd::Opt<std::string>,
+            std::nullopt);
         OPT_FIELD(output_visual_debug, "--output-visual-debug", bool, false);
         DESC_FIELDS(
             DiagramOpts,

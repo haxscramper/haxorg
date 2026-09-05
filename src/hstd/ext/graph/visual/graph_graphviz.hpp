@@ -70,8 +70,7 @@
 
 
 namespace hstd::ext::graph::gv {
-
-static constexpr double scaling = 72.0f;
+static constexpr double scaling = 100.0f;
 
 struct UserDataBase {
     Agrec_t header;
@@ -482,6 +481,7 @@ class NodeAttribute
 
     NodeAttribute* setInchWidth(double inches) {
         setAttr("width", inches);
+        setAttr("fixedsize", true);
         return this;
     }
 
@@ -500,6 +500,7 @@ class NodeAttribute
 
     NodeAttribute* setInchHeight(double inches) {
         setAttr("height", inches);
+        setAttr("fixedsize", true);
         return this;
     }
 
@@ -722,7 +723,7 @@ class Layout : public layout::IPlacementAlgorithm {
     /// Backend-specific, 72 is the default used by graphviz.
     [[refl]] int graphviz_size_scaling = 1;
 
-    void createLayout(GraphGroup const& graph);
+    void createLayout(GraphGroup const& graph, bool debug_write = false);
 
     void freeLayout(GraphGroup graph);
 
@@ -778,7 +779,7 @@ class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
     GraphGroupLayoutAttribute(Rect const& graph, hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
-    Rect getBBox() const override { return graph; }
+    Rect getBBox() const override { return graph / gv::scaling; }
     void setBBox(geometry::Rect const& rect) override { graph = rect; }
 
     std::string getRepr() const override { return group->getPropertiesAsString(); }
