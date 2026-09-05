@@ -9,14 +9,12 @@
 
 namespace org::cli {
 struct ExportCommandContext {
-    using EO = CliOpts::ExportOpts;
-
-    EO const&                                    cmd;
+    CliOpts::ExportOpts const&                   cmd;
     org::parse::OrgDirectoryParseParameters::Ptr directoryParams;
     json                                         irReprs{};
     hstd::Vec<ParseReports>                      reports;
 
-    explicit ExportCommandContext(EO const& command)
+    explicit ExportCommandContext(CliOpts::ExportOpts const& command)
         : cmd{command}
         , directoryParams{org::parse::OrgDirectoryParseParameters::shared()} {}
 
@@ -93,27 +91,13 @@ struct ExportCommandContext {
         return shared.parseContext->parseFileOpts(path, paramsForPath(shared, path));
     }
 
-    void writeProtoJson(google::protobuf::Message const& result) const;
+    void exportJson(
+        org::sem::SemId<org::sem::Org> const& node,
+        CliOpts::ExportOpts::Json const&      options) const;
 
-    void writeProtoBinary(google::protobuf::Message const& result) const {
-        std::ofstream output{cmd.output, std::ios::binary};
-        result.SerializeToOstream(&output);
-    }
-
-    void writeProtoXml(google::protobuf::Message const& result) const {
-        auto          mapper = make_proto_xml_mapper();
-        std::ofstream output{cmd.output};
-        mapper.map(result).serialize(output);
-    }
-
-    void writeProtoResult(google::protobuf::Message const& result, EO::ProtoFormat format)
-        const;
-
-    void exportJson(org::sem::SemId<org::sem::Org> const& node, EO::Json const& options)
-        const;
-
-    void exportYaml(org::sem::SemId<org::sem::Org> const& node, EO::Yaml const& options)
-        const;
+    void exportYaml(
+        org::sem::SemId<org::sem::Org> const& node,
+        CliOpts::ExportOpts::Yaml const&      options) const;
 
     void exportIrReprs() const { hstd::writeFile(cmd.output, irReprs.dump(2), true); }
 
@@ -121,13 +105,16 @@ struct ExportCommandContext {
     void exportProto(
         SharedContext&                        shared,
         org::sem::SemId<org::sem::Org> const& node,
-        EO::Proto const&                      options) const;
+        CliOpts::ExportOpts::Proto const&     options) const;
 
     void exportMap(
         SharedContext&                        shared,
         org::sem::SemId<org::sem::Org> const& node,
-        EO::Map const&                        options) const;
+        CliOpts::ExportOpts::Map const&       options) const;
 #endif
+
+    static void                getSubcommand(argparse::ArgumentParser& parse_cmd);
+    static CliOpts::ExportOpts parseCommand(argparse::ArgumentParser& parse_cmd);
 };
 
 

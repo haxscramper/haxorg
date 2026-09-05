@@ -27,6 +27,20 @@ namespace org::cli {
 
 struct CliOpts {
     using OS = hstd::Opt<std::string>;
+
+    DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json, Xml);
+
+    struct DiagramOpts {
+        DECL_DESCRIBED_ENUM(InputFormat, Binary, Json, JsonSimplified);
+
+        OPT_FIELD(input, "input", std::string, "");
+        OPT_FIELD(output, "output", std::string, "");
+        OPT_FIELD(format, "--format", ProtoFormat, ProtoFormat::Binary);
+        OPT_FIELD(input_format, "--input-format", InputFormat, InputFormat::Binary);
+        DESC_FIELDS(DiagramOpts, (input, output, format, input_format));
+    };
+
+
     struct ParseOpts {
         /// \brief input file or directory
         OPT_FIELD(input, "input", std::string, "");
@@ -64,7 +78,8 @@ struct CliOpts {
              immVerboseDumpPath,
              immDumpPath,
              immTrackingDumpPath,
-             validateBaseTokens));
+             validateBaseTokens,
+             immAstTracePath));
     };
 
     struct ExportOpts {
@@ -121,9 +136,6 @@ struct CliOpts {
             DESC_FIELDS(ParseNode, ());
         };
 
-#if ORG_BUILD_WITH_PROTOBUF
-        DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json, Xml);
-
         struct Proto {
             ProtoFormat format = ProtoFormat::Binary;
             OPT_NAME(format_opt, "--format");
@@ -136,10 +148,8 @@ struct CliOpts {
 
             OPT_NAME(graphTrace_opt, "--graph-trace");
             OPT_NAME(format_opt, "--format");
-            DESC_FIELDS(Map, (format));
+            DESC_FIELDS(Map, (format, graphTrace));
         };
-#endif
-
 
         SUB_VARIANTS(
             Kind,
@@ -169,7 +179,7 @@ struct CliOpts {
         DESC_FIELDS(ExportOpts, (exportTrace, input, output, data));
     };
 
-    using MainCmd = std::variant<ParseOpts, ExportOpts>;
+    using MainCmd = std::variant<ParseOpts, ExportOpts, DiagramOpts>;
     MainCmd cmd;
     bool    withIncludes = true;
     // FIXME: Add sub-variants to the JSON input parsing.

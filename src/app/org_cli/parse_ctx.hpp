@@ -33,6 +33,9 @@ struct ParseCommandContext {
         std::string const& path);
 
     void writeImmutableDumps(org::sem::SemId<org::sem::Org> const& node) const;
+
+    static void               getSubcommand(argparse::ArgumentParser& parse_cmd);
+    static CliOpts::ParseOpts parseCommand(argparse::ArgumentParser& parse_cmd);
 };
 
 void runParseCommand(SharedContext& shared, ParseCommandContext& parseContext);
