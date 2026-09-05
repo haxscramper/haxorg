@@ -426,6 +426,32 @@ class LayoutRun
     /// \brief Get all nested groups that don't switch layout
     VertexIDSet getSubGroupsNoLayoutSwitch(VertexID const& id) const;
 
+    VertexIDSet getDirectManagedVertices(VertexID const& id) const {
+        VertexIDSet result;
+        result.incl(getDirectVertices(id));
+        for (auto const& sub : getSubGroups(id)) {
+            if (getGroup(sub)->hasAlgorithm()) {
+                // The group will perform its internal layout, but the placement of the
+                // group's vertex is handled by the `id`.
+                result.incl(sub);
+            } else {
+                result.incl(sub);
+                result.incl(getDirectManagedVertices(sub));
+            }
+        }
+        return result;
+    }
+
+    /// \brief Return edges nested in the current layout later. The edge must be (1)
+    /// directly nested under the target ID, (2) both source and target must be placed on
+    /// nodes that the single layout run on `id` will affect (or parent layout run, if the
+    /// `id` itself is a sub-group of the parent layout)
+    EdgeIDSet getEdgesNestedInLayout(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested edges from non-group");
+        return edges->getFullyIncludedEdges(getDirectManagedVertices(id));
+    }
+
     EdgeIDSet getDirectlyNestedEdges(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(
             isGroupVertex(id), "Cannot get nested edges from non-group");

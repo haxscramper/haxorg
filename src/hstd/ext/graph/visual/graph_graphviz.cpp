@@ -767,26 +767,33 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
             // enable post-layout association.
             for (auto const& vertex : run->getDirectVertices(id)) {
                 auto attr = run->getVertexVisualAttribute<NodeAttribute>(vertex);
-                run->message(
-                    hstd::fmt(
-                        "vertex {} width {} height {}",
-                        vertex,
-                        attr->getWidth(),
-                        attr->getHeight()));
+                OP_TRACER_MESSAGE(
+                    run,
+                    "vertex {} width {} height {}",
+                    vertex,
+                    attr->getWidth(),
+                    attr->getHeight());
                 attr->setAttr(id_attr, vertex.getValue());
-            }
-
-            for (auto const& edge : run->getDirectlyNestedEdges(id)) {
-                OP_TRACER_MESSAGE(run, "{}", g->getDebug(edge));
-                run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
-                    id_attr, edge.getValue());
             }
         }
     };
 
     {
-        run->message("collecting nodes for the graphviz layout");
+        OP_TRACER_MESSAGE(run, "collecting nodes for the graphviz layout");
         aux(root_id, std::nullopt);
+
+        if (run->canTrace()) {
+            OP_TRACER_MESSAGE_SCOPE(run, "vertices directly nested in the root ID");
+            for (auto const& v : run->getSubGroupsNoLayoutSwitch(root_id)) {
+                OP_TRACER_MESSAGE(run, "{}", g->getDebug(v));
+            }
+        }
+
+        for (auto const& edge : run->getEdgesNestedInLayout(root_id)) {
+            OP_TRACER_MESSAGE(run, "{}", g->getDebug(edge));
+            run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
+                id_attr, edge.getValue());
+        }
     }
 
     hstd::logic_assertion_check_not_nil(rootGroup);
