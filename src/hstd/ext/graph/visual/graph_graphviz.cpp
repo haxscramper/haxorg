@@ -771,7 +771,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     }
 
     hstd::logic_assertion_check_not_nil(rootGroup);
-    rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup, true);
+    rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup, false);
 
     layout::IPlacementAlgorithm::Result result;
     // 'each node' iterates over all nodes at once, including ones places
@@ -1559,6 +1559,8 @@ void hstd::ext::graph::gv::NodeAttribute::writeSerial(
     layout::IVertexVisualAttribute::writeSerial(out, graph);
     proto::NodeAttributePayload payload;
     writeAttrs(this, &payload);
+    payload.mutable_pos()->set_x(payload.pos().x() / gv::scaling);
+    payload.mutable_pos()->set_y(payload.pos().y() / gv::scaling);
     out->mutable_payload()->PackFrom(payload);
 }
 

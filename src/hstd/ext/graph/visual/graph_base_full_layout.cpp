@@ -228,7 +228,7 @@ void layout::LayoutRun::runFullLayout() {
         if (hasLayout(v)) { getMVertex(v)->addUniqueAttribute(getLayout(v)); }
     }
 
-    for (auto const& e : groups->getEdges()) {
+    for (auto const& e : edges->getEdges()) {
         if (hasLayout(e)) { getMEdge(e)->addUniqueAttribute(getLayout(e)); }
     }
 }
