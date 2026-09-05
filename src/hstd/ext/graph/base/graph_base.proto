@@ -52,6 +52,8 @@ message IVertexHierarchy {
   repeated string root_vertex_ids = 3;
   map<string, string> parent_map = 4;
   map<string, bool> vertex_set = 5;
+  // Only nesting map is read for the de-serialization, all other
+  // fields will be verified but are also ignored on read.
   map<string, VertexIDVec> nested_in_map = 6;
   repeated IEdge edges = 7;
   google.protobuf.Any payload = 8;

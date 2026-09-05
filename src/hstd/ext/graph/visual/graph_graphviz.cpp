@@ -1,3 +1,4 @@
+#include "hstd/ext/hstd_serde.hpp"
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 #    include <filesystem>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
@@ -712,8 +713,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
         if (group->hasAlgorithm() && id != root_id) {
             auto parentGroup = hstd::validated_dynamic_cast<GraphGroup>(
                 run->getGroup(parent.value()));
-            run->message(
-                hstd::fmt("group '{}' has layout algorithm set", group->getStableId()));
+            OP_TRACER_MESSAGE(
+                run, "group '{}' has layout algorithm set", group->getStableId());
             auto recursiveBBox = run->getLayout(id)->getBBox();
             auto recursiveNode = parentGroup->node(hstd::fmt("tmp-subgraph-node-{}", id));
 
@@ -727,11 +728,11 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                 gv_group != nullptr,
                 "Nested subgroup without layout algorithm must be an "
                 "instance of gv::GraphGroup");
-            run->message(
-                hstd::fmt(
-                    "group '{}' is a part of parent layout '{}'",
-                    group->getStableId(),
-                    parent));
+            OP_TRACER_MESSAGE(
+                run,
+                "group '{}' is a part of parent layout '{}'",
+                group->getStableId(),
+                parent);
 
             gv_group->setAttr(id_sub_group, id.getValue());
 
@@ -748,7 +749,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
             }
 
             for (auto const& edge : run->getDirectlyNestedEdges(id)) {
-                run->message(hstd::fmt("{}", g->getDebug(edge)));
+                OP_TRACER_MESSAGE(run, "{}", g->getDebug(edge));
                 run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
                     id_attr, edge.getValue());
             }
@@ -767,39 +768,39 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
+        OP_TRACER_MESSAGE(run, "node attribute");
         if (hstd::Opt<hstd::u64> _tmp;
             node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
             auto id   = VertexID::FromValue(_tmp.value());
             auto bbox = getGraphBBox(*rootGroup);
             auto rect = getNodeRectangle(*rootGroup, node, bbox);
-            run->message(
-                hstd::fmt(
-                    "found sub-group {} placement rect {} bbox {} ({}, "
-                    "{})",
-                    id,
-                    rect,
-                    bbox,
-                    node.info()->coord.x,
-                    node.info()->coord.y));
+            OP_TRACER_MESSAGE(
+                run,
+                "found sub-group {} placement rect {} bbox {} ({}, "
+                "{})",
+                id,
+                rect,
+                bbox,
+                node.info()->coord.x,
+                node.info()->coord.y);
 
             // Full layout run will place all the nested subgroups and then
             // will execute layout for the parent group, so the
             // `getLayout()` is guaranteed to be safe to call here.
             auto const& prev_attribute = run->getLayout(id);
 
-            run->message("replacing existing group attribute");
+            OP_TRACER_MESSAGE(run, "replacing existing group attribute");
             auto prev_cast = hstd::validated_dynamic_cast<GraphGroupLayoutAttribute>(
                 prev_attribute);
             if (prev_attribute) {
-                run->message("previous attribute was a graphviz layout");
+                OP_TRACER_MESSAGE(run, "previous attribute was a graphviz layout");
                 run->getGroup<GraphGroup>(id);
                 result.vertices.insert_or_assign(
                     id,
                     std::make_shared<GraphGroupLayoutAttribute>(rect, prev_cast->group));
             } else {
-                run->message(
-                    hstd::fmt(
-                        "previous attribute was {}", typeid(prev_cast.get()).name()));
+                OP_TRACER_MESSAGE(
+                    run, "previous attribute was {}", typeid(prev_cast.get()).name());
                 result.vertices.insert_or_assign(
                     id, std::make_shared<GraphGroupLayoutAttribute>(rect, rootGroup));
             }
@@ -821,7 +822,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
         auto id = EdgeID::FromValue(edge.getAttr<hstd::u64>(id_attr).value());
-        run->message(hstd::fmt("each-group iterate edge {}", id, g->getDebug(id)));
+        OP_TRACER_MESSAGE(run, "each-group iterate edge {}", id, g->getDebug(id));
 
         result.edges.insert_or_assign(
             id, std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
@@ -834,7 +835,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
             "No ID attr property set for node {}",
             group.getPropertiesAsString());
         auto id = VertexID::FromValue(id_attr.value());
-        run->message(hstd::fmt("each-group iterate group {}", id));
+        OP_TRACER_MESSAGE(run, "each-group iterate group {}", id);
         result.vertices.insert_or_assign(
             id,
             std::make_shared<GraphGroupLayoutAttribute>(
@@ -1375,14 +1376,21 @@ using ::google::protobuf::Reflection;
 using namespace gv;
 
 inline FieldDescriptor const* findField(Message const& msg, Str const& name) {
-    return msg.GetDescriptor()->FindFieldByName(name);
+    auto field = msg.GetDescriptor()->FindFieldByName(name);
+    LOGIC_ASSERTION_CHECK_FMT(
+        field != nullptr,
+        "Attempting to get the protobuf field '{}' -- the field does not exist in "
+        "the type descriptor for {}.",
+        name,
+        msg.GetDescriptor()->full_name());
+
+    return field;
 }
 
 template <typename T>
 void setProtoField(Message* msg, Str const& name, T const& value) {
-    auto const* field = msg->GetDescriptor()->FindFieldByName(name);
-    if (!field) { return; }
-    Reflection const* refl = msg->GetReflection();
+    auto const*       field = findField(*msg, name);
+    Reflection const* refl  = msg->GetReflection();
 
     if constexpr (std::is_same_v<T, bool>) {
         refl->SetBool(msg, field, value);
@@ -1408,9 +1416,8 @@ void setProtoField(Message* msg, Str const& name, T const& value) {
 
 template <typename T>
 bool getProtoField(Message const& msg, Str const& name, T& value) {
-    auto const* field = msg.GetDescriptor()->FindFieldByName(name);
-    if (!field) { return false; }
-    Reflection const* refl = msg.GetReflection();
+    auto const*       field = findField(msg, name);
+    Reflection const* refl  = msg.GetReflection();
     if (!refl->HasField(msg, field)) { return false; }
 
     if constexpr (std::is_same_v<T, bool>) {
@@ -1516,7 +1523,9 @@ void hstd::ext::graph::gv::GraphGroup::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
     layout::IGroupVisualAttribute::writeSerial(out, graph);
-    writeAttrs(this, out->mutable_payload());
+    proto::GroupAttributePayload payload;
+    writeAttrs(this, &payload);
+    out->mutable_payload()->PackFrom(payload);
 }
 
 void hstd::ext::graph::gv::GraphGroup::readSerial(
@@ -1525,37 +1534,61 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
     IGraphSerialReaderFactory*      factory,
     IAttributeObject const*         vertex) {
     layout::IGroupVisualAttribute::readSerial(in, graph, factory, vertex);
-    readAttrs(this, in->payload());
+    readAttrs(
+        this,
+        hstd::serde::unpack_attr_payload<proto::GroupAttributePayload>(in->payload()));
 }
 
 void hstd::ext::graph::gv::NodeAttribute::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
     layout::IVertexVisualAttribute::writeSerial(out, graph);
-    writeAttrs(this, out->mutable_payload());
+    proto::NodeAttributePayload payload;
+    writeAttrs(this, &payload);
+    out->mutable_payload()->PackFrom(payload);
 }
+
 void hstd::ext::graph::gv::NodeAttribute::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
     IGraphSerialReaderFactory*      factory,
     IAttributeObject const*         vertex) {
     layout::IVertexVisualAttribute::readSerial(in, graph, factory, vertex);
-    readAttrs(this, in->payload());
+    readAttrs(
+        this,
+        hstd::serde::unpack_attr_payload<proto::NodeAttributePayload>(in->payload()));
+
+    OP_TRACER_MESSAGE(
+        factory,
+        "Read graphviz node attribute with geometry {}, {}",
+        getWidth(),
+        getHeight());
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        getWidth().has_value() && getHeight().has_value(),
+        "Graphivz node requires width and height to be set for layout, input protobuf "
+        "does not contain width/height: {}",
+        hstd::serde::getJString(*in));
 }
 
 void hstd::ext::graph::gv::EdgeAttribute::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
     layout::IEdgeVisualAttribute::writeSerial(out, graph);
-    writeAttrs(this, out->mutable_payload());
+    proto::EdgeAttributePayload payload;
+    writeAttrs(this, &payload);
+    out->mutable_payload()->PackFrom(payload);
 }
+
 void hstd::ext::graph::gv::EdgeAttribute::readSerial(
     graph::proto::IAttribute const* in,
     IGraph const*                   graph,
     IGraphSerialReaderFactory*      factory,
     IAttributeObject const*         vertex) {
     layout::IEdgeVisualAttribute::readSerial(in, graph, factory, vertex);
-    readAttrs(this, in->payload());
+    readAttrs(
+        this,
+        hstd::serde::unpack_attr_payload<proto::EdgeAttributePayload>(in->payload()));
 }
 #    endif
 

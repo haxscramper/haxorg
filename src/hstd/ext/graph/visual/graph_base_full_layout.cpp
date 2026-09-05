@@ -105,7 +105,14 @@ void layout_run_full_layout(layout::LayoutRun* run) {
         }
     };
 
-    for (auto const& root : run->getGroups()->getRootVertices()) { aux(root); }
+    auto roots = run->getGroups()->getRootVertices();
+
+    LOGIC_ASSERTION_CHECK(
+        0 < roots.size(),
+        "Cannot execute diagram layout, vertex hierarchy does not specify any root "
+        "vertices.");
+
+    for (auto const& root : roots) { aux(root); }
 
     VertexIDSet all_layout_vertices = VertexIDSet::FromVec(run->result.vertices.keys());
 

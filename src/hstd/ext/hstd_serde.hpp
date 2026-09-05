@@ -2,6 +2,7 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "google/protobuf/map.h"
+#    include <google/protobuf/any.pb.h>
 #    include <hstd/stdlib/Json.hpp>
 #    include <hstd/stdlib/Map.hpp>
 #    include <hstd/stdlib/Opt.hpp>
@@ -217,6 +218,18 @@ struct proto_serde<float, float> {
 
 
 std::string getJString(google::protobuf::Message const& message);
+
+template <typename T>
+T unpack_attr_payload(google::protobuf::Any const& in) {
+    T payload;
+    if (!in.UnpackTo(&payload)) {
+        throw hstd::logic_error::init(
+            hstd::fmt(
+                "Failed to unpack attribute payload: does not match the target type {}",
+                T::descriptor()->full_name()));
+    }
+    return payload;
+}
 
 
 } // namespace hstd::serde
