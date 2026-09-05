@@ -1,0 +1,103 @@
+
+* [[file:graph_base.proto]]
+
+Base skeleton of the graph serialization and de-serialization. The ~IGraph~ type is the top-level type in the serialization.
+
+To create a protobuf graph the input file must populate the ~payload~ objects in all fields that have them, this determines the final runtime type and handling of the input data.
+
+#+caption: Example JSON configuration
+#+begin_src json
+{
+    // At least one edge, ports, hierarchy collection must be defined to properly construct the
+    // graph and execute the layout run.
+  "collections": [
+    {
+        // For layout execution specific node and edge types don't hold much information,
+        // so in all cases the "Trivial" case will work.
+      "payload": {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgeCollectionPayload"},
+      "edges"  : [
+        {
+          "payload"         : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgePayload"},
+          "source_vertex_id": "vert-1",
+          "target_vertex_id": "vert-2",
+          "stable_id"       : "vert-vert",
+          "attributes"      : [
+            {
+              "payload": {
+                  // the main layout data is stored in the attribute payloads, which also
+                  // determine the handling, style and which algorithm is going to be
+                  // used for the particular group layout.
+                "@type": "type.googleapis.com/hstd.ext.graph.gv.proto.EdgeAttributePayload",
+                "parent_stable_id": "vert-root"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+    // Hierarchy must include all edges referenced in the vertices list
+    // only ~nested_in_map~ needs to be popuated, mapping the node to the list
+    // of its sub-nodes
+  "hierarchies": [{
+      "payload"      : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexHierarchyPayload"},
+      "nested_in_map": {
+          // for diagramming, entire graph is organized in the top-down hierarchy with one more more
+          // root vertices, and the list of nested ones.
+          "vert-root": {
+              "vertices": [
+                  "vert-1",
+                  "vert-2"
+              ]
+          }
+      }
+    }],
+  "ports"      : [{"payload": {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialPortCollectionPayload"}}],
+  "vertices"   : [
+    {
+      "stable_id" : "vert-root",
+        // vertex
+      "payload"   : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"},
+      "attributes": [
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.gv.proto.GroupAttributePayload"
+          }
+        }
+      ]
+    },
+    {
+      "stable_id" : "vert-1",
+      "payload"   : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"
+      },
+      "attributes": [
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.gv.proto.NodeAttributePayload",
+            "parent_stable_id": "vert-root",
+            "height": 2,
+            "width": 2
+          }
+        }
+      ]
+    },
+    {
+      "stable_id" : "vert-2",
+      "payload"   : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"
+      },
+      "attributes": [
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.gv.proto.NodeAttributePayload",
+            "parent_stable_id": "vert-root",
+            "height": 2,
+            "width": 2
+          }
+        }
+      ]
+    }
+  ]
+}
+#+end_src

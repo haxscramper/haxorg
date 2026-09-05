@@ -11,6 +11,8 @@ org::cli::CliOpts::DiagramOpts org::cli::DiagramCommandContext::parseCommand(
     OPT_GET(diagram_cmd, opts, output, std::string);
     OPT_GET(diagram_cmd, opts, serial_read_log, std::string);
     OPT_GET(diagram_cmd, opts, layout_log, std::string);
+    OPT_GET(diagram_cmd, opts, output_visual, std::string);
+    OPT_GET(diagram_cmd, opts, output_visual_debug, bool);
     OPT_GET_ENUM(diagram_cmd, opts, format, CliOpts::ProtoFormat);
     OPT_GET_ENUM(diagram_cmd, opts, input_format, CliOpts::DiagramOpts::InputFormat);
     return opts;
@@ -22,6 +24,10 @@ void org::cli::DiagramCommandContext::getSubcommand(
     diagram_cmd.add_argument(DO::output_opt).help("output diagram file");
     diagram_cmd.add_argument(DO::serial_read_log_opt)
         .help("log for the serial data reader");
+    diagram_cmd.add_argument(DO::output_visual_opt)
+        .help("SVG with the diagram debug output");
+    diagram_cmd.add_argument(DO::output_visual_debug_opt)
+        .help("Write SVG with additional debug information");
     diagram_cmd.add_argument(DO::layout_log_opt).help("log for the layout run");
     diagram_cmd.add_argument(DO::format_opt)
         .help("set diagram export format: " + describe_enum<CliOpts::ProtoFormat>());
@@ -67,6 +73,14 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
     graph->readSerial(&proto_layout, &factory);
     if (cmd.layout_log) { factory.run->setTraceFile(cmd.layout_log.value()); }
     factory.run->runFullLayout();
+
+    if (cmd.output_visual) {
+        auto visual = factory.run->getVisual();
+        hstd::writeFile(
+            cmd.output_visual.value(),
+            hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+    }
+
     auto result = std::make_unique<hstd::ext::graph::proto::IGraph>();
     graph->writeSerial(result.get());
     shared.writeProtoResult(cmd.output, *result, cmd.format);

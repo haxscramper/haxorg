@@ -120,8 +120,6 @@ message PointPayload {
   optional double y = 2;
 }
 
-
-
 message NodeAttributePayload {
   optional NodeShape shape = 1;
   optional NodeArrowSize arrowsize = 2;
@@ -160,7 +158,8 @@ message EdgeAttributePayload {
   optional string URL = 11;
   optional string lhead = 12;
   optional string ltail = 13;
-  string parent_stable_id = 14;
+  optional NodeDir dir = 14;
+  string parent_stable_id = 15;
 }
 
 message GroupAttributePayload {

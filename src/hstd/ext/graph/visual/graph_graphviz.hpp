@@ -743,20 +743,6 @@ class Layout : public layout::IPlacementAlgorithm {
 
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
-#    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override {
-        logic_todo_impl();
-    }
-
-    void readSerial(
-        graph::proto::IAttribute const* in,
-        IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory,
-        IAttributeObject const*         vertex) override {
-        logic_todo_impl();
-    }
-#    endif
-
     NodeAttribute node;
     GraphGroup    graph;
 
@@ -772,20 +758,6 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
-#    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override {
-        logic_todo_impl();
-    }
-
-    void readSerial(
-        graph::proto::IAttribute const* in,
-        IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory,
-        IAttributeObject const*         vertex) override {
-        logic_todo_impl();
-    }
-#    endif
-
     EdgeAttribute edge;
     GraphGroup    graph;
 
@@ -800,20 +772,6 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-#    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override {
-        logic_todo_impl();
-    }
-
-    void readSerial(
-        graph::proto::IAttribute const* in,
-        IGraph const*                   graph,
-        IGraphSerialReaderFactory*      factory,
-        IAttributeObject const*         vertex) override {
-        logic_todo_impl();
-    }
-#    endif
-
     Rect                   graph;
     hstd::SPtr<GraphGroup> group;
 

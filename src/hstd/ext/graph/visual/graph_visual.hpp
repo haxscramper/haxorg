@@ -47,6 +47,19 @@ class ILayoutAttribute : public IAttribute {
     /// \brief Original type of the layout element, used for the \refP
     /// VisGroup::original_type field in the \ref LayoutRun::getVisual
     DECL_DESCRIBED_ENUM(Kind, Port, Edge, Vertex, Group);
+
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void readSerial(
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory,
+        IAttributeObject const*         vertex) override {
+        throw hstd::logic_assertion_error::init(
+            "default implementation of the layout attribute does not support reading the "
+            "serial data");
+    }
+#endif
 };
 
 class IPortLayoutAttribute : public ILayoutAttribute {
@@ -67,7 +80,10 @@ class IPortLayoutAttribute : public ILayoutAttribute {
 
 class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
-    virtual Path             getPath() const = 0;
+    virtual Path getPath() const = 0;
+
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
+
     virtual visual::VisGroup getVisual(EdgeID const& selfId) const {
         visual::VisGroup result;
         result.elements.push_back(
@@ -80,7 +96,12 @@ class IEdgeLayoutAttribute : public ILayoutAttribute {
 class IVertexLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Vertex bounding box + position relative to the parent
-    virtual Rect             getBBox() const = 0;
+    virtual Rect getBBox() const = 0;
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
+#endif
+
     virtual visual::VisGroup getVisual(VertexID const& selfId) const {
         visual::VisGroup res;
         res.elements.push_back(

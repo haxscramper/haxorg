@@ -223,4 +223,12 @@ void layout::LayoutRun::runFullLayout() {
 #if ORG_BUILD_WITH_ADAPTAGRAMS
     layout_run_unbound_edge_placement(this);
 #endif
+
+    for (auto const& v : groups->getAllVertices()) {
+        if (hasLayout(v)) { getMVertex(v)->addUniqueAttribute(getLayout(v)); }
+    }
+
+    for (auto const& e : groups->getEdges()) {
+        if (hasLayout(e)) { getMEdge(e)->addUniqueAttribute(getLayout(e)); }
+    }
 }

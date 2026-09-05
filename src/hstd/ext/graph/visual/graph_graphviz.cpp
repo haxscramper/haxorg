@@ -768,7 +768,6 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
-        OP_TRACER_MESSAGE(run, "node attribute");
         if (hstd::Opt<hstd::u64> _tmp;
             node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
             auto id   = VertexID::FromValue(_tmp.value());
@@ -1437,7 +1436,7 @@ bool getProtoField(Message const& msg, Str const& name, T& value) {
         auto const*       fy = p.GetDescriptor()->FindFieldByName("y");
         value                = Point(pr->GetDouble(p, fx), pr->GetDouble(p, fy));
     } else {
-        return false;
+        throw hstd::logic_unhandled_kind_error::init(hstd::value_metadata<T>::typeName());
     }
 
     return true;

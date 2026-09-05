@@ -1,5 +1,7 @@
 #include "graph_visual.hpp"
 
+#include "src/hstd/ext/graph/visual/graph_visual.pb.h"
+#include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 
 using namespace hstd::ext::graph;
@@ -289,10 +291,10 @@ void layout::IGroupVisualAttribute::writeSerialConstraints(
 }
 
 void layout::IGroupVisualAttribute::readSerialConstraints(
-    google::protobuf::RepeatedField<proto::IConstraint> const* in,
-    IGraph const*                                              graph,
-    IGraphSerialReaderFactory*                                 factory,
-    IAttributeObject const*                                    vertex) {
+    google::protobuf::RepeatedField<graph::proto::IConstraint> const* in,
+    IGraph const*                                                     graph,
+    IGraphSerialReaderFactory*                                        factory,
+    IAttributeObject const*                                           vertex) {
     for (auto const& c : *in) {
         auto new_constraint = factory->newConstraint(&c);
         new_constraint->readSerial(&c, graph);
@@ -341,3 +343,24 @@ hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::EdgeIteration::
 
     return result;
 }
+
+#if ORG_BUILD_WITH_PROTOBUF
+
+void layout::IVertexLayoutAttribute::writeSerial(
+    graph::proto::IAttribute* out,
+    IGraph const*             graph) const {
+    hstd::ext::graph::layout::proto::IGroupLayoutAttributePayload payload;
+    hstd::serde::write_serde(payload.mutable_bbox(), getBBox());
+    out->mutable_payload()->PackFrom(&payload);
+}
+
+void hstd::ext::graph::layout::IEdgeLayoutAttribute::writeSerial(
+    graph::proto::IAttribute* out,
+    IGraph const*             graph) const {
+    hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload payload;
+    hstd::serde::write_serde(payload.mutable_path(), getPath());
+    out->mutable_payload()->PackFrom(&payload);
+}
+
+
+#endif
