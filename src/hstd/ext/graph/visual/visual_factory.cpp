@@ -1,5 +1,6 @@
 #include "visual_factory.hpp"
 #include "hstd/ext/graph/visual/graph_graphviz.hpp"
+#include "hstd/system/exceptions.hpp"
 #include "src/hstd/ext/graph/visual/graph_graphviz.pb.h"
 #include <hstd/ext/hstd_serde.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
@@ -95,6 +96,12 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
         in->payload().UnpackTo(&pl);
 
         if (pl.has_parent_stable_id()) {
+            LOGIC_ASSERTION_CHECK_FMT(
+                !pl.parent_stable_id().empty(),
+                "Graphviz group vertex '{}' has empty parent stable ID. "
+                "To create a top-level graphivz layout group, fully omit ID field. "
+                "Existing but empty ID field is interpreted as graphviz cluster.",
+                vertex->getStableId());
             return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
                 ->getUniqueAttribute<gv::GraphGroup>()
                 ->newSubgraph(vertex->getStableId());

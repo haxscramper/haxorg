@@ -723,7 +723,7 @@ class Layout : public layout::IPlacementAlgorithm {
     /// Backend-specific, 72 is the default used by graphviz.
     [[refl]] int graphviz_size_scaling = 1;
 
-    void createLayout(GraphGroup const& graph, bool debug_write = false);
+    void createLayout(GraphGroup const& graph);
 
     void freeLayout(GraphGroup graph);
 

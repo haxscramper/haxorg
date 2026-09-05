@@ -5,6 +5,8 @@ Base skeleton of the graph serialization and de-serialization. The ~IGraph~ type
 
 To create a protobuf graph the input file must populate the ~payload~ objects in all fields that have them, this determines the final runtime type and handling of the input data.
 
+- Protobuf type for creating the edge is ~IEdge~, for vertex is ~IVertex~ -- but every single type must have the payload information specified, otherwise the reader would not be able to determine the appropriate runtime type of the object. The ~graph_base.proto~ provides a frame, but cannot be used without slotting in the metadata in the empty placeholders -- in this case ~payload~ field.
+
 #+caption: Example JSON configuration
 #+begin_src json
 {

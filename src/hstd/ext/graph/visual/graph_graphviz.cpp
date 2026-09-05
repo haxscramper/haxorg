@@ -606,43 +606,62 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
     }
 }
 
-void gv::Layout::createLayout(GraphGroup const& graph, bool debug_write) {
+void gv::Layout::createLayout(GraphGroup const& graph) {
     agseterr(AGERR);
     hstd::logic_assertion_check_not_nil(this);
-    auto g    = const_cast<Agraph_t*>(graph.get());
-    auto algo = strdup(layoutTypeToString(layout).c_str());
-    LOGIC_ASSERTION_CHECK(algo != nullptr, "");
-    LOGIC_ASSERTION_CHECK(std::string{algo} != "", "");
-    if (debug_write) {
-        std::cerr << "agwrite before layout" << std::endl;
-        agwrite(g, stderr);
 
-        char* margin = agget(g, (char*)"margin");
-        fprintf(stderr, "graph margin: %s\n", margin ? margin : "(null)");
+    auto* g    = const_cast<Agraph_t*>(graph.get());
+    auto  algo = layoutTypeToString(layout);
 
-        char* pad = agget(g, (char*)"pad");
-        fprintf(stderr, "graph pad: %s\n", pad ? pad : "(null)");
-
-        char* bb = agget(g, (char*)"bb");
-        fprintf(stderr, "graph bb (before layout): %s\n", bb ? bb : "(null)");
-    }
-
+    LOGIC_ASSERTION_CHECK(!algo.empty(), "");
     hstd::logic_assertion_check_not_nil(gvc.get());
     hstd::logic_assertion_check_not_nil(g);
-    assert(gvc.get() != nullptr);
-    assert(g != nullptr);
-    int res = gvLayout(gvc.get(), g, algo);
+
+    auto trace_graph = [&](std::string const& prefix) {
+        char*       buffer = nullptr;
+        std::size_t size   = 0;
+        FILE*       stream = open_memstream(&buffer, &size);
+
+        LOGIC_ASSERTION_CHECK(stream != nullptr, "");
+        LOGIC_ASSERTION_CHECK(agwrite(g, stream) == 0, "");
+        LOGIC_ASSERTION_CHECK(std::fclose(stream) == 0, "");
+
+        std::string text(buffer, size);
+        std::free(buffer);
+
+
+        graph.run->writeAdjacentToTraceFile(
+            hstd::fmt("{}{}.dot", prefix, graph.getStableId()), text);
+    };
+
+    if (graph.run->canTrace()) {
+        OP_TRACER_MESSAGE(graph.run, "agwrite before layout");
+        trace_graph("pre_layout_");
+
+        char* margin = agget(g, const_cast<char*>("margin"));
+        OP_TRACER_MESSAGE(graph.run, "graph margin: {}", margin ? margin : "(null)");
+
+        char* pad = agget(g, const_cast<char*>("pad"));
+        OP_TRACER_MESSAGE(graph.run, "graph pad: {}", pad ? pad : "(null)");
+
+        char* bb = agget(g, const_cast<char*>("bb"));
+        OP_TRACER_MESSAGE(graph.run, "graph bb (before layout): {}", bb ? bb : "(null)");
+    }
+
+    int res = gvLayout(gvc.get(), g, algo.data());
     if (res != 0) { throw std::logic_error("Could not compute layout"); }
-    // Layout does not position the labels, need to call rendering pass.
-    // 'dot' here is the name of the rendering backend.
-    res = gvRender(gvc.get(), g, "xdot", NULL);
+
+    // Layout does not position labels, so execute the rendering pass.
+    res = gvRender(gvc.get(), g, "xdot", nullptr);
     if (res != 0) { throw std::logic_error("Could not execute render for the layout"); }
 
-    if (debug_write) {
-        std::cerr << "agwrite after layout" << std::endl;
-        char* bb = agget(g, (char*)"bb");
-        fprintf(stderr, "graph bb (after layout): %s\n", bb ? bb : "(null)");
-        agwrite(g, stderr);
+    if (graph.run->canTrace()) {
+        OP_TRACER_MESSAGE(graph.run, "agwrite after layout");
+
+        char* bb = agget(g, const_cast<char*>("bb"));
+        OP_TRACER_MESSAGE(graph.run, "graph bb (after layout): {}", bb ? bb : "(null)");
+
+        trace_graph("pre_layout_");
     }
 }
 
@@ -771,7 +790,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     }
 
     hstd::logic_assertion_check_not_nil(rootGroup);
-    rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup, false);
+    rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup);
 
     layout::IPlacementAlgorithm::Result result;
     // 'each node' iterates over all nodes at once, including ones places
