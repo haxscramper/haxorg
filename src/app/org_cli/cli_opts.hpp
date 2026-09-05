@@ -37,7 +37,11 @@ struct CliOpts {
         OPT_FIELD(output, "output", std::string, "");
         OPT_FIELD(format, "--format", ProtoFormat, ProtoFormat::Binary);
         OPT_FIELD(input_format, "--input-format", InputFormat, InputFormat::Binary);
-        DESC_FIELDS(DiagramOpts, (input, output, format, input_format));
+        OPT_FIELD(serial_read_log, "--serial-read-log", hstd::Opt<std::string>, "");
+        OPT_FIELD(layout_log, "--layout-log", hstd::Opt<std::string>, "");
+        DESC_FIELDS(
+            DiagramOpts,
+            (input, output, format, input_format, serial_read_log, layout_log));
     };
 
 

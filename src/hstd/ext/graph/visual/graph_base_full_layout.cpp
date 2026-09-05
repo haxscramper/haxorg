@@ -11,7 +11,13 @@ using namespace hstd::ext::graph;
 
 namespace {
 void layout_run_full_layout(layout::LayoutRun* run) {
-    hstd::logic_assertion_check_not_nil(run);
+    LOGIC_ASSERTION_CHECK(
+        run != nullptr,
+        "Expected non-nil full layout run. "
+        "If reading from the de-serialized graph, "
+        "this error means none of the edges or vertices have defined "
+        "any attributes, so no visualization/layout context was created.");
+
     auto __scope = run->begin_scope(
         hstd::fmt(
             "run full layout for the graph with root IDs {}",

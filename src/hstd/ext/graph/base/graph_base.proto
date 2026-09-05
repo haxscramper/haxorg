@@ -69,6 +69,8 @@ message IConstraint {
   google.protobuf.Any payload = 5;
 }
 
+message TrivialPortCollectionPayload {};
+
 message IPortCollection {
   repeated IPort ports = 1;
   google.protobuf.Any payload = 2;

@@ -13,7 +13,7 @@ class VisualFactory : public IGraphSerialReaderFactory {
     hstd::SPtr<layout::LayoutRun> run;
     hstd::SPtr<IGraph>            graph;
 
-    VisualFactory(hstd::SPtr<IGraph> const& graph);
+    VisualFactory(hstd::SPtr<IGraph> const& graph) : graph{graph} {}
 
     hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
         proto::IVertexHierarchy const* in) override;

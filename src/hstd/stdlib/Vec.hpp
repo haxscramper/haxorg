@@ -435,14 +435,24 @@ class [[refl(R"({
     }
 
     template <typename Res, typename Func>
-    Vec<Res> map(Func const& cb) {
+    Vec<Res> map(Func const& cb) const {
         Vec<Res> result;
         for (auto const& it : *this) { result.push_back_idx(cb(it)); }
         return result;
     }
 
     template <typename Func>
-    Vec<T> filter(Func const& cb) {
+    void for_each(Func const& cb) {
+        for (auto& it : *this) { cb(it); }
+    }
+
+    template <typename Func>
+    void for_each(Func const& cb) const {
+        for (auto const& it : *this) { cb(it); }
+    }
+
+    template <typename Func>
+    Vec<T> filter(Func const& cb) const {
         Vec<T> result;
         for (auto const& it : *this) {
             if (cb(it)) { result.push_back_idx(it); }
@@ -451,7 +461,7 @@ class [[refl(R"({
     }
 
     template <typename Range>
-    auto map_range(Range const& range) {
+    auto map_range(Range const& range) const {
         return *this | range;
     }
 };
