@@ -87,6 +87,11 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
     if (cmd.output_visual || cmd.output_visual_json) {
         auto visual = factory.run->getVisual();
 
+        if (cmd.output_visual_json) {
+            hstd::writeFile(
+                cmd.output_visual_json.value(), hstd::to_json_eval(visual).dump(2));
+        }
+
         if (cmd.output_visual_scale) {
             for (auto& v : visual) { v *= cmd.output_visual_scale.value(); }
         }
@@ -95,11 +100,6 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
             hstd::writeFile(
                 cmd.output_visual.value(),
                 hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
-        }
-
-        if (cmd.output_visual_json) {
-            hstd::writeFile(
-                cmd.output_visual_json.value(), hstd::to_json_eval(visual).dump(2));
         }
     }
 

@@ -803,7 +803,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
-        OP_TRACER_MESSAGE(run, "node -> {}", node.getPropertiesAsString());
+        OP_TRACER_MESSAGE(
+            run, "node -> {}[{}]", node.name(), node.getPropertiesAsString());
         if (hstd::Opt<hstd::u64> _tmp;
             node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
             auto id   = VertexID::FromValue(_tmp.value());

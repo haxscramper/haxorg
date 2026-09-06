@@ -70,7 +70,12 @@
 
 
 namespace hstd::ext::graph::gv {
-static constexpr double scaling = 100.0f;
+
+// TODO: update for newer Graphviz where `dpi` can be set — if you ever set the `dpi`
+// graph attribute, the 72 constant must come from `GD_drawing(graph)->dpi`. Also verify
+// the scaling usage in the other code, it is inconsistent, changing it to anything other
+// to 72 causes the node sizes to scale appropriately, but positions drift randomly.
+static constexpr double scaling = 72.0f;
 
 struct UserDataBase {
     Agrec_t header;
