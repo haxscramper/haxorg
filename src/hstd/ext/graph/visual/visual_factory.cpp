@@ -32,7 +32,11 @@ hstd::SPtr<hstd::ext::graph::IVertex> hstd::ext::graph::VisualFactory::newVertex
         in->has_payload(),
         "De-serialization input does not have payload object {}",
         serde::getJString(*in));
-    OP_TRACER_MESSAGE(this, "VisualFactory::newVertex URL {}", in->payload().type_url());
+    OP_TRACER_MESSAGE(
+        this,
+        "VisualFactory::newVertex ID {} URL {}",
+        in->stable_id(),
+        in->payload().type_url());
     hstd::SPtr<IVertex> res;
     if (in->payload().Is<proto::TrivialVertexPayload>()) {
         res = std::make_shared<TrivialVertex>(in->stable_id());

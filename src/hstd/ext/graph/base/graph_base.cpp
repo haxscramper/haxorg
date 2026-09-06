@@ -350,6 +350,11 @@ void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* fact
         addPorts(new_collection);
     }
 
+    char const* too_early_attrs
+        = "Graph element de-serialization should not read the attributes "
+          "during loading. The list of attributes is read separately by the "
+          "`IGraph::readSerial`. `readSerial()` for protobuf payload type ";
+
 
     // order of data de-serialization is important. Vertices are loaded
     // first because they don't depend on any other graph elements. Then
@@ -359,22 +364,101 @@ void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* fact
     for (auto const& v : in->vertices()) {
         auto new_vertex = factory->newVertex(&v);
         new_vertex->readSerial(&v, this, factory);
+        LOGIC_ASSERTION_CHECK_FMT(
+            new_vertex->getAttributes().empty(),
+            "{} {} has loaded {} attributes for vertex {}",
+            too_early_attrs,
+            v.payload().type_url(),
+            new_vertex->getAttributes().size(),
+            v.stable_id());
         std::ignore = addVertex(new_vertex);
     }
+
+    auto validate_edges = [&](auto const& coll, auto const& entry) {
+        for (auto const& edge : coll.edges()) {
+            auto const& new_edge = entry->getEdge(
+                entry->getEdgeIDByStableId(edge.stable_id()));
+            LOGIC_ASSERTION_CHECK_FMT(
+                new_edge->getAttributes().empty(),
+                "{} {} has loaded {} attributes for edge {} in collection {}",
+                too_early_attrs,
+                edge.payload().type_url(),
+                new_edge->getAttributes().size(),
+                edge.stable_id(),
+                entry->getStableID());
+        }
+    };
 
     // split the collection content reading and the collection object
     // construction so objects could access full set of collections if
     // necessary.
     for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
         entry->readSerial(&coll, this, factory);
+        validate_edges(coll, entry);
     }
 
     for (auto const& [coll, entry] : hstd::rv::zip(in->hierarchies(), hierarchy_list)) {
         entry->readSerial(&coll, this, factory);
+        validate_edges(coll, entry);
     }
 
     for (auto const& [coll, entry] : hstd::rv::zip(in->ports(), ports_list)) {
         entry->readSerial(&coll, this, factory);
+        for (auto const& port : coll.ports()) {
+            // TODO: Perform port attribute loading validation.
+
+            // LOGIC_ASSERTION_CHECK_FMT(
+            //     new_port->getAttributes().empty(),
+            //     "{} {} has loaded {} attributes for port {} in collection",
+            //     too_early_attrs,
+            //     port.payload().type_url(),
+            //     new_port->getAttributes(),
+            //     edge.stable_id());
+        }
+    }
+
+    for (auto const& v : in->vertices()) {
+        OP_TRACER_MESSAGE_SCOPE(
+            factory,
+            "IVertex load attrs for ID '{}' payload {}",
+            v.stable_id(),
+            v.payload().type_url());
+
+        auto new_vertex = getMVertex(getVertexIDByStableId(v.stable_id()));
+        new_vertex->IAttributeObject::readSerial(
+            &v.attributes(), this, factory, new_vertex);
+        OP_TRACER_MESSAGE(
+            factory, "read {} attributes", new_vertex->getAttributes().size());
+    }
+
+    for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
+        entry->readSerial(&coll, this, factory);
+        for (auto const& edge : coll.edges()) {
+            OP_TRACER_MESSAGE_SCOPE(
+                factory,
+                "IVertex load attrs for ID '{}' payload {}",
+                edge.stable_id(),
+                edge.payload().type_url());
+
+            auto new_edge = getMEdge(entry->getEdgeIDByStableId(edge.stable_id()));
+            new_edge->IAttributeObject::readSerial(
+                &edge.attributes(), this, factory, new_edge);
+        }
+    }
+
+    for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
+        entry->readSerial(&coll, this, factory);
+        for (auto const& edge : coll.edges()) {
+            OP_TRACER_MESSAGE_SCOPE(
+                factory,
+                "IVertex load attrs for ID '{}' payload {}",
+                edge.stable_id(),
+                edge.payload().type_url());
+
+            auto new_edge = getMEdge(entry->getEdgeIDByStableId(edge.stable_id()));
+            new_edge->IAttributeObject::readSerial(
+                &edge.attributes(), this, factory, new_edge);
+        }
     }
 }
 #endif
