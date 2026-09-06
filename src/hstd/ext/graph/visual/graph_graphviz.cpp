@@ -11,7 +11,7 @@ using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
 namespace {
-Rect getGraphBBox(gv::GraphGroup const& g) {
+Rect getRootGraphBBox(gv::GraphGroup const& g) {
     boxf rect = g.info()->bb;
 
     // +----[UR]
@@ -46,12 +46,14 @@ Point toGvPoint(pointf p, float height) { return Point(p.x, height - p.y); }
 Rect getSubgraphBBox(gv::GraphGroup const& g, Rect const& bbox) {
     boxf rect = g.info()->bb;
     LOGIC_ASSERTION_CHECK(0 <= bbox.height(), "");
-    auto ll = toGvPoint(rect.LL, bbox.height());
-    auto ur = toGvPoint(rect.UR, bbox.height());
-    Rect res{ll.x(), ll.y(), ur.x() - ll.x(), ll.y() - ur.y()};
+    auto ll  = toGvPoint(rect.LL, bbox.height());
+    auto ur  = toGvPoint(rect.UR, bbox.height());
+    auto res = Rect ::FromUpperLeftWH(
+        Point(ll.x(), ur.y()), ur.x() - ll.x(), ll.y() - ur.y());
     LOGIC_ASSERTION_CHECK(0 <= res.height(), "");
     return res;
 }
+
 
 Path getEdgeSpline(gv::EdgeAttribute const& edge, int scaling, Rect const& bbox) {
     Path     path;
@@ -726,8 +728,9 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
         hstd::fmt("running single layout for gv::Layout {}", g->getDebug(root_id)));
     auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(run->getGroup(root_id));
 
-    char const* id_attr      = "_gv_layout_id";
-    char const* id_sub_group = "_gv_group";
+    char const*                      id_attr      = "_gv_layout_id";
+    char const*                      id_sub_group = "_gv_group";
+    UnorderedMap<VertexID, VertexID> vertex_group; // vertex -> immediate gv subgroup id
 
     auto aux = [&](this auto&&                self,
                    VertexID const&            id,
@@ -774,6 +777,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                     attr->getWidth(),
                     attr->getHeight());
                 attr->setAttr(id_attr, vertex.getValue());
+                vertex_group.insert_or_assign(vertex, id);
             }
         }
     };
@@ -800,21 +804,48 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     rootGroup->getAlgorithm<gv::Layout>()->createLayout(*rootGroup);
 
     layout::IPlacementAlgorithm::Result result;
+
+    auto                          root_bbox = getRootGraphBBox(*rootGroup);
+    UnorderedMap<VertexID, Point> group_origin; // raw graphviz points, qt-flipped
+    rootGroup->eachSubgraph([&](GraphGroup const& group) {
+        auto id_attr = group.getAttr<hstd::u64>(id_sub_group);
+        LOGIC_ASSERTION_CHECK_FMT(
+            id_attr.has_value(),
+            "No ID attr property set for node {}",
+            group.getPropertiesAsString());
+        auto id            = VertexID::FromValue(id_attr.value());
+        auto subgraph_bbox = getSubgraphBBox(group, root_bbox);
+        auto attr          = std::make_shared<GraphGroupLayoutAttribute>(
+            subgraph_bbox, std::make_shared<GraphGroup>(group));
+        OP_TRACER_MESSAGE(
+            run, "each-group iterate group {} bbox {}", g->getDebug(id), attr->getBBox());
+        group_origin.insert_or_assign(id, Point{subgraph_bbox.x(), subgraph_bbox.y()});
+        result.vertices.insert_or_assign(id, attr);
+    });
+
+
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
     rootGroup->eachNode([&](NodeAttribute const& node) {
-        OP_TRACER_MESSAGE(
-            run, "node -> {}[{}]", node.name(), node.getPropertiesAsString());
+        // OP_TRACER_MESSAGE(
+        //     run, "node -> {}[{}]", node.name(), node.getPropertiesAsString());
         if (hstd::Opt<hstd::u64> _tmp;
             node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
             auto id   = VertexID::FromValue(_tmp.value());
-            auto bbox = getGraphBBox(*rootGroup);
+            auto bbox = getRootGraphBBox(*rootGroup);
             auto rect = getNodeRectangle(*rootGroup, node, bbox);
+
+            if (auto git = group_origin.get(vertex_group.at(id))) {
+                // or rect -= git->second, per Rect API
+                OP_TRACER_MESSAGE(run, "Moving group rect {} by -{}", rect, git.value());
+                rect = rect.move(-git.value());
+            }
+
             OP_TRACER_MESSAGE(
                 run,
                 "found sub-group {} placement rect {} bbox {} ({}, "
                 "{})",
-                id,
+                g->getDebug(id),
                 rect,
                 bbox,
                 node.info()->coord.x,
@@ -849,34 +880,24 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                 "No ID attr property for node {}",
                 node.getPropertiesAsString());
 
-            auto id = VertexID::FromValue(id_value.value());
-            // run->message(hstd::fmt("each-group iterate vertex {}", id));
-            result.vertices.insert_or_assign(
-                id, std::make_shared<GraphVertexLayoutAttribute>(node, *rootGroup));
+            auto id   = VertexID::FromValue(id_value.value());
+            auto attr = std::make_shared<GraphVertexLayoutAttribute>(node, *rootGroup);
+            run->message(
+                hstd::fmt(
+                    "each-group iterate vertex {} bbox {}",
+                    g->getDebug(id),
+                    attr->getBBox()));
+            result.vertices.insert_or_assign(id, attr);
         }
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        auto id = EdgeID::FromValue(edge.getAttr<hstd::u64>(id_attr).value());
-        OP_TRACER_MESSAGE(run, "each-group iterate edge {}", id, g->getDebug(id));
-
-        result.edges.insert_or_assign(
-            id, std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup));
+        auto id   = EdgeID::FromValue(edge.getAttr<hstd::u64>(id_attr).value());
+        auto attr = std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup);
+        OP_TRACER_MESSAGE(run, "each-group iterate edge {}", g->getDebug(id));
+        result.edges.insert_or_assign(id, attr);
     });
 
-    rootGroup->eachSubgraph([&](GraphGroup const& group) {
-        auto id_attr = group.getAttr<hstd::u64>(id_sub_group);
-        LOGIC_ASSERTION_CHECK_FMT(
-            id_attr.has_value(),
-            "No ID attr property set for node {}",
-            group.getPropertiesAsString());
-        auto id = VertexID::FromValue(id_attr.value());
-        OP_TRACER_MESSAGE(run, "each-group iterate group {}", id);
-        result.vertices.insert_or_assign(
-            id,
-            std::make_shared<GraphGroupLayoutAttribute>(
-                getGraphBBox(group), std::make_shared<GraphGroup>(group)));
-    });
 
     // Bounding box for a group/sub-group is set twice. The first time is
     // when the group layout is done at the leaf level, then the
@@ -884,9 +905,10 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     // postiioned at 0,0. When the group layout is done as an opaque nested
     // node, then the attribute is reset with a bounding box positioned on
     // the final coordinates.
+
+    OP_TRACER_MESSAGE(run, "root group bbox {}", root_bbox);
     result.vertices.insert_or_assign(
-        root_id,
-        std::make_shared<GraphGroupLayoutAttribute>(getGraphBBox(*rootGroup), rootGroup));
+        root_id, std::make_shared<GraphGroupLayoutAttribute>(root_bbox, rootGroup));
 
 
     return result;
@@ -920,7 +942,7 @@ gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedInchesWH(
 
 
 Rect gv::GraphVertexLayoutAttribute::getBBox() const {
-    return getNodeRectangle(graph, node, getGraphBBox(graph)) / gv::scaling;
+    return getNodeRectangle(graph, node, getRootGraphBBox(graph)) / gv::scaling;
 }
 
 
@@ -928,7 +950,7 @@ Path gv::GraphEdgeLayoutAttribute::getPath() const {
     return getEdgeSpline(
                edge,
                graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
-               getGraphBBox(graph))
+               getRootGraphBBox(graph))
          / gv::scaling;
 }
 
@@ -1117,7 +1139,7 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 
 
 visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfId) const {
-    Rect bbox     = getGraphBBox(graph);
+    Rect bbox     = getRootGraphBBox(graph);
     Rect nodeRect = getNodeRectangle(graph, node, bbox);
 
     visual::VisGroup result;
@@ -1247,7 +1269,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
 
 
 visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) const {
-    Rect             bbox = getGraphBBox(graph);
+    Rect             bbox = getRootGraphBBox(graph);
     Path             path = getEdgeSpline(edge, scaling, bbox);
     visual::VisGroup result;
 
@@ -1331,7 +1353,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
 
     result.custom.extra                           = json::object();
     result.custom.extra["graphviz"]["group_name"] = group->name();
-    result.max_point                              = getGraphBBox(*group).max_corner();
+    result.max_point                              = getRootGraphBBox(*group).max_corner();
 
     // Boundary rectangle
     visual::VisElement::RectShape rect;
@@ -1379,7 +1401,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
 
     // Subgraph label
     if (group) {
-        Rect         bbox  = getGraphBBox(*group);
+        Rect         bbox  = getRootGraphBBox(*group);
         textlabel_t* label = group->info()->label;
         if (label && label->text && label->text[0] != '\0') {
             visual::VisElement::TextShape text;

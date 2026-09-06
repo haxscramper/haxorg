@@ -751,16 +751,22 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
     NodeAttribute node;
     GraphGroup    graph;
+    // parent-group-relative, graphviz point scale
+    Rect bbox;
 
-    GraphVertexLayoutAttribute(NodeAttribute const& node, GraphGroup const& graph)
-        : node{node}, graph{graph} {}
+    GraphVertexLayoutAttribute(
+        NodeAttribute const& node,
+        GraphGroup const&    graph,
+        Rect const&          bbox)
+        : node{node}, graph{graph}, bbox{bbox} {}
 
-    Rect getBBox() const override;
+    Rect getBBox() const override { return bbox / gv::scaling; }
 
     std::string getRepr() const override { return node.getPropertiesAsString(); }
 
     visual::VisGroup getVisual(VertexID const& selfId) const override;
 };
+
 
 class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
