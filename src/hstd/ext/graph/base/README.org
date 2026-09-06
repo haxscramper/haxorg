@@ -63,7 +63,7 @@ To create a protobuf graph the input file must populate the ~payload~ objects in
       "stable_id" : "vert-root",
       "payload"   : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"},
       "attributes": [
-          // graphviz group payload without a parent ID will create a group vertext with
+          // graphviz group payload without a parent ID will create a group vertex with
           // its own algorithm.
         {"payload": {"@type": "type.googleapis.com/hstd.ext.graph.gv.proto.GroupAttributePayload"}}
       ]

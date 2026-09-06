@@ -1568,34 +1568,45 @@ bool getProtoField(Message const& msg, Str const& name, T& value) {
 }
 
 template <typename Attr, typename Payload>
-void writeAttrs(Attr const* self, Payload* payload) {
-#    define WRITE_ATTR(__Class, Method, key, Type)                                       \
-        do {                                                                             \
+void writeAttrs(Attr const* self, Payload* payload, LayoutType layout = LayoutType::Dot) {
+#    define WRITE_ATTR_DIRECT(__Class, Method, key, Type)                                \
+        {                                                                                \
             auto v = self->get##Method();                                                \
             if (v) { setProtoField(payload, #key, *v); }                                 \
-        } while (false)
+        }
 
-#    define WRITE_EATTR(__Class, Name, key, _type)                                       \
-        do {                                                                             \
+#    define WRITE_EATTR_DIRECT(__Class, Name, key, _type)                                \
+        {                                                                                \
             auto v = self->get##Name();                                                  \
             if (v) { setProtoField(payload, #key, *v); }                                 \
-        } while (false)
+        }
 
-#    define WRITE_ALIGNED(__Class, Method, key, Type)                                    \
-        do {                                                                             \
+#    define WRITE_ALIGNED_DIRECT(__Class, Method, key, Type)                             \
+        {                                                                                \
             Opt<Type>      value;                                                        \
             Opt<TextAlign> dir;                                                          \
             self->getAttr(#key, value);                                                  \
             if (value) { setProtoField(payload, #key, *value); }                         \
             if (dir) { setProtoField(payload, Str(#key) + Str("_align"), *dir); }        \
-        } while (false)
+        }
+
+#    define WRITE_GRAPH_ATTR(__Class, Method, key, Type, Layouts)                        \
+        if ((Layouts).contains(layout)) { WRITE_ATTR_DIRECT(__Class, Method, key, Type); }
+
+#    define WRITE_GRAPH_EATTR(__Class, Name, key, Type, Layouts)                         \
+        if ((Layouts).contains(layout)) { WRITE_EATTR_DIRECT(__Class, Name, key, Type); }
+
+#    define WRITE_GRAPH_ALIGNED(__Class, Method, key, Type, Layouts)                     \
+        if ((Layouts).contains(layout)) {                                                \
+            WRITE_ALIGNED_DIRECT(__Class, Method, key, Type);                            \
+        }
 
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {
-        _GV_NODE_ATTRIBUTES(WRITE_ATTR, WRITE_EATTR, WRITE_ALIGNED);
+        _GV_NODE_ATTRIBUTES(WRITE_ATTR_DIRECT, WRITE_EATTR_DIRECT, WRITE_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
-        _GV_EDGE_ATTRIBUTES(WRITE_ATTR, WRITE_EATTR, WRITE_ALIGNED);
+        _GV_EDGE_ATTRIBUTES(WRITE_ATTR_DIRECT, WRITE_EATTR_DIRECT, WRITE_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
-        _GV_GRAPH_ATTRIBUTES(WRITE_ATTR, WRITE_EATTR, WRITE_ALIGNED);
+        _GV_GRAPH_ATTRIBUTES(WRITE_GRAPH_ATTR, WRITE_GRAPH_EATTR, WRITE_GRAPH_ALIGNED);
     }
 
 #    undef WRITE_ATTR
@@ -1604,35 +1615,46 @@ void writeAttrs(Attr const* self, Payload* payload) {
 }
 
 template <typename Attr, typename Payload>
-void readAttrs(Attr* self, Payload const& payload) {
-#    define READ_ATTR(__Class, Method, key, Type)                                        \
-        do {                                                                             \
+void readAttrs(Attr* self, Payload const& payload, LayoutType layout = LayoutType::Dot) {
+#    define READ_ATTR_DIRECT(__Class, Method, key, Type)                                 \
+        {                                                                                \
             Type v;                                                                      \
             if (getProtoField(payload, #key, v)) { self->set##Method(v); }               \
-        } while (false)
+        }
 
-#    define READ_EATTR(__Class, Name, key, _type)                                        \
-        do {                                                                             \
+#    define READ_EATTR_DIRECT(__Class, Name, key, _type)                                 \
+        {                                                                                \
             _type v;                                                                     \
             if (getProtoField(payload, #key, v)) { self->set##Name(v); }                 \
-        } while (false)
+        }
 
-#    define READ_ALIGNED(__Class, Method, key, Type)                                     \
-        do {                                                                             \
+#    define READ_ALIGNED_DIRECT(__Class, Method, key, Type)                              \
+        {                                                                                \
             Type v;                                                                      \
             if (getProtoField(payload, #key, v)) {                                       \
                 TextAlign dir = TextAlign::Left;                                         \
                 (void)getProtoField(payload, Str(#key) + Str("_align"), dir);            \
                 self->set##Method(v, dir);                                               \
             }                                                                            \
-        } while (false)
+        }
+
+#    define READ_GRAPH_ATTR(__Class, Method, key, Type, Layouts)                         \
+        if ((Layouts).contains(layout)) { READ_ATTR_DIRECT(__Class, Method, key, Type); }
+
+#    define READ_GRAPH_EATTR(__Class, Name, key, Type, Layouts)                          \
+        if ((Layouts).contains(layout)) { READ_EATTR_DIRECT(__Class, Name, key, Type); }
+
+#    define READ_GRAPH_ALIGNED(__Class, Method, key, Type, Layouts)                      \
+        if ((Layouts).contains(layout)) {                                                \
+            READ_ALIGNED_DIRECT(__Class, Method, key, Type);                             \
+        }
 
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {
-        _GV_NODE_ATTRIBUTES(READ_ATTR, READ_EATTR, READ_ALIGNED);
+        _GV_NODE_ATTRIBUTES(READ_ATTR_DIRECT, READ_EATTR_DIRECT, READ_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
-        _GV_EDGE_ATTRIBUTES(READ_ATTR, READ_EATTR, READ_ALIGNED);
+        _GV_EDGE_ATTRIBUTES(READ_ATTR_DIRECT, READ_EATTR_DIRECT, READ_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
-        _GV_GRAPH_ATTRIBUTES(READ_ATTR, READ_EATTR, READ_ALIGNED);
+        _GV_GRAPH_ATTRIBUTES(READ_GRAPH_ATTR, READ_GRAPH_EATTR, READ_GRAPH_ALIGNED);
     }
 
 #    undef READ_ATTR

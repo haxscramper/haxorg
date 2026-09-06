@@ -83,7 +83,7 @@ struct UserDataBase {
 
 DECL_DESCRIBED_ENUM_STANDALONE(TextAlign, Left, Center, Right);
 
-enum class LayoutType
+enum class LayoutType : hstd::u8
 {
     Dot,       /// Hierarchical layout
     Neato,     /// Spring model layout
@@ -96,7 +96,7 @@ enum class LayoutType
 
 BOOST_DESCRIBE_ENUM(LayoutType, Dot, Neato, Fdp, Sfdp, Twopi, Circo);
 
-enum class RenderFormat
+enum class RenderFormat : hstd::u8
 {
     PNG,  /// Portable Network Graphics format
     PDF,  /// Portable Document Format
@@ -255,48 +255,97 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(EdgeAttribute, LHead, lhead, Str);                                   \
         __attr_impl(EdgeAttribute, LTail, ltail, Str);
 
+#    define _GV_LAYOUTS(...) (IntSet<LayoutType>{__VA_ARGS__})
+
+#    define _GV_ALL_LAYOUTS                                                              \
+        _GV_LAYOUTS(                                                                     \
+            LayoutType::Dot,                                                             \
+            LayoutType::Neato,                                                           \
+            LayoutType::Fdp,                                                             \
+            LayoutType::Sfdp,                                                            \
+            LayoutType::Twopi,                                                           \
+            LayoutType::Circo,                                                           \
+            LayoutType::Patchwork)
+
+/// \brief Iterate over all layout specific attributes.
 #    define _GV_GRAPH_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)     \
-        __eattr_use_impl(GraphGroup, RankDirection, rankdir, gv::RankDirection);         \
-        __eattr_use_impl(GraphGroup, Rank, rank, gv::Rank);                              \
-        __attr_impl(GraphGroup, Damping, Damping, double);                               \
-        __attr_impl(GraphGroup, K, K, double);                                           \
-        __attr_impl(GraphGroup, URL, URL, Str);                                          \
-        __attr_impl(GraphGroup, AspectRatio, aspect, double);                            \
-        __attr_impl(GraphGroup, BackgroundColor, bgcolor, Str);                          \
-        __attr_impl(GraphGroup, DefaultDistance, defaultdist, double);                   \
-        __attr_impl(GraphGroup, DefaultNodeColor, defaultNodeColor, Str);                \
-        __attr_impl(GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str);                \
-        __attr_impl(GraphGroup, FontColor, fontcolor, Str);                              \
-        __attr_impl(GraphGroup, Color, color, Str);                                      \
-        __attr_impl(GraphGroup, PenWidth, penwidth, double);                             \
-        __attr_impl(GraphGroup, FillColor, fillcolor, Str);                              \
-        __eattr_use_impl(GraphGroup, Style, style, gv::Style);                           \
-        __attr_impl(GraphGroup, FontName, fontname, Str);                                \
-        __attr_impl(GraphGroup, FontSize, fontsize, double);                             \
-        __attr_aligned_impl(GraphGroup, Label, label, Str);                              \
-        __attr_aligned_impl(GraphGroup, LabelURL, labelURL, Str);                        \
-        __attr_impl(GraphGroup, LabelJustification, labeljust, Str);                     \
-        __attr_impl(GraphGroup, LabelLocator, labelloc, Str);                            \
-        __attr_impl(GraphGroup, LayerListSeparator, layersep, Str);                      \
-        __attr_impl(GraphGroup, Layers, layers, Str);                                    \
-        __attr_impl(GraphGroup, Margin, margin, Point);                                  \
-        __attr_impl(GraphGroup, Pad, pad, Point);                                        \
-        __attr_impl(GraphGroup, NodeSeparation, nodesep, double);                        \
-        __attr_impl(GraphGroup, OutputOrder, outputorder, Str);                          \
-        __attr_impl(GraphGroup, PageDirection, pagedir, Str);                            \
-        __attr_impl(GraphGroup, PageHeight, pageheight, double);                         \
-        __attr_impl(GraphGroup, PageWidth, pagewidth, double);                           \
-        __attr_impl(GraphGroup, Quantum, quantum, double);                               \
-        __attr_impl(GraphGroup, RankSeparation, ranksep, double);                        \
-        __attr_impl(GraphGroup, Resolution, resolution, double);                         \
-        __attr_impl(GraphGroup, SearchSize, searchsize, int);                            \
-        __attr_impl(GraphGroup, Size, size, Point);                                      \
-        __attr_impl(GraphGroup, Spline, splines, Str);                                   \
-        __attr_impl(GraphGroup, StyleSheet, stylesheet, Str);                            \
-        __attr_impl(GraphGroup, TrueColor, truecolor, bool);                             \
-        __attr_impl(GraphGroup, ViewPort, viewport, Point);                              \
-        __attr_impl(GraphGroup, Compound, compound, bool);                               \
-        __attr_impl(GraphGroup, Concentrate, concentrate, bool);
+        __eattr_use_impl(                                                                \
+            GraphGroup,                                                                  \
+            RankDirection,                                                               \
+            rankdir,                                                                     \
+            gv::RankDirection,                                                           \
+            _GV_LAYOUTS(LayoutType::Dot));                                               \
+        __eattr_use_impl(                                                                \
+            GraphGroup, Rank, rank, gv::Rank, _GV_LAYOUTS(LayoutType::Dot));             \
+        __attr_impl(                                                                     \
+            GraphGroup, Damping, Damping, double, _GV_LAYOUTS(LayoutType::Neato));       \
+        __attr_impl(                                                                     \
+            GraphGroup, K, K, double, _GV_LAYOUTS(LayoutType::Fdp, LayoutType::Sfdp));   \
+        __attr_impl(GraphGroup, URL, URL, Str, _GV_ALL_LAYOUTS);                         \
+        __attr_impl(                                                                     \
+            GraphGroup, AspectRatio, aspect, double, _GV_LAYOUTS(LayoutType::Dot));      \
+        __attr_impl(GraphGroup, BackgroundColor, bgcolor, Str, _GV_ALL_LAYOUTS);         \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            DefaultDistance,                                                             \
+            defaultdist,                                                                 \
+            double,                                                                      \
+            _GV_LAYOUTS(LayoutType::Neato));                                             \
+        __attr_impl(                                                                     \
+            GraphGroup, DefaultNodeColor, defaultNodeColor, Str, _GV_ALL_LAYOUTS);       \
+        __attr_impl(                                                                     \
+            GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str, _GV_ALL_LAYOUTS);       \
+        __attr_impl(GraphGroup, FontColor, fontcolor, Str, _GV_ALL_LAYOUTS);             \
+        __attr_impl(GraphGroup, Color, color, Str, _GV_ALL_LAYOUTS);                     \
+        __attr_impl(GraphGroup, PenWidth, penwidth, double, _GV_ALL_LAYOUTS);            \
+        __attr_impl(GraphGroup, FillColor, fillcolor, Str, _GV_ALL_LAYOUTS);             \
+        __eattr_use_impl(GraphGroup, Style, style, gv::Style, _GV_ALL_LAYOUTS);          \
+        __attr_impl(GraphGroup, FontName, fontname, Str, _GV_ALL_LAYOUTS);               \
+        __attr_impl(GraphGroup, FontSize, fontsize, double, _GV_ALL_LAYOUTS);            \
+        __attr_aligned_impl(GraphGroup, Label, label, Str, _GV_ALL_LAYOUTS);             \
+        __attr_aligned_impl(GraphGroup, LabelURL, labelURL, Str, _GV_ALL_LAYOUTS);       \
+        __attr_impl(GraphGroup, LabelJustification, labeljust, Str, _GV_ALL_LAYOUTS);    \
+        __attr_impl(GraphGroup, LabelLocator, labelloc, Str, _GV_ALL_LAYOUTS);           \
+        __attr_impl(GraphGroup, LayerListSeparator, layersep, Str, _GV_ALL_LAYOUTS);     \
+        __attr_impl(GraphGroup, Layers, layers, Str, _GV_ALL_LAYOUTS);                   \
+        __attr_impl(GraphGroup, Margin, margin, Point, _GV_ALL_LAYOUTS);                 \
+        __attr_impl(GraphGroup, Pad, pad, Point, _GV_ALL_LAYOUTS);                       \
+        __attr_impl(                                                                     \
+            GraphGroup, NodeSeparation, nodesep, double, _GV_LAYOUTS(LayoutType::Dot));  \
+        __attr_impl(GraphGroup, OutputOrder, outputorder, Str, _GV_ALL_LAYOUTS);         \
+        __attr_impl(GraphGroup, PageDirection, pagedir, Str, _GV_ALL_LAYOUTS);           \
+        __attr_impl(GraphGroup, PageHeight, pageheight, double, _GV_ALL_LAYOUTS);        \
+        __attr_impl(GraphGroup, PageWidth, pagewidth, double, _GV_ALL_LAYOUTS);          \
+        __attr_impl(GraphGroup, Quantum, quantum, double, _GV_LAYOUTS(LayoutType::Dot)); \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            RankSeparation,                                                              \
+            ranksep,                                                                     \
+            double,                                                                      \
+            _GV_LAYOUTS(LayoutType::Dot, LayoutType::Twopi));                            \
+        __attr_impl(GraphGroup, Resolution, resolution, double, _GV_ALL_LAYOUTS);        \
+        __attr_impl(                                                                     \
+            GraphGroup, SearchSize, searchsize, int, _GV_LAYOUTS(LayoutType::Dot));      \
+        __attr_impl(GraphGroup, Size, size, Point, _GV_ALL_LAYOUTS);                     \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            Spline,                                                                      \
+            splines,                                                                     \
+            Str,                                                                         \
+            _GV_LAYOUTS(                                                                 \
+                LayoutType::Dot,                                                         \
+                LayoutType::Neato,                                                       \
+                LayoutType::Fdp,                                                         \
+                LayoutType::Sfdp,                                                        \
+                LayoutType::Twopi,                                                       \
+                LayoutType::Circo));                                                     \
+        __attr_impl(GraphGroup, StyleSheet, stylesheet, Str, _GV_ALL_LAYOUTS);           \
+        __attr_impl(GraphGroup, TrueColor, truecolor, bool, _GV_ALL_LAYOUTS);            \
+        __attr_impl(GraphGroup, ViewPort, viewport, Point, _GV_ALL_LAYOUTS);             \
+        __attr_impl(GraphGroup, Compound, compound, bool, _GV_LAYOUTS(LayoutType::Dot)); \
+        __attr_impl(                                                                     \
+            GraphGroup, Concentrate, concentrate, bool, _GV_LAYOUTS(LayoutType::Dot));
+
 
 Str alignText(Str const& text, TextAlign direction);
 
@@ -667,7 +716,17 @@ class GraphGroup
     /// graph edge attribute handle.
     hstd::SPtr<EdgeAttribute> edge(NodeAttribute const& head, NodeAttribute const& tail);
 
-    _GV_GRAPH_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
+#    define _attr_group(__Class, Method, key, Type, __layout)                            \
+        _attr(__Class, Method, key, Type)
+
+#    define _eattr_use_group(__Class, Name, key, Type, __layout)                         \
+        _eattr_use(__Class, Name, key, Type)
+
+#    define _attr_aligned_group(__Class, Name, key, Type, __layout)                      \
+        _attr_aligned(__Class, Name, key, Type)
+
+    _GV_GRAPH_ATTRIBUTES(_attr_group, _eattr_use_group, _attr_aligned_group);
+
 
     GraphGroup* setDirectionLR() { return setRankDirection(RankDirection::LR); }
 

@@ -161,6 +161,8 @@ class IConstraint {
 
 class IGroupVisualAttribute : public IVertexVisualAttribute {
   protected:
+    /// \brief Algorithm object should be crated by the factory functions
+    /// or in the constructor of the derived types based on the input data.
     hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
 
 
