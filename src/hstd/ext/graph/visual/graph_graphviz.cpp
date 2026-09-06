@@ -583,12 +583,12 @@ std::string gv::escapeHtmlForGraphviz(std::string const& input, TextAlign direct
 
 Str gv::layoutTypeToString(LayoutType layoutType) {
     switch (layoutType) {
-        case LayoutType::Dot: return "dot";
-        case LayoutType::Neato: return "neato";
-        case LayoutType::Fdp: return "fdp";
-        case LayoutType::Sfdp: return "sfdp";
-        case LayoutType::Twopi: return "twopi";
-        case LayoutType::Circo: return "circo";
+        case LayoutType::dot: return "dot";
+        case LayoutType::neato: return "neato";
+        case LayoutType::fdp: return "fdp";
+        case LayoutType::sfdp: return "sfdp";
+        case LayoutType::twopi: return "twopi";
+        case LayoutType::circo: return "circo";
         default: throw std::runtime_error("Invalid layout type.");
     }
 }
@@ -1499,22 +1499,52 @@ using ::google::protobuf::Message;
 using ::google::protobuf::Reflection;
 using namespace gv;
 
-inline FieldDescriptor const* findField(Message const& msg, Str const& name) {
-    auto field = msg.GetDescriptor()->FindFieldByName(name);
-    LOGIC_ASSERTION_CHECK_FMT(
-        field != nullptr,
-        "Attempting to get the protobuf field '{}' -- the field does not exist in "
-        "the type descriptor for {}.",
-        name,
-        msg.GetDescriptor()->full_name());
 
-    return field;
+struct ProtoFieldLocation {
+    Message const*         message = nullptr;
+    FieldDescriptor const* field   = nullptr;
+};
+
+
+ProtoFieldLocation findField(hstd::Vec<Message const*> messages, Str const& name) {
+    ProtoFieldLocation result;
+
+    for (Message const* message : messages) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            message != nullptr,
+            "Attempting to find protobuf field '{}' in a null message.",
+            name);
+
+        auto const* field = message->GetDescriptor()->FindFieldByName(name);
+        if (field == nullptr) { continue; }
+
+        LOGIC_ASSERTION_CHECK_FMT(
+            result.message == nullptr,
+            "Protobuf field '{}' is ambiguous: it exists in both '{}' and '{}'.",
+            name,
+            result.message->GetDescriptor()->full_name(),
+            message->GetDescriptor()->full_name());
+
+        result.message = message;
+        result.field   = field;
+    }
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        result.message != nullptr,
+        "Attempting to get protobuf field '{}', but none of the provided "
+        "messages contain it.",
+        name);
+
+    return result;
 }
 
 template <typename T>
-void setProtoField(Message* msg, Str const& name, T const& value) {
-    auto const*       field = findField(*msg, name);
-    Reflection const* refl  = msg->GetReflection();
+void setProtoField(hstd::Vec<Message*> messages, Str const& name, T const& value) {
+    auto const location = findField(
+        hstd::Vec<Message const*>{messages.begin(), messages.end()}, name);
+    Message*    msg   = const_cast<Message*>(location.message);
+    auto const* field = location.field;
+    auto const* refl  = msg->GetReflection();
 
     if constexpr (std::is_same_v<T, bool>) {
         refl->SetBool(msg, field, value);
@@ -1525,23 +1555,36 @@ void setProtoField(Message* msg, Str const& name, T const& value) {
     } else if constexpr (std::is_same_v<T, Str>) {
         refl->SetString(msg, field, value);
     } else if constexpr (std::is_enum_v<T>) {
-        auto const* enum_value = field->enum_type()->FindValueByNumber(
+        auto const* enumValue = field->enum_type()->FindValueByNumber(
             static_cast<int>(value));
-        if (enum_value) { refl->SetEnum(msg, field, enum_value); }
+
+        LOGIC_ASSERTION_CHECK_FMT(
+            enumValue != nullptr,
+            "Enum field '{}' has no value with number {}.",
+            name,
+            static_cast<int>(value));
+
+        refl->SetEnum(msg, field, enumValue);
     } else if constexpr (std::is_same_v<T, Point>) {
-        Message*          p  = refl->MutableMessage(msg, field);
-        Reflection const* pr = p->GetReflection();
-        auto const*       fx = p->GetDescriptor()->FindFieldByName("x");
-        auto const*       fy = p->GetDescriptor()->FindFieldByName("y");
-        pr->SetDouble(p, fx, value.x());
-        pr->SetDouble(p, fy, value.y());
+        Message*          point     = refl->MutableMessage(msg, field);
+        Reflection const* pointRefl = point->GetReflection();
+        auto const*       xField    = point->GetDescriptor()->FindFieldByName("x");
+        auto const*       yField    = point->GetDescriptor()->FindFieldByName("y");
+
+        pointRefl->SetDouble(point, xField, value.x());
+        pointRefl->SetDouble(point, yField, value.y());
+    } else {
+        throw hstd::logic_unhandled_kind_error::init(hstd::value_metadata<T>::typeName());
     }
 }
 
 template <typename T>
-bool getProtoField(Message const& msg, Str const& name, T& value) {
-    auto const*       field = findField(msg, name);
-    Reflection const* refl  = msg.GetReflection();
+bool getProtoField(hstd::Vec<Message const*> messages, Str const& name, T& value) {
+    auto const     location = findField(messages, name);
+    Message const& msg      = *location.message;
+    auto const*    field    = location.field;
+    auto const*    refl     = msg.GetReflection();
+
     if (!refl->HasField(msg, field)) { return false; }
 
     if constexpr (std::is_same_v<T, bool>) {
@@ -1555,11 +1598,13 @@ bool getProtoField(Message const& msg, Str const& name, T& value) {
     } else if constexpr (std::is_enum_v<T>) {
         value = static_cast<T>(refl->GetEnum(msg, field)->number());
     } else if constexpr (std::is_same_v<T, Point>) {
-        Message const&    p  = refl->GetMessage(msg, field);
-        Reflection const* pr = p.GetReflection();
-        auto const*       fx = p.GetDescriptor()->FindFieldByName("x");
-        auto const*       fy = p.GetDescriptor()->FindFieldByName("y");
-        value                = Point(pr->GetDouble(p, fx), pr->GetDouble(p, fy));
+        Message const&    point     = refl->GetMessage(msg, field);
+        Reflection const* pointRefl = point.GetReflection();
+        auto const*       xField    = point.GetDescriptor()->FindFieldByName("x");
+        auto const*       yField    = point.GetDescriptor()->FindFieldByName("y");
+
+        value = Point(
+            pointRefl->GetDouble(point, xField), pointRefl->GetDouble(point, yField));
     } else {
         throw hstd::logic_unhandled_kind_error::init(hstd::value_metadata<T>::typeName());
     }
@@ -1567,18 +1612,20 @@ bool getProtoField(Message const& msg, Str const& name, T& value) {
     return true;
 }
 
+
 template <typename Attr, typename Payload>
-void writeAttrs(Attr const* self, Payload* payload, LayoutType layout = LayoutType::Dot) {
+void writeAttrs(Attr const* self, Payload* payload, LayoutType layout = LayoutType::dot) {
+
 #    define WRITE_ATTR_DIRECT(__Class, Method, key, Type)                                \
         {                                                                                \
             auto v = self->get##Method();                                                \
-            if (v) { setProtoField(payload, #key, *v); }                                 \
+            if (v) { setProtoField(__PAYLOAD_EXPR(), #key, *v); }                        \
         }
 
 #    define WRITE_EATTR_DIRECT(__Class, Name, key, _type)                                \
         {                                                                                \
             auto v = self->get##Name();                                                  \
-            if (v) { setProtoField(payload, #key, *v); }                                 \
+            if (v) { setProtoField(__PAYLOAD_EXPR(), #key, *v); }                        \
         }
 
 #    define WRITE_ALIGNED_DIRECT(__Class, Method, key, Type)                             \
@@ -1586,9 +1633,12 @@ void writeAttrs(Attr const* self, Payload* payload, LayoutType layout = LayoutTy
             Opt<Type>      value;                                                        \
             Opt<TextAlign> dir;                                                          \
             self->getAttr(#key, value);                                                  \
-            if (value) { setProtoField(payload, #key, *value); }                         \
-            if (dir) { setProtoField(payload, Str(#key) + Str("_align"), *dir); }        \
+            if (value) { setProtoField(__PAYLOAD_EXPR(), #key, *value); }                \
+            if (dir) {                                                                   \
+                setProtoField(__PAYLOAD_EXPR(), Str(#key) + Str("_align"), *dir);        \
+            }                                                                            \
         }
+
 
 #    define WRITE_GRAPH_ATTR(__Class, Method, key, Type, Layouts)                        \
         if ((Layouts).contains(layout)) { WRITE_ATTR_DIRECT(__Class, Method, key, Type); }
@@ -1602,12 +1652,16 @@ void writeAttrs(Attr const* self, Payload* payload, LayoutType layout = LayoutTy
         }
 
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {
+
+#    define __PAYLOAD_EXPR() {payload}
         _GV_NODE_ATTRIBUTES(WRITE_ATTR_DIRECT, WRITE_EATTR_DIRECT, WRITE_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
         _GV_EDGE_ATTRIBUTES(WRITE_ATTR_DIRECT, WRITE_EATTR_DIRECT, WRITE_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
+#    define __PAYLOAD_EXPR() {payload, payload->mutable_common()}
         _GV_GRAPH_ATTRIBUTES(WRITE_GRAPH_ATTR, WRITE_GRAPH_EATTR, WRITE_GRAPH_ALIGNED);
     }
+#    undef __PAYLOAD_EXPR
 
 #    undef WRITE_ATTR
 #    undef WRITE_EATTR
@@ -1615,25 +1669,26 @@ void writeAttrs(Attr const* self, Payload* payload, LayoutType layout = LayoutTy
 }
 
 template <typename Attr, typename Payload>
-void readAttrs(Attr* self, Payload const& payload, LayoutType layout = LayoutType::Dot) {
+void readAttrs(Attr* self, Payload const& payload, LayoutType layout = LayoutType::dot) {
+
 #    define READ_ATTR_DIRECT(__Class, Method, key, Type)                                 \
         {                                                                                \
             Type v;                                                                      \
-            if (getProtoField(payload, #key, v)) { self->set##Method(v); }               \
+            if (getProtoField(__PAYLOAD_EXPR(), #key, v)) { self->set##Method(v); }      \
         }
 
 #    define READ_EATTR_DIRECT(__Class, Name, key, _type)                                 \
         {                                                                                \
             _type v;                                                                     \
-            if (getProtoField(payload, #key, v)) { self->set##Name(v); }                 \
+            if (getProtoField(__PAYLOAD_EXPR(), #key, v)) { self->set##Name(v); }        \
         }
 
 #    define READ_ALIGNED_DIRECT(__Class, Method, key, Type)                              \
         {                                                                                \
             Type v;                                                                      \
-            if (getProtoField(payload, #key, v)) {                                       \
+            if (getProtoField(__PAYLOAD_EXPR(), #key, v)) {                              \
                 TextAlign dir = TextAlign::Left;                                         \
-                (void)getProtoField(payload, Str(#key) + Str("_align"), dir);            \
+                (void)getProtoField(__PAYLOAD_EXPR(), Str(#key) + Str("_align"), dir);   \
                 self->set##Method(v, dir);                                               \
             }                                                                            \
         }
@@ -1649,13 +1704,17 @@ void readAttrs(Attr* self, Payload const& payload, LayoutType layout = LayoutTyp
             READ_ALIGNED_DIRECT(__Class, Method, key, Type);                             \
         }
 
+#    define __PAYLOAD_EXPR()                                                             \
+        { &payload }
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {
         _GV_NODE_ATTRIBUTES(READ_ATTR_DIRECT, READ_EATTR_DIRECT, READ_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
         _GV_EDGE_ATTRIBUTES(READ_ATTR_DIRECT, READ_EATTR_DIRECT, READ_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
+#    define __PAYLOAD_EXPR() {&payload, &payload.common()}
         _GV_GRAPH_ATTRIBUTES(READ_GRAPH_ATTR, READ_GRAPH_EATTR, READ_GRAPH_ALIGNED);
     }
+#    undef __PAYLOAD_EXPR
 
 #    undef READ_ATTR
 #    undef READ_EATTR
@@ -1671,16 +1730,16 @@ void hstd::ext::graph::gv::GraphGroup::writeSerial(
     layout::IGroupVisualAttribute::writeSerial(out, graph);
     proto::GroupAttributePayload data;
 
-    auto const layout = getLayout().value_or(LayoutType::Dot);
+    auto const layout = getLayout().value_or(LayoutType::dot);
 
     switch (layout) {
-        case LayoutType::Dot: writeAttrs(this, data.mutable_dot(), layout); break;
-        case LayoutType::Neato: writeAttrs(this, data.mutable_neato(), layout); break;
-        case LayoutType::Fdp: writeAttrs(this, data.mutable_fdp(), layout); break;
-        case LayoutType::Sfdp: writeAttrs(this, data.mutable_sfdp(), layout); break;
-        case LayoutType::Twopi: writeAttrs(this, data.mutable_twopi(), layout); break;
-        case LayoutType::Circo: writeAttrs(this, data.mutable_circo(), layout); break;
-        case LayoutType::Patchwork:
+        case LayoutType::dot: writeAttrs(this, data.mutable_dot(), layout); break;
+        case LayoutType::neato: writeAttrs(this, data.mutable_neato(), layout); break;
+        case LayoutType::fdp: writeAttrs(this, data.mutable_fdp(), layout); break;
+        case LayoutType::sfdp: writeAttrs(this, data.mutable_sfdp(), layout); break;
+        case LayoutType::twopi: writeAttrs(this, data.mutable_twopi(), layout); break;
+        case LayoutType::circo: writeAttrs(this, data.mutable_circo(), layout); break;
+        case LayoutType::patchwork:
             writeAttrs(this, data.mutable_patchwork(), layout);
             break;
     }
@@ -1695,54 +1754,70 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
     IAttributeObject const*         vertex) {
     layout::IGroupVisualAttribute::readSerial(in, graph, factory, vertex);
 
+    auto ivertex = dynamic_cast<IVertex const*>(vertex);
+    LOGIC_ASSERTION_CHECK(
+        ivertex != nullptr, "Cannot read serial data to the non-vertex target");
+
     using Payload = proto::GroupAttributePayload;
     auto payload  = hstd::serde::unpack_attr_payload<proto::GroupAttributePayload>(
         in->payload());
 
+    if (payload.layout_case() != Payload::LAYOUT_NOT_SET) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !payload.has_parent_stable_id(),
+            "Graphviz graph payload has both algorithm and parent stable ID. "
+            "Graph group must either set the algorithm or the parent ID. "
+            "Vertex {} has algorithm {}",
+            ivertex->getStableId(),
+            payload.layout_case());
+    }
+
     switch (payload.layout_case()) {
         case Payload::kDot:
-            setLayout(LayoutType::Dot);
-            readAttrs(this, payload.dot(), LayoutType::Dot);
+            setLayout(LayoutType::dot);
+            readAttrs(this, payload.dot(), LayoutType::dot);
             break;
 
         case Payload::kNeato:
-            setLayout(LayoutType::Neato);
-            readAttrs(this, payload.neato(), LayoutType::Neato);
+            setLayout(LayoutType::neato);
+            readAttrs(this, payload.neato(), LayoutType::neato);
             break;
 
         case Payload::kFdp:
-            setLayout(LayoutType::Fdp);
-            readAttrs(this, payload.fdp(), LayoutType::Fdp);
+            setLayout(LayoutType::fdp);
+            readAttrs(this, payload.fdp(), LayoutType::fdp);
             break;
 
         case Payload::kSfdp:
-            setLayout(LayoutType::Sfdp);
-            readAttrs(this, payload.sfdp(), LayoutType::Sfdp);
+            setLayout(LayoutType::sfdp);
+            readAttrs(this, payload.sfdp(), LayoutType::sfdp);
             break;
 
         case Payload::kOsage:
-            setLayout(LayoutType::Osage);
-            readAttrs(this, payload.osage(), LayoutType::Osage);
+            setLayout(LayoutType::osage);
+            readAttrs(this, payload.osage(), LayoutType::osage);
             break;
 
         case Payload::kTwopi:
-            setLayout(LayoutType::Twopi);
-            readAttrs(this, payload.twopi(), LayoutType::Twopi);
+            setLayout(LayoutType::twopi);
+            readAttrs(this, payload.twopi(), LayoutType::twopi);
             break;
 
         case Payload::kCirco:
-            setLayout(LayoutType::Circo);
-            readAttrs(this, payload.circo(), LayoutType::Circo);
+            setLayout(LayoutType::circo);
+            readAttrs(this, payload.circo(), LayoutType::circo);
             break;
 
         case Payload::kPatchwork:
-            setLayout(LayoutType::Patchwork);
-            readAttrs(this, payload.patchwork(), LayoutType::Patchwork);
+            setLayout(LayoutType::patchwork);
+            readAttrs(this, payload.patchwork(), LayoutType::patchwork);
             break;
 
         case Payload::LAYOUT_NOT_SET:
-            throw std::invalid_argument{
-                "GroupAttributePayload does not specify a layout"};
+            LOGIC_ASSERTION_CHECK_FMT(
+                payload.has_parent_stable_id(),
+                "Graphviz graph payload is missing parent ID. "
+                "Graph group must either set the algorithm or the parent ID. ");
     }
 }
 

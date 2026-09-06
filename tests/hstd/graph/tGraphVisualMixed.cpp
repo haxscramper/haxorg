@@ -122,7 +122,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     hstd::SPtr<gv::GraphGroup> circo_sub2 = gv::GraphGroup::newRootGraph(
         run, "circo_sub2");
 
-    circo_sub2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
+    circo_sub2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::circo;
     circo_sub2->setOuterPadding(geometry::Padding{5});
 
     auto circo_sub2_id_nesting = addNesting(kiwi_sub1_id, circo_sub2_id);

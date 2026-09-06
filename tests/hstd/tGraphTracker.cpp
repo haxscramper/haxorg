@@ -162,7 +162,7 @@ struct LogGraphTracker : public ::testing::Test {
             auto                            run  = state.init();
             hstd::fs::path                  path = getDebugFile("result.dot");
             processor->get_graphviz(run)->render(
-                path, gv::LayoutType::Dot, gv::RenderFormat::DOT);
+                path, gv::LayoutType::dot, gv::RenderFormat::DOT);
             std::ifstream file{path};
             EXPECT_TRUE(file.good());
         }

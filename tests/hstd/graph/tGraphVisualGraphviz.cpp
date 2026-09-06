@@ -231,11 +231,11 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
 
     auto sg2 = root->addNewNativeSubgroup(
         addNesting(rg_id, sg_id2), /*with_algorithm=*/true);
-    sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Dot;
+    sg2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::dot;
 
     auto sg1 = root->addNewNativeSubgroup(
         addNesting(rg_id, sg_id1), /*with_algorithm=*/true);
-    sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
+    sg1->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::circo;
 
     as<gv::NodeAttribute>(sg1->addVertex(addNesting(sg_id1, vs.at(0))))
         ->setFixedPointWH(60, 60)

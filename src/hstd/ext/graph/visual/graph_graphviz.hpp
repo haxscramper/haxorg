@@ -83,19 +83,21 @@ struct UserDataBase {
 
 DECL_DESCRIBED_ENUM_STANDALONE(TextAlign, Left, Center, Right);
 
+/// \brief `circo dot fdp neato nop nop1 nop2 osage patchwork sfdp twopi`
+/// matching official lowercase names for the graphviz.
 enum class LayoutType : hstd::u8
 {
-    Dot,   /// Hierarchical layout
-    Neato, /// Spring model layout
-    Fdp,   /// Force-directed layout
-    Sfdp,  /// Multiscale version of Fdp for large graphs
-    Twopi, /// Radial layout
-    Circo, /// Circular layout
-    Osage,
-    Patchwork, /// Patchwork, squarified treemap layout
+    dot,   /// Hierarchical layout
+    neato, /// Spring model layout
+    fdp,   /// Force-directed layout
+    sfdp,  /// Multiscale version of Fdp for large graphs
+    twopi, /// Radial layout
+    circo, /// Circular layout
+    osage,
+    patchwork, /// Patchwork, squarified treemap layout
 };
 
-BOOST_DESCRIBE_ENUM(LayoutType, Dot, Neato, Fdp, Sfdp, Twopi, Circo);
+BOOST_DESCRIBE_ENUM(LayoutType, dot, neato, fdp, sfdp, twopi, circo);
 
 enum class RenderFormat : hstd::u8
 {
@@ -260,13 +262,13 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 
 #    define _GV_ALL_LAYOUTS                                                              \
         _GV_LAYOUTS(                                                                     \
-            LayoutType::Dot,                                                             \
-            LayoutType::Neato,                                                           \
-            LayoutType::Fdp,                                                             \
-            LayoutType::Sfdp,                                                            \
-            LayoutType::Twopi,                                                           \
-            LayoutType::Circo,                                                           \
-            LayoutType::Patchwork)
+            LayoutType::dot,                                                             \
+            LayoutType::neato,                                                           \
+            LayoutType::fdp,                                                             \
+            LayoutType::sfdp,                                                            \
+            LayoutType::twopi,                                                           \
+            LayoutType::circo,                                                           \
+            LayoutType::patchwork)
 
 /// \brief Iterate over all layout specific attributes.
 #    define _GV_GRAPH_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)     \
@@ -275,23 +277,23 @@ DECL_DESCRIBED_ENUM_STANDALONE(
             RankDirection,                                                               \
             rankdir,                                                                     \
             gv::RankDirection,                                                           \
-            _GV_LAYOUTS(LayoutType::Dot));                                               \
+            _GV_LAYOUTS(LayoutType::dot));                                               \
         __eattr_use_impl(                                                                \
-            GraphGroup, Rank, rank, gv::Rank, _GV_LAYOUTS(LayoutType::Dot));             \
+            GraphGroup, Rank, rank, gv::Rank, _GV_LAYOUTS(LayoutType::dot));             \
         __attr_impl(                                                                     \
-            GraphGroup, Damping, Damping, double, _GV_LAYOUTS(LayoutType::Neato));       \
+            GraphGroup, Damping, Damping, double, _GV_LAYOUTS(LayoutType::neato));       \
         __attr_impl(                                                                     \
-            GraphGroup, K, K, double, _GV_LAYOUTS(LayoutType::Fdp, LayoutType::Sfdp));   \
+            GraphGroup, K, K, double, _GV_LAYOUTS(LayoutType::fdp, LayoutType::sfdp));   \
         __attr_impl(GraphGroup, URL, URL, Str, _GV_ALL_LAYOUTS);                         \
         __attr_impl(                                                                     \
-            GraphGroup, AspectRatio, aspect, double, _GV_LAYOUTS(LayoutType::Dot));      \
+            GraphGroup, AspectRatio, aspect, double, _GV_LAYOUTS(LayoutType::dot));      \
         __attr_impl(GraphGroup, BackgroundColor, bgcolor, Str, _GV_ALL_LAYOUTS);         \
         __attr_impl(                                                                     \
             GraphGroup,                                                                  \
             DefaultDistance,                                                             \
             defaultdist,                                                                 \
             double,                                                                      \
-            _GV_LAYOUTS(LayoutType::Neato));                                             \
+            _GV_LAYOUTS(LayoutType::neato));                                             \
         __attr_impl(                                                                     \
             GraphGroup, DefaultNodeColor, defaultNodeColor, Str, _GV_ALL_LAYOUTS);       \
         __attr_impl(                                                                     \
@@ -312,21 +314,21 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(GraphGroup, Margin, margin, Point, _GV_ALL_LAYOUTS);                 \
         __attr_impl(GraphGroup, Pad, pad, Point, _GV_ALL_LAYOUTS);                       \
         __attr_impl(                                                                     \
-            GraphGroup, NodeSeparation, nodesep, double, _GV_LAYOUTS(LayoutType::Dot));  \
+            GraphGroup, NodeSeparation, nodesep, double, _GV_LAYOUTS(LayoutType::dot));  \
         __attr_impl(GraphGroup, OutputOrder, outputorder, Str, _GV_ALL_LAYOUTS);         \
         __attr_impl(GraphGroup, PageDirection, pagedir, Str, _GV_ALL_LAYOUTS);           \
         __attr_impl(GraphGroup, PageHeight, pageheight, double, _GV_ALL_LAYOUTS);        \
         __attr_impl(GraphGroup, PageWidth, pagewidth, double, _GV_ALL_LAYOUTS);          \
-        __attr_impl(GraphGroup, Quantum, quantum, double, _GV_LAYOUTS(LayoutType::Dot)); \
+        __attr_impl(GraphGroup, Quantum, quantum, double, _GV_LAYOUTS(LayoutType::dot)); \
         __attr_impl(                                                                     \
             GraphGroup,                                                                  \
             RankSeparation,                                                              \
             ranksep,                                                                     \
             double,                                                                      \
-            _GV_LAYOUTS(LayoutType::Dot, LayoutType::Twopi));                            \
+            _GV_LAYOUTS(LayoutType::dot, LayoutType::twopi));                            \
         __attr_impl(GraphGroup, Resolution, resolution, double, _GV_ALL_LAYOUTS);        \
         __attr_impl(                                                                     \
-            GraphGroup, SearchSize, searchsize, int, _GV_LAYOUTS(LayoutType::Dot));      \
+            GraphGroup, SearchSize, searchsize, int, _GV_LAYOUTS(LayoutType::dot));      \
         __attr_impl(GraphGroup, Size, size, Point, _GV_ALL_LAYOUTS);                     \
         __attr_impl(                                                                     \
             GraphGroup,                                                                  \
@@ -334,18 +336,18 @@ DECL_DESCRIBED_ENUM_STANDALONE(
             splines,                                                                     \
             Str,                                                                         \
             _GV_LAYOUTS(                                                                 \
-                LayoutType::Dot,                                                         \
-                LayoutType::Neato,                                                       \
-                LayoutType::Fdp,                                                         \
-                LayoutType::Sfdp,                                                        \
-                LayoutType::Twopi,                                                       \
-                LayoutType::Circo));                                                     \
+                LayoutType::dot,                                                         \
+                LayoutType::neato,                                                       \
+                LayoutType::fdp,                                                         \
+                LayoutType::sfdp,                                                        \
+                LayoutType::twopi,                                                       \
+                LayoutType::circo));                                                     \
         __attr_impl(GraphGroup, StyleSheet, stylesheet, Str, _GV_ALL_LAYOUTS);           \
         __attr_impl(GraphGroup, TrueColor, truecolor, bool, _GV_ALL_LAYOUTS);            \
         __attr_impl(GraphGroup, ViewPort, viewport, Point, _GV_ALL_LAYOUTS);             \
-        __attr_impl(GraphGroup, Compound, compound, bool, _GV_LAYOUTS(LayoutType::Dot)); \
+        __attr_impl(GraphGroup, Compound, compound, bool, _GV_LAYOUTS(LayoutType::dot)); \
         __attr_impl(                                                                     \
-            GraphGroup, Concentrate, concentrate, bool, _GV_LAYOUTS(LayoutType::Dot));
+            GraphGroup, Concentrate, concentrate, bool, _GV_LAYOUTS(LayoutType::dot));
 
 
 Str alignText(Str const& text, TextAlign direction);
@@ -695,7 +697,7 @@ class GraphGroup
 
     void render(
         fs::path const& path,
-        LayoutType      layout = LayoutType::Dot,
+        LayoutType      layout = LayoutType::dot,
         RenderFormat    format = RenderFormat::PNG);
 
     /// Set default attriute value for edge
@@ -782,7 +784,7 @@ class Layout : public layout::IPlacementAlgorithm {
   public:
     Layout(SPtr<GVC_t> gvc, hstd::SPtr<layout::LayoutRun> run)
         : layout::IPlacementAlgorithm{run}, gvc{gvc} {}
-    LayoutType layout = LayoutType::Dot;
+    LayoutType layout = LayoutType::dot;
 
     // FIXME: this might not be necessary, using 1 returns the correct
     // results in tests.
