@@ -162,7 +162,7 @@ message EdgeAttributePayload {
 }
 
 message GroupAttributePayload {
-  message CommonGroupAttributePayload {
+  message Common {
     optional string       URL              = 1;
     optional string       bgcolor          = 2;
     optional string       defaultNodeColor = 3;
@@ -196,8 +196,8 @@ message GroupAttributePayload {
     optional PointPayload viewport         = 31;
   }
 
-  message DotGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Dot {
+    optional Common common = 1;
 
     optional RankDirection rankdir     = 2;
     optional Rank          rank        = 3;
@@ -210,53 +210,53 @@ message GroupAttributePayload {
     optional bool          concentrate = 10;
   }
 
-  message NeatoGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Neato {
+    optional Common common = 1;
 
     optional double Damping     = 2;
     optional double defaultdist = 3;
   }
 
-  message FdpGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Fdp {
+    optional Common common = 1;
 
     optional double K = 2;
   }
 
-  message SfdpGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Sfdp {
+    optional Common common = 1;
 
     optional double K = 2;
   }
 
-  message CircoGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Circo {
+    optional Common common = 1;
   }
 
-  message TwopiGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Twopi {
+    optional Common common = 1;
 
     optional double ranksep = 2;
   }
 
-  message OsageGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Osage {
+    optional Common common = 1;
   }
 
-  message PatchworkGroupAttributePayload {
-    optional CommonGroupAttributePayload common = 1;
+  message Patchwork {
+    optional Common common = 1;
   }
 
   optional string parent_stable_id = 1;
 
   oneof layout {
-    DotGroupAttributePayload       dot       = 2;
-    NeatoGroupAttributePayload     neato     = 3;
-    FdpGroupAttributePayload       fdp       = 4;
-    SfdpGroupAttributePayload      sfdp      = 5;
-    CircoGroupAttributePayload     circo     = 6;
-    TwopiGroupAttributePayload     twopi     = 7;
-    OsageGroupAttributePayload     osage     = 8;
-    PatchworkGroupAttributePayload patchwork = 9;
+    Dot       dot       = 2;
+    Neato     neato     = 3;
+    Fdp       fdp       = 4;
+    Sfdp      sfdp      = 5;
+    Circo     circo     = 6;
+    Twopi     twopi     = 7;
+    Osage     osage     = 8;
+    Patchwork patchwork = 9;
   }
 }

@@ -1669,9 +1669,23 @@ void hstd::ext::graph::gv::GraphGroup::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
     layout::IGroupVisualAttribute::writeSerial(out, graph);
-    proto::GroupAttributePayload payload;
-    writeAttrs(this, &payload);
-    out->mutable_payload()->PackFrom(payload);
+    proto::GroupAttributePayload data;
+
+    auto const layout = getLayout().value_or(LayoutType::Dot);
+
+    switch (layout) {
+        case LayoutType::Dot: writeAttrs(this, data.mutable_dot(), layout); break;
+        case LayoutType::Neato: writeAttrs(this, data.mutable_neato(), layout); break;
+        case LayoutType::Fdp: writeAttrs(this, data.mutable_fdp(), layout); break;
+        case LayoutType::Sfdp: writeAttrs(this, data.mutable_sfdp(), layout); break;
+        case LayoutType::Twopi: writeAttrs(this, data.mutable_twopi(), layout); break;
+        case LayoutType::Circo: writeAttrs(this, data.mutable_circo(), layout); break;
+        case LayoutType::Patchwork:
+            writeAttrs(this, data.mutable_patchwork(), layout);
+            break;
+    }
+
+    out->mutable_payload()->PackFrom(data);
 }
 
 void hstd::ext::graph::gv::GraphGroup::readSerial(
@@ -1680,9 +1694,56 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
     IGraphSerialReaderFactory*      factory,
     IAttributeObject const*         vertex) {
     layout::IGroupVisualAttribute::readSerial(in, graph, factory, vertex);
-    readAttrs(
-        this,
-        hstd::serde::unpack_attr_payload<proto::GroupAttributePayload>(in->payload()));
+
+    using Payload = proto::GroupAttributePayload;
+    auto payload  = hstd::serde::unpack_attr_payload<proto::GroupAttributePayload>(
+        in->payload());
+
+    switch (payload.layout_case()) {
+        case Payload::kDot:
+            setLayout(LayoutType::Dot);
+            readAttrs(this, payload.dot(), LayoutType::Dot);
+            break;
+
+        case Payload::kNeato:
+            setLayout(LayoutType::Neato);
+            readAttrs(this, payload.neato(), LayoutType::Neato);
+            break;
+
+        case Payload::kFdp:
+            setLayout(LayoutType::Fdp);
+            readAttrs(this, payload.fdp(), LayoutType::Fdp);
+            break;
+
+        case Payload::kSfdp:
+            setLayout(LayoutType::Sfdp);
+            readAttrs(this, payload.sfdp(), LayoutType::Sfdp);
+            break;
+
+        case Payload::kOsage:
+            setLayout(LayoutType::Osage);
+            readAttrs(this, payload.osage(), LayoutType::Osage);
+            break;
+
+        case Payload::kTwopi:
+            setLayout(LayoutType::Twopi);
+            readAttrs(this, payload.twopi(), LayoutType::Twopi);
+            break;
+
+        case Payload::kCirco:
+            setLayout(LayoutType::Circo);
+            readAttrs(this, payload.circo(), LayoutType::Circo);
+            break;
+
+        case Payload::kPatchwork:
+            setLayout(LayoutType::Patchwork);
+            readAttrs(this, payload.patchwork(), LayoutType::Patchwork);
+            break;
+
+        case Payload::LAYOUT_NOT_SET:
+            throw std::invalid_argument{
+                "GroupAttributePayload does not specify a layout"};
+    }
 }
 
 void hstd::ext::graph::gv::NodeAttribute::writeSerial(

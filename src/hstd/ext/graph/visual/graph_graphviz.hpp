@@ -85,12 +85,13 @@ DECL_DESCRIBED_ENUM_STANDALONE(TextAlign, Left, Center, Right);
 
 enum class LayoutType : hstd::u8
 {
-    Dot,       /// Hierarchical layout
-    Neato,     /// Spring model layout
-    Fdp,       /// Force-directed layout
-    Sfdp,      /// Multiscale version of Fdp for large graphs
-    Twopi,     /// Radial layout
-    Circo,     /// Circular layout
+    Dot,   /// Hierarchical layout
+    Neato, /// Spring model layout
+    Fdp,   /// Force-directed layout
+    Sfdp,  /// Multiscale version of Fdp for large graphs
+    Twopi, /// Radial layout
+    Circo, /// Circular layout
+    Osage,
     Patchwork, /// Patchwork, squarified treemap layout
 };
 
@@ -726,6 +727,8 @@ class GraphGroup
         _attr_aligned(__Class, Name, key, Type)
 
     _GV_GRAPH_ATTRIBUTES(_attr_group, _eattr_use_group, _attr_aligned_group);
+
+    _eattr_use(GraphGroup, Layout, layout, gv::LayoutType);
 
 
     GraphGroup* setDirectionLR() { return setRankDirection(RankDirection::LR); }
