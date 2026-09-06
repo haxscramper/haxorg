@@ -39,7 +39,7 @@ class IVertexHierarchy : public IEdgeProvider {
 #if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(proto::IVertexHierarchy* out, IGraph const* graph) const;
 
-    void readSerial(
+    virtual void readSerial(
         proto::IVertexHierarchy const* in,
         IGraph const*                  graph,
         IGraphSerialReaderFactory*     factory);
@@ -226,6 +226,15 @@ struct TrivialHierarchy : public IVertexHierarchy {
         VertexID const&               parent,
         VertexID const&               sub,
         hstd::Opt<TrivialEdge> const& init_vertex = std::nullopt);
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(proto::IVertexHierarchy* out, IGraph const* graph) const override;
+
+    void readSerial(
+        proto::IVertexHierarchy const* in,
+        IGraph const*                  graph,
+        IGraphSerialReaderFactory*     factory) override;
+#endif
 };
 
 struct IdOnlyHierarchy : public IVertexHierarchy {

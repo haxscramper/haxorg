@@ -12,7 +12,27 @@
       "payload"      : {
         "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexHierarchyPayload"
       },
-      "nested_in_map": { "vert-root": { "vertices": ["vert-1", "vert-2"] } }
+      "nested_in_map": { "vert-root": { "vertices": ["vert-1", "vert-2"] } },
+      "edges"        : [
+        {
+          "payload"         : {
+            "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgePayload"
+          },
+          "source_vertex_id": "vert-root",
+          "target_vertex_id": "vert-1",
+          "stable_id"       : "vert-root-1-nesting",
+          "attributes"      : []
+        },
+        {
+          "payload"         : {
+            "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgePayload"
+          },
+          "source_vertex_id": "vert-root",
+          "target_vertex_id": "vert-2",
+          "stable_id"       : "vert-root-2-nesting",
+          "attributes"      : []
+        }
+      ]
     }
   ],
   "ports"      : [
