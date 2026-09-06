@@ -125,7 +125,11 @@ class KiwiGroup
         IGraph const*                              graph,
         IGraphSerialReaderFactory*                 factory,
         IAttributeObject const*                    vertex) override {
-        logic_todo_impl();
+        layout::IGroupVisualAttribute::readSerial(in, graph, factory, vertex);
+        kw::proto::KiwiGroupVisualAttributePayload load;
+        in->payload().UnpackTo(&load);
+        layout::IGroupVisualAttribute::readSerialConstraints(
+            &load.base().constraints(), graph, factory, vertex);
     }
 #    endif
 

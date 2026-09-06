@@ -204,10 +204,10 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
         IGraph const*                                           graph) const;
 
     void readSerialConstraints(
-        google::protobuf::RepeatedField<proto::IConstraint> const* in,
-        IGraph const*                                              graph,
-        IGraphSerialReaderFactory*                                 factory,
-        IAttributeObject const*                                    vertex);
+        google::protobuf::RepeatedPtrField<proto::IConstraint> const* in,
+        IGraph const*                                                 graph,
+        IGraphSerialReaderFactory*                                    factory,
+        IAttributeObject const*                                       vertex);
 #endif
 };
 

@@ -27,12 +27,14 @@ message KiwiEdgeLayoutAttributePayload {
 }
 
 message KiwiVertexVisualAttributePayload {
-  hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base = 1;
-  htsd.ext.kiwi_ir.proto.Rect rect = 2;
+  hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base             = 1;
+  htsd.ext.kiwi_ir.proto.Rect                               rect             = 2;
+  string                                                    parent_stable_id = 3;
 }
 
 message KiwiGroupVisualAttributePayload {
-  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
+  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base             = 1;
+  optional string                                          parent_stable_id = 3;
 }
 
 message KiwiVertexLayoutAttributePayload {
@@ -47,49 +49,47 @@ message KiwiConstraintPayload {
 
 }
 
-
-
 message KiwiAlignConstraintPayload {
   message Spec {
-    string stable_vertex_id = 1;
-    htsd.ext.kiwi_ir.proto.AlignSpec spec = 2;
+    string                           stable_vertex_id = 1;
+    htsd.ext.kiwi_ir.proto.AlignSpec spec             = 2;
   }
 
-  KiwiConstraintPayload base = 1;
-  repeated Spec vertices  = 2;
+  KiwiConstraintPayload       base      = 1;
+  repeated Spec               vertices  = 2;
   htsd.ext.kiwi_ir.proto.Axis dimension = 3;
 }
 
 message KiwiSeparateConstraintPayload {
-  KiwiConstraintPayload base = 1;
-  KiwiAlignConstraintPayload left = 2;
-  KiwiAlignConstraintPayload right = 3;
-  double separationDistance = 4;
-  htsd.ext.kiwi_ir.proto.Axis dimension = 5;
+  KiwiConstraintPayload       base               = 1;
+  KiwiAlignConstraintPayload  left               = 2;
+  KiwiAlignConstraintPayload  right              = 3;
+  double                      separationDistance = 4;
+  htsd.ext.kiwi_ir.proto.Axis dimension          = 5;
 }
 
 message KiwiMultiSeparateConstraintPayload {
-  KiwiConstraintPayload base = 1;
-  repeated KiwiAlignConstraintPayload lines = 2;
-  double separationDistance = 3;
-  htsd.ext.kiwi_ir.proto.Axis dimension = 4;
+  KiwiConstraintPayload               base               = 1;
+  repeated KiwiAlignConstraintPayload lines              = 2;
+  double                              separationDistance = 3;
+  htsd.ext.kiwi_ir.proto.Axis         dimension          = 4;
 }
 
 message KiwiLinearConstraintPayload {
-  KiwiConstraintPayload base = 1;
-  htsd.ext.kiwi_ir.proto.Expr lhs = 2;
-  htsd.ext.kiwi_ir.proto.Expr rhs = 3;
-  htsd.ext.kiwi_ir.proto.Relation op = 4;
+  KiwiConstraintPayload           base = 1;
+  htsd.ext.kiwi_ir.proto.Expr     lhs  = 2;
+  htsd.ext.kiwi_ir.proto.Expr     rhs  = 3;
+  htsd.ext.kiwi_ir.proto.Relation op   = 4;
 }
 
 message KiwiRelativeConstraintPayload {
   message VertexRef {
-    string stable_vertex_id = 1;
-    htsd.ext.kiwi_ir.proto.AnchorSpec anchor = 2;
+    string                            stable_vertex_id = 1;
+    htsd.ext.kiwi_ir.proto.AnchorSpec anchor           = 2;
   }
 
-  VertexRef fixed = 1;
-  VertexRef relative = 2;
-  htsd.ext.kiwi_ir.proto.RelDimensionSpec x_dim = 3;
-  htsd.ext.kiwi_ir.proto.RelDimensionSpec y_dim = 4;
+  VertexRef                               fixed    = 1;
+  VertexRef                               relative = 2;
+  htsd.ext.kiwi_ir.proto.RelDimensionSpec x_dim    = 3;
+  htsd.ext.kiwi_ir.proto.RelDimensionSpec y_dim    = 4;
 }

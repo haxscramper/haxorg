@@ -296,10 +296,10 @@ void layout::IGroupVisualAttribute::writeSerialConstraints(
 }
 
 void layout::IGroupVisualAttribute::readSerialConstraints(
-    google::protobuf::RepeatedField<graph::proto::IConstraint> const* in,
-    IGraph const*                                                     graph,
-    IGraphSerialReaderFactory*                                        factory,
-    IAttributeObject const*                                           vertex) {
+    google::protobuf::RepeatedPtrField<graph::proto::IConstraint> const* in,
+    IGraph const*                                                        graph,
+    IGraphSerialReaderFactory*                                           factory,
+    IAttributeObject const*                                              vertex) {
     for (auto const& c : *in) {
         auto new_constraint = factory->newConstraint(&c);
         new_constraint->readSerial(&c, graph);

@@ -1,9 +1,11 @@
 #include "visual_factory.hpp"
 #include "hstd/ext/graph/visual/graph_graphviz.hpp"
+#include "hstd/ext/graph/visual/graph_kiwi.hpp"
 #include "hstd/system/exceptions.hpp"
-#include "src/hstd/ext/graph/visual/graph_graphviz.pb.h"
 #include <hstd/ext/hstd_serde.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+#include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
+#include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
 
 using namespace hstd::ext::graph;
 
@@ -30,7 +32,7 @@ hstd::SPtr<hstd::ext::graph::IVertex> hstd::ext::graph::VisualFactory::newVertex
         in->has_payload(),
         "De-serialization input does not have payload object {}",
         serde::getJString(*in));
-    OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+    OP_TRACER_MESSAGE(this, "VisualFactory::newVertex URL {}", in->payload().type_url());
     hstd::SPtr<IVertex> res;
     if (in->payload().Is<proto::TrivialVertexPayload>()) {
         res = std::make_shared<TrivialVertex>(in->stable_id());
@@ -50,10 +52,10 @@ hstd::SPtr<hstd::ext::graph::IVertex> hstd::ext::graph::VisualFactory::newVertex
 hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAttribute(
     proto::IAttribute const* in,
     IGraph const*            graph,
-    IAttributeObject const*  parent) {
+    IAttributeObject const*  attr_object) {
 
     hstd::Opt<std::string> stable_id;
-    if (auto ptr = dynamic_cast<IGraphObjectBase const*>(parent)) {
+    if (auto ptr = dynamic_cast<IGraphObjectBase const*>(attr_object)) {
         stable_id = ptr->getStableId();
     }
 
@@ -90,44 +92,97 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
             tg->getHierarchies().at(0)->getCollectionID());
     }
 
-    if (in->payload().Is<gv::proto::GroupAttributePayload>()) {
-        auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-        gv::proto::GroupAttributePayload pl;
-        in->payload().UnpackTo(&pl);
+    auto unpack_as = [&in, &attr_object]<typename ProtoType, typename GraphInterface>()
+        -> hstd::Pair<hstd::Opt<ProtoType>, GraphInterface const*> {
+        if (in->payload().Is<ProtoType>()) {
+            ProtoType pl;
+            in->payload().UnpackTo(&pl);
+            auto target = hstd::validated_dynamic_cast<GraphInterface>(attr_object);
+            return {std::move(pl), target};
+        } else {
+            return {std::nullopt, nullptr};
+        }
+    };
 
-        if (pl.has_parent_stable_id()) {
+    // group attribute payloads
+    if (auto const& [pl, vertex] = unpack_as.operator()<
+                                   gv::proto::GroupAttributePayload,
+                                   IVertex>();
+        pl) {
+        if (pl->has_parent_stable_id()) {
             LOGIC_ASSERTION_CHECK_FMT(
-                !pl.parent_stable_id().empty(),
+                !pl->parent_stable_id().empty(),
                 "Graphviz group vertex '{}' has empty parent stable ID. "
                 "To create a top-level graphivz layout group, fully omit ID field. "
                 "Existing but empty ID field is interpreted as graphviz cluster.",
                 vertex->getStableId());
-            return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
+            return graph->getVertex(graph->getVertexIDByStableId(pl->parent_stable_id()))
                 ->getUniqueAttribute<gv::GraphGroup>()
                 ->newSubgraph(vertex->getStableId());
         } else {
             return gv::GraphGroup::newRootGraph(run, vertex->getStableId());
         }
-    } else if (in->payload().Is<gv::proto::NodeAttributePayload>()) {
-        auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-        gv::proto::NodeAttributePayload pl;
-        in->payload().UnpackTo(&pl);
+
+    } else if (
+        auto const& [pl, vertex] = unpack_as.operator()<
+                                   kw::proto::KiwiGroupVisualAttributePayload,
+                                   IVertex>();
+        pl) {
+
+        if (pl->has_parent_stable_id()) {
+            auto parent_group_id = graph->getVertexIDByStableId(pl->parent_stable_id());
+            auto this_vertex_id  = graph->getVertexIDByStableId(vertex->getStableId());
+            auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
+                parent_group_id, this_vertex_id);
+
+            return graph->getVertex(parent_group_id)
+                ->getUniqueAttribute<kw::KiwiGroup>()
+                ->addNewNativeSubgroup(nesting_edge_id);
+
+        } else {
+            return kw::KiwiGroup::newRootGraph(run);
+        }
+
+
+        // node payloads
+    } else if (
+        auto const& [pl, vertex] = unpack_as.
+                                   operator()<gv::proto::NodeAttributePayload, IVertex>();
+        pl) {
         LOGIC_ASSERTION_CHECK_FMT(
-            !pl.parent_stable_id().empty(),
+            !pl->parent_stable_id().empty(),
             "Parent stable ID cannot be set to empty, graphviz "
             "attribute for node '{}' must have the parent ID "
             "specified",
             vertex->getStableId());
 
-        return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
+        return graph->getVertex(graph->getVertexIDByStableId(pl->parent_stable_id()))
             ->getUniqueAttribute<gv::GraphGroup>()
             ->node(vertex->getStableId());
-    } else if (in->payload().Is<gv::proto::EdgeAttributePayload>()) {
-        auto vertex = hstd::validated_dynamic_cast<IEdge>(parent);
-        gv::proto::EdgeAttributePayload pl;
-        in->payload().UnpackTo(&pl);
+
+    } else if (
+        auto const& [pl, vertex] = unpack_as.operator()<
+                                   kw::proto::KiwiVertexVisualAttributePayload,
+                                   IVertex>();
+        pl) {
+
+        auto parent_group_id = graph->getVertexIDByStableId(pl->parent_stable_id());
+        auto this_vertex_id  = graph->getVertexIDByStableId(vertex->getStableId());
+        auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
+            parent_group_id, this_vertex_id);
+
+        return graph->getVertex(parent_group_id)
+            ->getUniqueAttribute<kw::KiwiGroup>()
+            ->addVertex(
+                nesting_edge_id, geometry::Size(pl->rect().x0(), pl->rect().y0()));
+
+        // edge payloads
+    } else if (
+        auto const& [pl, vertex] = unpack_as.
+                                   operator()<gv::proto::EdgeAttributePayload, IVertex>();
+        pl) {
         LOGIC_ASSERTION_CHECK_FMT(
-            !pl.parent_stable_id().empty(),
+            !pl->parent_stable_id().empty(),
             "Parent stable ID cannot be set to empty, graphviz "
             "attribute for node '{}' must have the parent ID "
             "specified",
@@ -135,13 +190,15 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
 
         auto edge_id = graph->getEdgeIDByStableId(vertex->getStableId());
 
-        return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
+        return graph->getVertex(graph->getVertexIDByStableId(pl->parent_stable_id()))
             ->getUniqueAttribute<gv::GraphGroup>()
             ->edge(
                 *graph->getVertex(graph->getSource(edge_id))
                      ->getUniqueAttribute<gv::NodeAttribute>(),
                 *graph->getVertex(graph->getTarget(edge_id))
                      ->getUniqueAttribute<gv::NodeAttribute>());
+
+
     } else {
         throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
             in->payload(),
@@ -151,6 +208,10 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
                 std::string{gv::proto::GroupAttributePayload::descriptor()->full_name()},
                 std::string{gv::proto::NodeAttributePayload::descriptor()->full_name()},
                 std::string{gv::proto::EdgeAttributePayload::descriptor()->full_name()},
+                std::string{kw::proto::KiwiVertexVisualAttributePayload::descriptor()
+                                ->full_name()},
+                std::string{kw::proto::KiwiGroupVisualAttributePayload::descriptor()
+                                ->full_name()},
             }));
     }
 }

@@ -1,0 +1,21 @@
+Example JSON files for the diagram specification.
+
+- [[file:direct_ir]] :: Low-level representation of the graph IR, directly read by the protobuf to graph.
+- [[file:simple_ir]] :: Potential folder for future simplified representation.
+
+To test-run any JSON example, use input and output for JSOn
+
+#+caption: Run the diagram test with all debug and logging visualizations
+#+begin_src sh
+haxorg_cpp_org_cli\
+  diagram \
+  <input-diagram.json> \
+  <output-diagram.json> \
+  --format Json \
+  --input-format Json \
+  --output-visual /tmp/haxorg_tests/mind_map_view/visual.svg \
+  --output-visual-json /tmp/haxorg_tests/mind_map_view/visual.json \
+  --output-visual-scale 100 \
+  --layout-log /tmp/haxorg_tests/mind_map_view/layout.log \
+  --serial-read-log /tmp/haxorg_tests/mind_map_view/serial.log
+#+end_src
