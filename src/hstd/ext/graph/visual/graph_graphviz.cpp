@@ -731,6 +731,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     char const*                      id_attr      = "_gv_layout_id";
     char const*                      id_sub_group = "_gv_group";
     UnorderedMap<VertexID, VertexID> vertex_group; // vertex -> immediate gv subgroup id
+    UnorderedMap<EdgeID, VertexID>   edge_group;   // edge   -> immediate gv subgroup id
+    UnorderedMap<VertexID, VertexID> group_parent; // group  -> parent group id
 
     auto aux = [&](this auto&&                self,
                    VertexID const&            id,
@@ -741,6 +743,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                 run->getGroup(parent.value()));
             OP_TRACER_MESSAGE(
                 run, "group '{}' has layout algorithm set", group->getStableId());
+            group_parent.insert_or_assign(id, parent.value());
+
             auto recursiveBBox = run->getLayout(id)->getBBox();
             auto recursiveNode = parentGroup->node(hstd::fmt("tmp-subgraph-node-{}", id));
 
@@ -762,6 +766,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
 
             gv_group->setAttr(id_sub_group, id.getValue());
 
+            if (parent.has_value()) { group_parent.insert_or_assign(id, parent.value()); }
+
             auto __scope = run->begin_scope();
             // iterate over sub-groups to find all layout switches
             for (auto const& sub : run->getSubGroups(id)) { self(sub, id); }
@@ -778,6 +784,10 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                     attr->getHeight());
                 attr->setAttr(id_attr, vertex.getValue());
                 vertex_group.insert_or_assign(vertex, id);
+            }
+
+            for (auto const& edge : run->getDirectlyNestedEdges(id)) {
+                edge_group.insert_or_assign(edge, id);
             }
         }
     };
@@ -805,8 +815,14 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
 
     layout::IPlacementAlgorithm::Result result;
 
-    auto                          root_bbox = getRootGraphBBox(*rootGroup);
-    UnorderedMap<VertexID, Point> group_origin; // raw graphviz points, qt-flipped
+    auto root_bbox = getRootGraphBBox(*rootGroup);
+
+    // First pass: collect absolute (root-relative, qt-flipped) origins for
+    // every graphviz subgroup.
+    Vec<Pair<VertexID, hstd::SPtr<GraphGroup>>> subgraphs;
+    UnorderedMap<VertexID, Point>               group_abs; // absolute qt-flipped origin
+    UnorderedMap<VertexID, Rect>                group_abs_bbox;
+
     rootGroup->eachSubgraph([&](GraphGroup const& group) {
         auto id_attr = group.getAttr<hstd::u64>(id_sub_group);
         LOGIC_ASSERTION_CHECK_FMT(
@@ -814,15 +830,26 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
             "No ID attr property set for node {}",
             group.getPropertiesAsString());
         auto id            = VertexID::FromValue(id_attr.value());
-        auto subgraph_bbox = getSubgraphBBox(group, root_bbox);
-        auto attr          = std::make_shared<GraphGroupLayoutAttribute>(
-            subgraph_bbox, std::make_shared<GraphGroup>(group));
-        OP_TRACER_MESSAGE(
-            run, "each-group iterate group {} bbox {}", g->getDebug(id), attr->getBBox());
-        group_origin.insert_or_assign(id, Point{subgraph_bbox.x(), subgraph_bbox.y()});
-        result.vertices.insert_or_assign(id, attr);
+        auto subgraph_bbox = getSubgraphBBox(group, root_bbox); // absolute, qt-flipped
+        group_abs.insert_or_assign(id, Point{subgraph_bbox.x(), subgraph_bbox.y()});
+        group_abs_bbox.insert_or_assign(id, subgraph_bbox);
+        subgraphs.push_back({id, std::make_shared<GraphGroup>(group)});
     });
 
+    // Second pass: convert absolute bboxes to parent-group coordinates and
+    // insert into the result. `eachSubgraph` visits parents before
+    // children, so `group_abs` for the parent is already populated.
+    for (auto const& [id, group] : subgraphs) {
+        Rect local = group_abs_bbox.at(id);
+        if (auto pit = group_parent.get(id)) {
+            if (auto ait = group_abs.get(*pit)) { local = local.move(-*ait); }
+        }
+
+        auto attr = std::make_shared<GraphGroupLayoutAttribute>(local, group);
+        OP_TRACER_MESSAGE(
+            run, "each-group iterate group {} bbox {}", g->getDebug(id), attr->getBBox());
+        result.vertices.insert_or_assign(id, attr);
+    }
 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
@@ -832,14 +859,10 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
         if (hstd::Opt<hstd::u64> _tmp;
             node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
             auto id   = VertexID::FromValue(_tmp.value());
-            auto bbox = getRootGraphBBox(*rootGroup);
-            auto rect = getNodeRectangle(*rootGroup, node, bbox);
-
-            if (auto git = group_origin.get(vertex_group.at(id))) {
-                // or rect -= git->second, per Rect API
-                OP_TRACER_MESSAGE(run, "Moving group rect {} by -{}", rect, git.value());
-                rect = rect.move(-git.value());
-            }
+            auto rect = getNodeRectangle(*rootGroup, node, root_bbox);
+            // tmp-subgraph nodes are direct children of the root graph, so
+            // the rect is already relative to the root group -- no
+            // parent-origin shift is needed.
 
             OP_TRACER_MESSAGE(
                 run,
@@ -847,7 +870,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                 "{})",
                 g->getDebug(id),
                 rect,
-                bbox,
+                root_bbox,
                 node.info()->coord.x,
                 node.info()->coord.y);
 
@@ -881,7 +904,19 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                 node.getPropertiesAsString());
 
             auto id   = VertexID::FromValue(id_value.value());
-            auto attr = std::make_shared<GraphVertexLayoutAttribute>(node, *rootGroup);
+            auto rect = getNodeRectangle(*rootGroup, node, root_bbox);
+
+            // Convert root-absolute coordinates to parent-group-relative.
+            if (auto git = vertex_group.get(id)) {
+                if (auto ait = group_abs.get(*git)) {
+                    OP_TRACER_MESSAGE(
+                        run, "Moving vertex rect {} by -{}", rect, ait.value());
+                    rect = rect.move(-*ait);
+                }
+            }
+
+            auto attr = std::make_shared<GraphVertexLayoutAttribute>(
+                node, *rootGroup, rect);
             run->message(
                 hstd::fmt(
                     "each-group iterate vertex {} bbox {}",
@@ -892,12 +927,18 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        auto id   = EdgeID::FromValue(edge.getAttr<hstd::u64>(id_attr).value());
-        auto attr = std::make_shared<GraphEdgeLayoutAttribute>(edge, *rootGroup);
+        auto id = EdgeID::FromValue(edge.getAttr<hstd::u64>(id_attr).value());
+        // Convert root-absolute spline/label coordinates to
+        // parent-group-relative at construction time.
+        Point parent_offset{0, 0};
+        if (auto git = edge_group.get(id)) {
+            if (auto ait = group_abs.get(*git)) { parent_offset = *ait; }
+        }
+        auto attr = std::make_shared<GraphEdgeLayoutAttribute>(
+            edge, *rootGroup, parent_offset);
         OP_TRACER_MESSAGE(run, "each-group iterate edge {}", g->getDebug(id));
         result.edges.insert_or_assign(id, attr);
     });
-
 
     // Bounding box for a group/sub-group is set twice. The first time is
     // when the group layout is done at the leaf level, then the
@@ -938,20 +979,6 @@ gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedInchesWH(
     setAttr("original_height", h);
     setAttr("original_width", w);
     return this;
-}
-
-
-Rect gv::GraphVertexLayoutAttribute::getBBox() const {
-    return getNodeRectangle(graph, node, getRootGraphBBox(graph)) / gv::scaling;
-}
-
-
-Path gv::GraphEdgeLayoutAttribute::getPath() const {
-    return getEdgeSpline(
-               edge,
-               graph.getAlgorithm<gv::Layout>()->graphviz_size_scaling,
-               getRootGraphBBox(graph))
-         / gv::scaling;
 }
 
 
@@ -1139,8 +1166,12 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 
 
 visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfId) const {
-    Rect bbox     = getRootGraphBBox(graph);
-    Rect nodeRect = getNodeRectangle(graph, node, bbox);
+    // only needed for label coordinate conversion
+    Rect graphBBox = getRootGraphBBox(graph);
+    // root-absolute, for label anchoring
+    Rect absRect = getNodeRectangle(graph, node, graphBBox);
+    // parent-group-relative, graphviz point scale
+    Rect nodeRect = bbox;
 
     visual::VisGroup result;
     result.offset                                  = Point{nodeRect.x(), nodeRect.y()};
@@ -1231,10 +1262,9 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         visual::VisElement::TextShape text;
         text.content = hstd::Str{label->text};
         // Label pos is in graph coordinates; convert to local node coords
-        Point labelGlobal = toGvPoint(label->pos, bbox.height());
-        text.anchor       = Point{
-            labelGlobal.x() - nodeRect.x(), labelGlobal.y() - nodeRect.y()};
-        text.font                 = buildFontFromLabel(label);
+        Point labelGlobal = toGvPoint(label->pos, graphBBox.height());
+        text.anchor = Point{labelGlobal.x() - absRect.x(), labelGlobal.y() - absRect.y()};
+        text.font   = buildFontFromLabel(label);
         text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
         text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
         if (label->fontcolor) {
@@ -1268,9 +1298,80 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
 }
 
 
+gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
+    EdgeAttribute const& edge,
+    GraphGroup const&    graph,
+    Point const&         parent_offset)
+    : edge{edge}, graph{graph} {
+    Rect bbox = getRootGraphBBox(graph);
+    Path abs  = getEdgeSpline(edge, scaling, bbox); // root-absolute
+
+    // Shift spline into parent-group coordinates.
+    if (!abs.empty()) {
+        // Path moveTo/lineTo/cubicTo/quadTo segments are shifted by
+        // -parent_offset; implement as a translate helper on Path or
+        // rebuild here segment-by-segment.
+        path = abs - parent_offset;
+    }
+
+    // Arrowhead at end point
+    auto* info = edge.info();
+    if (info->spl && info->spl->list && 1 <= info->spl->list->size) {
+        bezier& bez = info->spl->list[0];
+        if (bez.eflag) {
+            Point ep      = toGvPoint(bez.ep, bbox.height()) - parent_offset;
+            Point lastCtl = toGvPoint(bez.list[bez.size - 1], bbox.height())
+                          - parent_offset;
+
+            // Compute arrow direction
+            float dx  = ep.x() - lastCtl.x();
+            float dy  = ep.y() - lastCtl.y();
+            float len = std::sqrt(dx * dx + dy * dy);
+            if (len > 0.001f) {
+                dx /= len;
+                dy /= len;
+                float arrowLen  = 10.0f;
+                float arrowHalf = 4.0f;
+                // Perpendicular
+                float px = -dy;
+                float py = dx;
+
+                arrow.push_back(ep);
+                arrow.push_back(
+                    Point{
+                        ep.x() - dx * arrowLen + px * arrowHalf,
+                        ep.y() - dy * arrowLen + py * arrowHalf});
+                arrow.push_back(
+                    Point{
+                        ep.x() - dx * arrowLen - px * arrowHalf,
+                        ep.y() - dy * arrowLen - py * arrowHalf});
+            }
+        }
+    }
+
+    // Edge label + head/tail labels, shifted into parent-group coordinates.
+    auto make_label = [&](textlabel_t const* label) {
+        auto  elem = makeLabelElement(label, bbox.height());
+        auto& text = std::get<visual::VisElement::TextShape>(elem.data);
+        text.anchor -= parent_offset;
+        if (text.boundingBox) {
+            text.boundingBox = text.boundingBox.value().move(-parent_offset);
+        }
+        return elem;
+    };
+
+    if (info->label && info->label->text && info->label->text[0] != '\0') {
+        labels.push_back(make_label(info->label));
+    }
+    if (info->head_label && info->head_label->text && info->head_label->text[0] != '\0') {
+        labels.push_back(make_label(info->head_label));
+    }
+    if (info->tail_label && info->tail_label->text && info->tail_label->text[0] != '\0') {
+        labels.push_back(make_label(info->tail_label));
+    }
+}
+
 visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) const {
-    Rect             bbox = getRootGraphBBox(graph);
-    Path             path = getEdgeSpline(edge, scaling, bbox);
     visual::VisGroup result;
 
     result.custom.setAttr("inkscape:label", hstd::fmt("GV EDGE:{}", selfId));
@@ -1287,64 +1388,24 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) c
         result.elements.push_back(pathElem);
     }
 
-    // Arrowhead at end point
-    auto* info = edge.info();
-    if (info->spl && info->spl->list && 1 <= info->spl->list->size) {
-        bezier& bez = info->spl->list[0];
-        if (bez.eflag) {
-            Point ep      = toGvPoint(bez.ep, bbox.height());
-            Point lastCtl = toGvPoint(bez.list[bez.size - 1], bbox.height());
+    // Arrowhead
+    if (!arrow.empty()) {
+        visual::VisElement::PolygonShape arrowShape;
+        arrowShape.points = arrow;
+        arrowShape.pen    = buildPenFromEdge(edge);
+        arrowShape.brush  = visual::VisBrush::solid(arrowShape.pen.color);
 
-            // Compute arrow direction
-            float dx  = ep.x() - lastCtl.x();
-            float dy  = ep.y() - lastCtl.y();
-            float len = std::sqrt(dx * dx + dy * dy);
-            if (len > 0.001f) {
-                dx /= len;
-                dy /= len;
-                float arrowLen  = 10.0f;
-                float arrowHalf = 4.0f;
-                // Perpendicular
-                float px = -dy;
-                float py = dx;
-
-                visual::VisElement::PolygonShape arrow;
-                arrow.points.push_back(ep);
-                arrow.points.push_back(
-                    Point{
-                        ep.x() - dx * arrowLen + px * arrowHalf,
-                        ep.y() - dy * arrowLen + py * arrowHalf});
-                arrow.points.push_back(
-                    Point{
-                        ep.x() - dx * arrowLen - px * arrowHalf,
-                        ep.y() - dy * arrowLen - py * arrowHalf});
-
-                arrow.pen   = buildPenFromEdge(edge);
-                arrow.brush = visual::VisBrush::solid(arrow.pen.color);
-
-                visual::VisElement arrowElem;
-                arrowElem.data = arrow;
-                result.elements.push_back(arrowElem);
-            }
-        }
+        visual::VisElement arrowElem;
+        arrowElem.data = arrowShape;
+        result.elements.push_back(arrowElem);
     }
 
-    // Edge label
-    if (info->label && info->label->text && info->label->text[0] != '\0') {
-        result.elements.push_back(makeLabelElement(info->label, bbox.height()));
-    }
-
-    // Head/tail labels
-    if (info->head_label && info->head_label->text && info->head_label->text[0] != '\0') {
-        result.elements.push_back(makeLabelElement(info->head_label, bbox.height()));
-    }
-    if (info->tail_label && info->tail_label->text && info->tail_label->text[0] != '\0') {
-        result.elements.push_back(makeLabelElement(info->tail_label, bbox.height()));
-    }
+    for (auto const& label : labels) { result.elements.push_back(label); }
 
     result *= (1.0 / gv::scaling);
     return result;
 }
+
 
 visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId) const {
     visual::VisGroup result;

@@ -210,6 +210,8 @@ struct Polygon : public bg::model::polygon<Point> {
 
     void push_back(Point const& p) { bg::append(*this, p); }
 
+    bool empty() const { return bg::is_empty(*this); }
+
     Polygon& operator*=(double factor) {
         bg::for_each_point(*this, [factor](Point& p) {
             bg::set<0>(p, bg::get<0>(p) * factor);

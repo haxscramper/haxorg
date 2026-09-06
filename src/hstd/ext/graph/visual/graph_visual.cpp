@@ -88,9 +88,10 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual() const {
                 distance.has_value(),
                 "Vertex visualization group must use the group offset for "
                 "the element placement. The visual group offset is {}, "
-                "bounding box offset {}, failure is {}",
+                "bounding box offset {} for item {}, failure is {}",
                 visual.offset,
                 attr->getBBox().upper_left(),
+                getDebug(it),
                 distance.assume_error().what());
 
             visual.original_id   = it.getValue();

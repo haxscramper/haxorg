@@ -772,11 +772,19 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
     EdgeAttribute edge;
     GraphGroup    graph;
+    /// \brief parent-group-relative, graphviz point scale
+    Path path;
+    /// \brief arrowhead polygon points, same coords
+    geometry::Polygon arrow;
+    /// \brief label/head_label/tail_label, same coords
+    Vec<visual::VisElement> labels;
 
-    GraphEdgeLayoutAttribute(EdgeAttribute const& edge, GraphGroup const& graph)
-        : edge{edge}, graph{graph} {}
+    GraphEdgeLayoutAttribute(
+        EdgeAttribute const& edge,
+        GraphGroup const&    graph,
+        Point const&         parent_offset = Point{0, 0});
 
-    Path getPath() const override;
+    Path getPath() const override { return path / gv::scaling; }
 
     std::string      getRepr() const override { return edge.getPropertiesAsString(); }
     visual::VisGroup getVisual(EdgeID const& selfId) const override;
