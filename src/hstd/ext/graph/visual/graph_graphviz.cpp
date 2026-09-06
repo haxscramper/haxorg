@@ -661,7 +661,7 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
         char* bb = agget(g, const_cast<char*>("bb"));
         OP_TRACER_MESSAGE(graph.run, "graph bb (after layout): {}", bb ? bb : "(null)");
 
-        trace_graph("pre_layout_");
+        trace_graph("post_layout_");
     }
 }
 
@@ -1240,7 +1240,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         result.elements.push_back(labelElem);
     }
 
-    result /= gv::scaling;
+    result *= (1.0 / gv::scaling);
     return result;
 }
 
@@ -1319,7 +1319,7 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) c
         result.elements.push_back(makeLabelElement(info->tail_label, bbox.height()));
     }
 
-    result /= gv::scaling;
+    result *= (1.0 / gv::scaling);
     return result;
 }
 
@@ -1404,7 +1404,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
         }
     }
 
-    result /= gv::scaling;
+    result *= (1.0 / gv::scaling);
     return result;
 }
 

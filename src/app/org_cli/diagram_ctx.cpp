@@ -17,6 +17,8 @@ org::cli::CliOpts::DiagramOpts org::cli::DiagramCommandContext::parseCommand(
     OPT_GET(diagram_cmd, opts, output_visual, std::string);
     OPT_GET(diagram_cmd, opts, output_visual_json, std::string);
     OPT_GET(diagram_cmd, opts, output_visual_debug, bool);
+    OPT_GET_CONV(
+        diagram_cmd, opts, output_visual_scale, boost::lexical_cast<double>(value));
     OPT_GET_ENUM(diagram_cmd, opts, format, CliOpts::ProtoFormat);
     OPT_GET_ENUM(diagram_cmd, opts, input_format, CliOpts::DiagramOpts::InputFormat);
     return opts;
@@ -30,6 +32,8 @@ void org::cli::DiagramCommandContext::getSubcommand(
         .help("log for the serial data reader");
     diagram_cmd.add_argument(DO::output_visual_opt)
         .help("SVG with the diagram debug output");
+    diagram_cmd.add_argument(DO::output_visual_scale_opt)
+        .help("Scale the SVG by this factor");
     diagram_cmd.add_argument(DO::output_visual_json_opt)
         .help("JSON with the diagram debug output");
     diagram_cmd.add_argument(DO::output_visual_debug_opt)
@@ -82,6 +86,11 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
 
     if (cmd.output_visual || cmd.output_visual_json) {
         auto visual = factory.run->getVisual();
+
+        if (cmd.output_visual_scale) {
+            for (auto& v : visual) { v *= cmd.output_visual_scale.value(); }
+        }
+
         if (cmd.output_visual) {
             hstd::writeFile(
                 cmd.output_visual.value(),

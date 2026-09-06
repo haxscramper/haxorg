@@ -2,6 +2,7 @@
 
 #include "src/hstd/ext/graph/visual/graph_visual.pb.h"
 #include <hstd/ext/geometry/hstd_geometry_serde.hpp>
+#include <hstd/ext/geometry/hstd_geometry_test.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 
 using namespace hstd::ext::graph;
@@ -79,15 +80,18 @@ hstd::Vec<hstd::ext::visual::VisGroup> layout::LayoutRun::getVisual() const {
         }
 
         for (auto const& it : hstd::sorted(getDirectVertices(id).items())) {
-            auto const& attr   = getLayout(it);
-            auto        visual = attr->getVisual(it);
+            auto const& attr     = getLayout(it);
+            auto        visual   = attr->getVisual(it);
+            auto        distance = hstd::ext::geometry::checkDistance(
+                visual.offset, attr->getBBox().upper_left(), 0);
             LOGIC_ASSERTION_CHECK_FMT(
-                visual.offset == attr->getBBox().upper_left(),
+                distance.has_value(),
                 "Vertex visualization group must use the group offset for "
                 "the element placement. The visual group offset is {}, "
-                "bounding box offset {}",
+                "bounding box offset {}, failure is {}",
                 visual.offset,
-                attr->getBBox().upper_left());
+                attr->getBBox().upper_left(),
+                distance.assume_error().what());
 
             visual.original_id   = it.getValue();
             visual.original_type = (int)ILayoutAttribute::Kind::Vertex;

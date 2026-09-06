@@ -16,6 +16,13 @@
         __opts.__field = __value.value();                                                \
     }
 
+#define OPT_GET_CONV(__cmd, __opts, __field, __expr)                                     \
+    if (auto __value = __cmd.present<std::string>(__opts.__field##_opt);                 \
+        __value.has_value()) {                                                           \
+        auto value     = __value.value();                                                \
+        __opts.__field = __expr;                                                         \
+    }
+
 #define OPT_GET_ENUM(__cmd, __opts, __field, __type)                                     \
     if (auto __value = __cmd.present<std::string>(__opts.__field##_opt);                 \
         __value.has_value()) {                                                           \
@@ -44,6 +51,11 @@ struct CliOpts {
             std::nullopt);
         OPT_FIELD(layout_log, "--layout-log", hstd::Opt<std::string>, std::nullopt);
         OPT_FIELD(output_visual, "--output-visual", hstd::Opt<std::string>, std::nullopt);
+        OPT_FIELD(
+            output_visual_scale,
+            "--output-visual-scale",
+            hstd::Opt<double>,
+            std::nullopt);
         OPT_FIELD(
             output_visual_json,
             "--output-visual-json",
