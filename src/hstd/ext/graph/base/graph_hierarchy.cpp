@@ -5,7 +5,7 @@
 
 namespace {
 constexpr char const* vertex_not_found_msg{
-    "{}vertex {} not found. Missing call to `registerVertex`?"};
+    "{}vertex {} not found. Missing call to `trackVertex`?"};
 } // namespace
 
 using namespace hstd::ext::graph;
@@ -165,6 +165,8 @@ void IVertexHierarchy::trackSubVertexRelation(
     nestedInMap.at(parent).insert(sub);
     if (rootVertices.contains(sub)) { rootVertices.erase(sub); }
     edgeTracker.add_unique({parent, sub}, edge);
+
+    stableIdMap.insert_or_assign(getEdge(edge)->getStableId(), edge);
 }
 
 
@@ -347,15 +349,30 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
 
     validate_nesting_map(in);
 
+    // create a mirror of the existing vertex hierarchy tracking fields
+    // and populate those. The root hierarchy must be called for the validation,
+    // but it will not create any associations, since it does not have
+    // a way to construct the derived edge object properly.
+    // Sub-classes must call the `trackSubVertexRelation` with the ID of the
+    // edge after it has been constructed and inserted.
+    //
+    // Note: the sub-class registraty specifically concerns the edges because the
+    // hierarchy owns the edge objects. `trackVertex` and vertex presence tracking
+    // is done in this method, see at the very end.
+    hstd::UnorderedMap<VertexID, hstd::UnorderedSet<VertexID>> tmp_nesting_map;
+    hstd::UnorderedMap<VertexID, VertexID>                     tmp_parent_map;
+    hstd::UnorderedSet<VertexID>                               tmp_root_vertices;
+    hstd::UnorderedSet<VertexID>                               tmp_vertex_ids;
+
     for (auto const& [parent_vertex, nested_list] : in->nested_in_map()) {
         auto  parent_id = graph->getVertexIDByStableId(parent_vertex);
-        auto& ref       = nestedInMap[parent_id];
-        vertexIDs.incl(parent_id);
+        auto& ref       = tmp_nesting_map[parent_id];
+        tmp_vertex_ids.incl(parent_id);
         for (auto const& nested : nested_list.vertices()) {
             auto nested_id = graph->getVertexIDByStableId(nested);
             has_parent.incl(nested_id);
             ref.incl(nested_id);
-            parentMap.insert_unqiue(nested_id, parent_id);
+            tmp_parent_map.insert_unqiue(nested_id, parent_id);
             OP_TRACER_MESSAGE(
                 factory,
                 "{} ({}) -> {} ({})",
@@ -364,11 +381,11 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
                 parent_id,
                 parent_vertex);
 
-            vertexIDs.incl(nested_id);
+            tmp_vertex_ids.incl(nested_id);
         }
     }
 
-    rootVertices = vertexIDs - has_parent;
+    tmp_root_vertices = tmp_vertex_ids - has_parent;
 
     char const* deser_note
         = "Note: vertex hierarchy is "
@@ -378,7 +395,7 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
 
     for (auto const& v : in->vertex_set()) {
         auto id = graph->getVertexIDByStableId(v.first);
-        if (!nestedInMap.contains(id)) {
+        if (!tmp_nesting_map.contains(id)) {
             throw serde_error::init(
                 hstd::fmt(
                     "vertex hierarchy vertex_set contains ID not present "
@@ -391,7 +408,7 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
 
     for (auto const& root : in->root_vertex_ids()) {
         auto id = graph->getVertexIDByStableId(root);
-        if (!nestedInMap.contains(id)) {
+        if (!tmp_nesting_map.contains(id)) {
             throw serde_error::init(
                 hstd::fmt(
                     "vertex hierarchy root_vertex_ids contains ID not "
@@ -400,15 +417,15 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
                     deser_note));
         }
 
-        if (parentMap.contains(id)) {
+        if (tmp_parent_map.contains(id)) {
             throw serde_error::init(
                 hstd::fmt(
                     "vertex hierarchy root_vertex_ids contains ID that "
                     "has a parent ID in the nesting map: '{}' has a "
                     "parent '{}'. '{}' has sub-vertices '{}'. {}.",
                     root,
-                    parentMap.at(id),
-                    parentMap.at(id),
+                    tmp_parent_map.at(id),
+                    tmp_parent_map.at(id),
                     in->nested_in_map().at(root).vertices() | hstd::rs::to<Vec>(),
                     deser_note));
         }
@@ -418,7 +435,7 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
     for (auto const& [sub_vertex, parent_vertex] : in->parent_map()) {
         auto sub_vertex_id    = graph->getVertexIDByStableId(sub_vertex);
         auto parent_vertex_id = graph->getVertexIDByStableId(parent_vertex);
-        if (!parentMap.contains(sub_vertex_id)) {
+        if (!tmp_parent_map.contains(sub_vertex_id)) {
             throw serde_error::init(
                 hstd::fmt(
                     "vertex hierarchy contains unexpected parent map "
@@ -432,6 +449,8 @@ void hstd::ext::graph::IVertexHierarchy::readSerial(
                     deser_note));
         }
     }
+
+    for (auto const& v : tmp_vertex_ids) { trackVertex(v); }
 }
 
 
@@ -463,6 +482,8 @@ void TrivialHierarchy::readSerial(
 
         edgeStore.at(id).readSerial(&e, graph, factory);
     }
+
+    for (auto const& e : in->edges()) { getEdgeIDByStableId(e.stable_id()); }
 }
 
 

@@ -619,6 +619,10 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     hstd::logic_assertion_check_not_nil(gvc.get());
     hstd::logic_assertion_check_not_nil(g);
 
+    // graphviz graph group can be constructed as a standalone object -- for cases where
+    // it is used as a simple wrapper around the library, so `.run` might be nullptr.
+    auto should_debug = graph.run != nullptr && graph.run->canTrace();
+
     auto trace_graph = [&](std::string const& prefix) {
         char*       buffer = nullptr;
         std::size_t size   = 0;
@@ -632,11 +636,13 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
         std::free(buffer);
 
 
-        graph.run->writeAdjacentToTraceFile(
-            hstd::fmt("{}{}.dot", prefix, graph.getStableId()), text);
+        if (should_debug) {
+            graph.run->writeAdjacentToTraceFile(
+                hstd::fmt("{}{}.dot", prefix, graph.getStableId()), text);
+        }
     };
 
-    if (graph.run->canTrace()) {
+    if (should_debug) {
         OP_TRACER_MESSAGE(graph.run, "agwrite before layout");
         trace_graph("pre_layout_");
 
@@ -657,7 +663,7 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     res = gvRender(gvc.get(), g, "xdot", nullptr);
     if (res != 0) { throw std::logic_error("Could not execute render for the layout"); }
 
-    if (graph.run->canTrace()) {
+    if (should_debug) {
         OP_TRACER_MESSAGE(graph.run, "agwrite after layout");
 
         char* bb = agget(g, const_cast<char*>("bb"));

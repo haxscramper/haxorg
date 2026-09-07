@@ -11,7 +11,7 @@ using namespace hstd::ext::graph;
 
 namespace {
 constexpr char const* vertex_not_found_msg{
-    "{}vertex {} not found. Missing call to `registerVertex`?"};
+    "{}vertex {} not found. Missing call to `trackVertex`?"};
 } // namespace
 
 IGraph::IGraph(

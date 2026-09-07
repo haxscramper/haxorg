@@ -34,7 +34,13 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
         IGraph const*                              graph,
         IGraphSerialReaderFactory*                 factory,
         IAttributeObject const*                    vertex) override {
-        logic_todo_impl();
+        kw::proto::KiwiVertexVisualAttributePayload load;
+        in->payload().UnpackTo(&load);
+        auto rect = load.rect();
+        if (rect.has_x0()) { this->rect.x0 = rect.x0(); }
+        if (rect.has_y0()) { this->rect.y0 = rect.y0(); }
+        if (rect.has_width0()) { this->rect.width0 = rect.width0(); }
+        if (rect.has_height0()) { this->rect.height0 = rect.height0(); }
     }
 #    endif
 
@@ -189,7 +195,9 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
     void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
         const override {
         layout::IVertexLayoutAttribute::writeSerial(out, graph);
-        logic_todo_impl();
+        kw::proto::KiwiVertexLayoutAttributePayload load;
+        hstd::serde::write_serde(load.mutable_base()->mutable_bbox(), rect);
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(
@@ -230,7 +238,9 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
 #    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
         const override {
-        logic_todo_impl();
+        kw::proto::KiwiGroupLayoutAttributePayload load;
+        hstd::serde::write_serde(load.mutable_base()->mutable_bbox(), rect);
+        out->mutable_payload()->PackFrom(load);
     }
 
     void readSerial(
