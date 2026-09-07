@@ -185,8 +185,15 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
         return result;
     }
 
+
+    template <typename T>
+    std::shared_ptr<T> addConstraint(std::shared_ptr<T> constraint) {
+        constraints.push_back(constraint);
+        return constraint;
+    }
+
     template <typename T, typename... Args>
-    std::shared_ptr<T> addConstraint(Args&&... args) {
+    std::shared_ptr<T> emplaceConstraint(Args&&... args) {
         auto res = std::make_shared<T>(std::forward<Args>(args)...);
         constraints.push_back(res);
         return res;

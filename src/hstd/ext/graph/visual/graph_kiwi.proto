@@ -45,8 +45,8 @@ message KiwiGroupLayoutAttributePayload {
   hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload base = 1;
 }
 
-message KiwiConstraintPayload {
-
+message KiwiConstraintPayloadBase {
+  htsd.ext.kiwi_ir.proto.Strength strength = 1;
 }
 
 message KiwiAlignConstraintPayload {
@@ -55,13 +55,13 @@ message KiwiAlignConstraintPayload {
     htsd.ext.kiwi_ir.proto.AlignSpec spec             = 2;
   }
 
-  KiwiConstraintPayload       base      = 1;
+  KiwiConstraintPayloadBase   base      = 1;
   repeated Spec               vertices  = 2;
   htsd.ext.kiwi_ir.proto.Axis dimension = 3;
 }
 
 message KiwiSeparateConstraintPayload {
-  KiwiConstraintPayload       base               = 1;
+  KiwiConstraintPayloadBase   base               = 1;
   KiwiAlignConstraintPayload  left               = 2;
   KiwiAlignConstraintPayload  right              = 3;
   double                      separationDistance = 4;
@@ -69,14 +69,14 @@ message KiwiSeparateConstraintPayload {
 }
 
 message KiwiMultiSeparateConstraintPayload {
-  KiwiConstraintPayload               base               = 1;
+  KiwiConstraintPayloadBase           base               = 1;
   repeated KiwiAlignConstraintPayload lines              = 2;
   double                              separationDistance = 3;
   htsd.ext.kiwi_ir.proto.Axis         dimension          = 4;
 }
 
 message KiwiLinearConstraintPayload {
-  KiwiConstraintPayload           base = 1;
+  KiwiConstraintPayloadBase       base = 1;
   htsd.ext.kiwi_ir.proto.Expr     lhs  = 2;
   htsd.ext.kiwi_ir.proto.Expr     rhs  = 3;
   htsd.ext.kiwi_ir.proto.Relation op   = 4;

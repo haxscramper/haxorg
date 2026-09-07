@@ -133,19 +133,28 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
                                    IVertex>();
         pl) {
 
+        hstd::SPtr<layout::IGroupVisualAttribute> result;
         if (pl->has_parent_stable_id()) {
             auto parent_group_id = graph->getVertexIDByStableId(pl->parent_stable_id());
             auto this_vertex_id  = graph->getVertexIDByStableId(vertex->getStableId());
             auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
                 parent_group_id, this_vertex_id);
 
-            return graph->getVertex(parent_group_id)
-                ->getUniqueAttribute<kw::KiwiGroup>()
-                ->addNewNativeSubgroup(nesting_edge_id);
+            result = graph->getVertex(parent_group_id)
+                         ->getUniqueAttribute<kw::KiwiGroup>()
+                         ->addNewNativeSubgroup(nesting_edge_id);
 
         } else {
-            return kw::KiwiGroup::newRootGraph(run);
+            result = kw::KiwiGroup::newRootGraph(run);
         }
+
+        for (auto const& c : pl->base().constraints()) {
+            auto new_constraint = newConstraint(&c);
+            new_constraint->readSerial(&c, graph);
+            result->addConstraint(new_constraint);
+        }
+
+        return result;
 
 
         // node payloads
@@ -294,9 +303,18 @@ hstd::SPtr<layout::IConstraint> hstd::ext::graph::VisualFactory::newConstraint(
         serde::getJString(*in));
     OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
     hstd::SPtr<layout::IConstraint> res;
-    if (false) {
+    if (auto kiwi_align = try_payload<kw::proto::KiwiAlignConstraintPayload>(
+            in->payload())) {
+        return std::make_shared<kw::AlignConstraint>(run);
     } else {
-        throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
+        throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
+            in->payload(),
+            "payload",
+            "Cannot read serial data for constraint payload. ",
+            {
+                std::string{
+                    kw::proto::KiwiAlignConstraintPayload::descriptor()->full_name()},
+            }));
     }
 
     return res;
