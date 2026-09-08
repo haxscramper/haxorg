@@ -51,7 +51,20 @@
       "attributes": [
         {
           "payload": {
-            "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload"
+            "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload",
+            "base": {
+              "constraints": [
+                {
+                  "payload": {
+                    "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiAlignConstraintPayload",
+                    "vertices": [
+                      {"stable_vertex_id": "vert-1"},
+                      {"stable_vertex_id": "vert-2"}
+                    ]
+                  }
+                }
+              ]
+            }
           }
         }
       ]

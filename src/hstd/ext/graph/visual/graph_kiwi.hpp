@@ -448,7 +448,7 @@ class LinearConstraint : public KiwiConstraint {
     void writeSerial(hstd::ext::graph::proto::IConstraint* out, IGraph const* graph)
         const override {
         hstd::ext::graph::kw::proto::KiwiLinearConstraintPayload load;
-        load.set_op(static_cast<::htsd::ext::kiwi_ir::proto::Relation>(rel));
+        load.set_op(static_cast<::hstd::ext::kiwi_ir::proto::Relation>(rel));
         lhs.value().writeSerial(load.mutable_lhs());
         rhs.value().writeSerial(load.mutable_rhs());
         out->mutable_payload()->PackFrom(load);
@@ -539,27 +539,18 @@ class AlignConstraint : public KiwiConstraint {
             added->set_stable_vertex_id(rectId(id));
         }
 
-        load.set_dimension(static_cast<::htsd::ext::kiwi_ir::proto::Axis>(dimension));
+        load.set_dimension(static_cast<::hstd::ext::kiwi_ir::proto::Axis>(dimension));
         out->mutable_payload()->PackFrom(load);
     }
 
+#    if ORG_BUILD_WITH_PROTOBUF
     void writePayload(
         hstd::ext::graph::kw::proto::KiwiAlignConstraintPayload* load,
-        IGraph const*                                            graph) const {
-        for (auto const& v : vertices) {
-            auto spec = load->mutable_vertices()->Add();
-            spec->set_stable_vertex_id(rectId(v.first));
-            spec->mutable_spec()->set_offset(v.second.offset);
-            spec->mutable_spec()->set_anchor(
-                static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(v.second.anchor));
-        }
-    }
+        IGraph const*                                            graph) const;
 
-#    if ORG_BUILD_WITH_PROTOBUF
+
     void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
-        override {
-        logic_todo_impl();
-    }
+        override;
 #    endif
 
 
@@ -618,7 +609,7 @@ class SeparateConstraint : public KiwiConstraint {
         left.writePayload(load.mutable_left(), graph);
         right.writePayload(load.mutable_right(), graph);
         load.set_separationdistance(separationDistance);
-        load.set_dimension(static_cast<::htsd::ext::kiwi_ir::proto::Axis>(dimension));
+        load.set_dimension(static_cast<::hstd::ext::kiwi_ir::proto::Axis>(dimension));
         out->mutable_payload()->PackFrom(load);
     }
 
@@ -702,7 +693,7 @@ class MultiSeparateConstraint : public KiwiConstraint {
         const override {
         kw::proto::KiwiMultiSeparateConstraintPayload load;
         for (auto const& line : lines) { line.writePayload(load.add_lines(), graph); }
-        load.set_dimension(static_cast<::htsd::ext::kiwi_ir::proto::Axis>(dimension));
+        load.set_dimension(static_cast<::hstd::ext::kiwi_ir::proto::Axis>(dimension));
         load.set_separationdistance(separationDistance);
         out->mutable_payload()->PackFrom(load);
     }

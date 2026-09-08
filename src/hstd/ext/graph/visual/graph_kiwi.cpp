@@ -2,6 +2,7 @@
 
 #if ORG_BUILD_WITH_KIWI
 
+#    include <hstd/ext/geometry/kiwi_ir_serde.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
 
 using namespace hstd::ext::graph;
@@ -230,6 +231,41 @@ hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
     result->algorithm = std::make_shared<KiwiLayoutAlgorithm>(run);
     return result;
 }
+
+#    if ORG_BUILD_WITH_PROTOBUF
+void kw::AlignConstraint::writePayload(
+    proto::KiwiAlignConstraintPayload* load,
+    IGraph const*                      graph) const {
+    for (auto const& v : vertices) {
+        auto spec = load->mutable_vertices()->Add();
+        spec->set_stable_vertex_id(rectId(v.first));
+        spec->mutable_spec()->set_offset(v.second.offset);
+        spec->mutable_spec()->set_anchor(
+            static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(v.second.anchor));
+    }
+}
+
+void hstd::ext::graph::kw::AlignConstraint::readSerial(
+    hstd::ext::graph::proto::IConstraint const* in,
+    IGraph const*                               graph) {
+    auto load = IGraphSerialReaderFactory::get_payload<proto::KiwiAlignConstraintPayload>(
+        in->payload());
+    hstd::serde::read_serde(load.dimension(), &dimension);
+    hstd::UnorderedSet<std::string> ids;
+    for (auto const& spec : load.vertices()) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !ids.contains(spec.stable_vertex_id()),
+            "Duplicate stable ID in align list {}",
+            spec.stable_vertex_id());
+
+        kiwi_ir::AlignSpec align_spec;
+        hstd::serde::read_serde(spec.spec(), &align_spec);
+        this->vertices.insert_or_assign(
+            graph->getVertexIDByStableId(spec.stable_vertex_id()), align_spec);
+    }
+}
+#    endif
+
 
 kw::AlignConstraint* kw::AlignConstraint::addAlignVertex(
     VertexID const&            id,

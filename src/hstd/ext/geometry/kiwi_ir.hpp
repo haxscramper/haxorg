@@ -78,8 +78,8 @@ Str tree_repr(Vec<kiwi::Constraint> const& c, int indent = 0);
 
 struct AnchorSpec {
   public:
-    Anchor const x;
-    Anchor const y;
+    Anchor x;
+    Anchor y;
 
     AnchorSpec(Anchor x = Anchor::LEFT, Anchor y = Anchor::TOP) : x{x}, y{y} {
         LOGIC_ASSERTION_CHECK_FMT(anchor_axis(x) == Axis::X, "{}", x);
@@ -96,9 +96,9 @@ struct AnchorSpec {
 
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(htsd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
-        anc->set_x(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(x));
-        anc->set_y(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(y));
+    void writeSerial(hstd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
+        anc->set_x(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(x));
+        anc->set_y(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(y));
     }
 #    endif
 
@@ -185,11 +185,11 @@ class Expr {
         char const*                     origin_function = nullptr;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-        void writeSerial(::htsd::ext::kiwi_ir::proto::Expr::Node* n) const {
+        void writeSerial(::hstd::ext::kiwi_ir::proto::Expr::Node* n) const {
             if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
             if (rhs) { rhs->writeSerial(n->mutable_rhs()); }
             n->set_constant(constant);
-            n->set_kind(static_cast<::htsd::ext::kiwi_ir::proto::Expr::Node::Kind>(kind));
+            n->set_kind(static_cast<::hstd::ext::kiwi_ir::proto::Expr::Node::Kind>(kind));
             n->set_variable(variable->name());
         }
 #    endif
@@ -204,7 +204,7 @@ class Expr {
     }
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(::htsd::ext::kiwi_ir::proto::Expr* e) const {}
+    void writeSerial(::hstd::ext::kiwi_ir::proto::Expr* e) const {}
 #    endif
 
   private:
@@ -334,8 +334,8 @@ struct AlignSpec {
     double offset = 0.0;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(::htsd::ext::kiwi_ir::proto::AlignSpec* as) const {
-        as->set_anchor(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(anchor));
+    void writeSerial(::hstd::ext::kiwi_ir::proto::AlignSpec* as) const {
+        as->set_anchor(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(anchor));
         as->set_offset(offset);
     }
 #    endif
@@ -470,7 +470,7 @@ struct RelDimensionSpec {
     DESC_FIELDS(RelDimensionSpec, (size_factor, relative_offset, absolute_offset));
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(::htsd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
+    void writeSerial(::hstd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
         if (size_factor.has_value()) { rd->set_size_factor(size_factor.value()); }
 
         if (relative_offset.has_value()) {

@@ -269,6 +269,21 @@ class IGraphSerialReaderFactory : public hstd::OperationsTracer {
     hstd::OperationsTracer const* get_tracer_obj() const { return this; }
 
     template <typename T>
+    static T get_payload(::google::protobuf::Any const& payload) {
+        if (payload.Is<T>()) {
+            T result;
+            payload.UnpackTo(&result);
+            return result;
+        } else {
+            throw hstd::ext::graph::serde_error::init(
+                hstd::fmt(
+                    "Cannot unpack payload: input any has type {} but expected type {}",
+                    payload.type_url(),
+                    T::descriptor()->full_name()));
+        }
+    }
+
+    template <typename T>
     static hstd::Opt<T> try_payload(::google::protobuf::Any const& payload) {
         if (payload.Is<T>()) {
             T result;

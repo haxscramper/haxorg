@@ -149,6 +149,7 @@ template <typename Proto, hstd::DescribedEnum T>
 struct proto_serde<Proto, T> {
     static void write(Proto* out, T const& in) { *out = static_cast<Proto>(in.value); }
 
+    static void read(Proto const& out, T* in) { *in = static_cast<T>(out); }
     static void read(Proto const& out, proto_write_accessor<T> in) {
         in.get() = static_cast<T>(out);
     }
