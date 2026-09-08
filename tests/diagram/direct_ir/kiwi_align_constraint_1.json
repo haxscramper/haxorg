@@ -56,11 +56,10 @@
               "constraints": [
                 {
                   "payload": {
-                    "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiAlignConstraintPayload",
-                    "vertices": [
-                      {"stable_vertex_id": "vert-1"},
-                      {"stable_vertex_id": "vert-2"}
-                    ]
+                    "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiSeparateConstraintPayload",
+                    "left": { "vertices": [ {"stable_vertex_id": "vert-1"} ] },
+                    "right": { "vertices": [ {"stable_vertex_id": "vert-2"} ] },
+                    "separationDistance": 30
                   }
                 }
               ]

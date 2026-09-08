@@ -306,6 +306,18 @@ hstd::SPtr<layout::IConstraint> hstd::ext::graph::VisualFactory::newConstraint(
     if (auto kiwi_align = try_payload<kw::proto::KiwiAlignConstraintPayload>(
             in->payload())) {
         return std::make_shared<kw::AlignConstraint>(run);
+    } else if (
+        auto kiwi_align = try_payload<kw::proto::KiwiSeparateConstraintPayload>(
+            in->payload())) {
+        return std::make_shared<kw::SeparateConstraint>(run);
+    } else if (
+        auto kiwi_align = try_payload<kw::proto::KiwiMultiSeparateConstraintPayload>(
+            in->payload())) {
+        return std::make_shared<kw::MultiSeparateConstraint>(run);
+    } else if (
+        auto kiwi_align = try_payload<kw::proto::KiwiLinearConstraintPayload>(
+            in->payload())) {
+        return std::make_shared<kw::LinearConstraint>(run);
     } else {
         throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
             in->payload(),
@@ -314,6 +326,12 @@ hstd::SPtr<layout::IConstraint> hstd::ext::graph::VisualFactory::newConstraint(
             {
                 std::string{
                     kw::proto::KiwiAlignConstraintPayload::descriptor()->full_name()},
+                std::string{
+                    kw::proto::KiwiSeparateConstraintPayload::descriptor()->full_name()},
+                std::string{kw::proto::KiwiMultiSeparateConstraintPayload::descriptor()
+                                ->full_name()},
+                std::string{
+                    kw::proto::KiwiLinearConstraintPayload::descriptor()->full_name()},
             }));
     }
 

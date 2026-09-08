@@ -233,16 +233,25 @@ hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
 }
 
 #    if ORG_BUILD_WITH_PROTOBUF
+
+void hstd::ext::graph::kw::AlignConstraint::writeSerial(
+    hstd::ext::graph::proto::IConstraint* out,
+    IGraph const*                         graph) const {
+    hstd::ext::graph::kw::proto::KiwiAlignConstraintPayload load;
+    writePayload(&load, graph);
+    out->mutable_payload()->PackFrom(load);
+}
+
+
 void kw::AlignConstraint::writePayload(
     proto::KiwiAlignConstraintPayload* load,
     IGraph const*                      graph) const {
-    for (auto const& v : vertices) {
-        auto spec = load->mutable_vertices()->Add();
-        spec->set_stable_vertex_id(rectId(v.first));
-        spec->mutable_spec()->set_offset(v.second.offset);
-        spec->mutable_spec()->set_anchor(
-            static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(v.second.anchor));
+    for (auto const& [id, spec] : vertices) {
+        auto added = load->mutable_vertices()->Add();
+        added->set_stable_vertex_id(rectId(id));
+        spec.writeSerial(added->mutable_spec());
     }
+    load->set_dimension(static_cast<::hstd::ext::kiwi_ir::proto::Axis>(dimension));
 }
 
 void hstd::ext::graph::kw::AlignConstraint::readSerial(
@@ -250,9 +259,15 @@ void hstd::ext::graph::kw::AlignConstraint::readSerial(
     IGraph const*                               graph) {
     auto load = IGraphSerialReaderFactory::get_payload<proto::KiwiAlignConstraintPayload>(
         in->payload());
-    hstd::serde::read_serde(load.dimension(), &dimension);
+    readPayload(&load, graph);
+}
+
+void kw::AlignConstraint::readPayload(
+    proto::KiwiAlignConstraintPayload const* in,
+    IGraph const*                            graph) {
     hstd::UnorderedSet<std::string> ids;
-    for (auto const& spec : load.vertices()) {
+    hstd::serde::read_serde(in->dimension(), &dimension);
+    for (auto const& spec : in->vertices()) {
         LOGIC_ASSERTION_CHECK_FMT(
             !ids.contains(spec.stable_vertex_id()),
             "Duplicate stable ID in align list {}",
@@ -320,8 +335,8 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::SeparateConstraint::getKiwi()
     }
 
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> res;
-    res.append(left.getKiwi());
-    res.append(right.getKiwi());
+    if (1 < left.vertices.size()) { res.append(left.getKiwi()); }
+    if (1 < right.vertices.size()) { res.append(right.getKiwi()); }
 
     auto left_first  = left.getAllVertices().front();
     auto right_first = right.getAllVertices().front();
