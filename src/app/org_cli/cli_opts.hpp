@@ -38,12 +38,19 @@ struct CliOpts {
     DECL_DESCRIBED_ENUM(ProtoFormat, Binary, Json, Xml);
 
     struct DiagramOpts {
-        DECL_DESCRIBED_ENUM(InputFormat, Binary, Json);
-
         OPT_FIELD(input, "input", std::string, "");
         OPT_FIELD(output, "output", std::string, "");
+        /// \brief Use simplified diagram syntax for reading and writing the output. The
+        /// option is orthogonal to the input/output format: the final file can be
+        /// xml/json/binary and contain full graph or a simplified diagram.
+        OPT_FIELD(use_diagram_input, "--use-diagram-input", bool, false);
+        OPT_FIELD(use_diagram_output, "--use-diagram-output", bool, false);
         OPT_FIELD(format, "--format", ProtoFormat, ProtoFormat::Binary);
-        OPT_FIELD(input_format, "--input-format", InputFormat, InputFormat::Binary);
+        OPT_FIELD(
+            input_format,
+            "--input-format",
+            hstd::serde::ProtobufFileFormat,
+            hstd::serde::ProtobufFileFormat::Binary);
         OPT_FIELD(
             serial_read_log,
             "--serial-read-log",

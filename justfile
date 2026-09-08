@@ -113,3 +113,6 @@ profile_callgrind_annotate out_file *files:
 
 profile_perf_view:
   hotspot perf.data
+
+generate_diagram_schema:
+  buf generate --path src/hstd/ext/graph/visual/graph_diagram.proto

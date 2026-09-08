@@ -1,7 +1,7 @@
 Example JSON files for the diagram specification.
 
 - [[file:direct_ir]] :: Low-level representation of the graph IR, directly read by the protobuf to graph.
-- [[file:simple_ir]] :: Potential folder for future simplified representation.
+- [[file:diagram_ir]] :: Potential folder for future simplified representation.
 
 To test-run any JSON example, use input and output for JSOn
 

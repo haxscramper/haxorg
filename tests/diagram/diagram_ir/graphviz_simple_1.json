@@ -1,0 +1,6 @@
+{
+  "nodes"   : [ {"id": "one", "graphviz": {}}, {"id": "two", "graphviz": {}} ],
+  "edges"   : [ {"id": "one-two", "source": "one", "target": "two", "graphviz": {}} ],
+  "graphviz": {"dot": {}},
+  "id"      : "root"
+}

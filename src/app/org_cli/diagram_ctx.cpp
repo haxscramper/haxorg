@@ -1,6 +1,7 @@
 #include "diagram_ctx.hpp"
 #include "hstd/ext/graph/visual/visual_factory.hpp"
 #include <google/protobuf/util/json_util.h>
+#include <hstd/ext/graph/visual/graph_diagram.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
 #include <hstd/stdlib/MapSerde.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
@@ -17,11 +18,13 @@ org::cli::CliOpts::DiagramOpts org::cli::DiagramCommandContext::parseCommand(
     OPT_GET(diagram_cmd, opts, layout_log, std::string);
     OPT_GET(diagram_cmd, opts, output_visual, std::string);
     OPT_GET(diagram_cmd, opts, output_visual_json, std::string);
-    OPT_GET(diagram_cmd, opts, output_visual_debug, bool);
+    OPT_GET_CONV(diagram_cmd, opts, output_visual_debug, value == "true");
+    OPT_GET_CONV(diagram_cmd, opts, use_diagram_input, value == "true");
+    OPT_GET_CONV(diagram_cmd, opts, use_diagram_output, value == "true");
     OPT_GET_CONV(
         diagram_cmd, opts, output_visual_scale, boost::lexical_cast<double>(value));
     OPT_GET_ENUM(diagram_cmd, opts, format, CliOpts::ProtoFormat);
-    OPT_GET_ENUM(diagram_cmd, opts, input_format, CliOpts::DiagramOpts::InputFormat);
+    OPT_GET_ENUM(diagram_cmd, opts, input_format, hstd::serde::ProtobufFileFormat);
     return opts;
 }
 
@@ -39,13 +42,17 @@ void org::cli::DiagramCommandContext::getSubcommand(
         .help("JSON with the diagram debug output");
     diagram_cmd.add_argument(DO::output_visual_debug_opt)
         .help("Write SVG with additional debug information");
+    diagram_cmd.add_argument(DO::use_diagram_input_opt)
+        .help("Use simplified diagram syntax defined in DiaCluster for the input file");
+    diagram_cmd.add_argument(DO::use_diagram_output_opt)
+        .help("Write final result in simplified diagram syntax");
     diagram_cmd.add_argument(DO::layout_log_opt).help("log for the layout run");
     diagram_cmd.add_argument(DO::format_opt)
         .help("set diagram export format: " + describe_enum<CliOpts::ProtoFormat>());
     diagram_cmd.add_argument(DO::input_format_opt)
         .help(
             "set diagram import format: "
-            + describe_enum<CliOpts::DiagramOpts::InputFormat>());
+            + describe_enum<hstd::serde::ProtobufFileFormat>());
 }
 
 void org::cli::DiagramCommandContext::run(SharedContext& shared) {
@@ -54,30 +61,13 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
 
     hstd::ext::graph::proto::IGraph proto_layout;
 
-    std::ifstream stream{cmd.input, std::ios::binary};
-    if (!stream) { throw std::runtime_error("Failed to open input file: " + cmd.input); }
-
-    switch (cmd.input_format) {
-        case DO::InputFormat::Binary: {
-            if (!proto_layout.ParseFromIstream(&stream)) {
-                throw std::runtime_error("Failed to parse protobuf input: " + cmd.input);
-            }
-            break;
-        }
-
-        case DO::InputFormat::Json: {
-            const std::string json{
-                std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}};
-
-            const auto status = google::protobuf::util::JsonStringToMessage(
-                json, &proto_layout);
-
-            if (!status.ok()) {
-                throw std::runtime_error(
-                    "Failed to parse protobuf JSON input: " + status.ToString());
-            }
-            break;
-        }
+    if (cmd.use_diagram_input) {
+        auto diagram = hstd::serde::read_message_from_file<
+            hstd::ext::graph::diagram::proto::DiaCluster>(cmd.input, cmd.input_format);
+        proto_layout = hstd::ext::graph::diagram::diaClusterToGraph(diagram);
+    } else {
+        proto_layout = hstd::serde::read_message_from_file<
+            hstd::ext::graph::proto::IGraph>(cmd.input, cmd.input_format);
     }
 
     if (cmd.serial_read_log) { factory.setTraceFile(cmd.serial_read_log.value()); }
@@ -106,5 +96,11 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
 
     auto result = std::make_unique<hstd::ext::graph::proto::IGraph>();
     graph->writeSerial(result.get());
-    shared.writeProtoResult(cmd.output, *result, cmd.format);
+
+    if (cmd.use_diagram_output) {
+        auto simplified_result = hstd::ext::graph::diagram::graphToDiaCluster(*result);
+        shared.writeProtoResult(cmd.output, simplified_result, cmd.format);
+    } else {
+        shared.writeProtoResult(cmd.output, *result, cmd.format);
+    }
 }

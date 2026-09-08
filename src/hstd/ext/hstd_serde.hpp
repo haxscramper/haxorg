@@ -2,7 +2,11 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "google/protobuf/map.h"
+#    include "hstd/stdlib/Filesystem.hpp"
+#    include <fstream>
 #    include <google/protobuf/any.pb.h>
+#    include <google/protobuf/text_format.h>
+#    include <google/protobuf/util/json_util.h>
 #    include <hstd/stdlib/Json.hpp>
 #    include <hstd/stdlib/Map.hpp>
 #    include <hstd/stdlib/Opt.hpp>
@@ -230,6 +234,59 @@ T unpack_attr_payload(google::protobuf::Any const& in) {
                 T::descriptor()->full_name()));
     }
     return payload;
+}
+
+DECL_DESCRIBED_ENUM_STANDALONE(ProtobufFileFormat, Binary, Json, Textproto);
+
+template <typename T>
+T read_message_from_binary_file(std::string const& file_path) {
+    T             result;
+    std::ifstream stream{file_path, std::ios::binary};
+    if (!stream) { throw std::runtime_error("Failed to open input file: " + file_path); }
+    if (!result.ParseFromIstream(&stream)) {
+        throw std::runtime_error("Failed to parse protobuf input: " + file_path);
+    }
+
+    return result;
+}
+
+template <typename T>
+T read_message_from_json_file(std::string const& file_path) {
+    T    result;
+    auto status = google::protobuf::util::JsonStringToMessage(
+        hstd::readFile(file_path), &result);
+
+    if (!status.ok()) {
+        throw std::runtime_error(
+            "Failed to parse protobuf JSON input: " + file_path + ": "
+            + status.ToString());
+    }
+
+    return result;
+}
+
+template <typename T>
+T read_message_from_textproto_file(std::string const& file_path) {
+    T result;
+
+    if (!google::protobuf::TextFormat::ParseFromString(
+            hstd::readFile(file_path), &result)) {
+        throw std::runtime_error(
+            "Failed to parse protobuf textproto input: " + file_path);
+    }
+
+    return result;
+}
+
+template <typename T>
+T read_message_from_file(std::string const& file_path, ProtobufFileFormat format) {
+    switch (format) {
+        case ProtobufFileFormat::Binary:
+            return read_message_from_binary_file<T>(file_path);
+        case ProtobufFileFormat::Json: return read_message_from_json_file<T>(file_path);
+        case ProtobufFileFormat::Textproto:
+            return read_message_from_textproto_file<T>(file_path);
+    }
 }
 
 
