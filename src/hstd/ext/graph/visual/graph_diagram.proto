@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+import "google/protobuf/struct.proto";
+import "src/hstd/ext/graph/base/graph_base.proto";
+import "src/hstd/ext/graph/visual/graph_kiwi.proto";
+import "src/hstd/ext/graph/visual/graph_graphviz.proto";
+
+package hstd.ext.graph.diagram.proto;
+
+message DiaNode {
+  string id = 1;
+
+  oneof kind {
+    hstd.ext.graph.gv.proto.NodeAttributePayload             graphviz = 2;
+    hstd.ext.graph.kw.proto.KiwiVertexVisualAttributePayload kiwi     = 3;
+  }
+}
+
+message DiaEdge {
+  string source = 1;
+  string target = 2;
+  string id     = 3;
+
+  oneof kind {
+    hstd.ext.graph.gv.proto.EdgeAttributePayload           graphviz = 4;
+    hstd.ext.graph.kw.proto.KiwiEdgeVisualAttributePayload kiwi     = 5;
+  }
+}
+
+message DiaConstraint {
+  oneof kind {
+    hstd.ext.graph.kw.proto.KiwiAlignConstraintPayload         kw_align          = 1;
+    hstd.ext.graph.kw.proto.KiwiSeparateConstraintPayload      kw_separate       = 2;
+    hstd.ext.graph.kw.proto.KiwiMultiSeparateConstraintPayload kw_multi_separate = 3;
+    hstd.ext.graph.kw.proto.KiwiRelativeConstraintPayload      kw_relative       = 4;
+    hstd.ext.graph.kw.proto.KiwiLinearConstraintPayload        kw_linear         = 5;
+  }
+}
+
+message DiaCluster {
+  string                 id          = 1;
+  repeated DiaNode       nodes       = 2;
+  repeated DiaEdge       edges       = 3;
+  repeated DiaCluster    nested      = 4;
+  repeated DiaConstraint constraints = 5;
+
+  oneof kind {
+    google.protobuf.NullValue                               no_algorithm = 6;
+    hstd.ext.graph.gv.proto.GroupAttributePayload           graphviz     = 7;
+    hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload kiwi         = 8;
+  }
+}
+
+message DiaGraphMetadata {
+  map<string, bool>   no_algorithm_cluster_ids = 1;
+  map<string, string> edge_parent_cluster_ids  = 2;
+}

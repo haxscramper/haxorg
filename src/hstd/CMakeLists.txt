@@ -134,6 +134,16 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
     "${BASE}/src/hstd/ext/geometry/kiwi_ir.proto"
     "${BASE}/src/hstd/ext/graph/visual/graph_kiwi.proto")
 
+  haxorg_add_protobuf(
+    TARGET
+    hstd
+    UNIQUE_TARGET
+    hstd_proto_diagram_graph
+    IMPORT_DIRS
+    "${BASE}"
+    PROTO_SOURCES
+    "${BASE}/src/hstd/ext/graph/visual/graph_diagram.proto")
+
 endif()
 
 target_include_directories(hstd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
