@@ -810,7 +810,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
         }
 
         for (auto const& edge : run->getEdgesNestedInLayout(root_id)) {
-            OP_TRACER_MESSAGE(run, "{}", g->getDebug(edge));
+            OP_TRACER_MESSAGE(run, "{} ID '{}'", g->getDebug(edge), edge.getValue());
             run->getEdgeVisualAttribute<EdgeAttribute>(edge)->setAttr(
                 id_attr, edge.getValue());
         }
@@ -933,7 +933,15 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     });
 
     rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        auto id = EdgeID::FromValue(edge.getAttr<hstd::u64>(id_attr).value());
+        auto opt_id = edge.getAttr<hstd::u64>(id_attr);
+        LOGIC_ASSERTION_CHECK_FMT(
+            opt_id.has_value(),
+            "Could not get ID attribute from edge {} -> {} [{}]",
+            edge.head().name(),
+            edge.tail().name(),
+            edge.getPropertiesAsString());
+
+        auto id = EdgeID::FromValue(opt_id.value());
         // Convert root-absolute spline/label coordinates to
         // parent-group-relative at construction time.
         Point parent_offset{0, 0};
@@ -1745,6 +1753,7 @@ void hstd::ext::graph::gv::GraphGroup::writeSerial(
         case LayoutType::sfdp: writeAttrs(this, data.mutable_sfdp(), layout); break;
         case LayoutType::twopi: writeAttrs(this, data.mutable_twopi(), layout); break;
         case LayoutType::circo: writeAttrs(this, data.mutable_circo(), layout); break;
+        case LayoutType::osage: writeAttrs(this, data.mutable_osage(), layout); break;
         case LayoutType::patchwork:
             writeAttrs(this, data.mutable_patchwork(), layout);
             break;

@@ -619,8 +619,8 @@ class EdgeAttribute
 
     std::string getPropertiesAsString() const;
 
-    NodeAttribute head() { return NodeAttribute(graph, AGHEAD(edge_)); }
-    NodeAttribute tail() { return NodeAttribute(graph, AGTAIL(edge_)); }
+    NodeAttribute head() const { return NodeAttribute(graph, AGHEAD(edge_)); }
+    NodeAttribute tail() const { return NodeAttribute(graph, AGTAIL(edge_)); }
 
     void setLHead(NodeAttribute node) { setLHead(node.name()); }
     void setLTail(NodeAttribute node) { setLTail(node.name()); }

@@ -213,7 +213,10 @@ void TrivialEdgeCollection::readSerial(
     IGraphSerialReaderFactory*    factory) {
     IEdgeCollection::readSerial(in, graph, factory);
 
+    OP_TRACER_MESSAGE_SCOPE(factory, "TrivialEdgeCollection::readSerial");
+
     for (auto const& e : in->edges()) {
+        OP_TRACER_MESSAGE(factory, "Edge {}", e.stable_id());
         auto out_edge = factory->newEdge(&e);
         // NOTE: the 'read serial' logic is brittle here: first the edge
         // must be created by the factor, then added to the store, track

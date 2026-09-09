@@ -432,7 +432,6 @@ void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* fact
     }
 
     for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
-        entry->readSerial(&coll, this, factory);
         for (auto const& edge : coll.edges()) {
             OP_TRACER_MESSAGE_SCOPE(
                 factory,
@@ -446,8 +445,7 @@ void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* fact
         }
     }
 
-    for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
-        entry->readSerial(&coll, this, factory);
+    for (auto const& [coll, entry] : hstd::rv::zip(in->hierarchies(), hierarchy_list)) {
         for (auto const& edge : coll.edges()) {
             OP_TRACER_MESSAGE_SCOPE(
                 factory,
