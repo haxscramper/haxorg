@@ -191,20 +191,25 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
 
         // edge payloads
     } else if (
-        auto const& [pl, vertex] = unpack_as.
-                                   operator()<gv::proto::EdgeAttributePayload, IVertex>();
+        auto const& [pl, edge] = unpack_as.
+                                 operator()<gv::proto::EdgeAttributePayload, IEdge>();
         pl) {
         LOGIC_ASSERTION_CHECK_FMT(
             !pl->parent_stable_id().empty(),
             "Parent stable ID cannot be set to empty, graphviz "
             "attribute for node '{}' must have the parent ID "
             "specified",
-            vertex->getStableId());
+            edge->getStableId());
 
-        auto edge_id = graph->getEdgeIDByStableId(vertex->getStableId());
+        auto edge_id = graph->getEdgeIDByStableId(edge->getStableId());
 
+        // get the existing parent attribute object and assign edges to it.
+        // the parent vertex attribute should already be created.
         return graph->getVertex(graph->getVertexIDByStableId(pl->parent_stable_id()))
-            ->getUniqueAttribute<gv::GraphGroup>()
+            ->getUniqueAttribute<gv::GraphGroup>(hstd::fmt(
+                "Parent group ID '{}' for edge '{}'. ",
+                pl->parent_stable_id(),
+                edge->getStableId()))
             ->edge(
                 *graph->getVertex(graph->getSource(edge_id))
                      ->getUniqueAttribute<gv::NodeAttribute>(),

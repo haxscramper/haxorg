@@ -173,6 +173,7 @@ EdgeIDSet IEdgeCollection::getEdges() const {
     return result;
 }
 
+
 #if ORG_BUILD_WITH_PROTOBUF
 
 void hstd::ext::graph::IEdgeCollection::writeSerial(
@@ -185,10 +186,16 @@ void hstd::ext::graph::IEdgeCollection::writeSerial(
     }
 }
 
+
 void hstd::ext::graph::IEdgeCollection::readSerial(
     proto::IEdgeCollection const* in,
     IGraph const*                 graph,
     IGraphSerialReaderFactory*    factory) {}
+
+void hstd::ext::graph::IEdge::readSerial(
+    proto::IEdge const*        in,
+    IGraph const*              graph,
+    IGraphSerialReaderFactory* factory) {}
 
 void hstd::ext::graph::IEdge::writeSerial(
     proto::IEdge* out,
@@ -199,7 +206,6 @@ void hstd::ext::graph::IEdge::writeSerial(
     out->set_target_vertex_id(graph->getStableId(graph->getTarget(self_id)));
     IAttributeObject::writeSerial(out->mutable_attributes(), graph);
 }
-
 
 void TrivialEdgeCollection::readSerial(
     proto::IEdgeCollection const* in,
@@ -223,6 +229,10 @@ void TrivialEdgeCollection::readSerial(
         // And then, serial data reading must be done on the copied trivial
         // edge object, not on the original out edge.
         edgeStore.at(id).readSerial(&e, graph, factory);
+        LOGIC_ASSERTION_CHECK_FMT(
+            edgeStore.at(id).attrs.empty(),
+            "Edge de-serialization should not read attributes directly, the attributes "
+            "are handled in the IGraph::readSerial");
     }
 }
 #endif

@@ -62,8 +62,7 @@ template <typename Message>
 void appendAttribute(
     google::protobuf::RepeatedPtrField<IAttribute>* attributes,
     Message const&                                  message) {
-    IAttribute* attribute = attributes->Add();
-    attribute->set_type(Message::descriptor()->full_name());
+    IAttribute* attribute         = attributes->Add();
     *attribute->mutable_payload() = packMessage(message);
 }
 
@@ -221,7 +220,6 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
 
     auto* hierarchy = graph.add_hierarchies();
     hierarchy->set_stable_id("diagram-hierarchy");
-    hierarchy->add_root_vertex_ids(root.id());
     *hierarchy->mutable_payload() = packMessage(TrivialVertexHierarchyPayload{});
 
     auto* ports               = graph.add_ports();
@@ -247,7 +245,6 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
         bool       inherited = false;
         IVertex*   vertex    = graph.add_vertices();
         vertex->set_stable_id(cluster.id());
-        vertex->set_type("diagram.cluster");
         *vertex->mutable_payload() = packMessage(TrivialVertexPayload{});
 
         switch (cluster.kind_case()) {
@@ -344,12 +341,9 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
             }
 
             nestedIds.add_vertices(node.id());
-            hierarchy->mutable_parent_map()->insert({node.id(), cluster.id()});
-            hierarchy->mutable_vertex_set()->insert({node.id(), true});
 
             IVertex* nodeVertex = graph.add_vertices();
             nodeVertex->set_stable_id(node.id());
-            nodeVertex->set_type("diagram.node");
             *nodeVertex->mutable_payload() = packMessage(TrivialVertexPayload{});
 
             switch (kind) {
@@ -387,12 +381,18 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
 
         for (DiaCluster const& nested : cluster.nested()) {
             nestedIds.add_vertices(nested.id());
-            hierarchy->mutable_parent_map()->insert({nested.id(), cluster.id()});
-            hierarchy->mutable_vertex_set()->insert({nested.id(), true});
         }
 
-        hierarchy->mutable_vertex_set()->insert({cluster.id(), true});
         hierarchy->mutable_nested_in_map()->insert({cluster.id(), nestedIds});
+
+        for (auto const& aux_edge : nestedIds.vertices()) {
+            auto edge = hierarchy->add_edges();
+            edge->set_source_vertex_id(cluster.id());
+            edge->set_target_vertex_id(aux_edge);
+            edge->set_stable_id(
+                hstd::fmt("__nesting_cluster_{}_{}", cluster.id(), aux_edge));
+            *edge->mutable_payload() = packMessage(TrivialEdgePayload{});
+        }
 
         for (DiaEdge const& edge : cluster.edges()) {
             if (edge.id().empty()) {
@@ -423,7 +423,6 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
 
             IEdge* graphEdge = collection->add_edges();
             graphEdge->set_stable_id(edge.id());
-            graphEdge->set_type("diagram.edge");
             graphEdge->set_source_vertex_id(edge.source());
             graphEdge->set_target_vertex_id(edge.target());
             *graphEdge->mutable_payload() = packMessage(TrivialEdgePayload{});

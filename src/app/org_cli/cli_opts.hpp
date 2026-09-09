@@ -45,6 +45,11 @@ struct CliOpts {
         /// xml/json/binary and contain full graph or a simplified diagram.
         OPT_FIELD(use_diagram_input, "--use-diagram-input", bool, false);
         OPT_FIELD(use_diagram_output, "--use-diagram-output", bool, false);
+        OPT_FIELD(
+            diagram_intermediate_dump,
+            "--diagram-intermediate-dump",
+            hstd::Opt<std::string>,
+            std::nullopt);
         OPT_FIELD(format, "--format", ProtoFormat, ProtoFormat::Binary);
         OPT_FIELD(
             input_format,

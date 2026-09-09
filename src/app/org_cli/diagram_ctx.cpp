@@ -18,6 +18,7 @@ org::cli::CliOpts::DiagramOpts org::cli::DiagramCommandContext::parseCommand(
     OPT_GET(diagram_cmd, opts, layout_log, std::string);
     OPT_GET(diagram_cmd, opts, output_visual, std::string);
     OPT_GET(diagram_cmd, opts, output_visual_json, std::string);
+    OPT_GET(diagram_cmd, opts, diagram_intermediate_dump, std::string);
     OPT_GET_CONV(diagram_cmd, opts, output_visual_debug, value == "true");
     OPT_GET_CONV(diagram_cmd, opts, use_diagram_input, value == "true");
     OPT_GET_CONV(diagram_cmd, opts, use_diagram_output, value == "true");
@@ -42,6 +43,10 @@ void org::cli::DiagramCommandContext::getSubcommand(
         .help("JSON with the diagram debug output");
     diagram_cmd.add_argument(DO::output_visual_debug_opt)
         .help("Write SVG with additional debug information");
+    diagram_cmd.add_argument(DO::diagram_intermediate_dump_opt)
+        .help(
+            "If --use-diagram-input was enabled, dump the intermediate graph to the file "
+            "in JSON form. This is a debug option");
     diagram_cmd.add_argument(DO::use_diagram_input_opt)
         .help("Use simplified diagram syntax defined in DiaCluster for the input file");
     diagram_cmd.add_argument(DO::use_diagram_output_opt)
@@ -65,6 +70,11 @@ void org::cli::DiagramCommandContext::run(SharedContext& shared) {
         auto diagram = hstd::serde::read_message_from_file<
             hstd::ext::graph::diagram::proto::DiaCluster>(cmd.input, cmd.input_format);
         proto_layout = hstd::ext::graph::diagram::diaClusterToGraph(diagram);
+
+        if (cmd.diagram_intermediate_dump) {
+            shared.writeProtoJson(cmd.diagram_intermediate_dump.value(), proto_layout);
+        }
+
     } else {
         proto_layout = hstd::serde::read_message_from_file<
             hstd::ext::graph::proto::IGraph>(cmd.input, cmd.input_format);

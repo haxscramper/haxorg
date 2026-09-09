@@ -317,7 +317,9 @@ void validate_nesting_map(proto::IVertexHierarchy const* in) {
                 throw serde_error::init(
                     hstd::fmt(
                         "Nested input map contains mapping '{} -> {}', but no edge "
-                        "with this source-target pair exists",
+                        "with this source-target pair exists. Hierarchy nesting is "
+                        "considered an edge from the parent node to the nested node, "
+                        "and must contain a dedicated edge object in the hierarchy.",
                         source_id,
                         target_id));
             }

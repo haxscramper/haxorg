@@ -771,7 +771,6 @@ void org::graph::MapNode::writeSerial(
     hgraph::IGraph const*   graph,
     hgraph::VertexID const& self_id) const {
     IVertex::writeSerial(out, graph, self_id);
-    out->set_type("org::graph::MapNode");
     proto::MapNodePayload payload;
 
     ImmSemSerdeConfig config;
