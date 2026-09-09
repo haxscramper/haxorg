@@ -216,6 +216,10 @@ function(haxorg_add_protobuf)
   set(PROTO_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
   file(MAKE_DIRECTORY "${PROTO_OUT_DIR}")
 
+  set(HAP_EFFECTIVE_IMPORT_DIRS ${HAP_IMPORT_DIRS})
+  list(APPEND HAP_EFFECTIVE_IMPORT_DIRS "${PROTOVALIDATE_PROTO_IMPORT_DIR}")
+  list(REMOVE_DUPLICATES HAP_EFFECTIVE_IMPORT_DIRS)
+
   protobuf_generate(
     LANGUAGE
     cpp
@@ -224,7 +228,7 @@ function(haxorg_add_protobuf)
     PROTOC_EXE
     "${PROTOC_PATH}"
     IMPORT_DIRS
-    ${HAP_IMPORT_DIRS}
+    ${HAP_EFFECTIVE_IMPORT_DIRS}
     PROTOS
     ${HAP_PROTO_SOURCES}
     PROTOC_OUT_DIR
@@ -236,12 +240,14 @@ function(haxorg_add_protobuf)
     COMMENT "Generating protobuf files")
 
   target_sources(${HAP_TARGET} PRIVATE ${HAP_GENERATED_FILES})
+
   add_dependencies(${HAP_TARGET} ${HAP_UNIQUE_TARGET}_generate_files)
 
   target_include_directories(${HAP_TARGET} PUBLIC $<BUILD_INTERFACE:${PROTO_OUT_DIR}>
                                                   $<INSTALL_INTERFACE:include>)
 
-  target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc)
+  target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc
+                                             $<BUILD_INTERFACE:protovalidate_cc::protovalidate_cc>)
 
   install(FILES ${HAP_GENERATED_FILES} DESTINATION include)
 endfunction()
