@@ -238,14 +238,11 @@ function(haxorg_add_protobuf)
   set(BUF_PATH_ARGUMENTS)
 
   foreach(PROTO_SOURCE IN LISTS HAP_PROTO_SOURCES)
-    file(REAL_PATH "${PROTO_SOURCE}" PROTO_ABSOLUTE_PATH)
-
-    file(RELATIVE_PATH PROTO_RELATIVE_PATH "${HAP_MODULE_DIR}" "${PROTO_ABSOLUTE_PATH}")
+    file(RELATIVE_PATH PROTO_RELATIVE_PATH "${HAP_MODULE_DIR}" "${PROTO_SOURCE}")
 
     if(PROTO_RELATIVE_PATH MATCHES "^\\.\\.")
       message(
-        FATAL_ERROR
-          "Proto source '${PROTO_ABSOLUTE_PATH}' is outside Buf module '${HAP_MODULE_DIR}'")
+        FATAL_ERROR "Proto source '${PROTO_SOURCE}' is outside Buf module '${HAP_MODULE_DIR}'")
     endif()
 
     string(REGEX REPLACE "\\.proto$" ".pb.cc" GENERATED_SOURCE_RELATIVE_PATH
@@ -258,7 +255,7 @@ function(haxorg_add_protobuf)
 
     list(APPEND HAP_GENERATED_HEADERS "${PROTO_OUT_DIR}/${GENERATED_HEADER_RELATIVE_PATH}")
 
-    list(APPEND BUF_PATH_ARGUMENTS --path "${PROTO_ABSOLUTE_PATH}")
+    list(APPEND BUF_PATH_ARGUMENTS --path "${PROTO_RELATIVE_PATH}")
   endforeach()
 
   file(GLOB_RECURSE HAP_MODULE_PROTO_FILES CONFIGURE_DEPENDS "${HAP_MODULE_DIR}/*.proto")

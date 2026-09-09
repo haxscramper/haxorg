@@ -97,10 +97,10 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
 
 endif()
 
-target_include_directories(hstd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-                                       $<INSTALL_INTERFACE:src>)
-target_include_directories(hstd PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"
-                                       "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
+target_include_directories(hstd SYSTEM PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                                              $<INSTALL_INTERFACE:src>)
+target_include_directories(hstd SYSTEM PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"
+                                              "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
 
 if(${ORG_BUILD_TESTS})
   haxorg_add_executable(tests_hstd)
