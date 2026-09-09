@@ -1,4 +1,4 @@
-add_library(haxorg)
+add_library(haxorg SHARED)
 set_common_files(haxorg)
 
 glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/.*" SEARCH_BASE "${BASE}")
@@ -11,23 +11,16 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     TARGET
     haxorg
     UNIQUE_TARGET
-    haxorg_sem_protobuf
-    IMPORT_DIRS
-    "${BASE}"
+    haxorg_proto
+    MODULE_DIR
+    "${BASE}/src"
+    TEMPLATE
+    "${BASE}/src/hstd/buf.gen.yaml"
     PROTO_SOURCES
+    "${BASE}/src/haxorg/imm/ImmOrgGraph.proto"
     "${BASE}/src/haxorg/serde/SemOrgProto.proto"
     "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto"
     "${BASE}/src/haxorg/serde/OrgApiProto.proto")
-
-  haxorg_add_protobuf(
-    TARGET
-    haxorg
-    UNIQUE_TARGET
-    haxorg_imm_graph_protobuf
-    IMPORT_DIRS
-    "${BASE}"
-    PROTO_SOURCES
-    "${BASE}/src/haxorg/imm/ImmOrgGraph.proto")
 endif()
 
 target_link_libraries(haxorg PUBLIC hstd range-v3::range-v3 nlohmann_json::nlohmann_json

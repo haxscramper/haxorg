@@ -2,11 +2,11 @@ syntax = "proto3";
 
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
-import "src/hstd/ext/geometry/hstd_geometry.proto";
-import "src/hstd/ext/geometry/hstd_visual.proto";
-import "src/hstd/ext/graph/base/graph_base.proto";
-import "src/hstd/ext/graph/visual/graph_visual.proto";
-import "src/hstd/ext/geometry/kiwi_ir.proto";
+import "hstd/ext/geometry/hstd_geometry.proto";
+import "hstd/ext/geometry/hstd_visual.proto";
+import "hstd/ext/graph/base/graph_base.proto";
+import "hstd/ext/graph/visual/graph_visual.proto";
+import "hstd/ext/geometry/kiwi_ir.proto";
 
 package hstd.ext.graph.kw.proto;
 

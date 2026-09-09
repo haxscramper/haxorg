@@ -18,7 +18,10 @@ if(${ORG_BUILD_WITH_QT})
                AUTOUIC ON
                AUTORCC ON)
 else()
-  haxorg_add_library(hstd)
+  add_library(hstd SHARED)
+  set_common_files(hstd)
+  set_target_output(hstd)
+  set_target_flags(hstd)
 
 endif()
 
@@ -57,23 +60,22 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     TARGET
     hstd
     UNIQUE_TARGET
-    hstd_proto_base_graph
-    IMPORT_DIRS
-    "${BASE}"
+    hstd_proto
+    MODULE_DIR
+    "${BASE}/src"
+    TEMPLATE
+    "${BASE}/src/hstd/buf.gen.yaml"
     PROTO_SOURCES
+    "${BASE}/src/hstd/ext/graph/visual/graph_graphviz.proto"
+    "${BASE}/src/hstd/ext/graph/visual/graph_avoid.proto"
+    "${BASE}/src/hstd/ext/graph/visual/graph_elk.proto"
+    "${BASE}/src/hstd/ext/geometry/kiwi_ir.proto"
+    "${BASE}/src/hstd/ext/graph/visual/graph_kiwi.proto"
+    "${BASE}/src/hstd/ext/graph/visual/graph_diagram.proto"
     "${BASE}/src/hstd/ext/graph/base/graph_base.proto"
     "${BASE}/src/hstd/ext/graph/visual/graph_visual.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_geometry.proto"
-    "${BASE}/src/hstd/ext/geometry/hstd_visual.proto")
-
-  haxorg_add_protobuf(
-    TARGET
-    hstd
-    UNIQUE_TARGET
-    hstd_proto_error_write
-    IMPORT_DIRS
-    "${BASE}"
-    PROTO_SOURCES
+    "${BASE}/src/hstd/ext/geometry/hstd_visual.proto"
     "${BASE}/src/hstd/ext/error_write.proto")
 endif()
 
@@ -92,57 +94,6 @@ if(${ORG_BUILD_WITH_GRAPH_VISUAL})
   if(${ORG_BUILD_WITH_ADAPTAGRAMS})
     target_link_libraries(hstd PUBLIC adaptagrams)
   endif()
-
-  haxorg_add_protobuf(
-    TARGET
-    hstd
-    UNIQUE_TARGET
-    hstd_proto_graphviz_graph
-    IMPORT_DIRS
-    "${BASE}"
-    PROTO_SOURCES
-    "${BASE}/src/hstd/ext/graph/visual/graph_graphviz.proto")
-
-  haxorg_add_protobuf(
-    TARGET
-    hstd
-    UNIQUE_TARGET
-    hstd_proto_avoid_graph
-    IMPORT_DIRS
-    "${BASE}"
-    PROTO_SOURCES
-    "${BASE}/src/hstd/ext/graph/visual/graph_avoid.proto")
-
-  haxorg_add_protobuf(
-    TARGET
-    hstd
-    UNIQUE_TARGET
-    hstd_proto_elk_graph
-    IMPORT_DIRS
-    "${BASE}"
-    PROTO_SOURCES
-    "${BASE}/src/hstd/ext/graph/visual/graph_elk.proto")
-
-  haxorg_add_protobuf(
-    TARGET
-    hstd
-    UNIQUE_TARGET
-    hstd_proto_kiwi_graph
-    IMPORT_DIRS
-    "${BASE}"
-    PROTO_SOURCES
-    "${BASE}/src/hstd/ext/geometry/kiwi_ir.proto"
-    "${BASE}/src/hstd/ext/graph/visual/graph_kiwi.proto")
-
-  haxorg_add_protobuf(
-    TARGET
-    hstd
-    UNIQUE_TARGET
-    hstd_proto_diagram_graph
-    IMPORT_DIRS
-    "${BASE}"
-    PROTO_SOURCES
-    "${BASE}/src/hstd/ext/graph/visual/graph_diagram.proto")
 
 endif()
 

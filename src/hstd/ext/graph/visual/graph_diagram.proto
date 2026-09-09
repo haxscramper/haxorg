@@ -1,9 +1,9 @@
 syntax = "proto3";
 
 import "google/protobuf/struct.proto";
-import "src/hstd/ext/graph/base/graph_base.proto";
-import "src/hstd/ext/graph/visual/graph_kiwi.proto";
-import "src/hstd/ext/graph/visual/graph_graphviz.proto";
+import "hstd/ext/graph/base/graph_base.proto";
+import "hstd/ext/graph/visual/graph_kiwi.proto";
+import "hstd/ext/graph/visual/graph_graphviz.proto";
 
 package hstd.ext.graph.diagram.proto;
 
