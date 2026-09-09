@@ -3,11 +3,8 @@ version: v2
 clean: true
 
 plugins:
-  - remote: buf.build/protocolbuffers/cpp
-    out: generated/haxorg
-
   - remote: buf.build/community/chrusty-jsonschema
-    out: build/jsonschema/haxorg
+    out: build/jsonschema
     opt:
       # prefixes each generated schema filename with the protobuf package name.
       - prefix_schema_files_with_package

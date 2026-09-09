@@ -1,5 +1,4 @@
 #include "graph_diagram.hpp"
-#include <buf/validate/validator.h>
 #include <hstd/ext/hstd_serde.hpp>
 
 namespace {
@@ -209,8 +208,6 @@ std::string commonCluster(
 
 hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     hstd::ext::graph::diagram::proto::DiaCluster const& root) {
-
-
     IGraph                          graph{};
     DiaGraphMetadata                metadata{};
     std::unordered_set<std::string> vertexIds{};

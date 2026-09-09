@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-import "hstd/ext/geometry/hstd_geometry.proto";
-import "hstd/ext/graph/visual/graph_visual.proto";
+import "src/hstd/ext/geometry/hstd_geometry.proto";
+import "src/hstd/ext/graph/visual/graph_visual.proto";
 
 package hstd.ext.graph.avoid.proto;
 

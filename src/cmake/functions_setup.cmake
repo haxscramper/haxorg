@@ -211,87 +211,37 @@ function(haxorg_add_library TARGET)
 endfunction()
 
 function(haxorg_add_protobuf)
-  cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET;MODULE_DIR;TEMPLATE" "PROTO_SOURCES" ${ARGN})
-
-  if(NOT HAP_TARGET)
-    message(FATAL_ERROR "haxorg_add_protobuf requires TARGET")
-  endif()
-
-  if(NOT HAP_UNIQUE_TARGET)
-    message(FATAL_ERROR "haxorg_add_protobuf requires UNIQUE_TARGET")
-  endif()
-
-  if(NOT HAP_MODULE_DIR)
-    message(FATAL_ERROR "haxorg_add_protobuf requires MODULE_DIR")
-  endif()
-
-  if(NOT HAP_TEMPLATE)
-    message(FATAL_ERROR "haxorg_add_protobuf requires TEMPLATE")
-  endif()
-
-  find_program(BUF_EXECUTABLE NAMES buf REQUIRED)
+  cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET" "IMPORT_DIRS;PROTO_SOURCES" ${ARGN})
 
   set(PROTO_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
-  set(BUF_STAMP "${PROTO_OUT_DIR}/${HAP_UNIQUE_TARGET}.stamp")
-  set(HAP_GENERATED_SOURCES)
-  set(HAP_GENERATED_HEADERS)
-  set(BUF_PATH_ARGUMENTS)
+  file(MAKE_DIRECTORY "${PROTO_OUT_DIR}")
 
-  foreach(PROTO_SOURCE IN LISTS HAP_PROTO_SOURCES)
-    file(RELATIVE_PATH PROTO_RELATIVE_PATH "${HAP_MODULE_DIR}" "${PROTO_SOURCE}")
+  protobuf_generate(
+    LANGUAGE
+    cpp
+    OUT_VAR
+    HAP_GENERATED_FILES
+    PROTOC_EXE
+    "${PROTOC_PATH}"
+    IMPORT_DIRS
+    ${HAP_IMPORT_DIRS}
+    PROTOS
+    ${HAP_PROTO_SOURCES}
+    PROTOC_OUT_DIR
+    "${PROTO_OUT_DIR}")
 
-    if(PROTO_RELATIVE_PATH MATCHES "^\\.\\.")
-      message(
-        FATAL_ERROR "Proto source '${PROTO_SOURCE}' is outside Buf module '${HAP_MODULE_DIR}'")
-    endif()
+  add_custom_target(
+    ${HAP_UNIQUE_TARGET}_generate_files
+    DEPENDS ${HAP_GENERATED_FILES}
+    COMMENT "Generating protobuf files")
 
-    string(REGEX REPLACE "\\.proto$" ".pb.cc" GENERATED_SOURCE_RELATIVE_PATH
-                         "${PROTO_RELATIVE_PATH}")
-
-    string(REGEX REPLACE "\\.proto$" ".pb.h" GENERATED_HEADER_RELATIVE_PATH
-                         "${PROTO_RELATIVE_PATH}")
-
-    list(APPEND HAP_GENERATED_SOURCES "${PROTO_OUT_DIR}/${GENERATED_SOURCE_RELATIVE_PATH}")
-
-    list(APPEND HAP_GENERATED_HEADERS "${PROTO_OUT_DIR}/${GENERATED_HEADER_RELATIVE_PATH}")
-
-    list(APPEND BUF_PATH_ARGUMENTS --path "${PROTO_RELATIVE_PATH}")
-  endforeach()
-
-  file(GLOB_RECURSE HAP_MODULE_PROTO_FILES CONFIGURE_DEPENDS "${HAP_MODULE_DIR}/*.proto")
-
-  add_custom_command(
-    OUTPUT "${BUF_STAMP}"
-    BYPRODUCTS ${HAP_GENERATED_SOURCES} ${HAP_GENERATED_HEADERS}
-    COMMAND "${BUF_EXECUTABLE}" generate "${HAP_MODULE_DIR}" --template "${HAP_TEMPLATE}"
-            ${BUF_PATH_ARGUMENTS}
-    COMMAND "${CMAKE_COMMAND}" -E touch "${BUF_STAMP}"
-    DEPENDS ${HAP_MODULE_PROTO_FILES} "${HAP_MODULE_DIR}/buf.yaml" "${HAP_MODULE_DIR}/buf.lock"
-            "${HAP_TEMPLATE}"
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-    COMMENT "Generating protobuf and JSON Schema files with Buf"
-    VERBATIM COMMAND_EXPAND_LISTS)
-
-  add_custom_target(${HAP_UNIQUE_TARGET}_generate_files DEPENDS "${BUF_STAMP}")
-
-  set_source_files_properties(${HAP_GENERATED_SOURCES} ${HAP_GENERATED_HEADERS} PROPERTIES GENERATED
-                                                                                           TRUE)
-
-  target_sources(${HAP_TARGET} PRIVATE ${HAP_GENERATED_SOURCES} ${HAP_GENERATED_HEADERS})
-
+  target_sources(${HAP_TARGET} PRIVATE ${HAP_GENERATED_FILES})
   add_dependencies(${HAP_TARGET} ${HAP_UNIQUE_TARGET}_generate_files)
 
   target_include_directories(${HAP_TARGET} PUBLIC $<BUILD_INTERFACE:${PROTO_OUT_DIR}>
                                                   $<INSTALL_INTERFACE:include>)
 
-  target_link_libraries(
-    ${HAP_TARGET}
-    PUBLIC protobuf::libprotobuf
-    PRIVATE $<BUILD_INTERFACE:protovalidate_cc::protovalidate_cc>)
+  target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc)
 
-  install(
-    DIRECTORY "${PROTO_OUT_DIR}/"
-    DESTINATION include
-    FILES_MATCHING
-    PATTERN "*.pb.h")
+  install(FILES ${HAP_GENERATED_FILES} DESTINATION include)
 endfunction()

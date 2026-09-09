@@ -368,7 +368,6 @@ else()
 endif()
 
 if(${ORG_BUILD_WITH_PROTOBUF})
-  add_subdirectory(thirdparty/protovalidate-cc)
   message(STATUS "protobuf_DIR = ${protobuf_DIR}")
   find_package(protobuf CONFIG REQUIRED)
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
