@@ -39,8 +39,8 @@ if(${ORG_BUILD_WITH_TRACY})
   target_link_libraries(haxorg PUBLIC Tracy::TracyClient)
 endif()
 
-target_include_directories(haxorg SYSTEM PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-                                                $<INSTALL_INTERFACE:src>)
+target_include_directories(haxorg PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                                         $<INSTALL_INTERFACE:src>)
 
 if(${ORG_BUILD_TESTS})
   add_executable(haxorg_cpp_org_tests)
