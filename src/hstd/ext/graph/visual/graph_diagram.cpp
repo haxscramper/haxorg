@@ -454,21 +454,16 @@ DiaCluster buildCluster(
     DiaGraphMetadata const&                                metadata,
     std::unordered_map<std::string, IVertex const*> const& vertices,
     std::unordered_set<std::string> const&                 clusterIds,
-    std::unordered_set<std::string>*                       visited);
+    std::unordered_set<std::string>*                       visited,
+    bool                                                   preserveOrigin);
+
 
 void appendNestedVertex(
     DiaCluster*                                            result,
     std::string const&                                     nestedId,
-    IVertexHierarchy const&                                hierarchy,
-    DiaGraphMetadata const&                                metadata,
     std::unordered_map<std::string, IVertex const*> const& vertices,
-    std::unordered_set<std::string> const&                 clusterIds,
-    std::unordered_set<std::string>*                       visited) {
-    if (clusterIds.contains(nestedId)) {
-        *result->add_nested() = buildCluster(
-            nestedId, hierarchy, metadata, vertices, clusterIds, visited);
-        return;
-    }
+    bool                                                   preserveOrigin) {
+
 
     IVertex const& nodeVertex = *vertices.at(nestedId);
     DiaNode*       node       = result->add_nodes();
@@ -489,14 +484,14 @@ void appendNestedVertex(
     }
 
     if (graphvizNode.has_value()) {
-        *node->mutable_graphviz() = *graphvizNode;
-        auto l                    = findRequiredAttribute<
+        if (preserveOrigin) { *node->mutable_graphviz() = *graphvizNode; }
+        auto l = findRequiredAttribute<
             hstd::ext::graph::layout::proto::IVertexLayoutAttributePayload>(
             nodeVertex, owner);
 
         *node->mutable_bbox() = l.bbox();
     } else if (kiwiNode.has_value()) {
-        *node->mutable_kiwi() = *kiwiNode;
+        if (preserveOrigin) { *node->mutable_kiwi() = *kiwiNode; }
         *node->mutable_bbox() = //
             findRequiredAttribute<
                 hstd::ext::graph::kw::proto::KiwiVertexLayoutAttributePayload>(
@@ -515,7 +510,8 @@ DiaCluster buildCluster(
     DiaGraphMetadata const&                                metadata,
     std::unordered_map<std::string, IVertex const*> const& vertices,
     std::unordered_set<std::string> const&                 clusterIds,
-    std::unordered_set<std::string>*                       visited) {
+    std::unordered_set<std::string>*                       visited,
+    bool                                                   preserveOrigin) {
     if (!vertices.contains(clusterId)) {
         throw std::invalid_argument{
             hstd::fmt("Hierarchy references missing cluster vertex '{}'", clusterId)};
@@ -546,7 +542,6 @@ DiaCluster buildCluster(
     bool noAlgorithm = metadata.no_algorithm_cluster_ids().find(clusterId)
                     != metadata.no_algorithm_cluster_ids().end();
 
-    bool preserveOrigin = false;
 
     if (!noAlgorithm && graphviz.has_value()
         && graphviz->layout_case() == GroupAttributePayload::LAYOUT_NOT_SET
@@ -587,8 +582,19 @@ DiaCluster buildCluster(
 
     if (nestedPosition != hierarchy.nested_in_map().end()) {
         for (std::string const& nestedId : nestedPosition->second.vertices()) {
-            appendNestedVertex(
-                &result, nestedId, hierarchy, metadata, vertices, clusterIds, visited);
+            if (clusterIds.contains(nestedId)) {
+                *result.add_nested() = buildCluster(
+                    nestedId,
+                    hierarchy,
+                    metadata,
+                    vertices,
+                    clusterIds,
+                    visited,
+                    preserveOrigin);
+                continue;
+            }
+
+            appendNestedVertex(&result, nestedId, vertices, preserveOrigin);
         }
     }
 
@@ -600,7 +606,8 @@ void appendDiaEdge(
     IEdge const&                                        source,
     DiaGraphMetadata const&                             metadata,
     std::unordered_map<std::string, std::string> const& nodeParents,
-    std::unordered_map<std::string, std::string> const& clusterParents) {
+    std::unordered_map<std::string, std::string> const& clusterParents,
+    bool                                                preserveOrigin) {
     std::string parentId{};
 
     auto metadataParent = metadata.edge_parent_cluster_ids().find(source.stable_id());
@@ -647,18 +654,19 @@ void appendDiaEdge(
     }
 
     if (graphviz.has_value()) {
-        *edge->mutable_graphviz() = *graphviz;
-        auto l                    = findRequiredAttribute<
-            hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(source, owner);
-
-        *edge->mutable_path() = l.path();
+        if (preserveOrigin) { *edge->mutable_graphviz() = *graphviz; }
+        *edge->mutable_path() = //
+            findRequiredAttribute<
+                hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(
+                source, owner)
+                .path();
     } else if (kiwi.has_value()) {
-        *edge->mutable_kiwi() = *kiwi;
-
-        auto l = findRequiredAttribute<
-            hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(source, owner);
-
-        *edge->mutable_path() = l.path();
+        if (preserveOrigin) { *edge->mutable_kiwi() = *kiwi; }
+        *edge->mutable_path() = //
+            findRequiredAttribute<
+                hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(
+                source, owner)
+                .path();
     } else {
         throw std::invalid_argument{hstd::fmt(
             "Edge '{}' contains neither a Graphviz nor a Kiwi attribute",
@@ -706,7 +714,8 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
 }
 
 hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToDiaCluster(
-    hstd::ext::graph::proto::IGraph const& graph) {
+    hstd::ext::graph::proto::IGraph const& graph,
+    bool                                   preserveOrigin) {
     if (graph.hierarchies_size() != 1) {
         throw std::invalid_argument{hstd::fmt(
             "Diagram conversion requires exactly one vertex hierarchy, but the graph "
@@ -838,7 +847,8 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
         metadata,
         vertices,
         clusterIds,
-        &visited);
+        &visited,
+        preserveOrigin);
 
     for (auto const& entry : vertices) {
         if (!visited.contains(entry.first) && !nodeParents.contains(entry.first)) {
@@ -850,7 +860,13 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
     }
 
     for (auto const& entry : edges) {
-        appendDiaEdge(&result, *entry.second, metadata, nodeParents, clusterParents);
+        appendDiaEdge(
+            &result,
+            *entry.second,
+            metadata,
+            nodeParents,
+            clusterParents,
+            preserveOrigin);
     }
 
     return result;

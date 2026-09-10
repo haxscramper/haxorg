@@ -371,7 +371,9 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::MultiSeparateConstraint::getK
             throw layout::layout_error::init(
                 "MultiSeparateConstraint dimension mismatch");
         }
-        res.append(lane.getKiwi());
+
+        // Align constraint from each line is not added explicitly, because mid-level kiwi
+        // IR will perform the constraint alignment internally.
         hstd::Vec<kiwi_ir::RectSpec1Side> lane_ids;
         for (auto const& id : lane.getAllVertices()) {
             lane_ids.push_back(

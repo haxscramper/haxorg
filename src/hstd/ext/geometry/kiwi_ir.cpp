@@ -1392,7 +1392,9 @@ void Layout::verify_constraints() {
                 os << "Conflicts with:\n";
                 for (auto const& src : conflicts.failures) {
                     os << fmt::format(
-                        "  - {}\n", describe_constraint_source(src.entry.source));
+                        "  - {}\n",
+                        hstd::indent_skip_n_lines(
+                            describe_constraint_source(src.entry.source), 4, 1));
                     describe_failure(src.desc.value());
                 }
             }

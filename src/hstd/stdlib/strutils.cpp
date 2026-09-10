@@ -209,13 +209,29 @@ Pair<Str, Str> hstd::visibleName(char ch) {
 }
 
 Str hstd::indent(Str const& str, int spaces, char space, Str prefix) {
+    return indent_skip_n_lines(str, spaces, 0, space, prefix);
+}
+
+
+Str hstd::indent_skip_n_lines(
+    Str const& str,
+    int        spaces,
+    int        lines_to_skip,
+    char       space,
+    Str        prefix) {
     auto     lines = split(str, '\n');
     Vec<Str> res;
-    for (auto& line : lines) {
-        res.push_back(prefix + repeat(Str(space), spaces) + Str{line});
+    for (int i = 0; i < lines.size(); ++i) {
+        auto const& line = lines.at(i);
+        if (i < lines_to_skip) {
+            res.push_back(Str{line});
+        } else {
+            res.push_back(prefix + repeat(Str(space), spaces) + Str{line});
+        }
     }
     return join("\n"_str_view, res);
 }
+
 
 Str hstd::normalize(StrView in) {
     Str res;

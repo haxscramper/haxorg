@@ -29,6 +29,12 @@ Str join(StrView const& sep, generator<T>&& list) {
 /// Get visible name of the character.
 Pair<Str, Str> visibleName(char ch);
 Str            indent(Str const& str, int spaces, char space = ' ', Str prefix = "");
+Str            indent_skip_n_lines(
+    Str const& str,
+    int        spaces,
+    int        lines_to_skip,
+    char       space  = ' ',
+    Str        prefix = "");
 
 Vec<Str>           visibleUnicodeName(hstd::StrView str, bool useUnicode = true);
 Vec<Str>           visibleUnicodeName(Str const& str, bool useUnicode = true);
