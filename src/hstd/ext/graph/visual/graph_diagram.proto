@@ -4,6 +4,7 @@ package hstd.ext.graph.diagram.proto;
 
 import "buf/validate/validate.proto";
 import "google/protobuf/struct.proto";
+import "src/hstd/ext/geometry/hstd_geometry.proto";
 import "src/hstd/ext/graph/base/graph_base.proto";
 import "src/hstd/ext/graph/visual/graph_elk.proto";
 import "src/hstd/ext/graph/visual/graph_graphviz.proto";
@@ -23,6 +24,8 @@ message DiaNode {
     hstd.ext.graph.kw.proto.KiwiVertexVisualAttributePayload kiwi = 3;
     hstd.ext.graph.elk.proto.ElkNodeVisualAttributePayload elk = 4;
   }
+
+  optional hstd.ext.geometry.proto.Rect bbox = 5;
 }
 
 message DiaEdge {
@@ -35,6 +38,8 @@ message DiaEdge {
     hstd.ext.graph.kw.proto.KiwiEdgeVisualAttributePayload kiwi = 5;
     hstd.ext.graph.elk.proto.ElkEdgeVisualAttributePayload elk = 6;
   }
+
+  optional hstd.ext.geometry.proto.Path path = 7;
 }
 
 message DiaConstraint {
@@ -91,6 +96,8 @@ message DiaCluster {
     hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload kiwi = 8;
     hstd.ext.graph.elk.proto.ElkGroupVisualAttributePayload elk = 9;
   }
+
+  optional hstd.ext.geometry.proto.Rect bbox = 10;
 }
 
 message DiaGraphMetadata {

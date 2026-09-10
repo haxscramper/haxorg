@@ -1,4 +1,5 @@
 #include "graph_diagram.hpp"
+#include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #include <hstd/ext/hstd_serde.hpp>
 
 namespace {
@@ -34,6 +35,20 @@ std::optional<Message> findAttribute(
     }
 
     return result;
+}
+
+template <typename Message, typename Value>
+Message findRequiredAttribute(Value const& value, std::string const& owner) {
+    auto result = findAttribute<Message>(value.attributes(), owner);
+    if (result) {
+        return result.value();
+    } else {
+        throw hstd::serde::read_error::init(
+            hstd::fmt(
+                "Could not find required attribute of type '{}' in {}",
+                Message::descriptor()->full_name(),
+                owner));
+    }
 }
 
 template <typename Message>
@@ -214,6 +229,7 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     appendCluster = [&](DiaCluster const&                 cluster,
                         std::optional<std::string> const& parentId,
                         std::optional<LayoutKind>         parentKind) {
+        // TODO: Extract the append cluster into separate function
         if (!vertexIds.insert(cluster.id()).second) {
             throw std::invalid_argument{
                 hstd::fmt("Diagram contains duplicate vertex ID '{}'", cluster.id())};
@@ -225,6 +241,7 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
         vertex->set_stable_id(cluster.id());
         *vertex->mutable_payload() = hstd::serde::packMessage(TrivialVertexPayload{});
 
+        // TODO: Extract the switch into separate function
         switch (cluster.kind_case()) {
             case DiaCluster::kGraphviz: {
                 kind                          = LayoutKind::Graphviz;
@@ -252,6 +269,7 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
             }
 
             case DiaCluster::kNoAlgorithm: {
+                // TODO: Extract "no algorithm case" into separate function
                 if (!parentId.has_value() || !parentKind.has_value()) {
                     throw std::invalid_argument{hstd::fmt(
                         "Root cluster '{}' must specify a layout algorithm",
@@ -302,6 +320,7 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
         VertexIDVec nestedIds{};
 
         for (DiaNode const& node : cluster.nodes()) {
+            // TODO: Extract loop body into function
             if (!vertexIds.insert(node.id()).second) {
                 throw std::invalid_argument{
                     hstd::fmt("Diagram contains duplicate vertex ID '{}'", node.id())};
@@ -334,6 +353,7 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
         // edges: same — kind mismatch and empty-ID checks removed, endpoint
         // reference and duplicate-ID checks kept.
         for (DiaEdge const& edge : cluster.edges()) {
+            // TODO: Extract loop body into function
             if (!edgeIds.insert(edge.id()).second) {
                 throw std::invalid_argument{
                     hstd::fmt("Diagram contains duplicate edge ID '{}'", edge.id())};
@@ -535,6 +555,7 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
 
     std::function<DiaCluster(std::string const&)> buildCluster;
     buildCluster = [&](std::string const& clusterId) -> DiaCluster {
+        // TODO: Extract cluster builder into separate function
         if (!vertices.contains(clusterId)) {
             throw std::invalid_argument{
                 hstd::fmt("Hierarchy references missing cluster vertex '{}'", clusterId)};
@@ -589,6 +610,7 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
 
         if (nestedPosition != hierarchy.nested_in_map().end()) {
             for (std::string const& nestedId : nestedPosition->second.vertices()) {
+                // TODO: Extract this for loop body into separate function
                 if (clusterIds.contains(nestedId)) {
                     *result.add_nested() = buildCluster(nestedId);
                     continue;
@@ -598,12 +620,14 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
                 DiaNode*       node       = result.add_nodes();
                 node->set_id(nestedId);
 
+                std::string owner = hstd::fmt("node '{}'", nestedId);
+
                 std::optional<NodeAttributePayload>
                     graphvizNode = findAttribute<NodeAttributePayload>(
-                        nodeVertex.attributes(), hstd::fmt("node '{}'", nestedId));
+                        nodeVertex.attributes(), owner);
                 std::optional<KiwiVertexVisualAttributePayload>
                     kiwiNode = findAttribute<KiwiVertexVisualAttributePayload>(
-                        nodeVertex.attributes(), hstd::fmt("node '{}'", nestedId));
+                        nodeVertex.attributes(), owner);
 
                 if (graphvizNode.has_value() && kiwiNode.has_value()) {
                     throw std::invalid_argument{hstd::fmt(
@@ -613,8 +637,18 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
 
                 if (graphvizNode.has_value()) {
                     *node->mutable_graphviz() = *graphvizNode;
+                    auto l                    = findRequiredAttribute<
+                        layout::proto::IVertexLayoutAttributePayload>(nodeVertex, owner);
+
+                    *node->mutable_bbox() = l.bbox();
                 } else if (kiwiNode.has_value()) {
                     *node->mutable_kiwi() = *kiwiNode;
+
+                    auto l = findRequiredAttribute<
+                        layout::proto::IVertexLayoutAttributePayload>(nodeVertex, owner);
+
+                    *node->mutable_bbox() = l.bbox();
+
                 } else {
                     throw std::invalid_argument{hstd::fmt(
                         "Node '{}' contains neither a Graphviz nor a Kiwi attribute",
@@ -638,6 +672,7 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
     }
 
     for (auto const& entry : edges) {
+        // TODO: Extract the loop for filling dia edge into separate function
         IEdge const& source = *entry.second;
         std::string  parentId{};
 
@@ -671,23 +706,36 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
         edge->set_source(source.source_vertex_id());
         edge->set_target(source.target_vertex_id());
 
+
+        std::string owner = hstd::fmt("edge '{}'", source.stable_id());
+
         std::optional<EdgeAttributePayload>
-            graphviz = findAttribute<EdgeAttributePayload>(
-                source.attributes(), hstd::fmt("edge '{}'", source.stable_id()));
+            graphviz = findAttribute<EdgeAttributePayload>(source.attributes(), owner);
         std::optional<KiwiEdgeVisualAttributePayload>
             kiwi = findAttribute<KiwiEdgeVisualAttributePayload>(
-                source.attributes(), hstd::fmt("edge '{}'", source.stable_id()));
+                source.attributes(), owner);
+
 
         if (graphviz.has_value() && kiwi.has_value()) {
-            throw std::invalid_argument{hstd::fmt(
-                "Edge '{}' contains both Graphviz and Kiwi attributes",
-                source.stable_id())};
+            throw hstd::serde::read_error::init(
+                hstd::fmt(
+                    "Edge '{}' contains both Graphviz and Kiwi attributes",
+                    source.stable_id()));
         }
 
         if (graphviz.has_value()) {
             *edge->mutable_graphviz() = *graphviz;
+            auto l = findRequiredAttribute<layout::proto::IEdgeLayoutAttributePayload>(
+                source, owner);
+
+            *edge->mutable_path() = l.path();
         } else if (kiwi.has_value()) {
             *edge->mutable_kiwi() = *kiwi;
+
+            auto l = findRequiredAttribute<layout::proto::IEdgeLayoutAttributePayload>(
+                source, owner);
+
+            *edge->mutable_path() = l.path();
         } else {
             throw std::invalid_argument{hstd::fmt(
                 "Edge '{}' contains neither a Graphviz nor a Kiwi attribute",
