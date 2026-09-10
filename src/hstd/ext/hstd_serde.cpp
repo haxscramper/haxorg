@@ -2,6 +2,7 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 
+#    include <buf/validate/validator.h>
 #    include <google/protobuf/struct.pb.h>
 #    include <google/protobuf/util/json_util.h>
 #    include <google/protobuf/wrappers.pb.h>
@@ -81,6 +82,40 @@ std::string getJString(google::protobuf::Message const& message) {
 
     LOGIC_ASSERTION_CHECK(status.ok(), "");
     return json;
+}
+
+namespace {
+std::string handle_validation(buf::validate::ValidationResult const& violations) {
+    hstd::Vec<hstd::Str> errors;
+
+    errors.push_back(
+        hstd::fmt("Validation failed with {} errors:", violations.violations_size()));
+
+    for (const auto& violation : violations.violations()) {
+        auto const& p = violation.proto();
+        errors.push_back(
+            hstd::fmt(
+                "- [Path]: {}", buf::validate::internal::fieldPathString(p.field())));
+        errors.push_back(hstd::fmt("  [Rule]: {}", p.rule_id()));
+        errors.push_back(hstd::fmt("  [Error]: {}", p.message()));
+    }
+
+    return hstd::join("\n"_str_view, errors) + "\n";
+}
+} // namespace
+
+void protovalidate_message(google::protobuf::Message const& message) {
+    std::unique_ptr<buf::validate::ValidatorFactory>
+                             factory = buf::validate::ValidatorFactory::New().value();
+    google::protobuf::Arena  arena;
+    buf::validate::Validator validator = factory->NewValidator(&arena);
+    auto                     result    = validator.Validate(message);
+
+    if (!result.ok()) { throw hstd::runtime_error::init(result.status().ToString()); }
+
+    if (0 < result.value().violations_size()) {
+        throw hstd::invalid_argument::init(handle_validation(result.value()));
+    }
 }
 
 

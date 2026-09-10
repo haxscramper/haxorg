@@ -2,3 +2,10 @@ version: v2
 
 modules:
   - path: .
+  - path: thirdparty/protovalidate/proto/protovalidate
+
+lint:
+  use:
+    - MINIMAL
+  except:
+    - PACKAGE_DIRECTORY_MATCH

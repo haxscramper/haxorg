@@ -23,6 +23,36 @@ class Message;
 
 namespace hstd::serde {
 
+struct write_error : public hstd::CRTP_hexception<write_error> {};
+struct read_error : public hstd::CRTP_hexception<read_error> {};
+
+template <typename Message>
+google::protobuf::Any packMessage(Message const& message) {
+    google::protobuf::Any result{};
+    if (result.PackFrom(message)) {
+        return result;
+    } else {
+        throw hstd::serde::write_error::init("Failed to pack protobuf message");
+    }
+}
+
+template <typename Message>
+Message unpackMessage(google::protobuf::Any const& payload, std::string const& owner) {
+    Message result{};
+
+    if (!payload.UnpackTo(&result)) {
+        throw hstd::serde::read_error::init(
+            hstd::fmt(
+                "Payload on '{}' declares type '{}' but cannot be unpacked as '{}'",
+                owner,
+                payload.type_url(),
+                Message::descriptor()->full_name()));
+    }
+
+    return result;
+}
+
+
 template <typename Proto, typename T>
 struct proto_serde {};
 
@@ -224,17 +254,6 @@ struct proto_serde<float, float> {
 
 std::string getJString(google::protobuf::Message const& message);
 
-template <typename T>
-T unpack_attr_payload(google::protobuf::Any const& in) {
-    T payload;
-    if (!in.UnpackTo(&payload)) {
-        throw hstd::logic_error::init(
-            hstd::fmt(
-                "Failed to unpack attribute payload: does not match the target type {}",
-                T::descriptor()->full_name()));
-    }
-    return payload;
-}
 
 DECL_DESCRIBED_ENUM_STANDALONE(ProtobufFileFormat, Binary, Json, Textproto);
 
@@ -288,6 +307,8 @@ T read_message_from_file(std::string const& file_path, ProtobufFileFormat format
             return read_message_from_textproto_file<T>(file_path);
     }
 }
+
+void protovalidate_message(google::protobuf::Message const& message);
 
 
 } // namespace hstd::serde

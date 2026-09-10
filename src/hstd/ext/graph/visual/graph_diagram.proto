@@ -1,57 +1,88 @@
 syntax = "proto3";
 
-import "google/protobuf/struct.proto";
-import "src/hstd/ext/graph/base/graph_base.proto";
-import "src/hstd/ext/graph/visual/graph_kiwi.proto";
-import "src/hstd/ext/graph/visual/graph_graphviz.proto";
-
 package hstd.ext.graph.diagram.proto;
 
+import "buf/validate/validate.proto";
+import "google/protobuf/struct.proto";
+import "src/hstd/ext/graph/base/graph_base.proto";
+import "src/hstd/ext/graph/visual/graph_graphviz.proto";
+import "src/hstd/ext/graph/visual/graph_kiwi.proto";
+
 message DiaNode {
-  string id = 1;
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+
+  option (buf.validate.message).cel = {
+    id: "dia_node.graphviz_dimensions_required"
+    message: "graphviz width and height are required in the diagram context"
+    expression: "!has(this.graphviz) || (has(this.graphviz.width) && has(this.graphviz.height))"
+  };
 
   oneof kind {
-    hstd.ext.graph.gv.proto.NodeAttributePayload             graphviz = 2;
-    hstd.ext.graph.kw.proto.KiwiVertexVisualAttributePayload kiwi     = 3;
+    hstd.ext.graph.gv.proto.NodeAttributePayload graphviz = 2;
+    hstd.ext.graph.kw.proto.KiwiVertexVisualAttributePayload kiwi = 3;
   }
 }
 
 message DiaEdge {
-  string source = 1;
-  string target = 2;
-  string id     = 3;
+  string source = 1 [(buf.validate.field).string.min_len = 1];
+  string target = 2 [(buf.validate.field).string.min_len = 1];
+  string id = 3 [(buf.validate.field).string.min_len = 1];
 
   oneof kind {
-    hstd.ext.graph.gv.proto.EdgeAttributePayload           graphviz = 4;
-    hstd.ext.graph.kw.proto.KiwiEdgeVisualAttributePayload kiwi     = 5;
+    hstd.ext.graph.gv.proto.EdgeAttributePayload graphviz = 4;
+    hstd.ext.graph.kw.proto.KiwiEdgeVisualAttributePayload kiwi = 5;
   }
 }
 
 message DiaConstraint {
   oneof kind {
-    hstd.ext.graph.kw.proto.KiwiAlignConstraintPayload         kw_align          = 1;
-    hstd.ext.graph.kw.proto.KiwiSeparateConstraintPayload      kw_separate       = 2;
+    hstd.ext.graph.kw.proto.KiwiAlignConstraintPayload kw_align = 1;
+    hstd.ext.graph.kw.proto.KiwiSeparateConstraintPayload kw_separate = 2;
     hstd.ext.graph.kw.proto.KiwiMultiSeparateConstraintPayload kw_multi_separate = 3;
-    hstd.ext.graph.kw.proto.KiwiRelativeConstraintPayload      kw_relative       = 4;
-    hstd.ext.graph.kw.proto.KiwiLinearConstraintPayload        kw_linear         = 5;
+    hstd.ext.graph.kw.proto.KiwiRelativeConstraintPayload kw_relative = 4;
+    hstd.ext.graph.kw.proto.KiwiLinearConstraintPayload kw_linear = 5;
   }
 }
 
 message DiaCluster {
-  string                 id          = 1;
-  repeated DiaNode       nodes       = 2;
-  repeated DiaEdge       edges       = 3;
-  repeated DiaCluster    nested      = 4;
+  option (buf.validate.message).cel = {
+    id: "graphviz_no_kiwi_constraints"
+    message: "a Graphviz cluster cannot contain Kiwi constraints"
+    expression: "!has(this.graphviz) || this.constraints.size() == 0"
+  };
+  option (buf.validate.message).cel = {
+    id: "element kind matches the payload kind"
+    message: "edges must have a payload matching the cluster layout kind"
+    expression:
+      "("
+      "has(this.kiwi) && "
+      "this.edges.all(e, has(e.kiwi)) && "
+      "this.nodes.all(e, has(e.kiwi)) && "
+      "this.nested.all(e, has(e.kiwi) || has(e.no_algorithm))"
+      ")"
+      "||"
+      "("
+      "has(this.graphviz) && "
+      "this.edges.all(e, has(e.graphviz)) && "
+      "this.nodes.all(e, has(e.graphviz)) && "
+      "this.nested.all(e, has(e.graphviz) || has(e.no_algorithm))"
+      ")"
+  };
+
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+  repeated DiaNode nodes = 2;
+  repeated DiaEdge edges = 3;
+  repeated DiaCluster nested = 4;
   repeated DiaConstraint constraints = 5;
 
   oneof kind {
-    google.protobuf.NullValue                               no_algorithm = 6;
-    hstd.ext.graph.gv.proto.GroupAttributePayload           graphviz     = 7;
-    hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload kiwi         = 8;
+    google.protobuf.NullValue no_algorithm = 6;
+    hstd.ext.graph.gv.proto.GroupAttributePayload graphviz = 7;
+    hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload kiwi = 8;
   }
 }
 
 message DiaGraphMetadata {
-  map<string, bool>   no_algorithm_cluster_ids = 1;
-  map<string, string> edge_parent_cluster_ids  = 2;
+  map<string, bool> no_algorithm_cluster_ids = 1;
+  map<string, string> edge_parent_cluster_ids = 2;
 }

@@ -15,28 +15,6 @@ enum struct LayoutKind
 };
 
 template <typename Message>
-google::protobuf::Any packMessage(Message const& message) {
-    google::protobuf::Any result{};
-    result.PackFrom(message);
-    return result;
-}
-
-template <typename Message>
-Message unpackMessage(google::protobuf::Any const& payload, std::string const& owner) {
-    Message result{};
-
-    if (!payload.UnpackTo(&result)) {
-        throw std::invalid_argument{hstd::fmt(
-            "Payload on '{}' declares type '{}' but cannot be unpacked as '{}'",
-            owner,
-            payload.type_url(),
-            Message::descriptor()->full_name())};
-    }
-
-    return result;
-}
-
-template <typename Message>
 std::optional<Message> findAttribute(
     google::protobuf::RepeatedPtrField<IAttribute> const& attributes,
     std::string const&                                    owner) {
@@ -51,7 +29,7 @@ std::optional<Message> findAttribute(
                     Message::descriptor()->full_name())};
             }
 
-            result = unpackMessage<Message>(attribute.payload(), owner);
+            result = hstd::serde::unpackMessage<Message>(attribute.payload(), owner);
         }
     }
 
@@ -63,7 +41,7 @@ void appendAttribute(
     google::protobuf::RepeatedPtrField<IAttribute>* attributes,
     Message const&                                  message) {
     IAttribute* attribute         = attributes->Add();
-    *attribute->mutable_payload() = packMessage(message);
+    *attribute->mutable_payload() = hstd::serde::packMessage(message);
 }
 
 void appendConstraint(
@@ -74,23 +52,24 @@ void appendConstraint(
 
     switch (source.kind_case()) {
         case DiaConstraint::kKwAlign:
-            *result->mutable_payload() = packMessage(source.kw_align());
+            *result->mutable_payload() = hstd::serde::packMessage(source.kw_align());
             break;
 
         case DiaConstraint::kKwSeparate:
-            *result->mutable_payload() = packMessage(source.kw_separate());
+            *result->mutable_payload() = hstd::serde::packMessage(source.kw_separate());
             break;
 
         case DiaConstraint::kKwMultiSeparate:
-            *result->mutable_payload() = packMessage(source.kw_multi_separate());
+            *result->mutable_payload() = hstd::serde::packMessage(
+                source.kw_multi_separate());
             break;
 
         case DiaConstraint::kKwRelative:
-            *result->mutable_payload() = packMessage(source.kw_relative());
+            *result->mutable_payload() = hstd::serde::packMessage(source.kw_relative());
             break;
 
         case DiaConstraint::kKwLinear:
-            *result->mutable_payload() = packMessage(source.kw_linear());
+            *result->mutable_payload() = hstd::serde::packMessage(source.kw_linear());
             break;
 
         case DiaConstraint::KIND_NOT_SET:
@@ -107,20 +86,20 @@ void appendDiaConstraint(
     google::protobuf::Any const& payload = source.payload();
 
     if (payload.Is<KiwiAlignConstraintPayload>()) {
-        *result->mutable_kw_align() = unpackMessage<KiwiAlignConstraintPayload>(
-            payload, clusterId);
+        *result->mutable_kw_align() = hstd::serde::unpackMessage<
+            KiwiAlignConstraintPayload>(payload, clusterId);
     } else if (payload.Is<KiwiSeparateConstraintPayload>()) {
-        *result->mutable_kw_separate() = unpackMessage<KiwiSeparateConstraintPayload>(
-            payload, clusterId);
+        *result->mutable_kw_separate() = hstd::serde::unpackMessage<
+            KiwiSeparateConstraintPayload>(payload, clusterId);
     } else if (payload.Is<KiwiMultiSeparateConstraintPayload>()) {
-        *result->mutable_kw_multi_separate() = unpackMessage<
+        *result->mutable_kw_multi_separate() = hstd::serde::unpackMessage<
             KiwiMultiSeparateConstraintPayload>(payload, clusterId);
     } else if (payload.Is<KiwiRelativeConstraintPayload>()) {
-        *result->mutable_kw_relative() = unpackMessage<KiwiRelativeConstraintPayload>(
-            payload, clusterId);
+        *result->mutable_kw_relative() = hstd::serde::unpackMessage<
+            KiwiRelativeConstraintPayload>(payload, clusterId);
     } else if (payload.Is<KiwiLinearConstraintPayload>()) {
-        *result->mutable_kw_linear() = unpackMessage<KiwiLinearConstraintPayload>(
-            payload, clusterId);
+        *result->mutable_kw_linear() = hstd::serde::unpackMessage<
+            KiwiLinearConstraintPayload>(payload, clusterId);
     } else {
         throw std::invalid_argument{hstd::fmt(
             "Cluster '{}' contains unsupported constraint payload '{}'",
@@ -208,6 +187,7 @@ std::string commonCluster(
 
 hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     hstd::ext::graph::diagram::proto::DiaCluster const& root) {
+    hstd::serde::protovalidate_message(root);
     IGraph                          graph{};
     DiaGraphMetadata                metadata{};
     std::unordered_set<std::string> vertexIds{};
@@ -216,14 +196,16 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     auto* collection = graph.add_collections();
     collection->set_stable_id("diagram-edges");
     collection->set_collection_id(0);
-    *collection->mutable_payload() = packMessage(TrivialEdgeCollectionPayload{});
+    *collection->mutable_payload() = hstd::serde::packMessage(
+        TrivialEdgeCollectionPayload{});
 
     auto* hierarchy = graph.add_hierarchies();
     hierarchy->set_stable_id("diagram-hierarchy");
-    *hierarchy->mutable_payload() = packMessage(TrivialVertexHierarchyPayload{});
+    *hierarchy->mutable_payload() = hstd::serde::packMessage(
+        TrivialVertexHierarchyPayload{});
 
     auto* ports               = graph.add_ports();
-    *ports->mutable_payload() = packMessage(TrivialPortCollectionPayload{});
+    *ports->mutable_payload() = hstd::serde::packMessage(TrivialPortCollectionPayload{});
 
     std::function<void(
         DiaCluster const&, std::optional<std::string> const&, std::optional<LayoutKind>)>
@@ -232,10 +214,6 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     appendCluster = [&](DiaCluster const&                 cluster,
                         std::optional<std::string> const& parentId,
                         std::optional<LayoutKind>         parentKind) {
-        if (cluster.id().empty()) {
-            throw std::invalid_argument{"Diagram contains a cluster with an empty ID"};
-        }
-
         if (!vertexIds.insert(cluster.id()).second) {
             throw std::invalid_argument{
                 hstd::fmt("Diagram contains duplicate vertex ID '{}'", cluster.id())};
@@ -245,7 +223,7 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
         bool       inherited = false;
         IVertex*   vertex    = graph.add_vertices();
         vertex->set_stable_id(cluster.id());
-        *vertex->mutable_payload() = packMessage(TrivialVertexPayload{});
+        *vertex->mutable_payload() = hstd::serde::packMessage(TrivialVertexPayload{});
 
         switch (cluster.kind_case()) {
             case DiaCluster::kGraphviz: {
@@ -288,7 +266,8 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
                     case LayoutKind::Graphviz: {
                         if (!cluster.constraints().empty()) {
                             throw std::invalid_argument{hstd::fmt(
-                                "Graphviz cluster '{}' cannot contain Kiwi constraints",
+                                "Graphviz-inheriting cluster '{}' cannot contain Kiwi "
+                                "constraints",
                                 cluster.id())};
                         }
 
@@ -317,24 +296,12 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
                 break;
             }
 
-            case DiaCluster::KIND_NOT_SET:
-                throw std::invalid_argument{
-                    hstd::fmt("Cluster '{}' has no layout kind", cluster.id())};
-        }
-
-        if (kind == LayoutKind::Graphviz && !cluster.constraints().empty()) {
-            throw std::invalid_argument{hstd::fmt(
-                "Graphviz cluster '{}' cannot contain Kiwi constraints", cluster.id())};
+            case DiaCluster::KIND_NOT_SET: break; // guaranteed by protovalidate
         }
 
         VertexIDVec nestedIds{};
 
         for (DiaNode const& node : cluster.nodes()) {
-            if (node.id().empty()) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Cluster '{}' contains a node with an empty ID", cluster.id())};
-            }
-
             if (!vertexIds.insert(node.id()).second) {
                 throw std::invalid_argument{
                     hstd::fmt("Diagram contains duplicate vertex ID '{}'", node.id())};
@@ -344,18 +311,11 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
 
             IVertex* nodeVertex = graph.add_vertices();
             nodeVertex->set_stable_id(node.id());
-            *nodeVertex->mutable_payload() = packMessage(TrivialVertexPayload{});
+            *nodeVertex->mutable_payload() = hstd::serde::packMessage(
+                TrivialVertexPayload{});
 
             switch (kind) {
                 case LayoutKind::Graphviz: {
-                    if (node.kind_case() != DiaNode::kGraphviz) {
-                        throw std::invalid_argument{hstd::fmt(
-                            "Node '{}' in Graphviz cluster '{}' does not contain a "
-                            "Graphviz payload",
-                            node.id(),
-                            cluster.id())};
-                    }
-
                     NodeAttributePayload payload = node.graphviz();
                     payload.set_parent_stable_id(cluster.id());
                     appendAttribute(nodeVertex->mutable_attributes(), payload);
@@ -363,14 +323,6 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
                 }
 
                 case LayoutKind::Kiwi: {
-                    if (node.kind_case() != DiaNode::kKiwi) {
-                        throw std::invalid_argument{hstd::fmt(
-                            "Node '{}' in Kiwi cluster '{}' does not contain a Kiwi "
-                            "payload",
-                            node.id(),
-                            cluster.id())};
-                    }
-
                     KiwiVertexVisualAttributePayload payload = node.kiwi();
                     payload.set_parent_stable_id(cluster.id());
                     appendAttribute(nodeVertex->mutable_attributes(), payload);
@@ -379,27 +331,9 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
             }
         }
 
-        for (DiaCluster const& nested : cluster.nested()) {
-            nestedIds.add_vertices(nested.id());
-        }
-
-        hierarchy->mutable_nested_in_map()->insert({cluster.id(), nestedIds});
-
-        for (auto const& aux_edge : nestedIds.vertices()) {
-            auto edge = hierarchy->add_edges();
-            edge->set_source_vertex_id(cluster.id());
-            edge->set_target_vertex_id(aux_edge);
-            edge->set_stable_id(
-                hstd::fmt("__nesting_cluster_{}_{}", cluster.id(), aux_edge));
-            *edge->mutable_payload() = packMessage(TrivialEdgePayload{});
-        }
-
+        // edges: same — kind mismatch and empty-ID checks removed, endpoint
+        // reference and duplicate-ID checks kept.
         for (DiaEdge const& edge : cluster.edges()) {
-            if (edge.id().empty()) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Cluster '{}' contains an edge with an empty ID", cluster.id())};
-            }
-
             if (!edgeIds.insert(edge.id()).second) {
                 throw std::invalid_argument{
                     hstd::fmt("Diagram contains duplicate edge ID '{}'", edge.id())};
@@ -425,18 +359,11 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
             graphEdge->set_stable_id(edge.id());
             graphEdge->set_source_vertex_id(edge.source());
             graphEdge->set_target_vertex_id(edge.target());
-            *graphEdge->mutable_payload() = packMessage(TrivialEdgePayload{});
+            *graphEdge->mutable_payload() = hstd::serde::packMessage(
+                TrivialEdgePayload{});
 
             switch (kind) {
                 case LayoutKind::Graphviz: {
-                    if (edge.kind_case() != DiaEdge::kGraphviz) {
-                        throw std::invalid_argument{hstd::fmt(
-                            "Edge '{}' in Graphviz cluster '{}' does not contain a "
-                            "Graphviz payload",
-                            edge.id(),
-                            cluster.id())};
-                    }
-
                     EdgeAttributePayload payload = edge.graphviz();
                     payload.set_parent_stable_id(cluster.id());
                     appendAttribute(graphEdge->mutable_attributes(), payload);
@@ -444,18 +371,25 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
                 }
 
                 case LayoutKind::Kiwi: {
-                    if (edge.kind_case() != DiaEdge::kKiwi) {
-                        throw std::invalid_argument{hstd::fmt(
-                            "Edge '{}' in Kiwi cluster '{}' does not contain a Kiwi "
-                            "payload",
-                            edge.id(),
-                            cluster.id())};
-                    }
-
                     appendAttribute(graphEdge->mutable_attributes(), edge.kiwi());
                     break;
                 }
             }
+        }
+
+        for (DiaCluster const& nested : cluster.nested()) {
+            nestedIds.add_vertices(nested.id());
+        }
+
+        hierarchy->mutable_nested_in_map()->insert({cluster.id(), nestedIds});
+
+        for (auto const& aux_edge : nestedIds.vertices()) {
+            auto edge = hierarchy->add_edges();
+            edge->set_source_vertex_id(cluster.id());
+            edge->set_target_vertex_id(aux_edge);
+            edge->set_stable_id(
+                hstd::fmt("__nesting_cluster_{}_{}", cluster.id(), aux_edge));
+            *edge->mutable_payload() = hstd::serde::packMessage(TrivialEdgePayload{});
         }
 
         for (DiaCluster const& nested : cluster.nested()) {
@@ -466,8 +400,9 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
         }
     };
 
+
     appendCluster(root, std::nullopt, std::nullopt);
-    *graph.mutable_payload() = packMessage(metadata);
+    *graph.mutable_payload() = hstd::serde::packMessage(metadata);
     return graph;
 }
 
@@ -493,7 +428,7 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
     DiaGraphMetadata metadata{};
 
     if (graph.payload().Is<DiaGraphMetadata>()) {
-        metadata = unpackMessage<DiaGraphMetadata>(graph.payload(), "graph");
+        metadata = hstd::serde::unpackMessage<DiaGraphMetadata>(graph.payload(), "graph");
     }
 
     std::unordered_map<std::string, IVertex const*> vertices{};

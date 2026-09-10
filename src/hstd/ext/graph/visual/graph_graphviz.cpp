@@ -1774,8 +1774,8 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
         ivertex != nullptr, "Cannot read serial data to the non-vertex target");
 
     using Payload = proto::GroupAttributePayload;
-    auto payload  = hstd::serde::unpack_attr_payload<proto::GroupAttributePayload>(
-        in->payload());
+    auto payload  = hstd::serde::unpackMessage<proto::GroupAttributePayload>(
+        in->payload(), "Graphviz graph group");
 
     if (payload.layout_case() != Payload::LAYOUT_NOT_SET) {
         LOGIC_ASSERTION_CHECK_FMT(
@@ -1853,8 +1853,8 @@ void hstd::ext::graph::gv::NodeAttribute::readSerial(
     IGraphSerialReaderFactory*      factory,
     IAttributeObject const*         vertex) {
     layout::IVertexVisualAttribute::readSerial(in, graph, factory, vertex);
-    auto payload = hstd::serde::unpack_attr_payload<proto::NodeAttributePayload>(
-        in->payload());
+    auto payload = hstd::serde::unpackMessage<proto::NodeAttributePayload>(
+        in->payload(), "gv::NodeAttribute");
     readAttrs(this, payload);
 
     OP_TRACER_MESSAGE(
@@ -1878,7 +1878,7 @@ void hstd::ext::graph::gv::EdgeAttribute::writeSerial(
     layout::IEdgeVisualAttribute::writeSerial(out, graph);
     proto::EdgeAttributePayload payload;
     writeAttrs(this, &payload);
-    out->mutable_payload()->PackFrom(payload);
+    *out->mutable_payload() = hstd::serde::packMessage(payload);
 }
 
 void hstd::ext::graph::gv::EdgeAttribute::readSerial(
@@ -1889,7 +1889,8 @@ void hstd::ext::graph::gv::EdgeAttribute::readSerial(
     layout::IEdgeVisualAttribute::readSerial(in, graph, factory, vertex);
     readAttrs(
         this,
-        hstd::serde::unpack_attr_payload<proto::EdgeAttributePayload>(in->payload()));
+        hstd::serde::unpackMessage<proto::EdgeAttributePayload>(
+            in->payload(), "gv::EdgeAttribute"));
 }
 #    endif
 
