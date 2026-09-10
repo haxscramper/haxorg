@@ -96,6 +96,8 @@ struct single_layout_run_state {
     void run_solver() {
         kiwi_ir::Layout layout(kiwi_rects, kiwi_constraints);
 
+        OP_TRACER_MESSAGE(run, "constraint repr:\n{}", layout.format_variables());
+
         static int kiwi_run_counter = 0;
         if (run->canTrace()) {
             layout.to_graphviz(run->getAdjacentToTraceFile(
@@ -356,7 +358,9 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::MultiSeparateConstraint::getK
     const {
     if (lines.size() < 2) {
         throw layout::layout_error::init(
-            "MultiSeparateConstraint expects at least two lanes");
+            hstd::fmt(
+                "MultiSeparateConstraint expects at least two lanes, but got {}",
+                lines.size()));
     }
 
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> res;
@@ -389,6 +393,7 @@ layout::IPlacementAlgorithm::Result kw::KiwiLayoutAlgorithm::runSingleLayout(
         run,
         "running single layout for kw::KiwiLayoutAlgorithm {}",
         run->getDebug(root_id));
+
 
     hstd::logic_assertion_check_not_nil(router);
 

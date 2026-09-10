@@ -1,14 +1,15 @@
 syntax = "proto3";
 
+package hstd.ext.graph.kw.proto;
+
+import "buf/validate/validate.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 import "src/hstd/ext/geometry/hstd_geometry.proto";
 import "src/hstd/ext/geometry/hstd_visual.proto";
+import "src/hstd/ext/geometry/kiwi_ir.proto";
 import "src/hstd/ext/graph/base/graph_base.proto";
 import "src/hstd/ext/graph/visual/graph_visual.proto";
-import "src/hstd/ext/geometry/kiwi_ir.proto";
-
-package hstd.ext.graph.kw.proto;
 
 message KiwiPortVisualAttributePayload {
   hstd.ext.graph.layout.proto.IPortVisualAttributePayload base = 1;
@@ -27,14 +28,14 @@ message KiwiEdgeLayoutAttributePayload {
 }
 
 message KiwiVertexVisualAttributePayload {
-  hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base             = 1;
-  hstd.ext.kiwi_ir.proto.Rect                               rect             = 2;
-  string                                                    parent_stable_id = 3;
+  hstd.ext.graph.layout.proto.IVertexVisualAttributePayload base = 1;
+  hstd.ext.kiwi_ir.proto.Rect rect = 2;
+  string parent_stable_id = 3;
 }
 
 message KiwiGroupVisualAttributePayload {
-  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base             = 1;
-  optional string                                          parent_stable_id = 3;
+  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
+  optional string parent_stable_id = 3;
 }
 
 message KiwiVertexLayoutAttributePayload {
@@ -51,45 +52,58 @@ message KiwiConstraintPayloadBase {
 
 message KiwiAlignConstraintPayload {
   message Spec {
-    string                           stable_vertex_id = 1;
-    hstd.ext.kiwi_ir.proto.AlignSpec spec             = 2;
+    string stable_vertex_id = 1;
+    hstd.ext.kiwi_ir.proto.AlignSpec spec = 2;
   }
 
-  KiwiConstraintPayloadBase   base      = 1;
-  repeated Spec               vertices  = 2;
+  KiwiConstraintPayloadBase base = 1;
+  repeated Spec vertices = 2;
   hstd.ext.kiwi_ir.proto.Axis dimension = 3;
 }
 
 message KiwiSeparateConstraintPayload {
-  KiwiConstraintPayloadBase   base               = 1;
-  KiwiAlignConstraintPayload  left               = 2;
-  KiwiAlignConstraintPayload  right              = 3;
-  double                      separationDistance = 4;
-  hstd.ext.kiwi_ir.proto.Axis dimension          = 5;
+  KiwiConstraintPayloadBase base = 1;
+  KiwiAlignConstraintPayload left = 2;
+  KiwiAlignConstraintPayload right = 3;
+  double separationDistance = 4;
+  hstd.ext.kiwi_ir.proto.Axis dimension = 5;
 }
 
 message KiwiMultiSeparateConstraintPayload {
-  KiwiConstraintPayloadBase           base               = 1;
-  repeated KiwiAlignConstraintPayload lines              = 2;
-  double                              separationDistance = 3;
-  hstd.ext.kiwi_ir.proto.Axis         dimension          = 4;
+  option (buf.validate.message).cel = {
+    id: "kiwi_multi_separate.matching_dimensions"
+    message: "all line dimensions must be set and match the multi-separate dimension"
+    expression:
+      "this.lines.all(line, line.dimension == this.dimension) "
+      "? '' "
+      ": 'all line dimensions must match %s; provided dimensions: %s'.format(["
+      "    this.dimension,"
+      "    this.lines.map(line, line.dimension)"
+      "  ])"
+  };
+
+  KiwiConstraintPayloadBase base = 1;
+  repeated KiwiAlignConstraintPayload lines = 2 [(buf.validate.field).repeated.min_items = 2];
+
+  double separationDistance = 3;
+  hstd.ext.kiwi_ir.proto.Axis dimension = 4;
 }
 
 message KiwiLinearConstraintPayload {
-  KiwiConstraintPayloadBase       base = 1;
-  hstd.ext.kiwi_ir.proto.Expr     lhs  = 2;
-  hstd.ext.kiwi_ir.proto.Expr     rhs  = 3;
-  hstd.ext.kiwi_ir.proto.Relation op   = 4;
+  KiwiConstraintPayloadBase base = 1;
+  hstd.ext.kiwi_ir.proto.Expr lhs = 2;
+  hstd.ext.kiwi_ir.proto.Expr rhs = 3;
+  hstd.ext.kiwi_ir.proto.Relation op = 4;
 }
 
 message KiwiRelativeConstraintPayload {
   message VertexRef {
-    string                            stable_vertex_id = 1;
-    hstd.ext.kiwi_ir.proto.AnchorSpec anchor           = 2;
+    string stable_vertex_id = 1;
+    hstd.ext.kiwi_ir.proto.AnchorSpec anchor = 2;
   }
 
-  VertexRef                               fixed    = 1;
-  VertexRef                               relative = 2;
-  hstd.ext.kiwi_ir.proto.RelDimensionSpec x_dim    = 3;
-  hstd.ext.kiwi_ir.proto.RelDimensionSpec y_dim    = 4;
+  VertexRef fixed = 1;
+  VertexRef relative = 2;
+  hstd.ext.kiwi_ir.proto.RelDimensionSpec x_dim = 3;
+  hstd.ext.kiwi_ir.proto.RelDimensionSpec y_dim = 4;
 }

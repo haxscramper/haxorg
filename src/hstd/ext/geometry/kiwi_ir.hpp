@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/ext/hstd_serde.hpp"
 #if ORG_BUILD_WITH_KIWI
 
 #    include "hstd/stdlib/Map.hpp"
@@ -99,6 +100,11 @@ struct AnchorSpec {
     void writeSerial(hstd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
         anc->set_x(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(x));
         anc->set_y(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(y));
+    }
+
+    void readSerial(hstd::ext::kiwi_ir::proto::AnchorSpec const& anc) {
+        hstd::serde::read_serde(anc.x(), &x);
+        hstd::serde::read_serde(anc.y(), &y);
     }
 #    endif
 
@@ -203,6 +209,9 @@ class Expr {
         return *this;
     }
 
+    std::string format(bool tree) const;
+
+
 #    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(::hstd::ext::kiwi_ir::proto::Expr* e) const {}
 #    endif
@@ -241,6 +250,8 @@ class Constraint {
 
     int         origin_line     = -1;
     char const* origin_function = nullptr;
+
+    std::string format(bool tree = false) const;
 
     Constraint& loc(
         char const* function = __builtin_FUNCTION(),
@@ -479,6 +490,12 @@ struct RelDimensionSpec {
 
         rd->set_absolute_offset(absolute_offset);
     }
+
+    void readSerial(::hstd::ext::kiwi_ir::proto::RelDimensionSpec const& rd) {
+        if (rd.has_size_factor()) { this->size_factor = rd.size_factor(); }
+        if (rd.has_relative_offset()) { this->relative_offset = rd.relative_offset(); }
+        absolute_offset = rd.absolute_offset();
+    }
 #    endif
 };
 
@@ -614,6 +631,7 @@ class Layout {
     hstd::XmlNode to_svg(Str const& title = "layout");
     void          to_graphviz(hstd::fs::path const& path);
     void          verify_constraints();
+    std::string   format_variables();
 
   private:
     Vec<ConstraintEntry> build_constraint_entries() const;

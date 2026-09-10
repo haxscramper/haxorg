@@ -37,7 +37,9 @@ google::protobuf::Any packMessage(Message const& message) {
 }
 
 template <typename Message>
-Message unpackMessage(google::protobuf::Any const& payload, std::string const& owner) {
+Message unpackMessage(
+    google::protobuf::Any const& payload,
+    std::string const&           owner = "value") {
     Message result{};
 
     if (!payload.UnpackTo(&result)) {
@@ -70,6 +72,11 @@ void write_serde(Proto* out, T const& in) {
 template <typename Proto, typename T>
 void read_serde(Proto const& in, T* out) {
     hstd::serde::proto_serde<Proto, T>::read(in, out);
+}
+
+template <typename Proto, typename T>
+void read_serde(Proto const& in, T& out) {
+    hstd::serde::proto_serde<Proto, T>::read(in, &out);
 }
 
 
@@ -249,6 +256,14 @@ template <>
 struct proto_serde<float, float> {
     static void write(float* out, float const& in) { *out = in; }
     static void read(float const& out, proto_write_accessor<float> in) { in.get() = out; }
+};
+
+template <>
+struct proto_serde<double, double> {
+    static void write(double* out, double const& in) { *out = in; }
+    static void read(double const& out, proto_write_accessor<double> in) {
+        in.get() = out;
+    }
 };
 
 

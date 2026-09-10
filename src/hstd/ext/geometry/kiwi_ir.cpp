@@ -122,6 +122,14 @@ Constraint Expr::operator>=(Expr const& other) const {
     return Constraint(*this, other, kiwi::RelationalOperator::OP_GE);
 }
 
+std::string Expr::format(bool tree) const {
+    if (tree) {
+        return tree_repr(*this);
+    } else {
+        return flat_repr(*this);
+    }
+}
+
 Constraint::Constraint(Expr const& lhs, Expr const& rhs, kiwi::RelationalOperator op)
     : lhs(lhs), rhs(rhs), op(op) {}
 
@@ -172,6 +180,14 @@ kiwi::Constraint Constraint::to_kiwi(hstd::Opt<double> str) const {
     }
 
     throw std::runtime_error("Invalid relational operator");
+}
+
+std::string Constraint::format(bool tree) const {
+    if (tree) {
+        return tree_repr(*this);
+    } else {
+        return flat_repr(*this);
+    }
 }
 
 Expr operator+(double left, Expr const& right) { return Expr(left) + right; }
@@ -451,7 +467,7 @@ Str MultiSeparateConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     joined.append_with_reconstruction(table);
     joined.append(getBuildRepr(rects));
 
-    return hstd::join("\n", joined);
+    return hstd::join("\n"_str_view, joined);
 }
 
 ParentWrapConstraint::ParentWrapConstraint(
@@ -1059,6 +1075,21 @@ hstd::XmlNode Layout::to_svg(Str const& title) {
     }
 
     return svg;
+}
+
+
+std::string Layout::format_variables() {
+    hstd::Vec<hstd::Str> lines;
+    for (int idx = 0; idx < constraints.size(); ++idx) {
+        auto const& constraint = constraints[idx];
+        lines.push_back("high-level repr:");
+        lines.push_back(hstd::indent(constraint->getRepr(rects), 2));
+        auto build = constraint->build(rects);
+        lines.push_back("low-level repr:");
+        for (auto const& ir : build) { lines.push_back(hstd::fmt("  {}", ir.format())); }
+    }
+
+    return hstd::join("\n"_str_view, lines);
 }
 
 void Layout::to_graphviz(hstd::fs::path const& path) {

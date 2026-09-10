@@ -326,6 +326,14 @@ class RelativeConstraint : public KiwiConstraint {
             vr->set_stable_vertex_id(graph->getStableId(id));
             anchor.writeSerial(vr->mutable_anchor());
         }
+
+        void readSerial(
+            hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload::VertexRef const&
+                          vr,
+            IGraph const* graph) {
+            this->id = graph->getVertexIDByStableId(vr.stable_vertex_id());
+            anchor.readSerial(vr.anchor());
+        }
 #    endif
     };
 
@@ -343,12 +351,17 @@ class RelativeConstraint : public KiwiConstraint {
         relative.writeSerial(load.mutable_relative(), graph);
         x_dim.writeSerial(load.mutable_x_dim());
         y_dim.writeSerial(load.mutable_y_dim());
-        out->mutable_payload()->PackFrom(load);
+        *out->mutable_payload() = hstd::serde::packMessage(load);
     }
 
     void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
         override {
-        logic_todo_impl();
+        auto load = hstd::serde::unpackMessage<
+            hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload>(in->payload());
+        x_dim.readSerial(load.x_dim());
+        y_dim.readSerial(load.y_dim());
+        fixed.readSerial(load.fixed(), graph);
+        relative.readSerial(load.relative(), graph);
     }
 #    endif
 
@@ -369,6 +382,9 @@ class RelativeConstraint : public KiwiConstraint {
         y_dim.absolute_offset = y;
         return this;
     }
+
+
+    RelativeConstraint(hstd::SPtr<layout::LayoutRun> const& run) : KiwiConstraint{run} {}
 
     RelativeConstraint(
         hstd::SPtr<KiwiGroup> const& group,
@@ -702,12 +718,20 @@ class MultiSeparateConstraint : public KiwiConstraint {
         for (auto const& line : lines) { line.writePayload(load.add_lines(), graph); }
         load.set_dimension(static_cast<::hstd::ext::kiwi_ir::proto::Axis>(dimension));
         load.set_separationdistance(separationDistance);
-        out->mutable_payload()->PackFrom(load);
+        *out->mutable_payload() = hstd::serde::packMessage(load);
     }
 
     void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
         override {
-        logic_todo_impl();
+        auto load = hstd::serde::unpackMessage<proto::KiwiMultiSeparateConstraintPayload>(
+            in->payload());
+        hstd::serde::read_serde(load.dimension(), dimension);
+        separationDistance = load.separationdistance();
+        for (auto const& line : load.lines()) {
+            AlignConstraint align_line{run};
+            align_line.readPayload(&line, graph);
+            lines.push_back(align_line);
+        }
     }
 
     VertexIDVec getAllVertices() const override {
