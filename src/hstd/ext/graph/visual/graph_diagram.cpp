@@ -1,6 +1,7 @@
 #include "graph_diagram.hpp"
 #include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #include <hstd/ext/hstd_serde.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 
 namespace {
 
@@ -43,11 +44,17 @@ Message findRequiredAttribute(Value const& value, std::string const& owner) {
     if (result) {
         return result.value();
     } else {
+        hstd::Vec<hstd::Str> types;
+        for (IAttribute const& attribute : value.attributes()) {
+            types.push_back(attribute.payload().type_url());
+        }
+
         throw hstd::serde::read_error::init(
             hstd::fmt(
-                "Could not find required attribute of type '{}' in {}",
+                "Could not find required attribute of type '{}' in {}. Has attributes {}",
                 Message::descriptor()->full_name(),
-                owner));
+                owner,
+                types));
     }
 }
 
@@ -200,6 +207,467 @@ std::string commonCluster(
 
 } // namespace
 
+namespace {
+
+void appendNoAlgorithmCluster(
+    DiaCluster const&  cluster,
+    std::string const& parentId,
+    LayoutKind         kind,
+    IVertex*           vertex,
+    DiaGraphMetadata*  metadata) {
+    metadata->mutable_no_algorithm_cluster_ids()->insert({cluster.id(), true});
+
+    switch (kind) {
+        case LayoutKind::Graphviz: {
+            if (!cluster.constraints().empty()) {
+                throw std::invalid_argument{hstd::fmt(
+                    "Graphviz-inheriting cluster '{}' cannot contain Kiwi "
+                    "constraints",
+                    cluster.id())};
+            }
+
+            GroupAttributePayload payload{};
+            payload.set_parent_stable_id(parentId);
+            appendAttribute(vertex->mutable_attributes(), payload);
+            break;
+        }
+
+        case LayoutKind::Kiwi: {
+            KiwiGroupVisualAttributePayload payload{};
+            payload.set_parent_stable_id(parentId);
+
+            for (DiaConstraint const& constraint : cluster.constraints()) {
+                appendConstraint(
+                    payload.mutable_base()->mutable_constraints(),
+                    constraint,
+                    cluster.id());
+            }
+
+            appendAttribute(vertex->mutable_attributes(), payload);
+            break;
+        }
+    }
+}
+
+void appendClusterKind(
+    DiaCluster const&                 cluster,
+    std::optional<std::string> const& parentId,
+    std::optional<LayoutKind>         parentKind,
+    IVertex*                          vertex,
+    DiaGraphMetadata*                 metadata,
+    LayoutKind&                       kind,
+    bool&                             inherited) {
+    switch (cluster.kind_case()) {
+        case DiaCluster::kGraphviz: {
+            kind                          = LayoutKind::Graphviz;
+            GroupAttributePayload payload = cluster.graphviz();
+            payload.clear_parent_stable_id();
+            appendAttribute(vertex->mutable_attributes(), payload);
+            break;
+        }
+
+        case DiaCluster::kKiwi: {
+            kind                                    = LayoutKind::Kiwi;
+            KiwiGroupVisualAttributePayload payload = cluster.kiwi();
+            payload.clear_parent_stable_id();
+            payload.mutable_base()->clear_constraints();
+
+            for (DiaConstraint const& constraint : cluster.constraints()) {
+                appendConstraint(
+                    payload.mutable_base()->mutable_constraints(),
+                    constraint,
+                    cluster.id());
+            }
+
+            appendAttribute(vertex->mutable_attributes(), payload);
+            break;
+        }
+
+        case DiaCluster::kNoAlgorithm: {
+            if (!parentId.has_value() || !parentKind.has_value()) {
+                throw std::invalid_argument{hstd::fmt(
+                    "Root cluster '{}' must specify a layout algorithm", cluster.id())};
+            }
+
+            inherited = true;
+            kind      = *parentKind;
+
+            appendNoAlgorithmCluster(cluster, *parentId, kind, vertex, metadata);
+            break;
+        }
+
+        case DiaCluster::KIND_NOT_SET: break; // guaranteed by protovalidate
+    }
+}
+
+void appendClusterNode(
+    DiaNode const&                   node,
+    DiaCluster const&                cluster,
+    LayoutKind                       kind,
+    IGraph*                          graph,
+    VertexIDVec*                     nestedIds,
+    std::unordered_set<std::string>* vertexIds) {
+    if (!vertexIds->insert(node.id()).second) {
+        throw std::invalid_argument{
+            hstd::fmt("Diagram contains duplicate vertex ID '{}'", node.id())};
+    }
+
+    nestedIds->add_vertices(node.id());
+
+    IVertex* nodeVertex = graph->add_vertices();
+    nodeVertex->set_stable_id(node.id());
+    *nodeVertex->mutable_payload() = hstd::serde::packMessage(TrivialVertexPayload{});
+
+    switch (kind) {
+        case LayoutKind::Graphviz: {
+            NodeAttributePayload payload = node.graphviz();
+            payload.set_parent_stable_id(cluster.id());
+            appendAttribute(nodeVertex->mutable_attributes(), payload);
+            break;
+        }
+
+        case LayoutKind::Kiwi: {
+            KiwiVertexVisualAttributePayload payload = node.kiwi();
+            payload.set_parent_stable_id(cluster.id());
+            appendAttribute(nodeVertex->mutable_attributes(), payload);
+            break;
+        }
+    }
+}
+
+void appendClusterEdge(
+    DiaEdge const&                         edge,
+    DiaCluster const&                      cluster,
+    LayoutKind                             kind,
+    IEdgeCollection*                       collection,
+    DiaGraphMetadata*                      metadata,
+    std::unordered_set<std::string> const& vertexIds,
+    std::unordered_set<std::string>*       edgeIds) {
+    if (!edgeIds->insert(edge.id()).second) {
+        throw std::invalid_argument{
+            hstd::fmt("Diagram contains duplicate edge ID '{}'", edge.id())};
+    }
+
+    if (!vertexIds.contains(edge.source())) {
+        throw std::invalid_argument{hstd::fmt(
+            "Edge '{}' references source vertex '{}' before it is defined",
+            edge.id(),
+            edge.source())};
+    }
+
+    if (!vertexIds.contains(edge.target())) {
+        throw std::invalid_argument{hstd::fmt(
+            "Edge '{}' references target vertex '{}' before it is defined",
+            edge.id(),
+            edge.target())};
+    }
+
+    metadata->mutable_edge_parent_cluster_ids()->insert({edge.id(), cluster.id()});
+
+    IEdge* graphEdge = collection->add_edges();
+    graphEdge->set_stable_id(edge.id());
+    graphEdge->set_source_vertex_id(edge.source());
+    graphEdge->set_target_vertex_id(edge.target());
+    *graphEdge->mutable_payload() = hstd::serde::packMessage(TrivialEdgePayload{});
+
+    switch (kind) {
+        case LayoutKind::Graphviz: {
+            EdgeAttributePayload payload = edge.graphviz();
+            payload.set_parent_stable_id(cluster.id());
+            appendAttribute(graphEdge->mutable_attributes(), payload);
+            break;
+        }
+
+        case LayoutKind::Kiwi: {
+            appendAttribute(graphEdge->mutable_attributes(), edge.kiwi());
+            break;
+        }
+    }
+}
+
+void appendCluster(
+    DiaCluster const&                 cluster,
+    std::optional<std::string> const& parentId,
+    std::optional<LayoutKind>         parentKind,
+    IGraph*                           graph,
+    IEdgeCollection*                  collection,
+    IVertexHierarchy*                 hierarchy,
+    DiaGraphMetadata*                 metadata,
+    std::unordered_set<std::string>*  vertexIds,
+    std::unordered_set<std::string>*  edgeIds) {
+    if (!vertexIds->insert(cluster.id()).second) {
+        throw std::invalid_argument{
+            hstd::fmt("Diagram contains duplicate vertex ID '{}'", cluster.id())};
+    }
+
+    LayoutKind kind{};
+    bool       inherited = false;
+    IVertex*   vertex    = graph->add_vertices();
+    vertex->set_stable_id(cluster.id());
+    *vertex->mutable_payload() = hstd::serde::packMessage(TrivialVertexPayload{});
+
+    appendClusterKind(cluster, parentId, parentKind, vertex, metadata, kind, inherited);
+
+    VertexIDVec nestedIds{};
+
+    for (DiaNode const& node : cluster.nodes()) {
+        appendClusterNode(node, cluster, kind, graph, &nestedIds, vertexIds);
+    }
+
+    // edges: same — kind mismatch and empty-ID checks removed, endpoint
+    // reference and duplicate-ID checks kept.
+    for (DiaEdge const& edge : cluster.edges()) {
+        appendClusterEdge(edge, cluster, kind, collection, metadata, *vertexIds, edgeIds);
+    }
+
+    for (DiaCluster const& nested : cluster.nested()) {
+        nestedIds.add_vertices(nested.id());
+    }
+
+    hierarchy->mutable_nested_in_map()->insert({cluster.id(), nestedIds});
+
+    for (auto const& aux_edge : nestedIds.vertices()) {
+        auto edge = hierarchy->add_edges();
+        edge->set_source_vertex_id(cluster.id());
+        edge->set_target_vertex_id(aux_edge);
+        edge->set_stable_id(hstd::fmt("__nesting_cluster_{}_{}", cluster.id(), aux_edge));
+        *edge->mutable_payload() = hstd::serde::packMessage(TrivialEdgePayload{});
+    }
+
+    for (DiaCluster const& nested : cluster.nested()) {
+        appendCluster(
+            nested,
+            cluster.id(),
+            inherited ? parentKind : std::optional<LayoutKind>{kind},
+            graph,
+            collection,
+            hierarchy,
+            metadata,
+            vertexIds,
+            edgeIds);
+    }
+}
+
+DiaCluster buildCluster(
+    std::string const&                                     clusterId,
+    IVertexHierarchy const&                                hierarchy,
+    DiaGraphMetadata const&                                metadata,
+    std::unordered_map<std::string, IVertex const*> const& vertices,
+    std::unordered_set<std::string> const&                 clusterIds,
+    std::unordered_set<std::string>*                       visited);
+
+void appendNestedVertex(
+    DiaCluster*                                            result,
+    std::string const&                                     nestedId,
+    IVertexHierarchy const&                                hierarchy,
+    DiaGraphMetadata const&                                metadata,
+    std::unordered_map<std::string, IVertex const*> const& vertices,
+    std::unordered_set<std::string> const&                 clusterIds,
+    std::unordered_set<std::string>*                       visited) {
+    if (clusterIds.contains(nestedId)) {
+        *result->add_nested() = buildCluster(
+            nestedId, hierarchy, metadata, vertices, clusterIds, visited);
+        return;
+    }
+
+    IVertex const& nodeVertex = *vertices.at(nestedId);
+    DiaNode*       node       = result->add_nodes();
+    node->set_id(nestedId);
+
+    std::string owner = hstd::fmt("node '{}'", nestedId);
+
+    std::optional<NodeAttributePayload>
+        graphvizNode = findAttribute<NodeAttributePayload>(
+            nodeVertex.attributes(), owner);
+    std::optional<KiwiVertexVisualAttributePayload>
+        kiwiNode = findAttribute<KiwiVertexVisualAttributePayload>(
+            nodeVertex.attributes(), owner);
+
+    if (graphvizNode.has_value() && kiwiNode.has_value()) {
+        throw std::invalid_argument{
+            hstd::fmt("Node '{}' contains both Graphviz and Kiwi attributes", nestedId)};
+    }
+
+    if (graphvizNode.has_value()) {
+        *node->mutable_graphviz() = *graphvizNode;
+        auto l                    = findRequiredAttribute<
+            hstd::ext::graph::layout::proto::IVertexLayoutAttributePayload>(
+            nodeVertex, owner);
+
+        *node->mutable_bbox() = l.bbox();
+    } else if (kiwiNode.has_value()) {
+        *node->mutable_kiwi() = *kiwiNode;
+        *node->mutable_bbox() = //
+            findRequiredAttribute<
+                hstd::ext::graph::kw::proto::KiwiVertexLayoutAttributePayload>(
+                nodeVertex, owner)
+                .base()
+                .bbox();
+    } else {
+        throw std::invalid_argument{hstd::fmt(
+            "Node '{}' contains neither a Graphviz nor a Kiwi attribute", nestedId)};
+    }
+}
+
+DiaCluster buildCluster(
+    std::string const&                                     clusterId,
+    IVertexHierarchy const&                                hierarchy,
+    DiaGraphMetadata const&                                metadata,
+    std::unordered_map<std::string, IVertex const*> const& vertices,
+    std::unordered_set<std::string> const&                 clusterIds,
+    std::unordered_set<std::string>*                       visited) {
+    if (!vertices.contains(clusterId)) {
+        throw std::invalid_argument{
+            hstd::fmt("Hierarchy references missing cluster vertex '{}'", clusterId)};
+    }
+
+    if (!visited->insert(clusterId).second) {
+        throw std::invalid_argument{hstd::fmt(
+            "Hierarchy contains a cycle or repeated cluster reference at '{}'",
+            clusterId)};
+    }
+
+    IVertex const& vertex = *vertices.at(clusterId);
+    DiaCluster     result{};
+    result.set_id(clusterId);
+
+    std::string owner = hstd::fmt("cluster '{}'", clusterId);
+
+    std::optional<GroupAttributePayload> graphviz = findAttribute<GroupAttributePayload>(
+        vertex.attributes(), owner);
+    std::optional<KiwiGroupVisualAttributePayload>
+        kiwi = findAttribute<KiwiGroupVisualAttributePayload>(vertex.attributes(), owner);
+
+    if (graphviz.has_value() && kiwi.has_value()) {
+        throw std::invalid_argument{hstd::fmt(
+            "Cluster '{}' contains both Graphviz and Kiwi group attributes", clusterId)};
+    }
+
+    bool noAlgorithm = metadata.no_algorithm_cluster_ids().find(clusterId)
+                    != metadata.no_algorithm_cluster_ids().end();
+
+    bool preserveOrigin = false;
+
+    if (!noAlgorithm && graphviz.has_value()
+        && graphviz->layout_case() == GroupAttributePayload::LAYOUT_NOT_SET
+        && !graphviz->parent_stable_id().empty()) {
+        noAlgorithm = true;
+    }
+
+    if (noAlgorithm || (!graphviz.has_value() && !kiwi.has_value())) {
+        result.set_no_algorithm(google::protobuf::NULL_VALUE);
+    } else if (graphviz.has_value()) {
+        if (preserveOrigin) { *result.mutable_graphviz() = *graphviz; }
+        *result.mutable_bbox() = //
+            findRequiredAttribute<
+                hstd::ext::graph::layout::proto::IVertexLayoutAttributePayload>(
+                vertex, owner)
+                .bbox();
+
+
+    } else {
+        if (preserveOrigin) { *result.mutable_kiwi() = *kiwi; }
+        *result.mutable_bbox() = //
+            findRequiredAttribute<
+                hstd::ext::graph::kw::proto::KiwiGroupLayoutAttributePayload>(
+                vertex, owner)
+                .base()
+                .bbox();
+
+        result.mutable_kiwi()->mutable_base()->clear_constraints();
+
+        if (preserveOrigin) {
+            for (IConstraint const& constraint : kiwi->base().constraints()) {
+                appendDiaConstraint(result.mutable_constraints(), constraint, clusterId);
+            }
+        }
+    }
+
+    auto nestedPosition = hierarchy.nested_in_map().find(clusterId);
+
+    if (nestedPosition != hierarchy.nested_in_map().end()) {
+        for (std::string const& nestedId : nestedPosition->second.vertices()) {
+            appendNestedVertex(
+                &result, nestedId, hierarchy, metadata, vertices, clusterIds, visited);
+        }
+    }
+
+    return result;
+}
+
+void appendDiaEdge(
+    DiaCluster*                                         result,
+    IEdge const&                                        source,
+    DiaGraphMetadata const&                             metadata,
+    std::unordered_map<std::string, std::string> const& nodeParents,
+    std::unordered_map<std::string, std::string> const& clusterParents) {
+    std::string parentId{};
+
+    auto metadataParent = metadata.edge_parent_cluster_ids().find(source.stable_id());
+
+    if (metadataParent != metadata.edge_parent_cluster_ids().end()) {
+        parentId = metadataParent->second;
+    } else if (std::optional<std::string> graphvizParent = graphvizEdgeParent(source)) {
+        parentId = *graphvizParent;
+    } else {
+        parentId = commonCluster(
+            source.source_vertex_id(),
+            source.target_vertex_id(),
+            nodeParents,
+            clusterParents,
+            source.stable_id());
+    }
+
+    DiaCluster* parent = findMutableCluster(result, parentId);
+
+    if (parent == nullptr) {
+        throw std::invalid_argument{hstd::fmt(
+            "Edge '{}' references missing parent cluster '{}'",
+            source.stable_id(),
+            parentId)};
+    }
+
+    DiaEdge* edge = parent->add_edges();
+    edge->set_id(source.stable_id());
+    edge->set_source(source.source_vertex_id());
+    edge->set_target(source.target_vertex_id());
+
+    std::string owner = hstd::fmt("edge '{}'", source.stable_id());
+
+    std::optional<EdgeAttributePayload> graphviz = findAttribute<EdgeAttributePayload>(
+        source.attributes(), owner);
+    std::optional<KiwiEdgeVisualAttributePayload>
+        kiwi = findAttribute<KiwiEdgeVisualAttributePayload>(source.attributes(), owner);
+
+    if (graphviz.has_value() && kiwi.has_value()) {
+        throw hstd::serde::read_error::init(
+            hstd::fmt(
+                "Edge '{}' contains both Graphviz and Kiwi attributes",
+                source.stable_id()));
+    }
+
+    if (graphviz.has_value()) {
+        *edge->mutable_graphviz() = *graphviz;
+        auto l                    = findRequiredAttribute<
+            hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(source, owner);
+
+        *edge->mutable_path() = l.path();
+    } else if (kiwi.has_value()) {
+        *edge->mutable_kiwi() = *kiwi;
+
+        auto l = findRequiredAttribute<
+            hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(source, owner);
+
+        *edge->mutable_path() = l.path();
+    } else {
+        throw std::invalid_argument{hstd::fmt(
+            "Edge '{}' contains neither a Graphviz nor a Kiwi attribute",
+            source.stable_id())};
+    }
+}
+
+} // namespace
+
 hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     hstd::ext::graph::diagram::proto::DiaCluster const& root) {
     hstd::serde::protovalidate_message(root);
@@ -222,206 +690,17 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     auto* ports               = graph.add_ports();
     *ports->mutable_payload() = hstd::serde::packMessage(TrivialPortCollectionPayload{});
 
-    std::function<void(
-        DiaCluster const&, std::optional<std::string> const&, std::optional<LayoutKind>)>
-        appendCluster;
+    appendCluster(
+        root,
+        std::nullopt,
+        std::nullopt,
+        &graph,
+        collection,
+        hierarchy,
+        &metadata,
+        &vertexIds,
+        &edgeIds);
 
-    appendCluster = [&](DiaCluster const&                 cluster,
-                        std::optional<std::string> const& parentId,
-                        std::optional<LayoutKind>         parentKind) {
-        // TODO: Extract the append cluster into separate function
-        if (!vertexIds.insert(cluster.id()).second) {
-            throw std::invalid_argument{
-                hstd::fmt("Diagram contains duplicate vertex ID '{}'", cluster.id())};
-        }
-
-        LayoutKind kind{};
-        bool       inherited = false;
-        IVertex*   vertex    = graph.add_vertices();
-        vertex->set_stable_id(cluster.id());
-        *vertex->mutable_payload() = hstd::serde::packMessage(TrivialVertexPayload{});
-
-        // TODO: Extract the switch into separate function
-        switch (cluster.kind_case()) {
-            case DiaCluster::kGraphviz: {
-                kind                          = LayoutKind::Graphviz;
-                GroupAttributePayload payload = cluster.graphviz();
-                payload.clear_parent_stable_id();
-                appendAttribute(vertex->mutable_attributes(), payload);
-                break;
-            }
-
-            case DiaCluster::kKiwi: {
-                kind                                    = LayoutKind::Kiwi;
-                KiwiGroupVisualAttributePayload payload = cluster.kiwi();
-                payload.clear_parent_stable_id();
-                payload.mutable_base()->clear_constraints();
-
-                for (DiaConstraint const& constraint : cluster.constraints()) {
-                    appendConstraint(
-                        payload.mutable_base()->mutable_constraints(),
-                        constraint,
-                        cluster.id());
-                }
-
-                appendAttribute(vertex->mutable_attributes(), payload);
-                break;
-            }
-
-            case DiaCluster::kNoAlgorithm: {
-                // TODO: Extract "no algorithm case" into separate function
-                if (!parentId.has_value() || !parentKind.has_value()) {
-                    throw std::invalid_argument{hstd::fmt(
-                        "Root cluster '{}' must specify a layout algorithm",
-                        cluster.id())};
-                }
-
-                inherited = true;
-                kind      = *parentKind;
-                metadata.mutable_no_algorithm_cluster_ids()->insert({cluster.id(), true});
-
-                switch (kind) {
-                    case LayoutKind::Graphviz: {
-                        if (!cluster.constraints().empty()) {
-                            throw std::invalid_argument{hstd::fmt(
-                                "Graphviz-inheriting cluster '{}' cannot contain Kiwi "
-                                "constraints",
-                                cluster.id())};
-                        }
-
-                        GroupAttributePayload payload{};
-                        payload.set_parent_stable_id(*parentId);
-                        appendAttribute(vertex->mutable_attributes(), payload);
-                        break;
-                    }
-
-                    case LayoutKind::Kiwi: {
-                        KiwiGroupVisualAttributePayload payload{};
-                        payload.set_parent_stable_id(*parentId);
-
-                        for (DiaConstraint const& constraint : cluster.constraints()) {
-                            appendConstraint(
-                                payload.mutable_base()->mutable_constraints(),
-                                constraint,
-                                cluster.id());
-                        }
-
-                        appendAttribute(vertex->mutable_attributes(), payload);
-                        break;
-                    }
-                }
-
-                break;
-            }
-
-            case DiaCluster::KIND_NOT_SET: break; // guaranteed by protovalidate
-        }
-
-        VertexIDVec nestedIds{};
-
-        for (DiaNode const& node : cluster.nodes()) {
-            // TODO: Extract loop body into function
-            if (!vertexIds.insert(node.id()).second) {
-                throw std::invalid_argument{
-                    hstd::fmt("Diagram contains duplicate vertex ID '{}'", node.id())};
-            }
-
-            nestedIds.add_vertices(node.id());
-
-            IVertex* nodeVertex = graph.add_vertices();
-            nodeVertex->set_stable_id(node.id());
-            *nodeVertex->mutable_payload() = hstd::serde::packMessage(
-                TrivialVertexPayload{});
-
-            switch (kind) {
-                case LayoutKind::Graphviz: {
-                    NodeAttributePayload payload = node.graphviz();
-                    payload.set_parent_stable_id(cluster.id());
-                    appendAttribute(nodeVertex->mutable_attributes(), payload);
-                    break;
-                }
-
-                case LayoutKind::Kiwi: {
-                    KiwiVertexVisualAttributePayload payload = node.kiwi();
-                    payload.set_parent_stable_id(cluster.id());
-                    appendAttribute(nodeVertex->mutable_attributes(), payload);
-                    break;
-                }
-            }
-        }
-
-        // edges: same — kind mismatch and empty-ID checks removed, endpoint
-        // reference and duplicate-ID checks kept.
-        for (DiaEdge const& edge : cluster.edges()) {
-            // TODO: Extract loop body into function
-            if (!edgeIds.insert(edge.id()).second) {
-                throw std::invalid_argument{
-                    hstd::fmt("Diagram contains duplicate edge ID '{}'", edge.id())};
-            }
-
-            if (!vertexIds.contains(edge.source())) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Edge '{}' references source vertex '{}' before it is defined",
-                    edge.id(),
-                    edge.source())};
-            }
-
-            if (!vertexIds.contains(edge.target())) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Edge '{}' references target vertex '{}' before it is defined",
-                    edge.id(),
-                    edge.target())};
-            }
-
-            metadata.mutable_edge_parent_cluster_ids()->insert({edge.id(), cluster.id()});
-
-            IEdge* graphEdge = collection->add_edges();
-            graphEdge->set_stable_id(edge.id());
-            graphEdge->set_source_vertex_id(edge.source());
-            graphEdge->set_target_vertex_id(edge.target());
-            *graphEdge->mutable_payload() = hstd::serde::packMessage(
-                TrivialEdgePayload{});
-
-            switch (kind) {
-                case LayoutKind::Graphviz: {
-                    EdgeAttributePayload payload = edge.graphviz();
-                    payload.set_parent_stable_id(cluster.id());
-                    appendAttribute(graphEdge->mutable_attributes(), payload);
-                    break;
-                }
-
-                case LayoutKind::Kiwi: {
-                    appendAttribute(graphEdge->mutable_attributes(), edge.kiwi());
-                    break;
-                }
-            }
-        }
-
-        for (DiaCluster const& nested : cluster.nested()) {
-            nestedIds.add_vertices(nested.id());
-        }
-
-        hierarchy->mutable_nested_in_map()->insert({cluster.id(), nestedIds});
-
-        for (auto const& aux_edge : nestedIds.vertices()) {
-            auto edge = hierarchy->add_edges();
-            edge->set_source_vertex_id(cluster.id());
-            edge->set_target_vertex_id(aux_edge);
-            edge->set_stable_id(
-                hstd::fmt("__nesting_cluster_{}_{}", cluster.id(), aux_edge));
-            *edge->mutable_payload() = hstd::serde::packMessage(TrivialEdgePayload{});
-        }
-
-        for (DiaCluster const& nested : cluster.nested()) {
-            appendCluster(
-                nested,
-                cluster.id(),
-                inherited ? parentKind : std::optional<LayoutKind>{kind});
-        }
-    };
-
-
-    appendCluster(root, std::nullopt, std::nullopt);
     *graph.mutable_payload() = hstd::serde::packMessage(metadata);
     return graph;
 }
@@ -553,114 +832,13 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
 
     std::unordered_set<std::string> visited{};
 
-    std::function<DiaCluster(std::string const&)> buildCluster;
-    buildCluster = [&](std::string const& clusterId) -> DiaCluster {
-        // TODO: Extract cluster builder into separate function
-        if (!vertices.contains(clusterId)) {
-            throw std::invalid_argument{
-                hstd::fmt("Hierarchy references missing cluster vertex '{}'", clusterId)};
-        }
-
-        if (!visited.insert(clusterId).second) {
-            throw std::invalid_argument{hstd::fmt(
-                "Hierarchy contains a cycle or repeated cluster reference at '{}'",
-                clusterId)};
-        }
-
-        IVertex const& vertex = *vertices.at(clusterId);
-        DiaCluster     result{};
-        result.set_id(clusterId);
-
-        std::optional<GroupAttributePayload>
-            graphviz = findAttribute<GroupAttributePayload>(
-                vertex.attributes(), hstd::fmt("cluster '{}'", clusterId));
-        std::optional<KiwiGroupVisualAttributePayload>
-            kiwi = findAttribute<KiwiGroupVisualAttributePayload>(
-                vertex.attributes(), hstd::fmt("cluster '{}'", clusterId));
-
-        if (graphviz.has_value() && kiwi.has_value()) {
-            throw std::invalid_argument{hstd::fmt(
-                "Cluster '{}' contains both Graphviz and Kiwi group attributes",
-                clusterId)};
-        }
-
-        bool noAlgorithm = metadata.no_algorithm_cluster_ids().find(clusterId)
-                        != metadata.no_algorithm_cluster_ids().end();
-
-        if (!noAlgorithm && graphviz.has_value()
-            && graphviz->layout_case() == GroupAttributePayload::LAYOUT_NOT_SET
-            && !graphviz->parent_stable_id().empty()) {
-            noAlgorithm = true;
-        }
-
-        if (noAlgorithm || (!graphviz.has_value() && !kiwi.has_value())) {
-            result.set_no_algorithm(google::protobuf::NULL_VALUE);
-        } else if (graphviz.has_value()) {
-            *result.mutable_graphviz() = *graphviz;
-        } else {
-            *result.mutable_kiwi() = *kiwi;
-            result.mutable_kiwi()->mutable_base()->clear_constraints();
-
-            for (IConstraint const& constraint : kiwi->base().constraints()) {
-                appendDiaConstraint(result.mutable_constraints(), constraint, clusterId);
-            }
-        }
-
-        auto nestedPosition = hierarchy.nested_in_map().find(clusterId);
-
-        if (nestedPosition != hierarchy.nested_in_map().end()) {
-            for (std::string const& nestedId : nestedPosition->second.vertices()) {
-                // TODO: Extract this for loop body into separate function
-                if (clusterIds.contains(nestedId)) {
-                    *result.add_nested() = buildCluster(nestedId);
-                    continue;
-                }
-
-                IVertex const& nodeVertex = *vertices.at(nestedId);
-                DiaNode*       node       = result.add_nodes();
-                node->set_id(nestedId);
-
-                std::string owner = hstd::fmt("node '{}'", nestedId);
-
-                std::optional<NodeAttributePayload>
-                    graphvizNode = findAttribute<NodeAttributePayload>(
-                        nodeVertex.attributes(), owner);
-                std::optional<KiwiVertexVisualAttributePayload>
-                    kiwiNode = findAttribute<KiwiVertexVisualAttributePayload>(
-                        nodeVertex.attributes(), owner);
-
-                if (graphvizNode.has_value() && kiwiNode.has_value()) {
-                    throw std::invalid_argument{hstd::fmt(
-                        "Node '{}' contains both Graphviz and Kiwi attributes",
-                        nestedId)};
-                }
-
-                if (graphvizNode.has_value()) {
-                    *node->mutable_graphviz() = *graphvizNode;
-                    auto l                    = findRequiredAttribute<
-                        layout::proto::IVertexLayoutAttributePayload>(nodeVertex, owner);
-
-                    *node->mutable_bbox() = l.bbox();
-                } else if (kiwiNode.has_value()) {
-                    *node->mutable_kiwi() = *kiwiNode;
-
-                    auto l = findRequiredAttribute<
-                        layout::proto::IVertexLayoutAttributePayload>(nodeVertex, owner);
-
-                    *node->mutable_bbox() = l.bbox();
-
-                } else {
-                    throw std::invalid_argument{hstd::fmt(
-                        "Node '{}' contains neither a Graphviz nor a Kiwi attribute",
-                        nestedId)};
-                }
-            }
-        }
-
-        return result;
-    };
-
-    DiaCluster result = buildCluster(hierarchy.root_vertex_ids(0));
+    DiaCluster result = buildCluster(
+        hierarchy.root_vertex_ids(0),
+        hierarchy,
+        metadata,
+        vertices,
+        clusterIds,
+        &visited);
 
     for (auto const& entry : vertices) {
         if (!visited.contains(entry.first) && !nodeParents.contains(entry.first)) {
@@ -672,75 +850,7 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
     }
 
     for (auto const& entry : edges) {
-        // TODO: Extract the loop for filling dia edge into separate function
-        IEdge const& source = *entry.second;
-        std::string  parentId{};
-
-        auto metadataParent = metadata.edge_parent_cluster_ids().find(source.stable_id());
-
-        if (metadataParent != metadata.edge_parent_cluster_ids().end()) {
-            parentId = metadataParent->second;
-        } else if (
-            std::optional<std::string> graphvizParent = graphvizEdgeParent(source)) {
-            parentId = *graphvizParent;
-        } else {
-            parentId = commonCluster(
-                source.source_vertex_id(),
-                source.target_vertex_id(),
-                nodeParents,
-                clusterParents,
-                source.stable_id());
-        }
-
-        DiaCluster* parent = findMutableCluster(&result, parentId);
-
-        if (parent == nullptr) {
-            throw std::invalid_argument{hstd::fmt(
-                "Edge '{}' references missing parent cluster '{}'",
-                source.stable_id(),
-                parentId)};
-        }
-
-        DiaEdge* edge = parent->add_edges();
-        edge->set_id(source.stable_id());
-        edge->set_source(source.source_vertex_id());
-        edge->set_target(source.target_vertex_id());
-
-
-        std::string owner = hstd::fmt("edge '{}'", source.stable_id());
-
-        std::optional<EdgeAttributePayload>
-            graphviz = findAttribute<EdgeAttributePayload>(source.attributes(), owner);
-        std::optional<KiwiEdgeVisualAttributePayload>
-            kiwi = findAttribute<KiwiEdgeVisualAttributePayload>(
-                source.attributes(), owner);
-
-
-        if (graphviz.has_value() && kiwi.has_value()) {
-            throw hstd::serde::read_error::init(
-                hstd::fmt(
-                    "Edge '{}' contains both Graphviz and Kiwi attributes",
-                    source.stable_id()));
-        }
-
-        if (graphviz.has_value()) {
-            *edge->mutable_graphviz() = *graphviz;
-            auto l = findRequiredAttribute<layout::proto::IEdgeLayoutAttributePayload>(
-                source, owner);
-
-            *edge->mutable_path() = l.path();
-        } else if (kiwi.has_value()) {
-            *edge->mutable_kiwi() = *kiwi;
-
-            auto l = findRequiredAttribute<layout::proto::IEdgeLayoutAttributePayload>(
-                source, owner);
-
-            *edge->mutable_path() = l.path();
-        } else {
-            throw std::invalid_argument{hstd::fmt(
-                "Edge '{}' contains neither a Graphviz nor a Kiwi attribute",
-                source.stable_id())};
-        }
+        appendDiaEdge(&result, *entry.second, metadata, nodeParents, clusterParents);
     }
 
     return result;
