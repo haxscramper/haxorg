@@ -17,7 +17,8 @@ using namespace hstd::ext::graph;
 class TestFactory : public hstd::ext::graph::VisualFactory {
     using hstd::ext::graph::VisualFactory::VisualFactory;
 
-    hstd::SPtr<hstd::ext::graph::IVertex> newVertex(proto::IVertex const* in) override {
+    hstd::SPtr<hstd::ext::graph::IVertex> newVertex(
+        hstd::ext::graph::proto::IVertex const* in) override {
         if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
             return std::make_shared<org::graph::MapNode>();
         } else {
@@ -26,7 +27,7 @@ class TestFactory : public hstd::ext::graph::VisualFactory {
     }
 
     hstd::SPtr<hstd::ext::graph::IPortCollection> newPortCollection(
-        proto::IPortCollection const* in) {
+        hstd::ext::graph::proto::IPortCollection const* in) {
         if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
             logic_todo_impl();
         } else {
@@ -35,7 +36,7 @@ class TestFactory : public hstd::ext::graph::VisualFactory {
     }
 
     hstd::SPtr<hstd::ext::graph::IEdgeCollection> newEdgeCollection(
-        proto::IEdgeCollection const* in) {
+        hstd::ext::graph::proto::IEdgeCollection const* in) {
         if (in->payload().Is<org::graph::proto::MapEdgeCollectionPayload>()) {
             return std::make_shared<org::graph::MapEdgeCollection>();
         } else {
@@ -43,7 +44,7 @@ class TestFactory : public hstd::ext::graph::VisualFactory {
         }
     }
 
-    hstd::SPtr<IPort> newPort(proto::IPort const* port) {
+    hstd::SPtr<IPort> newPort(hstd::ext::graph::proto::IPort const* port) {
         if (port->payload().Is<org::graph::proto::MapNodePayload>()) {
             logic_todo_impl();
         } else {
@@ -54,8 +55,8 @@ class TestFactory : public hstd::ext::graph::VisualFactory {
 
 #endif
 
-std::unique_ptr<proto::IGraph> get_layout_structure(
-    std::unique_ptr<proto::IGraph> const& in) {
+std::unique_ptr<hstd::ext::graph::proto::IGraph> get_layout_structure(
+    std::unique_ptr<hstd::ext::graph::proto::IGraph> const& in) {
     auto out = std::make_unique<proto::IGraph>();
 
     auto        out_hierarchy = out->add_hierarchies();
@@ -64,13 +65,16 @@ std::unique_ptr<proto::IGraph> get_layout_structure(
 
     auto out_vertex = out->add_vertices();
     out_vertex->set_stable_id(rg_id);
-    out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
+    out_vertex->mutable_payload()->PackFrom(
+        hstd::ext::graph::proto::TrivialVertexPayload{});
     gv::proto::GroupAttributePayload attr_payload;
     auto                             out_attr = out_vertex->add_attributes();
     out_attr->mutable_payload()->PackFrom(attr_payload);
 
-    out_hierarchy->mutable_nested_in_map()->insert({rg_id, proto::VertexIDVec{}});
-    out_hierarchy->mutable_payload()->PackFrom(proto::TrivialVertexHierarchyPayload{});
+    out_hierarchy->mutable_nested_in_map()->insert(
+        {rg_id, hstd::ext::graph::proto::VertexIDVec{}});
+    out_hierarchy->mutable_payload()->PackFrom(
+        hstd::ext::graph::proto::TrivialVertexHierarchyPayload{});
 
     for (auto const& vertex : in->vertices()) {
         auto out_vertex = out->add_vertices();
@@ -82,13 +86,15 @@ std::unique_ptr<proto::IGraph> get_layout_structure(
         attr_payload.set_parent_stable_id(rg_id);
         auto out_attr = out_vertex->add_attributes();
         out_attr->mutable_payload()->PackFrom(attr_payload);
-        out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
+        out_vertex->mutable_payload()->PackFrom(
+            hstd::ext::graph::proto::TrivialVertexPayload{});
         out_hierarchy->mutable_nested_in_map()->at(rg_id).add_vertices(
             vertex.stable_id());
     }
 
     auto edges = out->add_collections();
-    edges->mutable_payload()->PackFrom(proto::TrivialEdgeCollectionPayload{});
+    edges->mutable_payload()->PackFrom(
+        hstd::ext::graph::proto::TrivialEdgeCollectionPayload{});
     for (auto const& edge : in->collections().at(0).edges()) {
         auto out_edge = edges->add_edges();
         out_edge->set_source_vertex_id(edge.source_vertex_id());
@@ -100,14 +106,16 @@ std::unique_ptr<proto::IGraph> get_layout_structure(
         auto                            out_attr = out_edge->add_attributes();
         attr_payload.set_parent_stable_id(rg_id);
         out_attr->mutable_payload()->PackFrom(attr_payload);
-        out_edge->mutable_payload()->PackFrom(proto::TrivialEdgePayload{});
+        out_edge->mutable_payload()->PackFrom(
+            hstd::ext::graph::proto::TrivialEdgePayload{});
     }
 
     return out;
 }
 
 #if ORG_BUILD_WITH_PROTOBUF
-std::unique_ptr<proto::IGraph> run_layout(std::unique_ptr<proto::IGraph> const& proto) {
+std::unique_ptr<proto::IGraph> run_layout(
+    std::unique_ptr<hstd::ext::graph::proto::IGraph> const& proto) {
     auto        graph = std::make_shared<TrivialGraphBase>();
     TestFactory factory{graph};
     factory.setTraceFile(getDebugFile("graph_serial_read.log"));
@@ -128,7 +136,7 @@ std::unique_ptr<proto::IGraph> run_layout(std::unique_ptr<proto::IGraph> const& 
 
     factory.run->setTraceFile(getDebugFile("serial_read_layout.log"));
     factory.run->runFullLayout();
-    auto result = std::make_unique<proto::IGraph>();
+    auto result = std::make_unique<hstd::ext::graph::proto::IGraph>();
     graph->writeSerial(result.get());
     writeFile(
         getDebugFile("serial_layout_result.json"), hstd::serde::getJString(*result));

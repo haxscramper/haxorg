@@ -64,6 +64,8 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     "${BASE}/src/hstd/ext/graph/base/graph_base.proto"
     "${BASE}/src/hstd/ext/graph/visual/graph_visual.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_geometry.proto"
+    "${BASE}/src/hstd/ext/geometry/hstd_geometry_test_ir.proto"
+    "${BASE}/src/hstd/ext/graph/visual/graph_diagram_validate.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_visual.proto")
 
   haxorg_add_protobuf(

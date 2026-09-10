@@ -10,6 +10,15 @@ import "src/hstd/ext/graph/visual/graph_elk.proto";
 import "src/hstd/ext/graph/visual/graph_graphviz.proto";
 import "src/hstd/ext/graph/visual/graph_kiwi.proto";
 
+/*
+
+   Simplified representation of the graph structure, for describing
+   the diagram elements using nested elements.
+
+   All coordinates are relative to the parent element.
+
+*/
+
 message DiaNode {
   string id = 1 [(buf.validate.field).string.min_len = 1];
 

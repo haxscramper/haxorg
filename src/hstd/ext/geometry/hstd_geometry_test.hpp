@@ -140,6 +140,8 @@ GeometryCheckResult checkIntersects(Point const& first, Point const& second);
 /// rectangle.
 GeometryCheckResult checkIntersects(Point const& point, Rect const& rect);
 
+GeometryCheckResult checkIntersects(Rect const& point, Rect const& rect);
+
 /// \brief Checks whether a point lies inside or on the boundary of a
 /// rectangle.
 GeometryCheckResult checkIntersects(Rect const& rect, Point const& point);

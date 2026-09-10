@@ -15,6 +15,7 @@
 #include <hstd/stdlib/dod_base.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/hstd/ext/graph/base/graph_base.pb.h"
+#    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
 #endif
 
 namespace hstd {
@@ -107,8 +108,6 @@ struct UnorderedIncrementalStore : hstd::UnorderedMap<ID, T> {
 
 namespace hstd::ext::graph {
 
-
-using namespace hstd::ext::geometry;
 /// \name Collection ID groups
 /// @{
 

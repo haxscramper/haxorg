@@ -79,6 +79,19 @@ void read_serde(Proto const& in, T& out) {
     hstd::serde::proto_serde<Proto, T>::read(in, &out);
 }
 
+template <typename Proto, typename T>
+T read_serde(Proto const& value) {
+    T result;
+    hstd::serde::proto_serde<Proto, T>::read(value, &result);
+    return result;
+}
+
+template <typename Proto, typename T>
+Proto write_serde(T const& value) {
+    Proto result;
+    hstd::serde::proto_serde<Proto, T>::write(&result, value);
+    return result;
+}
 
 template <typename T>
 struct is_std_optional : std::false_type {};
