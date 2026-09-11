@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+import "src/hstd/ext/graph/base/graph_base.proto";
+import "src/hstd/ext/graph/visual/graph_visual.proto";
+
 package hstd.ext.graph.gv.proto;
 
 enum TextAlign {
@@ -247,16 +250,17 @@ message GroupAttributePayload {
     optional Common common = 1;
   }
 
-  optional string parent_stable_id = 1;
+  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
+  optional string parent_stable_id = 2;
 
   oneof layout {
-    Dot       dot       = 2;
-    Neato     neato     = 3;
-    Fdp       fdp       = 4;
-    Sfdp      sfdp      = 5;
-    Circo     circo     = 6;
-    Twopi     twopi     = 7;
-    Osage     osage     = 8;
-    Patchwork patchwork = 9;
+    Dot       dot       = 3;
+    Neato     neato     = 4;
+    Fdp       fdp       = 5;
+    Sfdp      sfdp      = 6;
+    Circo     circo     = 7;
+    Twopi     twopi     = 8;
+    Osage     osage     = 9;
+    Patchwork patchwork = 10;
   }
 }

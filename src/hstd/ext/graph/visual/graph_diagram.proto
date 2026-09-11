@@ -67,49 +67,90 @@ message DiaCluster {
     message: "a Graphviz cluster cannot contain Kiwi constraints"
     expression: "!has(this.graphviz) || this.constraints.size() == 0"
   };
+
+  // Nodes and edges must match the graph algorithm if it is provided,
+  // otherwise they must match the parent algorithm. Some additional
+  // validation is performed at the C++ level, as CEL does not support
+  // arbitrary recursion into the structure.
   option (buf.validate.message).cel = {
-    id: "element kind matches the payload kind"
-    message: "edges must have a payload matching the cluster layout kind"
+    id: "kiwi_payload_kind"
+    message: "Kiwi cluster payload mismatch"
     expression:
-      // Nodes and edges must match the graph algorithm if it is provided,
-      // otherwise they must match the parent algorithm. Some additional
-      // validation is performed at the C++ level, as CEL does not support
-      // arbitrary recursion into the structure.
-      "("
-      "has(this.kiwi) && "
-      "this.edges.all(e, has(e.kiwi)) && "
-      "this.nodes.all(e, has(e.kiwi))"
+      "!has(this.kiwi) || ("
+      "  this.edges.all(e, has(e.kiwi)) && "
+      "  this.nodes.all(n, has(n.kiwi))"
+      ") ? '' : "
+      "'edges=[%s], nodes=[%s]'.format(["
+      "  this.edges.map(e, '%s'.format([has(e.kiwi)])).join(', '),"
+      "  this.nodes.map(n, '%s'.format([has(n.kiwi)])).join(', ')"
+      "])"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "elk_payload_kind"
+    message: "ELK cluster payload mismatch"
+    expression:
+      "!has(this.elk) || ("
+      "  this.edges.all(e, has(e.elk)) && "
+      "  this.nodes.all(n, has(n.elk))"
+      ") ? '' : "
+      "'edges=[%s], nodes=[%s]'.format(["
+      "  this.edges.map(e, '%s'.format([has(e.elk)])).join(', '),"
+      "  this.nodes.map(n, '%s'.format([has(n.elk)])).join(', ')"
+      "])"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "graphviz_payload_kind"
+    message: "Graphviz cluster mismatch"
+    expression:
+      "!has(this.graphviz) || ("
+      "  this.constraints.size() == 0 && "
+      "  this.edges.all(e, has(e.graphviz)) && "
+      "  this.nodes.all(n, has(n.graphviz))"
+      ") ? '' : "
+      "'constraints=%s, edges=[%s], nodes=[%s]'.format(["
+      "  this.constraints.size(),"
+      "  this.edges.map(e, '%s'.format([has(e.graphviz)])).join(', '),"
+      "  this.nodes.map(n, '%s'.format([has(n.graphviz)])).join(', ')"
+      "])"
+  };
+
+  // If the layout on this specific graph is not provided, the elements must
+  // still be internally consistent -- nested clusters can change the layout
+  // algorithms at any moment, and they will be handled separately.
+  option (buf.validate.message).cel = {
+    id: "no_algorithm_payload_kind"
+    message: "Cluster payload kinds are inconsistent"
+    expression:
+      "!has(this.no_algorithm) || ("
+      "  (this.edges.all(e, has(e.kiwi)) && this.nodes.all(n, has(n.kiwi))) || "
+      "  (this.edges.all(e, has(e.elk)) && this.nodes.all(n, has(n.elk))) || "
+      "  (this.edges.all(e, has(e.graphviz)) && this.nodes.all(n, has(n.graphviz))"
       ")"
-      "||"
-      "("
-      "has(this.graphviz) && "
-      "this.edges.all(e, has(e.graphviz)) && "
-      "this.nodes.all(e, has(e.graphviz))"
-      ")"
-      "||"
-      "("
-      "has(this.elk) && "
-      "this.edges.all(e, has(e.elk)) && "
-      "this.nodes.all(e, has(e.elk))"
-      ")"
-      "||"
-      // If the layout on this specific graph is not provided, the elements must
-      // still be internally consistent -- nested clusters can change the layout
-      // algorithms at any moment, and they will be handled separately.
-      "("
-      "has(this.no_layout) && ("
-      "("
-      "this.edges.all(e, has(e.kiwi)) && "
-      "this.nodes.all(n, has(n.kiwi))"
-      ") || ("
-      "this.edges.all(e, has(e.graphviz)) && "
-      "this.nodes.all(n, has(n.graphviz))"
-      ") || ("
-      "this.edges.all(e, has(e.elk)) && "
-      "this.nodes.all(n, has(n.elk))"
-      ")"
-      ")"
-      ")"
+      ") ? '' : "
+      "'edges=[%s], nodes=[%s]'.format(["
+      "  this.edges"
+      "    .map(e, 'kiwi=%s elk=%s graphviz=%s'.format(["
+      "      has(e.kiwi), has(e.elk), has(e.graphviz)"
+      "    ]))"
+      "    .join(', '),"
+      "  this.nodes"
+      "    .map(n, 'kiwi=%s elk=%s graphviz=%s'.format(["
+      "      has(n.kiwi), has(n.elk), has(n.graphviz)"
+      "    ]))"
+      "    .join(', ')"
+      "])"
+  };
+
+  option (buf.validate.message).cel = {
+    id: "outer_padding_requires_algoritm"
+    message: "Using outer padding without algorithm is not allowed"
+    // outer padding is used on the nested clusters with layout algorithm
+    // switch, to create the padding around grouping nodes that are placed
+    // by the same layout algorithm, use built-in features of said algorithm
+    // if it supports them natively.
+    expression: "has(this.outer_padding) ? !has(this.no_algorithm) : true"
   };
 
   string id = 1 [(buf.validate.field).string.min_len = 1];
@@ -126,6 +167,7 @@ message DiaCluster {
   }
 
   optional hstd.ext.geometry.proto.Rect bbox = 10;
+  optional hstd.ext.geometry.proto.Padding outer_padding = 11;
 }
 
 message DiaGraphMetadata {

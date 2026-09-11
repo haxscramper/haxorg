@@ -36,6 +36,7 @@ message KiwiVertexVisualAttributePayload {
 message KiwiGroupVisualAttributePayload {
   hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
   optional string parent_stable_id = 3;
+  optional hstd.ext.geometry.proto.Padding outer_padding = 4;
 }
 
 message KiwiVertexLayoutAttributePayload {

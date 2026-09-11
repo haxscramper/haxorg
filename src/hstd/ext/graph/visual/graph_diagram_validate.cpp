@@ -2,6 +2,8 @@
 #include "hstd/ext/graph/base/graph_base.hpp"
 #include "hstd/ext/graph/visual/graph_diagram.hpp"
 #include "hstd/ext/graph/visual/visual_factory.hpp"
+#include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/VariantSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
 
@@ -188,10 +190,32 @@ hstd::ext::geometry::GeometryValidationErrors hstd::ext::graph::diagram::runSpec
     auto proto_layout = hstd::ext::graph::diagram::diaClusterToGraph(test.diagram());
     auto graph        = std::make_shared<hstd::ext::graph::TrivialGraphBase>();
     hstd::ext::graph::VisualFactory factory{graph};
+
+    if (debug_dir) { factory.setTraceFile(debug_dir.value() / "serial.log"); }
     graph->readSerial(&proto_layout, &factory);
+
+    if (debug_dir) { factory.run->setTraceFile(debug_dir.value() / "layout.log"); }
     factory.run->runFullLayout();
+
+    if (debug_dir) {
+        auto visual = factory.run->getVisual();
+        hstd::writeFile(
+            debug_dir.value() / "visual.json", hstd::to_json_eval(visual).dump(2));
+
+        hstd::writeFile(
+            debug_dir.value() / "visual.svg",
+            hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
+    }
+
     auto result = std::make_unique<hstd::ext::graph::proto::IGraph>();
     graph->writeSerial(result.get());
+
+    if (debug_dir) {
+        hstd::writeFile(
+            debug_dir.value() / "post-layout-graph.json",
+            hstd::serde::getJString(*result));
+    }
+
     auto simplified_result = hstd::ext::graph::diagram::graphToDiaCluster(*result);
     auto elements          = diagramGeometryElements(simplified_result);
     return validateGeometry(elements, test.checks());

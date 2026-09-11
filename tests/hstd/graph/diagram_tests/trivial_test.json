@@ -7,8 +7,8 @@
   "checks" : [
     {
       "fully_covers": {
-        "first" : {"id": "root", "anchor": "WHOLE_SHAPE"},
-        "second": {"id": "one",  "anchor": "WHOLE_SHAPE"}
+        "main"  : {"id": "root", "anchor": "WHOLE_SHAPE"},
+        "nested": {"id": "one",  "anchor": "WHOLE_SHAPE"}
       }
     }
   ]

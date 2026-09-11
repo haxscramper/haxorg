@@ -229,6 +229,12 @@ void appendNoAlgorithmCluster(
             GroupAttributePayload payload{};
             payload.set_parent_stable_id(parentId);
             appendAttribute(vertex->mutable_attributes(), payload);
+
+            if (cluster.has_outer_padding()) {
+                *payload.mutable_base()->mutable_outer_padding() = cluster
+                                                                       .outer_padding();
+            }
+
             break;
         }
 
@@ -241,6 +247,11 @@ void appendNoAlgorithmCluster(
                     payload.mutable_base()->mutable_constraints(),
                     constraint,
                     cluster.id());
+            }
+
+            if (cluster.has_outer_padding()) {
+                *payload.mutable_base()->mutable_outer_padding() = cluster
+                                                                       .outer_padding();
             }
 
             appendAttribute(vertex->mutable_attributes(), payload);
@@ -258,11 +269,18 @@ void appendClusterKind(
     LayoutKind&                       kind,
     bool&                             inherited) {
     switch (cluster.kind_case()) {
+        // TODO: Support ELK cluster conversions.
         case DiaCluster::kGraphviz: {
             kind                          = LayoutKind::Graphviz;
             GroupAttributePayload payload = cluster.graphviz();
             payload.clear_parent_stable_id();
             appendAttribute(vertex->mutable_attributes(), payload);
+
+            if (cluster.has_outer_padding()) {
+                *payload.mutable_base()->mutable_outer_padding() = cluster
+                                                                       .outer_padding();
+            }
+
             break;
         }
 
@@ -271,6 +289,10 @@ void appendClusterKind(
             KiwiGroupVisualAttributePayload payload = cluster.kiwi();
             payload.clear_parent_stable_id();
             payload.mutable_base()->clear_constraints();
+            if (cluster.has_outer_padding()) {
+                *payload.mutable_base()->mutable_outer_padding() = cluster
+                                                                       .outer_padding();
+            }
 
             for (DiaConstraint const& constraint : cluster.constraints()) {
                 appendConstraint(

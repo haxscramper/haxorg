@@ -47,9 +47,10 @@ std::string diagramTestName(testing::TestParamInfo<fs::path> const& info) {
 class GraphDiagramSpecTest : public testing::TestWithParam<fs::path> {};
 
 TEST_P(GraphDiagramSpecTest, HasValidGeometry) {
-    fs::path const& path   = GetParam();
-    auto            test   = hstd::serde::read_message_from_json_file<DiagramTest>(path);
-    auto const      errors = hstd::ext::graph::diagram::runSpec(test);
+    fs::path const& path = GetParam();
+    auto            test = hstd::serde::read_message_from_json_file<DiagramTest>(path);
+    auto            debug_dir = getDebugFile();
+    auto const      errors    = hstd::ext::graph::diagram::runSpec(test, debug_dir);
 
     for (auto const& error : errors) {
         ADD_FAILURE() << path << '\n'
