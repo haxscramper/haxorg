@@ -215,7 +215,7 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
     KiwiVertexLayoutAttribute(geometry::Rect rect, std::string text = "")
         : rect{rect}, text{text} {}
 
-    Rect getBBox() const override { return rect; }
+    geometry::Rect getBBox() const override { return rect; }
 
     visual::VisGroup getVisual(VertexID const& selfId) const override {
         visual::VisGroup res;
@@ -254,14 +254,14 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
 
     visual::VisGroup getVisual(VertexID const& id) const override;
 
-    Rect                  rect;
+    geometry::Rect        rect;
     hstd::SPtr<KiwiGroup> group;
 
-    KiwiGroupLayoutAttribute(Rect rect, hstd::SPtr<KiwiGroup> group)
+    KiwiGroupLayoutAttribute(geometry::Rect rect, hstd::SPtr<KiwiGroup> group)
         : rect{rect}, group{group} {}
 
-    Rect getBBox() const override { return rect; }
-    void setBBox(geometry::Rect const& _rect) override { rect = _rect; }
+    geometry::Rect getBBox() const override { return rect; }
+    void           setBBox(geometry::Rect const& _rect) override { rect = _rect; }
 };
 
 class KiwiConstraint : public layout::IConstraint {

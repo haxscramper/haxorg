@@ -44,9 +44,9 @@ std::string diagramTestName(testing::TestParamInfo<fs::path> const& info) {
     return result;
 }
 
-class DiagramSpecTest : public testing::TestWithParam<fs::path> {};
+class GraphDiagramSpecTest : public testing::TestWithParam<fs::path> {};
 
-TEST_P(DiagramSpecTest, HasValidGeometry) {
+TEST_P(GraphDiagramSpecTest, HasValidGeometry) {
     fs::path const& path   = GetParam();
     auto            test   = hstd::serde::read_message_from_json_file<DiagramTest>(path);
     auto const      errors = hstd::ext::graph::diagram::runSpec(test);
@@ -61,8 +61,8 @@ TEST_P(DiagramSpecTest, HasValidGeometry) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    DiagramTests,
-    DiagramSpecTest,
+    GraphDiagramSpec,
+    GraphDiagramSpecTest,
     testing::ValuesIn(getDiagramTestFiles()),
     diagramTestName);
 

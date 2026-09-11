@@ -555,7 +555,7 @@ DiaCluster buildCluster(
         if (preserveOrigin) { *result.mutable_graphviz() = *graphviz; }
         *result.mutable_bbox() = //
             findRequiredAttribute<
-                hstd::ext::graph::layout::proto::IVertexLayoutAttributePayload>(
+                hstd::ext::graph::layout::proto::IGroupLayoutAttributePayload>(
                 vertex, owner)
                 .bbox();
 

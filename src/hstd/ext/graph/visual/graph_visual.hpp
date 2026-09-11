@@ -124,6 +124,8 @@ class IGroupLayoutAttribute : public IVertexLayoutAttribute {
     /// layout algorithm to move the bounding box when the parent group
     /// re-arranges the placement.
     virtual void setBBox(geometry::Rect const& bbox) = 0;
+
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const;
 };
 
 

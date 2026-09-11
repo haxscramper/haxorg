@@ -258,7 +258,7 @@ class ElkPortLayoutAttribute
         IAttributeObject const*    vertex) override;
 #    endif
 
-    Rect getBBox() const override {
+    geometry::Rect getBBox() const override {
         // port placement may omit some values if they are zeroed out, and
         // potr does not have to have a width/height either.
         return geometry::Rect{
@@ -272,14 +272,14 @@ class ElkPortLayoutAttribute
 
 class EdgeSection {
   public:
-    hstd::Opt<hstd::Str> id;
-    Point                startPoint;
-    Point                endPoint;
-    hstd::Vec<Point>     bendPoints;
-    hstd::Opt<hstd::Str> incomingShape;
-    hstd::Opt<hstd::Str> outgoingShape;
-    hstd::Vec<hstd::Str> incomingSections;
-    hstd::Vec<hstd::Str> outgoingSections;
+    hstd::Opt<hstd::Str>       id;
+    geometry::Point            startPoint;
+    geometry::Point            endPoint;
+    hstd::Vec<geometry::Point> bendPoints;
+    hstd::Opt<hstd::Str>       incomingShape;
+    hstd::Opt<hstd::Str>       outgoingShape;
+    hstd::Vec<hstd::Str>       incomingSections;
+    hstd::Vec<hstd::Str>       outgoingSections;
 
     BOOST_DESCRIBE_CLASS(
         EdgeSection,
@@ -298,17 +298,17 @@ class EdgeSection {
 
 class ElkEdgeData {
   public:
-    hstd::Str              id;
-    hstd::Opt<hstd::Str>   source;
-    hstd::Opt<hstd::Str>   sourcePort;
-    hstd::Opt<hstd::Str>   target;
-    hstd::Opt<hstd::Str>   targetPort;
-    hstd::Vec<hstd::Str>   sources;
-    hstd::Vec<hstd::Str>   targets;
-    hstd::Vec<EdgeSection> sections;
-    hstd::Vec<Label>       labels;
-    hstd::Vec<Point>       junctionPoints;
-    Options                layoutOptions;
+    hstd::Str                  id;
+    hstd::Opt<hstd::Str>       source;
+    hstd::Opt<hstd::Str>       sourcePort;
+    hstd::Opt<hstd::Str>       target;
+    hstd::Opt<hstd::Str>       targetPort;
+    hstd::Vec<hstd::Str>       sources;
+    hstd::Vec<hstd::Str>       targets;
+    hstd::Vec<EdgeSection>     sections;
+    hstd::Vec<Label>           labels;
+    hstd::Vec<geometry::Point> junctionPoints;
+    Options                    layoutOptions;
 
     void validate() {}
 
@@ -351,9 +351,9 @@ class ElkEdgeLayoutAttribute
     : public layout::IEdgeLayoutAttribute
     , public ElkEdgeData {
   public:
-    std::string getRepr() const override { return "ElkEdgeLayoutAttribute"; }
-    Path        getPath() const override {
-        Path res;
+    std::string    getRepr() const override { return "ElkEdgeLayoutAttribute"; }
+    geometry::Path getPath() const override {
+        geometry::Path res;
         for (auto const& sec : sections) {
             res.moveTo(sec.startPoint);
             for (auto const& point : sec.bendPoints) { res.lineTo(point); }
@@ -547,7 +547,7 @@ class ElkNodeLayoutAttribute
 
     ElkNodeLayoutAttribute(hstd::SPtr<layout::LayoutRun> const& run) : run{run} {}
 
-    Rect getBBox() const override {
+    geometry::Rect getBBox() const override {
         return geometry::Rect{
             x.value(),
             y.value(),
@@ -594,7 +594,7 @@ class ElkGroupLayoutAttribute
 
     void setBBox(geometry::Rect const& bbox) override { this->bbox = bbox; }
 
-    Rect getBBox() const override { return bbox; }
+    geometry::Rect getBBox() const override { return bbox; }
 
 
     visual::VisGroup getVisual(VertexID const& id) const override;

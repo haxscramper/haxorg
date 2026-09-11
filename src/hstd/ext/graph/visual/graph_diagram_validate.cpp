@@ -170,8 +170,8 @@ boost::outcome_v2::result<void, geometry::GeometryError> appendCluster(
 
 } // namespace
 
-hstd::ext::geometry::GeometryElementListResult diagramGeometryElements(
-    graph::diagram::proto::DiaCluster const& root) {
+hstd::ext::geometry::GeometryElementListResult hstd::ext::graph::diagram::
+    diagramGeometryElements(graph::diagram::proto::DiaCluster const& root) {
     geometry::GeometryElementList result;
     ElementIds                    ids;
 
@@ -182,7 +182,7 @@ hstd::ext::geometry::GeometryElementListResult diagramGeometryElements(
     return result;
 }
 
-hstd::ext::geometry::GeometryValidationErrors runSpec(
+hstd::ext::geometry::GeometryValidationErrors hstd::ext::graph::diagram::runSpec(
     hstd::ext::graph::diagram::proto::DiagramTest const& test,
     hstd::Opt<hstd::fs::path> const&                     debug_dir) {
     auto proto_layout = hstd::ext::graph::diagram::diaClusterToGraph(test.diagram());

@@ -2,6 +2,8 @@
 
 struct GraphVisualGraphviz_Test : public GraphUtils_Test {};
 
+using namespace hstd::ext::geometry;
+
 TEST_F(GraphVisualGraphviz_Test, GraphvizSimpleConstruction) {
     // Create initial graph structure
     auto v1 = addVertex("v1");

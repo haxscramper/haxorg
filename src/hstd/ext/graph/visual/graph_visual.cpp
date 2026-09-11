@@ -354,9 +354,9 @@ hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::EdgeIteration::
 void layout::IVertexLayoutAttribute::writeSerial(
     graph::proto::IAttribute* out,
     IGraph const*             graph) const {
-    hstd::ext::graph::layout::proto::IGroupLayoutAttributePayload payload;
+    hstd::ext::graph::layout::proto::IVertexLayoutAttributePayload payload;
     hstd::serde::write_serde(payload.mutable_bbox(), getBBox());
-    out->mutable_payload()->PackFrom(payload);
+    *out->mutable_payload() = hstd::serde::packMessage(payload);
 }
 
 void hstd::ext::graph::layout::IEdgeLayoutAttribute::writeSerial(
@@ -364,7 +364,15 @@ void hstd::ext::graph::layout::IEdgeLayoutAttribute::writeSerial(
     IGraph const*             graph) const {
     hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload payload;
     hstd::serde::write_serde(payload.mutable_path(), getPath());
-    out->mutable_payload()->PackFrom(payload);
+    *out->mutable_payload() = hstd::serde::packMessage(payload);
+}
+
+void hstd::ext::graph::layout::IGroupLayoutAttribute::writeSerial(
+    graph::proto::IAttribute* out,
+    IGraph const*             graph) const {
+    hstd::ext::graph::layout::proto::IGroupLayoutAttributePayload payload;
+    hstd::serde::write_serde(payload.mutable_bbox(), getBBox());
+    *out->mutable_payload() = hstd::serde::packMessage(payload);
 }
 
 

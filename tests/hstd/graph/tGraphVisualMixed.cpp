@@ -4,7 +4,7 @@
 struct GraphMixed_Test : public GraphUtils_Test {};
 
 double            size = 20;
-Size              rect{size, size};
+geometry::Size    rect{size, size};
 geometry::Padding pad{12};
 
 TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {

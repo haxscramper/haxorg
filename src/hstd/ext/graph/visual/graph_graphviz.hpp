@@ -236,12 +236,12 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(NodeAttribute, FontSize, fontsize, double);                          \
         __attr_impl(NodeAttribute, Height, height, double);                              \
         __attr_aligned_impl(NodeAttribute, Label, label, Str);                           \
-        __attr_impl(NodeAttribute, Position, pos, Point);                                \
+        __attr_impl(NodeAttribute, Position, pos, geometry::Point);                      \
         __attr_impl(NodeAttribute, URL, URL, Str);                                       \
         __attr_impl(NodeAttribute, Width, width, double);                                \
         __attr_aligned_impl(NodeAttribute, XLabel, xlabel, Str);                         \
-        __attr_impl(NodeAttribute, XLabelPosition, xlabelpos, Point);                    \
-        __attr_impl(NodeAttribute, Margin, margin, Point);
+        __attr_impl(NodeAttribute, XLabelPosition, xlabelpos, geometry::Point);          \
+        __attr_impl(NodeAttribute, Margin, margin, geometry::Point);
 
 #    define _GV_EDGE_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)      \
         __attr_impl(EdgeAttribute, Constraint, constraint, bool);                        \
@@ -251,7 +251,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(EdgeAttribute, FontName, fontname, Str);                             \
         __attr_impl(EdgeAttribute, FontSize, fontsize, double);                          \
         __attr_aligned_impl(EdgeAttribute, Label, label, Str);                           \
-        __attr_impl(EdgeAttribute, LabelPosition, lp, Point);                            \
+        __attr_impl(EdgeAttribute, LabelPosition, lp, geometry::Point);                  \
         __attr_impl(EdgeAttribute, PenWidth, penwidth, double);                          \
         __eattr_use_impl(EdgeAttribute, Style, style, gv::Style);                        \
         __attr_impl(EdgeAttribute, URL, URL, Str);                                       \
@@ -311,8 +311,8 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(GraphGroup, LabelLocator, labelloc, Str, _GV_ALL_LAYOUTS);           \
         __attr_impl(GraphGroup, LayerListSeparator, layersep, Str, _GV_ALL_LAYOUTS);     \
         __attr_impl(GraphGroup, Layers, layers, Str, _GV_ALL_LAYOUTS);                   \
-        __attr_impl(GraphGroup, Margin, margin, Point, _GV_ALL_LAYOUTS);                 \
-        __attr_impl(GraphGroup, Pad, pad, Point, _GV_ALL_LAYOUTS);                       \
+        __attr_impl(GraphGroup, Margin, margin, geometry::Point, _GV_ALL_LAYOUTS);       \
+        __attr_impl(GraphGroup, Pad, pad, geometry::Point, _GV_ALL_LAYOUTS);             \
         __attr_impl(                                                                     \
             GraphGroup, NodeSeparation, nodesep, double, _GV_LAYOUTS(LayoutType::dot));  \
         __attr_impl(GraphGroup, OutputOrder, outputorder, Str, _GV_ALL_LAYOUTS);         \
@@ -329,7 +329,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(GraphGroup, Resolution, resolution, double, _GV_ALL_LAYOUTS);        \
         __attr_impl(                                                                     \
             GraphGroup, SearchSize, searchsize, int, _GV_LAYOUTS(LayoutType::dot));      \
-        __attr_impl(GraphGroup, Size, size, Point, _GV_ALL_LAYOUTS);                     \
+        __attr_impl(GraphGroup, Size, size, geometry::Point, _GV_ALL_LAYOUTS);           \
         __attr_impl(                                                                     \
             GraphGroup,                                                                  \
             Spline,                                                                      \
@@ -344,7 +344,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(
                 LayoutType::circo));                                                     \
         __attr_impl(GraphGroup, StyleSheet, stylesheet, Str, _GV_ALL_LAYOUTS);           \
         __attr_impl(GraphGroup, TrueColor, truecolor, bool, _GV_ALL_LAYOUTS);            \
-        __attr_impl(GraphGroup, ViewPort, viewport, Point, _GV_ALL_LAYOUTS);             \
+        __attr_impl(GraphGroup, ViewPort, viewport, geometry::Point, _GV_ALL_LAYOUTS);   \
         __attr_impl(GraphGroup, Compound, compound, bool, _GV_LAYOUTS(LayoutType::dot)); \
         __attr_impl(                                                                     \
             GraphGroup, Concentrate, concentrate, bool, _GV_LAYOUTS(LayoutType::dot));
@@ -410,14 +410,14 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     void getAttr(Str const& key, Opt<hstd::u64>& value) const;
     void getAttr(Str const& key, Opt<double>& value) const;
     void getAttr(Str const& key, Opt<bool>& value) const;
-    void getAttr(Str const& key, Opt<Point>& value) const;
+    void getAttr(Str const& key, Opt<geometry::Point>& value) const;
 
     void setHtmlAttr(Str attribute, Str const& value);
 
     void setAttr(Str attribute, Str const& value);
     void setAttr(Str const& key, int value);
     void setAttr(Str const& key, hstd::u64 value);
-    void setAttr(Str const& key, Point value);
+    void setAttr(Str const& key, geometry::Point value);
     void setAttr(Str const& key, double value);
     void setAttr(Str const& key, bool value);
 
@@ -816,15 +816,15 @@ class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
     NodeAttribute node;
     GraphGroup    graph;
     // parent-group-relative, graphviz point scale
-    Rect bbox;
+    geometry::Rect bbox;
 
     GraphVertexLayoutAttribute(
-        NodeAttribute const& node,
-        GraphGroup const&    graph,
-        Rect const&          bbox)
+        NodeAttribute const&  node,
+        GraphGroup const&     graph,
+        geometry::Rect const& bbox)
         : node{node}, graph{graph}, bbox{bbox} {}
 
-    Rect getBBox() const override { return bbox / gv::scaling; }
+    geometry::Rect getBBox() const override { return bbox / gv::scaling; }
 
     std::string getRepr() const override { return node.getPropertiesAsString(); }
 
@@ -837,18 +837,18 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
     EdgeAttribute edge;
     GraphGroup    graph;
     /// \brief parent-group-relative, graphviz point scale
-    Path path;
+    geometry::Path path;
     /// \brief arrowhead polygon points, same coords
     geometry::Polygon arrow;
     /// \brief label/head_label/tail_label, same coords
     Vec<visual::VisElement> labels;
 
     GraphEdgeLayoutAttribute(
-        EdgeAttribute const& edge,
-        GraphGroup const&    graph,
-        Point const&         parent_offset = Point{0, 0});
+        EdgeAttribute const&   edge,
+        GraphGroup const&      graph,
+        geometry::Point const& parent_offset = geometry::Point{0, 0});
 
-    Path getPath() const override { return path / gv::scaling; }
+    geometry::Path getPath() const override { return path / gv::scaling; }
 
     std::string      getRepr() const override { return edge.getPropertiesAsString(); }
     visual::VisGroup getVisual(EdgeID const& selfId) const override;
@@ -856,14 +856,16 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    Rect                   graph;
+    geometry::Rect         graph;
     hstd::SPtr<GraphGroup> group;
 
-    GraphGroupLayoutAttribute(Rect const& graph, hstd::SPtr<GraphGroup> const& group)
+    GraphGroupLayoutAttribute(
+        geometry::Rect const&         graph,
+        hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
-    Rect getBBox() const override { return graph / gv::scaling; }
-    void setBBox(geometry::Rect const& rect) override { graph = rect; }
+    geometry::Rect getBBox() const override { return graph / gv::scaling; }
+    void           setBBox(geometry::Rect const& rect) override { graph = rect; }
 
     std::string getRepr() const override { return group->getPropertiesAsString(); }
 

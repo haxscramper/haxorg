@@ -1,0 +1,7 @@
+{
+  "diagram": {
+    "graphviz": {"dot": {}},
+    "nodes"   : [ { "graphviz": {"width": 10, "height": 10}, "id": "one" } ],
+    "id"      : "root"
+  }
+}

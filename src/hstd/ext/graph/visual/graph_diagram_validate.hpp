@@ -12,10 +12,11 @@
 namespace hstd::ext::graph::diagram {
 hstd::ext::geometry::GeometryElementListResult diagramGeometryElements(
     graph::diagram::proto::DiaCluster const& root);
-}
 
 hstd::ext::geometry::GeometryValidationErrors runSpec(
     hstd::ext::graph::diagram::proto::DiagramTest const& test,
     hstd::Opt<hstd::fs::path> const&                     debug_dir = std::nullopt);
+} // namespace hstd::ext::graph::diagram
+
 
 #endif

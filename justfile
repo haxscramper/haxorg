@@ -115,4 +115,6 @@ profile_perf_view:
   hotspot perf.data
 
 generate_diagram_schema:
+  rm -rf build/jsonschema
   buf generate --path src/hstd/ext/graph/visual/graph_diagram.proto
+  buf generate --path src/hstd/ext/graph/visual/graph_diagram_validate.proto

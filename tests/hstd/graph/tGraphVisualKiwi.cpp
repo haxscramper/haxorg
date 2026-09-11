@@ -16,8 +16,8 @@ TEST_F(GraphKiwi_Test, KiwiIr1) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, v1), Size(5, 5));
-    root->addVertex(addNesting(rg_id, v2), Size(6, 6));
+    root->addVertex(addNesting(rg_id, v1), geometry::Size(5, 5));
+    root->addVertex(addNesting(rg_id, v2), geometry::Size(6, 6));
     root->addEdge(e12);
 
     run->runFullLayout();
@@ -41,8 +41,8 @@ TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, v_fixed), Size(5, 5));
-    root->addVertex(addNesting(rg_id, v_relative), Size(6, 6));
+    root->addVertex(addNesting(rg_id, v_fixed), geometry::Size(5, 5));
+    root->addVertex(addNesting(rg_id, v_relative), geometry::Size(6, 6));
 
     root->emplaceConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
         ->setAbsoluteOffset(10, 10);
@@ -54,13 +54,13 @@ TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
         box(v_fixed).upper_left(),
         box(v_relative).upper_left(),
         10,
-        DistanceCheck::XOnly));
+        geometry::DistanceCheck::XOnly));
 
     EXPECT_OUTCOME_OK(checkDistance(
         box(v_fixed).upper_left(),
         box(v_relative).upper_left(),
         10,
-        DistanceCheck::YOnly));
+        geometry::DistanceCheck::YOnly));
 }
 
 TEST_F(GraphKiwi_Test, KiwiFixedRelativeRelative) {
@@ -71,8 +71,8 @@ TEST_F(GraphKiwi_Test, KiwiFixedRelativeRelative) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, v_fixed), Size(5, 5));
-    root->addVertex(addNesting(rg_id, v_relative), Size(6, 6));
+    root->addVertex(addNesting(rg_id, v_fixed), geometry::Size(5, 5));
+    root->addVertex(addNesting(rg_id, v_relative), geometry::Size(6, 6));
 
     root->emplaceConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
         ->setRelativeOffset(10, 10);
@@ -84,13 +84,13 @@ TEST_F(GraphKiwi_Test, KiwiFixedRelativeRelative) {
         box(v_fixed).upper_left(),
         box(v_relative).upper_left(),
         50,
-        DistanceCheck::XOnly));
+        geometry::DistanceCheck::XOnly));
 
     EXPECT_OUTCOME_OK(checkDistance(
         box(v_fixed).upper_left(),
         box(v_relative).upper_left(),
         50,
-        DistanceCheck::YOnly));
+        geometry::DistanceCheck::YOnly));
 }
 
 // TODO: Test the same configuration but with the gaps between graph
@@ -106,11 +106,11 @@ TEST_F(GraphKiwi_Test, KiwiLinearConstraintTrivial) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, v_center), Size(50, 50));
-    root->addVertex(addNesting(rg_id, v_up_left), Size(50, 50));
-    root->addVertex(addNesting(rg_id, v_up_right), Size(50, 50));
-    root->addVertex(addNesting(rg_id, v_down_left), Size(50, 50));
-    root->addVertex(addNesting(rg_id, v_down_right), Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_center), geometry::Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_up_left), geometry::Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_up_right), geometry::Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_down_left), geometry::Size(50, 50));
+    root->addVertex(addNesting(rg_id, v_down_right), geometry::Size(50, 50));
 
     root->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondBelowFirst(v_center, v_down_left);
@@ -161,11 +161,11 @@ TEST_F(GraphKiwi_Test, KiwiLinearConstraintPartialInset) {
     double inset = 10.0;
     double size  = 50.0;
 
-    root->addVertex(addNesting(rg_id, v_center), Size(size, size));
-    root->addVertex(addNesting(rg_id, v_up_left), Size(size, size));
-    root->addVertex(addNesting(rg_id, v_up_right), Size(size, size));
-    root->addVertex(addNesting(rg_id, v_down_left), Size(size, size));
-    root->addVertex(addNesting(rg_id, v_down_right), Size(size, size));
+    root->addVertex(addNesting(rg_id, v_center), geometry::Size(size, size));
+    root->addVertex(addNesting(rg_id, v_up_left), geometry::Size(size, size));
+    root->addVertex(addNesting(rg_id, v_up_right), geometry::Size(size, size));
+    root->addVertex(addNesting(rg_id, v_down_left), geometry::Size(size, size));
+    root->addVertex(addNesting(rg_id, v_down_right), geometry::Size(size, size));
 
     auto add_inset = [&](VertexID const&   relative,
                          kiwi_ir::RectAttr fixed_anchor,
@@ -223,10 +223,10 @@ TEST_F(GraphKiwi_Test, KiwiAlign) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, v1), Size(50, 50));
-    root->addVertex(addNesting(rg_id, v2), Size(60, 60));
-    root->addVertex(addNesting(rg_id, v3), Size(70, 70));
-    root->addVertex(addNesting(rg_id, v4), Size(80, 80));
+    root->addVertex(addNesting(rg_id, v1), geometry::Size(50, 50));
+    root->addVertex(addNesting(rg_id, v2), geometry::Size(60, 60));
+    root->addVertex(addNesting(rg_id, v3), geometry::Size(70, 70));
+    root->addVertex(addNesting(rg_id, v4), geometry::Size(80, 80));
 
     root->emplaceConstraint<kw::AlignConstraint>(root)
         ->useVerticalAxis()
@@ -259,14 +259,14 @@ TEST_F(GraphKiwi_Test, KiwiSeparateMultiSeparate) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, g1), Size(30, 30));
-    root->addVertex(addNesting(rg_id, g2), Size(30, 30));
-    root->addVertex(addNesting(rg_id, g3), Size(30, 30));
-    root->addVertex(addNesting(rg_id, g4), Size(30, 30));
-    root->addVertex(addNesting(rg_id, g5), Size(30, 30));
-    root->addVertex(addNesting(rg_id, g6), Size(30, 30));
-    root->addVertex(addNesting(rg_id, g7), Size(30, 30));
-    root->addVertex(addNesting(rg_id, g8), Size(30, 30));
+    root->addVertex(addNesting(rg_id, g1), geometry::Size(30, 30));
+    root->addVertex(addNesting(rg_id, g2), geometry::Size(30, 30));
+    root->addVertex(addNesting(rg_id, g3), geometry::Size(30, 30));
+    root->addVertex(addNesting(rg_id, g4), geometry::Size(30, 30));
+    root->addVertex(addNesting(rg_id, g5), geometry::Size(30, 30));
+    root->addVertex(addNesting(rg_id, g6), geometry::Size(30, 30));
+    root->addVertex(addNesting(rg_id, g7), geometry::Size(30, 30));
+    root->addVertex(addNesting(rg_id, g8), geometry::Size(30, 30));
 
     auto e_g1_g5 = addEdge(g1, g5, "e_g1_g5");
     auto e_g2_g6 = addEdge(g2, g6, "e_g2_g6");
@@ -322,9 +322,9 @@ TEST_P(GraphKiwi_BoolParamTest, KiwiAlign_Offset) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, v1), Size(50, 50));
-    root->addVertex(addNesting(rg_id, v2), Size(60, 60));
-    root->addVertex(addNesting(rg_id, v3), Size(70, 70));
+    root->addVertex(addNesting(rg_id, v1), geometry::Size(50, 50));
+    root->addVertex(addNesting(rg_id, v2), geometry::Size(60, 60));
+    root->addVertex(addNesting(rg_id, v3), geometry::Size(70, 70));
 
     bool const is_vertical = GetParam();
     auto       c           = root->emplaceConstraint<kw::AlignConstraint>(root);
@@ -367,10 +367,10 @@ TEST_P(GraphKiwi_BoolParamTest, SeparationConstraintAlign) {
     hstd::SPtr<kw::KiwiGroup> root = kw::KiwiGroup::newRootGraph(run);
     run->setRootGroupAttribute(rg_id, root);
 
-    root->addVertex(addNesting(rg_id, v1), Size(50, 50));
-    root->addVertex(addNesting(rg_id, v2), Size(60, 60));
-    root->addVertex(addNesting(rg_id, v3), Size(70, 70));
-    root->addVertex(addNesting(rg_id, v4), Size(50, 50));
+    root->addVertex(addNesting(rg_id, v1), geometry::Size(50, 50));
+    root->addVertex(addNesting(rg_id, v2), geometry::Size(60, 60));
+    root->addVertex(addNesting(rg_id, v3), geometry::Size(70, 70));
+    root->addVertex(addNesting(rg_id, v4), geometry::Size(50, 50));
 
     bool const is_vertical = GetParam();
     auto       c           = root->emplaceConstraint<kw::SeparateConstraint>(root);
@@ -432,7 +432,7 @@ TEST_F(GraphKiwi_Test, MultiSeparationConstraint) {
 
     for (auto const& row : grid) {
         for (auto const& col : row) {
-            root->addVertex(addNesting(rg_id, col), Size(50, 50));
+            root->addVertex(addNesting(rg_id, col), geometry::Size(50, 50));
         }
     }
 
