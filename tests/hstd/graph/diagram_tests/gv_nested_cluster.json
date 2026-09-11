@@ -1,0 +1,16 @@
+{
+  "diagram": {
+    "id"      : "root",
+    "nested"  : [
+      {
+        "id"          : "nested",
+        "nodes"       : [ { "id": "node", "graphviz": {"width": 10, "height": 10} } ],
+        "no_algorithm": "NULL_VALUE"
+      }
+    ],
+    "graphviz": {"dot": {}}
+  },
+  "checks" : [
+    { "fully_covers": { "main": {"id": "root"}, "nested": {"id": "nested"} } }
+  ]
+}

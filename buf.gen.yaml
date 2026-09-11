@@ -8,3 +8,4 @@ plugins:
     opt:
       # prefixes each generated schema filename with the protobuf package name.
       - prefix_schema_files_with_package
+      - disallow_additional_properties

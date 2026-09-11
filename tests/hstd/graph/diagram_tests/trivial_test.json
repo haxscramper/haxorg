@@ -3,5 +3,13 @@
     "graphviz": {"dot": {}},
     "nodes"   : [ { "graphviz": {"width": 10, "height": 10}, "id": "one" } ],
     "id"      : "root"
-  }
+  },
+  "checks" : [
+    {
+      "fully_covers": {
+        "first" : {"id": "root", "anchor": "WHOLE_SHAPE"},
+        "second": {"id": "one",  "anchor": "WHOLE_SHAPE"}
+      }
+    }
+  ]
 }

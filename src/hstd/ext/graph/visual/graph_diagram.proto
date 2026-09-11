@@ -71,25 +71,44 @@ message DiaCluster {
     id: "element kind matches the payload kind"
     message: "edges must have a payload matching the cluster layout kind"
     expression:
+      // Nodes and edges must match the graph algorithm if it is provided,
+      // otherwise they must match the parent algorithm. Some additional
+      // validation is performed at the C++ level, as CEL does not support
+      // arbitrary recursion into the structure.
       "("
       "has(this.kiwi) && "
       "this.edges.all(e, has(e.kiwi)) && "
-      "this.nodes.all(e, has(e.kiwi)) && "
-      "this.nested.all(e, has(e.kiwi) || has(e.no_algorithm))"
+      "this.nodes.all(e, has(e.kiwi))"
       ")"
       "||"
       "("
       "has(this.graphviz) && "
       "this.edges.all(e, has(e.graphviz)) && "
-      "this.nodes.all(e, has(e.graphviz)) && "
-      "this.nested.all(e, has(e.graphviz) || has(e.no_algorithm))"
+      "this.nodes.all(e, has(e.graphviz))"
       ")"
       "||"
       "("
       "has(this.elk) && "
       "this.edges.all(e, has(e.elk)) && "
-      "this.nodes.all(e, has(e.elk)) && "
-      "this.nested.all(e, has(e.elk) || has(e.no_algorithm))"
+      "this.nodes.all(e, has(e.elk))"
+      ")"
+      "||"
+      // If the layout on this specific graph is not provided, the elements must
+      // still be internally consistent -- nested clusters can change the layout
+      // algorithms at any moment, and they will be handled separately.
+      "("
+      "has(this.no_layout) && ("
+      "("
+      "this.edges.all(e, has(e.kiwi)) && "
+      "this.nodes.all(n, has(n.kiwi))"
+      ") || ("
+      "this.edges.all(e, has(e.graphviz)) && "
+      "this.nodes.all(n, has(n.graphviz))"
+      ") || ("
+      "this.edges.all(e, has(e.elk)) && "
+      "this.nodes.all(n, has(n.elk))"
+      ")"
+      ")"
       ")"
   };
 

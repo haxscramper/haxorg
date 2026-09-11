@@ -128,15 +128,15 @@ message PartiallyRightCheck {
 }
 
 message FullyCoversCheck {
-  GeometryElementRef first = 1 [(buf.validate.field).required = true];
-  GeometryElementRef second = 2 [(buf.validate.field).required = true];
+  GeometryElementRef main = 1 [(buf.validate.field).required = true];
+  GeometryElementRef nested = 2 [(buf.validate.field).required = true];
   optional double rtol = 3 [(buf.validate.field).double.gte = 0];
   optional double atol = 4 [(buf.validate.field).double.gte = 0];
 }
 
 message PartiallyCoversCheck {
-  GeometryElementRef first = 1 [(buf.validate.field).required = true];
-  GeometryElementRef second = 2 [(buf.validate.field).required = true];
+  GeometryElementRef main = 1 [(buf.validate.field).required = true];
+  GeometryElementRef nested = 2 [(buf.validate.field).required = true];
 
   double overlap_percent = 3 [
     (buf.validate.field).double.gte = 0,

@@ -193,26 +193,19 @@ boost::outcome_v2::result<GeometryElementShape, GeometryError> resolveElement(
     return GeometryElementShape{anchorPoint(bounds.value(), reference.anchor())};
 }
 
-template <typename Args, typename Fn>
-GeometryCheckResult runBinary(ElementIndex const& elements, Args const& args, Fn&& fn) {
-    auto first = resolveElement(elements, args.first());
+template <typename Arg1, typename Arg2, typename Fn>
+GeometryCheckResult runOp(
+    ElementIndex const& elements,
+    Arg1 const&         arg1,
+    Arg2 const&         arg2,
+    Fn&&                fn) {
+    auto first = resolveElement(elements, arg1);
     if (!first) { return boost::outcome_v2::failure(first.error()); }
 
-    auto second = resolveElement(elements, args.second());
+    auto second = resolveElement(elements, arg2);
     if (!second) { return boost::outcome_v2::failure(second.error()); }
 
     return std::visit(std::forward<Fn>(fn), first.value(), second.value());
-}
-
-template <typename Args, typename Fn>
-GeometryCheckResult runRelative(ElementIndex const& elements, Args const& args, Fn&& fn) {
-    auto stationary = resolveElement(elements, args.stationary());
-    if (!stationary) { return boost::outcome_v2::failure(stationary.error()); }
-
-    auto relative = resolveElement(elements, args.relative());
-    if (!relative) { return boost::outcome_v2::failure(relative.error()); }
-
-    return std::visit(std::forward<Fn>(fn), stationary.value(), relative.value());
 }
 
 GeometryCheckResult runCheck(
@@ -220,15 +213,21 @@ GeometryCheckResult runCheck(
     proto::GeometryCheck const& check) {
     switch (check.check_case()) {
         case proto::GeometryCheck::kIntersects:
-            return runBinary(
-                elements, check.intersects(), [](auto const& first, auto const& second) {
+            return runOp(
+                elements,
+                check.intersects().first(),
+                check.intersects().second(),
+                [](auto const& first, auto const& second) {
                     return checkIntersects(first, second);
                 });
 
         case proto::GeometryCheck::kLeftOf: {
             auto const& args = check.left_of();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkLeftOf(
                         stationary, relative, getRtol(args), getAtol(args));
                 });
@@ -236,8 +235,11 @@ GeometryCheckResult runCheck(
 
         case proto::GeometryCheck::kRightOf: {
             auto const& args = check.right_of();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkRightOf(
                         stationary, relative, getRtol(args), getAtol(args));
                 });
@@ -245,24 +247,33 @@ GeometryCheckResult runCheck(
 
         case proto::GeometryCheck::kAbove: {
             auto const& args = check.above();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkAbove(stationary, relative, getRtol(args), getAtol(args));
                 });
         }
 
         case proto::GeometryCheck::kBelow: {
             auto const& args = check.below();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkBelow(stationary, relative, getRtol(args), getAtol(args));
                 });
         }
 
         case proto::GeometryCheck::kPartiallyAbove: {
             auto const& args = check.partially_above();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkPartiallyAbove(
                         stationary,
                         relative,
@@ -274,8 +285,11 @@ GeometryCheckResult runCheck(
 
         case proto::GeometryCheck::kPartiallyBelow: {
             auto const& args = check.partially_below();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkPartiallyBelow(
                         stationary,
                         relative,
@@ -287,8 +301,11 @@ GeometryCheckResult runCheck(
 
         case proto::GeometryCheck::kPartiallyLeft: {
             auto const& args = check.partially_left();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkPartiallyLeft(
                         stationary,
                         relative,
@@ -300,8 +317,11 @@ GeometryCheckResult runCheck(
 
         case proto::GeometryCheck::kPartiallyRight: {
             auto const& args = check.partially_right();
-            return runRelative(
-                elements, args, [&](auto const& stationary, auto const& relative) {
+            return runOp(
+                elements,
+                args.stationary(),
+                args.relative(),
+                [&](auto const& stationary, auto const& relative) {
                     return checkPartiallyRight(
                         stationary,
                         relative,
@@ -313,96 +333,140 @@ GeometryCheckResult runCheck(
 
         case proto::GeometryCheck::kFullyCovers: {
             auto const& args = check.fully_covers();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkFullyCovers(first, second, getRtol(args), getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.main(),
+                args.nested(),
+                [&](auto const& first, auto const& second) {
+                    return checkFullyCovers(first, second, getRtol(args), getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kPartiallyCovers: {
             auto const& args = check.partially_covers();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkPartiallyCovers(
-                    first, second, args.overlap_percent(), getRtol(args), getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.main(),
+                args.nested(),
+                [&](auto const& first, auto const& second) {
+                    return checkPartiallyCovers(
+                        first,
+                        second,
+                        args.overlap_percent(),
+                        getRtol(args),
+                        getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kAlignedHorizontally: {
             auto const& args = check.aligned_horizontally();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkAlignedHorizontally(
-                    first, second, getTolerance(args), getRtol(args), getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkAlignedHorizontally(
+                        first, second, getTolerance(args), getRtol(args), getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kAlignedVertically: {
             auto const& args = check.aligned_vertically();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkAlignedVertically(
-                    first, second, getTolerance(args), getRtol(args), getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkAlignedVertically(
+                        first, second, getTolerance(args), getRtol(args), getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kMinDistance: {
             auto const& args = check.min_distance();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkMinDistance(
-                    first,
-                    second,
-                    args.min_distance(),
-                    getDistanceCheck(args.distance_check()),
-                    getRtol(args),
-                    getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkMinDistance(
+                        first,
+                        second,
+                        args.min_distance(),
+                        getDistanceCheck(args.distance_check()),
+                        getRtol(args),
+                        getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kMaxDistance: {
             auto const& args = check.max_distance();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkMaxDistance(
-                    first,
-                    second,
-                    args.max_distance(),
-                    getDistanceCheck(args.distance_check()),
-                    getRtol(args),
-                    getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkMaxDistance(
+                        first,
+                        second,
+                        args.max_distance(),
+                        getDistanceCheck(args.distance_check()),
+                        getRtol(args),
+                        getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kDistance: {
             auto const& args = check.distance();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkDistance(
-                    first,
-                    second,
-                    args.distance(),
-                    getDistanceCheck(args.distance_check()),
-                    getRtol(args),
-                    getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkDistance(
+                        first,
+                        second,
+                        args.distance(),
+                        getDistanceCheck(args.distance_check()),
+                        getRtol(args),
+                        getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kSameSize: {
             auto const& args = check.same_size();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkSameSize(
-                    first, second, getTolerance(args), getRtol(args), getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkSameSize(
+                        first, second, getTolerance(args), getRtol(args), getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kSameWidth: {
             auto const& args = check.same_width();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkSameWidth(
-                    first, second, getTolerance(args), getRtol(args), getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkSameWidth(
+                        first, second, getTolerance(args), getRtol(args), getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kSameHeight: {
             auto const& args = check.same_height();
-            return runBinary(elements, args, [&](auto const& first, auto const& second) {
-                return checkSameHeight(
-                    first, second, getTolerance(args), getRtol(args), getAtol(args));
-            });
+            return runOp(
+                elements,
+                args.first(),
+                args.second(),
+                [&](auto const& first, auto const& second) {
+                    return checkSameHeight(
+                        first, second, getTolerance(args), getRtol(args), getAtol(args));
+                });
         }
 
         case proto::GeometryCheck::kEquidistant: {

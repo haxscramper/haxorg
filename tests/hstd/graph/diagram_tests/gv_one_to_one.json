@@ -1,0 +1,12 @@
+{
+  "diagram": {
+    "nodes"   : [
+      { "id": "one", "graphviz": {"width": 10, "height": 10} },
+      { "id": "two", "graphviz": {"width": 10, "height": 10} }
+    ],
+    "edges"   : [ {"id": "edge", "source": "one", "target": "two", "graphviz": {}} ],
+    "graphviz": { "dot": {"rankdir": "RANKDIRECTION_LR"} },
+    "id"      : "root"
+  },
+  "checks" : [ { "left_of": { "relative": {"id": "one"}, "stationary": {"id": "two"} } } ]
+}
