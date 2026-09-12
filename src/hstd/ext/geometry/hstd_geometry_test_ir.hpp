@@ -18,6 +18,7 @@ using GeometryElementShape = std::variant<Rect, Point, Path>;
 struct GeometryElement {
     std::string          id;
     GeometryElementShape shape;
+    DESC_FIELDS(GeometryElement, (id, shape));
 };
 
 using GeometryElementList       = hstd::Vec<GeometryElement>;
@@ -28,6 +29,7 @@ struct GeometryValidationError {
     std::string          checkId;
     proto::GeometryCheck check;
     GeometryCheckResult  result;
+    DESC_FIELDS(GeometryValidationError, (checkIndex, checkId, check, result));
 };
 
 using GeometryValidationErrors = hstd::Vec<GeometryValidationError>;

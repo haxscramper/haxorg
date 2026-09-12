@@ -2,7 +2,10 @@
 #include "hstd/ext/graph/base/graph_base.hpp"
 #include "hstd/ext/graph/visual/graph_diagram.hpp"
 #include "hstd/ext/graph/visual/visual_factory.hpp"
+#include "hstd/ext/hstd_serde_json_interop.hpp"
+#include "hstd/stdlib/ExceptionSerde.hpp"
 #include <hstd/stdlib/MapSerde.hpp>
+#include <hstd/stdlib/OutcomeSerde.hpp>
 #include <hstd/stdlib/VariantSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
@@ -14,6 +17,17 @@
 #    include <string>
 #    include <unordered_set>
 #    include <utility>
+
+namespace hstd {
+template <>
+struct JsonSerde<ext::geometry::GeometryError>
+    : public JsonSerdeHexception<ext::geometry::GeometryError> {};
+
+
+template <>
+struct JsonSerde<ext::geometry::proto::GeometryCheck>
+    : public JsonSerdeProtobufValue<ext::geometry::proto::GeometryCheck> {};
+} // namespace hstd
 
 namespace hstd::ext::graph::diagram {
 namespace {
@@ -215,8 +229,29 @@ hstd::ext::geometry::GeometryValidationErrors hstd::ext::graph::diagram::runSpec
     }
 
     auto simplified_result = hstd::ext::graph::diagram::graphToDiaCluster(*result);
-    auto elements          = diagramGeometryElements(simplified_result);
-    return validateGeometry(elements, test.checks());
+
+    if (debug_dir) {
+        hstd::writeFile(
+            debug_dir.value() / "post-layout-diagram.json",
+            hstd::serde::getJString(simplified_result));
+    }
+
+    auto elements = diagramGeometryElements(simplified_result);
+
+    if (debug_dir) {
+        hstd::writeFile(
+            debug_dir.value() / "diagram-elements.json",
+            hstd::to_json_eval(elements).dump(2));
+    }
+
+    auto validated = validateGeometry(elements, test.checks());
+
+    if (debug_dir) {
+        hstd::writeFile(
+            debug_dir.value() / "validated.json", hstd::to_json_eval(validated).dump(2));
+    }
+
+    return validated;
 }
 
 

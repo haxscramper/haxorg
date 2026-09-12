@@ -59,7 +59,7 @@ TEST_P(GraphDiagramSpecTest, HasValidGeometry) {
                       << "Geometry check #" << error.checkIndex << " (" << error.checkId
                       << ") failed:\n"
                       << error.check.DebugString() << '\n'
-                      << error.result.error().what();
+                      << error.result.error().message();
     }
 }
 

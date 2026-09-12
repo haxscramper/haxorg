@@ -762,8 +762,8 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
 
             recursiveNode->setAttr(id_sub_group, id.getValue());
 
-            auto bbox_width  = recursiveBBox.width() / scaling;
-            auto bbox_height = recursiveBBox.height() / scaling;
+            auto bbox_width  = recursiveBBox.width();
+            auto bbox_height = recursiveBBox.height();
             if (auto pad = group->getOuterPadding()) {
                 OP_TRACER_MESSAGE(
                     run,
@@ -775,7 +775,7 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
                 bbox_height += pad->getHeight();
             }
 
-            recursiveNode->setFixedInchesWH(bbox_width, bbox_height);
+            recursiveNode->setFixedInchesWH(bbox_width / scaling, bbox_height / scaling);
         } else {
             auto gv_group = hstd::validated_dynamic_cast<GraphGroup>(group);
             LOGIC_ASSERTION_CHECK(

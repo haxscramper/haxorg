@@ -248,7 +248,7 @@ std::string formatErrorTree(GeometryErrorTree const& error, int indent) {
 }
 
 GeometryError makeError(GeometryErrorTree const& tree) {
-    return GeometryError::init(formatErrorTree(tree, 0));
+    return GeometryError::init(formatErrorTree(tree, 0) + "\n");
 }
 
 ExpressionResult expressionFailure(GeometryErrorTree const& tree) {
@@ -1262,16 +1262,59 @@ GeometryCheckResult runCheck(
                 }));
         }
 
-        case proto::GeometryCheck::kEqualValue: {
-            auto const& args = check.equal_value();
+        case proto::GeometryCheck::kRelScalar: {
+            auto const& args = check.rel_scalar();
             BOOST_OUTCOME_TRY(
-                auto expr, expressionGeometryType<double>(elements, args.expr()));
+                auto lhs, expressionGeometryType<double>(elements, args.lhs()));
+            BOOST_OUTCOME_TRY(
+                auto rhs, expressionGeometryType<double>(elements, args.rhs()));
 
-            if (hstd::isclose(expr.first, getAtol(args), getRtol(args))) {
-                return boost::outcome_v2::success();
-            } else {
-                return failure("isclose failed");
+            bool close = hstd::isclose(
+                lhs.first, rhs.first, getRtol(args), getAtol(args));
+
+            switch (args.rel()) {
+                CASE_PROTO_ENUM_SENTINEL(proto::GeometryMathRel);
+                case proto::MATH_EQ: {
+                    if (close) { return boost::outcome_v2::success(); }
+                    break;
+                }
+
+                case proto::MATH_LESS: {
+                    if (lhs.first < rhs.first) { return boost::outcome_v2::success(); }
+                    break;
+                }
+
+
+                case proto::MATH_GREATER: {
+                    if (lhs.first > rhs.first) { return boost::outcome_v2::success(); }
+                    break;
+                }
+
+                case proto::MATH_LESS_OR_EQUAL: {
+                    if (lhs.first < rhs.first || close) {
+                        return boost::outcome_v2::success();
+                    }
+                    break;
+                }
+
+
+                case proto::MATH_GREATER_OR_EQUAL: {
+                    if (lhs.first > rhs.first || close) {
+                        return boost::outcome_v2::success();
+                    }
+                    break;
+                }
             }
+
+
+            return failure(
+                hstd::fmt(
+                    "{} failed lhs={} rhs={} rtol={} atol={}",
+                    proto::GeometryMathRel_Name(args.rel()),
+                    lhs.first,
+                    rhs.first,
+                    getRtol(args),
+                    getAtol(args)));
         }
 
         case proto::GeometryCheck::kSameSize: {

@@ -20,21 +20,26 @@
     },
     {
       // Test left side size is preserved
-      "equal_value": {
-        "expr" : {
+      "rel_scalar": {
+        "lhs": {
           "expr": {
-            "measure": {
-              "ref" : {
-                "anchor": {
-                  "side": "SIDE_ANCHOR_LEFT",
-                  "ref" : { "shape": {"id": "node"} }
-                }
-              },
-              "kind": "MEASURE_LENGTH"
-            }
+            "measure": { "ref": { "shape": {"id": "node"} }, "kind": "MEASURE_HEIGHT" }
           }
         },
-        "value": 10
+        "rhs": { "expr": { "scalar": {"value": 100} } }
+      }
+    },
+    {
+      // node size is 100, plus additional padding 10 around nested sub-graph
+      // should create the outer group size of at least 120
+      "rel_scalar": {
+        "lhs": {
+          "expr": {
+            "measure": { "ref": { "shape": {"id": "root"} }, "kind": "MEASURE_HEIGHT" }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 120} } },
+        "rel": "MATH_GREATER_OR_EQUAL"
       }
     }
   ]
