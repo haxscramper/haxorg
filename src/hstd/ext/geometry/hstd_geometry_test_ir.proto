@@ -260,7 +260,10 @@ message AlignedHorizontallyCheck {
 message AlignedVerticallyCheck {
   GeometryElementRef first = 1 [(buf.validate.field).required = true];
   GeometryElementRef second = 2 [(buf.validate.field).required = true];
-  optional double tolerance = 3 [(buf.validate.field).double.gte = 0];
+  optional double tolerance = 3 [
+    (buf.validate.field).double.gte = 0,
+    (buf.validate.field).required = true
+  ];
   optional double rtol = 4 [(buf.validate.field).double.gte = 0];
   optional double atol = 5 [(buf.validate.field).double.gte = 0];
 }
@@ -269,7 +272,10 @@ message MinDistanceCheck {
   GeometryElementRef first = 1 [(buf.validate.field).required = true];
   GeometryElementRef second = 2 [(buf.validate.field).required = true];
 
-  double min_distance = 3 [(buf.validate.field).double.gte = 0];
+  double min_distance = 3 [
+    (buf.validate.field).double.gte = 0,
+    (buf.validate.field).required = true
+  ];
 
   GeometryDistanceCheck distance_check = 4 [(buf.validate.field).enum.defined_only = true];
 
@@ -281,7 +287,10 @@ message MaxDistanceCheck {
   GeometryElementRef first = 1 [(buf.validate.field).required = true];
   GeometryElementRef second = 2 [(buf.validate.field).required = true];
 
-  double max_distance = 3 [(buf.validate.field).double.gte = 0];
+  double max_distance = 3 [
+    (buf.validate.field).double.gte = 0,
+    (buf.validate.field).required = true
+  ];
 
   GeometryDistanceCheck distance_check = 4 [(buf.validate.field).enum.defined_only = true];
 
@@ -293,7 +302,10 @@ message DistanceCheck {
   GeometryElementRef first = 1 [(buf.validate.field).required = true];
   GeometryElementRef second = 2 [(buf.validate.field).required = true];
 
-  double distance = 3 [(buf.validate.field).double.gte = 0];
+  double distance = 3 [
+    (buf.validate.field).double.gte = 0,
+    (buf.validate.field).required = true
+  ];
 
   GeometryDistanceCheck distance_check = 4 [(buf.validate.field).enum.defined_only = true];
 

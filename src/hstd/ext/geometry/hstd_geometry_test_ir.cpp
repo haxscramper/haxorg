@@ -1307,14 +1307,19 @@ GeometryCheckResult runCheck(
             }
 
 
-            return failure(
-                hstd::fmt(
-                    "{} failed lhs={} rhs={} rtol={} atol={}",
-                    proto::GeometryMathRel_Name(args.rel()),
-                    lhs.first,
-                    rhs.first,
-                    getRtol(args),
-                    getAtol(args)));
+            return makeError(
+                GeometryErrorTree{
+                    .message = hstd::fmt("Binary math predicate failed"),
+                    .fields
+                    = {{"op", proto::GeometryMathRel_Name(args.rel())},
+                       {"lhs", hstd::fmt("{}", lhs.first)},
+                       {"rhs", hstd::fmt("{}", rhs.first)},
+                       {"rtol", hstd::fmt("{}", getRtol(args))},
+                       {"atol", hstd::fmt("{}", getAtol(args))}},
+                    .expressions = {
+                        named("lhs", lhs.second),
+                        named("rhs", rhs.second),
+                    }});
         }
 
         case proto::GeometryCheck::kSameSize: {

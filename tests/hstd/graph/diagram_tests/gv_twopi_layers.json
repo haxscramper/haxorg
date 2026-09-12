@@ -18,17 +18,24 @@
   },
   "checks" : [
     {
-      "rel_scalar": {
-        "rel": "MATH_EQ",
-        "lhs": {
+      "distance": {
+        "first" : {
           "expr": {
-            "measure": {
-              "kind": "MEASURE_LENGTH",
-              "ref" : { "shape": {"id": "center-a"} }
+            "anchor": {
+              "point": "POINT_ANCHOR_CENTER",
+              "ref"  : { "shape": {"id": "center"} }
             }
           }
         },
-        "rhs": { "expr": { "scalar": {"value": 100} } }
+        "second": {
+          "expr": {
+            "anchor": {
+              "point": "POINT_ANCHOR_CENTER",
+              "ref"  : { "shape": {"id": "a"} }
+            }
+          }
+        },
+        "distance": 100
       }
     },
     {

@@ -43,8 +43,8 @@ gv::GvInchRect getNodeRectangle(
               .toOtherTag<gv::GvInchTag>()
               .getUnsizedValue()};
 
-    gv::GvInchScalar x1{std::round(x - width / 2)};
-    gv::GvInchScalar y1{std::round(y - height / 2)};
+    gv::GvInchScalar x1{x - width / 2};
+    gv::GvInchScalar y1{y - height / 2};
     auto             result = gv::GvInchRect(
         x1, y1, gv::GvInchScalar{width}, gv::GvInchScalar{height});
 
