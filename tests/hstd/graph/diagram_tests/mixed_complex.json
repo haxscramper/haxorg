@@ -1,0 +1,97 @@
+{
+  // copy of the GraphMixed_Test::MultiAlgoritmLayered
+  "diagram": {
+    "id"    : "kiwi_root",
+    "kiwi"  : {},
+    "nested": [
+      {
+        "id"         : "kiwi_sub1",
+        "nested"     : [
+          {
+            "id"      : "circo_sub1",
+            "nodes"   : [
+              { "id": "c1", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c2", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c3", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c4", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c5", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c6", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c7", "graphviz": {"width": 10, "height": 10} }
+            ],
+            "graphviz": {"circo": {}}
+          },
+          {
+            "id"      : "dot_sub2",
+            "nodes"   : [
+              { "id": "d1", "graphviz": {"width": 10, "height": 10} },
+              { "id": "d2", "graphviz": {"width": 10, "height": 10} },
+              { "id": "d3", "graphviz": {"width": 10, "height": 10} },
+              { "id": "d4", "graphviz": {"width": 10, "height": 10} }
+            ],
+            "graphviz": {"dot": {}}
+          }
+        ],
+        "nodes"      : [
+          //
+          {"id": "g1", "kiwi": {}},
+          {"id": "g2", "kiwi": {}},
+          {"id": "g3", "kiwi": {}},
+          {"id": "g4", "kiwi": {}},
+          {"id": "g5", "kiwi": {}},
+          {"id": "g6", "kiwi": {}},
+          {"id": "g7", "kiwi": {}},
+          {"id": "g8", "kiwi": {}}
+        ],
+        "edges"      : [
+          {"id": "g5-g6", "source": "g5", "target": "g6", "kiwi": {}},
+          {"id": "g6-g7", "source": "g6", "target": "g7", "kiwi": {}},
+          {"id": "g7-g8", "source": "g7", "target": "g8", "kiwi": {}},
+          //
+          {"id": "g1-g5", "source": "g1", "target": "g5", "kiwi": {}},
+          {"id": "g2-g6", "source": "g2", "target": "g6", "kiwi": {}},
+          {"id": "g3-g7", "source": "g3", "target": "g7", "kiwi": {}},
+          {"id": "g4-g8", "source": "g4", "target": "g8", "kiwi": {}}
+        ],
+        "constraints": [
+          {
+            "kw_align": {
+              "dimension": "AXIS_X",
+              "vertices" : [ {"id": "g1"}, {"id": "g2"}, {"id": "g3"}, {"id": "g4"} ]
+            }
+          },
+          {
+            "kw_align": {
+              "dimension": "AXIS_X",
+              "vertices" : [ {"id": "g5"}, {"id": "g6"}, {"id": "g7"}, {"id": "g8"} ]
+            }
+          },
+          {
+            "kw_multi_separate": {
+              "dimension": "AXIS_X",
+              "lines"    : [
+                { "vertices": [ {"id": "g1"}, {"id": "g5"} ] },
+                { "vertices": [ {"id": "g2"}, {"id": "g6"} ] },
+                { "vertices": [ {"id": "g3"}, {"id": "g7"} ] },
+                { "vertices": [ {"id": "g4"}, {"id": "g8"} ] }
+              ]
+            }
+          }
+        ],
+        "kiwi"       : {}
+      },
+      {
+        "id"      : "dot_sub1",
+        "nodes"   : [
+          { "id": "l1", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l2", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l3", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l4", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l5", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l6", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l7", "graphviz": {"width": 10, "height": 10} }
+        ],
+        "graphviz": { "dot": {"rankdir": "RANKDIRECTION_TB"} }
+      }
+    ]
+  }
+}

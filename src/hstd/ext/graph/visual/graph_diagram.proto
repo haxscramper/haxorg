@@ -29,6 +29,7 @@ message DiaNode {
   };
 
   oneof kind {
+    option (buf.validate.oneof).required = true;
     hstd.ext.graph.gv.proto.NodeAttributePayload graphviz = 2;
     hstd.ext.graph.kw.proto.KiwiVertexVisualAttributePayload kiwi = 3;
     hstd.ext.graph.elk.proto.ElkNodeVisualAttributePayload elk = 4;
@@ -43,6 +44,7 @@ message DiaEdge {
   string id = 3 [(buf.validate.field).string.min_len = 1];
 
   oneof kind {
+    option (buf.validate.oneof).required = true;
     hstd.ext.graph.gv.proto.EdgeAttributePayload graphviz = 4;
     hstd.ext.graph.kw.proto.KiwiEdgeVisualAttributePayload kiwi = 5;
     hstd.ext.graph.elk.proto.ElkEdgeVisualAttributePayload elk = 6;
@@ -53,6 +55,7 @@ message DiaEdge {
 
 message DiaConstraint {
   oneof kind {
+    option (buf.validate.oneof).required = true;
     hstd.ext.graph.kw.proto.KiwiAlignConstraintPayload kw_align = 1;
     hstd.ext.graph.kw.proto.KiwiSeparateConstraintPayload kw_separate = 2;
     hstd.ext.graph.kw.proto.KiwiMultiSeparateConstraintPayload kw_multi_separate = 3;
@@ -166,6 +169,7 @@ message DiaCluster {
   repeated DiaConstraint constraints = 5;
 
   oneof kind {
+    option (buf.validate.oneof).required = true;
     google.protobuf.NullValue no_algorithm = 6;
     hstd.ext.graph.gv.proto.GroupAttributePayload graphviz = 7;
     hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload kiwi = 8;

@@ -53,7 +53,7 @@ message KiwiConstraintPayloadBase {
 
 message KiwiAlignConstraintPayload {
   message Spec {
-    string stable_vertex_id = 1;
+    string id = 1;
     hstd.ext.kiwi_ir.proto.AlignSpec spec = 2;
   }
 
@@ -99,7 +99,7 @@ message KiwiLinearConstraintPayload {
 
 message KiwiRelativeConstraintPayload {
   message VertexRef {
-    string stable_vertex_id = 1;
+    string id = 1;
     hstd.ext.kiwi_ir.proto.AnchorSpec anchor = 2;
   }
 

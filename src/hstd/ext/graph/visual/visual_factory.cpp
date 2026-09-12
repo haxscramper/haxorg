@@ -108,6 +108,19 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
         }
     };
 
+    auto get_vertex_attribute = [&]<typename AttrType>(std::string const& id) {
+        auto vertex = graph->getVertex(graph->getVertexIDByStableId(id));
+        auto target = hstd::validated_dynamic_cast<IGraphObjectBase>(attr_object);
+        LOGIC_ASSERTION_CHECK_FMT(
+            vertex->hasOptionalAttribute<AttrType>(),
+            "Cannot get attribute {} from ID {} when building attribute for {}",
+            hstd::value_metadata<AttrType>::typeName(),
+            id,
+            target->getStableId());
+
+        return vertex->getUniqueAttribute<AttrType>();
+    };
+
     // group attribute payloads
     if (auto const& [pl, vertex] = unpack_as.operator()<
                                    gv::proto::GroupAttributePayload,
@@ -120,8 +133,8 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
                 "To create a top-level graphivz layout group, fully omit ID field. "
                 "Existing but empty ID field is interpreted as graphviz cluster.",
                 vertex->getStableId());
-            return graph->getVertex(graph->getVertexIDByStableId(pl->parent_stable_id()))
-                ->getUniqueAttribute<gv::GraphGroup>()
+            return get_vertex_attribute
+                .operator()<gv::GraphGroup>(pl->parent_stable_id())
                 ->newSubgraph(vertex->getStableId());
         } else {
             return gv::GraphGroup::newRootGraph(run, vertex->getStableId());
@@ -140,8 +153,8 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
             auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
                 parent_group_id, this_vertex_id);
 
-            result = graph->getVertex(parent_group_id)
-                         ->getUniqueAttribute<kw::KiwiGroup>()
+            result = get_vertex_attribute
+                         .operator()<kw::KiwiGroup>(pl->parent_stable_id())
                          ->addNewNativeSubgroup(nesting_edge_id);
 
         } else {
@@ -169,8 +182,7 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
             "specified",
             vertex->getStableId());
 
-        return graph->getVertex(graph->getVertexIDByStableId(pl->parent_stable_id()))
-            ->getUniqueAttribute<gv::GraphGroup>()
+        return get_vertex_attribute.operator()<gv::GraphGroup>(pl->parent_stable_id())
             ->node(vertex->getStableId());
 
     } else if (
@@ -184,8 +196,7 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
         auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
             parent_group_id, this_vertex_id);
 
-        return graph->getVertex(parent_group_id)
-            ->getUniqueAttribute<kw::KiwiGroup>()
+        return get_vertex_attribute.operator()<kw::KiwiGroup>(pl->parent_stable_id())
             ->addVertex(
                 nesting_edge_id, geometry::Size(pl->rect().x0(), pl->rect().y0()));
 
@@ -205,11 +216,7 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
 
         // get the existing parent attribute object and assign edges to it.
         // the parent vertex attribute should already be created.
-        return graph->getVertex(graph->getVertexIDByStableId(pl->parent_stable_id()))
-            ->getUniqueAttribute<gv::GraphGroup>(hstd::fmt(
-                "Parent group ID '{}' for edge '{}'. ",
-                pl->parent_stable_id(),
-                edge->getStableId()))
+        return get_vertex_attribute.operator()<gv::GraphGroup>(pl->parent_stable_id())
             ->edge(
                 *graph->getVertex(graph->getSource(edge_id))
                      ->getUniqueAttribute<gv::NodeAttribute>(),

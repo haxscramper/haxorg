@@ -1,7 +1,10 @@
 #include "graph_diagram.hpp"
+#include "hstd/stdlib/Debug.hpp"
 #include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #include <hstd/ext/hstd_serde.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
+
+#pragma clang diagnostic error "-Wswitch"
 
 namespace {
 
@@ -257,6 +260,8 @@ void appendNoAlgorithmCluster(
             appendAttribute(vertex->mutable_attributes(), payload);
             break;
         }
+
+        default: logic_todo_impl();
     }
 }
 
@@ -303,6 +308,10 @@ void appendClusterKind(
 
             appendAttribute(vertex->mutable_attributes(), payload);
             break;
+        }
+
+        case DiaCluster::kElk: {
+            logic_todo_impl();
         }
 
         case DiaCluster::kNoAlgorithm: {
@@ -701,6 +710,12 @@ void appendDiaEdge(
 hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
     hstd::ext::graph::diagram::proto::DiaCluster const& root) {
     hstd::serde::protovalidate_message(root);
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        !root.has_no_algorithm() && root.kind_case() != proto::DiaCluster::KIND_NOT_SET,
+        "Root cluster must specify the layout algorith, {} has no algorithm",
+        root.id());
+
     IGraph                          graph{};
     DiaGraphMetadata                metadata{};
     std::unordered_set<std::string> vertexIds{};
@@ -719,6 +734,7 @@ hstd::ext::graph::proto::IGraph hstd::ext::graph::diagram::diaClusterToGraph(
 
     auto* ports               = graph.add_ports();
     *ports->mutable_payload() = hstd::serde::packMessage(TrivialPortCollectionPayload{});
+
 
     appendCluster(
         root,

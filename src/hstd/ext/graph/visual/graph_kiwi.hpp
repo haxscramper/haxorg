@@ -323,7 +323,7 @@ class RelativeConstraint : public KiwiConstraint {
         void writeSerial(
             hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload::VertexRef* vr,
             IGraph const* graph) const {
-            vr->set_stable_vertex_id(graph->getStableId(id));
+            vr->set_id(graph->getStableId(id));
             anchor.writeSerial(vr->mutable_anchor());
         }
 
@@ -331,7 +331,7 @@ class RelativeConstraint : public KiwiConstraint {
             hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload::VertexRef const&
                           vr,
             IGraph const* graph) {
-            this->id = graph->getVertexIDByStableId(vr.stable_vertex_id());
+            this->id = graph->getVertexIDByStableId(vr.id());
             anchor.readSerial(vr.anchor());
         }
 #    endif

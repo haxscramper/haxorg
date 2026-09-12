@@ -250,7 +250,7 @@ void kw::AlignConstraint::writePayload(
     IGraph const*                      graph) const {
     for (auto const& [id, spec] : vertices) {
         auto added = load->mutable_vertices()->Add();
-        added->set_stable_vertex_id(rectId(id));
+        added->set_id(rectId(id));
         spec.writeSerial(added->mutable_spec());
     }
     load->set_dimension(static_cast<::hstd::ext::kiwi_ir::proto::Axis>(dimension));
@@ -271,14 +271,12 @@ void kw::AlignConstraint::readPayload(
     hstd::serde::read_serde(in->dimension(), &dimension);
     for (auto const& spec : in->vertices()) {
         LOGIC_ASSERTION_CHECK_FMT(
-            !ids.contains(spec.stable_vertex_id()),
-            "Duplicate stable ID in align list {}",
-            spec.stable_vertex_id());
+            !ids.contains(spec.id()), "Duplicate stable ID in align list {}", spec.id());
 
         kiwi_ir::AlignSpec align_spec;
         hstd::serde::read_serde(spec.spec(), &align_spec);
         this->vertices.insert_or_assign(
-            graph->getVertexIDByStableId(spec.stable_vertex_id()), align_spec);
+            graph->getVertexIDByStableId(spec.id()), align_spec);
     }
 }
 #    endif

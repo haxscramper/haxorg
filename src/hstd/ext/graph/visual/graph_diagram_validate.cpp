@@ -200,18 +200,21 @@ hstd::ext::geometry::GeometryValidationErrors hstd::ext::graph::diagram::runSpec
     hstd::ext::graph::diagram::proto::DiagramTest const& test,
     hstd::Opt<hstd::fs::path> const&                     debug_dir) {
     auto proto_layout = hstd::ext::graph::diagram::diaClusterToGraph(test.diagram());
-    auto graph        = std::make_shared<hstd::ext::graph::TrivialGraphBase>();
-    hstd::ext::graph::VisualFactory factory{graph};
-
-    if (debug_dir) { factory.setTraceFile(debug_dir.value() / "serial.log"); }
-    graph->readSerial(&proto_layout, &factory);
 
     if (debug_dir) {
         hstd::writeFile(
             debug_dir.value() / "pre-layout-graph.json",
             hstd::serde::getJString(proto_layout));
-        factory.run->setTraceFile(debug_dir.value() / "layout.log");
     }
+
+    auto graph = std::make_shared<hstd::ext::graph::TrivialGraphBase>();
+    hstd::ext::graph::VisualFactory factory{graph};
+
+    if (debug_dir) { factory.setTraceFile(debug_dir.value() / "serial.log"); }
+    graph->readSerial(&proto_layout, &factory);
+
+    if (debug_dir) { factory.run->setTraceFile(debug_dir.value() / "layout.log"); }
+
     factory.run->runFullLayout();
 
     if (debug_dir) {

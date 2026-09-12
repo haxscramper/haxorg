@@ -2050,7 +2050,9 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
             LOGIC_ASSERTION_CHECK_FMT(
                 payload.has_parent_stable_id(),
                 "Graphviz graph payload is missing parent ID. "
-                "Graph group must either set the algorithm or the parent ID. ");
+                "Graph group must either set the algorithm or the parent ID. "
+                "Vertex {}.",
+                ivertex->getStableId());
     }
 }
 
