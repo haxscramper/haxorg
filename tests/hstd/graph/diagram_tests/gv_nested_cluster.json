@@ -41,6 +41,17 @@
         "rhs": { "expr": { "scalar": {"value": 120} } },
         "rel": "MATH_GREATER_OR_EQUAL"
       }
+    },
+    {
+      "rel_scalar": {
+        "lhs": {
+          "expr": {
+            "measure": { "ref": { "shape": {"id": "root"} }, "kind": "MEASURE_HEIGHT" }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 125} } },
+        "rel": "MATH_LESS"
+      }
     }
   ]
 }

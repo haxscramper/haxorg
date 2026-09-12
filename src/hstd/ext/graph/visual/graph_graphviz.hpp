@@ -98,6 +98,8 @@ using GvInchPath     = geometry::tagged::TaggedPath<GvInchTag>;
 using GvPointPath    = geometry::tagged::TaggedPath<GvPointTag>;
 using GvInchPolygon  = geometry::tagged::TaggedPolygon<GvInchTag>;
 using GvPointPolygon = geometry::tagged::TaggedPolygon<GvPointTag>;
+using GvInchSize     = geometry::tagged::TaggedSize<GvInchTag>;
+using GvPointSize    = geometry::tagged::TaggedSize<GvPointTag>;
 
 } // namespace hstd::ext::graph::gv
 
@@ -284,11 +286,11 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(NodeAttribute, FontColor, fontcolor, Str);                           \
         __attr_impl(NodeAttribute, FontName, fontname, Str);                             \
         __attr_impl(NodeAttribute, FontSize, fontsize, double);                          \
-        __attr_impl(NodeAttribute, Height, height, double);                              \
+        __attr_impl(NodeAttribute, Height, height, hstd::ext::graph::gv::GvInchScalar);  \
         __attr_aligned_impl(NodeAttribute, Label, label, Str);                           \
         __attr_impl(NodeAttribute, Position, pos, geometry::Point);                      \
         __attr_impl(NodeAttribute, URL, URL, Str);                                       \
-        __attr_impl(NodeAttribute, Width, width, double);                                \
+        __attr_impl(NodeAttribute, Width, width, hstd::ext::graph::gv::GvInchScalar);    \
         __attr_aligned_impl(NodeAttribute, XLabel, xlabel, Str);                         \
         __attr_impl(NodeAttribute, XLabelPosition, xlabelpos, geometry::Point);          \
         __attr_impl(NodeAttribute, Margin, margin, geometry::Point);
@@ -364,17 +366,31 @@ DECL_DESCRIBED_ENUM_STANDALONE(
         __attr_impl(GraphGroup, Margin, margin, geometry::Point, _GV_ALL_LAYOUTS);       \
         __attr_impl(GraphGroup, Pad, pad, geometry::Point, _GV_ALL_LAYOUTS);             \
         __attr_impl(                                                                     \
-            GraphGroup, NodeSeparation, nodesep, double, _GV_LAYOUTS(LayoutType::dot));  \
+            GraphGroup,                                                                  \
+            NodeSeparation,                                                              \
+            nodesep,                                                                     \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
+            _GV_LAYOUTS(LayoutType::dot));                                               \
         __attr_impl(GraphGroup, OutputOrder, outputorder, Str, _GV_ALL_LAYOUTS);         \
         __attr_impl(GraphGroup, PageDirection, pagedir, Str, _GV_ALL_LAYOUTS);           \
-        __attr_impl(GraphGroup, PageHeight, pageheight, double, _GV_ALL_LAYOUTS);        \
-        __attr_impl(GraphGroup, PageWidth, pagewidth, double, _GV_ALL_LAYOUTS);          \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            PageHeight,                                                                  \
+            pageheight,                                                                  \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
+            _GV_ALL_LAYOUTS);                                                            \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            PageWidth,                                                                   \
+            pagewidth,                                                                   \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
+            _GV_ALL_LAYOUTS);                                                            \
         __attr_impl(GraphGroup, Quantum, quantum, double, _GV_LAYOUTS(LayoutType::dot)); \
         __attr_impl(                                                                     \
             GraphGroup,                                                                  \
             RankSeparation,                                                              \
             ranksep,                                                                     \
-            double,                                                                      \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
             _GV_LAYOUTS(LayoutType::dot, LayoutType::twopi));                            \
         __attr_impl(GraphGroup, Resolution, resolution, double, _GV_ALL_LAYOUTS);        \
         __attr_impl(                                                                     \
@@ -459,6 +475,11 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     void getAttr(Str const& key, Opt<int>& value) const;
     void getAttr(Str const& key, Opt<hstd::u64>& value) const;
     void getAttr(Str const& key, Opt<double>& value) const;
+    void getAttr(Str const& key, Opt<gv::GvInchScalar>& value) const {
+        hstd::Opt<double> res;
+        getAttr(key, res);
+        if (res) { value = gv::GvInchScalar{res.value()}; }
+    }
     void getAttr(Str const& key, Opt<bool>& value) const;
     void getAttr(Str const& key, Opt<geometry::Point>& value) const;
 
@@ -469,6 +490,9 @@ struct GraphvizObjBase : CRTP_this_method<T> {
     void setAttr(Str const& key, hstd::u64 value);
     void setAttr(Str const& key, geometry::Point value);
     void setAttr(Str const& key, double value);
+    void setAttr(Str const& key, gv::GvInchScalar value) {
+        setAttr(key, value.getUnsizedValue());
+    }
     void setAttr(Str const& key, bool value);
 
     Agobj_s*       obj() { return (Agobj_s*)(_this()->get()); }
@@ -618,24 +642,27 @@ class NodeAttribute
         return this;
     }
 
-    double getInchHeight() const {
+    gv::GvInchScalar getInchHeight() const {
         hstd::Opt<double> result = 0;
         getAttr("height", result);
-        return result.value();
+        return gv::GvInchScalar{result.value()};
     }
 
-    double getPointHeight() const { return getInchHeight() * scaling; }
+    gv::GvPointScalar getPointHeight() const {
+        return getInchHeight().toOtherTag<GvPointTag>();
+    }
 
     Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
     Agnodeinfo_t const* info() const { return (Agnodeinfo_t*)AGDATA(node); }
 
-    NodeAttribute* setFixedInchesWH(double w, double h);
-    NodeAttribute* setFixedPointWH(double w, double h) {
-        return setFixedInchesWH(w / scaling, h / scaling);
+    NodeAttribute* setFixedInchesWH(GvInchScalar w, GvInchScalar h);
+    NodeAttribute* setFixedPointWH(GvPointScalar w, GvPointScalar h) {
+        return setFixedInchesWH(w.toOtherTag<GvInchTag>(), h.toOtherTag<GvInchTag>());
     }
 
-    NodeAttribute* setFixedPointWH(geometry::Size const& size) {
-        return setFixedInchesWH(size.width() / scaling, size.height() / scaling);
+    NodeAttribute* setWH(gv::GvPointSize const& size) {
+        return setFixedInchesWH(
+            size.width().toOtherTag<GvInchTag>(), size.height().toOtherTag<GvInchTag>());
     }
 
   public:

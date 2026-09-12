@@ -677,6 +677,10 @@ struct TaggedPath;
 template <IsGeometryTag Tag>
 struct TaggedPolygon;
 
+
+template <IsGeometryTag Tag>
+struct TaggedSize;
+
 template <IsGeometryTag SourceTag, IsGeometryTag TargetTag>
 struct TaggedValueConverterBase {
     using CONV  = TaggedValueConverter<SourceTag, TargetTag>;
@@ -705,6 +709,14 @@ struct TaggedValueConverterBase {
             CONV::convert(s.y()),
         };
     }
+
+    static TaggedPoint<TargetTag> convert(TaggedSize<SourceTag> const& s) {
+        return TaggedPoint<TargetTag>{
+            CONV::convert(s.width()),
+            CONV::convert(s.height()),
+        };
+    }
+
 
     static TaggedPolygon<TargetTag> convert(TaggedPolygon<SourceTag> const& s) {
         TaggedPolygon<TargetTag> result;
@@ -749,21 +761,22 @@ struct TaggedScalar {
     double value;
 
   public:
+    TaggedScalar() {}
     explicit TaggedScalar(double value) : value{value} {}
     explicit TaggedScalar(int value) : value{value} {}
 
     using TS = TaggedScalar<Tag>;
 
-    TS operator/(double other) const { return TS{value / other}; }
+    // TS operator/(TS other) const { return TS{value / other.value}; }
     TS operator-(TS other) const { return TS{value - other.value}; }
     TS operator-() const { return TS{-value}; }
     TS operator+(TS other) const { return TS{value + other.value}; }
-    TS operator*(TS other) const { return TS{value * other.value}; }
+    // TS operator*(TS other) const { return TS{value * other.value}; }
 
-    TS& operator/=(double other) {
-        value /= other;
-        return *this;
-    }
+    // TS& operator/=(double other) {
+    //     value /= other;
+    //     return *this;
+    // }
 
     TS& operator-=(TS other) {
         value -= other.value;
@@ -775,10 +788,10 @@ struct TaggedScalar {
         return *this;
     }
 
-    TS& operator*=(TS other) {
-        value *= other.value;
-        return *this;
-    }
+    // TS& operator*=(TS other) {
+    //     value *= other.value;
+    //     return *this;
+    // }
 
     TS     round() const { return TS{std::round(value)}; }
     double getUnsizedValue() const { return value; }
@@ -788,6 +801,35 @@ struct TaggedScalar {
         return TaggedValueConverter<Tag, TagOther>::convert(*this);
     }
 };
+
+template <IsGeometryTag Tag>
+struct TaggedSize : private hstd::ext::geometry::Size {
+    using TS   = TaggedScalar<Tag>;
+    using THIS = TaggedSize<Tag>;
+    using BASE = hstd::ext::geometry::Size;
+
+    TaggedSize()                  = default;
+    TaggedSize(THIS const& other) = default;
+
+    static THIS FromValue(double x, double y) { return THIS{TS{x}, TS{y}}; }
+
+    hstd::ext::geometry::Size getUnsizedValue() const { return *this; }
+
+    explicit TaggedSize(hstd::ext::geometry::Size const& base)
+        : hstd::ext::geometry::Size{base} {}
+
+    explicit TaggedSize(TS x, TS y)
+        : hstd::ext::geometry::Size{x.getUnsizedValue(), y.getUnsizedValue()} {}
+
+    template <IsGeometryTag TagOther>
+    TaggedSize<TagOther> toOtherTag() const {
+        return TaggedValueConverter<Tag, TagOther>::convert(*this);
+    }
+
+    TS width() const { return TS{BASE::width()}; }
+    TS height() const { return TS{BASE::height()}; }
+};
+
 
 template <IsGeometryTag Tag>
 struct TaggedPoint : private hstd::ext::geometry::Point {
@@ -802,6 +844,8 @@ struct TaggedPoint : private hstd::ext::geometry::Point {
 
     explicit TaggedPoint(hstd::ext::geometry::Point const& base)
         : hstd::ext::geometry::Point{base} {}
+
+    static THIS FromValue(double x, double y) { return THIS{TS{x}, TS{y}}; }
 
     explicit TaggedPoint(TS x, TS y)
         : hstd::ext::geometry::Point{x.getUnsizedValue(), y.getUnsizedValue()} {}

@@ -206,7 +206,12 @@ hstd::ext::geometry::GeometryValidationErrors hstd::ext::graph::diagram::runSpec
     if (debug_dir) { factory.setTraceFile(debug_dir.value() / "serial.log"); }
     graph->readSerial(&proto_layout, &factory);
 
-    if (debug_dir) { factory.run->setTraceFile(debug_dir.value() / "layout.log"); }
+    if (debug_dir) {
+        hstd::writeFile(
+            debug_dir.value() / "pre-layout-graph.json",
+            hstd::serde::getJString(proto_layout));
+        factory.run->setTraceFile(debug_dir.value() / "layout.log");
+    }
     factory.run->runFullLayout();
 
     if (debug_dir) {

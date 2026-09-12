@@ -12,6 +12,8 @@ using namespace hstd::ext::graph;
 
 namespace {
 gv::GvInchRect getRootGraphBBox(gv::GraphGroup const& g) {
+    // not all graphviz data is stored in inches -- bounding boxes are
+    // confgured in points.
     boxf rect = g.info()->bb;
 
     // +----[UR]
@@ -21,8 +23,8 @@ gv::GvInchRect getRootGraphBBox(gv::GraphGroup const& g) {
     return gv::GvInchRect(
         gv::GvInchScalar(0),
         gv::GvInchScalar(0),
-        gv::GvInchScalar{rect.UR.x},
-        gv::GvInchScalar{rect.UR.y});
+        gv::GvPointScalar{rect.UR.x}.toOtherTag<gv::GvInchTag>(),
+        gv::GvPointScalar{rect.UR.y}.toOtherTag<gv::GvInchTag>());
 }
 
 
@@ -30,13 +32,21 @@ gv::GvInchRect getNodeRectangle(
     gv::GraphGroup const&    g,
     gv::NodeAttribute const& node,
     gv::GvInchRect const&    bbox) {
-    gv::GvInchScalar width{node.info()->width};
-    gv::GvInchScalar height{node.info()->height};
-    gv::GvInchScalar x{node.info()->coord.x};
-    gv::GvInchScalar y{bbox.height() - gv::GvInchScalar{node.info()->coord.y}};
-    gv::GvInchScalar x1     = (x - width / 2).round();
-    gv::GvInchScalar y1     = (y - height / 2).round();
-    auto             result = gv::GvInchRect(x1, y1, width, height);
+    double width{node.info()->width};
+    double height{node.info()->height};
+    double x{gv::GvPointScalar{node.info()->coord.x}
+                 .toOtherTag<gv::GvInchTag>()
+                 .getUnsizedValue()};
+    double y{
+        bbox.height().getUnsizedValue()
+        - gv::GvPointScalar{node.info()->coord.y}
+              .toOtherTag<gv::GvInchTag>()
+              .getUnsizedValue()};
+
+    gv::GvInchScalar x1{std::round(x - width / 2)};
+    gv::GvInchScalar y1{std::round(y - height / 2)};
+    auto             result = gv::GvInchRect(
+        x1, y1, gv::GvInchScalar{width}, gv::GvInchScalar{height});
 
     return result;
 }
@@ -44,8 +54,12 @@ gv::GvInchRect getNodeRectangle(
 /// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
 /// (y down). `height` is the vertical size of the main graph bounding box.
 gv::GvInchPoint toGvPoint(pointf p, gv::GvInchScalar height) {
-    return gv::GvInchPoint{geometry::Point(p.x, height.getUnsizedValue() - p.y)};
+    return gv::GvInchPoint{geometry::Point(
+        gv::GvPointScalar{p.x}.toOtherTag<gv::GvInchTag>().getUnsizedValue(),
+        height.getUnsizedValue()
+            - gv::GvPointScalar{p.y}.toOtherTag<gv::GvInchTag>().getUnsizedValue())};
 }
+
 
 /// \brief Get bounding gox for the nested subtraph
 gv::GvInchRect getSubgraphBBox(gv::GraphGroup const& g, gv::GvInchRect const& bbox) {
@@ -63,10 +77,7 @@ gv::GvInchRect getSubgraphBBox(gv::GraphGroup const& g, gv::GvInchRect const& bb
 }
 
 
-gv::GvInchPath getEdgeSpline(
-    gv::EdgeAttribute const& edge,
-    int                      scaling,
-    gv::GvInchRect const&    bbox) {
+gv::GvInchPath getEdgeSpline(gv::EdgeAttribute const& edge, gv::GvInchRect const& bbox) {
     gv::GvInchPath   path;
     splines*         spl    = edge.info()->spl;
     gv::GvInchScalar height = bbox.height();
@@ -759,26 +770,30 @@ void pre_process_vertex(
             run, "group '{}' has layout algorithm set", group->getStableId());
         group_parent.insert_or_assign(id, parent.value());
 
-        auto recursiveBBox = run->getLayout(id)->getBBox();
+        auto recursiveBBox = gv::GvPointRect{run->getLayout(id)->getBBox()}
+                                 .toOtherTag<gv::GvInchTag>();
         auto recursiveNode = parentGroup->node(hstd::fmt("tmp-subgraph-node-{}", id));
 
         recursiveNode->setAttr(id_sub_group, id.getValue());
 
-        auto bbox_width  = recursiveBBox.width();
-        auto bbox_height = recursiveBBox.height();
+        gv::GvInchScalar bbox_width  = recursiveBBox.width();
+        gv::GvInchScalar bbox_height = recursiveBBox.height();
         if (auto pad = group->getOuterPadding()) {
+            auto scaled_pad = gv::GvPointPadding{pad.value()}.toOtherTag<gv::GvInchTag>();
+
             OP_TRACER_MESSAGE(
                 run,
-                "Has outer padding [{},{}] + {}",
+                "Has outer padding [{},{}] + {} (inch {})",
                 bbox_width,
                 bbox_height,
-                pad.value());
-            bbox_width += pad->getWidth();
-            bbox_height += pad->getHeight();
+                pad.value(),
+                scaled_pad);
+
+            bbox_width += scaled_pad.getWidth();
+            bbox_height += scaled_pad.getHeight();
         }
 
-        recursiveNode->setFixedInchesWH(
-            bbox_width / gv::scaling, bbox_height / gv::scaling);
+        recursiveNode->setFixedInchesWH(bbox_width, bbox_height);
     } else {
         auto gv_group = hstd::validated_dynamic_cast<gv::GraphGroup>(group);
         LOGIC_ASSERTION_CHECK(
@@ -893,7 +908,12 @@ void post_process_node(
                 rect.height() - pad_inch.getHeight(),
             };
             OP_TRACER_MESSAGE(
-                run, "had outer padding {} on rect {} -> {}", pad_inch, rect, moved);
+                run,
+                "had outer padding (inch {}) {} on rect {} -> {}",
+                pad_point,
+                pad_inch,
+                rect,
+                moved);
             // All group nodes must have associated visual attribute for graph group,
             // and they might have outer padding. If that is the case, the node's
             // actual position must be adjusted back to account for the padding.
@@ -917,14 +937,18 @@ void post_process_node(
         auto prev_cast = hstd::validated_dynamic_cast<gv::GraphGroupLayoutAttribute>(
             prev_attribute);
         if (prev_attribute) {
-            OP_TRACER_MESSAGE(run, "previous attribute was a graphviz layout");
+            OP_TRACER_MESSAGE(
+                run, "previous attribute was a graphviz layout, setting rect {}", rect);
             run->getGroup<gv::GraphGroup>(id);
             result.vertices.insert_or_assign(
                 id,
                 std::make_shared<gv::GraphGroupLayoutAttribute>(rect, prev_cast->group));
         } else {
             OP_TRACER_MESSAGE(
-                run, "previous attribute was {}", typeid(prev_cast.get()).name());
+                run,
+                "previous attribute was {}, setting rect {}",
+                typeid(prev_cast.get()).name(),
+                rect);
             result.vertices.insert_or_assign(
                 id, std::make_shared<gv::GraphGroupLayoutAttribute>(rect, rootGroup));
         }
@@ -1094,8 +1118,8 @@ gv::NodeAttribute::NodeAttribute(Agraph_t* graph, Str const& name) {
 }
 
 gv::NodeAttribute* hstd::ext::graph::gv::NodeAttribute::setFixedInchesWH(
-    double w,
-    double h) {
+    gv::GvInchScalar w,
+    gv::GvInchScalar h) {
     setWidth(w);
     setHeight(h);
     setAttr("fixedsize", true);
@@ -1226,7 +1250,7 @@ visual::VisPen buildPenFromNode(gv::NodeAttribute const& node) {
             pen.style = visual::VisPen::LineStyle::None;
         }
     }
-    if (auto pw = node.getPenWidth()) { pen.width = (float)*pw; }
+    if (auto pw = node.getPenWidth()) { pen.width = (double)*pw; }
     return pen;
 }
 
@@ -1245,7 +1269,7 @@ visual::VisBrush buildBrushFromNode(gv::NodeAttribute const& node) {
 visual::VisFont buildFontFromLabel(textlabel_t const* label) {
     visual::VisFont font;
     if (label->fontname) { font.family = hstd::Str{label->fontname}; }
-    font.pixelSize = (float)label->fontsize;
+    font.pixelSize = (double)label->fontsize;
     return font;
 }
 
@@ -1260,9 +1284,14 @@ gv::GraphEdgeLayoutAttribute::GraphLabel makeLabelElement(
     elem.font   = buildFontFromLabel(label);
     if (label->fontcolor) { elem.color = parseGvColor(hstd::Str{label->fontcolor}); }
     // Set bounding box from label dimen
-    auto lw   = gv::GvInchScalar{label->dimen.x};
-    auto lh   = gv::GvInchScalar{label->dimen.y};
-    elem.bbox = gv::GvInchRect(pos.x() - lw / 2.0f, pos.y() - lh / 2.0f, lw, lh);
+    auto lw   = label->dimen.x;
+    auto lh   = label->dimen.y;
+    elem.bbox = gv::GvInchRect{
+        gv::GvInchScalar{pos.x().getUnsizedValue() - lw / 2.0f},
+        gv::GvInchScalar{pos.y().getUnsizedValue() - lh / 2.0f},
+        gv::GvInchScalar{lw},
+        gv::GvInchScalar{lh},
+    };
     return elem;
 }
 
@@ -1278,7 +1307,7 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
             pen.style = visual::VisPen::LineStyle::None;
         }
     }
-    if (auto pw = edge.getPenWidth()) { pen.width = (float)*pw; }
+    if (auto pw = edge.getPenWidth()) { pen.width = (double)*pw; }
     return pen;
 }
 
@@ -1327,8 +1356,11 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         }
         case S::point: {
             visual::VisElement::PointShape pt;
-            pt.position = gv::GvInchPoint{nodeRect.width() / 2.0f, nodeRect.height() / 2.0f}
-                              .getUnsizedValue();
+            pt.position = geometry::Point{
+                nodeRect.width().getUnsizedValue() / 2.0f,
+                nodeRect.height().getUnsizedValue() / 2.0f,
+            };
+
             pt.radius      = std::min(
                                  nodeRect.width().getUnsizedValue(),
                                  nodeRect.height().getUnsizedValue())
@@ -1348,13 +1380,13 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
             polygon_t* poly = (polygon_t*)info->shape_info;
             if (poly && poly->sides > 0 && poly->vertices) {
                 visual::VisElement::PolygonShape polyShape;
-                float cx = (nodeRect.width() / 2.0f).getUnsizedValue();
-                float cy = (nodeRect.height() / 2.0f).getUnsizedValue();
+                double cx = nodeRect.width().getUnsizedValue() / 2.0f;
+                double cy = nodeRect.height().getUnsizedValue() / 2.0f;
                 for (size_t i = 0; i < poly->sides; ++i) {
                     polyShape.points.push_back(
                         geometry::Point{
-                            cx + (float)poly->vertices[i].x,
-                            cy - (float)poly->vertices[i].y});
+                            cx + (double)poly->vertices[i].x,
+                            cy - (double)poly->vertices[i].y});
                 }
                 polyShape.pen   = pen;
                 polyShape.brush = brush;
@@ -1417,8 +1449,8 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         } else if (auto fc = node.getFontColor()) {
             text.color = parseGvColor(*fc);
         }
-        float lw         = (float)label->dimen.x;
-        float lh         = (float)label->dimen.y;
+        double lw        = (double)label->dimen.x;
+        double lh        = (double)label->dimen.y;
         text.boundingBox = geometry::Rect(
             text.anchor.x() - lw / 2.0f, text.anchor.y() - lh / 2.0f, lw, lh);
 
@@ -1449,7 +1481,7 @@ gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
     gv::GvInchPoint const& parent_offset)
     : edge{edge}, graph{graph} {
     gv::GvInchRect bbox = getRootGraphBBox(graph);
-    gv::GvInchPath abs  = getEdgeSpline(edge, scaling, bbox); // root-absolute
+    gv::GvInchPath abs  = getEdgeSpline(edge, bbox); // root-absolute
 
     // Shift spline into parent-group coordinates.
     if (!abs.empty()) {
@@ -1469,27 +1501,31 @@ gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
                                     - parent_offset;
 
             // Compute arrow direction
-            auto   dx  = ep.x() - lastCtl.x();
-            auto   dy  = ep.y() - lastCtl.y();
-            double len = std::sqrt((dx * dx + dy * dy).getUnsizedValue());
+            double epx = ep.x().getUnsizedValue();
+            double epy = ep.y().getUnsizedValue();
+            double dx  = epx - lastCtl.x().getUnsizedValue();
+            double dy  = epy - lastCtl.y().getUnsizedValue();
+            double len = std::sqrt((dx * dx + dy * dy));
             if (len > 0.001f) {
                 dx /= len;
                 dy /= len;
-                gv::GvInchScalar arrowLen{10.0f};
-                gv::GvInchScalar arrowHalf{4.0f};
+                double arrowLen{10.0f};
+                double arrowHalf{4.0f};
                 // Perpendicular
-                gv::GvInchScalar px = -dy;
-                gv::GvInchScalar py = dx;
+                double px = -dy;
+                double py = dx;
 
                 arrow.push_back(ep);
                 arrow.push_back(
                     gv::GvInchPoint{
-                        ep.x() - dx * arrowLen + px * arrowHalf,
-                        ep.y() - dy * arrowLen + py * arrowHalf});
+                        gv::GvInchScalar{epx - dx * arrowLen + px * arrowHalf},
+                        gv::GvInchScalar{epy - dy * arrowLen + py * arrowHalf},
+                    });
                 arrow.push_back(
                     gv::GvInchPoint{
-                        ep.x() - dx * arrowLen - px * arrowHalf,
-                        ep.y() - dy * arrowLen - py * arrowHalf});
+                        gv::GvInchScalar{epx - dx * arrowLen - px * arrowHalf},
+                        gv::GvInchScalar{epy - dy * arrowLen - py * arrowHalf},
+                    });
             }
         }
     }
@@ -1603,7 +1639,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
                     fc ? parseGvColor(*fc) : visual::VisColor{230, 230, 230, 255});
             }
         }
-        if (auto pw = group->getPenWidth()) { rect.pen.width = (float)*pw; }
+        if (auto pw = group->getPenWidth()) { rect.pen.width = (double)*pw; }
     }
 
     visual::VisElement rectElem;
@@ -1637,8 +1673,8 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
             if (label->fontcolor) {
                 text.color = parseGvColor(hstd::Str{label->fontcolor});
             }
-            float lw         = (float)label->dimen.x;
-            float lh         = (float)label->dimen.y;
+            double lw        = (double)label->dimen.x;
+            double lh        = (double)label->dimen.y;
             text.boundingBox = geometry::Rect(
                 text.anchor.x() - lw / 2.0f, text.anchor.y() - lh / 2.0f, lw, lh);
 
@@ -1712,6 +1748,9 @@ void setProtoField(hstd::Vec<Message*> messages, Str const& name, T const& value
         refl->SetInt32(msg, field, value);
     } else if constexpr (std::is_same_v<T, double>) {
         refl->SetDouble(msg, field, value);
+    } else if constexpr (std::is_same_v<T, gv::GvInchScalar>) {
+        refl->SetDouble(
+            msg, field, value.template toOtherTag<GvPointTag>().getUnsizedValue());
     } else if constexpr (std::is_same_v<T, Str>) {
         refl->SetString(msg, field, value);
     } else if constexpr (std::is_enum_v<T>) {
@@ -1757,6 +1796,9 @@ bool getProtoField(hstd::Vec<Message const*> messages, Str const& name, T& value
         value = refl->GetString(msg, field);
     } else if constexpr (std::is_enum_v<T>) {
         value = static_cast<T>(refl->GetEnum(msg, field)->number());
+    } else if constexpr (std::is_same_v<T, gv::GvInchScalar>) {
+        value = gv::GvPointScalar{refl->GetDouble(msg, field)}
+                    .toOtherTag<gv::GvInchTag>();
     } else if constexpr (std::is_same_v<T, geometry::Point>) {
         Message const&    point     = refl->GetMessage(msg, field);
         Reflection const* pointRefl = point.GetReflection();
@@ -1995,8 +2037,8 @@ void hstd::ext::graph::gv::NodeAttribute::writeSerial(
     layout::IVertexVisualAttribute::writeSerial(out, graph);
     proto::NodeAttributePayload payload;
     writeAttrs(this, &payload);
-    payload.mutable_pos()->set_x(payload.pos().x() / gv::scaling);
-    payload.mutable_pos()->set_y(payload.pos().y() / gv::scaling);
+    payload.mutable_pos()->set_x(payload.pos().x());
+    payload.mutable_pos()->set_y(payload.pos().y());
     out->mutable_payload()->PackFrom(payload);
 }
 
