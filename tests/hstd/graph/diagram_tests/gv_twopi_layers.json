@@ -1,0 +1,20 @@
+{
+  "diagram": {
+    "id"      : "root",
+    "nodes"   : [
+      { "id": "center", "graphviz": {"width": 10, "height": 10} },
+      { "id": "a",      "graphviz": {"width": 10, "height": 10} },
+      { "id": "b",      "graphviz": {"width": 10, "height": 10} },
+      { "id": "c",      "graphviz": {"width": 10, "height": 10} },
+      { "id": "d",      "graphviz": {"width": 10, "height": 10} }
+    ],
+    "edges"   : [
+      {"id": "center-a", "source": "center", "target": "b", "graphviz": {}},
+      {"id": "a-b",      "source": "a",      "target": "b", "graphviz": {}},
+      {"id": "b-c",      "source": "b",      "target": "c", "graphviz": {}},
+      {"id": "a-c",      "source": "a",      "target": "c", "graphviz": {}}
+    ],
+    "graphviz": { "twopi": {"root": "center"} }
+  },
+  "checks" : []
+}

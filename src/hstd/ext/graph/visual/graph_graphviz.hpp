@@ -347,6 +347,12 @@ DECL_DESCRIBED_ENUM_STANDALONE(
             double,                                                                      \
             _GV_LAYOUTS(LayoutType::neato));                                             \
         __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            Root,                                                                        \
+            root,                                                                        \
+            Str,                                                                         \
+            _GV_LAYOUTS(LayoutType::circo, LayoutType::twopi));                          \
+        __attr_impl(                                                                     \
             GraphGroup, DefaultNodeColor, defaultNodeColor, Str, _GV_ALL_LAYOUTS);       \
         __attr_impl(                                                                     \
             GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str, _GV_ALL_LAYOUTS);       \

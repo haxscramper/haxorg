@@ -2008,15 +2008,33 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
             readAttrs(this, payload.osage(), LayoutType::osage);
             break;
 
-        case Payload::kTwopi:
+        case Payload::kTwopi: {
             setLayout(LayoutType::twopi);
-            readAttrs(this, payload.twopi(), LayoutType::twopi);
-            break;
+            auto twopi = payload.twopi();
 
-        case Payload::kCirco:
-            setLayout(LayoutType::circo);
-            readAttrs(this, payload.circo(), LayoutType::circo);
+            if (twopi.has_root()) {
+                std::ignore = graph->getVertexIDByStableId(twopi.root());
+            }
+
+            readAttrs(this, twopi, LayoutType::twopi);
             break;
+        }
+
+        case Payload::kCirco: {
+            setLayout(LayoutType::circo);
+
+            auto circo = payload.circo();
+            if (circo.has_root()) {
+                // verify ID exists -- the attribute is a string that will be pasted
+                // directly into the graphviz properties, so it must be validated
+                // explicitly here.
+                std::ignore = graph->getVertexIDByStableId(circo.root());
+            }
+
+
+            readAttrs(this, circo, LayoutType::circo);
+            break;
+        }
 
         case Payload::kPatchwork:
             setLayout(LayoutType::patchwork);
