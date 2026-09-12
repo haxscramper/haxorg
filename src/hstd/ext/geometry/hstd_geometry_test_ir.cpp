@@ -6,6 +6,8 @@
 #    include <hstd/stdlib/Formatter.hpp>
 
 #    include <hstd/stdlib/strutils.hpp>
+#    include <optional>
+#    include <sstream>
 #    include <unordered_map>
 #    include <utility>
 
@@ -52,7 +54,7 @@ GeometryElementListResult readElements(
     GeometryElementList result;
     result.reserve(input.size());
 
-    std::unordered_map<std::string, std::size_t> ids;
+    std::unordered_map<std::string, int> ids;
 
     for (int index = 0; index < input.size(); ++index) {
         auto const& element = input.Get(index);
@@ -118,9 +120,32 @@ ElementIndex makeElementIndex(GeometryElementList const& elements) {
 using ExpressionValue = std::variant<double, Rect, Point, Path>;
 
 struct EvaluatedExpression {
-    ExpressionValue value;
-    std::string     tree;
+    ExpressionValue                                  value;
+    std::string                                      name;
+    std::string                                      op_name;
+    std::vector<std::pair<std::string, std::string>> fields;
+    std::vector<EvaluatedExpression>                 sub_expressions;
 };
+
+struct GeometryErrorTree {
+    std::string                                      name;
+    std::string                                      message;
+    std::vector<std::pair<std::string, std::string>> fields;
+    std::vector<EvaluatedExpression>                 expressions;
+    std::vector<GeometryErrorTree>                   nested;
+    std::vector<std::string>                         notes;
+};
+
+EvaluatedExpression named(std::string name, EvaluatedExpression expression) {
+    expression.name = std::move(name);
+    return expression;
+}
+
+GeometryErrorTree named(std::string name, GeometryErrorTree error) {
+    error.name = std::move(name);
+    return error;
+}
+
 
 using ExpressionResult = boost::outcome_v2::result<EvaluatedExpression, GeometryError>;
 
@@ -167,8 +192,66 @@ std::string evaluatedValue(EvaluatedExpression const& value) {
         format_expression_value(value.value));
 }
 
-ExpressionResult expressionFailure(std::string const& message) {
-    return boost::outcome_v2::failure(GeometryError::init(message));
+std::string formatExpressionTree(EvaluatedExpression const& expression, int indent) {
+    std::stringstream out;
+    std::string const pad(indent, ' ');
+    std::string const field_pad(indent + 4, ' ');
+
+    out << pad << expression.op_name;
+
+    for (auto const& [name, value] : expression.fields) {
+        out << "\n" << field_pad << name << " = " << value;
+    }
+
+    out << "\n" << field_pad << "value = " << format_expression_value(expression.value);
+
+    for (auto const& nested : expression.sub_expressions) {
+        out << "\n"
+            << field_pad << nested.name << " =\n"
+            << formatExpressionTree(nested, indent + 8);
+    }
+
+    return out.str();
+}
+
+std::string formatExpressionTree(EvaluatedExpression const& expression) {
+    return formatExpressionTree(expression, 0);
+}
+
+std::string formatErrorTree(GeometryErrorTree const& error, int indent) {
+    std::stringstream out;
+    std::string const pad(indent, ' ');
+    std::string const field_pad(indent + 4, ' ');
+
+    out << pad << error.message;
+
+    for (auto const& [name, value] : error.fields) {
+        out << "\n" << field_pad << name << " = " << value;
+    }
+
+    for (auto const& note : error.notes) { out << "\n" << field_pad << note; }
+
+    for (auto const& expression : error.expressions) {
+        out << "\n"
+            << field_pad << expression.name << " =\n"
+            << formatExpressionTree(expression, indent + 8);
+    }
+
+    for (auto const& nested : error.nested) {
+        out << "\n"
+            << field_pad << nested.name << ":\n"
+            << formatErrorTree(nested, indent + 8);
+    }
+
+    return out.str();
+}
+
+GeometryError makeError(GeometryErrorTree const& tree) {
+    return GeometryError::init(formatErrorTree(tree, 0));
+}
+
+ExpressionResult expressionFailure(GeometryErrorTree const& tree) {
+    return boost::outcome_v2::failure(makeError(tree));
 }
 
 boost::outcome_v2::result<Rect, GeometryError> expressionBounds(
@@ -257,15 +340,16 @@ ExpressionResult evaluateNested(
 
     if (!result) {
         return expressionFailure(
-            fmt::format(
-                "Cannot evaluate `{}` element reference:\n"
-                "    {} = {}\n"
-                "\n"
-                "{}",
-                operation,
-                operand,
-                expression.ShortDebugString(),
-                hstd::indent(result.error().message(), 4)));
+            GeometryErrorTree{
+                .message = fmt::format(
+                    "Cannot evaluate `{}` element reference", operation),
+                .fields = {{operand, expression.ShortDebugString()}},
+                .nested = {named(
+                    "nested error",
+                    GeometryErrorTree{
+                        .message = result.error().message(),
+                    })},
+            });
     }
 
     return result;
@@ -278,25 +362,20 @@ ExpressionResult evaluateShape(
 
     if (iterator == elements.end()) {
         return expressionFailure(
-            fmt::format(
-                "Cannot evaluate `Shape` element reference:\n"
-                "    id = '{}'\n"
-                "\n"
-                "No geometry element with this ID exists.",
-                expression.id()));
+            GeometryErrorTree{
+                .message = "Cannot evaluate `Shape` element reference",
+                .fields  = {{"id", fmt::format("'{}'", expression.id())}},
+                .notes   = {"No geometry element with this ID exists."},
+            });
     }
 
     auto value = std::visit(
         [](auto ptr) { return ExpressionValue{ptr}; }, *iterator->second);
 
     return EvaluatedExpression{
-        .value = std::move(value),
-        .tree  = fmt::format(
-            "Shape\n"
-            "    id = {}\n"
-            "    value = {}",
-            expression.id(),
-            format_expression_value(value)),
+        .value   = std::move(value),
+        .op_name = "Shape",
+        .fields  = {{"id", expression.id()}},
     };
 }
 
@@ -311,17 +390,15 @@ ExpressionResult evaluateAnchor(
 
     if (!bounds) {
         return expressionFailure(
-            fmt::format(
-                "Cannot evaluate `Anchor` element reference:\n"
-                "    ref = {}\n"
-                "        evaluated to {}\n"
-                "\n"
-                "    Expected a point, rectangle, or path expression.\n"
-                "\n"
-                "{}",
-                expression.ref().ShortDebugString(),
-                evaluatedValue(nested.value()),
-                hstd::indent(nested.value().tree, 4)));
+            GeometryErrorTree{
+                              .message = "Cannot evaluate `Anchor` element reference",
+                              .fields  = {
+                                              {"ref", expression.ref().ShortDebugString()},
+                                              {"evaluated-to", evaluatedValue(nested.value())},
+                                              },
+                              .expressions = {named("ref", nested.value())},
+                              .notes       = {"Expected a point, rectangle, or path expression."},
+                              });
     }
 
     switch (expression.kind_case()) {
@@ -329,16 +406,10 @@ ExpressionResult evaluateAnchor(
             Point value = pointAnchor(bounds.value(), expression.point());
 
             return EvaluatedExpression{
-                .value = value,
-                .tree  = fmt::format(
-                    "Anchor\n"
-                    "    point = {}\n"
-                    "    value = {}\n"
-                    "    ref =\n"
-                    "{}",
-                    pointAnchorName(expression.point()),
-                    format_expression_value(value),
-                    hstd::indent(nested.value().tree, 8)),
+                .value           = value,
+                .op_name         = "Anchor",
+                .fields          = {{"point", pointAnchorName(expression.point())}},
+                .sub_expressions = {named("ref", nested.value())},
             };
         }
 
@@ -346,35 +417,32 @@ ExpressionResult evaluateAnchor(
             Path value = sideAnchor(bounds.value(), expression.side());
 
             return EvaluatedExpression{
-                .value = value,
-                .tree  = fmt::format(
-                    "Anchor\n"
-                    "    side = {}\n"
-                    "    value = {}\n"
-                    "    ref =\n"
-                    "{}",
-                    sideAnchorName(expression.side()),
-                    format_expression_value(value),
-                    hstd::indent(nested.value().tree, 8)),
+                .value           = value,
+                .op_name         = "Anchor",
+                .fields          = {{"side", sideAnchorName(expression.side())}},
+                .sub_expressions = {named("ref", nested.value())},
             };
         }
 
         case proto::GeometryElementRef::Ref::Anchor::KIND_NOT_SET:
             return expressionFailure(
-                fmt::format(
-                    "Cannot evaluate `Anchor` element reference:\n"
-                    "    ref = {}\n"
-                    "        evaluated to {}\n"
-                    "\n"
-                    "    The anchor kind is not set.",
-                    expression.ref().ShortDebugString(),
-                    evaluatedValue(nested.value())));
+                GeometryErrorTree{
+                                  .message = "Cannot evaluate `Anchor` element reference",
+                                  .fields  = {
+                                                  {"ref", expression.ref().ShortDebugString()},
+                                                  {"evaluated-to", evaluatedValue(nested.value())},
+                                                  },
+                                  .expressions = {named("ref", nested.value())},
+                                  .notes       = {"The anchor kind is not set."},
+                                  });
     }
 
     return expressionFailure(
-        fmt::format(
-            "Cannot evaluate `Anchor` element reference with kind {}.",
-            static_cast<int>(expression.kind_case())));
+        GeometryErrorTree{
+            .message = fmt::format(
+                "Cannot evaluate `Anchor` element reference with kind {}",
+                static_cast<int>(expression.kind_case())),
+        });
 }
 
 ExpressionResult evaluateBBox(
@@ -382,7 +450,10 @@ ExpressionResult evaluateBBox(
     proto::GeometryElementRef::Ref::BBox const& expression) {
     if (expression.refs().empty()) {
         return expressionFailure(
-            "Cannot evaluate `BBox` element reference: no operands were provided.");
+            GeometryErrorTree{
+                .message = "Cannot evaluate `BBox` element reference",
+                .notes   = {"No operands were provided."},
+            });
     }
 
     double minX = std::numeric_limits<double>::infinity();
@@ -390,7 +461,7 @@ ExpressionResult evaluateBBox(
     double maxX = -std::numeric_limits<double>::infinity();
     double maxY = -std::numeric_limits<double>::infinity();
 
-    std::string tree = "BBox\n    refs =";
+    std::vector<EvaluatedExpression> refs;
 
     for (int index = 0; index < expression.refs_size(); ++index) {
         auto const& operand = expression.refs(index);
@@ -403,18 +474,14 @@ ExpressionResult evaluateBBox(
 
         if (!bounds) {
             return expressionFailure(
-                fmt::format(
-                    "Cannot evaluate `BBox` element reference:\n"
-                    "    refs[{}] = {}\n"
-                    "        evaluated to {}\n"
-                    "\n"
-                    "    Expected a point, rectangle, or path expression.\n"
-                    "\n"
-                    "{}",
-                    index,
-                    operand.ShortDebugString(),
-                    evaluatedValue(value.value()),
-                    hstd::indent(value.value().tree, 4)));
+                GeometryErrorTree{
+                    .message = "Cannot evaluate `BBox` element reference",
+                    .fields
+                    = {{fmt::format("refs[{}]", index), operand.ShortDebugString()},
+                       {"evaluated-to", evaluatedValue(value.value())}},
+                    .expressions = {named(fmt::format("refs[{}]", index), value.value())},
+                    .notes       = {"Expected a point, rectangle, or path expression."},
+                });
         }
 
         auto rect = hstd::serde::write_serde<proto::Rect>(bounds.value());
@@ -424,17 +491,15 @@ ExpressionResult evaluateBBox(
         maxX = std::max(maxX, rect.x() + rect.width());
         maxY = std::max(maxY, rect.y() + rect.height());
 
-        tree += fmt::format(
-            "\n        [{}] =\n{}", index, hstd::indent(value.value().tree, 12));
+        refs.push_back(named(fmt::format("refs[{}]", index), value.value()));
     }
 
     Rect value = Rect::FromUpperLeftWH(minX, minY, maxX - minX, maxY - minY);
 
-    tree += fmt::format("\n    value = {}", format_expression_value(value));
-
     return EvaluatedExpression{
-        .value = value,
-        .tree  = std::move(tree),
+        .value           = value,
+        .op_name         = "BBox",
+        .sub_expressions = std::move(refs),
     };
 }
 
@@ -454,25 +519,16 @@ ExpressionResult evaluateInterpolate(
 
     if (startPoint == nullptr || endPoint == nullptr) {
         return expressionFailure(
-            fmt::format(
-                "Cannot evaluate `Interpolate` element reference:\n"
-                "    start = {}\n"
-                "        evaluated to {}\n"
-                "    end = {}\n"
-                "        evaluated to {}\n"
-                "\n"
-                "    Expected two point expressions.\n"
-                "\n"
-                "start evaluation:\n"
-                "{}\n"
-                "end evaluation:\n"
-                "{}",
-                expression.start().ShortDebugString(),
-                evaluatedValue(start.value()),
-                expression.end().ShortDebugString(),
-                evaluatedValue(end.value()),
-                hstd::indent(start.value().tree, 4),
-                hstd::indent(end.value().tree, 4)));
+            GeometryErrorTree{
+                .message = "Cannot evaluate `Interpolate` element reference",
+                .fields
+                = {{"start", expression.start().ShortDebugString()},
+                   {"start-evaluated-to", evaluatedValue(start.value())},
+                   {"end", expression.end().ShortDebugString()},
+                   {"end-evaluated-to", evaluatedValue(end.value())}},
+                .expressions = {named("start", start.value()), named("end", end.value())},
+                .notes       = {"Expected two point expressions."},
+            });
     }
 
     auto   startProto = hstd::serde::write_serde<proto::Point>(*startPoint);
@@ -484,19 +540,10 @@ ExpressionResult evaluateInterpolate(
         startProto.y() + (endProto.y() - startProto.y()) * bias);
 
     return EvaluatedExpression{
-        .value = value,
-        .tree  = fmt::format(
-            "Interpolate\n"
-            "    bias = {}\n"
-            "    value = {}\n"
-            "    start =\n"
-            "{}\n"
-            "    end =\n"
-            "{}",
-            bias,
-            format_expression_value(value),
-            hstd::indent(start.value().tree, 8),
-            hstd::indent(end.value().tree, 8)),
+        .value           = value,
+        .op_name         = "Interpolate",
+        .fields          = {{"bias", fmt::format("{}", bias)}},
+        .sub_expressions = {named("start", start.value()), named("end", end.value())},
     };
 }
 
@@ -505,16 +552,20 @@ ExpressionResult evaluatePath(
     proto::GeometryElementRef::Ref::PathExpression const& expression) {
     if (expression.points_size() < 2) {
         return expressionFailure(
-            fmt::format(
-                "Cannot evaluate `Path` element reference: expected at least "
-                "two point expressions, received {}.",
-                expression.points_size()));
+            GeometryErrorTree{
+                              .message = "Cannot evaluate `Path` element reference",
+                              .notes   = {
+                                  fmt::format(
+                                      "Expected at least two point expressions, received {}.",
+                                      expression.points_size()),
+                                  },
+                              });
     }
 
     hstd::Vec<Point> points;
     points.reserve(expression.points_size());
 
-    std::string tree = "Path\n    points =";
+    std::vector<EvaluatedExpression> operands;
 
     for (int index = 0; index < expression.points_size(); ++index) {
         auto const& operand = expression.points(index);
@@ -527,32 +578,27 @@ ExpressionResult evaluatePath(
 
         if (point == nullptr) {
             return expressionFailure(
-                fmt::format(
-                    "Cannot evaluate `Path` element reference:\n"
-                    "    points[{}] = {}\n"
-                    "        evaluated to {}\n"
-                    "\n"
-                    "    Expected a point expression.\n"
-                    "\n"
-                    "{}",
-                    index,
-                    operand.ShortDebugString(),
-                    evaluatedValue(value.value()),
-                    hstd::indent(value.value().tree, 4)));
+                GeometryErrorTree{
+                    .message = "Cannot evaluate `Path` element reference",
+                    .fields
+                    = {{fmt::format("points[{}]", index), operand.ShortDebugString()},
+                       {"evaluated-to", evaluatedValue(value.value())}},
+                    .expressions = {named(
+                        fmt::format("points[{}]", index), value.value())},
+                    .notes       = {"Expected a point expression."},
+                });
         }
 
         points.push_back(*point);
-
-        tree += fmt::format(
-            "\n        [{}] =\n{}", index, hstd::indent(value.value().tree, 12));
+        operands.push_back(named(fmt::format("points[{}]", index), value.value()));
     }
 
     Path value = Path::FromPolyline(points);
-    tree += fmt::format("\n    value = {}", format_expression_value(value));
 
     return EvaluatedExpression{
-        .value = value,
-        .tree  = std::move(tree),
+        .value           = value,
+        .op_name         = "Path",
+        .sub_expressions = std::move(operands),
     };
 }
 
@@ -604,34 +650,25 @@ ExpressionResult evaluateMeasure(
     if (std::holds_alternative<double>(operand.value().value)
         && expression.kind() != proto::MEASURE_LENGTH) {
         return expressionFailure(
-            fmt::format(
-                "Cannot evaluate `Measure` element reference:\n"
-                "    kind = {}\n"
-                "    ref = {}\n"
-                "        evaluated to {}\n"
-                "\n"
-                "    This measure requires a geometry expression.\n"
-                "\n"
-                "{}",
-                measureName(expression.kind()),
-                expression.ref().ShortDebugString(),
-                evaluatedValue(operand.value()),
-                hstd::indent(operand.value().tree, 4)));
+            GeometryErrorTree{
+                              .message = "Cannot evaluate `Measure` element reference",
+                              .fields  = {
+                                              {"kind", measureName(expression.kind())},
+                                              {"ref", expression.ref().ShortDebugString()},
+                                              {"evaluated-to", evaluatedValue(operand.value())},
+                                              },
+                              .expressions = {named("ref", operand.value())},
+                              .notes       = {"This measure requires a geometry expression."},
+                              });
     }
 
     double value = measuredValue(operand.value().value, expression.kind());
 
     return EvaluatedExpression{
-        .value = value,
-        .tree  = fmt::format(
-            "Measure\n"
-            "    kind = {}\n"
-            "    value = {}\n"
-            "    ref =\n"
-            "{}",
-            measureName(expression.kind()),
-            value,
-            hstd::indent(operand.value().tree, 8)),
+        .value           = value,
+        .op_name         = "Measure",
+        .fields          = {{"kind", measureName(expression.kind())}},
+        .sub_expressions = {named("ref", operand.value())},
     };
 }
 
@@ -671,28 +708,17 @@ ExpressionResult invalidMath(
     EvaluatedExpression const&                  rhs,
     std::string const&                          reason) {
     return expressionFailure(
-        fmt::format(
-            "Cannot evaluate `Math` element reference:\n"
-            "    op = {}\n"
-            "    lhs = {}\n"
-            "        evaluated to {}\n"
-            "    rhs = {}\n"
-            "        evaluated to {}\n"
-            "\n"
-            "    {}\n"
-            "\n"
-            "lhs evaluation:\n"
-            "{}\n"
-            "rhs evaluation:\n"
-            "{}",
-            mathName(expression.op()),
-            expression.lhs().ShortDebugString(),
-            evaluatedValue(lhs),
-            expression.rhs().ShortDebugString(),
-            evaluatedValue(rhs),
-            reason,
-            hstd::indent(lhs.tree, 4),
-            hstd::indent(rhs.tree, 4)));
+        GeometryErrorTree{
+            .message = "Cannot evaluate `Math` element reference",
+            .fields
+            = {{"op", mathName(expression.op())},
+               {"lhs", expression.lhs().ShortDebugString()},
+               {"lhs-evaluated-to", evaluatedValue(lhs)},
+               {"rhs", expression.rhs().ShortDebugString()},
+               {"rhs-evaluated-to", evaluatedValue(rhs)}},
+            .expressions = {named("lhs", lhs), named("rhs", rhs)},
+            .notes       = {reason},
+        });
 }
 
 ExpressionResult applyMath(
@@ -808,19 +834,10 @@ ExpressionResult applyMath(
     }
 
     return EvaluatedExpression{
-        .value = result,
-        .tree  = fmt::format(
-            "Math\n"
-            "    op = {}\n"
-            "    value = {}\n"
-            "    lhs =\n"
-            "{}\n"
-            "    rhs =\n"
-            "{}",
-            mathName(expression.op()),
-            format_expression_value(result),
-            hstd::indent(lhs.tree, 8),
-            hstd::indent(rhs.tree, 8)),
+        .value           = result,
+        .op_name         = "Math",
+        .fields          = {{"op", mathName(expression.op())}},
+        .sub_expressions = {named("lhs", lhs), named("rhs", rhs)},
     };
 }
 
@@ -867,11 +884,8 @@ ExpressionResult evaluateExpression(
             double value = expression.scalar().value();
 
             return EvaluatedExpression{
-                .value = value,
-                .tree  = fmt::format(
-                    "ScalarLiteral\n"
-                    "    value = {}",
-                    value),
+                .value   = value,
+                .op_name = "ScalarLiteral",
             };
         }
 
@@ -879,32 +893,33 @@ ExpressionResult evaluateExpression(
             Point value = Point(expression.point().x(), expression.point().y());
 
             return EvaluatedExpression{
-                .value = value,
-                .tree  = fmt::format(
-                    "PointLiteral\n"
-                    "    x = {}\n"
-                    "    y = {}\n"
-                    "    value = {}",
-                    expression.point().x(),
-                    expression.point().y(),
-                    format_expression_value(value)),
-            };
+                                       .value   = value,
+                                       .op_name = "PointLiteral",
+                                       .fields  = {
+                                           {"x", fmt::format("{}", expression.point().x())},
+                                           {"y", fmt::format("{}", expression.point().y())},
+                                           },
+                                       };
         }
 
         case proto::GeometryElementRef::Ref::KIND_NOT_SET:
             return expressionFailure(
-                fmt::format(
-                    "Cannot evaluate geometry element reference `{}`: "
-                    "the expression kind is not set.",
-                    expression.ShortDebugString()));
+                GeometryErrorTree{
+                    .message = "Cannot evaluate geometry element reference",
+                    .fields  = {{"expression", expression.ShortDebugString()}},
+                    .notes   = {"The expression kind is not set."},
+                });
     }
 
     return expressionFailure(
-        fmt::format(
-            "Cannot evaluate geometry element reference `{}`: "
-            "unhandled expression kind {}.",
-            expression.ShortDebugString(),
-            static_cast<int>(expression.kind_case())));
+        GeometryErrorTree{
+                          .message = "Cannot evaluate geometry element reference",
+                          .fields  = {
+                                      {"expression", expression.ShortDebugString()},
+                                      {"kind", fmt::format("{}", static_cast<int>(expression.kind_case()))},
+                                      },
+                          .notes = {"Unhandled expression kind."},
+                          });
 }
 
 boost::outcome_v2::result<GeometryElementShape, GeometryError> expressionGeometry(
@@ -915,15 +930,14 @@ boost::outcome_v2::result<GeometryElementShape, GeometryError> expressionGeometr
             using Value = std::decay_t<decltype(value)>;
 
             if constexpr (std::is_same_v<Value, double>) {
-                return boost::outcome_v2::failure(
-                    GeometryError::init(
-                        fmt::format(
+                return boost::outcome_v2::failure(makeError(
+                    GeometryErrorTree{
+                        .message = fmt::format(
                             "Geometry element reference evaluated to scalar "
-                            "`{}` where a point, rectangle, or path was required.\n"
-                            "\n"
-                            "{}",
-                            value,
-                            expression.tree)));
+                            "`{}` where a point, rectangle, or path was required",
+                            value),
+                        .expressions = {named("expression", expression)},
+                    }));
             } else {
                 return GeometryElementShape{value};
             }
@@ -935,12 +949,12 @@ boost::outcome_v2::result<GeometryElementShape, GeometryError> resolveElement(
     ElementIndex const&              elements,
     proto::GeometryElementRef const& reference) {
     if (!reference.has_expr()) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                fmt::format(
-                    "Cannot resolve geometry element reference `{}`: "
-                    "the expression is not set.",
-                    reference.ShortDebugString())));
+        return boost::outcome_v2::failure(makeError(
+            GeometryErrorTree{
+                .message = "Cannot resolve geometry element reference",
+                .fields  = {{"reference", reference.ShortDebugString()}},
+                .notes   = {"The expression is not set."},
+            }));
     }
 
     auto evaluated = evaluateExpression(elements, reference.expr());
@@ -957,19 +971,21 @@ GeometryCheckResult runOp(
     Arg2 const&         arg2,
     Fn&&                function) {
     if (!arg1.has_expr()) {
-        return failure(
-            fmt::format(
-                "Cannot evaluate first geometry operand `{}`: "
-                "the expression is not set.",
-                arg1.ShortDebugString()));
+        return boost::outcome_v2::failure(makeError(
+            GeometryErrorTree{
+                .message = "Cannot evaluate first geometry operand",
+                .fields  = {{"operand", arg1.ShortDebugString()}},
+                .notes   = {"The expression is not set."},
+            }));
     }
 
     if (!arg2.has_expr()) {
-        return failure(
-            fmt::format(
-                "Cannot evaluate second geometry operand `{}`: "
-                "the expression is not set.",
-                arg2.ShortDebugString()));
+        return boost::outcome_v2::failure(makeError(
+            GeometryErrorTree{
+                .message = "Cannot evaluate second geometry operand",
+                .fields  = {{"operand", arg2.ShortDebugString()}},
+                .notes   = {"The expression is not set."},
+            }));
     }
 
     auto firstExpression = evaluateExpression(elements, arg1.expr());
@@ -994,19 +1010,16 @@ GeometryCheckResult runOp(
 
     if (result) { return result; }
 
-    return boost::outcome_v2::failure(
-        GeometryError::init(
-            fmt::format(
-                "{}\n"
-                "first = {}\n"
-                "{}\n"
-                "second = {}\n"
-                "{}",
-                result.error().message(),
-                format_expression_value(firstExpression.value().value),
-                hstd::indent(firstExpression.value().tree, 4),
-                format_expression_value(secondExpression.value().value),
-                hstd::indent(secondExpression.value().tree, 4))));
+    return boost::outcome_v2::failure(makeError(
+        GeometryErrorTree{
+            .message = result.error().message(),
+            .fields
+            = {{"first", format_expression_value(firstExpression.value().value)},
+               {"second", format_expression_value(secondExpression.value().value)}},
+            .expressions
+            = {named("first", firstExpression.value()),
+               named("second", secondExpression.value())},
+        }));
 }
 
 
@@ -1274,8 +1287,8 @@ GeometryCheckResult runCheck(
         case proto::GeometryCheck::kEquidistant: {
             auto const& args = check.equidistant();
 
-            hstd::Vec<Rect>        bounds;
-            hstd::Vec<std::string> trees;
+            hstd::Vec<Rect>                  bounds;
+            std::vector<EvaluatedExpression> trees;
             bounds.reserve(args.elements_size());
             trees.reserve(args.elements_size());
 
@@ -1283,12 +1296,13 @@ GeometryCheckResult runCheck(
                 auto const& reference = args.elements(index);
 
                 if (!reference.has_expr()) {
-                    return failure(
-                        fmt::format(
-                            "Cannot evaluate equidistant operand {} `{}`: "
-                            "the expression is not set.",
-                            index,
-                            reference.ShortDebugString()));
+                    return boost::outcome_v2::failure(makeError(
+                        GeometryErrorTree{
+                            .message = fmt::format(
+                                "Cannot evaluate equidistant operand {}", index),
+                            .fields = {{"operand", reference.ShortDebugString()}},
+                            .notes  = {"The expression is not set."},
+                        }));
                 }
 
                 auto expression = evaluateExpression(elements, reference.expr());
@@ -1300,36 +1314,33 @@ GeometryCheckResult runCheck(
                 auto itemBounds = expressionBounds(expression.value().value);
 
                 if (!itemBounds) {
-                    return failure(
-                        fmt::format(
-                            "Cannot evaluate equidistant operand {} `{}`:\n"
-                            "    evaluated to {}\n"
-                            "\n"
-                            "    Expected a point, rectangle, or path expression.\n"
-                            "\n"
-                            "{}",
-                            index,
-                            reference.ShortDebugString(),
-                            evaluatedValue(expression.value()),
-                            hstd::indent(expression.value().tree, 4)));
+                    return boost::outcome_v2::failure(makeError(
+                        GeometryErrorTree{
+                            .message = fmt::format(
+                                "Cannot evaluate equidistant operand {}", index),
+                            .fields
+                            = {{"operand", reference.ShortDebugString()},
+                               {"evaluated-to", evaluatedValue(expression.value())}},
+                            .expressions = {named(
+                                fmt::format("elements[{}]", index), expression.value())},
+                            .notes = {"Expected a point, rectangle, or path expression."},
+                        }));
                 }
 
                 bounds.push_back(itemBounds.value());
-                trees.push_back(expression.value().tree);
+                trees.push_back(
+                    named(fmt::format("elements[{}]", index), expression.value()));
             }
 
             auto result = detail::checkEquidistantBounds(bounds, getTolerance(args));
 
             if (result) { return result; }
 
-            std::string context = result.error().message();
-
-            for (int index = 0; index < static_cast<int>(trees.size()); ++index) {
-                context += fmt::format(
-                    "\nelements[{}] =\n{}", index, hstd::indent(trees.at(index), 4));
-            }
-
-            return failure(context);
+            return boost::outcome_v2::failure(makeError(
+                GeometryErrorTree{
+                    .message     = result.error().message(),
+                    .expressions = std::move(trees),
+                }));
         }
 
 
@@ -1343,19 +1354,19 @@ GeometryCheckResult runCheck(
 GeometryCheckResult appendContext(
     GeometryCheckResult         result,
     proto::GeometryCheck const& check,
-    std::size_t                 checkIndex) {
+    int                         checkIndex) {
     if (result) { return result; }
 
     return boost::outcome_v2::failure(
-        GeometryError::init(
-            result.error().message()
-            + hstd::fmt(
-                "\ncheck-index                    = {}\n"
-                "check-id                       = {}\n"
-                "check-spec                     = {}",
-                checkIndex,
-                check.id(),
-                check.ShortDebugString())));
+        makeError(
+            GeometryErrorTree{
+                              .message = result.error().message(),
+                              .fields  = {
+                                  {"check-index", fmt::format("{}", checkIndex)},
+                                  {"check-id", check.id()},
+                                  {"check-spec", check.ShortDebugString()},
+                                  },
+                              }));
 }
 
 } // namespace
@@ -1393,8 +1404,7 @@ GeometryValidationErrors validateGeometry(
                 .checkIndex = static_cast<std::size_t>(checkIndex),
                 .checkId    = check.id(),
                 .check      = check,
-                .result     = appendContext(
-                    std::move(result), check, static_cast<std::size_t>(checkIndex)),
+                .result     = appendContext(std::move(result), check, checkIndex),
             };
 
             errors.push_back(std::move(error));
