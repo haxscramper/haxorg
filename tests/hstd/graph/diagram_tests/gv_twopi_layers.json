@@ -9,12 +9,104 @@
       { "id": "d",      "graphviz": {"width": 10, "height": 10} }
     ],
     "edges"   : [
-      {"id": "center-a", "source": "center", "target": "b", "graphviz": {}},
+      {"id": "center-a", "source": "center", "target": "a", "graphviz": {}},
       {"id": "a-b",      "source": "a",      "target": "b", "graphviz": {}},
-      {"id": "b-c",      "source": "b",      "target": "c", "graphviz": {}},
-      {"id": "a-c",      "source": "a",      "target": "c", "graphviz": {}}
+      {"id": "center-c", "source": "center", "target": "c", "graphviz": {}},
+      {"id": "center-d", "source": "center", "target": "d", "graphviz": {}}
     ],
-    "graphviz": { "twopi": {"root": "center"} }
+    "graphviz": { "twopi": {"root": "center", "ranksep": 100} }
   },
-  "checks" : []
+  "checks" : [
+    {
+      "rel_scalar": {
+        "rel": "MATH_EQ",
+        "lhs": {
+          "expr": {
+            "measure": {
+              "kind": "MEASURE_LENGTH",
+              "ref" : { "shape": {"id": "center-a"} }
+            }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 100} } }
+      }
+    },
+    {
+      "rel_scalar": {
+        "rel": "MATH_EQ",
+        "lhs": {
+          "expr": {
+            "measure": {
+              "kind": "MEASURE_LENGTH",
+              "ref" : { "shape": {"id": "center-a"} }
+            }
+          }
+        },
+        "rhs": {
+          "expr": {
+            "measure": {
+              "kind": "MEASURE_LENGTH",
+              "ref" : { "shape": {"id": "center-c"} }
+            }
+          }
+        }
+      }
+    },
+    {
+      "rel_scalar": {
+        "rel": "MATH_EQ",
+        "lhs": {
+          "expr": {
+            "measure": {
+              "kind": "MEASURE_LENGTH",
+              "ref" : { "shape": {"id": "center-a"} }
+            }
+          }
+        },
+        "rhs": {
+          "expr": {
+            "measure": {
+              "kind": "MEASURE_LENGTH",
+              "ref" : { "shape": {"id": "center-d"} }
+            }
+          }
+        }
+      }
+    },
+    {
+      "rel_scalar": {
+        "rel": "MATH_EQ",
+        "lhs": {
+          "expr": {
+            "math": {
+              "op" : "MATH_MUL",
+              "lhs": {
+                "measure": {
+                  "kind": "MEASURE_LENGTH",
+                  "ref" : { "shape": {"id": "center-a"} }
+                }
+              },
+              "rhs": { "scalar": {"value": 2} }
+            }
+          }
+        },
+        "rhs": {
+          "expr": {
+            "math": {
+              "lhs": {
+                "measure": {
+                  "kind": "MEASURE_LENGTH",
+                  "ref" : { "shape": {"id": "center-a"} }
+                }
+              },
+              "rhs": {
+                "measure": { "kind": "MEASURE_LENGTH", "ref": { "shape": {"id": "a-b"} } }
+              },
+              "op" : "MATH_ADD"
+            }
+          }
+        }
+      }
+    }
+  ]
 }

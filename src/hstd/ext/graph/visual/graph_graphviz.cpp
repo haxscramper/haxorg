@@ -1509,8 +1509,12 @@ gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
             if (len > 0.001f) {
                 dx /= len;
                 dy /= len;
-                double arrowLen{10.0f};
-                double arrowHalf{4.0f};
+                double arrowLen  = gv::GvPointScalar{10.0f}
+                                       .toOtherTag<gv::GvInchTag>()
+                                       .getUnsizedValue();
+                double arrowHalf = gv::GvPointScalar{4.0f}
+                                       .toOtherTag<gv::GvInchTag>()
+                                       .getUnsizedValue();
                 // Perpendicular
                 double px = -dy;
                 double py = dx;
@@ -1526,6 +1530,7 @@ gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
                         gv::GvInchScalar{epx - dx * arrowLen - px * arrowHalf},
                         gv::GvInchScalar{epy - dy * arrowLen - py * arrowHalf},
                     });
+                OP_TRACER_MESSAGE(graph.run, "arrow {}", arrow);
             }
         }
     }

@@ -1076,6 +1076,16 @@ struct fmt::formatter<hstd::ext::geometry::tagged::TaggedRect<Tag>> {
 };
 
 template <typename Tag>
+struct fmt::formatter<hstd::ext::geometry::tagged::TaggedPolygon<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::geometry::tagged::TaggedPolygon<Tag> const& p,
+        fmt::format_context&                                   ctx) const {
+        return hstd::fmt_ctx(p.getUnsizedValue(), ctx);
+    }
+};
+
+template <typename Tag>
 struct fmt::formatter<hstd::ext::geometry::tagged::TaggedScalar<Tag>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(
