@@ -17,6 +17,25 @@
         "main"  : { "expr": { "shape": {"id": "root"} } },
         "nested": { "expr": { "shape": {"id": "nested"} } }
       }
+    },
+    {
+      // Test left side size is preserved
+      "equal_value": {
+        "expr" : {
+          "expr": {
+            "measure": {
+              "ref" : {
+                "anchor": {
+                  "side": "SIDE_ANCHOR_LEFT",
+                  "ref" : { "shape": {"id": "node"} }
+                }
+              },
+              "kind": "MEASURE_LENGTH"
+            }
+          }
+        },
+        "value": 10
+      }
     }
   ]
 }

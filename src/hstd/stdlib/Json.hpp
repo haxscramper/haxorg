@@ -23,6 +23,9 @@ std::string to_compact_json(
     JsonFormatOptions const& options = JsonFormatOptions{});
 
 
+std::string strip_json_comments(std::string json);
+
+
 void filterFields(json& j, std::vector<std::string> const& fieldsToRemove);
 
 

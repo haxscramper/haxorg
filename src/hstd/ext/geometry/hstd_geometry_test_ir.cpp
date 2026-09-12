@@ -1,12 +1,12 @@
 #include <hstd/ext/geometry/hstd_geometry_test_ir.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
+#    pragma clang diagnostic error "-Wswitch"
 
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
 
 #    include <hstd/stdlib/strutils.hpp>
-#    include <optional>
 #    include <sstream>
 #    include <unordered_map>
 #    include <utility>
@@ -40,6 +40,7 @@ double getTolerance(Message const& message) {
 
 DistanceCheck getDistanceCheck(proto::GeometryDistanceCheck value) {
     switch (value) {
+        CASE_PROTO_ENUM_SENTINEL(proto::GeometryDistanceCheck);
         case proto::DISTANCE_BOTH: return DistanceCheck::Both;
         case proto::DISTANCE_X_ONLY: return DistanceCheck::XOnly;
         case proto::DISTANCE_Y_ONLY: return DistanceCheck::YOnly;
@@ -147,7 +148,7 @@ GeometryErrorTree named(std::string name, GeometryErrorTree error) {
 }
 
 
-using ExpressionResult = boost::outcome_v2::result<EvaluatedExpression, GeometryError>;
+using ExpressionResult = hstd::Result<EvaluatedExpression, GeometryError>;
 
 std::string format_expression_type(ExpressionValue const& value) {
     return std::visit(
@@ -254,10 +255,9 @@ ExpressionResult expressionFailure(GeometryErrorTree const& tree) {
     return boost::outcome_v2::failure(makeError(tree));
 }
 
-boost::outcome_v2::result<Rect, GeometryError> expressionBounds(
-    ExpressionValue const& value) {
+hstd::Result<Rect, GeometryError> expressionBounds(ExpressionValue const& value) {
     return std::visit(
-        [](auto const& item) -> boost::outcome_v2::result<Rect, GeometryError> {
+        [](auto const& item) -> hstd::Result<Rect, GeometryError> {
             using Value = std::decay_t<decltype(item)>;
 
             if constexpr (std::is_same_v<Value, double>) {
@@ -281,6 +281,7 @@ Point pointAnchor(Rect const& bounds, proto::GeometryPointAnchor anchor) {
     double centerY = upper + rect.height() / 2.0;
 
     switch (anchor) {
+        CASE_PROTO_ENUM_SENTINEL(proto::GeometryPointAnchor);
         case proto::POINT_ANCHOR_UPPER_LEFT: return Point(left, upper);
         case proto::POINT_ANCHOR_UPPER_CENTER: return Point(centerX, upper);
         case proto::POINT_ANCHOR_UPPER_RIGHT: return Point(right, upper);
@@ -303,6 +304,7 @@ Path sideAnchor(Rect const& bounds, proto::GeometrySideAnchor anchor) {
     Point lr = pointAnchor(bounds, proto::POINT_ANCHOR_LOWER_RIGHT);
 
     switch (anchor) {
+        CASE_PROTO_ENUM_SENTINEL(proto::GeometrySideAnchor);
         case proto::SIDE_ANCHOR_UPPER: return Path::FromPolyline({ul, ur});
         case proto::SIDE_ANCHOR_RIGHT: return Path::FromPolyline({ur, lr});
         case proto::SIDE_ANCHOR_LOWER: return Path::FromPolyline({ll, lr});
@@ -626,6 +628,7 @@ double measuredValue(ExpressionValue const& value, proto::GeometryMeasureKind ki
     auto rect   = hstd::serde::write_serde<proto::Rect>(bounds);
 
     switch (kind) {
+        CASE_PROTO_ENUM_SENTINEL(proto::GeometryMeasureKind);
         case proto::MEASURE_MIN_X: return rect.x();
         case proto::MEASURE_MAX_X: return rect.x() + rect.width();
         case proto::MEASURE_MIN_Y: return rect.y();
@@ -737,6 +740,7 @@ ExpressionResult applyMath(
     ExpressionValue result;
 
     switch (expression.op()) {
+        CASE_PROTO_ENUM_SENTINEL(proto::GeometryMathOp);
         case proto::MATH_ADD:
             if (scalar_l && scalar_r) {
                 result = *scalar_l + *scalar_r;
@@ -922,11 +926,10 @@ ExpressionResult evaluateExpression(
                           });
 }
 
-boost::outcome_v2::result<GeometryElementShape, GeometryError> expressionGeometry(
+hstd::Result<GeometryElementShape, GeometryError> expressionGeometry(
     EvaluatedExpression const& expression) {
     return std::visit(
-        [&](auto const& value)
-            -> boost::outcome_v2::result<GeometryElementShape, GeometryError> {
+        [&](auto const& value) -> hstd::Result<GeometryElementShape, GeometryError> {
             using Value = std::decay_t<decltype(value)>;
 
             if constexpr (std::is_same_v<Value, double>) {
@@ -945,68 +948,53 @@ boost::outcome_v2::result<GeometryElementShape, GeometryError> expressionGeometr
         expression.value);
 }
 
-boost::outcome_v2::result<GeometryElementShape, GeometryError> resolveElement(
+hstd::Result<EvaluatedExpression, GeometryError> expressionGeometry(
     ElementIndex const&              elements,
-    proto::GeometryElementRef const& reference) {
-    if (!reference.has_expr()) {
-        return boost::outcome_v2::failure(makeError(
+    proto::GeometryElementRef const& ref) {
+    if (!ref.has_expr()) {
+        return makeError(
             GeometryErrorTree{
-                .message = "Cannot resolve geometry element reference",
-                .fields  = {{"reference", reference.ShortDebugString()}},
+                .message = "Cannot evaluate geometry operand",
+                .fields  = {{"operand", ref.ShortDebugString()}},
                 .notes   = {"The expression is not set."},
-            }));
+            });
     }
 
-    auto evaluated = evaluateExpression(elements, reference.expr());
-
-    if (!evaluated) { return boost::outcome_v2::failure(evaluated.error()); }
-
-    return expressionGeometry(evaluated.value());
+    return evaluateExpression(elements, ref.expr());
 }
+
+template <typename Shape>
+hstd::Result<std::pair<Shape, EvaluatedExpression>, GeometryError> expressionGeometryType(
+    ElementIndex const&              elements,
+    proto::GeometryElementRef const& ref) {
+    BOOST_OUTCOME_TRY(auto result, expressionGeometry(elements, ref));
+    if (std::holds_alternative<Shape>(result.value)) {
+        return {std::get<Shape>(result.value), result};
+    } else {
+        return makeError(
+            GeometryErrorTree{
+                .message = hstd::fmt(
+                    "Cannot evaluate geometry operand to expected type {} got {}",
+                    hstd::value_metadata<Shape>::typeName(),
+                    hstd::variant_rutime_type_name(result.value)),
+                .fields = {{"operand", ref.ShortDebugString()}},
+                .notes  = {"The expression type does not match."},
+            });
+    }
+}
+
 
 template <typename Arg1, typename Arg2, typename Fn>
 GeometryCheckResult runOp(
     ElementIndex const& elements,
-    Arg1 const&         arg1,
-    Arg2 const&         arg2,
+    Arg1 const&         _arg1,
+    Arg2 const&         _arg2,
     Fn&&                function) {
-    if (!arg1.has_expr()) {
-        return boost::outcome_v2::failure(makeError(
-            GeometryErrorTree{
-                .message = "Cannot evaluate first geometry operand",
-                .fields  = {{"operand", arg1.ShortDebugString()}},
-                .notes   = {"The expression is not set."},
-            }));
-    }
 
-    if (!arg2.has_expr()) {
-        return boost::outcome_v2::failure(makeError(
-            GeometryErrorTree{
-                .message = "Cannot evaluate second geometry operand",
-                .fields  = {{"operand", arg2.ShortDebugString()}},
-                .notes   = {"The expression is not set."},
-            }));
-    }
+    BOOST_OUTCOME_TRY(auto arg1, expressionGeometry(elements, _arg1));
+    BOOST_OUTCOME_TRY(auto arg2, expressionGeometry(elements, _arg2));
 
-    auto firstExpression = evaluateExpression(elements, arg1.expr());
-
-    if (!firstExpression) { return boost::outcome_v2::failure(firstExpression.error()); }
-
-    auto secondExpression = evaluateExpression(elements, arg2.expr());
-
-    if (!secondExpression) {
-        return boost::outcome_v2::failure(secondExpression.error());
-    }
-
-    auto first = expressionGeometry(firstExpression.value());
-
-    if (!first) { return boost::outcome_v2::failure(first.error()); }
-
-    auto second = expressionGeometry(secondExpression.value());
-
-    if (!second) { return boost::outcome_v2::failure(second.error()); }
-
-    auto result = std::visit(std::forward<Fn>(function), first.value(), second.value());
+    auto result = std::visit(std::forward<Fn>(function), arg1.value, arg2.value);
 
     if (result) { return result; }
 
@@ -1014,14 +1002,40 @@ GeometryCheckResult runOp(
         GeometryErrorTree{
             .message = result.error().message(),
             .fields
-            = {{"first", format_expression_value(firstExpression.value().value)},
-               {"second", format_expression_value(secondExpression.value().value)}},
-            .expressions
-            = {named("first", firstExpression.value()),
-               named("second", secondExpression.value())},
+            = {{"first", format_expression_value(arg1.value)},
+               {"second", format_expression_value(arg2.value)}},
+            .expressions = {named("first", arg1), named("second", arg2)},
         }));
 }
 
+template <typename Func>
+struct OnlyGeometry {
+    Func cb;
+
+    GeometryCheckResult operator()(double, double) const {
+        return failure("scalar-scalar not supported");
+    }
+
+    GeometryCheckResult operator()(double, auto const&) const {
+        return failure("scalar-shape not supported");
+    }
+
+    GeometryCheckResult operator()(auto const&, double) const {
+        return failure("shape-scalar not supported");
+    }
+
+    GeometryCheckResult operator()(
+        GeometryElementShape const& arg1,
+        GeometryElementShape const& arg2) const {
+        return std::visit(cb, arg1, arg2);
+    }
+};
+
+
+template <typename Func>
+OnlyGeometry<Func> wrap_geometry(Func const& cb) {
+    return OnlyGeometry<Func>{cb};
+}
 
 GeometryCheckResult runCheck(
     ElementIndex const&         elements,
@@ -1032,9 +1046,9 @@ GeometryCheckResult runCheck(
                 elements,
                 check.intersects().first(),
                 check.intersects().second(),
-                [](auto const& first, auto const& second) {
+                wrap_geometry([](auto const& first, auto const& second) {
                     return checkIntersects(first, second);
-                });
+                }));
 
         case proto::GeometryCheck::kLeftOf: {
             auto const& args = check.left_of();
@@ -1042,10 +1056,10 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkLeftOf(
                         stationary, relative, getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kRightOf: {
@@ -1054,10 +1068,10 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkRightOf(
                         stationary, relative, getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kAbove: {
@@ -1066,9 +1080,9 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkAbove(stationary, relative, getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kBelow: {
@@ -1077,9 +1091,9 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkBelow(stationary, relative, getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kPartiallyAbove: {
@@ -1088,14 +1102,14 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkPartiallyAbove(
                         stationary,
                         relative,
                         args.max_under_percent(),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kPartiallyBelow: {
@@ -1104,14 +1118,14 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkPartiallyBelow(
                         stationary,
                         relative,
                         args.max_over_percent(),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kPartiallyLeft: {
@@ -1120,14 +1134,14 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkPartiallyLeft(
                         stationary,
                         relative,
                         args.max_over_percent(),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kPartiallyRight: {
@@ -1136,14 +1150,14 @@ GeometryCheckResult runCheck(
                 elements,
                 args.stationary(),
                 args.relative(),
-                [&](auto const& stationary, auto const& relative) {
+                wrap_geometry([&](auto const& stationary, auto const& relative) {
                     return checkPartiallyRight(
                         stationary,
                         relative,
                         args.max_over_percent(),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kFullyCovers: {
@@ -1152,9 +1166,9 @@ GeometryCheckResult runCheck(
                 elements,
                 args.main(),
                 args.nested(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkFullyCovers(first, second, getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kPartiallyCovers: {
@@ -1163,14 +1177,14 @@ GeometryCheckResult runCheck(
                 elements,
                 args.main(),
                 args.nested(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkPartiallyCovers(
                         first,
                         second,
                         args.overlap_percent(),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kAlignedHorizontally: {
@@ -1179,10 +1193,10 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkAlignedHorizontally(
                         first, second, getTolerance(args), getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kAlignedVertically: {
@@ -1191,10 +1205,10 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkAlignedVertically(
                         first, second, getTolerance(args), getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kMinDistance: {
@@ -1203,7 +1217,7 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkMinDistance(
                         first,
                         second,
@@ -1211,7 +1225,7 @@ GeometryCheckResult runCheck(
                         getDistanceCheck(args.distance_check()),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kMaxDistance: {
@@ -1220,7 +1234,7 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkMaxDistance(
                         first,
                         second,
@@ -1228,7 +1242,7 @@ GeometryCheckResult runCheck(
                         getDistanceCheck(args.distance_check()),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kDistance: {
@@ -1237,7 +1251,7 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkDistance(
                         first,
                         second,
@@ -1245,7 +1259,19 @@ GeometryCheckResult runCheck(
                         getDistanceCheck(args.distance_check()),
                         getRtol(args),
                         getAtol(args));
-                });
+                }));
+        }
+
+        case proto::GeometryCheck::kEqualValue: {
+            auto const& args = check.equal_value();
+            BOOST_OUTCOME_TRY(
+                auto expr, expressionGeometryType<double>(elements, args.expr()));
+
+            if (hstd::isclose(expr.first, getAtol(args), getRtol(args))) {
+                return boost::outcome_v2::success();
+            } else {
+                return failure("isclose failed");
+            }
         }
 
         case proto::GeometryCheck::kSameSize: {
@@ -1254,10 +1280,10 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkSameSize(
                         first, second, getTolerance(args), getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kSameWidth: {
@@ -1266,10 +1292,10 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkSameWidth(
                         first, second, getTolerance(args), getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kSameHeight: {
@@ -1278,10 +1304,10 @@ GeometryCheckResult runCheck(
                 elements,
                 args.first(),
                 args.second(),
-                [&](auto const& first, auto const& second) {
+                wrap_geometry([&](auto const& first, auto const& second) {
                     return checkSameHeight(
                         first, second, getTolerance(args), getRtol(args), getAtol(args));
-                });
+                }));
         }
 
         case proto::GeometryCheck::kEquidistant: {

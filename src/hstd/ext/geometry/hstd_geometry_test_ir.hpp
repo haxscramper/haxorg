@@ -21,8 +21,7 @@ struct GeometryElement {
 };
 
 using GeometryElementList       = hstd::Vec<GeometryElement>;
-using GeometryElementListResult = boost::outcome_v2::
-    result<GeometryElementList, GeometryError>;
+using GeometryElementListResult = hstd::Result<GeometryElementList, GeometryError>;
 
 struct GeometryValidationError {
     std::size_t          checkIndex;

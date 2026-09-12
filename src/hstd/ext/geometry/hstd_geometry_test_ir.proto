@@ -70,11 +70,9 @@ message GeometryElementRef {
       oneof kind {
         option (buf.validate.oneof).required = true;
 
-        GeometryPointAnchor point = 1
-            [(buf.validate.field).enum.defined_only = true];
+        GeometryPointAnchor point = 1 [(buf.validate.field).enum.defined_only = true];
 
-        GeometrySideAnchor side = 2
-            [(buf.validate.field).enum.defined_only = true];
+        GeometrySideAnchor side = 2 [(buf.validate.field).enum.defined_only = true];
       }
 
       Ref ref = 3 [(buf.validate.field).required = true];
@@ -99,8 +97,7 @@ message GeometryElementRef {
     }
 
     message Measure {
-      GeometryMeasureKind kind = 1
-          [(buf.validate.field).enum.defined_only = true];
+      GeometryMeasureKind kind = 1 [(buf.validate.field).enum.defined_only = true];
 
       Ref ref = 2 [(buf.validate.field).required = true];
     }
@@ -109,8 +106,7 @@ message GeometryElementRef {
       Ref lhs = 1 [(buf.validate.field).required = true];
       Ref rhs = 2 [(buf.validate.field).required = true];
 
-      GeometryMathOp op = 3
-          [(buf.validate.field).enum.defined_only = true];
+      GeometryMathOp op = 3 [(buf.validate.field).enum.defined_only = true];
     }
 
     message ScalarLiteral {
@@ -327,6 +323,13 @@ message EquidistantCheck {
   optional double tolerance = 2 [(buf.validate.field).double.gte = 0];
 }
 
+message EqualValueCheck {
+  GeometryElementRef expr = 1 [(buf.validate.field).required = true];
+  double value = 2 [(buf.validate.field).required = true];
+  optional double rtol = 4 [(buf.validate.field).double.gte = 0];
+  optional double atol = 5 [(buf.validate.field).double.gte = 0];
+}
+
 message GeometryCheck {
   string id = 1 [(buf.validate.field).string.min_len = 1];
 
@@ -353,6 +356,7 @@ message GeometryCheck {
     SameWidthCheck same_width = 19;
     SameHeightCheck same_height = 20;
     EquidistantCheck equidistant = 21;
+    EqualValueCheck equal_value = 22;
   }
 }
 

@@ -279,6 +279,15 @@ struct proto_serde<double, double> {
     }
 };
 
+#    define CASE_PROTO_ENUM_SENTINEL(__enum_type)                                        \
+        case __enum_type##_INT_MIN_SENTINEL_DO_NOT_USE_:                                 \
+            throw logic_unreachable_error::init(                                         \
+                "Unreachable protobuf enum sentinel " #__enum_type);                     \
+        case __enum_type##_INT_MAX_SENTINEL_DO_NOT_USE_:                                 \
+            throw logic_unreachable_error::init(                                         \
+                "Unreachable protobuf enum sentinel " #__enum_type);
+
+
 template <typename Enum>
 std::string enum_name(Enum value) {
     auto const* descriptor      = google::protobuf::GetEnumDescriptor<Enum>();
@@ -313,7 +322,7 @@ template <typename T>
 T read_message_from_json_file(std::string const& file_path) {
     T    result;
     auto status = google::protobuf::util::JsonStringToMessage(
-        hstd::readFile(file_path), &result);
+        hstd::strip_json_comments(hstd::readFile(file_path)), &result);
 
     if (!status.ok()) {
         throw std::runtime_error(
