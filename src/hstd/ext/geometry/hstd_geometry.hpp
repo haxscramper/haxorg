@@ -105,36 +105,35 @@ struct Point : public bg::model::d2::point_xy<double> {
 
     double length() const { return std::sqrt(squared_length()); }
 
-    friend Point operator+(Point lhs, Point const& rhs) {
+    Point operator+(Point const& rhs) const {
+        Point lhs = *this;
         lhs += rhs;
         return lhs;
     }
 
-    friend Point operator-(Point lhs, Point const& rhs) {
+    Point operator-(Point const& rhs) const {
+        Point lhs = *this;
         lhs -= rhs;
         return lhs;
     }
 
-    friend Point operator*(Point lhs, double scalar) {
+    Point operator*(double scalar) const {
+        Point lhs = *this;
         lhs *= scalar;
         return lhs;
     }
 
-    friend Point operator*(double scalar, Point rhs) {
-        rhs *= scalar;
-        return rhs;
-    }
-
-    friend Point operator/(Point lhs, double scalar) {
+    Point operator/(double scalar) const {
+        Point lhs = *this;
         lhs /= scalar;
         return lhs;
     }
 
-    friend bool operator==(Point const& a, Point const& b) {
-        return a.x() == b.x() && a.y() == b.y();
+    bool operator==(Point const& b) const {
+        return this->x() == b.x() && this->y() == b.y();
     }
 
-    friend bool operator!=(Point const& a, Point const& b) { return !(a == b); }
+    bool operator!=(Point const& b) const { return !(*this == b); }
 };
 
 
@@ -333,7 +332,6 @@ struct Path {
         return out;
     }
 
-
     DESC_FIELDS(Path, (commands));
 
     bool empty() const { return commands.empty(); }
@@ -343,22 +341,14 @@ struct Path {
         return *this;
     }
 
-    Path& moveTo(double x, double y) { return moveTo(Point{x, y}); }
-
     Path& lineTo(Point const& to) {
         commands.push_back(Command::lineTo(to));
         return *this;
     }
 
-    Path& lineTo(double x, double y) { return lineTo(Point{x, y}); }
-
     Path& quadTo(Point const& control, Point const& to) {
         commands.push_back(Command::quadTo(control, to));
         return *this;
-    }
-
-    Path& quadTo(double cx, double cy, double x, double y) {
-        return quadTo(Point{cx, cy}, Point{x, y});
     }
 
     Path& cubicTo(Point const& control1, Point const& control2, Point const& to) {
@@ -366,9 +356,6 @@ struct Path {
         return *this;
     }
 
-    Path& cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
-        return cubicTo(Point{c1x, c1y}, Point{c2x, c2y}, Point{x, y});
-    }
 
     Path& closeSubpath() {
         commands.push_back(Command::closeSubpath());
@@ -661,6 +648,418 @@ struct indexed_access<hstd::ext::geometry::Rect, max_corner, Dimension> {
 
 } // namespace boost::geometry::traits
 
+namespace hstd::ext::geometry::tagged {
+
+template <typename T>
+concept IsGeometryTag = requires {
+    requires T::is_tagged_geometry_tag;
+    requires std::same_as<decltype(T::is_tagged_geometry_tag), const bool>;
+};
+
+template <IsGeometryTag Tag>
+struct TaggedScalar;
+
+template <IsGeometryTag Tag>
+struct TaggedRect;
+
+template <IsGeometryTag Tag>
+struct TaggedPadding;
+
+template <IsGeometryTag Tag>
+struct TaggedPoint;
+
+template <IsGeometryTag SourceTag, IsGeometryTag TargetTag>
+struct TaggedValueConverter;
+
+template <IsGeometryTag Tag>
+struct TaggedPath;
+
+template <IsGeometryTag Tag>
+struct TaggedPolygon;
+
+template <IsGeometryTag SourceTag, IsGeometryTag TargetTag>
+struct TaggedValueConverterBase {
+    using CONV  = TaggedValueConverter<SourceTag, TargetTag>;
+    using POINT = TaggedPoint<SourceTag>;
+    static TaggedRect<TargetTag> convert(TaggedRect<SourceTag> const& s) {
+        return TaggedRect<TargetTag>{
+            CONV::convert(s.x()),
+            CONV::convert(s.y()),
+            CONV::convert(s.width()),
+            CONV::convert(s.height()),
+        };
+    }
+
+    static TaggedPadding<TargetTag> convert(TaggedPadding<SourceTag> const& s) {
+        return TaggedPadding<TargetTag>{
+            CONV::convert(s.getTop()),
+            CONV::convert(s.getBottom()),
+            CONV::convert(s.getLeft()),
+            CONV::convert(s.getRight()),
+        };
+    }
+
+    static TaggedPoint<TargetTag> convert(POINT const& s) {
+        return TaggedPoint<TargetTag>{
+            CONV::convert(s.x()),
+            CONV::convert(s.y()),
+        };
+    }
+
+    static TaggedPolygon<TargetTag> convert(TaggedPolygon<SourceTag> const& s) {
+        TaggedPolygon<TargetTag> result;
+
+        for (auto const& p : s.getPoints()) { result.push_back(CONV::convert(p)); }
+
+        return result;
+    }
+
+    static TaggedPath<TargetTag> convert(TaggedPath<SourceTag> const& s) {
+        TaggedPath<TargetTag> result;
+        for (auto const& cmd : s.getCommands()) {
+            switch (cmd.getType()) {
+                case Path::CommandType::MoveTo:
+                    result.moveTo(CONV::convert(cmd.getP1()));
+                    break;
+                case Path::CommandType::LineTo:
+                    result.lineTo(CONV::convert(cmd.getP1()));
+                    break;
+                case Path::CommandType::QuadTo:
+                    result.quadTo(CONV::convert(cmd.getP1()), CONV::convert(cmd.getP2()));
+                    break;
+                case Path::CommandType::CubicTo:
+                    result.cubicTo(
+                        CONV::convert(cmd.getP1()),
+                        CONV::convert(cmd.getP2()),
+                        CONV::convert(cmd.getP3()));
+                    break;
+                case Path::CommandType::CloseSubpath: result.closeSubpath(); break;
+            }
+        }
+        return result;
+    }
+};
+
+template <IsGeometryTag SourceTag, IsGeometryTag TargetTag>
+struct TaggedValueConverter {};
+
+template <IsGeometryTag Tag>
+struct TaggedScalar {
+  private:
+    double value;
+
+  public:
+    explicit TaggedScalar(double value) : value{value} {}
+    explicit TaggedScalar(int value) : value{value} {}
+
+    using TS = TaggedScalar<Tag>;
+
+    TS operator/(double other) const { return TS{value / other}; }
+    TS operator-(TS other) const { return TS{value - other.value}; }
+    TS operator-() const { return TS{-value}; }
+    TS operator+(TS other) const { return TS{value + other.value}; }
+    TS operator*(TS other) const { return TS{value * other.value}; }
+
+    TS& operator/=(double other) {
+        value /= other;
+        return *this;
+    }
+
+    TS& operator-=(TS other) {
+        value -= other.value;
+        return *this;
+    }
+
+    TS& operator+=(TS other) {
+        value += other.value;
+        return *this;
+    }
+
+    TS& operator*=(TS other) {
+        value *= other.value;
+        return *this;
+    }
+
+    TS     round() const { return TS{std::round(value)}; }
+    double getUnsizedValue() const { return value; }
+
+    template <IsGeometryTag TagOther>
+    TaggedScalar<TagOther> toOtherTag() const {
+        return TaggedValueConverter<Tag, TagOther>::convert(*this);
+    }
+};
+
+template <IsGeometryTag Tag>
+struct TaggedPoint : private hstd::ext::geometry::Point {
+    using TS   = TaggedScalar<Tag>;
+    using THIS = TaggedPoint<Tag>;
+    using BASE = hstd::ext::geometry::Point;
+
+    TaggedPoint()                  = default;
+    TaggedPoint(THIS const& other) = default;
+
+    hstd::ext::geometry::Point getUnsizedValue() const { return *this; }
+
+    explicit TaggedPoint(hstd::ext::geometry::Point const& base)
+        : hstd::ext::geometry::Point{base} {}
+
+    explicit TaggedPoint(TS x, TS y)
+        : hstd::ext::geometry::Point{x.getUnsizedValue(), y.getUnsizedValue()} {}
+
+    template <IsGeometryTag TagOther>
+    TaggedPoint<TagOther> toOtherTag() const {
+        return TaggedValueConverter<Tag, TagOther>::convert(*this);
+    }
+
+    TS   x() const { return TS{BASE::x()}; }
+    TS   y() const { return TS{BASE::y()}; }
+    THIS operator-() const { return THIS{BASE::operator-()}; }
+
+    THIS operator-(THIS const& other) const { return THIS{BASE::operator-(other)}; }
+    THIS operator+(THIS const& other) const { return THIS{BASE::operator+(other)}; }
+
+    THIS& operator-=(THIS const& other) {
+        BASE::operator-=(other);
+        return *this;
+    }
+
+    THIS& operator+=(THIS const& other) {
+        BASE::operator+=(other);
+        return *this;
+    }
+
+    TS length() const { return TS{BASE::length()}; }
+};
+
+template <IsGeometryTag Tag>
+struct TaggedPath : private hstd::ext::geometry::Path {
+    using TS   = TaggedScalar<Tag>;
+    using TP   = TaggedPoint<Tag>;
+    using THIS = TaggedPath<Tag>;
+    using BASE = hstd::ext::geometry::Path;
+
+    TaggedPath()                  = default;
+    TaggedPath(THIS const& other) = default;
+
+    hstd::ext::geometry::Path getUnsizedValue() const { return *this; }
+
+    explicit TaggedPath(hstd::ext::geometry::Path const& base)
+        : hstd::ext::geometry::Path{base} {}
+
+    explicit TaggedPath(TS x, TS y)
+        : hstd::ext::geometry::Path{x.getUnsizedValue(), y.getUnsizedValue()} {}
+
+    template <IsGeometryTag TagOther>
+    TaggedPath<TagOther> toOtherTag() const {
+        return TaggedValueConverter<Tag, TagOther>::convert(*this);
+    }
+
+    THIS operator-(TP const& p) const {
+        return THIS{BASE::operator-(p.getUnsizedValue())};
+    }
+
+    THIS operator+(TP const& p) const {
+        return THIS{BASE::operator+(p.getUnsizedValue())};
+    }
+
+    struct CommandRef {
+        BASE::Command const* ref;
+        CommandType          getType() const { return ref->type; }
+        TP                   getP1() const { return TP{ref->p1}; }
+        TP                   getP2() const { return TP{ref->p2}; }
+        TP                   getP3() const { return TP{ref->p3}; }
+    };
+
+    std::vector<CommandRef> getCommands() const {
+        std::vector<CommandRef> res;
+        for (int i = 0; i < commands.size(); ++i) {
+            res.push_back(CommandRef{&commands.at(i)});
+        }
+        return res;
+    }
+
+    THIS& closeSubpath() {
+        BASE::closeSubpath();
+        return *this;
+    }
+
+    THIS& lineTo(TP const& to) {
+        BASE::lineTo(to.getUnsizedValue());
+        return *this;
+    }
+
+    THIS& moveTo(TP const& to) {
+        BASE::moveTo(to.getUnsizedValue());
+        return *this;
+    }
+
+    THIS& quadTo(TP const& control, TP const& to) {
+        BASE::quadTo(control.getUnsizedValue(), to.getUnsizedValue());
+        return *this;
+    }
+
+    THIS& cubicTo(TP const& control1, TP const& control2, TP const& to) {
+        BASE::cubicTo(
+            control1.getUnsizedValue(), control2.getUnsizedValue(), to.getUnsizedValue());
+        return *this;
+    }
+
+    bool empty() const { return BASE::empty(); }
+};
+
+template <IsGeometryTag Tag>
+struct TaggedPolygon : private hstd::ext::geometry::Polygon {
+    using TS   = TaggedScalar<Tag>;
+    using TP   = TaggedPoint<Tag>;
+    using THIS = TaggedPolygon<Tag>;
+    using BASE = hstd::ext::geometry::Polygon;
+
+    TaggedPolygon()                  = default;
+    TaggedPolygon(THIS const& other) = default;
+
+    hstd::ext::geometry::Polygon getUnsizedValue() const { return *this; }
+
+    explicit TaggedPolygon(hstd::ext::geometry::Polygon const& base)
+        : hstd::ext::geometry::Polygon{base} {}
+
+    explicit TaggedPolygon(TS x, TS y)
+        : hstd::ext::geometry::Polygon{x.getUnsizedValue(), y.getUnsizedValue()} {}
+
+    template <typename TagOther>
+    TaggedPolygon<TagOther> toOtherTag() const {
+        return TaggedValueConverter<Tag, TagOther>::convert(*this);
+    }
+
+    bool empty() const { return BASE::empty(); }
+
+    void push_back(TP const& p) { BASE::push_back(p.getUnsizedValue()); }
+
+    hstd::Vec<TP> getPoints() const {
+        hstd::Vec<TP> res;
+        for (auto const& value : *this) { res.push_back(TP{value}); }
+        return res;
+    }
+};
+
+
+template <IsGeometryTag Tag>
+struct TaggedRect : private hstd::ext::geometry::Rect {
+    using TS   = TaggedScalar<Tag>;
+    using TP   = TaggedPoint<Tag>;
+    using THIS = TaggedRect<Tag>;
+    using BASE = hstd::ext::geometry::Rect;
+
+    TaggedRect(THIS const& other) = default;
+
+    hstd::ext::geometry::Rect getUnsizedValue() const { return *this; }
+
+    explicit TaggedRect(hstd::ext::geometry::Rect const& base)
+        : hstd::ext::geometry::Rect{base} {}
+
+    explicit TaggedRect(TS x, TS y, TS width, TS height)
+        : hstd::ext::geometry::Rect{
+              x.getUnsizedValue(),
+              y.getUnsizedValue(),
+              width.getUnsizedValue(),
+              height.getUnsizedValue()} {}
+
+    template <IsGeometryTag TagOther>
+    TaggedRect<TagOther> toOtherTag() const {
+        return TaggedValueConverter<Tag, TagOther>::convert(*this);
+    }
+
+    TS min_x() const { return TS{BASE::min_x()}; }
+    TS max_x() const { return TS{BASE::max_x()}; }
+    TS min_y() const { return TS{BASE::min_y()}; }
+    TS max_y() const { return TS{BASE::max_y()}; }
+    TS x() const { return TS{BASE::x()}; }
+    TS y() const { return TS{BASE::y()}; }
+    TS center_x() const { return TS{BASE::center_x()}; }
+    TS center_y() const { return TS{BASE::center_y()}; }
+    TS width() const { return TS{BASE::width()}; }
+    TS height() const { return TS{BASE::height()}; }
+
+    TP upper_left() const { return TP{BASE::upper_left()}; }
+    TP lower_right() const { return TP{BASE::lower_right()}; }
+    TP center() const { return TP{BASE::center()}; }
+
+    THIS move(TP const& other) const { return THIS{BASE::move(other.getUnsizedValue())}; }
+};
+
+template <IsGeometryTag Tag>
+struct TaggedPadding : private hstd::ext::geometry::Padding {
+    using TS   = TaggedScalar<Tag>;
+    using THIS = TaggedPadding<Tag>;
+    using BASE = hstd::ext::geometry::Padding;
+
+    TaggedPadding(THIS const& other) = default;
+
+    hstd::ext::geometry::Padding getUnsizedValue() const { return *this; }
+
+    explicit TaggedPadding(hstd::ext::geometry::Padding const& base)
+        : hstd::ext::geometry::Padding{base} {}
+
+    explicit TaggedPadding(TS top, TS bottom, TS left, TS right)
+        : hstd::ext::geometry::Padding{
+              top.getUnsizedValue(),
+              bottom.getUnsizedValue(),
+              left.getUnsizedValue(),
+              right.getUnsizedValue()} {}
+
+    TS getTop() const { return TS{top}; }
+    TS getBottom() const { return TS{bottom}; }
+    TS getLeft() const { return TS{left}; }
+    TS getRight() const { return TS{right}; }
+    TS getWidth() const { return getLeft() + getRight(); }
+    TS getHeight() const { return getTop() + getBottom(); }
+
+    template <typename TagOther>
+    TaggedPadding<TagOther> toOtherTag() const {
+        return TaggedValueConverter<Tag, TagOther>::convert(*this);
+    }
+};
+
+} // namespace hstd::ext::geometry::tagged
+
+template <typename Tag>
+struct fmt::formatter<hstd::ext::geometry::tagged::TaggedRect<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::geometry::tagged::TaggedRect<Tag> const& p,
+        fmt::format_context&                                ctx) const {
+        return hstd::fmt_ctx(p.getUnsizedValue(), ctx);
+    }
+};
+
+template <typename Tag>
+struct fmt::formatter<hstd::ext::geometry::tagged::TaggedScalar<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::geometry::tagged::TaggedScalar<Tag> const& p,
+        fmt::format_context&                                  ctx) const {
+        return hstd::fmt_ctx(p.getUnsizedValue(), ctx);
+    }
+};
+
+template <typename Tag>
+struct fmt::formatter<hstd::ext::geometry::tagged::TaggedPadding<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::geometry::tagged::TaggedPadding<Tag> const& p,
+        fmt::format_context&                                   ctx) const {
+        return hstd::fmt_ctx(p.getUnsizedValue(), ctx);
+    }
+};
+
+template <typename Tag>
+struct fmt::formatter<hstd::ext::geometry::tagged::TaggedPoint<Tag>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::geometry::tagged::TaggedPoint<Tag> const& p,
+        fmt::format_context&                                 ctx) const {
+        return hstd::fmt_ctx(p.getUnsizedValue(), ctx);
+    }
+};
 
 template <>
 struct fmt::formatter<hstd::ext::geometry::Path> {

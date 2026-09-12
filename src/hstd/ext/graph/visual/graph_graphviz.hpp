@@ -77,6 +77,56 @@ namespace hstd::ext::graph::gv {
 // to 72 causes the node sizes to scale appropriately, but positions drift randomly.
 static constexpr double scaling = 72.0f;
 
+
+struct GvInchTag {
+    constexpr static bool is_tagged_geometry_tag = true;
+};
+
+struct GvPointTag {
+    constexpr static bool is_tagged_geometry_tag = true;
+};
+
+using GvInchRect     = geometry::tagged::TaggedRect<GvInchTag>;
+using GvPointRect    = geometry::tagged::TaggedRect<GvPointTag>;
+using GvInchScalar   = geometry::tagged::TaggedScalar<GvInchTag>;
+using GvPointScalar  = geometry::tagged::TaggedScalar<GvPointTag>;
+using GvInchPadding  = geometry::tagged::TaggedPadding<GvInchTag>;
+using GvPointPadding = geometry::tagged::TaggedPadding<GvPointTag>;
+using GvInchPoint    = geometry::tagged::TaggedPoint<GvInchTag>;
+using GvPointPoint   = geometry::tagged::TaggedPoint<GvPointTag>;
+using GvInchPath     = geometry::tagged::TaggedPath<GvInchTag>;
+using GvPointPath    = geometry::tagged::TaggedPath<GvPointTag>;
+using GvInchPolygon  = geometry::tagged::TaggedPolygon<GvInchTag>;
+using GvPointPolygon = geometry::tagged::TaggedPolygon<GvPointTag>;
+
+} // namespace hstd::ext::graph::gv
+
+namespace hstd::ext::geometry::tagged {
+template <>
+struct TaggedValueConverter</*SourceTag=*/graph::gv::GvInchTag,
+                            /*TargetTag=*/graph::gv::GvPointTag>
+    : public TaggedValueConverterBase<graph::gv::GvInchTag, graph::gv::GvPointTag> {
+    using TaggedValueConverterBase<graph::gv::GvInchTag, graph::gv::GvPointTag>::convert;
+    static graph::gv::GvPointScalar convert(graph::gv::GvInchScalar const& s) {
+        return graph::gv::GvPointScalar{s.getUnsizedValue() * graph::gv::scaling};
+    }
+};
+
+template <>
+struct TaggedValueConverter</*SourceTag=*/graph::gv::GvPointTag,
+                            /*TargetTag=*/graph::gv::GvInchTag>
+    : public TaggedValueConverterBase<graph::gv::GvPointTag, graph::gv::GvInchTag> {
+    using TaggedValueConverterBase<graph::gv::GvPointTag, graph::gv::GvInchTag>::convert;
+    static graph::gv::GvInchScalar convert(graph::gv::GvPointScalar const& s) {
+        return graph::gv::GvInchScalar{s.getUnsizedValue() / graph::gv::scaling};
+    }
+};
+
+} // namespace hstd::ext::geometry::tagged
+
+namespace hstd::ext::graph::gv {
+
+
 struct UserDataBase {
     Agrec_t header;
 };
@@ -547,13 +597,15 @@ class NodeAttribute
         return this;
     }
 
-    double getInchWidth() const {
+    GvInchScalar getInchWidth() const {
         hstd::Opt<double> result = 0;
         getAttr("width", result);
-        return result.value();
+        return GvInchScalar{result.value()};
     }
 
-    double getPointWidth() const { return getInchWidth() * scaling; }
+    GvPointScalar getPointWidth() const {
+        return getInchWidth().toOtherTag<GvPointTag>();
+    }
 
     NodeAttribute* setInchHeight(double inches) {
         setAttr("height", inches);
@@ -660,10 +712,21 @@ class GraphGroup
   public:
     using Base = layout::IGroupVisualAttribute;
 
-    hstd::Opt<geometry::Padding> outerPadding;
-    void setOuterPadding(geometry::Padding const& pad) override { outerPadding = pad; }
+    hstd::Opt<GvPointPadding> outerPadding;
 
-    hstd::Opt<geometry::Padding> getOuterPadding() const override { return outerPadding; }
+    void setOuterPadding(geometry::Padding const& pad) override {
+        outerPadding = GvPointPadding{pad};
+    }
+
+    hstd::Opt<geometry::Padding> getOuterPadding() const override {
+        if (outerPadding) {
+            return outerPadding->getUnsizedValue();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    hstd::Opt<GvPointPadding> getSizedOuterPadding() const { return outerPadding; }
 
     static const int graphvizKind = AGRAPH;
 
@@ -813,18 +876,19 @@ class Layout : public layout::IPlacementAlgorithm {
 
 class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
-    NodeAttribute node;
-    GraphGroup    graph;
-    // parent-group-relative, graphviz point scale
-    geometry::Rect bbox;
+    NodeAttribute  node;
+    GraphGroup     graph;
+    gv::GvInchRect bbox;
 
     GraphVertexLayoutAttribute(
         NodeAttribute const&  node,
         GraphGroup const&     graph,
-        geometry::Rect const& bbox)
+        gv::GvInchRect const& bbox)
         : node{node}, graph{graph}, bbox{bbox} {}
 
-    geometry::Rect getBBox() const override { return bbox / gv::scaling; }
+    geometry::Rect getBBox() const override {
+        return bbox.toOtherTag<gv::GvPointTag>().getUnsizedValue();
+    }
 
     std::string getRepr() const override { return node.getPropertiesAsString(); }
 
@@ -836,19 +900,30 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
   public:
     EdgeAttribute edge;
     GraphGroup    graph;
-    /// \brief parent-group-relative, graphviz point scale
-    geometry::Path path;
-    /// \brief arrowhead polygon points, same coords
-    geometry::Polygon arrow;
-    /// \brief label/head_label/tail_label, same coords
-    Vec<visual::VisElement> labels;
+    /// \brief parent-group-relative
+    gv::GvInchPath path;
+    /// \brief arrowhead polygon points
+    gv::GvInchPolygon arrow;
+
+    struct GraphLabel {
+        hstd::Opt<gv::GvInchPoint>  anchor;
+        hstd::Str                   text;
+        hstd::Opt<gv::GvInchRect>   bbox;
+        visual::VisFont             font;
+        hstd::Opt<visual::VisColor> color;
+    };
+
+    /// \brief label/head_label/tail_label, graphviz point scale
+    Vec<GraphLabel> labels;
 
     GraphEdgeLayoutAttribute(
         EdgeAttribute const&   edge,
         GraphGroup const&      graph,
-        geometry::Point const& parent_offset = geometry::Point{0, 0});
+        gv::GvInchPoint const& parent_offset = gv::GvInchPoint{geometry::Point{0, 0}});
 
-    geometry::Path getPath() const override { return path / gv::scaling; }
+    geometry::Path getPath() const override {
+        return path.toOtherTag<GvPointTag>().getUnsizedValue();
+    }
 
     std::string      getRepr() const override { return edge.getPropertiesAsString(); }
     visual::VisGroup getVisual(EdgeID const& selfId) const override;
@@ -856,16 +931,21 @@ class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
 class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
-    geometry::Rect         graph;
+    gv::GvInchRect         graph;
     hstd::SPtr<GraphGroup> group;
 
     GraphGroupLayoutAttribute(
-        geometry::Rect const&         graph,
+        gv::GvInchRect const&         graph,
         hstd::SPtr<GraphGroup> const& group)
         : graph{graph}, group{group} {}
 
-    geometry::Rect getBBox() const override { return graph / gv::scaling; }
-    void           setBBox(geometry::Rect const& rect) override { graph = rect; }
+    geometry::Rect getBBox() const override {
+        return graph.toOtherTag<gv::GvPointTag>().getUnsizedValue();
+    }
+
+    void setBBox(geometry::Rect const& rect) override {
+        graph = gv::GvPointRect{rect}.toOtherTag<gv::GvInchTag>();
+    }
 
     std::string getRepr() const override { return group->getPropertiesAsString(); }
 

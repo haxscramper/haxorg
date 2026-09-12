@@ -6,65 +6,70 @@
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Debug.hpp>
 
-
 using namespace hstd;
 using namespace hstd::ext;
 using namespace hstd::ext::graph;
 
 namespace {
-geometry::Rect getRootGraphBBox(gv::GraphGroup const& g) {
+gv::GvInchRect getRootGraphBBox(gv::GraphGroup const& g) {
     boxf rect = g.info()->bb;
 
     // +----[UR]
     // |       |
     // [LL]----+
 
-    auto res = geometry::Rect(0, 0, rect.UR.x, rect.UR.y);
-    return res;
+    return gv::GvInchRect(
+        gv::GvInchScalar(0),
+        gv::GvInchScalar(0),
+        gv::GvInchScalar{rect.UR.x},
+        gv::GvInchScalar{rect.UR.y});
 }
 
 
-geometry::Rect getNodeRectangle(
+gv::GvInchRect getNodeRectangle(
     gv::GraphGroup const&    g,
     gv::NodeAttribute const& node,
-    geometry::Rect const&    bbox) {
-    double width  = node.info()->width * gv::scaling;
-    double height = node.info()->height * gv::scaling;
-    double x      = node.info()->coord.x;
-    double y      = bbox.height() - node.info()->coord.y;
-    int    x1     = std::round(x - width / 2);
-    int    y1     = std::round(y - height / 2);
-    auto   result = geometry::Rect(x1, y1, width, height);
+    gv::GvInchRect const&    bbox) {
+    gv::GvInchScalar width{node.info()->width};
+    gv::GvInchScalar height{node.info()->height};
+    gv::GvInchScalar x{node.info()->coord.x};
+    gv::GvInchScalar y{bbox.height() - gv::GvInchScalar{node.info()->coord.y}};
+    gv::GvInchScalar x1     = (x - width / 2).round();
+    gv::GvInchScalar y1     = (y - height / 2).round();
+    auto             result = gv::GvInchRect(x1, y1, width, height);
 
     return result;
 }
 
 /// \brief Convert grapvhiz coordinate system (y up) to the qt coordinates
 /// (y down). `height` is the vertical size of the main graph bounding box.
-geometry::Point toGvPoint(pointf p, float height) {
-    return geometry::Point(p.x, height - p.y);
+gv::GvInchPoint toGvPoint(pointf p, gv::GvInchScalar height) {
+    return gv::GvInchPoint{geometry::Point(p.x, height.getUnsizedValue() - p.y)};
 }
 
 /// \brief Get bounding gox for the nested subtraph
-geometry::Rect getSubgraphBBox(gv::GraphGroup const& g, geometry::Rect const& bbox) {
+gv::GvInchRect getSubgraphBBox(gv::GraphGroup const& g, gv::GvInchRect const& bbox) {
     boxf rect = g.info()->bb;
-    LOGIC_ASSERTION_CHECK(0 <= bbox.height(), "");
+    LOGIC_ASSERTION_CHECK(0 <= bbox.height().getUnsizedValue(), "");
     auto ll  = toGvPoint(rect.LL, bbox.height());
     auto ur  = toGvPoint(rect.UR, bbox.height());
-    auto res = geometry::Rect::FromUpperLeftWH(
-        geometry::Point(ll.x(), ur.y()), ur.x() - ll.x(), ll.y() - ur.y());
-    LOGIC_ASSERTION_CHECK(0 <= res.height(), "");
+    auto res = gv::GvInchRect(
+        /*x=*/ll.x(),
+        /*y=*/ur.y(),
+        /*width=*/ur.x() - ll.x(),
+        /*height=*/ll.y() - ur.y());
+    LOGIC_ASSERTION_CHECK(0 <= res.height().getUnsizedValue(), "");
     return res;
 }
 
 
-geometry::Path getEdgeSpline(
+gv::GvInchPath getEdgeSpline(
     gv::EdgeAttribute const& edge,
     int                      scaling,
-    geometry::Rect const&    bbox) {
-    geometry::Path path;
-    splines*       spl    = edge.info()->spl;
-    int            height = bbox.height();
+    gv::GvInchRect const&    bbox) {
+    gv::GvInchPath   path;
+    splines*         spl    = edge.info()->spl;
+    gv::GvInchScalar height = bbox.height();
     if ((spl->list != 0) && (spl->list->size % 3 == 1)) {
         bezier bez = spl->list[0];
         if (bez.sflag) {
@@ -819,9 +824,9 @@ void pre_process_vertex(
 
 void post_process_groups(
     hstd::SPtr<gv::GraphGroup> const&                rootGroup,
-    geometry::Rect const&                            root_bbox,
-    UnorderedMap<VertexID, geometry::Rect>&          group_abs_bbox,
-    UnorderedMap<VertexID, geometry::Point>&         group_abs,
+    gv::GvInchRect const&                            root_bbox,
+    UnorderedMap<VertexID, gv::GvInchRect>&          group_abs_bbox,
+    UnorderedMap<VertexID, gv::GvInchPoint>&         group_abs,
     Vec<Pair<VertexID, hstd::SPtr<gv::GraphGroup>>>& subgraphs,
     UnorderedMap<VertexID, VertexID> const&          group_parent,
     hstd::SPtr<layout::LayoutRun> const&             run,
@@ -837,8 +842,7 @@ void post_process_groups(
             group.getPropertiesAsString());
         auto id            = VertexID::FromValue(id_attr.value());
         auto subgraph_bbox = getSubgraphBBox(group, root_bbox); // absolute, qt-flipped
-        group_abs.insert_or_assign(
-            id, geometry::Point{subgraph_bbox.x(), subgraph_bbox.y()});
+        group_abs.insert_or_assign(id, subgraph_bbox.upper_left());
         group_abs_bbox.insert_or_assign(id, subgraph_bbox);
         subgraphs.push_back({id, std::make_shared<gv::GraphGroup>(group)});
     });
@@ -847,7 +851,7 @@ void post_process_groups(
     // insert into the result. `eachSubgraph` visits parents before
     // children, so `group_abs` for the parent is already populated.
     for (auto const& [id, group] : subgraphs) {
-        geometry::Rect local = group_abs_bbox.at(id);
+        gv::GvInchRect local = group_abs_bbox.at(id);
         if (auto pit = group_parent.get(id)) {
             if (auto ait = group_abs.get(*pit)) { local = local.move(-*ait); }
         }
@@ -864,31 +868,32 @@ void post_process_node(
     gv::NodeAttribute const&                       node,
     hstd::SPtr<layout::LayoutRun> const&           run,
     hstd::SPtr<gv::GraphGroup> const&              rootGroup,
-    geometry::Rect const&                          root_bbox,
+    gv::GvInchRect const&                          root_bbox,
     UnorderedMap<VertexID, VertexID> const&        vertex_group,
-    UnorderedMap<VertexID, geometry::Point> const& group_abs) {
+    UnorderedMap<VertexID, gv::GvInchPoint> const& group_abs) {
     auto g = run->getGraph();
     // OP_TRACER_MESSAGE(
     //     run, "node -> {}[{}]", node.name(), node.getPropertiesAsString());
     if (hstd::Opt<hstd::u64> _tmp; node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
         auto id = VertexID::FromValue(_tmp.value());
         OP_TRACER_MESSAGE_SCOPE(run, "layout switch ID {}", g->getDebug(id));
-        auto rect = getNodeRectangle(*rootGroup, node, root_bbox);
+        gv::GvInchRect rect = getNodeRectangle(*rootGroup, node, root_bbox);
         // tmp-subgraph nodes are direct children of the root graph, so
         // the rect is already relative to the root group -- no
         // parent-origin shift is needed.
 
-        if (auto pad = run->getVertex(id)
-                           ->getUniqueAttribute<gv::GraphGroup>()
-                           ->getOuterPadding()) {
-            auto moved = geometry::Rect{
-                rect.x() + pad->getLeft(),
-                rect.y() + pad->getRight(),
-                rect.width() - pad->getWidth(),
-                rect.height() - pad->getHeight(),
+        if (auto pad_point = run->getVertex(id)
+                                 ->getUniqueAttribute<gv::GraphGroup>()
+                                 ->getSizedOuterPadding()) {
+            auto pad_inch = pad_point->toOtherTag<gv::GvInchTag>();
+            auto moved    = gv::GvInchRect{
+                rect.x() + pad_inch.getLeft(),
+                rect.y() + pad_inch.getRight(),
+                rect.width() - pad_inch.getWidth(),
+                rect.height() - pad_inch.getHeight(),
             };
             OP_TRACER_MESSAGE(
-                run, "had outer padding {} on rect {} -> {}", pad, rect, moved);
+                run, "had outer padding {} on rect {} -> {}", pad_inch, rect, moved);
             // All group nodes must have associated visual attribute for graph group,
             // and they might have outer padding. If that is the case, the node's
             // actual position must be adjusted back to account for the padding.
@@ -959,7 +964,7 @@ void post_process_node(
 void post_process_edge(
     gv::EdgeAttribute const&                       edge,
     UnorderedMap<EdgeID, VertexID> const&          edge_group,
-    UnorderedMap<VertexID, geometry::Point> const& group_abs,
+    UnorderedMap<VertexID, gv::GvInchPoint> const& group_abs,
     hstd::SPtr<gv::GraphGroup> const&              rootGroup,
     hstd::SPtr<layout::LayoutRun> const&           run,
     layout::IPlacementAlgorithm::Result&           result) {
@@ -975,7 +980,7 @@ void post_process_edge(
     auto id = EdgeID::FromValue(opt_id.value());
     // Convert root-absolute spline/label coordinates to
     // parent-group-relative at construction time.
-    geometry::Point parent_offset{0, 0};
+    gv::GvInchPoint parent_offset{geometry::Point{0, 0}};
     if (auto git = edge_group.get(id)) {
         if (auto ait = group_abs.get(*git)) { parent_offset = *ait; }
     }
@@ -1023,13 +1028,13 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
 
     layout::IPlacementAlgorithm::Result result;
 
-    auto root_bbox = getRootGraphBBox(*rootGroup);
+    GvInchRect root_bbox = getRootGraphBBox(*rootGroup);
 
     // First pass: collect absolute (root-relative, qt-flipped) origins for
     // every graphviz subgroup.
     Vec<Pair<VertexID, hstd::SPtr<GraphGroup>>> subgraphs;
-    UnorderedMap<VertexID, geometry::Point>     group_abs; // absolute qt-flipped origin
-    UnorderedMap<VertexID, geometry::Rect>      group_abs_bbox;
+    UnorderedMap<VertexID, gv::GvInchPoint>     group_abs; // absolute qt-flipped origin
+    UnorderedMap<VertexID, gv::GvInchRect>      group_abs_bbox;
 
     post_process_groups(
         rootGroup,
@@ -1244,23 +1249,20 @@ visual::VisFont buildFontFromLabel(textlabel_t const* label) {
     return font;
 }
 
-visual::VisElement makeLabelElement(textlabel_t const* label, float height) {
-    geometry::Point pos = toGvPoint(label->pos, height);
+gv::GraphEdgeLayoutAttribute::GraphLabel makeLabelElement(
+    textlabel_t const* label,
+    gv::GvInchScalar   height) {
+    gv::GvInchPoint pos = toGvPoint(label->pos, height);
 
-    visual::VisElement            elem;
-    visual::VisElement::TextShape text;
-    text.content              = hstd::Str{label->text};
-    text.anchor               = pos;
-    text.font                 = buildFontFromLabel(label);
-    text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
-    text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
-    if (label->fontcolor) { text.color = parseGvColor(hstd::Str{label->fontcolor}); }
+    gv::GraphEdgeLayoutAttribute::GraphLabel elem;
+    elem.text   = hstd::Str{label->text};
+    elem.anchor = pos;
+    elem.font   = buildFontFromLabel(label);
+    if (label->fontcolor) { elem.color = parseGvColor(hstd::Str{label->fontcolor}); }
     // Set bounding box from label dimen
-    float lw         = (float)label->dimen.x;
-    float lh         = (float)label->dimen.y;
-    text.boundingBox = geometry::Rect(pos.x() - lw / 2.0f, pos.y() - lh / 2.0f, lw, lh);
-
-    elem.data = text;
+    auto lw   = gv::GvInchScalar{label->dimen.x};
+    auto lh   = gv::GvInchScalar{label->dimen.y};
+    elem.bbox = gv::GvInchRect(pos.x() - lw / 2.0f, pos.y() - lh / 2.0f, lw, lh);
     return elem;
 }
 
@@ -1285,17 +1287,18 @@ visual::VisPen buildPenFromEdge(gv::EdgeAttribute const& edge) {
 
 visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfId) const {
     // only needed for label coordinate conversion
-    geometry::Rect graphBBox = getRootGraphBBox(graph);
+    gv::GvInchRect graphBBox = getRootGraphBBox(graph);
     // root-absolute, for label anchoring
-    geometry::Rect absRect = getNodeRectangle(graph, node, graphBBox);
+    gv::GvInchRect absRect = getNodeRectangle(graph, node, graphBBox);
     // parent-group-relative, graphviz point scale
-    geometry::Rect nodeRect = bbox;
+    gv::GvInchRect nodeRect = bbox;
 
     visual::VisGroup result;
-    result.offset       = geometry::Point{nodeRect.x(), nodeRect.y()};
+    result.offset       = gv::GvInchPoint{nodeRect.x(), nodeRect.y()}.getUnsizedValue();
     result.custom.extra = json::object();
     result.custom.extra["graphviz"]["vertex_name"] = node.name();
-    result.max_point = geometry::Point{nodeRect.width(), nodeRect.height()};
+    result.max_point = gv::GvInchPoint{nodeRect.width(), nodeRect.height()}
+                           .getUnsizedValue();
 
     result.custom.setAttr("inkscape:label", hstd::fmt("GV VERTEX:{}", selfId));
 
@@ -1311,7 +1314,12 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         case S::circle:
         case S::oval: {
             visual::VisElement::EllipseShape ellipse;
-            ellipse.geometry = geometry::Rect(0, 0, nodeRect.width(), nodeRect.height());
+            ellipse.geometry = gv::GvInchRect(
+                                   gv::GvInchScalar{0},
+                                   gv::GvInchScalar{0},
+                                   nodeRect.width(),
+                                   nodeRect.height())
+                                   .getUnsizedValue();
             ellipse.pen      = pen;
             ellipse.brush    = brush;
             shapeElem.data   = ellipse;
@@ -1319,9 +1327,12 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         }
         case S::point: {
             visual::VisElement::PointShape pt;
-            pt.position = geometry::Point{
-                nodeRect.width() / 2.0f, nodeRect.height() / 2.0f};
-            pt.radius      = std::min(nodeRect.width(), nodeRect.height()) / 2.0f;
+            pt.position = gv::GvInchPoint{nodeRect.width() / 2.0f, nodeRect.height() / 2.0f}
+                              .getUnsizedValue();
+            pt.radius      = std::min(
+                                 nodeRect.width().getUnsizedValue(),
+                                 nodeRect.height().getUnsizedValue())
+                           / 2.0f;
             pt.pen         = pen;
             pt.brush       = brush;
             shapeElem.data = pt;
@@ -1337,8 +1348,8 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
             polygon_t* poly = (polygon_t*)info->shape_info;
             if (poly && poly->sides > 0 && poly->vertices) {
                 visual::VisElement::PolygonShape polyShape;
-                float                            cx = nodeRect.width() / 2.0f;
-                float                            cy = nodeRect.height() / 2.0f;
+                float cx = (nodeRect.width() / 2.0f).getUnsizedValue();
+                float cy = (nodeRect.height() / 2.0f).getUnsizedValue();
                 for (size_t i = 0; i < poly->sides; ++i) {
                     polyShape.points.push_back(
                         geometry::Point{
@@ -1351,9 +1362,14 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
             } else {
                 // Fallback to rect
                 visual::VisElement::RectShape rect;
-                rect.geometry = geometry::Rect(0, 0, nodeRect.width(), nodeRect.height());
-                rect.pen      = pen;
-                rect.brush    = brush;
+                rect.geometry  = gv::GvInchRect(
+                                     gv::GvInchScalar{0},
+                                     gv::GvInchScalar{0},
+                                     nodeRect.width(),
+                                     nodeRect.height())
+                                     .getUnsizedValue();
+                rect.pen       = pen;
+                rect.brush     = brush;
                 shapeElem.data = rect;
             }
             break;
@@ -1361,12 +1377,20 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         default: {
             // Default: box/rect and variants
             visual::VisElement::RectShape rect;
-            rect.geometry = geometry::Rect(0, 0, nodeRect.width(), nodeRect.height());
+            rect.geometry = gv::GvInchRect(
+                                gv::GvInchScalar{0},
+                                gv::GvInchScalar{0},
+                                nodeRect.width(),
+                                nodeRect.height())
+                                .getUnsizedValue();
             rect.pen      = pen;
             rect.brush    = brush;
             // Check for rounded style
             if (auto style = node.getStyle(); style == gv::Style::rounded) {
-                rect.cornerRadius = std::min(nodeRect.width(), nodeRect.height()) * 0.1f;
+                rect.cornerRadius = std::min(
+                                        nodeRect.width().getUnsizedValue(),
+                                        nodeRect.height().getUnsizedValue())
+                                  * 0.1f;
             }
             shapeElem.data = rect;
             break;
@@ -1381,9 +1405,10 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         visual::VisElement::TextShape text;
         text.content = hstd::Str{label->text};
         // Label pos is in graph coordinates; convert to local node coords
-        geometry::Point labelGlobal = toGvPoint(label->pos, graphBBox.height());
-        text.anchor                 = geometry::Point{
-            labelGlobal.x() - absRect.x(), labelGlobal.y() - absRect.y()};
+        gv::GvInchPoint labelGlobal = toGvPoint(label->pos, graphBBox.height());
+        text.anchor
+            = gv::GvInchPoint{labelGlobal.x() - absRect.x(), labelGlobal.y() - absRect.y()}
+                  .getUnsizedValue();
         text.font                 = buildFontFromLabel(label);
         text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
         text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
@@ -1413,7 +1438,7 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         result.elements.push_back(labelElem);
     }
 
-    result *= (1.0 / gv::scaling);
+    result *= gv::scaling;
     return result;
 }
 
@@ -1421,10 +1446,10 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
 gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
     EdgeAttribute const&   edge,
     GraphGroup const&      graph,
-    geometry::Point const& parent_offset)
+    gv::GvInchPoint const& parent_offset)
     : edge{edge}, graph{graph} {
-    geometry::Rect bbox = getRootGraphBBox(graph);
-    geometry::Path abs  = getEdgeSpline(edge, scaling, bbox); // root-absolute
+    gv::GvInchRect bbox = getRootGraphBBox(graph);
+    gv::GvInchPath abs  = getEdgeSpline(edge, scaling, bbox); // root-absolute
 
     // Shift spline into parent-group coordinates.
     if (!abs.empty()) {
@@ -1439,30 +1464,30 @@ gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
     if (info->spl && info->spl->list && 1 <= info->spl->list->size) {
         bezier& bez = info->spl->list[0];
         if (bez.eflag) {
-            geometry::Point ep      = toGvPoint(bez.ep, bbox.height()) - parent_offset;
-            geometry::Point lastCtl = toGvPoint(bez.list[bez.size - 1], bbox.height())
+            gv::GvInchPoint ep      = toGvPoint(bez.ep, bbox.height()) - parent_offset;
+            gv::GvInchPoint lastCtl = toGvPoint(bez.list[bez.size - 1], bbox.height())
                                     - parent_offset;
 
             // Compute arrow direction
-            float dx  = ep.x() - lastCtl.x();
-            float dy  = ep.y() - lastCtl.y();
-            float len = std::sqrt(dx * dx + dy * dy);
+            auto   dx  = ep.x() - lastCtl.x();
+            auto   dy  = ep.y() - lastCtl.y();
+            double len = std::sqrt((dx * dx + dy * dy).getUnsizedValue());
             if (len > 0.001f) {
                 dx /= len;
                 dy /= len;
-                float arrowLen  = 10.0f;
-                float arrowHalf = 4.0f;
+                gv::GvInchScalar arrowLen{10.0f};
+                gv::GvInchScalar arrowHalf{4.0f};
                 // Perpendicular
-                float px = -dy;
-                float py = dx;
+                gv::GvInchScalar px = -dy;
+                gv::GvInchScalar py = dx;
 
                 arrow.push_back(ep);
                 arrow.push_back(
-                    geometry::Point{
+                    gv::GvInchPoint{
                         ep.x() - dx * arrowLen + px * arrowHalf,
                         ep.y() - dy * arrowLen + py * arrowHalf});
                 arrow.push_back(
-                    geometry::Point{
+                    gv::GvInchPoint{
                         ep.x() - dx * arrowLen - px * arrowHalf,
                         ep.y() - dy * arrowLen - py * arrowHalf});
             }
@@ -1470,13 +1495,10 @@ gv::GraphEdgeLayoutAttribute::GraphEdgeLayoutAttribute(
     }
 
     // Edge label + head/tail labels, shifted into parent-group coordinates.
-    auto make_label = [&](textlabel_t const* label) {
-        auto  elem = makeLabelElement(label, bbox.height());
-        auto& text = std::get<visual::VisElement::TextShape>(elem.data);
-        text.anchor -= parent_offset;
-        if (text.boundingBox) {
-            text.boundingBox = text.boundingBox.value().move(-parent_offset);
-        }
+    auto make_label = [&](textlabel_t const* label) -> GraphLabel {
+        auto elem = makeLabelElement(label, bbox.height());
+        if (elem.anchor) { *elem.anchor -= parent_offset; }
+        if (elem.bbox) { elem.bbox = elem.bbox.value().move(-parent_offset); }
         return elem;
     };
 
@@ -1499,7 +1521,7 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) c
     // Edge path
     if (!path.empty()) {
         visual::VisElement::PathShape pathShape;
-        pathShape.path  = path;
+        pathShape.path  = path.getUnsizedValue();
         pathShape.pen   = buildPenFromEdge(edge);
         pathShape.brush = visual::VisBrush::noBrush();
 
@@ -1511,7 +1533,7 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) c
     // Arrowhead
     if (!arrow.empty()) {
         visual::VisElement::PolygonShape arrowShape;
-        arrowShape.points = arrow;
+        arrowShape.points = arrow.getUnsizedValue();
         arrowShape.pen    = buildPenFromEdge(edge);
         arrowShape.brush  = visual::VisBrush::solid(arrowShape.pen.color);
 
@@ -1520,9 +1542,20 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) c
         result.elements.push_back(arrowElem);
     }
 
-    for (auto const& label : labels) { result.elements.push_back(label); }
+    for (auto const& l : labels) {
+        visual::VisElement            vl;
+        visual::VisElement::TextShape vt;
+        if (l.anchor) { vt.anchor = l.anchor->getUnsizedValue(); }
+        vt.font    = l.font;
+        vt.content = l.text;
+        if (l.bbox) { vt.boundingBox = l.bbox->getUnsizedValue(); }
 
-    result *= (1.0 / gv::scaling);
+        result.elements.push_back(vl);
+    }
+
+    // all visual elements use graphviz inch points for consistentcy, and upscale back
+    // on the final return, converting back to the point size.
+    result *= gv::scaling;
     return result;
 }
 
@@ -1530,15 +1563,20 @@ visual::VisGroup gv::GraphEdgeLayoutAttribute::getVisual(EdgeID const& selfId) c
 visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId) const {
     visual::VisGroup result;
     auto             graph = this->graph;
-    result.offset          = geometry::Point{graph.x(), graph.y()};
+    result.offset          = gv::GvInchPoint{graph.x(), graph.y()}.getUnsizedValue();
 
     result.custom.extra                           = json::object();
     result.custom.extra["graphviz"]["group_name"] = group->name();
-    result.max_point                              = getRootGraphBBox(*group).max_corner();
+    result.max_point = getRootGraphBBox(*group).lower_right().getUnsizedValue();
 
     // Boundary rectangle
     visual::VisElement::RectShape rect;
-    rect.geometry = geometry::Rect(0, 0, graph.width(), graph.height());
+    rect.geometry = gv::GvInchRect(
+                        gv::GvInchScalar{0},
+                        gv::GvInchScalar{0},
+                        graph.width(),
+                        graph.height())
+                        .getUnsizedValue();
     rect.pen      = visual::VisPen{
         .color = visual::VisColor{128, 128, 128, 255},
         .width = 1.0f,
@@ -1582,16 +1620,17 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
 
     // Subgraph label
     if (group) {
-        geometry::Rect bbox  = getRootGraphBBox(*group);
+        gv::GvInchRect bbox  = getRootGraphBBox(*group);
         textlabel_t*   label = group->info()->label;
         if (label && label->text && label->text[0] != '\0') {
             visual::VisElement::TextShape text;
             text.content = hstd::Str{label->text};
             // Label pos is in graph coordinates; convert to local group
             // coords
-            geometry::Point labelGlobal = toGvPoint(label->pos, bbox.height());
-            text.anchor                 = geometry::Point{
-                labelGlobal.x() - graph.x(), labelGlobal.y() - graph.y()};
+            gv::GvInchPoint labelGlobal = toGvPoint(label->pos, bbox.height());
+            text.anchor
+                = gv::GvInchPoint{labelGlobal.x() - graph.x(), labelGlobal.y() - graph.y()}
+                      .getUnsizedValue();
             text.font                 = buildFontFromLabel(label);
             text.alignment.horizontal = visual::VisTextAlign::HAlign::Center;
             text.alignment.vertical   = visual::VisTextAlign::VAlign::Center;
@@ -1609,7 +1648,7 @@ visual::VisGroup gv::GraphGroupLayoutAttribute::getVisual(VertexID const& selfId
         }
     }
 
-    result *= (1.0 / gv::scaling);
+    result *= gv::scaling;
     return result;
 }
 
