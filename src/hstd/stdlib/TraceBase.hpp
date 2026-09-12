@@ -260,7 +260,8 @@ inline hstd::OperationsTracer const* __get_tracer_obj(T const& t) {
 
 template <typename T>
 inline bool __can_trace(T const& t) {
-    return __get_tracer_obj(t)->canTrace();
+    auto ptr = __get_tracer_obj(t);
+    return ptr != nullptr && ptr->canTrace();
 }
 } // namespace tracer_detail
 

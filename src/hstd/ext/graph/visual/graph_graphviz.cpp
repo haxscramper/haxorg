@@ -616,6 +616,7 @@ Str gv::renderFormatToString(RenderFormat renderFormat) {
 
 void gv::Layout::createLayout(GraphGroup const& graph) {
     agseterr(AGERR);
+    OP_TRACER_MESSAGE_SCOPE(run, "cgraph layout");
     hstd::logic_assertion_check_not_nil(this);
 
     auto* g    = const_cast<Agraph_t*>(graph.get());
@@ -625,9 +626,9 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     hstd::logic_assertion_check_not_nil(gvc.get());
     hstd::logic_assertion_check_not_nil(g);
 
+    auto should_debug = graph.run != nullptr && graph.run->canTrace();
     // graphviz graph group can be constructed as a standalone object -- for cases where
     // it is used as a simple wrapper around the library, so `.run` might be nullptr.
-    auto should_debug = graph.run != nullptr && graph.run->canTrace();
 
     auto trace_graph = [&](std::string const& prefix) {
         char*       buffer = nullptr;
@@ -649,7 +650,7 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     };
 
     if (should_debug) {
-        OP_TRACER_MESSAGE(graph.run, "agwrite before layout");
+        OP_TRACER_MESSAGE_SCOPE(graph.run, "before layout");
         trace_graph("pre_layout_");
 
         char* margin = agget(g, const_cast<char*>("margin"));
@@ -670,7 +671,7 @@ void gv::Layout::createLayout(GraphGroup const& graph) {
     if (res != 0) { throw std::logic_error("Could not execute render for the layout"); }
 
     if (should_debug) {
-        OP_TRACER_MESSAGE(graph.run, "agwrite after layout");
+        OP_TRACER_MESSAGE_SCOPE(graph.run, "after layout");
 
         char* bb = agget(g, const_cast<char*>("bb"));
         OP_TRACER_MESSAGE(graph.run, "graph bb (after layout): {}", bb ? bb : "(null)");
@@ -733,6 +734,259 @@ void gv::Layout::renderToFile(
     }
 }
 
+namespace {
+char const* id_attr      = "_gv_layout_id";
+char const* id_sub_group = "_gv_group";
+
+void pre_process_vertex(
+    VertexID const&                      id,
+    hstd::Opt<VertexID> const&           parent,
+    hstd::SPtr<layout::LayoutRun> const& run,
+    VertexID const&                      root_id,
+    UnorderedMap<VertexID, VertexID>&    group_parent,
+    UnorderedMap<VertexID, VertexID>&    vertex_group,
+    UnorderedMap<EdgeID, VertexID>&      edge_group) {
+    auto group = run->getGroup(id);
+    if (group->hasAlgorithm() && id != root_id) {
+        auto parentGroup = hstd::validated_dynamic_cast<gv::GraphGroup>(
+            run->getGroup(parent.value()));
+        OP_TRACER_MESSAGE(
+            run, "group '{}' has layout algorithm set", group->getStableId());
+        group_parent.insert_or_assign(id, parent.value());
+
+        auto recursiveBBox = run->getLayout(id)->getBBox();
+        auto recursiveNode = parentGroup->node(hstd::fmt("tmp-subgraph-node-{}", id));
+
+        recursiveNode->setAttr(id_sub_group, id.getValue());
+
+        auto bbox_width  = recursiveBBox.width();
+        auto bbox_height = recursiveBBox.height();
+        if (auto pad = group->getOuterPadding()) {
+            OP_TRACER_MESSAGE(
+                run,
+                "Has outer padding [{},{}] + {}",
+                bbox_width,
+                bbox_height,
+                pad.value());
+            bbox_width += pad->getWidth();
+            bbox_height += pad->getHeight();
+        }
+
+        recursiveNode->setFixedInchesWH(
+            bbox_width / gv::scaling, bbox_height / gv::scaling);
+    } else {
+        auto gv_group = hstd::validated_dynamic_cast<gv::GraphGroup>(group);
+        LOGIC_ASSERTION_CHECK(
+            gv_group != nullptr,
+            "Nested subgroup without layout algorithm must be an "
+            "instance of gv::GraphGroup");
+        OP_TRACER_MESSAGE(
+            run,
+            "group '{}' is a part of parent layout '{}'",
+            group->getStableId(),
+            parent);
+
+        gv_group->setAttr(id_sub_group, id.getValue());
+
+        if (parent.has_value()) { group_parent.insert_or_assign(id, parent.value()); }
+
+        auto __scope = run->begin_scope();
+        // iterate over sub-groups to find all layout switches
+        for (auto const& sub : run->getSubGroups(id)) {
+            pre_process_vertex(
+                sub, id, run, root_id, group_parent, vertex_group, edge_group);
+        }
+
+        // iterate over edges/vertices to insert graphviz attributes to
+        // enable post-layout association.
+        for (auto const& vertex : run->getDirectVertices(id)) {
+            auto attr = run->getVertexVisualAttribute<gv::NodeAttribute>(vertex);
+            OP_TRACER_MESSAGE(
+                run,
+                "vertex {} width {} height {}",
+                vertex,
+                attr->getWidth(),
+                attr->getHeight());
+            attr->setAttr(id_attr, vertex.getValue());
+            vertex_group.insert_or_assign(vertex, id);
+        }
+
+        for (auto const& edge : run->getDirectlyNestedEdges(id)) {
+            edge_group.insert_or_assign(edge, id);
+        }
+    }
+}
+
+void post_process_groups(
+    hstd::SPtr<gv::GraphGroup> const&                rootGroup,
+    geometry::Rect const&                            root_bbox,
+    UnorderedMap<VertexID, geometry::Rect>&          group_abs_bbox,
+    UnorderedMap<VertexID, geometry::Point>&         group_abs,
+    Vec<Pair<VertexID, hstd::SPtr<gv::GraphGroup>>>& subgraphs,
+    UnorderedMap<VertexID, VertexID> const&          group_parent,
+    hstd::SPtr<layout::LayoutRun> const&             run,
+    layout::IPlacementAlgorithm::Result&             result) {
+    OP_TRACER_MESSAGE_SCOPE(run, "post process groups");
+
+    auto g = run->getGraph();
+    rootGroup->eachSubgraph([&](gv::GraphGroup const& group) {
+        auto id_attr = group.getAttr<hstd::u64>(id_sub_group);
+        LOGIC_ASSERTION_CHECK_FMT(
+            id_attr.has_value(),
+            "No ID attr property set for node {}",
+            group.getPropertiesAsString());
+        auto id            = VertexID::FromValue(id_attr.value());
+        auto subgraph_bbox = getSubgraphBBox(group, root_bbox); // absolute, qt-flipped
+        group_abs.insert_or_assign(
+            id, geometry::Point{subgraph_bbox.x(), subgraph_bbox.y()});
+        group_abs_bbox.insert_or_assign(id, subgraph_bbox);
+        subgraphs.push_back({id, std::make_shared<gv::GraphGroup>(group)});
+    });
+
+    // Second pass: convert absolute bboxes to parent-group coordinates and
+    // insert into the result. `eachSubgraph` visits parents before
+    // children, so `group_abs` for the parent is already populated.
+    for (auto const& [id, group] : subgraphs) {
+        geometry::Rect local = group_abs_bbox.at(id);
+        if (auto pit = group_parent.get(id)) {
+            if (auto ait = group_abs.get(*pit)) { local = local.move(-*ait); }
+        }
+
+        auto attr = std::make_shared<gv::GraphGroupLayoutAttribute>(local, group);
+        OP_TRACER_MESSAGE(
+            run, "each-group iterate group {} bbox {}", g->getDebug(id), attr->getBBox());
+        result.vertices.insert_or_assign(id, attr);
+    }
+}
+
+void post_process_node(
+    layout::IPlacementAlgorithm::Result&           result,
+    gv::NodeAttribute const&                       node,
+    hstd::SPtr<layout::LayoutRun> const&           run,
+    hstd::SPtr<gv::GraphGroup> const&              rootGroup,
+    geometry::Rect const&                          root_bbox,
+    UnorderedMap<VertexID, VertexID> const&        vertex_group,
+    UnorderedMap<VertexID, geometry::Point> const& group_abs) {
+    auto g = run->getGraph();
+    // OP_TRACER_MESSAGE(
+    //     run, "node -> {}[{}]", node.name(), node.getPropertiesAsString());
+    if (hstd::Opt<hstd::u64> _tmp; node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
+        auto id = VertexID::FromValue(_tmp.value());
+        OP_TRACER_MESSAGE_SCOPE(run, "layout switch ID {}", g->getDebug(id));
+        auto rect = getNodeRectangle(*rootGroup, node, root_bbox);
+        // tmp-subgraph nodes are direct children of the root graph, so
+        // the rect is already relative to the root group -- no
+        // parent-origin shift is needed.
+
+        if (auto pad = run->getVertex(id)
+                           ->getUniqueAttribute<gv::GraphGroup>()
+                           ->getOuterPadding()) {
+            auto moved = geometry::Rect{
+                rect.x() + pad->getLeft(),
+                rect.y() + pad->getRight(),
+                rect.width() - pad->getWidth(),
+                rect.height() - pad->getHeight(),
+            };
+            OP_TRACER_MESSAGE(
+                run, "had outer padding {} on rect {} -> {}", pad, rect, moved);
+            // All group nodes must have associated visual attribute for graph group,
+            // and they might have outer padding. If that is the case, the node's
+            // actual position must be adjusted back to account for the padding.
+            rect = moved;
+        }
+
+        OP_TRACER_MESSAGE(
+            run,
+            "found sub-group placement rect {} bbox {} ({}, {})",
+            rect,
+            root_bbox,
+            node.info()->coord.x,
+            node.info()->coord.y);
+
+        // Full layout run will place all the nested subgroups and then
+        // will execute layout for the parent group, so the
+        // `getLayout()` is guaranteed to be safe to call here.
+        auto const& prev_attribute = run->getLayout(id);
+
+        OP_TRACER_MESSAGE(run, "replacing existing group attribute");
+        auto prev_cast = hstd::validated_dynamic_cast<gv::GraphGroupLayoutAttribute>(
+            prev_attribute);
+        if (prev_attribute) {
+            OP_TRACER_MESSAGE(run, "previous attribute was a graphviz layout");
+            run->getGroup<gv::GraphGroup>(id);
+            result.vertices.insert_or_assign(
+                id,
+                std::make_shared<gv::GraphGroupLayoutAttribute>(rect, prev_cast->group));
+        } else {
+            OP_TRACER_MESSAGE(
+                run, "previous attribute was {}", typeid(prev_cast.get()).name());
+            result.vertices.insert_or_assign(
+                id, std::make_shared<gv::GraphGroupLayoutAttribute>(rect, rootGroup));
+        }
+
+
+    } else {
+        auto id_value = node.getAttr<hstd::u64>(id_attr);
+        LOGIC_ASSERTION_CHECK_FMT(
+            id_value.has_value(),
+            "No ID attr property for node {}",
+            node.getPropertiesAsString());
+
+        auto id = VertexID::FromValue(id_value.value());
+        OP_TRACER_MESSAGE_SCOPE(run, "node ID {}", g->getDebug(id));
+        auto rect = getNodeRectangle(*rootGroup, node, root_bbox);
+
+        // Convert root-absolute coordinates to parent-group-relative.
+        if (auto git = vertex_group.get(id)) {
+            if (auto ait = group_abs.get(*git)) {
+                OP_TRACER_MESSAGE(run, "Moving vertex rect {} by -{}", rect, ait.value());
+                rect = rect.move(-*ait);
+            }
+        }
+
+        auto attr = std::make_shared<gv::GraphVertexLayoutAttribute>(
+            node, *rootGroup, rect);
+        run->message(
+            hstd::fmt(
+                "each-group iterate vertex {} bbox {}",
+                g->getDebug(id),
+                attr->getBBox()));
+        result.vertices.insert_or_assign(id, attr);
+    }
+}
+
+
+void post_process_edge(
+    gv::EdgeAttribute const&                       edge,
+    UnorderedMap<EdgeID, VertexID> const&          edge_group,
+    UnorderedMap<VertexID, geometry::Point> const& group_abs,
+    hstd::SPtr<gv::GraphGroup> const&              rootGroup,
+    hstd::SPtr<layout::LayoutRun> const&           run,
+    layout::IPlacementAlgorithm::Result&           result) {
+    auto opt_id = edge.getAttr<hstd::u64>(id_attr);
+    auto g      = run->getGraph();
+    LOGIC_ASSERTION_CHECK_FMT(
+        opt_id.has_value(),
+        "Could not get ID attribute from edge {} -> {} [{}]",
+        edge.head().name(),
+        edge.tail().name(),
+        edge.getPropertiesAsString());
+
+    auto id = EdgeID::FromValue(opt_id.value());
+    // Convert root-absolute spline/label coordinates to
+    // parent-group-relative at construction time.
+    geometry::Point parent_offset{0, 0};
+    if (auto git = edge_group.get(id)) {
+        if (auto ait = group_abs.get(*git)) { parent_offset = *ait; }
+    }
+    auto attr = std::make_shared<gv::GraphEdgeLayoutAttribute>(
+        edge, *rootGroup, parent_offset);
+    OP_TRACER_MESSAGE(run, "each-group iterate edge {}", g->getDebug(id));
+    result.edges.insert_or_assign(id, attr);
+}
+
+} // namespace
+
 layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& root_id) {
     hstd::logic_assertion_check_not_nil(run);
     auto g       = run->getGraph();
@@ -740,85 +994,15 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
         hstd::fmt("running single layout for gv::Layout {}", g->getDebug(root_id)));
     auto rootGroup = hstd::validated_dynamic_cast<GraphGroup>(run->getGroup(root_id));
 
-    char const*                      id_attr      = "_gv_layout_id";
-    char const*                      id_sub_group = "_gv_group";
     UnorderedMap<VertexID, VertexID> vertex_group; // vertex -> immediate gv subgroup id
     UnorderedMap<EdgeID, VertexID>   edge_group;   // edge   -> immediate gv subgroup id
     UnorderedMap<VertexID, VertexID> group_parent; // group  -> parent group id
 
-    auto aux = [&](this auto&&                self,
-                   VertexID const&            id,
-                   hstd::Opt<VertexID> const& parent) -> void {
-        auto group = run->getGroup(id);
-        if (group->hasAlgorithm() && id != root_id) {
-            auto parentGroup = hstd::validated_dynamic_cast<GraphGroup>(
-                run->getGroup(parent.value()));
-            OP_TRACER_MESSAGE(
-                run, "group '{}' has layout algorithm set", group->getStableId());
-            group_parent.insert_or_assign(id, parent.value());
-
-            auto recursiveBBox = run->getLayout(id)->getBBox();
-            auto recursiveNode = parentGroup->node(hstd::fmt("tmp-subgraph-node-{}", id));
-
-            recursiveNode->setAttr(id_sub_group, id.getValue());
-
-            auto bbox_width  = recursiveBBox.width();
-            auto bbox_height = recursiveBBox.height();
-            if (auto pad = group->getOuterPadding()) {
-                OP_TRACER_MESSAGE(
-                    run,
-                    "Has outer padding [{},{}] + {}",
-                    bbox_width,
-                    bbox_height,
-                    pad.value());
-                bbox_width += pad->getWidth();
-                bbox_height += pad->getHeight();
-            }
-
-            recursiveNode->setFixedInchesWH(bbox_width / scaling, bbox_height / scaling);
-        } else {
-            auto gv_group = hstd::validated_dynamic_cast<GraphGroup>(group);
-            LOGIC_ASSERTION_CHECK(
-                gv_group != nullptr,
-                "Nested subgroup without layout algorithm must be an "
-                "instance of gv::GraphGroup");
-            OP_TRACER_MESSAGE(
-                run,
-                "group '{}' is a part of parent layout '{}'",
-                group->getStableId(),
-                parent);
-
-            gv_group->setAttr(id_sub_group, id.getValue());
-
-            if (parent.has_value()) { group_parent.insert_or_assign(id, parent.value()); }
-
-            auto __scope = run->begin_scope();
-            // iterate over sub-groups to find all layout switches
-            for (auto const& sub : run->getSubGroups(id)) { self(sub, id); }
-
-            // iterate over edges/vertices to insert graphviz attributes to
-            // enable post-layout association.
-            for (auto const& vertex : run->getDirectVertices(id)) {
-                auto attr = run->getVertexVisualAttribute<NodeAttribute>(vertex);
-                OP_TRACER_MESSAGE(
-                    run,
-                    "vertex {} width {} height {}",
-                    vertex,
-                    attr->getWidth(),
-                    attr->getHeight());
-                attr->setAttr(id_attr, vertex.getValue());
-                vertex_group.insert_or_assign(vertex, id);
-            }
-
-            for (auto const& edge : run->getDirectlyNestedEdges(id)) {
-                edge_group.insert_or_assign(edge, id);
-            }
-        }
-    };
 
     {
-        OP_TRACER_MESSAGE(run, "collecting nodes for the graphviz layout");
-        aux(root_id, std::nullopt);
+        OP_TRACER_MESSAGE_SCOPE(run, "collecting nodes for the graphviz layout");
+        pre_process_vertex(
+            root_id, std::nullopt, run, root_id, group_parent, vertex_group, edge_group);
 
         if (run->canTrace()) {
             OP_TRACER_MESSAGE_SCOPE(run, "vertices directly nested in the root ID");
@@ -847,140 +1031,32 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
     UnorderedMap<VertexID, geometry::Point>     group_abs; // absolute qt-flipped origin
     UnorderedMap<VertexID, geometry::Rect>      group_abs_bbox;
 
-    rootGroup->eachSubgraph([&](GraphGroup const& group) {
-        auto id_attr = group.getAttr<hstd::u64>(id_sub_group);
-        LOGIC_ASSERTION_CHECK_FMT(
-            id_attr.has_value(),
-            "No ID attr property set for node {}",
-            group.getPropertiesAsString());
-        auto id            = VertexID::FromValue(id_attr.value());
-        auto subgraph_bbox = getSubgraphBBox(group, root_bbox); // absolute, qt-flipped
-        group_abs.insert_or_assign(
-            id, geometry::Point{subgraph_bbox.x(), subgraph_bbox.y()});
-        group_abs_bbox.insert_or_assign(id, subgraph_bbox);
-        subgraphs.push_back({id, std::make_shared<GraphGroup>(group)});
-    });
-
-    // Second pass: convert absolute bboxes to parent-group coordinates and
-    // insert into the result. `eachSubgraph` visits parents before
-    // children, so `group_abs` for the parent is already populated.
-    for (auto const& [id, group] : subgraphs) {
-        geometry::Rect local = group_abs_bbox.at(id);
-        if (auto pit = group_parent.get(id)) {
-            if (auto ait = group_abs.get(*pit)) { local = local.move(-*ait); }
-        }
-
-        auto attr = std::make_shared<GraphGroupLayoutAttribute>(local, group);
-        OP_TRACER_MESSAGE(
-            run, "each-group iterate group {} bbox {}", g->getDebug(id), attr->getBBox());
-        result.vertices.insert_or_assign(id, attr);
-    }
+    post_process_groups(
+        rootGroup,
+        root_bbox,
+        group_abs_bbox,
+        group_abs,
+        subgraphs,
+        group_parent,
+        run,
+        result);
 
     // 'each node' iterates over all nodes at once, including ones places
     // in a subgraph
-    rootGroup->eachNode([&](NodeAttribute const& node) {
-        // OP_TRACER_MESSAGE(
-        //     run, "node -> {}[{}]", node.name(), node.getPropertiesAsString());
-        if (hstd::Opt<hstd::u64> _tmp;
-            node.getAttr(id_sub_group, _tmp), _tmp.has_value()) {
-            auto id   = VertexID::FromValue(_tmp.value());
-            auto rect = getNodeRectangle(*rootGroup, node, root_bbox);
-            // tmp-subgraph nodes are direct children of the root graph, so
-            // the rect is already relative to the root group -- no
-            // parent-origin shift is needed.
+    {
+        OP_TRACER_MESSAGE_SCOPE(run, "post process nodes");
+        rootGroup->eachNode([&](NodeAttribute const& node) {
+            post_process_node(
+                result, node, run, rootGroup, root_bbox, vertex_group, group_abs);
+        });
+    }
 
-            if (auto pad = run->getVertex(id)
-                               ->getUniqueAttribute<gv::GraphGroup>()
-                               ->getOuterPadding()) {
-                // All group nodes must have associated visual attribute for graph group,
-                // and they might have outer padding. If that is the case, the node's
-                // actual position must be adjusted back to account for the padding.
-                rect.move(geometry::Point{pad->getLeft(), pad->getTop()});
-            }
-
-            OP_TRACER_MESSAGE(
-                run,
-                "found sub-group {} placement rect {} bbox {} ({}, "
-                "{})",
-                g->getDebug(id),
-                rect,
-                root_bbox,
-                node.info()->coord.x,
-                node.info()->coord.y);
-
-            // Full layout run will place all the nested subgroups and then
-            // will execute layout for the parent group, so the
-            // `getLayout()` is guaranteed to be safe to call here.
-            auto const& prev_attribute = run->getLayout(id);
-
-            OP_TRACER_MESSAGE(run, "replacing existing group attribute");
-            auto prev_cast = hstd::validated_dynamic_cast<GraphGroupLayoutAttribute>(
-                prev_attribute);
-            if (prev_attribute) {
-                OP_TRACER_MESSAGE(run, "previous attribute was a graphviz layout");
-                run->getGroup<GraphGroup>(id);
-                result.vertices.insert_or_assign(
-                    id,
-                    std::make_shared<GraphGroupLayoutAttribute>(rect, prev_cast->group));
-            } else {
-                OP_TRACER_MESSAGE(
-                    run, "previous attribute was {}", typeid(prev_cast.get()).name());
-                result.vertices.insert_or_assign(
-                    id, std::make_shared<GraphGroupLayoutAttribute>(rect, rootGroup));
-            }
-
-
-        } else {
-            auto id_value = node.getAttr<hstd::u64>(id_attr);
-            LOGIC_ASSERTION_CHECK_FMT(
-                id_value.has_value(),
-                "No ID attr property for node {}",
-                node.getPropertiesAsString());
-
-            auto id   = VertexID::FromValue(id_value.value());
-            auto rect = getNodeRectangle(*rootGroup, node, root_bbox);
-
-            // Convert root-absolute coordinates to parent-group-relative.
-            if (auto git = vertex_group.get(id)) {
-                if (auto ait = group_abs.get(*git)) {
-                    OP_TRACER_MESSAGE(
-                        run, "Moving vertex rect {} by -{}", rect, ait.value());
-                    rect = rect.move(-*ait);
-                }
-            }
-
-            auto attr = std::make_shared<GraphVertexLayoutAttribute>(
-                node, *rootGroup, rect);
-            run->message(
-                hstd::fmt(
-                    "each-group iterate vertex {} bbox {}",
-                    g->getDebug(id),
-                    attr->getBBox()));
-            result.vertices.insert_or_assign(id, attr);
-        }
-    });
-
-    rootGroup->eachEdge([&](EdgeAttribute const& edge) {
-        auto opt_id = edge.getAttr<hstd::u64>(id_attr);
-        LOGIC_ASSERTION_CHECK_FMT(
-            opt_id.has_value(),
-            "Could not get ID attribute from edge {} -> {} [{}]",
-            edge.head().name(),
-            edge.tail().name(),
-            edge.getPropertiesAsString());
-
-        auto id = EdgeID::FromValue(opt_id.value());
-        // Convert root-absolute spline/label coordinates to
-        // parent-group-relative at construction time.
-        geometry::Point parent_offset{0, 0};
-        if (auto git = edge_group.get(id)) {
-            if (auto ait = group_abs.get(*git)) { parent_offset = *ait; }
-        }
-        auto attr = std::make_shared<GraphEdgeLayoutAttribute>(
-            edge, *rootGroup, parent_offset);
-        OP_TRACER_MESSAGE(run, "each-group iterate edge {}", g->getDebug(id));
-        result.edges.insert_or_assign(id, attr);
-    });
+    {
+        OP_TRACER_MESSAGE_SCOPE(run, "post process edges");
+        rootGroup->eachEdge([&](EdgeAttribute const& edge) {
+            post_process_edge(edge, edge_group, group_abs, rootGroup, run, result);
+        });
+    }
 
     // Bounding box for a group/sub-group is set twice. The first time is
     // when the group layout is done at the leaf level, then the
