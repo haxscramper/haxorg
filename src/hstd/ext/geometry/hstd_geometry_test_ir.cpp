@@ -5,6 +5,7 @@
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/Formatter.hpp>
 
+#    include <hstd/stdlib/strutils.hpp>
 #    include <unordered_map>
 #    include <utility>
 
@@ -123,44 +124,6 @@ struct EvaluatedExpression {
 
 using ExpressionResult = boost::outcome_v2::result<EvaluatedExpression, GeometryError>;
 
-std::string indentText(std::string const& text, int count) {
-    std::string prefix(static_cast<std::string::size_type>(count), ' ');
-    std::string result;
-    bool        first = true;
-
-    for (char value : text) {
-        if (first) {
-            result += prefix;
-            first = false;
-        }
-
-        result += value;
-
-        if (value == '\n') { first = true; }
-    }
-
-    return result;
-}
-
-proto::Point writePoint(double x, double y) {
-    proto::Point result;
-    result.set_x(x);
-    result.set_y(y);
-    return result;
-}
-
-Point makePoint(double x, double y) {
-    return hstd::serde::read_serde<Point>(writePoint(x, y));
-}
-
-proto::Point pointProto(Point const& point) {
-    return hstd::serde::write_serde<proto::Point>(point);
-}
-
-proto::Rect rectProto(Rect const& rect) {
-    return hstd::serde::write_serde<proto::Rect>(rect);
-}
-
 std::string format_expression_type(ExpressionValue const& value) {
     return std::visit(
         [](auto const& item) -> std::string {
@@ -225,7 +188,7 @@ boost::outcome_v2::result<Rect, GeometryError> expressionBounds(
 }
 
 Point pointAnchor(Rect const& bounds, proto::GeometryPointAnchor anchor) {
-    auto rect = rectProto(bounds);
+    auto rect = hstd::serde::write_serde<proto::Rect>(bounds);
 
     double left    = rect.x();
     double right   = rect.x() + rect.width();
@@ -235,15 +198,15 @@ Point pointAnchor(Rect const& bounds, proto::GeometryPointAnchor anchor) {
     double centerY = upper + rect.height() / 2.0;
 
     switch (anchor) {
-        case proto::POINT_ANCHOR_UPPER_LEFT: return makePoint(left, upper);
-        case proto::POINT_ANCHOR_UPPER_CENTER: return makePoint(centerX, upper);
-        case proto::POINT_ANCHOR_UPPER_RIGHT: return makePoint(right, upper);
-        case proto::POINT_ANCHOR_CENTER_LEFT: return makePoint(left, centerY);
-        case proto::POINT_ANCHOR_CENTER: return makePoint(centerX, centerY);
-        case proto::POINT_ANCHOR_CENTER_RIGHT: return makePoint(right, centerY);
-        case proto::POINT_ANCHOR_LOWER_LEFT: return makePoint(left, lower);
-        case proto::POINT_ANCHOR_LOWER_CENTER: return makePoint(centerX, lower);
-        case proto::POINT_ANCHOR_LOWER_RIGHT: return makePoint(right, lower);
+        case proto::POINT_ANCHOR_UPPER_LEFT: return Point(left, upper);
+        case proto::POINT_ANCHOR_UPPER_CENTER: return Point(centerX, upper);
+        case proto::POINT_ANCHOR_UPPER_RIGHT: return Point(right, upper);
+        case proto::POINT_ANCHOR_CENTER_LEFT: return Point(left, centerY);
+        case proto::POINT_ANCHOR_CENTER: return Point(centerX, centerY);
+        case proto::POINT_ANCHOR_CENTER_RIGHT: return Point(right, centerY);
+        case proto::POINT_ANCHOR_LOWER_LEFT: return Point(left, lower);
+        case proto::POINT_ANCHOR_LOWER_CENTER: return Point(centerX, lower);
+        case proto::POINT_ANCHOR_LOWER_RIGHT: return Point(right, lower);
     }
 
     throw std::logic_error(
@@ -302,7 +265,7 @@ ExpressionResult evaluateNested(
                 operation,
                 operand,
                 expression.ShortDebugString(),
-                indentText(result.error().message(), 4)));
+                hstd::indent(result.error().message(), 4)));
     }
 
     return result;
@@ -358,7 +321,7 @@ ExpressionResult evaluateAnchor(
                 "{}",
                 expression.ref().ShortDebugString(),
                 evaluatedValue(nested.value()),
-                indentText(nested.value().tree, 4)));
+                hstd::indent(nested.value().tree, 4)));
     }
 
     switch (expression.kind_case()) {
@@ -375,7 +338,7 @@ ExpressionResult evaluateAnchor(
                     "{}",
                     pointAnchorName(expression.point()),
                     format_expression_value(value),
-                    indentText(nested.value().tree, 8)),
+                    hstd::indent(nested.value().tree, 8)),
             };
         }
 
@@ -392,7 +355,7 @@ ExpressionResult evaluateAnchor(
                     "{}",
                     sideAnchorName(expression.side()),
                     format_expression_value(value),
-                    indentText(nested.value().tree, 8)),
+                    hstd::indent(nested.value().tree, 8)),
             };
         }
 
@@ -451,10 +414,10 @@ ExpressionResult evaluateBBox(
                     index,
                     operand.ShortDebugString(),
                     evaluatedValue(value.value()),
-                    indentText(value.value().tree, 4)));
+                    hstd::indent(value.value().tree, 4)));
         }
 
-        auto rect = rectProto(bounds.value());
+        auto rect = hstd::serde::write_serde<proto::Rect>(bounds.value());
 
         minX = std::min(minX, rect.x());
         minY = std::min(minY, rect.y());
@@ -462,7 +425,7 @@ ExpressionResult evaluateBBox(
         maxY = std::max(maxY, rect.y() + rect.height());
 
         tree += fmt::format(
-            "\n        [{}] =\n{}", index, indentText(value.value().tree, 12));
+            "\n        [{}] =\n{}", index, hstd::indent(value.value().tree, 12));
     }
 
     Rect value = Rect::FromUpperLeftWH(minX, minY, maxX - minX, maxY - minY);
@@ -508,15 +471,15 @@ ExpressionResult evaluateInterpolate(
                 evaluatedValue(start.value()),
                 expression.end().ShortDebugString(),
                 evaluatedValue(end.value()),
-                indentText(start.value().tree, 4),
-                indentText(end.value().tree, 4)));
+                hstd::indent(start.value().tree, 4),
+                hstd::indent(end.value().tree, 4)));
     }
 
-    auto   startProto = pointProto(*startPoint);
-    auto   endProto   = pointProto(*endPoint);
+    auto   startProto = hstd::serde::write_serde<proto::Point>(*startPoint);
+    auto   endProto   = hstd::serde::write_serde<proto::Point>(*endPoint);
     double bias       = expression.has_bias() ? expression.bias() : 0.5;
 
-    Point value = makePoint(
+    Point value = Point(
         startProto.x() + (endProto.x() - startProto.x()) * bias,
         startProto.y() + (endProto.y() - startProto.y()) * bias);
 
@@ -532,8 +495,8 @@ ExpressionResult evaluateInterpolate(
             "{}",
             bias,
             format_expression_value(value),
-            indentText(start.value().tree, 8),
-            indentText(end.value().tree, 8)),
+            hstd::indent(start.value().tree, 8),
+            hstd::indent(end.value().tree, 8)),
     };
 }
 
@@ -575,13 +538,13 @@ ExpressionResult evaluatePath(
                     index,
                     operand.ShortDebugString(),
                     evaluatedValue(value.value()),
-                    indentText(value.value().tree, 4)));
+                    hstd::indent(value.value().tree, 4)));
         }
 
         points.push_back(*point);
 
         tree += fmt::format(
-            "\n        [{}] =\n{}", index, indentText(value.value().tree, 12));
+            "\n        [{}] =\n{}", index, hstd::indent(value.value().tree, 12));
     }
 
     Path value = Path::FromPolyline(points);
@@ -604,7 +567,7 @@ double measuredValue(ExpressionValue const& value, proto::GeometryMeasureKind ki
                 } else if constexpr (std::is_same_v<Value, Point>) {
                     return 0.0;
                 } else if constexpr (std::is_same_v<Value, Rect>) {
-                    auto rect = rectProto(item);
+                    auto rect = hstd::serde::write_serde<proto::Rect>(item);
                     return 2.0 * (rect.width() + rect.height());
                 } else {
                     return item.lengthAsMultiline();
@@ -614,23 +577,16 @@ double measuredValue(ExpressionValue const& value, proto::GeometryMeasureKind ki
     }
 
     auto bounds = expressionBounds(value).value();
-    auto rect   = rectProto(bounds);
+    auto rect   = hstd::serde::write_serde<proto::Rect>(bounds);
 
     switch (kind) {
         case proto::MEASURE_MIN_X: return rect.x();
-
         case proto::MEASURE_MAX_X: return rect.x() + rect.width();
-
         case proto::MEASURE_MIN_Y: return rect.y();
-
         case proto::MEASURE_MAX_Y: return rect.y() + rect.height();
-
         case proto::MEASURE_AREA: return rect.width() * rect.height();
-
         case proto::MEASURE_WIDTH: return rect.width();
-
         case proto::MEASURE_HEIGHT: return rect.height();
-
         case proto::MEASURE_LENGTH: break;
     }
 
@@ -660,7 +616,7 @@ ExpressionResult evaluateMeasure(
                 measureName(expression.kind()),
                 expression.ref().ShortDebugString(),
                 evaluatedValue(operand.value()),
-                indentText(operand.value().tree, 4)));
+                hstd::indent(operand.value().tree, 4)));
     }
 
     double value = measuredValue(operand.value().value, expression.kind());
@@ -675,33 +631,33 @@ ExpressionResult evaluateMeasure(
             "{}",
             measureName(expression.kind()),
             value,
-            indentText(operand.value().tree, 8)),
+            hstd::indent(operand.value().tree, 8)),
     };
 }
 
 Point addPoints(Point const& lhs, Point const& rhs) {
-    auto left  = pointProto(lhs);
-    auto right = pointProto(rhs);
+    auto left  = hstd::serde::write_serde<proto::Point>(lhs);
+    auto right = hstd::serde::write_serde<proto::Point>(rhs);
 
-    return makePoint(left.x() + right.x(), left.y() + right.y());
+    return Point(left.x() + right.x(), left.y() + right.y());
 }
 
 Point subtractPoints(Point const& lhs, Point const& rhs) {
-    auto left  = pointProto(lhs);
-    auto right = pointProto(rhs);
+    auto left  = hstd::serde::write_serde<proto::Point>(lhs);
+    auto right = hstd::serde::write_serde<proto::Point>(rhs);
 
-    return makePoint(left.x() - right.x(), left.y() - right.y());
+    return Point(left.x() - right.x(), left.y() - right.y());
 }
 
 Point scalePoint(Point const& point, double scalar) {
-    auto value = pointProto(point);
+    auto value = hstd::serde::write_serde<proto::Point>(point);
 
-    return makePoint(value.x() * scalar, value.y() * scalar);
+    return Point(value.x() * scalar, value.y() * scalar);
 }
 
 Rect translateRect(Rect const& rect, Point const& offset) {
-    auto value = rectProto(rect);
-    auto point = pointProto(offset);
+    auto value = hstd::serde::write_serde<proto::Rect>(rect);
+    auto point = hstd::serde::write_serde<proto::Point>(offset);
 
     return Rect::FromUpperLeftWH(
         value.x() + point.x(), value.y() + point.y(), value.width(), value.height());
@@ -735,8 +691,8 @@ ExpressionResult invalidMath(
             expression.rhs().ShortDebugString(),
             evaluatedValue(rhs),
             reason,
-            indentText(lhs.tree, 4),
-            indentText(rhs.tree, 4)));
+            hstd::indent(lhs.tree, 4),
+            hstd::indent(rhs.tree, 4)));
 }
 
 ExpressionResult applyMath(
@@ -863,8 +819,8 @@ ExpressionResult applyMath(
             "{}",
             mathName(expression.op()),
             format_expression_value(result),
-            indentText(lhs.tree, 8),
-            indentText(rhs.tree, 8)),
+            hstd::indent(lhs.tree, 8),
+            hstd::indent(rhs.tree, 8)),
     };
 }
 
@@ -920,7 +876,7 @@ ExpressionResult evaluateExpression(
         }
 
         case proto::GeometryElementRef::Ref::kPoint: {
-            Point value = makePoint(expression.point().x(), expression.point().y());
+            Point value = Point(expression.point().x(), expression.point().y());
 
             return EvaluatedExpression{
                 .value = value,
@@ -1048,9 +1004,9 @@ GeometryCheckResult runOp(
                 "{}",
                 result.error().message(),
                 format_expression_value(firstExpression.value().value),
-                indentText(firstExpression.value().tree, 4),
+                hstd::indent(firstExpression.value().tree, 4),
                 format_expression_value(secondExpression.value().value),
-                indentText(secondExpression.value().tree, 4))));
+                hstd::indent(secondExpression.value().tree, 4))));
 }
 
 
@@ -1355,7 +1311,7 @@ GeometryCheckResult runCheck(
                             index,
                             reference.ShortDebugString(),
                             evaluatedValue(expression.value()),
-                            indentText(expression.value().tree, 4)));
+                            hstd::indent(expression.value().tree, 4)));
                 }
 
                 bounds.push_back(itemBounds.value());
@@ -1370,7 +1326,7 @@ GeometryCheckResult runCheck(
 
             for (int index = 0; index < static_cast<int>(trees.size()); ++index) {
                 context += fmt::format(
-                    "\nelements[{}] =\n{}", index, indentText(trees.at(index), 4));
+                    "\nelements[{}] =\n{}", index, hstd::indent(trees.at(index), 4));
             }
 
             return failure(context);

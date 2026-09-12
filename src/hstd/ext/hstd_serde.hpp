@@ -279,6 +279,18 @@ struct proto_serde<double, double> {
     }
 };
 
+template <typename Enum>
+std::string enum_name(Enum value) {
+    auto const* descriptor      = google::protobuf::GetEnumDescriptor<Enum>();
+    auto const* valueDescriptor = descriptor->FindValueByNumber(static_cast<int>(value));
+
+    if (valueDescriptor == nullptr) {
+        throw std::invalid_argument("Unknown protobuf enum value");
+    }
+
+    return std::string(valueDescriptor->name());
+}
+
 
 std::string getJString(google::protobuf::Message const& message);
 
