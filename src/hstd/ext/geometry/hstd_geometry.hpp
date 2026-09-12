@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/Vec.hpp"
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/linestring.hpp>
@@ -33,6 +34,8 @@ struct Padding {
     double getBottom() const { return bottom; }
     double getLeft() const { return left; }
     double getRight() const { return right; }
+    double getWidth() const { return getLeft() + getRight(); }
+    double getHeight() const { return getTop() + getBottom(); }
 
     Padding& setTop(double top) {
         this->top = top;
@@ -196,6 +199,189 @@ struct access<hstd::ext::geometry::Point, 1> {
 };
 
 } // namespace boost::geometry::traits
+
+
+namespace hstd::ext::geometry {
+
+
+struct Path {
+    DECL_DESCRIBED_ENUM(CommandType, MoveTo, LineTo, QuadTo, CubicTo, CloseSubpath);
+
+    struct Command {
+        CommandType type;
+        Point       p1;
+        Point       p2;
+        Point       p3;
+
+        DESC_FIELDS(Command, (type, p1, p2, p3));
+
+        static Command moveTo(Point const& to) {
+            return Command{.type = CommandType::MoveTo, .p1 = to};
+        }
+
+        static Command lineTo(Point const& to) {
+            return Command{.type = CommandType::LineTo, .p1 = to};
+        }
+
+        static Command quadTo(Point const& control, Point const& to) {
+            return Command{
+                .type = CommandType::QuadTo,
+                .p1   = control,
+                .p2   = to,
+            };
+        }
+
+        static Command cubicTo(
+            Point const& control1,
+            Point const& control2,
+            Point const& to) {
+            return Command{
+                .type = CommandType::CubicTo,
+                .p1   = control1,
+                .p2   = control2,
+                .p3   = to,
+            };
+        }
+
+        static Command closeSubpath() {
+            return Command{.type = CommandType::CloseSubpath};
+        }
+    };
+
+    std::vector<Command> commands;
+
+  private:
+    template <typename Cmd, typename Fn>
+        requires std::same_as<std::remove_const_t<Cmd>, Command>
+    static void forEachUsedPoint(Cmd& cmd, Fn&& fn) {
+        switch (cmd.type) {
+            case CommandType::MoveTo:
+            case CommandType::LineTo: fn(cmd.p1); break;
+            case CommandType::QuadTo:
+                fn(cmd.p1);
+                fn(cmd.p2);
+                break;
+            case CommandType::CubicTo:
+                fn(cmd.p1);
+                fn(cmd.p2);
+                fn(cmd.p3);
+                break;
+            case CommandType::CloseSubpath: break;
+        }
+    }
+
+
+  public:
+    static Path FromPolyline(hstd::Vec<Point> const& points) {
+        Path result;
+        for (int i = 0; i < points.size(); ++i) {
+            if (i == 0) {
+                result.moveTo(points.at(i));
+            } else {
+                result.lineTo(points.at(i));
+            }
+        }
+
+        return result;
+    }
+
+    double lengthAsMultiline() const {
+        double               res = 0;
+        std::optional<Point> prev_point;
+        for (auto const& cmd : commands) {
+            forEachUsedPoint(cmd, [&](Point const& point) {
+                if (prev_point.has_value()) {
+                    res += (point - prev_point.value()).length();
+                }
+                prev_point = point;
+            });
+        }
+
+        return res;
+    }
+
+
+    Path operator*(double v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p *= v; });
+        }
+        return out;
+    }
+
+    Path operator/(double v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p /= v; });
+        }
+        return out;
+    }
+
+    Path operator+(Point const& v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p += v; });
+        }
+        return out;
+    }
+
+    Path operator-(Point const& v) const {
+        Path out = *this;
+        for (auto& cmd : out.commands) {
+            forEachUsedPoint(cmd, [&](Point& p) { p -= v; });
+        }
+        return out;
+    }
+
+
+    DESC_FIELDS(Path, (commands));
+
+    bool empty() const { return commands.empty(); }
+
+    Path& moveTo(Point const& to) {
+        commands.push_back(Command::moveTo(to));
+        return *this;
+    }
+
+    Path& moveTo(double x, double y) { return moveTo(Point{x, y}); }
+
+    Path& lineTo(Point const& to) {
+        commands.push_back(Command::lineTo(to));
+        return *this;
+    }
+
+    Path& lineTo(double x, double y) { return lineTo(Point{x, y}); }
+
+    Path& quadTo(Point const& control, Point const& to) {
+        commands.push_back(Command::quadTo(control, to));
+        return *this;
+    }
+
+    Path& quadTo(double cx, double cy, double x, double y) {
+        return quadTo(Point{cx, cy}, Point{x, y});
+    }
+
+    Path& cubicTo(Point const& control1, Point const& control2, Point const& to) {
+        commands.push_back(Command::cubicTo(control1, control2, to));
+        return *this;
+    }
+
+    Path& cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
+        return cubicTo(Point{c1x, c1y}, Point{c2x, c2y}, Point{x, y});
+    }
+
+    Path& closeSubpath() {
+        commands.push_back(Command::closeSubpath());
+        return *this;
+    }
+
+    Path& addPolyline(std::vector<Point> const& points);
+
+    Point currentPosition() const;
+};
+
+} // namespace hstd::ext::geometry
+
 
 namespace hstd::ext::geometry {
 
@@ -363,6 +549,10 @@ struct Rect : bg::model::box<Point> {
         return Rect(ul.x(), ul.y(), w, h);
     }
 
+    static Rect FromUpperLeftWH(double x, double y, double w, double h) {
+        return Rect(x, y, w, h);
+    }
+
     double min_x() const { return bg::get<bg::min_corner, 0>(*this); }
     double max_x() const { return bg::get<bg::max_corner, 0>(*this); }
     double min_y() const { return bg::get<bg::min_corner, 1>(*this); }
@@ -393,6 +583,10 @@ struct Rect : bg::model::box<Point> {
 
     Rect operator/(double other) const {
         return Rect(x() / other, y() / other, width() / other, height() / other);
+    }
+
+    Rect operator+(Point const& p) const {
+        return Rect(x() + p.x(), y() + p.y(), width(), height());
     }
 
     Rect operator*(double other) const {
@@ -467,156 +661,6 @@ struct indexed_access<hstd::ext::geometry::Rect, max_corner, Dimension> {
 
 } // namespace boost::geometry::traits
 
-
-namespace hstd::ext::geometry {
-
-
-struct Path {
-    DECL_DESCRIBED_ENUM(CommandType, MoveTo, LineTo, QuadTo, CubicTo, CloseSubpath);
-
-    struct Command {
-        CommandType type;
-        Point       p1;
-        Point       p2;
-        Point       p3;
-
-        DESC_FIELDS(Command, (type, p1, p2, p3));
-
-        static Command moveTo(Point const& to) {
-            return Command{.type = CommandType::MoveTo, .p1 = to};
-        }
-
-        static Command lineTo(Point const& to) {
-            return Command{.type = CommandType::LineTo, .p1 = to};
-        }
-
-        static Command quadTo(Point const& control, Point const& to) {
-            return Command{
-                .type = CommandType::QuadTo,
-                .p1   = control,
-                .p2   = to,
-            };
-        }
-
-        static Command cubicTo(
-            Point const& control1,
-            Point const& control2,
-            Point const& to) {
-            return Command{
-                .type = CommandType::CubicTo,
-                .p1   = control1,
-                .p2   = control2,
-                .p3   = to,
-            };
-        }
-
-        static Command closeSubpath() {
-            return Command{.type = CommandType::CloseSubpath};
-        }
-    };
-
-    std::vector<Command> commands;
-
-  private:
-    template <typename Fn>
-    static void forEachUsedPoint(Command& cmd, Fn&& fn) {
-        switch (cmd.type) {
-            case CommandType::MoveTo:
-            case CommandType::LineTo: fn(cmd.p1); break;
-            case CommandType::QuadTo:
-                fn(cmd.p1);
-                fn(cmd.p2);
-                break;
-            case CommandType::CubicTo:
-                fn(cmd.p1);
-                fn(cmd.p2);
-                fn(cmd.p3);
-                break;
-            case CommandType::CloseSubpath: break;
-        }
-    }
-
-  public:
-    Path operator*(double v) const {
-        Path out = *this;
-        for (auto& cmd : out.commands) {
-            forEachUsedPoint(cmd, [&](Point& p) { p *= v; });
-        }
-        return out;
-    }
-
-    Path operator/(double v) const {
-        Path out = *this;
-        for (auto& cmd : out.commands) {
-            forEachUsedPoint(cmd, [&](Point& p) { p /= v; });
-        }
-        return out;
-    }
-
-    Path operator+(Point const& v) const {
-        Path out = *this;
-        for (auto& cmd : out.commands) {
-            forEachUsedPoint(cmd, [&](Point& p) { p += v; });
-        }
-        return out;
-    }
-
-    Path operator-(Point const& v) const {
-        Path out = *this;
-        for (auto& cmd : out.commands) {
-            forEachUsedPoint(cmd, [&](Point& p) { p -= v; });
-        }
-        return out;
-    }
-
-
-    DESC_FIELDS(Path, (commands));
-
-    bool empty() const { return commands.empty(); }
-
-    Path& moveTo(Point const& to) {
-        commands.push_back(Command::moveTo(to));
-        return *this;
-    }
-
-    Path& moveTo(double x, double y) { return moveTo(Point{x, y}); }
-
-    Path& lineTo(Point const& to) {
-        commands.push_back(Command::lineTo(to));
-        return *this;
-    }
-
-    Path& lineTo(double x, double y) { return lineTo(Point{x, y}); }
-
-    Path& quadTo(Point const& control, Point const& to) {
-        commands.push_back(Command::quadTo(control, to));
-        return *this;
-    }
-
-    Path& quadTo(double cx, double cy, double x, double y) {
-        return quadTo(Point{cx, cy}, Point{x, y});
-    }
-
-    Path& cubicTo(Point const& control1, Point const& control2, Point const& to) {
-        commands.push_back(Command::cubicTo(control1, control2, to));
-        return *this;
-    }
-
-    Path& cubicTo(double c1x, double c1y, double c2x, double c2y, double x, double y) {
-        return cubicTo(Point{c1x, c1y}, Point{c2x, c2y}, Point{x, y});
-    }
-
-    Path& closeSubpath() {
-        commands.push_back(Command::closeSubpath());
-        return *this;
-    }
-
-    Path& addPolyline(std::vector<Point> const& points);
-
-    Point currentPosition() const;
-};
-
-} // namespace hstd::ext::geometry
 
 template <>
 struct fmt::formatter<hstd::ext::geometry::Path> {

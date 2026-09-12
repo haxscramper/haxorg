@@ -228,13 +228,13 @@ void appendNoAlgorithmCluster(
 
             GroupAttributePayload payload{};
             payload.set_parent_stable_id(parentId);
-            appendAttribute(vertex->mutable_attributes(), payload);
 
             if (cluster.has_outer_padding()) {
                 *payload.mutable_base()->mutable_outer_padding() = cluster
                                                                        .outer_padding();
             }
 
+            appendAttribute(vertex->mutable_attributes(), payload);
             break;
         }
 
@@ -274,13 +274,13 @@ void appendClusterKind(
             kind                          = LayoutKind::Graphviz;
             GroupAttributePayload payload = cluster.graphviz();
             payload.clear_parent_stable_id();
-            appendAttribute(vertex->mutable_attributes(), payload);
 
             if (cluster.has_outer_padding()) {
                 *payload.mutable_base()->mutable_outer_padding() = cluster
                                                                        .outer_padding();
             }
 
+            appendAttribute(vertex->mutable_attributes(), payload);
             break;
         }
 

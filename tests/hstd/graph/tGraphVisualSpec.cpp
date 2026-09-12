@@ -13,12 +13,12 @@
 
 namespace {
 
-using DiagramTest = hstd::ext::graph::diagram::proto::DiagramTest;
-namespace fs      = std::filesystem;
+using DiagramTest      = hstd::ext::graph::diagram::proto::DiagramTest;
+namespace fs           = std::filesystem;
+fs::path const testDir = __CURRENT_FILE_DIR__ / "diagram_tests";
 
 std::vector<fs::path> getDiagramTestFiles() {
     std::vector<fs::path> result;
-    fs::path const        testDir = __CURRENT_FILE_DIR__ / "diagram_tests";
 
     for (auto const& entry : fs::directory_iterator(testDir)) {
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
@@ -49,8 +49,10 @@ class GraphDiagramSpecTest : public testing::TestWithParam<fs::path> {};
 TEST_P(GraphDiagramSpecTest, HasValidGeometry) {
     fs::path const& path = GetParam();
     auto            test = hstd::serde::read_message_from_json_file<DiagramTest>(path);
-    auto            debug_dir = getDebugFile();
-    auto const      errors    = hstd::ext::graph::diagram::runSpec(test, debug_dir);
+    auto            debug_dir = getDebugFile(
+        "", false, hstd::normalize(hstd::fs::relative(path, testDir).native()));
+
+    auto const errors = hstd::ext::graph::diagram::runSpec(test, debug_dir);
 
     for (auto const& error : errors) {
         ADD_FAILURE() << path << '\n'

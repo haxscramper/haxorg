@@ -38,9 +38,7 @@ double getTolerance(Message const& message) {
 DistanceCheck getDistanceCheck(proto::GeometryDistanceCheck value) {
     switch (value) {
         case proto::DISTANCE_BOTH: return DistanceCheck::Both;
-
         case proto::DISTANCE_X_ONLY: return DistanceCheck::XOnly;
-
         case proto::DISTANCE_Y_ONLY: return DistanceCheck::YOnly;
     }
 
@@ -81,18 +79,15 @@ GeometryElementListResult readElements(
 
         switch (element.shape_case()) {
             case proto::GeometryElement::kRect:
-                converted.shape = hstd::serde::read_serde<proto::Rect, Rect>(
-                    element.rect());
+                converted.shape = hstd::serde::read_serde<Rect>(element.rect());
                 break;
 
             case proto::GeometryElement::kPoint:
-                converted.shape = hstd::serde::read_serde<proto::Point, Point>(
-                    element.point());
+                converted.shape = hstd::serde::read_serde<Point>(element.point());
                 break;
 
             case proto::GeometryElement::kPath:
-                converted.shape = hstd::serde::read_serde<proto::Path, Path>(
-                    element.path());
+                converted.shape = hstd::serde::read_serde<Path>(element.path());
                 break;
 
             case proto::GeometryElement::SHAPE_NOT_SET:
@@ -118,79 +113,885 @@ ElementIndex makeElementIndex(GeometryElementList const& elements) {
     return result;
 }
 
-Point anchorPoint(Rect const& bounds, proto::GeometryAnchor anchor) {
-    auto rect = hstd::serde::write_serde<proto::Rect>(bounds);
 
-    double x = rect.x();
-    double y = rect.y();
+using ExpressionValue = std::variant<double, Rect, Point, Path>;
 
-    switch (anchor) {
-        case proto::UPPER_LEFT: break;
+struct EvaluatedExpression {
+    ExpressionValue value;
+    std::string     tree;
+};
 
-        case proto::UPPER_CENTER: x += rect.width() / 2.0; break;
+using ExpressionResult = boost::outcome_v2::result<EvaluatedExpression, GeometryError>;
 
-        case proto::UPPER_RIGHT: x += rect.width(); break;
+std::string indentText(std::string const& text, int count) {
+    std::string prefix(static_cast<std::string::size_type>(count), ' ');
+    std::string result;
+    bool        first = true;
 
-        case proto::CENTER_LEFT: y += rect.height() / 2.0; break;
+    for (char value : text) {
+        if (first) {
+            result += prefix;
+            first = false;
+        }
 
-        case proto::CENTER:
-            x += rect.width() / 2.0;
-            y += rect.height() / 2.0;
-            break;
+        result += value;
 
-        case proto::CENTER_RIGHT:
-            x += rect.width();
-            y += rect.height() / 2.0;
-            break;
-
-        case proto::LOWER_LEFT: y += rect.height(); break;
-
-        case proto::LOWER_CENTER:
-            x += rect.width() / 2.0;
-            y += rect.height();
-            break;
-
-        case proto::LOWER_RIGHT:
-            x += rect.width();
-            y += rect.height();
-            break;
-
-        case proto::WHOLE_SHAPE:
-            throw std::logic_error("WHOLE_SHAPE cannot be converted to an anchor point");
+        if (value == '\n') { first = true; }
     }
 
-    proto::Point point;
-    point.set_x(x);
-    point.set_y(y);
-    return hstd::serde::read_serde<proto::Point, Point>(point);
+    return result;
+}
+
+proto::Point writePoint(double x, double y) {
+    proto::Point result;
+    result.set_x(x);
+    result.set_y(y);
+    return result;
+}
+
+Point makePoint(double x, double y) {
+    return hstd::serde::read_serde<Point>(writePoint(x, y));
+}
+
+proto::Point pointProto(Point const& point) {
+    return hstd::serde::write_serde<proto::Point>(point);
+}
+
+proto::Rect rectProto(Rect const& rect) {
+    return hstd::serde::write_serde<proto::Rect>(rect);
+}
+
+std::string format_expression_type(ExpressionValue const& value) {
+    return std::visit(
+        [](auto const& item) -> std::string {
+            using Value = std::decay_t<decltype(item)>;
+
+            if constexpr (std::is_same_v<Value, double>) {
+                return "scalar";
+            } else if constexpr (std::is_same_v<Value, Rect>) {
+                return "rectangle";
+            } else if constexpr (std::is_same_v<Value, Point>) {
+                return "point";
+            } else {
+                return "path";
+            }
+        },
+        value);
+}
+
+std::string format_expression_value(ExpressionValue const& value) {
+    return std::visit(
+        [](auto const& item) -> std::string {
+            using Value = std::decay_t<decltype(item)>;
+
+            if constexpr (std::is_same_v<Value, double>) {
+                return fmt::format("{}", item);
+            } else if constexpr (std::is_same_v<Value, Rect>) {
+                return hstd::serde::write_serde<proto::Rect>(item).ShortDebugString();
+            } else if constexpr (std::is_same_v<Value, Point>) {
+                return hstd::serde::write_serde<proto::Point>(item).ShortDebugString();
+            } else {
+                return hstd::serde::write_serde<proto::Path>(item).ShortDebugString();
+            }
+        },
+        value);
+}
+
+std::string evaluatedValue(EvaluatedExpression const& value) {
+    return fmt::format(
+        "{}: {}",
+        format_expression_type(value.value),
+        format_expression_value(value.value));
+}
+
+ExpressionResult expressionFailure(std::string const& message) {
+    return boost::outcome_v2::failure(GeometryError::init(message));
+}
+
+boost::outcome_v2::result<Rect, GeometryError> expressionBounds(
+    ExpressionValue const& value) {
+    return std::visit(
+        [](auto const& item) -> boost::outcome_v2::result<Rect, GeometryError> {
+            using Value = std::decay_t<decltype(item)>;
+
+            if constexpr (std::is_same_v<Value, double>) {
+                return boost::outcome_v2::failure(
+                    GeometryError::init("Cannot compute bounds of a scalar expression"));
+            } else {
+                return detail::boundsOf(item);
+            }
+        },
+        value);
+}
+
+Point pointAnchor(Rect const& bounds, proto::GeometryPointAnchor anchor) {
+    auto rect = rectProto(bounds);
+
+    double left    = rect.x();
+    double right   = rect.x() + rect.width();
+    double upper   = rect.y();
+    double lower   = rect.y() + rect.height();
+    double centerX = left + rect.width() / 2.0;
+    double centerY = upper + rect.height() / 2.0;
+
+    switch (anchor) {
+        case proto::POINT_ANCHOR_UPPER_LEFT: return makePoint(left, upper);
+        case proto::POINT_ANCHOR_UPPER_CENTER: return makePoint(centerX, upper);
+        case proto::POINT_ANCHOR_UPPER_RIGHT: return makePoint(right, upper);
+        case proto::POINT_ANCHOR_CENTER_LEFT: return makePoint(left, centerY);
+        case proto::POINT_ANCHOR_CENTER: return makePoint(centerX, centerY);
+        case proto::POINT_ANCHOR_CENTER_RIGHT: return makePoint(right, centerY);
+        case proto::POINT_ANCHOR_LOWER_LEFT: return makePoint(left, lower);
+        case proto::POINT_ANCHOR_LOWER_CENTER: return makePoint(centerX, lower);
+        case proto::POINT_ANCHOR_LOWER_RIGHT: return makePoint(right, lower);
+    }
+
+    throw std::logic_error(
+        fmt::format("Unhandled GeometryPointAnchor value {}", static_cast<int>(anchor)));
+}
+
+Path sideAnchor(Rect const& bounds, proto::GeometrySideAnchor anchor) {
+    Point ul = pointAnchor(bounds, proto::POINT_ANCHOR_UPPER_LEFT);
+    Point ur = pointAnchor(bounds, proto::POINT_ANCHOR_UPPER_RIGHT);
+    Point ll = pointAnchor(bounds, proto::POINT_ANCHOR_LOWER_LEFT);
+    Point lr = pointAnchor(bounds, proto::POINT_ANCHOR_LOWER_RIGHT);
+
+    switch (anchor) {
+        case proto::SIDE_ANCHOR_UPPER: return Path::FromPolyline({ul, ur});
+        case proto::SIDE_ANCHOR_RIGHT: return Path::FromPolyline({ur, lr});
+        case proto::SIDE_ANCHOR_LOWER: return Path::FromPolyline({ll, lr});
+        case proto::SIDE_ANCHOR_LEFT: return Path::FromPolyline({ul, ll});
+    }
+
+    throw std::logic_error(
+        fmt::format("Unhandled GeometrySideAnchor value {}", static_cast<int>(anchor)));
+}
+
+std::string pointAnchorName(proto::GeometryPointAnchor anchor) {
+    return proto::GeometryPointAnchor_Name(anchor);
+}
+
+std::string sideAnchorName(proto::GeometrySideAnchor anchor) {
+    return proto::GeometrySideAnchor_Name(anchor);
+}
+
+std::string measureName(proto::GeometryMeasureKind kind) {
+    return proto::GeometryMeasureKind_Name(kind);
+}
+
+std::string mathName(proto::GeometryMathOp op) { return proto::GeometryMathOp_Name(op); }
+
+ExpressionResult evaluateExpression(
+    ElementIndex const&                   elements,
+    proto::GeometryElementRef::Ref const& expression);
+
+ExpressionResult evaluateNested(
+    ElementIndex const&                   elements,
+    proto::GeometryElementRef::Ref const& expression,
+    std::string const&                    operation,
+    std::string const&                    operand) {
+    auto result = evaluateExpression(elements, expression);
+
+    if (!result) {
+        return expressionFailure(
+            fmt::format(
+                "Cannot evaluate `{}` element reference:\n"
+                "    {} = {}\n"
+                "\n"
+                "{}",
+                operation,
+                operand,
+                expression.ShortDebugString(),
+                indentText(result.error().message(), 4)));
+    }
+
+    return result;
+}
+
+ExpressionResult evaluateShape(
+    ElementIndex const&                          elements,
+    proto::GeometryElementRef::Ref::Shape const& expression) {
+    auto const iterator = elements.find(expression.id());
+
+    if (iterator == elements.end()) {
+        return expressionFailure(
+            fmt::format(
+                "Cannot evaluate `Shape` element reference:\n"
+                "    id = '{}'\n"
+                "\n"
+                "No geometry element with this ID exists.",
+                expression.id()));
+    }
+
+    auto value = std::visit(
+        [](auto ptr) { return ExpressionValue{ptr}; }, *iterator->second);
+
+    return EvaluatedExpression{
+        .value = std::move(value),
+        .tree  = fmt::format(
+            "Shape\n"
+            "    id = {}\n"
+            "    value = {}",
+            expression.id(),
+            format_expression_value(value)),
+    };
+}
+
+ExpressionResult evaluateAnchor(
+    ElementIndex const&                           elements,
+    proto::GeometryElementRef::Ref::Anchor const& expression) {
+    auto nested = evaluateNested(elements, expression.ref(), "Anchor", "ref");
+
+    if (!nested) { return boost::outcome_v2::failure(nested.error()); }
+
+    auto bounds = expressionBounds(nested.value().value);
+
+    if (!bounds) {
+        return expressionFailure(
+            fmt::format(
+                "Cannot evaluate `Anchor` element reference:\n"
+                "    ref = {}\n"
+                "        evaluated to {}\n"
+                "\n"
+                "    Expected a point, rectangle, or path expression.\n"
+                "\n"
+                "{}",
+                expression.ref().ShortDebugString(),
+                evaluatedValue(nested.value()),
+                indentText(nested.value().tree, 4)));
+    }
+
+    switch (expression.kind_case()) {
+        case proto::GeometryElementRef::Ref::Anchor::kPoint: {
+            Point value = pointAnchor(bounds.value(), expression.point());
+
+            return EvaluatedExpression{
+                .value = value,
+                .tree  = fmt::format(
+                    "Anchor\n"
+                    "    point = {}\n"
+                    "    value = {}\n"
+                    "    ref =\n"
+                    "{}",
+                    pointAnchorName(expression.point()),
+                    format_expression_value(value),
+                    indentText(nested.value().tree, 8)),
+            };
+        }
+
+        case proto::GeometryElementRef::Ref::Anchor::kSide: {
+            Path value = sideAnchor(bounds.value(), expression.side());
+
+            return EvaluatedExpression{
+                .value = value,
+                .tree  = fmt::format(
+                    "Anchor\n"
+                    "    side = {}\n"
+                    "    value = {}\n"
+                    "    ref =\n"
+                    "{}",
+                    sideAnchorName(expression.side()),
+                    format_expression_value(value),
+                    indentText(nested.value().tree, 8)),
+            };
+        }
+
+        case proto::GeometryElementRef::Ref::Anchor::KIND_NOT_SET:
+            return expressionFailure(
+                fmt::format(
+                    "Cannot evaluate `Anchor` element reference:\n"
+                    "    ref = {}\n"
+                    "        evaluated to {}\n"
+                    "\n"
+                    "    The anchor kind is not set.",
+                    expression.ref().ShortDebugString(),
+                    evaluatedValue(nested.value())));
+    }
+
+    return expressionFailure(
+        fmt::format(
+            "Cannot evaluate `Anchor` element reference with kind {}.",
+            static_cast<int>(expression.kind_case())));
+}
+
+ExpressionResult evaluateBBox(
+    ElementIndex const&                         elements,
+    proto::GeometryElementRef::Ref::BBox const& expression) {
+    if (expression.refs().empty()) {
+        return expressionFailure(
+            "Cannot evaluate `BBox` element reference: no operands were provided.");
+    }
+
+    double minX = std::numeric_limits<double>::infinity();
+    double minY = std::numeric_limits<double>::infinity();
+    double maxX = -std::numeric_limits<double>::infinity();
+    double maxY = -std::numeric_limits<double>::infinity();
+
+    std::string tree = "BBox\n    refs =";
+
+    for (int index = 0; index < expression.refs_size(); ++index) {
+        auto const& operand = expression.refs(index);
+        auto        value   = evaluateNested(
+            elements, operand, "BBox", fmt::format("refs[{}]", index));
+
+        if (!value) { return boost::outcome_v2::failure(value.error()); }
+
+        auto bounds = expressionBounds(value.value().value);
+
+        if (!bounds) {
+            return expressionFailure(
+                fmt::format(
+                    "Cannot evaluate `BBox` element reference:\n"
+                    "    refs[{}] = {}\n"
+                    "        evaluated to {}\n"
+                    "\n"
+                    "    Expected a point, rectangle, or path expression.\n"
+                    "\n"
+                    "{}",
+                    index,
+                    operand.ShortDebugString(),
+                    evaluatedValue(value.value()),
+                    indentText(value.value().tree, 4)));
+        }
+
+        auto rect = rectProto(bounds.value());
+
+        minX = std::min(minX, rect.x());
+        minY = std::min(minY, rect.y());
+        maxX = std::max(maxX, rect.x() + rect.width());
+        maxY = std::max(maxY, rect.y() + rect.height());
+
+        tree += fmt::format(
+            "\n        [{}] =\n{}", index, indentText(value.value().tree, 12));
+    }
+
+    Rect value = Rect::FromUpperLeftWH(minX, minY, maxX - minX, maxY - minY);
+
+    tree += fmt::format("\n    value = {}", format_expression_value(value));
+
+    return EvaluatedExpression{
+        .value = value,
+        .tree  = std::move(tree),
+    };
+}
+
+ExpressionResult evaluateInterpolate(
+    ElementIndex const&                                elements,
+    proto::GeometryElementRef::Ref::Interpolate const& expression) {
+    auto start = evaluateNested(elements, expression.start(), "Interpolate", "start");
+
+    if (!start) { return boost::outcome_v2::failure(start.error()); }
+
+    auto end = evaluateNested(elements, expression.end(), "Interpolate", "end");
+
+    if (!end) { return boost::outcome_v2::failure(end.error()); }
+
+    auto startPoint = std::get_if<Point>(&start.value().value);
+    auto endPoint   = std::get_if<Point>(&end.value().value);
+
+    if (startPoint == nullptr || endPoint == nullptr) {
+        return expressionFailure(
+            fmt::format(
+                "Cannot evaluate `Interpolate` element reference:\n"
+                "    start = {}\n"
+                "        evaluated to {}\n"
+                "    end = {}\n"
+                "        evaluated to {}\n"
+                "\n"
+                "    Expected two point expressions.\n"
+                "\n"
+                "start evaluation:\n"
+                "{}\n"
+                "end evaluation:\n"
+                "{}",
+                expression.start().ShortDebugString(),
+                evaluatedValue(start.value()),
+                expression.end().ShortDebugString(),
+                evaluatedValue(end.value()),
+                indentText(start.value().tree, 4),
+                indentText(end.value().tree, 4)));
+    }
+
+    auto   startProto = pointProto(*startPoint);
+    auto   endProto   = pointProto(*endPoint);
+    double bias       = expression.has_bias() ? expression.bias() : 0.5;
+
+    Point value = makePoint(
+        startProto.x() + (endProto.x() - startProto.x()) * bias,
+        startProto.y() + (endProto.y() - startProto.y()) * bias);
+
+    return EvaluatedExpression{
+        .value = value,
+        .tree  = fmt::format(
+            "Interpolate\n"
+            "    bias = {}\n"
+            "    value = {}\n"
+            "    start =\n"
+            "{}\n"
+            "    end =\n"
+            "{}",
+            bias,
+            format_expression_value(value),
+            indentText(start.value().tree, 8),
+            indentText(end.value().tree, 8)),
+    };
+}
+
+ExpressionResult evaluatePath(
+    ElementIndex const&                                   elements,
+    proto::GeometryElementRef::Ref::PathExpression const& expression) {
+    if (expression.points_size() < 2) {
+        return expressionFailure(
+            fmt::format(
+                "Cannot evaluate `Path` element reference: expected at least "
+                "two point expressions, received {}.",
+                expression.points_size()));
+    }
+
+    hstd::Vec<Point> points;
+    points.reserve(expression.points_size());
+
+    std::string tree = "Path\n    points =";
+
+    for (int index = 0; index < expression.points_size(); ++index) {
+        auto const& operand = expression.points(index);
+        auto        value   = evaluateNested(
+            elements, operand, "Path", fmt::format("points[{}]", index));
+
+        if (!value) { return boost::outcome_v2::failure(value.error()); }
+
+        auto point = std::get_if<Point>(&value.value().value);
+
+        if (point == nullptr) {
+            return expressionFailure(
+                fmt::format(
+                    "Cannot evaluate `Path` element reference:\n"
+                    "    points[{}] = {}\n"
+                    "        evaluated to {}\n"
+                    "\n"
+                    "    Expected a point expression.\n"
+                    "\n"
+                    "{}",
+                    index,
+                    operand.ShortDebugString(),
+                    evaluatedValue(value.value()),
+                    indentText(value.value().tree, 4)));
+        }
+
+        points.push_back(*point);
+
+        tree += fmt::format(
+            "\n        [{}] =\n{}", index, indentText(value.value().tree, 12));
+    }
+
+    Path value = Path::FromPolyline(points);
+    tree += fmt::format("\n    value = {}", format_expression_value(value));
+
+    return EvaluatedExpression{
+        .value = value,
+        .tree  = std::move(tree),
+    };
+}
+
+double measuredValue(ExpressionValue const& value, proto::GeometryMeasureKind kind) {
+    if (kind == proto::MEASURE_LENGTH) {
+        return std::visit(
+            [](auto const& item) -> double {
+                using Value = std::decay_t<decltype(item)>;
+
+                if constexpr (std::is_same_v<Value, double>) {
+                    return std::abs(item);
+                } else if constexpr (std::is_same_v<Value, Point>) {
+                    return 0.0;
+                } else if constexpr (std::is_same_v<Value, Rect>) {
+                    auto rect = rectProto(item);
+                    return 2.0 * (rect.width() + rect.height());
+                } else {
+                    return item.lengthAsMultiline();
+                }
+            },
+            value);
+    }
+
+    auto bounds = expressionBounds(value).value();
+    auto rect   = rectProto(bounds);
+
+    switch (kind) {
+        case proto::MEASURE_MIN_X: return rect.x();
+
+        case proto::MEASURE_MAX_X: return rect.x() + rect.width();
+
+        case proto::MEASURE_MIN_Y: return rect.y();
+
+        case proto::MEASURE_MAX_Y: return rect.y() + rect.height();
+
+        case proto::MEASURE_AREA: return rect.width() * rect.height();
+
+        case proto::MEASURE_WIDTH: return rect.width();
+
+        case proto::MEASURE_HEIGHT: return rect.height();
+
+        case proto::MEASURE_LENGTH: break;
+    }
+
+    throw std::logic_error(
+        fmt::format("Unhandled GeometryMeasureKind value {}", static_cast<int>(kind)));
+}
+
+ExpressionResult evaluateMeasure(
+    ElementIndex const&                            elements,
+    proto::GeometryElementRef::Ref::Measure const& expression) {
+    auto operand = evaluateNested(elements, expression.ref(), "Measure", "ref");
+
+    if (!operand) { return boost::outcome_v2::failure(operand.error()); }
+
+    if (std::holds_alternative<double>(operand.value().value)
+        && expression.kind() != proto::MEASURE_LENGTH) {
+        return expressionFailure(
+            fmt::format(
+                "Cannot evaluate `Measure` element reference:\n"
+                "    kind = {}\n"
+                "    ref = {}\n"
+                "        evaluated to {}\n"
+                "\n"
+                "    This measure requires a geometry expression.\n"
+                "\n"
+                "{}",
+                measureName(expression.kind()),
+                expression.ref().ShortDebugString(),
+                evaluatedValue(operand.value()),
+                indentText(operand.value().tree, 4)));
+    }
+
+    double value = measuredValue(operand.value().value, expression.kind());
+
+    return EvaluatedExpression{
+        .value = value,
+        .tree  = fmt::format(
+            "Measure\n"
+            "    kind = {}\n"
+            "    value = {}\n"
+            "    ref =\n"
+            "{}",
+            measureName(expression.kind()),
+            value,
+            indentText(operand.value().tree, 8)),
+    };
+}
+
+Point addPoints(Point const& lhs, Point const& rhs) {
+    auto left  = pointProto(lhs);
+    auto right = pointProto(rhs);
+
+    return makePoint(left.x() + right.x(), left.y() + right.y());
+}
+
+Point subtractPoints(Point const& lhs, Point const& rhs) {
+    auto left  = pointProto(lhs);
+    auto right = pointProto(rhs);
+
+    return makePoint(left.x() - right.x(), left.y() - right.y());
+}
+
+Point scalePoint(Point const& point, double scalar) {
+    auto value = pointProto(point);
+
+    return makePoint(value.x() * scalar, value.y() * scalar);
+}
+
+Rect translateRect(Rect const& rect, Point const& offset) {
+    auto value = rectProto(rect);
+    auto point = pointProto(offset);
+
+    return Rect::FromUpperLeftWH(
+        value.x() + point.x(), value.y() + point.y(), value.width(), value.height());
+}
+
+Path translatePath(Path const& path, Point const& offset) { return path + offset; }
+
+ExpressionResult invalidMath(
+    proto::GeometryElementRef::Ref::Math const& expression,
+    EvaluatedExpression const&                  lhs,
+    EvaluatedExpression const&                  rhs,
+    std::string const&                          reason) {
+    return expressionFailure(
+        fmt::format(
+            "Cannot evaluate `Math` element reference:\n"
+            "    op = {}\n"
+            "    lhs = {}\n"
+            "        evaluated to {}\n"
+            "    rhs = {}\n"
+            "        evaluated to {}\n"
+            "\n"
+            "    {}\n"
+            "\n"
+            "lhs evaluation:\n"
+            "{}\n"
+            "rhs evaluation:\n"
+            "{}",
+            mathName(expression.op()),
+            expression.lhs().ShortDebugString(),
+            evaluatedValue(lhs),
+            expression.rhs().ShortDebugString(),
+            evaluatedValue(rhs),
+            reason,
+            indentText(lhs.tree, 4),
+            indentText(rhs.tree, 4)));
+}
+
+ExpressionResult applyMath(
+    proto::GeometryElementRef::Ref::Math const& expression,
+    EvaluatedExpression const&                  lhs,
+    EvaluatedExpression const&                  rhs) {
+    auto scalar_l = std::get_if<double>(&lhs.value);
+    auto scalar_r = std::get_if<double>(&rhs.value);
+    auto point_l  = std::get_if<Point>(&lhs.value);
+    auto point_r  = std::get_if<Point>(&rhs.value);
+    auto rect_l   = std::get_if<Rect>(&lhs.value);
+    auto rect_r   = std::get_if<Rect>(&rhs.value);
+    auto path_l   = std::get_if<Path>(&lhs.value);
+    auto path_r   = std::get_if<Path>(&rhs.value);
+
+    ExpressionValue result;
+
+    switch (expression.op()) {
+        case proto::MATH_ADD:
+            if (scalar_l && scalar_r) {
+                result = *scalar_l + *scalar_r;
+            } else if (point_l && point_r) {
+                result = addPoints(*point_l, *point_r);
+            } else if (rect_l && point_r) {
+                result = *rect_l + *point_r;
+            } else if (point_l && rect_r) {
+                result = *rect_r + *point_l;
+            } else if (path_l && point_r) {
+                result = translatePath(*path_l, *point_r);
+            } else if (point_l && path_r) {
+                result = translatePath(*path_r, *point_l);
+            } else {
+                return invalidMath(
+                    expression,
+                    lhs,
+                    rhs,
+                    "Addition supports scalar + scalar, point + point, "
+                    "and geometry + point.");
+            }
+            break;
+
+        case proto::MATH_SUB:
+            if (scalar_l && scalar_r) {
+                result = *scalar_l - *scalar_r;
+            } else if (point_l && point_r) {
+                result = subtractPoints(*point_l, *point_r);
+            } else if (rect_l && point_r) {
+                result = translateRect(*rect_l, scalePoint(*point_r, -1.0));
+            } else if (path_l && point_r) {
+                result = translatePath(*path_l, scalePoint(*point_r, -1.0));
+            } else {
+                return invalidMath(
+                    expression,
+                    lhs,
+                    rhs,
+                    "Subtraction supports scalar - scalar, point - point, "
+                    "and geometry - point.");
+            }
+            break;
+
+        case proto::MATH_MUL:
+            if (scalar_l && scalar_r) {
+                result = *scalar_l * *scalar_r;
+            } else if (point_l && scalar_r) {
+                result = scalePoint(*point_l, *scalar_r);
+            } else if (scalar_l && point_r) {
+                result = scalePoint(*point_r, *scalar_l);
+            } else if (rect_l && scalar_r) {
+                result = *rect_l * *scalar_r;
+            } else if (scalar_l && rect_r) {
+                result = *rect_r * *scalar_l;
+            } else if (path_l && scalar_r) {
+                result = *path_l * *scalar_r;
+            } else if (scalar_l && path_r) {
+                result = *path_r * *scalar_l;
+            } else {
+                return invalidMath(
+                    expression,
+                    lhs,
+                    rhs,
+                    "Multiplication supports scalar * scalar and "
+                    "geometry * scalar.");
+            }
+            break;
+
+        case proto::MATH_DIV:
+            if (scalar_r == nullptr) {
+                return invalidMath(
+                    expression, lhs, rhs, "Division requires a scalar right operand.");
+            }
+
+            if (*scalar_r == 0.0) {
+                return invalidMath(
+                    expression, lhs, rhs, "Division by zero is not defined.");
+            }
+
+            if (scalar_l) {
+                result = *scalar_l / *scalar_r;
+            } else if (point_l) {
+                result = *point_l / *scalar_r;
+            } else if (rect_l) {
+                result = *rect_l / *scalar_r;
+            } else if (path_l) {
+                result = *path_l / *scalar_r;
+            } else {
+                return invalidMath(
+                    expression,
+                    lhs,
+                    rhs,
+                    "Division requires a scalar or geometry left operand.");
+            }
+            break;
+    }
+
+    return EvaluatedExpression{
+        .value = result,
+        .tree  = fmt::format(
+            "Math\n"
+            "    op = {}\n"
+            "    value = {}\n"
+            "    lhs =\n"
+            "{}\n"
+            "    rhs =\n"
+            "{}",
+            mathName(expression.op()),
+            format_expression_value(result),
+            indentText(lhs.tree, 8),
+            indentText(rhs.tree, 8)),
+    };
+}
+
+ExpressionResult evaluateMath(
+    ElementIndex const&                         elements,
+    proto::GeometryElementRef::Ref::Math const& expression) {
+    auto lhs = evaluateNested(elements, expression.lhs(), "Math", "lhs");
+
+    if (!lhs) { return boost::outcome_v2::failure(lhs.error()); }
+
+    auto rhs = evaluateNested(elements, expression.rhs(), "Math", "rhs");
+
+    if (!rhs) { return boost::outcome_v2::failure(rhs.error()); }
+
+    return applyMath(expression, lhs.value(), rhs.value());
+}
+
+ExpressionResult evaluateExpression(
+    ElementIndex const&                   elements,
+    proto::GeometryElementRef::Ref const& expression) {
+    switch (expression.kind_case()) {
+        case proto::GeometryElementRef::Ref::kShape:
+            return evaluateShape(elements, expression.shape());
+
+        case proto::GeometryElementRef::Ref::kAnchor:
+            return evaluateAnchor(elements, expression.anchor());
+
+        case proto::GeometryElementRef::Ref::kBbox:
+            return evaluateBBox(elements, expression.bbox());
+
+        case proto::GeometryElementRef::Ref::kInterpolate:
+            return evaluateInterpolate(elements, expression.interpolate());
+
+        case proto::GeometryElementRef::Ref::kPath:
+            return evaluatePath(elements, expression.path());
+
+        case proto::GeometryElementRef::Ref::kMeasure:
+            return evaluateMeasure(elements, expression.measure());
+
+        case proto::GeometryElementRef::Ref::kMath:
+            return evaluateMath(elements, expression.math());
+
+        case proto::GeometryElementRef::Ref::kScalar: {
+            double value = expression.scalar().value();
+
+            return EvaluatedExpression{
+                .value = value,
+                .tree  = fmt::format(
+                    "ScalarLiteral\n"
+                    "    value = {}",
+                    value),
+            };
+        }
+
+        case proto::GeometryElementRef::Ref::kPoint: {
+            Point value = makePoint(expression.point().x(), expression.point().y());
+
+            return EvaluatedExpression{
+                .value = value,
+                .tree  = fmt::format(
+                    "PointLiteral\n"
+                    "    x = {}\n"
+                    "    y = {}\n"
+                    "    value = {}",
+                    expression.point().x(),
+                    expression.point().y(),
+                    format_expression_value(value)),
+            };
+        }
+
+        case proto::GeometryElementRef::Ref::KIND_NOT_SET:
+            return expressionFailure(
+                fmt::format(
+                    "Cannot evaluate geometry element reference `{}`: "
+                    "the expression kind is not set.",
+                    expression.ShortDebugString()));
+    }
+
+    return expressionFailure(
+        fmt::format(
+            "Cannot evaluate geometry element reference `{}`: "
+            "unhandled expression kind {}.",
+            expression.ShortDebugString(),
+            static_cast<int>(expression.kind_case())));
+}
+
+boost::outcome_v2::result<GeometryElementShape, GeometryError> expressionGeometry(
+    EvaluatedExpression const& expression) {
+    return std::visit(
+        [&](auto const& value)
+            -> boost::outcome_v2::result<GeometryElementShape, GeometryError> {
+            using Value = std::decay_t<decltype(value)>;
+
+            if constexpr (std::is_same_v<Value, double>) {
+                return boost::outcome_v2::failure(
+                    GeometryError::init(
+                        fmt::format(
+                            "Geometry element reference evaluated to scalar "
+                            "`{}` where a point, rectangle, or path was required.\n"
+                            "\n"
+                            "{}",
+                            value,
+                            expression.tree)));
+            } else {
+                return GeometryElementShape{value};
+            }
+        },
+        expression.value);
 }
 
 boost::outcome_v2::result<GeometryElementShape, GeometryError> resolveElement(
     ElementIndex const&              elements,
     proto::GeometryElementRef const& reference) {
-    auto const it = elements.find(reference.id());
-
-    if (it == elements.end()) {
+    if (!reference.has_expr()) {
         return boost::outcome_v2::failure(
             GeometryError::init(
-                hstd::fmt("Unknown geometry element ID '{}'", reference.id())));
+                fmt::format(
+                    "Cannot resolve geometry element reference `{}`: "
+                    "the expression is not set.",
+                    reference.ShortDebugString())));
     }
 
-    if (reference.anchor() == proto::WHOLE_SHAPE) { return *it->second; }
+    auto evaluated = evaluateExpression(elements, reference.expr());
 
-    auto bounds = std::visit(
-        [](auto const& shape) { return detail::boundsOf(shape); }, *it->second);
+    if (!evaluated) { return boost::outcome_v2::failure(evaluated.error()); }
 
-    if (!bounds) {
-        return boost::outcome_v2::failure(
-            GeometryError::init(
-                hstd::fmt(
-                    "Failed to compute bounds for geometry element '{}': {}",
-                    reference.id(),
-                    bounds.error().message())));
-    }
-
-    return GeometryElementShape{anchorPoint(bounds.value(), reference.anchor())};
+    return expressionGeometry(evaluated.value());
 }
 
 template <typename Arg1, typename Arg2, typename Fn>
@@ -198,15 +999,60 @@ GeometryCheckResult runOp(
     ElementIndex const& elements,
     Arg1 const&         arg1,
     Arg2 const&         arg2,
-    Fn&&                fn) {
-    auto first = resolveElement(elements, arg1);
+    Fn&&                function) {
+    if (!arg1.has_expr()) {
+        return failure(
+            fmt::format(
+                "Cannot evaluate first geometry operand `{}`: "
+                "the expression is not set.",
+                arg1.ShortDebugString()));
+    }
+
+    if (!arg2.has_expr()) {
+        return failure(
+            fmt::format(
+                "Cannot evaluate second geometry operand `{}`: "
+                "the expression is not set.",
+                arg2.ShortDebugString()));
+    }
+
+    auto firstExpression = evaluateExpression(elements, arg1.expr());
+
+    if (!firstExpression) { return boost::outcome_v2::failure(firstExpression.error()); }
+
+    auto secondExpression = evaluateExpression(elements, arg2.expr());
+
+    if (!secondExpression) {
+        return boost::outcome_v2::failure(secondExpression.error());
+    }
+
+    auto first = expressionGeometry(firstExpression.value());
+
     if (!first) { return boost::outcome_v2::failure(first.error()); }
 
-    auto second = resolveElement(elements, arg2);
+    auto second = expressionGeometry(secondExpression.value());
+
     if (!second) { return boost::outcome_v2::failure(second.error()); }
 
-    return std::visit(std::forward<Fn>(fn), first.value(), second.value());
+    auto result = std::visit(std::forward<Fn>(function), first.value(), second.value());
+
+    if (result) { return result; }
+
+    return boost::outcome_v2::failure(
+        GeometryError::init(
+            fmt::format(
+                "{}\n"
+                "first = {}\n"
+                "{}\n"
+                "second = {}\n"
+                "{}",
+                result.error().message(),
+                format_expression_value(firstExpression.value().value),
+                indentText(firstExpression.value().tree, 4),
+                format_expression_value(secondExpression.value().value),
+                indentText(secondExpression.value().tree, 4))));
 }
+
 
 GeometryCheckResult runCheck(
     ElementIndex const&         elements,
@@ -472,26 +1318,64 @@ GeometryCheckResult runCheck(
         case proto::GeometryCheck::kEquidistant: {
             auto const& args = check.equidistant();
 
-            hstd::Vec<Rect> bounds;
+            hstd::Vec<Rect>        bounds;
+            hstd::Vec<std::string> trees;
             bounds.reserve(args.elements_size());
+            trees.reserve(args.elements_size());
 
-            for (auto const& reference : args.elements()) {
-                auto shape = resolveElement(elements, reference);
-                if (!shape) { return boost::outcome_v2::failure(shape.error()); }
+            for (int index = 0; index < args.elements_size(); ++index) {
+                auto const& reference = args.elements(index);
 
-                auto itemBounds = std::visit(
-                    [](auto const& item) { return detail::boundsOf(item); },
-                    shape.value());
+                if (!reference.has_expr()) {
+                    return failure(
+                        fmt::format(
+                            "Cannot evaluate equidistant operand {} `{}`: "
+                            "the expression is not set.",
+                            index,
+                            reference.ShortDebugString()));
+                }
+
+                auto expression = evaluateExpression(elements, reference.expr());
+
+                if (!expression) {
+                    return boost::outcome_v2::failure(expression.error());
+                }
+
+                auto itemBounds = expressionBounds(expression.value().value);
 
                 if (!itemBounds) {
-                    return boost::outcome_v2::failure(itemBounds.error());
+                    return failure(
+                        fmt::format(
+                            "Cannot evaluate equidistant operand {} `{}`:\n"
+                            "    evaluated to {}\n"
+                            "\n"
+                            "    Expected a point, rectangle, or path expression.\n"
+                            "\n"
+                            "{}",
+                            index,
+                            reference.ShortDebugString(),
+                            evaluatedValue(expression.value()),
+                            indentText(expression.value().tree, 4)));
                 }
 
                 bounds.push_back(itemBounds.value());
+                trees.push_back(expression.value().tree);
             }
 
-            return detail::checkEquidistantBounds(bounds, getTolerance(args));
+            auto result = detail::checkEquidistantBounds(bounds, getTolerance(args));
+
+            if (result) { return result; }
+
+            std::string context = result.error().message();
+
+            for (int index = 0; index < static_cast<int>(trees.size()); ++index) {
+                context += fmt::format(
+                    "\nelements[{}] =\n{}", index, indentText(trees.at(index), 4));
+            }
+
+            return failure(context);
         }
+
 
         case proto::GeometryCheck::CHECK_NOT_SET:
             return failure("Geometry check does not define a check kind");

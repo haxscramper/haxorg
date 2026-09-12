@@ -150,6 +150,10 @@ message DiaCluster {
     // switch, to create the padding around grouping nodes that are placed
     // by the same layout algorithm, use built-in features of said algorithm
     // if it supports them natively.
+    //
+    // Note: this differes from the handling of the nested hierarchies
+    // in the IGraph representation. There, each individual group vertex
+    // gets assigned its own group visual attribute. See `[[code:appendClusterKind]]`
     expression: "has(this.outer_padding) ? !has(this.no_algorithm) : true"
   };
 

@@ -5,25 +5,6 @@ package hstd.ext.geometry.proto;
 import "buf/validate/validate.proto";
 import "src/hstd/ext/geometry/hstd_geometry.proto";
 
-enum GeometryAnchor {
-  WHOLE_SHAPE = 0;
-  UPPER_LEFT = 1;
-  UPPER_CENTER = 2;
-  UPPER_RIGHT = 3;
-  CENTER_LEFT = 4;
-  CENTER = 5;
-  CENTER_RIGHT = 6;
-  LOWER_LEFT = 7;
-  LOWER_CENTER = 8;
-  LOWER_RIGHT = 9;
-}
-
-enum GeometryDistanceCheck {
-  DISTANCE_BOTH = 0;
-  DISTANCE_X_ONLY = 1;
-  DISTANCE_Y_ONLY = 2;
-}
-
 message GeometryElement {
   string id = 1 [(buf.validate.field).string.min_len = 1];
 
@@ -36,10 +17,127 @@ message GeometryElement {
   }
 }
 
-message GeometryElementRef {
-  string id = 1 [(buf.validate.field).string.min_len = 1];
+enum GeometryDistanceCheck {
+  DISTANCE_BOTH = 0;
+  DISTANCE_X_ONLY = 1;
+  DISTANCE_Y_ONLY = 2;
+}
 
-  GeometryAnchor anchor = 2 [(buf.validate.field).enum.defined_only = true];
+enum GeometryPointAnchor {
+  POINT_ANCHOR_UPPER_LEFT = 0;
+  POINT_ANCHOR_UPPER_CENTER = 1;
+  POINT_ANCHOR_UPPER_RIGHT = 2;
+  POINT_ANCHOR_CENTER_LEFT = 3;
+  POINT_ANCHOR_CENTER = 4;
+  POINT_ANCHOR_CENTER_RIGHT = 5;
+  POINT_ANCHOR_LOWER_LEFT = 6;
+  POINT_ANCHOR_LOWER_CENTER = 7;
+  POINT_ANCHOR_LOWER_RIGHT = 8;
+}
+
+enum GeometrySideAnchor {
+  SIDE_ANCHOR_UPPER = 0;
+  SIDE_ANCHOR_RIGHT = 1;
+  SIDE_ANCHOR_LOWER = 2;
+  SIDE_ANCHOR_LEFT = 3;
+}
+
+enum GeometryMeasureKind {
+  MEASURE_MIN_X = 0;
+  MEASURE_MAX_X = 1;
+  MEASURE_MIN_Y = 2;
+  MEASURE_MAX_Y = 3;
+  MEASURE_LENGTH = 4;
+  MEASURE_AREA = 5;
+  MEASURE_WIDTH = 6;
+  MEASURE_HEIGHT = 7;
+}
+
+enum GeometryMathOp {
+  MATH_ADD = 0;
+  MATH_SUB = 1;
+  MATH_MUL = 2;
+  MATH_DIV = 3;
+}
+
+message GeometryElementRef {
+  message Ref {
+    message Shape {
+      string id = 1 [(buf.validate.field).string.min_len = 1];
+    }
+
+    message Anchor {
+      oneof kind {
+        option (buf.validate.oneof).required = true;
+
+        GeometryPointAnchor point = 1
+            [(buf.validate.field).enum.defined_only = true];
+
+        GeometrySideAnchor side = 2
+            [(buf.validate.field).enum.defined_only = true];
+      }
+
+      Ref ref = 3 [(buf.validate.field).required = true];
+    }
+
+    message BBox {
+      repeated Ref refs = 1 [(buf.validate.field).repeated.min_items = 1];
+    }
+
+    message Interpolate {
+      Ref start = 1 [(buf.validate.field).required = true];
+      Ref end = 2 [(buf.validate.field).required = true];
+
+      optional double bias = 3 [
+        (buf.validate.field).double.gte = 0,
+        (buf.validate.field).double.lte = 1
+      ];
+    }
+
+    message PathExpression {
+      repeated Ref points = 1 [(buf.validate.field).repeated.min_items = 2];
+    }
+
+    message Measure {
+      GeometryMeasureKind kind = 1
+          [(buf.validate.field).enum.defined_only = true];
+
+      Ref ref = 2 [(buf.validate.field).required = true];
+    }
+
+    message Math {
+      Ref lhs = 1 [(buf.validate.field).required = true];
+      Ref rhs = 2 [(buf.validate.field).required = true];
+
+      GeometryMathOp op = 3
+          [(buf.validate.field).enum.defined_only = true];
+    }
+
+    message ScalarLiteral {
+      double value = 1;
+    }
+
+    message PointLiteral {
+      double x = 1;
+      double y = 2;
+    }
+
+    oneof kind {
+      option (buf.validate.oneof).required = true;
+
+      Shape shape = 1;
+      Anchor anchor = 2;
+      BBox bbox = 3;
+      Interpolate interpolate = 4;
+      PathExpression path = 5;
+      Measure measure = 6;
+      Math math = 7;
+      ScalarLiteral scalar = 8;
+      PointLiteral point = 9;
+    }
+  }
+
+  Ref expr = 1 [(buf.validate.field).required = true];
 }
 
 message IntersectsCheck {

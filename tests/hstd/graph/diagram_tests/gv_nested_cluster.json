@@ -12,6 +12,11 @@
     "graphviz": {"dot": {}}
   },
   "checks" : [
-    { "fully_covers": { "main": {"id": "root"}, "nested": {"id": "nested"} } }
+    {
+      "fully_covers": {
+        "main"  : { "expr": { "shape": {"id": "root"} } },
+        "nested": { "expr": { "shape": {"id": "nested"} } }
+      }
+    }
   ]
 }

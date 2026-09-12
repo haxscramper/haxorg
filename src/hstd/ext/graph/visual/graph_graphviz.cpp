@@ -1,6 +1,7 @@
 #include "hstd/ext/hstd_serde.hpp"
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 #    include <filesystem>
+#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
 #    include <hstd/stdlib/Debug.hpp>
@@ -761,8 +762,20 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
 
             recursiveNode->setAttr(id_sub_group, id.getValue());
 
-            recursiveNode->setFixedInchesWH(
-                recursiveBBox.width() / scaling, recursiveBBox.height() / scaling);
+            auto bbox_width  = recursiveBBox.width() / scaling;
+            auto bbox_height = recursiveBBox.height() / scaling;
+            if (auto pad = group->getOuterPadding()) {
+                OP_TRACER_MESSAGE(
+                    run,
+                    "Has outer padding [{},{}] + {}",
+                    bbox_width,
+                    bbox_height,
+                    pad.value());
+                bbox_width += pad->getWidth();
+                bbox_height += pad->getHeight();
+            }
+
+            recursiveNode->setFixedInchesWH(bbox_width, bbox_height);
         } else {
             auto gv_group = hstd::validated_dynamic_cast<GraphGroup>(group);
             LOGIC_ASSERTION_CHECK(
@@ -875,6 +888,15 @@ layout::IPlacementAlgorithm::Result gv::Layout::runSingleLayout(VertexID const& 
             // tmp-subgraph nodes are direct children of the root graph, so
             // the rect is already relative to the root group -- no
             // parent-origin shift is needed.
+
+            if (auto pad = run->getVertex(id)
+                               ->getUniqueAttribute<gv::GraphGroup>()
+                               ->getOuterPadding()) {
+                // All group nodes must have associated visual attribute for graph group,
+                // and they might have outer padding. If that is the case, the node's
+                // actual position must be adjusted back to account for the padding.
+                rect.move(geometry::Point{pad->getLeft(), pad->getTop()});
+            }
 
             OP_TRACER_MESSAGE(
                 run,
@@ -1768,7 +1790,7 @@ void hstd::ext::graph::gv::GraphGroup::writeSerial(
             break;
     }
 
-    out->mutable_payload()->PackFrom(data);
+    *out->mutable_payload() = hstd::serde::packMessage(data);
 }
 
 void hstd::ext::graph::gv::GraphGroup::readSerial(
@@ -1785,6 +1807,13 @@ void hstd::ext::graph::gv::GraphGroup::readSerial(
     using Payload = proto::GroupAttributePayload;
     auto payload  = hstd::serde::unpackMessage<proto::GroupAttributePayload>(
         in->payload(), "Graphviz graph group");
+
+    OP_TRACER_MESSAGE(factory, "{}", hstd::serde::getJString(payload));
+
+    if (payload.base().has_outer_padding()) {
+        setOuterPadding(
+            hstd::serde::read_serde<geometry::Padding>(payload.base().outer_padding()));
+    }
 
     if (payload.layout_case() != Payload::LAYOUT_NOT_SET) {
         LOGIC_ASSERTION_CHECK_FMT(

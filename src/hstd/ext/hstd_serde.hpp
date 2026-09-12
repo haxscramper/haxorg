@@ -79,7 +79,7 @@ void read_serde(Proto const& in, T& out) {
     hstd::serde::proto_serde<Proto, T>::read(in, &out);
 }
 
-template <typename Proto, typename T>
+template <typename T, typename Proto>
 T read_serde(Proto const& value) {
     T result;
     hstd::serde::proto_serde<Proto, T>::read(value, &result);

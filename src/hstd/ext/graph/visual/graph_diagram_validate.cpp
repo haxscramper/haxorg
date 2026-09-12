@@ -66,8 +66,7 @@ geometry::GeometryElement makeRectElement(
     hstd::ext::geometry::proto::Rect const& rect) {
     return geometry::GeometryElement{
         .id    = id,
-        .shape = hstd::serde::
-            read_serde<hstd::ext::geometry::proto::Rect, geometry::Rect>(rect),
+        .shape = hstd::serde::read_serde<geometry::Rect>(rect),
     };
 }
 
@@ -76,8 +75,7 @@ geometry::GeometryElement makePathElement(
     hstd::ext::geometry::proto::Path const& path) {
     return geometry::GeometryElement{
         .id    = id,
-        .shape = hstd::serde::
-            read_serde<hstd::ext::geometry::proto::Path, geometry::Path>(path),
+        .shape = hstd::serde::read_serde<geometry::Path>(path),
     };
 }
 
