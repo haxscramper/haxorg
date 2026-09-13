@@ -29,7 +29,7 @@ struct single_layout_run_state {
     std::unordered_map<VertexID, geometry::Rect> bbox_map;
     std::unordered_set<VertexID>                 solver_nodes;
 
-    hstd::Vec<kiwi_ir::Rect>                       kiwi_rects;
+    hstd::Vec<kiwi_ir::Rect::Ptr>                  kiwi_rects;
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kiwi_constraints;
     layout::IPlacementAlgorithm::Result            result;
 
@@ -55,7 +55,7 @@ struct single_layout_run_state {
                 kiwi_attr.value()->setRectHeight(rect.height());
                 kiwi_rects.push_back(kiwi_attr.value()->rect);
             } else {
-                kiwi_rects.push_back(root_group->shared->kiwi_ctx->add_rect(
+                kiwi_rects.push_back(root_group->shared->kiwi_ctx->use_rect(
                     rect_id(id),
                     // sub-group placement is controlled by the current
                     // single layout run, so any x/y coordinates from
@@ -117,15 +117,15 @@ struct single_layout_run_state {
 
         for (auto const& id : solver_nodes) {
             auto const& rect = solved.at(rect_id(id));
-            absolute_rects.insert_or_assign(id, rect.getGeometry());
+            absolute_rects.insert_or_assign(id, rect->getGeometry());
             OP_TRACER_MESSAGE(
                 run,
                 "solved {}: x={} y={} width={} height={}",
                 run->getDebug(id),
-                rect.x.value(),
-                rect.y.value(),
-                rect.width.value(),
-                rect.height.value());
+                rect->x.value(),
+                rect->y.value(),
+                rect->width.value(),
+                rect->height.value());
         }
     }
 
@@ -207,7 +207,7 @@ struct single_layout_run_state {
 hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(EdgeID const& edge) {
     auto id    = getRun()->getGraph()->getTarget(edge);
     auto vattr = std::make_shared<KiwiVertexAttribute>(
-        shared->kiwi_ctx->add_rect(run->getVertex(id)->getStableId()));
+        shared->kiwi_ctx->use_rect(run->getVertex(id)->getStableId()));
 
     getRun()->setNestedVertexAttribute(edge, vattr);
     return vattr;
@@ -218,7 +218,7 @@ hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
     geometry::Rect const& size) {
     auto id = getRun()->getGraph()->getTarget(edge);
 
-    auto vattr = std::make_shared<KiwiVertexAttribute>(shared->kiwi_ctx->add_rect(
+    auto vattr = std::make_shared<KiwiVertexAttribute>(shared->kiwi_ctx->use_rect(
         // TODO: See [[kiwi-rectangle-id-knowledge-direction]]
         run->getVertex(id)->getStableId(),
         // TODO: Only set constraint on the rectangle position
@@ -530,7 +530,7 @@ void kw::LinearConstraint::readSerial(
         // kiwi layout, at de-serialization stage the only important thing is to
         // not reference the non-existent vertex.
         auto id = graph->getVertexIDByStableId(stableId);
-        return kiwi_algo->ctx->rect(stableId).expr(attr);
+        return kiwi_algo->ctx->use_rect(stableId)->expr(attr);
     };
 
     rel = static_cast<kiwi_ir::Relation>(load.op());

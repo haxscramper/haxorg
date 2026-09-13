@@ -3,21 +3,21 @@
     "kiwi"       : {},
     "id"         : "root",
     "nodes"      : [
-      { "id": "lhs", "kiwi": { "rect": {"width0": 10, "height0": 10} } },
-      { "id": "rhs", "kiwi": { "rect": {"width0": 10, "height0": 10} } }
+      { "id": "lhs", "kiwi": { "rect": {"width0": 100, "height0": 100} } },
+      { "id": "rhs", "kiwi": { "rect": {"width0": 100, "height0": 100} } }
     ],
     "constraints": [
       {
         "kw_linear": {
-          "lhs"         : {
+          "lhs": {
             "node": {
               "variable": {
                 "vertex_rect_attr": {"vertex_stable_id": "lhs", "attr": "RECT_ATTR_RIGHT"}
               }
             }
           },
-          "op"          : "RELATION_LE",
-          "rhs"         : {
+          "op" : "RELATION_LE",
+          "rhs": {
             "node": {
               "variable": {
                 "vertex_rect_attr": {"vertex_stable_id": "rhs", "attr": "RECT_ATTR_LEFT"}
@@ -27,5 +27,29 @@
         }
       }
     ]
-  }
+  },
+  "checks" : [
+    {
+      "rel_scalar": {
+        "lhs": {
+          "expr": {
+            "measure": { "ref": { "shape": {"id": "lhs"} }, "kind": "MEASURE_MIN_X" }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 0} } },
+        "rel": "MATH_EQ"
+      }
+    },
+    {
+      "rel_scalar": {
+        "lhs": {
+          "expr": {
+            "measure": { "ref": { "shape": {"id": "rhs"} }, "kind": "MEASURE_MIN_X" }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 100} } },
+        "rel": "MATH_EQ"
+      }
+    }
+  ]
 }

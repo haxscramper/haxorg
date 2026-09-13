@@ -289,7 +289,7 @@ Str flat_repr(Constraint const& c, bool full_flatten = false);
 
 struct KiwiCtx;
 
-struct Rect {
+struct Rect : hstd::SharedPtrApi<Rect> {
   private:
     Rect(
         KiwiCtx&    ctx,
@@ -324,7 +324,7 @@ struct Rect {
     }
 };
 
-using RectMap = hstd::UnorderedMap<Str, Rect>;
+using RectMap = hstd::UnorderedMap<Str, Rect::Ptr>;
 
 struct KiwiCtx {
     RectMap                                         rects;
@@ -332,28 +332,14 @@ struct KiwiCtx {
 
     bool empty() const { return rects.empty(); }
 
-
-    Rect const& add_rect(Rect const& name) {
-        LOGIC_ASSERTION_CHECK_FMT(
-            !rects.contains(name.rect_id),
-            "Context already contains rect {}",
-            name.rect_id);
-        rects.insert_or_assign(name.rect_id, name);
-        return rects.at(name.rect_id);
-    }
-
-
-    Rect const& add_rect(
+    Rect::Ptr use_rect(
         Str         rect_id,
         Opt<double> x0      = std::nullopt,
         Opt<double> y0      = std::nullopt,
         Opt<double> width0  = std::nullopt,
-        Opt<double> height0 = std::nullopt) {
-        return add_rect(Rect(*this, rect_id, x0, y0, width0, height0));
-    }
+        Opt<double> height0 = std::nullopt);
 
-    Rect&       rect(std::string const& name) { return rects.at(name); }
-    Rect const& rect(std::string const& name) const { return rects.at(name); }
+    Rect::Ptr use_rect(Str rect_id) const { return rects.at(rect_id); }
 
     kiwi::Variable const& get_var(std::string const& name) const { return vars.at(name); }
 

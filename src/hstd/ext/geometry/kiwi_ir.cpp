@@ -365,12 +365,12 @@ Vec<kiwi_ir::Constraint> AlignConstraint::build(KiwiCtx const& rects) const {
         throw std::runtime_error("AlignConstraint requires at least 2 items");
     }
     auto const& base      = items[0];
-    Expr        base_expr = rects.rect(base.rect_id).anchor_expr(base.spec.anchor)
+    Expr        base_expr = rects.use_rect(base.rect_id)->anchor_expr(base.spec.anchor)
                           - base.spec.offset;
     Vec<kiwi_ir::Constraint> result;
     for (int i = 1; i < items.size(); ++i) {
         auto const& item = items[i];
-        Expr        expr = rects.rect(item.rect_id).anchor_expr(item.spec.anchor)
+        Expr        expr = rects.use_rect(item.rect_id)->anchor_expr(item.spec.anchor)
                          - item.spec.offset;
         result.push_back((expr == base_expr) | kiwi_value(strength));
     }
@@ -411,9 +411,9 @@ SeparateConstraint::SeparateConstraint(
     : ConstraintBase(strength), rect_a(rect_a), rect_b(rect_b), offset(offset) {}
 
 Vec<kiwi_ir::Constraint> SeparateConstraint::build(KiwiCtx const& rects) const {
-    Expr                first  = rects.rect(rect_a.rect_id).anchor_expr(rect_a.anchor);
-    Expr                second = rects.rect(rect_b.rect_id).anchor_expr(rect_b.anchor);
-    kiwi_ir::Constraint c      = (first == (second + offset)) | kiwi_value(strength);
+    Expr first            = rects.use_rect(rect_a.rect_id)->anchor_expr(rect_a.anchor);
+    Expr second           = rects.use_rect(rect_b.rect_id)->anchor_expr(rect_b.anchor);
+    kiwi_ir::Constraint c = (first == (second + offset)) | kiwi_value(strength);
     return {c};
 }
 
@@ -481,9 +481,9 @@ Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(KiwiCtx const& rects) co
         }
 
         Expr expr_a //
-            = rects.rect(g1[0].rect_id).anchor_expr(g1[0].anchor).loc();
+            = rects.use_rect(g1[0].rect_id)->anchor_expr(g1[0].anchor).loc();
         Expr expr_b //
-            = rects.rect(g2[0].rect_id).anchor_expr(g2[0].anchor).loc();
+            = rects.use_rect(g2[0].rect_id)->anchor_expr(g2[0].anchor).loc();
 
         // align anchor positions on the individual rectangles.
         // ┌────┐     ┌────┐
@@ -512,9 +512,9 @@ Vec<kiwi_ir::Constraint> MultiSeparateConstraint::build(KiwiCtx const& rects) co
             // └───────┼───┘
             //         │
             Expr expr_g_prev //
-                = rects.rect(g_prev.rect_id).anchor_expr(g_prev.anchor);
+                = rects.use_rect(g_prev.rect_id)->anchor_expr(g_prev.anchor);
             Expr expr_g_next //
-                = rects.rect(g_next.rect_id).anchor_expr(g_next.anchor);
+                = rects.use_rect(g_next.rect_id)->anchor_expr(g_next.anchor);
             constraints.push_back(
                 (expr_g_prev == expr_g_next).loc() | kiwi_value(strength));
         }
@@ -574,7 +574,7 @@ ParentWrapConstraint::ParentWrapConstraint(
 Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(KiwiCtx const& rects) const {
     if (nested_rect_ids.empty()) { return {}; }
 
-    Rect const&              parent = rects.rect(parent_rect_id);
+    auto                     parent = rects.use_rect(parent_rect_id);
     Vec<kiwi_ir::Constraint> constraints;
 
     Vec<Expr> left_exprs;
@@ -583,49 +583,49 @@ Vec<kiwi_ir::Constraint> ParentWrapConstraint::build(KiwiCtx const& rects) const
     Vec<Expr> bottom_exprs;
 
     for (auto const& nested_id : nested_rect_ids) {
-        left_exprs.push_back(rects.rect(nested_id).anchor_expr(Anchor::LEFT));
-        top_exprs.push_back(rects.rect(nested_id).anchor_expr(Anchor::TOP));
-        right_exprs.push_back(rects.rect(nested_id).anchor_expr(Anchor::RIGHT));
-        bottom_exprs.push_back(rects.rect(nested_id).anchor_expr(Anchor::BOTTOM));
+        left_exprs.push_back(rects.use_rect(nested_id)->anchor_expr(Anchor::LEFT));
+        top_exprs.push_back(rects.use_rect(nested_id)->anchor_expr(Anchor::TOP));
+        right_exprs.push_back(rects.use_rect(nested_id)->anchor_expr(Anchor::RIGHT));
+        bottom_exprs.push_back(rects.use_rect(nested_id)->anchor_expr(Anchor::BOTTOM));
     }
 
     for (auto const& nested_left : left_exprs) {
         constraints.push_back(
-            (parent.anchor_expr(Anchor::LEFT) <= (nested_left - pad.left)).loc()
+            (parent->anchor_expr(Anchor::LEFT) <= (nested_left - pad.left)).loc()
             | kiwi_value(strength));
     }
 
     for (auto const& nested_top : top_exprs) {
         constraints.push_back(
-            (parent.anchor_expr(Anchor::TOP) <= (nested_top - pad.top)).loc()
+            (parent->anchor_expr(Anchor::TOP) <= (nested_top - pad.top)).loc()
             | kiwi_value(strength));
     }
 
     for (auto const& nested_right : right_exprs) {
         constraints.push_back(
-            ((nested_right + pad.right) <= parent.anchor_expr(Anchor::RIGHT)).loc()
+            ((nested_right + pad.right) <= parent->anchor_expr(Anchor::RIGHT)).loc()
             | kiwi_value(strength));
     }
 
     for (auto const& nested_bottom : bottom_exprs) {
         constraints.push_back(
-            ((nested_bottom + pad.bottom) <= parent.anchor_expr(Anchor::BOTTOM)).loc()
+            ((nested_bottom + pad.bottom) <= parent->anchor_expr(Anchor::BOTTOM)).loc()
             | kiwi_value(strength));
     }
 
     constraints.push_back(
-        (parent.anchor_expr(Anchor::LEFT) == (left_exprs[0] - pad.left)).loc()
+        (parent->anchor_expr(Anchor::LEFT) == (left_exprs[0] - pad.left)).loc()
         | kiwi_value(strength));
     constraints.push_back(
-        (parent.anchor_expr(Anchor::TOP) == (top_exprs[0] - pad.top)).loc()
+        (parent->anchor_expr(Anchor::TOP) == (top_exprs[0] - pad.top)).loc()
         | kiwi_value(strength));
     constraints.push_back(
-        (parent.anchor_expr(Anchor::RIGHT)
+        (parent->anchor_expr(Anchor::RIGHT)
          == (right_exprs[right_exprs.size() - 1] + pad.right))
             .loc()
         | kiwi_value(strength));
     constraints.push_back(
-        (parent.anchor_expr(Anchor::BOTTOM)
+        (parent->anchor_expr(Anchor::BOTTOM)
          == (bottom_exprs[bottom_exprs.size() - 1] + pad.bottom))
             .loc()
         | kiwi_value(strength));
@@ -678,56 +678,56 @@ RelativeConstraint::RelativeConstraint(
     , anchor_fixed(anchor_fixed) {}
 
 Vec<kiwi_ir::Constraint> RelativeConstraint::build(KiwiCtx const& rects) const {
-    Rect const&              rel = rects.rect(relative_rect_id);
-    Rect const&              fix = rects.rect(fixed_rect_id);
+    Rect::Ptr                rel = rects.use_rect(relative_rect_id);
+    Rect::Ptr                fix = rects.use_rect(fixed_rect_id);
     Vec<kiwi_ir::Constraint> constraints;
 
     if (x_dim.size_factor.has_value()) {
         constraints.push_back(
-            (rel.expr(RectAttr::WIDTH)
-             == (fix.expr(RectAttr::WIDTH) * x_dim.size_factor.value()))
+            (rel->expr(RectAttr::WIDTH)
+             == (fix->expr(RectAttr::WIDTH) * x_dim.size_factor.value()))
                 .loc()
             | kiwi_value(strength));
     }
 
     if (y_dim.size_factor.has_value()) {
         constraints.push_back(
-            (rel.expr(RectAttr::HEIGHT)
+            (rel->expr(RectAttr::HEIGHT)
              // TODO: See [[configurable-offset-comparison-directions]]
-             == (fix.expr(RectAttr::HEIGHT) * y_dim.size_factor.value()))
+             == (fix->expr(RectAttr::HEIGHT) * y_dim.size_factor.value()))
                 .loc()
             | kiwi_value(strength));
     }
 
     if (x_dim.relative_offset) {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.x)
-             == (fix.anchor_expr(anchor_fixed.x)
-                 + (x_dim.relative_offset.value() * fix.expr(RectAttr::WIDTH))
+            (rel->anchor_expr(anchor_relative.x)
+             == (fix->anchor_expr(anchor_fixed.x)
+                 + (x_dim.relative_offset.value() * fix->expr(RectAttr::WIDTH))
                  + x_dim.absolute_offset))
                 .loc()
             | kiwi_value(strength));
 
     } else {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.x)
-             == (fix.anchor_expr(anchor_fixed.x) + x_dim.absolute_offset))
+            (rel->anchor_expr(anchor_relative.x)
+             == (fix->anchor_expr(anchor_fixed.x) + x_dim.absolute_offset))
                 .loc()
             | kiwi_value(strength));
     }
 
     if (y_dim.relative_offset) {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.y)
-             == (fix.anchor_expr(anchor_fixed.y)
-                 + (y_dim.relative_offset.value() * fix.expr(RectAttr::HEIGHT))
+            (rel->anchor_expr(anchor_relative.y)
+             == (fix->anchor_expr(anchor_fixed.y)
+                 + (y_dim.relative_offset.value() * fix->expr(RectAttr::HEIGHT))
                  + y_dim.absolute_offset))
                 .loc()
             | kiwi_value(strength));
     } else {
         constraints.push_back(
-            (rel.anchor_expr(anchor_relative.y)
-             == (fix.anchor_expr(anchor_fixed.y) + y_dim.absolute_offset))
+            (rel->anchor_expr(anchor_relative.y)
+             == (fix->anchor_expr(anchor_fixed.y) + y_dim.absolute_offset))
                 .loc()
             | kiwi_value(strength));
     }
@@ -824,13 +824,13 @@ Vec<kiwi_ir::Constraint> EvenGapConstraint::build(KiwiCtx const& rects) const {
     Vec<kiwi_ir::Constraint> constraints;
     for (auto const& [prev, curr, next] : hstd::rv_sliding_tuple3(rects_spec)) {
         Expr prev_max //
-            = rects.rect(prev.rect_id).anchor_expr(prev.max_anchor);
+            = rects.use_rect(prev.rect_id)->anchor_expr(prev.max_anchor);
         Expr curr_min //
-            = rects.rect(curr.rect_id).anchor_expr(curr.min_anchor);
+            = rects.use_rect(curr.rect_id)->anchor_expr(curr.min_anchor);
         Expr curr_max //
-            = rects.rect(curr.rect_id).anchor_expr(curr.max_anchor);
+            = rects.use_rect(curr.rect_id)->anchor_expr(curr.max_anchor);
         Expr next_min //
-            = rects.rect(next.rect_id).anchor_expr(next.min_anchor);
+            = rects.use_rect(next.rect_id)->anchor_expr(next.min_anchor);
 
         constraints.push_back(
             ((curr_min - prev_max) == (next_min - curr_max)).loc()
@@ -881,17 +881,17 @@ EqualSizeConstraint::EqualSizeConstraint(
     , match_height(match_height) {}
 
 Vec<kiwi_ir::Constraint> EqualSizeConstraint::build(KiwiCtx const& rects) const {
-    Rect const&              a = rects.rect(rect_a_id);
-    Rect const&              b = rects.rect(rect_b_id);
+    Rect::Ptr                a = rects.use_rect(rect_a_id);
+    Rect::Ptr                b = rects.use_rect(rect_b_id);
     Vec<kiwi_ir::Constraint> constraints;
     if (match_width) {
         constraints.push_back(
-            (a.expr(RectAttr::WIDTH) == b.expr(RectAttr::WIDTH)).loc()
+            (a->expr(RectAttr::WIDTH) == b->expr(RectAttr::WIDTH)).loc()
             | kiwi_value(strength));
     }
     if (match_height) {
         constraints.push_back(
-            (a.expr(RectAttr::HEIGHT) == b.expr(RectAttr::HEIGHT)).loc()
+            (a->expr(RectAttr::HEIGHT) == b->expr(RectAttr::HEIGHT)).loc()
             | kiwi_value(strength));
     }
     return constraints;
@@ -966,30 +966,30 @@ void Layout::solve() {
     kiwi::Solver solver;
 
     for (auto& [rect_id, rect] : rects->rects) {
-        solver.addConstraint(((Expr(0) <= rect.expr(RectAttr::WIDTH)))
+        solver.addConstraint(((Expr(0) <= rect->expr(RectAttr::WIDTH)))
                                  .loc()
                                  .to_kiwi(kiwi::strength::required));
-        solver.addConstraint(((Expr(0) <= rect.expr(RectAttr::HEIGHT)))
+        solver.addConstraint(((Expr(0) <= rect->expr(RectAttr::HEIGHT)))
                                  .loc()
                                  .to_kiwi(kiwi::strength::required));
 
-        if (rect.x0.has_value()) {
-            solver.addConstraint((rect.expr(RectAttr::X) == rect.x0.value())
+        if (rect->x0.has_value()) {
+            solver.addConstraint((rect->expr(RectAttr::X) == rect->x0.value())
                                      .loc()
                                      .to_kiwi(kiwi::strength::required));
         }
-        if (rect.y0.has_value()) {
-            solver.addConstraint((rect.expr(RectAttr::Y) == rect.y0.value())
+        if (rect->y0.has_value()) {
+            solver.addConstraint((rect->expr(RectAttr::Y) == rect->y0.value())
                                      .loc()
                                      .to_kiwi(kiwi::strength::required));
         }
-        if (rect.width0.has_value()) {
-            solver.addConstraint((rect.expr(RectAttr::WIDTH) == rect.width0.value())
+        if (rect->width0.has_value()) {
+            solver.addConstraint((rect->expr(RectAttr::WIDTH) == rect->width0.value())
                                      .loc()
                                      .to_kiwi(kiwi::strength::required));
         }
-        if (rect.height0.has_value()) {
-            solver.addConstraint((rect.expr(RectAttr::HEIGHT) == rect.height0.value())
+        if (rect->height0.has_value()) {
+            solver.addConstraint((rect->expr(RectAttr::HEIGHT) == rect->height0.value())
                                      .loc()
                                      .to_kiwi(kiwi::strength::required));
         }
@@ -1004,39 +1004,39 @@ void Layout::solve() {
 
 namespace {
 namespace bg = boost::geometry;
-Vec<std::pair<Str, Rect>> sort_rectangles_for_svg(
-    Vec<std::pair<Str, Rect>> const& items) {
+Vec<std::pair<Str, Rect::Ptr>> sort_rectangles_for_svg(
+    Vec<std::pair<Str, Rect::Ptr>> const& items) {
 
     using Graph  = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS>;
     using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
 
-    auto to_box = [](Rect const& g) -> geometry::Rect {
+    auto to_box = [](Rect::Ptr const& g) -> geometry::Rect {
         return geometry::Rect{
-            geometry::Point{g.x.value(), g.y.value()},
+            geometry::Point{g->x.value(), g->y.value()},
             geometry::Point{
-                g.x.value() + g.width.value(), g.y.value() + g.height.value()}};
+                g->x.value() + g->width.value(), g->y.value() + g->height.value()}};
     };
 
-    auto area = [](Rect const& g) -> double {
-        return g.width.value() * g.height.value();
+    auto area = [](Rect::Ptr const& g) -> double {
+        return g->width.value() * g->height.value();
     };
 
-    auto overlap_area = [&](Rect const& a, Rect const& b) -> double {
+    auto overlap_area = [&](Rect::Ptr const& a, Rect::Ptr const& b) -> double {
         geometry::Rect out;
         bg::intersection(to_box(a), to_box(b), out);
         return bg::area(out);
     };
 
-    auto contains = [&](Rect const& outer, Rect const& inner) -> bool {
+    auto contains = [&](Rect::Ptr const& outer, Rect::Ptr const& inner) -> bool {
         return bg::covered_by(to_box(inner), to_box(outer));
     };
 
-    auto top  = [](Rect const& g) { return g.y.value(); };
-    auto left = [](Rect const& g) { return g.x.value(); };
+    auto top  = [](Rect::Ptr const& g) { return g->y.value(); };
+    auto left = [](Rect::Ptr const& g) { return g->x.value(); };
 
     auto prefer_before = [&](int lhs, int rhs) -> bool {
-        Rect const& a = items[lhs].second;
-        Rect const& b = items[rhs].second;
+        Rect::Ptr a = items[lhs].second;
+        Rect::Ptr b = items[rhs].second;
 
         if (area(a) != area(b)) { return area(a) > area(b); }
         if (top(a) != top(b)) { return top(a) < top(b); }
@@ -1047,10 +1047,10 @@ Vec<std::pair<Str, Rect>> sort_rectangles_for_svg(
     Graph g(items.size());
 
     for (int i = 0; i < items.size(); ++i) {
-        Rect const& ri = items[i].second;
+        Rect::Ptr ri = items[i].second;
 
         for (int j = i + 1; j < items.size(); ++j) {
-            Rect const& rj = items[j].second;
+            Rect::Ptr rj = items[j].second;
 
             double const ov = overlap_area(ri, rj);
             if (ov <= 0) { continue; }
@@ -1085,7 +1085,7 @@ Vec<std::pair<Str, Rect>> sort_rectangles_for_svg(
 
         std::ranges::sort(idx, [&](int lhs, int rhs) { return prefer_before(lhs, rhs); });
 
-        Vec<std::pair<Str, Rect>> result;
+        Vec<std::pair<Str, Rect::Ptr>> result;
         result.reserve(items.size());
         for (int i : idx) { result.push_back(items[i]); }
         return result;
@@ -1093,7 +1093,7 @@ Vec<std::pair<Str, Rect>> sort_rectangles_for_svg(
 
     std::ranges::reverse(topo);
 
-    Vec<std::pair<Str, Rect>> result;
+    Vec<std::pair<Str, Rect::Ptr>> result;
     result.reserve(items.size());
     for (Vertex v : topo) { result.push_back(items[static_cast<int>(v)]); }
 
@@ -1108,8 +1108,8 @@ hstd::XmlNode Layout::to_svg(Str const& title) {
 
     if (!rects->empty()) {
         for (auto const& [rect_id, g] : rects->rects) {
-            max_x = std::max(max_x, g.x.value() + g.width.value());
-            max_y = std::max(max_y, g.y.value() + g.height.value());
+            max_x = std::max(max_x, g->x.value() + g->width.value());
+            max_y = std::max(max_y, g->y.value() + g->height.value());
         }
     }
 
@@ -1138,24 +1138,24 @@ hstd::XmlNode Layout::to_svg(Str const& title) {
 
     int idx = 0;
 
-    Vec<std::pair<Str, Rect>> items{rects->rects.begin(), rects->rects.end()};
-    auto                      ordered = sort_rectangles_for_svg(items);
+    Vec<std::pair<Str, Rect::Ptr>> items{rects->rects.begin(), rects->rects.end()};
+    auto                           ordered = sort_rectangles_for_svg(items);
 
     for (auto const& [rect_id, g] : ordered) {
         Str color = colors[idx % colors.size()];
 
         hstd::XmlNode rectNode("rect");
-        rectNode.set_attr("x", g.x.value() + 20);
-        rectNode.set_attr("y", g.y.value() + 20);
-        rectNode.set_attr("width", g.width.value());
-        rectNode.set_attr("height", g.height.value());
+        rectNode.set_attr("x", g->x.value() + 20);
+        rectNode.set_attr("y", g->y.value() + 20);
+        rectNode.set_attr("width", g->width.value());
+        rectNode.set_attr("height", g->height.value());
         rectNode.set_attr("fill", color);
         rectNode.set_attr("stroke", "black");
         svg.push_back(std::move(rectNode));
 
         hstd::XmlNode textNode("text");
-        textNode.set_attr("x", g.x.value() + 24);
-        textNode.set_attr("y", g.y.value() + 36);
+        textNode.set_attr("x", g->x.value() + 24);
+        textNode.set_attr("y", g->y.value() + 36);
         textNode.set_attr("fill", "black");
         textNode.set_attr("font-size", "12px");
         textNode.set_text(rect_id);
@@ -1200,16 +1200,16 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
 
             hstd::Vec<Str> rect_info;
             rect_info.push_back(hstd::fmt("{} {}", rect_id, axis));
-            if (rect.x0) { rect_info.push_back(hstd::fmt("  x0 {}", rect.x0.value())); }
+            if (rect->x0) { rect_info.push_back(hstd::fmt("  x0 {}", rect->x0.value())); }
 
-            if (rect.y0) { rect_info.push_back(hstd::fmt("  y0 {}", rect.y0.value())); }
+            if (rect->y0) { rect_info.push_back(hstd::fmt("  y0 {}", rect->y0.value())); }
 
-            if (rect.width0) {
-                rect_info.push_back(hstd::fmt("  width0  {}", rect.width0.value()));
+            if (rect->width0) {
+                rect_info.push_back(hstd::fmt("  width0  {}", rect->width0.value()));
             }
 
-            if (rect.height0) {
-                rect_info.push_back(hstd::fmt("  height0 {}", rect.height0.value()));
+            if (rect->height0) {
+                rect_info.push_back(hstd::fmt("  height0 {}", rect->height0.value()));
             }
 
             node->setLabel(hstd::join("\n", rect_info));
@@ -1254,46 +1254,46 @@ Vec<ConstraintEntry> Layout::build_constraint_entries() const {
     for (auto const& [rect_id, rect] : rects->rects) {
         entries.push_back(
             ConstraintEntry{
-                fmt::format("Rect({}).width >= 0", rect.rect_id),
-                {(Expr(0) <= rect.expr(RectAttr::WIDTH)) | kiwi::strength::required},
+                fmt::format("Rect({}).width >= 0", rect->rect_id),
+                {(Expr(0) <= rect->expr(RectAttr::WIDTH)) | kiwi::strength::required},
             });
         entries.push_back(
             ConstraintEntry{
-                fmt::format("Rect({}).height >= 0", rect.rect_id),
-                {(Expr(0) <= rect.expr(RectAttr::HEIGHT)) | kiwi::strength::required},
+                fmt::format("Rect({}).height >= 0", rect->rect_id),
+                {(Expr(0) <= rect->expr(RectAttr::HEIGHT)) | kiwi::strength::required},
             });
 
-        if (rect.x0.has_value()) {
+        if (rect->x0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    fmt::format("Rect({}).x == {:g}", rect.rect_id, rect.x0.value()),
-                    {(rect.expr(RectAttr::X) == rect.x0.value())
+                    fmt::format("Rect({}).x == {:g}", rect->rect_id, rect->x0.value()),
+                    {(rect->expr(RectAttr::X) == rect->x0.value())
                      | kiwi::strength::required},
                 });
         }
-        if (rect.y0.has_value()) {
+        if (rect->y0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
-                    fmt::format("Rect({}).y == {:g}", rect.rect_id, rect.y0.value()),
-                    {(rect.expr(RectAttr::Y) == rect.y0.value())
+                    fmt::format("Rect({}).y == {:g}", rect->rect_id, rect->y0.value()),
+                    {(rect->expr(RectAttr::Y) == rect->y0.value())
                      | kiwi::strength::required},
                 });
         }
-        if (rect.width0.has_value()) {
+        if (rect->width0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
                     fmt::format(
-                        "Rect({}).width == {:g}", rect.rect_id, rect.width0.value()),
-                    {(rect.expr(RectAttr::WIDTH) == rect.width0.value())
+                        "Rect({}).width == {:g}", rect->rect_id, rect->width0.value()),
+                    {(rect->expr(RectAttr::WIDTH) == rect->width0.value())
                      | kiwi::strength::required},
                 });
         }
-        if (rect.height0.has_value()) {
+        if (rect->height0.has_value()) {
             entries.push_back(
                 ConstraintEntry{
                     fmt::format(
-                        "Rect({}).height == {:g}", rect.rect_id, rect.height0.value()),
-                    {(rect.expr(RectAttr::HEIGHT) == rect.height0.value())
+                        "Rect({}).height == {:g}", rect->rect_id, rect->height0.value()),
+                    {(rect->expr(RectAttr::HEIGHT) == rect->height0.value())
                      | kiwi::strength::required},
                 });
         }
@@ -1496,6 +1496,43 @@ void Layout::verify_constraints() {
         }
         active_entries.push_back(entry);
     }
+}
+
+Rect::Ptr KiwiCtx::use_rect(
+    Str         rect_id,
+    Opt<double> x0,
+    Opt<double> y0,
+    Opt<double> width0,
+    Opt<double> height0) {
+    if (!rects.contains(rect_id)) { rects.insert_or_assign(rect_id, Rect::shared()); }
+
+    auto res          = rects.at(rect_id);
+    auto update_value = [&](hstd::Opt<double>&       value,
+                            hstd::Opt<double> const& provided,
+                            char const*              field) -> void {
+        if (!provided.has_value() && value.has_value()) {
+            // pass
+        } else if (
+            value.has_value() && provided.has_value()
+            && value.value() != provided.value()) {
+            throw hstd::logic_error::init(
+                hstd::fmt(
+                    "Rect {} already has field {} set to {}, but the input now "
+                    "attempts to set it to {} value, which is not allowed",
+                    rect_id,
+                    field,
+                    value,
+                    provided));
+        } else if (!value.has_value() && provided.has_value()) {
+            value = provided;
+        }
+    };
+
+    update_value(res->x0, x0, "x0");
+    update_value(res->y0, y0, "y0");
+    update_value(res->width0, width0, "width0");
+    update_value(res->height0, height0, "height0");
+    return res;
 }
 
 

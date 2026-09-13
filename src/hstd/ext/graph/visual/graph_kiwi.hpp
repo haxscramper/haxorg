@@ -22,10 +22,10 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
         const override {
         kw::proto::KiwiVertexVisualAttributePayload load;
         auto                                        mr = load.mutable_rect();
-        if (rect.x0) { mr->set_x0(rect.x0.value()); }
-        if (rect.y0) { mr->set_y0(rect.y0.value()); }
-        if (rect.width0) { mr->set_width0(rect.width0.value()); }
-        if (rect.height0) { mr->set_height0(rect.height0.value()); }
+        if (rect->x0) { mr->set_x0(rect->x0.value()); }
+        if (rect->y0) { mr->set_y0(rect->y0.value()); }
+        if (rect->width0) { mr->set_width0(rect->width0.value()); }
+        if (rect->height0) { mr->set_height0(rect->height0.value()); }
         out->mutable_payload()->PackFrom(load);
     }
 
@@ -37,30 +37,30 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
         kw::proto::KiwiVertexVisualAttributePayload load;
         in->payload().UnpackTo(&load);
         auto rect = load.rect();
-        if (rect.has_x0()) { this->rect.x0 = rect.x0(); }
-        if (rect.has_y0()) { this->rect.y0 = rect.y0(); }
-        if (rect.has_width0()) { this->rect.width0 = rect.width0(); }
-        if (rect.has_height0()) { this->rect.height0 = rect.height0(); }
+        if (rect.has_x0()) { this->rect->x0 = rect.x0(); }
+        if (rect.has_y0()) { this->rect->y0 = rect.y0(); }
+        if (rect.has_width0()) { this->rect->width0 = rect.width0(); }
+        if (rect.has_height0()) { this->rect->height0 = rect.height0(); }
     }
 #    endif
 
     KiwiVertexAttribute* setRectWidth(hstd::Opt<double> width) {
-        rect.width0 = width;
+        rect->width0 = width;
         return this;
     }
 
     KiwiVertexAttribute* setRectHeight(hstd::Opt<double> height) {
-        rect.height0 = height;
+        rect->height0 = height;
         return this;
     }
 
     KiwiVertexAttribute* setRectX(hstd::Opt<double> x) {
-        rect.x0 = x;
+        rect->x0 = x;
         return this;
     }
 
     KiwiVertexAttribute* setRectY(hstd::Opt<double> y) {
-        rect.y0 = y;
+        rect->y0 = y;
         return this;
     }
 
@@ -75,8 +75,8 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
     // `geometry::Rect` constructor, hiding the width variable field and
     // insetad exposing `getWidth(Str const& id)` that would construct it
     // as needed.
-    kiwi_ir::Rect rect;
-    explicit KiwiVertexAttribute(kiwi_ir::Rect const& rect) : rect{rect} {}
+    kiwi_ir::Rect::Ptr rect;
+    explicit KiwiVertexAttribute(kiwi_ir::Rect::Ptr const& rect) : rect{rect} {}
 };
 
 class KiwiEdgeAttribute : public layout::IEdgeVisualAttribute {
@@ -136,13 +136,13 @@ class KiwiGroup
     LocalCtx                     local;
     hstd::Opt<geometry::Padding> outerPadding;
     // TODO: Make the group rectangle configurable from de-serialization?
-    kiwi_ir::Rect rect;
+    kiwi_ir::Rect::Ptr rect;
 
     KiwiGroup(hstd::SPtr<SharedCtx> const& ctx, hstd::Str const& name)
         : layout::IGroupVisualAttribute{ctx->run}
         , shared{ctx}
         , local{.name = name}
-        , rect{shared->kiwi_ctx->add_rect(name)} {}
+        , rect{shared->kiwi_ctx->use_rect(name)} {}
 
     hstd::SPtr<layout::LayoutRun> const& getRun() const { return shared->run; }
 
@@ -483,7 +483,7 @@ class LinearConstraint : public KiwiConstraint {
         vertices.incl(id);
         return run->getVertex(id)
             ->getUniqueAttribute<KiwiVertexAttribute>(run->getDebug(id))
-            ->rect.expr(attr);
+            ->rect->expr(attr);
     }
 
     Str use(VertexID const& id) {
