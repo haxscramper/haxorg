@@ -21,12 +21,23 @@ struct as_mp_list;
 
 template <typename... Ts>
 struct as_mp_list<boost::mp11::mp_list<Ts...>> {
-    using type = boost::mp11::mp_list<Ts...>;
+    using type = boost::mp11::mp_list<Ts...>; // identity, NOT mp_list<L>
 };
 
 template <typename L>
 using as_mp_list_t = typename as_mp_list<L>::type;
+
+template <typename T>
+struct is_mp_list : std::false_type {};
+
+template <typename... Ts>
+struct is_mp_list<boost::mp11::mp_list<Ts...>> : std::true_type {};
+
+
 } // namespace detail
+
+template <typename... Ts>
+concept NoneAreMpLists = (!detail::is_mp_list<std::remove_cvref_t<Ts>>::value && ...);
 
 /// Maps a wrapper protobuf object to its `Any` payload field. Specialize
 /// for each wrapper type (e.g. `IAttribute`).
@@ -42,7 +53,7 @@ struct DispatchProtoPayload<google::protobuf::Any> {
 
 namespace detail {
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 std::vector<std::string> expectedPayloadNames(boost::mp11::mp_list<Ts...>) {
     std::vector<std::string> result;
     result.reserve(sizeof...(Ts));
@@ -92,7 +103,7 @@ std::vector<std::string> expectedPayloadNames(boost::mp11::mp_list<Ts...>) {
             matchedType)};
 }
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 std::optional<std::variant<Ts...>> tryUnpack(
     google::protobuf::Any const& payload,
     std::string const&           owner,
@@ -115,7 +126,7 @@ std::optional<std::variant<Ts...>> tryUnpack(
     return result;
 }
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 std::optional<std::variant<Ts...>> findUniqueImpl(
     std::ranges::input_range auto&& range,
     std::string const&              owner,
@@ -152,17 +163,16 @@ auto unpackVariant(
     google::protobuf::Any const& payload,
     std::string const&           owner,
     std::string const&           context = "") {
-    auto list = detail::as_mp_list_t<List>{};
     auto impl = [&]<typename... Ts>(boost::mp11::mp_list<Ts...> l) {
         auto result = detail::tryUnpack(payload, owner, l);
         if (result) { return std::move(*result); }
         detail::throw_unexpected_payload(
             payload, owner, context, detail::expectedPayloadNames(l));
     };
-    return impl(list);
+    return impl(detail::as_mp_list_t<List>{});
 }
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 auto unpackVariantT(
     google::protobuf::Any const& payload,
     std::string const&           owner,
@@ -173,15 +183,15 @@ auto unpackVariantT(
 /// Find the unique object in `range` whose payload matches one of the
 /// listed types. Returns the unpacked payload, or nullopt if none match.
 /// Throws `std::invalid_argument` if more than one object matches.
-template <typename List>
+template <NoneAreMpLists List>
 auto findUnique(std::ranges::input_range auto&& range, std::string const& owner) {
     auto list = detail::as_mp_list_t<List>{};
-    return [&]<typename... Ts>(boost::mp11::mp_list<Ts...> l) {
+    return [&]<NoneAreMpLists... Ts>(boost::mp11::mp_list<Ts...> l) {
         return detail::findUniqueImpl(std::forward<decltype(range)>(range), owner, l);
     }(list);
 }
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 auto findUniqueT(std::ranges::input_range auto&& range, std::string const& owner) {
     return findUnique<boost::mp11::mp_list<Ts...>>(
         std::forward<decltype(range)>(range), owner);
@@ -202,7 +212,7 @@ auto findUniqueRequired(std::ranges::input_range auto&& range, std::string const
     detail::throw_missing_payload(owner, detail::expectedPayloadNames(list), actual);
 }
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 auto findUniqueRequiredT(
     std::ranges::input_range auto&& range,
     std::string const&              owner) {
@@ -217,7 +227,7 @@ auto findUniqueObject(std::ranges::input_range auto&& range, std::string const& 
     using Item        = std::remove_cvref_t<std::ranges::range_value_t<decltype(range)>>;
     auto        list  = detail::as_mp_list_t<List>{};
     Item const* found = nullptr;
-    auto        impl  = [&]<typename... Ts>(boost::mp11::mp_list<Ts...> l) {
+    auto        impl  = [&]<NoneAreMpLists... Ts>(boost::mp11::mp_list<Ts...> l) {
         for (auto const& item : range) {
             auto const& payload = DispatchProtoPayload<Item>::getPayload(item);
             bool        matches = (payload.template Is<Ts>() || ...);
@@ -234,7 +244,7 @@ auto findUniqueObject(std::ranges::input_range auto&& range, std::string const& 
     return impl(list);
 }
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 auto findUniqueObjectT(std::ranges::input_range auto&& range, std::string const& owner) {
     return findUniqueObject<boost::mp11::mp_list<Ts...>>(
         std::forward<decltype(range)>(range), owner);
@@ -258,7 +268,7 @@ auto findUniqueObjectRequired(
     detail::throw_missing_payload(owner, detail::expectedPayloadNames(list), actual);
 }
 
-template <typename... Ts>
+template <NoneAreMpLists... Ts>
 auto findUniqueObjectRequiredT(
     std::ranges::input_range auto&& range,
     std::string const&              owner) {

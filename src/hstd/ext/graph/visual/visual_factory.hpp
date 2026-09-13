@@ -13,6 +13,12 @@
 #include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
 
 namespace hstd::serde {
+
+//
+}
+
+namespace hstd::ext::graph {
+
 using VisualAttributePayloadTypes = boost::mp11::mp_list<
     hstd::ext::graph::gv::proto::GroupAttributePayload,
     hstd::ext::graph::gv::proto::EdgeAttributePayload,
@@ -22,10 +28,6 @@ using VisualAttributePayloadTypes = boost::mp11::mp_list<
     hstd::ext::graph::kw::proto::KiwiEdgeVisualAttributePayload
     //
     >;
-
-}
-
-namespace hstd::ext::graph {
 
 
 class VisualFactory : public IGraphSerialReaderFactory {
