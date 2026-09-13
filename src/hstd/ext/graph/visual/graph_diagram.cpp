@@ -634,25 +634,37 @@ void appendDiaEdge(
 
     std::string owner = hstd::fmt("edge '{}'", source.stable_id());
 
-    auto visual = hstd::serde::findUniqueRequired<EdgeVisualAttributePayloadTypes>(
-        source.attributes(), owner);
+
+    if (preserveOrigin) {
+        auto visual = hstd::serde::findUnique<EdgeVisualAttributePayloadTypes>(
+            source.attributes(), owner);
+        if (visual) {
+            std::visit(
+                hstd::overloaded{
+                    [&](gv::proto::EdgeAttributePayload const& pl) {
+                        *edge->mutable_graphviz() = pl;
+                    },
+                    [&](kw::proto::KiwiEdgeVisualAttributePayload const& pl) {
+                        *edge->mutable_kiwi() = pl;
+                    },
+                },
+                *visual);
+        }
+    }
+
+    auto layout = hstd::serde::findUniqueRequired<
+        hstd::ext::graph::EdgeLayoutAttributePayloadTypes>(source.attributes(), owner);
 
     std::visit(
         hstd::overloaded{
-            [&](gv::proto::EdgeAttributePayload const& pl) {
-                if (preserveOrigin) { *edge->mutable_graphviz() = pl; }
+            [&](avoid::proto::EdgeLayoutAttributePayload const& pl) {
+                *edge->mutable_path() = pl.base().path();
             },
-            [&](kw::proto::KiwiEdgeVisualAttributePayload const& pl) {
-                if (preserveOrigin) { *edge->mutable_kiwi() = pl; }
+            [&](layout::proto::IEdgeLayoutAttributePayload const& pl) {
+                *edge->mutable_path() = pl.path();
             },
         },
-        visual);
-
-    *edge->mutable_path() = //
-        hstd::serde::findOneRequired<
-            hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(
-            source.attributes(), owner)
-            .path();
+        layout);
 }
 
 } // namespace
@@ -777,16 +789,18 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
         auto visual = hstd::serde::findUnique<GroupVisualAttributePayloadTypes>(
             vertex.attributes(), hstd::fmt("vertex '{}'", vertex.stable_id()));
 
-        std::visit(
-            hstd::overloaded{
-                [&](gv::proto::GroupAttributePayload const& pl) {
-                    clusterIds.insert(vertex.stable_id());
+        if (visual) {
+            std::visit(
+                hstd::overloaded{
+                    [&](gv::proto::GroupAttributePayload const& pl) {
+                        clusterIds.insert(vertex.stable_id());
+                    },
+                    [&](kw::proto::KiwiGroupVisualAttributePayload const& pl) {
+                        clusterIds.insert(vertex.stable_id());
+                    },
                 },
-                [&](kw::proto::KiwiGroupVisualAttributePayload const& pl) {
-                    clusterIds.insert(vertex.stable_id());
-                },
-            },
-            *visual);
+                *visual);
+        }
     }
 
     for (auto const& entry : hierarchy.nested_in_map()) {

@@ -81,9 +81,9 @@ std::vector<std::string> expectedPayloadNames(boost::mp11::mp_list<Ts...>) {
     std::vector<std::string> const& expected,
     std::vector<std::string> const& actual) {
     std::string expectedNames;
-    for (auto const& e : expected) { expectedNames += fmt("\n  {}", e); }
+    for (auto const& e : expected) { expectedNames += fmt("\n  '{}'", e); }
     std::string actualNames;
-    for (auto const& a : actual) { actualNames += fmt("\n  {}", a); }
+    for (auto const& a : actual) { actualNames += fmt("\n  '{}'", a); }
     throw read_error::init(
         fmt("Could not find required payload in '{}'. Expected one of:{}\n"
             "Has payloads:{}",
@@ -278,7 +278,7 @@ auto findUniqueObjectRequiredT(
 
 /// Single-type convenience: returns the unpacked payload directly,
 /// without the variant wrapper. Throws on duplicates.
-template <typename T>
+template <NoneAreMpLists T>
 auto findOne(std::ranges::input_range auto&& range, std::string const& owner)
     -> std::optional<T> {
     auto result = findUnique<boost::mp11::mp_list<T>>(
@@ -287,7 +287,7 @@ auto findOne(std::ranges::input_range auto&& range, std::string const& owner)
     return std::nullopt;
 }
 
-template <typename T>
+template <NoneAreMpLists T>
 auto findOneRequired(std::ranges::input_range auto&& range, std::string const& owner)
     -> T {
     auto result = findUniqueRequired<boost::mp11::mp_list<T>>(

@@ -39,20 +39,16 @@ hstd::SPtr<hstd::ext::graph::IVertex> hstd::ext::graph::VisualFactory::newVertex
         "VisualFactory::newVertex ID {} URL {}",
         in->stable_id(),
         in->payload().type_url());
-    hstd::SPtr<IVertex> res;
-    if (in->payload().Is<proto::TrivialVertexPayload>()) {
-        res = std::make_shared<TrivialVertex>(in->stable_id());
-    } else {
-        throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
+    return std::visit(
+        hstd::overloaded{
+            [&](proto::TrivialVertexPayload const& pl) -> hstd::SPtr<IVertex> {
+                return std::make_shared<TrivialVertex>(in->stable_id());
+            },
+        },
+        hstd::serde::unpackVariantT<proto::TrivialVertexPayload>(
             in->payload(),
             in->stable_id(),
-            "Cannot read serial data for the graph vertex. ",
-            {
-                std::string{proto::TrivialVertexPayload::descriptor()->full_name()},
-            }));
-    }
-
-    return res;
+            "Cannot read serial data for the graph vertex. "));
 }
 
 hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAttribute(
@@ -244,18 +240,17 @@ hstd::SPtr<hstd::ext::graph::IPortCollection> hstd::ext::graph::VisualFactory::
         "De-serialization input does not have payload object {}",
         serde::getJString(*in));
     OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-    if (in->payload().Is<proto::TrivialPortCollectionPayload>()) {
-        return std::make_shared<hstd::ext::graph::TrivialPortCollection>();
-    } else {
-        throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
+    return std::visit(
+        hstd::overloaded{
+            [&](proto::TrivialPortCollectionPayload const& pl)
+                -> hstd::SPtr<hstd::ext::graph::IPortCollection> {
+                return std::make_shared<hstd::ext::graph::TrivialPortCollection>();
+            },
+        },
+        hstd::serde::unpackVariantT<proto::TrivialPortCollectionPayload>(
             in->payload(),
             "port-collection",
-            "Cannot read serial data for edge collection. ",
-            {
-                std::string{
-                    proto::TrivialPortCollectionPayload::descriptor()->full_name()},
-            }));
-    }
+            "Cannot read serial data for edge collection. "));
 }
 
 hstd::SPtr<hstd::ext::graph::IEdgeCollection> hstd::ext::graph::VisualFactory::
@@ -266,19 +261,18 @@ hstd::SPtr<hstd::ext::graph::IEdgeCollection> hstd::ext::graph::VisualFactory::
         in->stable_id(),
         serde::getJString(*in));
     OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-    if (in->payload().Is<proto::TrivialEdgeCollectionPayload>()) {
-        return std::make_shared<TrivialEdgeCollection>(
-            EdgeCollectionID{static_cast<hstd::u16>(in->collection_id())});
-    } else {
-        throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
+    return std::visit(
+        hstd::overloaded{
+            [&](proto::TrivialEdgeCollectionPayload const& pl)
+                -> hstd::SPtr<IEdgeCollection> {
+                return std::make_shared<TrivialEdgeCollection>(
+                    EdgeCollectionID{static_cast<hstd::u16>(in->collection_id())});
+            },
+        },
+        hstd::serde::unpackVariantT<proto::TrivialEdgeCollectionPayload>(
             in->payload(),
             hstd::fmt("{}", in->collection_id()),
-            "Cannot read serial data for edge collection. ",
-            {
-                std::string{
-                    proto::TrivialEdgeCollectionPayload::descriptor()->full_name()},
-            }));
-    }
+            "Cannot read serial data for edge collection. "));
 }
 
 hstd::SPtr<hstd::ext::graph::IVertexHierarchy> hstd::ext::graph::VisualFactory::
@@ -289,18 +283,17 @@ hstd::SPtr<hstd::ext::graph::IVertexHierarchy> hstd::ext::graph::VisualFactory::
         in->stable_id(),
         serde::getJString(*in));
     OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-    if (in->payload().Is<proto::TrivialVertexHierarchyPayload>()) {
-        return std::make_shared<TrivialHierarchy>();
-    } else {
-        throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
+    return std::visit(
+        hstd::overloaded{
+            [&](proto::TrivialVertexHierarchyPayload const& pl)
+                -> hstd::SPtr<IVertexHierarchy> {
+                return std::make_shared<TrivialHierarchy>();
+            },
+        },
+        hstd::serde::unpackVariantT<proto::TrivialVertexHierarchyPayload>(
             in->payload(),
             in->stable_id(),
-            "Cannot read serial data for vertex hierarchy. ",
-            {
-                std::string{
-                    proto::TrivialVertexHierarchyPayload::descriptor()->full_name()},
-            }));
-    }
+            "Cannot read serial data for vertex hierarchy. "));
 }
 
 hstd::SPtr<layout::IConstraint> hstd::ext::graph::VisualFactory::newConstraint(
@@ -352,17 +345,16 @@ hstd::SPtr<hstd::ext::graph::IEdge> hstd::ext::graph::VisualFactory::newEdge(
         "De-serialization input does not have payload object {}",
         serde::getJString(*edge));
 
-    if (edge->payload().Is<proto::TrivialEdgePayload>()) {
-        return std::make_shared<TrivialEdge>(edge->stable_id());
-    } else {
-        throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
+    return std::visit(
+        hstd::overloaded{
+            [&](proto::TrivialEdgePayload const& pl) -> hstd::SPtr<IEdge> {
+                return std::make_shared<TrivialEdge>(edge->stable_id());
+            },
+        },
+        hstd::serde::unpackVariantT<proto::TrivialEdgePayload>(
             edge->payload(),
             edge->stable_id(),
-            "Cannot read serial data for the graph edge. ",
-            {
-                std::string{proto::TrivialEdgePayload::descriptor()->full_name()},
-            }));
-    }
+            "Cannot read serial data for the graph edge. "));
 }
 
 hstd::SPtr<IPort> hstd::ext::graph::VisualFactory::newPort(proto::IPort const* port) {

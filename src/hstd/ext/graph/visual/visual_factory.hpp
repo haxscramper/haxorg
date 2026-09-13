@@ -9,6 +9,7 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 
 #include <hstd/ext/hstd_serde_dispatch.hpp>
+#include <src/hstd/ext/graph/visual/graph_avoid.pb.h>
 #include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
 #include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
 
@@ -25,6 +26,14 @@ struct DispatchProtoPayload<hstd::ext::graph::proto::IAttribute> {
 } // namespace hstd::serde
 
 namespace hstd::ext::graph {
+
+using EdgeLayoutAttributePayloadTypes = boost::mp11::mp_list<
+    // graphviz
+    hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload,
+    // kiwi, top-level unbound edges
+    hstd::ext::graph::avoid::proto::EdgeLayoutAttributePayload
+    //
+    >;
 
 using NodeVisualAttributePayloadTypes = boost::mp11::mp_list<
     hstd::ext::graph::gv::proto::NodeAttributePayload,
