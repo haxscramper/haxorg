@@ -1,4 +1,5 @@
 #include "graph_base.hpp"
+#include "hstd/ext/graph/visual/graph_visual.hpp"
 
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
@@ -456,6 +457,15 @@ void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* fact
             auto new_edge = getMEdge(entry->getEdgeIDByStableId(edge.stable_id()));
             new_edge->IAttributeObject::readSerial(
                 &edge.attributes(), this, factory, new_edge);
+        }
+    }
+
+    for (auto const& v : in->vertices()) {
+        auto new_vertex = getMVertex(getVertexIDByStableId(v.stable_id()));
+        auto group = new_vertex->getOptionalAttribute<layout::IGroupVisualAttribute>();
+        if (group && (**group).hasAlgorithm()) {
+            auto algo = (**group).getAlgorithm<layout::IPlacementAlgorithm>();
+            algo->readSerialConstraints(&v.constraints(), this, factory);
         }
     }
 }

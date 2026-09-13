@@ -156,19 +156,10 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
                 auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
                     parent_group_id, this_vertex_id);
 
-                result = group->addNewNativeSubgroup(nesting_edge_id);
-
+                return group->addNewNativeSubgroup(nesting_edge_id);
             } else {
-                result = kw::KiwiGroup::newRootGraph(run);
+                return kw::KiwiGroup::newRootGraph(run);
             }
-
-            for (auto const& c : pl.base().constraints()) {
-                auto new_constraint = newConstraint(&c);
-                new_constraint->readSerial(&c, graph);
-                result->addConstraint(new_constraint);
-            }
-
-            return result;
         },
         // node payloads
         [&](gv::proto::NodeAttributePayload const& pl) -> hstd::SPtr<IAttribute> {

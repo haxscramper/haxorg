@@ -101,7 +101,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     kiwi_sub1->addEdge(e_g6_g7);
     kiwi_sub1->addEdge(e_g7_g8);
 
-    kiwi_sub1->emplaceConstraint<kw::SeparateConstraint>(kiwi_sub1)
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::SeparateConstraint>(kiwi_sub1)
         ->separateVertically()
         ->setSeparationDistance(40)
         ->addLeftVertex(g1)
@@ -113,7 +114,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
         ->addRightVertex(g7)
         ->addRightVertex(g8);
 
-    kiwi_sub1->emplaceConstraint<kw::MultiSeparateConstraint>(kiwi_sub1)
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::MultiSeparateConstraint>(kiwi_sub1)
         ->separateHorizontally()
         ->setSeparationDistance(60)
         ->addFullLane({g1, g5})
@@ -226,14 +228,17 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     // construction.
     kiwi_sub1->addVertex(dot_sub2_id_nesting);
     kiwi_sub1->addVertex(circo_sub2_id_nesting);
-    kiwi_sub1->emplaceConstraint<kw::LinearConstraint>(kiwi_root)->setSecondLeftOfFirst(
-        dot_sub2_id, circo_sub2_id);
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondLeftOfFirst(dot_sub2_id, circo_sub2_id);
 
-    kiwi_sub1->emplaceConstraint<kw::LinearConstraint>(kiwi_root)->setSecondBelowFirst(
-        circo_sub2_id, g1);
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondBelowFirst(circo_sub2_id, g1);
 
     {
-        auto under_nodes = kiwi_sub1->emplaceConstraint<kw::LinearConstraint>(kiwi_root);
+        auto under_nodes = kiwi_sub1->getAlgorithm()
+                               ->emplaceConstraint<kw::LinearConstraint>(kiwi_root);
         under_nodes->finalize(
             under_nodes->use(g1, kiwi_ir::RectAttr::LEFT),
             kiwi_ir::Relation::EQ,
@@ -242,8 +247,9 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
 
     kiwi_root->addVertex(kiwi_sub1_id_nesting);
     kiwi_root->addVertex(dot_sub1_id_nesting);
-    kiwi_root->emplaceConstraint<kw::LinearConstraint>(kiwi_root)->setSecondRightOfFirst(
-        kiwi_sub1_id, dot_sub1_id);
+    kiwi_root->getAlgorithm()
+        ->emplaceConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondRightOfFirst(kiwi_sub1_id, dot_sub1_id);
 
     run->runFullLayout();
 

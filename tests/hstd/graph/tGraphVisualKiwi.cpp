@@ -44,7 +44,9 @@ TEST_F(GraphKiwi_Test, KiwiFixedAbsoluteRelative) {
     root->addVertex(addNesting(rg_id, v_fixed), geometry::Size(5, 5));
     root->addVertex(addNesting(rg_id, v_relative), geometry::Size(6, 6));
 
-    root->emplaceConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
+    algo->emplaceConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
         ->setAbsoluteOffset(10, 10);
 
     run->runFullLayout();
@@ -74,7 +76,9 @@ TEST_F(GraphKiwi_Test, KiwiFixedRelativeRelative) {
     root->addVertex(addNesting(rg_id, v_fixed), geometry::Size(5, 5));
     root->addVertex(addNesting(rg_id, v_relative), geometry::Size(6, 6));
 
-    root->emplaceConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
+    algo->emplaceConstraint<kw::RelativeConstraint>(root, v_fixed, v_relative)
         ->setRelativeOffset(10, 10);
 
     run->runFullLayout();
@@ -112,28 +116,30 @@ TEST_F(GraphKiwi_Test, KiwiLinearConstraintTrivial) {
     root->addVertex(addNesting(rg_id, v_down_left), geometry::Size(50, 50));
     root->addVertex(addNesting(rg_id, v_down_right), geometry::Size(50, 50));
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondBelowFirst(v_center, v_down_left);
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondBelowFirst(v_center, v_down_right);
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondAboveFirst(v_center, v_up_left);
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondAboveFirst(v_center, v_up_right);
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondLeftOfFirst(v_center, v_down_left);
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondLeftOfFirst(v_center, v_up_left);
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondRightOfFirst(v_center, v_down_right);
 
-    root->emplaceConstraint<kw::LinearConstraint>(root) //
+    algo->emplaceConstraint<kw::LinearConstraint>(root) //
         ->setSecondRightOfFirst(v_center, v_up_right);
 
     run->runFullLayout();
@@ -167,11 +173,13 @@ TEST_F(GraphKiwi_Test, KiwiLinearConstraintPartialInset) {
     root->addVertex(addNesting(rg_id, v_down_left), geometry::Size(size, size));
     root->addVertex(addNesting(rg_id, v_down_right), geometry::Size(size, size));
 
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
     auto add_inset = [&](VertexID const&   relative,
                          kiwi_ir::RectAttr fixed_anchor,
                          kiwi_ir::RectAttr relative_anchor,
                          double            relative_inset) {
-        auto c = root->emplaceConstraint<kw::LinearConstraint>(root);
+        auto c = algo->emplaceConstraint<kw::LinearConstraint>(root);
         c->finalize(
             c->use(v_center, fixed_anchor),
             kiwi_ir::Relation::EQ,
@@ -228,12 +236,14 @@ TEST_F(GraphKiwi_Test, KiwiAlign) {
     root->addVertex(addNesting(rg_id, v3), geometry::Size(70, 70));
     root->addVertex(addNesting(rg_id, v4), geometry::Size(80, 80));
 
-    root->emplaceConstraint<kw::AlignConstraint>(root)
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
+    algo->emplaceConstraint<kw::AlignConstraint>(root)
         ->useVerticalAxis()
         ->addAlignVertex(v1)
         ->addAlignVertex(v2);
 
-    root->emplaceConstraint<kw::AlignConstraint>(root)
+    algo->emplaceConstraint<kw::AlignConstraint>(root)
         ->useHorizontalAxis()
         ->addAlignVertex(v1)
         ->addAlignVertex(v4);
@@ -284,7 +294,9 @@ TEST_F(GraphKiwi_Test, KiwiSeparateMultiSeparate) {
     root->addEdge(e_g6_g7);
     root->addEdge(e_g7_g8);
 
-    root->emplaceConstraint<kw::SeparateConstraint>(root)
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
+    algo->emplaceConstraint<kw::SeparateConstraint>(root)
         ->separateVertically()
         ->setSeparationDistance(40)
         ->addLeftVertex(g1)
@@ -296,7 +308,7 @@ TEST_F(GraphKiwi_Test, KiwiSeparateMultiSeparate) {
         ->addRightVertex(g7)
         ->addRightVertex(g8);
 
-    root->emplaceConstraint<kw::MultiSeparateConstraint>(root)
+    algo->emplaceConstraint<kw::MultiSeparateConstraint>(root)
         ->separateHorizontally()
         ->setSeparationDistance(60)
         ->addFullLane({g1, g5})
@@ -326,8 +338,10 @@ TEST_P(GraphKiwi_BoolParamTest, KiwiAlign_Offset) {
     root->addVertex(addNesting(rg_id, v2), geometry::Size(60, 60));
     root->addVertex(addNesting(rg_id, v3), geometry::Size(70, 70));
 
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
     bool const is_vertical = GetParam();
-    auto       c           = root->emplaceConstraint<kw::AlignConstraint>(root);
+    auto       c           = algo->emplaceConstraint<kw::AlignConstraint>(root);
 
     if (is_vertical) {
         c->useVerticalAxis();
@@ -372,8 +386,10 @@ TEST_P(GraphKiwi_BoolParamTest, SeparationConstraintAlign) {
     root->addVertex(addNesting(rg_id, v3), geometry::Size(70, 70));
     root->addVertex(addNesting(rg_id, v4), geometry::Size(50, 50));
 
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
     bool const is_vertical = GetParam();
-    auto       c           = root->emplaceConstraint<kw::SeparateConstraint>(root);
+    auto       c           = algo->emplaceConstraint<kw::SeparateConstraint>(root);
 
     if (is_vertical) {
         c->separateVertically();
@@ -436,11 +452,13 @@ TEST_F(GraphKiwi_Test, MultiSeparationConstraint) {
         }
     }
 
-    auto sep1 = root->emplaceConstraint<kw::MultiSeparateConstraint>(root)
+    auto algo = root->getAlgorithm<kw::KiwiLayoutAlgorithm>();
+
+    auto sep1 = algo->emplaceConstraint<kw::MultiSeparateConstraint>(root)
                     ->setSeparationDistance(90)
                     ->separateVertically();
 
-    auto sep2 = root->emplaceConstraint<kw::MultiSeparateConstraint>(root)
+    auto sep2 = algo->emplaceConstraint<kw::MultiSeparateConstraint>(root)
                     ->setSeparationDistance(90)
                     ->separateHorizontally();
 

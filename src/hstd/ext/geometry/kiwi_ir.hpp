@@ -290,6 +290,21 @@ Str flat_repr(Constraint const& c, bool full_flatten = false);
 struct KiwiCtx;
 
 struct Rect {
+  private:
+    Rect(
+        KiwiCtx&    ctx,
+        Str         rect_id,
+        Opt<double> x0      = std::nullopt,
+        Opt<double> y0      = std::nullopt,
+        Opt<double> width0  = std::nullopt,
+        Opt<double> height0 = std::nullopt);
+
+  public:
+    friend class KiwiCtx;
+
+    Rect()                  = default;
+    Rect(Rect const& other) = default;
+
     Str         rect_id;
     Opt<double> x0;
     Opt<double> y0;
@@ -300,14 +315,6 @@ struct Rect {
     kiwi::Variable y;
     kiwi::Variable width;
     kiwi::Variable height;
-
-    Rect(
-        KiwiCtx&    ctx,
-        Str         rect_id,
-        Opt<double> x0      = std::nullopt,
-        Opt<double> y0      = std::nullopt,
-        Opt<double> width0  = std::nullopt,
-        Opt<double> height0 = std::nullopt);
 
     Expr expr(RectAttr name) const;
     Expr anchor_expr(Anchor anchor) const;
@@ -325,12 +332,24 @@ struct KiwiCtx {
 
     bool empty() const { return rects.empty(); }
 
-    void add_rect(Rect const& name) {
+
+    Rect const& add_rect(Rect const& name) {
         LOGIC_ASSERTION_CHECK_FMT(
             !rects.contains(name.rect_id),
             "Context already contains rect {}",
             name.rect_id);
         rects.insert_or_assign(name.rect_id, name);
+        return rects.at(name.rect_id);
+    }
+
+
+    Rect const& add_rect(
+        Str         rect_id,
+        Opt<double> x0      = std::nullopt,
+        Opt<double> y0      = std::nullopt,
+        Opt<double> width0  = std::nullopt,
+        Opt<double> height0 = std::nullopt) {
+        return add_rect(Rect(*this, rect_id, x0, y0, width0, height0));
     }
 
     Rect&       rect(std::string const& name) { return rects.at(name); }

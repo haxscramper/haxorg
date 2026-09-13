@@ -132,6 +132,8 @@ class IGroupLayoutAttribute : public IVertexLayoutAttribute {
 class IGroupVisualAttribute;
 class LayoutRun;
 
+/// \brief Optional instance of the layout algorithm to be executed on
+/// the current group.
 class IPlacementAlgorithm {
   public:
     static constexpr hstd::u16 TemporaryLayoutVertexMask = 0b1111'1111;
@@ -142,6 +144,8 @@ class IPlacementAlgorithm {
         hstd::UnorderedMap<PortID, hstd::SPtr<IPortLayoutAttribute>>     ports;
     };
 
+    hstd::Vec<hstd::SPtr<IConstraint>> constraints;
+
     hstd::SPtr<LayoutRun> run;
 
     /// \brief Execute single layout run on the input group. If the group
@@ -151,49 +155,6 @@ class IPlacementAlgorithm {
     virtual Result runSingleLayout(VertexID const& group) = 0;
 
     IPlacementAlgorithm(hstd::SPtr<LayoutRun> run) : run{run} {}
-};
-
-class IConstraint {
-  public:
-    virtual hstd::Vec<VertexID> getAllVertices() const = 0;
-
-#if ORG_BUILD_WITH_PROTOBUF
-    virtual void writeSerial(
-        hstd::ext::graph::proto::IConstraint* out,
-        IGraph const*                         graph) const = 0;
-
-    virtual void readSerial(
-        hstd::ext::graph::proto::IConstraint const* in,
-        IGraph const*                               graph) = 0;
-#endif
-};
-
-
-class IGroupVisualAttribute : public IVertexVisualAttribute {
-  protected:
-    /// \brief Algorithm object should be crated by the factory functions
-    /// or in the constructor of the derived types based on the input data.
-    hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
-
-
-  public:
-    /// \brief Optional instance of the layout algorithm to be executed on
-    /// the current group.
-    hstd::Vec<hstd::SPtr<IConstraint>> constraints;
-    hstd::SPtr<LayoutRun>              run;
-
-
-    virtual void setOuterPadding(geometry::Padding const& pad)   = 0;
-    virtual hstd::Opt<geometry::Padding> getOuterPadding() const = 0;
-
-    hstd::SPtr<IGraph> getGraph() const;
-
-    template <typename T = IPlacementAlgorithm>
-    hstd::SPtr<T> getAlgorithm() const {
-        auto result = std::dynamic_pointer_cast<T>(algorithm.value());
-        hstd::logic_assertion_check_not_nil(result);
-        return result;
-    }
 
 
     template <typename T>
@@ -209,11 +170,6 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
         return res;
     }
 
-    bool hasAlgorithm() const { return algorithm.has_value(); }
-
-    virtual std::string getStableId() const = 0;
-
-    IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 
 #if ORG_BUILD_WITH_PROTOBUF
     void writeSerialConstraints(
@@ -224,9 +180,57 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
         google::protobuf::RepeatedPtrField<hstd::ext::graph::proto::IConstraint> const*
                                    in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex);
+        IGraphSerialReaderFactory* factory);
 #endif
+};
+
+class IConstraint {
+  public:
+    virtual hstd::Vec<VertexID> getAllVertices() const = 0;
+
+#if ORG_BUILD_WITH_PROTOBUF
+    virtual void writeSerial(
+        hstd::ext::graph::proto::IConstraint* out,
+        IGraph const*                         graph) const = 0;
+
+    virtual void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        IPlacementAlgorithm const*                  vertex) = 0;
+#endif
+};
+
+
+class IGroupVisualAttribute : public IVertexVisualAttribute {
+  protected:
+    /// \brief Algorithm object should be crated by the factory functions
+    /// or in the constructor of the derived types based on the input data.
+    hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
+
+
+  public:
+    hstd::SPtr<LayoutRun> run;
+
+
+    virtual void setOuterPadding(geometry::Padding const& pad)   = 0;
+    virtual hstd::Opt<geometry::Padding> getOuterPadding() const = 0;
+
+    hstd::SPtr<IGraph> getGraph() const;
+
+    template <typename T = IPlacementAlgorithm>
+    hstd::SPtr<T> getAlgorithm() const {
+        auto result = std::dynamic_pointer_cast<T>(algorithm.value());
+        hstd::logic_assertion_check_not_nil(result);
+        return result;
+    }
+
+
+    bool hasAlgorithm() const { return algorithm.has_value(); }
+
+    virtual std::string getStableId() const = 0;
+
+    IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
 };
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {

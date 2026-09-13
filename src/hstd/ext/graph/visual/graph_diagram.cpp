@@ -60,6 +60,7 @@ void appendConstraint(
     }
 }
 
+
 void appendDiaConstraint(
     google::protobuf::RepeatedPtrField<diagram::proto::DiaConstraint>* constraints,
     proto::IConstraint const&                                          source,
@@ -172,6 +173,13 @@ std::string commonCluster(
 
 namespace {
 
+template <typename T>
+void store_outer_padding(T& payload, diagram::proto::DiaCluster const& cluster) {
+    if (cluster.has_outer_padding()) {
+        *payload.mutable_base()->mutable_outer_padding() = cluster.outer_padding();
+    }
+}
+
 void appendNoAlgorithmCluster(
     diagram::proto::DiaCluster const& cluster,
     std::string const&                parentId,
@@ -191,12 +199,7 @@ void appendNoAlgorithmCluster(
 
             gv::proto::GroupAttributePayload payload{};
             payload.set_parent_stable_id(parentId);
-
-            if (cluster.has_outer_padding()) {
-                *payload.mutable_base()->mutable_outer_padding() = cluster
-                                                                       .outer_padding();
-            }
-
+            store_outer_padding(payload, cluster);
             appendAttribute(vertex->mutable_attributes(), payload);
             break;
         }
@@ -204,20 +207,7 @@ void appendNoAlgorithmCluster(
         case LayoutKind::Kiwi: {
             kw::proto::KiwiGroupVisualAttributePayload payload{};
             payload.set_parent_stable_id(parentId);
-
-            for (diagram::proto::DiaConstraint const& constraint :
-                 cluster.constraints()) {
-                appendConstraint(
-                    payload.mutable_base()->mutable_constraints(),
-                    constraint,
-                    cluster.id());
-            }
-
-            if (cluster.has_outer_padding()) {
-                *payload.mutable_base()->mutable_outer_padding() = cluster
-                                                                       .outer_padding();
-            }
-
+            store_outer_padding(payload, cluster);
             appendAttribute(vertex->mutable_attributes(), payload);
             break;
         }
@@ -234,18 +224,18 @@ void appendClusterKind(
     diagram::proto::DiaGraphMetadata* metadata,
     LayoutKind&                       kind,
     bool&                             inherited) {
+
+    for (auto const& c : cluster.constraints()) {
+        appendConstraint(vertex->mutable_constraints(), c, cluster.id());
+    }
+
     switch (cluster.kind_case()) {
         // TODO: Support ELK cluster conversions.
         case diagram::proto::DiaCluster::kGraphviz: {
             kind                                     = LayoutKind::Graphviz;
             gv::proto::GroupAttributePayload payload = cluster.graphviz();
             payload.clear_parent_stable_id();
-
-            if (cluster.has_outer_padding()) {
-                *payload.mutable_base()->mutable_outer_padding() = cluster
-                                                                       .outer_padding();
-            }
-
+            store_outer_padding(payload, cluster);
             appendAttribute(vertex->mutable_attributes(), payload);
             break;
         }
@@ -254,20 +244,7 @@ void appendClusterKind(
             kind                                               = LayoutKind::Kiwi;
             kw::proto::KiwiGroupVisualAttributePayload payload = cluster.kiwi();
             payload.clear_parent_stable_id();
-            payload.mutable_base()->clear_constraints();
-            if (cluster.has_outer_padding()) {
-                *payload.mutable_base()->mutable_outer_padding() = cluster
-                                                                       .outer_padding();
-            }
-
-            for (diagram::proto::DiaConstraint const& constraint :
-                 cluster.constraints()) {
-                appendConstraint(
-                    payload.mutable_base()->mutable_constraints(),
-                    constraint,
-                    cluster.id());
-            }
-
+            store_outer_padding(payload, cluster);
             appendAttribute(vertex->mutable_attributes(), payload);
             break;
         }
@@ -556,15 +533,6 @@ diagram::proto::DiaCluster buildCluster(
                         vertex.attributes(), owner)
                         .base()
                         .bbox();
-
-                result.mutable_kiwi()->mutable_base()->clear_constraints();
-
-                if (preserveOrigin) {
-                    for (proto::IConstraint const& constraint : pl.base().constraints()) {
-                        appendDiaConstraint(
-                            result.mutable_constraints(), constraint, clusterId);
-                    }
-                }
             },
         };
         std::visit(overload, *visual);

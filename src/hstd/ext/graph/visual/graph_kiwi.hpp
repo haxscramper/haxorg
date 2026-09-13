@@ -118,8 +118,6 @@ class KiwiGroup
         const override {
         layout::IGroupVisualAttribute::writeSerial(out, graph);
         kw::proto::KiwiGroupVisualAttributePayload load;
-        layout::IGroupVisualAttribute::writeSerialConstraints(
-            load.mutable_base()->mutable_constraints(), graph);
         out->mutable_payload()->PackFrom(load);
     }
 
@@ -129,10 +127,8 @@ class KiwiGroup
         IGraphSerialReaderFactory*                 factory,
         IAttributeObject const*                    vertex) override {
         layout::IGroupVisualAttribute::readSerial(in, graph, factory, vertex);
-        kw::proto::KiwiGroupVisualAttributePayload load;
-        in->payload().UnpackTo(&load);
-        layout::IGroupVisualAttribute::readSerialConstraints(
-            &load.base().constraints(), graph, factory, vertex);
+        hstd::serde::unpackMessage<kw::proto::KiwiGroupVisualAttributePayload>(
+            in->payload());
     }
 #    endif
 
@@ -146,7 +142,7 @@ class KiwiGroup
         : layout::IGroupVisualAttribute{ctx->run}
         , shared{ctx}
         , local{.name = name}
-        , rect{*shared->kiwi_ctx, name} {}
+        , rect{shared->kiwi_ctx->add_rect(name)} {}
 
     hstd::SPtr<layout::LayoutRun> const& getRun() const { return shared->run; }
 
@@ -356,8 +352,11 @@ class RelativeConstraint : public KiwiConstraint {
         *out->mutable_payload() = hstd::serde::packMessage(load);
     }
 
-    void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        layout::IPlacementAlgorithm const*          vertex) override {
         auto load = hstd::serde::unpackMessage<
             hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload>(in->payload());
         x_dim.readSerial(load.x_dim());
@@ -472,28 +471,11 @@ class LinearConstraint : public KiwiConstraint {
         out->mutable_payload()->PackFrom(load);
     }
 
-    void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
-        override {
-        hstd::ext::graph::kw::proto::KiwiLinearConstraintPayload load;
-        in->payload().UnpackTo(&load);
-        rel        = static_cast<kiwi_ir::Relation>(load.op());
-        auto group = graph->getVertex(graph->getVertexIDByStableId(load.ctx_group_id()))
-                         ->getUniqueAttribute<KiwiGroup>();
-
-        kiwi_ir::Expr::VariableResolver resolve =
-            [graph, group](
-                std::string const& stableId, kiwi_ir::RectAttr attr) -> kiwi_ir::Expr {
-            // Trivial reader for the graph structure: rectangle placement, verification
-            // of the correct rectangle nesting and other elements is handled during
-            // kiwi layout, at de-serialization stage the only important thing is to
-            // not reference the non-existent vertex.
-            auto id = graph->getVertexIDByStableId(stableId);
-            return kiwi_ir::Rect(*group->shared->kiwi_ctx, stableId).expr(attr);
-        };
-
-        lhs = kiwi_ir::Expr::readSerial(load.lhs(), resolve);
-        rhs = kiwi_ir::Expr::readSerial(load.rhs(), resolve);
-    }
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        layout::IPlacementAlgorithm const*          vertex) override;
 
 #    endif
 
@@ -579,8 +561,11 @@ class AlignConstraint : public KiwiConstraint {
         IGraph const*                                            graph) const;
 
 
-    void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
-        override;
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        layout::IPlacementAlgorithm const*          vertex) override;
 
     void readPayload(
         hstd::ext::graph::kw::proto::KiwiAlignConstraintPayload const* in,
@@ -651,8 +636,11 @@ class SeparateConstraint : public KiwiConstraint {
         out->mutable_payload()->PackFrom(load);
     }
 
-    void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        layout::IPlacementAlgorithm const*          vertex) override {
         auto data = IGraphSerialReaderFactory::get_payload<
             proto::KiwiSeparateConstraintPayload>(in->payload());
         separationDistance = data.separationdistance();
@@ -742,8 +730,11 @@ class MultiSeparateConstraint : public KiwiConstraint {
         *out->mutable_payload() = hstd::serde::packMessage(load);
     }
 
-    void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
-        override {
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        layout::IPlacementAlgorithm const*          vertex) override {
         auto load = hstd::serde::unpackMessage<proto::KiwiMultiSeparateConstraintPayload>(
             in->payload());
         hstd::serde::read_serde(load.dimension(), dimension);
@@ -822,13 +813,15 @@ class MultiSeparateConstraint : public KiwiConstraint {
 class KiwiLayoutAlgorithm : public layout::IPlacementAlgorithm {
   public:
     std::shared_ptr<cst::AvoidRouterAlgorithm> router;
+    hstd::SPtr<kiwi_ir::KiwiCtx>               ctx;
 
     Result runSingleLayout(VertexID const& group) override;
 
     KiwiLayoutAlgorithm(
         hstd::SPtr<layout::LayoutRun>              run,
+        hstd::SPtr<kiwi_ir::KiwiCtx>               ctx,
         std::shared_ptr<cst::AvoidRouterAlgorithm> _router = nullptr)
-        : layout::IPlacementAlgorithm{run} {
+        : layout::IPlacementAlgorithm{run}, ctx{ctx} {
         if (_router == nullptr) {
             router = std::make_shared<cst::AvoidRouterAlgorithm>();
         } else {

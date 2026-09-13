@@ -289,21 +289,20 @@ hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::getGraph() c
 }
 
 #if ORG_BUILD_WITH_PROTOBUF
-void layout::IGroupVisualAttribute::writeSerialConstraints(
+void layout::IPlacementAlgorithm::writeSerialConstraints(
     google::protobuf::RepeatedPtrField<hstd::ext::graph::proto::IConstraint>* out,
     IGraph const* graph) const {
     for (auto const& c : constraints) { c->writeSerial(out->Add(), graph); }
 }
 
-void layout::IGroupVisualAttribute::readSerialConstraints(
+void layout::IPlacementAlgorithm::readSerialConstraints(
     google::protobuf::RepeatedPtrField<graph::proto::IConstraint> const* in,
     IGraph const*                                                        graph,
-    IGraphSerialReaderFactory*                                           factory,
-    IAttributeObject const*                                              vertex) {
+    IGraphSerialReaderFactory*                                           factory) {
     for (auto const& c : *in) {
         auto new_constraint = factory->newConstraint(&c);
-        new_constraint->readSerial(&c, graph);
-        constraints.push_back(new_constraint);
+        new_constraint->readSerial(&c, graph, factory, this);
+        addConstraint(new_constraint);
     }
 }
 #endif

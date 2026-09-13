@@ -7,12 +7,16 @@ package hstd.ext.graph.proto;
 message IAttribute {
   google.protobuf.Any payload = 2;
 }
+message IConstraint {
+  google.protobuf.Any payload = 5;
+}
 
 message TrivialVertexPayload {};
 message IVertex {
   string stable_id = 1;
   repeated IAttribute attributes = 3;
-  google.protobuf.Any payload = 4;
+  repeated IConstraint constraints = 4;
+  google.protobuf.Any payload = 5;
 }
 
 message TrivialEdgePayload {}
@@ -59,10 +63,6 @@ message IPort {
   string edge_id = 2;
   bool is_target = 3;
   string vertex_id = 4;
-  google.protobuf.Any payload = 5;
-}
-
-message IConstraint {
   google.protobuf.Any payload = 5;
 }
 

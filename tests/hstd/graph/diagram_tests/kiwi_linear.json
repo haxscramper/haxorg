@@ -9,15 +9,15 @@
     "constraints": [
       {
         "kw_linear": {
-          "lhs": {
+          "lhs"         : {
             "node": {
               "variable": {
                 "vertex_rect_attr": {"vertex_stable_id": "lhs", "attr": "RECT_ATTR_RIGHT"}
               }
             }
           },
-          "op" : "RELATION_LE",
-          "rhs": {
+          "op"          : "RELATION_LE",
+          "rhs"         : {
             "node": {
               "variable": {
                 "vertex_rect_attr": {"vertex_stable_id": "rhs", "attr": "RECT_ATTR_LEFT"}
