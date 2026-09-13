@@ -38,11 +38,15 @@ Axis anchor_axis(Anchor anchor) {
     }
 }
 
-Str axis_color(Axis axis) {
-    if (axis == Axis::X) {
-        return "red";
+Str axis_color(hstd::Opt<Axis> axis) {
+    if (axis.has_value()) {
+        if (axis == Axis::X) {
+            return "red";
+        } else {
+            return "blue";
+        }
     } else {
-        return "blue";
+        return "purple";
     }
 }
 
@@ -53,37 +57,85 @@ std::shared_ptr<Expr::Node> kiwi_ir::Expr::readNode(
     ::hstd::ext::kiwi_ir::proto::Expr::Node const& n,
     VariableResolver const&                        resolve) {
     using P = ::hstd::ext::kiwi_ir::proto::Expr::Node;
-    switch (n.kind()) {
-        case P::EXPR_KIND_CONSTANT: return make_constant(n.constant());
-        case P::EXPR_KIND_VARIABLE: {
-            if (n.has_variable_name()) {
-                return make_variable(kiwi::Variable(n.variable_name()));
+    switch (n.kind_case()) {
+        case P::kConstant: return make_constant(n.constant().constant());
+        case P::kVariable: {
+            auto const& v = n.variable();
+            if (v.has_variable_name()) {
+                return make_variable(kiwi::Variable(v.variable_name()));
             } else {
                 LOGIC_ASSERTION_CHECK_FMT(resolve.has_value(), "");
-                auto const& va = n.vertex_rect_attr();
+                auto const& va = v.vertex_rect_attr();
                 return (*resolve)(va.vertex_stable_id(), static_cast<RectAttr>(va.attr()))
                     .node;
             }
         }
-        case P::EXPR_KIND_KIWI_EXPRESSION: {
+        case P::kExpression: {
             std::vector<kiwi::Term> terms;
-            for (auto const& t : n.kiwi_expression().terms()) {
+            for (auto const& t : n.expression().expression().terms()) {
                 terms.emplace_back(kiwi::Variable(t.variable()), t.coefficient());
             }
             return make_kiwi_expr(
-                kiwi::Expression(std::move(terms), n.kiwi_expression().constant()));
+                kiwi::Expression(
+                    std::move(terms), n.expression().expression().constant()));
         }
-        case P::EXPR_KIND_ADD:
-        case P::EXPR_KIND_SUB:
-        case P::EXPR_KIND_MUL:
+
+        case P::kAdd:
             return make_binary(
-                static_cast<Node::Kind>(n.kind()),
-                readNode(n.lhs(), resolve),
-                readNode(n.rhs(), resolve));
-        case P::EXPR_KIND_NEG:
-            return make_unary(Node::Kind::Neg, readNode(n.lhs(), resolve));
+                Node::Kind::Add,
+                readNode(n.add().lhs(), resolve),
+                readNode(n.add().rhs(), resolve));
+
+        case P::kSub:
+            return make_binary(
+                Node::Kind::Sub,
+                readNode(n.sub().lhs(), resolve),
+                readNode(n.sub().rhs(), resolve));
+
+        case P::kMul:
+            return make_binary(
+                Node::Kind::Mul,
+                readNode(n.mul().lhs(), resolve),
+                readNode(n.mul().rhs(), resolve));
+
+        case P::kNeg:
+            return make_unary(Node::Kind::Neg, readNode(n.neg().value(), resolve));
     }
     throw std::runtime_error("Invalid Expr::Node kind");
+}
+
+
+void Expr::Node::writeSerial(::hstd::ext::kiwi_ir::proto::Expr::Node* n) const {
+    switch (kind) {
+        case Kind::Constant: n->mutable_constant()->set_constant(constant); break;
+        case Kind::Variable:
+            n->mutable_variable()->set_variable_name(variable.value().name());
+            break;
+
+        case Kind::KiwiExpression: {
+            auto* ke = n->mutable_expression()->mutable_expression();
+            ke->set_constant(kiwi_expr->constant());
+            for (auto const& term : kiwi_expr->terms()) {
+                auto* t = ke->add_terms();
+                t->set_variable(term.variable().name());
+                t->set_coefficient(term.coefficient());
+            }
+            break;
+        }
+        case Kind::Add:
+            lhs->writeSerial(n->mutable_add()->mutable_lhs());
+            rhs->writeSerial(n->mutable_add()->mutable_rhs());
+            break;
+        case Kind::Mul:
+            lhs->writeSerial(n->mutable_mul()->mutable_lhs());
+            rhs->writeSerial(n->mutable_mul()->mutable_rhs());
+            break;
+        case Kind::Sub:
+            lhs->writeSerial(n->mutable_sub()->mutable_lhs());
+            rhs->writeSerial(n->mutable_sub()->mutable_rhs());
+            break;
+        case Kind::Neg: lhs->writeSerial(n->mutable_neg()->mutable_value()); break;
+    }
 }
 
 
@@ -892,13 +944,15 @@ Vec<kiwi_ir::Constraint> LinearConstraint::build(RectMap const&) const {
     return {c};
 }
 
-Vec<EdgeDesc> LinearConstraint::describe_edges() const { return {}; }
+Vec<EdgeDesc> LinearConstraint::describe_edges() const {
+    Vec<EdgeDesc> result;
+    return result;
+}
 
 Str LinearConstraint::getRepr(hstd::Opt<RectMap> const& rects) const {
     Str rel = relation == Relation::EQ ? "==" : (relation == Relation::LE ? "<=" : ">=");
     Vec<Str> joined;
     joined.push_back(fmt::format("LinearConstraint({} ..., strength={})", rel, strength));
-
     joined.append(getBuildRepr(rects));
 
     return hstd::join("\n", joined);
@@ -1179,8 +1233,10 @@ void Layout::to_graphviz(hstd::fs::path const& path) {
         for (auto const& edge : constraint->describe_edges()) {
             auto constraint_to_rect_edge = //
                 edge.axis == Axis::X
-                    ? result->edge(*cnode, *rectNodes.at({edge.rect_id, edge.axis}))
-                    : result->edge(*rectNodes.at({edge.rect_id, edge.axis}), *cnode);
+                    ? result->edge(
+                          *cnode, *rectNodes.at({edge.rect_id, edge.axis.value()}))
+                    : result->edge(
+                          *rectNodes.at({edge.rect_id, edge.axis.value()}), *cnode);
 
             if (edge.axis == Axis::Y) {
                 constraint_to_rect_edge->setEdgeDir(graph::gv::EdgeDir::back);

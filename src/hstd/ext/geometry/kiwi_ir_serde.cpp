@@ -147,7 +147,7 @@ void hstd::serde::proto_serde<proto::EdgeDesc, kiwi_ir::EdgeDesc>::write(
     kiwi_ir::EdgeDesc const& in) {
     out->set_rect_id(in.rect_id);
     out->set_label(in.label);
-    out->set_axis(static_cast<proto::Axis>(in.axis));
+    if (in.axis) { out->set_axis(static_cast<proto::Axis>(in.axis.value())); }
 
     if (in.color) { out->set_color(*in.color); }
 }

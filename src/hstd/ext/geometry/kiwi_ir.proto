@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "buf/validate/validate.proto";
+
 package hstd.ext.kiwi_ir.proto;
 
 enum Axis {
@@ -8,12 +10,12 @@ enum Axis {
 }
 
 enum Anchor {
-  ANCHOR_LEFT    = 0;
+  ANCHOR_LEFT = 0;
   ANCHOR_HCENTER = 1;
-  ANCHOR_RIGHT   = 2;
-  ANCHOR_TOP     = 3;
+  ANCHOR_RIGHT = 2;
+  ANCHOR_TOP = 3;
   ANCHOR_VCENTER = 4;
-  ANCHOR_BOTTOM  = 5;
+  ANCHOR_BOTTOM = 5;
 }
 
 enum AnchorAxisRelative {
@@ -23,16 +25,16 @@ enum AnchorAxisRelative {
 }
 
 enum RectAttr {
-  RECT_ATTR_X       = 0;
-  RECT_ATTR_Y       = 1;
-  RECT_ATTR_WIDTH   = 2;
-  RECT_ATTR_HEIGHT  = 3;
-  RECT_ATTR_LEFT    = 4;
+  RECT_ATTR_X = 0;
+  RECT_ATTR_Y = 1;
+  RECT_ATTR_WIDTH = 2;
+  RECT_ATTR_HEIGHT = 3;
+  RECT_ATTR_LEFT = 4;
   RECT_ATTR_HCENTER = 5;
-  RECT_ATTR_RIGHT   = 6;
-  RECT_ATTR_TOP     = 7;
+  RECT_ATTR_RIGHT = 6;
+  RECT_ATTR_TOP = 7;
   RECT_ATTR_VCENTER = 8;
-  RECT_ATTR_BOTTOM  = 9;
+  RECT_ATTR_BOTTOM = 9;
 }
 
 enum Relation {
@@ -43,9 +45,9 @@ enum Relation {
 
 enum Strength {
   STRENGTH_REQUIRED = 0;
-  STRENGTH_STRONG   = 1;
-  STRENGTH_MEDIUM   = 2;
-  STRENGTH_WEAK     = 3;
+  STRENGTH_STRONG = 1;
+  STRENGTH_MEDIUM = 2;
+  STRENGTH_WEAK = 3;
 }
 
 message AnchorSpec {
@@ -54,84 +56,99 @@ message AnchorSpec {
 }
 
 message RectSpec2Side {
-  string rect_id    = 1;
+  string rect_id = 1;
   Anchor min_anchor = 2;
   Anchor max_anchor = 3;
 }
 
 message RectSpec1Side {
   string rect_id = 1;
-  Anchor anchor  = 2;
+  Anchor anchor = 2;
 }
 
 message KiwiTerm {
-  string variable    = 1;
+  string variable = 1;
   double coefficient = 2;
 }
 
 message KiwiExpression {
-  repeated KiwiTerm terms    = 1;
-  double            constant = 2;
+  repeated KiwiTerm terms = 1;
+  double constant = 2;
 }
 
 message Expr {
   message VertexRectAttr {
-    string   vertex_stable_id = 1;
-    RectAttr attr             = 2;
+    string vertex_stable_id = 1;
+    RectAttr attr = 2;
   }
 
   message Node {
-    enum Kind {
-      EXPR_KIND_CONSTANT        = 0;
-      EXPR_KIND_VARIABLE        = 1;
-      EXPR_KIND_KIWI_EXPRESSION = 2;
-      EXPR_KIND_ADD             = 3;
-      EXPR_KIND_SUB             = 4;
-      EXPR_KIND_MUL             = 5;
-      EXPR_KIND_NEG             = 6;
+    message UnaryMath {
+      Node value = 1;
     }
 
-    Kind                    kind            = 1;
-    double                  constant        = 2;
-    optional Node           lhs             = 4;
-    optional Node           rhs             = 5;
-    optional KiwiExpression kiwi_expression = 7;
-    oneof variable {
-      string         variable_name   = 6;
-      VertexRectAttr vertex_rect_attr = 8;
+    message BinMath {
+      Node lhs = 1;
+      Node rhs = 2;
+    }
+
+    message Constant {
+      double constant = 1;
+    }
+
+    message Expression {
+      KiwiExpression expression = 1;
+    }
+
+    message Variable {
+      oneof variable {
+        option (buf.validate.oneof).required = true;
+        string variable_name = 1;
+        VertexRectAttr vertex_rect_attr = 2;
+      }
+    }
+
+    oneof kind {
+      option (buf.validate.oneof).required = true;
+      BinMath add = 1;
+      BinMath sub = 2;
+      BinMath mul = 3;
+      UnaryMath neg = 4;
+      Expression expression = 5;
+      Constant constant = 6;
+      Variable variable = 7;
     }
   }
 
   Node node = 1;
 }
 
-
 message Constraint {
-  Expr            lhs      = 1;
-  Expr            rhs      = 2;
-  Relation        op       = 3;
+  Expr lhs = 1;
+  Expr rhs = 2;
+  Relation op = 3;
   optional double strength = 4;
 }
 
 message Rect {
-  string          rect_id = 1;
-  optional double x0      = 2;
-  optional double y0      = 3;
-  optional double width0  = 4;
+  string rect_id = 1;
+  optional double x0 = 2;
+  optional double y0 = 3;
+  optional double width0 = 4;
   optional double height0 = 5;
 }
 
 message EdgeDesc {
-  string          rect_id = 1;
-  string          label   = 2;
-  Axis            axis    = 3;
-  optional string color   = 4;
+  string rect_id = 1;
+  string label = 2;
+  Axis axis = 3;
+  optional string color = 4;
 }
 
 message Padding {
-  double left   = 1;
-  double top    = 2;
-  double right  = 3;
+  double left = 1;
+  double top = 2;
+  double right = 3;
   double bottom = 4;
 }
 
@@ -141,20 +158,20 @@ message AlignSpec {
 }
 
 message AlignItem {
-  string    rect_id = 1;
-  AlignSpec spec    = 2;
+  string rect_id = 1;
+  AlignSpec spec = 2;
 }
 
 message AlignConstraint {
-  repeated AlignItem items    = 1;
-  Strength           strength = 2;
+  repeated AlignItem items = 1;
+  Strength strength = 2;
 }
 
 message SeparateConstraint {
-  RectSpec1Side rect_a   = 1;
-  RectSpec1Side rect_b   = 2;
-  double        offset   = 3;
-  Strength      strength = 4;
+  RectSpec1Side rect_a = 1;
+  RectSpec1Side rect_b = 2;
+  double offset = 3;
+  Strength strength = 4;
 }
 
 message RectSpec1SideGroup {
@@ -162,71 +179,73 @@ message RectSpec1SideGroup {
 }
 
 message MultiSeparateConstraint {
-  repeated RectSpec1SideGroup groups   = 1;
-  double                      step     = 2;
-  Strength                    strength = 3;
+  repeated RectSpec1SideGroup groups = 1;
+  double step = 2;
+  Strength strength = 3;
 }
 
 message ParentWrapConstraint {
-  string          parent_rect_id  = 1;
+  string parent_rect_id = 1;
   repeated string nested_rect_ids = 2;
-  Padding         pad             = 3;
-  Strength        strength        = 4;
+  Padding pad = 3;
+  Strength strength = 4;
 }
 
 message RelDimensionSpec {
-  optional double size_factor     = 1;
+  optional double size_factor = 1;
   optional double relative_offset = 2;
-  double          absolute_offset = 3;
+  double absolute_offset = 3;
 }
 
 message RelativeConstraint {
-  string           relative_rect_id = 1;
-  string           fixed_rect_id    = 2;
-  RelDimensionSpec x_dim            = 3;
-  RelDimensionSpec y_dim            = 4;
-  AnchorSpec       anchor_fixed     = 5;
-  AnchorSpec       anchor_relative  = 6;
-  Strength         strength         = 7;
+  string relative_rect_id = 1;
+  string fixed_rect_id = 2;
+  RelDimensionSpec x_dim = 3;
+  RelDimensionSpec y_dim = 4;
+  AnchorSpec anchor_fixed = 5;
+  AnchorSpec anchor_relative = 6;
+  Strength strength = 7;
 }
 
 message EvenGapConstraint {
   repeated RectSpec2Side rects_spec = 1;
-  Strength               strength   = 2;
+  Strength strength = 2;
 }
 
 message EqualSizeConstraint {
-  string   rect_a_id    = 1;
-  string   rect_b_id    = 2;
-  bool     match_width  = 3;
-  bool     match_height = 4;
-  Strength strength     = 5;
+  string rect_a_id = 1;
+  string rect_b_id = 2;
+  bool match_width = 3;
+  bool match_height = 4;
+  Strength strength = 5;
 }
 
 message LinearConstraint {
-  Expr     left     = 1;
+  Expr left = 1;
   Relation relation = 2;
-  Expr     right    = 3;
+  Expr right = 3;
   Strength strength = 4;
 }
 
 message ConstraintSpec {
   oneof kind {
-    AlignConstraint         align          = 1;
-    SeparateConstraint      separate       = 2;
+    option (buf.validate.oneof).required = true;
+    AlignConstraint align = 1;
+    SeparateConstraint separate = 2;
     MultiSeparateConstraint multi_separate = 3;
-    ParentWrapConstraint    parent_wrap    = 4;
-    RelativeConstraint      relative       = 5;
-    EvenGapConstraint       even_gap       = 6;
-    EqualSizeConstraint     equal_size     = 7;
-    LinearConstraint        linear         = 8;
+    ParentWrapConstraint parent_wrap = 4;
+    RelativeConstraint relative = 5;
+    EvenGapConstraint even_gap = 6;
+    EqualSizeConstraint equal_size = 7;
+    LinearConstraint linear = 8;
   }
 }
 
 message ConstraintEntry {
   oneof source {
-    string         source_text = 1;
-    ConstraintSpec constraint  = 2;
+    option (buf.validate.oneof).required = true;
+    string source_text = 1;
+    ConstraintSpec constraint = 2;
   }
 
   repeated Constraint lowered = 3;

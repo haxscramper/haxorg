@@ -304,38 +304,33 @@ hstd::SPtr<layout::IConstraint> hstd::ext::graph::VisualFactory::newConstraint(
         serde::getJString(*in));
     OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
     namespace kp = kw::proto;
-    hstd::SPtr<layout::IConstraint> res;
-    if (auto kiwi_align = try_payload<kp::KiwiAlignConstraintPayload>(in->payload())) {
-        return std::make_shared<kw::AlignConstraint>(run);
-    } else if (
-        auto kiwi_align = try_payload<kp::KiwiSeparateConstraintPayload>(in->payload())) {
-        return std::make_shared<kw::SeparateConstraint>(run);
-    } else if (
-        auto kiwi_align = try_payload<kp::KiwiMultiSeparateConstraintPayload>(
-            in->payload())) {
-        return std::make_shared<kw::MultiSeparateConstraint>(run);
-    } else if (
-        auto kiwi_align = try_payload<kp::KiwiLinearConstraintPayload>(in->payload())) {
-        return std::make_shared<kw::LinearConstraint>(run);
-    } else if (
-        auto kiwi_align = try_payload<kp::KiwiRelativeConstraintPayload>(in->payload())) {
-        return std::make_shared<kw::RelativeConstraint>(run);
-    } else {
-        throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
+    return std::visit(
+        hstd::overloaded{
+            [&](kp::KiwiAlignConstraintPayload const& pl)
+                -> hstd::SPtr<layout::IConstraint> {
+                return std::make_shared<kw::AlignConstraint>(run);
+            },
+            [&](kp::KiwiSeparateConstraintPayload const& pl)
+                -> hstd::SPtr<layout::IConstraint> {
+                return std::make_shared<kw::SeparateConstraint>(run);
+            },
+            [&](kp::KiwiMultiSeparateConstraintPayload const& pl)
+                -> hstd::SPtr<layout::IConstraint> {
+                return std::make_shared<kw::MultiSeparateConstraint>(run);
+            },
+            [&](kp::KiwiLinearConstraintPayload const& pl)
+                -> hstd::SPtr<layout::IConstraint> {
+                return std::make_shared<kw::LinearConstraint>(run);
+            },
+            [&](kp::KiwiRelativeConstraintPayload const& pl)
+                -> hstd::SPtr<layout::IConstraint> {
+                return std::make_shared<kw::RelativeConstraint>(run);
+            },
+        },
+        hstd::serde::unpackVariant<ConstraintPayloadTypes>(
             in->payload(),
             "payload",
-            "Cannot read serial data for constraint payload. ",
-            {
-                std::string{kp::KiwiAlignConstraintPayload::descriptor()->full_name()},
-                std::string{kp::KiwiRelativeConstraintPayload::descriptor()->full_name()},
-                std::string{kp::KiwiSeparateConstraintPayload::descriptor()->full_name()},
-                std::string{
-                    kp::KiwiMultiSeparateConstraintPayload::descriptor()->full_name()},
-                std::string{kp::KiwiLinearConstraintPayload::descriptor()->full_name()},
-            }));
-    }
-
-    return res;
+            "Cannot read serial data for constraint payload. "));
 }
 
 hstd::SPtr<hstd::ext::graph::IEdge> hstd::ext::graph::VisualFactory::newEdge(

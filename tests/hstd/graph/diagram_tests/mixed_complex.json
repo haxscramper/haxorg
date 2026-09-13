@@ -92,6 +92,32 @@
                 { "vertices": [ {"id": "g4"}, {"id": "g8"} ] }
               ]
             }
+          },
+          {
+            // circo sub 1 group is left of the dot sub 2
+            "kw_linear": {
+              "lhs": {
+                "node": {
+                  "variable": {
+                    "vertex_rect_attr": {
+                      "vertex_stable_id": "circo_sub1",
+                      "attr"            : "RECT_ATTR_RIGHT"
+                    }
+                  }
+                }
+              },
+              "op" : "RELATION_LE",
+              "rhs": {
+                "node": {
+                  "variable": {
+                    "vertex_rect_attr": {
+                      "vertex_stable_id": "dot_sub2",
+                      "attr"            : "RECT_ATTR_LEFT"
+                    }
+                  }
+                }
+              }
+            }
           }
         ],
         "kiwi"       : {}
@@ -106,6 +132,14 @@
           { "id": "l5", "graphviz": {"width": 10, "height": 10} },
           { "id": "l6", "graphviz": {"width": 10, "height": 10} },
           { "id": "l7", "graphviz": {"width": 10, "height": 10} }
+        ],
+        "edges"   : [
+          {"id": "l1-l2", "source": "l1", "target": "l2", "graphviz": {}},
+          {"id": "l2-l3", "source": "l2", "target": "l3", "graphviz": {}},
+          {"id": "l3-l4", "source": "l3", "target": "l4", "graphviz": {}},
+          {"id": "l4-l5", "source": "l4", "target": "l5", "graphviz": {}},
+          {"id": "l5-l6", "source": "l5", "target": "l6", "graphviz": {}},
+          {"id": "l6-l7", "source": "l6", "target": "l7", "graphviz": {}}
         ],
         "graphviz": { "dot": {"rankdir": "RANKDIRECTION_TB"} }
       }

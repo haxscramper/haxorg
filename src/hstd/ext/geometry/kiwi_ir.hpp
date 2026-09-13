@@ -70,7 +70,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(Strength, REQUIRED, STRONG, MEDIUM, WEAK);
 
 double kiwi_value(Strength strength);
 Axis   anchor_axis(Anchor anchor);
-Str    axis_color(Axis axis);
+Str    axis_color(hstd::Opt<Axis> axis);
 Anchor get_anchor(Axis axis, AnchorAxisRelative rel);
 
 Str tree_repr(kiwi::Expression const& c, int indent = 0);
@@ -191,27 +191,7 @@ class Expr {
         char const*                     origin_function = nullptr;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-        void writeSerial(::hstd::ext::kiwi_ir::proto::Expr::Node* n) const {
-            n->set_kind(static_cast<::hstd::ext::kiwi_ir::proto::Expr::Node::Kind>(kind));
-            switch (kind) {
-                case Kind::Constant: n->set_constant(constant); break;
-                case Kind::Variable: n->set_variable_name(variable->name()); break;
-                case Kind::KiwiExpression: {
-                    auto* ke = n->mutable_kiwi_expression();
-                    ke->set_constant(kiwi_expr->constant());
-                    for (auto const& term : kiwi_expr->terms()) {
-                        auto* t = ke->add_terms();
-                        t->set_variable(term.variable().name());
-                        t->set_coefficient(term.coefficient());
-                    }
-                    break;
-                }
-                default:
-                    if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
-                    if (rhs) { rhs->writeSerial(n->mutable_rhs()); }
-                    break;
-            }
-        }
+        void writeSerial(::hstd::ext::kiwi_ir::proto::Expr::Node* n) const;
 
 #    endif
     };
@@ -337,10 +317,10 @@ struct Rect {
 using RectMap = hstd::UnorderedMap<Str, Rect>;
 
 struct EdgeDesc {
-    Str            rect_id;
-    Str            label;
-    Axis           axis;
-    hstd::Opt<Str> color;
+    Str             rect_id;
+    Str             label;
+    hstd::Opt<Axis> axis;
+    hstd::Opt<Str>  color;
 };
 
 class ConstraintBase {

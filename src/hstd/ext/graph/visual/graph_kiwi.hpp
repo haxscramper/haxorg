@@ -138,9 +138,14 @@ class KiwiGroup
     hstd::SPtr<SharedCtx>        shared;
     LocalCtx                     local;
     hstd::Opt<geometry::Padding> outerPadding;
+    // TODO: Make the group rectangle configurable from de-serialization?
+    kiwi_ir::Rect rect;
 
     KiwiGroup(hstd::SPtr<SharedCtx> const& ctx, hstd::Str const& name)
-        : layout::IGroupVisualAttribute{ctx->run}, shared{ctx}, local{.name = name} {}
+        : layout::IGroupVisualAttribute{ctx->run}
+        , shared{ctx}
+        , local{.name = name}
+        , rect{name} {}
 
     hstd::SPtr<layout::LayoutRun> const& getRun() const { return shared->run; }
 
@@ -475,10 +480,15 @@ class LinearConstraint : public KiwiConstraint {
         kiwi_ir::Expr::VariableResolver resolve =
             [graph](
                 std::string const& stableId, kiwi_ir::RectAttr attr) -> kiwi_ir::Expr {
-            VertexID id = graph->getVertexIDByStableId(stableId);
-            return graph->getVertex(id)
-                ->getUniqueAttribute<KiwiVertexAttribute>(graph->getDebug(id))
-                ->rect.expr(attr);
+            VertexID id   = graph->getVertexIDByStableId(stableId);
+            auto     vert = graph->getVertex(id);
+            if (vert->hasOptionalAttribute<KiwiGroup>()) {
+                return vert->getUniqueAttribute<KiwiGroup>(graph->getDebug(id))
+                    ->rect.expr(attr);
+            } else {
+                return vert->getUniqueAttribute<KiwiVertexAttribute>(graph->getDebug(id))
+                    ->rect.expr(attr);
+            }
         };
 
         lhs = kiwi_ir::Expr::readSerial(load.lhs(), resolve);
