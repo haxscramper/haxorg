@@ -16,7 +16,8 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     "${BASE}"
     PROTO_SOURCES
     "${BASE}/src/haxorg/serde/SemOrgProto.proto"
-    "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto")
+    "${BASE}/src/haxorg/serde/SemOrgProtoManual.proto"
+    "${BASE}/src/haxorg/serde/OrgApiProto.proto")
 
   haxorg_add_protobuf(
     TARGET

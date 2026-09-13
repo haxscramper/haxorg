@@ -24,54 +24,13 @@ using TokSet = IntSet<OrgTokenKind>;
 
 namespace {
 
-
-org::sem::OrgDiagnostics::ParseError ParseErrorInit(
-    std::string_view   name,
-    std::string        code,
-    std::string const& brief,
-    std::string const& detail) {
-    org::sem::OrgDiagnostics::ParseError result;
-    result.errName = std::string{name};
-    result.errCode = code;
-    result.brief   = brief;
-    result.detail  = detail;
-    return result;
-}
-
-struct ErrorTable {
-#define P_ERROR(__fieldname, __short, __long)                                            \
-    static const inline org::sem::OrgDiagnostics::ParseError                             \
-        __fieldname = ParseErrorInit(                                                    \
-            #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
-
-    P_ERROR(FallbackError, "Default fallback error", "");
-    P_ERROR(UnexpectedToken, "Found unexpected token during parsing", "");
-    P_ERROR(MissingClosingParen, "Expected closing `)`", "");
-    P_ERROR(MissingClosingBracket, "Expected closing `]`", "");
-    P_ERROR(
-        MissingMacroClose,
-        "Expected `}}}` after macro close",
-        "Inline macro call can be either `{{{macro-name}}}` or "
-        "`{{{macro-name(arg1, arg2)}}}`.");
-    P_ERROR(
-        UnexpectedTableElement,
-        "Unexpected element at the top table level.",
-        "Block-style table can only have pipe-style (leading `|`) or "
-        "CMD-style rows (`#+row`).");
-    P_ERROR(
-        MissingPropertyContinuation,
-        "Missing propery block continuation after the `:property:` start",
-        ":properties: must be immediately followed by the property list "
-        "starting from the next line");
-
-#undef P_ERROR
-};
-
+OrgTokSet SpaceTokens{otk::Whitespace, otk::LeadingSpace};
 
 const OrgTokSet Newline{
     otk::Newline,
     otk::LongNewline,
     otk::MediumNewline,
+    otk::EndOfFile,
 };
 
 const OrgTokSet ParagraphTerminator{
@@ -92,6 +51,7 @@ const OrgTokSet ParagraphTerminator{
     otk::Indent,
     otk::Dedent,
     otk::SameIndent,
+    otk::EndOfFile,
 };
 
 OrgTokSet ListStarts{
@@ -106,24 +66,27 @@ const OrgTokSet BlockTerminator{
 };
 } // namespace
 
-#define SUB_PARSE_2(__kind, __lex)                                                       \
-    BOOST_OUTCOME_TRYX(maybe_recursive_error_end(                                        \
-        parse##__kind(__lex), ErrorTable::FallbackError, __lex))
 
-#define SUB_PARSE_3(__kind, __lex, __on_failure)                                         \
-    BOOST_OUTCOME_TRYX(maybe_recursive_error_end(                                        \
-        parse##__kind(__lex), ErrorTable::__on_failure, __lex))
+#define SUB_PARSE_WITH_EXPR_PROPAGATE(__expr, __error, __lex)                            \
+    BOOST_OUTCOME_TRYX(maybe_recursive_error_end(__expr, __error, __lex))
 
-#define SUB_PARSE_IMPL(__count) BOOST_PP_CAT(SUB_PARSE_, __count)
+#define SUB_PARSE_WITH_EXPR(__expr, __lex)                                               \
+    BOOST_OUTCOME_TRYX(maybe_recursive_error_no_propagate(__expr, __lex))
 
-#define SUB_PARSE(...) SUB_PARSE_IMPL(BOOST_PP_VARIADIC_SIZE(__VA_ARGS__))(__VA_ARGS__)
+/// \brief Call `parse<kind>` for sub-expression, unpack the error and create additional
+/// error token on failure.
+#define SUB_PARSE_PROPAGATE(__kind, __lex, __on_failure)                                 \
+    SUB_PARSE_WITH_EXPR_PROPAGATE(parse##__kind(__lex), error_table.__on_failure, __lex)
 
+/// \brief Call `parse<kind>` for processing and unpack the return value. Does not
+/// generate a secondary wrapper for the parsed code.
+#define SUB_PARSE(__kind, __lex) SUB_PARSE_WITH_EXPR(parse##__kind(__lex), __lex)
 
 #define TRY_SKIP_2(__lex, __expected)                                                    \
-    BOOST_OUTCOME_TRY(skip(__lex, __expected, ErrorTable::UnexpectedToken))
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, error_table.UnexpectedToken))
 
 #define TRY_SKIP_3(__lex, __expected, __message)                                         \
-    BOOST_OUTCOME_TRY(skip(__lex, __expected, ErrorTable::__message))
+    BOOST_OUTCOME_TRY(skip(__lex, __expected, error_table.__message))
 
 #define TRY_SKIP_IMPL(__count) BOOST_PP_CAT(TRY_SKIP_, __count)
 
@@ -133,7 +96,7 @@ const OrgTokSet BlockTerminator{
 #define TRY_POPX(__lex, __expression) BOOST_OUTCOME_TRYX(pop(__lex, __expression))
 
 void OrgParser::space(OrgLexer& lex, int line, char const* function) {
-    while (lex.at(OrgTokSet{otk::Whitespace, otk::LeadingSpace})) {
+    while (lex.at(SpaceTokens)) {
         std::ignore = skip(lex, std::nullopt, std::nullopt, line, function);
     }
 }
@@ -203,20 +166,14 @@ OrgParser::ParseResult OrgParser::parseMacro(OrgLexer& lex) {
     TRY_SKIP(lex, otk::CurlyBegin);
     TRY_SKIP(lex, otk::CurlyBegin);
     TRY_SKIP(lex, otk::CurlyBegin);
-    token(onk::Word, TRY_POPX(lex, OrgTokSet{otk::Word}));
 
+    token(onk::Word, TRY_POPX(lex, OrgTokSet{otk::Word}));
     SUB_PARSE(CallArguments, lex);
 
-    for (int i = 0; i <= 2; ++i) {
-        if (lex.at(otk::CurlyEnd)) {
-            std::ignore = skip(lex, otk::CurlyEnd);
-        } else {
-            LOGIC_ASSERTION_CHECK_FMT(!hasClose, "");
-            return error_end(ErrorTable::MissingMacroClose, lex);
-        }
-    }
+    TRY_SKIP(lex, otk::CurlyEnd, MissingMacroClose);
+    TRY_SKIP(lex, otk::CurlyEnd, MissingMacroClose);
+    TRY_SKIP(lex, otk::CurlyEnd, MissingMacroClose);
 
-    LOGIC_ASSERTION_CHECK_FMT(hasClose, "");
     return macroGuard->end();
 }
 
@@ -242,6 +199,18 @@ OrgParser::ParseResult OrgParser::parseCallArguments(OrgLexer& lex) {
     return stmtGuard->end();
 }
 
+static bool isAtLispCollectionStart(OrgLexer& lex) {
+    return lex.at(otk::ParBegin)   //
+        || lex.at(otk::BraceBegin) //
+        || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1))
+        || (lex.at(otk::SingleQuote) && lex.at(otk::BraceBegin, +1));
+}
+
+static bool isAtLispQuotedItem(OrgLexer& lex) {
+    // `:var s='nil` and similar
+    return lex.at(otk::SingleQuote) && (lex.at(otk::CmdRawArg, +1));
+}
+
 
 OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
     __perf_trace("parsing", "parseAttrColonKeyValue");
@@ -254,7 +223,8 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
                 otk::CmdRawArg,
                 otk::ParBegin,
             })) {
-        print("Attribute value was lexed with explicit argument tokens");
+        OP_TRACER_MESSAGE(
+            this, "Attribute value was lexed with explicit argument tokens");
         if (lex.at(otk::CmdColonIdent)) {
             // `:ident`
             token(onk::Word, TRY_POPX(lex, otk::CmdColonIdent));
@@ -266,22 +236,24 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
         IntSet<OrgTokenKind> eqTokens{
             otk::Equals, otk::VerbatimBegin, otk::VerbatimEnd, otk::VerbatimUnknown};
 
-        if (lex.at(otk::CmdRawArg) && lex.at(eqTokens, +1)) {
-            // `key=`
+        if (lex.at(otk::CmdRawArg) && lex.ahead({otk::Whitespace}, eqTokens, +1)) {
+            // `key=` or `KEY = 15`
             token(onk::RawText, TRY_POPX(lex, otk::CmdRawArg));
+            space(lex);
             TRY_SKIP(lex, eqTokens);
             space(lex);
         } else {
             empty();
         }
 
-        if (lex.at(otk::ParBegin)) {
-            SUB_PARSE(AttrLisp, lex);
+        if (isAtLispCollectionStart(lex) || isAtLispQuotedItem(lex)) {
+            SUB_PARSE(LispExpr, lex);
         } else if (lex.at(otk::CmdRawArg)) {
             token(onk::RawText, TRY_POPX(lex, otk::CmdRawArg));
         } else {
             empty();
         }
+
 
         if (lex.at(otk::BraceBegin)) {
             auto stmtGuard = start(onk::InlineStmtList);
@@ -310,7 +282,7 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
         // `{{{macro(with some parameter that looks like actual text)}}}}`
         // is lexed as a part of the text, so tokens in the argument list
         // are not 'correct'.
-        print("Argument value was lexed using random tokens");
+        OP_TRACER_MESSAGE(this, "Argument value was lexed using random tokens");
         empty();
 
         if (lex.at(OrgTokSet{otk::Word, otk::RawText})
@@ -340,20 +312,55 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
     return attrGuard->end();
 }
 
-OrgParser::ParseResult OrgParser::parseAttrLisp(OrgLexer& lex) {
-    __perf_trace("parsing", "parseAttrLisp");
+
+OrgParser::ParseResult OrgParser::parseLispExpr(OrgLexer& lex) {
+    __perf_trace("parsing", "parseLispExpr");
     auto __trace   = trace(lex);
-    auto lispGuard = start(onk::AttrLisp);
-    if (lex.at(otk::ParBegin)) {
-        auto stmtGuard = start(onk::InlineStmtList);
-        TRY_SKIP(lex, otk::ParBegin);
-        space(lex);
-        while (lex.can_search(otk::ParEnd)) {
-            SUB_PARSE(AttrLisp, lex);
+    auto lispGuard = start(onk::LispExpr);
+
+    if (isAtLispCollectionStart(lex)) {
+        auto parse_collection = [&](OrgNodeKind  start_node,
+                                    OrgTokenKind begin_token,
+                                    OrgTokenKind end_token) -> OrgParser::ParseResult {
+            auto stmtGuard = start(start_node);
+
+            TRY_SKIP(lex, begin_token);
             space(lex);
+            while (lex.can_search(end_token)) {
+                SUB_PARSE(LispExpr, lex);
+                space(lex);
+            }
+            TRY_SKIP(lex, end_token, MissingClosingParen);
+            return stmtGuard->end();
+        };
+
+        auto isList = lex.at(otk::ParBegin)
+                   || (lex.at(otk::SingleQuote) && lex.at(otk::ParBegin, +1));
+
+        auto do_parse = [&]() -> OrgParser::ParseResult {
+            if (isList) {
+                return parse_collection(onk::LispList, otk::ParBegin, otk::ParEnd);
+            } else {
+                return parse_collection(onk::LispVector, otk::BraceBegin, otk::BraceEnd);
+            }
+        };
+
+        if (lex.at(otk::SingleQuote)) {
+            // quoted lisp value: '(a b c)
+            // e.g. `#+begin_src cpp :var q="word" :includes '(<iostream> <cstring>) :results silent`
+            auto guard = start(onk::LispQuoted);
+            TRY_SKIP(lex, otk::SingleQuote);
+            SUB_PARSE_WITH_EXPR(do_parse(), lex);
+            guard->end();
+        } else {
+            SUB_PARSE_WITH_EXPR(do_parse(), lex);
         }
-        TRY_SKIP(lex, otk::ParEnd, MissingClosingParen);
-        stmtGuard->end();
+
+    } else if (isAtLispQuotedItem(lex)) {
+        auto guard = start(onk::LispQuoted);
+        TRY_SKIP(lex, otk::SingleQuote);
+        SUB_PARSE(LispExpr, lex);
+        guard->end();
     } else {
         token(onk::RawText, pop(lex));
     }
@@ -390,17 +397,17 @@ void OrgParser::textFold(OrgLexer& lex) {
 
     Func<ParseResult()> aux;
     auto                _begin = [&](onk Kind) {
-        print(hstd::fmt("begin {}", Kind));
+        OP_TRACER_MESSAGE(this, "begin {}", Kind);
         int        startDepth = treeDepth();
         OrgTokenId startToken = pop(lex);
         start_no_guard(Kind);
         std::ignore = aux();
-        print(
-            hstd::fmt(
-                "Started on {} exited on {} tok {}",
-                startDepth,
-                treeDepth(),
-                startToken));
+        OP_TRACER_MESSAGE(
+            this,
+            "Started on {} exited on {} tok {}",
+            startDepth,
+            treeDepth(),
+            startToken);
         // If the function returned earlier because the input has ended
         // before the markup opening was terminated it means there is no
         // correct markup in the text and it must be converted to the
@@ -410,7 +417,8 @@ void OrgParser::textFold(OrgLexer& lex) {
         // returning, the `aux(*)` will convert `Bold` into
         // `Punctuation(*)`
         if (startDepth < treeDepth()) {
-            print(hstd::fmt("Folding unclosed with token {}", lex.in->at(startToken)));
+            OP_TRACER_MESSAGE(
+                this, "Folding unclosed with token {}", lex.in->at(startToken));
             auto unclosed                   = group->pendingTrees.back();
             group->nodes.at(unclosed).kind  = onk::Punctuation;
             group->nodes.at(unclosed).value = startToken;
@@ -419,7 +427,7 @@ void OrgParser::textFold(OrgLexer& lex) {
     };
 
     auto _end = [&](onk Kind) {
-        print(hstd::fmt("end {}", Kind));
+        OP_TRACER_MESSAGE(this, "end {}", Kind);
         if (pending().kind == Kind) {
             end_impl();
             skip(lex);
@@ -429,7 +437,7 @@ void OrgParser::textFold(OrgLexer& lex) {
     };
 
     auto _unknown = [&](onk Kind) {
-        print(hstd::fmt("unknown {}", Kind));
+        OP_TRACER_MESSAGE(this, "unknown {}", Kind);
         if (pending().kind == Kind) {
             _end(Kind);
         } else {
@@ -451,7 +459,6 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::StrikeBegin: _begin(onk::Strike); break;
             case otk::StrikeEnd: _end(onk::Strike); break;
             case otk::StrikeUnknown: _unknown(onk::Strike); break;
-
             case otk::Whitespace: token(onk::Space, pop(lex)); break;
             case otk::CurlyBegin: {
                 if (lex.at(Vec{otk::CurlyBegin, otk::CurlyBegin, otk::CurlyBegin})) {
@@ -495,6 +502,14 @@ void OrgParser::textFold(OrgLexer& lex) {
 
             case otk::Placeholder: {
                 SUB_PARSE(Placeholder, lex);
+                break;
+            }
+
+            case otk::AgendaDiaryTimeContent: {
+                auto guard = start(onk::DiaryTime);
+                TRY_SKIP(lex, otk::AgendaDiaryTimeContent);
+                SUB_PARSE(LispExpr, lex);
+                guard->end();
                 break;
             }
 
@@ -585,6 +600,15 @@ void OrgParser::textFold(OrgLexer& lex) {
                 break;
             }
 
+            case otk::SubtreeStars: {
+                throw fatalError(
+                    lex,
+                    "Encountered subtree stars while performing text fold: this is an "
+                    "internal logical level in the parser, subtree stars should only be "
+                    "processed by the subtree parsing logic. Likely this indicates "
+                    "overly eager sub-lexer extraction, or synchronization gone wrong.");
+            }
+
             default: {
                 token(onk::Punctuation, pop(lex));
                 break;
@@ -604,6 +628,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             // synchronization points. Take the next token and try to parse
             // it. All paragraphs are processed with sub-lexers, so it is
             // safe to eagerly process everything.
+            auto guard  = advance_guard(&lex);
             std::ignore = _single();
         }
 
@@ -621,7 +646,8 @@ Slice<OrgId> OrgParser::parseText(OrgLexer& lex) {
     int         treeStart = treeDepth();
     textFold(lex);
     int treeEnd = treeDepth();
-    print(hstd::fmt("Trace levels after text fold start:{} end:{}", treeStart, treeEnd));
+    OP_TRACER_MESSAGE(
+        this, "Trace levels after text fold start:{} end:{}", treeStart, treeEnd);
 
     if (treeStart != treeEnd) {
         auto msg = hstd::fmt(
@@ -652,7 +678,6 @@ OrgParser::ParseResult OrgParser::parseLink(OrgLexer& lex) {
     } else {
         auto linkGuard = start(onk::Link);
         TRY_SKIP(lex, otk::LinkBegin);
-        // LOG(INFO) << fmt1(lex.tok()->line);
         switch (lex.kind()) {
             case otk::LinkProtocolHttp: {
                 token(onk::Word, TRY_POPX(lex, otk::LinkProtocolHttp));
@@ -697,7 +722,8 @@ OrgParser::ParseResult OrgParser::parseLink(OrgLexer& lex) {
             default:
                 token(onk::Word, TRY_POPX(lex, otk::LinkProtocol));
                 SubLexer sub{lex};
-                while (!lex.at(OrgTokSet{otk::LinkSplit, otk::LinkEnd})) {
+                while (lex.can_search(OrgTokSet{otk::LinkSplit, otk::LinkEnd})) {
+                    auto guard = advance_guard(&lex);
                     sub.add(pop(lex));
                 }
                 if (sub.empty()) {
@@ -711,7 +737,10 @@ OrgParser::ParseResult OrgParser::parseLink(OrgLexer& lex) {
         if (lex.at(otk::LinkSplit)) {
             TRY_SKIP(lex, otk::LinkSplit);
             SubLexer sub{lex};
-            while (lex.can_search(otk::LinkEnd)) { sub.add(pop(lex)); }
+            while (lex.can_search(otk::LinkEnd)) {
+                auto guard = advance_guard(&lex);
+                sub.add(pop(lex));
+            }
             if (sub.empty()) {
                 empty();
             } else {
@@ -811,7 +840,7 @@ OrgParser::ParseResult OrgParser::parseHashTag(OrgLexer& lex) {
                 auto sub = aux(lex);
                 if (sub) {
                     if (sub.assume_value().doubleSkip) {
-                        print("double skip");
+                        OP_TRACER_MESSAGE(this, "double skip");
                         return HashState{.result = hashGuard->end().result.value()};
                     }
                 } else {
@@ -825,7 +854,7 @@ OrgParser::ParseResult OrgParser::parseHashTag(OrgLexer& lex) {
                     auto result = aux(lex);
                     if (result) {
                         if (result.assume_value().doubleSkip) {
-                            print("double skip");
+                            OP_TRACER_MESSAGE(this, "double skip");
                             return HashState{.result = hashGuard->end().result.value()};
                         }
                         if (lex.at(otk::Comma)) { skip(lex); }
@@ -873,6 +902,8 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
             otk::ActiveDynamicTimeContent,
         });
 
+    auto endToken = active ? otk::AngleEnd : otk::BraceEnd;
+
     ParseResult result = ParseOk{};
 
     if (lex.at(
@@ -885,25 +916,16 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
             TRY_SKIP(lex, otk::InactiveDynamicTimeContent);
         }
 
-        std::function<ParseResult()> aux;
-        aux = [&]() -> ParseResult {
-            if (lex.at(otk::ParBegin)) {
-                auto stmtGuard = start(onk::InlineStmtList);
-                TRY_SKIP(lex, otk::ParBegin);
-                space(lex);
-                while (lex.can_search(otk::ParEnd)) {
-                    SUB_PARSE(AttrLisp, lex);
-                    space(lex);
-                }
-                TRY_SKIP(lex, otk::ParEnd);
-                return stmtGuard->end();
-            } else {
-                return ParseOk{token(onk::RawText, pop(lex))};
-            }
-        };
+        SUB_PARSE(LispExpr, lex);
 
-
-        std::ignore = aux();
+        if (!lex.at(endToken)) {
+            SubLexer sub{lex};
+            while (lex.can_search(endToken)) { sub.add(pop(lex)); }
+            sub.start();
+            // `<%%(diary-block 8 20 2026 8 25 2026) all-day prep window>` is allowed
+            // syntax
+            SUB_PARSE(Paragraph, sub);
+        }
 
         result = timeGuard->end();
     } else {
@@ -940,8 +962,13 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
 
         // timezone
         if (lex.at(otk::StrikeBegin) && lex.at(otk::Number, +1)) {
+            // `+04`, `+1000`
             skip(lex);
             token(onk::RawText, TRY_POPX(lex, otk::Number));
+            space(lex);
+        } else if (lex.at(otk::BigIdent)) {
+            // UTC
+            token(onk::RawText, TRY_POPX(lex, otk::BigIdent));
             space(lex);
         } else {
             empty();
@@ -970,14 +997,14 @@ OrgParser::ParseResult OrgParser::parseTimeStamp(OrgLexer& lex) {
         }
     }
 
-    TRY_SKIP(lex, active ? otk::AngleEnd : otk::BraceEnd);
+    TRY_SKIP(lex, endToken);
     return result;
 }
 
 
 OrgParser::ParseResult OrgParser::parseTimeRange(OrgLexer& lex) {
-    auto            __trace = trace(lex);
-    const OrgTokSet times{
+    auto                   __trace = trace(lex);
+    static const OrgTokSet times{
         otk::BraceBegin,
         otk::BraceEnd,
         otk::AngleBegin,
@@ -1019,7 +1046,9 @@ OrgParser::ParseResult OrgParser::parseTimeRange(OrgLexer& lex) {
         SUB_PARSE(TimeStamp, lex);
         TRY_SKIP(lex, otk::DoubleDash);
         SUB_PARSE(TimeStamp, lex);
-        if (lex.ahead({otk::Whitespace}, {otk::TimeArrow})) {
+        if (lex.ahead(
+                {otk::Whitespace}, as_vec(otk::TimeArrow, otk::Whitespace, otk::Time))
+            || lex.ahead({otk::Whitespace}, as_vec(otk::TimeArrow, otk::Time))) {
             space(lex);
             TRY_SKIP(lex, otk::TimeArrow);
             space(lex);
@@ -1137,15 +1166,13 @@ OrgParser::ParseResult OrgParser::parseVerbatimOrMonospace(OrgLexer& lex) {
         skip(lex);
         return startGuard->end();
     } else {
-        if (TraceState) {
-            print(
-                hstd::fmt(
-                    "Reset monospace parse position. Removing tail at {}, "
-                    "moving lexer from {} to {}",
-                    startGuard->startId,
-                    lex.getPos(),
-                    postBeginLex));
-        }
+        OP_TRACER_MESSAGE(
+            this,
+            "Reset monospace parse position. Removing tail at {}, "
+            "moving lexer from {} to {}",
+            startGuard->startId,
+            lex.getPos(),
+            postBeginLex);
 
         auto result = startGuard->end();
         group->removeTail(startGuard->startId);
@@ -1167,7 +1194,10 @@ OrgParser::ParseResult OrgParser::parseAngleTarget(OrgLexer& lex) {
     auto end   = radio ? otk::TripleAngleEnd : otk::DoubleAngleEnd;
     auto begin = radio ? otk::TripleAngleBegin : otk::DoubleAngleBegin;
 
-    if (lex.ahead(OrgTokSet{otk::Whitespace, otk::Word, begin}, end)) {
+    // TODO: Check if other elements are allowed in the radio target, or it is only a
+    // clean identifier.
+    if (lex.at(OrgTokSet{otk::RawText, otk::Word, otk::BigIdent}, +1)
+        && lex.ahead(OrgTokSet{otk::Whitespace, otk::Word, begin}, end)) {
         TRY_SKIP(lex, begin);
         auto radioGuard = start(onk::RadioTarget);
         while (lex.can_search(end)) {
@@ -1198,7 +1228,7 @@ OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
         auto     listGuard = start(onk::StmtList); // Cell content
         SubLexer sub{lex};
         skip(lex);
-        OrgTokSet CellEnd{otk::Pipe, otk::TrailingPipe};
+        OrgTokSet CellEnd = OrgTokSet{otk::Pipe, otk::TrailingPipe} + OrgTokenLineEnd;
         OrgTokSet CellStart{otk::Pipe, otk::LeadingPipe};
         while (lex.can_search(CellEnd)) {
             if (lex.at(otk::Whitespace)
@@ -1208,6 +1238,7 @@ OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
                 sub.add(pop(lex));
             }
         }
+
         if (sub.empty()) {
             auto guard = start(onk::Paragraph);
             guard->end();
@@ -1219,6 +1250,7 @@ OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
         listGuard->end();
         cellGuard->end();
     }
+
     BOOST_OUTCOME_TRY(skip(lex, otk::TrailingPipe));
     if (lex.at(Newline)) { skip(lex); }
 
@@ -1318,7 +1350,7 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
                     break;
                 }
                 default: {
-                    return error_end(ErrorTable::UnexpectedTableElement, lex);
+                    return error_end(error_table.UnexpectedTableElement, lex);
                 }
             }
         }
@@ -1426,7 +1458,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     TRY_SKIP(lex, otk::CmdPrefix);
     auto __trace = trace(lex);
 
-    bool isDynamic = lex.kind() == otk::CmdDynamicBlockBegin;
+    bool isDynamic = lex.kind() == otk::CmdCustomTextBlockBegin;
 
 
     std::unique_ptr<NodeGuard> guard = [&]() -> std::unique_ptr<NodeGuard> {
@@ -1436,6 +1468,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             case otk::CmdQuoteBegin: return start(onk::BlockQuote);
             case otk::CmdCommentBegin: return start(onk::BlockComment);
             case otk::CmdDynamicBlockBegin: return start(onk::BlockDynamicFallback);
+            case otk::CmdCustomTextBlockBegin: return start(onk::BlockCustomText);
             default: throw fatalError(lex, "unhandled token");
         }
     }();
@@ -1446,6 +1479,9 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
             case otk::CmdCenterBegin: return otk::CmdCenterEnd;
             case otk::CmdQuoteBegin: return otk::CmdQuoteEnd;
             case otk::CmdCommentBegin: return otk::CmdCommentEnd;
+            case otk::CmdCustomTextBlockBegin:
+                token(onk::Word, lex.get());
+                return otk::CmdCustomTextBlockEnd;
             case otk::CmdDynamicBlockBegin:
                 token(onk::Word, lex.get());
                 return otk::CmdDynamicBlockEnd;
@@ -1453,7 +1489,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         }
     }();
 
-    std::string tmp = lex.val().text;
+    auto tmp = Str{lex.val().text};
     skip(lex);
 
     if (lex.at(Newline)) {
@@ -1469,12 +1505,12 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
     if (isDynamic) {
         hstd::replace_all(tmp, "begin", "end");
         Str endName = normalize(tmp);
-        print(hstd::fmt("Dynamic block, name {}", endName));
+        OP_TRACER_MESSAGE(this, "Dynamic block, name {}", endName);
         while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok}) && lex.hasNext(2)
                && normalize(lex.val(1).text) != endName) {
             SUB_PARSE(StmtListItem, lex);
             if (lex.at(BlockTerminator)) {
-                print(hstd::fmt("block terminator {}", lex));
+                OP_TRACER_MESSAGE(this, "block terminator {}", lex);
                 break;
             }
         }
@@ -1482,7 +1518,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok})) {
             SUB_PARSE(StmtListItem, lex);
             if (lex.at(BlockTerminator)) {
-                print(hstd::fmt("block terminator {}", lex));
+                OP_TRACER_MESSAGE(this, "block terminator {}", lex);
                 break;
             }
         }
@@ -1702,7 +1738,14 @@ OrgParser::ParseResult OrgParser::parseListItem(OrgLexer& lex) {
     space(lex);
     // counter, 1
     {
-        empty(); // TODO parse counter
+        if (lex.at(Vec<otk>{otk::BraceBegin, otk::At, otk::Number, otk::BraceEnd})) {
+            TRY_SKIP(lex, otk::BraceBegin);
+            TRY_SKIP(lex, otk::At);
+            token(onk::Counter, TRY_POPX(lex, otk::Number));
+            TRY_SKIP(lex, otk::BraceEnd);
+        } else {
+            empty();
+        }
     }
     // checkbox 2
     {
@@ -1730,14 +1773,14 @@ OrgParser::ParseResult OrgParser::parseListItem(OrgLexer& lex) {
         }
 
         if (tmp.finished()) {
-            print("Sub-lexer reached end without header");
+            OP_TRACER_MESSAGE(this, "Sub-lexer reached end without header");
         } else {
-            print(
-                hstd::fmt(
-                    "Searched for double colon to {} tmp-pos {} lex-pos {}",
-                    tmp.tok(),
-                    tmp.pos,
-                    lex.pos));
+            OP_TRACER_MESSAGE(
+                this,
+                "Searched for double colon to {} tmp-pos {} lex-pos {}",
+                tmp.tok(),
+                tmp.pos,
+                lex.pos);
         }
 
         if (tmp.at(colon_pattern)) {
@@ -1779,7 +1822,7 @@ OrgParser::ParseResult OrgParser::parseList(OrgLexer& lex) {
     auto __trace = trace(lex);
     auto check   = start(onk::List);
 
-    print(hstd::fmt("{}", lex.tok()));
+    OP_TRACER_MESSAGE(this, "{}", lex.tok());
 
     while (lex.at(ListStarts) || (lex.at(otk::LeadingSpace) && lex.at(ListStarts, +1))) {
         SUB_PARSE(ListItem, lex);
@@ -1817,6 +1860,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
     __perf_trace("parsing", "parseSubtreeProperties");
     auto __trace = trace(lex);
     TRY_SKIP(lex, otk::ColonProperties);
+    // <<parser/missing-continuation-lines>>
     TRY_SKIP(lex, otk::Newline, MissingPropertyContinuation);
     auto propertyListGuard = start(onk::DrawerPropertyList);
     while (lex.can_search(otk::ColonEnd)) {
@@ -1827,14 +1871,20 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
                 otk::ColonArgumentsProperty,
                 otk::ColonPropertyText}
                  .contains(head)) {
-            return error_end(ErrorTable::MissingPropertyContinuation, lex);
+            return error_end(error_table.MissingPropertyContinuation, lex);
         }
 
         auto propertyGuard = start(onk::DrawerProperty);
         token(onk::RawText, TRY_POPX(lex, head));
         switch (head) {
             case otk::ColonLiteralProperty: {
-                token(onk::RawText, TRY_POPX(lex, otk::RawText));
+                // Literal properties with empty text will not have any follow-up raw text
+                // after them.
+                if (lex.at(Newline)) {
+                    empty();
+                } else {
+                    token(onk::RawText, TRY_POPX(lex, otk::RawText));
+                }
                 break;
             }
 
@@ -1926,7 +1976,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeUrgency(OrgLexer& lex) {
 OrgParser::ParseResult OrgParser::parseSubtreeTitle(OrgLexer& lex) {
     auto __trace = trace(lex);
     space(lex);
-    SubLexer sub{lex};
+
 
     auto is_at_subtree_tags = [](OrgLexer& lex) {
         const IntSet<OrgTokenKind> tree_tags{
@@ -1949,15 +1999,25 @@ OrgParser::ParseResult OrgParser::parseSubtreeTitle(OrgLexer& lex) {
         return tag_end == lex.whole_fixed().end() || Newline.contains(tag_end->kind);
     };
 
-    while (lex.can_search(Newline)     //
-           && !is_at_subtree_tags(lex) //
+    SubLexer sub{lex};
+    while ((lex.can_search(Newline) || lex.is_last_token()) //
+           && !is_at_subtree_tags(lex)                      //
            && !lex.at(otk::SubtreeCompletion)) {
         sub.add(pop(lex));
     }
 
+
     if (sub.empty()) {
+        OP_TRACER_MESSAGE(this, "Subtree title empty");
         empty();
     } else {
+        OP_TRACER_MESSAGE(
+            this,
+            "Parsing subtree title with {} tokens: [{}..{}]",
+            sub.tokens.size(),
+            sub.tok(sub.tokens.front()),
+            sub.tok(sub.tokens.back()));
+
         sub.start();
         SUB_PARSE(Paragraph, sub);
     }
@@ -1975,7 +2035,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeTags(OrgLexer& lex) {
             TRY_SKIP(lex, otk::Colon);
             SUB_PARSE(HashTag, lex);
         }
-        TRY_SKIP(lex, OrgTokSet{otk::Colon} + Newline);
+        TRY_SKIP(lex, OrgTokSet{otk::Colon} + Newline, MissingClosingColonOnSubtreeTags);
         return stmtGuard->end();
     } else {
         return ParseOk{empty()};
@@ -2044,7 +2104,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeTimes(OrgLexer& lex) {
                     },
                     Newline,
                     1)) {
-                print("starting with a timestamp");
+                OP_TRACER_MESSAGE(this, "starting with a timestamp");
                 lex.skip(otk::Newline);
                 space(lex);
                 auto stmtGuard = start(onk::InlineStmtList);
@@ -2429,9 +2489,15 @@ OrgParser::ParseResult OrgParser::parseLineCommand(OrgLexer& lex) {
             break;
         }
 
-
         default: {
-            throw fatalError(lex, hstd::fmt("Unhandled command kind {}", lex.kind(+1)));
+            if (OrgTokenCmdBlockClose.contains(cmd_kind)) {
+                TRY_SKIP(lex, otk::CmdPrefix);
+                TRY_SKIP(lex, cmd_kind);
+                return error_end(error_table.MissingClosingBracket, lex);
+            } else {
+                throw fatalError(
+                    lex, hstd::fmt("Unhandled command kind {}", lex.kind(+1)));
+            }
         }
     }
 
@@ -2495,6 +2561,7 @@ OrgParser::ParseResult OrgParser::parseStmtListItem(OrgLexer& lex) {
                 case otk::CmdCenterBegin:
                 case otk::CmdCommentBegin:
                 case otk::CmdDynamicBlockBegin:
+                case otk::CmdCustomTextBlockBegin:
                 case otk::CmdQuoteBegin: {
                     return parseTextWrapCommand(lex);
                 }
@@ -2530,7 +2597,7 @@ OrgParser::ParseResult OrgParser::parseTop(OrgLexer& lex) {
     __perf_trace("parsing", "parseTop");
     auto __trace       = trace(lex);
     auto stmtListGuard = start(onk::StmtList);
-    while (!lex.finished()) {
+    while (lex.can_search(otk::EndOfFile)) {
         if (lex.at(otk::Comment)) {
             skip(lex);
         } else {
@@ -2553,7 +2620,9 @@ OrgId OrgParser::parseFull(OrgLexer& lex) {
     auto __trace = trace(lex);
     auto result  = parseTop(lex);
     extendSubtreeTrails(OrgId(0));
-    return result.assume_value().result.value();
+    auto id = result.assume_value().result.value();
+    OP_TRACER_MESSAGE(this, "{}", org::parse::OrgAdapter(group, id).treeRepr());
+    return id;
 }
 
 std::string OrgParser::printLexerToString(OrgLexer& lex) const {
@@ -2561,6 +2630,30 @@ std::string OrgParser::printLexerToString(OrgLexer& lex) const {
         os << os.yellow() << escape_for_write(t.value.text) << os.end()
            << hstd::fmt1(t.value);
     });
+}
+
+OrgParser::advance_guard_obj::~advance_guard_obj() {
+    LOGIC_ASSERTION_CHECK_FMT(
+        start_pos != lex->getPos(),
+        "No movement around pos {}: {}, advance guard failed at "
+        "{}:{}",
+        start_pos,
+        lex->getCurrentPosRepr(),
+        function,
+        line);
+}
+
+
+OrgParser::advance_guard_obj OrgParser::advance_guard(
+    OrgLexer*   lex,
+    int         line,
+    char const* function) {
+    return advance_guard_obj{
+        .line      = line,
+        .function  = function,
+        .lex       = lex,
+        .start_pos = lex->getPos(),
+    };
 }
 
 
@@ -2582,7 +2675,7 @@ bool OrgParser::at(OrgLexer const& lex, OrgExpectable const& item) {
 }
 
 
-void assertValidStructure(OrgNodeGroup* group, OrgId id) {
+void assertValidStructure(OrgNodeGroup const* group, OrgId id) {
     using Id = OrgNodeGroup::Id;
 
     Func<void(Id)> aux;
@@ -2671,15 +2764,11 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
     auto& g = *parser->group;
     while (id <= g.nodes.back()) {
         // NOTE: 'back' returns the last node, not one-past-last
-        OrgNode node = g.at(id);
+        OrgNode const& node = g.at(id);
         if (node.kind == onk::Subtree) {
-            if (parser->TraceState) {
-                parser->print("Found subtree on the lower level " + id.format());
-            }
+            OP_TRACER_MESSAGE(parser, "Found subtree on the lower level {}", id.format());
             OrgId const tree = id;
-            if (g.size(tree) == 0 && parser->TraceState) {
-                parser->message(g.treeRepr(tree));
-            }
+            if (g.size(tree) == 0) { OP_TRACER_MESSAGE(parser, "{}", g.treeRepr(tree)); }
 
             OrgId subId = g.subnode(tree, 0);
             int   sub   = g.val(subId).text.size();
@@ -2703,16 +2792,14 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 g.at(stmt).extend(stmt_extend);
                 g.at(tree).extend(tree_extend);
 
-                if (parser->TraceState) {
-                    parser->print(
-                        hstd::fmt(
-                            "Found nested subtree tree={} stmt={} "
-                            "tree-extend={} stmt-extend={}",
-                            tree.format(),
-                            stmt.format(),
-                            tree_extend,
-                            stmt_extend));
-                }
+                OP_TRACER_MESSAGE(
+                    parser,
+                    "Found nested subtree tree={} stmt={} "
+                    "tree-extend={} stmt-extend={}",
+                    tree.format(),
+                    stmt.format(),
+                    tree_extend,
+                    stmt_extend);
 
                 auto treeSlice = g.allSubnodesOf(tree).value();
                 auto stmtSlice = g.allSubnodesOf(tree).value();
@@ -2720,7 +2807,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
                 // Structural correctness checks -- mostly for
                 // debugging of the implementation, malformed incoming
                 // data is not expected.
-                assertValidStructure(parser->group, tree);
+                if (parser->canTrace()) { assertValidStructure(parser->group, tree); }
                 LOGIC_ASSERTION_CHECK_FMT(treeSlice.last <= g.nodes.back(), "");
                 LOGIC_ASSERTION_CHECK_FMT(stmtSlice.last <= g.nodes.back(), "");
                 LOGIC_ASSERTION_CHECK_FMT(
@@ -2736,10 +2823,8 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
 
 
             } else {
-                if (parser->TraceState) {
-                    parser->print(
-                        "Found subtree on the same level or above " + id.format());
-                }
+                OP_TRACER_MESSAGE(
+                    parser, "Found subtree on the same level or above {}", id.format());
                 // Found subtree on the same level or above
                 break;
             }
@@ -2757,7 +2842,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
 void OrgParser::extendSubtreeTrails(OrgId position) {
     __perf_trace("parsing", "extendSubtreeTrails");
     extendSubtreeTrailsImpl(this, position, 0);
-    assertValidStructure(group, position);
+    if (this->canTrace()) { assertValidStructure(group, position); }
 }
 
 OrgParser::ParseOk OrgParser::NodeGuard::end(

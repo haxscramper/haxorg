@@ -21,28 +21,31 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/dod_base.hpp>
 #include <hstd/system/reflection.hpp>
 
 
 namespace hstd::ext {
 
-class Source;
+class ReportSource;
 
 /// \brief A trait implemented by `Source` caches.
-using Id = int;
+DECL_ID_TYPE(ReportSource, ReportSourceId, std::size_t);
+DECL_ID_TYPE(ReportLabel, ReportLabelId, std::size_t);
+
+// DECL_ID_TYPE(Commit, CommitId, std::size_t);
 
 /// \brief A trait implemented by spans within a character-based source.
 struct CodeSpan {
-    Id         id;
-    Slice<int> range;
+    ReportSourceId id;
+    Slice<int>     range;
     DESC_FIELDS(CodeSpan, (id, range));
 
-    CodeSpan() = default;
-    CodeSpan(Id id, Slice<int> const& range);
+    CodeSpan(ReportSourceId id, Slice<int> const& range);
 
     /// \brief Get the identifier of the source that this Codespan refers
     /// to.
-    const Id source() const { return id; }
+    const ReportSourceId source() const { return id; }
 
     /// Get the start offset of this Codespan.
     /// Offsets are zero-indexed character offsets from the beginning of
@@ -63,23 +66,25 @@ struct CodeSpan {
     bool contains(int offset) const { return range.contains(offset); }
 };
 
-class [[refl]] Cache {
+class [[refl]] ReportSourceCache {
   public:
-    // Fetch the `Source` identified by the given ID, if possible.
+    // Fetch the `ReportSource` identified by the given ID, if possible.
     // TODO: Don't box
-    virtual std::shared_ptr<Source> fetch(Id const& id) = 0;
+    virtual std::shared_ptr<ReportSource> fetch(ReportSourceId const& id) = 0;
 
     // Display the given ID. as a single inline value.
-    virtual std::optional<std::string> display(Id const& id) const = 0;
+    virtual std::optional<std::string> display(ReportSourceId const& id) const = 0;
 
-    DESC_FIELDS(Cache, (fetch, display));
+    CodeSpan init_span(ReportSourceId id, Slice<int> const& range);
 
-    virtual ~Cache() = default;
+    DESC_FIELDS(ReportSourceCache, (fetch, display));
+
+    virtual ~ReportSourceCache() = default;
 };
 
 
 // A type representing a single line of a `Source`.
-struct Line {
+struct ReportSourceLine {
     int offset;
     int len;
     // std::string chars;
@@ -95,29 +100,30 @@ struct Line {
     /// `Source`.
     Slice<int> span() const { return {offset, offset + len}; }
 
-    DESC_FIELDS(Line, (offset, len));
+    DESC_FIELDS(ReportSourceLine, (offset, len));
 };
 
 /// A type representing a single source that may be referred to by
 /// `CodeSpan`s.
 ///
 /// In most cases, a source is a single input file.
-struct Source {
-    Vec<Line> lines;
-    int       len;
-    ColText   content;
+struct ReportSource {
+    using id_type = ReportSourceId;
+    Vec<ReportSourceLine> lines;
+    int                   len;
+    ColText               content;
 
-    Source(Str const& l);
+    ReportSource(Str const& l);
 
     struct OffsetLine {
-        const Line& line;
-        int         idx = 0;
-        int         col = 0;
+        const ReportSourceLine& line;
+        int                     idx = 0;
+        int                     col = 0;
         DESC_FIELDS(OffsetLine, (idx, col));
     };
 
-    /// \brief Get access to a specific, zero-indexed Line.
-    std::optional<Line> line(int idx) const {
+    /// \brief Get access to a specific, zero-indexed ReportSourceLine.
+    std::optional<ReportSourceLine> line(int idx) const {
         if (idx < lines.size()) {
             return std::cref(lines[idx]);
         } else {
@@ -132,35 +138,42 @@ struct Source {
 
     /// Get the range of lines that this Codespan runs across.
     /// The resulting range is guaranteed to contain valid line indices
-    /// (i.e: those that can be used for Source::line()).
+    /// (i.e: those that can be used for ReportSource::line()).
     Slice<int> get_line_range(CodeSpan const& span);
 
-    ColText get_line_text(Line const& line);
+    ColText get_line_text(ReportSourceLine const& line);
 
-    DESC_FIELDS(Source, (lines, len));
+    DESC_FIELDS(ReportSource, (lines, len));
 };
 
-class StrCache : public Cache {
+class [[refl]] ReportSourceStrCache : public ReportSourceCache {
 
     /// Cache interface
   public:
-    UnorderedMap<Id, std::shared_ptr<Source>>      sources;
-    hstd::ext::Unordered1to1Bimap<Id, std::string> names;
-    std::function<std::string(std::string const&)> getFileSource;
+    UnorderedMap<ReportSourceId, std::shared_ptr<ReportSource>> sources;
+    hstd::ext::Unordered1to1Bimap<ReportSourceId, std::string>  names;
+    std::function<std::string(std::string const&)>              getFileSource;
 
-    BOOST_DESCRIBE_CLASS(StrCache, (Cache), (sources, names), (), ());
+    BOOST_DESCRIBE_CLASS(
+        ReportSourceStrCache,
+        (ReportSourceCache),
+        (sources, names),
+        (),
+        ());
 
-    void add(Id id, std::string const& source, std::string const& name);
-    Id   add_path(hstd::fs::path const& path);
+    void add(ReportSourceId id, std::string const& source, std::string const& name);
+    ReportSourceId add_path(hstd::fs::path const& path);
 
-    inline std::shared_ptr<Source> fetch(Id const& id) override { return sources.at(id); }
+    inline std::shared_ptr<ReportSource> fetch(ReportSourceId const& id) override {
+        return sources.at(id);
+    }
 
-    inline std::optional<std::string> display(Id const& id) const override {
+    inline std::optional<std::string> display(ReportSourceId const& id) const override {
         return names.get_right(id);
     }
 };
 
-struct Characters {
+struct ReportCharacters {
     Str hbar;
     Str vbar;
     Str xbar;
@@ -195,47 +208,39 @@ enum class LabelKind
 
 BOOST_DESCRIBE_ENUM(LabelKind, Inline, Multiline);
 
-struct Label {
+struct ReportLabel {
+    using id_type = ReportLabelId;
     /// \brief Give this label a message
-    Label& with_message(ColText const& msg) {
+    ReportLabel& with_message(ColText const& msg) {
         this->msg = msg;
         return *this;
     }
 
     /// \brief Give this label a highlight color
-    Label& with_color(ColStyle const& color) {
+    ReportLabel& with_color(ColStyle const& color) {
         this->color = color;
         return *this;
     }
 
     /// \brief Specify the order of this label relative to other labels
-    Label& with_order(int order) {
+    ReportLabel& with_order(int order) {
         this->order = order;
         return *this;
     }
 
     /// \brief Specify the priority of this label relative to other labels
-    Label& with_priority(int priority) {
+    ReportLabel& with_priority(int priority) {
         this->priority = priority;
         return *this;
     }
 
-    Label& with_span(Id id, Slice<int> range) {
-        this->span = CodeSpan{id, range};
-        return *this;
-    }
+    ReportLabel clone() const { return *this; }
 
-
-    Label& with_id(int label_id) {
-        this->id = label_id;
-        return *this;
-    }
-
-    Label clone() const { return *this; }
+    ReportLabel(ReportLabelId selfId, CodeSpan span) : id{selfId}, span{span} {}
 
     /// \brief Unique ID to disambiguate different labels from each other
     /// and uniquely identify them.
-    int id;
+    ReportLabelId id;
     /// \brief Range of code this label applies to.
     CodeSpan               span;
     std::optional<ColText> msg      = std::nullopt;
@@ -243,21 +248,21 @@ struct Label {
     int                    order    = 0;
     int                    priority = 0;
 
-    DESC_FIELDS(Label, (span, msg, color, order, priority, id));
+    DESC_FIELDS(ReportLabel, (span, msg, color, order, priority, id));
 
-    bool operator==(Label const& other) const { return this->id == other.id; }
+    bool operator==(ReportLabel const& other) const { return this->id == other.id; }
 };
 
 /// \brief Metadata about the label.
 struct LabelInfo {
-    LabelKind kind;
-    Label     label;
+    LabelKind   kind;
+    ReportLabel label;
     DESC_FIELDS(LabelInfo, (kind, label));
 };
 
 
 struct SourceGroup {
-    Id             src_id;
+    ReportSourceId src_id;
     Slice<int>     span;
     Vec<LabelInfo> labels;
     DESC_FIELDS(SourceGroup, (src_id, span, labels));
@@ -287,8 +292,8 @@ enum class LabelAttach
 BOOST_DESCRIBE_ENUM(LabelAttach, Start, Middle, End);
 
 
-struct Config {
-    Config()
+struct ReportRenderConfig {
+    ReportRenderConfig()
         : cross_gap(true)
         , label_attach(LabelAttach::Middle)
         , compact(false)
@@ -297,58 +302,58 @@ struct Config {
         , color(true)
         , tab_width(4) {}
 
-    Config& with_cross_gap(bool cross_gap) {
+    ReportRenderConfig& with_cross_gap(bool cross_gap) {
         this->cross_gap = cross_gap;
         return *this;
     }
 
-    Config& with_label_attach(LabelAttach label_attach) {
+    ReportRenderConfig& with_label_attach(LabelAttach label_attach) {
         this->label_attach = label_attach;
         return *this;
     }
 
-    Config& with_compact(bool compact) {
+    ReportRenderConfig& with_compact(bool compact) {
         this->compact = compact;
         return *this;
     }
 
-    Config& with_underlines(bool underlines) {
+    ReportRenderConfig& with_underlines(bool underlines) {
         this->underlines = underlines;
         return *this;
     }
 
-    Config& with_multiline_arrows(bool multiline_arrows) {
+    ReportRenderConfig& with_multiline_arrows(bool multiline_arrows) {
         this->multiline_arrows = multiline_arrows;
         return *this;
     }
 
-    Config& with_color(bool color) {
+    ReportRenderConfig& with_color(bool color) {
         this->color = color;
         return *this;
     }
 
-    Config& with_tab_width(int tab_width) {
+    ReportRenderConfig& with_tab_width(int tab_width) {
         this->tab_width = tab_width;
         return *this;
     }
 
-    Config& with_char_set(Characters char_set) {
+    ReportRenderConfig& with_char_set(ReportCharacters char_set) {
         this->char_set = char_set;
         return *this;
     }
 
-    Config& with_debug_writes(bool debug_writes) {
+    ReportRenderConfig& with_debug_writes(bool debug_writes) {
         this->debug_writes = debug_writes;
         return *this;
     }
 
 
-    Config& with_debug_report_info(bool debug_report_info) {
+    ReportRenderConfig& with_debug_report_info(bool debug_report_info) {
         this->debug_report_info = debug_report_info;
         return *this;
     }
 
-    Config& with_debug_scopes(bool debug_scopes) {
+    ReportRenderConfig& with_debug_scopes(bool debug_scopes) {
         this->debug_scopes = debug_scopes;
         return *this;
     }
@@ -363,23 +368,23 @@ struct Config {
     std::pair<char, int> char_width(char c, int col) const;
 
 
-    bool        cross_gap;
-    LabelAttach label_attach;
-    bool        compact;
-    bool        underlines = true;
-    bool        multiline_arrows;
-    bool        color;
-    int         tab_width;
-    bool        debug_writes      = false;
-    bool        debug_scopes      = false;
-    bool        debug_report_info = false;
-    Characters  char_set          = Config::unicode();
+    bool             cross_gap;
+    LabelAttach      label_attach;
+    bool             compact;
+    bool             underlines = true;
+    bool             multiline_arrows;
+    bool             color;
+    int              tab_width;
+    bool             debug_writes      = false;
+    bool             debug_scopes      = false;
+    bool             debug_report_info = false;
+    ReportCharacters char_set          = ReportRenderConfig::unicode();
 
-    static Characters unicode();
-    static Characters ascii();
+    static ReportCharacters unicode();
+    static ReportCharacters ascii();
 
     DESC_FIELDS(
-        Config,
+        ReportRenderConfig,
         (error_color,
          warning_color,
          advice_color,
@@ -399,14 +404,14 @@ struct Config {
 
 class [[refl(R"({"default-constructor": false})")]] Report {
   public:
-    ReportKind                 kind     = ReportKind::Error;
-    std::optional<std::string> code     = std::nullopt;
-    std::optional<ColText>     msg      = std::nullopt;
-    hstd::Vec<ColText>         note     = {};
-    hstd::Vec<ColText>         help     = {};
-    std::pair<Id, int>         location = {0, 0};
-    Vec<Label>                 labels   = {};
-    Config                     config   = Config{};
+    ReportKind                     kind     = ReportKind::Error;
+    std::optional<std::string>     code     = std::nullopt;
+    std::optional<ColText>         msg      = std::nullopt;
+    hstd::Vec<ColText>             note     = {};
+    hstd::Vec<ColText>             help     = {};
+    std::pair<ReportSourceId, int> location = {ReportSourceId::Nil(), 0};
+    Vec<ReportLabel>               labels   = {};
+    ReportRenderConfig             config   = ReportRenderConfig{};
 
     DESC_FIELDS(Report, (kind, code, msg, note, help, location, labels, config));
 
@@ -446,7 +451,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     }
 
     /// \brief Add a label to the report.
-    void add_label(Label const& label) { labels.push_back(label); }
+    void add_label(ReportLabel const& label) { labels.push_back(label); }
 
     /// \brief Add multiple labels to the report.
     template <typename Container>
@@ -455,7 +460,7 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     }
 
     /// \brief Add a label to the report.
-    Report& with_label(Label const& label) {
+    Report& with_label(ReportLabel const& label) {
         add_label(label);
         return *this;
     }
@@ -468,33 +473,34 @@ class [[refl(R"({"default-constructor": false})")]] Report {
     }
 
     /// \brief Use the given Config to determine diagnostic attributes.
-    Report& with_config(Config const& config) {
+    Report& with_config(ReportRenderConfig const& config) {
         this->config = config;
         return *this;
     }
 
-    Report(ReportKind kind, Id id, int offset) : kind(kind), location({id, offset}) {}
+    Report(ReportKind kind, ReportSourceId id, int offset)
+        : kind(kind), location({id, offset}) {}
 
-    Vec<SourceGroup> get_source_groups(Cache* cache) const;
+    Vec<SourceGroup> get_source_groups(ReportSourceCache* cache) const;
 
 
-    void write(Cache& cache, std::ostream& w) { write_for_stream(cache, w); }
+    void write(ReportSourceCache& cache, std::ostream& w) { write_for_stream(cache, w); }
 
-    void write_for_stream(Cache& cache, std::ostream& stream) const {
+    void write_for_stream(ReportSourceCache& cache, std::ostream& stream) const {
         ColStream w{stream};
         write_for_stream(cache, w);
     }
 
-    void write_for_stream(Cache& cache, ColStream& w) const;
+    void write_for_stream(ReportSourceCache& cache, ColStream& w) const;
 
-    std::string to_string(Cache& cache, bool colored) const {
+    std::string to_string(ReportSourceCache& cache, bool colored) const {
         ColStream buf;
         write_for_stream(cache, buf);
         return buf.toString(colored);
     }
 
     /// \brief Find all labels
-    static Vec<Label> build_multi_labels(Vec<LabelInfo> const& labels);
+    static Vec<ReportLabel> build_multi_labels(Vec<LabelInfo> const& labels);
 };
 
 } // namespace hstd::ext
@@ -514,4 +520,11 @@ template <>
 struct fmt::formatter<hstd::ext::CodeSpan*>
     : public hstd::std_format_ptr_as_value<hstd::ext::CodeSpan> {
     using std_format_ptr_as_value<hstd::ext::CodeSpan>::format;
+};
+
+
+template <>
+struct fmt::formatter<hstd::ext::ReportSource*>
+    : public hstd::std_format_ptr_as_value<hstd::ext::ReportSource> {
+    using std_format_ptr_as_value<hstd::ext::ReportSource>::format;
 };

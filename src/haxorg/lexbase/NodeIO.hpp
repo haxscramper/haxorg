@@ -113,8 +113,12 @@ struct convert<org::parse::OrgFill> {
         return result;
     }
     static bool decode(Node const& in, org::parse::OrgFill& out) {
-        if (in["text"]) { out.text = in["text"].as<hstd::Str>(); }
-        if (in["loc"]) { out.loc = in["loc"].as<org::parse::SourceLoc>(); }
+        throw hstd::logic_unreachable_error::init("Cannot de-serialize view");
+        // if (in["text"]) { out.text = in["text"].as<hstd::Str>(); }
+        if (in["loc"]) {
+            out.loc = hstd::SerdeDefaultProvider<org::parse::SourceLoc>::get();
+            convert<org::parse::SourceLoc>::decode(in["loc"], out.loc.value());
+        }
         return true;
     }
 };
@@ -149,7 +153,8 @@ struct convert<org::parse::OrgToken> {
         return result;
     }
     static bool decode(Node const& in, org::parse::OrgToken& out) {
-        if (in["str"]) { out->text = in["str"].as<hstd::Str>(); }
+        throw hstd::logic_unreachable_error::init("Cannot de-serialize view");
+        // if (in["str"]) { out->text = in["str"].as<hstd::Str>(); }
         if (in["kind"]) { out.kind = in["kind"].as<OrgTokenKind>(); }
         return true;
     }

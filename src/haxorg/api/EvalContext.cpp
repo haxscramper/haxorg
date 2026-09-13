@@ -106,7 +106,7 @@ struct EvalContext {
         return getContext()->currentTrack;
     }
 
-    bool isTraceEnabled() const { return conf.debug && conf.debug->TraceState; }
+    bool isTraceEnabled() const { return conf.debug && conf.debug->canTrace(); }
 
 
 #define EVAL_TRACE(msg)                                                                  \

@@ -114,10 +114,8 @@ struct ParseSpec {
         std::string const& relDebug,
         bool               create = true) const;
 
-    struct SpecValidationError : public std::runtime_error {
-        explicit SpecValidationError(std::string const& message)
-            : std::runtime_error(message) {}
-    };
+    struct SpecValidationError
+        : public hstd::CRTP_hexception<SpecValidationError, hstd::runtime_error> {};
 
     enum class ExpectedMode
     {
@@ -130,10 +128,11 @@ struct ParseSpec {
 
     ParseSpec() {}
 
-    static ParseSpec FromSource(std::string&& context) {
+    static ParseSpec FromSource(std::string&& context, std::string const& specFile) {
         ParseSpec spec;
-        spec.source = std::move(context);
-        spec.name   = "<source>";
+        spec.specFile = specFile;
+        spec.source   = std::move(context);
+        spec.name     = specFile;
         return spec;
     }
 

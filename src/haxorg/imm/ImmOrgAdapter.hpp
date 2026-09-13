@@ -23,8 +23,8 @@ inline ImmAdapterT<F> ImmAdapterTBase<T>::getField(
 template <typename T>
 template <typename F>
 ImmAdapterT<F> ImmAdapterTBase<T>::getField(
-    org::imm::ImmIdT<F> T::* fieldPtr,
-    ImmPathStep const&       step) const {
+    org::imm::ImmIdT<F> T::*    fieldPtr,
+    ImmSubnodeAccessStep const& step) const {
     return ImmAdapterT<F>{(get()->*fieldPtr).asOrg(), ctx, path.add(step)};
 }
 
@@ -80,11 +80,16 @@ struct sem_to_imm_map {};
 EACH_SEM_ORG_KIND(_gen_map)
 #undef _gen_map
 
-sem::SemId<sem::Org> sem_from_immer(org::imm::ImmId const& id, ImmAstContext const& ctx);
+
+sem::SemId<sem::Org> sem_from_immer(
+    org::imm::ImmId const&   id,
+    ImmAstContext const&     ctx,
+    ImmSemSerdeConfig const& config = ImmSemSerdeConfig{});
 
 org::imm::ImmId immer_from_sem(
     org::sem::SemId<org::sem::Org> const& id,
-    ImmAstEditContext&                    ctx);
+    ImmAstEditContext&                    ctx,
+    ImmSemSerdeConfig const&              config = ImmSemSerdeConfig{});
 
 }; // namespace org::imm
 
@@ -97,23 +102,3 @@ struct fmt::formatter<org::imm::ImmAdapterT<T>> {
         return hstd::fmt_ctx(p.id, ctx);
     }
 };
-
-
-namespace org::details {
-inline org::imm::ImmAstContext* ___get_context(org::imm::ImmAstContext::Ptr p) {
-    return p.get();
-}
-inline org::imm::ImmAstEditContext* ___get_context(org::imm::ImmAstEditContext& p) {
-    return &p;
-}
-
-inline bool ___is_debug(org::imm::ImmAstEditContext& p) {
-    return p.ctx.lock()->debug->TraceState;
-}
-inline bool ___is_debug(org::imm::ImmAstContext::Ptr p) { return p->debug->TraceState; }
-} // namespace org::details
-
-#define AST_EDIT_TRACE() ::org::details::___is_debug(ctx)
-
-#define AST_EDIT_MSG(...)                                                                \
-    if (AST_EDIT_TRACE()) { ::org::details::___get_context(ctx)->message(__VA_ARGS__); }

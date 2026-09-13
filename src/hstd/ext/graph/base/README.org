@@ -1,0 +1,196 @@
+
+* [[file:graph_base.proto]]
+
+Base skeleton of the graph serialization and de-serialization. The ~IGraph~ type is the top-level type in the serialization.
+
+To create a protobuf graph the input file must populate the ~payload~ objects in all fields that have them, this determines the final runtime type and handling of the input data.
+
+- Protobuf type for creating the edge is ~IEdge~, for vertex is ~IVertex~ -- but every single type must have the payload information specified, otherwise the reader would not be able to determine the appropriate runtime type of the object. The ~graph_base.proto~ provides a frame, but cannot be used without slotting in the metadata in the empty placeholders -- in this case ~payload~ field.
+
+#+caption: Example JSON configuration
+#+begin_src json
+{
+    // At least one edge, ports, hierarchy collection must be defined to properly construct the
+    // graph and execute the layout run.
+  "collections": [
+    {
+        // For layout execution specific node and edge types don't hold much information,
+        // so in all cases the "Trivial" case will work.
+      "payload": {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgeCollectionPayload"},
+      "edges"  : [
+        {
+          "payload"         : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgePayload"},
+            // each edge must specify the source and target vertex IDs, and provide its
+            // own globally unique ID for the layout.
+          "source_vertex_id": "vert-1",
+          "target_vertex_id": "vert-2",
+          "stable_id"       : "vert-vert",
+          "attributes"      : [
+            {
+              "payload": {
+                  // the main layout data is stored in the attribute payloads, which also
+                  // determine the handling, style and which algorithm is going to be
+                  // used for the particular group layout.
+                "@type": "type.googleapis.com/hstd.ext.graph.gv.proto.EdgeAttributePayload",
+                "parent_stable_id": "vert-root"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+    // Hierarchy must include all edges referenced in the vertices list
+    // only ~nested_in_map~ needs to be popuated, mapping the node to the list
+    // of its sub-nodes
+  "hierarchies": [{
+      "payload"      : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexHierarchyPayload"},
+      "nested_in_map": {
+          // for diagramming, entire graph is organized in the top-down hierarchy with one more more
+          // root vertices, and the list of nested ones.
+          "vert-root": {
+              "vertices": [
+                  "vert-1",
+                  "vert-2"
+              ]
+          }
+      }
+    }],
+  "ports"      : [{"payload": {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialPortCollectionPayload"}}],
+  "vertices"   : [{
+      // each vertex in the list can either be a leaf vertex or a group vertex. The group vertex might define
+      // its own layout algorithm or be a  cluster/sub-group of the parent one.
+      "stable_id" : "vert-root",
+      "payload"   : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"},
+      "attributes": [
+          // graphviz group payload without a parent ID will create a group vertex with
+          // its own algorithm.
+        {"payload": {"@type": "type.googleapis.com/hstd.ext.graph.gv.proto.GroupAttributePayload"}}
+      ]
+    },
+    {
+      "stable_id" : "vert-1",
+      "payload"   : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"
+      },
+      "attributes": [
+        {
+            // payload with the node attribute must specify the parent ID; it is required
+            // for graphviz attribute.
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.gv.proto.NodeAttributePayload",
+            "parent_stable_id": "vert-root",
+            "height": 10,
+            "width": 10
+          }
+        }
+      ]
+    },
+    {
+      "stable_id" : "vert-2",
+      "payload"   : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"
+      },
+      "attributes": [
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.gv.proto.NodeAttributePayload",
+            "parent_stable_id": "vert-root",
+            "height": 10,
+            "width": 10
+          }
+        }
+      ]
+    }
+  ]
+}
+#+end_src
+
+
+After layout run execution has finished, the final graph /might/ retain the original attributes, and it /will/ have the new set of attributes added with the expanded geometry details.
+
+#+caption: Partial generated JSON after layout
+#+begin_src json
+{
+  "collections": [
+    {
+      "stableId": "EdgeProvider-0",
+      "type"    : "IEdgeCollection",
+      "edges"   : [{
+          "stableId"      : "vert-vert",
+          "sourceVertexId": "vert-1",
+          "targetVertexId": "vert-2",
+          "attributes"    : [
+            {"payload": {"@type": "type.googleapis.com/hstd.ext.graph.gv.proto.EdgeAttributePayload"}},
+            {
+                // edge will get the payload object with the specific edge geometry and
+                // possibly additional information for the visualization. The points in the
+                // list are represented using `hstd.ext.geometry.proto.Path`
+              "payload": {
+                "@type": "type.googleapis.com/hstd.ext.graph.layout.proto.IEdgeLayoutAttributePayload",
+                "path": {
+                  "commands": [
+                    { "p1": {"x": 3.6, "y": 7.2033387756347658}, "p2": {}, "p3": {} },
+                    {
+                      "type": "QUAD_TO",
+                      "p1"  : {"x": 3.6, "y": 7.2832581377751193},
+                      "p2"  : {"x": 3.6, "y": 7.3632835940394079},
+                      "p3"  : {"x": 3.6, "y": 7.4432710635694113}
+                    },
+                    { "p1": {"x": 3.6, "y": 7.5563164069630071}, "p2": {}, "p3": {} }]}}}]}],
+      "payload" : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgeCollectionPayload"}
+    }
+  ],
+  "hierarchies": [
+    {
+        // the structure of the hierarchy won't change, but all additional
+        // field will be rebuilt and populated based on the `nestedInMap`
+      "stableId"     : "EdgeProvider-32907",
+      "rootVertexIds": ["vert-root"],
+      "parentMap"    : {"vert-1": "vert-root", "vert-2": "vert-root"},
+      "nestedInMap"  : { "vert-root": { "vertices": ["vert-2", "vert-1"] } }
+    }
+  ],
+  "vertices"   : [
+    {
+      "stableId"  : "vert-root",
+      "attributes": [
+        {"payload": {"@type": "type.googleapis.com/hstd.ext.graph.gv.proto.GroupAttributePayload"}},
+        {
+          "payload": {
+              // bounding box the group. Default (zero) values of the  x/y/width/height
+              // coordinates are not present
+            "@type": "type.googleapis.com/hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload",
+            "bbox": {"width": 7.2, "height": 14.76}
+          }
+        }
+      ],
+      "payload"   : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"}
+    },
+    {
+      "stableId"  : "vert-1",
+      "attributes": [
+        {"payload": {"@type" : "type.googleapis.com/hstd.ext.graph.gv.proto.NodeAttributePayload", ...}},
+        {
+          "payload": {
+              // all vertex, edge and group coordinates are relative to the parent node
+            "@type": "type.googleapis.com/hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload",
+            "bbox": {"x": -1.4, "y": -1.4, "width": 10, "height": 10}
+          }
+        }
+      ],
+      "payload"   : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"}
+    },
+    {
+      "stableId"  : "vert-2",
+      "attributes": [
+        {"payload": {"@type" : "type.googleapis.com/hstd.ext.graph.gv.proto.NodeAttributePayload", ...}},
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.layout.proto.IGroupLayoutAttributePayload",
+            "bbox": {"x": -1.4, "y": 6.16, "width": 10, "height": 10}}}],
+      "payload"   : {"@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"}
+    }
+  ]
+}
+#+end_src

@@ -397,15 +397,15 @@ class IGraph {
     };
 
 #if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(proto::IGraphProto* out) const;
+    void writeSerial(proto::IGraph* out) const;
 
-    void readSerial(proto::IGraphProto const* in, IGraphSerialReaderFactory* factory);
+    void readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* factory);
 #endif
 
     virtual VertexID addVertex(hstd::SPtr<IVertex> const& vertex) = 0;
 
 #if ORG_BUILD_WITH_PROTOBUF
-    std::unique_ptr<proto::IGraphProto> get_serial() const;
+    std::unique_ptr<proto::IGraph> get_serial() const;
 #endif
 
     std::string getDebug(VertexIDSet const& vert) const;

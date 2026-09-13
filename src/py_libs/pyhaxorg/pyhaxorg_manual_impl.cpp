@@ -70,7 +70,7 @@ std::string ExporterPython::describe_use(std::string const& msg, PyFunc const& u
 }
 
 void ExporterPython::enableBufferTrace() {
-    TraceState    = true;
+    setTraceState(true);
     traceToBuffer = true;
 }
 

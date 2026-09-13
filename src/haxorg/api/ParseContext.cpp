@@ -1,3 +1,5 @@
+#include <cpptrace/cpptrace.hpp>
+#include <cpptrace/from_current.hpp>
 #include <filesystem>
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/api/SemBaseApi.hpp>
@@ -6,8 +8,11 @@
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/ext/logger.hpp>
 #include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
 using namespace hstd;
@@ -112,12 +117,13 @@ ParseContext::ParseContext() : source{std::make_shared<SourceManager>()} {}
 
 ParseContext::ParseContext(hstd::SPtr<SourceManager> const& source) : source{source} {}
 
-std::shared_ptr<hstd::ext::Cache> ParseContext::getDiagnosticStrings() {
+std::shared_ptr<hstd::ext::ReportSourceCache> ParseContext::getDiagnosticStrings() {
     return std::make_shared<org::parse::DiagnosticsParseContext>(shared_from_this());
 }
 
 SourceFileId ParseContext::addSource(std::string const& path, std::string const& content)
     const {
+    __perf_trace("api", "parse context add source");
 
     LOGIC_ASSERTION_CHECK_FMT(
         fs::is_directory(path) || fs::is_regular_file(path)
@@ -157,137 +163,201 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
     const std::string                          text,
     std::string const&                         string_id,
     std::shared_ptr<OrgParseParameters> const& opts) {
+    __perf_trace("api", "parseStringOpts");
+
+    HSLOG_INFO("Parsing string '{}'", string_id);
 
     auto file_id = addSource(string_id, text);
 
-    if (opts->getFragments) {
-        auto                          fragments = opts->getFragments(text);
-        Vec<OrgConverter::InFragment> toConvert;
+    auto impl = [&]() -> org::sem::SemId<org::sem::Org> {
+        if (opts->getFragments) {
+            auto                          fragments = opts->getFragments(text);
+            Vec<OrgConverter::InFragment> toConvert;
 
-        if (opts->baseTokenTracePath && fs::exists(opts->baseTokenTracePath.value())) {
-            fs::remove(opts->baseTokenTracePath.value());
-        }
+            if (opts->baseTokenTracePath
+                && fs::exists(opts->baseTokenTracePath.value())) {
+                fs::remove(opts->baseTokenTracePath.value());
+            }
 
-        if (opts->parseTracePath && fs::exists(opts->parseTracePath.value())) {
-            fs::remove(opts->parseTracePath.value());
-        }
+            if (opts->parseTracePath && fs::exists(opts->parseTracePath.value())) {
+                fs::remove(opts->parseTracePath.value());
+            }
 
-        if (opts->semTracePath && fs::exists(opts->semTracePath.value())) {
-            fs::remove(opts->semTracePath.value());
-        }
+            if (opts->semTracePath && fs::exists(opts->semTracePath.value())) {
+                fs::remove(opts->semTracePath.value());
+            }
 
-        if (opts->tokenTracePath && fs::exists(opts->tokenTracePath.value())) {
-            fs::remove(opts->tokenTracePath.value());
-        }
+            if (opts->tokenTracePath && fs::exists(opts->tokenTracePath.value())) {
+                fs::remove(opts->tokenTracePath.value());
+            }
 
-        Vec<org::parse::OrgTokenGroup> tokens;
-        Vec<org::parse::OrgNodeGroup>  nodes;
-        nodes.reserve(fragments.size());
-        tokens.reserve(fragments.size());
+            Vec<org::parse::OrgTokenGroup> tokens;
+            Vec<org::parse::OrgNodeGroup>  nodes;
+            nodes.reserve(fragments.size());
+            tokens.reserve(fragments.size());
 
-        for (auto const& frag : fragments) {
-            tokens.emplace_back();
-            nodes.emplace_back(&tokens.back());
-        }
+            for (auto const& frag : fragments) {
+                tokens.emplace_back();
+                nodes.emplace_back(&tokens.back());
+            }
 
-        for (int i = 0; i < fragments.size(); ++i) {
-            auto const&             frag = fragments.at(i);
+            for (int i = 0; i < fragments.size(); ++i) {
+                auto const&             frag = fragments.at(i);
+                org::parse::LexerParams p;
+                SPtr<std::ofstream>     fileTrace;
+                if (opts->baseTokenTracePath) {
+                    p.setTraceFile(opts->baseTokenTracePath.value());
+                    p.traceColored = false;
+                }
+
+                org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
+                    frag.text, p, file_id);
+                if (opts->onBaseTokenizeDone) {
+                    __perf_trace("api", "user post base tokenize callback");
+                    opts->onBaseTokenizeDone(baseTokens, i);
+                }
+
+                org::parse::OrgTokenizer tokenizer{&tokens.at(i), source.get()};
+                if (opts->tokenTracePath) {
+                    tokenizer.setTraceFile(*opts->tokenTracePath, false);
+                    tokenizer.traceColored = false;
+                }
+
+                tokenizer.convert(baseTokens);
+
+                org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
+                if (opts->onTokenizerDone) {
+                    __perf_trace("api", "user post-tokenize callback");
+                    opts->onTokenizerDone(tokens.at(i), i);
+                }
+
+                org::parse::OrgParser parser{&nodes.at(i), file_id, source.get()};
+                if (opts->parseTracePath) {
+                    parser.setTraceFile(*opts->parseTracePath, false);
+                    parser.traceColored = false;
+                }
+
+                auto id = parser.parseFull(lex);
+
+                if (opts->onParseDone) {
+                    __perf_trace("api", "user post-parse callback");
+                    opts->onParseDone(nodes.at(i), id, i);
+                }
+
+                auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
+
+                // adapter.tr
+
+                toConvert.push_back(
+                    OrgConverter::InFragment{
+                        .baseLine = frag.baseLine,
+                        .baseCol  = frag.baseCol,
+                        .node     = adapter,
+                    });
+            }
+
+            sem::OrgConverter converter{};
+            if (opts->semTracePath) {
+                converter.setTraceFile(*opts->semTracePath);
+                converter.traceColored = false;
+            }
+
+            auto result = converter.convertDocumentFragments(toConvert).unwrap();
+            if (opts->onDiagnosticsCollected) {
+                __perf_trace("api", "user diagnostics callback");
+                for (int i = 0; i < result.size(); ++i) {
+                    auto cache   = getDiagnosticStrings();
+                    auto reports = collectDiagnostics(result.at(i), cache);
+                    opts->onDiagnosticsCollected(reports, i);
+                }
+            }
+
+            return result;
+
+        } else {
             org::parse::LexerParams p;
-            SPtr<std::ofstream>     fileTrace;
+            p.validateTokens = opts->validateBaseTokens;
+            SPtr<std::ofstream> fileTrace;
             if (opts->baseTokenTracePath) {
                 p.setTraceFile(opts->baseTokenTracePath.value());
                 p.traceColored = false;
             }
 
-            org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(
-                frag.text, p, file_id);
-            if (opts->onBaseTokenizeDone) { opts->onBaseTokenizeDone(baseTokens, i); }
-            org::parse::OrgTokenizer tokenizer{&tokens.at(i)};
+            org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(text, p, file_id);
+            if (opts->onBaseTokenizeDone) {
+                __perf_trace("api", "user post base tokenize callback");
+                opts->onBaseTokenizeDone(baseTokens, std::nullopt);
+            }
+
+            if (opts->lastStage == OrgParseParameters::LastParseStage::BaseLex) {
+                return nullptr;
+            }
+
+            org::parse::OrgTokenGroup tokens;
+            org::parse::OrgTokenizer  tokenizer{&tokens, source.get()};
 
             if (opts->tokenTracePath) {
-                tokenizer.setTraceFile(*opts->tokenTracePath, false);
+                tokenizer.setTraceFile(*opts->tokenTracePath);
                 tokenizer.traceColored = false;
             }
 
             tokenizer.convert(baseTokens);
 
-            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
-            if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens.at(i), i); }
-            org::parse::OrgParser parser{&nodes.at(i)};
+            if (opts->onTokenizerDone) {
+                __perf_trace("api", "user post-tokenize callback");
+                opts->onTokenizerDone(tokens, std::nullopt);
+            }
+
+            if (opts->lastStage == OrgParseParameters::LastParseStage::RecombineLex) {
+                return nullptr;
+            }
+
+
+            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
+
+            org::parse::OrgNodeGroup nodes{&tokens};
+            org::parse::OrgParser    parser{&nodes, file_id, source.get()};
             if (opts->parseTracePath) {
-                parser.setTraceFile(*opts->parseTracePath, false);
+                parser.setTraceFile(*opts->parseTracePath);
                 parser.traceColored = false;
             }
 
             auto id = parser.parseFull(lex);
 
-            if (opts->onParseDone) { opts->onParseDone(nodes.at(i), i); }
+            if (opts->lastStage == OrgParseParameters::LastParseStage::Parse) {
+                return nullptr;
+            }
 
-            auto adapter = org::parse::OrgAdapter(&nodes.at(i), id);
+            sem::OrgConverter converter{};
+            if (opts->semTracePath) {
+                converter.setTraceFile(*opts->semTracePath);
+                converter.traceColored = false;
+            }
 
-            // adapter.tr
+            if (opts->onParseDone) {
+                __perf_trace("api", "user post-parse callback");
+                opts->onParseDone(nodes, id, std::nullopt);
+            }
 
-            toConvert.push_back(
-                OrgConverter::InFragment{
-                    .baseLine = frag.baseLine,
-                    .baseCol  = frag.baseCol,
-                    .node     = adapter,
-                });
+            auto result = converter.convertDocument(org::parse::OrgAdapter(&nodes, id))
+                              .unwrap();
+
+            auto cache = getDiagnosticStrings();
+            __perf_trace_begin("api", "collect diagnostics");
+            auto reports = collectDiagnostics(result, cache);
+            __perf_trace_end("api");
+
+            if (opts->onDiagnosticsCollected) {
+                __perf_trace("api", "user diagnostics callback");
+                opts->onDiagnosticsCollected(reports, std::nullopt);
+            }
+
+            return result;
         }
+    };
 
-        sem::OrgConverter converter{};
-        if (opts->semTracePath) {
-            converter.setTraceFile(*opts->semTracePath);
-            converter.traceColored = false;
-        }
-
-        return converter.convertDocumentFragments(toConvert).unwrap();
-
-    } else {
-        org::parse::LexerParams p;
-        SPtr<std::ofstream>     fileTrace;
-        if (opts->baseTokenTracePath) {
-            p.setTraceFile(opts->baseTokenTracePath.value());
-            p.traceColored = false;
-        }
-
-        org::parse::OrgTokenGroup baseTokens = org::parse::tokenize(text, p, file_id);
-        if (opts->onBaseTokenizeDone) {
-            opts->onBaseTokenizeDone(baseTokens, std::nullopt);
-        }
-
-        org::parse::OrgTokenGroup tokens;
-        org::parse::OrgTokenizer  tokenizer{&tokens};
-
-        if (opts->tokenTracePath) {
-            tokenizer.setTraceFile(*opts->tokenTracePath);
-            tokenizer.traceColored = false;
-        }
-
-        tokenizer.convert(baseTokens);
-
-        if (opts->onTokenizerDone) { opts->onTokenizerDone(tokens, std::nullopt); }
-
-        org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
-
-        org::parse::OrgNodeGroup nodes{&tokens};
-        org::parse::OrgParser    parser{&nodes};
-        if (opts->parseTracePath) {
-            parser.setTraceFile(*opts->parseTracePath);
-            parser.traceColored = false;
-        }
-
-        auto              id = parser.parseFull(lex);
-        sem::OrgConverter converter{};
-        if (opts->semTracePath) {
-            converter.setTraceFile(*opts->semTracePath);
-            converter.traceColored = false;
-        }
-
-        if (opts->onParseDone) { opts->onParseDone(nodes, std::nullopt); }
-
-        return converter.convertDocument(org::parse::OrgAdapter(&nodes, id)).unwrap();
-    }
+    auto result = impl();
+    return result;
 }
 
 
@@ -440,7 +510,7 @@ void postProcessInclude(
                     sem::BlockCodeLine lineNode;
                     lineNode.parts.push_back(
                         sem::BlockCodeLine::Part{
-                            sem::BlockCodeLine::Part::Raw{.code = line}});
+                            sem::BlockCodeLine::Part::Raw{.code = Str{line}}});
                     code->lines.push_back(lineNode);
                 }
                 break;
@@ -452,7 +522,7 @@ void postProcessInclude(
                 auto source = readFile(full.value());
                 for (auto const& line : split(source, '\n')) {
                     auto raw  = sem::SemId<sem::RawText>();
-                    raw->text = line;
+                    raw->text = Str{line};
                     code->push_back(raw);
                 }
                 break;
@@ -534,7 +604,7 @@ void postProcessFileReferences(
 Opt<sem::SemId<Org>> ParseContext::parseDirectoryOpts(
     std::string const&                                  root,
     std::shared_ptr<OrgDirectoryParseParameters> const& opts) {
-
+    __perf_trace("api", "parseDirectoryOpts");
     DirectoryParseState state;
     return parsePathAux(this, fs::absolute(root), root, opts, state);
 }
@@ -602,8 +672,8 @@ std::vector<std::string> OrgDirectoryParseParameters::getDirectoryEntries(
 
 
 hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
-    org::sem::SemId<sem::Org> const&         tree,
-    std::shared_ptr<hstd::ext::Cache> const& cache) {
+    org::sem::SemId<sem::Org> const&                     tree,
+    std::shared_ptr<hstd::ext::ReportSourceCache> const& cache) {
     hstd::Vec<ext::Report> result;
 
     org::eachSubnodeRec(tree, [&](sem::SemId<sem::Org> const& node) {
@@ -612,37 +682,52 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                 using K       = org::sem::OrgDiagnostics::Kind;
                 auto const& d = item->diag;
 
-                auto getId = [&](org::parse::SourceLoc const& loc) {
-                    return loc.file_id.getValue();
+                auto getId =
+                    [&](org::parse::SourceLoc const& loc) -> ext::ReportSourceId {
+                    return ext::ReportSourceId::FromValue(loc.file_id.getValue());
+                };
+
+                auto getLocSpan = [&](org::parse::SourceLoc const& loc, int size) {
+                    return cache->init_span(getId(loc), slice(loc.pos, loc.pos + size));
                 };
 
                 switch (d.getKind()) {
                     case K::ConvertError: {
                         auto const& err = d.getConvertError();
-                        auto        id  = getId(err.loc.value());
+
+                        if (!err.loc) {
+                            HSLOG_ERROR("Could not get location from {}", err);
+                            goto missing_location;
+                        }
 
                         result.push_back(
-                            ext::Report(ext::ReportKind::Error, id, 0)
+                            ext::Report(ext::ReportKind::Error, getId(err.loc.value()), 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
                                 .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
                                 .with_label(
-                                    ext::Label{1}
-                                        .with_span(id, slice(1, 2))
+                                    ext::ReportLabel{
+                                        ext::ReportLabelId::FromValue(1),
+                                        getLocSpan(err.loc.value(), 1)}
                                         .with_message(err.detail)));
                         break;
                     }
 
                     case K::ParseError: {
                         auto const& err = d.getParseError();
-                        auto        id  = getId(err.loc.value());
-                        auto        l   = //
-                            ext::Label{1}
-                                .with_span(id, slice(err.loc->pos, err.loc->pos + 1))
+
+                        if (!err.loc) {
+                            HSLOG_ERROR("Could not get location from {}", err);
+                            goto missing_location;
+                        }
+
+                        auto l = //
+                            ext::ReportLabel{
+                                ext::ReportLabelId{1}, getLocSpan(err.loc.value(), 1)}
                                 .with_message(err.detail);
 
                         result.push_back(
-                            ext::Report(ext::ReportKind::Error, id, 0)
+                            ext::Report(ext::ReportKind::Error, getId(err.loc.value()), 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
                                 .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
@@ -652,17 +737,21 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
 
                     case K::ParseTokenError: {
                         auto const& err = d.getParseTokenError();
-                        auto        id  = getId(err.loc);
-                        auto        l   = //
-                            ext::Label{1}
-                                .with_span(
-                                    id,
-                                    slice(
-                                        err.loc.pos, err.loc.pos + err.tokenText.size()))
+
+                        if (!err.loc) {
+                            HSLOG_ERROR("Could not get location from {}", err);
+                            goto missing_location;
+                        }
+
+
+                        auto l = //
+                            ext::ReportLabel{
+                                ext::ReportLabelId{1},
+                                getLocSpan(err.loc.value(), err.tokenText.size())}
                                 .with_message(err.detail);
 
                         result.push_back(
-                            ext::Report(ext::ReportKind::Error, id, 0)
+                            ext::Report(ext::ReportKind::Error, getId(err.loc.value()), 0)
                                 .with_message(err.brief)
                                 .with_code(err.errCode)
                                 .with_note(hstd::to_compact_json(hstd::to_json_eval(err)))
@@ -678,6 +767,8 @@ hstd::Vec<ext::Report> ParseContext::collectDiagnostics(
                         throw hstd::logic_unhandled_kind_error::init(d.getKind());
                     }
                 }
+
+            missing_location:
             }
         }
     });
@@ -696,12 +787,13 @@ hstd::Vec<sem::SemId<ErrorGroup>> ParseContext::collectErrorNodes(
     return res;
 }
 
-std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(hstd::ext::Id const& id) {
-    auto file_id = org::parse::SourceFileId::FromValue(id);
+std::shared_ptr<ext::ReportSource> DiagnosticsParseContext::fetch(
+    hstd::ext::ReportSourceId const& id) {
+    auto file_id = org::parse::SourceFileId::FromValue(id.getValue());
     if (!sources.contains(file_id)) {
         sources.insert_or_assign(
             file_id,
-            std::make_shared<hstd::ext::Source>(
+            std::make_shared<hstd::ext::ReportSource>(
                 context->source->getSourceContent(file_id)));
     }
 
@@ -709,6 +801,6 @@ std::shared_ptr<ext::Source> DiagnosticsParseContext::fetch(hstd::ext::Id const&
 }
 
 std::optional<std::string> DiagnosticsParseContext::display(
-    hstd::ext::Id const& id) const {
-    return context->source->getPath(org::parse::SourceFileId::FromValue(id));
+    hstd::ext::ReportSourceId const& id) const {
+    return context->source->getPath(org::parse::SourceFileId::FromValue(id.getValue()));
 }

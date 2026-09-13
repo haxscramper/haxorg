@@ -1,0 +1,92 @@
+{
+  "diagram": {
+    "id"         : "root",
+    "kiwi"       : {},
+    "nodes"      : [
+      { "id": "A", "kiwi": { "rect": {"width0": 100, "height0": 100} } },
+      { "id": "B", "kiwi": { "rect": {"width0": 100, "height0": 100} } },
+      { "id": "C", "kiwi": { "rect": {"width0": 100, "height0": 100} } }
+    ],
+    "constraints": [
+      {
+        "kw_even_gap": { "vertices": { "vertices": ["A", "B", "C"] }, "axis": "AXIS_X" }
+      },
+      {
+        "kw_separate": {
+          "left"              : { "vertices": [ {"id": "A"} ] },
+          "right"             : { "vertices": [ {"id": "B"} ] },
+          "separationDistance": 300,
+          "dimension"         : "AXIS_X"
+        }
+      }
+    ]
+  },
+  "checks" : [
+    {
+      "distance": {
+        "first"   : {
+          "expr": {
+            "anchor": {
+              "point": "POINT_ANCHOR_UPPER_LEFT",
+              "ref"  : { "shape": {"id": "A"} }
+            }
+          }
+        },
+        "second"  : {
+          "expr": {
+            "anchor": {
+              "point": "POINT_ANCHOR_UPPER_LEFT",
+              "ref"  : { "shape": {"id": "B"} }
+            }
+          }
+        },
+        "distance": 300
+      }
+    },
+    {
+      "distance": {
+        "first"   : {
+          "expr": {
+            "anchor": {
+              "point": "POINT_ANCHOR_UPPER_RIGHT",
+              "ref"  : { "shape": {"id": "A"} }
+            }
+          }
+        },
+        "second"  : {
+          "expr": {
+            "anchor": {
+              "point": "POINT_ANCHOR_UPPER_LEFT",
+              "ref"  : { "shape": {"id": "B"} }
+            }
+          }
+        },
+        "distance": 200
+      }
+    },
+    {
+      // Setting the distance between the A and B should also change
+      // the position between B and C, because A-B-C are linked with
+      // "even gap" constraint.
+      "distance": {
+        "first"   : {
+          "expr": {
+            "anchor": {
+              "point": "POINT_ANCHOR_UPPER_LEFT",
+              "ref"  : { "shape": {"id": "B"} }
+            }
+          }
+        },
+        "second"  : {
+          "expr": {
+            "anchor": {
+              "point": "POINT_ANCHOR_UPPER_LEFT",
+              "ref"  : { "shape": {"id": "C"} }
+            }
+          }
+        },
+        "distance": 300
+      }
+    }
+  ]
+}

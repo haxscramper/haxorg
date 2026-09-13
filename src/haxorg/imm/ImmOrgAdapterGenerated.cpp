@@ -499,6 +499,12 @@ org::sem::DocumentExportConfig org::imm::ImmAdapterT<org::imm::ImmDocumentOption
 hstd::Opt<bool> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections() const {
   return this->value().fixedWidthSections.get();
 }
+hstd::Opt<LinkVisibility> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getLinkVisibility() const {
+  return this->value().linkVisibility.get();
+}
+hstd::Opt<BlockVisibility> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getBlockVisibility() const {
+  return this->value().blockVisibility.get();
+}
 hstd::Opt<bool> const& org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented() const {
   return this->value().startupIndented.get();
 }

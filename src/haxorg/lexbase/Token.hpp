@@ -59,6 +59,8 @@ struct Token {
     V const* operator->() const { return &this->value; }
 };
 
+template <typename K, typename V>
+struct TokenUtils {};
 
 } // namespace org::parse
 

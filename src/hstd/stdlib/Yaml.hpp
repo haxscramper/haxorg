@@ -121,6 +121,18 @@ struct convert<hstd::Str> {
     }
 };
 
+template <>
+struct convert<hstd::StrView> {
+    static Node encode(hstd::StrView const& str) {
+        Node result;
+        result = str.toBase();
+        return result;
+    }
+    static bool decode(Node const& in, hstd::StrView& out) {
+        throw hstd::logic_unreachable_error::init("Cannot de-serialize view");
+    }
+};
+
 template <hstd::IsVariant T, typename CRTP_Derived>
 struct variant_convert {
     static bool decode(Node const& value, T& result) {

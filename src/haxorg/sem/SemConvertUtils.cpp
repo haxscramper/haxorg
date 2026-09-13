@@ -64,7 +64,11 @@ OrgConverter::ConvertError OrgConverter::wrapError(
 
 Opt<org::parse::SourceLoc> OrgConverter::getLoc(parse::OrgAdapter const& adapter) {
     if (adapter.isTerminal()) {
-        return adapter.val().loc.value();
+        if (adapter.val().loc) {
+            return adapter.val().loc.value();
+        } else {
+            return std::nullopt;
+        }
     } else if (adapter.isMono()) {
         return std::nullopt;
 
@@ -95,7 +99,7 @@ std::string OrgConverter::getLocMsg(parse::OrgAdapter const& adapter) {
 void OrgConverter::report(OrgConverter::Report const& in) {
     using fg = TermColorFg8Bit;
 
-    if (!TraceState) { return; }
+    if (!canTrace()) { return; }
 
     auto getLoc = [&]() -> std::string {
         std::string res;
@@ -106,15 +110,13 @@ void OrgConverter::report(OrgConverter::Report const& in) {
         return res;
     };
 
-    if (in.kind == ReportKind::Enter || in.kind == ReportKind::EnterField) {
-        ++activeLevel;
-    }
+    if (in.kind == ReportKind::Enter || in.kind == ReportKind::EnterField) { incLevel(); }
 
     ColStream os = getStream();
     if (traceStructured) {
         using namespace org::report;
         EntrySem res;
-        res.indent = activeLevel;
+        res.indent = getLevel();
 #define __kind(K)                                                                        \
     case ReportKind::K: {                                                                \
         res.kind = EntrySem::Kind::K;                                                    \
@@ -133,7 +135,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
             ValueOrgNode node;
             node.kind = fmt1(in.node->kind());
             node.id   = fmt1(in.node->id);
-            if (in.node->isTerminal()) { node.value = in.node->val().text; }
+            if (in.node->isTerminal()) { node.value = Str{in.node->val().text}; }
             res.node = node;
         }
 
@@ -144,7 +146,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
         os << to_json_eval(res).dump();
     } else {
         int start_pos = os.position;
-        os << repeat("  ", activeLevel);
+        os << repeat("  ", getLevel());
 
 
         switch (in.kind) {
@@ -202,9 +204,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
     endStream(os);
 
 
-    if (in.kind == ReportKind::Leave || in.kind == ReportKind::LeaveField) {
-        --activeLevel;
-    }
+    if (in.kind == ReportKind::Leave || in.kind == ReportKind::LeaveField) { decLevel(); }
 }
 
 
@@ -245,7 +245,7 @@ finally_std OrgConverter::trace(
     Opt<Str>    subname,
     int         line,
     char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::Enter, nullptr, line, function)
                    .with_node(adapter)
                    .with_msg(subname)
@@ -270,7 +270,7 @@ finally_std OrgConverter::field(
     Opt<Str>    subname,
     int         line,
     char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::EnterField, nullptr, line, function)
                    .with_node(adapter)
                    .with_msg(subname)
@@ -291,7 +291,7 @@ finally_std OrgConverter::field(
 }
 
 void OrgConverter::print_json(SemId<Org> semResult, int line, char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::Json, nullptr, line, function)
                    .with_sem(semResult)
                    .report);
@@ -299,7 +299,7 @@ void OrgConverter::print_json(SemId<Org> semResult, int line, char const* functi
 }
 
 void OrgConverter::print(std::string msg, int line, char const* function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgConverter::ReportKind::Print, nullptr, line, function)
                    .with_msg(msg)
                    .report);

@@ -197,8 +197,7 @@ void line_edit_action(
     Vec<Action>&         add_actions,
     ir::CommitId         id_commit) {
     ir::StringId string_id = state->content->add(
-        String{
-            strip(Str{line->content, static_cast<int>(line->content_len)}, {}, {'\n'})});
+        String{hstd::Str{strip(StrView{line->content, line->content_len}, {}, {'\n'})}});
 
     switch (line->origin) {
         case GIT_DIFF_LINE_ADDITION: {
@@ -720,20 +719,22 @@ void check_tree_entry_consistency(
         section.track,
         state->at(track_id).sections.size() - 1);
 
-    auto content_lines = hstd::split(Str{content_ptr}, '\n');
+    auto content_lines = hstd::own_view(hstd::split(Str{content_ptr}, '\n'))
+                       | hstd::rv::transform(
+                             [](hstd::StrView sv) -> hstd::Str { return hstd::Str{sv}; })
+                       | hstd::rs::to<hstd::Vec>();
 
     std::string concat_content =                  //
         zip_longest(section.lines, content_lines) //
         | rv::enumerate                           //
-        | rv::transform(
-            [&](auto const& line_pair) -> std::tuple<int, std::string, std::string> {
-                return std::tuple(
-                    line_pair.first,
-                    line_pair.second.first
-                        ? state->str(state->at(*line_pair.second.first).content)
-                        : "",
-                    line_pair.second.second ? *line_pair.second.second : "");
-            })
+        | rv::transform([&](auto const& line_pair) -> std::tuple<int, StrView, StrView> {
+              return std::tuple(
+                  line_pair.first,
+                  line_pair.second.first
+                      ? state->str(state->at(*line_pair.second.first).content)
+                      : "",
+                  line_pair.second.second ? *line_pair.second.second : "");
+          })
         | rv::transform([](auto const& line_tuple) -> std::string {
               return fmt::format(
                   "[{:<4}] [{}] '{:<100}' '{:<100}'",

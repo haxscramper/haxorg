@@ -241,6 +241,8 @@ struct ColText : hstd::Vec<ColRune> {
     ColText(ColStyle const& style, std::string const& text);
 
     ColText(std::string const& text) : ColText(ColStyle{}, text) {}
+    ColText(std::string_view const& text) : ColText(ColStyle{}, std::string{text}) {}
+    ColText(char const* text) : ColText(ColStyle{}, std::string{text}) {}
     ColText(Span<ColRune> text) : Vec<ColRune>{text} {}
 
     ColText(ColStyle const& style, char text) : Vec<ColRune>({ColRune(text, style)}) {}

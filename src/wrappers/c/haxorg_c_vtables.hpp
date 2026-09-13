@@ -244,6 +244,22 @@ struct org::bind::c::VTable<std::optional<org::sem::SemId<org::sem::Time>>> {
 };
 
 template <>
+struct org::bind::c::VTable<std::optional<LinkVisibility>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<BlockVisibility>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
 struct org::bind::c::VTable<std::optional<org::sem::ColumnView>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);

@@ -1,3 +1,4 @@
+#include "hstd/stdlib/Debug.hpp"
 #include <boost/mp11.hpp>
 #include <filesystem>
 #include <haxorg/test/NodeTest.hpp>
@@ -144,29 +145,41 @@ ParseSpec::ParseSpec(
     std::string const& specFile,
     std::string const& testRoot)
     : specFile(specFile) {
+    LOGIC_ASSERTION_CHECK(!specFile.empty(), "");
     specLocation = node.Mark();
 
     if (!node["source"] && !node["file"]) {
-        throw SpecValidationError(
-            "Input spec must contain 'source' string field or 'file'");
+        throw SpecValidationError::init(
+            hstd::fmt(
+                "Input spec must contain 'source' string field or 'file' for {}:{}:{}",
+                specFile,
+                node.Mark().line,
+                node.Mark().column));
     } else if (node["file"]) {
         fs::path    root{testRoot};
         std::string path = node["file"].as<std::string>();
         auto        full = fs::path{root / path};
         if (!fs::path{path}.is_relative()) {
-            throw SpecValidationError(
-                "'file' field must store a relative path, but '" + path
-                + "' is not relative");
+            throw SpecValidationError::init(
+                hstd::fmt(
+                    "'file' field must store a relative path, but '{}' is not relative "
+                    "at {}:{}:{}",
+                    path,
+                    specFile,
+                    node.Mark().line,
+                    node.Mark().column));
         }
 
         if (!fs::is_regular_file(full)) {
-            throw SpecValidationError(
+            throw SpecValidationError::init(
                 hstd::fmt(
                     "'file' field must store a relative path, but '{}' "
-                    "does "
-                    "not exist (test root '{}')",
+                    "does not exist (test root '{}') at {}:{}:{}",
                     fs::absolute(full),
-                    testRoot));
+                    testRoot,
+                    specFile,
+                    node.Mark().line,
+                    node.Mark().column));
         }
 
         this->source = readFile(full);
@@ -202,8 +215,12 @@ ParseSpecGroup::ParseSpecGroup(
                 specs.push_back(spec);
             }
         } else {
-            throw ParseSpec::SpecValidationError(
-                "Spec group 'items' field must be a sequence");
+            throw ParseSpec::SpecValidationError::init(
+                hstd::fmt(
+                    "Spec group 'items' field must be a sequence at {}:{}:{}",
+                    from,
+                    node.Mark().line,
+                    node.Mark().column));
         }
 
     } else {

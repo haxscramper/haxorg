@@ -168,6 +168,12 @@ struct IndexedBase : public CRTP_this_method<Container> {
     /// \brief Append elements from \arg other vector
     void append(Container const& other) { _this()->append(other.begin(), other.end()); }
 
+
+    template <typename OtherIterable>
+    void append_with_reconstruction(OtherIterable const& other) {
+        for (auto const& it : other) { _this()->push_back(T{it}); }
+    }
+
     /// \brief copy multiple elements referred to by span to the fector
     void append(std::span<T> const& other) {
         _this()->append(other.begin(), other.end());
@@ -426,6 +432,37 @@ class [[refl(R"({
         Vec<T> result;
         Splice_Impl(result, std::forward<Args>(args)...);
         return result;
+    }
+
+    template <typename Res, typename Func>
+    Vec<Res> map(Func const& cb) const {
+        Vec<Res> result;
+        for (auto const& it : *this) { result.push_back_idx(cb(it)); }
+        return result;
+    }
+
+    template <typename Func>
+    void for_each(Func const& cb) {
+        for (auto& it : *this) { cb(it); }
+    }
+
+    template <typename Func>
+    void for_each(Func const& cb) const {
+        for (auto const& it : *this) { cb(it); }
+    }
+
+    template <typename Func>
+    Vec<T> filter(Func const& cb) const {
+        Vec<T> result;
+        for (auto const& it : *this) {
+            if (cb(it)) { result.push_back_idx(it); }
+        }
+        return result;
+    }
+
+    template <typename Range>
+    auto map_range(Range const& range) const {
+        return *this | range;
     }
 };
 

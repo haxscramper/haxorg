@@ -106,9 +106,9 @@ sem::SemId<sem::Document> org::readProtobufFile(std::string const& file) {
     std::ifstream     stream{file};
     orgproto::AnyNode result;
     result.ParseFromIstream(&stream);
-    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+    hstd::serde::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
         result,
-        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
+        hstd::serde::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
     return read_node.as<sem::Document>();
 #elif ORG_BUILD_EMCC
     throw std::logic_error("Protobuf file parsing is not supported for wasm");
@@ -123,7 +123,7 @@ void org::exportToProtobufFile(sem::SemId<sem::Document> doc, std::string const&
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     std::ofstream     stream{file};
     orgproto::AnyNode result;
-    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+    hstd::serde::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, doc.asOrg());
     result.SerializeToOstream(&stream);
 #elif ORG_BUILD_EMCC

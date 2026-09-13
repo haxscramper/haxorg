@@ -122,6 +122,13 @@ template <IsVariant V>
 struct resolve_variant_index {};
 
 
+template <typename... Args>
+std::string variant_rutime_type_name(hstd::Variant<Args...> const& arg) {
+    return std::visit(
+        []<typename V>(V const& value) { return hstd::value_metadata<V>::typeName(); },
+        arg);
+}
+
 } // namespace hstd
 
 template <hstd::IsVariant V>
@@ -163,6 +170,7 @@ struct hstd::value_metadata<hstd::Variant<Args...>> {
         return result;
     }
 };
+
 
 /// \internal Generate getter methods for SUB_VARIANTS
 

@@ -1,16 +1,15 @@
 {
-  "develop_ci_conf": {
-  },
-  "debug": true,
+  "develop_ci_conf": {},
+  "debug": false,
   "use_unchanged_tasks": true,
   "use_dependencies": true,
-  "force_subprocess_tracking": true,
+  "force_subprocess_tracking": false,
   "build_conf": {
     "cmake_generator"       : "Ninja",
     "real_time_output_print": false,
-    "use_warnings"          : false,
-    // "target"                : ["executor_tracker", "pyhaxorg"]
+    "use_warnings"          : false
   },
+
   "py_test_conf": {
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
@@ -40,7 +39,7 @@
     ],
     "real_time_output_print": true
   },
-  "instrument": {"coverage": true},
+  "instrument": {"coverage": false, "perfetto": true},
   "coverage_conf": {
     "coverage_run_whitelist" : [
       {"class_pattern": "OrgParseSem"                                     },

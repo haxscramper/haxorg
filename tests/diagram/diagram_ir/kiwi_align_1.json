@@ -1,0 +1,15 @@
+{
+  "nodes"      : [
+    { "id": "one", "kiwi": { "rect": {"width0": 10, "height0": 10} } },
+    { "id": "two", "kiwi": { "rect": {"width0": 30, "height0": 3} } }
+  ],
+  "constraints": [
+    {
+      "kw_align": {
+        "vertices": [ {"stable_vertex_id": "one"}, {"stable_vertex_id": "two"} ]
+      }
+    }
+  ],
+  "kiwi"       : {},
+  "id"         : "root"
+}

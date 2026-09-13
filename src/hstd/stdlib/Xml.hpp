@@ -3,7 +3,6 @@
 #include <hstd/stdlib/Formatter.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
-#include <map>
 #include <ostream>
 #include <string>
 #include <vector>

@@ -341,7 +341,7 @@ if(NOT ${ORG_BUILD_EMCC})
   find_package(cpptrace CONFIG REQUIRED)
 endif()
 
-find_package(Boost REQUIRED COMPONENTS ALL)
+find_package(Boost REQUIRED COMPONENTS process describe preprocessor headers log)
 message(STATUS "Boost_DIR = ${Boost_DIR}")
 
 if(${ORG_BUILD_EMCC})
@@ -367,23 +367,47 @@ else()
   add_definitions(-DORG_BUILD_WITH_KIWI=0)
 endif()
 
-if(${ORG_BUILD_WITH_PROTOBUF})
+if(ORG_BUILD_WITH_PROTOBUF)
   message(STATUS "protobuf_DIR = ${protobuf_DIR}")
   find_package(protobuf CONFIG REQUIRED)
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
 
-  if(NOT ${ORG_IS_CONAN_BUILD})
+  if(NOT ORG_IS_CONAN_BUILD)
     include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
   endif()
 
   get_target_property(PROTOC_PATH protobuf::protoc IMPORTED_LOCATION_RELWITHDEBINFO)
+
   message(STATUS "PROTOC_PATH: ${PROTOC_PATH}")
 
   execute_process(
     COMMAND "${PROTOC_PATH}" --version
     OUTPUT_VARIABLE PROTOC_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
+
   message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")
+
+  set(PROTOVALIDATE_CC_SOURCE_DIR "${DEPS_DIR}/protovalidate-cc")
+
+  set(PROTOVALIDATE_SOURCE_DIR "${DEPS_DIR}/protovalidate")
+
+  set(FETCHCONTENT_SOURCE_DIR_PROTOVALIDATE
+      "${PROTOVALIDATE_SOURCE_DIR}"
+      CACHE PATH "Local protovalidate schema checkout" FORCE)
+
+  add_subdirectory("${PROTOVALIDATE_CC_SOURCE_DIR}"
+                   "${CMAKE_BINARY_DIR}/third_party/protovalidate-cc" EXCLUDE_FROM_ALL)
+
+  set(PROTOVALIDATE_PROTO_IMPORT_DIR "${PROTOVALIDATE_SOURCE_DIR}/proto/protovalidate")
+
+  if(NOT TARGET protovalidate_cc::protovalidate_cc)
+    message(FATAL_ERROR "protovalidate_cc::protovalidate_cc was not created")
+  endif()
+
+  if(NOT EXISTS "${PROTOVALIDATE_PROTO_IMPORT_DIR}/buf/validate/validate.proto")
+    message(FATAL_ERROR "Cannot find buf/validate/validate.proto under "
+                        "${PROTOVALIDATE_PROTO_IMPORT_DIR}")
+  endif()
 else()
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=0)
 endif()

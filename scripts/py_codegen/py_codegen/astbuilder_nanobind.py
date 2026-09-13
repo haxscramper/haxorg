@@ -592,11 +592,14 @@ class NbClass:
             body_impl = []
             result_type = self.getCxxName()
             body_impl.append(
-                ast.b.line([
-                    ast.string("new(result) "),
-                    ast.Type(self.getCxxName()),
-                    ast.string("();"),
-                ]))
+                ast.CallStatic(
+                    QualType(Name="SerdeDefaultProvider",
+                             Spaces=[QualType(Name="hstd")],
+                             Params=[self.getCxxName()]),
+                    opc="construct_at",
+                    Args=[ast.string("result")],
+                    Stmt=True,
+                ))
 
             body_impl.append(
                 ast.XCall(

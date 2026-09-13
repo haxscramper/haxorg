@@ -731,16 +731,27 @@ boost::outcome_v2::result<Rect, GeometryError> boundsOf(
 GeometryCheckResult checkIntersects(Point const& first, Point const& second) {
     if (first.x() == second.x() && first.y() == second.y()) {
         return boost::outcome_v2::success();
+    } else {
+        return HSDT_GEOMETRY_FAIL_CHECK(R"(point-point-intersects)", first, second);
     }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(R"(point-point-intersects)", first, second);
 }
 
 GeometryCheckResult checkIntersects(Point const& point, Rect const& rect) {
-    if (bg::covered_by(point, rect)) { return boost::outcome_v2::success(); }
-
-    return HSDT_GEOMETRY_FAIL_CHECK(R"(point-rect-intersects)", point, rect);
+    if (bg::covered_by(point, rect)) {
+        return boost::outcome_v2::success();
+    } else {
+        return HSDT_GEOMETRY_FAIL_CHECK(R"(point-rect-intersects)", point, rect);
+    }
 }
+
+GeometryCheckResult checkIntersects(Rect const& point, Rect const& rect) {
+    if (bg::intersects(point, rect)) {
+        return boost::outcome_v2::success();
+    } else {
+        return HSDT_GEOMETRY_FAIL_CHECK(R"(rect-rect-intersects)", point, rect);
+    }
+}
+
 
 GeometryCheckResult checkIntersects(Rect const& rect, Point const& point) {
     return checkIntersects(point, rect);
@@ -803,5 +814,6 @@ GeometryCheckResult checkIntersects(Path const& first, Path const& second) {
 
     return HSDT_GEOMETRY_FAIL_CHECK(R"(path-path-intersects)", first, second);
 }
+
 
 } // namespace hstd::ext::geometry

@@ -1,4 +1,5 @@
 #pragma once
+
 #if !ORG_BUILD_EMCC
 #    include <boost/graph/properties.hpp>
 #endif
@@ -116,7 +117,7 @@ struct MapNode
     MapNode(
         org::imm::ImmAdapter const&   id,
         hstd::Opt<std::string> const& stable_id = std::nullopt)
-        : hgraph::IVertex{stable_id.value_or(id.id.getReadableId())}, id{id} {}
+        : hgraph::IVertex{stable_id.value_or(id.getSimplePathFormat())}, id{id} {}
 
     bool operator==(MapNode const& other) const { return this->id == other.id; }
 
@@ -170,16 +171,26 @@ struct MapEdge
     DESC_FIELDS(MapEdge, ());
     using hgraph::IEdge::IEdge;
 
+    DECL_DESCRIBED_ENUM(
+        EdgeKind,
+        Default,
+        DirectLink,
+        NestedStatementElement,
+        NestedSubtree,
+        DescriptionListHead);
+
+    EdgeKind kind = EdgeKind::Default;
 
 #if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IEdge const*        in,
         hstd::ext::graph::IGraph const*              graph,
-        hstd::ext::graph::IGraphSerialReaderFactory* factory) override {
-        throw hstd::ext::graph::serde_error::init(
-            "imm org map graph does not support de-serialization, build "
-            "immutable AST context and build the graph from it.");
-    }
+        hstd::ext::graph::IGraphSerialReaderFactory* factory) override;
+
+    void writeSerial(
+        hstd::ext::graph::proto::IEdge* out,
+        hstd::ext::graph::IGraph const* graph,
+        hstd::ext::graph::EdgeID const& self_id) const override;
 #endif
 };
 
@@ -187,6 +198,8 @@ struct MapEdge
 class MapEdgeCollection : public hgraph::IEdgeCollection {
   public:
     hstd::UnorderedIncrementalStore<hgraph::EdgeID, hstd::SPtr<MapEdge>> edges;
+
+    int getNumEdges() const override { return edges.size(); }
 
     hgraph::EdgeCollectionID getCollectionID() const override {
         return hgraph::EdgeCollectionID::FromCollectionTypePointer(this);
@@ -257,7 +270,12 @@ struct MapGraph
 
     MapGraph() : edges{std::make_shared<MapEdgeCollection>()} { addCollection(edges); }
 
-    hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const { return id_map.at(id); }
+    hgraph::VertexID getVertexID(org::imm::ImmUniqId id) const {
+        LOGIC_ASSERTION_CHECK_FMT(
+            id_map.contains(id), "Unique ID {} is not mapped to the graph node", id);
+        return id_map.at(id);
+    }
+
 
     hgraph::VertexID getVertexID(org::imm::ImmAdapter const& ad) const {
         return getVertexID(ad.uniq());
@@ -265,6 +283,14 @@ struct MapGraph
 
     org::imm::ImmUniqId getImmID(hgraph::VertexID id) const {
         return getCastVertex<MapNode>(id)->id.uniq();
+    }
+
+    MapNode const* get(org::imm::ImmAdapter const& ad) const {
+        return get(getVertexID(ad));
+    }
+
+    MapNode const* get(org::imm::ImmUniqId const& id) const {
+        return get(getVertexID(id));
     }
 
     MapNode const* get(hgraph::VertexID id) const {
@@ -324,26 +350,14 @@ struct MapGraph
     hgraph::EdgeID addEdge(
         hstd::SPtr<MapEdge> const&     edge,
         hstd::SPtr<MapEdgeProp> const& prop,
-        hgraph::VertexID               source,
-        hgraph::VertexID               target) {
-        edge->addAttribute(prop);
-        auto res = edges->add(edge);
-        LOGIC_ASSERTION_CHECK(edges->hasEdge(res), "");
-        edges->trackEdge(res, source, target);
-        return res;
-    }
+        hstd::ext::graph::VertexID     source,
+        hstd::ext::graph::VertexID     target);
 
     /// \brief Add node to the graph, without registering any outgoing or
     /// ingoing elements.
     hgraph::VertexID addNode(
         hstd::SPtr<MapNode> const&     node,
-        hstd::SPtr<MapNodeProp> const& prop) {
-        node->addAttribute(prop);
-        auto res = nodes.add(node);
-        id_map.insert_or_assign(node->id.uniq(), res);
-        trackVertex(res);
-        return res;
-    }
+        hstd::SPtr<MapNodeProp> const& prop);
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
     struct GvConfig {
@@ -425,6 +439,16 @@ struct MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
     std::shared_ptr<org::imm::ImmAstContext> ast;
     std::shared_ptr<MapGraph>                getGraph() const { return graph; }
 
+    struct Counters {
+        int visited_node_counter{};
+    };
+
+    Counters counters;
+
+    hstd::UnorderedMap<org::imm::ImmId, hstd::Vec<org::imm::ImmAdapter>> cache;
+
+    hstd::Vec<org::imm::ImmAdapter> const& getAdaptersFor(org::imm::ImmId const& id);
+
     MapGraphState(org::imm::ImmAstContext::Ptr ast)
         : ast{ast}, graph{std::make_shared<MapGraph>()} {};
 
@@ -441,11 +465,6 @@ struct MapGraphState : public hstd::SharedPtrApi<MapGraphState> {
         std::shared_ptr<org::imm::ImmAstContext> const& ast,
         org::imm::ImmAdapter const&                     node,
         std::shared_ptr<MapConfig> const&               conf);
-
-    /// \brief Get all outgoing links used in the subtree. This will scan
-    /// the subtree and its sub-nodes for the attached description lists.
-    hstd::Vec<MapLink> getUnresolvedSubtreeLinks(
-        org::imm::ImmAdapterT<org::imm::ImmSubtree> node) const;
 
     /// \brief Get the unresolved link used in the specified node. Returns
     /// only one link per node, if it is present. This function will not
@@ -496,8 +515,6 @@ MapNodeResolveResult getResolvedNodeInsert(
 
 bool hasGraphAnnotations(org::imm::ImmAdapterT<org::imm::ImmParagraph> const& par);
 bool hasGraphAnnotations(org::imm::ImmAdapterT<org::imm::ImmSubtree> const& par);
-
-bool isMmapIgnored(org::imm::ImmAdapter const& n);
 
 } // namespace org::graph
 

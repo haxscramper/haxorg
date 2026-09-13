@@ -2,6 +2,7 @@
 
 #if ORG_BUILD_WITH_KIWI
 
+#    include <hstd/ext/geometry/kiwi_ir_serde.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
 
 using namespace hstd::ext::graph;
@@ -28,7 +29,7 @@ struct single_layout_run_state {
     std::unordered_map<VertexID, geometry::Rect> bbox_map;
     std::unordered_set<VertexID>                 solver_nodes;
 
-    hstd::Vec<kiwi_ir::Rect>                       kiwi_rects;
+    hstd::Vec<kiwi_ir::Rect::Ptr>                  kiwi_rects;
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kiwi_constraints;
     layout::IPlacementAlgorithm::Result            result;
 
@@ -54,16 +55,15 @@ struct single_layout_run_state {
                 kiwi_attr.value()->setRectHeight(rect.height());
                 kiwi_rects.push_back(kiwi_attr.value()->rect);
             } else {
-                kiwi_rects.push_back(
-                    kiwi_ir::Rect(
-                        rect_id(id),
-                        // sub-group placement is controlled by the current
-                        // single layout run, so any x/y coordinates from
-                        // the sub-layout runs would only interfere here.
-                        std::nullopt,
-                        std::nullopt,
-                        rect.width(),
-                        rect.height()));
+                kiwi_rects.push_back(root_group->shared->kiwi_ctx->use_rect(
+                    rect_id(id),
+                    // sub-group placement is controlled by the current
+                    // single layout run, so any x/y coordinates from
+                    // the sub-layout runs would only interfere here.
+                    std::nullopt,
+                    std::nullopt,
+                    rect.width(),
+                    rect.height()));
             }
 
             return;
@@ -83,7 +83,7 @@ struct single_layout_run_state {
         auto group = run->getGroup<layout::IGroupVisualAttribute>(id);
         if (group->hasAlgorithm() && id != root_id) { return; }
 
-        for (auto const& constraint : group->constraints) {
+        for (auto const& constraint : group->getAlgorithm()->constraints) {
             auto kwc = std::dynamic_pointer_cast<kw::KiwiConstraint>(constraint);
             hstd::logic_assertion_check_not_nil(kwc);
             kiwi_constraints.append(kwc->getKiwi());
@@ -93,19 +93,22 @@ struct single_layout_run_state {
     }
 
     void run_solver() {
-        kiwi_ir::Layout layout(kiwi_rects, kiwi_constraints);
+        kiwi_ir::Layout layout(root_group->shared->kiwi_ctx, kiwi_constraints);
+
+        OP_TRACER_MESSAGE(run, "constraint repr:\n{}", layout.format_variables());
 
         static int kiwi_run_counter = 0;
-        if (run->TraceState) {
+        if (run->canTrace()) {
             layout.to_graphviz(run->getAdjacentToTraceFile(
                 fmt::format("kiwi_solver_run_{}.png", hstd::fmt1(kiwi_run_counter))));
         }
 
 
         layout.verify_constraints();
-        auto solved = layout.solve();
+        layout.solve();
+        auto const& solved = layout.getSolved();
 
-        if (run->TraceState) {
+        if (run->canTrace()) {
             run->writeAdjacentToTraceFile(
                 fmt::format("kiwi_solver_run_{}.svg", hstd::fmt1(kiwi_run_counter)),
                 layout.to_svg(hstd::fmt1(kiwi_run_counter)).to_string(2));
@@ -113,7 +116,16 @@ struct single_layout_run_state {
         ++kiwi_run_counter;
 
         for (auto const& id : solver_nodes) {
-            absolute_rects.insert_or_assign(id, solved.at(rect_id(id)).getGeometry());
+            auto const& rect = solved.at(rect_id(id));
+            absolute_rects.insert_or_assign(id, rect->getGeometry());
+            OP_TRACER_MESSAGE(
+                run,
+                "solved {}: x={} y={} width={} height={}",
+                run->getDebug(id),
+                rect->x.value(),
+                rect->y.value(),
+                rect->width.value(),
+                rect->height.value());
         }
     }
 
@@ -195,7 +207,7 @@ struct single_layout_run_state {
 hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(EdgeID const& edge) {
     auto id    = getRun()->getGraph()->getTarget(edge);
     auto vattr = std::make_shared<KiwiVertexAttribute>(
-        kiwi_ir::Rect{run->getVertex(id)->getStableId()});
+        shared->kiwi_ctx->use_rect(run->getVertex(id)->getStableId()));
 
     getRun()->setNestedVertexAttribute(edge, vattr);
     return vattr;
@@ -206,7 +218,7 @@ hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
     geometry::Rect const& size) {
     auto id = getRun()->getGraph()->getTarget(edge);
 
-    auto vattr = std::make_shared<KiwiVertexAttribute>(kiwi_ir::Rect{
+    auto vattr = std::make_shared<KiwiVertexAttribute>(shared->kiwi_ctx->use_rect(
         // TODO: See [[kiwi-rectangle-id-knowledge-direction]]
         run->getVertex(id)->getStableId(),
         // TODO: Only set constraint on the rectangle position
@@ -215,8 +227,7 @@ hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
         std::nullopt,
         std::nullopt,
         size.width(),
-        size.height(),
-    });
+        size.height()));
 
     getRun()->setNestedVertexAttribute(edge, vattr);
     return vattr;
@@ -226,10 +237,65 @@ hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
     hstd::SPtr<layout::LayoutRun> run,
     Str const&                    name) {
     auto result = std::make_shared<KiwiGroup>(
-        std::make_shared<SharedCtx>(SharedCtx{.run = run}), name);
-    result->algorithm = std::make_shared<KiwiLayoutAlgorithm>(run);
+        std::make_shared<SharedCtx>(SharedCtx{
+            .run      = run,
+            .kiwi_ctx = std::make_shared<kiwi_ir::KiwiCtx>(),
+        }),
+        name);
+    result->algorithm = std::make_shared<KiwiLayoutAlgorithm>(
+        run, result->shared->kiwi_ctx);
     return result;
 }
+
+#    if ORG_BUILD_WITH_PROTOBUF
+
+void hstd::ext::graph::kw::AlignConstraint::writeSerial(
+    hstd::ext::graph::proto::IConstraint* out,
+    IGraph const*                         graph) const {
+    hstd::ext::graph::kw::proto::KiwiAlignConstraintPayload load;
+    writePayload(&load, graph);
+    out->mutable_payload()->PackFrom(load);
+}
+
+
+void kw::AlignConstraint::writePayload(
+    proto::KiwiAlignConstraintPayload* load,
+    IGraph const*                      graph) const {
+    for (auto const& [id, spec] : vertices) {
+        auto added = load->mutable_vertices()->Add();
+        added->set_id(rectId(id));
+        spec.writeSerial(added->mutable_spec());
+    }
+    load->set_dimension(static_cast<::hstd::ext::kiwi_ir::proto::Axis>(dimension));
+}
+
+void hstd::ext::graph::kw::AlignConstraint::readSerial(
+    hstd::ext::graph::proto::IConstraint const* in,
+    IGraph const*                               graph,
+    IGraphSerialReaderFactory*                  factory,
+    layout::IPlacementAlgorithm const*          vertex) {
+    auto load = IGraphSerialReaderFactory::get_payload<proto::KiwiAlignConstraintPayload>(
+        in->payload());
+    readPayload(&load, graph);
+}
+
+void kw::AlignConstraint::readPayload(
+    proto::KiwiAlignConstraintPayload const* in,
+    IGraph const*                            graph) {
+    hstd::UnorderedSet<std::string> ids;
+    hstd::serde::read_serde(in->dimension(), &dimension);
+    for (auto const& spec : in->vertices()) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            !ids.contains(spec.id()), "Duplicate stable ID in align list {}", spec.id());
+
+        kiwi_ir::AlignSpec align_spec;
+        hstd::serde::read_serde(spec.spec(), &align_spec);
+        this->vertices.insert_or_assign(
+            graph->getVertexIDByStableId(spec.id()), align_spec);
+    }
+}
+#    endif
+
 
 kw::AlignConstraint* kw::AlignConstraint::addAlignVertex(
     VertexID const&            id,
@@ -284,8 +350,8 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::SeparateConstraint::getKiwi()
     }
 
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> res;
-    res.append(left.getKiwi());
-    res.append(right.getKiwi());
+    if (1 < left.vertices.size()) { res.append(left.getKiwi()); }
+    if (1 < right.vertices.size()) { res.append(right.getKiwi()); }
 
     auto left_first  = left.getAllVertices().front();
     auto right_first = right.getAllVertices().front();
@@ -305,7 +371,9 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::MultiSeparateConstraint::getK
     const {
     if (lines.size() < 2) {
         throw layout::layout_error::init(
-            "MultiSeparateConstraint expects at least two lanes");
+            hstd::fmt(
+                "MultiSeparateConstraint expects at least two lanes, but got {}",
+                lines.size()));
     }
 
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> res;
@@ -316,7 +384,9 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::MultiSeparateConstraint::getK
             throw layout::layout_error::init(
                 "MultiSeparateConstraint dimension mismatch");
         }
-        res.append(lane.getKiwi());
+
+        // Align constraint from each line is not added explicitly, because mid-level kiwi
+        // IR will perform the constraint alignment internally.
         hstd::Vec<kiwi_ir::RectSpec1Side> lane_ids;
         for (auto const& id : lane.getAllVertices()) {
             lane_ids.push_back(
@@ -334,14 +404,17 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::MultiSeparateConstraint::getK
 
 layout::IPlacementAlgorithm::Result kw::KiwiLayoutAlgorithm::runSingleLayout(
     VertexID const& root_id) {
+
     OP_TRACER_MESSAGE_SCOPE(
         run,
         "running single layout for kw::KiwiLayoutAlgorithm {}",
         run->getDebug(root_id));
 
+
     hstd::logic_assertion_check_not_nil(router);
 
     single_layout_run_state state(root_id, run);
+    hstd::logic_assertion_check_not_nil(state.root_group->shared->kiwi_ctx);
     state.collect_solver_nodes(root_id);
     state.collect_constraints(root_id);
     state.run_solver();
@@ -439,6 +512,32 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::EqualSizeConstraint::getKiwi(
             /*strength=*/strength),
     };
 }
+
+#    if ORG_BUILD_WITH_PROTOBUF
+void kw::LinearConstraint::readSerial(
+    ext::graph::proto::IConstraint const* in,
+    IGraph const*                         graph,
+    IGraphSerialReaderFactory*            factory,
+    layout::IPlacementAlgorithm const*    vertex) {
+    auto load = hstd::serde::unpackMessage<
+        hstd::ext::graph::kw::proto::KiwiLinearConstraintPayload>(in->payload());
+    auto kiwi_algo = hstd::validated_dynamic_cast<KiwiLayoutAlgorithm>(vertex);
+    kiwi_ir::Expr::VariableResolver resolve =
+        [graph, kiwi_algo](
+            std::string const& stableId, kiwi_ir::RectAttr attr) -> kiwi_ir::Expr {
+        // Trivial reader for the graph structure: rectangle placement, verification
+        // of the correct rectangle nesting and other elements is handled during
+        // kiwi layout, at de-serialization stage the only important thing is to
+        // not reference the non-existent vertex.
+        auto id = graph->getVertexIDByStableId(stableId);
+        return kiwi_algo->ctx->use_rect(stableId)->expr(attr);
+    };
+
+    rel = static_cast<kiwi_ir::Relation>(load.op());
+    lhs = kiwi_ir::Expr::readSerial(load.lhs(), resolve);
+    rhs = kiwi_ir::Expr::readSerial(load.rhs(), resolve);
+}
+#    endif
 
 hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::LinearConstraint::getKiwi() const {
     return {

@@ -714,6 +714,8 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocumentOptions> : public org::imm::Im
   hstd::ext::ImmVec<org::sem::NamedProperty> getProperties() const;
   org::sem::DocumentExportConfig getExportConfig() const;
   hstd::Opt<bool> const& getFixedWidthSections() const;
+  hstd::Opt<LinkVisibility> const& getLinkVisibility() const;
+  hstd::Opt<BlockVisibility> const& getBlockVisibility() const;
   hstd::Opt<bool> const& getStartupIndented() const;
   hstd::Opt<hstd::Str> const& getCategory() const;
   hstd::Opt<hstd::Str> const& getSetupfile() const;

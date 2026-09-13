@@ -76,7 +76,7 @@ static Str trim(Str const& s) {
     while (b < s.size() && std::isspace(static_cast<unsigned char>(s[b]))) { ++b; }
     int e = s.size();
     while (e > b && std::isspace(static_cast<unsigned char>(s[e - 1]))) { --e; }
-    return s.substr(b, e - b);
+    return Str{s.substr(b, e - b)};
 }
 
 static std::optional<ProcSnapshot> try_read_proc_snapshot(int pid) {
@@ -91,7 +91,7 @@ static std::optional<ProcSnapshot> try_read_proc_snapshot(int pid) {
     auto rparen = line.rfind(')');
     if (rparen == Str::npos || line.size() <= rparen + 2) { return std::nullopt; }
 
-    std::istringstream tail(line.substr(rparen + 2).toBase());
+    std::istringstream tail(Str{line.substr(rparen + 2).toBase()});
     char               state = 0;
     int                ppid  = 0;
     if (!(tail >> state >> ppid)) { return std::nullopt; }

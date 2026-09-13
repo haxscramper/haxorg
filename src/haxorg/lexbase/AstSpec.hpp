@@ -625,7 +625,7 @@ struct AstSpec {
                 if (slice.has_value()) {
                     return slice->first;
                 } else {
-                    throw makeMissingSlice(kind, name, slice, range);
+                    throw makeMissingSlice(kind, name, slice, range, "");
                 }
             } else {
                 throw UnexpectedKindError(
@@ -647,7 +647,7 @@ struct AstSpec {
             if (slice.has_value()) {
                 return slice->first;
             } else {
-                throw makeMissingSlice(node.getKind(), name, slice, range);
+                throw makeMissingSlice(node.getKind(), name, slice, range, node.format());
             }
         } else {
             throw makeMissingPositional(node.getKind(), name);
@@ -658,15 +658,17 @@ struct AstSpec {
         Kind                        kind,
         Name const&                 name,
         hstd::Opt<hstd::Slice<int>> slice,
-        AstRange<Name> const&       range) const {
+        AstRange<Name> const&       range,
+        std::string const&          node_format) const {
         return FieldAccessError::init(
             fmt::format(
                 "Range {} for node kind {} was resolved into slice {} "
-                "(required ast range is {})",
+                "(required ast range is {}): {}",
                 hstd::fmt1(name),
                 hstd::fmt1(kind),
                 hstd::fmt1(slice),
-                hstd::fmt1(range)));
+                hstd::fmt1(range),
+                node_format));
     }
 
     FieldAccessError makeMissingPositional(Kind kind, Name const& name) const {
@@ -679,7 +681,7 @@ struct AstSpec {
                 tmp.push_back(hstd::fmt1(key));
             }
 
-            names = "Available names: " + join(", ", tmp);
+            names = "Available names: " + join(", "_str_view, tmp);
         }
 
         return FieldAccessError::init(
@@ -691,13 +693,18 @@ struct AstSpec {
         return node.at(getSingleSubnodeIdx(node, name));
     }
 
+    bool hasSingleSubnode(Node const& node, Name const& name) const {
+        auto idx = getSingleSubnodeIdx(node, name);
+        return 0 <= idx && idx < node.size();
+    }
+
     hstd::Vec<Node> getMultipleSubnode(Node const& node, Name const& name) const {
         if (nodeRanges.at(node.getKind()).contains(name)) {
             hstd::Vec<Node> result;
             const auto      range = nodeRanges.at(node.getKind()).at(name);
             const auto      slice = range.toSlice(node.size());
             if (!slice.has_value()) {
-                throw makeMissingSlice(node.getKind(), name, slice, range);
+                throw makeMissingSlice(node.getKind(), name, slice, range, node.format());
             }
             for (auto const& idx : slice.value()) { result.push_back(node.at(idx)); }
             return result;

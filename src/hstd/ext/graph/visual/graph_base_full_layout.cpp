@@ -11,6 +11,13 @@ using namespace hstd::ext::graph;
 
 namespace {
 void layout_run_full_layout(layout::LayoutRun* run) {
+    LOGIC_ASSERTION_CHECK(
+        run != nullptr,
+        "Expected non-nil full layout run. "
+        "If reading from the de-serialized graph, "
+        "this error means none of the edges or vertices have defined "
+        "any attributes, so no visualization/layout context was created.");
+
     auto __scope = run->begin_scope(
         hstd::fmt(
             "run full layout for the graph with root IDs {}",
@@ -98,7 +105,14 @@ void layout_run_full_layout(layout::LayoutRun* run) {
         }
     };
 
-    for (auto const& root : run->getGroups()->getRootVertices()) { aux(root); }
+    auto roots = run->getGroups()->getRootVertices();
+
+    LOGIC_ASSERTION_CHECK(
+        0 < roots.size(),
+        "Cannot execute diagram layout, vertex hierarchy does not specify any root "
+        "vertices.");
+
+    for (auto const& root : roots) { aux(root); }
 
     VertexIDSet all_layout_vertices = VertexIDSet::FromVec(run->result.vertices.keys());
 
@@ -209,4 +223,12 @@ void layout::LayoutRun::runFullLayout() {
 #if ORG_BUILD_WITH_ADAPTAGRAMS
     layout_run_unbound_edge_placement(this);
 #endif
+
+    for (auto const& v : groups->getAllVertices()) {
+        if (hasLayout(v)) { getMVertex(v)->addUniqueAttribute(getLayout(v)); }
+    }
+
+    for (auto const& e : edges->getEdges()) {
+        if (hasLayout(e)) { getMEdge(e)->addUniqueAttribute(getLayout(e)); }
+    }
 }

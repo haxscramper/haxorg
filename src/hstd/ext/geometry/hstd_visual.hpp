@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/Debug.hpp"
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Map.hpp>
@@ -132,6 +133,8 @@ struct VisElement {
         VisBrush          brush;
         hstd::Opt<double> cornerRadius;
 
+        void operator*=(double scale) { geometry = geometry * scale; }
+
         DESC_FIELDS(RectShape, (geometry, pen, brush, cornerRadius));
     };
 
@@ -139,6 +142,8 @@ struct VisElement {
         Rect     geometry;
         VisPen   pen;
         VisBrush brush;
+
+        void operator*=(double scale) { geometry = geometry * scale; }
 
         DESC_FIELDS(EllipseShape, (geometry, pen, brush));
 
@@ -169,6 +174,11 @@ struct VisElement {
         Point  p2;
         VisPen pen;
 
+        void operator*=(double scale) {
+            p1 = p1 * scale;
+            p2 = p2 * scale;
+        }
+
         DESC_FIELDS(LineShape, (p1, p2, pen));
     };
 
@@ -177,6 +187,8 @@ struct VisElement {
         VisPen   pen;
         VisBrush brush;
 
+        void operator*=(double scale) { path = path * scale; }
+
         DESC_FIELDS(PathShape, (path, pen, brush));
     };
 
@@ -184,6 +196,8 @@ struct VisElement {
         Polygon  points;
         VisPen   pen;
         VisBrush brush;
+
+        void operator*=(double scale) { points = points * scale; }
 
         DESC_FIELDS(PolygonShape, (points, pen, brush));
     };
@@ -196,12 +210,19 @@ struct VisElement {
         VisTextAlign    alignment;
         VisColor        color = VisColor::black();
 
+        void operator*=(double scale) {
+            anchor = anchor * scale;
+            if (boundingBox) { boundingBox = boundingBox.value() * scale; }
+        }
+
         DESC_FIELDS(TextShape, (content, anchor, boundingBox, font, alignment, color));
     };
 
     struct PixmapShape {
         hstd::Str path;
         Rect      geometry;
+
+        void operator*=(double scale) { geometry = geometry * scale; }
 
         DESC_FIELDS(PixmapShape, (path, geometry));
     };
@@ -211,6 +232,8 @@ struct VisElement {
         VisPen   pen;
         VisBrush brush;
         double   radius = 2.0f;
+
+        void operator*=(double scale) { position = position * scale; }
 
         DESC_FIELDS(PointShape, (position, pen, brush, radius));
     };
@@ -301,6 +324,10 @@ struct VisElement {
     Data      data;
     VisCustom custom;
 
+    void operator*=(double scale) {
+        std::visit([scale](auto& item) { item *= scale; }, data);
+    }
+
     DESC_FIELDS(VisElement, (data));
 };
 
@@ -321,6 +348,13 @@ struct VisGroup {
 
     void add(VisElement const& el) { elements.push_back(el); }
     void add(VisGroup const& g) { subgroups.push_back(g); }
+
+    void operator*=(double scale) {
+        offset = offset * scale;
+        if (max_point) { max_point = max_point.value() * scale; }
+        for (auto& sub : subgroups) { sub *= scale; }
+        for (auto& element : elements) { element *= scale; }
+    }
 
 
     VisGroup& moveTo(geometry::Point const& of) {

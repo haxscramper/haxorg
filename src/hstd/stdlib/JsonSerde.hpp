@@ -121,6 +121,14 @@ struct JsonSerde<Str> {
     static hstd::Str from_json(json const& j) { return j.get<std::string>(); }
 };
 
+template <>
+struct JsonSerde<StrView> {
+    static json          to_json(StrView const& it) { return json(it.toBase()); }
+    static hstd::StrView from_json(json const& j) {
+        return j.get_ref<const nlohmann::json::string_t&>();
+    }
+};
+
 
 template <>
 struct JsonSerde<bool> {

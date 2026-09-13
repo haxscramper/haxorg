@@ -5,7 +5,7 @@ hstd::fmt_iter fmt::formatter<org::parse::OrgFill>::format(
     org::parse::OrgFill const& p,
     format_context&            ctx) const {
     ::hstd::fmt_ctx("<", ctx);
-    ::hstd::fmt_ctx(escape_for_write(p.text), ctx);
+    ::hstd::fmt_ctx(hstd::escape_for_write(p.text), ctx);
     ::hstd::fmt_ctx(">", ctx);
     if (p.loc.has_value()) {
         ::hstd::fmt_ctx(":", ctx);
@@ -18,4 +18,83 @@ hstd::fmt_iter fmt::formatter<org::parse::OrgFill>::format(
         ::hstd::fmt_ctx(p.loc->file_id.format(), ctx);
     }
     return ctx.out();
+}
+
+using otk = OrgTokenKind;
+
+
+hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockClose{
+    otk::CmdSrcEnd,
+    otk::CmdCenterEnd,
+    otk::CmdExampleEnd,
+    otk::CmdQuoteEnd,
+    otk::CmdExportEnd,
+    otk::CmdVerseEnd,
+    otk::CmdCommentEnd,
+    otk::CmdTableEnd,
+    otk::CmdRowEnd,
+    otk::CmdCellEnd,
+    otk::CmdDynamicBlockEnd,
+    otk::CmdCustomRawBlockEnd,
+    otk::CmdCustomTextBlockEnd,
+};
+
+hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockOpen{
+    otk::CmdCenterBegin,
+    otk::CmdExportBegin,
+    otk::CmdExampleBegin,
+    otk::CmdSrcBegin,
+    otk::CmdQuoteBegin,
+    otk::CmdVerseBegin,
+    otk::CmdCommentBegin,
+    otk::CmdTableBegin,
+    otk::CmdRowBegin,
+    otk::CmdCellBegin,
+    otk::CmdDynamicBlockBegin,
+    otk::CmdCustomRawBlockBegin,
+    otk::CmdCustomTextBlockBegin,
+};
+
+hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockLine{
+    otk::CmdTitle,         otk::CmdHeader,
+    otk::CmdName,          otk::CmdInclude,
+    otk::CmdResults,       otk::CmdCaption,
+    otk::CmdColumns,       otk::CmdAttr,
+    otk::CmdAttr,          otk::CmdPropertyArgs,
+    otk::CmdPropertyRaw,   otk::CmdPropertyText,
+    otk::CmdOptions,       otk::CmdFiletags,
+    otk::CmdTblfm,         otk::CmdLatexClass,
+    otk::CmdLatexCompiler, otk::CmdLatexClassOptions,
+    otk::CmdLatexHeader,   otk::CmdStartup,
+    otk::CmdRow,           otk::CmdCell,
+    otk::CmdAuthor,        otk::CmdCustomRaw,
+    otk::CmdDescription,   otk::CmdLinkRaw,
+    otk::CmdEmailRaw,      otk::CmdLatexHeaderExtraRaw,
+    otk::CmdDateRaw,       otk::CmdLanguage,
+    otk::CmdBindRaw,       otk::CmdCategoryRaw,
+    otk::CmdSeqTodoRaw,    otk::CmdTagsRaw,
+    otk::CmdPrioritiesRaw, otk::CmdMacroRaw,
+    otk::CmdSetupfileRaw,  otk::CmdExcludeTagsRaw,
+    otk::CmdHtmlHeadRaw,   otk::CmdSelectTagsRaw,
+    otk::CmdDrawersRaw,    otk::CmdConstants,
+    otk::CmdCreator,       otk::CmdCall,
+    otk::CmdKeywordsRaw,
+};
+
+std::string org::parse::format_token_location(
+    SourceManager const* mgr,
+    OrgToken const&      token) {
+    if (auto loc = token->loc) {
+        return hstd::fmt("{}:{}:{}", mgr->getPath(loc->file_id), loc->line, loc->column);
+    } else {
+        return "<no-location>";
+    }
+}
+
+std::string org::parse::format_token(SourceManager const* mgr, OrgToken const& token) {
+    return hstd::fmt(
+        "{}({} @{})",
+        token.kind,
+        hstd::escape_literal(token.value.text),
+        format_token_location(mgr, token));
 }

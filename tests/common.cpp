@@ -3,17 +3,20 @@
 #include <google/protobuf/util/json_util.h>
 
 namespace {
-hstd::fs::path getDebugPath(hstd::Str const& suffix) {
+hstd::fs::path getDebugPath(
+    hstd::Str const&           suffix,
+    std::optional<std::string> value_param_override,
+    std::optional<std::string> type_param_override) {
     auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
 
     hstd::Str testId = info->name();
 
     if (auto const* valueParam = info->value_param(); valueParam != nullptr) {
-        testId += hstd::fmt("/value-{}", valueParam);
+        testId += hstd::fmt("/value-{}", value_param_override.value_or(valueParam));
     }
 
     if (auto const* typeParam = info->type_param(); typeParam != nullptr) {
-        testId += hstd::fmt("/type-{}", typeParam);
+        testId += hstd::fmt("/type-{}", type_param_override.value_or(typeParam));
     }
 
     auto dir = std::filesystem::temp_directory_path()
@@ -28,8 +31,12 @@ hstd::fs::path getDebugPath(hstd::Str const& suffix) {
 } // namespace
 
 
-hstd::fs::path getDebugFile(hstd::Str const& suffix, bool cleanParent) {
-    auto file = getDebugPath(suffix);
+hstd::fs::path getDebugFile(
+    hstd::Str const&           suffix,
+    bool                       cleanParent,
+    std::optional<std::string> value_param_override,
+    std::optional<std::string> type_param_override) {
+    auto file = getDebugPath(suffix, value_param_override, type_param_override);
 
     if (cleanParent) {
         auto parent = file.parent_path();
@@ -49,8 +56,12 @@ hstd::fs::path getDebugFile(hstd::Str const& suffix, bool cleanParent) {
     return file;
 }
 
-hstd::fs::path getDebugDir(hstd::Str const& suffix, bool clean) {
-    auto dir = getDebugPath(suffix);
+hstd::fs::path getDebugDir(
+    hstd::Str const&           suffix,
+    bool                       clean,
+    std::optional<std::string> value_param_override,
+    std::optional<std::string> type_param_override) {
+    auto dir = getDebugPath(suffix, value_param_override, type_param_override);
 
     if (clean) {
         if (hstd::fs::exists(dir)) {
@@ -117,14 +128,4 @@ hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
     hstd::ColText const& rhs) {
     return __gtest_assert_eq_seq_format_text_compare(
         __gtest_assert_eq_seq_fail_message(lhs.split('\n'), rhs.split('\n')), lhs, rhs);
-}
-
-std::string getJString(google::protobuf::Message const& message) {
-    std::string                          json;
-    google::protobuf::json::PrintOptions j_opts;
-    j_opts.add_whitespace = true;
-    auto status = google::protobuf::util::MessageToJsonString(message, &json, j_opts);
-
-    EXPECT_TRUE(status.ok());
-    return json;
 }

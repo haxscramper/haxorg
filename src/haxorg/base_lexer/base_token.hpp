@@ -7,7 +7,7 @@
 namespace org::parse {
 
 struct OrgFill {
-    hstd::Str                        text;
+    hstd::StrView                    text;
     hstd::Opt<org::parse::SourceLoc> loc;
     bool                             isFake() const { return !loc.has_value(); }
     DESC_FIELDS(OrgFill, (text, loc));
@@ -15,6 +15,25 @@ struct OrgFill {
 
 using OrgToken   = Token<OrgTokenKind, OrgFill>;
 using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
+
+std::string format_token_location(
+    org::parse::SourceManager const* mgr,
+    OrgToken const&                  token);
+
+std::string format_token(org::parse::SourceManager const* mgr, OrgToken const& token);
+
+
+extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockClose;
+extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockOpen;
+extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockLine;
+
+inline hstd::IntSet<OrgTokenKind> const OrgTokenLineEnd{
+    OrgTokenKind::Newline,
+    OrgTokenKind::MediumNewline,
+    OrgTokenKind::LongNewline,
+    OrgTokenKind::EndOfFile,
+};
+
 } // namespace org::parse
 
 

@@ -9,7 +9,13 @@ void Exporter<V, R>::visit(R& res, sem::LispCode::Call const& object) {
 }
 
 template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Quoted const& object) { __obj_field(res, object, items); }
+
+template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::List const& object) { __obj_field(res, object, items); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::LispCode::Vector const& object) { __obj_field(res, object, items); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::KeyValue const& object) {
@@ -31,6 +37,15 @@ void Exporter<V, R>::visit(R& res, sem::LispCode::Boolean const& object) { __obj
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::LispCode::Real const& object) { __obj_field(res, object, value); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::TimeValue const& object) { __obj_field(res, object, isActive); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::TimeValue::FixedTime const& object) { __obj_field(res, object, time); }
+
+template <typename V, typename R>
+void Exporter<V, R>::visit(R& res, sem::TimeValue::DynamicTime const& object) { __obj_field(res, object, time); }
 
 template <typename V, typename R>
 void Exporter<V, R>::visit(R& res, sem::Tblfm const& object) { __obj_field(res, object, exprs); }
@@ -1251,6 +1266,8 @@ void Exporter<V, R>::visitDocumentOptions(R& res, In<sem::DocumentOptions> objec
   __org_field(res, object, properties);
   __org_field(res, object, exportConfig);
   __org_field(res, object, fixedWidthSections);
+  __org_field(res, object, linkVisibility);
+  __org_field(res, object, blockVisibility);
   __org_field(res, object, startupIndented);
   __org_field(res, object, category);
   __org_field(res, object, setupfile);

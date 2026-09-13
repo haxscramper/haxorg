@@ -1,5 +1,9 @@
 exclude: |
   (?x)^(
+    src/wrappers/c/haxorg_c\.h|
+    src/wrappers/c/haxorg_c\.cpp|
+    src/wrappers/c/haxorg_c_vtables\.hpp|
+    src/wrappers/c/haxorg_c_vtables\.cpp|
     src/wrappers/js/haxorg_wasm\.cpp|
     src/wrappers/js/haxorg_wasm_types\.d\.ts|
     src/wrappers/js/haxorg_c\.cpp|

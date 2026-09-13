@@ -79,24 +79,6 @@ IEdgeProvider::DependantDeletion IEdgeCollection::untrackVertex(VertexID const& 
     return DependantDeletion{.vertices = {vert}, .edges = edgesToRemove};
 }
 
-
-#if ORG_BUILD_WITH_PROTOBUF
-void hstd::ext::graph::IEdgeCollection::writeSerial(
-    proto::IEdgeCollection* out,
-    IGraph const*           graph) const {
-    out->set_type("IEdgeCollection");
-    out->set_stable_id(getStableID());
-    for (auto const& e : getEdges()) {
-        getEdge(e)->writeSerial(out->add_edges(), graph, e);
-    }
-}
-
-void hstd::ext::graph::IEdgeCollection::readSerial(
-    proto::IEdgeCollection const* in,
-    IGraph const*                 graph,
-    IGraphSerialReaderFactory*    factory) {}
-#endif
-
 void hstd::ext::graph::IEdgeCollection::trackEdge(
     EdgeID const&   id,
     VertexID const& source,
@@ -191,7 +173,30 @@ EdgeIDSet IEdgeCollection::getEdges() const {
     return result;
 }
 
+
 #if ORG_BUILD_WITH_PROTOBUF
+
+void hstd::ext::graph::IEdgeCollection::writeSerial(
+    proto::IEdgeCollection* out,
+    IGraph const*           graph) const {
+    out->set_type("IEdgeCollection");
+    out->set_stable_id(getStableID());
+    for (auto const& e : getEdges()) {
+        getEdge(e)->writeSerial(out->add_edges(), graph, e);
+    }
+}
+
+
+void hstd::ext::graph::IEdgeCollection::readSerial(
+    proto::IEdgeCollection const* in,
+    IGraph const*                 graph,
+    IGraphSerialReaderFactory*    factory) {}
+
+void hstd::ext::graph::IEdge::readSerial(
+    proto::IEdge const*        in,
+    IGraph const*              graph,
+    IGraphSerialReaderFactory* factory) {}
+
 void hstd::ext::graph::IEdge::writeSerial(
     proto::IEdge* out,
     IGraph const* graph,
@@ -199,17 +204,19 @@ void hstd::ext::graph::IEdge::writeSerial(
     out->set_stable_id(getStableId());
     out->set_source_vertex_id(graph->getStableId(graph->getSource(self_id)));
     out->set_target_vertex_id(graph->getStableId(graph->getTarget(self_id)));
+    IAttributeObject::writeSerial(out->mutable_attributes(), graph);
 }
-#endif
 
-#if ORG_BUILD_WITH_PROTOBUF
 void TrivialEdgeCollection::readSerial(
     proto::IEdgeCollection const* in,
     IGraph const*                 graph,
     IGraphSerialReaderFactory*    factory) {
     IEdgeCollection::readSerial(in, graph, factory);
 
+    OP_TRACER_MESSAGE_SCOPE(factory, "TrivialEdgeCollection::readSerial");
+
     for (auto const& e : in->edges()) {
+        OP_TRACER_MESSAGE(factory, "Edge {}", e.stable_id());
         auto out_edge = factory->newEdge(&e);
         // NOTE: the 'read serial' logic is brittle here: first the edge
         // must be created by the factor, then added to the store, track
@@ -225,6 +232,10 @@ void TrivialEdgeCollection::readSerial(
         // And then, serial data reading must be done on the copied trivial
         // edge object, not on the original out edge.
         edgeStore.at(id).readSerial(&e, graph, factory);
+        LOGIC_ASSERTION_CHECK_FMT(
+            edgeStore.at(id).attrs.empty(),
+            "Edge de-serialization should not read attributes directly, the attributes "
+            "are handled in the IGraph::readSerial");
     }
 }
 #endif

@@ -1,3 +1,4 @@
+#include "hstd/stdlib/strutils.hpp"
 #include "kiwi_ir.hpp"
 
 #if ORG_BUILD_WITH_KIWI
@@ -309,7 +310,7 @@ static std::string flat_repr_impl(
 
     switch (n.kind) {
         case Kind::Constant: return hstd::fmt("{}", n.constant);
-        case Kind::Variable: return n.variable->name();
+        case Kind::Variable: return hstd::escape_literal(n.variable->name());
         case Kind::KiwiExpression: return render_kiwi_expr(n);
 
         case Kind::Neg: {
@@ -437,7 +438,8 @@ Str flat_repr(Constraint const& c, bool full_flatten) {
         "{} {} {}", flat_repr(c.lhs, full_flatten), op, flat_repr(c.rhs, full_flatten));
 
     if (c.origin_line != -1) {
-        result += hstd::fmt(" {}:{}", c.origin_function, c.origin_line);
+        result += hstd::fmt(
+            " {}:{}", c.origin_function ? c.origin_function : "", c.origin_line);
     }
 
     return result;

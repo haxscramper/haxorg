@@ -12,6 +12,19 @@ namespace org::parse {
 
 using OrgToken = Token<OrgTokenKind, OrgFill>;
 
+template <>
+struct TokenUtils<OrgTokenKind, OrgFill> {
+    static hstd::Opt<SourceLoc> getLocation(OrgToken const& tok) {
+        if (tok.value.loc) {
+            return tok.value.loc.value();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    static std::string_view getText(OrgToken const& tok) { return tok.value.text; }
+};
+
 using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
 using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;

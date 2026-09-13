@@ -29,9 +29,9 @@ using namespace org;
 TEST(ManualFileRun, TestCoverallOrg) {
     {
         fs::path file{__CURRENT_FILE_DIR__ / "corpus" / "org" / "py_validated_all.org"};
-        std::string content        = readFile(file);
-        auto        spec           = ParseSpec::FromSource(std::move(content));
-        spec.debug.traceAll        = true;
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content), file.native());
+        spec.debug.traceAll = true;
         spec.debug.doFormatReparse = false;
         gtest_run_spec(
             TestParams{
@@ -109,7 +109,7 @@ TEST(ManualFileRun, TestDoc1) {
         HSLOG_INFO("Send initial message");
 
         std::string content        = readFile(file);
-        auto        spec           = ParseSpec::FromSource(std::move(content));
+        auto        spec           = ParseSpec::FromSource(std::move(content), file);
         spec.debug.traceAll        = true;
         spec.debug.doFormatReparse = false;
         gtest_run_spec(
@@ -148,7 +148,7 @@ TEST(ManualFileRun, TestDoc2) {
     fs::path file{"/home/haxscramper/tmp/doc2.org"};
     if (fs::exists(file)) {
         std::string content        = readFile(file);
-        auto        spec           = ParseSpec::FromSource(std::move(content));
+        auto        spec           = ParseSpec::FromSource(std::move(content), file);
         spec.debug.doFormatReparse = false;
         // spec.debug.printSemToFile         = true;
         spec.debug.debugOutDir = "/tmp/doc2_run";

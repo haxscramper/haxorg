@@ -31,7 +31,7 @@ TEST_F(ImmOrgApi, RountripImmutableAst) {
     auto               store      = imm::ImmAstContext::init_start_context();
     sem::SemId         write_node = testParseString(source);
     imm::ImmAstVersion v1         = store->addRoot(write_node);
-    sem::SemId         read_node  = v1.context->get(v1.getRoot());
+    sem::SemId read_node = v1.context->get(v1.getRoot(), org::imm::ImmSemSerdeConfig{});
 
     Vec<compare_report> out;
 
@@ -57,15 +57,16 @@ TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     for (auto const& k : sliceT<OrgSemKind>()) {
         if (k != OrgSemKind::NoNode) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
-                N                         tmp{};
-                ReflRecursiveVisitContext ctx;
-                Vec<imm::ImmReflPathBase> paths;
+                N                            tmp{};
+                ReflRecursiveVisitContext    ctx;
+                Vec<imm::ImmValueAccessPath> paths;
                 reflVisitAll<N>(
                     tmp,
-                    imm::ImmReflPathBase{},
+                    imm::ImmValueAccessPath{},
                     ctx,
-                    [&]<typename T>(imm::ImmReflPathBase const& path, T const& value) {
-                        paths.push_back(path);
+                    [&]<typename T>(
+                        imm::ImmValueAccessPathCtx const& path, T const& value) {
+                        paths.push_back(path.toPath());
                     });
             });
         }

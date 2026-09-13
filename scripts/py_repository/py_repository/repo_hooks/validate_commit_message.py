@@ -22,6 +22,7 @@ TYPES: dict[str, str] = {
     "chore": "Updating grunt tasks etc; no production code change",
     "wip": "Intermediate commit",
     "clean": "Simplification of the code",
+    "perf": "Performance improvements",
 }
 
 SCOPES: dict[str, str] = {
@@ -50,6 +51,7 @@ SCOPES: dict[str, str] = {
     "report": "Reporting outputs (coverage, docs)",
     "sem": "Semantic analysis phase",
     "test": "Test suites, corpus, CI tests",
+    "imm": "Immutable AST edits"
 }
 
 _ALLOWED_TYPES_CASEFOLD = {k.casefold(): k for k in TYPES.keys()}

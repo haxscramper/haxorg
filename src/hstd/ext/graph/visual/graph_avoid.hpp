@@ -78,7 +78,7 @@ class AvoidEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
 
     geometry::Path path;
     AvoidEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
-    Path getPath() const override { return path; }
+    geometry::Path getPath() const override { return path; }
 };
 
 class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
@@ -113,8 +113,9 @@ class AvoidPortLayoutAttribute : public layout::IPortLayoutAttribute {
         logic_todo_impl();
     };
 
-    Rect getBBox() const override {
-        return Rect::FromCenterWH(Point(xOffset, yOffset), width, height);
+    geometry::Rect getBBox() const override {
+        return geometry::Rect::FromCenterWH(
+            geometry::Point(xOffset, yOffset), width, height);
     }
 
     visual::VisGroup getVisual(PortID const& id) const override {

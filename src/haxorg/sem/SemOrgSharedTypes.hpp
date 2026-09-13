@@ -20,11 +20,25 @@ struct LispCode {
     bool operator==(org::sem::LispCode::Call const& other) const;
   };
 
+  struct Quoted {
+    BOOST_DESCRIBE_CLASS(Quoted, (), (), (), (items));
+    hstd::Vec<org::sem::LispCode> items = {};
+    Quoted() {  }
+    bool operator==(org::sem::LispCode::Quoted const& other) const;
+  };
+
   struct List {
     BOOST_DESCRIBE_CLASS(List, (), (), (), (items));
     hstd::Vec<org::sem::LispCode> items = {};
     List() {  }
     bool operator==(org::sem::LispCode::List const& other) const;
+  };
+
+  struct Vector {
+    BOOST_DESCRIBE_CLASS(Vector, (), (), (), (items));
+    hstd::Vec<org::sem::LispCode> items = {};
+    Vector() {  }
+    bool operator==(org::sem::LispCode::Vector const& other) const;
   };
 
   struct KeyValue {
@@ -70,9 +84,9 @@ struct LispCode {
     bool operator==(org::sem::LispCode::Real const& other) const;
   };
 
-  using Data = std::variant<org::sem::LispCode::Call, org::sem::LispCode::List, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Boolean, org::sem::LispCode::Real>;
-  enum class Kind : short int { Call, List, KeyValue, Number, Text, Ident, Boolean, Real, };
-  BOOST_DESCRIBE_NESTED_ENUM(Kind, Call, List, KeyValue, Number, Text, Ident, Boolean, Real)
+  using Data = std::variant<org::sem::LispCode::Call, org::sem::LispCode::Quoted, org::sem::LispCode::List, org::sem::LispCode::Vector, org::sem::LispCode::KeyValue, org::sem::LispCode::Number, org::sem::LispCode::Text, org::sem::LispCode::Ident, org::sem::LispCode::Boolean, org::sem::LispCode::Real>;
+  enum class Kind : short int { Call, Quoted, List, Vector, KeyValue, Number, Text, Ident, Boolean, Real, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, Call, Quoted, List, Vector, KeyValue, Number, Text, Ident, Boolean, Real)
   using variant_enum_type = org::sem::LispCode::Kind;
   using variant_data_type = org::sem::LispCode::Data;
   BOOST_DESCRIBE_CLASS(LispCode, (), (), (), (data));
@@ -82,32 +96,76 @@ struct LispCode {
   bool isCall() const { return getKind() == Kind::Call; }
   org::sem::LispCode::Call const& getCall() const { return hstd::variant_get<0>(data); }
   org::sem::LispCode::Call& getCall() { return hstd::variant_get<0>(data); }
+  bool isQuoted() const { return getKind() == Kind::Quoted; }
+  org::sem::LispCode::Quoted const& getQuoted() const { return hstd::variant_get<1>(data); }
+  org::sem::LispCode::Quoted& getQuoted() { return hstd::variant_get<1>(data); }
   bool isList() const { return getKind() == Kind::List; }
-  org::sem::LispCode::List const& getList() const { return hstd::variant_get<1>(data); }
-  org::sem::LispCode::List& getList() { return hstd::variant_get<1>(data); }
+  org::sem::LispCode::List const& getList() const { return hstd::variant_get<2>(data); }
+  org::sem::LispCode::List& getList() { return hstd::variant_get<2>(data); }
+  bool isVector() const { return getKind() == Kind::Vector; }
+  org::sem::LispCode::Vector const& getVector() const { return hstd::variant_get<3>(data); }
+  org::sem::LispCode::Vector& getVector() { return hstd::variant_get<3>(data); }
   bool isKeyValue() const { return getKind() == Kind::KeyValue; }
-  org::sem::LispCode::KeyValue const& getKeyValue() const { return hstd::variant_get<2>(data); }
-  org::sem::LispCode::KeyValue& getKeyValue() { return hstd::variant_get<2>(data); }
+  org::sem::LispCode::KeyValue const& getKeyValue() const { return hstd::variant_get<4>(data); }
+  org::sem::LispCode::KeyValue& getKeyValue() { return hstd::variant_get<4>(data); }
   bool isNumber() const { return getKind() == Kind::Number; }
-  org::sem::LispCode::Number const& getNumber() const { return hstd::variant_get<3>(data); }
-  org::sem::LispCode::Number& getNumber() { return hstd::variant_get<3>(data); }
+  org::sem::LispCode::Number const& getNumber() const { return hstd::variant_get<5>(data); }
+  org::sem::LispCode::Number& getNumber() { return hstd::variant_get<5>(data); }
   bool isText() const { return getKind() == Kind::Text; }
-  org::sem::LispCode::Text const& getText() const { return hstd::variant_get<4>(data); }
-  org::sem::LispCode::Text& getText() { return hstd::variant_get<4>(data); }
+  org::sem::LispCode::Text const& getText() const { return hstd::variant_get<6>(data); }
+  org::sem::LispCode::Text& getText() { return hstd::variant_get<6>(data); }
   bool isIdent() const { return getKind() == Kind::Ident; }
-  org::sem::LispCode::Ident const& getIdent() const { return hstd::variant_get<5>(data); }
-  org::sem::LispCode::Ident& getIdent() { return hstd::variant_get<5>(data); }
+  org::sem::LispCode::Ident const& getIdent() const { return hstd::variant_get<7>(data); }
+  org::sem::LispCode::Ident& getIdent() { return hstd::variant_get<7>(data); }
   bool isBoolean() const { return getKind() == Kind::Boolean; }
-  org::sem::LispCode::Boolean const& getBoolean() const { return hstd::variant_get<6>(data); }
-  org::sem::LispCode::Boolean& getBoolean() { return hstd::variant_get<6>(data); }
+  org::sem::LispCode::Boolean const& getBoolean() const { return hstd::variant_get<8>(data); }
+  org::sem::LispCode::Boolean& getBoolean() { return hstd::variant_get<8>(data); }
   bool isReal() const { return getKind() == Kind::Real; }
-  org::sem::LispCode::Real const& getReal() const { return hstd::variant_get<7>(data); }
-  org::sem::LispCode::Real& getReal() { return hstd::variant_get<7>(data); }
+  org::sem::LispCode::Real const& getReal() const { return hstd::variant_get<9>(data); }
+  org::sem::LispCode::Real& getReal() { return hstd::variant_get<9>(data); }
   static org::sem::LispCode::Kind getKind(org::sem::LispCode::Data const& __input) { return static_cast<org::sem::LispCode::Kind>(__input.index()); }
   org::sem::LispCode::Kind getKind() const { return getKind(data); }
   char const* sub_variant_get_name() const { return "data"; }
   org::sem::LispCode::Data const& sub_variant_get_data() const { return data; }
   org::sem::LispCode::Kind sub_variant_get_kind() const { return getKind(); }
+};
+
+struct TimeValue {
+  struct FixedTime {
+    BOOST_DESCRIBE_CLASS(FixedTime, (), (), (), (time));
+    hstd::UserTime time;
+    FixedTime() {  }
+    bool operator==(org::sem::TimeValue::FixedTime const& other) const;
+  };
+
+  struct DynamicTime {
+    BOOST_DESCRIBE_CLASS(DynamicTime, (), (), (), (time));
+    org::sem::LispCode time;
+    DynamicTime() {  }
+    bool operator==(org::sem::TimeValue::DynamicTime const& other) const;
+  };
+
+  using Data = std::variant<org::sem::TimeValue::FixedTime, org::sem::TimeValue::DynamicTime>;
+  enum class Kind : short int { FixedTime, DynamicTime, };
+  BOOST_DESCRIBE_NESTED_ENUM(Kind, FixedTime, DynamicTime)
+  using variant_enum_type = org::sem::TimeValue::Kind;
+  using variant_data_type = org::sem::TimeValue::Data;
+  BOOST_DESCRIBE_CLASS(TimeValue, (), (), (), (isActive, data));
+  bool isActive = false;
+  org::sem::TimeValue::Data data;
+  TimeValue() {  }
+  bool operator==(org::sem::TimeValue const& other) const;
+  bool isFixedTime() const { return getKind() == Kind::FixedTime; }
+  org::sem::TimeValue::FixedTime const& getFixedTime() const { return hstd::variant_get<0>(data); }
+  org::sem::TimeValue::FixedTime& getFixedTime() { return hstd::variant_get<0>(data); }
+  bool isDynamicTime() const { return getKind() == Kind::DynamicTime; }
+  org::sem::TimeValue::DynamicTime const& getDynamicTime() const { return hstd::variant_get<1>(data); }
+  org::sem::TimeValue::DynamicTime& getDynamicTime() { return hstd::variant_get<1>(data); }
+  static org::sem::TimeValue::Kind getKind(org::sem::TimeValue::Data const& __input) { return static_cast<org::sem::TimeValue::Kind>(__input.index()); }
+  org::sem::TimeValue::Kind getKind() const { return getKind(data); }
+  char const* sub_variant_get_name() const { return "data"; }
+  org::sem::TimeValue::Data const& sub_variant_get_data() const { return data; }
+  org::sem::TimeValue::Kind sub_variant_get_kind() const { return getKind(); }
 };
 
 struct Tblfm {
@@ -1205,7 +1263,7 @@ struct NamedProperty {
   struct Created {
     Created() {}
     BOOST_DESCRIBE_CLASS(Created, (), (), (), (time));
-    hstd::UserTime time;
+    org::sem::TimeValue time;
     bool operator==(org::sem::NamedProperty::Created const& other) const;
   };
 
@@ -1398,7 +1456,7 @@ struct OrgDiagnostics {
     int parserLine;
     OrgTokenKind tokenKind;
     hstd::Str tokenText;
-    org::parse::SourceLoc loc;
+    hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
     hstd::Str errName;
     hstd::Str errCode;
     bool operator==(org::sem::OrgDiagnostics::ParseTokenError const& other) const;

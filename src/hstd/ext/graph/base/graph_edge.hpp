@@ -35,7 +35,7 @@ struct IEdge
     virtual void readSerial(
         proto::IEdge const*        in,
         IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) = 0;
+        IGraphSerialReaderFactory* factory);
 #endif
 };
 
@@ -43,16 +43,6 @@ struct TrivialEdge
     : public IEdge
     , public virtual TrivialAttributeObject {
     using IEdge::IEdge;
-
-  public:
-#if ORG_BUILD_WITH_PROTOBUF
-    void readSerial(
-        proto::IEdge const*        in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory) override {
-        IAttributeObject::readSerial(&in->attributes(), graph, factory, this);
-    }
-#endif
 };
 
 

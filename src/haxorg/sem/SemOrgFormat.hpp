@@ -33,6 +33,7 @@ struct Formatter {
     Res toString(sem::HashTagText const& args, Context const& ctx);
     Res toString(sem::LinkTarget const& args, Context const& ctx);
     Res toString(sem::AttrList const& args, Context const& ctx);
+    Res toString(sem::TimeValue const& args, Context const& ctx);
 
     Res toString(hstd::Opt<sem::AttrGroup> const& args, Context const& ctx) {
         if (args) {

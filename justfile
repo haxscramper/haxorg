@@ -82,3 +82,39 @@ run_include_graph_generation:
 run_codechecker:
   {{workflow_run}} --task docs_doxygen \
     run_codechecker_analysis
+
+dump_cli_stack:
+  lldb -p $(pgrep -f haxorg_cpp_org_cli) -o "thread backtrace all" -o "detach" -o "quit" > /tmp/trace.log
+
+profile_perf_cli bin opts_path freq='3000':
+    perf record --freq={{freq}} --call-graph dwarf -- {{bin}} {{opts_path}}
+
+profile_heaptrack_cli bin opts_path:
+    heaptrack {{bin}} {{opts_path}}
+
+profile_valgrind tool bin opts_path:
+    valgrind --tool={{tool}}  --{{tool}}-out-file=build/{{tool}}.out.haxorg_cli {{bin}} {{opts_path}}
+
+
+# by default, kcachegrind is incapable of properly reading the specified path verbatim -- it tries
+# to read everything around it, some things like `build/callgrind.out.haxorg_cli-2026-08-29T19:09:31+04:00`
+# or whatnot -- and the actual specified path is given lowest priority, so to make justfile actually
+# work as expected, I need to do this hack.
+profile_valgrind_view path:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tmpdir=$(mktemp -d)
+    trap 'rm -rf "$tmpdir"' EXIT
+    cp "{{path}}" "$tmpdir/profile"
+    kcachegrind "$tmpdir/profile"
+
+profile_callgrind_annotate out_file *files:
+  callgrind_annotate --auto=no {{out_file}} {{files}} > build/haxorg_callgrind_annotate.txt
+
+profile_perf_view:
+  hotspot perf.data
+
+generate_diagram_schema:
+  rm -rf build/jsonschema
+  buf generate --path src/hstd/ext/graph/visual/graph_diagram.proto
+  buf generate --path src/hstd/ext/graph/visual/graph_diagram_validate.proto

@@ -96,13 +96,13 @@ TEST(GeometryChecks, IntersectionsAndEquidistantChecks) {
     hg::Rect  rect(0, 0, 10, 10);
 
     hg::Path path1;
-    path1.moveTo(0, 0).lineTo(10, 10);
+    path1.moveTo(hg::Point(0, 0)).lineTo(hg::Point(10, 10));
 
     hg::Path path2;
-    path2.moveTo(0, 10).lineTo(10, 0);
+    path2.moveTo(hg::Point(0, 10)).lineTo(hg::Point(10, 0));
 
     hg::Path path3;
-    path3.moveTo(20, 20).lineTo(30, 30);
+    path3.moveTo(hg::Point(20, 20)).lineTo(hg::Point(30, 30));
 
     EXPECT_TRUE(static_cast<bool>(hg::checkIntersects(p1, p2)));
     EXPECT_FALSE(static_cast<bool>(hg::checkIntersects(p1, p3)));

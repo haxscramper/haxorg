@@ -23,6 +23,10 @@ using ImmVec = immer::flex_vector<T>;
 
 template <typename T>
 using ImmBox = immer::box<T>;
+
+inline StrView get_str_view(Str const& str) { return StrView{str}; }
+inline StrView get_str_view(immer::box<Str> const& str) { return StrView{str.get()}; }
+
 } // namespace hstd::ext
 
 template <typename T>

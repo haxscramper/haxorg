@@ -954,6 +954,8 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
                                                               properties,
                                                               exportConfig,
                                                               fixedWidthSections,
+                                                              linkVisibility,
+                                                              blockVisibility,
                                                               startupIndented,
                                                               category,
                                                               setupfile,
@@ -966,6 +968,8 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
   hstd::ext::ImmVec<org::sem::NamedProperty> properties = {};
   org::sem::DocumentExportConfig exportConfig;
   hstd::ext::ImmBox<hstd::Opt<bool>> fixedWidthSections = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<LinkVisibility>> linkVisibility = std::nullopt;
+  hstd::ext::ImmBox<hstd::Opt<BlockVisibility>> blockVisibility = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<bool>> startupIndented = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> category = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> setupfile = std::nullopt;

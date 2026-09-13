@@ -1,6 +1,7 @@
 /// \file Immutable AST mind map tests
 
 
+#include "hstd/ext/graph/visual/visual_factory.hpp"
 #include "tOrgTestCommon.hpp"
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
@@ -13,195 +14,50 @@ using namespace hstd::ext::graph;
 
 
 #if ORG_BUILD_WITH_PROTOBUF
-class TestFactory : public IGraphSerialReaderFactory {
-  public:
-    hstd::SPtr<IVertexHierarchy> newVertexHierarchy(
-        proto::IVertexHierarchy const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        if (in->payload().Is<proto::TrivialVertexHierarchyPayload>()) {
-            return std::make_shared<TrivialHierarchy>();
+class TestFactory : public hstd::ext::graph::VisualFactory {
+    using hstd::ext::graph::VisualFactory::VisualFactory;
+
+    hstd::SPtr<hstd::ext::graph::IVertex> newVertex(
+        hstd::ext::graph::proto::IVertex const* in) override {
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+            return std::make_shared<org::graph::MapNode>();
         } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
+            return VisualFactory::newVertex(in);
         }
     }
 
-    hstd::SPtr<IEdgeCollection> newEdgeCollection(
-        proto::IEdgeCollection const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
+    hstd::SPtr<hstd::ext::graph::IPortCollection> newPortCollection(
+        hstd::ext::graph::proto::IPortCollection const* in) {
+        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
+            logic_todo_impl();
+        } else {
+            return VisualFactory::newPortCollection(in);
+        }
+    }
+
+    hstd::SPtr<hstd::ext::graph::IEdgeCollection> newEdgeCollection(
+        hstd::ext::graph::proto::IEdgeCollection const* in) {
         if (in->payload().Is<org::graph::proto::MapEdgeCollectionPayload>()) {
             return std::make_shared<org::graph::MapEdgeCollection>();
-        } else if (in->payload().Is<proto::TrivialEdgeCollectionPayload>()) {
-            return std::make_shared<TrivialEdgeCollection>(
-                EdgeCollectionID{static_cast<hstd::u16>(in->collection_id())});
         } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
+            return VisualFactory::newEdgeCollection(in);
         }
     }
 
-    hstd::SPtr<IPortCollection> newPortCollection(
-        proto::IPortCollection const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-    }
-
-
-    hstd::SPtr<layout::LayoutRun> run;
-    hstd::SPtr<IGraph>            graph;
-
-    hstd::SPtr<IAttribute> newAttribute(
-        proto::IAttribute const* in,
-        IGraph const*            graph,
-        IAttributeObject const*  parent) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-
-        if (!run) {
-            if (this->graph->getPorts().empty()) {
-                this->graph->addPorts(std::make_shared<TrivialPortCollection>());
-            }
-
-            run = std::make_shared<layout::LayoutRun>(
-                this->graph,
-                this->graph->getCollections().at(0)->getCollectionID(),
-                this->graph->getPorts().at(0)->getCollectionID(),
-                this->graph->getHierarchies().at(0)->getCollectionID());
-        }
-
-        if (in->payload().Is<gv::proto::GroupAttributePayload>()) {
-            auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-            gv::proto::GroupAttributePayload pl;
-            in->payload().UnpackTo(&pl);
-
-            if (pl.has_parent_stable_id()) {
-                return graph
-                    ->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
-                    ->getUniqueAttribute<gv::GraphGroup>()
-                    ->newSubgraph(vertex->getStableId());
-            } else {
-                return gv::GraphGroup::newRootGraph(run, vertex->getStableId());
-            }
-        } else if (in->payload().Is<gv::proto::NodeAttributePayload>()) {
-            auto vertex = hstd::validated_dynamic_cast<IVertex>(parent);
-            gv::proto::NodeAttributePayload pl;
-            in->payload().UnpackTo(&pl);
-            LOGIC_ASSERTION_CHECK_FMT(
-                !pl.parent_stable_id().empty(),
-                "Parent stable ID cannot be set to empty, graphviz "
-                "attribute for node '{}' must have the parent ID "
-                "specified",
-                vertex->getStableId());
-
-            return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
-                ->getUniqueAttribute<gv::GraphGroup>()
-                ->node(vertex->getStableId());
-        } else if (in->payload().Is<gv::proto::EdgeAttributePayload>()) {
-            auto vertex = hstd::validated_dynamic_cast<IEdge>(parent);
-            gv::proto::EdgeAttributePayload pl;
-            in->payload().UnpackTo(&pl);
-            LOGIC_ASSERTION_CHECK_FMT(
-                !pl.parent_stable_id().empty(),
-                "Parent stable ID cannot be set to empty, graphviz "
-                "attribute for node '{}' must have the parent ID "
-                "specified",
-                vertex->getStableId());
-
-            auto edge_id = graph->getEdgeIDByStableId(vertex->getStableId());
-
-            return graph->getVertex(graph->getVertexIDByStableId(pl.parent_stable_id()))
-                ->getUniqueAttribute<gv::GraphGroup>()
-                ->edge(
-                    *graph->getVertex(graph->getSource(edge_id))
-                         ->getUniqueAttribute<gv::NodeAttribute>(),
-                    *graph->getVertex(graph->getTarget(edge_id))
-                         ->getUniqueAttribute<gv::NodeAttribute>());
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-    }
-
-    hstd::SPtr<IVertex> newVertex(proto::IVertex const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        hstd::SPtr<IVertex> res;
-        if (in->payload().Is<org::graph::proto::MapNodePayload>()) {
-            res = std::make_shared<org::graph::MapNode>();
-        } else if (in->payload().Is<proto::TrivialVertexPayload>()) {
-            res = std::make_shared<TrivialVertex>(in->stable_id());
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-
-        return res;
-    }
-
-    hstd::SPtr<layout::IConstraint> newConstraint(proto::IConstraint const* in) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            in->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*in));
-        OP_TRACER_MESSAGE(this, "URL {}", in->payload().type_url());
-        hstd::SPtr<layout::IConstraint> res;
-        if (false) {
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(in->payload().type_url());
-        }
-
-        return res;
-    }
-
-
-    hstd::SPtr<IEdge> newEdge(proto::IEdge const* edge) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            edge->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*edge));
-
-        if (edge->payload().Is<proto::TrivialEdgePayload>()) {
-            return std::make_shared<TrivialEdge>(edge->stable_id());
-        } else {
-            throw hstd::logic_unhandled_kind_error::init(edge->payload().type_url());
-        }
-    }
-
-    hstd::SPtr<IPort> newPort(proto::IPort const* port) override {
-        LOGIC_ASSERTION_CHECK_FMT(
-            port->has_payload(),
-            "De-serialization input does not have payload object {}",
-            getJString(*port));
-
+    hstd::SPtr<IPort> newPort(hstd::ext::graph::proto::IPort const* port) {
         if (port->payload().Is<org::graph::proto::MapNodePayload>()) {
+            logic_todo_impl();
         } else {
-            throw hstd::logic_unhandled_kind_error::init(port->payload().type_url());
+            return VisualFactory::newPort(port);
         }
     }
 };
 
 #endif
 
-std::unique_ptr<proto::IGraphProto> get_layout_structure(
-    std::unique_ptr<proto::IGraphProto> const& in) {
-    auto out = std::make_unique<proto::IGraphProto>();
+std::unique_ptr<hstd::ext::graph::proto::IGraph> get_layout_structure(
+    std::unique_ptr<hstd::ext::graph::proto::IGraph> const& in) {
+    auto out = std::make_unique<proto::IGraph>();
 
     auto        out_hierarchy = out->add_hierarchies();
     std::string rg_id{"root-vertex"};
@@ -209,13 +65,16 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
 
     auto out_vertex = out->add_vertices();
     out_vertex->set_stable_id(rg_id);
-    out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
+    out_vertex->mutable_payload()->PackFrom(
+        hstd::ext::graph::proto::TrivialVertexPayload{});
     gv::proto::GroupAttributePayload attr_payload;
     auto                             out_attr = out_vertex->add_attributes();
     out_attr->mutable_payload()->PackFrom(attr_payload);
 
-    out_hierarchy->mutable_nested_in_map()->insert({rg_id, proto::VertexIDVec{}});
-    out_hierarchy->mutable_payload()->PackFrom(proto::TrivialVertexHierarchyPayload{});
+    out_hierarchy->mutable_nested_in_map()->insert(
+        {rg_id, hstd::ext::graph::proto::VertexIDVec{}});
+    out_hierarchy->mutable_payload()->PackFrom(
+        hstd::ext::graph::proto::TrivialVertexHierarchyPayload{});
 
     for (auto const& vertex : in->vertices()) {
         auto out_vertex = out->add_vertices();
@@ -227,13 +86,15 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
         attr_payload.set_parent_stable_id(rg_id);
         auto out_attr = out_vertex->add_attributes();
         out_attr->mutable_payload()->PackFrom(attr_payload);
-        out_vertex->mutable_payload()->PackFrom(proto::TrivialVertexPayload{});
+        out_vertex->mutable_payload()->PackFrom(
+            hstd::ext::graph::proto::TrivialVertexPayload{});
         out_hierarchy->mutable_nested_in_map()->at(rg_id).add_vertices(
             vertex.stable_id());
     }
 
     auto edges = out->add_collections();
-    edges->mutable_payload()->PackFrom(proto::TrivialEdgeCollectionPayload{});
+    edges->mutable_payload()->PackFrom(
+        hstd::ext::graph::proto::TrivialEdgeCollectionPayload{});
     for (auto const& edge : in->collections().at(0).edges()) {
         auto out_edge = edges->add_edges();
         out_edge->set_source_vertex_id(edge.source_vertex_id());
@@ -245,23 +106,25 @@ std::unique_ptr<proto::IGraphProto> get_layout_structure(
         auto                            out_attr = out_edge->add_attributes();
         attr_payload.set_parent_stable_id(rg_id);
         out_attr->mutable_payload()->PackFrom(attr_payload);
-        out_edge->mutable_payload()->PackFrom(proto::TrivialEdgePayload{});
+        out_edge->mutable_payload()->PackFrom(
+            hstd::ext::graph::proto::TrivialEdgePayload{});
     }
 
     return out;
 }
 
 #if ORG_BUILD_WITH_PROTOBUF
-std::unique_ptr<proto::IGraphProto> run_layout(
-    std::unique_ptr<proto::IGraphProto> const& proto) {
-    TestFactory factory;
+std::unique_ptr<proto::IGraph> run_layout(
+    std::unique_ptr<hstd::ext::graph::proto::IGraph> const& proto) {
+    auto        graph = std::make_shared<TrivialGraphBase>();
+    TestFactory factory{graph};
     factory.setTraceFile(getDebugFile("graph_serial_read.log"));
 
     auto proto_layout = get_layout_structure(proto);
-    writeFile(getDebugFile("proto_laoyout_initial.json"), getJString(*proto_layout));
+    writeFile(
+        getDebugFile("proto_laoyout_initial.json"),
+        hstd::serde::getJString(*proto_layout));
 
-    auto graph    = std::make_shared<TrivialGraphBase>();
-    factory.graph = graph;
     graph->readSerial(proto_layout.get(), &factory);
     graph
         ->getVertex(
@@ -273,9 +136,10 @@ std::unique_ptr<proto::IGraphProto> run_layout(
 
     factory.run->setTraceFile(getDebugFile("serial_read_layout.log"));
     factory.run->runFullLayout();
-    auto result = std::make_unique<proto::IGraphProto>();
+    auto result = std::make_unique<hstd::ext::graph::proto::IGraph>();
     graph->writeSerial(result.get());
-    writeFile(getDebugFile("serial_layout_result.json"), getJString(*result));
+    writeFile(
+        getDebugFile("serial_layout_result.json"), hstd::serde::getJString(*result));
     return result;
 }
 #endif
@@ -311,7 +175,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
     org::graph::MapGraphState::Ptr getState() const { return state; }
 
     void init_with(Str const& text) {
-        auto node = testParseString(text);
+        auto node = testParseString(text, getDebugFile("parse/init"));
         writeTreeRepr(node, getDebugFile("repr.yaml"));
         init_with(node);
         writeTreeRepr(getLastRootAdapter(), getDebugFile("repr.txt"));
@@ -391,7 +255,7 @@ struct ImmMapApi : ImmOrgApiTestBase {
     void writeRepresentation() {
         writeGraphviz(getDebugFile("graph.png"));
         auto serial = state->graph->get_serial();
-        writeFile(getDebugFile("serial.json"), getJString(*serial));
+        writeFile(getDebugFile("serial.json"), hstd::serde::getJString(*serial));
     }
 
     void runExternalizedLayoutPipeline() {
@@ -495,6 +359,257 @@ Paragraph [[id:subtree-id]]
     runExternalizedLayoutPipeline();
 }
 
+TEST_F(ImmMapApi, TrivialDescriptionList) {
+    init_with(R"(
+* subtree
+  :properties:
+  :id: id-target
+  :end:
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:id-target]]
+)"_ss);
+
+    addNodeRec(getRootAdapters());
+
+    ASSERT_EQ(getRootAdapters().size(), 1);
+    auto n = getRootAdapters().back();
+    n.id.assertValid();
+
+    EXPECT_TRUE(n.ctx.lock()->currentTrack->subtrees.contains("id-target"));
+    EXPECT_TRUE(n.ctx.lock()->currentTrack->subtrees.contains("id-source"));
+    EXPECT_TRUE(getVersion().getContext()->currentTrack->subtrees.contains("id-target"));
+    EXPECT_TRUE(getVersion().getContext()->currentTrack->subtrees.contains("id-source"));
+
+    auto g = getGraph();
+
+    // Root document is an entry in the graph structure
+
+
+    auto tree_target = n.at(1);
+    auto tree_source = n.at(2);
+    auto item        = n.at({2, 0, 0});
+    auto list        = n.at({2, 0});
+    auto par         = n.at({2, 0, 0, 0});
+
+    EXPECT_EQ(n.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_source.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ2(item.getKind(), OrgSemKind::ListItem);
+    EXPECT_EQ2(list.getKind(), OrgSemKind::List);
+    EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_target), nullptr);
+    EXPECT_NE(g->get(tree_source), nullptr);
+    EXPECT_NE(g->get(item), nullptr);
+    EXPECT_NE(g->get(list), nullptr);
+    EXPECT_NE(g->get(n), nullptr);
+    EXPECT_NE(g->get(par), nullptr);
+
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(n), g->getVertexID(tree_target)));
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(n), g->getVertexID(tree_source)));
+
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(tree_source), g->getVertexID(list)));
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(list), g->getVertexID(item)));
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(item), g->getVertexID(par)));
+
+    EXPECT_TRUE(g->hasEdge(g->getVertexID(par), g->getVertexID(tree_target)));
+    EXPECT_FALSE(g->hasEdge(g->getVertexID(tree_source), g->getVertexID(tree_target)));
+
+    EXPECT_TRUE(imm::isLinkedListItemNode(item));
+    EXPECT_TRUE(imm::hasAnyInternalLinks(item));
+    EXPECT_EQ2(imm::getAllInternalLinks(item).size(), 1);
+    EXPECT_FALSE(imm::isPartOfInternalLinkedListItem(item));
+    EXPECT_FALSE(imm::isInternalLinkedRegularList(list));
+
+    // document
+    // subtree 1
+    // subtree 2
+    // list in the subtree
+    // list item
+    // paragraph
+    EXPECT_EQ(g->getVertexCount(), 6);
+    // structural nesting edges
+    //   document -> subtree source
+    //   document -> subtree target
+    //   subtree source -> list
+    //   list -> list item
+    //   list item -> paragraph
+    // reference edges
+    //   paragraph -> subtree target
+    EXPECT_EQ(g->getSummedEdgeCount(), 6);
+}
+
+TEST_F(ImmMapApi, MultipleIncomingTargetsSameLink) {
+    init_with(R"(
+* subtree
+  :properties:
+  :id: id-target
+  :end:
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:id-target]]
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:id-target]]
+)"_ss);
+
+    addNodeRec(getRootAdapters());
+
+    auto g   = getGraph();
+    auto doc = getRootAdapters().back();
+
+    auto tree_target = doc.at(1);
+    auto tree_other1 = doc.at(2);
+    auto tree_other2 = doc.at(3);
+
+    auto list1 = tree_other1.at(0);
+    auto list2 = tree_other2.at(0);
+
+    auto par1 = list1.at({0, 0});
+    auto par2 = list2.at({0, 0});
+
+    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other2.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
+    EXPECT_EQ(list2.getKind(), OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_target), nullptr);
+    EXPECT_NE(g->get(tree_other1), nullptr);
+    EXPECT_NE(g->get(tree_other2), nullptr);
+
+    EXPECT_FALSE(g->hasEdge(tree_other1, tree_target));
+    EXPECT_FALSE(g->hasEdge(tree_other2, tree_target));
+    EXPECT_TRUE(g->hasEdge(par1, tree_target));
+    EXPECT_TRUE(g->hasEdge(par2, tree_target));
+}
+
+
+TEST_F(ImmMapApi, MultipleIncomingTargetsDuplicate) {
+    // the incoming subtree is directly copy-pasted here, the intention is to check how
+    // the graph detection will handle the immutable AST deduplication and ID sharing.
+    init_with(R"(
+* subtree
+  :properties:
+  :id: id-target
+  :end:
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:id-target]]
+
+* other subtree
+  :properties:
+  :id: id-source
+  :end:
+
+#+attr_list: :attached subtree
+- [[id:id-target]]
+)"_ss);
+
+    addNodeRec(getRootAdapters());
+
+    auto g   = getGraph();
+    auto doc = getRootAdapters().back();
+
+    auto tree_target = doc.at(1);
+    auto tree_other1 = doc.at(2);
+    auto tree_other2 = doc.at(3);
+
+    auto list1 = tree_other1.at(0);
+    auto list2 = tree_other2.at(0);
+
+    auto par1 = list1.at({0, 0});
+    auto par2 = list2.at({0, 0});
+
+    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other2.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
+    EXPECT_EQ(list2.getKind(), OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_target), nullptr);
+    EXPECT_NE(g->get(tree_other1), nullptr);
+    EXPECT_NE(g->get(tree_other2), nullptr);
+
+    EXPECT_FALSE(g->hasEdge(tree_other1, tree_target));
+    EXPECT_FALSE(g->hasEdge(tree_other2, tree_target));
+    EXPECT_TRUE(g->hasEdge(par1, tree_target));
+    EXPECT_TRUE(g->hasEdge(par2, tree_target));
+}
+
+TEST_F(ImmMapApi, NestedNonAttachedLinks) {
+    init_with(R"(
+* subtree one
+  :properties:
+  :id: subtree-one
+  :end:
+
+* subtree two
+  :properties:
+  :id: subtree-two
+  :end:
+
+- regular list
+- another list item [[id:subtree-one]]
+)");
+
+    addNodeRec(getRootAdapters());
+
+    auto g   = getGraph();
+    auto doc = getRootAdapters().back();
+
+    auto tree_one = doc.at(1);
+    auto tree_two = doc.at(2);
+
+    auto list1 = tree_two.at(0);
+
+    auto par1 = list1.at({0, 0});
+    auto par2 = list1.at({1, 0});
+
+    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree_one.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree_two.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+
+    EXPECT_NE(g->get(tree_one), nullptr);
+    EXPECT_NE(g->get(tree_two), nullptr);
+
+    EXPECT_FALSE(g->hasEdge(tree_two, tree_one));
+    EXPECT_FALSE(g->hasEdge(par1, tree_one));
+    EXPECT_TRUE(g->hasEdge(par2, tree_one));
+}
 
 TEST_F(ImmMapApi, SubtreeBacklinks) {
     init_with({
@@ -520,13 +635,41 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 
     addNodeRec(getRootAdapters());
 
-    EXPECT_EQ(getGraph()->getVertexCount(), 2);
-    EXPECT_EQ(getGraph()->getSummedEdgeCount(), 2);
-    EXPECT_EQ(getState()->unresolved.size(), 0);
+    auto doc1 = getRootAdapters().at(0);
+    auto doc2 = getRootAdapters().at(1);
+
+    auto tree1 = doc1.at(1);
+    auto tree2 = doc2.at(1);
+
+    auto item1 = tree1.at({0, 0});
+    auto item2 = tree2.at({0, 0});
+
+    auto par1 = item1.at(0);
+    auto par2 = item2.at(0);
+
+    auto g = getGraph();
+
+    EXPECT_EQ(doc1.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc2.getKind(), OrgSemKind::Document);
+
+    EXPECT_EQ(tree1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(tree2.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(item1.getKind(), OrgSemKind::ListItem);
+    EXPECT_EQ(item2.getKind(), OrgSemKind::ListItem);
+
+    EXPECT_NE(g->get(doc1), nullptr);
+    EXPECT_NE(g->get(doc2), nullptr);
+
+    EXPECT_NE(g->get(par1), nullptr);
+    EXPECT_NE(g->get(par2), nullptr);
+
+    EXPECT_TRUE(g->hasEdge(doc1, tree1));
+    EXPECT_TRUE(g->hasEdge(doc2, tree2));
 
     writeRepresentation();
     runExternalizedLayoutPipeline();
 }
+
 
 TEST_F(ImmMapApi, RadioTargetsForward) {
     init_with(R"(
@@ -716,7 +859,7 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
         "- ",
         "Two items in a list\n",
     };
-    return join("", text);
+    return join(""_str_view, text);
 }
 
 using osk = OrgSemKind;
@@ -832,7 +975,7 @@ DocBlock fromAst(imm::ImmAdapter const& id) {
         }
 
         default: {
-            if (!org::imm::isAttachedDescriptionList(id)) {
+            if (!org::imm::isAttachedSubtreeList(id)) {
                 result.items.push_back(DocItem{.id = id});
             }
 
