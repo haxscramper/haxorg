@@ -19,48 +19,6 @@ enum struct LayoutKind
 };
 
 template <typename Message>
-std::optional<Message> findAttribute(
-    google::protobuf::RepeatedPtrField<proto::IAttribute> const& attributes,
-    std::string const&                                           owner) {
-    std::optional<Message> result{};
-
-    for (proto::IAttribute const& attribute : attributes) {
-        if (attribute.payload().Is<Message>()) {
-            if (result.has_value()) {
-                throw std::invalid_argument{fmt::format(
-                    "'{}' contains multiple '{}' attributes",
-                    owner,
-                    Message::descriptor()->full_name())};
-            }
-
-            result = hstd::serde::unpackMessage<Message>(attribute.payload(), owner);
-        }
-    }
-
-    return result;
-}
-
-template <typename Message, typename Value>
-Message findRequiredAttribute(Value const& value, std::string const& owner) {
-    auto result = findAttribute<Message>(value.attributes(), owner);
-    if (result) {
-        return result.value();
-    } else {
-        hstd::Vec<hstd::Str> types;
-        for (proto::IAttribute const& attribute : value.attributes()) {
-            types.push_back(attribute.payload().type_url());
-        }
-
-        throw hstd::serde::read_error::init(
-            hstd::fmt(
-                "Could not find required attribute of type '{}' in {}. Has attributes {}",
-                Message::descriptor()->full_name(),
-                owner,
-                types));
-    }
-}
-
-template <typename Message>
 void appendAttribute(
     google::protobuf::RepeatedPtrField<proto::IAttribute>* attributes,
     Message const&                                         message) {
@@ -109,27 +67,25 @@ void appendDiaConstraint(
     diagram::proto::DiaConstraint* result  = constraints->Add();
     google::protobuf::Any const&   payload = source.payload();
 
-    if (payload.Is<kw::proto::KiwiAlignConstraintPayload>()) {
-        *result->mutable_kw_align() = hstd::serde::unpackMessage<
-            kw::proto::KiwiAlignConstraintPayload>(payload, clusterId);
-    } else if (payload.Is<kw::proto::KiwiSeparateConstraintPayload>()) {
-        *result->mutable_kw_separate() = hstd::serde::unpackMessage<
-            kw::proto::KiwiSeparateConstraintPayload>(payload, clusterId);
-    } else if (payload.Is<kw::proto::KiwiMultiSeparateConstraintPayload>()) {
-        *result->mutable_kw_multi_separate() = hstd::serde::unpackMessage<
-            kw::proto::KiwiMultiSeparateConstraintPayload>(payload, clusterId);
-    } else if (payload.Is<kw::proto::KiwiRelativeConstraintPayload>()) {
-        *result->mutable_kw_relative() = hstd::serde::unpackMessage<
-            kw::proto::KiwiRelativeConstraintPayload>(payload, clusterId);
-    } else if (payload.Is<kw::proto::KiwiLinearConstraintPayload>()) {
-        *result->mutable_kw_linear() = hstd::serde::unpackMessage<
-            kw::proto::KiwiLinearConstraintPayload>(payload, clusterId);
-    } else {
-        throw std::invalid_argument{hstd::fmt(
-            "Cluster '{}' contains unsupported constraint payload '{}'",
-            clusterId,
-            payload.type_url())};
-    }
+    std::visit(
+        hstd::overloaded{
+            [&](kw::proto::KiwiAlignConstraintPayload const& pl) {
+                *result->mutable_kw_align() = pl;
+            },
+            [&](kw::proto::KiwiSeparateConstraintPayload const& pl) {
+                *result->mutable_kw_separate() = pl;
+            },
+            [&](kw::proto::KiwiMultiSeparateConstraintPayload const& pl) {
+                *result->mutable_kw_multi_separate() = pl;
+            },
+            [&](kw::proto::KiwiRelativeConstraintPayload const& pl) {
+                *result->mutable_kw_relative() = pl;
+            },
+            [&](kw::proto::KiwiLinearConstraintPayload const& pl) {
+                *result->mutable_kw_linear() = pl;
+            },
+        },
+        hstd::serde::unpackVariant<ConstraintPayloadTypes>(payload, clusterId));
 }
 
 diagram::proto::DiaCluster* findMutableCluster(
@@ -148,7 +104,7 @@ diagram::proto::DiaCluster* findMutableCluster(
 
 std::optional<std::string> graphvizEdgeParent(proto::IEdge const& edge) {
     std::optional<gv::proto::EdgeAttributePayload>
-        payload = findAttribute<gv::proto::EdgeAttributePayload>(
+        payload = hstd::serde::findOne<gv::proto::EdgeAttributePayload>(
             edge.attributes(), hstd::fmt("edge '{}'", edge.stable_id()));
 
     if (payload.has_value() && !payload->parent_stable_id().empty()) {
@@ -512,37 +468,30 @@ void appendNestedVertex(
 
     std::string owner = hstd::fmt("node '{}'", nestedId);
 
-    std::optional<gv::proto::NodeAttributePayload>
-        graphvizNode = findAttribute<gv::proto::NodeAttributePayload>(
-            nodeVertex.attributes(), owner);
-    std::optional<kw::proto::KiwiVertexVisualAttributePayload>
-        kiwiNode = findAttribute<kw::proto::KiwiVertexVisualAttributePayload>(
-            nodeVertex.attributes(), owner);
+    auto visual = hstd::serde::findUniqueRequired<NodeVisualAttributePayloadTypes>(
+        nodeVertex.attributes(), owner);
 
-    if (graphvizNode.has_value() && kiwiNode.has_value()) {
-        throw std::invalid_argument{
-            hstd::fmt("Node '{}' contains both Graphviz and Kiwi attributes", nestedId)};
-    }
-
-    if (graphvizNode.has_value()) {
-        if (preserveOrigin) { *node->mutable_graphviz() = *graphvizNode; }
-        auto l = findRequiredAttribute<
-            hstd::ext::graph::layout::proto::IVertexLayoutAttributePayload>(
-            nodeVertex, owner);
-
-        *node->mutable_bbox() = l.bbox();
-    } else if (kiwiNode.has_value()) {
-        if (preserveOrigin) { *node->mutable_kiwi() = *kiwiNode; }
-        *node->mutable_bbox() = //
-            findRequiredAttribute<
-                hstd::ext::graph::kw::proto::KiwiVertexLayoutAttributePayload>(
-                nodeVertex, owner)
-                .base()
-                .bbox();
-    } else {
-        throw std::invalid_argument{hstd::fmt(
-            "Node '{}' contains neither a Graphviz nor a Kiwi attribute", nestedId)};
-    }
+    std::visit(
+        hstd::overloaded{
+            [&](gv::proto::NodeAttributePayload const& pl) {
+                if (preserveOrigin) { *node->mutable_graphviz() = pl; }
+                *node->mutable_bbox() = //
+                    hstd::serde::findOneRequired<
+                        hstd::ext::graph::layout::proto::IVertexLayoutAttributePayload>(
+                        nodeVertex.attributes(), owner)
+                        .bbox();
+            },
+            [&](kw::proto::KiwiVertexVisualAttributePayload const& pl) {
+                if (preserveOrigin) { *node->mutable_kiwi() = pl; }
+                *node->mutable_bbox() = //
+                    hstd::serde::findOneRequired<
+                        hstd::ext::graph::kw::proto::KiwiVertexLayoutAttributePayload>(
+                        nodeVertex.attributes(), owner)
+                        .base()
+                        .bbox();
+            },
+        },
+        visual);
 }
 
 diagram::proto::DiaCluster buildCluster(
@@ -570,56 +519,57 @@ diagram::proto::DiaCluster buildCluster(
 
     std::string owner = hstd::fmt("cluster '{}'", clusterId);
 
-    std::optional<gv::proto::GroupAttributePayload>
-        graphviz = findAttribute<gv::proto::GroupAttributePayload>(
-            vertex.attributes(), owner);
-    std::optional<kw::proto::KiwiGroupVisualAttributePayload>
-        kiwi = findAttribute<kw::proto::KiwiGroupVisualAttributePayload>(
-            vertex.attributes(), owner);
-
-    if (graphviz.has_value() && kiwi.has_value()) {
-        throw std::invalid_argument{hstd::fmt(
-            "Cluster '{}' contains both Graphviz and Kiwi group attributes", clusterId)};
-    }
+    auto visual = hstd::serde::findUnique<GroupVisualAttributePayloadTypes>(
+        vertex.attributes(), owner);
 
     bool noAlgorithm = metadata.no_algorithm_cluster_ids().find(clusterId)
                     != metadata.no_algorithm_cluster_ids().end();
 
-
-    if (!noAlgorithm && graphviz.has_value()
-        && graphviz->layout_case() == gv::proto::GroupAttributePayload::LAYOUT_NOT_SET
-        && !graphviz->parent_stable_id().empty()) {
-        noAlgorithm = true;
-    }
-
-    if (noAlgorithm || (!graphviz.has_value() && !kiwi.has_value())) {
-        result.set_no_algorithm(google::protobuf::NULL_VALUE);
-    } else if (graphviz.has_value()) {
-        if (preserveOrigin) { *result.mutable_graphviz() = *graphviz; }
-        *result.mutable_bbox() = //
-            findRequiredAttribute<
-                hstd::ext::graph::layout::proto::IGroupLayoutAttributePayload>(
-                vertex, owner)
-                .bbox();
-
-
-    } else {
-        if (preserveOrigin) { *result.mutable_kiwi() = *kiwi; }
-        *result.mutable_bbox() = //
-            findRequiredAttribute<
-                hstd::ext::graph::kw::proto::KiwiGroupLayoutAttributePayload>(
-                vertex, owner)
-                .base()
-                .bbox();
-
-        result.mutable_kiwi()->mutable_base()->clear_constraints();
-
-        if (preserveOrigin) {
-            for (proto::IConstraint const& constraint : kiwi->base().constraints()) {
-                appendDiaConstraint(result.mutable_constraints(), constraint, clusterId);
+    if (!noAlgorithm && visual.has_value()) {
+        if (auto const* graphviz = std::get_if<gv::proto::GroupAttributePayload>(
+                &*visual)) {
+            if (graphviz->layout_case()
+                    == gv::proto::GroupAttributePayload::LAYOUT_NOT_SET
+                && !graphviz->parent_stable_id().empty()) {
+                noAlgorithm = true;
             }
         }
     }
+
+    if (noAlgorithm || !visual.has_value()) {
+        result.set_no_algorithm(google::protobuf::NULL_VALUE);
+    } else {
+        auto overload = hstd::overloaded{
+            [&](gv::proto::GroupAttributePayload const& pl) {
+                if (preserveOrigin) { *result.mutable_graphviz() = pl; }
+                *result.mutable_bbox() = //
+                    hstd::serde::findOneRequired<
+                        hstd::ext::graph::layout::proto::IGroupLayoutAttributePayload>(
+                        vertex.attributes(), owner)
+                        .bbox();
+            },
+            [&](kw::proto::KiwiGroupVisualAttributePayload const& pl) {
+                if (preserveOrigin) { *result.mutable_kiwi() = pl; }
+                *result.mutable_bbox() = //
+                    hstd::serde::findOneRequired<
+                        hstd::ext::graph::kw::proto::KiwiGroupLayoutAttributePayload>(
+                        vertex.attributes(), owner)
+                        .base()
+                        .bbox();
+
+                result.mutable_kiwi()->mutable_base()->clear_constraints();
+
+                if (preserveOrigin) {
+                    for (proto::IConstraint const& constraint : pl.base().constraints()) {
+                        appendDiaConstraint(
+                            result.mutable_constraints(), constraint, clusterId);
+                    }
+                }
+            },
+        };
+        std::visit(overload, *visual);
+    }
+
 
     auto nestedPosition = hierarchy.nested_in_map().find(clusterId);
 
@@ -684,9 +634,7 @@ void appendDiaEdge(
 
     std::string owner = hstd::fmt("edge '{}'", source.stable_id());
 
-    auto visual = hstd::serde::findUniqueRequiredT<
-        hstd::ext::graph::gv::proto::EdgeAttributePayload,
-        hstd::ext::graph::kw::proto::KiwiEdgeVisualAttributePayload>(
+    auto visual = hstd::serde::findUniqueRequired<EdgeVisualAttributePayloadTypes>(
         source.attributes(), owner);
 
     std::visit(
@@ -701,8 +649,9 @@ void appendDiaEdge(
         visual);
 
     *edge->mutable_path() = //
-        findRequiredAttribute<
-            hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(source, owner)
+        hstd::serde::findOneRequired<
+            hstd::ext::graph::layout::proto::IEdgeLayoutAttributePayload>(
+            source.attributes(), owner)
             .path();
 }
 
@@ -825,17 +774,19 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
     }
 
     for (graph::proto::IVertex const& vertex : graph.vertices()) {
-        if (findAttribute<gv::proto::GroupAttributePayload>(
-                vertex.attributes(), hstd::fmt("vertex '{}'", vertex.stable_id()))
-                .has_value()) {
-            clusterIds.insert(vertex.stable_id());
-        }
+        auto visual = hstd::serde::findUnique<GroupVisualAttributePayloadTypes>(
+            vertex.attributes(), hstd::fmt("vertex '{}'", vertex.stable_id()));
 
-        if (findAttribute<kw::proto::KiwiGroupVisualAttributePayload>(
-                vertex.attributes(), hstd::fmt("vertex '{}'", vertex.stable_id()))
-                .has_value()) {
-            clusterIds.insert(vertex.stable_id());
-        }
+        std::visit(
+            hstd::overloaded{
+                [&](gv::proto::GroupAttributePayload const& pl) {
+                    clusterIds.insert(vertex.stable_id());
+                },
+                [&](kw::proto::KiwiGroupVisualAttributePayload const& pl) {
+                    clusterIds.insert(vertex.stable_id());
+                },
+            },
+            *visual);
     }
 
     for (auto const& entry : hierarchy.nested_in_map()) {

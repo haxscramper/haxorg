@@ -276,4 +276,23 @@ auto findUniqueObjectRequiredT(
         std::forward<decltype(range)>(range), owner);
 }
 
+/// Single-type convenience: returns the unpacked payload directly,
+/// without the variant wrapper. Throws on duplicates.
+template <typename T>
+auto findOne(std::ranges::input_range auto&& range, std::string const& owner)
+    -> std::optional<T> {
+    auto result = findUnique<boost::mp11::mp_list<T>>(
+        std::forward<decltype(range)>(range), owner);
+    if (result) { return std::get<T>(std::move(*result)); }
+    return std::nullopt;
+}
+
+template <typename T>
+auto findOneRequired(std::ranges::input_range auto&& range, std::string const& owner)
+    -> T {
+    auto result = findUniqueRequired<boost::mp11::mp_list<T>>(
+        std::forward<decltype(range)>(range), owner);
+    return std::get<T>(std::move(result));
+}
+
 } // namespace hstd::serde

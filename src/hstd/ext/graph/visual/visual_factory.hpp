@@ -26,13 +26,38 @@ struct DispatchProtoPayload<hstd::ext::graph::proto::IAttribute> {
 
 namespace hstd::ext::graph {
 
-using VisualAttributePayloadTypes = boost::mp11::mp_list<
-    hstd::ext::graph::gv::proto::GroupAttributePayload,
-    hstd::ext::graph::gv::proto::EdgeAttributePayload,
+using NodeVisualAttributePayloadTypes = boost::mp11::mp_list<
     hstd::ext::graph::gv::proto::NodeAttributePayload,
-    hstd::ext::graph::kw::proto::KiwiVertexVisualAttributePayload,
-    hstd::ext::graph::kw::proto::KiwiGroupVisualAttributePayload,
+    hstd::ext::graph::kw::proto::KiwiVertexVisualAttributePayload
+    //
+    >;
+
+using EdgeVisualAttributePayloadTypes = boost::mp11::mp_list<
+    hstd::ext::graph::gv::proto::EdgeAttributePayload,
     hstd::ext::graph::kw::proto::KiwiEdgeVisualAttributePayload
+    //
+    >;
+
+using GroupVisualAttributePayloadTypes = boost::mp11::mp_list<
+    hstd::ext::graph::gv::proto::GroupAttributePayload,
+    hstd::ext::graph::kw::proto::KiwiGroupVisualAttributePayload
+    //
+    >;
+
+using VisualAttributePayloadTypes = boost::mp11::mp_append<
+    EdgeVisualAttributePayloadTypes,
+    NodeVisualAttributePayloadTypes,
+    GroupVisualAttributePayloadTypes
+    //
+    >;
+
+
+using ConstraintPayloadTypes = boost::mp11::mp_list<
+    kw::proto::KiwiAlignConstraintPayload,
+    kw::proto::KiwiSeparateConstraintPayload,
+    kw::proto::KiwiMultiSeparateConstraintPayload,
+    kw::proto::KiwiRelativeConstraintPayload,
+    kw::proto::KiwiLinearConstraintPayload
     //
     >;
 
