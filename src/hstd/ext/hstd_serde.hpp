@@ -360,9 +360,5 @@ T read_message_from_file(std::string const& file_path, ProtobufFileFormat format
 void protovalidate_message(google::protobuf::Message const& message);
 
 
-template <typename ProtoType>
-struct DispatchProto {};
-
-
 } // namespace hstd::serde
 #endif

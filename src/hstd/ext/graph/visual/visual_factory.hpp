@@ -14,8 +14,15 @@
 
 namespace hstd::serde {
 
-//
-}
+template <>
+struct DispatchProtoPayload<hstd::ext::graph::proto::IAttribute> {
+    static google::protobuf::Any const& getPayload(
+        hstd::ext::graph::proto::IAttribute const& value) {
+        return value.payload();
+    }
+};
+
+} // namespace hstd::serde
 
 namespace hstd::ext::graph {
 

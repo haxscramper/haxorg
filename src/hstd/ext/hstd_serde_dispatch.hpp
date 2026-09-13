@@ -183,7 +183,7 @@ auto unpackVariantT(
 /// Find the unique object in `range` whose payload matches one of the
 /// listed types. Returns the unpacked payload, or nullopt if none match.
 /// Throws `std::invalid_argument` if more than one object matches.
-template <NoneAreMpLists List>
+template <typename List>
 auto findUnique(std::ranges::input_range auto&& range, std::string const& owner) {
     auto list = detail::as_mp_list_t<List>{};
     return [&]<NoneAreMpLists... Ts>(boost::mp11::mp_list<Ts...> l) {
