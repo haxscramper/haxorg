@@ -49,6 +49,44 @@ Str axis_color(Axis axis) {
 
 Expr::Expr(std::shared_ptr<Node> node) : node(std::move(node)) {}
 
+std::shared_ptr<Expr::Node> kiwi_ir::Expr::readNode(
+    ::hstd::ext::kiwi_ir::proto::Expr::Node const& n,
+    VariableResolver const&                        resolve) {
+    using P = ::hstd::ext::kiwi_ir::proto::Expr::Node;
+    switch (n.kind()) {
+        case P::EXPR_KIND_CONSTANT: return make_constant(n.constant());
+        case P::EXPR_KIND_VARIABLE: {
+            if (n.has_variable_name()) {
+                return make_variable(kiwi::Variable(n.variable_name()));
+            } else {
+                LOGIC_ASSERTION_CHECK_FMT(resolve.has_value(), "");
+                auto const& va = n.vertex_rect_attr();
+                return (*resolve)(va.vertex_stable_id(), static_cast<RectAttr>(va.attr()))
+                    .node;
+            }
+        }
+        case P::EXPR_KIND_KIWI_EXPRESSION: {
+            std::vector<kiwi::Term> terms;
+            for (auto const& t : n.kiwi_expression().terms()) {
+                terms.emplace_back(kiwi::Variable(t.variable()), t.coefficient());
+            }
+            return make_kiwi_expr(
+                kiwi::Expression(std::move(terms), n.kiwi_expression().constant()));
+        }
+        case P::EXPR_KIND_ADD:
+        case P::EXPR_KIND_SUB:
+        case P::EXPR_KIND_MUL:
+            return make_binary(
+                static_cast<Node::Kind>(n.kind()),
+                readNode(n.lhs(), resolve),
+                readNode(n.rhs(), resolve));
+        case P::EXPR_KIND_NEG:
+            return make_unary(Node::Kind::Neg, readNode(n.lhs(), resolve));
+    }
+    throw std::runtime_error("Invalid Expr::Node kind");
+}
+
+
 std::shared_ptr<Expr::Node> Expr::make_constant(double value) {
     Node n;
     n.kind     = Node::Kind::Constant;

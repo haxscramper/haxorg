@@ -468,8 +468,23 @@ class LinearConstraint : public KiwiConstraint {
 
     void readSerial(hstd::ext::graph::proto::IConstraint const* in, IGraph const* graph)
         override {
-        logic_todo_impl();
+        hstd::ext::graph::kw::proto::KiwiLinearConstraintPayload load;
+        in->payload().UnpackTo(&load);
+        rel = static_cast<kiwi_ir::Relation>(load.op());
+
+        kiwi_ir::Expr::VariableResolver resolve =
+            [graph](
+                std::string const& stableId, kiwi_ir::RectAttr attr) -> kiwi_ir::Expr {
+            VertexID id = graph->getVertexIDByStableId(stableId);
+            return graph->getVertex(id)
+                ->getUniqueAttribute<KiwiVertexAttribute>(graph->getDebug(id))
+                ->rect.expr(attr);
+        };
+
+        lhs = kiwi_ir::Expr::readSerial(load.lhs(), resolve);
+        rhs = kiwi_ir::Expr::readSerial(load.rhs(), resolve);
     }
+
 #    endif
 
     kiwi_ir::Expr use(VertexID const& id, kiwi_ir::RectAttr attr) {

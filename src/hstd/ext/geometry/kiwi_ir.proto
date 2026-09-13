@@ -75,6 +75,11 @@ message KiwiExpression {
 }
 
 message Expr {
+  message VertexRectAttr {
+    string   vertex_stable_id = 1;
+    RectAttr attr             = 2;
+  }
+
   message Node {
     enum Kind {
       EXPR_KIND_CONSTANT        = 0;
@@ -90,12 +95,16 @@ message Expr {
     double                  constant        = 2;
     optional Node           lhs             = 4;
     optional Node           rhs             = 5;
-    optional string         variable        = 6;
     optional KiwiExpression kiwi_expression = 7;
+    oneof variable {
+      string         variable_name   = 6;
+      VertexRectAttr vertex_rect_attr = 8;
+    }
   }
 
   Node node = 1;
 }
+
 
 message Constraint {
   Expr            lhs      = 1;

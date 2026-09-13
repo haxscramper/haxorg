@@ -192,12 +192,27 @@ class Expr {
 
 #    if ORG_BUILD_WITH_PROTOBUF
         void writeSerial(::hstd::ext::kiwi_ir::proto::Expr::Node* n) const {
-            if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
-            if (rhs) { rhs->writeSerial(n->mutable_rhs()); }
-            n->set_constant(constant);
             n->set_kind(static_cast<::hstd::ext::kiwi_ir::proto::Expr::Node::Kind>(kind));
-            n->set_variable(variable->name());
+            switch (kind) {
+                case Kind::Constant: n->set_constant(constant); break;
+                case Kind::Variable: n->set_variable_name(variable->name()); break;
+                case Kind::KiwiExpression: {
+                    auto* ke = n->mutable_kiwi_expression();
+                    ke->set_constant(kiwi_expr->constant());
+                    for (auto const& term : kiwi_expr->terms()) {
+                        auto* t = ke->add_terms();
+                        t->set_variable(term.variable().name());
+                        t->set_coefficient(term.coefficient());
+                    }
+                    break;
+                }
+                default:
+                    if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
+                    if (rhs) { rhs->writeSerial(n->mutable_rhs()); }
+                    break;
+            }
         }
+
 #    endif
     };
 
@@ -213,8 +228,24 @@ class Expr {
 
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(::hstd::ext::kiwi_ir::proto::Expr* e) const {}
+    using VariableResolver = std::optional<
+        std::function<Expr(std::string const& vertexStableId, RectAttr attr)>>;
+
+    void writeSerial(::hstd::ext::kiwi_ir::proto::Expr* e) const {
+        node->writeSerial(e->mutable_node());
+    }
+
+    static Expr readSerial(
+        ::hstd::ext::kiwi_ir::proto::Expr const& e,
+        VariableResolver const&                  resolve = std::nullopt) {
+        return Expr(readNode(e.node(), resolve));
+    }
+
+    static std::shared_ptr<Node> readNode(
+        ::hstd::ext::kiwi_ir::proto::Expr::Node const& n,
+        VariableResolver const&                        resolve = std::nullopt);
 #    endif
+
 
   private:
     explicit Expr(std::shared_ptr<Node> node);

@@ -1,4 +1,5 @@
 #include "kiwi_ir_serde.hpp"
+#include "hstd/ext/hstd_serde.hpp"
 
 using namespace hstd::ext::kiwi_ir;
 using namespace hstd::ext;
@@ -23,64 +24,6 @@ kiwi::RelationalOperator read_relation(proto::Relation relation) {
     }
 
     throw std::domain_error("Unsupported protobuf relation");
-}
-
-void write_node(proto::Expr::Node* out, kiwi_ir::Expr::Node const& in) {
-    out->set_kind(static_cast<proto::Expr::Node::Kind>(in.kind));
-    out->set_constant(in.constant);
-
-    if (in.lhs) { write_node(out->mutable_lhs(), *in.lhs); }
-
-    if (in.rhs) { write_node(out->mutable_rhs(), *in.rhs); }
-
-    if (in.variable) { out->set_variable(in.variable->name()); }
-
-    if (in.kiwi_expr) {
-        auto* expression = out->mutable_kiwi_expression();
-        expression->set_constant(in.kiwi_expr->constant());
-
-        for (kiwi::Term const& term : in.kiwi_expr->terms()) {
-            auto* serialized_term = expression->add_terms();
-            serialized_term->set_variable(term.variable().name());
-            serialized_term->set_coefficient(term.coefficient());
-        }
-    }
-}
-
-std::shared_ptr<kiwi_ir::Expr::Node> read_node(proto::Expr::Node const& in) {
-    auto result      = std::make_shared<kiwi_ir::Expr::Node>();
-    result->kind     = static_cast<kiwi_ir::Expr::Node::Kind>(in.kind());
-    result->constant = in.constant();
-
-    if (in.has_lhs()) { result->lhs = read_node(in.lhs()); }
-
-    if (in.has_rhs()) { result->rhs = read_node(in.rhs()); }
-
-    if (in.has_variable()) { result->variable = kiwi::Variable(in.variable()); }
-
-    if (in.has_kiwi_expression()) {
-        std::vector<kiwi::Term> terms;
-        terms.reserve(in.kiwi_expression().terms_size());
-
-        for (proto::KiwiTerm const& term : in.kiwi_expression().terms()) {
-            terms.emplace_back(kiwi::Variable(term.variable()), term.coefficient());
-        }
-
-        result->kiwi_expr = kiwi::Expression(
-            std::move(terms), in.kiwi_expression().constant());
-    }
-
-    return result;
-}
-
-template <typename Proto, typename Native>
-void write_message(Proto* out, Native const& in) {
-    hstd::serde::proto_serde<Proto, Native>::write(out, in);
-}
-
-template <typename Proto, typename Native>
-void read_message(Proto const& in, Native* out) {
-    hstd::serde::proto_serde<Proto, Native>::read(in, out);
 }
 
 } // namespace
@@ -133,20 +76,20 @@ void hstd::serde::proto_serde<proto::RectSpec1Side, kiwi_ir::RectSpec1Side>::rea
 void hstd::serde::proto_serde<proto::Expr, kiwi_ir::Expr>::write(
     proto::Expr*         out,
     kiwi_ir::Expr const& in) {
-    write_node(out->mutable_node(), *in.node);
+    in.node->writeSerial(out->mutable_node());
 }
 
 void hstd::serde::proto_serde<proto::Expr, kiwi_ir::Expr>::read(
     proto::Expr const& in,
     kiwi_ir::Expr*     out) {
-    out->node = read_node(in.node());
+    out->node = Expr::readNode(in.node());
 }
 
 void hstd::serde::proto_serde<proto::Constraint, kiwi_ir::Constraint>::write(
     proto::Constraint*         out,
     kiwi_ir::Constraint const& in) {
-    write_message(out->mutable_lhs(), in.lhs);
-    write_message(out->mutable_rhs(), in.rhs);
+    hstd::serde::write_serde(out->mutable_lhs(), in.lhs);
+    hstd::serde::write_serde(out->mutable_rhs(), in.rhs);
     out->set_op(write_relation(in.op));
 
     if (in.strength) { out->set_strength(*in.strength); }
@@ -158,8 +101,8 @@ void hstd::serde::proto_serde<proto::Constraint, kiwi_ir::Constraint>::read(
     kiwi_ir::Expr lhs(0.0);
     kiwi_ir::Expr rhs(0.0);
 
-    read_message(in.lhs(), &lhs);
-    read_message(in.rhs(), &rhs);
+    hstd::serde::read_serde(in.lhs(), &lhs);
+    hstd::serde::read_serde(in.rhs(), &rhs);
 
     *out = kiwi_ir::Constraint(lhs, rhs, read_relation(in.op()));
 
@@ -238,14 +181,14 @@ void hstd::serde::proto_serde<proto::AlignItem, kiwi_ir::AlignItem>::write(
     proto::AlignItem*         out,
     kiwi_ir::AlignItem const& in) {
     out->set_rect_id(in.rect_id);
-    write_message(out->mutable_spec(), in.spec);
+    hstd::serde::write_serde(out->mutable_spec(), in.spec);
 }
 
 void hstd::serde::proto_serde<proto::AlignItem, kiwi_ir::AlignItem>::read(
     proto::AlignItem const& in,
     kiwi_ir::AlignItem*     out) {
     out->rect_id = in.rect_id();
-    read_message(in.spec(), &out->spec);
+    hstd::serde::read_serde(in.spec(), &out->spec);
 }
 
 void hstd::serde::proto_serde<proto::AlignConstraint, kiwi_ir::AlignConstraint>::write(
@@ -254,7 +197,7 @@ void hstd::serde::proto_serde<proto::AlignConstraint, kiwi_ir::AlignConstraint>:
     out->clear_items();
 
     for (kiwi_ir::AlignItem const& item : in.items) {
-        write_message(out->add_items(), item);
+        hstd::serde::write_serde(out->add_items(), item);
     }
 
     out->set_strength(static_cast<proto::Strength>(in.strength));
@@ -268,7 +211,7 @@ void hstd::serde::proto_serde<proto::AlignConstraint, kiwi_ir::AlignConstraint>:
 
     for (proto::AlignItem const& item : in.items()) {
         kiwi_ir::AlignItem value;
-        read_message(item, &value);
+        hstd::serde::read_serde(item, &value);
         items.push_back(std::move(value));
     }
 
@@ -278,8 +221,8 @@ void hstd::serde::proto_serde<proto::AlignConstraint, kiwi_ir::AlignConstraint>:
 
 void hstd::serde::proto_serde<proto::SeparateConstraint, kiwi_ir::SeparateConstraint>::
     write(proto::SeparateConstraint* out, kiwi_ir::SeparateConstraint const& in) {
-    write_message(out->mutable_rect_a(), in.rect_a);
-    write_message(out->mutable_rect_b(), in.rect_b);
+    hstd::serde::write_serde(out->mutable_rect_a(), in.rect_a);
+    hstd::serde::write_serde(out->mutable_rect_b(), in.rect_b);
     out->set_offset(in.offset);
     out->set_strength(static_cast<proto::Strength>(in.strength));
 }
@@ -289,8 +232,8 @@ void hstd::serde::proto_serde<proto::SeparateConstraint, kiwi_ir::SeparateConstr
     kiwi_ir::RectSpec1Side rect_a;
     kiwi_ir::RectSpec1Side rect_b;
 
-    read_message(in.rect_a(), &rect_a);
-    read_message(in.rect_b(), &rect_b);
+    hstd::serde::read_serde(in.rect_a(), &rect_a);
+    hstd::serde::read_serde(in.rect_b(), &rect_b);
 
     *out = kiwi_ir::SeparateConstraint(
         rect_a, rect_b, in.offset(), static_cast<kiwi_ir::Strength>(in.strength()));
@@ -306,7 +249,7 @@ void hstd::serde::
         auto* serialized_group = out->add_groups();
 
         for (kiwi_ir::RectSpec1Side const& item : group) {
-            write_message(serialized_group->add_items(), item);
+            hstd::serde::write_serde(serialized_group->add_items(), item);
         }
     }
 
@@ -327,7 +270,7 @@ void hstd::serde::
 
         for (proto::RectSpec1Side const& item : serialized_group.items()) {
             kiwi_ir::RectSpec1Side value;
-            read_message(item, &value);
+            hstd::serde::read_serde(item, &value);
             group.push_back(std::move(value));
         }
 
@@ -403,10 +346,10 @@ void hstd::serde::proto_serde<proto::RelativeConstraint, kiwi_ir::RelativeConstr
     write(proto::RelativeConstraint* out, kiwi_ir::RelativeConstraint const& in) {
     out->set_relative_rect_id(in.relative_rect_id);
     out->set_fixed_rect_id(in.fixed_rect_id);
-    write_message(out->mutable_x_dim(), in.x_dim);
-    write_message(out->mutable_y_dim(), in.y_dim);
-    write_message(out->mutable_anchor_fixed(), in.anchor_fixed);
-    write_message(out->mutable_anchor_relative(), in.anchor_relative);
+    hstd::serde::write_serde(out->mutable_x_dim(), in.x_dim);
+    hstd::serde::write_serde(out->mutable_y_dim(), in.y_dim);
+    hstd::serde::write_serde(out->mutable_anchor_fixed(), in.anchor_fixed);
+    hstd::serde::write_serde(out->mutable_anchor_relative(), in.anchor_relative);
     out->set_strength(static_cast<proto::Strength>(in.strength));
 }
 
@@ -417,10 +360,10 @@ void hstd::serde::proto_serde<proto::RelativeConstraint, kiwi_ir::RelativeConstr
     kiwi_ir::AnchorSpec       anchor_fixed;
     kiwi_ir::AnchorSpec       anchor_relative;
 
-    read_message(in.x_dim(), &x_dim);
-    read_message(in.y_dim(), &y_dim);
-    read_message(in.anchor_fixed(), &anchor_fixed);
-    read_message(in.anchor_relative(), &anchor_relative);
+    hstd::serde::read_serde(in.x_dim(), &x_dim);
+    hstd::serde::read_serde(in.y_dim(), &y_dim);
+    hstd::serde::read_serde(in.anchor_fixed(), &anchor_fixed);
+    hstd::serde::read_serde(in.anchor_relative(), &anchor_relative);
 
     *out = kiwi_ir::RelativeConstraint(
         in.fixed_rect_id(),
@@ -437,7 +380,7 @@ void hstd::serde::proto_serde<proto::EvenGapConstraint, kiwi_ir::EvenGapConstrai
     out->clear_rects_spec();
 
     for (kiwi_ir::RectSpec2Side const& spec : in.rects_spec) {
-        write_message(out->add_rects_spec(), spec);
+        hstd::serde::write_serde(out->add_rects_spec(), spec);
     }
 
     out->set_strength(static_cast<proto::Strength>(in.strength));
@@ -451,7 +394,7 @@ void hstd::serde::proto_serde<proto::EvenGapConstraint, kiwi_ir::EvenGapConstrai
 
     for (proto::RectSpec2Side const& spec : in.rects_spec()) {
         kiwi_ir::RectSpec2Side value;
-        read_message(spec, &value);
+        hstd::serde::read_serde(spec, &value);
         specs.push_back(std::move(value));
     }
 
@@ -481,9 +424,9 @@ void hstd::serde::proto_serde<proto::EqualSizeConstraint, kiwi_ir::EqualSizeCons
 void hstd::serde::proto_serde<proto::LinearConstraint, kiwi_ir::LinearConstraint>::write(
     proto::LinearConstraint*         out,
     kiwi_ir::LinearConstraint const& in) {
-    write_message(out->mutable_left(), in.left);
+    hstd::serde::write_serde(out->mutable_left(), in.left);
     out->set_relation(static_cast<proto::Relation>(in.relation));
-    write_message(out->mutable_right(), in.right);
+    hstd::serde::write_serde(out->mutable_right(), in.right);
     out->set_strength(static_cast<proto::Strength>(in.strength));
 }
 
@@ -493,8 +436,8 @@ void hstd::serde::proto_serde<proto::LinearConstraint, kiwi_ir::LinearConstraint
     kiwi_ir::Expr left(0.0);
     kiwi_ir::Expr right(0.0);
 
-    read_message(in.left(), &left);
-    read_message(in.right(), &right);
+    hstd::serde::read_serde(in.left(), &left);
+    hstd::serde::read_serde(in.right(), &right);
 
     *out = kiwi_ir::LinearConstraint(
         left,
@@ -508,23 +451,23 @@ void hstd::serde::
         proto::ConstraintSpec*                     out,
         hstd::SPtr<kiwi_ir::ConstraintBase> const& in) {
     if (auto value = std::dynamic_pointer_cast<kiwi_ir::AlignConstraint>(in)) {
-        write_message(out->mutable_align(), *value);
+        hstd::serde::write_serde(out->mutable_align(), *value);
     } else if (auto value = std::dynamic_pointer_cast<kiwi_ir::SeparateConstraint>(in)) {
-        write_message(out->mutable_separate(), *value);
+        hstd::serde::write_serde(out->mutable_separate(), *value);
     } else if (
         auto value = std::dynamic_pointer_cast<kiwi_ir::MultiSeparateConstraint>(in)) {
-        write_message(out->mutable_multi_separate(), *value);
+        hstd::serde::write_serde(out->mutable_multi_separate(), *value);
     } else if (
         auto value = std::dynamic_pointer_cast<kiwi_ir::ParentWrapConstraint>(in)) {
-        write_message(out->mutable_parent_wrap(), *value);
+        hstd::serde::write_serde(out->mutable_parent_wrap(), *value);
     } else if (auto value = std::dynamic_pointer_cast<kiwi_ir::RelativeConstraint>(in)) {
-        write_message(out->mutable_relative(), *value);
+        hstd::serde::write_serde(out->mutable_relative(), *value);
     } else if (auto value = std::dynamic_pointer_cast<kiwi_ir::EvenGapConstraint>(in)) {
-        write_message(out->mutable_even_gap(), *value);
+        hstd::serde::write_serde(out->mutable_even_gap(), *value);
     } else if (auto value = std::dynamic_pointer_cast<kiwi_ir::EqualSizeConstraint>(in)) {
-        write_message(out->mutable_equal_size(), *value);
+        hstd::serde::write_serde(out->mutable_equal_size(), *value);
     } else if (auto value = std::dynamic_pointer_cast<kiwi_ir::LinearConstraint>(in)) {
-        write_message(out->mutable_linear(), *value);
+        hstd::serde::write_serde(out->mutable_linear(), *value);
     } else {
         throw std::domain_error("Unsupported ConstraintBase subtype");
     }
@@ -538,7 +481,7 @@ void hstd::serde::
         case proto::ConstraintSpec::kAlign: {
             auto value = std::make_shared<kiwi_ir::AlignConstraint>(
                 hstd::Vec<kiwi_ir::AlignItem>{});
-            read_message(in.align(), value.get());
+            hstd::serde::read_serde(in.align(), value.get());
             *out = std::move(value);
             return;
         }
@@ -546,7 +489,7 @@ void hstd::serde::
         case proto::ConstraintSpec::kSeparate: {
             auto value = std::make_shared<kiwi_ir::SeparateConstraint>(
                 kiwi_ir::RectSpec1Side{}, kiwi_ir::RectSpec1Side{}, 0.0);
-            read_message(in.separate(), value.get());
+            hstd::serde::read_serde(in.separate(), value.get());
             *out = std::move(value);
             return;
         }
@@ -554,7 +497,7 @@ void hstd::serde::
         case proto::ConstraintSpec::kMultiSeparate: {
             auto value = std::make_shared<kiwi_ir::MultiSeparateConstraint>(
                 hstd::Vec<hstd::Vec<kiwi_ir::RectSpec1Side>>{}, 0.0);
-            read_message(in.multi_separate(), value.get());
+            hstd::serde::read_serde(in.multi_separate(), value.get());
             *out = std::move(value);
             return;
         }
@@ -562,7 +505,7 @@ void hstd::serde::
         case proto::ConstraintSpec::kParentWrap: {
             auto value = std::make_shared<kiwi_ir::ParentWrapConstraint>(
                 hstd::Str{}, hstd::Vec<hstd::Str>{});
-            read_message(in.parent_wrap(), value.get());
+            hstd::serde::read_serde(in.parent_wrap(), value.get());
             *out = std::move(value);
             return;
         }
@@ -573,7 +516,7 @@ void hstd::serde::
                 hstd::Str{},
                 kiwi_ir::RelDimensionSpec{},
                 kiwi_ir::RelDimensionSpec{});
-            read_message(in.relative(), value.get());
+            hstd::serde::read_serde(in.relative(), value.get());
             *out = std::move(value);
             return;
         }
@@ -581,7 +524,7 @@ void hstd::serde::
         case proto::ConstraintSpec::kEvenGap: {
             auto value = std::make_shared<kiwi_ir::EvenGapConstraint>(
                 hstd::Vec<kiwi_ir::RectSpec2Side>{});
-            read_message(in.even_gap(), value.get());
+            hstd::serde::read_serde(in.even_gap(), value.get());
             *out = std::move(value);
             return;
         }
@@ -589,7 +532,7 @@ void hstd::serde::
         case proto::ConstraintSpec::kEqualSize: {
             auto value = std::make_shared<kiwi_ir::EqualSizeConstraint>(
                 hstd::Str{}, hstd::Str{});
-            read_message(in.equal_size(), value.get());
+            hstd::serde::read_serde(in.equal_size(), value.get());
             *out = std::move(value);
             return;
         }
@@ -597,7 +540,7 @@ void hstd::serde::
         case proto::ConstraintSpec::kLinear: {
             auto value = std::make_shared<kiwi_ir::LinearConstraint>(
                 kiwi_ir::Expr(0.0), kiwi_ir::Relation::EQ, kiwi_ir::Expr(0.0));
-            read_message(in.linear(), value.get());
+            hstd::serde::read_serde(in.linear(), value.get());
             *out = std::move(value);
             return;
         }
@@ -615,7 +558,7 @@ void hstd::serde::proto_serde<proto::ConstraintEntry, kiwi_ir::ConstraintEntry>:
     if (std::holds_alternative<hstd::Str>(in.source)) {
         out->set_source_text(std::get<hstd::Str>(in.source));
     } else {
-        write_message(
+        hstd::serde::write_serde(
             out->mutable_constraint(),
             std::get<hstd::SPtr<kiwi_ir::ConstraintBase>>(in.source));
     }
@@ -623,7 +566,7 @@ void hstd::serde::proto_serde<proto::ConstraintEntry, kiwi_ir::ConstraintEntry>:
     out->clear_lowered();
 
     for (kiwi_ir::Constraint const& constraint : in.lowered) {
-        write_message(out->add_lowered(), constraint);
+        hstd::serde::write_serde(out->add_lowered(), constraint);
     }
 }
 
@@ -635,7 +578,7 @@ void hstd::serde::proto_serde<proto::ConstraintEntry, kiwi_ir::ConstraintEntry>:
 
         case proto::ConstraintEntry::kConstraint: {
             hstd::SPtr<kiwi_ir::ConstraintBase> value;
-            read_message(in.constraint(), &value);
+            hstd::serde::read_serde(in.constraint(), &value);
             out->source = std::move(value);
             break;
         }
@@ -651,7 +594,7 @@ void hstd::serde::proto_serde<proto::ConstraintEntry, kiwi_ir::ConstraintEntry>:
         kiwi_ir::Expr       lhs(0.0);
         kiwi_ir::Expr       rhs(0.0);
         kiwi_ir::Constraint value(lhs, rhs, kiwi::OP_EQ);
-        read_message(constraint, &value);
+        hstd::serde::read_serde(constraint, &value);
         out->lowered.push_back(std::move(value));
     }
 }

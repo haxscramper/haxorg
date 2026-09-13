@@ -16,7 +16,18 @@
               { "id": "c4", "graphviz": {"width": 10, "height": 10} },
               { "id": "c5", "graphviz": {"width": 10, "height": 10} },
               { "id": "c6", "graphviz": {"width": 10, "height": 10} },
-              { "id": "c7", "graphviz": {"width": 10, "height": 10} }
+              { "id": "c7", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c8", "graphviz": {"width": 10, "height": 10} }
+            ],
+            "edges"   : [
+              {"id": "c1-c2", "source": "c1", "target": "c2", "graphviz": {}},
+              {"id": "c2-c3", "source": "c2", "target": "c3", "graphviz": {}},
+              {"id": "c3-c4", "source": "c3", "target": "c4", "graphviz": {}},
+              {"id": "c4-c5", "source": "c4", "target": "c5", "graphviz": {}},
+              {"id": "c5-c6", "source": "c5", "target": "c6", "graphviz": {}},
+              {"id": "c6-c7", "source": "c6", "target": "c7", "graphviz": {}},
+              {"id": "c7-c8", "source": "c7", "target": "c8", "graphviz": {}},
+              {"id": "c8-c1", "source": "c8", "target": "c1", "graphviz": {}}
             ],
             "graphviz": {"circo": {}}
           },
@@ -27,6 +38,12 @@
               { "id": "d2", "graphviz": {"width": 10, "height": 10} },
               { "id": "d3", "graphviz": {"width": 10, "height": 10} },
               { "id": "d4", "graphviz": {"width": 10, "height": 10} }
+            ],
+            "edges"   : [
+              {"id": "d1-d2", "source": "d1", "target": "d2", "graphviz": {}},
+              {"id": "d1-d3", "source": "d1", "target": "d3", "graphviz": {}},
+              {"id": "d2-d4", "source": "d2", "target": "d4", "graphviz": {}},
+              {"id": "d3-d4", "source": "d3", "target": "d4", "graphviz": {}}
             ],
             "graphviz": {"dot": {}}
           }
