@@ -2,12 +2,32 @@
 
 #include <hstd/ext/graph/base/graph_common.hpp>
 #include <hstd/ext/graph/visual/graph_visual.hpp>
+#include <hstd/ext/hstd_serde_dispatch.hpp>
 #include <hstd/stdlib/MapFormatter.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
 #include <hstd/stdlib/VecFormatter.hpp>
 
+#include <hstd/ext/hstd_serde_dispatch.hpp>
+#include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
+#include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
+
+namespace hstd::serde {
+using VisualAttributePayloadTypes = boost::mp11::mp_list<
+    hstd::ext::graph::gv::proto::GroupAttributePayload,
+    hstd::ext::graph::gv::proto::EdgeAttributePayload,
+    hstd::ext::graph::gv::proto::NodeAttributePayload,
+    hstd::ext::graph::kw::proto::KiwiVertexVisualAttributePayload,
+    hstd::ext::graph::kw::proto::KiwiGroupVisualAttributePayload,
+    hstd::ext::graph::kw::proto::KiwiEdgeVisualAttributePayload
+    //
+    >;
+
+}
+
 namespace hstd::ext::graph {
+
+
 class VisualFactory : public IGraphSerialReaderFactory {
   public:
     hstd::SPtr<layout::LayoutRun> run;
