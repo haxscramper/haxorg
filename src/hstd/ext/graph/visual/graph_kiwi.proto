@@ -96,6 +96,8 @@ message KiwiLinearConstraintPayload {
   hstd.ext.kiwi_ir.proto.Expr lhs = 2;
   hstd.ext.kiwi_ir.proto.Expr rhs = 3;
   hstd.ext.kiwi_ir.proto.Relation op = 4;
+  // stable ID for the parent group of the payload. 1
+  string ctx_group_id = 5 [(buf.validate.field).string.min_len = 1];
 }
 
 message KiwiRelativeConstraintPayload {

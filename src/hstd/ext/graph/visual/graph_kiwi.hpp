@@ -104,6 +104,7 @@ class KiwiGroup
   public:
     struct SharedCtx {
         hstd::SPtr<layout::LayoutRun> run;
+        hstd::SPtr<kiwi_ir::KiwiCtx>  kiwi_ctx;
     };
 
     struct LocalCtx {
@@ -145,7 +146,7 @@ class KiwiGroup
         : layout::IGroupVisualAttribute{ctx->run}
         , shared{ctx}
         , local{.name = name}
-        , rect{name} {}
+        , rect{*shared->kiwi_ctx, name} {}
 
     hstd::SPtr<layout::LayoutRun> const& getRun() const { return shared->run; }
 
@@ -475,20 +476,19 @@ class LinearConstraint : public KiwiConstraint {
         override {
         hstd::ext::graph::kw::proto::KiwiLinearConstraintPayload load;
         in->payload().UnpackTo(&load);
-        rel = static_cast<kiwi_ir::Relation>(load.op());
+        rel        = static_cast<kiwi_ir::Relation>(load.op());
+        auto group = graph->getVertex(graph->getVertexIDByStableId(load.ctx_group_id()))
+                         ->getUniqueAttribute<KiwiGroup>();
 
         kiwi_ir::Expr::VariableResolver resolve =
-            [graph](
+            [graph, group](
                 std::string const& stableId, kiwi_ir::RectAttr attr) -> kiwi_ir::Expr {
-            VertexID id   = graph->getVertexIDByStableId(stableId);
-            auto     vert = graph->getVertex(id);
-            if (vert->hasOptionalAttribute<KiwiGroup>()) {
-                return vert->getUniqueAttribute<KiwiGroup>(graph->getDebug(id))
-                    ->rect.expr(attr);
-            } else {
-                return vert->getUniqueAttribute<KiwiVertexAttribute>(graph->getDebug(id))
-                    ->rect.expr(attr);
-            }
+            // Trivial reader for the graph structure: rectangle placement, verification
+            // of the correct rectangle nesting and other elements is handled during
+            // kiwi layout, at de-serialization stage the only important thing is to
+            // not reference the non-existent vertex.
+            auto id = graph->getVertexIDByStableId(stableId);
+            return kiwi_ir::Rect(*group->shared->kiwi_ctx, stableId).expr(attr);
         };
 
         lhs = kiwi_ir::Expr::readSerial(load.lhs(), resolve);

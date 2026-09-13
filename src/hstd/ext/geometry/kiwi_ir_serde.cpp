@@ -139,7 +139,8 @@ void hstd::serde::proto_serde<proto::Rect, kiwi_ir::Rect>::read(
 
     if (in.has_height0()) { height0 = in.height0(); }
 
-    *out = kiwi_ir::Rect(in.rect_id(), x0, y0, width0, height0);
+    logic_todo_impl();
+    // *out = kiwi_ir::Rect(in.rect_id(), x0, y0, width0, height0);
 }
 
 void hstd::serde::proto_serde<proto::EdgeDesc, kiwi_ir::EdgeDesc>::write(

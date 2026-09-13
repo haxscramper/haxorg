@@ -13,11 +13,10 @@ static void write_outputs(Layout& layout, Opt<Str> name_r = std::nullopt) {
 }
 
 TEST(KiwiIr, AlignAndSeparate) {
-    Vec<Rect> rects = {
-        Rect("a", 10, 20, 40, 30),
-        Rect("b", std::nullopt, std::nullopt, 40, 30),
-        Rect("c", std::nullopt, std::nullopt, 40, 30),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "a", 10, 20, 40, 30));
+    ctx->add_rect(Rect(*ctx, "b", std::nullopt, std::nullopt, 40, 30));
+    ctx->add_rect(Rect(*ctx, "c", std::nullopt, std::nullopt, 40, 30));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<AlignConstraint>(Vec<AlignItem>{
             {"a", AlignSpec{.anchor = Anchor::TOP}},
@@ -28,10 +27,12 @@ TEST(KiwiIr, AlignAndSeparate) {
         std::make_shared<SeparateConstraint>(
             RectSpec1Side("c", Anchor::LEFT), RectSpec1Side("b", Anchor::RIGHT), 15),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
     write_outputs(layout);
+
+    auto const& solved = layout.getSolved();
 
     auto rect_a = solved.at("a").getGeometry();
     auto rect_b = solved.at("b").getGeometry();
@@ -46,11 +47,11 @@ TEST(KiwiIr, AlignAndSeparate) {
 }
 
 TEST(KiwiIr, EvenGapX) {
-    Vec<Rect> rects = {
-        Rect("a", 10, 10, 20, 20),
-        Rect("b", std::nullopt, 10, 20, 20),
-        Rect("c", 110, 10, 20, 20),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+
+    ctx->add_rect(Rect(*ctx, "a", 10, 10, 20, 20));
+    ctx->add_rect(Rect(*ctx, "b", std::nullopt, 10, 20, 20));
+    ctx->add_rect(Rect(*ctx, "c", 110, 10, 20, 20));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
             RectSpec2Side::HorizontalRectBounds("a"),
@@ -58,8 +59,9 @@ TEST(KiwiIr, EvenGapX) {
             RectSpec2Side::HorizontalRectBounds("c"),
         }),
     };
-    Layout layout(rects, constraints);
-    auto   solved = layout.solve();
+    Layout layout(ctx, constraints);
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
 
     auto rect_a = solved.at("a").getGeometry();
@@ -70,12 +72,11 @@ TEST(KiwiIr, EvenGapX) {
 }
 
 TEST(KiwiIr, ParentWrapAndRelative) {
-    Vec<Rect> rects = {
-        Rect("nested1", 20, 30, 30, 10),
-        Rect("nested2", 70, 60, 20, 20),
-        Rect("parent"),
-        Rect("inner"),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "nested1", 20, 30, 30, 10));
+    ctx->add_rect(Rect(*ctx, "nested2", 70, 60, 20, 20));
+    ctx->add_rect(Rect(*ctx, "parent"));
+    ctx->add_rect(Rect(*ctx, "inner"));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<ParentWrapConstraint>(
             /*parent_rect_id=*/"parent",
@@ -95,9 +96,10 @@ TEST(KiwiIr, ParentWrapAndRelative) {
             /*anchor_fixed=*/AnchorSpec::CenterCenter(),
             /*anchor_relative=*/AnchorSpec::UpperLeft()),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
 
     auto rect_parent = solved.at("parent").getGeometry();
@@ -115,12 +117,11 @@ TEST(KiwiIr, ParentWrapAndRelative) {
 }
 
 TEST(KiwiIr, LinearAndEqualSize) {
-    Vec<Rect> rects = {
-        Rect("a", 10, 10, 40, 25),
-        Rect("b", std::nullopt, 50, std::nullopt, std::nullopt),
-    };
-    Rect&                           a           = rects[0];
-    Rect&                           b           = rects[1];
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "a", 10, 10, 40, 25));
+    ctx->add_rect(Rect(*ctx, "b", std::nullopt, 50, std::nullopt, std::nullopt));
+    Rect&                           a           = ctx->rects.at("a");
+    Rect&                           b           = ctx->rects.at("b");
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EqualSizeConstraint>("a", "b", false, true),
         std::make_shared<LinearConstraint>(
@@ -128,9 +129,10 @@ TEST(KiwiIr, LinearAndEqualSize) {
         std::make_shared<LinearConstraint>(
             b.expr(RectAttr::WIDTH), Relation::EQ, a.expr(RectAttr::WIDTH) + 20),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
 
     auto rect_a = solved.at("a").getGeometry();
@@ -143,17 +145,16 @@ TEST(KiwiIr, LinearAndEqualSize) {
 }
 
 TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
-    Vec<Rect> rects = {
-        Rect("r00", 0, 0, 20, 10),
-        Rect("r01", std::nullopt, 0, 20, 10),
-        Rect("r02", 80, 0, 20, 10),
-        Rect("r10", std::nullopt, 30, 20, 10),
-        Rect("r11", std::nullopt, 30, 20, 10),
-        Rect("r12", std::nullopt, 30, 20, 10),
-        Rect("r20", std::nullopt, 60, 20, 10),
-        Rect("r21", std::nullopt, 60, 20, 10),
-        Rect("r22", std::nullopt, 60, 20, 10),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "r00", 0, 0, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r01", std::nullopt, 0, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r02", 80, 0, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r10", std::nullopt, 30, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r11", std::nullopt, 30, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r12", std::nullopt, 30, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r20", std::nullopt, 60, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r21", std::nullopt, 60, 20, 10));
+    ctx->add_rect(Rect(*ctx, "r22", std::nullopt, 60, 20, 10));
     auto                            la          = AlignSpec{.anchor = Anchor::LEFT};
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
@@ -187,9 +188,10 @@ TEST(KiwiIr, MultiSeparateAndEvenGapRows) {
                 }},
             /*step=*/30),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
 
     auto rect_r01 = solved.at("r01").getGeometry();
@@ -222,11 +224,13 @@ TEST(KiwiIr, MultiSeparateGrid) {
             RectSpec1Side::Top("g22"),
         },
     };
-    Vec<Rect> rects = {Rect("g00", 0, 0, 10, 10)};
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "g00", 0, 0, 10, 10));
     for (auto const& row : ids) {
         for (auto const& rid : row) {
             if (rid.rect_id != "g00") {
-                rects.push_back(Rect(rid.rect_id, std::nullopt, std::nullopt, 10, 10));
+                ctx->add_rect(
+                    Rect(*ctx, rid.rect_id, std::nullopt, std::nullopt, 10, 10));
             }
         }
     }
@@ -269,9 +273,10 @@ TEST(KiwiIr, MultiSeparateGrid) {
         constraints.push_back(std::make_shared<AlignConstraint>(col_items));
     }
 
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
 
     auto rect_g12 = solved.at("g12").getGeometry();
@@ -286,14 +291,13 @@ TEST(KiwiIr, MultiSeparateGrid) {
 }
 
 TEST(KiwiIr, EvenGapParentsAndRelative) {
-    Vec<Rect> rects = {
-        Rect("fix1", 0, 0, 100, 60),
-        Rect("fix2", std::nullopt, 0, 100, 60),
-        Rect("fix3", 300, 0, 100, 60),
-        Rect("rel1"),
-        Rect("rel2"),
-        Rect("rel3"),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "fix1", 0, 0, 100, 60));
+    ctx->add_rect(Rect(*ctx, "fix2", std::nullopt, 0, 100, 60));
+    ctx->add_rect(Rect(*ctx, "fix3", 300, 0, 100, 60));
+    ctx->add_rect(Rect(*ctx, "rel1"));
+    ctx->add_rect(Rect(*ctx, "rel2"));
+    ctx->add_rect(Rect(*ctx, "rel3"));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
             RectSpec2Side::HorizontalRectBounds("fix1"),
@@ -323,9 +327,10 @@ TEST(KiwiIr, EvenGapParentsAndRelative) {
             /*anchor_relative=*/AnchorSpec::UpperLeft()),
     };
 
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
 
     auto rect_p2 = solved.at("fix2").getGeometry();
@@ -340,38 +345,39 @@ TEST(KiwiIr, EvenGapParentsAndRelative) {
 }
 
 TEST(KiwiIr, VerifyPass) {
-    Vec<Rect> rects = {
-        Rect("a", 0, 0, 10, 10),
-        Rect("b", std::nullopt, 0, 10, 10),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "a", 0, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "b", std::nullopt, 0, 10, 10));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<SeparateConstraint>(
             RectSpec1Side("b", Anchor::LEFT), RectSpec1Side("a", Anchor::RIGHT), 5),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     EXPECT_NO_THROW(layout.verify_constraints());
 }
 
 TEST(KiwiIr, VerifyPassWeakConflict) {
-    Vec<Rect>                       rects       = {Rect("a")};
-    Rect&                           a           = rects[0];
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "a"));
+    Rect&                           a           = ctx->rects.at("a");
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<LinearConstraint>(
             a.expr(RectAttr::X), Relation::EQ, Expr(0), Strength::WEAK),
         std::make_shared<LinearConstraint>(
             a.expr(RectAttr::X), Relation::EQ, Expr(100), Strength::WEAK),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     EXPECT_NO_THROW(layout.verify_constraints());
 }
 
 TEST(KiwiIr, VerifyFailPinConflict) {
-    Vec<Rect> rects = {Rect("a", 0, std::nullopt, std::nullopt, std::nullopt)};
-    Rect&     a     = rects[0];
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "a", 0, std::nullopt, std::nullopt, std::nullopt));
+    Rect&                           a           = ctx->rects.at("a");
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<LinearConstraint>(a.expr(RectAttr::X), Relation::EQ, Expr(10)),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
 
     try {
         layout.verify_constraints();
@@ -384,14 +390,16 @@ TEST(KiwiIr, VerifyFailPinConflict) {
 }
 
 TEST(KiwiIr, VerifyFailMutuallyExclusiveSeparate) {
-    Vec<Rect>                       rects       = {Rect("a"), Rect("b")};
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "a"));
+    ctx->add_rect(Rect(*ctx, "b"));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<SeparateConstraint>(
             RectSpec1Side("b", Anchor::LEFT), RectSpec1Side("a", Anchor::RIGHT), 5),
         std::make_shared<SeparateConstraint>(
             RectSpec1Side("b", Anchor::LEFT), RectSpec1Side("a", Anchor::RIGHT), 7),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
 
     try {
         layout.verify_constraints();
@@ -409,14 +417,13 @@ TEST(KiwiIr, VerifyFailMutuallyExclusiveSeparate) {
 /// \brief Verify the even gap constraint can be linked with other
 /// constraint that provides a fixed spacing between the nodes.
 TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
-    Vec<Rect> rects = {
-        Rect("a", 0, 0, 10, 10),
-        Rect("b", std::nullopt, 0, 10, 10),
-        Rect("c", std::nullopt, 0, 10, 10),
-        Rect("d", std::nullopt, 0, 10, 10),
-        Rect("e", std::nullopt, 0, 10, 10),
-        Rect("f", std::nullopt, 0, 10, 10),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "a", 0, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "b", std::nullopt, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "c", std::nullopt, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "d", std::nullopt, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "e", std::nullopt, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "f", std::nullopt, 0, 10, 10));
     double                          step        = 40.0;
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<EvenGapConstraint>(Vec<RectSpec2Side>{
@@ -435,9 +442,10 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
                 {RectSpec1Side::Left("c")}},
             /*step=*/step),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout, "run1");
 
     auto rect_a = solved.at("a").getGeometry();
@@ -463,9 +471,10 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
             {RectSpec1Side::Left("c")},
             {RectSpec1Side::Left("e")}},
         new_step);
-    Layout layout2(rects, constraints);
+    Layout layout2(ctx, constraints);
     layout2.verify_constraints();
-    auto solved2 = layout2.solve();
+    layout2.solve();
+    auto const& solved2 = layout.getSolved();
     write_outputs(layout2, "run2");
     auto rect_a2 = solved2.at("a").getGeometry();
     auto rect_b2 = solved2.at("b").getGeometry();
@@ -481,11 +490,10 @@ TEST(KiwiIr, EvenGapWithMultiSeparateChangeDistance) {
 }
 
 TEST(KiwiIr, ConflictingMultiSeparate) {
-    Vec<Rect> rects = {
-        Rect("x", 0, 0, 10, 10),
-        Rect("y", std::nullopt, 0, 10, 10),
-        Rect("z", std::nullopt, 0, 10, 10),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "x", 0, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "y", std::nullopt, 0, 10, 10));
+    ctx->add_rect(Rect(*ctx, "z", std::nullopt, 0, 10, 10));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<MultiSeparateConstraint>(
             /*groups=*/
@@ -502,7 +510,7 @@ TEST(KiwiIr, ConflictingMultiSeparate) {
             },
             /*step=*/30),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     try {
         layout.verify_constraints();
         FAIL() << "Expected constraint conflict";
@@ -513,10 +521,12 @@ TEST(KiwiIr, ConflictingMultiSeparate) {
 }
 
 TEST(KiwiIr, PinNodeLocation) {
-    Vec<Rect> rects = {Rect("pinned", 42, 10, 30, 20)};
-    Layout    layout(rects, {});
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "pinned", 42, 10, 30, 20));
+    Layout layout(ctx, {});
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
     auto rect_p = solved.at("pinned").getGeometry();
     EXPECT_NEAR(rect_p.x(), 42, 1e-6);
@@ -526,21 +536,21 @@ TEST(KiwiIr, PinNodeLocation) {
 }
 
 TEST(KiwiIr, PinAndLeftOf) {
-    Vec<Rect> rects = {
-        Rect("static", 100, 0, 20, 20),
-        Rect("movable", std::nullopt, 0, 15, 15),
-    };
-    Rect&                           s           = rects[0];
-    Rect&                           m           = rects[1];
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "static", 100, 0, 20, 20));
+    ctx->add_rect(Rect(*ctx, "movable", std::nullopt, 0, 15, 15));
+    Rect&                           s           = ctx->rects.at("static");
+    Rect&                           m           = ctx->rects.at("movable");
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<LinearConstraint>(
             m.expr(RectAttr::X) + m.expr(RectAttr::WIDTH),
             Relation::LE,
             s.expr(RectAttr::X)),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
     auto rect_s = solved.at("static").getGeometry();
     auto rect_m = solved.at("movable").getGeometry();
@@ -549,14 +559,13 @@ TEST(KiwiIr, PinAndLeftOf) {
 }
 
 TEST(KiwiIr, LeftOfAndBelow) {
-    Vec<Rect> rects = {
-        Rect("leftStatic", 0, 0, 20, 20),
-        Rect("rightStatic", 100, 0, 20, 20),
-        Rect("target", std::nullopt, std::nullopt, 15, 15),
-    };
-    Rect&                           ls          = rects[0];
-    Rect&                           rs          = rects[1];
-    Rect&                           t           = rects[2];
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "leftStatic", 0, 0, 20, 20));
+    ctx->add_rect(Rect(*ctx, "rightStatic", 100, 0, 20, 20));
+    ctx->add_rect(Rect(*ctx, "target", std::nullopt, std::nullopt, 15, 15));
+    Rect&                           ls          = ctx->rects.at("leftStatic");
+    Rect&                           rs          = ctx->rects.at("rightStatic");
+    Rect&                           t           = ctx->rects.at("target");
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<LinearConstraint>(
             t.expr(RectAttr::X) + t.expr(RectAttr::WIDTH),
@@ -567,9 +576,10 @@ TEST(KiwiIr, LeftOfAndBelow) {
             Relation::GE,
             ls.expr(RectAttr::Y) + ls.expr(RectAttr::HEIGHT)),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
     auto rect_ls = solved.at("leftStatic").getGeometry();
     auto rect_rs = solved.at("rightStatic").getGeometry();
@@ -579,18 +589,17 @@ TEST(KiwiIr, LeftOfAndBelow) {
 }
 
 TEST(KiwiIr, BoundedAllSides) {
-    Vec<Rect> rects = {
-        Rect("leftWall", 0, 0, 10, 100),
-        Rect("rightWall", 200, 0, 10, 100),
-        Rect("topWall", 0, 0, 210, 10),
-        Rect("bottomWall", 0, 150, 210, 10),
-        Rect("center", std::nullopt, std::nullopt, 30, 30),
-    };
-    Rect&                           lw          = rects[0];
-    Rect&                           rw          = rects[1];
-    Rect&                           tw          = rects[2];
-    Rect&                           bw          = rects[3];
-    Rect&                           c           = rects[4];
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "leftWall", 0, 0, 10, 100));
+    ctx->add_rect(Rect(*ctx, "rightWall", 200, 0, 10, 100));
+    ctx->add_rect(Rect(*ctx, "topWall", 0, 0, 210, 10));
+    ctx->add_rect(Rect(*ctx, "bottomWall", 0, 150, 210, 10));
+    ctx->add_rect(Rect(*ctx, "center", std::nullopt, std::nullopt, 30, 30));
+    Rect&                           lw          = ctx->rects.at("leftWall");
+    Rect&                           rw          = ctx->rects.at("rightWall");
+    Rect&                           tw          = ctx->rects.at("topWall");
+    Rect&                           bw          = ctx->rects.at("bottomWall");
+    Rect&                           c           = ctx->rects.at("center");
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<LinearConstraint>(
             c.expr(RectAttr::X),
@@ -609,9 +618,10 @@ TEST(KiwiIr, BoundedAllSides) {
             Relation::LE,
             bw.expr(RectAttr::Y)),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
     auto rect_c  = solved.at("center").getGeometry();
     auto rect_lw = solved.at("leftWall").getGeometry();
@@ -625,10 +635,9 @@ TEST(KiwiIr, BoundedAllSides) {
 }
 
 TEST(KiwiIr, RelativeOutsideParent) {
-    Vec<Rect> rects = {
-        Rect("parent", 50, 50, 100, 100),
-        Rect("nested"),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "parent", 50, 50, 100, 100));
+    ctx->add_rect(Rect(*ctx, "nested"));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<RelativeConstraint>(
             /*parent_rect_id=*/"parent",
@@ -636,9 +645,10 @@ TEST(KiwiIr, RelativeOutsideParent) {
             RelDimensionSpec{.absolute_offset = -20},
             RelDimensionSpec{.absolute_offset = -30}),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
     auto rect_parent = solved.at("parent").getGeometry();
     auto rect_nested = solved.at("nested").getGeometry();
@@ -649,10 +659,9 @@ TEST(KiwiIr, RelativeOutsideParent) {
 }
 
 TEST(KiwiIr, RelativeVariations) {
-    Vec<Rect> rects = {
-        Rect("fix", 0, 0, 100, 80),
-        Rect("rel"),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "fix", 0, 0, 100, 80));
+    ctx->add_rect(Rect(*ctx, "rel"));
     // width factor 0.5, height factor 0.6, right-bottom anchors on both
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<RelativeConstraint>(
@@ -663,9 +672,10 @@ TEST(KiwiIr, RelativeVariations) {
             /*anchor_fixed=*/AnchorSpec::LowerRight(),
             /*anchor_relative=*/AnchorSpec::LowerRight()),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
     auto rect_p = solved.at("fix").getGeometry();
     auto rect_c = solved.at("rel").getGeometry();
@@ -676,11 +686,10 @@ TEST(KiwiIr, RelativeVariations) {
 }
 
 TEST(KiwiIr, EqualSizeWithParentWrap) {
-    Vec<Rect> rects = {
-        Rect("parent"),
-        Rect("nested"),
-        Rect("other", std::nullopt, 0, 10, 10),
-    };
+    auto ctx = std::make_shared<KiwiCtx>();
+    ctx->add_rect(Rect(*ctx, "parent"));
+    ctx->add_rect(Rect(*ctx, "nested"));
+    ctx->add_rect(Rect(*ctx, "other", std::nullopt, 0, 10, 10));
     Vec<hstd::SPtr<ConstraintBase>> constraints = {
         std::make_shared<ParentWrapConstraint>(
             /*parent_rect_id=*/"parent",
@@ -691,9 +700,10 @@ TEST(KiwiIr, EqualSizeWithParentWrap) {
             /*match_width=*/true,
             /*match_height=*/true),
     };
-    Layout layout(rects, constraints);
+    Layout layout(ctx, constraints);
     layout.verify_constraints();
-    auto solved = layout.solve();
+    layout.solve();
+    auto const& solved = layout.getSolved();
     write_outputs(layout);
     auto rect_parent = solved.at("parent").getGeometry();
     auto rect_nested = solved.at("nested").getGeometry();

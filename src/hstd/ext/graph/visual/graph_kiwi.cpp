@@ -57,6 +57,7 @@ struct single_layout_run_state {
             } else {
                 kiwi_rects.push_back(
                     kiwi_ir::Rect(
+                        *root_group->shared->kiwi_ctx,
                         rect_id(id),
                         // sub-group placement is controlled by the current
                         // single layout run, so any x/y coordinates from
@@ -94,7 +95,7 @@ struct single_layout_run_state {
     }
 
     void run_solver() {
-        kiwi_ir::Layout layout(kiwi_rects, kiwi_constraints);
+        kiwi_ir::Layout layout(root_group->shared->kiwi_ctx, kiwi_constraints);
 
         OP_TRACER_MESSAGE(run, "constraint repr:\n{}", layout.format_variables());
 
@@ -106,7 +107,8 @@ struct single_layout_run_state {
 
 
         layout.verify_constraints();
-        auto solved = layout.solve();
+        layout.solve();
+        auto const& solved = layout.getSolved();
 
         if (run->canTrace()) {
             run->writeAdjacentToTraceFile(
@@ -116,7 +118,16 @@ struct single_layout_run_state {
         ++kiwi_run_counter;
 
         for (auto const& id : solver_nodes) {
-            absolute_rects.insert_or_assign(id, solved.at(rect_id(id)).getGeometry());
+            auto const& rect = solved.at(rect_id(id));
+            absolute_rects.insert_or_assign(id, rect.getGeometry());
+            OP_TRACER_MESSAGE(
+                run,
+                "solved {}: x={} y={} width={} height={}",
+                run->getDebug(id),
+                rect.x.value(),
+                rect.y.value(),
+                rect.width.value(),
+                rect.height.value());
         }
     }
 
@@ -198,7 +209,7 @@ struct single_layout_run_state {
 hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(EdgeID const& edge) {
     auto id    = getRun()->getGraph()->getTarget(edge);
     auto vattr = std::make_shared<KiwiVertexAttribute>(
-        kiwi_ir::Rect{run->getVertex(id)->getStableId()});
+        kiwi_ir::Rect{*shared->kiwi_ctx, run->getVertex(id)->getStableId()});
 
     getRun()->setNestedVertexAttribute(edge, vattr);
     return vattr;
@@ -210,6 +221,7 @@ hstd::SPtr<kw::KiwiVertexAttribute> kw::KiwiGroup::addVertex(
     auto id = getRun()->getGraph()->getTarget(edge);
 
     auto vattr = std::make_shared<KiwiVertexAttribute>(kiwi_ir::Rect{
+        *shared->kiwi_ctx,
         // TODO: See [[kiwi-rectangle-id-knowledge-direction]]
         run->getVertex(id)->getStableId(),
         // TODO: Only set constraint on the rectangle position
@@ -229,7 +241,11 @@ hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
     hstd::SPtr<layout::LayoutRun> run,
     Str const&                    name) {
     auto result = std::make_shared<KiwiGroup>(
-        std::make_shared<SharedCtx>(SharedCtx{.run = run}), name);
+        std::make_shared<SharedCtx>(SharedCtx{
+            .run      = run,
+            .kiwi_ctx = std::make_shared<kiwi_ir::KiwiCtx>(),
+        }),
+        name);
     result->algorithm = std::make_shared<KiwiLayoutAlgorithm>(run);
     return result;
 }
@@ -389,6 +405,7 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::MultiSeparateConstraint::getK
 
 layout::IPlacementAlgorithm::Result kw::KiwiLayoutAlgorithm::runSingleLayout(
     VertexID const& root_id) {
+
     OP_TRACER_MESSAGE_SCOPE(
         run,
         "running single layout for kw::KiwiLayoutAlgorithm {}",
@@ -398,6 +415,7 @@ layout::IPlacementAlgorithm::Result kw::KiwiLayoutAlgorithm::runSingleLayout(
     hstd::logic_assertion_check_not_nil(router);
 
     single_layout_run_state state(root_id, run);
+    hstd::logic_assertion_check_not_nil(state.root_group->shared->kiwi_ctx);
     state.collect_solver_nodes(root_id);
     state.collect_constraints(root_id);
     state.run_solver();
