@@ -16,13 +16,16 @@ std::string unexpected_payload_kind_msg(
     std::string const&             msg,
     hstd::Vec<std::string> const&  expected_payloads) {
     return hstd::fmt(
-        "Unexpected payload URL for vertex '{}': '{}'. {}Expected payloads {}",
+        "Unexpected payload URL for vertex '{}': '{}'. {}Expected payloads:\n{}",
         stable_id,
         payload.type_url(),
         msg,
-        expected_payloads.map<std::string>([](std::string const& value) -> std::string {
-            return hstd::fmt("type.googleapis.com/{}", value);
-        }));
+        hstd::join(
+            "\n"_str_view,
+            expected_payloads.map<std::string>(
+                [](std::string const& value) -> std::string {
+                    return hstd::fmt("type.googleapis.com/{}", value);
+                })));
 }
 } // namespace
 
@@ -108,9 +111,18 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
         }
     };
 
-    auto get_vertex_attribute = [&]<typename AttrType>(std::string const& id) {
-        auto vertex = graph->getVertex(graph->getVertexIDByStableId(id));
+    auto get_vertex_attribute = [&]<typename AttrType, typename PayloadType>(
+                                    PayloadType const& pl, std::string const& message) {
         auto target = hstd::validated_dynamic_cast<IGraphObjectBase>(attr_object);
+        LOGIC_ASSERTION_CHECK_FMT(
+            !pl.parent_stable_id().empty(),
+            "Graph object '{}' has empty parent stable ID. {}",
+            target->getStableId(),
+            message);
+
+        std::string const& id     = pl.parent_stable_id();
+        auto               vertex = graph->getVertex(graph->getVertexIDByStableId(id));
+
         LOGIC_ASSERTION_CHECK_FMT(
             vertex->hasOptionalAttribute<AttrType>(),
             "Cannot get attribute {} from ID {} when building attribute for {}",
@@ -127,15 +139,12 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
                                    IVertex>();
         pl) {
         if (pl->has_parent_stable_id()) {
-            LOGIC_ASSERTION_CHECK_FMT(
-                !pl->parent_stable_id().empty(),
-                "Graphviz group vertex '{}' has empty parent stable ID. "
+            auto group = get_vertex_attribute.operator()<gv::GraphGroup>(
+                *pl,
                 "To create a top-level graphivz layout group, fully omit ID field. "
-                "Existing but empty ID field is interpreted as graphviz cluster.",
-                vertex->getStableId());
-            return get_vertex_attribute
-                .operator()<gv::GraphGroup>(pl->parent_stable_id())
-                ->newSubgraph(vertex->getStableId());
+                "Existing but empty ID field is interpreted as invalid graphviz "
+                "cluster.");
+            return group->newSubgraph(vertex->getStableId());
         } else {
             return gv::GraphGroup::newRootGraph(run, vertex->getStableId());
         }
@@ -148,14 +157,18 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
 
         hstd::SPtr<layout::IGroupVisualAttribute> result;
         if (pl->has_parent_stable_id()) {
+            auto group = get_vertex_attribute.operator()<kw::KiwiGroup>(
+                *pl,
+                //
+                "To create a top-level kiwi layout group, fully omit ID field. "
+                "Existing but empty ID field is interpreted as invalid kiwi cluster.");
+
             auto parent_group_id = graph->getVertexIDByStableId(pl->parent_stable_id());
             auto this_vertex_id  = graph->getVertexIDByStableId(vertex->getStableId());
             auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
                 parent_group_id, this_vertex_id);
 
-            result = get_vertex_attribute
-                         .operator()<kw::KiwiGroup>(pl->parent_stable_id())
-                         ->addNewNativeSubgroup(nesting_edge_id);
+            result = group->addNewNativeSubgroup(nesting_edge_id);
 
         } else {
             result = kw::KiwiGroup::newRootGraph(run);
@@ -175,14 +188,11 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
         auto const& [pl, vertex] = unpack_as.
                                    operator()<gv::proto::NodeAttributePayload, IVertex>();
         pl) {
-        LOGIC_ASSERTION_CHECK_FMT(
-            !pl->parent_stable_id().empty(),
-            "Parent stable ID cannot be set to empty, graphviz "
-            "attribute for node '{}' must have the parent ID "
-            "specified",
-            vertex->getStableId());
-
-        return get_vertex_attribute.operator()<gv::GraphGroup>(pl->parent_stable_id())
+        return get_vertex_attribute
+            .operator()<gv::GraphGroup>(
+                *pl,
+                "Parent ID cannot be set to empty, parent ID must be present in the "
+                "attribute")
             ->node(vertex->getStableId());
 
     } else if (
@@ -191,39 +201,51 @@ hstd::SPtr<hstd::ext::graph::IAttribute> hstd::ext::graph::VisualFactory::newAtt
                                    IVertex>();
         pl) {
 
+        auto group = get_vertex_attribute.operator()<kw::KiwiGroup>(
+            *pl,
+            "Parent ID cannot be set to empty, parent ID must be present in the "
+            "attribute");
+
         auto parent_group_id = graph->getVertexIDByStableId(pl->parent_stable_id());
         auto this_vertex_id  = graph->getVertexIDByStableId(vertex->getStableId());
         auto nesting_edge_id = run->getGroups()->getNestingEdgeID(
             parent_group_id, this_vertex_id);
 
-        return get_vertex_attribute.operator()<kw::KiwiGroup>(pl->parent_stable_id())
-            ->addVertex(
-                nesting_edge_id, geometry::Size(pl->rect().x0(), pl->rect().y0()));
+        return group->addVertex(
+            nesting_edge_id, geometry::Size(pl->rect().x0(), pl->rect().y0()));
 
         // edge payloads
     } else if (
         auto const& [pl, edge] = unpack_as.
                                  operator()<gv::proto::EdgeAttributePayload, IEdge>();
         pl) {
-        LOGIC_ASSERTION_CHECK_FMT(
-            !pl->parent_stable_id().empty(),
-            "Parent stable ID cannot be set to empty, graphviz "
-            "attribute for node '{}' must have the parent ID "
-            "specified",
-            edge->getStableId());
+        auto group = get_vertex_attribute.operator()<gv::GraphGroup>(
+            *pl,
+            "Parent ID cannot be set to empty, parent ID must be present in the "
+            "attribute");
 
         auto edge_id = graph->getEdgeIDByStableId(edge->getStableId());
 
         // get the existing parent attribute object and assign edges to it.
         // the parent vertex attribute should already be created.
-        return get_vertex_attribute.operator()<gv::GraphGroup>(pl->parent_stable_id())
-            ->edge(
-                *graph->getVertex(graph->getSource(edge_id))
-                     ->getUniqueAttribute<gv::NodeAttribute>(),
-                *graph->getVertex(graph->getTarget(edge_id))
-                     ->getUniqueAttribute<gv::NodeAttribute>());
+        return group->edge(
+            *graph->getVertex(graph->getSource(edge_id))
+                 ->getUniqueAttribute<gv::NodeAttribute>(),
+            *graph->getVertex(graph->getTarget(edge_id))
+                 ->getUniqueAttribute<gv::NodeAttribute>());
 
+    } else if (
+        auto const& [pl, edge] = unpack_as.operator()<
+                                 kw::proto::KiwiEdgeVisualAttributePayload,
+                                 IEdge>();
+        pl) {
 
+        auto group = get_vertex_attribute.operator()<kw::KiwiGroup>(
+            *pl,
+            "Parent ID cannot be set to empty, parent ID must be present in the "
+            "attribute");
+
+        return group->addEdge(graph->getEdgeIDByStableId(edge->getStableId()));
     } else {
         throw hstd::logic_unhandled_kind_error::init(unexpected_payload_kind_msg(
             in->payload(),

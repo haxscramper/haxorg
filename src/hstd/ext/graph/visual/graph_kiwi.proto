@@ -21,6 +21,7 @@ message KiwiPortLayoutAttributePayload {
 
 message KiwiEdgeVisualAttributePayload {
   hstd.ext.graph.layout.proto.IEdgeVisualAttributePayload base = 1;
+  string parent_stable_id = 2;
 }
 
 message KiwiEdgeLayoutAttributePayload {

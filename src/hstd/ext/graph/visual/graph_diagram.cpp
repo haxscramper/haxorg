@@ -410,7 +410,9 @@ void appendClusterEdge(
         }
 
         case LayoutKind::Kiwi: {
-            appendAttribute(graphEdge->mutable_attributes(), edge.kiwi());
+            KiwiEdgeVisualAttributePayload payload = edge.kiwi();
+            payload.set_parent_stable_id(cluster.id());
+            appendAttribute(graphEdge->mutable_attributes(), payload);
             break;
         }
     }
@@ -699,9 +701,10 @@ void appendDiaEdge(
                 source, owner)
                 .path();
     } else {
-        throw std::invalid_argument{hstd::fmt(
-            "Edge '{}' contains neither a Graphviz nor a Kiwi attribute",
-            source.stable_id())};
+        throw hstd::invalid_argument::init(
+            hstd::fmt(
+                "Edge '{}' contains neither a Graphviz nor a Kiwi attribute",
+                source.stable_id()));
     }
 }
 

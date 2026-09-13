@@ -84,16 +84,12 @@ class KiwiEdgeAttribute : public layout::IEdgeVisualAttribute {
     std::string getRepr() const override { return "KiwiEdgeAttribute"; }
 #    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
-        const override {
-        logic_todo_impl();
-    }
+        const override {}
     void readSerial(
         hstd::ext::graph::proto::IAttribute const* in,
         IGraph const*                              graph,
         IGraphSerialReaderFactory*                 factory,
-        IAttributeObject const*                    vertex) override {
-        logic_todo_impl();
-    }
+        IAttributeObject const*                    vertex) override {}
 #    endif
 };
 

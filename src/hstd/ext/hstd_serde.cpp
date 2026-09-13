@@ -12,8 +12,10 @@ namespace hstd::serde {
 
 void json_to_struct(json const& in, ::google::protobuf::Struct* out) {
     if (!in.is_object()) {
-        throw std::runtime_error(
-            "VisCustom.extra must be a JSON object for protobuf Struct");
+        throw hstd::runtime_error::init(
+            hstd::fmt(
+                "Input must be a JSON object for protobuf Struct but got {}",
+                in.type_name()));
     }
 
     out->clear_fields();
