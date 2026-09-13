@@ -37,6 +37,10 @@ void appendConstraint(
             *result->mutable_payload() = hstd::serde::packMessage(source.kw_align());
             break;
 
+        case diagram::proto::DiaConstraint::kKwEvenGap:
+            *result->mutable_payload() = hstd::serde::packMessage(source.kw_even_gap());
+            break;
+
         case diagram::proto::DiaConstraint::kKwSeparate:
             *result->mutable_payload() = hstd::serde::packMessage(source.kw_separate());
             break;
@@ -84,6 +88,9 @@ void appendDiaConstraint(
             },
             [&](kw::proto::KiwiLinearConstraintPayload const& pl) {
                 *result->mutable_kw_linear() = pl;
+            },
+            [&](kw::proto::KiwiEvenGapConstraintPayload const& pl) {
+                *result->mutable_kw_even_gap() = pl;
             },
         },
         hstd::serde::unpackVariant<ConstraintPayloadTypes>(payload, clusterId));

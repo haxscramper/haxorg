@@ -61,6 +61,7 @@ message DiaConstraint {
     hstd.ext.graph.kw.proto.KiwiMultiSeparateConstraintPayload kw_multi_separate = 3;
     hstd.ext.graph.kw.proto.KiwiRelativeConstraintPayload kw_relative = 4;
     hstd.ext.graph.kw.proto.KiwiLinearConstraintPayload kw_linear = 5;
+    hstd.ext.graph.kw.proto.KiwiEvenGapConstraintPayload kw_even_gap = 6;
   }
 }
 

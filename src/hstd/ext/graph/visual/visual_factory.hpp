@@ -66,7 +66,8 @@ using ConstraintPayloadTypes = boost::mp11::mp_list<
     kw::proto::KiwiSeparateConstraintPayload,
     kw::proto::KiwiMultiSeparateConstraintPayload,
     kw::proto::KiwiRelativeConstraintPayload,
-    kw::proto::KiwiLinearConstraintPayload
+    kw::proto::KiwiLinearConstraintPayload,
+    kw::proto::KiwiEvenGapConstraintPayload
     //
     >;
 

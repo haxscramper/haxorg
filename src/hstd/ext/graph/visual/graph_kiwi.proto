@@ -109,3 +109,10 @@ message KiwiRelativeConstraintPayload {
   hstd.ext.kiwi_ir.proto.RelDimensionSpec x_dim = 3;
   hstd.ext.kiwi_ir.proto.RelDimensionSpec y_dim = 4;
 }
+
+message KiwiEvenGapConstraintPayload {
+  KiwiConstraintPayloadBase base = 1;
+  hstd.ext.graph.proto.VertexIDVec vertices = 2;
+  hstd.ext.kiwi_ir.proto.Anchor anchor = 3 [(buf.validate.field).enum.defined_only = true];
+  hstd.ext.kiwi_ir.proto.Axis axis = 4 [(buf.validate.field).enum.defined_only = true];
+}

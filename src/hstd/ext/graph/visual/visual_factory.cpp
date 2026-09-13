@@ -317,6 +317,10 @@ hstd::SPtr<layout::IConstraint> hstd::ext::graph::VisualFactory::newConstraint(
                 -> hstd::SPtr<layout::IConstraint> {
                 return std::make_shared<kw::RelativeConstraint>(run);
             },
+            [&](kp::KiwiEvenGapConstraintPayload const& pl)
+                -> hstd::SPtr<layout::IConstraint> {
+                return std::make_shared<kw::EvenGapConstraint>(run);
+            },
         },
         hstd::serde::unpackVariant<ConstraintPayloadTypes>(
             in->payload(),

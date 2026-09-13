@@ -421,9 +421,40 @@ class EvenGapConstraint : public KiwiConstraint {
         return this;
     }
 
+    EvenGapConstraint(hstd::SPtr<layout::LayoutRun> const& group)
+        : KiwiConstraint{group} {}
     EvenGapConstraint(hstd::SPtr<KiwiGroup> const& group) : KiwiConstraint{group} {}
 
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi() const override;
+
+#    if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(hstd::ext::graph::proto::IConstraint* out, IGraph const* graph)
+        const override {
+        hstd::ext::graph::kw::proto::KiwiEvenGapConstraintPayload load;
+        load.set_anchor(static_cast<kiwi_ir::proto::Anchor>(axis));
+        load.set_axis(static_cast<kiwi_ir::proto::Axis>(axis));
+        for (auto const& v : this->vertices) {
+            load.mutable_vertices()->add_vertices(graph->getVertex(v)->getStableId());
+        }
+
+        *out->mutable_payload() = hstd::serde::packMessage(load);
+    }
+
+    void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        layout::IPlacementAlgorithm const*          vertex) override {
+        auto load = hstd::serde::unpackMessage<
+            hstd::ext::graph::kw::proto::KiwiEvenGapConstraintPayload>(in->payload());
+
+        for (auto const& v : load.vertices().vertices()) {
+            this->vertices.push_back(graph->getVertexIDByStableId(v));
+        }
+        hstd::serde::read_serde(load.axis(), axis);
+        hstd::serde::read_serde(load.anchor(), anchor);
+    }
+#    endif
 };
 
 
