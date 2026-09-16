@@ -5,6 +5,7 @@
 #include <hstd/ext/error_write_proto.hpp>
 #include <hstd/ext/logger.hpp>
 
+
 org::cli::SharedContext::SharedContext(CliOpts options)
     : opts{std::move(options)}
     , parseContext{std::make_shared<org::parse::ParseContext>()} {

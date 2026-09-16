@@ -310,9 +310,11 @@ template <typename T>
 T read_message_from_binary_file(std::string const& file_path) {
     T             result;
     std::ifstream stream{file_path, std::ios::binary};
-    if (!stream) { throw std::runtime_error("Failed to open input file: " + file_path); }
+    if (!stream) {
+        throw hstd::runtime_error::init("Failed to open input file: " + file_path);
+    }
     if (!result.ParseFromIstream(&stream)) {
-        throw std::runtime_error("Failed to parse protobuf input: " + file_path);
+        throw hstd::runtime_error::init("Failed to parse protobuf input: " + file_path);
     }
 
     return result;
@@ -325,7 +327,7 @@ T read_message_from_json_file(std::string const& file_path) {
         hstd::strip_json_comments(hstd::readFile(file_path)), &result);
 
     if (!status.ok()) {
-        throw std::runtime_error(
+        throw hstd::runtime_error::init(
             "Failed to parse protobuf JSON input: " + file_path + ": "
             + status.ToString());
     }
@@ -339,7 +341,7 @@ T read_message_from_textproto_file(std::string const& file_path) {
 
     if (!google::protobuf::TextFormat::ParseFromString(
             hstd::readFile(file_path), &result)) {
-        throw std::runtime_error(
+        throw hstd::runtime_error::init(
             "Failed to parse protobuf textproto input: " + file_path);
     }
 

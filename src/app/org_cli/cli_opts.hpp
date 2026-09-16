@@ -32,6 +32,17 @@
 namespace org::cli {
 
 
+// Argparse has a horrible API for composition, the sub-commands or parser take the object
+// by reference, so extra care must be taken to not move the commands in any way. That's
+// why vector of shared pointers.
+struct CommandStore {
+    std::vector<std::shared_ptr<argparse::ArgumentParser>> subcommands;
+    argparse::ArgumentParser&                              addSubcommand(
+        argparse::ArgumentParser& parent,
+        std::string               name);
+};
+
+
 struct CliOpts {
     using OS = hstd::Opt<std::string>;
 
@@ -298,6 +309,6 @@ void addBoolOpt(
     char const*               help,
     bool                      def);
 
-CliOpts parseCli(int argc, char** argv);
+CliOpts parseCli(int argc, char** argv, CommandStore& store);
 
 } // namespace org::cli

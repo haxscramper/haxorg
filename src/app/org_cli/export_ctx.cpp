@@ -151,7 +151,9 @@ void org::cli::ExportCommandContext::exportMap(
     __perf_trace_end("cli");
 }
 
-void org::cli::ExportCommandContext::getSubcommand(argparse::ArgumentParser& export_cmd) {
+void org::cli::ExportCommandContext::getSubcommand(
+    CommandStore&             store,
+    argparse::ArgumentParser& export_cmd) {
     using EO = CliOpts::ExportOpts;
     using EK = EO::Kind;
     export_cmd.add_description(
@@ -163,7 +165,8 @@ void org::cli::ExportCommandContext::getSubcommand(argparse::ArgumentParser& exp
     export_cmd.add_argument(EO::output_opt).help("output file").required();
     export_cmd.add_argument(EO::exportTrace_opt).help("export trace path");
 
-    argparse::ArgumentParser json_cmd(lower_enum(EK::Json));
+    argparse::ArgumentParser& json_cmd = store.addSubcommand(
+        export_cmd, lower_enum(EK::Json));
     json_cmd.add_description("export to json");
     addBoolOpt(
         json_cmd, EO::Json::skipEmptyLists_opt, "skip empty lists on export", true);
@@ -177,7 +180,8 @@ void org::cli::ExportCommandContext::getSubcommand(argparse::ArgumentParser& exp
         true);
     export_cmd.add_subparser(json_cmd);
 
-    argparse::ArgumentParser yaml_cmd(lower_enum(EK::Yaml));
+    argparse::ArgumentParser& yaml_cmd = store.addSubcommand(
+        export_cmd, lower_enum(EK::Yaml));
     yaml_cmd.add_description("export to yaml");
     addBoolOpt(yaml_cmd, EO::Yaml::skipNullFields_opt, "skip null fields", true);
     addBoolOpt(yaml_cmd, EO::Yaml::skipFalseFields_opt, "skip false fields", true);
@@ -186,26 +190,31 @@ void org::cli::ExportCommandContext::getSubcommand(argparse::ArgumentParser& exp
     addBoolOpt(yaml_cmd, EO::Yaml::skipId_opt, "skip id fields", true);
     export_cmd.add_subparser(yaml_cmd);
 
-    argparse::ArgumentParser token_cmd(lower_enum(EK::Token));
+    argparse::ArgumentParser& token_cmd = store.addSubcommand(
+        export_cmd, lower_enum(EK::Token));
     token_cmd.add_description("export tokenizer result");
     export_cmd.add_subparser(token_cmd);
 
-    argparse::ArgumentParser basetoken_cmd(lower_enum(EK::BaseToken));
+    argparse::ArgumentParser& basetoken_cmd = store.addSubcommand(
+        export_cmd, lower_enum(EK::BaseToken));
     basetoken_cmd.add_description("export base tokenizer result");
     export_cmd.add_subparser(basetoken_cmd);
 
-    argparse::ArgumentParser parsenode_cmd(lower_enum(EK::ParseNode));
+    argparse::ArgumentParser& parsenode_cmd = store.addSubcommand(
+        export_cmd, lower_enum(EK::ParseNode));
     parsenode_cmd.add_description("export parse node result");
     export_cmd.add_subparser(parsenode_cmd);
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    argparse::ArgumentParser proto_cmd(lower_enum(EK::Proto));
+    argparse::ArgumentParser& proto_cmd = store.addSubcommand(
+        export_cmd, lower_enum(EK::Proto));
     proto_cmd.add_description("export to protobuf");
     proto_cmd.add_argument(EO::Proto::format_opt)
         .help("set protobuf export format: " + describe_enum<CliOpts::ProtoFormat>());
     export_cmd.add_subparser(proto_cmd);
 
-    argparse::ArgumentParser map_cmd(lower_enum(EK::Map));
+    argparse::ArgumentParser& map_cmd = store.addSubcommand(
+        export_cmd, lower_enum(EK::Map));
     map_cmd.add_description("export to map");
     map_cmd.add_argument(EO::Map::format_opt)
         .help("set map export format: " + describe_enum<CliOpts::ProtoFormat>());

@@ -12,6 +12,10 @@ message MapNodePayload {
   orgproto.AnyNode node = 1;
 }
 
+message MapEdgePropPayload {
+
+}
+
 message MapEdgePayload {
   enum EdgeKind {
     DEFAULT = 0;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/haxorg/imm/ImmOrgGraph.pb.h"
 #if !ORG_BUILD_EMCC
 #    include <boost/graph/properties.hpp>
 #endif
@@ -87,7 +88,9 @@ struct MapEdgeProp
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         hstd::ext::graph::IGraph const*      graph) const override {
-        logic_todo_impl();
+        // TODO: Implement mapping of the map link data to the final payload.
+        org::graph::proto::MapEdgePropPayload load;
+        *out->mutable_payload() = hstd::serde::packMessage(load);
     }
 
     void readSerial(

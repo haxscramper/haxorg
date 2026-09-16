@@ -113,7 +113,8 @@ struct ExportCommandContext {
         CliOpts::ExportOpts::Map const&       options) const;
 #endif
 
-    static void                getSubcommand(argparse::ArgumentParser& parse_cmd);
+
+    static void getSubcommand(CommandStore& store, argparse::ArgumentParser& parse_cmd);
     static CliOpts::ExportOpts parseCommand(argparse::ArgumentParser& parse_cmd);
 
     void run(SharedContext& shared);

@@ -8,6 +8,19 @@
 
 namespace org::cli {
 
+argparse::ArgumentParser& org::cli::CommandStore::addSubcommand(
+    argparse::ArgumentParser& parent,
+    std::string               name) {
+    auto  parser = std::make_shared<argparse::ArgumentParser>(std::move(name));
+    auto& result = *parser;
+
+    subcommands.push_back(std::move(parser));
+    parent.add_subparser(result);
+
+    return result;
+}
+
+
 static std::vector<std::string> expandAtFiles(int argc, char** argv) {
     std::vector<std::string> args;
     args.reserve(argc);
@@ -37,7 +50,7 @@ void addBoolOpt(
         [](std::string const& v) -> bool { return v == "true" || v == "1"; });
 }
 
-CliOpts org::cli::parseCli(int argc, char** argv) {
+CliOpts org::cli::parseCli(int argc, char** argv, CommandStore& store) {
     using EO = CliOpts::ExportOpts;
     using EK = EO::Kind;
     using PO = CliOpts::ParseOpts;
@@ -69,7 +82,7 @@ CliOpts org::cli::parseCli(int argc, char** argv) {
     program.add_subparser(parse_cmd);
 
     argparse::ArgumentParser export_cmd{"export"};
-    ExportCommandContext::getSubcommand(export_cmd);
+    ExportCommandContext::getSubcommand(store, export_cmd);
     program.add_subparser(export_cmd);
 
     argparse::ArgumentParser diagram_cmd{"diagram"};

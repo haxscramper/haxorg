@@ -97,6 +97,24 @@ struct OrgConverter : public hstd::OperationsTracer {
   public:
     hstd::UPtr<OrgSpec> spec;
 
+    // TODO: make this configurable in the parse context, from the command line, and also
+    // must react to the document configuration, for each document separately. Probably
+    // some other parts are also missing. How Include is handled with the per-document
+    // configuration?
+    hstd::UnorderedSet<hstd::Str> todoKeywords{
+        "TODO",
+        "DONE",
+        "WIP",
+        "NEXT",
+        "CANCELED",
+        "COMPLETED",
+        "PARTIALLY",
+        "BLOCKED",
+        "PAUSED",
+        "FAILED",
+        "TIMEOUT",
+    };
+
     OrgConverter() { spec = getOrgSpec(); }
 
     org::parse::OrgAdapter one(org::parse::OrgAdapter node, OrgSpecName name);

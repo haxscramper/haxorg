@@ -59,8 +59,8 @@ void appendConstraint(
             break;
 
         case diagram::proto::DiaConstraint::KIND_NOT_SET:
-            throw std::invalid_argument{
-                hstd::fmt("Constraint in cluster '{}' has no payload", clusterId)};
+            throw hstd::invalid_argument::init(
+                hstd::fmt("Constraint in cluster '{}' has no payload", clusterId));
     }
 }
 
@@ -132,17 +132,19 @@ std::string commonCluster(
     auto targetPosition = nodeParents.find(target);
 
     if (sourcePosition == nodeParents.end()) {
-        throw std::invalid_argument{hstd::fmt(
-            "Edge '{}' references source vertex '{}' which is not a diagram node",
-            edgeId,
-            source)};
+        throw hstd::invalid_argument::init(
+            hstd::fmt(
+                "Edge '{}' references source vertex '{}' which is not a diagram node",
+                edgeId,
+                source));
     }
 
     if (targetPosition == nodeParents.end()) {
-        throw std::invalid_argument{hstd::fmt(
-            "Edge '{}' references target vertex '{}' which is not a diagram node",
-            edgeId,
-            target)};
+        throw hstd::invalid_argument::init(
+            hstd::fmt(
+                "Edge '{}' references target vertex '{}' which is not a diagram node",
+                edgeId,
+                target));
     }
 
     std::unordered_set<std::string> sourceAncestors{};
@@ -163,11 +165,13 @@ std::string commonCluster(
         auto parent = clusterParents.find(current);
 
         if (parent == clusterParents.end()) {
-            throw std::invalid_argument{hstd::fmt(
-                "Edge '{}' connects vertices '{}' and '{}' from disconnected hierarchies",
-                edgeId,
-                source,
-                target)};
+            throw hstd::invalid_argument::init(
+                hstd::fmt(
+                    "Edge '{}' connects vertices '{}' and '{}' from disconnected "
+                    "hierarchies",
+                    edgeId,
+                    source,
+                    target));
         }
 
         current = parent->second;
@@ -198,10 +202,11 @@ void appendNoAlgorithmCluster(
     switch (kind) {
         case LayoutKind::Graphviz: {
             if (!cluster.constraints().empty()) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Graphviz-inheriting cluster '{}' cannot contain Kiwi "
-                    "constraints",
-                    cluster.id())};
+                throw hstd::invalid_argument::init(
+                    hstd::fmt(
+                        "Graphviz-inheriting cluster '{}' cannot contain Kiwi "
+                        "constraints",
+                        cluster.id()));
             }
 
             gv::proto::GroupAttributePayload payload{};
@@ -262,8 +267,10 @@ void appendClusterKind(
 
         case diagram::proto::DiaCluster::kNoAlgorithm: {
             if (!parentId.has_value() || !parentKind.has_value()) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Root cluster '{}' must specify a layout algorithm", cluster.id())};
+                throw hstd::invalid_argument::init(
+                    hstd::fmt(
+                        "Root cluster '{}' must specify a layout algorithm",
+                        cluster.id()));
             }
 
             inherited = true;
@@ -286,8 +293,8 @@ void appendClusterNode(
     proto::VertexIDVec*               nestedIds,
     std::unordered_set<std::string>*  vertexIds) {
     if (!vertexIds->insert(node.id()).second) {
-        throw std::invalid_argument{
-            hstd::fmt("Diagram contains duplicate vertex ID '{}'", node.id())};
+        throw hstd::invalid_argument::init(
+            hstd::fmt("Diagram contains duplicate vertex ID '{}'", node.id()));
     }
 
     nestedIds->add_vertices(node.id());
@@ -323,22 +330,29 @@ void appendClusterEdge(
     std::unordered_set<std::string> const& vertexIds,
     std::unordered_set<std::string>*       edgeIds) {
     if (!edgeIds->insert(edge.id()).second) {
-        throw std::invalid_argument{
-            hstd::fmt("Diagram contains duplicate edge ID '{}'", edge.id())};
+        throw hstd::invalid_argument::init(
+            hstd::fmt("Diagram contains duplicate edge ID '{}'", edge.id()));
     }
 
-    if (!vertexIds.contains(edge.source())) {
-        throw std::invalid_argument{hstd::fmt(
-            "Edge '{}' references source vertex '{}' before it is defined",
-            edge.id(),
-            edge.source())};
-    }
 
-    if (!vertexIds.contains(edge.target())) {
-        throw std::invalid_argument{hstd::fmt(
-            "Edge '{}' references target vertex '{}' before it is defined",
-            edge.id(),
-            edge.target())};
+    // FIXME: The vertex presence validation must not be eager, it is possible to create a
+    // link to nested vertex from a top-level cluster that is processed earlier.
+    if (false) {
+        if (!vertexIds.contains(edge.source())) {
+            throw hstd::invalid_argument::init(
+                hstd::fmt(
+                    "Edge '{}' references source vertex '{}' before it is defined",
+                    edge.id(),
+                    edge.source()));
+        }
+
+        if (!vertexIds.contains(edge.target())) {
+            throw hstd::invalid_argument::init(
+                hstd::fmt(
+                    "Edge '{}' references target vertex '{}' before it is defined",
+                    edge.id(),
+                    edge.target()));
+        }
     }
 
     metadata->mutable_edge_parent_cluster_ids()->insert({edge.id(), cluster.id()});
@@ -377,8 +391,8 @@ void appendCluster(
     std::unordered_set<std::string>*  vertexIds,
     std::unordered_set<std::string>*  edgeIds) {
     if (!vertexIds->insert(cluster.id()).second) {
-        throw std::invalid_argument{
-            hstd::fmt("Diagram contains duplicate vertex ID '{}'", cluster.id())};
+        throw hstd::invalid_argument::init(
+            hstd::fmt("Diagram contains duplicate vertex ID '{}'", cluster.id()));
     }
 
     LayoutKind      kind{};
@@ -391,6 +405,12 @@ void appendCluster(
 
     proto::VertexIDVec nestedIds{};
 
+
+    for (diagram::proto::DiaCluster const& nested : cluster.nested()) {
+        nestedIds.add_vertices(nested.id());
+    }
+
+
     for (diagram::proto::DiaNode const& node : cluster.nodes()) {
         appendClusterNode(node, cluster, kind, graph, &nestedIds, vertexIds);
     }
@@ -399,10 +419,6 @@ void appendCluster(
     // reference and duplicate-ID checks kept.
     for (diagram::proto::DiaEdge const& edge : cluster.edges()) {
         appendClusterEdge(edge, cluster, kind, collection, metadata, *vertexIds, edgeIds);
-    }
-
-    for (diagram::proto::DiaCluster const& nested : cluster.nested()) {
-        nestedIds.add_vertices(nested.id());
     }
 
     hierarchy->mutable_nested_in_map()->insert({cluster.id(), nestedIds});
@@ -487,14 +503,15 @@ diagram::proto::DiaCluster buildCluster(
     std::unordered_set<std::string>*                              visited,
     bool                                                          preserveOrigin) {
     if (!vertices.contains(clusterId)) {
-        throw std::invalid_argument{
-            hstd::fmt("Hierarchy references missing cluster vertex '{}'", clusterId)};
+        throw hstd::invalid_argument::init(
+            hstd::fmt("Hierarchy references missing cluster vertex '{}'", clusterId));
     }
 
     if (!visited->insert(clusterId).second) {
-        throw std::invalid_argument{hstd::fmt(
-            "Hierarchy contains a cycle or repeated cluster reference at '{}'",
-            clusterId)};
+        throw hstd::invalid_argument::init(
+            hstd::fmt(
+                "Hierarchy contains a cycle or repeated cluster reference at '{}'",
+                clusterId));
     }
 
     proto::IVertex const&      vertex = *vertices.at(clusterId);
@@ -596,10 +613,11 @@ void appendDiaEdge(
     diagram::proto::DiaCluster* parent = findMutableCluster(result, parentId);
 
     if (parent == nullptr) {
-        throw std::invalid_argument{hstd::fmt(
-            "Edge '{}' references missing parent cluster '{}'",
-            source.stable_id(),
-            parentId)};
+        throw hstd::invalid_argument::init(
+            hstd::fmt(
+                "Edge '{}' references missing parent cluster '{}'",
+                source.stable_id(),
+                parentId));
     }
 
     diagram::proto::DiaEdge* edge = parent->add_edges();
@@ -693,20 +711,22 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
     hstd::ext::graph::proto::IGraph const& graph,
     bool                                   preserveOrigin) {
     if (graph.hierarchies_size() != 1) {
-        throw std::invalid_argument{hstd::fmt(
-            "Diagram conversion requires exactly one vertex hierarchy, but the graph "
-            "contains {}",
-            graph.hierarchies_size())};
+        throw hstd::invalid_argument::init(
+            hstd::fmt(
+                "Diagram conversion requires exactly one vertex hierarchy, but the graph "
+                "contains {}",
+                graph.hierarchies_size()));
     }
 
     graph::proto::IVertexHierarchy const& hierarchy = graph.hierarchies(0);
 
     if (hierarchy.root_vertex_ids_size() != 1) {
-        throw std::invalid_argument{hstd::fmt(
-            "Diagram conversion requires exactly one root vertex, but hierarchy '{}' "
-            "contains {}",
-            hierarchy.stable_id(),
-            hierarchy.root_vertex_ids_size())};
+        throw hstd::invalid_argument::init(
+            hstd::fmt(
+                "Diagram conversion requires exactly one root vertex, but hierarchy '{}' "
+                "contains {}",
+                hierarchy.stable_id(),
+                hierarchy.root_vertex_ids_size()));
     }
 
     diagram::proto::DiaGraphMetadata metadata{};
@@ -721,13 +741,13 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
 
     for (graph::proto::IVertex const& vertex : graph.vertices()) {
         if (vertex.stable_id().empty()) {
-            throw std::invalid_argument{
-                "Graph contains a vertex with an empty stable ID"};
+            throw hstd::invalid_argument::init(
+                "Graph contains a vertex with an empty stable ID");
         }
 
         if (vertices.contains(vertex.stable_id())) {
-            throw std::invalid_argument{
-                hstd::fmt("Graph contains duplicate vertex ID '{}'", vertex.stable_id())};
+            throw hstd::invalid_argument::init(
+                hstd::fmt("Graph contains duplicate vertex ID '{}'", vertex.stable_id()));
         }
 
         vertices.insert_or_assign(vertex.stable_id(), &vertex);
@@ -736,14 +756,15 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
     for (auto const& collection : graph.collections()) {
         for (graph::proto::IEdge const& edge : collection.edges()) {
             if (edge.stable_id().empty()) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Edge collection '{}' contains an edge with an empty stable ID",
-                    collection.stable_id())};
+                throw hstd::invalid_argument::init(
+                    hstd::fmt(
+                        "Edge collection '{}' contains an edge with an empty stable ID",
+                        collection.stable_id()));
             }
 
             if (edges.contains(edge.stable_id())) {
-                throw std::invalid_argument{
-                    hstd::fmt("Graph contains duplicate edge ID '{}'", edge.stable_id())};
+                throw hstd::invalid_argument::init(
+                    hstd::fmt("Graph contains duplicate edge ID '{}'", edge.stable_id()));
             }
 
             edges.insert_or_assign(edge.stable_id(), &edge);
@@ -782,37 +803,41 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
         std::string const& parentId = entry.first;
 
         if (!vertices.contains(parentId)) {
-            throw std::invalid_argument{hstd::fmt(
-                "Hierarchy '{}' references missing cluster vertex '{}'",
-                hierarchy.stable_id(),
-                parentId)};
+            throw hstd::invalid_argument::init(
+                hstd::fmt(
+                    "Hierarchy '{}' references missing cluster vertex '{}'",
+                    hierarchy.stable_id(),
+                    parentId));
         }
 
         for (std::string const& nestedId : entry.second.vertices()) {
             if (!vertices.contains(nestedId)) {
-                throw std::invalid_argument{hstd::fmt(
-                    "Cluster '{}' references missing nested vertex '{}'",
-                    parentId,
-                    nestedId)};
+                throw hstd::invalid_argument::init(
+                    hstd::fmt(
+                        "Cluster '{}' references missing nested vertex '{}'",
+                        parentId,
+                        nestedId));
             }
 
             if (clusterIds.contains(nestedId)) {
                 if (clusterParents.contains(nestedId)) {
-                    throw std::invalid_argument{hstd::fmt(
-                        "Cluster '{}' is nested in both '{}' and '{}'",
-                        nestedId,
-                        clusterParents.at(nestedId),
-                        parentId)};
+                    throw hstd::invalid_argument::init(
+                        hstd::fmt(
+                            "Cluster '{}' is nested in both '{}' and '{}'",
+                            nestedId,
+                            clusterParents.at(nestedId),
+                            parentId));
                 }
 
                 clusterParents.insert_or_assign(nestedId, parentId);
             } else {
                 if (nodeParents.contains(nestedId)) {
-                    throw std::invalid_argument{hstd::fmt(
-                        "Node '{}' is nested in both '{}' and '{}'",
-                        nestedId,
-                        nodeParents.at(nestedId),
-                        parentId)};
+                    throw hstd::invalid_argument::init(
+                        hstd::fmt(
+                            "Node '{}' is nested in both '{}' and '{}'",
+                            nestedId,
+                            nodeParents.at(nestedId),
+                            parentId));
                 }
 
                 nodeParents.insert_or_assign(nestedId, parentId);
@@ -833,10 +858,11 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
 
     for (auto const& entry : vertices) {
         if (!visited.contains(entry.first) && !nodeParents.contains(entry.first)) {
-            throw std::invalid_argument{hstd::fmt(
-                "Vertex '{}' is not reachable from root cluster '{}'",
-                entry.first,
-                result.id())};
+            throw hstd::invalid_argument::init(
+                hstd::fmt(
+                    "Vertex '{}' is not reachable from root cluster '{}'",
+                    entry.first,
+                    result.id()));
         }
     }
 

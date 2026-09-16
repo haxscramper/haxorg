@@ -13,10 +13,12 @@
 #include <hstd/stdlib/VecFormatter.hpp>
 
 int main(int argc, char* argv[]) {
+    org::cli::CommandStore store;
+
     auto opts //
         = argc == 2 && std::string{argv[1]}.starts_with("/")
             ? hstd::parse_json_argc<org::cli::CliOpts>(argc, argv)
-            : org::cli::parseCli(argc, argv);
+            : org::cli::parseCli(argc, argv, store);
 
     hstd::log::clear_sink_backends();
 

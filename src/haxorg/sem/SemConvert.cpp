@@ -904,10 +904,13 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         tree->title  = convertParagraph(one(a, N::Title)).value();
         auto& sn     = tree->title->subnodes;
         if (Opt<sem::SemId<sem::Org>> first = sn.get(0); first) {
-            if (auto ident = first.value().asOpt<sem::BigIdent>();
-                ident && ident->text == "COMMENT") {
-                tree->isComment = true;
-                int offset      = 1;
+            if (auto ident = first.value().asOpt<sem::BigIdent>(); ident) {
+                if (ident->text == "COMMENT") {
+                    tree->isComment = true;
+                } else if (todoKeywords.contains(ident->text)) {
+                    tree->todo = ident->text;
+                }
+                int offset = 1;
                 while (sn.has(offset) && sn.at(offset)->is(osk::Space)) { ++offset; }
 
                 sn.erase(sn.begin(), sn.begin() + offset);
