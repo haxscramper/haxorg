@@ -113,6 +113,7 @@ hstd::StrView hstd::rstrip(hstd::StrView string, CharSet const& chars) {
 
 Vec<hstd::StrView> hstd::split(hstd::StrView str, char ch) {
     Vec<hstd::StrView> tokens;
+    if (str.empty()) { return tokens; }
     while (true) {
         auto pos = str.find(ch);
         if (pos == hstd::StrView::npos) {
@@ -121,6 +122,7 @@ Vec<hstd::StrView> hstd::split(hstd::StrView str, char ch) {
         }
         tokens.push_back(str.substr(0, pos));
         str.remove_prefix(pos + 1);
+        if (str.empty()) { break; } // drop trailing empty token like std::getline
     }
     return tokens;
 }

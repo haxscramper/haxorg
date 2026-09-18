@@ -956,11 +956,9 @@ void write_report_group_header(ReportGroupContext& c) {
     c.op.write(src_name);
 
     // File name & reference
-    int location = c.group.labels[0].label.span.start();
-
-    if (c.group.src_id == c.report.location.first && c.report.location.second > 0) {
-        location = c.report.location.second;
-    }
+    int location = (c.group.src_id == c.report.location.first)
+                     ? c.report.location.second
+                     : c.group.labels[0].label.span.start();
 
     auto offset_line = src->get_offset_line(location);
 

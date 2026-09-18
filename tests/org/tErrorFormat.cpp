@@ -106,7 +106,8 @@ Pair<Vec<ReportLabel>, Str> labelList(
                 ReportLabel{
                     ReportLabelId::FromValue(++label_id),
                     CodeSpan{source, slice(first, last)},
-                });
+                }
+                    .with_message(ColText(label)));
         }
     }
 
@@ -895,6 +896,12 @@ TEST(PrintError, LabelAtEndOfLongLine) {
               .with_config(
                   ReportRenderConfig().with_color(false).with_char_set(
                       ReportRenderConfig::ascii()));
+
+    auto actual = report.to_string(sources, false);
+    writeFile(getDebugFile("actual_LabelAtEndOfLongLine.txt"), actual);
+
+    auto lines = hstd::split(actual, '\n');
+    std::cout << escape_literal(lines.at(3)) << "\n";
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
