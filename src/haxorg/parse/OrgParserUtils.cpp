@@ -138,7 +138,7 @@ OrgNodeMono::Error OrgParser::error_value(
 
     if (failToken) {
         fail.err.loc       = failToken->value.loc.value();
-        fail.err.tokenText = Str{failToken->value.text};
+        fail.err.tokenText = Str{failToken->value.text()};
         LOGIC_ASSERTION_CHECK_FMT(manager != nullptr, "");
 
         if (manager) {
@@ -382,7 +382,7 @@ parse_error OrgParser::fatalError(
             getLocMsg(lex),
             tok,
             lex.printToString([](ColStream& os, OrgToken const& t) {
-                os << os.yellow() << escape_for_write(t.value.text) << os.end()
+                os << os.yellow() << escape_for_write(t.value.text()) << os.end()
                    << fmt1(t.value);
             })),
         line,

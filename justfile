@@ -86,6 +86,14 @@ run_codechecker:
 dump_cli_stack:
   lldb -p $(pgrep -f haxorg_cpp_org_cli) -o "thread backtrace all" -o "detach" -o "quit" > /tmp/trace.log
 
+debug_py_test TEST:
+    #!/usr/bin/env bash
+    export PYTHONPATH="${PYTHONPATH}:$(pwd)/build/haxorg"
+    lldb \
+        -o 'breakpoint set -E c++' \
+        -o run \
+        -- "$(uv run --no-sync which python)" -m pytest -vv -s {{TEST}}
+
 profile_perf_cli bin opts_path freq='3000':
     perf record --freq={{freq}} --call-graph dwarf -- {{bin}} {{opts_path}}
 

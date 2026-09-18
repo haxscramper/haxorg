@@ -14,6 +14,7 @@
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
+      // "tests/python/refl/test_type_reflection.py"
       // "tests/python/refl/test_include_reflection.py",
       // "tests/python/repo/test_code_forensics.py",
       // "tests/python/repo/test_code_forensics.py::test_infer_current_dir_subset"
@@ -39,7 +40,7 @@
     ],
     "real_time_output_print": true
   },
-  "instrument": {"coverage": false, "perfetto": false},
+  "instrument": {"coverage": true, "perfetto": false},
   "coverage_conf": {
     "coverage_run_whitelist" : [
       {"class_pattern": "OrgParseSem"                                     },

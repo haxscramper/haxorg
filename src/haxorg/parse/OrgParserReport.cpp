@@ -60,7 +60,7 @@ void OrgParser::report(Report const& in) {
                             .index = in.lex->pos.isNil()
                                        ? -1
                                        : static_cast<int>(in.lex->pos.getIndex() + i),
-                            .value = std::string{in.lex->tok(i).value.text},
+                            .value = std::string{in.lex->tok(i).value.text()},
                         });
                 }
             }
@@ -160,7 +160,7 @@ void OrgParser::report(Report const& in) {
                     id,
                     in.line,
                     escape_literal(
-                        group->at(id).isMono() ? "<mono>" : group->val(id).text));
+                        group->at(id).isMono() ? "<mono>" : group->val(id).text()));
                 if (in.msg && !in.msg->empty()) { os << " " << in.msg.value(); }
                 break;
             }

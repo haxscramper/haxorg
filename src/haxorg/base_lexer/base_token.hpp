@@ -7,9 +7,38 @@
 namespace org::parse {
 
 struct OrgFill {
-    hstd::StrView                    text;
+  private:
+    // string value is necessary to support de-serialization
+    // of the token text from enum.
+    using StrValue = std::variant<hstd::StrView, hstd::Str>;
+    using LocValue = hstd::Opt<org::parse::SourceLoc>;
+
+    StrValue fill_text;
+
+  public:
     hstd::Opt<org::parse::SourceLoc> loc;
-    bool                             isFake() const { return !loc.has_value(); }
+
+    void setText(hstd::StrView view) { fill_text = view; }
+    void setText(hstd::Str const& view) { fill_text = view; }
+
+    bool empty() const { return text().empty(); }
+
+    OrgFill(hstd::StrView const& view, LocValue const& value = std::nullopt)
+        : fill_text{view}, loc{value} {}
+    OrgFill(hstd::Str const& view, LocValue const& value = std::nullopt)
+        : fill_text{view}, loc{value} {}
+
+    hstd::StrView text() const {
+        if (auto ptr = std::get_if<0>(&fill_text)) {
+            return *ptr;
+        } else {
+            return std::get<1>(fill_text);
+        }
+    }
+
+    OrgFill() {}
+
+    bool isFake() const { return !loc.has_value(); }
     DESC_FIELDS(OrgFill, (text, loc));
 };
 

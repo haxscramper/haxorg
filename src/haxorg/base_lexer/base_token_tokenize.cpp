@@ -392,10 +392,8 @@ struct Cursor {
 
         tok.kind = kind;
 
-        tok.value.text = std::string_view{
-            text.begin() + start.pos,
-            text.begin() + end.pos,
-        };
+        tok.value.setText(
+            std::string_view{text.begin() + start.pos, text.begin() + end.pos});
 
         token(tok, line, function);
     }
@@ -440,10 +438,7 @@ struct Cursor {
             line,
             format());
 
-        tok.value.text = std::string_view{
-            text.begin() + start,
-            text.begin() + end,
-        };
+        tok.value.setText(std::string_view{text.begin() + start, text.begin() + end});
 
         // validate_utf8(tok.value.text);
         token(tok, line, function);
@@ -704,15 +699,15 @@ void switch_command(Cursor& c) {
 
     auto head = c.pop_token();
 
-    auto norm_head  = hstd::normalize(head->text);
-    auto lower_head = hstd::lower(head->text);
+    auto norm_head  = hstd::normalize(head->text());
+    auto lower_head = hstd::lower(head->text());
 
     // `#+begin:` -- ok
     // `#+begin_src` -- ok
     // `#+begin` -- not ok, re-map to paragraph
     // `#+end` -- not ok, to paragraph
     // `#+end_src` -- ok
-    if (!head->text.ends_with(":")
+    if (!head->text().ends_with(":")
         && !(lower_head.starts_with("begin_") || lower_head.starts_with("end_"))) {
         // [[lex/backtracking-fallback]]
         auto line_start = c.pop_token();
@@ -2039,10 +2034,10 @@ TokenAlignmentReport validateOrgFillTokens(
         auto const& token = tokens.at(tokenIndex);
         report.processedTokens += 1;
 
-        std::string tokenText = fmt::format("{}", token.value.text);
+        std::string tokenText = fmt::format("{}", token.value.text());
         int         tokenLen  = static_cast<int>(tokenText.size());
         std::string tokenDesc = fmt::format(
-            "{}({})", token.kind, escape_literal(token.value.text));
+            "{}({})", token.kind, escape_literal(token.value.text()));
 
         std::vector<std::string> details;
 
@@ -2217,7 +2212,7 @@ end `{}`)",
                     "\n  [{}]{}({})",
                     neighborIndex,
                     neighbor.kind,
-                    escape_literal(neighbor.value.text));
+                    escape_literal(neighbor.value.text()));
             }
             details.push_back(fmt::format("\nneighbor tokens: {}", neighbors));
 

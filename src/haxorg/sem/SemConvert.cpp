@@ -55,7 +55,7 @@ template <typename T>
 org::sem::SemId<T> org::sem::OrgConverter::SemLeaf(In adapter) {
     auto res = Sem<T>(adapter);
     LOGIC_ASSERTION_CHECK_FMT(adapter.isTerminal(), "{}", adapter.treeRepr(false));
-    res->text = hstd::Str{adapter.val().text};
+    res->text = hstd::Str{adapter.val().text()};
     return res;
 }
 
@@ -184,13 +184,13 @@ Str get_text(
     int                    line     = __builtin_LINE(),
     char const*            function = __builtin_FUNCTION()) {
     if (a.isTerminal()) {
-        return Str{a.val().text};
+        return Str{a.val().text()};
     } else if (a.kind() == onk::Empty) {
         return "";
     } else if (a.kind() == onk::InlineStmtList || a.kind() == onk::Paragraph) {
         Str res;
         for (auto [begin, end] = a.full_flat_extent_pair(); begin != end; ++begin) {
-            if ((*begin).isTerminal()) { res += (*begin).val().text; }
+            if ((*begin).isTerminal()) { res += (*begin).val().text(); }
         }
         return res;
     } else {

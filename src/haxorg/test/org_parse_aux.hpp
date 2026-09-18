@@ -60,7 +60,8 @@ struct MockFull {
         std::string const&             content,
         org::parse::LexerParams const& p,
         org::parse::SourceFileId       file_id) {
-        baseTokens = org::parse::tokenize(content, p, file_id);
+        parser->activeFileId = file_id;
+        baseTokens           = org::parse::tokenize(content, p, file_id);
     }
 
     void tokenizeConvert() { tokenizer->convert(baseTokens); }
@@ -79,6 +80,7 @@ struct MockFull {
         auto file_id = parseContext->addSource("<mock-full-run>", content);
         tokenizeBase(content, p, file_id);
         tokenizeConvert();
+        parser->activeFileId = file_id;
         parse(file_id, parseContext->source.get());
     }
 

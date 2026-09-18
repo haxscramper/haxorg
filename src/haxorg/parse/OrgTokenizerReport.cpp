@@ -44,7 +44,7 @@ void OrgTokenizer::report(Report const& in) {
             res.token = ValueToken{
                 .kind  = fmt1(at(in.id).kind),
                 .index = static_cast<int>(in.id.getIndex()),
-                .value = std::string{at(in.id)->text},
+                .value = std::string{at(in.id)->text()},
             };
 
             res.loc = at(in.id)->loc;
@@ -68,7 +68,7 @@ void OrgTokenizer::report(Report const& in) {
                 in.lex->print(
                     os,
                     [](ColStream& os, OrgToken const& t) {
-                        os << " " << os.yellow() << escape_for_write(t.value.text)
+                        os << " " << os.yellow() << escape_for_write(t.value.text())
                            << os.end();
                     },
                     OrgLexer::PrintParams{

@@ -1837,9 +1837,9 @@ TEST(OrgParseSem, DocumentFragments) {
     opts->tokenTracePath     = getDebugFile("token_trace.log");
     opts->baseTokenTracePath = getDebugFile("base_token_trace.log");
 
-    org::parse::ParseContext ctx;
+    auto ctx = org::parse::ParseContext::shared();
 
-    auto node = ctx.parseStringOpts(
+    auto node = ctx->parseStringOpts(
         R"(
 struct [[refl]] OrgParseFragment {
     //# Documenting with org-mode comments

@@ -87,9 +87,7 @@ auto in_set(T const& value, Args&&... args) -> bool {
     return set.contains(value);
 }
 
-OrgFill fill(OrgLexer& lex) {
-    return OrgFill{.text = lex.tok()->text, .loc = lex.tok()->loc};
-}
+OrgFill fill(OrgLexer& lex) { return OrgFill{lex.tok()->text(), lex.tok()->loc}; }
 
 template <typename T>
 struct fmt::formatter<rs::subrange<T>> {
@@ -170,7 +168,7 @@ struct RecombineState {
         x_report(Print, .with_line(line).with_msg(msg));
     }
 
-    StrView const& tok_str(int offset = 0) const { return lex.tok(offset)->text; }
+    StrView tok_str(int offset = 0) const { return lex.tok(offset)->text(); }
 
     void skip(OrgLexer& lex, OrgTokenKind kind, int line = __builtin_LINE()) {
         x_report(Print, .with_line(line).with_msg(hstd::fmt("skip {}", lex.tok())));
@@ -224,9 +222,7 @@ struct RecombineState {
         }
     }
 
-    OrgFill loc_fill(std::string_view text = "") {
-        return OrgFill{.text = text, .loc = lex.tok()->loc};
-    }
+    OrgFill loc_fill(std::string_view text = "") { return OrgFill{text, lex.tok()->loc}; }
 
 
     OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
@@ -347,7 +343,7 @@ struct RecombineState {
                 // }
 
             case otk::CmdAttr: {
-                auto text = lex.tok().value.text;
+                auto text = lex.tok().value.text();
                 text      = text.substr(("attr"_ss).size());
                 text      = lstrip(text, CharSet{'_'});
                 text      = rstrip(text, CharSet{' ', ':'});
@@ -410,7 +406,7 @@ struct RecombineState {
         OrgTokenId      start    = lex.pos;
         OrgToken const& tok      = lex.tok();
         OrgFill const&  val      = tok.value;
-        StrView         str      = tok.value.text;
+        StrView         str      = tok.value.text();
         auto            map_kind = lex.kind();
 
         switch (map_kind) {
@@ -430,27 +426,28 @@ struct RecombineState {
                            || lex.tok().kind == OrgTokenKind::CmdRawArg) {
                         buf.push_back(lex.tok());
                         lex.pop();
-                        if (buf.back().value.text.ends_with('"')) { break; }
+                        if (buf.back().value.text().ends_with('"')) { break; }
                     }
 
-                    if (buf.back().value.text.ends_with('"')) {
+                    if (buf.back().value.text().ends_with('"')) {
                         OrgToken merged = buf.front();
 
-                        const std::string_view first = buf.front().value.text;
-                        const std::string_view last  = buf.back().value.text;
+                        const std::string_view first = buf.front().value.text();
+                        const std::string_view last  = buf.back().value.text();
 
                         char const* begin = first.data();
                         char const* end   = last.data() + last.size();
 
                         // Optional debug safety check: enforce back-to-back layout
                         for (std::size_t i = 1; i < buf.size(); ++i) {
-                            const auto prev = buf[i - 1].value.text;
-                            const auto cur  = buf[i].value.text;
+                            const auto prev = buf[i - 1].value.text();
+                            const auto cur  = buf[i].value.text();
                             assert(prev.data() + prev.size() == cur.data());
                         }
 
-                        merged->text = std::string_view(
-                            begin, static_cast<std::size_t>(end - begin));
+                        merged->setText(
+                            std::string_view(
+                                begin, static_cast<std::size_t>(end - begin)));
 
                         add(merged);
 
@@ -476,7 +473,7 @@ struct RecombineState {
             }
 
             case otk::At: {
-                add_fake(otk::At, loc_fill(lex.tok().value.text.substr(1)));
+                add_fake(otk::At, loc_fill(lex.tok().value.text().substr(1)));
                 lex.next();
                 break;
             }
@@ -501,7 +498,7 @@ struct RecombineState {
             }
 
             case otk::Escaped: {
-                add_fake(otk::Escaped, loc_fill(lex.val().text.substr(1)));
+                add_fake(otk::Escaped, loc_fill(lex.val().text().substr(1)));
                 lex.next();
                 break;
             }
@@ -509,19 +506,19 @@ struct RecombineState {
             case otk::Placeholder: {
                 add_fake(
                     otk::Placeholder,
-                    loc_fill(lex.val().text.substr(1, lex.val().text.size() - 2)));
+                    loc_fill(lex.val().text().substr(1, lex.val().text().size() - 2)));
                 lex.next();
                 break;
             }
 
             case otk::TextSrcBegin: {
-                add_fake(otk::TextSrcBegin, loc_fill(lex.val().text.substr(4)));
+                add_fake(otk::TextSrcBegin, loc_fill(lex.val().text().substr(4)));
                 lex.next();
                 break;
             }
 
             case otk::Word: {
-                if (rs::all_of(lex.tok().value.text, [](char c) {
+                if (rs::all_of(lex.tok().value.text(), [](char c) {
                         return isupper(c) || c == '_';
                     })) {
                     pop_as(otk::BigIdent);
@@ -540,13 +537,14 @@ struct RecombineState {
             case otk::ColonExampleLine: {
                 add_fake(
                     otk::ColonExampleLine,
-                    loc_fill(1 < lex.val().text.size() ? lex.val().text.substr(2) : ""));
+                    loc_fill(
+                        1 < lex.val().text().size() ? lex.val().text().substr(2) : ""));
                 lex.next();
                 break;
             }
 
             case otk::FootnoteLinked: {
-                auto text = lex.val().text.dropPrefix("[fn:").dropSuffix("]");
+                auto text = lex.val().text().dropPrefix("[fn:").dropSuffix("]");
                 add_fake(otk::FootnoteLinked, loc_fill(text));
                 lex.next();
                 break;
@@ -573,10 +571,10 @@ struct RecombineState {
                 "but did not find where to map the item to. The lexer was "
                 "{}",
                 lex.kind(),
-                val.text,
+                val.text(),
                 lex.pos.format(),
                 lex.printToString([](ColStream& os, OrgToken const& t) {
-                    os << os.yellow() << escape_for_write(t.value.text) << os.end();
+                    os << os.yellow() << escape_for_write(t.value.text()) << os.end();
                 }));
         }
     }
@@ -686,7 +684,7 @@ struct LineToken {
         switch (first.kind) {
             case otk::CmdExampleLine:
             case otk::SrcContent: {
-                for (auto const& ch : first->text) {
+                for (auto const& ch : first->text()) {
                     if (ch == ' ') {
                         ++indent;
                     } else {
@@ -697,7 +695,7 @@ struct LineToken {
             }
 
             case otk::LeadingSpace: {
-                indent = first->text.length();
+                indent = first->text().length();
                 break;
             }
 
@@ -705,7 +703,7 @@ struct LineToken {
             case otk::LeadingNumber:
             case otk::TreeClock:
             case otk::LeadingMinus: {
-                indent = rs::count(first->text, ' ') + 2;
+                indent = rs::count(first->text(), ' ') + 2;
                 break;
             }
             default:
@@ -1167,7 +1165,7 @@ struct GroupVisitorState {
                 for (auto const& sub : nest.subgroups) {
                     for (auto const& line : sub.getLeaf().lines) {
                         auto const& t = line.tokens;
-                        if ((t.size() == 2 && t.at(0)->text.empty()
+                        if ((t.size() == 2 && t.at(0)->text().empty()
                              && OrgTokenLineEnd.contains(t.at(1).kind))
                             || (t.size() == 1
                                 && OrgTokenLineEnd.contains(t.at(0).kind))) {
@@ -1194,10 +1192,10 @@ struct GroupVisitorState {
                                 loc_copy->pos += minIndent;
                                 tmp.kind  = tok.kind;
                                 tmp.value = OrgFill{
-                                    .text = tok.value.text.empty()
-                                              ? tok.value.text
-                                              : tok.value.text.substr(minIndent),
-                                    .loc  = loc_copy,
+                                    tok.value.text().empty()
+                                        ? tok.value.text()
+                                        : tok.value.text().substr(minIndent),
+                                    loc_copy,
                                 };
 
                                 add_base(tmp, ind);

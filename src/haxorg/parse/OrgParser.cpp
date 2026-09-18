@@ -1,4 +1,5 @@
 #include <haxorg/parse/OrgParser.hpp>
+#include <tuple>
 #pragma clang diagnostic ignored "-Wunused-result"
 #pragma clang diagnostic ignored "-Wformat-security"
 #include <boost/preprocessor.hpp>
@@ -592,7 +593,7 @@ void OrgParser::textFold(OrgLexer& lex) {
             case otk::LinkEnd:
             case otk::LinkDescriptionBegin:
             case otk::LinkTargetEnd: {
-                if (lex.tok()->text.empty()) {
+                if (lex.tok()->text().empty()) {
                     skip(lex);
                 } else {
                     token(onk::Punctuation, pop(lex));
@@ -1251,7 +1252,7 @@ OrgParser::ParseResult OrgParser::parseTablePipeRow(OrgLexer& lex) {
         cellGuard->end();
     }
 
-    BOOST_OUTCOME_TRY(skip(lex, otk::TrailingPipe));
+    if (lex.at(otk::TrailingPipe)) { skip(lex); }
     if (lex.at(Newline)) { skip(lex); }
 
     listGuard->end();
@@ -1354,6 +1355,11 @@ OrgParser::ParseResult OrgParser::parseTable(OrgLexer& lex) {
                 }
             }
         }
+
+        OP_TRACER_MESSAGE(
+            this, "can search? {} has next? {}", lex.can_search(TableEnd), lex.hasNext());
+
+        OP_TRACER_MESSAGE(this, "{}", lex.printToString({.maxTokens = 900}));
 
 
         TRY_SKIP(lex, otk::CmdPrefix);
@@ -1489,7 +1495,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         }
     }();
 
-    auto tmp = Str{lex.val().text};
+    auto tmp = Str{lex.val().text()};
     skip(lex);
 
     if (lex.at(Newline)) {
@@ -1507,7 +1513,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         Str endName = normalize(tmp);
         OP_TRACER_MESSAGE(this, "Dynamic block, name {}", endName);
         while (lex.can_search(Vec<otk>{otk::CmdPrefix, endTok}) && lex.hasNext(2)
-               && normalize(lex.val(1).text) != endName) {
+               && normalize(lex.val(1).text()) != endName) {
             SUB_PARSE(StmtListItem, lex);
             if (lex.at(BlockTerminator)) {
                 OP_TRACER_MESSAGE(this, "block terminator {}", lex);
@@ -1620,7 +1626,7 @@ OrgParser::ParseResult OrgParser::parseSrc(OrgLexer& lex) {
     {
         space(lex);
         if (lex.at(otk::CmdRawArg)) {
-            if (lex.val().text.empty()) {
+            if (lex.val().text().empty()) {
                 empty();
             } else {
                 token(onk::Word, TRY_POPX(lex, otk::CmdRawArg));
@@ -1878,8 +1884,8 @@ OrgParser::ParseResult OrgParser::parseSubtreeProperties(OrgLexer& lex) {
         token(onk::RawText, TRY_POPX(lex, head));
         switch (head) {
             case otk::ColonLiteralProperty: {
-                // Literal properties with empty text will not have any follow-up raw text
-                // after them.
+                // Literal properties with empty text will not have any follow-up raw
+                // text after them.
                 if (lex.at(Newline)) {
                     empty();
                 } else {
@@ -1938,7 +1944,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeDrawer(OrgLexer& lex) {
     return drawerGuard->end();
 }
 
-void tokenFormat(ColStream& os, OrgToken const& t) { os << t->text; }
+void tokenFormat(ColStream& os, OrgToken const& t) { os << t->text(); }
 
 OrgParser::ParseResult OrgParser::parseSubtreeCompletion(OrgLexer& lex) {
     auto __trace = trace(lex);
@@ -2627,7 +2633,7 @@ OrgId OrgParser::parseFull(OrgLexer& lex) {
 
 std::string OrgParser::printLexerToString(OrgLexer& lex) const {
     return lex.printToString([](hstd::ColStream& os, OrgToken const& t) {
-        os << os.yellow() << escape_for_write(t.value.text) << os.end()
+        os << os.yellow() << escape_for_write(t.value.text()) << os.end()
            << hstd::fmt1(t.value);
     });
 }
@@ -2771,7 +2777,7 @@ OrgId extendSubtreeTrailsImpl(OrgParser* parser, OrgId id, int level) {
             if (g.size(tree) == 0) { OP_TRACER_MESSAGE(parser, "{}", g.treeRepr(tree)); }
 
             OrgId subId = g.subnode(tree, 0);
-            int   sub   = g.val(subId).text.size();
+            int   sub   = g.val(subId).text().size();
             if (level < sub) {
                 OrgId stmt = g.subnode(tree, 8);
                 LOGIC_ASSERTION_CHECK_FMT(

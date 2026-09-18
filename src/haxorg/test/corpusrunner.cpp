@@ -407,10 +407,10 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
 
                     if (lhs.kind == onk::RawText) {
                         CharSet s{' '};
-                        return strip(lhsTok.value.text, s, s)
-                            == strip(rhsTok.value.text, s, s);
+                        return strip(lhsTok.value.text(), s, s)
+                            == strip(rhsTok.value.text(), s, s);
                     } else {
-                        return lhsTok.value.text == rhsTok.value.text;
+                        return lhsTok.value.text() == rhsTok.value.text();
                     }
                 } else {
                     return lhs.getToken() == rhs.getToken();
@@ -453,7 +453,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                                       group->tokens->tokens.content
                                           .get_copy(node.getToken().getIndex())
                                           .value_or(OrgToken{})
-                                          ->text,
+                                          ->text(),
                                       hshow_opts().excl(hshow_flag::use_quotes))
                                       .toString(false))
                             : std::string(""),
@@ -859,13 +859,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
             [](OrgToken const& lhs, OrgToken const& rhs) -> bool {
                 if (lhs.kind != rhs.kind) {
                     return false;
-                } else if (lhs.value.text != rhs.value.text) {
+                } else if (lhs.value.text() != rhs.value.text()) {
                     return false;
                 } else {
                     return true;
                 }
             },
-            [](OrgToken const& tok) { return tok.value.text; });
+            [](OrgToken const& tok) { return tok.value.text(); });
 
         return result;
     } else {
@@ -919,13 +919,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
                     // debugging why 'given' in tests sometimes has a
                     // non-empty base and sometimes it is a true
                     // nullopt_t value.
-                    lhs->text != rhs->text) {
+                    lhs->text() != rhs->text()) {
                     return false;
                 } else {
                     return true;
                 }
             },
-            [](OrgToken const& tok) { return tok->text; });
+            [](OrgToken const& tok) { return tok->text(); });
 
         return result;
     } else {
@@ -958,6 +958,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         }
     };
 
+    p.parser->manager = p.parseContext->source.get();
     (void)p.parser->parseTop(p.lex);
 
     if (spec.debug.traceAll || spec.debug.printParsed || spec.debug.printParsedToFile) {

@@ -358,13 +358,15 @@ struct LexerCommon {
         }
     }
 
+    /// \brief Check if the lexer has enough tokens going forward, and that the lexer has
+    /// not found the target pattern already.
     bool can_search(hstd::Vec<K> kind) {
-        if (hasNext()) {
-            for (auto const& expected : kind) {
-                if (tok().kind == expected) { return false; }
+        if (hasNext(kind.size())) {
+            for (auto const& [idx, expected] : enumerate(kind)) {
+                if (tok(idx).kind != expected) { return true; }
             }
 
-            return true;
+            return false;
         } else {
             return false;
         }

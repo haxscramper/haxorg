@@ -118,12 +118,11 @@ struct [[refl(R"({"backend": {"target-backends": ["c"]}})"), gsl::Owner]] Str
     std::string const& toBase() const;
 
     Str operator+(Str const& other) const;
-
     template <typename A, typename B>
     StrView at(HSlice<A, B> const& s, bool checkRange = true) const
         [[clang::lifetimebound]] {
         const auto [start, end] = getSpan(StrCommon<Str>::size(), s, checkRange);
-        return StrView(this->data() + start, end - start);
+        return StrView(data() + start, end - start + 1);
     }
 
     template <typename A, typename B>

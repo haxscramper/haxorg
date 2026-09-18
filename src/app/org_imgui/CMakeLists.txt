@@ -3,8 +3,7 @@ option(ORG_USE_SYSTEM_DEPS "Find packages in the system instead of using thirdpa
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(FONTCONFIG REQUIRED fontconfig)
-
+find_package(Fontconfig REQUIRED)
 # imgui test engine
 
 # main part of app setup
@@ -20,6 +19,7 @@ if(${ORG_BUILD_WITH_PERFETTO})
 endif()
 
 target_include_directories(org_imgui_lib PUBLIC "${BASE}/src/app")
+
 target_link_libraries(
   org_imgui_lib
   PUBLIC imgui
@@ -32,6 +32,7 @@ target_link_libraries(
          absl::flags
          haxorg
          hstd
+         Fontconfig::Fontconfig
          cpptrace::cpptrace
          range-v3::range-v3)
 

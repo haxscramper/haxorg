@@ -135,7 +135,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
             ValueOrgNode node;
             node.kind = fmt1(in.node->kind());
             node.id   = fmt1(in.node->id);
-            if (in.node->isTerminal()) { node.value = Str{in.node->val().text}; }
+            if (in.node->isTerminal()) { node.value = Str{in.node->val().text()}; }
             res.node = node;
         }
 
@@ -178,7 +178,7 @@ void OrgConverter::report(OrgConverter::Report const& in) {
                 if (in.msg) { os << " " << *in.msg; }
                 if (in.node.has_value() && in.node->isValid()
                     && in.node->get().isTerminal()) {
-                    os << " " << escape_literal(in.node->val().text);
+                    os << " " << escape_literal(in.node->val().text());
                 }
                 break;
             }

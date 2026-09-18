@@ -1409,54 +1409,109 @@ node can have subnodes.)RAW")
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::ReportSourceCache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
-    .def("addSource",
-         static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource),
-         nanobind::arg("path"),
-         nanobind::arg("content"))
-    .def("parseFileOpts",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseFileOpts),
-         nanobind::arg("file"),
-         nanobind::arg("opts"))
-    .def("parseFile",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseFile),
-         nanobind::arg("file"))
-    .def("parseString",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::string const&)>(&org::parse::ParseContext::parseString),
-         nanobind::arg("text"),
-         nanobind::arg("file_name"))
-    .def("parseStringOpts",
-         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const, std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseStringOpts),
-         nanobind::arg("text"),
-         nanobind::arg("file_name"),
-         nanobind::arg("opts"))
-    .def("parseDirectory",
-         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
-         nanobind::arg("path"))
-    .def("parseDirectoryOpts",
-         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
-         nanobind::arg("path"),
-         nanobind::arg("opts"))
-    .def("parseFileWithIncludes",
-         static_cast<org::sem::SemId<org::sem::File>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseFileWithIncludes),
-         nanobind::arg("file"),
-         nanobind::arg("opts"))
-    .def("collectDiagnostics",
-         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::ReportSourceCache> const&)>(&org::parse::ParseContext::collectDiagnostics),
-         nanobind::arg("tree"),
-         nanobind::arg("cache"))
-    .def("collectErrorNodes",
-         static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes),
-         nanobind::arg("tree"))
-    .def("__repr__", [](org::parse::ParseContext const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::ParseContext const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
+    .def(
+        "getDiagnosticStrings",
+        [](std::shared_ptr<org::parse::ParseContext> self) {
+            return self->getDiagnosticStrings();
+        })
+    .def(
+        "addSource",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& path,
+           std::string const& content) {
+            return self->addSource(path, content);
+        },
+        nanobind::arg("path"),
+        nanobind::arg("content"))
+    .def(
+        "parseFileOpts",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& file,
+           std::shared_ptr<org::parse::OrgParseParameters> const& opts) {
+            return self->parseFileOpts(file, opts);
+        },
+        nanobind::arg("file"),
+        nanobind::arg("opts"))
+    .def(
+        "parseFile",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& file) {
+            return self->parseFile(file);
+        },
+        nanobind::arg("file"))
+    .def(
+        "parseString",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& text,
+           std::string const& file_name) {
+            return self->parseString(text, file_name);
+        },
+        nanobind::arg("text"),
+        nanobind::arg("file_name"))
+    .def(
+        "parseStringOpts",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string text,
+           std::string const& file_name,
+           std::shared_ptr<org::parse::OrgParseParameters> const& opts) {
+            return self->parseStringOpts(std::move(text), file_name, opts);
+        },
+        nanobind::arg("text"),
+        nanobind::arg("file_name"),
+        nanobind::arg("opts"))
+    .def(
+        "parseDirectory",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& path) {
+            return self->parseDirectory(path);
+        },
+        nanobind::arg("path"))
+    .def(
+        "parseDirectoryOpts",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& path,
+           std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& opts) {
+            return self->parseDirectoryOpts(path, opts);
+        },
+        nanobind::arg("path"),
+        nanobind::arg("opts"))
+    .def(
+        "parseFileWithIncludes",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& file,
+           std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& opts) {
+            return self->parseFileWithIncludes(file, opts);
+        },
+        nanobind::arg("file"),
+        nanobind::arg("opts"))
+    .def(
+        "collectDiagnostics",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           org::sem::SemId<org::sem::Org> const& tree,
+           std::shared_ptr<hstd::ext::ReportSourceCache> const& cache) {
+            return self->collectDiagnostics(tree, cache);
+        },
+        nanobind::arg("tree"),
+        nanobind::arg("cache"))
+    .def(
+        "collectErrorNodes",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           org::sem::SemId<org::sem::Org> const& tree) {
+            return self->collectErrorNodes(tree);
+        },
+        nanobind::arg("tree"))
+    .def(
+        "__repr__",
+        [](std::shared_ptr<org::parse::ParseContext> self) {
+            return org::bind::python::py_repr_impl(*self);
+        })
+    .def(
+        "__getattr__",
+        [](std::shared_ptr<org::parse::ParseContext> self,
+           std::string const& name) {
+            return org::bind::python::py_getattr_impl(*self, name);
+        },
+        nanobind::arg("name"));
   nanobind::class_<org::imm::ImmReflFieldId>(m, "ImmReflFieldId")
     .def("getName", static_cast<hstd::Str(org::imm::ImmReflFieldId::*)() const>(&org::imm::ImmReflFieldId::getName))
     ;

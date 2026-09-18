@@ -22,7 +22,7 @@ struct TokenUtils<OrgTokenKind, OrgFill> {
         }
     }
 
-    static std::string_view getText(OrgToken const& tok) { return tok.value.text; }
+    static std::string_view getText(OrgToken const& tok) { return tok.value.text(); }
 };
 
 using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
