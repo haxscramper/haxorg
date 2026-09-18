@@ -1264,8 +1264,10 @@ Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(ImmId const& it, ImmAstContext con
     }
 
     std::sort(result.begin(), result.end());
+#if ORG_BUILD_WITH_PERFETTO
     TRACE_EVENT_INSTANT(
         "imm", "getAdaptersFor", "id", it.getValue(), "adapter_count", result.size());
+#endif
     return result;
 }
 

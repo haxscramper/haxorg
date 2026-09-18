@@ -19,7 +19,7 @@
     "coverage_html_whitelist": [ "OrgParser"                      ]
   },
   "binary_size_conf"   : {
-    "binary_path"     : "build/haxorg_debug_qt/tests_org",
+    "binary_path"     : "build/haxorg_debug_qt/haxorg_cpp_org_tests",
     "output_db"       : "/tmp/haxorg/binary_sym.db",
     "max_symbol_index": 500000,
     "update_db"       : false

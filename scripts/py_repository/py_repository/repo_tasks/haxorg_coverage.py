@@ -207,7 +207,7 @@ def xray_coverage(ctx: TaskContext, test: Path) -> None:
 def run_org_test_performance(ctx: TaskContext) -> None:
     """Generate performance sampling profile for tests"""
 
-    tests = str(get_build_root(ctx, "haxorg") / "tests_org")
+    tests = str(get_build_root(ctx, "haxorg") / "haxorg_cpp_org_tests")
     run = plumbum.local["perf"]
 
     try:

@@ -194,7 +194,6 @@ class CodexTrackingOptions(BaseModel):
 class GenerateOptions(BaseModel, extra="forbid"):
     node_clouds: SubcommandField[GenerateNodeCloudOptions] = None
     subtree_clocking: SubcommandField[ClockTimeAnalysisOptions] = None
-    sort_tags: SubcommandField[TagSortingOptions] = None
     story_grid: SubcommandField[StoryGridOpts] = None
     activity_analysis: SubcommandField[GenerateActivityAnalysisOptions] = None
     codex_tracking: SubcommandField[CodexTrackingOptions] = None

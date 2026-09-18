@@ -152,7 +152,7 @@ def pytest_collect_file(parent: Module, path: str) -> Optional[GTestFile]:
     if test.name.startswith("test_integrate_cxx"):
         log(CAT).info(f"File '{test.name}' integrates execution of the cxx binary")
         if test.name.endswith("_cxx_org.py"):
-            binary_path_str = "haxorg/tests_org"
+            binary_path_str = "haxorg/haxorg_cpp_org_tests"
 
         else:
             binary_path_str = "haxorg/tests_hstd"

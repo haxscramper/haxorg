@@ -39,7 +39,7 @@
     ],
     "real_time_output_print": true
   },
-  "instrument": {"coverage": false, "perfetto": true},
+  "instrument": {"coverage": false, "perfetto": false},
   "coverage_conf": {
     "coverage_run_whitelist" : [
       {"class_pattern": "OrgParseSem"                                     },
