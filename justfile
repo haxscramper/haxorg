@@ -155,9 +155,10 @@ conan_validate_deps_protovalidate_cc: conan_remove_deps
     --build=missing
 
 [working-directory("/tmp")]
-conan_validate_hstd_cpp: conan_remove_deps conan_export_deps
+conan_validate_hstd_cpp: 
   conan create {{HAXORG_ROOT}}/hstd_cpp/hstd_lib \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
     --build=missing
 
+conan_clean_validate_hstd_cpp: conan_remove_deps conan_export_deps conan_validate_hstd_cpp

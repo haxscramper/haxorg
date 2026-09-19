@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
+project(hstd)
 
-include(functions_setup)
-include(functions_aux)
+include(functions_setup.cmake)
+include(functions_aux.cmake)
 
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
@@ -45,9 +46,9 @@ if(ORG_BUILD_WITH_QT)
     REQUIRED Core)
 
   qt_add_library(hstd_cpp_lib STATIC)
-  set_common_files(hstd_cpp_lib)
-  set_target_output(hstd_cpp_lib)
-  set_target_flags(hstd_cpp_lib)
+  haxorg_set_common_files(hstd_cpp_lib)
+  haxorg_set_target_output(hstd_cpp_lib)
+  haxorg_set_target_flags(hstd_cpp_lib)
 
   target_link_libraries(hstd_cpp_lib PUBLIC Qt6::Core)
   target_compile_definitions(hstd_cpp_lib PUBLIC ORG_BUILD_WITH_QT=1)
@@ -64,12 +65,10 @@ endif()
 
 add_library(hstd::hstd ALIAS hstd_cpp_lib)
 
-haxorg_glob_add_sources2(TARGET hstd_cpp_lib LS_REGEX "${BASE}/src/hstd/stdlib/.*" SEARCH_BASE
-                         "${BASE}")
-haxorg_glob_add_sources2(TARGET hstd_cpp_lib LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE
-                         "${BASE}")
-haxorg_glob_add_sources2(TARGET hstd_cpp_lib LS_REGEX "${BASE}/src/hstd/ext/.*" SEARCH_BASE
-                         "${BASE}")
+haxorg_glob_add_sources2(
+  TARGET hstd_cpp_lib LS_REGEX
+  "${CMAKE_CURRENT_LIST_DIR}/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
+  SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}")
 
 target_link_libraries(
   hstd_cpp_lib
@@ -97,7 +96,7 @@ endif()
 
 if(ORG_BUILD_WITH_PROTOBUF)
   set(HSTD_PROTO_PUBLIC_LIBRARIES)
-  set(HSTD_PROTO_IMPORT_DIRS "${BASE}")
+  set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}")
 
   if(ORG_BUILD_WITH_PROTOVALIDATE)
     list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
@@ -112,12 +111,12 @@ if(ORG_BUILD_WITH_PROTOBUF)
     IMPORT_DIRS
     ${HSTD_PROTO_IMPORT_DIRS}
     PROTO_SOURCES
-    "${BASE}/src/hstd/ext/graph/base/graph_base.proto"
-    "${BASE}/src/hstd/ext/graph/visual/graph_visual.proto"
-    "${BASE}/src/hstd/ext/geometry/hstd_geometry.proto"
-    "${BASE}/src/hstd/ext/geometry/hstd_geometry_test_ir.proto"
-    "${BASE}/src/hstd/ext/graph/visual/graph_diagram_validate.proto"
-    "${BASE}/src/hstd/ext/geometry/hstd_visual.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/graph/base/graph_base.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/graph/visual/graph_visual.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/geometry/hstd_geometry.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/geometry/hstd_geometry_test_ir.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/graph/visual/graph_diagram_validate.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/geometry/hstd_visual.proto"
     PUBLIC_LIBRARIES
     ${HSTD_PROTO_PUBLIC_LIBRARIES})
 
@@ -129,13 +128,14 @@ if(ORG_BUILD_WITH_PROTOBUF)
     IMPORT_DIRS
     ${HSTD_PROTO_IMPORT_DIRS}
     PROTO_SOURCES
-    "${BASE}/src/hstd/ext/error_write.proto")
+    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/error_write.proto")
 endif()
 
 target_include_directories(hstd_cpp_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                                $<INSTALL_INTERFACE:src>)
-target_include_directories(hstd_cpp_lib PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"
-                                               "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
+target_include_directories(
+  hstd_cpp_lib PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/thirdparty/immer>"
+                      "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/thirdparty/lager>")
 
 if(ORG_BUILD_TESTS)
   haxorg_add_executable(hstd_cpp_tests)
@@ -144,25 +144,19 @@ if(ORG_BUILD_TESTS)
     target_compile_definitions(hstd_cpp_tests PUBLIC ORG_BUILD_WITH_QT=1)
   endif()
 
-  haxorg_glob_add_sources2(TARGET hstd_cpp_tests LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE
-                           "${BASE}")
-  target_sources(hstd_cpp_tests PRIVATE "${BASE}/tests/common.cpp")
+  haxorg_glob_add_sources2(TARGET hstd_cpp_tests LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/tests/.*"
+                           SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}")
   target_link_libraries(hstd_cpp_tests PRIVATE GTest::gtest GTest::gmock hstd_cpp_lib absl::flags
                                                absl::flags_parse immer::immer)
   add_test(NAME hstd_tests COMMAND hstd_cpp_tests)
-
-  haxorg_add_executable(hstd_cpp_benchmark)
-  haxorg_glob_add_sources2(TARGET hstd_cpp_benchmark LS_REGEX "${BASE}/benchmark/hstd/.*"
-                           SEARCH_BASE "${BASE}")
-  target_link_libraries(hstd_cpp_benchmark PUBLIC benchmark::benchmark hstd_cpp_lib immer::immer)
-  add_test(NAME hstd_benchmark COMMAND hstd_cpp_benchmark)
 endif()
 
 set_target_properties(hstd_cpp_lib PROPERTIES OUTPUT_NAME hstd EXPORT_NAME hstd)
 
 target_include_directories(
-  hstd_cpp_lib PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
-                      "$<BUILD_INTERFACE:${BASE}/src>" "$<INSTALL_INTERFACE:include>")
+  hstd_cpp_lib
+  PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+         "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>" "$<INSTALL_INTERFACE:include>")
 
 install(
   TARGETS hstd_cpp_lib
@@ -174,8 +168,7 @@ install(
   DESTINATION include)
 
 install(
-  DIRECTORY "${BASE}/src/hstd"
+  DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
   DESTINATION include
   FILES_MATCHING
-  PATTERN "*.h"
   PATTERN "*.hpp")

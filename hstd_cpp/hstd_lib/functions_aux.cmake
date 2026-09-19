@@ -94,7 +94,7 @@ endfunction()
 
 function(haxorg_glob_add_sources)
   cmake_parse_arguments(ARG "" "RECURSE;TARGET;EXT_GLOB;LS_REGEX;DEBUG" "" "${ARGN}")
-  list_filter_files(
+  haxorg_list_filter_files(
     OUT
     SRC_FILES
     GLOB

@@ -16,13 +16,14 @@ class HstdConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
 
     exports_sources = (
-        "extra",
-        "geometry",
-        "graph",
-        "logger",
-        "proto_serde",
-        "stdlib",
-        "system",
+        "extra/*",
+        "geometry/*",
+        "graph/*",
+        "logger/*",
+        "proto_serde/*",
+        "stdlib/*",
+        "system/*",
+        "tests/*",
         "CMakeLists.txt",
         "*.cmake",
     )

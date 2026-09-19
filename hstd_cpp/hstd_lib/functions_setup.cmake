@@ -28,40 +28,40 @@ function(haxorg_set_target_flags_impl)
 
     string(JOIN " " EMSCRIPTEN_FLAGS_STR ${EMSCRIPTEN_FLAGS})
 
-    add_target_property(${ARG_TARGET} LINK_FLAGS "${EMSCRIPTEN_FLAGS_STR}")
+    haxorg_add_target_property(${ARG_TARGET} LINK_FLAGS "${EMSCRIPTEN_FLAGS_STR}")
   endif()
 
   if(NOT ${ORG_BUILD_INTERNAL_TOOLS})
     if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=1")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fmax-errors=1")
     endif()
     if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-w")
     endif()
   endif()
 
   if(${ORG_USE_SARIF})
     # Specify output file for the sarif report
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
   endif()
 
   if(${ORG_BUILD_WITH_CGRAPH})
-    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=1)
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=1)
   else()
-    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=0)
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=0)
   endif()
 
   if(${ORG_DISABLE_WARNINGS})
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-everything")
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-everything")
   elseif(${ORG_BUILD_ASSUME_CLANG})
     # FIXME: Adding attribute configurations here does not propagate them to the compiler.
   endif()
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wdangling")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=dangling")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wlifetime-safety-all")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=lifetime-safety-all")
-  add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
+  haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wdangling")
+  haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=dangling")
+  haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wlifetime-safety-all")
+  haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=lifetime-safety-all")
+  haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
 
   set_target_properties(
     ${ARG_TARGET}
@@ -70,77 +70,77 @@ function(haxorg_set_target_flags_impl)
                ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
   if(${ORG_INSTRUMENT_TRACE})
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS -finstrument-functions)
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS -finstrument-functions)
   endif()
 
   target_compile_features(${ARG_TARGET} PUBLIC cxx_std_23)
 
   if(${ORG_BUILD_ASSUME_CLANG})
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
-    add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftime-trace")
+    haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-ftime-trace")
     find_program(MOLD_LINKER "mold")
     if(MOLD_LINKER)
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
+      haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-fuse-ld=mold")
     endif()
   endif()
 
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     # Avoid getting flooded with compilation errors set(CMAKE_CXX_COMPILER clang++)
 
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")
-    add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftemplate-backtrace-limit=0")
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftemplate-backtrace-limit=0")
 
     if(${ORG_USE_SANITIZER})
       if(NOT ${ARG_FORCE_NO_ASAN})
-        add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fsanitize=undefined,address")
+        haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fsanitize=undefined,address")
         # LLVM ships with sanitizer runtime and I could not figure out how to compile it in
         # statically nor do I know whether this is really necessary or not
-        add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-shared-libasan")
-        add_target_property(${ARG_TARGET} COMPILE_OPTIONS
-                            "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-        add_target_property(${ARG_TARGET} LINK_OPTIONS
-                            "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
-        add_target_property(${ARG_TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
+        haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-shared-libasan")
+        haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                                   "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+        haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS
+                                   "-fsanitize-ignorelist=${BASE}/ignorelist.txt")
+        haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-fsanitize=undefined,address")
         target_link_libraries(${ARG_TARGET} PRIVATE ${ASAN_LIBRARY})
       endif()
     endif()
 
     if(${ORG_USE_XRAY})
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instrument")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fxray-instrument")
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instruction-threshold=50")
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS
-                          "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instrument")
+      haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-fxray-instrument")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fxray-instruction-threshold=50")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                                 "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt")
     endif()
 
-    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
 
     if(${ORG_BUILD_WITH_PERFETTO})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_PERFETTO)
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_PERFETTO)
     endif()
 
     if(${ORG_BUILD_WITH_TRACY})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_TRACY)
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_TRACY)
     endif()
 
     if(${ORG_USE_XRAY})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
     endif()
 
     if(${ORG_USE_PGO})
-      add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PGO)
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fprofile-instr-generate")
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
-      add_target_property(${ARG_TARGET} LINK_OPTIONS "-fcoverage-mapping")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PGO)
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
+      haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-fprofile-instr-generate")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
+      haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-fcoverage-mapping")
     endif()
 
-    add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS QT_FORCE_ASSERTS)
 
     if(${PROFILE_USE})
-      add_target_property(${ARG_TARGET} COMPILE_OPTIONS
-                          "-fprofile-use=${BASE}/haxorg-compile.profdata")
+      haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS
+                                 "-fprofile-use=${BASE}/haxorg-compile.profdata")
     endif()
 
     if(${ORG_USE_COVERAGE})
@@ -182,32 +182,32 @@ endfunction()
 function(haxorg_set_common_files TARGET)
   set_target_properties("${TARGET}" PROPERTIES CMAKE_CXX_STANDARD 20 CXX_STANDARD 20)
 
-  add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
-  add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
-  add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
-  # add_target_property("${TARGET}" LINK_LIBRARIES dw)
-  add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
+  haxorg_add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
+  haxorg_add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
+  haxorg_add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
+  # haxorg_add_target_property("${TARGET}" LINK_LIBRARIES dw)
+  haxorg_add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
 endfunction()
 
 function(haxorg_target_setup_v2)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
-  set_common_files("${ARG_TARGET}")
-  set_target_output("${ARG_TARGET}")
+  haxorg_set_common_files("${ARG_TARGET}")
+  haxorg_set_target_output("${ARG_TARGET}")
   haxorg_set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
 endfunction()
 
 function(haxorg_add_executable TARGET)
   add_executable("${TARGET}")
-  set_common_files("${TARGET}")
-  set_target_output("${TARGET}")
-  set_target_flags("${TARGET}")
+  haxorg_set_common_files("${TARGET}")
+  haxorg_set_target_output("${TARGET}")
+  haxorg_set_target_flags("${TARGET}")
 endfunction()
 
 function(haxorg_add_library TARGET)
   add_library("${TARGET}")
-  set_common_files("${TARGET}")
-  set_target_output("${TARGET}")
-  set_target_flags("${TARGET}")
+  haxorg_set_common_files("${TARGET}")
+  haxorg_set_target_output("${TARGET}")
+  haxorg_set_target_flags("${TARGET}")
 endfunction()
 
 function(haxorg_opt_1_excludes_opt_2 opt1 opt2)
@@ -221,6 +221,9 @@ include(GNUInstallDirs)
 function(haxorg_add_protobuf)
   cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET"
                         "IMPORT_DIRS;PROTO_SOURCES;PUBLIC_LIBRARIES;PRIVATE_LIBRARIES" ${ARGN})
+
+  # TODO: Add optional configuration option to debug-print every configuration element
+  # in the parameters here. 
 
   if(HAP_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "haxorg_add_protobuf(): unknown arguments: " "${HAP_UNPARSED_ARGUMENTS}")
