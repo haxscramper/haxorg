@@ -48,6 +48,7 @@ class ExporterTypstConfigTags(BaseModel):
     """
     Names of the typst functions to use for mapping the org-mode nodes
     """
+
     subtree: str = "orgSubtree"  # nodoc
     list: str = "orgList"  # nodoc
     listItem: str = "orgListItem"  # nodoc
@@ -68,6 +69,7 @@ class ExporterTypstConfig(BaseModel):
     """
     Top-level config for the typst export implementation.
     """
+
     tags: ExporterTypstConfigTags = Field(
         default_factory=lambda: ExporterTypstConfigTags(),
         description="Set of tags to use for export",
@@ -84,6 +86,7 @@ class ExporterTypst(ExporterBase):
     """
     Export org-mode document to typst
     """
+
     t: typ.ASTBuilder  # nodoc
     c: ExporterTypstConfig  # nodoc
 
@@ -169,8 +172,8 @@ class ExporterTypst(ExporterBase):
                                  isLine=True)
             return result
 
-        elif len(node.subnodes) == 1 and isinstance(
-                node[0], org.Link) and node[0].target.isAttachment():
+        elif (len(node.subnodes) == 1 and isinstance(node[0], org.Link) and
+              node[0].target.isAttachment()):
             return self.t.string("")
 
         elif len(node.subnodes) == 0:
@@ -184,8 +187,8 @@ class ExporterTypst(ExporterBase):
             )
 
     def evalBlockDynamicFallback(self, node: org.BlockDynamicFallback) -> BlockId:
-        if 0 < len(node.attrs.positional.items) and node.attrs.getPositional(
-                0).getString() == "typst-call-wrap":
+        if (0 < len(node.attrs.positional.items) and
+                node.attrs.getPositional(0).getString() == "typst-call-wrap"):
             return self.t.call(
                 node.getFirstAttr("call").getString(),
                 args={
@@ -341,7 +344,8 @@ class ExporterTypst(ExporterBase):
                     dict(level=self.getRealSubtreeLevel(node), tags=tags),
                     self.exp.eval(node.title),
                 ),
-            ]))
+            ]),
+        )
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -360,7 +364,7 @@ class ExporterTypst(ExporterBase):
             if self.c.with_standard_base:
                 self.t.add_at(
                     res,
-                    self.t.string("#import \"@local/{name}:{version}\": *".format(
+                    self.t.string('#import "@local/{name}:{version}": *'.format(
                         name=module.package.name,
                         version=module.package.version,
                     )),
@@ -452,23 +456,27 @@ class ExporterTypst(ExporterBase):
                     org.treeRepr(node, maxDepth=1),
                 ))
 
-        if node.isDescriptionList() and node.getListFormattingMode(
-        ) == org.ListFormattingMode.Table1D2Col:
+        if (node.isDescriptionList() and
+                node.getListFormattingMode() == org.ListFormattingMode.Table1D2Col):
             items = []
             item: org.ListItem = None
             for item in node:
                 items.append(
                     typ.RawBlock(
-                        self.t.call(self.c.tags.table_cell,
-                                    isFirst=False,
-                                    args=dict(column=0),
-                                    body=self.eval(item.header))))
+                        self.t.call(
+                            self.c.tags.table_cell,
+                            isFirst=False,
+                            args=dict(column=0),
+                            body=self.eval(item.header),
+                        )))
                 items.append(
                     typ.RawBlock(
-                        self.t.call(self.c.tags.table_cell,
-                                    isFirst=False,
-                                    args=dict(column=1),
-                                    body=self.t.stack([self.eval(it) for it in item]))))
+                        self.t.call(
+                            self.c.tags.table_cell,
+                            isFirst=False,
+                            args=dict(column=1),
+                            body=self.t.stack([self.eval(it) for it in item]),
+                        )))
 
             return self.t.call(
                 self.c.tags.table,
@@ -494,20 +502,23 @@ class ExporterTypst(ExporterBase):
                         for idx, cell in enumerate(nested_list):
                             items.append(
                                 typ.RawBlock(
-                                    self.t.call(self.c.tags.table_cell,
-                                                isFirst=False,
-                                                args=dict(column=idx),
-                                                body=self.t.stack(
-                                                    [self.eval(it) for it in cell]))))
+                                    self.t.call(
+                                        self.c.tags.table_cell,
+                                        isFirst=False,
+                                        args=dict(column=idx),
+                                        body=self.t.stack([self.eval(it) for it in cell]),
+                                    )))
 
                         if nested_list.size() < column_count:
                             for i in range(column_count - nested_list.size()):
                                 items.append(
                                     typ.RawBlock(
-                                        self.t.call(self.c.tags.table_cell,
-                                                    isFirst=False,
-                                                    args=dict(column=idx),
-                                                    body=self.t.string(""))))
+                                        self.t.call(
+                                            self.c.tags.table_cell,
+                                            isFirst=False,
+                                            args=dict(column=idx),
+                                            body=self.t.string(""),
+                                        )))
 
             return self.t.call(
                 self.c.tags.table,
@@ -527,7 +538,9 @@ class ExporterTypst(ExporterBase):
                         isDescription=node.isDescriptionList(),
                         items=typ.RawBlock(
                             self.expr([typ.RawBlock(self.exp.eval(it)) for it in node])),
-                    )))
+                    ),
+                ),
+            )
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         args = dict(

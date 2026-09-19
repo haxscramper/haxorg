@@ -196,7 +196,7 @@ struct Cursor {
     }
 
     bool is_at_unicode(int offset = 0) {
-        return 0xC0 <= static_cast<unsigned char>(get(offset));
+        return has_pos(offset) && 0xC0 <= static_cast<unsigned char>(get(offset));
     }
 
     bool nextUnicode(

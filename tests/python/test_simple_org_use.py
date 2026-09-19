@@ -42,7 +42,9 @@ def test_attached_property_list() -> None:
     node = parse.parseString(
         """#+attr_list: :export nil
 - =some_property= :: Value
-    """, "<test>")
+    """,
+        "<test>",
+    )
 
     l: org.List = node[0]
     assert l.getKind() == org.OrgSemKind.List
@@ -59,7 +61,9 @@ def test_attached_property_link() -> None:
     node = parse.parseString(
         """#+attr_link: :attach-method copy :attach-on-export t
 [[attachment:image 1.jpg]]
-    """, "<test>")
+    """,
+        "<test>",
+    )
 
     p: org.Paragraph = node[0]
     assert p.getKind() == org.OrgSemKind.Paragraph
@@ -178,7 +182,8 @@ def test_sem_parser_expected() -> None:
                             skipZeroFields=True,
                             skipLocation=True,
                             skipId=True,
-                        ))
+                        ),
+                    )
 
                     formatter = HtmlFormatter()
                     yaml_pre.add_raw_string(highlight(yaml_text, YamlLexer(), formatter))
@@ -207,9 +212,11 @@ def test_sem_parser_expected() -> None:
 
     doc = dominate.document(title="test_sem_parser_expected")
     doc.head.add(
-        tags.link(rel="stylesheet",
-                  href=get_haxorg_repo_root_path().joinpath(
-                      "tests/python/test_sem_parser_expected.css")))
+        tags.link(
+            rel="stylesheet",
+            href=get_haxorg_repo_root_path().joinpath(
+                "tests/python/test_sem_parser_expected.css"),
+        ))
     doc.add(table)
 
     Path("/tmp/test_sem_parser_expected.html").write_text(str(doc))
@@ -232,18 +239,3 @@ def test_segment_tree() -> None:
     assert annotations[0].last == 2
     assert len(annotations[0].annotations) == 1
     assert annotations[0].isAnnotatedWith(1, 2)
-
-
-def test_doc1() -> None:
-    parse = org.ParseContext()
-    file = Path("~/tmp/doc1.org").expanduser()
-    if not file.exists():
-        return
-
-    node = parse.parseFile(str(file))
-    text = org.treeRepr(node, colored=False)
-    Path("/tmp/test_doc1.txt").write_text(text)
-
-
-if __name__ == "__main__":
-    test_doc1()

@@ -423,6 +423,10 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 
 #+end_export
 
+#+begin_dynamic_name
+something
+#+end_dynamic_name
+
 #+begin: typst-call-wrap :call scale :arg x=80% :arg y=80%
 #+begin_src cpp
 for (size_t i = 0; i < worker_count; ++i) {

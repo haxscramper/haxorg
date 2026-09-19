@@ -905,15 +905,21 @@ OrgConverter::ConvResult<Subtree> OrgConverter::convertSubtree(__args) {
         auto& sn     = tree->title->subnodes;
         if (Opt<sem::SemId<sem::Org>> first = sn.get(0); first) {
             if (auto ident = first.value().asOpt<sem::BigIdent>(); ident) {
+                bool hasKeyword = false;
                 if (ident->text == "COMMENT") {
                     tree->isComment = true;
+                    hasKeyword      = true;
                 } else if (todoKeywords.contains(ident->text)) {
                     tree->todo = ident->text;
+                    hasKeyword = true;
                 }
-                int offset = 1;
-                while (sn.has(offset) && sn.at(offset)->is(osk::Space)) { ++offset; }
 
-                sn.erase(sn.begin(), sn.begin() + offset);
+
+                if (hasKeyword) {
+                    int offset = 1;
+                    while (sn.has(offset) && sn.at(offset)->is(osk::Space)) { ++offset; }
+                    sn.erase(sn.begin(), sn.begin() + offset);
+                }
             }
         }
     }
@@ -2815,6 +2821,7 @@ SemId<Org> OrgConverter::convert(__args) {
         case onk::CmdCustomTextCommand: return convertCmdCustomText(a).unwrap();
         case onk::CmdCustomArgsCommand: return convertCmdCustomArgs(a).unwrap();
         case onk::CriticMarkStructure: return convertCriticMarkup(a).unwrap();
+        case onk::BlockDynamicFallback:
         case onk::BlockCustomText: return convertBlockDynamicFallback(a).unwrap();
         default: {
             return SemError(

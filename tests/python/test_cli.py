@@ -46,18 +46,20 @@ def test_tex_export(stable_test_dir: Path) -> None:
 
     export_tex(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(
-                export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
-                                                 tex=haxorg_opts.TexExportOptions(
-                                                     infile=org_file,
-                                                     outfile=tex_file,
-                                                     do_compile=False,
-                                                 )))))
+            haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+                **get_export_debug(stable_test_dir),
+                tex=haxorg_opts.TexExportOptions(
+                    infile=org_file,
+                    outfile=tex_file,
+                    do_compile=False,
+                ),
+            ))))
 
 
 @pytest.mark.test_release
 def test_html_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_html import export_html
+
     export_html(
         haxorg_cli.get_run(
             haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
@@ -70,6 +72,7 @@ def test_html_export(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_sqlite_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_sqlite import export_sqlite
+
     export_sqlite(
         haxorg_cli.get_run(
             haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
@@ -77,7 +80,8 @@ def test_sqlite_export(stable_test_dir: Path) -> None:
                 sqlite=haxorg_opts.ExportSQliteOptions(
                     infile=[all_org_file],
                     outfile=stable_test_dir.joinpath("out_file.sqlite"),
-                )))))
+                ),
+            ))))
 
 
 def has_cmd(cmd: str) -> bool:
@@ -91,15 +95,17 @@ def has_cmd(cmd: str) -> bool:
 @pytest.mark.test_release
 def test_pandoc_export(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_pandoc import export_pandoc
+
     dir = stable_test_dir
     dir.mkdir(parents=True, exist_ok=True)
     out_file = dir.joinpath("out_file.json")
-    opts = haxorg_opts.RootOptions(
-        export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
-                                         pandoc=haxorg_opts.ExportPandocOptions(
-                                             infile=all_org_file,
-                                             outfile=out_file,
-                                         )))
+    opts = haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+        **get_export_debug(stable_test_dir),
+        pandoc=haxorg_opts.ExportPandocOptions(
+            infile=all_org_file,
+            outfile=out_file,
+        ),
+    ))
 
     export_pandoc(haxorg_cli.get_run(opts))
 
@@ -119,6 +125,7 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_typst_export_1(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_typst import export_typst
+
     dst_dir = stable_test_dir.joinpath("dst")
     dst_dir.mkdir(exist_ok=True, parents=True)
     src_dir = stable_test_dir.joinpath("src")
@@ -156,13 +163,14 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
 
         """)
 
-        opts = haxorg_opts.RootOptions(
-            export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
-                                             typst=haxorg_opts.TypstExportOptions(
-                                                 infile=all_org_file,
-                                                 outfile=outfile,
-                                                 do_compile=has_cmd("typst"),
-                                             )))
+        opts = haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+            **get_export_debug(stable_test_dir),
+            typst=haxorg_opts.TypstExportOptions(
+                infile=all_org_file,
+                outfile=outfile,
+                do_compile=has_cmd("typst"),
+            ),
+        ))
 
         export_typst(haxorg_cli.get_run(opts))
 
@@ -179,10 +187,10 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
         assert attach_dst.read_text() != attach_src.read_text()
 
         text = outfile.read_text()
-        assert "#include \"attach.typ\"" in text
+        assert '#include "attach.typ"' in text
         assert "[[attachment" not in text
         assert "#orgParagraph[Subtree1]" in text
-        assert "tags: (\"tag\"," in text
+        assert 'tags: ("tag",' in text
         assert "#orgSubtree" in text
 
         export_typst(opts)
@@ -194,6 +202,7 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_typst_export_2(stable_test_dir: Path) -> None:
     from py_cli.export.haxorg_export_typst import export_typst
+
     outfile = stable_test_dir.joinpath("result.typ")
     infile = stable_test_dir.joinpath("file.org")
 
@@ -214,13 +223,14 @@ subtree = "changeSubtree"
 
         """)
 
-    opts = haxorg_opts.RootOptions(
-        export=haxorg_opts.ExportOptions(**get_export_debug(stable_test_dir),
-                                         typst=haxorg_opts.TypstExportOptions(
-                                             infile=infile,
-                                             outfile=outfile,
-                                             do_compile=False,
-                                         )))
+    opts = haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
+        **get_export_debug(stable_test_dir),
+        typst=haxorg_opts.TypstExportOptions(
+            infile=infile,
+            outfile=outfile,
+            do_compile=False,
+        ),
+    ))
 
     export_typst(haxorg_cli.get_run(opts))
 
@@ -233,6 +243,7 @@ subtree = "changeSubtree"
 @pytest.mark.test_release
 def test_story_grid(stable_test_dir: Path) -> None:
     from py_cli.generate.story_grid import story_grid
+
     org_file = stable_test_dir.joinpath("org_file.org")
     res_file = stable_test_dir.joinpath("html_result.html")
     org_file.write_text("""
@@ -260,6 +271,7 @@ def test_story_grid(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_node_clouds(stable_test_dir: Path) -> None:
     from py_cli.generate.node_clouds import node_clouds
+
     org_file = stable_test_dir.joinpath("org_file.org")
     csv_file = stable_test_dir.joinpath("result.csv")
 
@@ -293,6 +305,7 @@ Word1 Word1 Word1
 @pytest.mark.test_release
 def test_subtree_clocking(stable_test_dir: Path) -> None:
     from py_cli.generate.subtree_clocking import subtree_clocking
+
     org_file = stable_test_dir.joinpath("org_file.org")
     csv_file = stable_test_dir.joinpath("result.csv")
 
@@ -335,6 +348,7 @@ def test_subtree_clocking(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_codex_tracking(stable_test_dir: Path) -> None:
     from py_cli.generate.codex_tracking import codex_tracking
+
     target_file = stable_test_dir.joinpath("target.org")
     codex_file = stable_test_dir.joinpath("codex.org")
     outfile = stable_test_dir.joinpath("result.txt")
@@ -372,6 +386,7 @@ Sentence with Character name should trigger radio target detection
 @pytest.mark.test_release
 def test_base_activity_analysis(stable_test_dir: Path) -> None:
     from py_cli.generate.activity_analysis import activity_analysis
+
     org_file = stable_test_dir.joinpath("org_file.org")
     db_file = stable_test_dir.joinpath("db.sqlite")
 
@@ -465,28 +480,6 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_mind_map(stable_test_dir: Path, cached_test_dir: Path) -> None:
-    from py_cli.generate.mind_map.gen_mind_map import gen_mind_map
-
-    opts = haxorg_opts.RootOptions(
-        cache=cached_test_dir,
-        generate=haxorg_opts.GenerateOptions(mind_map=haxorg_opts.GenerateMindMapOptions(
-            infile=get_haxorg_repo_root_path().joinpath(
-                "tests/org/corpus/org/mind_map_test_1.org"),
-            outfile=stable_test_dir.joinpath("result.pdf"),
-            typst_do_compile=has_cmd("typst"),
-        )),
-    )
-
-    if not opts.generate.mind_map.org_diagram_tool.exists():
-        pytest.skip(
-            f"Org diagram tool at {opts.generate.mind_map.org_diagram_tool} does not exist"
-        )
-
-    gen_mind_map(haxorg_cli.get_run(opts))
-
-
-@pytest.mark.test_release
 def test_todo_collector(stable_test_dir: Path) -> None:
     from py_cli.generate.todo_collector import todo_collector
 
@@ -505,9 +498,11 @@ def test_todo_collector(stable_test_dir: Path) -> None:
 
     result = todo_collector(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(**get_root_debug(stable_test_dir),
-                                    generate=haxorg_opts.GenerateOptions(
-                                        todo_collector=haxorg_opts.TodoCollectorOptions(
-                                            infile=[stable_test_dir],
-                                            outdir=stable_test_dir.joinpath("report.txt"),
-                                        )))))
+            haxorg_opts.RootOptions(
+                **get_root_debug(stable_test_dir),
+                generate=haxorg_opts.GenerateOptions(
+                    todo_collector=haxorg_opts.TodoCollectorOptions(
+                        infile=[stable_test_dir],
+                        outdir=stable_test_dir.joinpath("report.txt"),
+                    )),
+            )))

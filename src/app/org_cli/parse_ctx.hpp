@@ -23,6 +23,14 @@ struct ParseCommandContext {
         hstd::Vec<hstd::ext::Report> const& reports,
         std::optional<int>                  fragmentIndex);
 
+    void onBaseTokenizeDone(
+        org::parse::OrgTokenGroup const& tokens,
+        std::optional<int>               fragmentIndex);
+
+    void onTokenizerDone(
+        org::parse::OrgTokenGroup const& tokens,
+        std::optional<int>               fragmentIndex);
+
     void onParseDone(
         org::parse::OrgNodeGroup const& nodes,
         org::parse::OrgId               id,

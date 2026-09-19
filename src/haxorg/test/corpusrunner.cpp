@@ -357,6 +357,7 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                 .minLhsSize = 30,
                 .minRhsSize = 48,
                 .formatLine = [&](FormattedDiff::DiffLine const& line) -> ColText {
+                    if (!line.index().has_value()) { return ""; }
                     auto tok = line.isLhs
                                  ? lexed.tokens.content.at(line.index().value())
                                  : expected.tokens.content.at(line.index().value());
@@ -828,7 +829,6 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     __perf_trace("cli", "tokenize base");
     LOGIC_ASSERTION_CHECK(!spec.specFile.empty(), "");
     auto spec_source_path = hstd::fmt("<{}-{}>", spec.specFile, spec.specLocation.line);
-    _dbg(spec_source_path);
     p.tokenizeBase(
         spec.source, params, p.parseContext->addSource(spec_source_path, spec.source));
 

@@ -5,6 +5,7 @@ items:
       - {kind: BoldBegin, str: "*"}
       - {kind: Word, str: "bold"}
       - {kind: BoldEnd, str: "*"}
+      - {kind: EndOfFile}
     subnodes:
       - {kind: StmtList, extent: 3}
       - {kind: Paragraph, extent: 2}
@@ -26,6 +27,7 @@ items:
       - {kind: ItalicBegin, str: "/"}
       - {kind: Word, str: "italic"}
       - {kind: ItalicEnd, str: "/"}
+      - {kind: EndOfFile}
 
   - name: "Symbol"
     source: "\\symbol{}"
@@ -81,6 +83,7 @@ items:
       - {kind: Word, str: Another}
       - {kind: Punctuation, str: /}
       - {kind: Placeholder, str: Placeholder}
+      - {kind: EndOfFile}
   - name: "Critic markup add"
     source: "{++is ++}"
   - name: "Critic markup delete"

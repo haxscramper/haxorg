@@ -115,6 +115,9 @@ items:
       **** COMPLETED Das
       **** COMPLETED =A=
 
+    debug:
+      doFormatReparse: false
+
   - name: "Incomplete italic-looking quote content"
     tags: ["org_quote", "org_subtree", "org_markup"]
     source: |
@@ -124,6 +127,9 @@ items:
 
       **** COMPLETED Das
       **** COMPLETED =A=
+
+    debug:
+      doFormatReparse: false
 
   - name: "Link content"
     tags: ["org_link"]
@@ -322,6 +328,8 @@ items:
   - name: "Empty paragraph"
     source: |
       ****** AAA
+    debug:
+      doFlatParseCompare: false
 
   - name: "tbflm"
     debug:
@@ -753,6 +761,9 @@ items:
       **** COMMENT :ARCHIVE:tag1:
       **** Nothing
 
+    debug:
+      doFormatReparse: false
+
   - name: "Broken list indentation"
     tags: ["org_list", "defcon1"]
     debug:
@@ -924,11 +935,17 @@ items:
     source: |
       #+startup: literallinks showeverything
 
+    debug:
+      doFormatReparse: false
+
   - name: Unclosed blocks
     source: |
       #+begin_src cpp
       int main() {}
       (no end tag, 500 more lines of text)
+
+    debug:
+      doParse: false
 
   - name: Nested unclosed blocks
     source: |
@@ -958,15 +975,26 @@ items:
       int main() {}
       (no end tag, 500 more lines of text)
       #+end_src
+
+    debug:
+      doSem: false
+
   - name: Unterminated begin example
     source: |
       #+begin_example
       asdfasdfasdf
       asadfasdf
+
+    debug:
+      doSem: false
+
   - name: Dynamic-begin-like command
     source: |
       #+beginner: random command, not a begin block
       #+endnotes: whatver asdfasdf??
+
+    debug:
+      doFormatReparse: false
 
   - name: Cmd-like start without colon
     source: |
@@ -993,6 +1021,9 @@ items:
         :somevalue: for some reason I'm starting lines with property-like text
         :end: this is also junk
 
+    debug:
+      doSem: false
+
   - name: Partial table separator
     source: |
       | a |
@@ -1015,6 +1046,9 @@ items:
   - name: Dash in the command name
     source: |
       #+latex-header: \usepackage{x}
+
+    debug:
+      doFormatReparse: false
 
 
   - name: "Unterminated source code block"

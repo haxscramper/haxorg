@@ -145,7 +145,11 @@ OrgNodeMono::Error OrgParser::error_value(
             int size = manager->getSourceContent(activeFileId).size();
             LOGIC_ASSERTION_CHECK_FMT(fail.err.loc->pos < size, "");
             LOGIC_ASSERTION_CHECK_FMT(
-                fail.err.loc->pos + fail.err.tokenText.size() < size, "");
+                fail.err.loc->pos + fail.err.tokenText.size() <= size,
+                "fail.err.loc->pos:{}, fail.err.tokenText.size():{}, size:{}",
+                fail.err.loc->pos,
+                fail.err.tokenText.size(),
+                size);
         }
     }
 

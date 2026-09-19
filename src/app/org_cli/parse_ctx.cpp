@@ -1,4 +1,7 @@
 #include "parse_ctx.hpp"
+#include "haxorg/exporters/ExporterJson.hpp"
+#include "haxorg/exporters/exporteryaml.hpp"
+#include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 
 void org::cli::ParseCommandContext::configure(SharedContext& shared) {
@@ -13,6 +16,12 @@ void org::cli::ParseCommandContext::configure(SharedContext& shared) {
         &ParseCommandContext::onDiagnosticsCollected, this, std::ref(shared));
 
     params->onParseDone = std::bind_front(&ParseCommandContext::onParseDone, this);
+
+    params->onBaseTokenizeDone = std::bind_front(
+        &ParseCommandContext::onBaseTokenizeDone, this);
+
+    params->onTokenizerDone = std::bind_front(
+        &ParseCommandContext::onTokenizerDone, this);
 
     directoryParams->shouldProcessPath = std::bind_front(
         &SharedContext::shouldProcessPath, &shared);
@@ -30,6 +39,22 @@ void org::cli::ParseCommandContext::onDiagnosticsCollected(
     for (auto const& report : reports) {
         auto copy = report;
         *shared.diagnosticsOut << copy.to_string(*cache, false) << std::endl;
+    }
+}
+void org::cli::ParseCommandContext::onBaseTokenizeDone(
+    org::parse::OrgTokenGroup const& tokens,
+    std::optional<int>               fragmentIndex) {
+    if (cmd.baseTokenDumpPath) {
+        hstd::writeFile(cmd.baseTokenDumpPath.value(), hstd::fmt1(tokens));
+    }
+}
+
+
+void org::cli::ParseCommandContext::onTokenizerDone(
+    org::parse::OrgTokenGroup const& tokens,
+    std::optional<int>               fragmentIndex) {
+    if (cmd.tokenDumpPath) {
+        hstd::writeFile(cmd.tokenDumpPath.value(), hstd::fmt1(tokens));
     }
 }
 
@@ -157,6 +182,21 @@ void org::cli::ParseCommandContext::run(SharedContext& shared) {
         node = shared.parseContext->parseFileWithIncludes(input, directoryParams);
     } else {
         node = shared.parseContext->parseFileOpts(input, params);
+    }
+
+    if (cmd.semDumpPath) {
+        auto const& p = cmd.semDumpPath.value();
+        if (p.ends_with("yaml")) {
+            org::algo::ExporterYaml exp{};
+            auto                    yaml_result = exp.eval(node);
+            hstd::writeFile(p, hstd::fmt1(yaml_result));
+        } else if (p.ends_with("json")) {
+            org::algo::ExporterJson exp{};
+            auto                    json_result = exp.eval(node);
+            hstd::writeFile(p, json_result.dump(2));
+        } else {
+            hstd::writeFile(p, org::algo::ExporterTree::treeRepr(node).toString(false));
+        }
     }
 
     if (cmd.lastStage == org::parse::OrgParseParameters::LastParseStage::ImmConvert) {

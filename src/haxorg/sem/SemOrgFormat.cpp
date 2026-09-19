@@ -186,22 +186,51 @@ auto Formatter::toString(SemId<Document> id, Context const& ctx) -> Res {
         hadDocumentProperties = true;
     }
 
-    using Visibility = InitialSubtreeVisibility;
-    if (id->options && id->options->initialVisibility != Visibility::ShowEverything) {
-        Str res = "";
-        switch (id->options->initialVisibility) {
-            case Visibility::ShowEverything: res = "showeverything"; break;
-            case Visibility::Content: res = "content"; break;
-            case Visibility::Overview: res = "overview"; break;
-            case Visibility::ShowAll: res = "showall"; break;
-            case Visibility::Show2Levels: res = "show2levels"; break;
-            case Visibility::Show3Levels: res = "show3levels"; break;
-            case Visibility::Show4Levels: res = "show4levels"; break;
-            case Visibility::Show5Levels: res = "show5levels"; break;
+    if (id->options) {
+        Vec<Res> buf;
+        if (id->options->initialVisibility != InitialSubtreeVisibility::ShowEverything) {
+            switch (id->options->initialVisibility) {
+                case InitialSubtreeVisibility::ShowEverything:
+                    buf.push_back(str("showeverything"));
+                    break;
+                case InitialSubtreeVisibility::Content:
+                    buf.push_back(str("content"));
+                    break;
+                case InitialSubtreeVisibility::Overview:
+                    buf.push_back(str("overview"));
+                    break;
+                case InitialSubtreeVisibility::ShowAll:
+                    buf.push_back(str("showall"));
+                    break;
+                case InitialSubtreeVisibility::Show2Levels:
+                    buf.push_back(str("show2levels"));
+                    break;
+                case InitialSubtreeVisibility::Show3Levels:
+                    buf.push_back(str("show3levels"));
+                    break;
+                case InitialSubtreeVisibility::Show4Levels:
+                    buf.push_back(str("show4levels"));
+                    break;
+                case InitialSubtreeVisibility::Show5Levels:
+                    buf.push_back(str("show5levels"));
+                    break;
+            }
         }
 
-        add(result, b.line({str("#+startup: "), str(res)}));
+        if (id->options->linkVisibility) {
+            switch (id->options->linkVisibility.value()) {
+                case LinkVisibility::LiteralLinks:
+                    buf.push_back(str("literallinks"));
+                    break;
+                case LinkVisibility::DescriptiveLinks:
+                    buf.push_back(str("descriptivelinks"));
+                    break;
+            }
+        }
+
+        if (!buf.empty()) { add(result, b.line({str("#+startup: "), b.line(buf)})); }
     }
+
 
     if (id->options && id->options->columns) {
         Vec<Res> buf;

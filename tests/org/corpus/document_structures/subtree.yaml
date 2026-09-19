@@ -25,6 +25,7 @@ items:
       - {kind: SubtreeStars, str: "*"}
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: "Subtree"}
+      - {kind: EndOfFile}
 
   - name: "Subtree with time annotations"
     source: "* [2023-03-05] Subtree title"
@@ -38,6 +39,7 @@ items:
       - {kind: Word, str: Subtree}
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: title}
+      - {kind: EndOfFile}
 
   - name: "Subtree with nested content"
     source: "** CLI Tools\n\nNested content"
@@ -51,6 +53,7 @@ items:
       - {kind: Word, str: Nested}
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: content}
+      - {kind: EndOfFile}
 
   - name: "Headline after paragraph"
     debug:
@@ -70,6 +73,7 @@ items:
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: headline}
       - {kind: Newline, str: "\n"}
+      - {kind: EndOfFile}
 
 
 
@@ -150,3 +154,6 @@ items:
 
       ** DONE Sarah's part                                            :subtask:
       ** TODO Buy printing supplies                                   :subtask:
+
+    debug:
+      doSem: false
