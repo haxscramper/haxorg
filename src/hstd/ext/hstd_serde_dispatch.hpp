@@ -1,16 +1,18 @@
 #pragma once
 
-#include <boost/mp11/list.hpp>
-#include <google/protobuf/any.pb.h>
-#include <hstd/ext/hstd_serde.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Vec.hpp>
-#include <optional>
-#include <ranges>
-#include <string>
-#include <variant>
-#include <vector>
+#if ORG_BUILD_WITH_PROTOBUF
+
+#    include <boost/mp11/list.hpp>
+#    include <google/protobuf/any.pb.h>
+#    include <hstd/ext/hstd_serde.hpp>
+#    include <hstd/stdlib/Exception.hpp>
+#    include <hstd/stdlib/Str.hpp>
+#    include <hstd/stdlib/Vec.hpp>
+#    include <optional>
+#    include <ranges>
+#    include <string>
+#    include <variant>
+#    include <vector>
 
 namespace hstd::serde {
 
@@ -296,3 +298,5 @@ auto findOneRequired(std::ranges::input_range auto&& range, std::string const& o
 }
 
 } // namespace hstd::serde
+
+#endif

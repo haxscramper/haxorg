@@ -74,6 +74,7 @@ option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cm
 
 # Optional features in the haxorg library
 option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
+option(ORG_BUILD_WITH_PROTOVALIDATE "Include protobuf functionality in the build" OFF)
 option(ORG_BUILD_WITH_CGRAPH "Include cpgrah/graphviz-based features" OFF)
 option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
 option(ORG_BUILD_WITH_KIWI "Enable kiwisolver graph layout" OFF)
@@ -387,29 +388,35 @@ if(ORG_BUILD_WITH_PROTOBUF)
 
   message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")
 
-  set(PROTOVALIDATE_CC_SOURCE_DIR "${DEPS_DIR}/protovalidate-cc")
+  if(${ORG_BUILD_WITH_PROTOVALIDATE})
+    set(PROTOVALIDATE_CC_SOURCE_DIR "${DEPS_DIR}/protovalidate-cc")
 
-  set(PROTOVALIDATE_SOURCE_DIR "${DEPS_DIR}/protovalidate")
+    set(PROTOVALIDATE_SOURCE_DIR "${DEPS_DIR}/protovalidate")
 
-  set(FETCHCONTENT_SOURCE_DIR_PROTOVALIDATE
-      "${PROTOVALIDATE_SOURCE_DIR}"
-      CACHE PATH "Local protovalidate schema checkout" FORCE)
+    set(FETCHCONTENT_SOURCE_DIR_PROTOVALIDATE
+        "${PROTOVALIDATE_SOURCE_DIR}"
+        CACHE PATH "Local protovalidate schema checkout" FORCE)
 
-  add_subdirectory("${PROTOVALIDATE_CC_SOURCE_DIR}"
-                   "${CMAKE_BINARY_DIR}/third_party/protovalidate-cc" EXCLUDE_FROM_ALL)
+    add_subdirectory("${PROTOVALIDATE_CC_SOURCE_DIR}"
+                     "${CMAKE_BINARY_DIR}/third_party/protovalidate-cc" EXCLUDE_FROM_ALL)
 
-  set(PROTOVALIDATE_PROTO_IMPORT_DIR "${PROTOVALIDATE_SOURCE_DIR}/proto/protovalidate")
+    set(PROTOVALIDATE_PROTO_IMPORT_DIR "${PROTOVALIDATE_SOURCE_DIR}/proto/protovalidate")
 
-  if(NOT TARGET protovalidate_cc::protovalidate_cc)
-    message(FATAL_ERROR "protovalidate_cc::protovalidate_cc was not created")
-  endif()
+    if(NOT TARGET protovalidate_cc::protovalidate_cc)
+      message(FATAL_ERROR "protovalidate_cc::protovalidate_cc was not created")
+    endif()
 
-  if(NOT EXISTS "${PROTOVALIDATE_PROTO_IMPORT_DIR}/buf/validate/validate.proto")
-    message(FATAL_ERROR "Cannot find buf/validate/validate.proto under "
-                        "${PROTOVALIDATE_PROTO_IMPORT_DIR}")
+    if(NOT EXISTS "${PROTOVALIDATE_PROTO_IMPORT_DIR}/buf/validate/validate.proto")
+      message(FATAL_ERROR "Cannot find buf/validate/validate.proto under "
+                          "${PROTOVALIDATE_PROTO_IMPORT_DIR}")
+    endif()
+    add_definitions(-DORG_BUILD_WITH_PROTOVALIDATE=1)
+  else()
+    add_definitions(-DORG_BUILD_WITH_PROTOVALIDATE=0)
   endif()
 else()
   add_definitions(-DORG_BUILD_WITH_PROTOBUF=0)
+  add_definitions(-DORG_BUILD_WITH_PROTOVALIDATE=0)
 endif()
 
 message(STATUS "Python_LIBRARIES = ${Python_LIBRARIES}")

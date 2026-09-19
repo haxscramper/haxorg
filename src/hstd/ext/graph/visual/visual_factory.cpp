@@ -1,9 +1,11 @@
-#include "visual_factory.hpp"
-#include "hstd/ext/graph/visual/graph_graphviz.hpp"
-#include "hstd/ext/graph/visual/graph_kiwi.hpp"
-#include "hstd/system/exceptions.hpp"
-#include <hstd/ext/hstd_serde.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
+
+#    include "visual_factory.hpp"
+#    include "hstd/ext/graph/visual/graph_graphviz.hpp"
+#    include "hstd/ext/graph/visual/graph_kiwi.hpp"
+#    include "hstd/system/exceptions.hpp"
+#    include <hstd/ext/hstd_serde.hpp>
+#    include <hstd/stdlib/VecFormatter.hpp>
 
 
 using namespace hstd::ext::graph;
@@ -367,4 +369,6 @@ hstd::SPtr<IPort> hstd::ext::graph::VisualFactory::newPort(proto::IPort const* p
 }
 
 
-#include "visual_factory.hpp"
+#    include "visual_factory.hpp"
+
+#endif

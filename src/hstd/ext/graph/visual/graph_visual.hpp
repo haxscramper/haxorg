@@ -86,7 +86,9 @@ class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
     virtual geometry::Path getPath() const = 0;
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
+#endif
 
     virtual visual::VisGroup getVisual(EdgeID const& selfId) const {
         visual::VisGroup result;
@@ -125,7 +127,9 @@ class IGroupLayoutAttribute : public IVertexLayoutAttribute {
     /// re-arranges the placement.
     virtual void setBBox(geometry::Rect const& bbox) = 0;
 
+#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const;
+#endif
 };
 
 

@@ -1,5 +1,7 @@
 #include "error_write_proto.hpp"
 
+#if ORG_BUILD_WITH_PROTOBUF
+
 namespace hstd::serde {
 
 void proto_serde<error_write_proto::TermColorFg8Bit, hstd::TermColorFg8Bit>::write(
@@ -624,3 +626,4 @@ void proto_serde<error_write_proto::Report, hstd::ext::Report>::read(
 }
 
 } // namespace hstd::serde
+#endif

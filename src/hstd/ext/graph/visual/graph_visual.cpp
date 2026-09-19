@@ -1,7 +1,9 @@
 #include "graph_visual.hpp"
 
-#include "src/hstd/ext/graph/visual/graph_visual.pb.h"
-#include <hstd/ext/geometry/hstd_geometry_serde.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
+#    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
+#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
+#endif
 #include <hstd/ext/geometry/hstd_geometry_test.hpp>
 #include <hstd/stdlib/algorithms.hpp>
 

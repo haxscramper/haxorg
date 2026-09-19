@@ -246,8 +246,12 @@ function(haxorg_add_protobuf)
   target_include_directories(${HAP_TARGET} PUBLIC $<BUILD_INTERFACE:${PROTO_OUT_DIR}>
                                                   $<INSTALL_INTERFACE:include>)
 
-  target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc
-                                             $<BUILD_INTERFACE:protovalidate_cc::protovalidate_cc>)
+  target_link_libraries(${HAP_TARGET} PUBLIC protobuf::libprotobuf protobuf::libprotoc)
+
+  if(${ORG_BUILD_WITH_PROTOVALIDATE})
+    target_link_libraries(${HAP_TARGET}
+                          PUBLIC $<BUILD_INTERFACE:protovalidate_cc::protovalidate_cc>)
+  endif()
 
   install(FILES ${HAP_GENERATED_FILES} DESTINATION include)
 endfunction()

@@ -4,7 +4,7 @@
 #include <hstd/stdlib/JsonSerde.hpp>
 
 namespace hstd {
-
+#if ORG_BUILD_WITH_PROTOBUF
 template <typename E>
 struct JsonSerdeProtobufValue {
     static E from_json(json const& j) {
@@ -15,6 +15,6 @@ struct JsonSerdeProtobufValue {
         return json::parse(hstd::serde::getJString(value));
     }
 };
-
+#endif
 
 } // namespace hstd

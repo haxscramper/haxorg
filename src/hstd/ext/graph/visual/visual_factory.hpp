@@ -1,17 +1,18 @@
 #pragma once
+#if ORG_BUILD_WITH_PROTOBUF
 
-#include <hstd/ext/graph/base/graph_common.hpp>
-#include <hstd/ext/graph/visual/graph_visual.hpp>
-#include <hstd/ext/hstd_serde_dispatch.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#    include <hstd/ext/graph/base/graph_common.hpp>
+#    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <hstd/ext/hstd_serde_dispatch.hpp>
+#    include <hstd/stdlib/MapFormatter.hpp>
+#    include <hstd/stdlib/OptFormatter.hpp>
+#    include <hstd/stdlib/VariantFormatter.hpp>
+#    include <hstd/stdlib/VecFormatter.hpp>
 
-#include <hstd/ext/hstd_serde_dispatch.hpp>
-#include <src/hstd/ext/graph/visual/graph_avoid.pb.h>
-#include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
-#include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
+#    include <hstd/ext/hstd_serde_dispatch.hpp>
+#    include <src/hstd/ext/graph/visual/graph_avoid.pb.h>
+#    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
+#    include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
 
 namespace hstd::serde {
 
@@ -103,3 +104,4 @@ class VisualFactory : public IGraphSerialReaderFactory {
 };
 
 } // namespace hstd::ext::graph
+#endif

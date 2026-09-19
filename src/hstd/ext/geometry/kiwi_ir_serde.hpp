@@ -1,7 +1,9 @@
 #pragma once
 
-#include <hstd/ext/geometry/kiwi_ir.hpp>
-#include <hstd/ext/hstd_serde.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
+
+#    include <hstd/ext/geometry/kiwi_ir.hpp>
+#    include <hstd/ext/hstd_serde.hpp>
 
 namespace hstd::serde {
 template <>
@@ -245,3 +247,4 @@ struct proto_serde<
 };
 
 } // namespace hstd::serde
+#endif

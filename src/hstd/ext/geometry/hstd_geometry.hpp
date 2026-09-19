@@ -763,7 +763,7 @@ struct TaggedScalar {
   public:
     TaggedScalar() {}
     explicit TaggedScalar(double value) : value{value} {}
-    explicit TaggedScalar(int value) : value{value} {}
+    explicit TaggedScalar(int value) : value{static_cast<double>(value)} {}
 
     using TS = TaggedScalar<Tag>;
 

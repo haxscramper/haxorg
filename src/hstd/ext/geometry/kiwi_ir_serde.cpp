@@ -1,5 +1,7 @@
-#include "kiwi_ir_serde.hpp"
-#include "hstd/ext/hstd_serde.hpp"
+#if ORG_BUILD_WITH_PROTOBUF
+
+#    include "kiwi_ir_serde.hpp"
+#    include "hstd/ext/hstd_serde.hpp"
 
 using namespace hstd::ext::kiwi_ir;
 using namespace hstd::ext;
@@ -599,3 +601,4 @@ void hstd::serde::proto_serde<proto::ConstraintEntry, kiwi_ir::ConstraintEntry>:
         out->lowered.push_back(std::move(value));
     }
 }
+#endif

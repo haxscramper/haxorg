@@ -1,6 +1,7 @@
 #pragma once
-
-#include "src/haxorg/imm/ImmOrgGraph.pb.h"
+#if ORG_BUILD_WITH_PROTOBUF
+#    include "src/haxorg/imm/ImmOrgGraph.pb.h"
+#endif
 #if !ORG_BUILD_EMCC
 #    include <boost/graph/properties.hpp>
 #endif
