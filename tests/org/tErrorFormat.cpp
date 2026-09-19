@@ -904,16 +904,21 @@ TEST(PrintError, LabelAtEndOfLongLine) {
     std::cout << escape_literal(lines.at(3)) << "\n";
 
     dumpReport(sources, report);
+
+    hstd::Str expected = hstd::fmt(
+        "\nError: can't compare apples with oranges\n"
+        "   ,-[ <unknown>:1:1 ]\n"
+        "   |\n"
+        " 1 | {}\n"
+        "   | {}^^|^^\n"
+        "   | {}`--- This is an orange\n"
+        "---'\n",
+        code,
+        hstd::Str(" ").repeated(code.size() - 5),
+        hstd::Str(" ").repeated(code.size() - 3));
+
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
-Error: can't compare apples with oranges
-   ,-[ <unknown>:1:1 ]
-   |
- 1 | apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == orange
-   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ^^|^^
-   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `--- This is an orange
----'
-)"_ss));
+        remove_trailing(report.to_string(sources, false)), remove_trailing(expected));
 }
 
 TEST(PrintError, LabelOfWidthZeroAtEndOfLine) {
