@@ -15,6 +15,10 @@ endif()
 
 if(ORG_BUILD_WITH_PROTOVALIDATE)
   find_package(protovalidate_cc CONFIG REQUIRED)
+
+  if(NOT DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
+    message(FATAL_ERROR "protovalidate_cc did not expose " "protovalidate_cc_PROTO_IMPORT_DIR")
+  endif()
 endif()
 
 if(ORG_BUILD_WITH_PERFETTO)
@@ -56,6 +60,8 @@ else()
 
 endif()
 
+add_library(hstd::hstd ALIAS hstd_cpp_lib)
+
 haxorg_glob_add_sources2(TARGET hstd_cpp_lib LS_REGEX "${BASE}/src/hstd/stdlib/.*" SEARCH_BASE
                          "${BASE}")
 haxorg_glob_add_sources2(TARGET hstd_cpp_lib LS_REGEX "${BASE}/src/hstd/system/.*" SEARCH_BASE
@@ -89,9 +95,11 @@ endif()
 
 if(ORG_BUILD_WITH_PROTOBUF)
   set(HSTD_PROTO_PUBLIC_LIBRARIES)
+  set(HSTD_PROTO_IMPORT_DIRS "${BASE}")
 
   if(ORG_BUILD_WITH_PROTOVALIDATE)
     list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
+    list(APPEND HSTD_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
   endif()
 
   haxorg_add_protobuf(
@@ -100,7 +108,6 @@ if(ORG_BUILD_WITH_PROTOBUF)
     UNIQUE_TARGET
     hstd_proto_base_graph
     IMPORT_DIRS
-    "${BASE}"
     ${HSTD_PROTO_IMPORT_DIRS}
     PROTO_SOURCES
     "${BASE}/src/hstd/ext/graph/base/graph_base.proto"
@@ -118,7 +125,7 @@ if(ORG_BUILD_WITH_PROTOBUF)
     UNIQUE_TARGET
     hstd_proto_error_write
     IMPORT_DIRS
-    "${BASE}"
+    ${HSTD_PROTO_IMPORT_DIRS}
     PROTO_SOURCES
     "${BASE}/src/hstd/ext/error_write.proto")
 endif()
@@ -138,14 +145,35 @@ if(ORG_BUILD_TESTS)
   haxorg_glob_add_sources2(TARGET hstd_cpp_tests LS_REGEX "${BASE}/tests/hstd/.*" SEARCH_BASE
                            "${BASE}")
   target_sources(hstd_cpp_tests PRIVATE "${BASE}/tests/common.cpp")
-  target_link_libraries(hstd_cpp_tests PUBLIC GTest::gtest GTest::gmock hstd absl::flags
-                                              absl::flags_parse immer::immer)
-
+  target_link_libraries(hstd_cpp_tests PRIVATE GTest::gtest GTest::gmock hstd_cpp_lib absl::flags
+                                               absl::flags_parse immer::immer)
   add_test(NAME hstd_tests COMMAND hstd_cpp_tests)
 
   haxorg_add_executable(hstd_cpp_benchmark)
   haxorg_glob_add_sources2(TARGET hstd_cpp_benchmark LS_REGEX "${BASE}/benchmark/hstd/.*"
                            SEARCH_BASE "${BASE}")
-  target_link_libraries(hstd_cpp_benchmark PUBLIC benchmark::benchmark hstd immer::immer)
+  target_link_libraries(hstd_cpp_benchmark PUBLIC benchmark::benchmark hstd_cpp_lib immer::immer)
   add_test(NAME hstd_benchmark COMMAND hstd_cpp_benchmark)
 endif()
+
+set_target_properties(hstd_cpp_lib PROPERTIES OUTPUT_NAME hstd EXPORT_NAME hstd)
+
+target_include_directories(
+  hstd_cpp_lib PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+                      "$<BUILD_INTERFACE:${BASE}/src>" "$<INSTALL_INTERFACE:include>")
+
+install(
+  TARGETS hstd_cpp_lib
+  EXPORT hstdTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
+
+install(
+  DIRECTORY "${BASE}/src/hstd"
+  DESTINATION include
+  FILES_MATCHING
+  PATTERN "*.h"
+  PATTERN "*.hpp")

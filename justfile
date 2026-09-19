@@ -130,3 +130,18 @@ generate_diagram_schema:
 
 repo_prepare_git_hooks:
   install -Dm755 repo_py_validate/prepare_commit_message.py .git/hooks/prepare-commit-msg
+
+
+
+CONAN_PROFILE := "repo_tool_configs/conan/conanprofile.txt"
+
+conan_info_package_path package:
+  conan graph info {{package}} --format=html > /tmp/graph.html
+  echo /tmp/graph.html
+
+conan_validate_deps_protovalidate_cc:
+  conan remove "protovalidate-cc/*" -c
+  conan create repo_conan_wraps/protovalidate-cc \
+    --profile:all={{CONAN_PROFILE}} \
+    -s build_type=Release \
+    --build=missing

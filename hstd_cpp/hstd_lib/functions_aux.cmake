@@ -137,7 +137,7 @@ function(haxorg_glob_add_sources2)
   endif()
 
   foreach(EXT IN LISTS ARG_EXTENSIONS)
-    glob_add_sources(
+    haxorg_glob_add_sources(
       TARGET
       "${ARG_TARGET}"
       EXT_GLOB

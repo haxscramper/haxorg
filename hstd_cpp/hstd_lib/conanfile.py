@@ -15,7 +15,17 @@ class HstdConan(ConanFile):
 
     settings = "os", "arch", "compiler", "build_type"
 
-    exports_sources = ("*",)
+    exports_sources = (
+        "extra",
+        "geometry",
+        "graph",
+        "logger",
+        "proto_serde",
+        "stdlib",
+        "system",
+        "CMakeLists.txt",
+        "*.cmake",
+    )
 
     def requirements(self):
         self.requires("yaml-cpp/[>=0.8.0 <0.9]")
@@ -111,6 +121,5 @@ class HstdConan(ConanFile):
         self.cpp_info.set_property("cmake_file_name", "hstd")
         self.cpp_info.set_property("cmake_target_name", "hstd::hstd")
 
-        # This must match the installed archive name.
         self.cpp_info.libs = ["hstd"]
         self.cpp_info.includedirs = ["include"]

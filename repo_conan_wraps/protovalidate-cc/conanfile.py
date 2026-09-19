@@ -1,8 +1,21 @@
 import os
 
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.files import copy, download, get, mkdir, rmdir, save
+from conan.tools.cmake import (
+    CMake,
+    CMakeDeps,
+    CMakeToolchain,
+    cmake_layout,
+)
+from conan.tools.files import (
+    copy,
+    download,
+    get,
+    mkdir,
+    rmdir,
+    save,
+    replace_in_file,
+)
 
 
 class ProtovalidateCcConan(ConanFile):
@@ -24,20 +37,19 @@ class ProtovalidateCcConan(ConanFile):
         "fPIC": True,
     }
 
-    exports_sources = ("patches/*",)
-
-    def config_options(self):
-        if self.settings.os == "Windows":
-            self.options.rm_safe("fPIC")
-
     def requirements(self):
-        self.requires("abseil/[>=20240722.0 <20270000]")
-        self.requires("protobuf/[>=5 <6]")
-        self.requires("re2/[>=2024 <2027]")
+        # Specific version pinned because protovalidate internally vendors google CEL
+        # which in turn expects a specific version of the abseil to be present, with
+        # features like `Nonnull`. Protobuf version 7.35 does not fit -- it pulls
+        # abseil that is too recent, without `Nonnul`. Since neither CEL nor
+        # protovalidate were properly packaged before, there is no clear mapping as to
+        # what dependency version specifically is required. So protovalidate is
+        # packaged with a specific pinned version
+        self.requires("protobuf/5.29.6")
 
     def build_requirements(self):
-        # ANTLR parser generation requires Java.
         self.tool_requires("openjdk/21.0.2")
+        self.tool_requires("protobuf/5.29.6")
 
     def source(self):
         version = str(self.version)
@@ -48,6 +60,82 @@ class ProtovalidateCcConan(ConanFile):
             url=source_data["url"],
             sha256=source_data["sha256"],
             strip_root=True,
+        )
+
+        replace_in_file(
+            self,
+            os.path.join(self.source_folder, "CMakeLists.txt"),
+            "    # CMake configuration scripts\n",
+            (
+                "    # CMake configuration scripts\n"
+                f'    set(PROTOVALIDATE_CC_GIT_VERSION "{version}")\n'
+            ),
+        )
+
+        replace_in_file(
+            self,
+            os.path.join(self.source_folder, "CMakeLists.txt"),
+            ("        TARGETS protovalidate_cc ${PROTOVALIDATE_CC_EXPORT_TARGETS}\n"),
+            (
+                "        TARGETS\n"
+                "            protovalidate_cc\n"
+                "            ${PROTOVALIDATE_CC_EXPORT_TARGETS}\n"
+                "            cel_cpp_empty_descriptor_set\n"
+                "            cel_cpp_spec_proto\n"
+            ),
+        )
+
+        cel_cmake_file = os.path.join(
+            self.source_folder,
+            "cmake",
+            "cel-cpp",
+            "CMakeLists.txt",
+        )
+
+        replace_in_file(
+            self,
+            cel_cmake_file,
+            (
+                "target_include_directories(cel_cpp_spec_proto\n"
+                "    PUBLIC ${CEL_SPEC_PROTO_GEN_DIR}/proto\n"
+                ")\n"
+            ),
+            (
+                "target_include_directories(cel_cpp_spec_proto PUBLIC\n"
+                "    $<BUILD_INTERFACE:${CEL_SPEC_PROTO_GEN_DIR}/proto>\n"
+                "    $<INSTALL_INTERFACE:include>\n"
+                ")\n"
+            ),
+        )
+
+        root_cmake_file = os.path.join(
+            self.source_folder,
+            "CMakeLists.txt",
+        )
+
+        replace_in_file(
+            self,
+            root_cmake_file,
+            (
+                "    install(\n"
+                "        DIRECTORY ${PROTOVALIDATE_PROTO_GEN_DIR}/buf\n"
+                "        DESTINATION include\n"
+                '        FILES_MATCHING PATTERN "*.h"\n'
+                "    )\n"
+            ),
+            (
+                "    install(\n"
+                "        DIRECTORY ${PROTOVALIDATE_PROTO_GEN_DIR}/buf\n"
+                "        DESTINATION include\n"
+                '        FILES_MATCHING PATTERN "*.h"\n'
+                "    )\n"
+                "\n"
+                "    install(\n"
+                "        DIRECTORY ${CEL_SPEC_PROTO_GEN_DIR}/proto/\n"
+                "        DESTINATION include\n"
+                '        FILES_MATCHING PATTERN "*.h"\n'
+                "    )\n"
+            ),
         )
 
         schema_data = self.conan_data["schemas"][version]
@@ -72,27 +160,28 @@ class ProtovalidateCcConan(ConanFile):
         cmake_layout(self)
 
     def generate(self):
-        deps = CMakeDeps(self)
-        deps.generate()
+        CMakeDeps(self).generate()
 
         toolchain = CMakeToolchain(self)
+        protobuf = self.dependencies["protobuf"]
+        toolchain.variables["Protobuf_IMPORT_DIRS"] = os.path.join(
+            protobuf.package_folder,
+            protobuf.cpp_info.includedirs[0],
+        )
+
         toolchain.variables["BUILD_SHARED_LIBS"] = False
+
+        toolchain.variables["BUILD_SHARED_LIBS"] = False
+        toolchain.variables["PROTOVALIDATE_CC_ENABLE_VENDORING"] = False
+        toolchain.variables["PROTOVALIDATE_CC_ENABLE_INSTALL"] = True
+        toolchain.variables["PROTOVALIDATE_CC_ENABLE_TESTS"] = False
+        toolchain.variables["PROTOVALIDATE_CC_ENABLE_CONFORMANCE"] = False
+        toolchain.variables["PROTOVALIDATE_CC_SETUP_COMPILE_COMMANDS"] = False
 
         if self.options.get_safe("fPIC") is not None:
             toolchain.variables["CMAKE_POSITION_INDEPENDENT_CODE"] = bool(
                 self.options.fPIC
             )
-
-        # Externalize dependencies that have Conan packages.
-        #
-        # The upstream project still fetches CEL, ANTLR, googleapis and
-        # Protovalidate schema sources.
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_VENDORING"] = False
-
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_INSTALL"] = True
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_TESTS"] = False
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_CONFORMANCE"] = False
-        toolchain.variables["PROTOVALIDATE_CC_SETUP_COMPILE_COMMANDS"] = False
 
         toolchain.generate()
 
@@ -135,27 +224,23 @@ class ProtovalidateCcConan(ConanFile):
 
         self._install_cmake_resource_metadata()
 
+    def _install_cmake_resource_metadata(self):
+        cmake_config_dir = os.path.join(
+            self.package_folder,
+            "lib",
+            "cmake",
+            "protovalidate_cc",
+        )
 
-def _install_cmake_resource_metadata(self):
-    cmake_config_dir = os.path.join(
-        self.package_folder,
-        "lib",
-        "cmake",
-        "protovalidate_cc",
-    )
+        resources_file = os.path.join(
+            cmake_config_dir,
+            "protovalidate_cc-resources.cmake",
+        )
 
-    resources_file = os.path.join(
-        cmake_config_dir,
-        "protovalidate_cc-resources.cmake",
-    )
-
-    resources_content = r"""
-# Conan-packaged Protovalidate schema resources.
-#
-# This file resides at:
-#   <prefix>/lib/cmake/protovalidate_cc/
-#
-# Therefore ../../.. is the package prefix.
+        save(
+            self,
+            resources_file,
+            content=r"""
 get_filename_component(
     _protovalidate_cc_package_prefix
     "${CMAKE_CURRENT_LIST_DIR}/../../.."
@@ -178,34 +263,38 @@ if(NOT EXISTS
 endif()
 
 unset(_protovalidate_cc_package_prefix)
-"""
-
-    save(
-        self,
-        resources_file,
-        resources_content,
-    )
-
-    native_config_file = os.path.join(
-        cmake_config_dir,
-        "protovalidate_cc-config.cmake",
-    )
-
-    if not os.path.isfile(native_config_file):
-        raise RuntimeError(
-            "protovalidate-cc did not install its expected CMake "
-            f"configuration file: {native_config_file}"
+""",
         )
 
-    save(
-        self,
-        native_config_file,
-        content=r"""
+        native_config_file = os.path.join(
+            cmake_config_dir,
+            "protovalidate_cc-config.cmake",
+        )
 
-# Conan-provided schema location.
+        if not os.path.isfile(native_config_file):
+            raise RuntimeError(
+                f"Missing native protovalidate-cc CMake config: {native_config_file}"
+            )
+
+        save(
+            self,
+            native_config_file,
+            content=r"""
+
 include(
     "${CMAKE_CURRENT_LIST_DIR}/protovalidate_cc-resources.cmake"
 )
 """,
-        append=True,
-    )
+            append=True,
+        )
+
+    def package_info(self):
+        self.cpp_info.set_property("cmake_find_mode", "none")
+
+        self.cpp_info.builddirs = [
+            os.path.join("lib", "cmake", "protovalidate_cc"),
+        ]
+
+        self.cpp_info.resdirs = [
+            os.path.join("res", "proto"),
+        ]
