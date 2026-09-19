@@ -1,4 +1,4 @@
-function(set_target_flags_impl)
+function(haxorg_set_target_flags_impl)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
 
   if(${ORG_BUILD_EMCC})
@@ -161,7 +161,7 @@ function(set_target_flags_impl)
   endif()
 endfunction()
 
-function(split_debug_info target)
+function(haxorg_split_debug_info target)
   if(${ORG_SEPARATE_DEBUG_SYMBOLS})
     add_custom_command(
       TARGET ${target}
@@ -175,11 +175,11 @@ function(split_debug_info target)
   endif()
 endfunction()
 
-function(set_target_flags TARGET)
-  set_target_flags_impl(TARGET "${TARGET}")
+function(haxorg_set_target_flags TARGET)
+  haxorg_set_target_flags_impl(TARGET "${TARGET}")
 endfunction()
 
-function(set_common_files TARGET)
+function(haxorg_set_common_files TARGET)
   set_target_properties("${TARGET}" PROPERTIES CMAKE_CXX_STANDARD 20 CXX_STANDARD 20)
 
   add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
@@ -193,7 +193,7 @@ function(haxorg_target_setup_v2)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
   set_common_files("${ARG_TARGET}")
   set_target_output("${ARG_TARGET}")
-  set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
+  haxorg_set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
 endfunction()
 
 function(haxorg_add_executable TARGET)

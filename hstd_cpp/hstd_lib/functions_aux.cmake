@@ -19,7 +19,7 @@ if(NOT WIN32)
   set(cBoldWhite "${Esc}[1;37m")
 endif()
 
-function(set_target_output TARGET)
+function(haxorg_set_target_output TARGET)
   # Set target output suffix and location relative to the cmake sorce directory
   get_target_property(target_type ${TARGET} TYPE)
 endfunction()
@@ -45,19 +45,19 @@ function(pad_string output str padchar length operation)
       PARENT_SCOPE)
 endfunction()
 
-function(trace ARGS)
+function(haxorg_trace ARGS)
   # TODO print current line location, {CMAKE_CURRENT_LIST_LINE} prints the same value
   message(DEBUG "${ARGV}${cColorReset}")
 endfunction()
 
-function(print_list LIST)
+function(haxorg_print_list LIST)
   trace("> ${cRed}List")
   foreach(item ${LIST})
     trace("  - ${item}")
   endforeach()
 endfunction()
 
-function(print_target_property TARGET PROPERTY)
+function(haxorg_print_target_property TARGET PROPERTY)
   # Print target property either as a single item or as a list
   get_target_property(TMP ${TARGET} ${PROPERTY})
   list(LENGTH TMP LEN)
@@ -71,14 +71,14 @@ function(print_target_property TARGET PROPERTY)
   endif()
 endfunction()
 
-function(add_target_property TARGET PROPERTY VALUE)
+function(haxorg_add_target_property TARGET PROPERTY VALUE)
   set_property(
     TARGET "${TARGET}"
     APPEND
     PROPERTY "${PROPERTY}" "${VALUE}")
 endfunction()
 
-function(list_filter_files)
+function(haxorg_list_filter_files)
   cmake_parse_arguments(ARG "" "RECURSE;OUT;GLOB;REGEX" "" "${ARGN}")
   if(ARG_RECURSE)
     set(GLOB_COMMAND "GLOB_RECURSE")
@@ -92,7 +92,7 @@ function(list_filter_files)
       PARENT_SCOPE)
 endfunction()
 
-function(glob_add_sources)
+function(haxorg_glob_add_sources)
   cmake_parse_arguments(ARG "" "RECURSE;TARGET;EXT_GLOB;LS_REGEX;DEBUG" "" "${ARGN}")
   list_filter_files(
     OUT
@@ -120,7 +120,7 @@ function(glob_add_sources)
   target_sources("${ARG_TARGET}" PRIVATE "${SRC_FILES}")
 endfunction()
 
-function(glob_add_sources2)
+function(haxorg_glob_add_sources2)
   cmake_parse_arguments(ARG "" "RECURSE;TARGET;LS_REGEX;SEARCH_BASE;DEBUG" "EXTENSIONS" "${ARGN}")
   if(NOT ARG_EXTENSIONS)
     set(ARG_EXTENSIONS "hpp;cpp")

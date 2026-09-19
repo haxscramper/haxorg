@@ -4,11 +4,10 @@ from pathlib import Path
 import sys
 
 hook_path = Path(__file__).resolve()
-module_path = hook_path.parents[
-    2] / "scripts" / "py_repository" / "py_repository" / "repo_hooks"
+module_path = hook_path.parents[2]
 sys.path.insert(0, str(module_path))
 
-from validate_commit_message import SCOPES, TYPES
+from repo_py_validate.validate_commit_message import SCOPES, TYPES
 
 if 2 < len(sys.argv) and sys.argv[2] == "commit":
     sys.exit(0)

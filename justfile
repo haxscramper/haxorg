@@ -126,3 +126,7 @@ generate_diagram_schema:
   rm -rf build/jsonschema
   buf generate --path src/hstd/ext/graph/visual/graph_diagram.proto
   buf generate --path src/hstd/ext/graph/visual/graph_diagram_validate.proto
+
+
+repo_prepare_git_hooks:
+  install -Dm755 repo_py_validate/prepare_commit_message.py .git/hooks/prepare-commit-msg
