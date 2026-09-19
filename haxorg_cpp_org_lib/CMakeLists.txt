@@ -153,12 +153,6 @@ if(${ORG_BUILD_WITH_TRACY} AND ${ORG_BUILD_WITH_PERFETTO})
   )
 endif()
 
-function(opt_1_excludes_opt_2 opt1 opt2)
-  if(${opt1} AND ${opt2})
-    message(FATAL_ERROR "${opt2} cannot be enabled when ${opt1} is enabled")
-  endif()
-endfunction()
-
 if(${ORG_BUILD_EMCC})
   if(NOT CMAKE_SIZEOF_VOID_P STREQUAL "4")
     message(

@@ -1,6 +1,11 @@
 from conan import ConanFile
 from conan.tools.build import can_run
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.cmake import (
+    CMake,
+    CMakeDeps,
+    CMakeToolchain,
+    cmake_layout,
+)
 
 
 class HstdConan(ConanFile):
@@ -10,12 +15,7 @@ class HstdConan(ConanFile):
 
     settings = "os", "arch", "compiler", "build_type"
 
-    exports_sources = (
-        "*",
-        "!tests",
-    )
-
-    generators = ()
+    exports_sources = ("*",)
 
     def requirements(self):
         self.requires("yaml-cpp/[>=0.8.0 <0.9]")
@@ -25,10 +25,12 @@ class HstdConan(ConanFile):
         self.requires("fmt/[>=11 <13]")
         self.requires("boost/[>=1.86.0 <2]")
         self.requires("cpptrace/[>=0.8.0 <2]")
-        self.requires("protobuf/[>=5 <7]")
+        self.requires("protobuf/[>=5 <6]")
         self.requires("graphviz/[>=12 <15]")
         self.requires("perfetto/[>=46 <100]")
         self.requires("tracy/[>=0.11 <1]")
+
+        self.requires("protovalidate-cc/1.1.0")
 
     def build_requirements(self):
         self.test_requires("gtest/[>=1.15 <2]")
@@ -42,56 +44,24 @@ class HstdConan(ConanFile):
     def generate(self):
         dependencies = CMakeDeps(self)
 
-        dependencies.set_property("yaml-cpp", "cmake_file_name", "yaml-cpp")
+        # Keep only overrides that are actually necessary. Conan Center
+        # recipes generally already publish their canonical target names.
         dependencies.set_property(
-            "yaml-cpp",
-            "cmake_target_name",
-            "yaml-cpp::yaml-cpp",
-        )
-
-        dependencies.set_property("range-v3", "cmake_file_name", "range-v3")
-        dependencies.set_property(
-            "range-v3",
-            "cmake_target_name",
-            "range-v3::range-v3",
-        )
-
-        dependencies.set_property(
-            "nlohmann_json",
+            "perfetto",
             "cmake_file_name",
-            "nlohmann_json",
+            "Perfetto",
         )
-        dependencies.set_property(
-            "nlohmann_json",
-            "cmake_target_name",
-            "nlohmann_json::nlohmann_json",
-        )
-
-        dependencies.set_property("cctz", "cmake_file_name", "cctz")
-        dependencies.set_property(
-            "cctz",
-            "cmake_target_name",
-            "cctz::cctz",
-        )
-
-        dependencies.set_property("fmt", "cmake_file_name", "fmt")
-        dependencies.set_property("fmt", "cmake_target_name", "fmt::fmt")
-
-        dependencies.set_property("cpptrace", "cmake_file_name", "cpptrace")
-        dependencies.set_property(
-            "cpptrace",
-            "cmake_target_name",
-            "cpptrace::cpptrace",
-        )
-
-        dependencies.set_property("perfetto", "cmake_file_name", "Perfetto")
         dependencies.set_property(
             "perfetto",
             "cmake_target_name",
             "Perfetto::perfetto",
         )
 
-        dependencies.set_property("tracy", "cmake_file_name", "Tracy")
+        dependencies.set_property(
+            "tracy",
+            "cmake_file_name",
+            "Tracy",
+        )
         dependencies.set_property(
             "tracy",
             "cmake_target_name",
@@ -100,6 +70,12 @@ class HstdConan(ConanFile):
 
         dependencies.generate()
 
+        skip_tests = self.conf.get(
+            "tools.build:skip_test",
+            default=False,
+            check_type=bool,
+        )
+
         toolchain = CMakeToolchain(self)
         toolchain.variables["ORG_BUILD_WITH_QT"] = False
         toolchain.variables["ORG_BUILD_EMCC"] = False
@@ -107,10 +83,10 @@ class HstdConan(ConanFile):
         toolchain.variables["ORG_BUILD_WITH_PERFETTO"] = True
         toolchain.variables["ORG_BUILD_WITH_TRACY"] = True
         toolchain.variables["ORG_BUILD_WITH_PROTOBUF"] = True
+        toolchain.variables["ORG_BUILD_WITH_PROTOVALIDATE"] = True
 
-        toolchain.variables["ORG_BUILD_TESTS"] = True
-        toolchain.variables["BUILD_TESTING"] = True
-
+        toolchain.variables["ORG_BUILD_TESTS"] = not skip_tests
+        toolchain.variables["BUILD_TESTING"] = not skip_tests
         toolchain.generate()
 
     def build(self):
@@ -118,7 +94,13 @@ class HstdConan(ConanFile):
         cmake.configure()
         cmake.build()
 
-        if can_run(self):
+        skip_tests = self.conf.get(
+            "tools.build:skip_test",
+            default=False,
+            check_type=bool,
+        )
+
+        if not skip_tests and can_run(self):
             cmake.test(cli_args=["--output-on-failure"])
 
     def package(self):
@@ -128,5 +110,7 @@ class HstdConan(ConanFile):
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "hstd")
         self.cpp_info.set_property("cmake_target_name", "hstd::hstd")
+
+        # This must match the installed archive name.
         self.cpp_info.libs = ["hstd"]
-        self.cpp_info.includedirs = ["src"]
+        self.cpp_info.includedirs = ["include"]

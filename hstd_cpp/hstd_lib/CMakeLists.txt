@@ -1,7 +1,38 @@
 include(functions_setup)
 include(functions_aux)
 
-if(${ORG_BUILD_WITH_QT})
+find_package(yaml-cpp CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(cctz CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(Boost CONFIG REQUIRED)
+find_package(cpptrace CONFIG REQUIRED)
+
+if(ORG_BUILD_WITH_PROTOBUF)
+  find_package(Protobuf CONFIG REQUIRED)
+endif()
+
+if(ORG_BUILD_WITH_PROTOVALIDATE)
+  find_package(protovalidate_cc CONFIG REQUIRED)
+endif()
+
+if(ORG_BUILD_WITH_PERFETTO)
+  find_package(Perfetto CONFIG REQUIRED)
+endif()
+
+if(ORG_BUILD_WITH_TRACY)
+  find_package(Tracy CONFIG REQUIRED)
+endif()
+
+if(ORG_BUILD_TESTS)
+  find_package(GTest CONFIG REQUIRED)
+  find_package(benchmark CONFIG REQUIRED)
+  find_package(absl CONFIG REQUIRED)
+  find_package(immer CONFIG REQUIRED)
+endif()
+
+if(ORG_BUILD_WITH_QT)
   find_package(
     Qt6
     COMPONENTS
@@ -43,20 +74,26 @@ target_link_libraries(
          Boost::boost_preprocessor
          Boost::headers)
 
-if(NOT ${ORG_BUILD_EMCC})
+if(NOT ORG_BUILD_EMCC)
   target_link_libraries(hstd_cpp_lib PUBLIC Boost::log cpptrace::cpptrace)
 endif()
 
 # Tracing
-if(${ORG_BUILD_WITH_PERFETTO})
+if(ORG_BUILD_WITH_PERFETTO)
   target_link_libraries(hstd_cpp_lib PUBLIC Perfetto::perfetto)
 endif()
 
-if(${ORG_BUILD_WITH_TRACY})
+if(ORG_BUILD_WITH_TRACY)
   target_link_libraries(hstd_cpp_lib PUBLIC Tracy::TracyClient)
 endif()
 
-if(${ORG_BUILD_WITH_PROTOBUF})
+if(ORG_BUILD_WITH_PROTOBUF)
+  set(HSTD_PROTO_PUBLIC_LIBRARIES)
+
+  if(ORG_BUILD_WITH_PROTOVALIDATE)
+    list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
+  endif()
+
   haxorg_add_protobuf(
     TARGET
     hstd_cpp_lib
@@ -64,17 +101,20 @@ if(${ORG_BUILD_WITH_PROTOBUF})
     hstd_proto_base_graph
     IMPORT_DIRS
     "${BASE}"
+    ${HSTD_PROTO_IMPORT_DIRS}
     PROTO_SOURCES
     "${BASE}/src/hstd/ext/graph/base/graph_base.proto"
     "${BASE}/src/hstd/ext/graph/visual/graph_visual.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_geometry.proto"
     "${BASE}/src/hstd/ext/geometry/hstd_geometry_test_ir.proto"
     "${BASE}/src/hstd/ext/graph/visual/graph_diagram_validate.proto"
-    "${BASE}/src/hstd/ext/geometry/hstd_visual.proto")
+    "${BASE}/src/hstd/ext/geometry/hstd_visual.proto"
+    PUBLIC_LIBRARIES
+    ${HSTD_PROTO_PUBLIC_LIBRARIES})
 
   haxorg_add_protobuf(
     TARGET
-    hstd
+    hstd_cpp_lib
     UNIQUE_TARGET
     hstd_proto_error_write
     IMPORT_DIRS
@@ -88,10 +128,10 @@ target_include_directories(hstd_cpp_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT
 target_include_directories(hstd_cpp_lib PUBLIC "$<BUILD_INTERFACE:${BASE}/thirdparty/immer>"
                                                "$<BUILD_INTERFACE:${BASE}/thirdparty/lager>")
 
-if(${ORG_BUILD_TESTS})
+if(ORG_BUILD_TESTS)
   haxorg_add_executable(hstd_cpp_tests)
 
-  if(${ORG_BUILD_WITH_QT})
+  if(ORG_BUILD_WITH_QT)
     target_compile_definitions(hstd_cpp_tests PUBLIC ORG_BUILD_WITH_QT=1)
   endif()
 
