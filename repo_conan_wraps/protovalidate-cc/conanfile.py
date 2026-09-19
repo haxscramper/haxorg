@@ -45,6 +45,10 @@ class ProtovalidateCcConan(ConanFile):
         # protovalidate were properly packaged before, there is no clear mapping as to
         # what dependency version specifically is required. So protovalidate is
         # packaged with a specific pinned version
+        #
+        # Nonnull was officially removed in LTS version 20250814.1
+        # https://github.com/bufbuild/protovalidate-cc/blob/v1.1.0/cmake/README.md
+        # known compatible version for 1.1.0 is 29.2 (5.29.6 is close-ish?)
         self.requires("protobuf/5.29.6")
 
     def build_requirements(self):
@@ -83,6 +87,16 @@ class ProtovalidateCcConan(ConanFile):
                 "            cel_cpp_empty_descriptor_set\n"
                 "            cel_cpp_spec_proto\n"
             ),
+        )
+
+        replace_in_file(
+            self,
+            os.path.join(
+                self.source_folder,
+                "protovalidate_cc-config.cmake.in",
+            ),
+            "protovalidate-cc-targets.cmake",
+            "protovalidate_cc-targets.cmake",
         )
 
         cel_cmake_file = os.path.join(

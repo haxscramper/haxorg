@@ -133,15 +133,31 @@ repo_prepare_git_hooks:
 
 
 
-CONAN_PROFILE := "repo_tool_configs/conan/conanprofile.txt"
+HAXORG_ROOT := source_directory()
+CONAN_PROFILE := HAXORG_ROOT / "repo_tool_configs/conan/conanprofile.txt"
 
 conan_info_package_path package:
   conan graph info {{package}} --format=html > /tmp/graph.html
   echo /tmp/graph.html
 
-conan_validate_deps_protovalidate_cc:
+conan_remove_deps:
   conan remove "protovalidate-cc/*" -c
-  conan create repo_conan_wraps/protovalidate-cc \
+
+# Export local dependencies so subsequent build 
+conan_export_deps: 
+  conan export "repo_conan_wraps/protovalidate-cc"
+
+[working-directory("/tmp")]
+conan_validate_deps_protovalidate_cc: conan_remove_deps
+  conan create {{HAXORG_ROOT}}/repo_conan_wraps/protovalidate-cc \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
     --build=missing
+
+[working-directory("/tmp")]
+conan_validate_hstd_cpp: conan_remove_deps conan_export_deps
+  conan create {{HAXORG_ROOT}}/hstd_cpp/hstd_lib \
+    --profile:all={{CONAN_PROFILE}} \
+    -s build_type=Release \
+    --build=missing
+

@@ -36,7 +36,6 @@ class HstdConan(ConanFile):
         self.requires("boost/[>=1.86.0 <2]")
         self.requires("cpptrace/[>=0.8.0 <2]")
         self.requires("protobuf/[>=5 <6]")
-        self.requires("graphviz/[>=12 <15]")
         self.requires("perfetto/[>=46 <100]")
         self.requires("tracy/[>=0.11 <1]")
 
