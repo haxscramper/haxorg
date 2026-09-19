@@ -27,7 +27,7 @@ from py_codegen.codegen_wrapper_embind import gen_pyhaxorg_napi_wrappers
 from py_codegen.codegen_wrapper_nanobind import gen_pyhaxorg_python_wrappers
 from py_codegen.org_codegen_data import *
 from py_haxorg.layout.wrap import TextLayout, TextOptions
-from py_repository.repo_tasks.config import get_tmpdir
+from repo_py_orchestrate.config import get_tmpdir
 from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log
