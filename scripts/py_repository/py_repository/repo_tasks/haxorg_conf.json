@@ -1,6 +1,6 @@
 {
   "develop_ci_conf": {},
-  "debug": false,
+  "debug": true,
   "use_unchanged_tasks": true,
   "use_dependencies": true,
   "force_subprocess_tracking": false,

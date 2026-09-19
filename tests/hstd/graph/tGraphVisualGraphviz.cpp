@@ -334,8 +334,22 @@ TEST_F(GraphVisualGraphviz_Test, GraphvizDifferentLayoutClusters) {
     EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(sg_id2),
                                   /*relative=*/run->getVisual(sg_id1)));
 
-    EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(vs.at(2)),
-                                  /*relative=*/run->getVisual(vs.at(0))));
+    auto vs2_visual = run->getVisual(vs.at(2));
+    auto vs0_visual = run->getVisual(vs.at(0));
+
+    EXPECT_OUTCOME_OK(
+        checkLeftOf(
+            /*stationary=*/vs2_visual,
+            /*relative=*/vs0_visual),
+        hstd::fmt(
+            R"(
+vs2_visual:
+{}
+vs0_visual:
+{}
+)",
+            vs2_visual,
+            vs0_visual));
 
     EXPECT_OUTCOME_OK(checkLeftOf(/*stationary=*/run->getVisual(vs.at(2)),
                                   /*relative=*/run->getVisual(vs.at(1))));

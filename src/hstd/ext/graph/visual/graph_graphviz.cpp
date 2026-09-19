@@ -1284,13 +1284,17 @@ gv::GraphEdgeLayoutAttribute::GraphLabel makeLabelElement(
     elem.font   = buildFontFromLabel(label);
     if (label->fontcolor) { elem.color = parseGvColor(hstd::Str{label->fontcolor}); }
     // Set bounding box from label dimen
-    auto lw   = label->dimen.x;
-    auto lh   = label->dimen.y;
+    auto lw   = gv::GvPointScalar{label->dimen.x};
+    auto lh   = gv::GvPointScalar{label->dimen.y};
     elem.bbox = gv::GvInchRect{
-        gv::GvInchScalar{pos.x().getUnsizedValue() - lw / 2.0f},
-        gv::GvInchScalar{pos.y().getUnsizedValue() - lh / 2.0f},
-        gv::GvInchScalar{lw},
-        gv::GvInchScalar{lh},
+        gv::GvInchScalar{
+            pos.x().getUnsizedValue()
+            - lw.toOtherTag<gv::GvInchTag>().getUnsizedValue() / 2.0f},
+        gv::GvInchScalar{
+            pos.y().getUnsizedValue()
+            - lh.toOtherTag<gv::GvInchTag>().getUnsizedValue() / 2.0f},
+        lw.toOtherTag<gv::GvInchTag>(),
+        lh.toOtherTag<gv::GvInchTag>(),
     };
     return elem;
 }
@@ -1328,6 +1332,11 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
     result.custom.extra["graphviz"]["vertex_name"] = node.name();
     result.max_point = gv::GvInchPoint{nodeRect.width(), nodeRect.height()}
                            .getUnsizedValue();
+
+    result.elements.push_back(
+        visual::VisElement::FromText(
+            hstd::fmt("NAME:{}", node.name()), geometry::Point(0, 0)));
+
 
     result.custom.setAttr("inkscape:label", hstd::fmt("GV VERTEX:{}", selfId));
 
@@ -1449,10 +1458,13 @@ visual::VisGroup gv::GraphVertexLayoutAttribute::getVisual(VertexID const& selfI
         } else if (auto fc = node.getFontColor()) {
             text.color = parseGvColor(*fc);
         }
-        double lw        = (double)label->dimen.x;
-        double lh        = (double)label->dimen.y;
+        auto lw          = gv::GvPointScalar{label->dimen.x};
+        auto lh          = gv::GvPointScalar{label->dimen.y};
         text.boundingBox = geometry::Rect(
-            text.anchor.x() - lw / 2.0f, text.anchor.y() - lh / 2.0f, lw, lh);
+            text.anchor.x() - lw.toOtherTag<gv::GvInchTag>().getUnsizedValue() / 2.0f,
+            text.anchor.y() - lh.toOtherTag<gv::GvInchTag>().getUnsizedValue() / 2.0f,
+            lw.toOtherTag<gv::GvInchTag>().getUnsizedValue(),
+            lh.toOtherTag<gv::GvInchTag>().getUnsizedValue());
 
         visual::VisElement labelElem;
         labelElem.data = text;
