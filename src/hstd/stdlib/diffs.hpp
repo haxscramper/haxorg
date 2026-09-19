@@ -11,6 +11,7 @@
 #include <hstd/stdlib/algorithms.hpp>
 #include <math.h>
 
+#include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/reflection.hpp>
 
@@ -113,6 +114,7 @@ struct DiffFormatConf {
     /// 'None' operation -- empty space that does not correspond to
     /// any sequence edit operation.
     ColText emptyChunk;
+
     /// Format mismatched text. `mode` is the mismatch kind,
     /// `secondary` is used for `sekChanged` to annotated which part
     /// was deleted and which part was added.
@@ -135,9 +137,12 @@ struct DiffFormatConf {
                     }
             }
         };
+
     /// Split line into chunks for formatting
     Func<Vec<Str>(Str const&)> lineSplit = [](Str const& a) -> Vec<Str> {
-        return split_keep_separator(a, char('\n'));
+        return hstd::own_view(split_keep_separator(a, char('\n')))
+             | hstd::rv::transform([](std::string_view v) -> Str { return hstd::Str{v}; })
+             | hstd::rs::to<Vec>();
     };
     /// Convert invisible character (whitespace or control) to
     /// human-readable representation -

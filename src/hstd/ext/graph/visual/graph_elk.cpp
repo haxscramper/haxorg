@@ -411,7 +411,7 @@ hstd::ext::visual::VisGroup hstd::ext::graph::elk::ElkGroupLayoutAttribute::getV
 
     {
         visual::VisElement::RectShape rect;
-        rect.geometry = Rect(0, 0, width.value(), height.value());
+        rect.geometry = geometry::Rect(0, 0, width.value(), height.value());
         rect.pen      = visual::VisPen{
             .color = visual::VisColor{128, 128, 128, 255},
             .width = 1.0f,
@@ -678,7 +678,7 @@ struct proto_serde<
 
         out->bendPoints.clear();
         for (auto const& it : in.bend_points()) {
-            hstd::ext::graph::Point value;
+            geometry::Point value;
             read_serde(it, &value);
             out->bendPoints.push_back(value);
         }
@@ -777,7 +777,7 @@ struct proto_serde<
 
         out->junctionPoints.clear();
         for (auto const& it : in.junction_points()) {
-            hstd::ext::graph::Point value;
+            geometry::Point value;
             read_serde(it, &value);
             out->junctionPoints.push_back(value);
         }

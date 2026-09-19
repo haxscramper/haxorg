@@ -5,6 +5,11 @@
 #include <hstd/stdlib/Ptrs.hpp>
 #include <hstd/stdlib/dod_base.hpp>
 
+#if ORG_BUILD_WITH_PROTOBUF
+#    include "src/haxorg/serde/OrgApiProto.pb.h"
+#    include <hstd/ext/hstd_serde.hpp>
+#endif
+
 namespace org::parse {
 
 DECL_ID_TYPE_MASKED_WITH_ATTR(
@@ -37,16 +42,53 @@ struct [[refl]] SourceManager {
 struct [[refl]] SourceLoc {
     [[refl]] int          line;
     [[refl]] int          column;
-    [[refl]] int          pos     = -1;
-    [[refl]] SourceFileId file_id = SourceFileId::Nil();
+    [[refl]] SourceFileId file_id;
+    [[refl]] int          pos = -1;
 
     bool operator==(SourceLoc const& other) const {
         return line == other.line && column == other.column && pos == other.pos
             && file_id == other.file_id;
     }
 
+    bool isValid() const { return line != -1 && column != -1 && !file_id.isNil(); }
+
     BOOST_DESCRIBE_CLASS(SourceLoc, (), (line, column, pos, file_id), (), ());
 };
 
 
 } // namespace org::parse
+
+namespace hstd {
+template <>
+struct SerdeDefaultProvider<org::parse::SourceLoc> {
+    static org::parse::SourceLoc get() {
+        return org::parse::SourceLoc{
+            .line    = -1,
+            .column  = -1,
+            .file_id = org::parse::SourceFileId::Nil(),
+        };
+    }
+
+    static void construct_at(void* ptr) { new (ptr) org::parse::SourceLoc(get()); };
+};
+} // namespace hstd
+
+template <>
+struct fmt::formatter<org::parse::SourceLoc> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(org::parse::SourceLoc const& p, fmt::format_context& ctx)
+        const {
+        return hstd::fmt_ctx(
+            hstd::fmt("{}({}:{}:{})", p.file_id, p.line, p.column, p.pos), ctx);
+    }
+};
+
+#if ORG_BUILD_WITH_PROTOBUF
+
+template <>
+struct hstd::serde::proto_serde<orgproto::SourceManager, org::parse::SourceManager> {
+    static void write(orgproto::SourceManager* out, org::parse::SourceManager const& in);
+    static void read(orgproto::SourceManager const& in, org::parse::SourceManager* out);
+};
+
+#endif

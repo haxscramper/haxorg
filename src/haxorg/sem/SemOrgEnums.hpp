@@ -5,13 +5,17 @@
 #include <hstd/stdlib/Opt.hpp>
 #define EACH_SHARED_ORG_RECORD_NESTED(__IMPL) \
     __IMPL(LispCode, Call, (Call)) \
+    __IMPL(LispCode, Quoted, (Quoted)) \
     __IMPL(LispCode, List, (List)) \
+    __IMPL(LispCode, Vector, (Vector)) \
     __IMPL(LispCode, KeyValue, (KeyValue)) \
     __IMPL(LispCode, Number, (Number)) \
     __IMPL(LispCode, Text, (Text)) \
     __IMPL(LispCode, Ident, (Ident)) \
     __IMPL(LispCode, Boolean, (Boolean)) \
     __IMPL(LispCode, Real, (Real)) \
+    __IMPL(TimeValue, FixedTime, (FixedTime)) \
+    __IMPL(TimeValue, DynamicTime, (DynamicTime)) \
     __IMPL(Tblfm, Expr, (Expr)) \
     __IMPL(Tblfm, Expr::AxisRef, (Expr, AxisRef)) \
     __IMPL(Tblfm, Expr::AxisRef::Position, (Expr, AxisRef, Position)) \
@@ -93,6 +97,7 @@
     __IMPL(OrgDiagnostics, InternalError, (InternalError))
 #define EACH_SHARED_ORG_ENUM_NESTED(__IMPL) \
     __IMPL(LispCode, Kind, (Kind)) \
+    __IMPL(TimeValue, Kind, (Kind)) \
     __IMPL(Tblfm, Expr::AxisRef::Position::Kind, (Expr, AxisRef, Position, Kind)) \
     __IMPL(Tblfm, Expr::Kind, (Expr, Kind)) \
     __IMPL(Tblfm, Assign::Flag, (Assign, Flag)) \
@@ -120,13 +125,18 @@
 #define EACH_SHARED_ORG_RECORD(__IMPL) \
     __IMPL(LispCode, (LispCode)) \
     __IMPL(LispCode::Call, (LispCode, Call)) \
+    __IMPL(LispCode::Quoted, (LispCode, Quoted)) \
     __IMPL(LispCode::List, (LispCode, List)) \
+    __IMPL(LispCode::Vector, (LispCode, Vector)) \
     __IMPL(LispCode::KeyValue, (LispCode, KeyValue)) \
     __IMPL(LispCode::Number, (LispCode, Number)) \
     __IMPL(LispCode::Text, (LispCode, Text)) \
     __IMPL(LispCode::Ident, (LispCode, Ident)) \
     __IMPL(LispCode::Boolean, (LispCode, Boolean)) \
     __IMPL(LispCode::Real, (LispCode, Real)) \
+    __IMPL(TimeValue, (TimeValue)) \
+    __IMPL(TimeValue::FixedTime, (TimeValue, FixedTime)) \
+    __IMPL(TimeValue::DynamicTime, (TimeValue, DynamicTime)) \
     __IMPL(Tblfm, (Tblfm)) \
     __IMPL(Tblfm::Expr, (Tblfm, Expr)) \
     __IMPL(Tblfm::Expr::AxisRef, (Tblfm, Expr, AxisRef)) \
@@ -1159,6 +1169,8 @@
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1173,6 +1185,8 @@
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1847,6 +1861,8 @@
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -1861,6 +1877,8 @@
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -1982,6 +2000,16 @@ BOOST_DESCRIBE_ENUM_BEGIN(CheckboxState)
   BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Empty)
   BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Partial)
 BOOST_DESCRIBE_ENUM_END(CheckboxState)
+enum class LinkVisibility : short int { LiteralLinks, DescriptiveLinks, };
+BOOST_DESCRIBE_ENUM_BEGIN(LinkVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, LiteralLinks)
+  BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, DescriptiveLinks)
+BOOST_DESCRIBE_ENUM_END(LinkVisibility)
+enum class BlockVisibility : short int { HideBlocks, NoHideBlocks, };
+BOOST_DESCRIBE_ENUM_BEGIN(BlockVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockVisibility, HideBlocks)
+  BOOST_DESCRIBE_ENUM_ENTRY(BlockVisibility, NoHideBlocks)
+BOOST_DESCRIBE_ENUM_END(BlockVisibility)
 /// \brief Where to take todo completion statistics from
 enum class SubtreeTodoSource : short int {
   /// \brief Only count checkbox subnodes as a progress completion
@@ -2131,7 +2159,13 @@ enum class OrgNodeKind : short int {
   /// \brief :key name=value syntax
   AttrValue,
   /// \brief S-expression as an attribute value value
-  AttrLisp,
+  LispExpr,
+  /// \brief `(a b c)` without quoting
+  LispList,
+  /// \brief [1 2 3 4]` without quoting
+  LispVector,
+  /// \brief Extra wrapping node for quoted elements
+  LispQuoted,
   /// \brief `#+title:` - full document title
   CmdTitle,
   /// \brief `#+author:` Document author
@@ -2211,8 +2245,12 @@ enum class OrgNodeKind : short int {
   BlockDetails,
   /// \brief `#+begin_summary` section
   BlockSummary,
-  /// \brief #+begin_<any> section
+  /// \brief #+begin: <name> section
   BlockDynamicFallback,
+  /// \brief #+begin_<any> section for text blocks
+  BlockCustomText,
+  /// \brief #+begin_<any> section for raw content blocks
+  BlockCustomRaw,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
   BigIdent,
   /// \brief Region of text with formatting, which contains standalone words -
@@ -2273,6 +2311,7 @@ enum class OrgNodeKind : short int {
   StaticActiveTime,
   StaticInactiveTime,
   DynamicActiveTime,
+  DiaryTime,
   /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
   DynamicInactiveTime,
   /// \brief Date and time range format - two `orgDateTime` entries
@@ -2343,7 +2382,10 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Cmd)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Attrs)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrValue)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, AttrLisp)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispExpr)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispList)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispVector)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, LispQuoted)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdTitle)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdAuthor)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, CmdCreator)
@@ -2390,6 +2432,8 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDetails)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockSummary)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockDynamicFallback)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockCustomText)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BlockCustomRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, BigIdent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, Bold)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, ErrorInfoToken)
@@ -2420,6 +2464,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, StaticActiveTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, StaticInactiveTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DynamicActiveTime)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DiaryTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, DynamicInactiveTime)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, TimeRange)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SimpleTime)
@@ -2446,7 +2491,253 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgNodeKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeCompletion)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgNodeKind, SubtreeImportance)
 BOOST_DESCRIBE_ENUM_END(OrgNodeKind)
-enum class OrgTokenKind : short int { Ampersand, AngleBegin, AngleEnd, AnyPunct, Asterisk, At, Backtick, BigIdent, BoldBegin, BoldEnd, BoldUnknown, BraceBegin, BraceEnd, Checkbox, Circumflex, CmdAdmonitionEnd, CmdAttr, CmdAuthor, CmdBindRaw, CmdCall, CmdCaption, CmdCategoryRaw, CmdCell, CmdCellBegin, CmdCellEnd, CmdCenterBegin, CmdCenterEnd, CmdColonIdent, CmdColumns, CmdCommentBegin, CmdCommentEnd, CmdConstants, CmdContentBegin, CmdContentEnd, CmdCreator, CmdCustomRaw, CmdDateRaw, CmdDescription, CmdDrawersRaw, CmdDynamicBegin, CmdDynamicBlockBegin, CmdDynamicBlockEnd, CmdDynamicEnd, CmdEmailRaw, CmdExampleBegin, CmdExampleEnd, CmdExampleLine, CmdExcludeTagsRaw, CmdExportBegin, CmdExportEnd, CmdExportLine, CmdFiletags, CmdFlag, CmdHeader, CmdHtmlHeadRaw, CmdInclude, CmdLanguage, CmdLatexClass, CmdLatexClassOptions, CmdLatexCompiler, CmdLatexHeader, CmdLatexHeaderExtraRaw, CmdLinkRaw, CmdMacroRaw, CmdName, CmdOptions, CmdPrefix, CmdPrioritiesRaw, CmdPropertyArgs, CmdPropertyRaw, CmdPropertyText, CmdQuoteBegin, CmdQuoteEnd, CmdRawArg, CmdResults, CmdRow, CmdRowBegin, CmdRowEnd, CmdSelectTagsRaw, CmdSeqTodoRaw, CmdKeywordsRaw, CmdSetupfileRaw, CmdSrcBegin, CmdSrcEnd, CmdStartup, CmdTableBegin, CmdTableEnd, CmdTagsRaw, CmdTblfm, CmdTitle, CmdVerseBegin, CmdVerseEnd, Colon, ColonArgumentsProperty, ColonEnd, ColonExampleLine, ColonLiteralProperty, ColonLogbook, ColonProperties, ColonPropertyText, Comma, Comment, CriticAddBegin, CriticAddEnd, CriticCommentBegin, CriticCommentEnd, CriticDeleteBegin, CriticDeleteEnd, CriticHighlightBegin, CriticHighlightEnd, CriticReplaceBegin, CriticReplaceEnd, CriticReplaceMiddle, CurlyBegin, CurlyEnd, Date, Dedent, Dollar, DoubleAngleBegin, DoubleAngleEnd, DoubleColon, DoubleDash, DoubleHash, DoubleQuote, DoubleSlash, ActiveDynamicTimeContent, InactiveDynamicTimeContent, EndOfFile, Equals, Escaped, Exclamation, FootnoteInlineBegin, FootnoteLinked, ForwardSlash, HashIdent, HashTagBegin, Indent, InlineExportBackend, InlineExportContent, ItalicBegin, ItalicEnd, ItalicUnknown, LatexInlineRaw, LatexParBegin, LatexParEnd, LeadingMinus, LeadingNumber, LeadingPipe, LeadingPlus, LeadingSpace, LineCommand, LinkBegin, LinkDescriptionBegin, LinkDescriptionEnd, LinkEnd, LinkFull, LinkProtocol, LinkProtocolAttachment, LinkProtocolCustomId, LinkProtocolFile, LinkProtocolHttp, LinkProtocolId, LinkProtocolInternal, LinkProtocolTitle, LinkSplit, LinkTarget, LinkTargetBegin, LinkTargetEnd, LinkTargetFile, ListBegin, ListEnd, ListItemBegin, ListItemEnd, LongNewline, MediumNewline, Minus, MiscUnicode, MonospaceBegin, MonospaceEnd, MonospaceUnknown, Newline, Number, ParBegin, ParEnd, Percent, Pipe, Placeholder, Plus, Punctuation, RawText, SameIndent, Semicolon, SingleQuote, SrcContent, StmtListBegin, StmtListEnd, StrikeBegin, StrikeEnd, StrikeUnknown, SubtreeCompletion, SubtreePriority, SubtreeStars, Symbol, TableSeparator, TextSeparator, TextSrcBegin, Tilda, Time, TimeArrow, TimeRepeaterDuration, TimeRepeaterSpec, TimeWarnPeriod, TrailingPipe, TreeClock, TreeTime, TripleAngleBegin, TripleAngleEnd, Underline, UnderlineBegin, UnderlineEnd, UnderlineUnknown, Unknown, VerbatimBegin, VerbatimEnd, VerbatimUnknown, Whitespace, Word, };
+enum class OrgTokenKind : short int {
+  Ampersand,
+  AngleBegin,
+  AngleEnd,
+  AnyPunct,
+  Asterisk,
+  At,
+  Backtick,
+  BigIdent,
+  BoldBegin,
+  BoldEnd,
+  BoldUnknown,
+  BraceBegin,
+  BraceEnd,
+  Checkbox,
+  Circumflex,
+  CmdAdmonitionEnd,
+  CmdAttr,
+  CmdAuthor,
+  CmdBindRaw,
+  CmdCall,
+  CmdCaption,
+  CmdCategoryRaw,
+  CmdCell,
+  CmdCellBegin,
+  CmdCellEnd,
+  CmdCenterBegin,
+  CmdCenterEnd,
+  CmdColonIdent,
+  CmdColumns,
+  CmdCommentBegin,
+  CmdCommentEnd,
+  CmdConstants,
+  CmdContentBegin,
+  CmdContentEnd,
+  CmdCreator,
+  CmdCustomRaw,
+  CmdDateRaw,
+  CmdDescription,
+  CmdDrawersRaw,
+  /// \brief `#+begin:` with the unspecified name
+  CmdDynamicBlockBegin,
+  /// \brief `#+end:` matching with `#+begin:`
+  CmdDynamicBlockEnd,
+  /// \brief `#+begin_` with the text content inside
+  CmdCustomTextBlockBegin,
+  CmdCustomTextBlockEnd,
+  /// \brief `#+begin_` block with the raw string
+  CmdCustomRawBlockBegin,
+  CmdCustomRawBlockLine,
+  CmdCustomRawBlockEnd,
+  CmdEmailRaw,
+  CmdExampleBegin,
+  CmdExampleEnd,
+  CmdExampleLine,
+  CmdExcludeTagsRaw,
+  CmdExportBegin,
+  CmdExportEnd,
+  CmdExportLine,
+  CmdFiletags,
+  CmdFlag,
+  CmdHeader,
+  CmdHtmlHeadRaw,
+  CmdInclude,
+  CmdLanguage,
+  CmdLatexClass,
+  CmdLatexClassOptions,
+  CmdLatexCompiler,
+  CmdLatexHeader,
+  CmdLatexHeaderExtraRaw,
+  CmdLinkRaw,
+  CmdMacroRaw,
+  CmdName,
+  CmdOptions,
+  CmdPrefix,
+  CmdPrioritiesRaw,
+  CmdPropertyArgs,
+  CmdPropertyRaw,
+  CmdPropertyText,
+  CmdQuoteBegin,
+  CmdQuoteEnd,
+  CmdRawArg,
+  CmdResults,
+  CmdRow,
+  CmdRowBegin,
+  CmdRowEnd,
+  CmdSelectTagsRaw,
+  CmdSeqTodoRaw,
+  CmdKeywordsRaw,
+  CmdSetupfileRaw,
+  CmdSrcBegin,
+  CmdSrcEnd,
+  CmdStartup,
+  CmdTableBegin,
+  CmdTableEnd,
+  CmdTagsRaw,
+  CmdTblfm,
+  CmdTitle,
+  CmdVerseBegin,
+  CmdVerseEnd,
+  Colon,
+  ColonArgumentsProperty,
+  ColonEnd,
+  ColonExampleLine,
+  ColonLiteralProperty,
+  ColonLogbook,
+  ColonProperties,
+  ColonPropertyText,
+  Comma,
+  Comment,
+  CriticAddBegin,
+  CriticAddEnd,
+  CriticCommentBegin,
+  CriticCommentEnd,
+  CriticDeleteBegin,
+  CriticDeleteEnd,
+  CriticHighlightBegin,
+  CriticHighlightEnd,
+  CriticReplaceBegin,
+  CriticReplaceEnd,
+  CriticReplaceMiddle,
+  CurlyBegin,
+  CurlyEnd,
+  Date,
+  Dedent,
+  Dollar,
+  DoubleAngleBegin,
+  DoubleAngleEnd,
+  DoubleColon,
+  DoubleDash,
+  DoubleHash,
+  DoubleQuote,
+  DoubleSlash,
+  ActiveDynamicTimeContent,
+  InactiveDynamicTimeContent,
+  /// \brief `%%(` at the start of the line in the subtree, denoting the start of the dynamic agenda.
+  AgendaDiaryTimeContent,
+  EndOfFile,
+  Equals,
+  Escaped,
+  Exclamation,
+  /// \brief `[fn::` with the inline definition
+  FootnoteInlineBegin,
+  FootnoteLinked,
+  ForwardSlash,
+  HashIdent,
+  HashTagBegin,
+  Indent,
+  InlineExportBackend,
+  InlineExportContent,
+  ItalicBegin,
+  ItalicEnd,
+  ItalicUnknown,
+  LatexInlineRaw,
+  LatexParBegin,
+  LatexParEnd,
+  LatexBraceBegin,
+  LatexBraceEnd,
+  LatexDollar1Begin,
+  LatexDollar1End,
+  LatexDollar2Begin,
+  LatexDollar2End,
+  LeadingMinus,
+  LeadingNumber,
+  LeadingPipe,
+  LeadingPlus,
+  LeadingSpace,
+  /// \brief a)
+  LeadingCharacter,
+  LineCommand,
+  LinkBegin,
+  LinkDescriptionBegin,
+  LinkDescriptionEnd,
+  LinkEnd,
+  LinkFull,
+  LinkProtocol,
+  LinkProtocolAttachment,
+  LinkProtocolCustomId,
+  LinkProtocolFile,
+  LinkProtocolHttp,
+  LinkProtocolId,
+  LinkProtocolInternal,
+  LinkProtocolTitle,
+  LinkSplit,
+  LinkTarget,
+  LinkTargetBegin,
+  LinkTargetEnd,
+  LinkTargetFile,
+  ListBegin,
+  ListEnd,
+  ListItemBegin,
+  ListItemEnd,
+  LongNewline,
+  MediumNewline,
+  Minus,
+  MiscUnicode,
+  MonospaceBegin,
+  MonospaceEnd,
+  MonospaceUnknown,
+  Newline,
+  Number,
+  ParBegin,
+  ParEnd,
+  Percent,
+  Pipe,
+  Placeholder,
+  Plus,
+  Punctuation,
+  RawText,
+  SameIndent,
+  Semicolon,
+  SingleQuote,
+  SrcContent,
+  StmtListBegin,
+  StmtListEnd,
+  StrikeBegin,
+  StrikeEnd,
+  StrikeUnknown,
+  SubtreeCompletion,
+  SubtreePriority,
+  SubtreeStars,
+  Symbol,
+  TableSeparator,
+  TextSeparator,
+  TextSrcBegin,
+  Tilda,
+  Time,
+  TimeArrow,
+  TimeRepeaterDuration,
+  TimeRepeaterSpec,
+  TimeWarnPeriod,
+  TrailingPipe,
+  TreeClock,
+  TreeTime,
+  TripleAngleBegin,
+  TripleAngleEnd,
+  Underline,
+  UnderlineBegin,
+  UnderlineEnd,
+  UnderlineUnknown,
+  Unknown,
+  VerbatimBegin,
+  VerbatimEnd,
+  VerbatimUnknown,
+  Whitespace,
+  Word,
+};
 BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, Ampersand)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, AngleBegin)
@@ -2487,10 +2778,13 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDateRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDescription)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDrawersRaw)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBlockBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicBlockEnd)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdDynamicEnd)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomTextBlockBegin)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomTextBlockEnd)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomRawBlockBegin)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomRawBlockLine)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdCustomRawBlockEnd)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdEmailRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdExampleBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, CmdExampleEnd)
@@ -2575,6 +2869,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, DoubleSlash)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, ActiveDynamicTimeContent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, InactiveDynamicTimeContent)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, AgendaDiaryTimeContent)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, EndOfFile)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, Equals)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, Escaped)
@@ -2593,11 +2888,18 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgTokenKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexInlineRaw)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexParBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexParEnd)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexBraceBegin)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexBraceEnd)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexDollar1Begin)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexDollar1End)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexDollar2Begin)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LatexDollar2End)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingMinus)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingNumber)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingPipe)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingPlus)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingSpace)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LeadingCharacter)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LineCommand)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LinkBegin)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgTokenKind, LinkDescriptionBegin)

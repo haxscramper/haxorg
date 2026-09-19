@@ -46,6 +46,25 @@ typename NodeGroup<N, K, V, M>::iterator NodeGroup<N, K, V, M>::end(
     return iterator(last, this);
 }
 
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::flat_extent_iterator NodeGroup<N, K, V, M>::begin_extent(
+    NodeGroup<N, K, V, M>::Id start) const {
+    if (start.getIndex() < size()) {
+        auto result = flat_extent_iterator(start, this);
+        result.check();
+        return result;
+    } else {
+        return end_extent(nodes.back());
+    }
+}
+
+template <typename N, typename K, typename V, typename M>
+typename NodeGroup<N, K, V, M>::flat_extent_iterator NodeGroup<N, K, V, M>::end_extent(
+    NodeGroup<N, K, V, M>::Id last) const {
+    ++last;
+    return flat_extent_iterator(last, this);
+}
+
 
 template <typename N, typename K, typename V, typename M>
 Opt<Pair<typename NodeGroup<N, K, V, M>::iterator, typename NodeGroup<N, K, V, M>::iterator>> NodeGroup<
@@ -175,10 +194,8 @@ void NodeGroup<N, K, V, M>::treeRepr(
         os << os.cyan() << hstd::fmt("[{}]", subnodeIdx) << os.end();
     }
 
-    if (conf.withTreeMask) { os << hstd::fmt(" MASK:{}", node.getMask()); }
-
     if (conf.withTreeId) {
-        os << " " << os.blue() << hstd::fmt("ID:{}", node.getUnmasked()) << os.end();
+        os << " " << os.blue() << hstd::fmt("ID:{}", node) << os.end();
     }
 
     if (at(node).isTerminal()) {
@@ -186,12 +203,21 @@ void NodeGroup<N, K, V, M>::treeRepr(
         if (tok.isNil()) {
             os << " # " << os.cyan() << "<nil>" << os.end();
         } else {
-            os << " # " << fmt1(tok.getUnmasked()) << " " << os.green()
-               << fmt1(at(tok).kind) << os.end() << " " << os.yellow()
-               << fmt1(at(tok).value) << os.end();
+            os << " # "               //
+               << fmt1(tok)           //
+               << " "                 //
+               << os.green()          //
+               << fmt1(at(tok).kind)  //
+               << os.end()            //
+               << " "                 //
+               << os.yellow()         //
+               << fmt1(at(tok).value) //
+               << os.end();
         }
     } else {
         if (conf.withExt) { os << hstd::fmt(" EXT:{}", at(node).getExtent()); }
+
+        if (conf.maxDepth <= level) { return; }
 
         auto [begin, end] = subnodesOf(node).value();
         int  idx          = 0;

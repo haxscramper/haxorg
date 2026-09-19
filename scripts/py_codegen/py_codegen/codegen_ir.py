@@ -1536,6 +1536,17 @@ def n_org() -> QualType:
     return QualType(Name="org", IsNamespace=True)
 
 
+@beartype
+def n_hstd_serde() -> QualType:
+    return QualType(
+        Name="serde",
+        IsNamespace=True,
+        Meta=dict(isSemNamespace=True),
+        Spaces=[n_hstd()],
+    )
+
+
+@beartype
 def n_org_algo() -> QualType:
     return QualType(
         Name="algo",

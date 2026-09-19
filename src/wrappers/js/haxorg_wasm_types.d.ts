@@ -8,6 +8,16 @@ export interface haxorg_wasm_module_auto {
     Partial: CheckboxState,
   }
   format_CheckboxState(value: CheckboxState): string;
+  LinkVisibility: {
+    LiteralLinks: LinkVisibility,
+    DescriptiveLinks: LinkVisibility,
+  }
+  format_LinkVisibility(value: LinkVisibility): string;
+  BlockVisibility: {
+    HideBlocks: BlockVisibility,
+    NoHideBlocks: BlockVisibility,
+  }
+  format_BlockVisibility(value: BlockVisibility): string;
   SubtreeTodoSource: {
     Checkbox: SubtreeTodoSource,
     Todo: SubtreeTodoSource,
@@ -119,7 +129,10 @@ export interface haxorg_wasm_module_auto {
     Cmd: OrgNodeKind,
     Attrs: OrgNodeKind,
     AttrValue: OrgNodeKind,
-    AttrLisp: OrgNodeKind,
+    LispExpr: OrgNodeKind,
+    LispList: OrgNodeKind,
+    LispVector: OrgNodeKind,
+    LispQuoted: OrgNodeKind,
     CmdTitle: OrgNodeKind,
     CmdAuthor: OrgNodeKind,
     CmdCreator: OrgNodeKind,
@@ -166,6 +179,8 @@ export interface haxorg_wasm_module_auto {
     BlockDetails: OrgNodeKind,
     BlockSummary: OrgNodeKind,
     BlockDynamicFallback: OrgNodeKind,
+    BlockCustomText: OrgNodeKind,
+    BlockCustomRaw: OrgNodeKind,
     BigIdent: OrgNodeKind,
     Bold: OrgNodeKind,
     ErrorInfoToken: OrgNodeKind,
@@ -196,6 +211,7 @@ export interface haxorg_wasm_module_auto {
     StaticActiveTime: OrgNodeKind,
     StaticInactiveTime: OrgNodeKind,
     DynamicActiveTime: OrgNodeKind,
+    DiaryTime: OrgNodeKind,
     DynamicInactiveTime: OrgNodeKind,
     TimeRange: OrgNodeKind,
     SimpleTime: OrgNodeKind,
@@ -263,10 +279,13 @@ export interface haxorg_wasm_module_auto {
     CmdDateRaw: OrgTokenKind,
     CmdDescription: OrgTokenKind,
     CmdDrawersRaw: OrgTokenKind,
-    CmdDynamicBegin: OrgTokenKind,
     CmdDynamicBlockBegin: OrgTokenKind,
     CmdDynamicBlockEnd: OrgTokenKind,
-    CmdDynamicEnd: OrgTokenKind,
+    CmdCustomTextBlockBegin: OrgTokenKind,
+    CmdCustomTextBlockEnd: OrgTokenKind,
+    CmdCustomRawBlockBegin: OrgTokenKind,
+    CmdCustomRawBlockLine: OrgTokenKind,
+    CmdCustomRawBlockEnd: OrgTokenKind,
     CmdEmailRaw: OrgTokenKind,
     CmdExampleBegin: OrgTokenKind,
     CmdExampleEnd: OrgTokenKind,
@@ -351,6 +370,7 @@ export interface haxorg_wasm_module_auto {
     DoubleSlash: OrgTokenKind,
     ActiveDynamicTimeContent: OrgTokenKind,
     InactiveDynamicTimeContent: OrgTokenKind,
+    AgendaDiaryTimeContent: OrgTokenKind,
     EndOfFile: OrgTokenKind,
     Equals: OrgTokenKind,
     Escaped: OrgTokenKind,
@@ -369,11 +389,18 @@ export interface haxorg_wasm_module_auto {
     LatexInlineRaw: OrgTokenKind,
     LatexParBegin: OrgTokenKind,
     LatexParEnd: OrgTokenKind,
+    LatexBraceBegin: OrgTokenKind,
+    LatexBraceEnd: OrgTokenKind,
+    LatexDollar1Begin: OrgTokenKind,
+    LatexDollar1End: OrgTokenKind,
+    LatexDollar2Begin: OrgTokenKind,
+    LatexDollar2End: OrgTokenKind,
     LeadingMinus: OrgTokenKind,
     LeadingNumber: OrgTokenKind,
     LeadingPipe: OrgTokenKind,
     LeadingPlus: OrgTokenKind,
     LeadingSpace: OrgTokenKind,
+    LeadingCharacter: OrgTokenKind,
     LineCommand: OrgTokenKind,
     LinkBegin: OrgTokenKind,
     LinkDescriptionBegin: OrgTokenKind,
@@ -566,7 +593,7 @@ export interface haxorg_wasm_module_auto {
   OrgJson: OrgJsonConstructor;
   Org: OrgConstructor;
   OperationsTracer: OperationsTracerConstructor;
-  Cache: CacheConstructor;
+  ReportSourceCache: ReportSourceCacheConstructor;
   Report: ReportConstructor;
   ParseOrgParseFragment: ParseOrgParseFragmentConstructor;
   OrgParseParameters: OrgParseParametersConstructor;
@@ -575,9 +602,10 @@ export interface haxorg_wasm_module_auto {
   ImmReflFieldId: ImmReflFieldIdConstructor;
   ImmId: ImmIdConstructor;
   ImmOrg: ImmOrgConstructor;
-  ImmPathStep: ImmPathStepConstructor;
-  ImmPath: ImmPathConstructor;
+  ImmSubnodeAccessStep: ImmSubnodeAccessStepConstructor;
+  ImmTreeAccessPath: ImmTreeAccessPathConstructor;
   ImmUniqId: ImmUniqIdConstructor;
+  ImmSemSerdeConfig: ImmSemSerdeConfigConstructor;
   ImmAstReplaceEpoch: ImmAstReplaceEpochConstructor;
   ImmAstContext: ImmAstContextConstructor;
   ImmAstVersion: ImmAstVersionConstructor;
@@ -599,7 +627,9 @@ export interface haxorg_wasm_module_auto {
   SequenceAnnotation: SequenceAnnotationConstructor;
   LispCode: LispCodeConstructor;
   LispCodeCall: LispCodeCallConstructor;
+  LispCodeQuoted: LispCodeQuotedConstructor;
   LispCodeList: LispCodeListConstructor;
+  LispCodeVector: LispCodeVectorConstructor;
   LispCodeKeyValue: LispCodeKeyValueConstructor;
   LispCodeNumber: LispCodeNumberConstructor;
   LispCodeText: LispCodeTextConstructor;
@@ -608,7 +638,9 @@ export interface haxorg_wasm_module_auto {
   LispCodeReal: LispCodeRealConstructor;
   LispCodeKind: {
     Call: LispCodeKind,
+    Quoted: LispCodeKind,
     List: LispCodeKind,
+    Vector: LispCodeKind,
     KeyValue: LispCodeKind,
     Number: LispCodeKind,
     Text: LispCodeKind,
@@ -617,6 +649,14 @@ export interface haxorg_wasm_module_auto {
     Real: LispCodeKind,
   }
   format_LispCodeKind(value: LispCodeKind): string;
+  TimeValue: TimeValueConstructor;
+  TimeValueFixedTime: TimeValueFixedTimeConstructor;
+  TimeValueDynamicTime: TimeValueDynamicTimeConstructor;
+  TimeValueKind: {
+    FixedTime: TimeValueKind,
+    DynamicTime: TimeValueKind,
+  }
+  format_TimeValueKind(value: TimeValueKind): string;
   Tblfm: TblfmConstructor;
   TblfmExpr: TblfmExprConstructor;
   TblfmExprAxisRef: TblfmExprAxisRefConstructor;
@@ -1016,6 +1056,7 @@ export interface haxorg_wasm_module_auto {
     OrgDocument: CmdIncludeKind,
   }
   format_CmdIncludeKind(value: CmdIncludeKind): string;
+  ReportSourceStrCache: ReportSourceStrCacheConstructor;
   ImmIdTNoNode: ImmIdTNoNodeConstructor;
   ImmIdTErrorItem: ImmIdTErrorItemConstructor;
   ImmIdTErrorGroup: ImmIdTErrorGroupConstructor;
@@ -1485,6 +1526,14 @@ export enum CheckboxState {
   Empty,
   Partial,
 }
+export enum LinkVisibility {
+  LiteralLinks,
+  DescriptiveLinks,
+}
+export enum BlockVisibility {
+  HideBlocks,
+  NoHideBlocks,
+}
 export enum SubtreeTodoSource {
   Checkbox,
   Todo,
@@ -1592,7 +1641,10 @@ export enum OrgNodeKind {
   Cmd,
   Attrs,
   AttrValue,
-  AttrLisp,
+  LispExpr,
+  LispList,
+  LispVector,
+  LispQuoted,
   CmdTitle,
   CmdAuthor,
   CmdCreator,
@@ -1639,6 +1691,8 @@ export enum OrgNodeKind {
   BlockDetails,
   BlockSummary,
   BlockDynamicFallback,
+  BlockCustomText,
+  BlockCustomRaw,
   BigIdent,
   Bold,
   ErrorInfoToken,
@@ -1669,6 +1723,7 @@ export enum OrgNodeKind {
   StaticActiveTime,
   StaticInactiveTime,
   DynamicActiveTime,
+  DiaryTime,
   DynamicInactiveTime,
   TimeRange,
   SimpleTime,
@@ -1735,10 +1790,13 @@ export enum OrgTokenKind {
   CmdDateRaw,
   CmdDescription,
   CmdDrawersRaw,
-  CmdDynamicBegin,
   CmdDynamicBlockBegin,
   CmdDynamicBlockEnd,
-  CmdDynamicEnd,
+  CmdCustomTextBlockBegin,
+  CmdCustomTextBlockEnd,
+  CmdCustomRawBlockBegin,
+  CmdCustomRawBlockLine,
+  CmdCustomRawBlockEnd,
   CmdEmailRaw,
   CmdExampleBegin,
   CmdExampleEnd,
@@ -1823,6 +1881,7 @@ export enum OrgTokenKind {
   DoubleSlash,
   ActiveDynamicTimeContent,
   InactiveDynamicTimeContent,
+  AgendaDiaryTimeContent,
   EndOfFile,
   Equals,
   Escaped,
@@ -1841,11 +1900,18 @@ export enum OrgTokenKind {
   LatexInlineRaw,
   LatexParBegin,
   LatexParEnd,
+  LatexBraceBegin,
+  LatexBraceEnd,
+  LatexDollar1Begin,
+  LatexDollar1End,
+  LatexDollar2Begin,
+  LatexDollar2End,
   LeadingMinus,
   LeadingNumber,
   LeadingPipe,
   LeadingPlus,
   LeadingSpace,
+  LeadingCharacter,
   LineCommand,
   LinkBegin,
   LinkDescriptionBegin,
@@ -2057,8 +2123,8 @@ export interface ParseSourceLocConstructor { new(): ParseSourceLoc; }
 export interface ParseSourceLoc {
   line: number
   column: number
-  pos: number
   file_id: ParseSourceFileId
+  pos: number
 }
 export interface OrgJsonConstructor { new(): OrgJson; }
 export interface OrgJson {
@@ -2089,16 +2155,14 @@ export interface OperationsTracerConstructor { new(): OperationsTracer; }
 export interface OperationsTracer {
   setTraceFileStr(outfile: string, overwrite: boolean): void;
   sendMessage(value: string, function_: string, line: number, file: string): void;
-  TraceState: boolean
   traceToFile: boolean
   traceToBuffer: boolean
   traceStructured: boolean
   traceColored: boolean
-  activeLevel: number
   traceBuffer: string
 }
-export interface CacheConstructor { new(): Cache; }
-export interface Cache {  }
+export interface ReportSourceCacheConstructor { new(): ReportSourceCache; }
+export interface ReportSourceCache {  }
 export interface ReportConstructor { new(): Report; }
 export interface Report {  }
 export interface ParseOrgParseFragmentConstructor { new(): ParseOrgParseFragment; }
@@ -2120,7 +2184,7 @@ export interface ParseContextConstructor { new(): ParseContext; }
 export interface ParseContext {
   ParseContextDefault(): ParseContext;
   ParseContextWithManager(source: StdShared_ptrOfParseSourceManager<ParseSourceManager>): ParseContext;
-  getDiagnosticStrings(): StdShared_ptrOfCache<Cache>;
+  getDiagnosticStrings(): StdShared_ptrOfReportSourceCache<ReportSourceCache>;
   addSource(path: string, content: string): ParseSourceFileId;
   parseFileOpts(file: string, opts: OrgParseParameters): Org;
   parseFile(file: string): Org;
@@ -2129,7 +2193,7 @@ export interface ParseContext {
   parseDirectory(path: string): haxorg_wasm.Optional<Org>;
   parseDirectoryOpts(path: string, opts: OrgDirectoryParseParameters): haxorg_wasm.Optional<Org>;
   parseFileWithIncludes(file: string, opts: OrgDirectoryParseParameters): File;
-  collectDiagnostics(tree: Org, cache: StdShared_ptrOfCache<Cache>): haxorg_wasm.HstdVec<Report>;
+  collectDiagnostics(tree: Org, cache: StdShared_ptrOfReportSourceCache<ReportSourceCache>): haxorg_wasm.HstdVec<Report>;
   collectErrorNodes(tree: Org): haxorg_wasm.HstdVec<ErrorGroup>;
 }
 export interface ImmReflFieldIdConstructor { new(): ImmReflFieldId; }
@@ -2143,23 +2207,25 @@ export interface ImmId {
 }
 export interface ImmOrgConstructor { new(): ImmOrg; }
 export interface ImmOrg {  }
-export interface ImmPathStepConstructor { new(): ImmPathStep; }
-export interface ImmPathStep {  }
-export interface ImmPathConstructor { new(): ImmPath; }
-export interface ImmPath {
+export interface ImmSubnodeAccessStepConstructor { new(): ImmSubnodeAccessStep; }
+export interface ImmSubnodeAccessStep {  }
+export interface ImmTreeAccessPathConstructor { new(): ImmTreeAccessPath; }
+export interface ImmTreeAccessPath {
   empty(): boolean;
   root: ImmId
-  path: ImmPathStore
+  path: ImmTreeAccessPathStore
 }
 export interface ImmUniqIdConstructor { new(): ImmUniqId; }
 export interface ImmUniqId {  }
+export interface ImmSemSerdeConfigConstructor { new(): ImmSemSerdeConfig; }
+export interface ImmSemSerdeConfig {  }
 export interface ImmAstReplaceEpochConstructor { new(): ImmAstReplaceEpoch; }
 export interface ImmAstReplaceEpoch {  }
 export interface ImmAstContextConstructor { new(): ImmAstContext; }
 export interface ImmAstContext {
   addRoot(data: Org): ImmAstVersion;
   getEmptyVersion(): ImmAstVersion;
-  get(id: ImmId): Org;
+  get(id: ImmId, config: ImmSemSerdeConfig): Org;
 }
 export interface ImmAstVersionConstructor { new(): ImmAstVersion; }
 export interface ImmAstVersion {
@@ -2182,7 +2248,7 @@ export interface ImmAdapter {
   isSubnodeOf(other: ImmAdapter): boolean;
   getParent(): haxorg_wasm.Optional<ImmAdapter>;
   getSelfIndex(): number;
-  atPathStep(id: ImmId, idx: ImmPathStep): ImmAdapter;
+  atPathStep(id: ImmId, idx: ImmSubnodeAccessStep): ImmAdapter;
   atField(field: ImmReflFieldId): ImmAdapter;
   atIndex(idx: number, withPath: boolean): ImmAdapter;
   atPath(path: haxorg_wasm.HstdVec<number>, withPath: boolean): ImmAdapter;
@@ -2289,7 +2355,7 @@ export interface SequenceAnnotation {
 }
 export type ImmIdIdType = U64;
 export type ImmIdNodeIdxT = U32;
-export type ImmPathStore = haxorg_wasm.ImmVec<ImmPathStep>;
+export type ImmTreeAccessPathStore = haxorg_wasm.ImmVec<ImmSubnodeAccessStep>;
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   LispCode(): void;
@@ -2297,9 +2363,15 @@ export interface LispCode {
   isCall(): boolean;
   getCallConst(): LispCodeCall;
   getCallMut(): LispCodeCall;
+  isQuoted(): boolean;
+  getQuotedConst(): LispCodeQuoted;
+  getQuotedMut(): LispCodeQuoted;
   isList(): boolean;
   getListConst(): LispCodeList;
   getListMut(): LispCodeList;
+  isVector(): boolean;
+  getVectorConst(): LispCodeVector;
+  getVectorMut(): LispCodeVector;
   isKeyValue(): boolean;
   getKeyValueConst(): LispCodeKeyValue;
   getKeyValueMut(): LispCodeKeyValue;
@@ -2332,10 +2404,22 @@ export interface LispCodeCall {
   name: Str
   args: haxorg_wasm.HstdVec<LispCode>
 }
+export interface LispCodeQuotedConstructor { new(): LispCodeQuoted; }
+export interface LispCodeQuoted {
+  Quoted(): void;
+  __eq__(other: LispCodeQuoted): boolean;
+  items: haxorg_wasm.HstdVec<LispCode>
+}
 export interface LispCodeListConstructor { new(): LispCodeList; }
 export interface LispCodeList {
   List(): void;
   __eq__(other: LispCodeList): boolean;
+  items: haxorg_wasm.HstdVec<LispCode>
+}
+export interface LispCodeVectorConstructor { new(): LispCodeVector; }
+export interface LispCodeVector {
+  Vector(): void;
+  __eq__(other: LispCodeVector): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeKeyValueConstructor { new(): LispCodeKeyValue; }
@@ -2375,16 +2459,53 @@ export interface LispCodeReal {
   __eq__(other: LispCodeReal): boolean;
   value: number
 }
-export type LispCodeData = haxorg_wasm.StdVariant<LispCodeCall, LispCodeList, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal>;
+export type LispCodeData = haxorg_wasm.StdVariant<LispCodeCall, LispCodeQuoted, LispCodeList, LispCodeVector, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal>;
 export enum LispCodeKind {
   Call,
+  Quoted,
   List,
+  Vector,
   KeyValue,
   Number,
   Text,
   Ident,
   Boolean,
   Real,
+}
+export interface TimeValueConstructor { new(): TimeValue; }
+export interface TimeValue {
+  TimeValue(): void;
+  __eq__(other: TimeValue): boolean;
+  isFixedTime(): boolean;
+  getFixedTimeConst(): TimeValueFixedTime;
+  getFixedTimeMut(): TimeValueFixedTime;
+  isDynamicTime(): boolean;
+  getDynamicTimeConst(): TimeValueDynamicTime;
+  getDynamicTimeMut(): TimeValueDynamicTime;
+  getKindStatic(__input: TimeValueData): TimeValueKind;
+  getKind(): TimeValueKind;
+  sub_variant_get_name(): string;
+  sub_variant_get_data(): TimeValueData;
+  sub_variant_get_kind(): TimeValueKind;
+  isActive: boolean
+  data: TimeValueData
+}
+export interface TimeValueFixedTimeConstructor { new(): TimeValueFixedTime; }
+export interface TimeValueFixedTime {
+  FixedTime(): void;
+  __eq__(other: TimeValueFixedTime): boolean;
+  time: UserTime
+}
+export interface TimeValueDynamicTimeConstructor { new(): TimeValueDynamicTime; }
+export interface TimeValueDynamicTime {
+  DynamicTime(): void;
+  __eq__(other: TimeValueDynamicTime): boolean;
+  time: LispCode
+}
+export type TimeValueData = haxorg_wasm.StdVariant<TimeValueFixedTime, TimeValueDynamicTime>;
+export enum TimeValueKind {
+  FixedTime,
+  DynamicTime,
 }
 export interface TblfmConstructor { new(): Tblfm; }
 export interface Tblfm {
@@ -3329,7 +3450,7 @@ export interface NamedPropertyUnnumbered { __eq__(other: NamedPropertyUnnumbered
 export interface NamedPropertyCreatedConstructor { new(): NamedPropertyCreated; }
 export interface NamedPropertyCreated {
   __eq__(other: NamedPropertyCreated): boolean;
-  time: UserTime
+  time: TimeValue
 }
 export interface NamedPropertyRadioIdConstructor { new(): NamedPropertyRadioId; }
 export interface NamedPropertyRadioId {
@@ -3435,7 +3556,7 @@ export interface OrgDiagnosticsParseTokenError {
   parserLine: number
   tokenKind: OrgTokenKind
   tokenText: Str
-  loc: ParseSourceLoc
+  loc: haxorg_wasm.Optional<ParseSourceLoc>
   errName: Str
   errCode: Str
 }
@@ -3685,6 +3806,8 @@ export interface DocumentOptions {
   properties: haxorg_wasm.HstdVec<NamedProperty>
   exportConfig: DocumentExportConfig
   fixedWidthSections: haxorg_wasm.Optional<boolean>
+  linkVisibility: haxorg_wasm.Optional<LinkVisibility>
+  blockVisibility: haxorg_wasm.Optional<BlockVisibility>
   startupIndented: haxorg_wasm.Optional<boolean>
   category: haxorg_wasm.Optional<Str>
   setupfile: haxorg_wasm.Optional<Str>
@@ -3837,6 +3960,8 @@ export enum CmdIncludeKind {
   Src,
   OrgDocument,
 }
+export interface ReportSourceStrCacheConstructor { new(): ReportSourceStrCache; }
+export interface ReportSourceStrCache {  }
 export interface ImmIdTNoNodeConstructor { new(): ImmIdTNoNode; }
 export interface ImmIdTNoNode {  }
 export interface ImmIdTErrorItemConstructor { new(): ImmIdTErrorItem; }
@@ -4201,6 +4326,8 @@ export interface ImmDocumentOptions {
   properties: ImmVecOfNamedProperty<NamedProperty>
   exportConfig: DocumentExportConfig
   fixedWidthSections: ImmBoxOfOptOfBool<haxorg_wasm.Optional<boolean>>
+  linkVisibility: ImmBoxOfOptOfLinkVisibility<haxorg_wasm.Optional<LinkVisibility>>
+  blockVisibility: ImmBoxOfOptOfBlockVisibility<haxorg_wasm.Optional<BlockVisibility>>
   startupIndented: ImmBoxOfOptOfBool<haxorg_wasm.Optional<boolean>>
   category: ImmBoxOfOptOfStr<haxorg_wasm.Optional<Str>>
   setupfile: ImmBoxOfOptOfStr<haxorg_wasm.Optional<Str>>
@@ -5004,6 +5131,8 @@ export interface ImmDocumentOptionsAdapter {
   getProperties(): ImmVecOfNamedProperty<NamedProperty>;
   getExportConfig(): DocumentExportConfig;
   getFixedWidthSections(): haxorg_wasm.Optional<boolean>;
+  getLinkVisibility(): haxorg_wasm.Optional<LinkVisibility>;
+  getBlockVisibility(): haxorg_wasm.Optional<BlockVisibility>;
   getStartupIndented(): haxorg_wasm.Optional<boolean>;
   getCategory(): haxorg_wasm.Optional<Str>;
   getSetupfile(): haxorg_wasm.Optional<Str>;

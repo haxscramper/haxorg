@@ -184,7 +184,7 @@ struct fmt::formatter<std::reference_wrapper<T>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
     hstd::fmt_iter format(std::reference_wrapper<T> const& p, fmt::format_context& ctx)
         const {
-        return fmt_ctx(p.get(), ctx);
+        return ::hstd::fmt_ctx(p.get(), ctx);
     }
 };
 

@@ -266,18 +266,33 @@ template <DescribedEnum E>
 struct value_domain<E> {
     static constexpr auto D = describe_enumerators_as_array<E>();
 
+    static constexpr std::size_t size = sizeof(D) / sizeof(E);
+
+    static constexpr bool is_gapless = [] {
+        using U = std::underlying_type_t<E>;
+        return static_cast<U>(D[size - 1]) - static_cast<U>(D[0])
+            == static_cast<U>(size - 1);
+    }();
+
     static inline E low() { return D[0]; }
-    static inline E high() { return D[sizeof(D) / sizeof(E) - 1]; }
+    static inline E high() { return D[size - 1]; }
     static inline E succ(E const& value) { return D[ord(value) + 1]; }
     static inline E prev(E const& value) { return D[ord(value) - 1]; }
 
     static inline long long int ord(E const& value) {
-        for (int i = 0; i < sizeof(D) / sizeof(E); i++) {
-            if (D[i] == value) { return i; }
+        if constexpr (is_gapless) {
+            return static_cast<long long int>(
+                static_cast<std::underlying_type_t<E>>(value)
+                - static_cast<std::underlying_type_t<E>>(D[0]));
+        } else {
+            for (std::size_t i = 0; i < size; i++) {
+                if (D[i] == value) { return i; }
+            }
+            return -1;
         }
-        return -1;
     }
 };
+
 
 /// \brief Trigger callback on every described field entry. Pass field
 /// descriptor to callback.

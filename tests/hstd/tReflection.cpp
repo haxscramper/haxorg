@@ -559,16 +559,16 @@ struct ReflTypeTraits<ReflTag1> {
     using AnyHasherType    = AnyHasher<Str, std::string>;
     using AnyEqualType     = AnyEqual<Str, std::string>;
 
-    using ReflPathStoreType = SmallVec<ReflPathItem<ReflTag1>, 2>;
+    using ReflPathStoreType = SmallVec<ReflAccessStep<ReflTag1>, 2>;
 
     template <typename T>
     static Str InitFieldName(T const& value, auto const& field) {
         return field.name;
     }
 
-    static ReflPath<ReflTag1> AddPathItem(
-        ReflPath<ReflTag1>     res,
-        ReflPathItem<ReflTag1> item) {
+    static ReflValueAccessPath<ReflTag1> AddPathItem(
+        ReflValueAccessPath<ReflTag1> res,
+        ReflAccessStep<ReflTag1>      item) {
         res.path.push_back(item);
         return res;
     }
@@ -588,16 +588,14 @@ TEST(ReflectionVisitor, FieldNames) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path, ReflData const& field) {
-                visitNames.push_back("ReflData");
-            },
-            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
-                visitNames.push_back("std::string");
-            },
-            [&](ReflPath<ReflTag1> const& path, int const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                ReflData const& field) { visitNames.push_back("ReflData"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::string const& field) { visitNames.push_back("std::string"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path, int const& field) {
                 visitNames.push_back("int");
             },
-            [&](ReflPath<ReflTag1> const& path, char const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path, char const& field) {
                 visitNames.push_back("char");
             },
         });
@@ -633,11 +631,11 @@ TEST(ReflectionVisitor, UnorderedMap) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const&             path,
-                UnorderedMap<std::string, int> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                UnorderedMap<std::string, int> const&          field) {
                 visitNames.push_back("map");
             },
-            [&](ReflPath<ReflTag1> const& path, int const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path, int const& field) {
                 visitNames.push_back("int");
             },
         });
@@ -669,12 +667,10 @@ TEST(ReflectionVisitor, Vector) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path, Vec<std::string> const& field) {
-                visitNames.push_back("vec");
-            },
-            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
-                visitNames.push_back("std::string");
-            },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                Vec<std::string> const& field) { visitNames.push_back("vec"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::string const& field) { visitNames.push_back("std::string"); },
         });
 
     EXPECT_EQ(
@@ -729,7 +725,8 @@ struct DataStructure {
 TEST(ReflectionVisitor, ComplexDataStructure) {
 
     DataStructure data;
-    ReflVisitor<DataStructure, ReflTag1>::subitems(data);
+    ReflVisitor<DataStructure, ReflTag1>::visitEach(
+        data, [](ReflValueAccessPath<ReflTag1> const& path, auto const& value) {});
 
     std::vector<std::string>  visitNames;
     ReflRecursiveVisitContext ctx;
@@ -738,48 +735,55 @@ TEST(ReflectionVisitor, ComplexDataStructure) {
         {},
         ctx,
         overloaded{
-            [&](ReflPath<ReflTag1> const& path, DataStructure const& field) {
-                visitNames.push_back("DataStructure");
-            },
-            [&](ReflPath<ReflTag1> const& path, std::unordered_set<int> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                DataStructure const& field) { visitNames.push_back("DataStructure"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::unordered_set<int> const&                 field) {
                 visitNames.push_back("std::unordered_set<int>");
             },
-            [&](ReflPath<ReflTag1> const&                   path,
-                std::unordered_map<std::string, int> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::unordered_map<std::string, int> const&    field) {
                 visitNames.push_back("std::unordered_map<std::string, int>");
             },
-            [&](ReflPath<ReflTag1> const& path, std::vector<std::string> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::vector<std::string> const&                field) {
                 visitNames.push_back("std::vector<std::string>");
             },
-            [&](ReflPath<ReflTag1> const& path, std::string const& field) {
-                visitNames.push_back("std::string");
-            },
-            [&](ReflPath<ReflTag1> const& path, CustomData const& field) {
-                visitNames.push_back("CustomData");
-            },
-            [&](ReflPath<ReflTag1> const& path, VariantType const& field) {
-                visitNames.push_back("VariantType");
-            },
-            [&](ReflPath<ReflTag1> const&          path,
-                std::pair<int, std::string> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::string const& field) { visitNames.push_back("std::string"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                CustomData const& field) { visitNames.push_back("CustomData"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                VariantType const& field) { visitNames.push_back("VariantType"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::pair<int, std::string> const&             field) {
                 visitNames.push_back("std::pair<int, std::string>");
             },
-            [&](ReflPath<ReflTag1> const& path, TupleType const& field) {
-                visitNames.push_back("TupleType");
-            },
-            [&](ReflPath<ReflTag1> const& path, std::nullptr_t const& field) {
-                visitNames.push_back("std::nullptr_t");
-            },
-            [&](ReflPath<ReflTag1> const& path, std::optional<int> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                TupleType const& field) { visitNames.push_back("TupleType"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::nullptr_t const& field) { visitNames.push_back("std::nullptr_t"); },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::optional<int> const&                      field) {
                 visitNames.push_back("std::optional<int>");
             },
-            [&](ReflPath<ReflTag1> const& path, int const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path, int const& field) {
                 visitNames.push_back("int");
             },
-            [&](ReflPath<ReflTag1> const& path, std::shared_ptr<int> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::shared_ptr<int> const&                    field) {
                 visitNames.push_back("std::shared_ptr<int>");
             },
-            [&](ReflPath<ReflTag1> const& path, std::unique_ptr<int> const& field) {
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::reference_wrapper<int> const&             field) {
+                visitNames.push_back("std::reference_wrapper<int>");
+            },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::reference_wrapper<const int> const&       field) {
+                visitNames.push_back("std::reference_wrapper<const int>");
+            },
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path,
+                std::unique_ptr<int> const&                    field) {
                 visitNames.push_back("std::unique_ptr<int>");
             },
         });
@@ -829,179 +833,183 @@ TEST(ReflectionVisitor, PopulatedDataStructure) {
     data.uniquePtr    = std::make_unique<int>(400);
 
     std::unordered_map<
-        ReflPath<ReflTag1>,
+        ReflValueAccessPath<ReflTag1>,
         std::string,
         ReflPathHasher<ReflTag1>,
         ReflPathComparator<ReflTag1>>
                               visitedValues;
     ReflRecursiveVisitContext ctx;
     reflVisitAll<DataStructure, ReflTag1>(
-        data, {}, ctx, overloaded{[&](ReflPath<ReflTag1> const& path, auto const& field) {
-            std::stringstream ss;
-            ss << fmt1(field);
-            visitedValues[path] = ss.str();
-        }});
+        data,
+        {},
+        ctx,
+        overloaded{
+            [&](ReflValueAccessPath<ReflTag1>::VisitCtx const& path, auto const& field) {
+                std::stringstream ss;
+                ss << fmt1(field);
+                visitedValues[path.toPath()] = ss.str();
+            }});
 
     std::unordered_map<
-        ReflPath<ReflTag1>,
+        ReflValueAccessPath<ReflTag1>,
         Opt<std::string>,
         ReflPathHasher<ReflTag1>,
         ReflPathComparator<ReflTag1>>
         expectedValues;
 
     { // root item
-        ReflPath<ReflTag1> path;
+        ReflValueAccessPath<ReflTag1> path;
         expectedValues[path] = std::nullopt;
     }
 
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("pair"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("pair"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uset"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("uset"));
         expectedValues[path] = std::nullopt;
     }
 
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("tuple"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("vec"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("vec"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("sharedPtr"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("umap"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("umap"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("opt"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("opt"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("uniquePtr"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("custom"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("custom"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("str"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("str"));
         expectedValues[path] = "test string";
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("regularField"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("regularField"));
         expectedValues[path] = "200";
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("custom"));
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("value"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("custom"));
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("value"));
         expectedValues[path] = "42";
     }
     {
         Vec<int> sorted_uset = sorted(data.uset | rs::to<Vec>());
         for (int i = 0; i < data.uset.size(); ++i) {
-            ReflPath<ReflTag1> path;
-            path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uset"));
-            path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(i));
+            ReflValueAccessPath<ReflTag1> path;
+            path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("uset"));
+            path.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(i));
             expectedValues[path] = fmt1(sorted_uset.at(i));
         }
     }
     for (auto const& [key, val] : data.umap) {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("umap"));
-        path.path.push_back(ReflPathItem<ReflTag1>::FromAnyKey(key));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("umap"));
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromAnyKey(key));
         expectedValues[path] = std::to_string(val);
     }
     for (size_t i = 0; i < data.vec.size(); ++i) {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("vec"));
-        path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(static_cast<int>(i)));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("vec"));
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(static_cast<int>(i)));
         expectedValues[path] = data.vec[i];
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("variant"));
-        path.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("variant"));
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(1));
         expectedValues[path] = std::get<std::string>(data.variant);
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("variant"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("variant"));
         expectedValues[path] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("opt"));
-        path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("opt"));
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromDeref());
         expectedValues[path] = "100";
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("sharedPtr"));
-        path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("sharedPtr"));
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromDeref());
         expectedValues[path] = "300";
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("uniquePtr"));
-        path.path.push_back(ReflPathItem<ReflTag1>::FromDeref());
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("uniquePtr"));
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromDeref());
         expectedValues[path] = "400";
     }
     { // `data.pair`
-        ReflPath<ReflTag1> path_first;
-        path_first.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("pair"));
-        path_first.path.push_back(ReflPathItem<ReflTag1>::FromIndex(0));
+        ReflValueAccessPath<ReflTag1> path_first;
+        path_first.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("pair"));
+        path_first.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(0));
         expectedValues[path_first] = "10";
 
-        ReflPath<ReflTag1> path_second;
-        path_second.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("pair"));
-        path_second.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
+        ReflValueAccessPath<ReflTag1> path_second;
+        path_second.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("pair"));
+        path_second.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(1));
         expectedValues[path_second] = "pair string";
     }
     {
-        ReflPath<ReflTag1> path0;
-        path0.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
-        path0.path.push_back(ReflPathItem<ReflTag1>::FromIndex(0));
+        ReflValueAccessPath<ReflTag1> path0;
+        path0.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("tuple"));
+        path0.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(0));
         expectedValues[path0] = "20";
 
-        ReflPath<ReflTag1> path1;
-        path1.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
-        path1.path.push_back(ReflPathItem<ReflTag1>::FromIndex(1));
+        ReflValueAccessPath<ReflTag1> path1;
+        path1.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("tuple"));
+        path1.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(1));
         expectedValues[path1] = "tuple string";
 
-        ReflPath<ReflTag1> path2;
-        path2.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
-        path2.path.push_back(ReflPathItem<ReflTag1>::FromIndex(2));
-        path2.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("value"));
+        ReflValueAccessPath<ReflTag1> path2;
+        path2.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("tuple"));
+        path2.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(2));
+        path2.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("value"));
         expectedValues[path2] = "84";
 
-        ReflPath<ReflTag1> path3;
-        path3.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("tuple"));
-        path3.path.push_back(ReflPathItem<ReflTag1>::FromIndex(2));
+        ReflValueAccessPath<ReflTag1> path3;
+        path3.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("tuple"));
+        path3.path.push_back(ReflAccessStep<ReflTag1>::FromIndex(2));
         expectedValues[path3] = std::nullopt;
     }
     {
-        ReflPath<ReflTag1> path;
-        path.path.push_back(ReflPathItem<ReflTag1>::FromFieldName("nullp"));
+        ReflValueAccessPath<ReflTag1> path;
+        path.path.push_back(ReflAccessStep<ReflTag1>::FromFieldName("nullp"));
         expectedValues[path] = "0x0";
     }
 

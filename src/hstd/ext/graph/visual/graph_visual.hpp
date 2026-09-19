@@ -1,7 +1,11 @@
 #pragma once
 
 #include "hstd/stdlib/TraceBase.hpp"
+
 #include <hstd/ext/graph/base/graph_base.hpp>
+#if ORG_BUILD_WITH_PROTOBUF
+#    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
+#endif
 
 namespace hstd::ext::graph {
 
@@ -47,12 +51,25 @@ class ILayoutAttribute : public IAttribute {
     /// \brief Original type of the layout element, used for the \refP
     /// VisGroup::original_type field in the \ref LayoutRun::getVisual
     DECL_DESCRIBED_ENUM(Kind, Port, Edge, Vertex, Group);
+
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void readSerial(
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory,
+        IAttributeObject const*         vertex) override {
+        throw hstd::logic_assertion_error::init(
+            "default implementation of the layout attribute does not support reading the "
+            "serial data");
+    }
+#endif
 };
 
 class IPortLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief position + size relative to parent.
-    virtual Rect             getBBox() const = 0;
+    virtual geometry::Rect   getBBox() const = 0;
     virtual visual::VisGroup getVisual(PortID const& selfId) const {
         visual::VisGroup res;
         auto             bb = getBBox();
@@ -67,7 +84,12 @@ class IPortLayoutAttribute : public ILayoutAttribute {
 
 class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
-    virtual Path             getPath() const = 0;
+    virtual geometry::Path getPath() const = 0;
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
+#endif
+
     virtual visual::VisGroup getVisual(EdgeID const& selfId) const {
         visual::VisGroup result;
         result.elements.push_back(
@@ -80,7 +102,12 @@ class IEdgeLayoutAttribute : public ILayoutAttribute {
 class IVertexLayoutAttribute : public ILayoutAttribute {
   public:
     /// \brief Vertex bounding box + position relative to the parent
-    virtual Rect             getBBox() const = 0;
+    virtual geometry::Rect getBBox() const = 0;
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
+#endif
+
     virtual visual::VisGroup getVisual(VertexID const& selfId) const {
         visual::VisGroup res;
         res.elements.push_back(
@@ -99,12 +126,18 @@ class IGroupLayoutAttribute : public IVertexLayoutAttribute {
     /// layout algorithm to move the bounding box when the parent group
     /// re-arranges the placement.
     virtual void setBBox(geometry::Rect const& bbox) = 0;
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const;
+#endif
 };
 
 
 class IGroupVisualAttribute;
 class LayoutRun;
 
+/// \brief Optional instance of the layout algorithm to be executed on
+/// the current group.
 class IPlacementAlgorithm {
   public:
     static constexpr hstd::u16 TemporaryLayoutVertexMask = 0b1111'1111;
@@ -115,6 +148,8 @@ class IPlacementAlgorithm {
         hstd::UnorderedMap<PortID, hstd::SPtr<IPortLayoutAttribute>>     ports;
     };
 
+    hstd::Vec<hstd::SPtr<IConstraint>> constraints;
+
     hstd::SPtr<LayoutRun> run;
 
     /// \brief Execute single layout run on the input group. If the group
@@ -124,6 +159,33 @@ class IPlacementAlgorithm {
     virtual Result runSingleLayout(VertexID const& group) = 0;
 
     IPlacementAlgorithm(hstd::SPtr<LayoutRun> run) : run{run} {}
+
+
+    template <typename T>
+    std::shared_ptr<T> addConstraint(std::shared_ptr<T> constraint) {
+        constraints.push_back(constraint);
+        return constraint;
+    }
+
+    template <typename T, typename... Args>
+    std::shared_ptr<T> emplaceConstraint(Args&&... args) {
+        auto res = std::make_shared<T>(std::forward<Args>(args)...);
+        constraints.push_back(res);
+        return res;
+    }
+
+
+#if ORG_BUILD_WITH_PROTOBUF
+    void writeSerialConstraints(
+        google::protobuf::RepeatedPtrField<hstd::ext::graph::proto::IConstraint>* out,
+        IGraph const* graph) const;
+
+    void readSerialConstraints(
+        google::protobuf::RepeatedPtrField<hstd::ext::graph::proto::IConstraint> const*
+                                   in,
+        IGraph const*              graph,
+        IGraphSerialReaderFactory* factory);
+#endif
 };
 
 class IConstraint {
@@ -131,23 +193,28 @@ class IConstraint {
     virtual hstd::Vec<VertexID> getAllVertices() const = 0;
 
 #if ORG_BUILD_WITH_PROTOBUF
-    virtual void writeSerial(proto::IConstraint* out, IGraph const* graph) const = 0;
+    virtual void writeSerial(
+        hstd::ext::graph::proto::IConstraint* out,
+        IGraph const*                         graph) const = 0;
 
-    virtual void readSerial(proto::IConstraint const* in, IGraph const* graph) = 0;
+    virtual void readSerial(
+        hstd::ext::graph::proto::IConstraint const* in,
+        IGraph const*                               graph,
+        IGraphSerialReaderFactory*                  factory,
+        IPlacementAlgorithm const*                  vertex) = 0;
 #endif
 };
 
 
 class IGroupVisualAttribute : public IVertexVisualAttribute {
   protected:
+    /// \brief Algorithm object should be crated by the factory functions
+    /// or in the constructor of the derived types based on the input data.
     hstd::Opt<hstd::SPtr<IPlacementAlgorithm>> algorithm;
 
 
   public:
-    /// \brief Optional instance of the layout algorithm to be executed on
-    /// the current group.
-    hstd::Vec<hstd::SPtr<IConstraint>> constraints;
-    hstd::SPtr<LayoutRun>              run;
+    hstd::SPtr<LayoutRun> run;
 
 
     virtual void setOuterPadding(geometry::Padding const& pad)   = 0;
@@ -162,30 +229,12 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
         return result;
     }
 
-    template <typename T, typename... Args>
-    std::shared_ptr<T> addConstraint(Args&&... args) {
-        auto res = std::make_shared<T>(std::forward<Args>(args)...);
-        constraints.push_back(res);
-        return res;
-    }
 
     bool hasAlgorithm() const { return algorithm.has_value(); }
 
     virtual std::string getStableId() const = 0;
 
     IGroupVisualAttribute(hstd::SPtr<LayoutRun> run) : run{run} {}
-
-#if ORG_BUILD_WITH_PROTOBUF
-    void writeSerialConstraints(
-        google::protobuf::RepeatedPtrField<proto::IConstraint>* out,
-        IGraph const*                                           graph) const;
-
-    void readSerialConstraints(
-        google::protobuf::RepeatedField<proto::IConstraint> const* in,
-        IGraph const*                                              graph,
-        IGraphSerialReaderFactory*                                 factory,
-        IAttributeObject const*                                    vertex);
-#endif
 };
 
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
@@ -193,14 +242,15 @@ class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
     std::string getRepr() const override { return "UnboundEdgeVisualAttr"; }
 #if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::proto::IAttribute const* in,
+        IGraph const*                              graph,
+        IGraphSerialReaderFactory*                 factory,
+        IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
+    void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
+        const override {
         logic_todo_impl();
     }
 #endif
@@ -210,21 +260,22 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
   public:
 #if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
-        proto::IAttribute const*   in,
-        IGraph const*              graph,
-        IGraphSerialReaderFactory* factory,
-        IAttributeObject const*    vertex) override {
+        hstd::ext::graph::proto::IAttribute const* in,
+        IGraph const*                              graph,
+        IGraphSerialReaderFactory*                 factory,
+        IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
 
-    void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
+    void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
+        const override {
         logic_todo_impl();
     }
 #endif
 
     geometry::Path path;
     UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}
-    Path getPath() const override { return path; }
+    geometry::Path getPath() const override { return path; }
 };
 
 // DOC: unbound edges
@@ -404,6 +455,32 @@ class LayoutRun
 
     /// \brief Get all nested groups that don't switch layout
     VertexIDSet getSubGroupsNoLayoutSwitch(VertexID const& id) const;
+
+    VertexIDSet getDirectManagedVertices(VertexID const& id) const {
+        VertexIDSet result;
+        result.incl(getDirectVertices(id));
+        for (auto const& sub : getSubGroups(id)) {
+            if (getGroup(sub)->hasAlgorithm()) {
+                // The group will perform its internal layout, but the placement of the
+                // group's vertex is handled by the `id`.
+                result.incl(sub);
+            } else {
+                result.incl(sub);
+                result.incl(getDirectManagedVertices(sub));
+            }
+        }
+        return result;
+    }
+
+    /// \brief Return edges nested in the current layout later. The edge must be (1)
+    /// directly nested under the target ID, (2) both source and target must be placed on
+    /// nodes that the single layout run on `id` will affect (or parent layout run, if the
+    /// `id` itself is a sub-group of the parent layout)
+    EdgeIDSet getEdgesNestedInLayout(VertexID const& id) const {
+        LOGIC_ASSERTION_CHECK(
+            isGroupVertex(id), "Cannot get nested edges from non-group");
+        return edges->getFullyIncludedEdges(getDirectManagedVertices(id));
+    }
 
     EdgeIDSet getDirectlyNestedEdges(VertexID const& id) const {
         LOGIC_ASSERTION_CHECK(

@@ -3,7 +3,7 @@
 #include <hstd/stdlib/JsonUse.hpp>
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 
-using namespace org::algo;
+using namespace hstd::serde;
 using namespace org;
 using namespace hstd;
 
@@ -95,7 +95,7 @@ void proto_serde<Proto, sem::Block>::read(
     Proto const&                     out,
     proto_write_accessor<sem::Block> in) {}
 
-namespace org::algo {
+namespace hstd::serde {
 
 template class proto_serde<::orgproto::BlockVerse, sem::Block>;
 template class proto_serde<::orgproto::BlockExport, sem::Block>;
@@ -130,5 +130,5 @@ template class proto_serde<::orgproto::CmdCustomArgs, sem::Cmd>;
 template class proto_serde<::orgproto::CmdColumns, sem::Cmd>;
 template class proto_serde<::orgproto::CmdExport, sem::Cmd>;
 
-} // namespace org::algo
+} // namespace hstd::serde
 #endif

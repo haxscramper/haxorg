@@ -52,14 +52,30 @@ struct TokenGroup {
 
 
     TokenT& at(IdT pos) { return tokens.at(pos); }
+    TokenT& back() { return tokens.at(tokens.back()); }
+
+    TokenT const& at(IdT pos) const { return tokens.at(pos); }
+    TokenT const& back() const { return tokens.at(tokens.back()); }
 
     std::span<TokenT> at(hstd::HSlice<IdT, IdT> slice) {
         assert(slice.first.getStoreIdx() == slice.last.getStoreIdx());
         tokens.at(slice(slice.first.getIndex(), slice.last.getIndex()));
     }
 
+
     int  size() const { return tokens.size(); }
     void resize(int size, TokenT const& value = TokenT()) { tokens.resize(size, value); }
+
+    void printToString(hstd::ColStream& os) const {
+        os << hstd::fmt("size:{} capacity:{}\n", size(), tokens.content.capacity());
+        std::size_t maxWidth = 0;
+        for (auto const& [id, token] : tokens.pairs()) {
+            maxWidth = std::max(maxWidth, hstd::fmt("[{}]", id).size());
+        }
+        for (auto const& [id, token] : tokens.pairs()) {
+            os << hstd::fmt("{:<{}} = {}\n", hstd::fmt("[{}]", id), maxWidth, *token);
+        }
+    }
 };
 
 
@@ -129,11 +145,10 @@ struct Tokenizer {
 template <hstd::StdFormattable K, hstd::StdFormattable V>
 struct fmt::formatter<org::parse::TokenGroup<K, V>> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    hstd::fmt_iter format(
-        org::parse::TokenGroup<K, V> const& p,
-        fmt::format_context&                ctx) {
+    hstd::fmt_iter format(org::parse::TokenGroup<K, V> const& p, fmt::format_context& ctx)
+        const {
         for (const auto& [idx, tok] : p.tokens.pairs()) {
-            hstd::fmt_ctx(fmt::format("{:<16}", idx), ctx);
+            hstd::fmt_ctx(fmt::format("{:<16}", hstd::fmt1(idx)), ctx);
             hstd::fmt_ctx(" | ", ctx);
             hstd::fmt_ctx(*tok, ctx);
             hstd::fmt_ctx("\n", ctx);

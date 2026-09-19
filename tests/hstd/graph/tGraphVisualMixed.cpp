@@ -3,8 +3,12 @@
 
 struct GraphMixed_Test : public GraphUtils_Test {};
 
-double            size = 20;
-Size              rect{size, size};
+hstd::ext::graph::gv::GvPointScalar  gv_size{20};
+hstd::ext::graph::gv::GvPointSize    gv_rect{gv_size, gv_size};
+hstd::ext::graph::gv::GvPointPadding gv_pad{12};
+
+double            size{20};
+geometry::Size    rect{size, size};
 geometry::Padding pad{12};
 
 TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
@@ -33,13 +37,13 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto l6 = addVertex("l6");
     auto l7 = addVertex("l7");
 
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l1))->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l2))->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l3))->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l4))->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l5))->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l6))->setFixedPointWH(rect);
-    dot_sub1->addVertex(addNesting(dot_sub1_id, l7))->setFixedPointWH(rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l1))->setWH(gv_rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l2))->setWH(gv_rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l3))->setWH(gv_rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l4))->setWH(gv_rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l5))->setWH(gv_rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l6))->setWH(gv_rect);
+    dot_sub1->addVertex(addNesting(dot_sub1_id, l7))->setWH(gv_rect);
 
     auto e_l1_l2 = addEdge(l1, l2, "e_l1_l2");
     auto e_l2_l3 = addEdge(l2, l3, "e_l2_l3");
@@ -97,7 +101,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     kiwi_sub1->addEdge(e_g6_g7);
     kiwi_sub1->addEdge(e_g7_g8);
 
-    kiwi_sub1->addConstraint<kw::SeparateConstraint>(kiwi_sub1)
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::SeparateConstraint>(kiwi_sub1)
         ->separateVertically()
         ->setSeparationDistance(40)
         ->addLeftVertex(g1)
@@ -109,7 +114,8 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
         ->addRightVertex(g7)
         ->addRightVertex(g8);
 
-    kiwi_sub1->addConstraint<kw::MultiSeparateConstraint>(kiwi_sub1)
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::MultiSeparateConstraint>(kiwi_sub1)
         ->separateHorizontally()
         ->setSeparationDistance(60)
         ->addFullLane({g1, g5})
@@ -122,7 +128,7 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     hstd::SPtr<gv::GraphGroup> circo_sub2 = gv::GraphGroup::newRootGraph(
         run, "circo_sub2");
 
-    circo_sub2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::Circo;
+    circo_sub2->getAlgorithm<gv::Layout>()->layout = gv::LayoutType::circo;
     circo_sub2->setOuterPadding(geometry::Padding{5});
 
     auto circo_sub2_id_nesting = addNesting(kiwi_sub1_id, circo_sub2_id);
@@ -137,14 +143,14 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto c7 = addVertex("c7");
     auto c8 = addVertex("c8");
 
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c1))->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c2))->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c3))->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c4))->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c5))->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c6))->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c7))->setFixedPointWH(rect);
-    circo_sub2->addVertex(addNesting(circo_sub2_id, c8))->setFixedPointWH(rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c1))->setWH(gv_rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c2))->setWH(gv_rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c3))->setWH(gv_rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c4))->setWH(gv_rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c5))->setWH(gv_rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c6))->setWH(gv_rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c7))->setWH(gv_rect);
+    circo_sub2->addVertex(addNesting(circo_sub2_id, c8))->setWH(gv_rect);
 
     auto e_c1_c2 = addEdge(c1, c2, "e_c1_c2");
     auto e_c2_c3 = addEdge(c2, c3, "e_c2_c3");
@@ -177,10 +183,10 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     auto d3 = addVertex("d3");
     auto d4 = addVertex("d4");
 
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d1))->setFixedPointWH(rect);
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d2))->setFixedPointWH(rect);
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d3))->setFixedPointWH(rect);
-    dot_sub2->addVertex(addNesting(dot_sub2_id, d4))->setFixedPointWH(rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d1))->setWH(gv_rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d2))->setWH(gv_rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d3))->setWH(gv_rect);
+    dot_sub2->addVertex(addNesting(dot_sub2_id, d4))->setWH(gv_rect);
 
     auto e_d1_d2 = addEdge(d1, d2, "e_d1_d2");
     auto e_d1_d3 = addEdge(d1, d3, "e_d1_d3");
@@ -222,14 +228,17 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
     // construction.
     kiwi_sub1->addVertex(dot_sub2_id_nesting);
     kiwi_sub1->addVertex(circo_sub2_id_nesting);
-    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)->setSecondLeftOfFirst(
-        dot_sub2_id, circo_sub2_id);
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondLeftOfFirst(dot_sub2_id, circo_sub2_id);
 
-    kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root)->setSecondBelowFirst(
-        circo_sub2_id, g1);
+    kiwi_sub1->getAlgorithm()
+        ->emplaceConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondBelowFirst(circo_sub2_id, g1);
 
     {
-        auto under_nodes = kiwi_sub1->addConstraint<kw::LinearConstraint>(kiwi_root);
+        auto under_nodes = kiwi_sub1->getAlgorithm()
+                               ->emplaceConstraint<kw::LinearConstraint>(kiwi_root);
         under_nodes->finalize(
             under_nodes->use(g1, kiwi_ir::RectAttr::LEFT),
             kiwi_ir::Relation::EQ,
@@ -238,8 +247,9 @@ TEST_F(GraphMixed_Test, MultiAlgoritmLayered) {
 
     kiwi_root->addVertex(kiwi_sub1_id_nesting);
     kiwi_root->addVertex(dot_sub1_id_nesting);
-    kiwi_root->addConstraint<kw::LinearConstraint>(kiwi_root)->setSecondRightOfFirst(
-        kiwi_sub1_id, dot_sub1_id);
+    kiwi_root->getAlgorithm()
+        ->emplaceConstraint<kw::LinearConstraint>(kiwi_root)
+        ->setSecondRightOfFirst(kiwi_sub1_id, dot_sub1_id);
 
     run->runFullLayout();
 

@@ -206,8 +206,8 @@ TEST_P(TestOrgParseCorpus, CorpusAll) {
     TestResult result = gtest_run_spec(params, getDebugDir());
 
     auto add_gtest_prefix = [](hstd::Str const& text) {
-        auto                     lines = split(text, "\n");
-        std::vector<std::string> filtered;
+        auto                       lines = split(text, "\n");
+        std::vector<hstd::StrView> filtered;
 
         int start = 0;
         int end   = lines.size() - 1;
@@ -227,7 +227,7 @@ TEST_P(TestOrgParseCorpus, CorpusAll) {
 
         // if (!filtered.empty()) { __builtin_debugtrap(); }
 
-        return filtered | hstd::rv::transform([](hstd::Str const& s) {
+        return filtered | hstd::rv::transform([](hstd::StrView const& s) {
                    return "[          ] <"_ss + s + ">"_ss;
                })
              | hstd::rv_intersperse_newline_join;

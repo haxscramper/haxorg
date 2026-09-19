@@ -497,7 +497,7 @@ struct SvgWriter {
                             is_empty(group.custom.extra)
                                 ? ""
                                 : hstd::fmt(" extra={}", group.custom.extra.dump())),
-                        hstd::fmt("path={}", hstd::join("/", path)),
+                        hstd::fmt("path={}", hstd::join(std::string_view{"/"}, path)),
                         bbox_fmt,
                     },
                     DebugConf{

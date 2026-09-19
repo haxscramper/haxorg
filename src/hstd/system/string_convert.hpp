@@ -6,11 +6,10 @@
 #include <iostream>
 #include <string>
 
-
 namespace hstd {
 
 template <typename Iterable>
-std::string join(std::string const& sep, Iterable const& list) {
+std::string join(std::string_view sep, Iterable const& list) {
     std::string os;
     int         index = 0;
     for (const auto& it : list) {
@@ -19,6 +18,13 @@ std::string join(std::string const& sep, Iterable const& list) {
         ++index;
     }
     return os;
+}
+
+template <typename Iterable>
+[[deprecated("Use join with string literal argument")]] std::string join(
+    char const*     sep,
+    Iterable const& list) {
+    return join(std::string_view{sep}, list);
 }
 
 /// \brief Small insanity to allow for `os << "[" << join(os, "", "wer")

@@ -140,6 +140,8 @@ GeometryCheckResult checkIntersects(Point const& first, Point const& second);
 /// rectangle.
 GeometryCheckResult checkIntersects(Point const& point, Rect const& rect);
 
+GeometryCheckResult checkIntersects(Rect const& point, Rect const& rect);
+
 /// \brief Checks whether a point lies inside or on the boundary of a
 /// rectangle.
 GeometryCheckResult checkIntersects(Rect const& rect, Point const& point);
@@ -244,15 +246,15 @@ GeometryCheckResult checkBelow(
 /// bounds.
 template <typename L, typename R>
 GeometryCheckResult checkFullyCovers(
-    L const& first,
-    R const& second,
+    L const& main,
+    R const& nested,
     double   rtol = 1e-5,
     double   atol = 1e-8);
 
 template <typename L, typename R>
 GeometryCheckResult checkPartiallyCovers(
-    L const& first,
-    R const& second,
+    L const& main,
+    R const& nested,
     double   overlapPercent,
     double   rtol = 1e-5,
     double   atol = 1e-8);
@@ -357,7 +359,7 @@ GeometryCheckResult checkPartiallyAboveBounds(Rect const &stationary, Rect const
 GeometryCheckResult checkPartiallyBelowBounds(Rect const &stationary, Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkPartiallyLeftBounds(Rect const &stationary,  Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkPartiallyRightBounds(Rect const &stationary, Rect const &relative, double maxOverPercent,  double rtol = 1e-5,  double atol = 1e-8);
-GeometryCheckResult checkCoversBounds(Rect const &first,         Rect const &second, double overlapPercent,   double rtol = 1e-5,     double atol = 1e-8);
+GeometryCheckResult checkCoversBounds(Rect const &first,              Rect const &second,   double overlapPercent,  double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkAlignedHorizontallyBounds(Rect const &first, Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkAlignedVerticallyBounds(Rect const &first,   Rect const &second,   double tolerance,       double rtol = 1e-5,  double atol = 1e-8);
 GeometryCheckResult checkMinDistanceBounds(Rect const &first,         Rect const &second,   double minDistance,     DistanceCheck check, double rtol = 1e-5, double atol = 1e-8);

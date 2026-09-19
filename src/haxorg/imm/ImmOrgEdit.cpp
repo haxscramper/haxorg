@@ -13,7 +13,7 @@ ImmAstReplace org::imm::setSubnode(
     ImmId              newSubnode,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(hstd::fmt("Set {}[{}] = {}", node, position, newSubnode));
+    OP_TRACER_MESSAGE(ctx, "Set {}[{}] = {}", node, position, newSubnode);
     auto res = setSubnodes(node, node->subnodes.set(position, newSubnode), ctx);
     return res;
 }
@@ -23,7 +23,7 @@ ImmAstReplace org::imm::insertSubnode(
     ImmId              add,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(hstd::fmt("Insert {}[{}] = {}", node, position, add));
+    OP_TRACER_MESSAGE(ctx, "Insert {}[{}] = {}", node, position, add);
     return setSubnodes(node, node->subnodes.insert(position, add), ctx);
 }
 
@@ -32,7 +32,7 @@ ImmAstReplace org::imm::insertSubnodes(
     Vec<ImmId>         add,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(hstd::fmt("Insert {} at {} in {}b", add, position, node));
+    OP_TRACER_MESSAGE(ctx, "Insert {} at {} in {}b", add, position, node);
     Vec<ImmId> u;
     LOGIC_ASSERTION_CHECK_FMT(0 <= position, "{}", position);
 
@@ -55,7 +55,7 @@ ImmAstReplace org::imm::dropSubnode(
     ImmAdapter const&  node,
     int                position,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(hstd::fmt("Drop subnode {}[{}]", node, position));
+    OP_TRACER_MESSAGE(ctx, "Drop subnode {}[{}]", node, position);
     return setSubnodes(node, node->subnodes.erase(position), ctx);
 }
 
@@ -88,7 +88,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
     if (move == SubtreeMove::EnsureLevels || move == SubtreeMove::ForceLevels) {
 
-        AST_EDIT_MSG(hstd::fmt("Demote subtree {}", node));
+        OP_TRACER_MESSAGE(ctx, "Demote subtree {}", node);
         Func<Opt<ImmAstReplace>(ImmAdapter const&)> aux;
         aux = [&](ImmAdapter const& target) -> Opt<ImmAstReplace> {
             for (auto const& sub : target.sub()) {
@@ -117,37 +117,37 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
             if (adjacentTree->level < replacedTree->level) {
                 // Demoting subtree caused reparenting, removing the
                 // node from the old subtree.
-                AST_EDIT_MSG(
-                    hstd::fmt(
-                        "Subtree demote reparenting. Adjacent:{}, "
-                        "replaced:{}, "
-                        "target drop:{}",
-                        adjacent->id,
-                        update.replaced,
-                        node));
+                OP_TRACER_MESSAGE(
+                    ctx,
+                    "Subtree demote reparenting. Adjacent:{}, "
+                    "replaced:{}, "
+                    "target drop:{}",
+                    adjacent->id,
+                    update.replaced,
+                    node);
 
                 auto __scope = ctx.debug()->begin_scope();
                 edits.incl(dropSubnode(*parent, node.id, ctx));
                 edits.incl(appendSubnode(*adjacent, update.replaced.id, ctx));
             } else {
-                AST_EDIT_MSG(
-                    hstd::fmt(
-                        "Subtree demote, no reparenting, levels are "
-                        "ok. "
-                        "Adjacent:{}, replaced:{}",
-                        adjacentTree->level,
-                        replacedTree->level));
+                OP_TRACER_MESSAGE(
+                    ctx,
+                    "Subtree demote, no reparenting, levels are "
+                    "ok. "
+                    "Adjacent:{}, replaced:{}",
+                    adjacentTree->level,
+                    replacedTree->level);
             }
         } else {
-            AST_EDIT_MSG(
-                hstd::fmt(
-                    "Subtree demote, no reparenting parent:{} "
-                    "adjacent:{}",
-                    parent,
-                    adjacent));
+            OP_TRACER_MESSAGE(
+                ctx,
+                "Subtree demote, no reparenting parent:{} "
+                "adjacent:{}",
+                parent,
+                adjacent);
         }
     } else {
-        AST_EDIT_MSG(hstd::fmt("Physical demote subtree {}", node));
+        OP_TRACER_MESSAGE(ctx, "Physical demote subtree {}", node);
         Vec<ImmId> demotedSubnodes;
         Vec<ImmId> reparentedSubnodes;
         auto       tree  = node.as<org::imm::ImmSubtree>();
@@ -164,8 +164,8 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
             }
         }
 
-        AST_EDIT_MSG(hstd::fmt("New subnode list {}", demotedSubnodes));
-        AST_EDIT_MSG(hstd::fmt("Move subnode list {}", reparentedSubnodes));
+        OP_TRACER_MESSAGE(ctx, "New subnode list {}", demotedSubnodes);
+        OP_TRACER_MESSAGE(ctx, "Move subnode list {}", reparentedSubnodes);
 
 
         {
@@ -179,7 +179,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                     return value;
                 });
 
-            AST_EDIT_MSG(hstd::fmt("Update subtree {}", update));
+            OP_TRACER_MESSAGE(ctx, "Update subtree {}", update);
             edits.incl(update);
 
             if (!reparentedSubnodes.empty()) {
@@ -187,7 +187,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
                 auto parent            = tree.getParent().value();
                 auto newParentSubnodes = edits.newSubnodes(
                     Vec<ImmId>{parent->subnodes.begin(), parent->subnodes.end()});
-                AST_EDIT_MSG(hstd::fmt("Tree {} parent {}", tree, parent));
+                OP_TRACER_MESSAGE(ctx, "Tree {} parent {}", tree, parent);
 
                 reparentedSubnodes = edits.newSubnodes(reparentedSubnodes);
                 newParentSubnodes.insert(
@@ -197,7 +197,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
 
                 auto update = setSubnodes(
                     parent, {newParentSubnodes.begin(), newParentSubnodes.end()}, ctx);
-                AST_EDIT_MSG(hstd::fmt("Update subnode list {}", update));
+                OP_TRACER_MESSAGE(ctx, "Update subnode list {}", update);
                 edits.incl(update);
             }
         }
@@ -242,15 +242,15 @@ Opt<ImmAstReplace> org::imm::moveSubnode(
     subnodes = subnodes.erase(position);
     subnodes = subnodes.insert(targetPosition, inserted);
 
-    AST_EDIT_MSG(
-        hstd::fmt(
-            "Move subnodes {}[{} + {} => {}] -> {} -> {}",
-            node,
-            position,
-            offset,
-            targetPosition,
-            node->subnodes,
-            subnodes));
+    OP_TRACER_MESSAGE(
+        ctx,
+        "Move subnodes {}[{} + {} => {}] -> {} -> {}",
+        node,
+        position,
+        offset,
+        targetPosition,
+        node->subnodes,
+        subnodes);
 
     return setSubnodes(node, subnodes, ctx);
 }
@@ -301,7 +301,7 @@ ImmAstReplace org::imm::replaceNode(
     ImmAdapter const&  target,
     ImmId const&       value,
     ImmAstEditContext& ctx) {
-    AST_EDIT_MSG(hstd::fmt("Replace adapter {} -> {}", target, value));
+    OP_TRACER_MESSAGE(ctx, "Replace adapter {} -> {}", target, value);
     return ImmAstReplace{
         .original = target.uniq(),
         .replaced = target.uniq().update(value),
@@ -502,9 +502,8 @@ void OrgDocumentSelector::searchSubtreePlaintextTitle(
                     Vec<Str> plaintext = flatWords(tree.value().at(
                         imm::ImmReflFieldId::FromTypeField<imm::ImmSubtree>(
                             &imm::ImmSubtree::title)));
-                    message(
-                        hstd::fmt(
-                            "{} == {} -> {}", plaintext, title, plaintext == title));
+                    OP_TRACER_MESSAGE(
+                        this, "{} == {} -> {}", plaintext, title, plaintext == title);
 
                     return OrgSelectorResult{
                         .isMatching = title == plaintext,

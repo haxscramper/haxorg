@@ -167,20 +167,24 @@ sink_ptr log_sink_mutable_factory(Generator&& gen) {
         ::hstd::log::log_sink_mutable_factory<__COUNTER__>(impl)
 
 
-sink_ptr init_file_sink(hstd::Str const& log_file_name);
+sink_ptr init_file_sink(hstd::Str const& log_file_name, bool structured = false);
 
-sink_ptr init_stdout_sink();
+sink_ptr init_stdout_sink(bool structured = false);
 
-inline sink_ptr init_file_sink(std::string const& log_file_name) {
-    return init_file_sink(hstd::Str{log_file_name});
+inline sink_ptr init_file_sink(
+    std::string const& log_file_name,
+    bool               structured = false) {
+    return init_file_sink(hstd::Str{log_file_name}, structured);
 }
 
-inline sink_ptr init_file_sink(fs::path const& log_file_name) {
-    return init_file_sink(hstd::Str{log_file_name.native()});
+inline sink_ptr init_file_sink(fs::path const& log_file_name, bool structured = false) {
+    return init_file_sink(hstd::Str{log_file_name.native()}, structured);
 }
 
-inline sink_ptr init_file_sink(char const* const& log_file_name) {
-    return init_file_sink(hstd::Str{log_file_name});
+inline sink_ptr init_file_sink(
+    char const* const& log_file_name,
+    bool               structured = false) {
+    return init_file_sink(hstd::Str{log_file_name}, structured);
 }
 
 void                push_sink(sink_ptr const& sink);
@@ -314,6 +318,7 @@ struct log_record {
     log_record& source_scope(hstd::Vec<hstd::Str> const& scope);
     log_record& source_scope_add(hstd::Str const& scope);
     log_record& source_id(hstd::Str const& id);
+    log_record& metadata(json const& metadata);
     log_record& metadata(std::shared_ptr<json> const& metadata);
     log_record& metadata(hstd::Str const& field, json const& value);
     log_record& maybe_space();
@@ -663,9 +668,9 @@ hstd::log::log_record log_associative_collection(
             .function(__FUNCTION__)                                                      \
             .severity(::hstd::log::severity_level::__severity)
 
-#    define HSLOG_TRACE_STACKTRACE(__cat, __severity)                                    \
+#    define HSLOG_TRACE_STACKTRACE(__severity)                                           \
         if (::hstd::log::is_log_accepted(::hstd::log::severity_level::__severity)) {     \
-            HSLOG_INIT(__cat, __severity).fmt_stacktrace().end();                        \
+            HSLOG_INIT(__severity).fmt_stacktrace().end();                               \
         }
 
 #    define HSLOG_TRACE(...) __ORG_LOG_IMPL(trace, __VA_ARGS__)
@@ -674,6 +679,11 @@ hstd::log::log_record log_associative_collection(
 #    define HSLOG_WARNING(...) __ORG_LOG_IMPL(warning, __VA_ARGS__)
 #    define HSLOG_ERROR(...) __ORG_LOG_IMPL(error, __VA_ARGS__)
 #    define HSLOG_FATAL(...) __ORG_LOG_IMPL(fatal, __VA_ARGS__)
+
+#    define HSLOG_STR_WITH_META(__severity, __str, __meta)                               \
+        if (::hstd::log::is_log_accepted(::hstd::log::severity_level::__severity)) {     \
+            HSLOG_INIT(__severity).message(__str).metadata(__meta).end();                \
+        }
 
 #    define HSLOG_DEBUG_FMT_STRINGIZE_EACH_impl(_1, _2, arg) BOOST_PP_STRINGIZE(arg),
 

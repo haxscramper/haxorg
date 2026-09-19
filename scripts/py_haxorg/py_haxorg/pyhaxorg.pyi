@@ -27,6 +27,14 @@ class CheckboxState(Enum):
     Empty = 3
     Partial = 4
 
+class LinkVisibility(Enum):
+    LiteralLinks = 1
+    DescriptiveLinks = 2
+
+class BlockVisibility(Enum):
+    HideBlocks = 1
+    NoHideBlocks = 2
+
 class SubtreeTodoSource(Enum):
     Checkbox = 1
     Todo = 2
@@ -134,108 +142,114 @@ class OrgNodeKind(Enum):
     Cmd = 21
     Attrs = 22
     AttrValue = 23
-    AttrLisp = 24
-    CmdTitle = 25
-    CmdAuthor = 26
-    CmdCreator = 27
-    CmdInclude = 28
-    CmdLanguage = 29
-    CmdEmail = 30
-    CmdAttr = 31
-    CmdStartup = 32
-    CmdName = 33
-    CmdCustomTextCommand = 34
-    CmdCustomArgsCommand = 35
-    CmdCustomRawCommand = 36
-    CmdResults = 37
-    CmdHeader = 38
-    CmdOptions = 39
-    CmdTblfm = 40
-    CmdCaption = 41
-    CmdResult = 42
-    CmdCallCode = 43
-    CmdFlag = 44
-    CmdLatexClass = 45
-    CmdLatexHeader = 46
-    CmdLatexCompiler = 47
-    CmdLatexClassOptions = 48
-    CmdHtmlHead = 49
-    CmdColumns = 50
-    CmdPropertyArgs = 51
-    CmdPropertyText = 52
-    CmdPropertyRaw = 53
-    CmdFiletags = 54
-    CmdKeywords = 55
-    BlockVerbatimMultiline = 56
-    CodeLine = 57
-    CodeText = 58
-    CodeTangle = 59
-    CodeCallout = 60
-    BlockCode = 61
-    BlockQuote = 62
-    BlockComment = 63
-    BlockCenter = 64
-    BlockVerse = 65
-    BlockExample = 66
-    BlockExport = 67
-    BlockDetails = 68
-    BlockSummary = 69
-    BlockDynamicFallback = 70
-    BigIdent = 71
-    Bold = 72
-    ErrorInfoToken = 73
-    ErrorSkipGroup = 74
-    ErrorSkipToken = 75
-    Italic = 76
-    Verbatim = 77
-    Backtick = 78
-    Underline = 79
-    Strike = 80
-    Quote = 81
-    Angle = 82
-    Monospace = 83
-    Par = 84
-    CriticMarkStructure = 85
-    InlineMath = 86
-    DisplayMath = 87
-    Space = 88
-    Punctuation = 89
-    Colon = 90
-    Word = 91
-    Escaped = 92
-    Newline = 93
-    RawLink = 94
-    Link = 95
-    Macro = 96
-    Symbol = 97
-    StaticActiveTime = 98
-    StaticInactiveTime = 99
-    DynamicActiveTime = 100
-    DynamicInactiveTime = 101
-    TimeRange = 102
-    SimpleTime = 103
-    HashTag = 104
-    MetaSymbol = 105
-    AtMention = 106
-    Placeholder = 107
-    RadioTarget = 108
-    Target = 109
-    SrcInlineCode = 110
-    InlineCallCode = 111
-    InlineExport = 112
-    InlineComment = 113
-    RawText = 114
-    SubtreeDescription = 115
-    SubtreeUrgency = 116
-    DrawerLogbook = 117
-    Drawer = 118
-    DrawerPropertyList = 119
-    DrawerProperty = 120
-    Subtree = 121
-    SubtreeTimes = 122
-    SubtreeStars = 123
-    SubtreeCompletion = 124
-    SubtreeImportance = 125
+    LispExpr = 24
+    LispList = 25
+    LispVector = 26
+    LispQuoted = 27
+    CmdTitle = 28
+    CmdAuthor = 29
+    CmdCreator = 30
+    CmdInclude = 31
+    CmdLanguage = 32
+    CmdEmail = 33
+    CmdAttr = 34
+    CmdStartup = 35
+    CmdName = 36
+    CmdCustomTextCommand = 37
+    CmdCustomArgsCommand = 38
+    CmdCustomRawCommand = 39
+    CmdResults = 40
+    CmdHeader = 41
+    CmdOptions = 42
+    CmdTblfm = 43
+    CmdCaption = 44
+    CmdResult = 45
+    CmdCallCode = 46
+    CmdFlag = 47
+    CmdLatexClass = 48
+    CmdLatexHeader = 49
+    CmdLatexCompiler = 50
+    CmdLatexClassOptions = 51
+    CmdHtmlHead = 52
+    CmdColumns = 53
+    CmdPropertyArgs = 54
+    CmdPropertyText = 55
+    CmdPropertyRaw = 56
+    CmdFiletags = 57
+    CmdKeywords = 58
+    BlockVerbatimMultiline = 59
+    CodeLine = 60
+    CodeText = 61
+    CodeTangle = 62
+    CodeCallout = 63
+    BlockCode = 64
+    BlockQuote = 65
+    BlockComment = 66
+    BlockCenter = 67
+    BlockVerse = 68
+    BlockExample = 69
+    BlockExport = 70
+    BlockDetails = 71
+    BlockSummary = 72
+    BlockDynamicFallback = 73
+    BlockCustomText = 74
+    BlockCustomRaw = 75
+    BigIdent = 76
+    Bold = 77
+    ErrorInfoToken = 78
+    ErrorSkipGroup = 79
+    ErrorSkipToken = 80
+    Italic = 81
+    Verbatim = 82
+    Backtick = 83
+    Underline = 84
+    Strike = 85
+    Quote = 86
+    Angle = 87
+    Monospace = 88
+    Par = 89
+    CriticMarkStructure = 90
+    InlineMath = 91
+    DisplayMath = 92
+    Space = 93
+    Punctuation = 94
+    Colon = 95
+    Word = 96
+    Escaped = 97
+    Newline = 98
+    RawLink = 99
+    Link = 100
+    Macro = 101
+    Symbol = 102
+    StaticActiveTime = 103
+    StaticInactiveTime = 104
+    DynamicActiveTime = 105
+    DiaryTime = 106
+    DynamicInactiveTime = 107
+    TimeRange = 108
+    SimpleTime = 109
+    HashTag = 110
+    MetaSymbol = 111
+    AtMention = 112
+    Placeholder = 113
+    RadioTarget = 114
+    Target = 115
+    SrcInlineCode = 116
+    InlineCallCode = 117
+    InlineExport = 118
+    InlineComment = 119
+    RawText = 120
+    SubtreeDescription = 121
+    SubtreeUrgency = 122
+    DrawerLogbook = 123
+    Drawer = 124
+    DrawerPropertyList = 125
+    DrawerProperty = 126
+    Subtree = 127
+    SubtreeTimes = 128
+    SubtreeStars = 129
+    SubtreeCompletion = 130
+    SubtreeImportance = 131
 
 class OrgTokenKind(Enum):
     Ampersand = 1
@@ -277,194 +291,205 @@ class OrgTokenKind(Enum):
     CmdDateRaw = 37
     CmdDescription = 38
     CmdDrawersRaw = 39
-    CmdDynamicBegin = 40
-    CmdDynamicBlockBegin = 41
-    CmdDynamicBlockEnd = 42
-    CmdDynamicEnd = 43
-    CmdEmailRaw = 44
-    CmdExampleBegin = 45
-    CmdExampleEnd = 46
-    CmdExampleLine = 47
-    CmdExcludeTagsRaw = 48
-    CmdExportBegin = 49
-    CmdExportEnd = 50
-    CmdExportLine = 51
-    CmdFiletags = 52
-    CmdFlag = 53
-    CmdHeader = 54
-    CmdHtmlHeadRaw = 55
-    CmdInclude = 56
-    CmdLanguage = 57
-    CmdLatexClass = 58
-    CmdLatexClassOptions = 59
-    CmdLatexCompiler = 60
-    CmdLatexHeader = 61
-    CmdLatexHeaderExtraRaw = 62
-    CmdLinkRaw = 63
-    CmdMacroRaw = 64
-    CmdName = 65
-    CmdOptions = 66
-    CmdPrefix = 67
-    CmdPrioritiesRaw = 68
-    CmdPropertyArgs = 69
-    CmdPropertyRaw = 70
-    CmdPropertyText = 71
-    CmdQuoteBegin = 72
-    CmdQuoteEnd = 73
-    CmdRawArg = 74
-    CmdResults = 75
-    CmdRow = 76
-    CmdRowBegin = 77
-    CmdRowEnd = 78
-    CmdSelectTagsRaw = 79
-    CmdSeqTodoRaw = 80
-    CmdKeywordsRaw = 81
-    CmdSetupfileRaw = 82
-    CmdSrcBegin = 83
-    CmdSrcEnd = 84
-    CmdStartup = 85
-    CmdTableBegin = 86
-    CmdTableEnd = 87
-    CmdTagsRaw = 88
-    CmdTblfm = 89
-    CmdTitle = 90
-    CmdVerseBegin = 91
-    CmdVerseEnd = 92
-    Colon = 93
-    ColonArgumentsProperty = 94
-    ColonEnd = 95
-    ColonExampleLine = 96
-    ColonLiteralProperty = 97
-    ColonLogbook = 98
-    ColonProperties = 99
-    ColonPropertyText = 100
-    Comma = 101
-    Comment = 102
-    CriticAddBegin = 103
-    CriticAddEnd = 104
-    CriticCommentBegin = 105
-    CriticCommentEnd = 106
-    CriticDeleteBegin = 107
-    CriticDeleteEnd = 108
-    CriticHighlightBegin = 109
-    CriticHighlightEnd = 110
-    CriticReplaceBegin = 111
-    CriticReplaceEnd = 112
-    CriticReplaceMiddle = 113
-    CurlyBegin = 114
-    CurlyEnd = 115
-    Date = 116
-    Dedent = 117
-    Dollar = 118
-    DoubleAngleBegin = 119
-    DoubleAngleEnd = 120
-    DoubleColon = 121
-    DoubleDash = 122
-    DoubleHash = 123
-    DoubleQuote = 124
-    DoubleSlash = 125
-    ActiveDynamicTimeContent = 126
-    InactiveDynamicTimeContent = 127
-    EndOfFile = 128
-    Equals = 129
-    Escaped = 130
-    Exclamation = 131
-    FootnoteInlineBegin = 132
-    FootnoteLinked = 133
-    ForwardSlash = 134
-    HashIdent = 135
-    HashTagBegin = 136
-    Indent = 137
-    InlineExportBackend = 138
-    InlineExportContent = 139
-    ItalicBegin = 140
-    ItalicEnd = 141
-    ItalicUnknown = 142
-    LatexInlineRaw = 143
-    LatexParBegin = 144
-    LatexParEnd = 145
-    LeadingMinus = 146
-    LeadingNumber = 147
-    LeadingPipe = 148
-    LeadingPlus = 149
-    LeadingSpace = 150
-    LineCommand = 151
-    LinkBegin = 152
-    LinkDescriptionBegin = 153
-    LinkDescriptionEnd = 154
-    LinkEnd = 155
-    LinkFull = 156
-    LinkProtocol = 157
-    LinkProtocolAttachment = 158
-    LinkProtocolCustomId = 159
-    LinkProtocolFile = 160
-    LinkProtocolHttp = 161
-    LinkProtocolId = 162
-    LinkProtocolInternal = 163
-    LinkProtocolTitle = 164
-    LinkSplit = 165
-    LinkTarget = 166
-    LinkTargetBegin = 167
-    LinkTargetEnd = 168
-    LinkTargetFile = 169
-    ListBegin = 170
-    ListEnd = 171
-    ListItemBegin = 172
-    ListItemEnd = 173
-    LongNewline = 174
-    MediumNewline = 175
-    Minus = 176
-    MiscUnicode = 177
-    MonospaceBegin = 178
-    MonospaceEnd = 179
-    MonospaceUnknown = 180
-    Newline = 181
-    Number = 182
-    ParBegin = 183
-    ParEnd = 184
-    Percent = 185
-    Pipe = 186
-    Placeholder = 187
-    Plus = 188
-    Punctuation = 189
-    RawText = 190
-    SameIndent = 191
-    Semicolon = 192
-    SingleQuote = 193
-    SrcContent = 194
-    StmtListBegin = 195
-    StmtListEnd = 196
-    StrikeBegin = 197
-    StrikeEnd = 198
-    StrikeUnknown = 199
-    SubtreeCompletion = 200
-    SubtreePriority = 201
-    SubtreeStars = 202
-    Symbol = 203
-    TableSeparator = 204
-    TextSeparator = 205
-    TextSrcBegin = 206
-    Tilda = 207
-    Time = 208
-    TimeArrow = 209
-    TimeRepeaterDuration = 210
-    TimeRepeaterSpec = 211
-    TimeWarnPeriod = 212
-    TrailingPipe = 213
-    TreeClock = 214
-    TreeTime = 215
-    TripleAngleBegin = 216
-    TripleAngleEnd = 217
-    Underline = 218
-    UnderlineBegin = 219
-    UnderlineEnd = 220
-    UnderlineUnknown = 221
-    Unknown = 222
-    VerbatimBegin = 223
-    VerbatimEnd = 224
-    VerbatimUnknown = 225
-    Whitespace = 226
-    Word = 227
+    CmdDynamicBlockBegin = 40
+    CmdDynamicBlockEnd = 41
+    CmdCustomTextBlockBegin = 42
+    CmdCustomTextBlockEnd = 43
+    CmdCustomRawBlockBegin = 44
+    CmdCustomRawBlockLine = 45
+    CmdCustomRawBlockEnd = 46
+    CmdEmailRaw = 47
+    CmdExampleBegin = 48
+    CmdExampleEnd = 49
+    CmdExampleLine = 50
+    CmdExcludeTagsRaw = 51
+    CmdExportBegin = 52
+    CmdExportEnd = 53
+    CmdExportLine = 54
+    CmdFiletags = 55
+    CmdFlag = 56
+    CmdHeader = 57
+    CmdHtmlHeadRaw = 58
+    CmdInclude = 59
+    CmdLanguage = 60
+    CmdLatexClass = 61
+    CmdLatexClassOptions = 62
+    CmdLatexCompiler = 63
+    CmdLatexHeader = 64
+    CmdLatexHeaderExtraRaw = 65
+    CmdLinkRaw = 66
+    CmdMacroRaw = 67
+    CmdName = 68
+    CmdOptions = 69
+    CmdPrefix = 70
+    CmdPrioritiesRaw = 71
+    CmdPropertyArgs = 72
+    CmdPropertyRaw = 73
+    CmdPropertyText = 74
+    CmdQuoteBegin = 75
+    CmdQuoteEnd = 76
+    CmdRawArg = 77
+    CmdResults = 78
+    CmdRow = 79
+    CmdRowBegin = 80
+    CmdRowEnd = 81
+    CmdSelectTagsRaw = 82
+    CmdSeqTodoRaw = 83
+    CmdKeywordsRaw = 84
+    CmdSetupfileRaw = 85
+    CmdSrcBegin = 86
+    CmdSrcEnd = 87
+    CmdStartup = 88
+    CmdTableBegin = 89
+    CmdTableEnd = 90
+    CmdTagsRaw = 91
+    CmdTblfm = 92
+    CmdTitle = 93
+    CmdVerseBegin = 94
+    CmdVerseEnd = 95
+    Colon = 96
+    ColonArgumentsProperty = 97
+    ColonEnd = 98
+    ColonExampleLine = 99
+    ColonLiteralProperty = 100
+    ColonLogbook = 101
+    ColonProperties = 102
+    ColonPropertyText = 103
+    Comma = 104
+    Comment = 105
+    CriticAddBegin = 106
+    CriticAddEnd = 107
+    CriticCommentBegin = 108
+    CriticCommentEnd = 109
+    CriticDeleteBegin = 110
+    CriticDeleteEnd = 111
+    CriticHighlightBegin = 112
+    CriticHighlightEnd = 113
+    CriticReplaceBegin = 114
+    CriticReplaceEnd = 115
+    CriticReplaceMiddle = 116
+    CurlyBegin = 117
+    CurlyEnd = 118
+    Date = 119
+    Dedent = 120
+    Dollar = 121
+    DoubleAngleBegin = 122
+    DoubleAngleEnd = 123
+    DoubleColon = 124
+    DoubleDash = 125
+    DoubleHash = 126
+    DoubleQuote = 127
+    DoubleSlash = 128
+    ActiveDynamicTimeContent = 129
+    InactiveDynamicTimeContent = 130
+    AgendaDiaryTimeContent = 131
+    EndOfFile = 132
+    Equals = 133
+    Escaped = 134
+    Exclamation = 135
+    FootnoteInlineBegin = 136
+    FootnoteLinked = 137
+    ForwardSlash = 138
+    HashIdent = 139
+    HashTagBegin = 140
+    Indent = 141
+    InlineExportBackend = 142
+    InlineExportContent = 143
+    ItalicBegin = 144
+    ItalicEnd = 145
+    ItalicUnknown = 146
+    LatexInlineRaw = 147
+    LatexParBegin = 148
+    LatexParEnd = 149
+    LatexBraceBegin = 150
+    LatexBraceEnd = 151
+    LatexDollar1Begin = 152
+    LatexDollar1End = 153
+    LatexDollar2Begin = 154
+    LatexDollar2End = 155
+    LeadingMinus = 156
+    LeadingNumber = 157
+    LeadingPipe = 158
+    LeadingPlus = 159
+    LeadingSpace = 160
+    LeadingCharacter = 161
+    LineCommand = 162
+    LinkBegin = 163
+    LinkDescriptionBegin = 164
+    LinkDescriptionEnd = 165
+    LinkEnd = 166
+    LinkFull = 167
+    LinkProtocol = 168
+    LinkProtocolAttachment = 169
+    LinkProtocolCustomId = 170
+    LinkProtocolFile = 171
+    LinkProtocolHttp = 172
+    LinkProtocolId = 173
+    LinkProtocolInternal = 174
+    LinkProtocolTitle = 175
+    LinkSplit = 176
+    LinkTarget = 177
+    LinkTargetBegin = 178
+    LinkTargetEnd = 179
+    LinkTargetFile = 180
+    ListBegin = 181
+    ListEnd = 182
+    ListItemBegin = 183
+    ListItemEnd = 184
+    LongNewline = 185
+    MediumNewline = 186
+    Minus = 187
+    MiscUnicode = 188
+    MonospaceBegin = 189
+    MonospaceEnd = 190
+    MonospaceUnknown = 191
+    Newline = 192
+    Number = 193
+    ParBegin = 194
+    ParEnd = 195
+    Percent = 196
+    Pipe = 197
+    Placeholder = 198
+    Plus = 199
+    Punctuation = 200
+    RawText = 201
+    SameIndent = 202
+    Semicolon = 203
+    SingleQuote = 204
+    SrcContent = 205
+    StmtListBegin = 206
+    StmtListEnd = 207
+    StrikeBegin = 208
+    StrikeEnd = 209
+    StrikeUnknown = 210
+    SubtreeCompletion = 211
+    SubtreePriority = 212
+    SubtreeStars = 213
+    Symbol = 214
+    TableSeparator = 215
+    TextSeparator = 216
+    TextSrcBegin = 217
+    Tilda = 218
+    Time = 219
+    TimeArrow = 220
+    TimeRepeaterDuration = 221
+    TimeRepeaterSpec = 222
+    TimeWarnPeriod = 223
+    TrailingPipe = 224
+    TreeClock = 225
+    TreeTime = 226
+    TripleAngleBegin = 227
+    TripleAngleEnd = 228
+    Underline = 229
+    UnderlineBegin = 230
+    UnderlineEnd = 231
+    UnderlineUnknown = 232
+    Unknown = 233
+    VerbatimBegin = 234
+    VerbatimEnd = 235
+    VerbatimUnknown = 236
+    Whitespace = 237
+    Word = 238
 
 class OrgJsonKind(Enum):
     Null = 1
@@ -616,13 +641,13 @@ class ParseSourceManager:
     def addSource(self, path: str, content: str) -> ParseSourceFileId: ...
 
 class ParseSourceLoc:
-    def __init__(self, line: int, column: int, pos: int, file_id: ParseSourceFileId) -> None: ...
+    def __init__(self, line: int, column: int, file_id: ParseSourceFileId, pos: int) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     line: int
     column: int
-    pos: int
     file_id: ParseSourceFileId
+    pos: int
 
 class OrgJson:
     def __init__(self) -> None: ...
@@ -656,20 +681,18 @@ class Org:
     subnodes: list[SemId]
 
 class OperationsTracer:
-    def __init__(self, TraceState: bool, traceToFile: bool, traceToBuffer: bool, traceStructured: bool, traceColored: bool, activeLevel: int, traceBuffer: str) -> None: ...
+    def __init__(self, traceToFile: bool, traceToBuffer: bool, traceStructured: bool, traceColored: bool, traceBuffer: str) -> None: ...
     def setTraceFileStr(self, outfile: str, overwrite: bool) -> None: ...
     def sendMessage(self, value: str, function: str, line: int, file: str) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    TraceState: bool
     traceToFile: bool
     traceToBuffer: bool
     traceStructured: bool
     traceColored: bool
-    activeLevel: int
     traceBuffer: str
 
-class Cache:
+class ReportSourceCache:
     def __init__(self) -> None: ...
 
 class Report:
@@ -701,7 +724,7 @@ class OrgDirectoryParseParameters:
 
 class ParseContext:
     def __init__(self) -> None: ...
-    def getDiagnosticStrings(self) -> Cache: ...
+    def getDiagnosticStrings(self) -> ReportSourceCache: ...
     def addSource(self, path: str, content: str) -> ParseSourceFileId: ...
     def parseFileOpts(self, file: str, opts: OrgParseParameters) -> SemId: ...
     def parseFile(self, file: str) -> SemId: ...
@@ -710,7 +733,7 @@ class ParseContext:
     def parseDirectory(self, path: str) -> Optional[SemId]: ...
     def parseDirectoryOpts(self, path: str, opts: OrgDirectoryParseParameters) -> Optional[SemId]: ...
     def parseFileWithIncludes(self, file: str, opts: OrgDirectoryParseParameters) -> SemId: ...
-    def collectDiagnostics(self, tree: SemId, cache: Cache) -> list[Report]: ...
+    def collectDiagnostics(self, tree: SemId, cache: ReportSourceCache) -> list[Report]: ...
     def collectErrorNodes(self, tree: SemId) -> list[SemId]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -731,23 +754,26 @@ class ImmId(ImmIdBase):
 class ImmOrg:
     def __init__(self) -> None: ...
 
-class ImmPathStep:
+class ImmSubnodeAccessStep:
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
-class ImmPath:
-    def __init__(self, root: ImmId, path: ImmPathStore) -> None: ...
+class ImmTreeAccessPath:
+    def __init__(self, root: ImmId, path: ImmTreeAccessPathStore) -> None: ...
     def empty(self) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     root: ImmId
-    path: ImmPathStore
+    path: ImmTreeAccessPathStore
 
 class ImmUniqId:
     def __init__(self) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
+
+class ImmSemSerdeConfig:
+    def __init__(self) -> None: ...
 
 class ImmAstReplaceEpoch:
     def __init__(self) -> None: ...
@@ -758,7 +784,7 @@ class ImmAstContext:
     def __init__(self) -> None: ...
     def addRoot(self, data: SemId) -> ImmAstVersion: ...
     def getEmptyVersion(self) -> ImmAstVersion: ...
-    def get(self, id: ImmId) -> SemId: ...
+    def get(self, id: ImmId, config: ImmSemSerdeConfig) -> SemId: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
@@ -795,7 +821,7 @@ class ImmAdapter:
     def getParent(self) -> Optional[ImmAdapter]: ...
     def getSelfIndex(self) -> int: ...
     @overload
-    def at(self, id: ImmId, idx: ImmPathStep) -> ImmAdapter: ...
+    def at(self, id: ImmId, idx: ImmSubnodeAccessStep) -> ImmAdapter: ...
     @overload
     def at(self, field: ImmReflFieldId) -> ImmAdapter: ...
     @overload
@@ -973,7 +999,7 @@ class ExporterPython:
 
 ImmIdIdType = U64
 ImmIdNodeIdxT = U32
-ImmPathStore = ImmFlexVector[ImmPathStep]
+ImmTreeAccessPathStore = ImmFlexVector[ImmSubnodeAccessStep]
 class LispCodeCall:
     def __init__(self, name: str, args: list[LispCode]) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -982,7 +1008,21 @@ class LispCodeCall:
     name: str
     args: list[LispCode]
 
+class LispCodeQuoted:
+    def __init__(self, items: list[LispCode]) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    items: list[LispCode]
+
 class LispCodeList:
+    def __init__(self, items: list[LispCode]) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    items: list[LispCode]
+
+class LispCodeVector:
     def __init__(self, items: list[LispCode]) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
@@ -1032,24 +1072,30 @@ class LispCodeReal:
     def __getattr__(self, name: str) -> object: ...
     value: float
 
-LispCodeData = StdVariant[LispCodeCall, LispCodeList, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal]
+LispCodeData = StdVariant[LispCodeCall, LispCodeQuoted, LispCodeList, LispCodeVector, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal]
 class LispCodeKind(Enum):
     Call = 1
-    List = 2
-    KeyValue = 3
-    Number = 4
-    Text = 5
-    Ident = 6
-    Boolean = 7
-    Real = 8
+    Quoted = 2
+    List = 3
+    Vector = 4
+    KeyValue = 5
+    Number = 6
+    Text = 7
+    Ident = 8
+    Boolean = 9
+    Real = 10
 
 class LispCode:
     def __init__(self) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def isCall(self) -> bool: ...
     def getCall(self) -> LispCodeCall: ...
+    def isQuoted(self) -> bool: ...
+    def getQuoted(self) -> LispCodeQuoted: ...
     def isList(self) -> bool: ...
     def getList(self) -> LispCodeList: ...
+    def isVector(self) -> bool: ...
+    def getVector(self) -> LispCodeVector: ...
     def isKeyValue(self) -> bool: ...
     def getKeyValue(self) -> LispCodeKeyValue: ...
     def isNumber(self) -> bool: ...
@@ -1065,6 +1111,37 @@ class LispCode:
     def getKind(self) -> LispCodeKind: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
+
+class TimeValueFixedTime:
+    def __init__(self, time: UserTime) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    time: UserTime
+
+class TimeValueDynamicTime:
+    def __init__(self, time: LispCode) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    time: LispCode
+
+TimeValueData = StdVariant[TimeValueFixedTime, TimeValueDynamicTime]
+class TimeValueKind(Enum):
+    FixedTime = 1
+    DynamicTime = 2
+
+class TimeValue:
+    def __init__(self, isActive: bool) -> None: ...
+    def __eq__(self, other: object) -> bool: ...
+    def isFixedTime(self) -> bool: ...
+    def getFixedTime(self) -> TimeValueFixedTime: ...
+    def isDynamicTime(self) -> bool: ...
+    def getDynamicTime(self) -> TimeValueDynamicTime: ...
+    def getKind(self) -> TimeValueKind: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
+    isActive: bool
 
 class TblfmExprAxisRefPositionIndex:
     def __init__(self, index: int) -> None: ...
@@ -1998,11 +2075,11 @@ class NamedPropertyUnnumbered:
     def __getattr__(self, name: str) -> object: ...
 
 class NamedPropertyCreated:
-    def __init__(self, time: UserTime) -> None: ...
+    def __init__(self, time: TimeValue) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
-    time: UserTime
+    time: TimeValue
 
 class NamedPropertyRadioId:
     def __init__(self, words: list[str]) -> None: ...
@@ -2153,7 +2230,7 @@ class NamedProperty:
     def __getattr__(self, name: str) -> object: ...
 
 class OrgDiagnosticsParseTokenError:
-    def __init__(self, brief: str, detail: str, parserFunction: str, parserLine: int, tokenKind: OrgTokenKind, tokenText: str, loc: ParseSourceLoc, errName: str, errCode: str) -> None: ...
+    def __init__(self, brief: str, detail: str, parserFunction: str, parserLine: int, tokenKind: OrgTokenKind, tokenText: str, loc: Optional[ParseSourceLoc], errName: str, errCode: str) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2163,7 +2240,7 @@ class OrgDiagnosticsParseTokenError:
     parserLine: int
     tokenKind: OrgTokenKind
     tokenText: str
-    loc: ParseSourceLoc
+    loc: Optional[ParseSourceLoc]
     errName: str
     errCode: str
 
@@ -2722,7 +2799,7 @@ class ListItem(Org):
     bullet: Optional[str]
 
 class DocumentOptions(Org):
-    def __init__(self, initialVisibility: InitialSubtreeVisibility, properties: list[NamedProperty], exportConfig: DocumentExportConfig, fixedWidthSections: Optional[bool], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int], columns: Optional[ColumnView], todoKeywords: list[TodoKeyword], doneKeywords: list[TodoKeyword]) -> None: ...
+    def __init__(self, initialVisibility: InitialSubtreeVisibility, properties: list[NamedProperty], exportConfig: DocumentExportConfig, fixedWidthSections: Optional[bool], linkVisibility: Optional[LinkVisibility], blockVisibility: Optional[BlockVisibility], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int], columns: Optional[ColumnView], todoKeywords: list[TodoKeyword], doneKeywords: list[TodoKeyword]) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> list[NamedProperty]: ...
     def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[NamedProperty]: ...
     def __repr__(self) -> str: ...
@@ -2731,6 +2808,8 @@ class DocumentOptions(Org):
     properties: list[NamedProperty]
     exportConfig: DocumentExportConfig
     fixedWidthSections: Optional[bool]
+    linkVisibility: Optional[LinkVisibility]
+    blockVisibility: Optional[BlockVisibility]
     startupIndented: Optional[bool]
     category: Optional[str]
     setupfile: Optional[str]
@@ -2907,6 +2986,11 @@ class CmdInclude(Org):
     path: str
     firstLine: Optional[int]
     lastLine: Optional[int]
+
+class ReportSourceStrCache(ReportSourceCache):
+    def __init__(self) -> None: ...
+    def __repr__(self) -> str: ...
+    def __getattr__(self, name: str) -> object: ...
 
 class ImmIdTNoNode(ImmId):
     def __init__(self) -> None: ...
@@ -3843,6 +3927,8 @@ class ImmDocumentOptionsAdapter(ImmAdapterDocumentOptionsAPI):
     def getProperties(self) -> ImmVec[NamedProperty]: ...
     def getExportConfig(self) -> DocumentExportConfig: ...
     def getFixedWidthSections(self) -> Optional[bool]: ...
+    def getLinkVisibility(self) -> Optional[LinkVisibility]: ...
+    def getBlockVisibility(self) -> Optional[BlockVisibility]: ...
     def getStartupIndented(self) -> Optional[bool]: ...
     def getCategory(self) -> Optional[str]: ...
     def getSetupfile(self) -> Optional[str]: ...

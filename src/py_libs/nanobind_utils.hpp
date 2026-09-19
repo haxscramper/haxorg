@@ -175,6 +175,13 @@ void bind_stdvector(nb::module_& m, char const* PyNameType, PyTypeRegistryGuard&
     cls.def(nb::init<>());
 }
 
+template <typename T>
+void bind_hstdStrCommon(
+    nb::module_&         m,
+    char const*          PyNameType,
+    PyTypeRegistryGuard& guard) {}
+
+
 /// \brief Bind specialization of the hstd vector for use in python
 template <typename T>
 void bind_hstdVec(nb::module_& m, char const* PyNameType, PyTypeRegistryGuard& guard) {

@@ -1,4 +1,5 @@
 #include <haxorg/parse/OrgParser.hpp>
+#include <hstd/ext/error_write.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/VariantFormatter.hpp>
@@ -7,13 +8,15 @@
 using namespace hstd;
 using namespace org::parse;
 
+// TODO: Split into the "get token" and "format" parts, so it would be possible to dump
+// the lexer location state without string formatting.
 std::string OrgParser::getLocMsg(OrgLexer const& lex) {
     std::string result;
     std::string pos = lex.pos.isNil() ? "<nil>" : fmt1(lex.pos.getIndex());
 
-    if (auto loc = getLoc(lex)) {
-        result = hstd::fmt(
-            "{}:{} (tok {}, pos {})", loc->line, loc->column, pos, loc->pos);
+    if (auto token = lex.getLocToken()) {
+        auto loc = token.value()->loc.value();
+        result = hstd::fmt("{}:{} (tok {}, pos {})", loc.line, loc.column, pos, loc.pos);
     } else {
         result = hstd::fmt("(tok {})", pos);
     }
@@ -21,27 +24,6 @@ std::string OrgParser::getLocMsg(OrgLexer const& lex) {
     return result;
 }
 
-
-Opt<SourceLoc> OrgParser::getLoc(OrgLexer const& lex) {
-    if (lex.finished()) {
-        return std::nullopt;
-    } else {
-        for (int offset = 0; lex.hasNext(-offset) || lex.hasNext(offset); ++offset) {
-            // Try incrementally widening lookarounds on the current
-            // lexer position until there is a token that has proper
-            // location information.
-            for (int i : Vec<int>{-1, 1}) {
-                if (lex.hasNext(offset * i)) {
-                    OrgToken tok = lex.tok(offset * i);
-                    if (!tok->isFake()) { return tok.value.loc.value(); }
-                    // If offset falls out of the lexer range on both
-                    // ends, terminate lookup.
-                }
-            }
-        }
-        return std::nullopt;
-    }
-}
 
 struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
     Builder& with_node(OrgId const& node) {
@@ -67,13 +49,14 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
         this->report = OrgParser::Report{
             OperationsMsg{
                 .file     = file,
-                .line     = line,
                 .function = function,
+                .line     = line,
             },
             .kind = kind,
         };
     }
 };
+
 
 std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     OrgNodeKind kind,
@@ -81,7 +64,7 @@ std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     char const* function) {
     int const startingDepth = treeDepth();
     auto      res           = group->startTree(kind);
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::StartNode, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -93,7 +76,7 @@ std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
 
 void OrgParser::start_no_guard(OrgNodeKind kind, int line, char const* function) {
     auto res = group->startTree(kind);
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::StartNode, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -104,13 +87,75 @@ void OrgParser::start_no_guard(OrgNodeKind kind, int line, char const* function)
 OrgId OrgParser::end_impl(std::string const& desc, int line, char const* function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->endTree();
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::EndNode, nullptr, line, function)
                    .with_node(res)
                    .with_msg(desc)
                    .report);
     }
     return res;
+}
+
+OrgNodeMono::Error OrgParser::error_value(
+    std::string const&                                msg,
+    hstd::Opt<sem::OrgDiagnostics::ParseError> const& message,
+    OrgLexer const&                                   lex,
+    int                                               line,
+    char const*                                       function) {
+    org::sem::OrgDiagnostics::ParseError err;
+    if (message) { err = message.value(); }
+
+    if (err.detail.empty()) {
+        err.detail = msg;
+    } else {
+        err.detail += "\n\n" + msg;
+    }
+
+    if (canTrace()) {
+        report(Builder(OrgParser::ReportKind::Error, nullptr, line, function)
+                   .with_msg(msg)
+                   .report);
+    }
+
+    return error_value(err, lex, line, function);
+}
+
+OrgNodeMono::Error OrgParser::error_value(
+    org::sem::OrgDiagnostics::ParseError const& message,
+    OrgLexer const&                             lex,
+    int                                         line,
+    char const*                                 function) {
+    auto box = std::make_shared<OrgNodeMono::Error::Box>();
+    org::parse::OrgNodeMono::Error::Box::ParseTokenFail fail;
+    fail.err.brief          = message.brief;
+    fail.err.detail         = message.detail;
+    fail.err.parserFunction = function;
+    fail.err.parserLine     = line;
+    fail.err.errCode        = message.errCode;
+    fail.err.errName        = message.errName;
+
+    auto failToken = lex.getLocToken();
+
+    if (failToken) {
+        fail.err.loc       = failToken->value.loc.value();
+        fail.err.tokenText = Str{failToken->value.text()};
+        LOGIC_ASSERTION_CHECK_FMT(manager != nullptr, "");
+
+        if (manager) {
+            int size = manager->getSourceContent(activeFileId).size();
+            LOGIC_ASSERTION_CHECK_FMT(fail.err.loc->pos < size, "");
+            LOGIC_ASSERTION_CHECK_FMT(
+                fail.err.loc->pos + fail.err.tokenText.size() <= size,
+                "fail.err.loc->pos:{}, fail.err.tokenText.size():{}, size:{}",
+                fail.err.loc->pos,
+                fail.err.tokenText.size(),
+                size);
+        }
+    }
+
+    box->data = fail;
+
+    return OrgNodeMono::Error{.box = box};
 }
 
 OrgParser::ParseResult OrgParser::error_end(
@@ -129,7 +174,7 @@ void OrgParser::fail(
     char const*     function) {
     LOGIC_ASSERTION_CHECK(0 <= group->treeDepth(), "");
     auto res = group->failTree(replace);
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::FailTree, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -139,7 +184,7 @@ void OrgParser::fail(
 
 OrgId OrgParser::fake(OrgNodeKind kind, int line, char const* function) {
     auto res = group->token(kind, group->tokens->add(OrgToken(OrgTokenKind::Unknown)));
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::AddToken, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -150,7 +195,7 @@ OrgId OrgParser::fake(OrgNodeKind kind, int line, char const* function) {
 
 OrgId OrgParser::token(OrgNode const& node, int line, char const* function) {
     auto res = group->token(node);
-    if (TraceState) {
+    if (canTrace()) {
         std::string msg;
         if (node.isMono()) {
             if (node.getMono().isError()) {
@@ -168,7 +213,7 @@ OrgId OrgParser::token(OrgNode const& node, int line, char const* function) {
 OrgId OrgParser::token(OrgNodeKind kind, OrgTokenId tok, int line, char const* function) {
     auto res = group->token(kind, tok);
 
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::AddToken, nullptr, line, function)
                    .with_node(res)
                    .report);
@@ -176,35 +221,6 @@ OrgId OrgParser::token(OrgNodeKind kind, OrgTokenId tok, int line, char const* f
     return res;
 }
 
-OrgNodeMono::Error OrgParser::error_value(
-    org::sem::OrgDiagnostics::ParseError const& message,
-    OrgLexer const&                             lex,
-    int                                         line,
-    char const*                                 function) {
-    auto box = std::make_shared<OrgNodeMono::Error::Box>();
-    org::parse::OrgNodeMono::Error::Box::ParseTokenFail fail;
-    fail.err.brief          = message.brief;
-    fail.err.detail         = message.detail;
-    fail.err.parserFunction = function;
-    fail.err.parserLine     = line;
-    fail.err.errCode        = message.errCode;
-    fail.err.errName        = message.errName;
-    std::optional<OrgToken> failToken;
-    if (lex.finished()) {
-        if (lex.lastToken) { failToken = lex.lastToken.value(); }
-    } else {
-        failToken = lex.tok();
-    }
-
-    if (failToken) {
-        fail.err.loc       = failToken->value.loc.value();
-        fail.err.tokenText = failToken->value.text;
-    }
-
-    box->data = fail;
-
-    return OrgNodeMono::Error{.box = box};
-}
 
 OrgId OrgParser::error_token(
     OrgNodeMono::Error const& err,
@@ -214,6 +230,18 @@ OrgId OrgParser::error_token(
     mono.data     = err;
     OrgNode error = OrgNode{OrgNodeKind::ErrorInfoToken, mono};
     return token(error);
+}
+
+OrgParser::ParseResult OrgParser::maybe_recursive_error_no_propagate(
+    ParseResult const& res,
+    OrgLexer&          lex,
+    int                line,
+    char const*        function) {
+    if (res.has_value()) {
+        return res;
+    } else {
+        return ParseFail{};
+    }
 }
 
 OrgParser::ParseResult OrgParser::maybe_recursive_error_end(
@@ -251,28 +279,14 @@ OrgParser::ParseResult OrgParser::expect(
         return ParseOk{};
     } else {
         auto msg = hstd::fmt(
-            "{}: Expected token {} {} but got '{}'",
+            "{}: Expected token {} {} but got '{}' while parsing {}",
             line,
             item,
             getLocMsg(lex),
-            lex.finished() ? "<lexer-finished>" : fmt1(lex.kind()));
+            lex.formatState(),
+            group->formatState());
 
-        org::sem::OrgDiagnostics::ParseError err;
-        if (message) { err = message.value(); }
-
-        if (err.detail.empty()) {
-            err.detail = msg;
-        } else {
-            err.detail += "\n\n" + msg;
-        }
-
-        if (TraceState) {
-            report(Builder(OrgParser::ReportKind::Error, nullptr, line, function)
-                       .with_msg(msg)
-                       .report);
-        }
-
-        return error_end(error_value(err, lex, line, function));
+        return error_end(error_value(msg, message, lex, line, function));
     }
 }
 
@@ -282,7 +296,7 @@ OrgParser::LexResult OrgParser::pop(
     int                line,
     char const*        function) {
     if (tok) { BOOST_OUTCOME_TRY(expect(lex, *tok, std::nullopt, line, function)); }
-    if (TraceState) { print(hstd::fmt("pop {}", lex.tok()), &lex, line, function); }
+    if (canTrace()) { print(hstd::fmt("pop {}", lex.tok()), &lex, line, function); }
     return lex.pop();
 }
 
@@ -296,30 +310,41 @@ OrgParser::ParseResult OrgParser::skip(
 
     if (item) { BOOST_OUTCOME_TRY(expect(lex, *item, message, line, function)); }
 
-    if (TraceState) { print(hstd::fmt("skip {}", lex.tok()), &lex, line, function); }
+    if (canTrace()) { print(hstd::fmt("skip {}", lex.tok()), &lex, line, function); }
 
     lex.next();
     return ParseOk{};
 }
 
-finally_std OrgParser::trace(
+
+OrgParser::org_parser_trace_state::~org_parser_trace_state() {
+    if (parser != nullptr) {
+        parser->report(Builder(OrgParser::ReportKind::LeaveParse, nullptr, line, function)
+                           .with_lex(*lexer)
+                           .report);
+    }
+}
+
+
+OrgParser::org_parser_trace_state OrgParser::trace(
     OrgLexer&        lex,
     Opt<std::string> msg,
     int              line,
     char const*      function) {
-    if (TraceState) {
+    if (canTrace()) {
         report(Builder(OrgParser::ReportKind::EnterParse, nullptr, line, function)
                    .with_lex(lex)
                    .report);
 
-        return finally_std([line, function, this, &lex]() {
-            report(Builder(OrgParser::ReportKind::LeaveParse, nullptr, line, function)
-                       .with_lex(lex)
-                       .report);
-        });
+        return org_parser_trace_state{
+            .parser   = this,
+            .lexer    = &lex,
+            .line     = line,
+            .function = function,
+        };
 
     } else {
-        return finally_std::nop();
+        return org_parser_trace_state{};
     }
 }
 
@@ -328,7 +353,7 @@ void OrgParser::print(
     OrgLexer*          lexer,
     int                line,
     char const*        function) {
-    if (TraceState) {
+    if (canTrace()) {
         auto build = Builder(OrgParser::ReportKind::Print, nullptr, line, function)
                          .with_msg(msg);
 
@@ -342,7 +367,7 @@ parse_error OrgParser::fatalError(
     Str const&      msg,
     int             line,
     char const*     function) {
-    if (TraceState) {
+    if (canTrace()) {
         auto build = Builder(OrgParser::ReportKind::Error, nullptr, line, function)
                          .with_msg(msg)
                          .with_lex(lex);
@@ -361,7 +386,7 @@ parse_error OrgParser::fatalError(
             getLocMsg(lex),
             tok,
             lex.printToString([](ColStream& os, OrgToken const& t) {
-                os << os.yellow() << escape_for_write(t.value.text) << os.end()
+                os << os.yellow() << escape_for_write(t.value.text()) << os.end()
                    << fmt1(t.value);
             })),
         line,

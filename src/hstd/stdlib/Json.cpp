@@ -123,3 +123,40 @@ void hstd::filterFields(json& j, std::vector<std::string> const& fieldsToRemove)
         for (json& el : j) { filterFields(el, fieldsToRemove); }
     }
 }
+
+std::string hstd::strip_json_comments(std::string json) {
+    bool in_string = false;
+    bool escaped   = false;
+
+    for (std::size_t i = 0; i < json.size(); ++i) {
+        const char ch = json[i];
+
+        if (in_string) {
+            if (escaped) {
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                in_string = false;
+            }
+
+            continue;
+        }
+
+        if (ch == '"') {
+            in_string = true;
+            continue;
+        }
+
+        if (ch == '/' && i + 1 < json.size() && json[i + 1] == '/') {
+            while (i < json.size() && json[i] != '\n' && json[i] != '\r') {
+                json[i] = ' ';
+                ++i;
+            }
+
+            if (i == json.size()) { break; }
+        }
+    }
+
+    return json;
+}

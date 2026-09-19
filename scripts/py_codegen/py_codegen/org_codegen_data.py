@@ -309,7 +309,7 @@ def get_diagnostic_types() -> List[GenTuStruct]:
                 org_field(t_int(), "parserLine"),
                 org_field(t("OrgTokenKind"), "tokenKind"),
                 org_field(t_str(), "tokenText"),
-                org_field(t("SourceLoc", [t("org"), t("parse")]), "loc"),
+                opt_field(t("SourceLoc", [t("org"), t("parse")]), "loc"),
                 org_field(t_str(), "errName"),
                 org_field(t_str(), "errCode"),
             ],
@@ -547,7 +547,7 @@ def get_subtree_property_types() -> List[GenTuStruct]:
             t_nest_shared("Created", [t("NamedProperty")]),
             GenTuDoc(""),
             Nested=[GenTuPass("Created() {}")],
-            Fields=[GenTuField(t_user_time(), "time", GenTuDoc(""))],
+            Fields=[GenTuField(t_nest_shared("TimeValue"), "time", GenTuDoc(""))],
             Methods=[eq_method(t_nest_shared("Created", [t("NamedProperty")]))],
         ),
         org_struct(
@@ -1410,6 +1410,18 @@ def get_shared_sem_enums() -> List[GenTuEnum]:
             "Partial",
         ),
         d_simple_enum(
+            t("LinkVisibility"),
+            GenTuDoc(""),
+            "LiteralLinks",
+            "DescriptiveLinks",
+        ),
+        d_simple_enum(
+            t("BlockVisibility"),
+            GenTuDoc(""),
+            "HideBlocks",
+            "NoHideBlocks",
+        ),
+        d_simple_enum(
             t("SubtreeTodoSource"),
             org_doc("Where to take todo completion statistics from"),
             efield("Checkbox", "Only count checkbox subnodes as a progress completion"),
@@ -1527,7 +1539,23 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                             DefaultEq=True,
                         ),
                         org_struct(
+                            t_nest_shared("Quoted", [t("LispCode")]),
+                            Fields=[
+                                vec_field(t_nest_shared("LispCode"), "items"),
+                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
+                        ),
+                        org_struct(
                             t_nest_shared("List", [t("LispCode")]),
+                            Fields=[
+                                vec_field(t_nest_shared("LispCode"), "items"),
+                            ],
+                            DefaultConstructor=True,
+                            DefaultEq=True,
+                        ),
+                        org_struct(
+                            t_nest_shared("Vector", [t("LispCode")]),
                             Fields=[
                                 vec_field(t_nest_shared("LispCode"), "items"),
                             ],
@@ -1589,6 +1617,36 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
                 )
             ],
         ),
+        org_struct(t_nest_shared("TimeValue"),
+                   DefaultConstructor=True,
+                   DefaultEq=True,
+                   Nested=[
+                       GenTuTypeGroup(
+                           [
+                               org_struct(
+                                   t_nest_shared("FixedTime", [t("TimeValue")]),
+                                   Fields=[
+                                       org_field(t_user_time(), "time"),
+                                   ],
+                                   DefaultConstructor=True,
+                                   DefaultEq=True,
+                               ),
+                               org_struct(
+                                   t_nest_shared("DynamicTime", [t("TimeValue")]),
+                                   Fields=[
+                                       org_field(t_nest_shared("LispCode"), "time"),
+                                   ],
+                                   DefaultConstructor=True,
+                                   DefaultEq=True,
+                               ),
+                           ],
+                           enumName=t_nest_shared("Kind", [t("TimeValue")]),
+                           variantName=t_nest_shared("Data", [t("TimeValue")]),
+                       )
+                   ],
+                   Fields=[
+                       bool_field("isActive"),
+                   ]),
         org_struct(
             t_nest_shared("Tblfm"),
             Fields=[
@@ -3056,6 +3114,8 @@ def get_types() -> Sequence[GenTuStruct]:
                 vec_field(t_nest_shared("NamedProperty", []), "properties", GenTuDoc("")),
                 org_field(t_nest_shared("DocumentExportConfig", []), "exportConfig"),
                 opt_field(t_bool(), "fixedWidthSections"),
+                opt_field(t("LinkVisibility"), "linkVisibility"),
+                opt_field(t("BlockVisibility"), "blockVisibility"),
                 opt_field(t_bool(), "startupIndented"),
                 opt_field(t_str(), "category"),
                 opt_field(t_str(), "setupfile"),
@@ -3352,6 +3412,7 @@ def get_org_node_kind_text() -> List[GenTuEnumField]:
         efield("StaticActiveTime"),
         efield("StaticInactiveTime"),
         efield("DynamicActiveTime"),
+        efield("DiaryTime"),
         efield(
             "DynamicInactiveTime",
             "Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later",
@@ -3412,7 +3473,9 @@ def get_org_node_kind_blocks() -> List[GenTuEnumField]:
         efield("BlockExport"),
         efield("BlockDetails", "`#+begin_details`  section"),
         efield("BlockSummary", "`#+begin_summary` section"),
-        efield("BlockDynamicFallback", "#+begin_<any> section"),
+        efield("BlockDynamicFallback", "#+begin: <name> section"),
+        efield("BlockCustomText", "#+begin_<any> section for text blocks"),
+        efield("BlockCustomRaw", "#+begin_<any> section for raw content blocks"),
     ]
 
 
@@ -3424,7 +3487,10 @@ def get_org_node_kind_commands() -> List[GenTuEnumField]:
         ),
         efield("Attrs", "Arguments for the command block"),
         efield("AttrValue", ":key name=value syntax"),
-        efield("AttrLisp", "S-expression as an attribute value value"),
+        efield("LispExpr", "S-expression as an attribute value value"),
+        efield("LispList", "`(a b c)` without quoting"),
+        efield("LispVector", "[1 2 3 4]` without quoting"),
+        efield("LispQuoted", "Extra wrapping node for quoted elements"),
         efield("CmdTitle", "`#+title:` - full document title"),
         efield("CmdAuthor", "`#+author:` Document author"),
         efield("CmdCreator", "`#+creator:` Document creator"),
@@ -3535,10 +3601,13 @@ def get_org_token_kind() -> List[GenTuEnumField]:
         efield("CmdDateRaw", ""),
         efield("CmdDescription", ""),
         efield("CmdDrawersRaw", ""),
-        efield("CmdDynamicBegin", ""),
-        efield("CmdDynamicBlockBegin", ""),
-        efield("CmdDynamicBlockEnd", ""),
-        efield("CmdDynamicEnd", ""),
+        efield("CmdDynamicBlockBegin", "`#+begin:` with the unspecified name"),
+        efield("CmdDynamicBlockEnd", "`#+end:` matching with `#+begin:`"),
+        efield("CmdCustomTextBlockBegin", "`#+begin_` with the text content inside"),
+        efield("CmdCustomTextBlockEnd", ""),
+        efield("CmdCustomRawBlockBegin", "`#+begin_` block with the raw string"),
+        efield("CmdCustomRawBlockLine", ""),
+        efield("CmdCustomRawBlockEnd", ""),
         efield("CmdEmailRaw", ""),
         efield("CmdExampleBegin", ""),
         efield("CmdExampleEnd", ""),
@@ -3623,11 +3692,15 @@ def get_org_token_kind() -> List[GenTuEnumField]:
         efield("DoubleSlash", ""),
         efield("ActiveDynamicTimeContent", ""),
         efield("InactiveDynamicTimeContent", ""),
+        efield(
+            "AgendaDiaryTimeContent",
+            "`%%(` at the start of the line in the subtree, denoting the start of the dynamic agenda."
+        ),
         efield("EndOfFile", ""),
         efield("Equals", ""),
         efield("Escaped", ""),
         efield("Exclamation", ""),
-        efield("FootnoteInlineBegin", ""),
+        efield("FootnoteInlineBegin", "`[fn::` with the inline definition"),
         efield("FootnoteLinked", ""),
         efield("ForwardSlash", ""),
         efield("HashIdent", ""),
@@ -3641,11 +3714,18 @@ def get_org_token_kind() -> List[GenTuEnumField]:
         efield("LatexInlineRaw", ""),
         efield("LatexParBegin", ""),
         efield("LatexParEnd", ""),
+        efield("LatexBraceBegin", ""),
+        efield("LatexBraceEnd", ""),
+        efield("LatexDollar1Begin", ""),
+        efield("LatexDollar1End", ""),
+        efield("LatexDollar2Begin", ""),
+        efield("LatexDollar2End", ""),
         efield("LeadingMinus", ""),
         efield("LeadingNumber", ""),
         efield("LeadingPipe", ""),
         efield("LeadingPlus", ""),
         efield("LeadingSpace", ""),
+        efield("LeadingCharacter", "a)"),
         efield("LineCommand", ""),
         efield("LinkBegin", ""),
         efield("LinkDescriptionBegin", ""),

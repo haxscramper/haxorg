@@ -7,11 +7,13 @@
 namespace org::parse {
 using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
 
-struct LexerParams : hstd::OperationsTracer {};
+struct LexerParams : hstd::OperationsTracer {
+    bool validateTokens = false;
+};
 
 
 OrgTokenGroup tokenize(
-    std::string const&              text,
+    std::string const&              text [[clang::lifetimebound]],
     LexerParams const&              params,
     org::parse::SourceFileId const& file_id);
 

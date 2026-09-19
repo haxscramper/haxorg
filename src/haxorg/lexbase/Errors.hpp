@@ -13,7 +13,7 @@ struct ParseError : public std::runtime_error {
     /// offset
     std::variant<SourceLoc, int> loc;
 
-    explicit ParseError(std::string const& message, SourceLoc _loc = SourceLoc{})
+    explicit ParseError(std::string const& message, SourceLoc _loc)
         : std::runtime_error(message), loc(_loc) {}
 
     explicit ParseError(std::string const& message, int _loc)
@@ -22,7 +22,7 @@ struct ParseError : public std::runtime_error {
 
 /// \brief Base lexer error type
 struct LexerError : public ParseError {
-    explicit LexerError(std::string const& message, SourceLoc _loc = SourceLoc{})
+    explicit LexerError(std::string const& message, SourceLoc _loc)
         : ParseError(message, _loc) {}
 
     explicit LexerError(std::string const& message, int _loc)
@@ -31,7 +31,7 @@ struct LexerError : public ParseError {
 
 /// \brief Raised when unexpected character is encountered at position
 struct UnexpectedCharError : public LexerError {
-    explicit UnexpectedCharError(std::string const& message, SourceLoc _loc = SourceLoc{})
+    explicit UnexpectedCharError(std::string const& message, SourceLoc _loc)
         : LexerError(message, _loc) {}
 
     explicit UnexpectedCharError(std::string const& message, int pos)
@@ -41,7 +41,7 @@ struct UnexpectedCharError : public LexerError {
 
 /// \brief Raised when string unexpectedly ended
 struct UnexpectedEndError : public LexerError {
-    explicit UnexpectedEndError(std::string const& message, SourceLoc _loc = SourceLoc{})
+    explicit UnexpectedEndError(std::string const& message, SourceLoc _loc)
         : LexerError(message, _loc) {}
 
     explicit UnexpectedEndError(std::string const& message, int pos)

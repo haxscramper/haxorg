@@ -30,8 +30,9 @@ struct ImmReflPathTag {
     using field_name_type = ImmReflFieldId;
 };
 
-using ImmReflPathItemBase = hstd::ReflPathItem<ImmReflPathTag>;
-using ImmReflPathBase     = hstd::ReflPath<ImmReflPathTag>;
+using ImmAccessStep      = hstd::ReflAccessStep<ImmReflPathTag>;
+using ImmValueAccessPath = hstd::ReflValueAccessPath<ImmReflPathTag>;
+
 
 struct [[refl]] ImmReflFieldId {
     [[refl]] hstd::Str getName() const;
@@ -81,7 +82,7 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
     using AnyHasherType    = AnyHasher<Str>;
     using AnyEqualType     = AnyEqual<Str>;
 
-    using ReflPathStoreType = immer::vector<ReflPathItem<org::imm::ImmReflPathTag>>;
+    using ReflPathStoreType = immer::vector<ReflAccessStep<org::imm::ImmReflPathTag>>;
 
     template <typename T>
     static org::imm::ImmReflPathTag::field_name_type InitFieldName(
@@ -90,13 +91,17 @@ struct hstd::ReflTypeTraits<org::imm::ImmReflPathTag> {
         return org::imm::ImmReflFieldId::FromTypeField<T>(field.pointer);
     }
 
-    static ReflPath<org::imm::ImmReflPathTag> AddPathItem(
-        ReflPath<org::imm::ImmReflPathTag>     res,
-        ReflPathItem<org::imm::ImmReflPathTag> item) {
-        return ReflPath<org::imm::ImmReflPathTag>{res.path.push_back(item)};
+    static ReflValueAccessPath<org::imm::ImmReflPathTag> AddPathItem(
+        ReflValueAccessPath<org::imm::ImmReflPathTag> res,
+        ReflAccessStep<org::imm::ImmReflPathTag>      item) {
+        return ReflValueAccessPath<org::imm::ImmReflPathTag>{res.path.push_back(item)};
     }
 };
 
+namespace org::imm {
+using ImmValueAccessPathCtx = hstd::ReflValueAccessPath<
+    org::imm::ImmReflPathTag>::VisitCtx;
+}
 
 template <typename K, typename V, typename Tag>
 struct hstd::ReflVisitor<immer::map<K, V>, Tag>
@@ -118,22 +123,11 @@ struct hstd::ReflVisitor<immer::flex_vector<T>, Tag>
 
 template <typename T, typename Tag>
 struct hstd::ReflVisitor<hstd::ext::ImmBox<T>, Tag> {
-    /// \brief Apply callback to passed value if the path points to it,
-    /// otherwise follow the path down the data structure.
+    /// \brief Enumerate the pointee of the box using a deref step. The
+    /// box is presumed non-null, matching the previous `visit` behavior.
     template <typename Func>
-    static void visit(
-        hstd::ext::ImmBox<T> const& value,
-        ReflPathItem<Tag> const&    step,
-        Func const&                 cb) {
-        LOGIC_ASSERTION_CHECK(step.isDeref(), hstd::enum_to_string(step.getKind()));
-        cb(value.get());
-    }
-
-
-    static Vec<ReflPathItem<Tag>> subitems(hstd::ext::ImmBox<T> const& value) {
-        Vec<ReflPathItem<Tag>> result;
-        result.push_back(ReflPathItem<Tag>::FromDeref());
-        return result;
+    static void visitEach(hstd::ext::ImmBox<T> const& value, Func const& cb) {
+        cb(ReflAccessStep<Tag>::FromDeref(), value.get());
     }
 };
 
@@ -331,16 +325,3 @@ struct hstd::ReflVisitor<org::imm::ImmId, org::imm::ImmReflPathTag>
 template <typename T>
 struct hstd::ReflVisitor<org::imm::ImmIdT<T>, org::imm::ImmReflPathTag>
     : hstd::ReflVisitorLeafType<org::imm::ImmIdT<T>, org::imm::ImmReflPathTag> {};
-
-
-template <>
-struct hstd::hshow<org::imm::ImmId> {
-    static void format(
-        hstd::ColStream&        s,
-        org::imm::ImmId const&  value,
-        hstd::hshow_opts const& opts) {
-        auto copy = opts;
-        copy.with_use_quotes(false);
-        hshow_ctx(s, value.format(), copy);
-    }
-};

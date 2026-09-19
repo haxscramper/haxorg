@@ -29,9 +29,9 @@ using namespace org;
 TEST(ManualFileRun, TestCoverallOrg) {
     {
         fs::path file{__CURRENT_FILE_DIR__ / "corpus" / "org" / "py_validated_all.org"};
-        std::string content        = readFile(file);
-        auto        spec           = ParseSpec::FromSource(std::move(content));
-        spec.debug.traceAll        = true;
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content), file.native());
+        spec.debug.traceAll = true;
         spec.debug.doFormatReparse = false;
         gtest_run_spec(
             TestParams{
@@ -40,9 +40,9 @@ TEST(ManualFileRun, TestCoverallOrg) {
             },
             getDebugDir());
 
-        org::parse::ParseContext ctx;
-        auto                     start = imm::ImmAstContext::init_start_context();
-        auto                     n     = start->init(ctx.parseString(content, file));
+        auto ctx   = org::parse::ParseContext ::shared();
+        auto start = imm::ImmAstContext::init_start_context();
+        auto n     = start->init(ctx->parseString(content, file));
 
         writeFile(
             getDebugFile("imm_repr_subnodes_only.txt"),
@@ -109,7 +109,7 @@ TEST(ManualFileRun, TestDoc1) {
         HSLOG_INFO("Send initial message");
 
         std::string content        = readFile(file);
-        auto        spec           = ParseSpec::FromSource(std::move(content));
+        auto        spec           = ParseSpec::FromSource(std::move(content), file);
         spec.debug.traceAll        = true;
         spec.debug.doFormatReparse = false;
         gtest_run_spec(
@@ -119,9 +119,9 @@ TEST(ManualFileRun, TestDoc1) {
             },
             getDebugDir());
 
-        auto                     start = imm::ImmAstContext::init_start_context();
-        org::parse::ParseContext ctx;
-        auto                     n = start->init(ctx.parseString(content, file));
+        auto start = imm::ImmAstContext::init_start_context();
+        auto ctx   = org::parse::ParseContext ::shared();
+        auto n     = start->init(ctx->parseString(content, file));
 
         writeFile(
             getDebugFile("TestDoc1_clean.txt"),
@@ -148,7 +148,7 @@ TEST(ManualFileRun, TestDoc2) {
     fs::path file{"/home/haxscramper/tmp/doc2.org"};
     if (fs::exists(file)) {
         std::string content        = readFile(file);
-        auto        spec           = ParseSpec::FromSource(std::move(content));
+        auto        spec           = ParseSpec::FromSource(std::move(content), file);
         spec.debug.doFormatReparse = false;
         // spec.debug.printSemToFile         = true;
         spec.debug.debugOutDir = "/tmp/doc2_run";
@@ -159,23 +159,23 @@ TEST(ManualFileRun, TestDoc2) {
             },
             getDebugDir());
 
-        auto                     start = imm::ImmAstContext::init_start_context();
-        org::parse::ParseContext ctx;
-        auto                     n = start->init(ctx.parseString(content, file));
+        auto start = imm::ImmAstContext::init_start_context();
+        auto ctx   = org::parse::ParseContext ::shared();
+        auto n     = start->init(ctx->parseString(content, file));
     }
 }
 
 TEST(ManualFileRun, TestMain1) {
     fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
     if (fs::exists(file)) {
-        org::parse::ParseContext ctx;
-        auto                     opts = org::parse::OrgDirectoryParseParameters::shared();
+        auto ctx  = org::parse::ParseContext ::shared();
+        auto opts = org::parse::OrgDirectoryParseParameters::shared();
 
         opts->getParsedNode = [&](std::string const& path) {
-            return ctx.parseFile(path);
+            return ctx->parseFile(path);
         };
 
-        auto parsed = ctx.parseFileWithIncludes(file, opts);
+        auto parsed = ctx->parseFileWithIncludes(file, opts);
     }
 }
 
@@ -183,8 +183,8 @@ TEST(ManualFileRun, TestMain1) {
 void test_dir_parsing(fs::path const& dir, bool trace) {
     LOGIC_ASSERTION_CHECK_FMT(fs::exists(dir), "{}", fs::absolute(dir));
 
-    org::parse::ParseContext ctx;
-    auto                     opts = org::parse::OrgDirectoryParseParameters::shared();
+    auto ctx  = org::parse::ParseContext ::shared();
+    auto opts = org::parse::OrgDirectoryParseParameters::shared();
 
     opts->getParsedNode = [&](std::string const& path) {
         fs::path relative = fs::relative(path, dir);
@@ -200,7 +200,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
                 (relative / "sem_trace_path.log").native());
         }
 
-        auto node = ctx.parseFile(path);
+        auto node = ctx->parseFile(path);
 
         if (trace) {
             writeTreeRepr(node, getDebugFile((relative / "node.yaml").native()));
@@ -219,7 +219,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
     };
 
     LOG(INFO) << "Parse directory content";
-    auto parse = ctx.parseDirectoryOpts(dir, opts);
+    auto parse = ctx->parseDirectoryOpts(dir, opts);
 
     if (trace) { writeTreeRepr(parse.value(), getDebugFile("parse_sem.yaml")); }
 

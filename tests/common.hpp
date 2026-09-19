@@ -45,9 +45,17 @@ extern TestParameters testParameters;
 
 GTEST_ADL_PRINT_TYPE(hstd::Str);
 
-hstd::fs::path getDebugFile(const hstd::Str& suffix = "", bool cleanParent = false);
+hstd::fs::path getDebugFile(
+    const hstd::Str&           suffix               = "",
+    bool                       cleanParent          = false,
+    std::optional<std::string> value_param_override = std::nullopt,
+    std::optional<std::string> type_param_override  = std::nullopt);
 
-hstd::fs::path getDebugDir(const hstd::Str& suffix = "", bool clean = false);
+hstd::fs::path getDebugDir(
+    const hstd::Str&           suffix               = "",
+    bool                       clean                = false,
+    std::optional<std::string> value_param_override = std::nullopt,
+    std::optional<std::string> type_param_override  = std::nullopt);
 
 hstd::log::log_sink_scope getDebugLogScope(
     hstd::Str const& suffix      = "execution.log",
@@ -219,9 +227,3 @@ inline ::testing::AssertionResult ThrowsWithTextContainsAll(
 #define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)                            \
     EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(                              \
         [&]() { (void)(expr); }, {__VA_ARGS__})))
-
-namespace google::protobuf {
-class Message;
-}
-
-std::string getJString(google::protobuf::Message const& message);

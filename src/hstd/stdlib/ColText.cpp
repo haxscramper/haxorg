@@ -279,7 +279,7 @@ ColText& ColText::withStyle(ColStyle const& style) {
 }
 
 hstd::ColText::ColText(ColStyle const& style, std::string const& text) {
-    for (const auto& ch : rune_chunks(text)) { push_back(ColRune(ch, style)); }
+    for (const auto& ch : rune_chunks(text)) { push_back(ColRune(Str{ch}, style)); }
 }
 
 void ColText::append(int repeat, ColRune c) {

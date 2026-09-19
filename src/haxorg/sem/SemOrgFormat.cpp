@@ -143,20 +143,22 @@ auto Formatter::toString(SemId<Macro> id, Context const& ctx) -> Res {
 }
 
 std::string nestedHashtag(org::sem::HashTagText const& hash) {
+    std::string res = hash.head;
     if (hash.subtags.empty()) {
-        return hash.head;
+        // pass
     } else if (hash.subtags.size() == 1) {
-        return hash.head + "##" + nestedHashtag(hash.subtags.at(0));
+        res += "##";
+        res += nestedHashtag(hash.subtags.at(0));
     } else {
-        return hash.head + "##["
-             + (hash.subtags                   //
-                | rv::transform(nestedHashtag) //
-                | rv::intersperse(",")         //
-                | rv::join                     //
-                | rs::to<std::string>()        //
-                )
-             + "]";
+        res += "##[";
+        res += hash.subtags                 //
+             | rv::transform(nestedHashtag) //
+             | rv::intersperse(",")         //
+             | rv::join                     //
+             | rs::to<std::string>();       //
+        res += "]";
     }
+    return res;
 }
 
 
@@ -184,22 +186,51 @@ auto Formatter::toString(SemId<Document> id, Context const& ctx) -> Res {
         hadDocumentProperties = true;
     }
 
-    using Visibility = InitialSubtreeVisibility;
-    if (id->options && id->options->initialVisibility != Visibility::ShowEverything) {
-        Str res = "";
-        switch (id->options->initialVisibility) {
-            case Visibility::ShowEverything: res = "showeverything"; break;
-            case Visibility::Content: res = "content"; break;
-            case Visibility::Overview: res = "overview"; break;
-            case Visibility::ShowAll: res = "showall"; break;
-            case Visibility::Show2Levels: res = "show2levels"; break;
-            case Visibility::Show3Levels: res = "show3levels"; break;
-            case Visibility::Show4Levels: res = "show4levels"; break;
-            case Visibility::Show5Levels: res = "show5levels"; break;
+    if (id->options) {
+        Vec<Res> buf;
+        if (id->options->initialVisibility != InitialSubtreeVisibility::ShowEverything) {
+            switch (id->options->initialVisibility) {
+                case InitialSubtreeVisibility::ShowEverything:
+                    buf.push_back(str("showeverything"));
+                    break;
+                case InitialSubtreeVisibility::Content:
+                    buf.push_back(str("content"));
+                    break;
+                case InitialSubtreeVisibility::Overview:
+                    buf.push_back(str("overview"));
+                    break;
+                case InitialSubtreeVisibility::ShowAll:
+                    buf.push_back(str("showall"));
+                    break;
+                case InitialSubtreeVisibility::Show2Levels:
+                    buf.push_back(str("show2levels"));
+                    break;
+                case InitialSubtreeVisibility::Show3Levels:
+                    buf.push_back(str("show3levels"));
+                    break;
+                case InitialSubtreeVisibility::Show4Levels:
+                    buf.push_back(str("show4levels"));
+                    break;
+                case InitialSubtreeVisibility::Show5Levels:
+                    buf.push_back(str("show5levels"));
+                    break;
+            }
         }
 
-        add(result, b.line({str("#+startup: "), str(res)}));
+        if (id->options->linkVisibility) {
+            switch (id->options->linkVisibility.value()) {
+                case LinkVisibility::LiteralLinks:
+                    buf.push_back(str("literallinks"));
+                    break;
+                case LinkVisibility::DescriptiveLinks:
+                    buf.push_back(str("descriptivelinks"));
+                    break;
+            }
+        }
+
+        if (!buf.empty()) { add(result, b.line({str("#+startup: "), b.line(buf)})); }
     }
+
 
     if (id->options && id->options->columns) {
         Vec<Res> buf;
@@ -440,9 +471,36 @@ auto Formatter::toString(SemId<InlineFootnote> id, Context const& ctx) -> Res {
 
 Formatter::Res Formatter::toString(sem::LispCode const& id, Context const& ctx) {
     using C = sem::LispCode;
+
     return std::visit(
         overloaded{
             [&](C::Boolean const& b) -> Res { return str(b.value ? "t" : "nil"); },
+            [&](C::Quoted const& l) -> Res {
+                auto res = b.line({str("'")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                return res;
+            },
+            [&](C::Vector const& l) -> Res {
+                auto res = b.line({str("[")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                b.add_at(res, str("]"));
+                return res;
+            },
+            [&](C::List const& l) -> Res {
+                auto res = b.line({str("(")});
+                for (auto const& it : enumerator(l.items)) {
+                    if (!it.is_first()) { b.add_at(res, str(" ")); }
+                    b.add_at(res, toString(it.value(), ctx));
+                }
+                b.add_at(res, str(")"));
+                return res;
+            },
             [&](C::Call const& c) -> Res {
                 auto res = b.line({str("("), str(c.name)});
                 for (auto const& arg : c.args) {
@@ -457,15 +515,6 @@ Formatter::Res Formatter::toString(sem::LispCode const& id, Context const& ctx) 
                     str(hstd::fmt(":{} ", kv.name)),
                     toString(kv.value.front(), ctx),
                 });
-            },
-            [&](C::List const& l) -> Res {
-                auto res = b.line({str("(")});
-                for (auto const& it : enumerator(l.items)) {
-                    if (!it.is_first()) { b.add_at(res, str(" ")); }
-                    b.add_at(res, toString(it.value(), ctx));
-                }
-                b.add_at(res, str(")"));
-                return res;
             },
             [&](C::Ident const& i) -> Res { return str(i.name); },
             [&](C::Real const& r) -> Res { return str(fmt1(r.value)); },
@@ -669,6 +718,22 @@ auto Formatter::toString(sem::LinkTarget const& t, Context const& ctx) -> Res {
     }
 
     return head;
+}
+
+Formatter::Res Formatter::toString(sem::TimeValue const& args, Context const& ctx) {
+    if (args.isFixedTime()) {
+        return b.line({
+            str(args.isActive ? "<" : "["),
+            str(args.getFixedTime().time.format(UserTime::Format::OrgFormat)),
+            str(args.isActive ? ">" : "]"),
+        });
+    } else {
+        return b.line({
+            str(args.isActive ? "<%%" : "[%%"),
+            toString(args.getDynamicTime().time, ctx),
+            str(args.isActive ? ">" : "]"),
+        });
+    }
 }
 
 auto Formatter::toString(SemId<Link> id, Context const& ctx) -> Res {
@@ -1182,11 +1247,10 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
             }));
         }
 
-
-        add(title, b.join(lead, str(" ")));
+        if (!lead.empty()) { add(title, b.join(lead, str(" "))); }
     }
 
-    Res head = b.stack({title});
+    Res head = b.at(title).size() == 0 ? b.stack() : b.stack({title});
 
     if (id->scheduled) {
         add(head, b.line({str("SCHEDULED: "), toString(*id->scheduled, ctx)}));
@@ -1364,10 +1428,8 @@ auto Formatter::toString(SemId<Subtree> id, Context const& ctx) -> Res {
                 case P::Kind::Created: {
                     add(head,
                         b.line({
-                            str(":CREATED: ["),
-                            str(prop.getCreated().time.format(
-                                UserTime::Format::OrgFormat)),
-                            str("]"),
+                            str(":CREATED: "),
+                            toString(prop.getCreated().time, ctx),
                         }));
                     break;
                 }

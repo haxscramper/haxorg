@@ -7,6 +7,7 @@ items:
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: item}
       - {kind: Dedent}
+      - {kind: EndOfFile}
 
   - name: "List with two items"
     source: |
@@ -25,6 +26,7 @@ items:
       - {kind: Word, str: Item2}
       - {kind: Newline, str: "\n"}
       - {kind: Dedent}
+      - {kind: EndOfFile}
 
     sem:
       kind: Document
@@ -64,6 +66,7 @@ items:
       - {kind: Word, str: Item2}
       - {kind: Newline, str: "\n"}
       - {kind: Dedent}
+      - {kind: EndOfFile}
 
     sem:
       kind: Document
@@ -135,6 +138,7 @@ items:
       - {kind: Word, str: Item2}
       - {kind: Newline, str: "\n"}
       - {kind: Dedent}
+      - {kind: EndOfFile}
 
     sem:
       kind: Document
@@ -191,6 +195,7 @@ items:
       - {kind: Newline, str: "\n"}
       - {kind: Dedent}
       - {kind: Dedent}
+      - {kind: EndOfFile}
 
   - name: "List with unindented source code block"
     source: |
@@ -220,6 +225,7 @@ items:
       - {kind: CmdSrcEnd, str: "  #+end_src"}
       - {kind: Newline, str: "\n"}
       - {kind: Dedent}
+      - {kind: EndOfFile}
 
 
   - name: "Indent and dedent long list"

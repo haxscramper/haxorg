@@ -46,6 +46,13 @@ struct NodeId : hstd::dod::Id<IdBase, MaskType, std::integral_constant<MaskType,
 };
 
 
+/// \brief Base template for the parsed AST node with support for storing data in a a flat
+/// / linearized tree with subtree extents (what `OrgParser.cpp` uses)
+///
+/// \tparam N Node kind type (enum)
+/// \tparam K Underlying token kind type for terminal nodes
+/// \tparam V Underlying token value type for terminal nodes
+/// \tparam M Type for monostate/empty node with no location
 template <typename N, typename K, typename V, typename M>
 struct Node {
     N                                   kind;
@@ -116,6 +123,8 @@ struct Node {
         }
     }
 
+    /// \brief Compare node values for equality. Only applicable to the terminal or
+    /// monostate nodes, comparison is not done on parent nodes.
     bool operator==(Node<N, K, V, M> const& other) const {
         if (isTerminal() == other.isTerminal()) {
             return (this->kind == other.kind) && (this->value == other.value);

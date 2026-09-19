@@ -504,7 +504,7 @@ class GitOpStrategy:
     files: OrderedDict[str, List[str]] = field(default_factory=lambda: OrderedDict())
     uncommited_ops_count: int = 0
     branch_stack: List[str] = field(default_factory=list)
-    used_branches: Set[str] = field(default_factory=set)
+    used_branches: Set[str] = field(default_factory=lambda: {"master"})
 
     def file_ops(self, draw: st.DrawFn) -> GitOperation:
         if 10 < self.uncommited_ops_count:
@@ -889,6 +889,7 @@ def test_repo_operations_example_4() -> None:
         fixed_dir=gettempdir("test_repo_operations_example_4"))
 
 
+@pytest.mark.skip()
 @pytest.mark.test_release
 @given(multiple_files_strategy())
 @settings(

@@ -2,6 +2,10 @@
 
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/MapFormatter.hpp>
+#include <hstd/stdlib/OptFormatter.hpp>
+#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/VecFormatter.hpp>
 #include <hstd/system/basic_templates.hpp>
 #include <hstd/system/exceptions.hpp>
 

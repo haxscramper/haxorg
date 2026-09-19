@@ -263,8 +263,8 @@ void switch_node_id(org::sem::SemId<org::sem::Org> id, Func const& cb) {
     }
 }
 
-using ImmSubnodeVisitor = hstd::Func<void(imm::ImmAdapter)>;
-void eachSubnodeRec(org::imm::ImmAdapter id, bool withPath, ImmSubnodeVisitor cb);
+using ImmSubnodeVisitor = hstd::Func<void(imm::ImmAdapter const&)>;
+void eachSubnodeRec(org::imm::ImmAdapter const& id, bool withPath, ImmSubnodeVisitor cb);
 
 template <typename T, typename Func>
 hstd::Vec<T> getDfsFuncEval(sem::SemId<sem::Org> id, Func const& cb) {

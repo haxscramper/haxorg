@@ -1,0 +1,51 @@
+* [[file:gv_twopi_layers.json]]
+
+#+begin_src python :results output
+#!/usr/bin/env python
+import math
+from itertools import combinations
+
+nodes = {
+    "center": (105, 91.603),
+    "a": (155, 178.21),
+    "c": (5, 91.603),
+    "d": (155, 5),
+    "b": (205, 264.81),
+}
+
+edges = [("center", "a"), ("center", "c"), ("center", "d"), ("a", "b")]
+
+def dist(p1, p2):
+    return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+
+print("Pairwise distances:")
+for n1, n2 in combinations(nodes, 2):
+    print(f"  {n1} - {n2}: {dist(nodes[n1], nodes[n2]):.4f}")
+
+print("\nEdge lengths:")
+for n1, n2 in edges:
+    print(f"  {n1} -> {n2}: {dist(nodes[n1], nodes[n2]):.4f}")
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Pairwise distances:
+  center - a: 100.0039
+  center - c: 100.0000
+  center - d: 100.0004
+  center - b: 200.0017
+  a - c: 173.2073
+  a - d: 173.2100
+  a - b: 99.9978
+  c - d: 173.2053
+  c - b: 264.5764
+  d - b: 264.5775
+
+Edge lengths:
+  center -> a: 100.0039
+  center -> c: 100.0000
+  center -> d: 100.0004
+  a -> b: 99.9978
+#+end_example
+
+Edge lengths and coordinates extracted from the intermediate graphviz layout

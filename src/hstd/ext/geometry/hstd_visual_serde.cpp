@@ -135,7 +135,7 @@ void proto_serde<ext::visual::proto::VisTextAlign, ext::visual::VisTextAlign>::r
 void proto_serde<ext::visual::proto::VisCustom, ext::visual::VisCustom>::write(
     ext::visual::proto::VisCustom* out,
     ext::visual::VisCustom const&  in) {
-    json_to_struct(in.extra, out->mutable_extra());
+    if (!in.extra.is_null()) { json_to_struct(in.extra, out->mutable_extra()); }
 
     out->clear_comment();
     for (auto const& it : in.comment) { out->add_comment(it); }

@@ -9,19 +9,19 @@ using namespace org::parse;
 using namespace hstd;
 
 void OrgTokenizer::report(Report const& in) {
-    if (!TraceState) { return; }
+    if (!canTrace()) { return; }
     if (reportHook) { reportHook(in); }
 
 
     using fg = TermColorFg8Bit;
-    if (in.kind == ReportKind::Enter) { ++activeLevel; }
+    if (in.kind == ReportKind::Enter) { incLevel(); }
 
     ColStream os = getStream();
 
     if (traceStructured) {
         using namespace org::report;
         EntryTokenizer res;
-        res.depth = activeLevel;
+        res.depth = getLevel();
 
 #define __kind(K)                                                                        \
     case ReportKind::K: {                                                                \
@@ -44,7 +44,7 @@ void OrgTokenizer::report(Report const& in) {
             res.token = ValueToken{
                 .kind  = fmt1(at(in.id).kind),
                 .index = static_cast<int>(in.id.getIndex()),
-                .value = at(in.id)->text,
+                .value = std::string{at(in.id)->text()},
             };
 
             res.loc = at(in.id)->loc;
@@ -53,7 +53,7 @@ void OrgTokenizer::report(Report const& in) {
         os << to_json_eval(res).dump();
 
     } else {
-        os << repeat("  ", activeLevel + in.extraIndent);
+        os << repeat("  ", getLevel() + in.extraIndent);
 
 
         auto getLoc = [&]() -> std::string {
@@ -68,7 +68,7 @@ void OrgTokenizer::report(Report const& in) {
                 in.lex->print(
                     os,
                     [](ColStream& os, OrgToken const& t) {
-                        os << " " << os.yellow() << escape_for_write(t.value.text)
+                        os << " " << os.yellow() << escape_for_write(t.value.text())
                            << os.end();
                     },
                     OrgLexer::PrintParams{
@@ -122,5 +122,5 @@ void OrgTokenizer::report(Report const& in) {
 
     endStream(os);
 
-    if (in.kind == ReportKind::Leave) { --activeLevel; }
+    if (in.kind == ReportKind::Leave) { decLevel(); }
 }

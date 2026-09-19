@@ -32,13 +32,14 @@ struct MockFull {
         bool               tracedParser = false,
         bool               tracedLexer  = false)
         : tokenizer(), nodes(nullptr), lex(&tokens) {
-        spec                  = getOrgSpec();
-        parser                = std::make_shared<org::parse::OrgParser>(&nodes);
-        parser->TraceState    = tracedParser;
-        tokenizer             = std::make_shared<org::parse::OrgTokenizer>(&tokens);
-        tokenizer->TraceState = tracedLexer;
-        nodes.tokens          = &tokens;
-        parseContext          = std::make_shared<org::parse::ParseContext>();
+        spec   = getOrgSpec();
+        parser = std::make_shared<org::parse::OrgParser>(&nodes);
+        parser->setTraceState(tracedParser);
+        parseContext = std::make_shared<org::parse::ParseContext>();
+        tokenizer    = std::make_shared<org::parse::OrgTokenizer>(
+            &tokens, parseContext->source.get());
+        tokenizer->setTraceState(tracedLexer);
+        nodes.tokens = &tokens;
     }
 
     org::parse::OrgAdapter a(int idx) {
@@ -59,12 +60,19 @@ struct MockFull {
         std::string const&             content,
         org::parse::LexerParams const& p,
         org::parse::SourceFileId       file_id) {
-        baseTokens = org::parse::tokenize(content, p, file_id);
+        parser->activeFileId = file_id;
+        baseTokens           = org::parse::tokenize(content, p, file_id);
     }
 
     void tokenizeConvert() { tokenizer->convert(baseTokens); }
 
-    void parse() { (void)parser->parseFull(lex); }
+    void parse(
+        org::parse::SourceFileId const&  activeFileId,
+        org::parse::SourceManager const* manager) {
+        parser->manager      = manager;
+        parser->activeFileId = activeFileId;
+        (void)parser->parseFull(lex);
+    }
 
     void run(
         std::string const&             content,
@@ -72,7 +80,8 @@ struct MockFull {
         auto file_id = parseContext->addSource("<mock-full-run>", content);
         tokenizeBase(content, p, file_id);
         tokenizeConvert();
-        parse();
+        parser->activeFileId = file_id;
+        parse(file_id, parseContext->source.get());
     }
 
     sem::SemId<sem::Org> toNode() {

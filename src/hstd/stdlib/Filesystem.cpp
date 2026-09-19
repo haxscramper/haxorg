@@ -5,10 +5,13 @@
 
 using namespace hstd;
 
-void hstd::writeFile(fs::path const& target, std::string const& content) {
+void hstd::writeFile(
+    fs::path const&    target,
+    std::string const& content,
+    bool               createParentDir) {
+    if (createParentDir) { hstd::createDirectory(target.parent_path(), true, true); }
+
     std::ofstream file{target.native()};
-    // REFACTOR truncate file on write
-    // REFACTOR add error message on write failure
     if (file.is_open()) {
         file << content;
     } else {

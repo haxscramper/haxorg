@@ -5,3 +5,4 @@ items:
       - {kind: Word, str: word}
       - {kind: Whitespace, str: " "}
       - {kind: Word, str: insert}
+      - {kind: EndOfFile}

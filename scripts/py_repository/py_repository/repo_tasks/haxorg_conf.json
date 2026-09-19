@@ -1,20 +1,23 @@
 {
-  "develop_ci_conf": {
-  },
+  "develop_ci_conf": {},
   "debug": true,
   "use_unchanged_tasks": true,
   "use_dependencies": true,
-  "force_subprocess_tracking": true,
+  "force_subprocess_tracking": false,
   "build_conf": {
     "cmake_generator"       : "Ninja",
     "real_time_output_print": false,
-    "use_warnings"          : false,
-    // "target"                : ["executor_tracker", "pyhaxorg"]
+    "use_warnings"          : false
   },
+
   "py_test_conf": {
     // "use_valgrind": true,
     // "valgrind_suppression": "/home/haxscramper/tmp/pyton_suppression.supp",
     "extra_pytest_args"     : [
+      // "tests/python/repo/test_code_forensics.py::test_strategic_repo_edits"
+      // "tests/python/test_coverall.py",
+      // "tests/python/refl/test_record_reflection.py::test_type_cross_dependency",
+      // "tests/python/refl/test_type_reflection.py"
       // "tests/python/refl/test_include_reflection.py",
       // "tests/python/repo/test_code_forensics.py",
       // "tests/python/repo/test_code_forensics.py::test_infer_current_dir_subset"
@@ -40,7 +43,7 @@
     ],
     "real_time_output_print": true
   },
-  "instrument": {"coverage": true},
+  "instrument": {"coverage": true, "perfetto": false},
   "coverage_conf": {
     "coverage_run_whitelist" : [
       {"class_pattern": "OrgParseSem"                                     },

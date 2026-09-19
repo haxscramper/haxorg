@@ -8,19 +8,117 @@ namespace org::parse {
 template <typename K, typename V>
 struct LexerCommon {
   public:
-    TokenGroup<K, V>*      in;
-    TokenId<K, V>          pos;
-    hstd::Opt<Token<K, V>> lastToken;
-    LexerCommon(TokenGroup<K, V>* _in, TokenId<K, V> startPos = TokenId<K, V>(0))
+    TokenGroup<K, V>* in;
+    TokenId<K, V>     pos;
+    /// \brief Token where lexer was previously positioned at
+    hstd::Opt<TokenId<K, V>> lastToken;
+    LexerCommon(
+        TokenGroup<K, V>* _in [[clang::lifetimebound]],
+        TokenId<K, V>     startPos = TokenId<K, V>(0))
         : in(_in), pos(startPos) {}
 
-    K                  kind(int offset = 0) const { return tok(offset).kind; }
-    Token<K, V>&       tok(TokenId<K, V> id) { return in->at(id); }
-    Token<K, V> const& tok(TokenId<K, V> id) const { return in->at(id); }
+
+    bool hasTokenForId(TokenId<K, V> id) const {
+        LOGIC_ASSERTION_CHECK(!id.isNil(), "");
+        return 0 <= id.getIndex() && id.getIndex() < in->size();
+    }
+
+    K kind(int offset = 0) const { return tok(offset).kind; }
+
+    Token<K, V>& tok(TokenId<K, V> id) [[clang::lifetimebound]] { return in->at(id); }
+    Token<K, V> const& tok(TokenId<K, V> id) const [[clang::lifetimebound]] {
+        return in->at(id);
+    }
+
     Token<K, V> const& tok(int offset = 0) const { return in->at(get(offset)); }
     TokenId<K, V>      get(int offset = 0) const { return pos + offset; }
-    V const&           val(int offset = 0) const { return tok(offset).value; }
-    V&                 val(int offset = 0) { return in->at(get(offset)).value; }
+    V const&           val(int offset = 0) const [[clang::lifetimebound]] {
+        return tok(offset).value;
+    }
+
+    V& val(int offset = 0) [[clang::lifetimebound]] { return in->at(get(offset)).value; }
+
+    hstd::Opt<TokenId<K, V>> getLocTokenId() const {
+        std::optional<TokenId<K, V>> locId;
+
+        if (finished()) {
+            if (lastToken) { locId = lastToken.value(); }
+        } else {
+            locId = get();
+        }
+
+        if (locId.has_value() && !hasTokenForId(locId.value())) {
+            if (in->tokens.empty()) {
+                return std::nullopt;
+            } else {
+                locId = in->tokens.back();
+            }
+        }
+
+        for (int offset = 0; hasNext(-offset) || hasNext(offset); ++offset) {
+            // Try incrementally widening lookarounds on the current
+            // lexer position until there is a token that has proper
+            // location information.
+            for (int i : hstd::Vec<int>{-1, 1}) {
+                auto offsetId = locId.value() + (offset * i);
+                if (hasTokenForId(offsetId)) {
+                    Token<K, V> tok = this->tok(offsetId);
+                    if (!tok->isFake()) { return offsetId; }
+                    // If offset falls out of the lexer range on both
+                    // ends, terminate lookup.
+                }
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    hstd::Opt<Token<K, V>> getLocToken() const {
+        auto id = getLocTokenId();
+        if (id) {
+            return tok(id.value());
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    hstd::Opt<SourceLoc> getLoc() const {
+        if (auto lt = getLocToken()) {
+            return lt.value()->loc.value();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    bool hasLocationForToken(TokenId<K, V> const& tok) const {
+        auto loc = TokenUtils<K, V>::getLocation(tok);
+        return loc.has_value();
+    }
+
+    SourceLoc getSourceLoc(Token<K, V> const& tok) {
+        if (auto loc = TokenUtils<K, V>::getLocation(tok); loc.has_value()) {
+            return loc.value();
+        } else if (!lastToken.has_value()) {
+            return hstd::SerdeDefaultProvider<SourceLoc>::get();
+        } else if (
+            auto loc = TokenUtils<K, V>::getLocation(this->tok(lastToken.value()));
+            loc.has_value()) {
+            return loc.value();
+        } else {
+            return hstd::SerdeDefaultProvider<SourceLoc>::get();
+        }
+    }
+
+    virtual std::string getCurrentPosRepr(int offset = 0) const {
+        TokenId<K, V> offsetPos = pos + offset;
+        if (offsetPos.isNil()) {
+            return hstd::fmt(
+                "pos {}/{} nil @ last tok {}", offsetPos, in->size(), in->back());
+        } else {
+            return hstd::fmt(
+                "pos {}/{} @ {}", offsetPos.getIndex(), in->size(), in->at(offsetPos));
+        }
+    }
 
     hstd::Opt<hstd::CRw<Token<K, V>>> opt(int offset = 0) {
         if (hasNext(offset)) {
@@ -128,6 +226,15 @@ struct LexerCommon {
 
     using TokenFormatCb = hstd::Func<void(hstd::ColStream&, Token<K, V> const&)>;
 
+    static void TokenFormatCbDefault(hstd::ColStream& os, Token<K, V> const& tok) {
+        auto loc = TokenUtils<K, V>::getLocation(tok);
+        os << hstd::fmt(
+            "{}({}{})",
+            tok.kind,
+            loc.has_value() ? hstd::fmt("{}:{} ", loc->line, loc->column) : "",
+            hstd::escape_for_write(TokenUtils<K, V>::getText(tok)));
+    }
+
     void print(hstd::ColStream& os, TokenFormatCb format, PrintParams const& params)
         const {
         if (params.withPos) {
@@ -141,28 +248,49 @@ struct LexerCommon {
         if (finished()) {
             os << os.red() << " finished" << os.end();
         } else {
-            for (int i = params.startOffset; i < params.maxTokens && hasNext(i); ++i) {
-                auto const& t = tok(i);
-                if (os.colored) {
-                    os << " "
-                       << styledUnicodeMapping(
-                              fmt::format("{}", t.kind), hstd::AsciiStyle::Italic);
-                } else {
-                    os << " " << fmt::format("{}", t.kind);
+            if (params.startOffset < 0) {
+                os << " prev tokens:";
+                for (int i = params.startOffset; i < 0 && hasNext(i); ++i) {
+                    os << " ";
+                    auto const& t = tok(i);
+                    format(os, t);
                 }
-                format(os, t);
+                os << " current tokens:";
+                for (int i = 0; i < params.maxTokens && hasNext(i); ++i) {
+                    os << " ";
+                    auto const& t = tok(i);
+                    format(os, t);
+                }
+            } else {
+                for (int i = params.startOffset; i < params.maxTokens && hasNext(i);
+                     ++i) {
+                    os << " ";
+                    auto const& t = tok(i);
+                    format(os, t);
+                }
             }
         }
     }
 
+    std::string formatState() const {
+        if (finished()) {
+            return "<lexer-finished>";
+        } else {
+            PrintParams params;
+            params.startOffset = -3;
+            return printToString(params);
+        }
+    }
 
-    std::string printToString(TokenFormatCb format, bool colored = false) const {
+    std::string printToString(
+        TokenFormatCb format  = &TokenFormatCbDefault,
+        bool          colored = false) const {
         return printToString(PrintParams{}, format, colored);
     }
 
     std::string printToString(
         PrintParams   params,
-        TokenFormatCb format,
+        TokenFormatCb format  = &TokenFormatCbDefault,
         bool          colored = false) const {
         std::stringstream stream;
         hstd::ColStream   out{stream};
@@ -203,21 +331,46 @@ struct LexerCommon {
 
 
     bool at(hstd::CVec<K> kind, int offset = 0) const {
-        if (!hasNext(offset)) {
+        if (!hasNext(offset + kind.size())) {
             return false;
         } else {
             for (const auto& [idx, kind] : enumerate(kind)) {
-                if (!hasNext(idx + offset) || tok(idx + offset).kind != kind) {
-                    return false;
-                }
+                if (tok(idx + offset).kind != kind) { return false; }
             }
             return true;
         }
     }
 
-    bool can_search(K kind) { return !finished() && !at(kind); }
-    bool can_search(hstd::IntSet<K> kind) { return !finished() && !at(kind); }
-    bool can_search(hstd::Vec<K> kind) { return !finished() && !at(kind); }
+    bool is_last_token() const { return !finished() && !hasNext(1); }
+
+    bool can_search(K kind) {
+        if (hasNext()) {
+            return tok().kind != kind;
+        } else {
+            return false;
+        }
+    }
+    bool can_search(hstd::IntSet<K> kind) {
+        if (hasNext()) {
+            return !kind.contains(tok().kind);
+        } else {
+            return false;
+        }
+    }
+
+    /// \brief Check if the lexer has enough tokens going forward, and that the lexer has
+    /// not found the target pattern already.
+    bool can_search(hstd::Vec<K> kind) {
+        if (hasNext(kind.size())) {
+            for (auto const& [idx, expected] : enumerate(kind)) {
+                if (tok(idx).kind != expected) { return true; }
+            }
+
+            return false;
+        } else {
+            return false;
+        }
+    }
 
     bool at(hstd::IntSet<K> kind, int offset = 0) const {
         return hasNext(offset) && kind.contains(tok(offset).kind);
@@ -261,10 +414,10 @@ struct LexerCommon {
             throw UnexpectedEndError(
                 hstd::fmt(
                     "Unexpected end encountered while trying to skip {} "
-                    "token "
-                    "at index {}",
+                    "token at index {}",
                     kind,
-                    pos.getIndex()));
+                    pos.getIndex()),
+                getSourceLoc(tok()));
 
         } else {
             throw UnexpectedCharError(
@@ -274,7 +427,7 @@ struct LexerCommon {
                     this->kind(),
                     pos.getIndex(),
                     this->tok(pos)),
-                pos.getIndex());
+                getSourceLoc(tok()));
         }
     }
 
@@ -354,10 +507,20 @@ struct SubLexer : public LexerCommon<K, V> {
     // not not accessible. I don't think this is caused by the shadowing
     // issue, but aside from that I don't really know.
     using LexerCommon<K, V>::pos;
+    using LexerCommon<K, V>::in;
 
     int                      subPos = 0;
     hstd::Vec<TokenId<K, V>> tokens;
 
+    std::string getCurrentPosRepr(int offset = 0) const override {
+        int offsetPos = subPos + offset;
+        return hstd::fmt(
+            "sub {}/{} ID {}: {}",
+            offsetPos,
+            tokens.size(),
+            tokens.at(offsetPos < tokens.size() ? offsetPos : tokens.high()),
+            LexerCommon<K, V>::getCurrentPosRepr(offset));
+    }
 
     bool empty() const { return tokens.empty(); }
     bool hasNext(int offset = 1) const override {
@@ -365,7 +528,10 @@ struct SubLexer : public LexerCommon<K, V> {
         return !pos.isNil() && (0 <= idx) && (idx < tokens.size());
     }
 
-    void add(TokenId<K, V> const& tok) { tokens.push_back(tok); }
+    void add(TokenId<K, V> const& tok) {
+        LOGIC_ASSERTION_CHECK(!tok.isNil(), "");
+        tokens.push_back(tok);
+    }
     void start() { pos = tokens.at(0); }
 
     void setPos(TokenId<K, V> id) override {
@@ -382,7 +548,7 @@ struct SubLexer : public LexerCommon<K, V> {
     void next(int offset = 1) override {
         // TODO boundary checking
         if (hasNext(offset)) {
-            this->lastToken = this->tok();
+            this->lastToken = this->get();
             subPos += offset;
             pos = tokens.at(subPos);
         } else {
@@ -408,7 +574,7 @@ struct Lexer : public LexerCommon<K, V> {
 
     void next(int offset = 1) override {
         if (hasNext(offset)) {
-            this->lastToken = this->tok();
+            this->lastToken = this->get();
             pos             = pos + offset;
         } else {
             pos = TokenId<K, V>::Nil();
@@ -416,13 +582,20 @@ struct Lexer : public LexerCommon<K, V> {
     }
 
     bool hasNext(int offset = 1) const override {
-        if (pos.isNil() || (pos + offset).isNil()) {
-            return false;
-        } else {
-            auto idx = (pos + offset).getIndex();
-            return (0 <= idx) && (idx < in->size());
+        if (pos.isNil()) { return false; }
+
+        auto index = pos.getIndex();
+
+        if (in->size() <= index) { return false; }
+
+        if (offset < 0) {
+            auto distance = static_cast<decltype(index)>(-offset);
+            return distance <= index;
         }
+
+        return static_cast<decltype(index)>(offset) < in->size() - index;
     }
+
 
     Lexer(TokenGroup<K, V>* in) : LexerCommon<K, V>(in) {}
 };

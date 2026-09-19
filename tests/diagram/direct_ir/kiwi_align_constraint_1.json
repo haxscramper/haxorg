@@ -1,0 +1,102 @@
+{
+  "collections": [
+    {
+      "payload": {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgeCollectionPayload"
+      },
+      "edges"  : []
+    }
+  ],
+  "hierarchies": [
+    {
+      "payload"      : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexHierarchyPayload"
+      },
+      "nested_in_map": { "vert-root": { "vertices": ["vert-1", "vert-2"] } },
+      "edges"        : [
+        {
+          "payload"         : {
+            "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgePayload"
+          },
+          "source_vertex_id": "vert-root",
+          "target_vertex_id": "vert-1",
+          "stable_id"       : "vert-root-1-nesting",
+          "attributes"      : []
+        },
+        {
+          "payload"         : {
+            "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialEdgePayload"
+          },
+          "source_vertex_id": "vert-root",
+          "target_vertex_id": "vert-2",
+          "stable_id"       : "vert-root-2-nesting",
+          "attributes"      : []
+        }
+      ]
+    }
+  ],
+  "ports"      : [
+    {
+      "payload": {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialPortCollectionPayload"
+      }
+    }
+  ],
+  "vertices"   : [
+    {
+      "stable_id" : "vert-root",
+      "payload"   : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"
+      },
+      "attributes": [
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiGroupVisualAttributePayload",
+            "base": {
+              "constraints": [
+                {
+                  "payload": {
+                    "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiSeparateConstraintPayload",
+                    "left": { "vertices": [ {"stable_vertex_id": "vert-1"} ] },
+                    "right": { "vertices": [ {"stable_vertex_id": "vert-2"} ] },
+                    "separationDistance": 30
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "stable_id" : "vert-1",
+      "payload"   : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"
+      },
+      "attributes": [
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiVertexVisualAttributePayload",
+            "rect": {"height0": 10, "width0": 10},
+            "parent_stable_id": "vert-root"
+          }
+        }
+      ]
+    },
+    {
+      "stable_id" : "vert-2",
+      "payload"   : {
+        "@type": "type.googleapis.com/hstd.ext.graph.proto.TrivialVertexPayload"
+      },
+      "attributes": [
+        {
+          "payload": {
+            "@type": "type.googleapis.com/hstd.ext.graph.kw.proto.KiwiVertexVisualAttributePayload",
+            "rect": {"height0": 10, "width0": 10},
+            "parent_stable_id": "vert-root"
+          }
+        }
+      ]
+    }
+  ]
+}

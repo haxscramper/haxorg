@@ -1,4 +1,5 @@
 #include "graph_base.hpp"
+#include "hstd/ext/graph/visual/graph_visual.hpp"
 
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/OptFormatter.hpp>
@@ -11,7 +12,7 @@ using namespace hstd::ext::graph;
 
 namespace {
 constexpr char const* vertex_not_found_msg{
-    "{}vertex {} not found. Missing call to `registerVertex`?"};
+    "{}vertex {} not found. Missing call to `trackVertex`?"};
 } // namespace
 
 IGraph::IGraph(
@@ -308,7 +309,7 @@ struct hstd::JsonSerde<hstd::UnorderedMap<std::string, V>>
 
 
 #if ORG_BUILD_WITH_PROTOBUF
-void IGraph::writeSerial(proto::IGraphProto* out) const {
+void IGraph::writeSerial(proto::IGraph* out) const {
     for (auto const& [_, collection] : collections) {
         collection->writeSerial(out->add_collections(), this);
     }
@@ -325,9 +326,7 @@ void IGraph::writeSerial(proto::IGraphProto* out) const {
 #endif
 
 #if ORG_BUILD_WITH_PROTOBUF
-void IGraph::readSerial(
-    proto::IGraphProto const*  in,
-    IGraphSerialReaderFactory* factory) {
+void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* factory) {
     OP_TRACER_MESSAGE_SCOPE(factory, "IGraph read serial");
 
     hstd::Vec<hstd::SPtr<IEdgeCollection>>  collection_list;
@@ -352,6 +351,11 @@ void IGraph::readSerial(
         addPorts(new_collection);
     }
 
+    char const* too_early_attrs
+        = "Graph element de-serialization should not read the attributes "
+          "during loading. The list of attributes is read separately by the "
+          "`IGraph::readSerial`. `readSerial()` for protobuf payload type ";
+
 
     // order of data de-serialization is important. Vertices are loaded
     // first because they don't depend on any other graph elements. Then
@@ -361,29 +365,115 @@ void IGraph::readSerial(
     for (auto const& v : in->vertices()) {
         auto new_vertex = factory->newVertex(&v);
         new_vertex->readSerial(&v, this, factory);
+        LOGIC_ASSERTION_CHECK_FMT(
+            new_vertex->getAttributes().empty(),
+            "{} {} has loaded {} attributes for vertex {}",
+            too_early_attrs,
+            v.payload().type_url(),
+            new_vertex->getAttributes().size(),
+            v.stable_id());
         std::ignore = addVertex(new_vertex);
     }
+
+    auto validate_edges = [&](auto const& coll, auto const& entry) {
+        for (auto const& edge : coll.edges()) {
+            auto const& new_edge = entry->getEdge(
+                entry->getEdgeIDByStableId(edge.stable_id()));
+            LOGIC_ASSERTION_CHECK_FMT(
+                new_edge->getAttributes().empty(),
+                "{} {} has loaded {} attributes for edge {} in collection {}",
+                too_early_attrs,
+                edge.payload().type_url(),
+                new_edge->getAttributes().size(),
+                edge.stable_id(),
+                entry->getStableID());
+        }
+    };
 
     // split the collection content reading and the collection object
     // construction so objects could access full set of collections if
     // necessary.
     for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
         entry->readSerial(&coll, this, factory);
+        validate_edges(coll, entry);
     }
 
     for (auto const& [coll, entry] : hstd::rv::zip(in->hierarchies(), hierarchy_list)) {
         entry->readSerial(&coll, this, factory);
+        validate_edges(coll, entry);
     }
 
     for (auto const& [coll, entry] : hstd::rv::zip(in->ports(), ports_list)) {
         entry->readSerial(&coll, this, factory);
+        for (auto const& port : coll.ports()) {
+            // TODO: Perform port attribute loading validation.
+
+            // LOGIC_ASSERTION_CHECK_FMT(
+            //     new_port->getAttributes().empty(),
+            //     "{} {} has loaded {} attributes for port {} in collection",
+            //     too_early_attrs,
+            //     port.payload().type_url(),
+            //     new_port->getAttributes(),
+            //     edge.stable_id());
+        }
+    }
+
+    for (auto const& v : in->vertices()) {
+        OP_TRACER_MESSAGE_SCOPE(
+            factory,
+            "IVertex load attrs for ID '{}' payload {}",
+            v.stable_id(),
+            v.payload().type_url());
+
+        auto new_vertex = getMVertex(getVertexIDByStableId(v.stable_id()));
+        new_vertex->IAttributeObject::readSerial(
+            &v.attributes(), this, factory, new_vertex);
+        OP_TRACER_MESSAGE(
+            factory, "read {} attributes", new_vertex->getAttributes().size());
+    }
+
+    for (auto const& [coll, entry] : hstd::rv::zip(in->collections(), collection_list)) {
+        for (auto const& edge : coll.edges()) {
+            OP_TRACER_MESSAGE_SCOPE(
+                factory,
+                "IVertex load attrs for ID '{}' payload {}",
+                edge.stable_id(),
+                edge.payload().type_url());
+
+            auto new_edge = getMEdge(entry->getEdgeIDByStableId(edge.stable_id()));
+            new_edge->IAttributeObject::readSerial(
+                &edge.attributes(), this, factory, new_edge);
+        }
+    }
+
+    for (auto const& [coll, entry] : hstd::rv::zip(in->hierarchies(), hierarchy_list)) {
+        for (auto const& edge : coll.edges()) {
+            OP_TRACER_MESSAGE_SCOPE(
+                factory,
+                "IVertex load attrs for ID '{}' payload {}",
+                edge.stable_id(),
+                edge.payload().type_url());
+
+            auto new_edge = getMEdge(entry->getEdgeIDByStableId(edge.stable_id()));
+            new_edge->IAttributeObject::readSerial(
+                &edge.attributes(), this, factory, new_edge);
+        }
+    }
+
+    for (auto const& v : in->vertices()) {
+        auto new_vertex = getMVertex(getVertexIDByStableId(v.stable_id()));
+        auto group = new_vertex->getOptionalAttribute<layout::IGroupVisualAttribute>();
+        if (group && (**group).hasAlgorithm()) {
+            auto algo = (**group).getAlgorithm<layout::IPlacementAlgorithm>();
+            algo->readSerialConstraints(&v.constraints(), this, factory);
+        }
     }
 }
 #endif
 
 #if ORG_BUILD_WITH_PROTOBUF
-std::unique_ptr<proto::IGraphProto> IGraph::get_serial() const {
-    auto result = std::make_unique<proto::IGraphProto>();
+std::unique_ptr<proto::IGraph> IGraph::get_serial() const {
+    auto result = std::make_unique<proto::IGraph>();
     writeSerial(result.get());
     return std::move(result);
 }

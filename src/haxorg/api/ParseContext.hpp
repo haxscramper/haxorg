@@ -41,6 +41,18 @@ struct [[refl(
     [[refl]] hstd::Opt<std::string> tokenTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> parseTracePath     = std::nullopt;
     [[refl]] hstd::Opt<std::string> semTracePath       = std::nullopt;
+
+    bool validateBaseTokens = false;
+
+    DECL_DESCRIBED_ENUM(
+        LastParseStage,
+        BaseLex,
+        RecombineLex,
+        Parse,
+        SemConvert,
+        ImmConvert);
+    LastParseStage lastStage = LastParseStage::ImmConvert;
+
     hstd::Func<hstd::Vec<OrgParseFragment>(std::string const& text)> getFragments;
 
     /// \brief Callbacks are triggered when the full file is parsed, or when the
@@ -52,9 +64,15 @@ struct [[refl(
     hstd::Func<
         void(org::parse::OrgTokenGroup const& tokens, std::optional<int> fragmentIndex)>
         onTokenizerDone;
-    hstd::Func<
-        void(org::parse::OrgNodeGroup const& nodes, std::optional<int> fragmentIndex)>
+    hstd::Func<void(
+        org::parse::OrgNodeGroup const& nodes,
+        OrgId                           id,
+        std::optional<int>              fragmentIndex)>
         onParseDone;
+
+    hstd::Func<
+        void(hstd::Vec<hstd::ext::Report> const&, std::optional<int> fragmentIndex)>
+        onDiagnosticsCollected;
 
     BOOST_DESCRIBE_CLASS(
         OrgParseParameters,
@@ -119,7 +137,7 @@ struct [[refl(
 
     BOOST_DESCRIBE_CLASS(ParseContext, (), (), (), ());
 
-    [[refl]] std::shared_ptr<hstd::ext::Cache> getDiagnosticStrings();
+    [[refl]] std::shared_ptr<hstd::ext::ReportSourceCache> getDiagnosticStrings();
 
     [[refl]] SourceFileId addSource(std::string const& path, std::string const& content)
         const;
@@ -150,15 +168,15 @@ struct [[refl(
         std::shared_ptr<OrgDirectoryParseParameters> const& opts);
 
     [[refl]] hstd::Vec<hstd::ext::Report> collectDiagnostics(
-        org::sem::SemId<org::sem::Org> const&    tree,
-        std::shared_ptr<hstd::ext::Cache> const& cache);
+        org::sem::SemId<org::sem::Org> const&                tree,
+        std::shared_ptr<hstd::ext::ReportSourceCache> const& cache);
 
     [[refl]] hstd::Vec<sem::SemId<sem::ErrorGroup>> collectErrorNodes(
         org::sem::SemId<org::sem::Org> const& tree);
 };
 
-struct DiagnosticsParseContext : public hstd::ext::Cache {
-    hstd::UnorderedMap<org::parse::SourceFileId, std::shared_ptr<hstd::ext::Source>>
+struct DiagnosticsParseContext : public hstd::ext::ReportSourceCache {
+    hstd::UnorderedMap<org::parse::SourceFileId, std::shared_ptr<hstd::ext::ReportSource>>
         sources;
 
     std::shared_ptr<ParseContext> context;
@@ -166,9 +184,25 @@ struct DiagnosticsParseContext : public hstd::ext::Cache {
     DiagnosticsParseContext(std::shared_ptr<ParseContext> const& context)
         : context{context} {};
 
-    virtual std::shared_ptr<hstd::ext::Source> fetch(hstd::ext::Id const& id) override;
-    virtual std::optional<std::string> display(hstd::ext::Id const& id) const override;
+    virtual std::shared_ptr<hstd::ext::ReportSource> fetch(
+        hstd::ext::ReportSourceId const& id) override;
+    virtual std::optional<std::string> display(
+        hstd::ext::ReportSourceId const& id) const override;
 };
 
 
 } // namespace org::parse
+
+namespace hstd {
+template <>
+struct SerdeDefaultProvider<org::parse::OrgParseParameters> {
+    static void construct_at(void* ptr) { new (ptr) org::parse::OrgParseParameters(); }
+};
+
+template <>
+struct SerdeDefaultProvider<org::parse::OrgDirectoryParseParameters> {
+    static void construct_at(void* ptr) {
+        new (ptr) org::parse::OrgDirectoryParseParameters();
+    }
+};
+} // namespace hstd

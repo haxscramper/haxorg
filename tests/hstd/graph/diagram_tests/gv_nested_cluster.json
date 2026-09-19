@@ -1,0 +1,57 @@
+{
+  "diagram": {
+    "id"      : "root",
+    "nested"  : [
+      {
+        "id"           : "nested",
+        "nodes"        : [ { "id": "node", "graphviz": {"width": 100, "height": 100} } ],
+        "graphviz"     : {"dot": {}},
+        "outer_padding": {"top": 10, "left": 10, "right": 10, "bottom": 10}
+      }
+    ],
+    "graphviz": {"dot": {}}
+  },
+  "checks" : [
+    {
+      "fully_covers": {
+        "main"  : { "expr": { "shape": {"id": "root"} } },
+        "nested": { "expr": { "shape": {"id": "nested"} } }
+      }
+    },
+    {
+      // Test left side size is preserved
+      "rel_scalar": {
+        "lhs": {
+          "expr": {
+            "measure": { "ref": { "shape": {"id": "node"} }, "kind": "MEASURE_HEIGHT" }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 100} } }
+      }
+    },
+    {
+      // node size is 100, plus additional padding 10 around nested sub-graph
+      // should create the outer group size of at least 120
+      "rel_scalar": {
+        "lhs": {
+          "expr": {
+            "measure": { "ref": { "shape": {"id": "root"} }, "kind": "MEASURE_HEIGHT" }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 120} } },
+        "rel": "MATH_GREATER_OR_EQUAL"
+      }
+    },
+    {
+      "rel_scalar": {
+        "lhs": {
+          "expr": {
+            "measure": { "ref": { "shape": {"id": "root"} }, "kind": "MEASURE_HEIGHT" }
+          }
+        },
+        "rhs": { "expr": { "scalar": {"value": 125} } },
+        "rel": "MATH_LESS"
+      }
+    }
+  ]
+}

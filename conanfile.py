@@ -95,6 +95,7 @@ class HaxorgConan(ConanFile):
         tc.cache_variables["ORG_BUILD_WITH_ADAPTAGRAMS"] = False
         tc.cache_variables["ORG_BUILD_WITH_ELK"] = False
         tc.cache_variables["ORG_BUILD_WITH_KIWI"] = False
+        tc.cache_variables["ORG_BUILD_WITH_PROTOVALIDATE"] = False
 
         # tc.cache_variables["CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH"] = False
         tc.cache_variables["CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY"] = False

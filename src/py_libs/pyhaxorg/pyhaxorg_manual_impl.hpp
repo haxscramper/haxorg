@@ -581,6 +581,8 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
     void visit(Res& res, org::sem::Tblfm const&) {}
     void visit(Res& res, org::sem::Tblfm::Assign::Flag const&) {}
     void visit(Res& res, int const&) {}
+    void visit(Res& res, LinkVisibility const&) {}
+    void visit(Res& res, BlockVisibility const&) {}
 
     template <org::sem::IsOrg T>
     void visitField(Res& res, char const* name, org::sem::SemId<T> value) {

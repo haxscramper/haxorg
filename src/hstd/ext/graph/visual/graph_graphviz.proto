@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package hstd.ext.graph.gv.proto;
 
+import "src/hstd/ext/graph/base/graph_base.proto";
+import "src/hstd/ext/graph/visual/graph_visual.proto";
 
 enum TextAlign {
   TEXTALIGN_LEFT = 0;
@@ -120,8 +122,6 @@ message PointPayload {
   optional double y = 2;
 }
 
-
-
 message NodeAttributePayload {
   optional NodeShape shape = 1;
   optional NodeArrowSize arrowsize = 2;
@@ -160,52 +160,108 @@ message EdgeAttributePayload {
   optional string URL = 11;
   optional string lhead = 12;
   optional string ltail = 13;
-  string parent_stable_id = 14;
+  optional NodeDir dir = 14;
+  string parent_stable_id = 15;
 }
 
 message GroupAttributePayload {
-  optional RankDirection rankdir = 1;
-  optional Rank rank = 2;
-  optional double Damping = 3;
-  optional double K = 4;
-  optional string URL = 5;
-  optional double aspect = 6;
-  optional string bgcolor = 7;
-  optional double defaultdist = 8;
-  optional string defaultNodeColor = 9;
-  optional string defaultEdgeColor = 10;
-  optional string fontcolor = 11;
-  optional string color = 12;
-  optional double penwidth = 13;
-  optional string fillcolor = 14;
-  optional Style style = 15;
-  optional string fontname = 16;
-  optional double fontsize = 17;
-  optional string label = 18;
-  optional TextAlign label_align = 19;
-  optional string labelURL = 20;
-  optional TextAlign labelURL_align = 21;
-  optional string labeljust = 22;
-  optional string labelloc = 23;
-  optional string layersep = 24;
-  optional string layers = 25;
-  optional PointPayload margin = 26;
-  optional PointPayload pad = 27;
-  optional double nodesep = 28;
-  optional string outputorder = 29;
-  optional string pagedir = 30;
-  optional double pageheight = 31;
-  optional double pagewidth = 32;
-  optional double quantum = 33;
-  optional double ranksep = 34;
-  optional double resolution = 35;
-  optional int32 searchsize = 36;
-  optional PointPayload size = 37;
-  optional string splines = 38;
-  optional string stylesheet = 39;
-  optional bool truecolor = 40;
-  optional PointPayload viewport = 41;
-  optional bool compound = 42;
-  optional bool concentrate = 43;
-  optional string parent_stable_id = 44;
+  message Common {
+    optional string URL = 1;
+    optional string bgcolor = 2;
+    optional string defaultNodeColor = 3;
+    optional string defaultEdgeColor = 4;
+    optional string fontcolor = 5;
+    optional string color = 6;
+    optional double penwidth = 7;
+    optional string fillcolor = 8;
+    optional Style style = 9;
+    optional string fontname = 10;
+    optional double fontsize = 11;
+    optional string label = 12;
+    optional TextAlign label_align = 13;
+    optional string labelURL = 14;
+    optional TextAlign labelURL_align = 15;
+    optional string labeljust = 16;
+    optional string labelloc = 17;
+    optional string layersep = 18;
+    optional string layers = 19;
+    optional PointPayload margin = 20;
+    optional PointPayload pad = 21;
+    optional string outputorder = 22;
+    optional string pagedir = 23;
+    optional double pageheight = 24;
+    optional double pagewidth = 25;
+    optional double resolution = 26;
+    optional PointPayload size = 27;
+    optional string splines = 28;
+    optional string stylesheet = 29;
+    optional bool truecolor = 30;
+    optional PointPayload viewport = 31;
+  }
+
+  message Dot {
+    optional Common common = 1;
+
+    optional RankDirection rankdir = 2;
+    optional Rank rank = 3;
+    optional double aspect = 4;
+    optional double nodesep = 5;
+    optional double quantum = 6;
+    optional double ranksep = 7;
+    optional int32 searchsize = 8;
+    optional bool compound = 9;
+    optional bool concentrate = 10;
+  }
+
+  message Neato {
+    optional Common common = 1;
+
+    optional double Damping = 2;
+    optional double defaultdist = 3;
+  }
+
+  message Fdp {
+    optional Common common = 1;
+
+    optional double K = 2;
+  }
+
+  message Sfdp {
+    optional Common common = 1;
+
+    optional double K = 2;
+  }
+
+  message Circo {
+    optional Common common = 1;
+    optional string root = 2;
+  }
+
+  message Twopi {
+    optional Common common = 1;
+    optional double ranksep = 2;
+    optional string root = 3;
+  }
+
+  message Osage {
+    optional Common common = 1;
+  }
+
+  message Patchwork {
+    optional Common common = 1;
+  }
+
+  hstd.ext.graph.layout.proto.IGroupVisualAttributePayload base = 1;
+  optional string parent_stable_id = 2;
+
+  oneof layout {
+    Dot dot = 3;
+    Neato neato = 4;
+    Fdp fdp = 5;
+    Sfdp sfdp = 6;
+    Circo circo = 7;
+    Twopi twopi = 8;
+    Osage osage = 9;
+    Patchwork patchwork = 10;
+  }
 }

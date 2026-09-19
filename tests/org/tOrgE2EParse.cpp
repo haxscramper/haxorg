@@ -31,7 +31,7 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
     sem::SemId write_node = converter.convertDocument(OrgAdapter(&p.nodes, OrgId(0)))
                                 .value();
     orgproto::AnyNode result;
-    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+    hstd::serde::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
         &result, write_node);
 
     google::protobuf::util::JsonPrintOptions options;
@@ -46,13 +46,13 @@ TEST(TestFiles, AllNodeSerdeRoundtrip) {
     }
 
     sem::SemId read_node = sem::SemId<sem::Org>::Nil();
-    org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
+    hstd::serde::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::read(
         result,
-        org::algo::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
+        hstd::serde::proto_write_accessor<sem::SemId<sem::Org>>::for_ref(read_node));
 
     {
         orgproto::AnyNode result2;
-        org::algo::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
+        hstd::serde::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
             &result2, read_node);
         std::string proto_read_json;
         (void)google::protobuf::util::MessageToJsonString(

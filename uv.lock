@@ -1878,7 +1878,6 @@ local = [
     { name = "py-haxorg" },
     { name = "py-repository" },
     { name = "py-scriptutils" },
-    { name = "py-wrappers" },
 ]
 
 [package.metadata]
@@ -1947,7 +1946,6 @@ local = [
     { name = "py-haxorg", editable = "scripts/py_haxorg" },
     { name = "py-repository", editable = "scripts/py_repository" },
     { name = "py-scriptutils", editable = "scripts/py_scriptutils" },
-    { name = "py-wrappers", editable = "scripts/py_wrappers" },
 ]
 
 [[package]]

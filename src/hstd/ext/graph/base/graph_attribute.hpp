@@ -106,7 +106,7 @@ class IAttributeObject {
             throw graph_error::init(
                 hstd::fmt(
                     "Graph object is expected to have exactly one "
-                    "attribute of type {}, but found none. {}. Has "
+                    "attribute of type {}, but found none. {}Has "
                     "attributes {}.",
                     hstd::value_metadata<T>::typeName(),
                     err_ctx,

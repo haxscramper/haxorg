@@ -65,13 +65,15 @@ struct OrgTokenizer
     using ReportHookCb      = hstd::Func<void(Report const&)>;
     using TraceUpdateHookCb = hstd::Func<void(Report const&, bool&, bool)>;
 
-    OrgTokenizer::ReportHookCb reportHook;
+    OrgTokenizer::ReportHookCb       reportHook;
+    org::parse::SourceManager const* mgr;
 
     void       push(std::span<OrgToken> const& tok) { out->add(tok); }
     void       push(hstd::Vec<OrgToken> const& tok) { out->add(tok); }
     OrgTokenId push(OrgToken tok) { return out->add(tok); }
 
-    OrgTokenizer(OrgTokenGroup* out) : Tokenizer<OrgTokenKind, OrgFill>(out) {}
+    OrgTokenizer(OrgTokenGroup* out, org::parse::SourceManager const* mgr)
+        : Tokenizer<OrgTokenKind, OrgFill>(out), mgr{mgr} {}
 
     /// Rewrite stream of base lexer tokens to the org token stream, adding
     /// boundaries for the paragraph elements, closing unterminated

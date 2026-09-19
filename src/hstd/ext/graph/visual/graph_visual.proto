@@ -30,7 +30,7 @@ message IGroupLayoutAttributePayload {
 
 message IGroupVisualAttributePayload {
   google.protobuf.Any algorithm_payload = 2;
-  repeated hstd.ext.graph.proto.IConstraint constraints = 5;
+  optional hstd.ext.geometry.proto.Padding outer_padding = 6;
 }
 
 message IPortVisualAttributePayload {

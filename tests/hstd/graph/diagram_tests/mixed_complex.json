@@ -1,0 +1,148 @@
+{
+  // copy of the GraphMixed_Test::MultiAlgoritmLayered
+  "diagram": {
+    "id"    : "kiwi_root",
+    "kiwi"  : {},
+    "nested": [
+      {
+        "id"         : "kiwi_sub1",
+        "nested"     : [
+          {
+            "id"      : "circo_sub1",
+            "nodes"   : [
+              { "id": "c1", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c2", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c3", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c4", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c5", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c6", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c7", "graphviz": {"width": 10, "height": 10} },
+              { "id": "c8", "graphviz": {"width": 10, "height": 10} }
+            ],
+            "edges"   : [
+              {"id": "c1-c2", "source": "c1", "target": "c2", "graphviz": {}},
+              {"id": "c2-c3", "source": "c2", "target": "c3", "graphviz": {}},
+              {"id": "c3-c4", "source": "c3", "target": "c4", "graphviz": {}},
+              {"id": "c4-c5", "source": "c4", "target": "c5", "graphviz": {}},
+              {"id": "c5-c6", "source": "c5", "target": "c6", "graphviz": {}},
+              {"id": "c6-c7", "source": "c6", "target": "c7", "graphviz": {}},
+              {"id": "c7-c8", "source": "c7", "target": "c8", "graphviz": {}},
+              {"id": "c8-c1", "source": "c8", "target": "c1", "graphviz": {}}
+            ],
+            "graphviz": {"circo": {}}
+          },
+          {
+            "id"      : "dot_sub2",
+            "nodes"   : [
+              { "id": "d1", "graphviz": {"width": 10, "height": 10} },
+              { "id": "d2", "graphviz": {"width": 10, "height": 10} },
+              { "id": "d3", "graphviz": {"width": 10, "height": 10} },
+              { "id": "d4", "graphviz": {"width": 10, "height": 10} }
+            ],
+            "edges"   : [
+              {"id": "d1-d2", "source": "d1", "target": "d2", "graphviz": {}},
+              {"id": "d1-d3", "source": "d1", "target": "d3", "graphviz": {}},
+              {"id": "d2-d4", "source": "d2", "target": "d4", "graphviz": {}},
+              {"id": "d3-d4", "source": "d3", "target": "d4", "graphviz": {}}
+            ],
+            "graphviz": {"dot": {}}
+          }
+        ],
+        "nodes"      : [
+          //
+          {"id": "g1", "kiwi": {}},
+          {"id": "g2", "kiwi": {}},
+          {"id": "g3", "kiwi": {}},
+          {"id": "g4", "kiwi": {}},
+          {"id": "g5", "kiwi": {}},
+          {"id": "g6", "kiwi": {}},
+          {"id": "g7", "kiwi": {}},
+          {"id": "g8", "kiwi": {}}
+        ],
+        "edges"      : [
+          {"id": "g5-g6", "source": "g5", "target": "g6", "kiwi": {}},
+          {"id": "g6-g7", "source": "g6", "target": "g7", "kiwi": {}},
+          {"id": "g7-g8", "source": "g7", "target": "g8", "kiwi": {}},
+          //
+          {"id": "g1-g5", "source": "g1", "target": "g5", "kiwi": {}},
+          {"id": "g2-g6", "source": "g2", "target": "g6", "kiwi": {}},
+          {"id": "g3-g7", "source": "g3", "target": "g7", "kiwi": {}},
+          {"id": "g4-g8", "source": "g4", "target": "g8", "kiwi": {}}
+        ],
+        "constraints": [
+          {
+            "kw_align": {
+              "dimension": "AXIS_X",
+              "vertices" : [ {"id": "g1"}, {"id": "g2"}, {"id": "g3"}, {"id": "g4"} ]
+            }
+          },
+          {
+            "kw_align": {
+              "dimension": "AXIS_X",
+              "vertices" : [ {"id": "g5"}, {"id": "g6"}, {"id": "g7"}, {"id": "g8"} ]
+            }
+          },
+          {
+            "kw_multi_separate": {
+              "dimension": "AXIS_X",
+              "lines"    : [
+                { "vertices": [ {"id": "g1"}, {"id": "g5"} ] },
+                { "vertices": [ {"id": "g2"}, {"id": "g6"} ] },
+                { "vertices": [ {"id": "g3"}, {"id": "g7"} ] },
+                { "vertices": [ {"id": "g4"}, {"id": "g8"} ] }
+              ]
+            }
+          },
+          {
+            // circo sub 1 group is left of the dot sub 2
+            "kw_linear": {
+              "lhs": {
+                "node": {
+                  "variable": {
+                    "vertex_rect_attr": {
+                      "vertex_stable_id": "circo_sub1",
+                      "attr"            : "RECT_ATTR_RIGHT"
+                    }
+                  }
+                }
+              },
+              "op" : "RELATION_LE",
+              "rhs": {
+                "node": {
+                  "variable": {
+                    "vertex_rect_attr": {
+                      "vertex_stable_id": "dot_sub2",
+                      "attr"            : "RECT_ATTR_LEFT"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "kiwi"       : {}
+      },
+      {
+        "id"      : "dot_sub1",
+        "nodes"   : [
+          { "id": "l1", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l2", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l3", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l4", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l5", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l6", "graphviz": {"width": 10, "height": 10} },
+          { "id": "l7", "graphviz": {"width": 10, "height": 10} }
+        ],
+        "edges"   : [
+          {"id": "l1-l2", "source": "l1", "target": "l2", "graphviz": {}},
+          {"id": "l2-l3", "source": "l2", "target": "l3", "graphviz": {}},
+          {"id": "l3-l4", "source": "l3", "target": "l4", "graphviz": {}},
+          {"id": "l4-l5", "source": "l4", "target": "l5", "graphviz": {}},
+          {"id": "l5-l6", "source": "l5", "target": "l6", "graphviz": {}},
+          {"id": "l6-l7", "source": "l6", "target": "l7", "graphviz": {}}
+        ],
+        "graphviz": { "dot": {"rankdir": "RANKDIRECTION_TB"} }
+      }
+    ]
+  }
+}

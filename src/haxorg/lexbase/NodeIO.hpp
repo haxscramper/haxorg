@@ -108,13 +108,17 @@ template <>
 struct convert<org::parse::OrgFill> {
     static Node encode(org::parse::OrgFill const& str) {
         Node result;
-        result["text"] = str.text;
+        result["text"] = str.text();
         result["loc"]  = str.loc;
         return result;
     }
     static bool decode(Node const& in, org::parse::OrgFill& out) {
-        if (in["text"]) { out.text = in["text"].as<hstd::Str>(); }
-        if (in["loc"]) { out.loc = in["loc"].as<org::parse::SourceLoc>(); }
+        throw hstd::logic_unreachable_error::init("Cannot de-serialize view");
+        // if (in["text"]) { out.text = in["text"].as<hstd::Str>(); }
+        if (in["loc"]) {
+            out.loc = hstd::SerdeDefaultProvider<org::parse::SourceLoc>::get();
+            convert<org::parse::SourceLoc>::decode(in["loc"], out.loc.value());
+        }
         return true;
     }
 };
@@ -145,11 +149,11 @@ struct convert<org::parse::OrgToken> {
         result["kind"] = hstd::fmt1(str.kind);
         // result["col"]  = hstd::fmt1(str->col);
         // result["line"] = hstd::fmt1(str->line);
-        if (!str->text.empty()) { result["str"] = str->text; }
+        if (!str->empty()) { result["str"] = str->text(); }
         return result;
     }
     static bool decode(Node const& in, org::parse::OrgToken& out) {
-        if (in["str"]) { out->text = in["str"].as<hstd::Str>(); }
+        if (in["str"]) { out->setText(in["str"].as<hstd::Str>()); }
         if (in["kind"]) { out.kind = in["kind"].as<OrgTokenKind>(); }
         return true;
     }

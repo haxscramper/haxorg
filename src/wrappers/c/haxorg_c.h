@@ -86,6 +86,8 @@ struct haxorg_HstdVecOfSequenceSegmentGroup;
 struct haxorg_IntSetOfSubtreePeriodKind;
 
 enum haxorg_CheckboxState { haxorg_CheckboxState_None, haxorg_CheckboxState_Done, haxorg_CheckboxState_Empty, haxorg_CheckboxState_Partial, };
+enum haxorg_LinkVisibility { haxorg_LinkVisibility_LiteralLinks, haxorg_LinkVisibility_DescriptiveLinks, };
+enum haxorg_BlockVisibility { haxorg_BlockVisibility_HideBlocks, haxorg_BlockVisibility_NoHideBlocks, };
 /// \brief Where to take todo completion statistics from
 enum haxorg_SubtreeTodoSource {
   /// \brief Only count checkbox subnodes as a progress completion
@@ -152,7 +154,13 @@ enum haxorg_OrgNodeKind {
   /// \brief :key name=value syntax
   haxorg_OrgNodeKind_AttrValue,
   /// \brief S-expression as an attribute value value
-  haxorg_OrgNodeKind_AttrLisp,
+  haxorg_OrgNodeKind_LispExpr,
+  /// \brief `(a b c)` without quoting
+  haxorg_OrgNodeKind_LispList,
+  /// \brief [1 2 3 4]` without quoting
+  haxorg_OrgNodeKind_LispVector,
+  /// \brief Extra wrapping node for quoted elements
+  haxorg_OrgNodeKind_LispQuoted,
   /// \brief `#+title:` - full document title
   haxorg_OrgNodeKind_CmdTitle,
   /// \brief `#+author:` Document author
@@ -232,8 +240,12 @@ enum haxorg_OrgNodeKind {
   haxorg_OrgNodeKind_BlockDetails,
   /// \brief `#+begin_summary` section
   haxorg_OrgNodeKind_BlockSummary,
-  /// \brief #+begin_<any> section
+  /// \brief #+begin: <name> section
   haxorg_OrgNodeKind_BlockDynamicFallback,
+  /// \brief #+begin_<any> section for text blocks
+  haxorg_OrgNodeKind_BlockCustomText,
+  /// \brief #+begin_<any> section for raw content blocks
+  haxorg_OrgNodeKind_BlockCustomRaw,
   /// \brief full-uppsercase identifier such as `MUST` or `TODO`
   haxorg_OrgNodeKind_BigIdent,
   /// \brief Region of text with formatting, which contains standalone words -
@@ -294,6 +306,7 @@ enum haxorg_OrgNodeKind {
   haxorg_OrgNodeKind_StaticActiveTime,
   haxorg_OrgNodeKind_StaticInactiveTime,
   haxorg_OrgNodeKind_DynamicActiveTime,
+  haxorg_OrgNodeKind_DiaryTime,
   /// \brief Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later
   haxorg_OrgNodeKind_DynamicInactiveTime,
   /// \brief Date and time range format - two `orgDateTime` entries
@@ -340,7 +353,253 @@ enum haxorg_OrgNodeKind {
   /// \brief Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.
   haxorg_OrgNodeKind_SubtreeImportance,
 };
-enum haxorg_OrgTokenKind { haxorg_OrgTokenKind_Ampersand, haxorg_OrgTokenKind_AngleBegin, haxorg_OrgTokenKind_AngleEnd, haxorg_OrgTokenKind_AnyPunct, haxorg_OrgTokenKind_Asterisk, haxorg_OrgTokenKind_At, haxorg_OrgTokenKind_Backtick, haxorg_OrgTokenKind_BigIdent, haxorg_OrgTokenKind_BoldBegin, haxorg_OrgTokenKind_BoldEnd, haxorg_OrgTokenKind_BoldUnknown, haxorg_OrgTokenKind_BraceBegin, haxorg_OrgTokenKind_BraceEnd, haxorg_OrgTokenKind_Checkbox, haxorg_OrgTokenKind_Circumflex, haxorg_OrgTokenKind_CmdAdmonitionEnd, haxorg_OrgTokenKind_CmdAttr, haxorg_OrgTokenKind_CmdAuthor, haxorg_OrgTokenKind_CmdBindRaw, haxorg_OrgTokenKind_CmdCall, haxorg_OrgTokenKind_CmdCaption, haxorg_OrgTokenKind_CmdCategoryRaw, haxorg_OrgTokenKind_CmdCell, haxorg_OrgTokenKind_CmdCellBegin, haxorg_OrgTokenKind_CmdCellEnd, haxorg_OrgTokenKind_CmdCenterBegin, haxorg_OrgTokenKind_CmdCenterEnd, haxorg_OrgTokenKind_CmdColonIdent, haxorg_OrgTokenKind_CmdColumns, haxorg_OrgTokenKind_CmdCommentBegin, haxorg_OrgTokenKind_CmdCommentEnd, haxorg_OrgTokenKind_CmdConstants, haxorg_OrgTokenKind_CmdContentBegin, haxorg_OrgTokenKind_CmdContentEnd, haxorg_OrgTokenKind_CmdCreator, haxorg_OrgTokenKind_CmdCustomRaw, haxorg_OrgTokenKind_CmdDateRaw, haxorg_OrgTokenKind_CmdDescription, haxorg_OrgTokenKind_CmdDrawersRaw, haxorg_OrgTokenKind_CmdDynamicBegin, haxorg_OrgTokenKind_CmdDynamicBlockBegin, haxorg_OrgTokenKind_CmdDynamicBlockEnd, haxorg_OrgTokenKind_CmdDynamicEnd, haxorg_OrgTokenKind_CmdEmailRaw, haxorg_OrgTokenKind_CmdExampleBegin, haxorg_OrgTokenKind_CmdExampleEnd, haxorg_OrgTokenKind_CmdExampleLine, haxorg_OrgTokenKind_CmdExcludeTagsRaw, haxorg_OrgTokenKind_CmdExportBegin, haxorg_OrgTokenKind_CmdExportEnd, haxorg_OrgTokenKind_CmdExportLine, haxorg_OrgTokenKind_CmdFiletags, haxorg_OrgTokenKind_CmdFlag, haxorg_OrgTokenKind_CmdHeader, haxorg_OrgTokenKind_CmdHtmlHeadRaw, haxorg_OrgTokenKind_CmdInclude, haxorg_OrgTokenKind_CmdLanguage, haxorg_OrgTokenKind_CmdLatexClass, haxorg_OrgTokenKind_CmdLatexClassOptions, haxorg_OrgTokenKind_CmdLatexCompiler, haxorg_OrgTokenKind_CmdLatexHeader, haxorg_OrgTokenKind_CmdLatexHeaderExtraRaw, haxorg_OrgTokenKind_CmdLinkRaw, haxorg_OrgTokenKind_CmdMacroRaw, haxorg_OrgTokenKind_CmdName, haxorg_OrgTokenKind_CmdOptions, haxorg_OrgTokenKind_CmdPrefix, haxorg_OrgTokenKind_CmdPrioritiesRaw, haxorg_OrgTokenKind_CmdPropertyArgs, haxorg_OrgTokenKind_CmdPropertyRaw, haxorg_OrgTokenKind_CmdPropertyText, haxorg_OrgTokenKind_CmdQuoteBegin, haxorg_OrgTokenKind_CmdQuoteEnd, haxorg_OrgTokenKind_CmdRawArg, haxorg_OrgTokenKind_CmdResults, haxorg_OrgTokenKind_CmdRow, haxorg_OrgTokenKind_CmdRowBegin, haxorg_OrgTokenKind_CmdRowEnd, haxorg_OrgTokenKind_CmdSelectTagsRaw, haxorg_OrgTokenKind_CmdSeqTodoRaw, haxorg_OrgTokenKind_CmdKeywordsRaw, haxorg_OrgTokenKind_CmdSetupfileRaw, haxorg_OrgTokenKind_CmdSrcBegin, haxorg_OrgTokenKind_CmdSrcEnd, haxorg_OrgTokenKind_CmdStartup, haxorg_OrgTokenKind_CmdTableBegin, haxorg_OrgTokenKind_CmdTableEnd, haxorg_OrgTokenKind_CmdTagsRaw, haxorg_OrgTokenKind_CmdTblfm, haxorg_OrgTokenKind_CmdTitle, haxorg_OrgTokenKind_CmdVerseBegin, haxorg_OrgTokenKind_CmdVerseEnd, haxorg_OrgTokenKind_Colon, haxorg_OrgTokenKind_ColonArgumentsProperty, haxorg_OrgTokenKind_ColonEnd, haxorg_OrgTokenKind_ColonExampleLine, haxorg_OrgTokenKind_ColonLiteralProperty, haxorg_OrgTokenKind_ColonLogbook, haxorg_OrgTokenKind_ColonProperties, haxorg_OrgTokenKind_ColonPropertyText, haxorg_OrgTokenKind_Comma, haxorg_OrgTokenKind_Comment, haxorg_OrgTokenKind_CriticAddBegin, haxorg_OrgTokenKind_CriticAddEnd, haxorg_OrgTokenKind_CriticCommentBegin, haxorg_OrgTokenKind_CriticCommentEnd, haxorg_OrgTokenKind_CriticDeleteBegin, haxorg_OrgTokenKind_CriticDeleteEnd, haxorg_OrgTokenKind_CriticHighlightBegin, haxorg_OrgTokenKind_CriticHighlightEnd, haxorg_OrgTokenKind_CriticReplaceBegin, haxorg_OrgTokenKind_CriticReplaceEnd, haxorg_OrgTokenKind_CriticReplaceMiddle, haxorg_OrgTokenKind_CurlyBegin, haxorg_OrgTokenKind_CurlyEnd, haxorg_OrgTokenKind_Date, haxorg_OrgTokenKind_Dedent, haxorg_OrgTokenKind_Dollar, haxorg_OrgTokenKind_DoubleAngleBegin, haxorg_OrgTokenKind_DoubleAngleEnd, haxorg_OrgTokenKind_DoubleColon, haxorg_OrgTokenKind_DoubleDash, haxorg_OrgTokenKind_DoubleHash, haxorg_OrgTokenKind_DoubleQuote, haxorg_OrgTokenKind_DoubleSlash, haxorg_OrgTokenKind_ActiveDynamicTimeContent, haxorg_OrgTokenKind_InactiveDynamicTimeContent, haxorg_OrgTokenKind_EndOfFile, haxorg_OrgTokenKind_Equals, haxorg_OrgTokenKind_Escaped, haxorg_OrgTokenKind_Exclamation, haxorg_OrgTokenKind_FootnoteInlineBegin, haxorg_OrgTokenKind_FootnoteLinked, haxorg_OrgTokenKind_ForwardSlash, haxorg_OrgTokenKind_HashIdent, haxorg_OrgTokenKind_HashTagBegin, haxorg_OrgTokenKind_Indent, haxorg_OrgTokenKind_InlineExportBackend, haxorg_OrgTokenKind_InlineExportContent, haxorg_OrgTokenKind_ItalicBegin, haxorg_OrgTokenKind_ItalicEnd, haxorg_OrgTokenKind_ItalicUnknown, haxorg_OrgTokenKind_LatexInlineRaw, haxorg_OrgTokenKind_LatexParBegin, haxorg_OrgTokenKind_LatexParEnd, haxorg_OrgTokenKind_LeadingMinus, haxorg_OrgTokenKind_LeadingNumber, haxorg_OrgTokenKind_LeadingPipe, haxorg_OrgTokenKind_LeadingPlus, haxorg_OrgTokenKind_LeadingSpace, haxorg_OrgTokenKind_LineCommand, haxorg_OrgTokenKind_LinkBegin, haxorg_OrgTokenKind_LinkDescriptionBegin, haxorg_OrgTokenKind_LinkDescriptionEnd, haxorg_OrgTokenKind_LinkEnd, haxorg_OrgTokenKind_LinkFull, haxorg_OrgTokenKind_LinkProtocol, haxorg_OrgTokenKind_LinkProtocolAttachment, haxorg_OrgTokenKind_LinkProtocolCustomId, haxorg_OrgTokenKind_LinkProtocolFile, haxorg_OrgTokenKind_LinkProtocolHttp, haxorg_OrgTokenKind_LinkProtocolId, haxorg_OrgTokenKind_LinkProtocolInternal, haxorg_OrgTokenKind_LinkProtocolTitle, haxorg_OrgTokenKind_LinkSplit, haxorg_OrgTokenKind_LinkTarget, haxorg_OrgTokenKind_LinkTargetBegin, haxorg_OrgTokenKind_LinkTargetEnd, haxorg_OrgTokenKind_LinkTargetFile, haxorg_OrgTokenKind_ListBegin, haxorg_OrgTokenKind_ListEnd, haxorg_OrgTokenKind_ListItemBegin, haxorg_OrgTokenKind_ListItemEnd, haxorg_OrgTokenKind_LongNewline, haxorg_OrgTokenKind_MediumNewline, haxorg_OrgTokenKind_Minus, haxorg_OrgTokenKind_MiscUnicode, haxorg_OrgTokenKind_MonospaceBegin, haxorg_OrgTokenKind_MonospaceEnd, haxorg_OrgTokenKind_MonospaceUnknown, haxorg_OrgTokenKind_Newline, haxorg_OrgTokenKind_Number, haxorg_OrgTokenKind_ParBegin, haxorg_OrgTokenKind_ParEnd, haxorg_OrgTokenKind_Percent, haxorg_OrgTokenKind_Pipe, haxorg_OrgTokenKind_Placeholder, haxorg_OrgTokenKind_Plus, haxorg_OrgTokenKind_Punctuation, haxorg_OrgTokenKind_RawText, haxorg_OrgTokenKind_SameIndent, haxorg_OrgTokenKind_Semicolon, haxorg_OrgTokenKind_SingleQuote, haxorg_OrgTokenKind_SrcContent, haxorg_OrgTokenKind_StmtListBegin, haxorg_OrgTokenKind_StmtListEnd, haxorg_OrgTokenKind_StrikeBegin, haxorg_OrgTokenKind_StrikeEnd, haxorg_OrgTokenKind_StrikeUnknown, haxorg_OrgTokenKind_SubtreeCompletion, haxorg_OrgTokenKind_SubtreePriority, haxorg_OrgTokenKind_SubtreeStars, haxorg_OrgTokenKind_Symbol, haxorg_OrgTokenKind_TableSeparator, haxorg_OrgTokenKind_TextSeparator, haxorg_OrgTokenKind_TextSrcBegin, haxorg_OrgTokenKind_Tilda, haxorg_OrgTokenKind_Time, haxorg_OrgTokenKind_TimeArrow, haxorg_OrgTokenKind_TimeRepeaterDuration, haxorg_OrgTokenKind_TimeRepeaterSpec, haxorg_OrgTokenKind_TimeWarnPeriod, haxorg_OrgTokenKind_TrailingPipe, haxorg_OrgTokenKind_TreeClock, haxorg_OrgTokenKind_TreeTime, haxorg_OrgTokenKind_TripleAngleBegin, haxorg_OrgTokenKind_TripleAngleEnd, haxorg_OrgTokenKind_Underline, haxorg_OrgTokenKind_UnderlineBegin, haxorg_OrgTokenKind_UnderlineEnd, haxorg_OrgTokenKind_UnderlineUnknown, haxorg_OrgTokenKind_Unknown, haxorg_OrgTokenKind_VerbatimBegin, haxorg_OrgTokenKind_VerbatimEnd, haxorg_OrgTokenKind_VerbatimUnknown, haxorg_OrgTokenKind_Whitespace, haxorg_OrgTokenKind_Word, };
+enum haxorg_OrgTokenKind {
+  haxorg_OrgTokenKind_Ampersand,
+  haxorg_OrgTokenKind_AngleBegin,
+  haxorg_OrgTokenKind_AngleEnd,
+  haxorg_OrgTokenKind_AnyPunct,
+  haxorg_OrgTokenKind_Asterisk,
+  haxorg_OrgTokenKind_At,
+  haxorg_OrgTokenKind_Backtick,
+  haxorg_OrgTokenKind_BigIdent,
+  haxorg_OrgTokenKind_BoldBegin,
+  haxorg_OrgTokenKind_BoldEnd,
+  haxorg_OrgTokenKind_BoldUnknown,
+  haxorg_OrgTokenKind_BraceBegin,
+  haxorg_OrgTokenKind_BraceEnd,
+  haxorg_OrgTokenKind_Checkbox,
+  haxorg_OrgTokenKind_Circumflex,
+  haxorg_OrgTokenKind_CmdAdmonitionEnd,
+  haxorg_OrgTokenKind_CmdAttr,
+  haxorg_OrgTokenKind_CmdAuthor,
+  haxorg_OrgTokenKind_CmdBindRaw,
+  haxorg_OrgTokenKind_CmdCall,
+  haxorg_OrgTokenKind_CmdCaption,
+  haxorg_OrgTokenKind_CmdCategoryRaw,
+  haxorg_OrgTokenKind_CmdCell,
+  haxorg_OrgTokenKind_CmdCellBegin,
+  haxorg_OrgTokenKind_CmdCellEnd,
+  haxorg_OrgTokenKind_CmdCenterBegin,
+  haxorg_OrgTokenKind_CmdCenterEnd,
+  haxorg_OrgTokenKind_CmdColonIdent,
+  haxorg_OrgTokenKind_CmdColumns,
+  haxorg_OrgTokenKind_CmdCommentBegin,
+  haxorg_OrgTokenKind_CmdCommentEnd,
+  haxorg_OrgTokenKind_CmdConstants,
+  haxorg_OrgTokenKind_CmdContentBegin,
+  haxorg_OrgTokenKind_CmdContentEnd,
+  haxorg_OrgTokenKind_CmdCreator,
+  haxorg_OrgTokenKind_CmdCustomRaw,
+  haxorg_OrgTokenKind_CmdDateRaw,
+  haxorg_OrgTokenKind_CmdDescription,
+  haxorg_OrgTokenKind_CmdDrawersRaw,
+  /// \brief `#+begin:` with the unspecified name
+  haxorg_OrgTokenKind_CmdDynamicBlockBegin,
+  /// \brief `#+end:` matching with `#+begin:`
+  haxorg_OrgTokenKind_CmdDynamicBlockEnd,
+  /// \brief `#+begin_` with the text content inside
+  haxorg_OrgTokenKind_CmdCustomTextBlockBegin,
+  haxorg_OrgTokenKind_CmdCustomTextBlockEnd,
+  /// \brief `#+begin_` block with the raw string
+  haxorg_OrgTokenKind_CmdCustomRawBlockBegin,
+  haxorg_OrgTokenKind_CmdCustomRawBlockLine,
+  haxorg_OrgTokenKind_CmdCustomRawBlockEnd,
+  haxorg_OrgTokenKind_CmdEmailRaw,
+  haxorg_OrgTokenKind_CmdExampleBegin,
+  haxorg_OrgTokenKind_CmdExampleEnd,
+  haxorg_OrgTokenKind_CmdExampleLine,
+  haxorg_OrgTokenKind_CmdExcludeTagsRaw,
+  haxorg_OrgTokenKind_CmdExportBegin,
+  haxorg_OrgTokenKind_CmdExportEnd,
+  haxorg_OrgTokenKind_CmdExportLine,
+  haxorg_OrgTokenKind_CmdFiletags,
+  haxorg_OrgTokenKind_CmdFlag,
+  haxorg_OrgTokenKind_CmdHeader,
+  haxorg_OrgTokenKind_CmdHtmlHeadRaw,
+  haxorg_OrgTokenKind_CmdInclude,
+  haxorg_OrgTokenKind_CmdLanguage,
+  haxorg_OrgTokenKind_CmdLatexClass,
+  haxorg_OrgTokenKind_CmdLatexClassOptions,
+  haxorg_OrgTokenKind_CmdLatexCompiler,
+  haxorg_OrgTokenKind_CmdLatexHeader,
+  haxorg_OrgTokenKind_CmdLatexHeaderExtraRaw,
+  haxorg_OrgTokenKind_CmdLinkRaw,
+  haxorg_OrgTokenKind_CmdMacroRaw,
+  haxorg_OrgTokenKind_CmdName,
+  haxorg_OrgTokenKind_CmdOptions,
+  haxorg_OrgTokenKind_CmdPrefix,
+  haxorg_OrgTokenKind_CmdPrioritiesRaw,
+  haxorg_OrgTokenKind_CmdPropertyArgs,
+  haxorg_OrgTokenKind_CmdPropertyRaw,
+  haxorg_OrgTokenKind_CmdPropertyText,
+  haxorg_OrgTokenKind_CmdQuoteBegin,
+  haxorg_OrgTokenKind_CmdQuoteEnd,
+  haxorg_OrgTokenKind_CmdRawArg,
+  haxorg_OrgTokenKind_CmdResults,
+  haxorg_OrgTokenKind_CmdRow,
+  haxorg_OrgTokenKind_CmdRowBegin,
+  haxorg_OrgTokenKind_CmdRowEnd,
+  haxorg_OrgTokenKind_CmdSelectTagsRaw,
+  haxorg_OrgTokenKind_CmdSeqTodoRaw,
+  haxorg_OrgTokenKind_CmdKeywordsRaw,
+  haxorg_OrgTokenKind_CmdSetupfileRaw,
+  haxorg_OrgTokenKind_CmdSrcBegin,
+  haxorg_OrgTokenKind_CmdSrcEnd,
+  haxorg_OrgTokenKind_CmdStartup,
+  haxorg_OrgTokenKind_CmdTableBegin,
+  haxorg_OrgTokenKind_CmdTableEnd,
+  haxorg_OrgTokenKind_CmdTagsRaw,
+  haxorg_OrgTokenKind_CmdTblfm,
+  haxorg_OrgTokenKind_CmdTitle,
+  haxorg_OrgTokenKind_CmdVerseBegin,
+  haxorg_OrgTokenKind_CmdVerseEnd,
+  haxorg_OrgTokenKind_Colon,
+  haxorg_OrgTokenKind_ColonArgumentsProperty,
+  haxorg_OrgTokenKind_ColonEnd,
+  haxorg_OrgTokenKind_ColonExampleLine,
+  haxorg_OrgTokenKind_ColonLiteralProperty,
+  haxorg_OrgTokenKind_ColonLogbook,
+  haxorg_OrgTokenKind_ColonProperties,
+  haxorg_OrgTokenKind_ColonPropertyText,
+  haxorg_OrgTokenKind_Comma,
+  haxorg_OrgTokenKind_Comment,
+  haxorg_OrgTokenKind_CriticAddBegin,
+  haxorg_OrgTokenKind_CriticAddEnd,
+  haxorg_OrgTokenKind_CriticCommentBegin,
+  haxorg_OrgTokenKind_CriticCommentEnd,
+  haxorg_OrgTokenKind_CriticDeleteBegin,
+  haxorg_OrgTokenKind_CriticDeleteEnd,
+  haxorg_OrgTokenKind_CriticHighlightBegin,
+  haxorg_OrgTokenKind_CriticHighlightEnd,
+  haxorg_OrgTokenKind_CriticReplaceBegin,
+  haxorg_OrgTokenKind_CriticReplaceEnd,
+  haxorg_OrgTokenKind_CriticReplaceMiddle,
+  haxorg_OrgTokenKind_CurlyBegin,
+  haxorg_OrgTokenKind_CurlyEnd,
+  haxorg_OrgTokenKind_Date,
+  haxorg_OrgTokenKind_Dedent,
+  haxorg_OrgTokenKind_Dollar,
+  haxorg_OrgTokenKind_DoubleAngleBegin,
+  haxorg_OrgTokenKind_DoubleAngleEnd,
+  haxorg_OrgTokenKind_DoubleColon,
+  haxorg_OrgTokenKind_DoubleDash,
+  haxorg_OrgTokenKind_DoubleHash,
+  haxorg_OrgTokenKind_DoubleQuote,
+  haxorg_OrgTokenKind_DoubleSlash,
+  haxorg_OrgTokenKind_ActiveDynamicTimeContent,
+  haxorg_OrgTokenKind_InactiveDynamicTimeContent,
+  /// \brief `%%(` at the start of the line in the subtree, denoting the start of the dynamic agenda.
+  haxorg_OrgTokenKind_AgendaDiaryTimeContent,
+  haxorg_OrgTokenKind_EndOfFile,
+  haxorg_OrgTokenKind_Equals,
+  haxorg_OrgTokenKind_Escaped,
+  haxorg_OrgTokenKind_Exclamation,
+  /// \brief `[fn::` with the inline definition
+  haxorg_OrgTokenKind_FootnoteInlineBegin,
+  haxorg_OrgTokenKind_FootnoteLinked,
+  haxorg_OrgTokenKind_ForwardSlash,
+  haxorg_OrgTokenKind_HashIdent,
+  haxorg_OrgTokenKind_HashTagBegin,
+  haxorg_OrgTokenKind_Indent,
+  haxorg_OrgTokenKind_InlineExportBackend,
+  haxorg_OrgTokenKind_InlineExportContent,
+  haxorg_OrgTokenKind_ItalicBegin,
+  haxorg_OrgTokenKind_ItalicEnd,
+  haxorg_OrgTokenKind_ItalicUnknown,
+  haxorg_OrgTokenKind_LatexInlineRaw,
+  haxorg_OrgTokenKind_LatexParBegin,
+  haxorg_OrgTokenKind_LatexParEnd,
+  haxorg_OrgTokenKind_LatexBraceBegin,
+  haxorg_OrgTokenKind_LatexBraceEnd,
+  haxorg_OrgTokenKind_LatexDollar1Begin,
+  haxorg_OrgTokenKind_LatexDollar1End,
+  haxorg_OrgTokenKind_LatexDollar2Begin,
+  haxorg_OrgTokenKind_LatexDollar2End,
+  haxorg_OrgTokenKind_LeadingMinus,
+  haxorg_OrgTokenKind_LeadingNumber,
+  haxorg_OrgTokenKind_LeadingPipe,
+  haxorg_OrgTokenKind_LeadingPlus,
+  haxorg_OrgTokenKind_LeadingSpace,
+  /// \brief a)
+  haxorg_OrgTokenKind_LeadingCharacter,
+  haxorg_OrgTokenKind_LineCommand,
+  haxorg_OrgTokenKind_LinkBegin,
+  haxorg_OrgTokenKind_LinkDescriptionBegin,
+  haxorg_OrgTokenKind_LinkDescriptionEnd,
+  haxorg_OrgTokenKind_LinkEnd,
+  haxorg_OrgTokenKind_LinkFull,
+  haxorg_OrgTokenKind_LinkProtocol,
+  haxorg_OrgTokenKind_LinkProtocolAttachment,
+  haxorg_OrgTokenKind_LinkProtocolCustomId,
+  haxorg_OrgTokenKind_LinkProtocolFile,
+  haxorg_OrgTokenKind_LinkProtocolHttp,
+  haxorg_OrgTokenKind_LinkProtocolId,
+  haxorg_OrgTokenKind_LinkProtocolInternal,
+  haxorg_OrgTokenKind_LinkProtocolTitle,
+  haxorg_OrgTokenKind_LinkSplit,
+  haxorg_OrgTokenKind_LinkTarget,
+  haxorg_OrgTokenKind_LinkTargetBegin,
+  haxorg_OrgTokenKind_LinkTargetEnd,
+  haxorg_OrgTokenKind_LinkTargetFile,
+  haxorg_OrgTokenKind_ListBegin,
+  haxorg_OrgTokenKind_ListEnd,
+  haxorg_OrgTokenKind_ListItemBegin,
+  haxorg_OrgTokenKind_ListItemEnd,
+  haxorg_OrgTokenKind_LongNewline,
+  haxorg_OrgTokenKind_MediumNewline,
+  haxorg_OrgTokenKind_Minus,
+  haxorg_OrgTokenKind_MiscUnicode,
+  haxorg_OrgTokenKind_MonospaceBegin,
+  haxorg_OrgTokenKind_MonospaceEnd,
+  haxorg_OrgTokenKind_MonospaceUnknown,
+  haxorg_OrgTokenKind_Newline,
+  haxorg_OrgTokenKind_Number,
+  haxorg_OrgTokenKind_ParBegin,
+  haxorg_OrgTokenKind_ParEnd,
+  haxorg_OrgTokenKind_Percent,
+  haxorg_OrgTokenKind_Pipe,
+  haxorg_OrgTokenKind_Placeholder,
+  haxorg_OrgTokenKind_Plus,
+  haxorg_OrgTokenKind_Punctuation,
+  haxorg_OrgTokenKind_RawText,
+  haxorg_OrgTokenKind_SameIndent,
+  haxorg_OrgTokenKind_Semicolon,
+  haxorg_OrgTokenKind_SingleQuote,
+  haxorg_OrgTokenKind_SrcContent,
+  haxorg_OrgTokenKind_StmtListBegin,
+  haxorg_OrgTokenKind_StmtListEnd,
+  haxorg_OrgTokenKind_StrikeBegin,
+  haxorg_OrgTokenKind_StrikeEnd,
+  haxorg_OrgTokenKind_StrikeUnknown,
+  haxorg_OrgTokenKind_SubtreeCompletion,
+  haxorg_OrgTokenKind_SubtreePriority,
+  haxorg_OrgTokenKind_SubtreeStars,
+  haxorg_OrgTokenKind_Symbol,
+  haxorg_OrgTokenKind_TableSeparator,
+  haxorg_OrgTokenKind_TextSeparator,
+  haxorg_OrgTokenKind_TextSrcBegin,
+  haxorg_OrgTokenKind_Tilda,
+  haxorg_OrgTokenKind_Time,
+  haxorg_OrgTokenKind_TimeArrow,
+  haxorg_OrgTokenKind_TimeRepeaterDuration,
+  haxorg_OrgTokenKind_TimeRepeaterSpec,
+  haxorg_OrgTokenKind_TimeWarnPeriod,
+  haxorg_OrgTokenKind_TrailingPipe,
+  haxorg_OrgTokenKind_TreeClock,
+  haxorg_OrgTokenKind_TreeTime,
+  haxorg_OrgTokenKind_TripleAngleBegin,
+  haxorg_OrgTokenKind_TripleAngleEnd,
+  haxorg_OrgTokenKind_Underline,
+  haxorg_OrgTokenKind_UnderlineBegin,
+  haxorg_OrgTokenKind_UnderlineEnd,
+  haxorg_OrgTokenKind_UnderlineUnknown,
+  haxorg_OrgTokenKind_Unknown,
+  haxorg_OrgTokenKind_VerbatimBegin,
+  haxorg_OrgTokenKind_VerbatimEnd,
+  haxorg_OrgTokenKind_VerbatimUnknown,
+  haxorg_OrgTokenKind_Whitespace,
+  haxorg_OrgTokenKind_Word,
+};
 enum haxorg_OrgJsonKind { haxorg_OrgJsonKind_Null, haxorg_OrgJsonKind_Object, haxorg_OrgJsonKind_Array, haxorg_OrgJsonKind_String, haxorg_OrgJsonKind_Boolean, haxorg_OrgJsonKind_Int, haxorg_OrgJsonKind_Float, };
 enum haxorg_OrgSemKind { haxorg_OrgSemKind_NoNode, haxorg_OrgSemKind_ErrorItem, haxorg_OrgSemKind_ErrorGroup, haxorg_OrgSemKind_StmtList, haxorg_OrgSemKind_Empty, haxorg_OrgSemKind_CmdCaption, haxorg_OrgSemKind_CmdCreator, haxorg_OrgSemKind_CmdAuthor, haxorg_OrgSemKind_CmdEmail, haxorg_OrgSemKind_CmdLanguage, haxorg_OrgSemKind_CmdColumns, haxorg_OrgSemKind_CmdName, haxorg_OrgSemKind_CmdCustomArgs, haxorg_OrgSemKind_CmdCustomRaw, haxorg_OrgSemKind_CmdCustomText, haxorg_OrgSemKind_CmdCall, haxorg_OrgSemKind_CmdTblfm, haxorg_OrgSemKind_HashTag, haxorg_OrgSemKind_InlineFootnote, haxorg_OrgSemKind_InlineExport, haxorg_OrgSemKind_Time, haxorg_OrgSemKind_TimeRange, haxorg_OrgSemKind_Macro, haxorg_OrgSemKind_Symbol, haxorg_OrgSemKind_Escaped, haxorg_OrgSemKind_Newline, haxorg_OrgSemKind_Space, haxorg_OrgSemKind_Word, haxorg_OrgSemKind_AtMention, haxorg_OrgSemKind_RawText, haxorg_OrgSemKind_Punctuation, haxorg_OrgSemKind_Placeholder, haxorg_OrgSemKind_BigIdent, haxorg_OrgSemKind_TextTarget, haxorg_OrgSemKind_ErrorSkipToken, haxorg_OrgSemKind_ErrorSkipGroup, haxorg_OrgSemKind_Bold, haxorg_OrgSemKind_Underline, haxorg_OrgSemKind_Monospace, haxorg_OrgSemKind_MarkQuote, haxorg_OrgSemKind_Verbatim, haxorg_OrgSemKind_Italic, haxorg_OrgSemKind_Strike, haxorg_OrgSemKind_Par, haxorg_OrgSemKind_RadioTarget, haxorg_OrgSemKind_Latex, haxorg_OrgSemKind_Link, haxorg_OrgSemKind_BlockCenter, haxorg_OrgSemKind_BlockQuote, haxorg_OrgSemKind_BlockComment, haxorg_OrgSemKind_BlockVerse, haxorg_OrgSemKind_BlockDynamicFallback, haxorg_OrgSemKind_BlockExample, haxorg_OrgSemKind_BlockExport, haxorg_OrgSemKind_BlockAdmonition, haxorg_OrgSemKind_BlockCodeEvalResult, haxorg_OrgSemKind_BlockCode, haxorg_OrgSemKind_SubtreeLog, haxorg_OrgSemKind_Subtree, haxorg_OrgSemKind_Cell, haxorg_OrgSemKind_Row, haxorg_OrgSemKind_Table, haxorg_OrgSemKind_Paragraph, haxorg_OrgSemKind_ColonExample, haxorg_OrgSemKind_CmdAttr, haxorg_OrgSemKind_CmdExport, haxorg_OrgSemKind_Call, haxorg_OrgSemKind_List, haxorg_OrgSemKind_ListItem, haxorg_OrgSemKind_DocumentOptions, haxorg_OrgSemKind_DocumentFragment, haxorg_OrgSemKind_CriticMarkup, haxorg_OrgSemKind_Document, haxorg_OrgSemKind_FileTarget, haxorg_OrgSemKind_TextSeparator, haxorg_OrgSemKind_DocumentGroup, haxorg_OrgSemKind_File, haxorg_OrgSemKind_Directory, haxorg_OrgSemKind_Symlink, haxorg_OrgSemKind_CmdInclude, };
 enum haxorg_AstTrackingGroupKind { haxorg_AstTrackingGroupKind_RadioTarget, haxorg_AstTrackingGroupKind_Single, haxorg_AstTrackingGroupKind_TrackedHashtag, };
@@ -365,7 +624,7 @@ struct haxorg_Org;
 
 struct haxorg_OperationsTracer;
 
-struct haxorg_Cache;
+struct haxorg_ReportSourceCache;
 
 struct haxorg_Report;
 
@@ -383,11 +642,13 @@ struct haxorg_ImmId;
 
 struct haxorg_ImmOrg;
 
-struct haxorg_ImmPathStep;
+struct haxorg_ImmSubnodeAccessStep;
 
-struct haxorg_ImmPath;
+struct haxorg_ImmTreeAccessPath;
 
 struct haxorg_ImmUniqId;
+
+struct haxorg_ImmSemSerdeConfig;
 
 struct haxorg_ImmAstReplaceEpoch;
 
@@ -431,7 +692,11 @@ struct haxorg_LispCode;
 
 struct haxorg_LispCodeCall;
 
+struct haxorg_LispCodeQuoted;
+
 struct haxorg_LispCodeList;
+
+struct haxorg_LispCodeVector;
 
 struct haxorg_LispCodeKeyValue;
 
@@ -444,6 +709,12 @@ struct haxorg_LispCodeIdent;
 struct haxorg_LispCodeBoolean;
 
 struct haxorg_LispCodeReal;
+
+struct haxorg_TimeValue;
+
+struct haxorg_TimeValueFixedTime;
+
+struct haxorg_TimeValueDynamicTime;
 
 struct haxorg_Tblfm;
 
@@ -730,6 +1001,8 @@ struct haxorg_CmdIncludeCustom;
 struct haxorg_CmdIncludeSrc;
 
 struct haxorg_CmdIncludeOrgDocument;
+
+struct haxorg_ReportSourceStrCache;
 
 struct haxorg_ImmNoNode;
 
@@ -1409,7 +1682,8 @@ struct haxorg_ImmCmdCallAdapter;
 
 struct haxorg_ImmCmdAttrAdapter;
 
-enum haxorg_LispCodeKind { haxorg_LispCodeKind_Call, haxorg_LispCodeKind_List, haxorg_LispCodeKind_KeyValue, haxorg_LispCodeKind_Number, haxorg_LispCodeKind_Text, haxorg_LispCodeKind_Ident, haxorg_LispCodeKind_Boolean, haxorg_LispCodeKind_Real, };
+enum haxorg_LispCodeKind { haxorg_LispCodeKind_Call, haxorg_LispCodeKind_Quoted, haxorg_LispCodeKind_List, haxorg_LispCodeKind_Vector, haxorg_LispCodeKind_KeyValue, haxorg_LispCodeKind_Number, haxorg_LispCodeKind_Text, haxorg_LispCodeKind_Ident, haxorg_LispCodeKind_Boolean, haxorg_LispCodeKind_Real, };
+enum haxorg_TimeValueKind { haxorg_TimeValueKind_FixedTime, haxorg_TimeValueKind_DynamicTime, };
 enum haxorg_TblfmExprAxisRefPositionKind { haxorg_TblfmExprAxisRefPositionKind_Index, haxorg_TblfmExprAxisRefPositionKind_Name, };
 enum haxorg_TblfmExprKind { haxorg_TblfmExprKind_AxisRef, haxorg_TblfmExprKind_AxisName, haxorg_TblfmExprKind_IntLiteral, haxorg_TblfmExprKind_FloatLiteral, haxorg_TblfmExprKind_RangeRef, haxorg_TblfmExprKind_Call, haxorg_TblfmExprKind_Elisp, };
 /// \brief Flags for table format expression cell formulas
@@ -1831,8 +2105,8 @@ struct haxorg_OperationsTracer {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['hstd', 'ext', 'Cache']
-struct haxorg_Cache {
+/// \brief ['hstd', 'ext', 'ReportSourceCache']
+struct haxorg_ReportSourceCache {
   haxorg_ptr_payload data;
 };
 
@@ -1876,18 +2150,23 @@ struct haxorg_ImmOrg {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'imm', 'ImmPathStep']
-struct haxorg_ImmPathStep {
+/// \brief ['org', 'imm', 'ImmSubnodeAccessStep']
+struct haxorg_ImmSubnodeAccessStep {
   haxorg_ptr_payload data;
 };
 
-/// \brief ['org', 'imm', 'ImmPath']
-struct haxorg_ImmPath {
+/// \brief ['org', 'imm', 'ImmTreeAccessPath']
+struct haxorg_ImmTreeAccessPath {
   haxorg_ptr_payload data;
 };
 
 /// \brief ['org', 'imm', 'ImmUniqId']
 struct haxorg_ImmUniqId {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'imm', 'ImmSemSerdeConfig']
+struct haxorg_ImmSemSerdeConfig {
   haxorg_ptr_payload data;
 };
 
@@ -1988,14 +2267,24 @@ struct haxorg_SequenceAnnotation {
 
 typedef uint64_t haxorg_ImmIdIdType;
 typedef uint32_t haxorg_ImmIdNodeIdxT;
-typedef haxorg_immer_flex_vector haxorg_ImmPathStore;
+typedef haxorg_immer_flex_vector haxorg_ImmTreeAccessPathStore;
 /// \brief ['org', 'sem', 'LispCode', 'Call']
 struct haxorg_LispCodeCall {
   haxorg_ptr_payload data;
 };
 
+/// \brief ['org', 'sem', 'LispCode', 'Quoted']
+struct haxorg_LispCodeQuoted {
+  haxorg_ptr_payload data;
+};
+
 /// \brief ['org', 'sem', 'LispCode', 'List']
 struct haxorg_LispCodeList {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'LispCode', 'Vector']
+struct haxorg_LispCodeVector {
   haxorg_ptr_payload data;
 };
 
@@ -2031,6 +2320,21 @@ struct haxorg_LispCodeReal {
 
 /// \brief ['org', 'sem', 'LispCode']
 struct haxorg_LispCode {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'TimeValue', 'FixedTime']
+struct haxorg_TimeValueFixedTime {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'TimeValue', 'DynamicTime']
+struct haxorg_TimeValueDynamicTime {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['org', 'sem', 'TimeValue']
+struct haxorg_TimeValue {
   haxorg_ptr_payload data;
 };
 
@@ -2746,6 +3050,11 @@ struct haxorg_CmdIncludeOrgDocument {
 
 /// \brief ['org', 'sem', 'CmdInclude']
 struct haxorg_CmdInclude {
+  haxorg_ptr_payload data;
+};
+
+/// \brief ['hstd', 'ext', 'ReportSourceStrCache']
+struct haxorg_ReportSourceStrCache {
   haxorg_ptr_payload data;
 };
 
@@ -4611,10 +4920,6 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_BackwardsIndex(OrgContext* org_context,
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_create_Str_StrFromCString(OrgContext* org_context, char const* conv);
 HAXORG_C_API_LINKAGE char* haxorg_Str_data(OrgContext* org_context, haxorg_HstdStr __this);
 HAXORG_C_API_LINKAGE char const* haxorg_Str_data_const(OrgContext* org_context, haxorg_HstdStr __this);
-HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_Str_dropPrefix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr prefix);
-HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_Str_dropSuffix_const(OrgContext* org_context, haxorg_HstdStr __this, haxorg_HstdStr suffix);
-HAXORG_C_API_LINKAGE char haxorg_Str_atIndex_const(OrgContext* org_context, haxorg_HstdStr __this, int pos);
-HAXORG_C_API_LINKAGE int haxorg_Str_size_const(OrgContext* org_context, haxorg_HstdStr __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_HstdStr(OrgContext* org_context, haxorg_HstdStr* obj);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_UserTimeBreakdown_get_year(OrgContext* org_context, haxorg_UserTimeBreakdown __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_UserTimeBreakdown_get_month(OrgContext* org_context, haxorg_UserTimeBreakdown __this);
@@ -4638,8 +4943,8 @@ HAXORG_C_API_LINKAGE haxorg_ParseSourceFileId haxorg_ParseSourceManager_addSourc
 HAXORG_C_API_LINKAGE void haxorg_destroy_ParseSourceManager(OrgContext* org_context, haxorg_ParseSourceManager* obj);
 HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_line(OrgContext* org_context, haxorg_ParseSourceLoc __this);
 HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_column(OrgContext* org_context, haxorg_ParseSourceLoc __this);
-HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_pos(OrgContext* org_context, haxorg_ParseSourceLoc __this);
 HAXORG_C_API_LINKAGE haxorg_ParseSourceFileId haxorg_ParseSourceLoc_get_file_id(OrgContext* org_context, haxorg_ParseSourceLoc __this);
+HAXORG_C_API_LINKAGE int haxorg_ParseSourceLoc_get_pos(OrgContext* org_context, haxorg_ParseSourceLoc __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ParseSourceLoc(OrgContext* org_context, haxorg_ParseSourceLoc* obj);
 HAXORG_C_API_LINKAGE haxorg_OrgJsonKind haxorg_OrgJson_getKind_const(OrgContext* org_context, haxorg_OrgJson __this);
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_OrgJson_getJsonString_const(OrgContext* org_context, haxorg_OrgJson __this);
@@ -4662,17 +4967,15 @@ HAXORG_C_API_LINKAGE void haxorg_Org_insert(OrgContext* org_context, haxorg_Org 
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_Org_at_const(OrgContext* org_context, haxorg_Org __this, int idx);
 HAXORG_C_API_LINKAGE bool haxorg_Org_is_const(OrgContext* org_context, haxorg_Org __this, haxorg_OrgSemKind kind);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Org(OrgContext* org_context, haxorg_Org* obj);
-HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_TraceState(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceToFile(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceToBuffer(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceStructured(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE bool haxorg_OperationsTracer_get_traceColored(OrgContext* org_context, haxorg_OperationsTracer __this);
-HAXORG_C_API_LINKAGE int haxorg_OperationsTracer_get_activeLevel(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_OperationsTracer_get_traceBuffer(OrgContext* org_context, haxorg_OperationsTracer __this);
 HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_setTraceFileStr(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString outfile, bool overwrite);
 HAXORG_C_API_LINKAGE void haxorg_OperationsTracer_sendMessage_const(OrgContext* org_context, haxorg_OperationsTracer __this, haxorg_StdString value, haxorg_StdString function, int line, haxorg_StdString file);
 HAXORG_C_API_LINKAGE void haxorg_destroy_OperationsTracer(OrgContext* org_context, haxorg_OperationsTracer* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_Cache(OrgContext* org_context, haxorg_Cache* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ReportSourceCache(OrgContext* org_context, haxorg_ReportSourceCache* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_Report(OrgContext* org_context, haxorg_Report* obj);
 HAXORG_C_API_LINKAGE int haxorg_ParseOrgParseFragment_get_baseLine(OrgContext* org_context, haxorg_ParseOrgParseFragment __this);
 HAXORG_C_API_LINKAGE int haxorg_ParseOrgParseFragment_get_baseCol(OrgContext* org_context, haxorg_ParseOrgParseFragment __this);
@@ -4686,7 +4989,7 @@ HAXORG_C_API_LINKAGE void haxorg_destroy_OrgParseParameters(OrgContext* org_cont
 HAXORG_C_API_LINKAGE void haxorg_destroy_OrgDirectoryParseParameters(OrgContext* org_context, haxorg_OrgDirectoryParseParameters* obj);
 HAXORG_C_API_LINKAGE haxorg_ParseContext haxorg_create_ParseContext_ParseContextDefault(OrgContext* org_context);
 HAXORG_C_API_LINKAGE haxorg_ParseContext haxorg_create_ParseContext_ParseContextWithManager(OrgContext* org_context, haxorg_ParseSourceManager source);
-HAXORG_C_API_LINKAGE haxorg_Cache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this);
+HAXORG_C_API_LINKAGE haxorg_ReportSourceCache haxorg_ParseContext_getDiagnosticStrings(OrgContext* org_context, haxorg_ParseContext __this);
 HAXORG_C_API_LINKAGE haxorg_ParseSourceFileId haxorg_ParseContext_addSource_const(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path, haxorg_StdString content);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseFileOpts(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString file, haxorg_OrgParseParameters opts);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseFile(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString file);
@@ -4695,7 +4998,7 @@ HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseStringOpts(OrgCo
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ParseContext_parseDirectory(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ParseContext_parseDirectoryOpts(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString path, haxorg_OrgDirectoryParseParameters opts);
 HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ParseContext_parseFileWithIncludes(OrgContext* org_context, haxorg_ParseContext __this, haxorg_StdString file, haxorg_OrgDirectoryParseParameters opts);
-HAXORG_C_API_LINKAGE haxorg_HstdVecOfReport haxorg_ParseContext_collectDiagnostics(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree, haxorg_Cache cache);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfReport haxorg_ParseContext_collectDiagnostics(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree, haxorg_ReportSourceCache cache);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfSemIdOfErrorGroup haxorg_ParseContext_collectErrorNodes(OrgContext* org_context, haxorg_ParseContext __this, haxorg_SemIdOfOrg tree);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ParseContext(OrgContext* org_context, haxorg_ParseContext* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_ImmReflFieldId_getName_const(OrgContext* org_context, haxorg_ImmReflFieldId __this);
@@ -4706,16 +5009,17 @@ HAXORG_C_API_LINKAGE haxorg_ImmIdNodeIdxT haxorg_ImmId_getNodeIndex_const(OrgCon
 HAXORG_C_API_LINKAGE haxorg_StdString haxorg_ImmId_getReadableId_const(OrgContext* org_context, haxorg_ImmId __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmId(OrgContext* org_context, haxorg_ImmId* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmOrg(OrgContext* org_context, haxorg_ImmOrg* obj);
-HAXORG_C_API_LINKAGE void haxorg_destroy_ImmPathStep(OrgContext* org_context, haxorg_ImmPathStep* obj);
-HAXORG_C_API_LINKAGE haxorg_ImmId haxorg_ImmPath_get_root(OrgContext* org_context, haxorg_ImmPath __this);
-HAXORG_C_API_LINKAGE haxorg_ImmPathStore haxorg_ImmPath_get_path(OrgContext* org_context, haxorg_ImmPath __this);
-HAXORG_C_API_LINKAGE bool haxorg_ImmPath_empty_const(OrgContext* org_context, haxorg_ImmPath __this);
-HAXORG_C_API_LINKAGE void haxorg_destroy_ImmPath(OrgContext* org_context, haxorg_ImmPath* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmSubnodeAccessStep(OrgContext* org_context, haxorg_ImmSubnodeAccessStep* obj);
+HAXORG_C_API_LINKAGE haxorg_ImmId haxorg_ImmTreeAccessPath_get_root(OrgContext* org_context, haxorg_ImmTreeAccessPath __this);
+HAXORG_C_API_LINKAGE haxorg_ImmTreeAccessPathStore haxorg_ImmTreeAccessPath_get_path(OrgContext* org_context, haxorg_ImmTreeAccessPath __this);
+HAXORG_C_API_LINKAGE bool haxorg_ImmTreeAccessPath_empty_const(OrgContext* org_context, haxorg_ImmTreeAccessPath __this);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmTreeAccessPath(OrgContext* org_context, haxorg_ImmTreeAccessPath* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmUniqId(OrgContext* org_context, haxorg_ImmUniqId* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ImmSemSerdeConfig(OrgContext* org_context, haxorg_ImmSemSerdeConfig* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmAstReplaceEpoch(OrgContext* org_context, haxorg_ImmAstReplaceEpoch* obj);
 HAXORG_C_API_LINKAGE haxorg_ImmAstVersion haxorg_ImmAstContext_addRoot(OrgContext* org_context, haxorg_ImmAstContext __this, haxorg_SemIdOfOrg data);
 HAXORG_C_API_LINKAGE haxorg_ImmAstVersion haxorg_ImmAstContext_getEmptyVersion(OrgContext* org_context, haxorg_ImmAstContext __this);
-HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ImmAstContext_get(OrgContext* org_context, haxorg_ImmAstContext __this, haxorg_ImmId id);
+HAXORG_C_API_LINKAGE haxorg_SemIdOfOrg haxorg_ImmAstContext_get(OrgContext* org_context, haxorg_ImmAstContext __this, haxorg_ImmId id, haxorg_ImmSemSerdeConfig config);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmAstContext(OrgContext* org_context, haxorg_ImmAstContext* obj);
 HAXORG_C_API_LINKAGE haxorg_ImmId haxorg_ImmAstVersion_getRoot_const(OrgContext* org_context, haxorg_ImmAstVersion __this);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAstVersion_getRootAdapter_const(OrgContext* org_context, haxorg_ImmAstVersion __this);
@@ -4734,7 +5038,7 @@ HAXORG_C_API_LINKAGE bool haxorg_ImmAdapter_isIndirectParentOf_const(OrgContext*
 HAXORG_C_API_LINKAGE bool haxorg_ImmAdapter_isSubnodeOf_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmAdapter other);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapter_getParent_const(OrgContext* org_context, haxorg_ImmAdapter __this);
 HAXORG_C_API_LINKAGE int haxorg_ImmAdapter_getSelfIndex_const(OrgContext* org_context, haxorg_ImmAdapter __this);
-HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atPathStep_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmId id, haxorg_ImmPathStep idx);
+HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atPathStep_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmId id, haxorg_ImmSubnodeAccessStep idx);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atField_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_ImmReflFieldId field);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atIndex_const(OrgContext* org_context, haxorg_ImmAdapter __this, int idx, bool withPath);
 HAXORG_C_API_LINKAGE haxorg_ImmAdapter haxorg_ImmAdapter_atPath_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_HstdVecOfInt path, bool withPath);
@@ -4817,9 +5121,15 @@ HAXORG_C_API_LINKAGE bool haxorg_LispCode___eq___const(OrgContext* org_context, 
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isCall_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeCall haxorg_LispCode_getCallConst_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeCall haxorg_LispCode_getCallMut(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE bool haxorg_LispCode_isQuoted_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeQuoted haxorg_LispCode_getQuotedConst_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeQuoted haxorg_LispCode_getQuotedMut(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isList_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeList haxorg_LispCode_getListConst_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeList haxorg_LispCode_getListMut(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE bool haxorg_LispCode_isVector_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeVector haxorg_LispCode_getVectorConst_const(OrgContext* org_context, haxorg_LispCode __this);
+HAXORG_C_API_LINKAGE haxorg_LispCodeVector haxorg_LispCode_getVectorMut(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE bool haxorg_LispCode_isKeyValue_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeKeyValue haxorg_LispCode_getKeyValueConst_const(OrgContext* org_context, haxorg_LispCode __this);
 HAXORG_C_API_LINKAGE haxorg_LispCodeKeyValue haxorg_LispCode_getKeyValueMut(OrgContext* org_context, haxorg_LispCode __this);
@@ -4844,10 +5154,18 @@ HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeCall_get_args(OrgCo
 HAXORG_C_API_LINKAGE void haxorg_create_LispCodeCall_Call(OrgContext* org_context);
 HAXORG_C_API_LINKAGE bool haxorg_LispCodeCall___eq___const(OrgContext* org_context, haxorg_LispCodeCall __this, haxorg_LispCodeCall other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeCall(OrgContext* org_context, haxorg_LispCodeCall* obj);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeQuoted_get_items(OrgContext* org_context, haxorg_LispCodeQuoted __this);
+HAXORG_C_API_LINKAGE void haxorg_create_LispCodeQuoted_Quoted(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_LispCodeQuoted___eq___const(OrgContext* org_context, haxorg_LispCodeQuoted __this, haxorg_LispCodeQuoted other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeQuoted(OrgContext* org_context, haxorg_LispCodeQuoted* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeList_get_items(OrgContext* org_context, haxorg_LispCodeList __this);
 HAXORG_C_API_LINKAGE void haxorg_create_LispCodeList_List(OrgContext* org_context);
 HAXORG_C_API_LINKAGE bool haxorg_LispCodeList___eq___const(OrgContext* org_context, haxorg_LispCodeList __this, haxorg_LispCodeList other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeList(OrgContext* org_context, haxorg_LispCodeList* obj);
+HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeVector_get_items(OrgContext* org_context, haxorg_LispCodeVector __this);
+HAXORG_C_API_LINKAGE void haxorg_create_LispCodeVector_Vector(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_LispCodeVector___eq___const(OrgContext* org_context, haxorg_LispCodeVector __this, haxorg_LispCodeVector other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeVector(OrgContext* org_context, haxorg_LispCodeVector* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_LispCodeKeyValue_get_name(OrgContext* org_context, haxorg_LispCodeKeyValue __this);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfLispCode haxorg_LispCodeKeyValue_get_value(OrgContext* org_context, haxorg_LispCodeKeyValue __this);
 HAXORG_C_API_LINKAGE void haxorg_create_LispCodeKeyValue_KeyValue(OrgContext* org_context);
@@ -4874,6 +5192,25 @@ HAXORG_C_API_LINKAGE void haxorg_create_LispCodeReal_Real(OrgContext* org_contex
 HAXORG_C_API_LINKAGE bool haxorg_LispCodeReal___eq___const(OrgContext* org_context, haxorg_LispCodeReal __this, haxorg_LispCodeReal other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCodeReal(OrgContext* org_context, haxorg_LispCodeReal* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_LispCode(OrgContext* org_context, haxorg_LispCode* obj);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue_get_isActive(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE void haxorg_create_TimeValue_TimeValue(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue___eq___const(OrgContext* org_context, haxorg_TimeValue __this, haxorg_TimeValue other);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue_isFixedTime_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueFixedTime haxorg_TimeValue_getFixedTimeConst_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueFixedTime haxorg_TimeValue_getFixedTimeMut(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValue_isDynamicTime_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueDynamicTime haxorg_TimeValue_getDynamicTimeConst_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueDynamicTime haxorg_TimeValue_getDynamicTimeMut(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValueKind haxorg_TimeValue_getKind_const(OrgContext* org_context, haxorg_TimeValue __this);
+HAXORG_C_API_LINKAGE haxorg_UserTime haxorg_TimeValueFixedTime_get_time(OrgContext* org_context, haxorg_TimeValueFixedTime __this);
+HAXORG_C_API_LINKAGE void haxorg_create_TimeValueFixedTime_FixedTime(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValueFixedTime___eq___const(OrgContext* org_context, haxorg_TimeValueFixedTime __this, haxorg_TimeValueFixedTime other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_TimeValueFixedTime(OrgContext* org_context, haxorg_TimeValueFixedTime* obj);
+HAXORG_C_API_LINKAGE haxorg_LispCode haxorg_TimeValueDynamicTime_get_time(OrgContext* org_context, haxorg_TimeValueDynamicTime __this);
+HAXORG_C_API_LINKAGE void haxorg_create_TimeValueDynamicTime_DynamicTime(OrgContext* org_context);
+HAXORG_C_API_LINKAGE bool haxorg_TimeValueDynamicTime___eq___const(OrgContext* org_context, haxorg_TimeValueDynamicTime __this, haxorg_TimeValueDynamicTime other);
+HAXORG_C_API_LINKAGE void haxorg_destroy_TimeValueDynamicTime(OrgContext* org_context, haxorg_TimeValueDynamicTime* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_TimeValue(OrgContext* org_context, haxorg_TimeValue* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfTblfmAssign haxorg_Tblfm_get_exprs(OrgContext* org_context, haxorg_Tblfm __this);
 HAXORG_C_API_LINKAGE bool haxorg_Tblfm___eq___const(OrgContext* org_context, haxorg_Tblfm __this, haxorg_Tblfm other);
 HAXORG_C_API_LINKAGE bool haxorg_TblfmExpr___eq___const(OrgContext* org_context, haxorg_TblfmExpr __this, haxorg_TblfmExpr other);
@@ -5445,7 +5782,7 @@ HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyBlocker___eq___const(OrgContext* o
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyBlocker(OrgContext* org_context, haxorg_NamedPropertyBlocker* obj);
 HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyUnnumbered___eq___const(OrgContext* org_context, haxorg_NamedPropertyUnnumbered __this, haxorg_NamedPropertyUnnumbered other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyUnnumbered(OrgContext* org_context, haxorg_NamedPropertyUnnumbered* obj);
-HAXORG_C_API_LINKAGE haxorg_UserTime haxorg_NamedPropertyCreated_get_time(OrgContext* org_context, haxorg_NamedPropertyCreated __this);
+HAXORG_C_API_LINKAGE haxorg_TimeValue haxorg_NamedPropertyCreated_get_time(OrgContext* org_context, haxorg_NamedPropertyCreated __this);
 HAXORG_C_API_LINKAGE bool haxorg_NamedPropertyCreated___eq___const(OrgContext* org_context, haxorg_NamedPropertyCreated __this, haxorg_NamedPropertyCreated other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_NamedPropertyCreated(OrgContext* org_context, haxorg_NamedPropertyCreated* obj);
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfStr haxorg_NamedPropertyRadioId_get_words(OrgContext* org_context, haxorg_NamedPropertyRadioId __this);
@@ -5498,7 +5835,7 @@ HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_OrgDiagnosticsParseTokenError_get_par
 HAXORG_C_API_LINKAGE int haxorg_OrgDiagnosticsParseTokenError_get_parserLine(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this);
 HAXORG_C_API_LINKAGE haxorg_OrgTokenKind haxorg_OrgDiagnosticsParseTokenError_get_tokenKind(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_OrgDiagnosticsParseTokenError_get_tokenText(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this);
-HAXORG_C_API_LINKAGE haxorg_ParseSourceLoc haxorg_OrgDiagnosticsParseTokenError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_OrgDiagnosticsParseTokenError_get_loc(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_OrgDiagnosticsParseTokenError_get_errName(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this);
 HAXORG_C_API_LINKAGE haxorg_HstdStr haxorg_OrgDiagnosticsParseTokenError_get_errCode(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this);
 HAXORG_C_API_LINKAGE bool haxorg_OrgDiagnosticsParseTokenError___eq___const(OrgContext* org_context, haxorg_OrgDiagnosticsParseTokenError __this, haxorg_OrgDiagnosticsParseTokenError other);
@@ -5650,6 +5987,8 @@ HAXORG_C_API_LINKAGE haxorg_InitialSubtreeVisibility haxorg_DocumentOptions_get_
 HAXORG_C_API_LINKAGE haxorg_HstdVecOfNamedProperty haxorg_DocumentOptions_get_properties(OrgContext* org_context, haxorg_DocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_DocumentExportConfig haxorg_DocumentOptions_get_exportConfig(OrgContext* org_context, haxorg_DocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_DocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_DocumentOptions __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_DocumentOptions_get_linkVisibility(OrgContext* org_context, haxorg_DocumentOptions __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_DocumentOptions_get_blockVisibility(OrgContext* org_context, haxorg_DocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_DocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_DocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_DocumentOptions_get_category(OrgContext* org_context, haxorg_DocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_DocumentOptions_get_setupfile(OrgContext* org_context, haxorg_DocumentOptions __this);
@@ -5740,6 +6079,7 @@ HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_CmdIncludeOrgDocument_get_minLeve
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_CmdIncludeOrgDocument_get_customIdTarget(OrgContext* org_context, haxorg_CmdIncludeOrgDocument __this);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdIncludeOrgDocument(OrgContext* org_context, haxorg_CmdIncludeOrgDocument* obj);
 HAXORG_C_API_LINKAGE void haxorg_destroy_CmdInclude(OrgContext* org_context, haxorg_CmdInclude* obj);
+HAXORG_C_API_LINKAGE void haxorg_destroy_ReportSourceStrCache(OrgContext* org_context, haxorg_ReportSourceStrCache* obj);
 HAXORG_C_API_LINKAGE bool haxorg_ImmNoNode___eq___const(OrgContext* org_context, haxorg_ImmNoNode __this, haxorg_ImmNoNode other);
 HAXORG_C_API_LINKAGE void haxorg_destroy_ImmNoNode(OrgContext* org_context, haxorg_ImmNoNode* obj);
 HAXORG_C_API_LINKAGE haxorg_OrgDiagnostics haxorg_ImmErrorItem_get_diag(OrgContext* org_context, haxorg_ImmErrorItem __this);
@@ -5849,6 +6189,8 @@ HAXORG_C_API_LINKAGE haxorg_InitialSubtreeVisibility haxorg_ImmDocumentOptions_g
 HAXORG_C_API_LINKAGE haxorg_ImmVec haxorg_ImmDocumentOptions_get_properties(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_DocumentExportConfig haxorg_ImmDocumentOptions_get_exportConfig(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmDocumentOptions_get_fixedWidthSections(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmDocumentOptions_get_linkVisibility(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmDocumentOptions_get_blockVisibility(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmDocumentOptions_get_startupIndented(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmDocumentOptions_get_category(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmDocumentOptions_get_setupfile(OrgContext* org_context, haxorg_ImmDocumentOptions __this);
@@ -6304,6 +6646,8 @@ HAXORG_C_API_LINKAGE haxorg_InitialSubtreeVisibility haxorg_ImmAdapterTOfImmDocu
 HAXORG_C_API_LINKAGE haxorg_ImmVec haxorg_ImmAdapterTOfImmDocumentOptions_getProperties_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);
 HAXORG_C_API_LINKAGE haxorg_DocumentExportConfig haxorg_ImmAdapterTOfImmDocumentOptions_getExportConfig_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getFixedWidthSections_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getLinkVisibility_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);
+HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getBlockVisibility_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getStartupIndented_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getCategory_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);
 HAXORG_C_API_LINKAGE haxorg_StdOptional haxorg_ImmAdapterTOfImmDocumentOptions_getSetupfile_const(OrgContext* org_context, haxorg_ImmDocumentOptionsAdapter __this);

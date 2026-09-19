@@ -10,7 +10,7 @@
 using namespace hstd::ext;
 using namespace hstd;
 
-void dumpReport(StrCache& src, Report const& rep) {
+void dumpReport(ReportSourceStrCache& src, Report const& rep) {
     return;
 
     for (auto const& [debug, color] : Vec<Pair<bool, bool>>::Splice(
@@ -29,8 +29,8 @@ void dumpReport(StrCache& src, Report const& rep) {
 }
 
 TEST(PrintError, Simple) {
-    StrCache sources;
-    Id       a_id = 1;
+    ReportSourceStrCache sources;
+    ReportSourceId       a_id = ReportSourceId::FromValue(1);
 
     sources.add(
         a_id,
@@ -48,23 +48,35 @@ def six =
     auto report //
         = Report(ReportKind::Error, a_id, 10)
               .with_config(
-                  Config{} //
+                  ReportRenderConfig{} //
                       .with_compact(true)
-                      .with_char_set(Config::unicode()))
+                      .with_char_set(ReportRenderConfig::unicode()))
               .with_message("Incompatible types"_ss)
               .with_label(
-                  Label{1}.with_span(a_id, slice(0, 1)).with_color(ColStyle{}.red()))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{a_id, slice(0, 1)},
+                  }
+                      .with_color(ColStyle{}.red()))
               .with_label(
-                  Label{2}
-                      .with_span(a_id, slice(2, 3))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{a_id, slice(2, 3)},
+                  }
                       .with_color(ColStyle{}.red())
                       .with_message("`b` for banana"_ss)
                       .with_order(1))
               .with_label(
-                  Label{3}.with_span(a_id, slice(4, 5)).with_color(ColStyle{}.green()))
+                  ReportLabel{
+                      ReportLabelId::FromValue(3),
+                      CodeSpan{a_id, slice(4, 5)},
+                  }
+                      .with_color(ColStyle{}.green()))
               .with_label(
-                  Label{4}
-                      .with_span(a_id, slice(7, 9))
+                  ReportLabel{
+                      ReportLabelId::FromValue(4),
+                      CodeSpan{a_id, slice(7, 9)},
+                  }
                       .with_color(ColStyle{}.cyan())
                       .with_message("`e` for emerald"_ss))
               .with_note("Outputs of {} expressions must coerce to the same type"_ss);
@@ -73,14 +85,17 @@ def six =
     writeFile(getDebugFile("error_Simple.txt"), report.to_string(sources, false));
 }
 
-Pair<Vec<Label>, Str> labelPair(Vec<Label> const& it, Str const& it2) {
+
+Pair<Vec<std::string>, Str> labelPair(Vec<std::string> const& it, Str const& it2) {
     return {it, it2};
 }
 
-Pair<Vec<Label>, Str> labelList(Vec<Pair<Vec<Label>, Str>> const& text, Id source) {
-    Str        str;
-    Vec<Label> labels;
-    int        label_idx = 0;
+Pair<Vec<ReportLabel>, Str> labelList(
+    Vec<Pair<Vec<std::string>, Str>> const& text,
+    ReportSourceId                          source) {
+    Str              str;
+    Vec<ReportLabel> labels;
+    int              label_id = 1;
 
     for (auto const& [in_labels, in_str] : text) {
         int first = str.size();
@@ -88,7 +103,11 @@ Pair<Vec<Label>, Str> labelList(Vec<Pair<Vec<Label>, Str>> const& text, Id sourc
         int last = str.size() - 1;
         for (auto const& label : in_labels) {
             labels.push_back(
-                label.clone().with_id(++label_idx).with_span(source, slice(first, last)));
+                ReportLabel{
+                    ReportLabelId::FromValue(++label_id),
+                    CodeSpan{source, slice(first, last)},
+                }
+                    .with_message(ColText(label)));
         }
     }
 
@@ -119,19 +138,21 @@ std::string pivotStringTable(std::string const& input) {
 }
 
 struct PrintErrorTestSetup {
-    StrCache   sources;
-    Id         id = 1;
-    Report     report;
-    Str        str;
-    Vec<Label> labels;
+    ReportSourceStrCache sources;
+    ReportSourceId       id = ReportSourceId::FromValue(1);
+    Report               report;
+    Str                  str;
+    Vec<ReportLabel>     labels;
 
     Str report_text;
     Str pivoted;
 
-    PrintErrorTestSetup(Vec<Pair<Vec<Label>, Str>> list, Characters const& chars)
+    PrintErrorTestSetup(
+        Vec<Pair<Vec<std::string>, Str>> list,
+        ReportCharacters const&          chars)
         : report{ReportKind::Error, id, 12} //
     {
-        report.with_config(Config{}.with_char_set(chars));
+        report.with_config(ReportRenderConfig{}.with_char_set(chars));
         auto [_labels, _str] = labelList(list, id);
         labels               = _labels;
         str                  = _str;
@@ -160,14 +181,14 @@ struct PrintErrorTestSetup {
 
                 own_view(rune_chunks(str)) //
                     | rv::enumerate
-                    | rv::transform([](Pair<int, std::string> const& l) -> std::string {
+                    | rv::transform([](Pair<int, StrView> const& l) -> std::string {
                           return hstd::fmt("[{}] {}", l.first, escape_literal(l.second));
                       })
                     | rv::intersperse("\n") //
                     | rv::join              //
                     | rs::to<std::string>(),
                 labels //
-                    | rv::transform([](Label const& l) { return fmt1(l); })
+                    | rv::transform([](ReportLabel const& l) { return fmt1(l); })
                     | rv::intersperse("\n") //
                     | rv::join              //
                     | rs::to<std::string>(),
@@ -177,13 +198,13 @@ struct PrintErrorTestSetup {
 };
 
 TEST(PrintError, StringBuilder1) {
-    StrCache sources;
-    Id       id = 1;
+    ReportSourceStrCache sources;
+    ReportSourceId       id = ReportSourceId::FromValue(1);
 
     auto [labels, str] = labelList(
         {
             labelPair({}, "012\n"),
-            labelPair({Label{}.with_message("MSG"_ss)}, "456"),
+            labelPair({"MSG"_ss}, "456"),
             labelPair({}, "\n890\n"),
         },
         id);
@@ -196,14 +217,14 @@ TEST(PrintError, StringBuilder1) {
 
     for (auto const& label : labels) { report.with_label(label); }
     report.with_config(
-        Config{} //
-            .with_char_set(Config::ascii())
+        ReportRenderConfig{} //
+            .with_char_set(ReportRenderConfig::ascii())
         // .with_debug_writes(true)
     );
 
 
     {
-        SPtr<Source> src = sources.fetch(id);
+        SPtr<ReportSource> src = sources.fetch(id);
         {
             auto line = src->get_offset_line(4);
             EXPECT_EQ(str.at(4), '4');
@@ -226,7 +247,7 @@ TEST(PrintError, StringBuilder1) {
         EXPECT_EQ(group.span.last, 6);
         LabelInfo const& label = group.labels.at(0);
         EXPECT_EQ(label.kind, LabelKind::Inline);
-        Vec<Label> multi_labels = Report::build_multi_labels(group.labels);
+        Vec<ReportLabel> multi_labels = Report::build_multi_labels(group.labels);
     }
 
     Str report_text = report.to_string(sources, false);
@@ -246,14 +267,14 @@ TEST(PrintError, StringBuilder1) {
 
             own_view(rune_chunks(str)) //
                 | rv::enumerate
-                | rv::transform([](Pair<int, std::string> const& l) -> std::string {
+                | rv::transform([](Pair<int, StrView> const& l) -> std::string {
                       return hstd::fmt("[{}] {}", l.first, escape_literal(l.second));
                   })
                 | rv::intersperse("\n") //
                 | rv::join              //
                 | rs::to<std::string>(),
             labels //
-                | rv::transform([](Label const& l) { return fmt1(l); })
+                | rv::transform([](ReportLabel const& l) { return fmt1(l); })
                 | rv::intersperse("\n") //
                 | rv::join              //
                 | rs::to<std::string>(),
@@ -272,10 +293,10 @@ TEST(PrintError, StringBuilderSetup1) {
     PrintErrorTestSetup s{
         {
             labelPair({}, "012\n"),
-            labelPair({Label{}.with_message("MSG"_ss)}, "456"),
+            labelPair({"MSG"_ss}, "456"),
             labelPair({}, "\n890\n"),
         },
-        Config::ascii(),
+        ReportRenderConfig::ascii(),
     };
 
     s.build_report();
@@ -293,14 +314,14 @@ TEST(PrintError, StringBuilderSetup_MultiLabels) {
     auto                __scope = getDebugLogScope();
     PrintErrorTestSetup s{
         {
-            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({"MSG"_ss}, "AA"),
             labelPair({}, " "),
-            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({"MSG"_ss}, "AA"),
             labelPair({}, " "),
-            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({"MSG"_ss}, "AA"),
             labelPair({}, "\n"),
         },
-        Config::ascii(),
+        ReportRenderConfig::ascii(),
     };
 
     // s.report.config.with_debug_writes(true);
@@ -316,20 +337,20 @@ TEST(PrintError, StringBuilderSetup_MultiLabels_ManyLines) {
     auto                __scope = getDebugLogScope();
     PrintErrorTestSetup s{
         {
-            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({"MSG"_ss}, "AA"),
             labelPair({}, " "),
-            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({"MSG"_ss}, "AA"),
             labelPair({}, " "),
-            labelPair({Label{}.with_message("MSG"_ss)}, "AA"),
+            labelPair({"MSG"_ss}, "AA"),
             labelPair({}, "\n\n"),
-            labelPair({Label{}.with_message("MSG"_ss)}, "BB"),
+            labelPair({"MSG"_ss}, "BB"),
             labelPair({}, " "),
-            labelPair({Label{}.with_message("MSG"_ss)}, "BB"),
+            labelPair({"MSG"_ss}, "BB"),
             labelPair({}, " "),
-            labelPair({Label{}.with_message("MSG"_ss)}, "BB"),
+            labelPair({"MSG"_ss}, "BB"),
             labelPair({}, "\n"),
         },
-        Config::ascii(),
+        ReportRenderConfig::ascii(),
     };
 
     // s.report.config.with_debug_writes(true);
@@ -340,9 +361,9 @@ TEST(PrintError, StringBuilderSetup_MultiLabels_ManyLines) {
 
 
 TEST(PrintError, RepoExample) {
-    auto     __scope = getDebugLogScope();
-    StrCache sources;
-    Id       a_id = 1;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceStrCache sources;
+    ReportSourceId       a_id = ReportSourceId::FromValue(1);
 
     sources.add(
         a_id,
@@ -364,18 +385,24 @@ def six =
               // .with_config(Config{}.with_debug(true))
               .with_message("Incompatible types"_ss)
               .with_label(
-                  Label{1}
-                      .with_span(a_id, slice(30, 30))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{a_id, slice(30, 30)},
+                  }
                       .with_message(hstd::fmt("This is of type {}", "Nat"))
                       .with_color(a))
               .with_label(
-                  Label{2}
-                      .with_span(a_id, slice(42, 45))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{a_id, slice(42, 45)},
+                  }
                       .with_message(hstd::fmt("This is of type {}", "Str"))
                       .with_color(b))
               .with_label(
-                  Label{3}
-                      .with_span(a_id, slice(11, 48))
+                  ReportLabel{
+                      ReportLabelId::FromValue(3),
+                      CodeSpan{a_id, slice(11, 48)},
+                  }
                       .with_message(
                           hstd::fmt(
                               "The values are outputs of this {} expression", "match")))
@@ -388,9 +415,9 @@ def six =
 }
 
 TEST(PrintError, MultilineAnnotations) {
-    auto     __scope = getDebugLogScope();
-    StrCache sources;
-    Id       a_id = 1;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceStrCache sources;
+    ReportSourceId       a_id = ReportSourceId::FromValue(1);
 
     sources.add(
         a_id,
@@ -412,22 +439,28 @@ def six =
               .with_message(
                   "Multi-line note\nthat has four\nseparate lines\nto visualize"_ss)
               .with_label(
-                  Label{1}
-                      .with_span(a_id, slice(30, 30))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{a_id, slice(30, 30)},
+                  }
                       .with_message(
                           hstd::fmt("Single line label on the base range", "Nat"))
                       .with_color(a))
               .with_label(
-                  Label{2}
-                      .with_span(a_id, slice(31, 31))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{a_id, slice(31, 31)},
+                  }
                       .with_message(
                           hstd::fmt(
                               "Multiple line label\nwith at "
                               "least\nthree separate lines"))
                       .with_color(b))
               .with_label(
-                  Label{3}
-                      .with_span(a_id, slice(32, 32))
+                  ReportLabel{
+                      ReportLabelId::FromValue(3),
+                      CodeSpan{a_id, slice(32, 32)},
+                  }
                       .with_message(
                           hstd::fmt(
                               "Another multiline\nannotation "
@@ -448,14 +481,14 @@ TEST(PrintError, MultipleFiles) {
     ColText strColorized  = "Str"_qs;
     ColText fiveColorized = "5"_qs;
 
-    Id a_id = 1;
-    Id b_id = 2;
+    ReportSourceId a_id = ReportSourceId::FromValue(1);
+    ReportSourceId b_id = ReportSourceId::FromValue(2);
 
     ColStyle a;
     ColStyle b;
     ColStyle c;
 
-    StrCache sources;
+    ReportSourceStrCache sources;
     sources.add(a_id, a_tao, "a_tao");
     sources.add(b_id, b_tao, "b_tao");
 
@@ -463,23 +496,27 @@ TEST(PrintError, MultipleFiles) {
         = Report(ReportKind::Error, b_id, 10)
               .with_code("3")
               .with_message("Cannot add types Nat and Str"_qs)
-              .with_label(Label(1, CodeSpan(b_id, slice(10, 14)))
-                              .with_message(ColText("This is of type ") + natColorized)
-                              .with_color(a))
-              .with_label(Label(2, CodeSpan(b_id, slice(17, 20)))
-                              .with_message(ColText("This is of typee ") + strColorized)
-                              .with_color(b))
-              .with_label(Label(3, CodeSpan(b_id, slice(15, 16)))
-                              .with_message(
-                                  natColorized + ColText(" and ") + strColorized
-                                  + ColText(" undergo addition here"))
-                              .with_color(c)
-                              .with_order(10))
-              .with_label(Label(4, CodeSpan(a_id, slice(4, 8)))
-                              .with_message(
-                                  ColText("Original definition of ") + fiveColorized
-                                  + ColText(" is here"))
-                              .with_color(a))
+              .with_label(
+                  ReportLabel(ReportLabelId::FromValue(1), CodeSpan(b_id, slice(10, 14)))
+                      .with_message(ColText("This is of type ") + natColorized)
+                      .with_color(a))
+              .with_label(
+                  ReportLabel(ReportLabelId::FromValue(2), CodeSpan(b_id, slice(17, 20)))
+                      .with_message(ColText("This is of typee ") + strColorized)
+                      .with_color(b))
+              .with_label(
+                  ReportLabel(ReportLabelId::FromValue(3), CodeSpan(b_id, slice(15, 16)))
+                      .with_message(
+                          natColorized + ColText(" and ") + strColorized
+                          + ColText(" undergo addition here"))
+                      .with_color(c)
+                      .with_order(10))
+              .with_label(
+                  ReportLabel(ReportLabelId::FromValue(4), CodeSpan(a_id, slice(4, 8)))
+                      .with_message(
+                          ColText("Original definition of ") + fiveColorized
+                          + ColText(" is here"))
+                      .with_color(a))
               .with_note(
                   natColorized
                   + ColText(
@@ -490,16 +527,16 @@ TEST(PrintError, MultipleFiles) {
                           "whatever\nother things"});
 
 
-    report.with_config(Config{}.with_debug_report_info(true));
+    report.with_config(ReportRenderConfig{}.with_debug_report_info(true));
 
     dumpReport(sources, report);
     writeFile(getDebugFile("res.txt"), report.to_string(sources, false));
 }
 
 TEST(PrintError, MultipleAnnotations) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"(def fives = ["5", 5]
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"(def fives = ["5", 5]
 
 def sixes = ["6", 6, True, (), []]
 
@@ -508,16 +545,16 @@ def multiline :: Str = match Some 5 in {
     | None => 0
 
 })";
-    StrCache    sources;
+    ReportSourceStrCache sources;
     sources.add(id, code, "tao");
     std::stringstream os;
-    int               label_counter = 0;
+    int               label_counter = 1;
 
     auto label = [&](Slice<int>  range,
                      int         line     = __builtin_LINE(),
                      char const* function = __builtin_FUNCTION()) {
-        return Label{++label_counter, CodeSpan(id, range)}.with_message(
-            hstd::fmt("MSG {} {}", range, line));
+        return ReportLabel{ReportLabelId::FromValue(++label_counter), CodeSpan(id, range)}
+            .with_message(hstd::fmt("MSG {} {}", range, line));
     };
 
     auto report //
@@ -566,7 +603,7 @@ def multiline :: Str = match Some 5 in {
               .with_label(label(slice(84, 114)))
               .with_label(label(slice(89, 113)))
               .with_config(
-                  Config()
+                  ReportRenderConfig()
                       .with_cross_gap(false)
                       .with_compact(true)
                       .with_underlines(true)
@@ -577,9 +614,9 @@ def multiline :: Str = match Some 5 in {
 }
 
 TEST(PrintError, MultipleAnnotations2) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"(def fives = ["5", 5]
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"(def fives = ["5", 5]
 
 def sixes = ["6", 6, True, (), []]1
 
@@ -588,16 +625,16 @@ def multiline :: Str = match Some 5 in {
     # None => 0
 
 })";
-    StrCache    sources;
+    ReportSourceStrCache sources;
     sources.add(id, code, "tao");
     std::stringstream os;
-    int               label_counter = 0;
+    int               label_counter = 1;
 
     auto label = [&](Slice<int>  range,
                      int         line     = __builtin_LINE(),
                      char const* function = __builtin_FUNCTION()) {
-        return Label{++label_counter, CodeSpan(id, range)}.with_message(
-            hstd::fmt("MSG {} {}", range, line));
+        return ReportLabel{ReportLabelId::FromValue(++label_counter), CodeSpan(id, range)}
+            .with_message(hstd::fmt("MSG {} {}", range, line));
     };
 
     auto report //
@@ -606,7 +643,7 @@ def multiline :: Str = match Some 5 in {
               .with_message(("Incompatible types"_qs))
               .with_label(label(slice(108, 124)))
               .with_config(
-                  Config()
+                  ReportRenderConfig()
                       .with_cross_gap(false)
                       .with_compact(true)
                       .with_underlines(true)
@@ -625,25 +662,27 @@ def multiline :: Str = match Some 5 in {
 }
 
 hstd::Str remove_trailing(hstd::Str const& in) {
-    hstd::Str noLeadTail = hstd::strip(in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
-    return hstd::own_view(split(noLeadTail, '\n'))
-         | rv::transform([](hstd::Str const& str) -> hstd::Str {
-               return hstd::strip(str, CharSet{}, CharSet{' '});
+    std::string_view noLeadTail = hstd::strip(in, CharSet{'\n', ' '}, CharSet{'\n', ' '});
+    return hstd::own_view(hstd::split(noLeadTail, '\n'))
+         | rv::transform([](StrView str) -> Str {
+               return Str{hstd::strip(str, CharSet{}, CharSet{' '})};
            })
          | hstd::rv_intersperse_newline_join;
 }
 
 TEST(PrintError, OneMessageWrite) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"()";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"()";
+    ReportSourceStrCache sources;
     sources.add(id, code, "tao");
 
     auto report //
         = Report(ReportKind::Error, id, 13)
               .with_message("can't compare apples with oranges"_qs)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     GTEST_ASSERT_EQ(
         remove_trailing(report.to_string(sources, false)),
@@ -652,22 +691,24 @@ TEST(PrintError, OneMessageWrite) {
 
 
 TEST(PrintError, TwoLabelsWithoutMessageWrite) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"(apple == orange;)";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"(apple == orange;)";
+    ReportSourceStrCache sources;
     sources.add(id, code, "tao");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
+                  ReportLabel{ReportLabelId::FromValue(1), CodeSpan(id, slice(0, 4))}
+                      .with_message("This is an apple"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{ReportLabelId::FromValue(2), CodeSpan{id, slice(9, 14)}}
                       .with_message("This is an orange"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -686,22 +727,24 @@ Error: can't compare apples with oranges
 
 
 TEST(PrintError, TwoLabelsWithMessages) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"(apple == orange;)";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"(apple == orange;)";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
+                  ReportLabel{ReportLabelId::FromValue(1), CodeSpan{id, slice(0, 4)}}
+                      .with_message("This is an apple"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{ReportLabelId::FromValue(2), CodeSpan{id, slice(9, 14)}}
                       .with_message("This is an orange"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -719,22 +762,24 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, MultiByteChars) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"(äpplë == örängë;)";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"(äpplë == örängë;)";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an äpplë"_ss))
+                  ReportLabel{ReportLabelId::FromValue(1), CodeSpan{id, slice(0, 4)}}
+                      .with_message("This is an äpplë"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{ReportLabelId::FromValue(2), CodeSpan{id, slice(9, 14)}}
                       .with_message("This is an örängë"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -752,22 +797,24 @@ Error: can't compare äpplës with örängës
 }
 
 TEST(PrintError, ByteLabel) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"(äpplë == örängë;)";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"(äpplë == örängë;)";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 6)).with_message("This is an äpplë"_ss))
+                  ReportLabel{ReportLabelId::FromValue(1), CodeSpan{id, slice(0, 6)}}
+                      .with_message("This is an äpplë"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{ReportLabelId::FromValue(2), CodeSpan{id, slice(9, 14)}}
                       .with_message("This is an örängë"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -785,22 +832,30 @@ Error: can't compare äpplës with örängës
 }
 
 TEST(PrintError, ByteColumn) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = R"(äpplë == örängë;)";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = R"(äpplë == örängë;)";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 11)
               .with_message("can't compare äpplës with örängës"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 6)).with_message("This is an äpplë"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 6)},
+                  }
+                      .with_message("This is an äpplë"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an örängë"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -818,51 +873,73 @@ Error: can't compare äpplës with örängës
 }
 
 TEST(PrintError, LabelAtEndOfLongLine) {
-    auto      __scope  = getDebugLogScope();
-    Id        id       = 0;
-    hstd::Str repeated = "";
+    auto           __scope  = getDebugLogScope();
+    ReportSourceId id       = ReportSourceId::FromValue(1);
+    hstd::Str      repeated = "";
     for (int i = 0; i < 100; ++i) { repeated += "apple == "; }
-    hstd::Str code = repeated + "orange"_ss;
-    StrCache  sources;
+    hstd::Str            code = repeated + "orange"_ss;
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(code.size() - 5, code.size() - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{
+                          id,
+                          slice(code.size() - 5, code.size() - 1),
+                      },
+                  }
                       .with_message("This is an orange"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
+
+    auto actual = report.to_string(sources, false);
+    writeFile(getDebugFile("actual_LabelAtEndOfLongLine.txt"), actual);
+
+    auto lines = hstd::split(actual, '\n');
+    std::cout << escape_literal(lines.at(3)) << "\n";
 
     dumpReport(sources, report);
+
+    hstd::Str expected = hstd::fmt(
+        "\nError: can't compare apples with oranges\n"
+        "   ,-[ <unknown>:1:1 ]\n"
+        "   |\n"
+        " 1 | {}\n"
+        "   | {}^^|^^\n"
+        "   | {}`--- This is an orange\n"
+        "---'\n",
+        code,
+        hstd::Str(" ").repeated(code.size() - 5),
+        hstd::Str(" ").repeated(code.size() - 3));
+
     GTEST_ASSERT_EQ_SEQ(
-        remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
-Error: can't compare apples with oranges
-   ,-[ <unknown>:1:1 ]
-   |
- 1 | apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == apple == orange
-   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ^^|^^
-   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `--- This is an orange
----'
-)"_ss));
+        remove_trailing(report.to_string(sources, false)), remove_trailing(expected));
 }
 
 TEST(PrintError, LabelOfWidthZeroAtEndOfLine) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple ==\n";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple ==\n";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(8, 9))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(8, 9)},
+                  }
                       .with_message("Unexpected end of file"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -878,18 +955,24 @@ Error: unexpected end of file
 }
 
 TEST(PrintError, EmptyInput) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
+                      .with_message("No more fruit!"_ss))
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -905,19 +988,25 @@ Error: unexpected end of file
 }
 
 TEST(PrintError, EmptyInputHelp) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
+                      .with_message("No more fruit!"_ss))
               .with_help("have you tried going to the farmer's market?"_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -936,19 +1025,25 @@ Error: unexpected end of file
 
 
 TEST(PrintError, EmptyInputNote) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
+                      .with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -966,20 +1061,26 @@ Error: unexpected end of file
 }
 
 TEST(PrintError, EmptyInputHelpNote) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("unexpected end of file"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 0)).with_message("No more fruit!"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 0)},
+                  }
+                      .with_message("No more fruit!"_ss))
               .with_note("eat your greens!"_ss)
               .with_help("have you tried going to the farmer's market?"_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -999,19 +1100,23 @@ Error: unexpected end of file
 }
 
 TEST(PrintError, MultilineLabel) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple\n==\norange";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple\n==\norange";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice1<int>(0, code.size() - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice1<int>(0, code.size() - 1)},
+                  }
                       .with_message("illegal comparison"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1029,24 +1134,30 @@ Error:
 }
 
 TEST(PrintError, PartiallyOverlappingLabels) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "https://example.com/";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "https://example.com/";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto colon_pos = code.find(':');
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice1<int>(0, code.length() - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice1<int>(0, code.length() - 1)},
+                  }
                       .with_message("URL"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice1<int>(0, colon_pos - 1))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice1<int>(0, colon_pos - 1)},
+                  }
                       .with_message("scheme"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     GTEST_ASSERT_EQ_SEQ(
         remove_trailing(report.to_string(sources, false)), remove_trailing(R"(
@@ -1063,38 +1174,54 @@ Error:
 }
 
 TEST(PrintError, MultipleLabelsSameSpan) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
+                      .with_message("This is an apple"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("Have I mentioned that this is an apple?"_ss))
               .with_label(
-                  Label{3}
-                      .with_span(id, slice(0, 4))
+                  ReportLabel{
+                      ReportLabelId::FromValue(3),
+                      CodeSpan{id, slice(0, 4)},
+                  }
                       .with_message("No really, have I mentioned that?"_ss))
               .with_label(
-                  Label{4}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(4),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_label(
-                  Label{5}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(5),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("Have I mentioned that this is an orange?"_ss))
               .with_label(
-                  Label{6}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(6),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("No really, have I mentioned that?"_ss))
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1120,23 +1247,31 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, Note) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
+                      .with_message("This is an apple"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_note("stop trying ... this is a fruitless endeavor"_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1156,23 +1291,31 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, Help) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
+                      .with_message("This is an apple"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1192,24 +1335,32 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, HelpAndNote) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}.with_span(id, slice(0, 4)).with_message("This is an apple"_ss))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 4)},
+                  }
+                      .with_message("This is an apple"_ss))
               .with_label(
-                  Label{2}
-                      .with_span(id, slice(9, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(2),
+                      CodeSpan{id, slice(9, 14)},
+                  }
                       .with_message("This is an orange"_ss))
               .with_help("have you tried peeling the orange?"_ss)
               .with_note("stop trying ... this is a fruitless endeavor"_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1231,21 +1382,25 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, SingleNoteSingleLine) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 14)},
+                  }
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1263,22 +1418,26 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, MultiNotesSingleLines) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 14)},
+                  }
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
               .with_note("Yeah, really, please stop."_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1298,22 +1457,26 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, MultiNotesMultiLines) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 14)},
+                  }
                       .with_message("This is a strange comparison"_ss))
               .with_note("No need to try, they can't be compared."_ss)
               .with_note("Yeah, really, please stop.\nIt has no resemblance."_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(
@@ -1334,22 +1497,26 @@ Error: can't compare apples with oranges
 }
 
 TEST(PrintError, MultiHelpsMultiLines) {
-    auto        __scope = getDebugLogScope();
-    Id          id      = 0;
-    std::string code    = "apple == orange;";
-    StrCache    sources;
+    auto                 __scope = getDebugLogScope();
+    ReportSourceId       id      = ReportSourceId::FromValue(1);
+    std::string          code    = "apple == orange;";
+    ReportSourceStrCache sources;
     sources.add(id, code, "<unknown>");
 
     auto report //
         = Report(ReportKind::Error, id, 0)
               .with_message("can't compare apples with oranges"_qs)
               .with_label(
-                  Label{1}
-                      .with_span(id, slice(0, 14))
+                  ReportLabel{
+                      ReportLabelId::FromValue(1),
+                      CodeSpan{id, slice(0, 14)},
+                  }
                       .with_message("This is a strange comparison"_ss))
               .with_help("No need to try, they can't be compared."_ss)
               .with_help("Yeah, really, please stop.\nIt has no resemblance."_ss)
-              .with_config(Config().with_color(false).with_char_set(Config::ascii()));
+              .with_config(
+                  ReportRenderConfig().with_color(false).with_char_set(
+                      ReportRenderConfig::ascii()));
 
     dumpReport(sources, report);
     GTEST_ASSERT_EQ_SEQ(

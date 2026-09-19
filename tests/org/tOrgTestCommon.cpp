@@ -41,6 +41,7 @@ sem::SemId<sem::Org> testParseString(
     org::test::MockFull     p{"<test>", debug.has_value(), debug.has_value()};
     sem::OrgConverter       converter{};
     org::parse::LexerParams params;
+    auto                    file_id = p.parseContext->addSource("<mock-full-run>", text);
     if (debug) {
         p.tokenizer->setTraceFile(fs::path{debug.value() + "_tokenizer_trace.log"});
         p.parser->setTraceFile(fs::path{debug.value() + "_parser_trace.log"});
@@ -48,13 +49,13 @@ sem::SemId<sem::Org> testParseString(
         p.parser->traceColored    = false;
         p.tokenizer->traceColored = false;
         params.setTraceFile(fs::path{debug.value() + "_lex_trace.log"});
-        p.tokenizeBase(text, params, p.parseContext->addSource("<mock-full-run>", text));
+        p.tokenizeBase(text, params, file_id);
 
         writeFile(
             fs::path{debug.value() + "_base_lexed.yaml"},
             fmt::format("{}", org::test::yamlRepr(p.baseTokens)));
     } else {
-        p.tokenizeBase(text, params, p.parseContext->addSource("<mock-full-run>", text));
+        p.tokenizeBase(text, params, file_id);
     }
 
     p.tokenizeConvert();
@@ -65,7 +66,7 @@ sem::SemId<sem::Org> testParseString(
             fmt::format("{}", org::test::yamlRepr(p.tokens)));
     }
 
-    p.parse();
+    p.parse(file_id, p.parseContext->source.get());
 
     if (debug) {
         std::stringstream buffer;

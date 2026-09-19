@@ -1,13 +1,18 @@
 /* clang-format off */
 void visit(R& res, sem::LispCode const& object);
 void visit(R& res, sem::LispCode::Call const& object);
+void visit(R& res, sem::LispCode::Quoted const& object);
 void visit(R& res, sem::LispCode::List const& object);
+void visit(R& res, sem::LispCode::Vector const& object);
 void visit(R& res, sem::LispCode::KeyValue const& object);
 void visit(R& res, sem::LispCode::Number const& object);
 void visit(R& res, sem::LispCode::Text const& object);
 void visit(R& res, sem::LispCode::Ident const& object);
 void visit(R& res, sem::LispCode::Boolean const& object);
 void visit(R& res, sem::LispCode::Real const& object);
+void visit(R& res, sem::TimeValue const& object);
+void visit(R& res, sem::TimeValue::FixedTime const& object);
+void visit(R& res, sem::TimeValue::DynamicTime const& object);
 void visit(R& res, sem::Tblfm const& object);
 void visit(R& res, sem::Tblfm::Expr const& object);
 void visit(R& res, sem::Tblfm::Expr::AxisRef const& object);

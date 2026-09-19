@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/ext/hstd_serde.hpp"
 #if ORG_BUILD_WITH_KIWI
 
 #    include "hstd/stdlib/Map.hpp"
@@ -69,7 +70,7 @@ DECL_DESCRIBED_ENUM_STANDALONE(Strength, REQUIRED, STRONG, MEDIUM, WEAK);
 
 double kiwi_value(Strength strength);
 Axis   anchor_axis(Anchor anchor);
-Str    axis_color(Axis axis);
+Str    axis_color(hstd::Opt<Axis> axis);
 Anchor get_anchor(Axis axis, AnchorAxisRelative rel);
 
 Str tree_repr(kiwi::Expression const& c, int indent = 0);
@@ -78,8 +79,8 @@ Str tree_repr(Vec<kiwi::Constraint> const& c, int indent = 0);
 
 struct AnchorSpec {
   public:
-    Anchor const x;
-    Anchor const y;
+    Anchor x;
+    Anchor y;
 
     AnchorSpec(Anchor x = Anchor::LEFT, Anchor y = Anchor::TOP) : x{x}, y{y} {
         LOGIC_ASSERTION_CHECK_FMT(anchor_axis(x) == Axis::X, "{}", x);
@@ -96,9 +97,14 @@ struct AnchorSpec {
 
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(htsd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
-        anc->set_x(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(x));
-        anc->set_y(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(y));
+    void writeSerial(hstd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
+        anc->set_x(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(x));
+        anc->set_y(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(y));
+    }
+
+    void readSerial(hstd::ext::kiwi_ir::proto::AnchorSpec const& anc) {
+        hstd::serde::read_serde(anc.x(), &x);
+        hstd::serde::read_serde(anc.y(), &y);
     }
 #    endif
 
@@ -185,13 +191,8 @@ class Expr {
         char const*                     origin_function = nullptr;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-        void writeSerial(::htsd::ext::kiwi_ir::proto::Expr::Node* n) const {
-            if (lhs) { lhs->writeSerial(n->mutable_lhs()); }
-            if (rhs) { rhs->writeSerial(n->mutable_rhs()); }
-            n->set_constant(constant);
-            n->set_kind(static_cast<::htsd::ext::kiwi_ir::proto::Expr::Node::Kind>(kind));
-            n->set_variable(variable->name());
-        }
+        void writeSerial(::hstd::ext::kiwi_ir::proto::Expr::Node* n) const;
+
 #    endif
     };
 
@@ -203,9 +204,28 @@ class Expr {
         return *this;
     }
 
+    std::string format(bool tree) const;
+
+
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(::htsd::ext::kiwi_ir::proto::Expr* e) const {}
+    using VariableResolver = std::optional<
+        std::function<Expr(std::string const& vertexStableId, RectAttr attr)>>;
+
+    void writeSerial(::hstd::ext::kiwi_ir::proto::Expr* e) const {
+        node->writeSerial(e->mutable_node());
+    }
+
+    static Expr readSerial(
+        ::hstd::ext::kiwi_ir::proto::Expr const& e,
+        VariableResolver const&                  resolve = std::nullopt) {
+        return Expr(readNode(e.node(), resolve));
+    }
+
+    static std::shared_ptr<Node> readNode(
+        ::hstd::ext::kiwi_ir::proto::Expr::Node const& n,
+        VariableResolver const&                        resolve = std::nullopt);
 #    endif
+
 
   private:
     explicit Expr(std::shared_ptr<Node> node);
@@ -242,6 +262,8 @@ class Constraint {
     int         origin_line     = -1;
     char const* origin_function = nullptr;
 
+    std::string format(bool tree = false) const;
+
     Constraint& loc(
         char const* function = __builtin_FUNCTION(),
         int         line     = __builtin_LINE()) {
@@ -265,7 +287,24 @@ Str tree_repr(Vec<Constraint> const& c, int indent = 0);
 Str flat_repr(Expr const& n, bool full_flatten = false);
 Str flat_repr(Constraint const& c, bool full_flatten = false);
 
-struct Rect {
+struct KiwiCtx;
+
+struct Rect : hstd::SharedPtrApi<Rect> {
+  private:
+    Rect(
+        KiwiCtx&    ctx,
+        Str         rect_id,
+        Opt<double> x0      = std::nullopt,
+        Opt<double> y0      = std::nullopt,
+        Opt<double> width0  = std::nullopt,
+        Opt<double> height0 = std::nullopt);
+
+  public:
+    friend class KiwiCtx;
+
+    Rect()                  = default;
+    Rect(Rect const& other) = default;
+
     Str         rect_id;
     Opt<double> x0;
     Opt<double> y0;
@@ -277,13 +316,6 @@ struct Rect {
     kiwi::Variable width;
     kiwi::Variable height;
 
-    Rect(
-        Str         rect_id,
-        Opt<double> x0      = std::nullopt,
-        Opt<double> y0      = std::nullopt,
-        Opt<double> width0  = std::nullopt,
-        Opt<double> height0 = std::nullopt);
-
     Expr expr(RectAttr name) const;
     Expr anchor_expr(Anchor anchor) const;
 
@@ -292,13 +324,36 @@ struct Rect {
     }
 };
 
-using RectMap = hstd::UnorderedMap<Str, Rect>;
+using RectMap = hstd::UnorderedMap<Str, Rect::Ptr>;
+
+struct KiwiCtx {
+    RectMap                                         rects;
+    hstd::UnorderedMap<std::string, kiwi::Variable> vars;
+
+    bool empty() const { return rects.empty(); }
+
+    Rect::Ptr use_rect(
+        Str         rect_id,
+        Opt<double> x0      = std::nullopt,
+        Opt<double> y0      = std::nullopt,
+        Opt<double> width0  = std::nullopt,
+        Opt<double> height0 = std::nullopt);
+
+    Rect::Ptr use_rect(Str rect_id) const { return rects.at(rect_id); }
+
+    kiwi::Variable const& get_var(std::string const& name) const { return vars.at(name); }
+
+    kiwi::Variable& add_var(std::string const& name) {
+        if (!vars.contains(name)) { vars.insert_or_assign(name, kiwi::Variable(name)); }
+        return vars.at(name);
+    }
+};
 
 struct EdgeDesc {
-    Str            rect_id;
-    Str            label;
-    Axis           axis;
-    hstd::Opt<Str> color;
+    Str             rect_id;
+    Str             label;
+    hstd::Opt<Axis> axis;
+    hstd::Opt<Str>  color;
 };
 
 class ConstraintBase {
@@ -308,12 +363,12 @@ class ConstraintBase {
     explicit ConstraintBase(Strength strength = Strength::REQUIRED);
     virtual ~ConstraintBase() = default;
 
-    virtual Vec<kiwi_ir::Constraint> build(RectMap const& rects) const = 0;
+    virtual Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const = 0;
     virtual Vec<EdgeDesc>            describe_edges() const            = 0;
 
-    Vec<Str> getBuildRepr(hstd::Opt<RectMap> const& rects) const;
+    Vec<Str> getBuildRepr(hstd::Opt<KiwiCtx> const& rects) const;
 
-    virtual Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const = 0;
+    virtual Str getRepr(hstd::Opt<KiwiCtx> const&) const = 0;
 };
 
 struct ConstraintEntry {
@@ -334,8 +389,8 @@ struct AlignSpec {
     double offset = 0.0;
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(::htsd::ext::kiwi_ir::proto::AlignSpec* as) const {
-        as->set_anchor(static_cast<::htsd::ext::kiwi_ir::proto::Anchor>(anchor));
+    void writeSerial(::hstd::ext::kiwi_ir::proto::AlignSpec* as) const {
+        as->set_anchor(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(anchor));
         as->set_offset(offset);
     }
 #    endif
@@ -361,9 +416,9 @@ class AlignConstraint : public ConstraintBase {
 
     AlignConstraint(Vec<AlignItem> items, Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<KiwiCtx> const& rects = std::nullopt) const override;
 };
 
 /// \brief Separate constraint creates to lanes of shapes (with one or more
@@ -387,9 +442,9 @@ class SeparateConstraint : public ConstraintBase {
         double               offset,
         Strength             strength = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<KiwiCtx> const& rects = std::nullopt) const override;
 };
 
 /// \brief Positions groups of rectangles with a fixed step between
@@ -409,9 +464,9 @@ class MultiSeparateConstraint : public ConstraintBase {
         double                  step,
         Strength                strength = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<KiwiCtx> const& rects = std::nullopt) const override;
 };
 
 /// \brief Ensure the "parent" rectangle fully covers the nested IDs.
@@ -442,9 +497,9 @@ class ParentWrapConstraint : public ConstraintBase {
         geometry::Padding const& pad      = geometry::Padding(),
         Strength                 strength = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<KiwiCtx> const& rects = std::nullopt) const override;
 };
 
 
@@ -470,7 +525,7 @@ struct RelDimensionSpec {
     DESC_FIELDS(RelDimensionSpec, (size_factor, relative_offset, absolute_offset));
 
 #    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(::htsd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
+    void writeSerial(::hstd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
         if (size_factor.has_value()) { rd->set_size_factor(size_factor.value()); }
 
         if (relative_offset.has_value()) {
@@ -478,6 +533,12 @@ struct RelDimensionSpec {
         }
 
         rd->set_absolute_offset(absolute_offset);
+    }
+
+    void readSerial(::hstd::ext::kiwi_ir::proto::RelDimensionSpec const& rd) {
+        if (rd.has_size_factor()) { this->size_factor = rd.size_factor(); }
+        if (rd.has_relative_offset()) { this->relative_offset = rd.relative_offset(); }
+        absolute_offset = rd.absolute_offset();
     }
 #    endif
 };
@@ -518,9 +579,9 @@ class RelativeConstraint : public ConstraintBase {
         AnchorSpec       anchor_relative = AnchorSpec::UpperLeft(),
         Strength         strength        = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str                      getRepr(hstd::Opt<KiwiCtx> const& rects) const override;
 };
 
 /// \brief Equalizes the gaps between consecutive rectangles using
@@ -547,9 +608,9 @@ class EvenGapConstraint : public ConstraintBase {
         Vec<RectSpec2Side> rects_spec,
         Strength           strength = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<KiwiCtx> const& rects = std::nullopt) const override;
 };
 
 /// \brief Ensure the width/height between two rectangles is matched.
@@ -575,9 +636,9 @@ class EqualSizeConstraint : public ConstraintBase {
         bool     match_height = false,
         Strength strength     = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<KiwiCtx> const& rects = std::nullopt) const override;
 };
 
 /// \brief Free-form constraint between different elements on the graph.
@@ -598,22 +659,25 @@ class LinearConstraint : public ConstraintBase {
         Expr     right,
         Strength strength = Strength::REQUIRED);
 
-    Vec<kiwi_ir::Constraint> build(RectMap const& rects) const override;
+    Vec<kiwi_ir::Constraint> build(KiwiCtx const& rects) const override;
     Vec<EdgeDesc>            describe_edges() const override;
-    Str getRepr(hstd::Opt<RectMap> const& rects = std::nullopt) const override;
+    Str getRepr(hstd::Opt<KiwiCtx> const& rects = std::nullopt) const override;
 };
 
 class Layout {
   public:
-    RectMap                         rects;
+    hstd::SPtr<KiwiCtx>             rects;
     Vec<hstd::SPtr<ConstraintBase>> constraints;
 
-    Layout(Vec<Rect> rects, Vec<hstd::SPtr<ConstraintBase>> constraints);
+    RectMap const& getSolved() const { return rects->rects; }
 
-    RectMap       solve();
+    Layout(hstd::SPtr<KiwiCtx> ctx, Vec<hstd::SPtr<ConstraintBase>> constraints);
+
+    void          solve();
     hstd::XmlNode to_svg(Str const& title = "layout");
     void          to_graphviz(hstd::fs::path const& path);
     void          verify_constraints();
+    std::string   format_variables();
 
   private:
     Vec<ConstraintEntry> build_constraint_entries() const;

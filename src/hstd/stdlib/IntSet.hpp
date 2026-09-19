@@ -149,6 +149,9 @@ struct [[refl(R"({
         buildSet(*this, args...);
     }
 
+    IntSet(IntSet<T> const& other) = default;
+
+
     class iterator {
       private:
         std::size_t    index;
@@ -196,7 +199,7 @@ struct fmt::formatter<hstd::IntSet<T>> {
     using FmtType = hstd::IntSet<T>;
     hstd::fmt_iter format(FmtType const& p, fmt::format_context& ctx) const {
         hstd::fmt_ctx("{", ctx);
-        hstd::fmt_ctx(join(", ", p), ctx);
+        hstd::fmt_ctx(join(std::string_view{", "}, p), ctx);
         return hstd::fmt_ctx("}", ctx);
     }
 };

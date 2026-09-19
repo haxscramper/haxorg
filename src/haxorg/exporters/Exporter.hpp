@@ -84,19 +84,19 @@ struct ExporterEventBase : hstd::OperationsTracer {
         VisitReport        event;
         VisitScope(ExporterEventBase* exporter, VisitReport event)
             : exp(exporter), event(event) {
-            if (exp->TraceState) {
-                event.level   = exp->activeLevel;
+            if (exp->canTrace()) {
+                event.level   = exp->getLevel();
                 event.isStart = true;
                 exp->report(event);
-                ++exp->activeLevel;
+                exp->incLevel();
             }
         }
 
         ~VisitScope() {
-            if (exp->TraceState) {
-                --exp->activeLevel;
+            if (exp->canTrace()) {
+                exp->decLevel();
                 if (!event.instant) {
-                    event.level   = exp->activeLevel;
+                    event.level   = exp->getLevel();
                     event.isStart = false;
                     exp->report(event);
                 }

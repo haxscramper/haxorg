@@ -390,8 +390,9 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
         std::visit(
             overloaded{
                 [&](sem::NamedProperty::Created const& cr) {
+                    if (cr.time.isDynamicTime()) { return; }
                     SubtreePeriod period{};
-                    period.from = cr.time;
+                    period.from = cr.time.getFixedTime().time;
                     period.kind = SubtreePeriod::Kind::Created;
                     res.push_back(period);
                 },
@@ -586,6 +587,7 @@ Opt<sem::AttrValue> Cmd_getFirstAttr(Handle handle, Str const& kind) {
     }
 }
 
+
 template <typename Handle>
 auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
     using Select = SemOrImmType<
@@ -601,7 +603,8 @@ auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
             auto k = normalize(*kind);
             if (is_kind(sub_h, OrgSemKind::CmdAttr)) {
                 auto attr = org_cast<sem::CmdAttr>(sub_h);
-                if ((k.starts_with("attr") && normalize(attr->target) == k)
+                if ((k.starts_with("attr")
+                     && normalize(hstd::ext::get_str_view(attr->target)) == k)
                     || (normalize("attr_" + attr->target) == k)) {
                     result.push_back(sub_h);
                 }
@@ -786,19 +789,19 @@ void CallDynamicOrgMethod(ThisType thisType, Func func, Args&&... args) {
 
 // clang-format off
 
-Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getCaption() const {
+Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getAttachedBlockCaptions() const {
     Vec<imm::ImmAdapter> result;
     CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getCaption(a1); });
     return result;
 }
 
-Vec<Str> imm::ImmAdapterStmtAPI::getName() const {
+Vec<Str> imm::ImmAdapterStmtAPI::getAttachedBlockNames() const {
     Vec<Str> result;
     CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1) { result = Stmt_getName(a1); });
     return result;
 }
 
-Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getAttached(Opt<Str> const& kind) const {
+Vec<imm::ImmAdapter> imm::ImmAdapterStmtAPI::getAttachedBlockAttrs(Opt<Str> const& kind) const {
     Vec<imm::ImmAdapter> result;
     CallDynamicOrgMethod<imm::ImmStmt>(getThis(), [&](auto const &a1, auto const &a2) { result = Stmt_getAttached(a1, a2); }, kind);
     return result;
@@ -949,12 +952,13 @@ ListFormattingMode sem::List::getListFormattingMode() const {
 imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterSubtreeAPI::getTitle() const {
     return pass(
         getThisT<imm::ImmSubtree>()->title,
-        ImmPathStep::Field(imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
+        ImmSubnodeAccessStep::Field(
+            imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
 }
 imm::ImmAdapterT<imm::ImmParagraph> imm::ImmAdapterCmdCaptionAPI::getText() const {
     return pass(
         getThisT<imm::ImmCmdCaption>()->text,
-        ImmPathStep::Field(
+        ImmSubnodeAccessStep::Field(
             imm::ImmReflFieldId::FromTypeField(&imm::ImmCmdCaption::text)));
 }
 
@@ -966,7 +970,7 @@ Opt<imm::ImmAdapter> imm::ImmAdapterListItemAPI::getHeader() const {
     } else {
         return pass(
             it->header->value(),
-            ImmPathStep::FieldDeref(
+            ImmSubnodeAccessStep::FieldDeref(
                 imm::ImmReflFieldId::FromTypeField(&imm::ImmListItem::header)));
     }
 }
@@ -1121,7 +1125,8 @@ Vec<Str> org::getDfsLeafText(imm::ImmAdapter const& id, SemSet const& filter) {
 
 Str org::getCleanText(sem::SemId<sem::Org> const& id) {
     return join(
-        "", org::getDfsFuncEval<Str>(id, [](sem::SemId<sem::Org> const& id) -> Opt<Str> {
+        ""_str_view,
+        org::getDfsFuncEval<Str>(id, [](sem::SemId<sem::Org> const& id) -> Opt<Str> {
             if (auto space = id.asOpt<sem::Space>()) {
                 return " ";
             } else {
@@ -1132,7 +1137,8 @@ Str org::getCleanText(sem::SemId<sem::Org> const& id) {
 
 Str org::getCleanText(imm::ImmAdapter const& id) {
     return join(
-        "", org::getDfsFuncEval<Str>(id, false, [](imm::ImmAdapter const& a) -> Opt<Str> {
+        ""_str_view,
+        org::getDfsFuncEval<Str>(id, false, [](imm::ImmAdapter const& a) -> Opt<Str> {
             if (auto space = a.dyn_cast<imm::ImmSpace>()) {
                 return " ";
             } else {

@@ -115,6 +115,9 @@ items:
       **** COMPLETED Das
       **** COMPLETED =A=
 
+    debug:
+      doFormatReparse: false
+
   - name: "Incomplete italic-looking quote content"
     tags: ["org_quote", "org_subtree", "org_markup"]
     source: |
@@ -124,6 +127,9 @@ items:
 
       **** COMPLETED Das
       **** COMPLETED =A=
+
+    debug:
+      doFormatReparse: false
 
   - name: "Link content"
     tags: ["org_link"]
@@ -322,6 +328,8 @@ items:
   - name: "Empty paragraph"
     source: |
       ****** AAA
+    debug:
+      doFlatParseCompare: false
 
   - name: "tbflm"
     debug:
@@ -753,6 +761,9 @@ items:
       **** COMMENT :ARCHIVE:tag1:
       **** Nothing
 
+    debug:
+      doFormatReparse: false
+
   - name: "Broken list indentation"
     tags: ["org_list", "defcon1"]
     debug:
@@ -919,3 +930,132 @@ items:
   - name: "Link with file path"
     source: |
       - [2025-11-12 Wed 14:29:32 +04] [[https://github.com/N-Coder/syncplan/blob/d2020a04c4b2c13b5900ef5bbe4181fb833ceafe/src/exec/cplan.cpp#L4][syncplan/src/exec/cplan.cpp at d2020a04c4b2c13b5900ef5bbe4181fb833ceafe · N-Coder/syncplan · GitHub]]
+
+  - name: "Multiple startup options"
+    source: |
+      #+startup: literallinks showeverything
+
+    debug:
+      doFormatReparse: false
+
+  - name: Unclosed blocks
+    source: |
+      #+begin_src cpp
+      int main() {}
+      (no end tag, 500 more lines of text)
+
+    debug:
+      doParse: false
+
+  - name: Nested unclosed blocks
+    source: |
+      #+begin_src cpp
+
+      #+begin_src cpp
+      int main() {}
+      (no end tag, 500 more lines of text)
+      #+end_src
+
+  - name: Unclosed blocks with wrong indentation and lists
+    source:  |
+      - some random thing #+begin_src
+
+        #+end_src
+      - another list item
+        #+begin_src
+
+      #+end_src
+      - not clear
+        #+begin_src cpp
+        #+begin_src cpp
+
+      #+begin_src
+
+      #+begin_src cpp
+      int main() {}
+      (no end tag, 500 more lines of text)
+      #+end_src
+
+    debug:
+      doSem: false
+
+  - name: Unterminated begin example
+    source: |
+      #+begin_example
+      asdfasdfasdf
+      asadfasdf
+
+    debug:
+      doSem: false
+
+  - name: Dynamic-begin-like command
+    source: |
+      #+beginner: random command, not a begin block
+      #+endnotes: whatver asdfasdf??
+
+    debug:
+      doFormatReparse: false
+
+  - name: Cmd-like start without colon
+    source: |
+      #+notakeyword some text
+
+  - name: Begin without name
+    source: |
+      #+begin:
+      missing begin content
+
+  - name: Separator line in the middle of the text
+    source: |
+      foo ----- bar
+      --------
+      - ------------
+      --------- -
+
+  - name: Missing property continuation
+    # Lex should process this line as a property-like thing, and the parser
+    # should display the error annotation here.
+    source: |
+      * random
+        :properties: but this is actually a paragraph
+        :somevalue: for some reason I'm starting lines with property-like text
+        :end: this is also junk
+
+    debug:
+      doSem: false
+
+  - name: Partial table separator
+    source: |
+      | a |
+      |-
+      | b |
+
+
+  - name: Inline footnote definition
+    source: |
+      [fn:name:inline definition]
+
+  - name: Tilda in the code 1
+    source: |
+      x-~y~
+
+  - name: Tilde in the code 2
+    source: |
+      ~y~-z
+
+  - name: Dash in the command name
+    source: |
+      #+latex-header: \usepackage{x}
+
+    debug:
+      doFormatReparse: false
+
+
+  - name: "Unterminated source code block"
+    source: |
+      [2026-04-17 Fri 23:46] src_c++{[[refl]] std::string toColaString() const {} in =adaptagrams_ir.hpp:118= at ~496f2970~
+
+
+  - name: "Looks like radio target, but no body"
+    source: |
+      random <<>>

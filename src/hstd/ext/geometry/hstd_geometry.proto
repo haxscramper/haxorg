@@ -23,12 +23,11 @@ message Point {
 
 message Path {
   enum CommandType {
-    COMMAND_TYPE_UNSPECIFIED = 0;
-    MOVE_TO = 1;
-    LINE_TO = 2;
-    QUAD_TO = 3;
-    CUBIC_TO = 4;
-    CLOSE_SUBPATH = 5;
+    MOVE_TO = 0;
+    LINE_TO = 1;
+    QUAD_TO = 2;
+    CUBIC_TO = 3;
+    CLOSE_SUBPATH = 4;
   }
 
   message Command {

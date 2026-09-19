@@ -14,7 +14,7 @@ struct OrgCodeEvalParameters {
     std::string                               currentFile;
     std::shared_ptr<org::parse::ParseContext> parseContext;
 
-    bool isTraceEnabled() const { return debug && debug->TraceState; }
+    bool isTraceEnabled() const { return debug && debug->canTrace(); }
 
     OrgCodeEvalParameters(std::shared_ptr<org::parse::ParseContext> parseContext)
         : parseContext{parseContext}, debug{std::make_shared<hstd::OperationsTracer>()} {}

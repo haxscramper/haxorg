@@ -5,6 +5,7 @@ items:
       - {kind: HashIdent, str: "#test"}
       - {kind: DoubleHash, str: "##"}
       - {kind: Word, str: a}
+      - {kind: EndOfFile}
 
 
   - name: "Hashtag with two word subtags"

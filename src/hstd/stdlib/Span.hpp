@@ -10,7 +10,7 @@ namespace hstd {
 
 
 template <typename T>
-class Span : public std::span<T> {
+class [[gsl::Pointer]] Span : public std::span<T> {
   public:
     using std::span<T>::span; // Inherit constructor
     using std::span<T>::data;
@@ -28,7 +28,7 @@ class Span : public std::span<T> {
             static_cast<std::size_t>(value_domain<int>::high()));
     }
 
-    Span(T* data, int size) : std::span<T>(data, size) {}
+    Span(T* data [[clang::lifetimebound]], int size) : std::span<T>(data, size) {}
     T const* cdata() const { return data(); }
 
 

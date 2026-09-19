@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd/stdlib/Set.hpp"
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
 #include <hstd/stdlib/Exception.hpp>
@@ -8,6 +9,10 @@
 #include <hstd/stdlib/sequtils.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>
+
+namespace hstd::ext {
+class ReportSourceCache;
+}
 
 namespace org::parse {
 
@@ -49,6 +54,57 @@ struct OrgParser : public hstd::OperationsTracer {
         OrgLexer const*  lex  = nullptr;
     };
 
+  public:
+    struct ErrorTable {
+        static org::sem::OrgDiagnostics::ParseError ParseErrorInit(
+            std::string_view   name,
+            std::string        code,
+            std::string const& brief,
+            std::string const& detail) {
+            org::sem::OrgDiagnostics::ParseError result;
+            result.errName = std::string{name};
+            result.errCode = code;
+            result.brief   = brief;
+            result.detail  = detail;
+            return result;
+        }
+
+#define P_ERROR(__fieldname, __short, __long)                                            \
+    const org::sem::OrgDiagnostics::ParseError __fieldname = ParseErrorInit(             \
+        #__fieldname, ::org::fieldname_to_code(#__fieldname), __short, __long);
+
+        P_ERROR(FallbackError, "Default fallback error", "");
+        P_ERROR(UnexpectedToken, "Found unexpected token during parsing", "");
+        P_ERROR(MissingClosingParen, "Expected closing `)`", "");
+        P_ERROR(MissingClosingBracket, "Expected closing `]`", "");
+        P_ERROR(
+            MissingClosingColonOnSubtreeTags,
+            "Expected trailing ':' on the subtree tags",
+            "");
+        P_ERROR(
+            MissingMacroClose,
+            "Expected `}}}` after macro close",
+            "Inline macro call can be either `{{{macro-name}}}` or "
+            "`{{{macro-name(arg1, arg2)}}}`.");
+        P_ERROR(
+            UnexpectedClosingCommand,
+            "Unexpected closing command without opening",
+            "");
+        P_ERROR(
+            UnexpectedTableElement,
+            "Unexpected element at the top table level.",
+            "Block-style table can only have pipe-style (leading `|`) or "
+            "CMD-style rows (`#+row`).");
+        P_ERROR(
+            MissingPropertyContinuation,
+            "Missing propery block continuation after the `:property:` start",
+            ":properties: must be immediately followed by the property list "
+            "starting from the next line");
+
+#undef P_ERROR
+    };
+
+    ErrorTable const error_table;
 
   public:
     struct ParseFail {};
@@ -65,7 +121,7 @@ struct OrgParser : public hstd::OperationsTracer {
     ParseResult parseMacro(OrgLexer& lex);
     ParseResult parseCallArguments(OrgLexer& lex);
     ParseResult parseAttrValue(OrgLexer& lex);
-    ParseResult parseAttrLisp(OrgLexer& lex);
+    ParseResult parseLispExpr(OrgLexer& lex);
     ParseResult parseLink(OrgLexer& lex);
     ParseResult parseInlineMath(OrgLexer& lex);
     ParseResult parseSymbol(OrgLexer& lex);
@@ -165,7 +221,8 @@ struct OrgParser : public hstd::OperationsTracer {
         bool        closed  = false;
         std::string debug;
 
-        NodeGuard(int startingDepth, OrgParser* parser, OrgId startId)
+
+        NodeGuard(int startingDepth, OrgParser* parser, OrgId startId = OrgId::Nil())
             : startingDepth{startingDepth}, parser{parser}, startId{startId} {}
 
         NodeGuard()                       = delete;
@@ -182,12 +239,23 @@ struct OrgParser : public hstd::OperationsTracer {
             char const*        function = __builtin_FUNCTION());
     };
 
+    struct advance_guard_obj {
+        int         line;
+        char const* function;
+        OrgLexer*   lex;
+        OrgTokenId  start_pos;
+        ~advance_guard_obj();
+    };
+
+    advance_guard_obj advance_guard(
+        OrgLexer*   lex,
+        int         line     = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     [[nodiscard]] std::unique_ptr<NodeGuard> start(
         OrgNodeKind kind,
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
-
 
     void start_no_guard(
         OrgNodeKind kind,
@@ -198,6 +266,13 @@ struct OrgParser : public hstd::OperationsTracer {
         std::string const& desc     = "",
         int                line     = __builtin_LINE(),
         char const*        function = __builtin_FUNCTION());
+
+    OrgNodeMono::Error error_value(
+        std::string const&                                     msg,
+        hstd::Opt<org::sem::OrgDiagnostics::ParseError> const& message,
+        OrgLexer const&                                        lex,
+        int                                                    line = __builtin_LINE(),
+        char const* function = __builtin_FUNCTION());
 
     OrgNodeMono::Error error_value(
         org::sem::OrgDiagnostics::ParseError const& message,
@@ -234,6 +309,12 @@ struct OrgParser : public hstd::OperationsTracer {
         OrgLexer&                                   lex,
         int                                         line     = __builtin_LINE(),
         char const*                                 function = __builtin_FUNCTION());
+
+    ParseResult maybe_recursive_error_no_propagate(
+        ParseResult const& res,
+        OrgLexer&          lex,
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
 
 
     OrgId fake(
@@ -292,7 +373,15 @@ struct OrgParser : public hstd::OperationsTracer {
         int         line     = __builtin_LINE(),
         char const* function = __builtin_FUNCTION());
 
-    hstd::finally_std trace(
+    struct org_parser_trace_state {
+        OrgParser*  parser;
+        OrgLexer*   lexer;
+        int         line;
+        char const* function;
+        ~org_parser_trace_state();
+    };
+
+    org_parser_trace_state trace(
         OrgLexer&              lex,
         hstd::Opt<std::string> msg      = std::nullopt,
         int                    line     = __builtin_LINE(),
@@ -310,17 +399,21 @@ struct OrgParser : public hstd::OperationsTracer {
 
     hstd::Func<void(Report const&)> reportHook;
     OrgNodeGroup*                   group = nullptr;
+    SourceFileId                    activeFileId;
+    SourceManager const*            manager;
 
     /// \brief Identification for the current file being processed. Value
     /// from this field is passed to the source location for the failure
     /// diagnostics.
-    OrgParser(OrgNodeGroup* _group) : group{_group} {}
+    OrgParser(
+        OrgNodeGroup*        _group,
+        SourceFileId         activeFileId = SourceFileId::Nil(),
+        SourceManager const* manager      = nullptr)
+        : group{_group}, activeFileId{activeFileId}, manager{manager} {}
 
     void reserve(int size) { group->nodes.reserve(size); }
 
     void setReportHook(hstd::Func<void(Report const&)> in) { reportHook = in; }
-
-    static hstd::Opt<SourceLoc> getLoc(OrgLexer const& lex);
 
     hstd::Slice<OrgId> parseText(OrgLexer& lex);
 

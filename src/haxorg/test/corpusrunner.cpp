@@ -357,6 +357,7 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                 .minLhsSize = 30,
                 .minRhsSize = 48,
                 .formatLine = [&](FormattedDiff::DiffLine const& line) -> ColText {
+                    if (!line.index().has_value()) { return ""; }
                     auto tok = line.isLhs
                                  ? lexed.tokens.content.at(line.index().value())
                                  : expected.tokens.content.at(line.index().value());
@@ -365,7 +366,7 @@ CorpusRunner::RunResult::LexCompare compareTokens(
                     opts.flags.excl(hshow_flag::use_quotes);
 
                     std::string text = escape_literal(
-                        hshow1(get_token_text(tok), opts).toString(false));
+                        hshow1(Str{get_token_text(tok)}, opts).toString(false));
 
                     std::string result = //
                         hstd::fmt(
@@ -407,10 +408,10 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
 
                     if (lhs.kind == onk::RawText) {
                         CharSet s{' '};
-                        return strip(lhsTok.value.text, s, s)
-                            == strip(rhsTok.value.text, s, s);
+                        return strip(lhsTok.value.text(), s, s)
+                            == strip(rhsTok.value.text(), s, s);
                     } else {
-                        return lhsTok.value.text == rhsTok.value.text;
+                        return lhsTok.value.text() == rhsTok.value.text();
                     }
                 } else {
                     return lhs.getToken() == rhs.getToken();
@@ -453,7 +454,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::compareNodes(
                                       group->tokens->tokens.content
                                           .get_copy(node.getToken().getIndex())
                                           .value_or(OrgToken{})
-                                          ->text,
+                                          ->text(),
                                       hshow_opts().excl(hshow_flag::use_quotes))
                                       .toString(false))
                             : std::string(""),
@@ -533,15 +534,15 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::compareSem(
     }
 
     if (0 < failCount) {
-        yaml converted_yaml  = toYaml(converted);
-        yaml expected_yaml   = toYaml(expected);
-        auto converted_lines = split(Str(fmt1(converted_yaml)), '\n');
-        auto expected_lines  = split(Str(fmt1(expected_yaml)), '\n');
+        auto converted_yaml  = Str(fmt1(toYaml(converted)));
+        auto expected_yaml   = Str(fmt1(toYaml(expected)));
+        auto converted_lines = split(converted_yaml, '\n');
+        auto expected_lines  = split(expected_yaml, '\n');
 
-        BacktrackRes sem_lcs = longestCommonSubsequence<Str>(
-            converted_lines, expected_lines, [](Str const& lhs, Str const& rhs) -> bool {
-                return lhs == rhs;
-            })[0];
+        BacktrackRes sem_lcs = longestCommonSubsequence<StrView>(
+            converted_lines,
+            expected_lines,
+            [](StrView const& lhs, StrView const& rhs) -> bool { return lhs == rhs; })[0];
 
         ShiftedDiff   sem_diff{sem_lcs, converted_lines.size(), expected_lines.size()};
         FormattedDiff text{
@@ -662,7 +663,7 @@ CorpusRunner::RunResult CorpusRunner::runSpecFormatted(
     rerun.subnodes    = std::nullopt;
     rerun.tokens      = std::nullopt;
     rerun.sem         = toTestJson(p.node);
-    Str dbg           = relDebug + "_reformat";
+    Str dbg           = relDebug + "_reformat"_str_view;
 
     if (spec.debug.traceAll || spec.debug.printSource) {
         writeFile(
@@ -826,8 +827,10 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
     }
 
     __perf_trace("cli", "tokenize base");
+    LOGIC_ASSERTION_CHECK(!spec.specFile.empty(), "");
+    auto spec_source_path = hstd::fmt("<{}-{}>", spec.specFile, spec.specLocation.line);
     p.tokenizeBase(
-        spec.source, params, p.parseContext->addSource("<spec-base-lex>", spec.source));
+        spec.source, params, p.parseContext->addSource(spec_source_path, spec.source));
 
     if (spec.debug.traceAll || spec.debug.printBaseLexed
         || spec.debug.printBaseLexedToFile) {
@@ -856,13 +859,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
             [](OrgToken const& lhs, OrgToken const& rhs) -> bool {
                 if (lhs.kind != rhs.kind) {
                     return false;
-                } else if (lhs.value.text != rhs.value.text) {
+                } else if (lhs.value.text() != rhs.value.text()) {
                     return false;
                 } else {
                     return true;
                 }
             },
-            [](OrgToken const& tok) { return tok.value.text; });
+            [](OrgToken const& tok) { return tok.value.text(); });
 
         return result;
     } else {
@@ -876,8 +879,8 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
     Str const&       relDebug) {
     __perf_trace("cli", "lex");
 
-    p.tokenizer->TraceState = spec.debug.traceAll || spec.debug.traceLex;
-    if (p.tokenizer->TraceState) {
+    p.tokenizer->setTraceState(spec.debug.traceAll || spec.debug.traceLex);
+    if (p.tokenizer->canTrace()) {
         p.tokenizer->setTraceFile(spec.debugFile("trace_lex.log", relDebug));
         p.tokenizer->traceColored = false;
     }
@@ -916,13 +919,13 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
                     // debugging why 'given' in tests sometimes has a
                     // non-empty base and sometimes it is a true
                     // nullopt_t value.
-                    lhs->text != rhs->text) {
+                    lhs->text() != rhs->text()) {
                     return false;
                 } else {
                     return true;
                 }
             },
-            [](OrgToken const& tok) { return tok->text; });
+            [](OrgToken const& tok) { return tok->text(); });
 
         return result;
     } else {
@@ -942,8 +945,8 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
     auto writeImpl = getOrgParseWriteParams(p.spec.get(), &p.nodes, &parseAddedOnLine);
 
 
-    p.parser->TraceState = spec.debug.traceAll || spec.debug.traceParse;
-    if (p.parser->TraceState) {
+    p.parser->setTraceState(spec.debug.traceAll || spec.debug.traceParse);
+    if (p.parser->canTrace()) {
         p.parser->traceColored = false;
         p.parser->setTraceFile(spec.debugFile("trace_parse.log", relDebug));
     }
@@ -955,6 +958,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         }
     };
 
+    p.parser->manager = p.parseContext->source.get();
     (void)p.parser->parseTop(p.lex);
 
     if (spec.debug.traceAll || spec.debug.printParsed || spec.debug.printParsedToFile) {
@@ -1015,8 +1019,8 @@ CorpusRunner::RunResult::SemCompare CorpusRunner::runSpecSem(
     __perf_trace("cli", "sem convert");
     sem::OrgConverter converter{};
 
-    converter.TraceState = spec.debug.traceAll || spec.debug.traceSem;
-    if (converter.TraceState) {
+    converter.setTraceState(spec.debug.traceAll || spec.debug.traceSem);
+    if (converter.canTrace()) {
         converter.setTraceFile(spec.debugFile("trace_sem.log", relDebug));
     }
 

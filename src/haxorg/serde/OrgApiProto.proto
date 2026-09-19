@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "src/haxorg/serde/SemOrgProto.proto";
+import "src/hstd/ext/error_write.proto";
+import "src/haxorg/serde/SemOrgProtoManual.proto";
+
+package orgproto;
+
+message SourceManager {
+  message Source {
+    org.parse.SourceFileId file_id = 1;
+    string source_name = 2;
+    string content = 3;
+  }
+
+  repeated Source path_ids = 1;
+}
+
+message ParseReport {
+  .hstd.ext.error_write.Report report =1;
+  string formatted = 2;
+}
+
+message ParseResult {
+  orgproto.AnyNode node = 1;
+  repeated ParseReport reports = 2;
+  SourceManager sources = 3;
+}

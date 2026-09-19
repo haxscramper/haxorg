@@ -18,7 +18,7 @@ void OrgParser::report(Report const& in) {
     if (reportHook) { reportHook(in); }
 
     if (in.kind == ReportKind::EnterParse || in.kind == ReportKind::StartNode) {
-        ++activeLevel;
+        incLevel();
     }
 
     ColStream os = getStream();
@@ -28,7 +28,7 @@ void OrgParser::report(Report const& in) {
         using namespace org::report;
 
         EntryParser res;
-        res.depth = activeLevel;
+        res.depth = getLevel();
 #define __kind(K)                                                                        \
     case ReportKind::K: {                                                                \
         res.kind = EntryParser::Kind::K;                                                 \
@@ -48,7 +48,7 @@ void OrgParser::report(Report const& in) {
         if (in.lex != nullptr) {
             ValueLexPosition val;
             val.maxPos = in.lex->in->size();
-            val.loc    = this->getLoc(*in.lex);
+            val.loc    = in.lex->getLoc();
 
             if (!in.lex->pos.isNil()) { val.nowPos = in.lex->pos.getIndex(); }
 
@@ -60,7 +60,7 @@ void OrgParser::report(Report const& in) {
                             .index = in.lex->pos.isNil()
                                        ? -1
                                        : static_cast<int>(in.lex->pos.getIndex() + i),
-                            .value = in.lex->tok(i).value.text,
+                            .value = std::string{in.lex->tok(i).value.text()},
                         });
                 }
             }
@@ -81,16 +81,12 @@ void OrgParser::report(Report const& in) {
         os << to_json_eval(res).dump();
 
     } else {
-        os << repeat("  ", activeLevel);
-        auto print_token = [](ColStream& os, OrgToken const& t) {
-            os << escape_for_write(t->text);
-        };
-
+        os << repeat("  ", getLevel());
         auto printTokens = [&]() {
             if (in.lex != nullptr) {
                 os << " [";
                 OrgLexer::PrintParams params;
-                in.lex->print(os, print_token, params);
+                in.lex->print(os, &OrgLexer::TokenFormatCbDefault, params);
                 os << "]";
             }
         };
@@ -98,7 +94,7 @@ void OrgParser::report(Report const& in) {
         auto getLoc = [&]() -> std::string {
             std::string res;
             if (in.lex != nullptr) {
-                Opt<SourceLoc> loc = this->getLoc(*in.lex);
+                Opt<SourceLoc> loc = in.lex->getLoc();
                 if (loc.has_value()) {
                     res = hstd::fmt("{}:{} ", loc->line, loc->column);
                 }
@@ -118,7 +114,7 @@ void OrgParser::report(Report const& in) {
                     "{} {} ID:{} @{}",
                     (in.kind == ReportKind::StartNode ? "+" : "-"),
                     group->at(id).kind,
-                    id.getUnmasked(),
+                    id,
                     in.line);
             }
         };
@@ -161,10 +157,10 @@ void OrgParser::report(Report const& in) {
                 os << fmt::format(
                     "  add {} ID:{} @{} with '{}'",
                     group->at(id).kind,
-                    id.getUnmasked(),
+                    id,
                     in.line,
                     escape_literal(
-                        group->at(id).isMono() ? "<mono>" : group->val(id).text));
+                        group->at(id).isMono() ? "<mono>" : group->val(id).text()));
                 if (in.msg && !in.msg->empty()) { os << " " << in.msg.value(); }
                 break;
             }
@@ -200,6 +196,6 @@ void OrgParser::report(Report const& in) {
     endStream(os);
 
     if (in.kind == ReportKind::LeaveParse || in.kind == ReportKind::EndNode) {
-        --activeLevel;
+        decLevel();
     }
 }
