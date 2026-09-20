@@ -46,14 +46,20 @@ repos:
         language: system
         types: [python]
         stages: [manual]
-  - repo: local
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
     hooks:
-      - id: yapf
-        name: Format python code
-        entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/safe_yapf_format.py
-        language: system
-        types: [python]
-        stages: [manual]
+      - id: ruff-check
+        name: ruff fix imports
+        # I: sort and organize imports
+        # F401: remove unused impots
+        # UP035: import Sequence/Mapping from collections.abc instead of the typing
+        args: [--fix, "--select=I,F401,UP035", "--fixable=I,F401,UP035"]
+
+      - id: ruff-format
+
+      - id: ruff-check
+        name: ruff validate
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:

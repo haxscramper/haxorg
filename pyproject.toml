@@ -56,9 +56,7 @@ dependencies = [
 ]
 
 [tool.uv]
-override-dependencies = [
-    "isort>=7.0.0",
-]
+override-dependencies = ["isort>=7.0.0"]
 
 [dependency-groups]
 dev = [
@@ -98,19 +96,9 @@ exclude = [
 # cxx_repository = { workspace = true }
 # py_haxorg = { workspace = true }
 
-[tool.isort]
-profile = "google"
-force_single_line = false
-force_sort_within_sections = true
-combine_as_imports = true
-multi_line_output = 3
-line_length = 90
-include_trailing_comma = true
 
-[tool.poetry.group.dev.dependencies]
-yapf = "^0.40.2"
-# on what to do instead, and I don't have time to deal with this bullshit, so fixing to whatever version
-# I have installed at the moment.
+
+
 
 [tool.pytest.ini_options]
 log_cli_format = "%(levelname)s [%(name)s %(filename)s:%(lineno)d] %(message)s"
@@ -133,21 +121,32 @@ markers = [
 
 [tool.ruff]
 ignore = [
-  "F405", # Undefined or defined from `*` imports
-  "F403", # `from astbuilder_cpp import *` used; unable to detect undefined names
-  "E501", # Line length
-  "F841", # Assigned but never used
-  "F522", # UNused format arguments
-  "F401", # Imported but not used -- just drives me crazy when I write code
-  "E712", # Allow comparisons to `== False`, they can be more readable/explicit
+  "F405",   # Undefined or defined from `*` imports
+  "F403",   # `from astbuilder_cpp import *` used; unable to detect undefined names
+  "E501",   # Line length
+  "F841",   # Assigned but never used
+  "F522",   # UNused format arguments
+  "F401",   # Imported but not used -- just drives me crazy when I write code
+  "E712",   # Allow comparisons to `== False`, they can be more readable/explicit
+  "C408",   # Unnecessary `dict()` call (rewrite as a literal)
+  "B008",   # function calls as argument defaults
+  "RUF012",
+  "RUF009",
 ]
+line-length = 90
 
+[tool.isort]
+profile = "google"
+force_single_line = false
+force_sort_within_sections = true
+combine_as_imports = true
+multi_line_output = 3
+line_length = 90
+include_trailing_comma = true
 
-[tool.yapf]
-based_on_style = "google"
-column_limit = 90
-indent_width = 4
-DISABLE_ENDING_COMMA_HEURISTIC = false
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.mypy]
 exclude = "scripts/py_haxorg/py_haxorg/pyhaxorg.pyi"
