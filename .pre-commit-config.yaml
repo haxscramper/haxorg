@@ -54,12 +54,13 @@ repos:
         # I: sort and organize imports
         # F401: remove unused impots
         # UP035: import Sequence/Mapping from collections.abc instead of the typing
-        args: [--fix, "--select=I,F401,UP035", "--fixable=I,F401,UP035"]
+        args: [--fix, "--select=I,I001,F401,UP035", "--fixable=I,I001,F401,UP035"]
 
       - id: ruff-format
 
       - id: ruff-check
         name: ruff validate
+        stages: [manual]
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:

@@ -47,5 +47,6 @@ class HstdPyTextLayoutConan(ConanFile):
         cmake.install()
 
     def package_info(self):
+        self.cpp_info.libs = ["hstd_cpp_text_layout"]
         self.cpp_info.builddirs = ["lib/cmake/HstdPyTextLayout"]
         self.cpp_info.set_property("cmake_find_mode", "none")

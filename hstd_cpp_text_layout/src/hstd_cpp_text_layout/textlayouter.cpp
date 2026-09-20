@@ -986,8 +986,8 @@ BlockId BlockStore::space(int count) {
 BlockId BlockStore::wrap(Vec<BlockId> const& elems, LytStr sep, int breakMult) {
     auto res = store.add(Block(
         Block::Wrap{
-            .wrapElements = elems,
             .sep          = sep,
+            .wrapElements = elems,
         }));
 
     at(res).isBreaking = false;

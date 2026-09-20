@@ -1,8 +1,8 @@
-#include <hstd_cpp_lib/ext/textlayouter.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 #include <hstd_cpp_lib/stdlib/Str.hpp>
 #include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_text_layout/textlayouter.hpp>
 
 #include <absl/log/log.h>
 
@@ -140,7 +140,10 @@ TEST(TextLayouterTest, BasicFormattingOperations) {
                     b.stack({s.text("12"), s.text("34"), s.text("56")}),
                     s.text("132456"),
                 }),
-                Options{.linebreakCost = 1, .rightMargin = 2}),
+                Options{
+                    .rightMargin   = 2,
+                    .linebreakCost = 1,
+                }),
             "12\n34\n56");
     }
 
@@ -309,4 +312,9 @@ TEST(TextLayouterTest, CodeLayout) {
             "                 wOverflowChecks\n"
             "                 wNilChecks }");
     }
+}
+
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

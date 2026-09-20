@@ -12,14 +12,14 @@ class HstdCppTextLayoutConan(ConanFile):
         "CMakeLists.txt",
         "cmake/*",
         "src/*",
+        "tests/*",
     )
 
     def requirements(self):
-        self.requires(
-            "hstd_cpp_lib/0.1.0",
-            transitive_headers=True,
-            transitive_libs=True,
-        )
+        self.requires("hstd_cpp_lib/0.1.0", transitive_headers=True, transitive_libs=True)
+
+    def build_requirements(self):
+        self.test_requires("gtest/[>=1.15 <2]")
 
     def layout(self):
         cmake_layout(self)
@@ -41,5 +41,9 @@ class HstdCppTextLayoutConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.builddirs = ["lib/cmake/HstdCppTextLayout"]
-        self.cpp_info.set_property("cmake_find_mode", "none")
+        self.cpp_info.libs = ["hstd_cpp_text_layout"]
+        self.cpp_info.set_property("cmake_file_name", "hstd_cpp_text_layout")
+        self.cpp_info.set_property(
+            "cmake_target_name",
+            "hstd::hstd_cpp_text_layout",
+        )

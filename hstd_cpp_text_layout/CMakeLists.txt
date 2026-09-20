@@ -36,6 +36,23 @@ target_include_directories(
 
 add_library(hstd::hstd_cpp_text_layout ALIAS hstd_cpp_text_layout)
 
+if(BUILD_TESTING)
+    find_package(GTest CONFIG REQUIRED)
+
+    add_executable(tTextLayouter "${BASE}/tests/tTextLayouter.cpp")
+
+    target_link_libraries(
+        tTextLayouter
+        PRIVATE
+            hstd_cpp_text_layout
+            GTest::gtest_main
+    )
+
+    haxorg_set_target_flags(tTextLayouter)
+
+    add_test(NAME tTextLayouter COMMAND tTextLayouter)
+endif()
+
 install(
     TARGETS
         hstd_cpp_text_layout
