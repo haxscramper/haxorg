@@ -10,8 +10,8 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
+#    include <hstd/geometry/hstd_geometry.hpp>
+#    include <hstd/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/formatting/Formatter.hpp>
 
 #    include <string>

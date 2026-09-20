@@ -84,7 +84,6 @@ hstd::finally_std log_graph_tracker::track_function(
     return hstd::finally_std{[this, info]() { this->notify_function_end(info); }};
 }
 
-#    if ORG_BUILD_WITH_CGRAPH
 void graphviz_processor::track_function_start(function_info const& info) {
     call_stack.push(info.name);
     if (2 <= call_stack.size()) {
@@ -180,8 +179,6 @@ void hstd::log::graphviz_processor::track_slot_trigger(slot_trigger_info const& 
         });
 }
 
-
-#    endif
 
 void logger_processor::track_function_start(function_info const& info) {
     log_record{}

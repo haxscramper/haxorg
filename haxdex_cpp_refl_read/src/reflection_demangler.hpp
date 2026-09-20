@@ -2,14 +2,14 @@
 
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/dod_base_intern.hpp>
+#include <hstd/stdlib/dod/dod_base_intern.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
 #include <llvm/ADT/StringMap.h>
 #include <llvm/Support/JSON.h>
 
 #include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/dod/dod_base.hpp>
 
 #include "reflection_config.hpp"
 

@@ -3,7 +3,7 @@
 
 #include <hstd/ext/graph/visual/graph_avoid.hpp>
 #include <hstd/ext/graph/visual/graph_vpsc.hpp>
-#include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
+#include <hstd/geometry/hstd_geometry.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
 #include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
 

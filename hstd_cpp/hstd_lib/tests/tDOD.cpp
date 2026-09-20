@@ -1,8 +1,8 @@
 //#include "common.hpp"
 #include <bitset>
 #include <gtest/gtest.h>
-#include <hstd/stdlib/dod_base.hpp>
-#include <hstd/stdlib/dod_base_multi.hpp>
+#include <hstd/stdlib/dod/dod_base.hpp>
+#include <hstd/stdlib/dod/dod_base_multi.hpp>
 
 using namespace hstd;
 

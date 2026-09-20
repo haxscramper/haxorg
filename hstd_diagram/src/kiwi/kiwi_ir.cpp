@@ -14,8 +14,8 @@
 #    include <boost/graph/adjacency_list.hpp>
 #    include <boost/graph/topological_sort.hpp>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#    include <hstd/stdlib/Enumerate.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
+#    include <hstd/stdlib/algorithms/Enumerate.hpp>
 #    include <hstd/stdlib/algorithms/strutils.hpp>
 
 namespace hstd::ext::kiwi_ir {

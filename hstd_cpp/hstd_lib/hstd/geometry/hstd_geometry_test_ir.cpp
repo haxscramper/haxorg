@@ -1,9 +1,9 @@
-#include <hstd/stdlib/algorithms/reflection/hstd_geometry_test_ir.hpp>
+#include <hstd/geometry/hstd_geometry_test_ir.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
 #    pragma clang diagnostic error "-Wswitch"
 
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
+#    include <hstd/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/formatting/Formatter.hpp>
 
 #    include <hstd/stdlib/algorithms/strutils.hpp>

@@ -2,9 +2,9 @@
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS
 
+#    include <hstd/geometry/hstd_geometry.hpp>
+#    include <hstd/geometry/hstd_visual.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_visual.hpp>
 
 using APL = hstd::ext::graph::cst::AvoidPortLayoutAttribute;
 using namespace hstd::ext::graph;

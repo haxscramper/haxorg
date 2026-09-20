@@ -41,9 +41,6 @@ GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 #include <haxorg/test/org_parse_aux.hpp>
 
 
-void enable_full_trace_on_cli();
-bool is_full_trace_on_cli_enabled();
-
 void writeTreeRepr(
     imm::ImmAdapter               n,
     fs::path const&               path,

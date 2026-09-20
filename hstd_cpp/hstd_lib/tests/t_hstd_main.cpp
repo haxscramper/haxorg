@@ -1,16 +1,13 @@
 #include <absl/flags/parse.h>
 #include <gtest/gtest.h>
 
-#include "../common_main.hpp"
-#include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/extra/error_format/gtest_utils.hpp>
 
 #include "hstd_tests_common.hpp"
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
 
 HSTD_REGISTER_TYPE_FIELD_NAMES(reflection_test::reflection_named);
-
-void enable_full_trace_on_cli() {}
 
 int main(int argc, char** argv) {
     hstd::log::clear_sink_backends();

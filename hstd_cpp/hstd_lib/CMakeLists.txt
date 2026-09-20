@@ -40,6 +40,10 @@ if(ORG_BUILD_TESTS)
   find_package(benchmark CONFIG REQUIRED)
   find_package(absl CONFIG REQUIRED)
   find_package(immer CONFIG REQUIRED)
+
+  set_property(TARGET immer::immer PROPERTY SYSTEM TRUE)
+  set_property(TARGET GTest::gmock PROPERTY SYSTEM TRUE)
+  set_property(TARGET GTest::gtest PROPERTY SYSTEM TRUE)
 endif()
 
 if(ORG_BUILD_WITH_QT)
@@ -119,10 +123,6 @@ endif()
 
 target_include_directories(hstd_cpp_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
                                                $<INSTALL_INTERFACE:src>)
-target_include_directories(
-  hstd_cpp_lib PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/thirdparty/immer>"
-                      "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/thirdparty/lager>")
-
 if(ORG_BUILD_TESTS)
   haxorg_add_executable(hstd_cpp_tests)
 

@@ -394,7 +394,6 @@ struct log_graph_tracker {
 
 #    endif
 
-#    if ORG_BUILD_WITH_CGRAPH
 struct graphviz_processor : public log_graph_processor {
     struct call_info {
         std::string jump_description{};
@@ -419,12 +418,12 @@ struct graphviz_processor : public log_graph_processor {
     void track_named_text(named_text_info const& info) override {}
     void track_named_jump(named_jump_info const& info) override;
 
-#        if ORG_BUILD_WITH_QT
+#    if ORG_BUILD_WITH_QT
     void track_signal_emit(signal_emit_info const& info) override;
     void track_slot_trigger(slot_trigger_info const& info) override;
     void track_qobject(qobject_info const& info) override {}
     void track_connect(connect_info const& info) override {}
-#        endif
+#    endif
 
   private:
     std::stack<std::string>                    call_stack{};
@@ -436,7 +435,6 @@ struct graphviz_processor : public log_graph_processor {
 
     void add_edge(std::string const& from, std::string const& to);
 };
-#    endif
 
 struct logger_processor : public log_graph_processor {
     void track_function_start(function_info const& info) override;

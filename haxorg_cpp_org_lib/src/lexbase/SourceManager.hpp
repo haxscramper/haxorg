@@ -3,7 +3,7 @@
 
 #include <hstd/stdlib/containers/Ptrs.hpp>
 #include <hstd/stdlib/containers/bimap_wrap.hpp>
-#include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/dod/dod_base.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/haxorg/serde/OrgApiProto.pb.h"

@@ -3,7 +3,7 @@
 #    include <filesystem>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
+#    include <hstd/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/formatting/Debug.hpp>
 
 using namespace hstd;

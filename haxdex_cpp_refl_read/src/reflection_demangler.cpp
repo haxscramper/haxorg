@@ -30,8 +30,8 @@
 #include <boost/describe.hpp>
 
 #include <hstd/ext/perfetto_aux.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/algorithms/Enumerate.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>

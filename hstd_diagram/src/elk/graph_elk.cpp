@@ -3,8 +3,8 @@
 
 #    include <hstd/ext/geometry/hstd_visual_serde.hpp>
 #    include <hstd/ext/logger.hpp>
+#    include <hstd/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/containers/bimap_wrap.hpp>
 #    include <hstd/stdlib/serde/JsonSerde.hpp>
 #    include <src/hstd/ext/graph/visual/graph_elk.pb.h>

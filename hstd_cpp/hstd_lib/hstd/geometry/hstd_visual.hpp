@@ -1,7 +1,7 @@
 #pragma once
 
+#include <hstd/geometry/hstd_geometry.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>

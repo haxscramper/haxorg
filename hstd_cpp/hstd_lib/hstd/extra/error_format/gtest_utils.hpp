@@ -8,6 +8,19 @@
 #include <hstd/stdlib/algorithms/diff/diffs.hpp>
 #include <hstd/stdlib/containers/Outcome.hpp>
 
+#include <absl/log/initialize.h>
+#include <absl/log/internal/globals.h>
+#include <absl/log/log_sink_registry.h>
+#include <absl/strings/str_split.h>
+#include <sys/resource.h>
+
+#include <fstream>
+#include <gtest/gtest.h>
+#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd/system/aux_utils.hpp>
+#include <iostream>
+
+
 struct TestParameters {
     hstd::Str corpusGlob;
 };
@@ -227,3 +240,64 @@ inline ::testing::AssertionResult ThrowsWithTextContainsAll(
 #define EXPECT_THROW_TEXT_CONTAINS(exception_type, expr, ...)                            \
     EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(                              \
         [&]() { (void)(expr); }, {__VA_ARGS__})))
+
+
+class LinePrinterLogSink : public absl::LogSink {
+  public:
+    LinePrinterLogSink(char const* path) : file(path) {}
+    void Send(absl::LogEntry const& entry) override {
+        for (absl::string_view line :
+             absl::StrSplit(entry.text_message_with_prefix(), absl::ByChar('\n'))) {
+            // Overprint severe entries for emphasis:
+            for (int i = static_cast<int>(absl::LogSeverity::kInfo);
+                 i <= static_cast<int>(entry.log_severity());
+                 i++) {
+                file << line << std::endl;
+            }
+        }
+    }
+
+  private:
+    std::ofstream file;
+};
+
+class QuietTestPrinter : public ::testing::EmptyTestEventListener {
+    // Called after a failed assertion or a SUCCESS().
+    void OnTestPartResult(::testing::TestPartResult const& test_part_result) override {
+        if (test_part_result.failed()) {
+            std::cout << ::hstd::fmt(
+                "{} in {}:{}\n{}\n",
+                test_part_result.failed() ? "*** Failure" : "Success",
+                test_part_result.file_name() ? test_part_result.file_name() : "<none>",
+                test_part_result.line_number(),
+                test_part_result.summary());
+        }
+    }
+};
+
+
+void init_gtest_tests(int& argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+
+    std::vector<char*> new_argv;
+    new_argv.push_back(argv[0]);
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "--hax_vscode_run") {
+            // Removes the default console output listener from the list so
+            // it will not receive events from Google Test and won't print
+            // any output.
+            ::testing::TestEventListeners& listeners //
+                = ::testing::UnitTest::GetInstance()->listeners();
+
+            // Adds a listener to the end. Google Test takes the ownership.
+            delete listeners.Release(listeners.default_result_printer());
+            listeners.Append(new QuietTestPrinter());
+        } else {
+            new_argv.push_back(argv[i]);
+        }
+    }
+
+    argc = static_cast<int>(new_argv.size());
+    for (int i = 0; i < argc; ++i) { argv[i] = new_argv[i]; }
+}

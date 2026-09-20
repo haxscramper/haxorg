@@ -9,9 +9,9 @@
 #    include <libdialect/graphs.h>
 #    pragma warning(pop)
 
+#    include <hstd/geometry/hstd_geometry.hpp>
+#    include <hstd/geometry/hstd_visual.hpp>
 #    include <hstd/graph/graph_base.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_visual.hpp>
 
 namespace hstd::ext::graph::adapt {
 

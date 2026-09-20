@@ -3,7 +3,7 @@
 
 #if ORG_BUILD_WITH_KIWI
 
-#    include <hstd/stdlib/Enumerate.hpp>
+#    include <hstd/stdlib/algorithms/Enumerate.hpp>
 #    include <hstd/stdlib/formatting/ColText.hpp>
 
 namespace hstd::ext::kiwi_ir {

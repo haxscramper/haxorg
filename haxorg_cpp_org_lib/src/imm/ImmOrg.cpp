@@ -5,8 +5,8 @@
 #include <haxorg/imm/ImmOrgBase.hpp>
 #include <haxorg/imm/ImmOrgHash.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/algorithms/Enumerate.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>

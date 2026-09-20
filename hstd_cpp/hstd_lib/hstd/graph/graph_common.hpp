@@ -2,15 +2,15 @@
 
 #include <boost/bimap.hpp>
 #include <boost/serialization/strong_typedef.hpp>
+#include <hstd/geometry/hstd_geometry.hpp>
+#include <hstd/geometry/hstd_visual.hpp>
 #include <hstd/logger/TraceBase.hpp>
-#include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
-#include <hstd/stdlib/algorithms/reflection/hstd_visual.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
 #include <hstd/stdlib/containers/bimap_wrap.hpp>
-#include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/dod/dod_base.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 #if ORG_BUILD_WITH_PROTOBUF

@@ -223,11 +223,10 @@ class DiffTestFuzzy : public ::testing::Test {
   protected:
     void SetUp() override {}
 
-
     FuzzyMatcher initMatcher(hstd::Opt<hstd::Str> debugFullPath = std::nullopt) {
-        ::testing::TestInfo const* const = ::testing::UnitTest::GetInstance()
-                                               ->current_test_info();
-        FuzzyMatcher matcher;
+        ::testing::TestInfo const* test_info = ::testing::UnitTest::GetInstance()
+                                                   ->current_test_info();
+        FuzzyMatcher               matcher;
 
         if (debugFullPath) { matcher.setTraceFile(debugFullPath.value().toBase()); }
 

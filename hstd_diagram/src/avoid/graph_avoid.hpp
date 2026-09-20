@@ -14,7 +14,7 @@
 
 #    include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
 #    include <hstd/ext/geometry/hstd_visual_serde.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
+#    include <hstd/geometry/hstd_geometry_serde.hpp>
 
 namespace hstd::ext::graph::cst {
 

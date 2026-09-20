@@ -1,9 +1,9 @@
 #pragma once
 
-#include "hstd/stdlib/Enumerate.hpp"
 #include <any>
 #include <boost/preprocessor.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/algorithms/Enumerate.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/containers/Span.hpp>

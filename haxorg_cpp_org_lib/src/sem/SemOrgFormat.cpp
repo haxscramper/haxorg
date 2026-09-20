@@ -1,6 +1,6 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
-#include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/algorithms/Enumerate.hpp>
 #include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>

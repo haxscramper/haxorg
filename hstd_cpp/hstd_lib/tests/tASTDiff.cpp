@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <hstd/ext/astdiff/astdiff.hpp>
-#include <hstd/ext/astdiff/astdiff_eager.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/algorithms/diff/astdiff.hpp>
+#include <hstd/stdlib/algorithms/diff/astdiff_eager.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>

@@ -8,7 +8,7 @@
 #    include <stdexcept>
 
 #    include <hstd/ext/hstd_serde.hpp>
-#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
+#    include <hstd/geometry/hstd_geometry_serde.hpp>
 
 using namespace hstd;
 

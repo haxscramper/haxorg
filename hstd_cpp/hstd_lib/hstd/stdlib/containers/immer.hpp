@@ -1,6 +1,5 @@
 #pragma once
 
-#include <haxorg/sem/SemOrgTypes.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
 #include <hstd/stdlib/containers/Array.hpp>

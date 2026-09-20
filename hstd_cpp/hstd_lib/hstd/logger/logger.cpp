@@ -21,8 +21,8 @@
 #    include <boost/log/utility/manipulators/add_value.hpp>
 #    include <boost/log/utility/setup/common_attributes.hpp>
 #    include <boost/property_map/property_map.hpp>
-#    include <hstd/stdlib/Enumerate.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
+#    include <hstd/stdlib/algorithms/Enumerate.hpp>
 
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
