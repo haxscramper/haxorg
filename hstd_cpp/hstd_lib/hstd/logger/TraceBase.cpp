@@ -1,7 +1,7 @@
 #include <fstream>
 #include <hstd/logger/TraceBase.hpp>
+#include <hstd/logger/TraceBaseStructuredLog.hpp>
 #include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 #include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/containers/VariantSerde.hpp>
 #include <hstd/stdlib/formatting/Debug.hpp>

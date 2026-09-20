@@ -1,5 +1,4 @@
 #include "graph_base.hpp"
-#include "hstd/ext/graph/visual/graph_visual.hpp"
 
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>

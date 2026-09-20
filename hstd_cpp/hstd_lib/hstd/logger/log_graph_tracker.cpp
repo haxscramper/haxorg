@@ -3,7 +3,7 @@
 #if !ORG_BUILD_EMCC
 
 
-#    include <hstd/ext/logger.hpp>
+#    include <hstd/logger/logger.hpp>
 #    include <hstd/stdlib/formatting/Formatter.hpp>
 #    include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
 #    include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
@@ -157,6 +157,7 @@ void graphviz_processor::add_edge(std::string const& from, std::string const& to
     pending_jump.clear();
 }
 
+#    if ORG_BUILD_WITH_QT
 void hstd::log::graphviz_processor::track_signal_emit(signal_emit_info const& info) {
     std::string full_name = fmt::format("{}", info.name);
     if (!call_stack.empty()) { add_edge(call_stack.top(), full_name); }
@@ -178,7 +179,7 @@ void hstd::log::graphviz_processor::track_slot_trigger(slot_trigger_info const& 
             .is_slot = true,
         });
 }
-
+#    endif
 
 void logger_processor::track_function_start(function_info const& info) {
     log_record{}

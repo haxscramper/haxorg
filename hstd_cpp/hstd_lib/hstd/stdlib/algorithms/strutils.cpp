@@ -4,6 +4,8 @@
 
 using namespace hstd;
 
+#pragma clang diagnostic ignored "-Wc99-designator"
+
 Str unicodeCharMappings[256][15] = {
     // clang-format off
     [(int)'A'] = {Str("A"), Str("Ɐ"), Str("𝔄"), Str("𝕬"), Str("𝔸"), Str("𝐀"), Str("𝐴"), Str("𝑨"), Str("𝒜"), Str("𝓐"), Str("𝖠"), Str("𝗔"), Str("𝘈"), Str("𝘼"), Str("𝙰")},

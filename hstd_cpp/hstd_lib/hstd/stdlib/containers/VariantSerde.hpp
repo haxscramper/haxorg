@@ -25,6 +25,7 @@ struct JsonSerde<V> {
         std::visit(
             [&]<typename T>(T& value) { value = JsonSerde<T>::from_json(j["value"]); },
             result);
+        return result;
     }
 };
 

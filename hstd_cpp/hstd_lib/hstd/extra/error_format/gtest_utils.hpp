@@ -58,22 +58,85 @@ extern TestParameters testParameters;
 
 GTEST_ADL_PRINT_TYPE(hstd::Str);
 
-hstd::fs::path getDebugFile(
+namespace {
+inline hstd::fs::path getDebugPath(
+    hstd::Str const&           suffix,
+    std::optional<std::string> value_param_override,
+    std::optional<std::string> type_param_override) {
+    auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+
+    hstd::Str testId = info->name();
+
+    if (auto const* valueParam = info->value_param(); valueParam != nullptr) {
+        testId += hstd::fmt("/value-{}", value_param_override.value_or(valueParam));
+    }
+
+    if (auto const* typeParam = info->type_param(); typeParam != nullptr) {
+        testId += hstd::fmt("/type-{}", type_param_override.value_or(typeParam));
+    }
+
+    auto dir = std::filesystem::temp_directory_path()
+             / hstd::fs::path{hstd::fmt("haxorg_tests/{}", info->test_suite_name())};
+
+    if (suffix.empty()) {
+        return hstd::fs::path{hstd::fmt("{}/{}", dir.native(), testId)};
+    } else {
+        return hstd::fs::path{hstd::fmt("{}/{}/{}", dir.native(), testId, suffix)};
+    }
+}
+} // namespace
+
+
+inline hstd::fs::path getDebugFile(
     const hstd::Str&           suffix               = "",
     bool                       cleanParent          = false,
     std::optional<std::string> value_param_override = std::nullopt,
-    std::optional<std::string> type_param_override  = std::nullopt);
+    std::optional<std::string> type_param_override  = std::nullopt) {
+    auto file = getDebugPath(suffix, value_param_override, type_param_override);
 
-hstd::fs::path getDebugDir(
+    if (cleanParent) {
+        auto parent = file.parent_path();
+        if (hstd::fs::exists(parent)) {
+            hstd::fs::remove_all(parent);
+            hstd::createDirectory(parent);
+        }
+    }
+
+
+    if (suffix.empty()) {
+        hstd::createDirectory(file);
+    } else {
+        hstd::createDirectory(file.parent_path());
+    }
+
+    return file;
+}
+
+inline hstd::fs::path getDebugDir(
     const hstd::Str&           suffix               = "",
     bool                       clean                = false,
     std::optional<std::string> value_param_override = std::nullopt,
-    std::optional<std::string> type_param_override  = std::nullopt);
+    std::optional<std::string> type_param_override  = std::nullopt) {
+    auto dir = getDebugPath(suffix, value_param_override, type_param_override);
 
-hstd::log::log_sink_scope getDebugLogScope(
-    hstd::Str const& suffix      = "execution.log",
-    bool             cleanParent = false);
+    if (clean) {
+        if (hstd::fs::exists(dir)) {
+            hstd::fs::remove_all(dir);
+            hstd::createDirectory(dir);
+        }
+    }
 
+    hstd::createDirectory(dir);
+    return dir;
+}
+
+inline hstd::log::log_sink_scope getDebugLogScope(
+    hstd::Str const& suffix,
+    bool             cleanParent) {
+    return HSLOG_SINK_FACTORY_SCOPED(([suffix, cleanParent]() {
+        return ::hstd::log::init_file_sink(getDebugFile(suffix, cleanParent));
+    }));
+}
 
 template <typename T>
 struct TestValueFormat {
@@ -117,7 +180,7 @@ std::string format_test_fail(
 
 
 template <typename T>
-hstd::ColText __gtest_assert_eq_seq_fail_message(T const& lhs, T const& rhs) {
+inline hstd::ColText __gtest_assert_eq_seq_fail_message(T const& lhs, T const& rhs) {
     return hstd::formatDiffed(
         lhs,
         rhs,
@@ -125,20 +188,56 @@ hstd::ColText __gtest_assert_eq_seq_fail_message(T const& lhs, T const& rhs) {
             .formatLine = hstd::FormattedDiff::getSequenceFormatterCb(&lhs, &rhs, true)});
 }
 
+
+template <typename T>
+inline hstd::ColText __gtest_assert_eq_seq_format_text_compare(
+    hstd::ColText const& diff,
+    T const&             lhs,
+    T const&             rhs) {
+    hstd::ColStream os;
+    os << diff;
+    os << "\nGiven lhs:\n";
+    os << hstd::Str("+").repeated(32) << "\n";
+    os << lhs;
+    os << "\n" << hstd::Str("+").repeated(32) << "\n";
+    os << "\nExpected rhs:\n";
+    os << hstd::Str("-").repeated(32) << "\n";
+    os << rhs;
+    os << "\n" << hstd::Str("-").repeated(32) << "\n";
+    return os.getBuffer();
+}
+
+
 template <>
-hstd::ColText __gtest_assert_eq_seq_fail_message<std::string>(
+inline hstd::ColText __gtest_assert_eq_seq_fail_message<std::string>(
     std::string const& lhs,
-    std::string const& rhs);
+    std::string const& rhs) {
+    return __gtest_assert_eq_seq_format_text_compare(
+        __gtest_assert_eq_seq_fail_message(
+            hstd::split(lhs, '\n'), hstd::split(rhs, '\n')),
+        lhs,
+        rhs);
+}
 
 template <>
-hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::Str>(
+inline hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::Str>(
     hstd::Str const& lhs,
-    hstd::Str const& rhs);
+    hstd::Str const& rhs) {
+    return __gtest_assert_eq_seq_format_text_compare(
+        __gtest_assert_eq_seq_fail_message(
+            hstd::split(lhs, '\n'), hstd::split(rhs, '\n')),
+        lhs,
+        rhs);
+}
 
 template <>
-hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
+inline hstd::ColText __gtest_assert_eq_seq_fail_message<hstd::ColText>(
     hstd::ColText const& lhs,
-    hstd::ColText const& rhs);
+    hstd::ColText const& rhs) {
+    return __gtest_assert_eq_seq_format_text_compare(
+        __gtest_assert_eq_seq_fail_message(lhs.split('\n'), rhs.split('\n')), lhs, rhs);
+}
+
 
 #define GTEST_ASSERT_EQ_SEQ(__lhs_arg, __rhs_arg)                                        \
     {                                                                                    \
@@ -276,7 +375,7 @@ class QuietTestPrinter : public ::testing::EmptyTestEventListener {
 };
 
 
-void init_gtest_tests(int& argc, char** argv) {
+inline void init_gtest_tests(int& argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     std::vector<char*> new_argv;

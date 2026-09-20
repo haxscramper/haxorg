@@ -63,18 +63,31 @@ struct IndexedBase : public CRTP_this_method<Container> {
 
     bool empty() const { return _this()->size() == 0; }
 
+    // this hack is necessary to make the `ISO C++20 considers use of overloaded operator
+    // '==' (with operand types 'const hstd::ColText' and 'const hstd::ColText') to be
+    // ambiguous despite there being a unique best viable function
+    // [-Wambiguous-reversed-operator]` shut up.
+    template <typename Other>
+    static bool indexedEqual(Container const& lhs, Other const& other) {
+        if (lhs.size() != other.size()) { return false; }
+
+        for (int i = 0; i < lhs.size(); ++i) {
+            if (lhs.at(i) != other.at(i)) { return false; }
+        }
+
+        return true;
+    }
+
     /// \brief  Pointwise comparison between vector and any other indexable
     /// container.
-    template <typename Indexable>
-    bool operator==(Indexable const& other) const {
-        if (_this()->size() == other.size()) {
-            for (int i = 0; i < _this()->size(); ++i) {
-                if (_this()->at(i) != other.at(i)) { return false; }
-            }
-            return true;
-        } else {
-            return false;
-        }
+    friend bool operator==(Container const& lhs, Container const& rhs) {
+        return indexedEqual(lhs, rhs);
+    }
+
+    template <typename Other>
+        requires(!std::derived_from<Other, Container>)
+    friend bool operator==(Container const& lhs, Other const& rhs) {
+        return indexedEqual(lhs, rhs);
     }
 
     /// \brief Check if vector has enough elements to access index \arg idx

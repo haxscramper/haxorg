@@ -6,6 +6,7 @@ from conan.tools.cmake import (
     CMakeToolchain,
     cmake_layout,
 )
+from conan.tools.env import Environment
 
 
 class HstdConan(ConanFile):
@@ -122,7 +123,11 @@ class HstdConan(ConanFile):
         )
 
         if not skip_tests and can_run(self):
-            cmake.test(cli_args=["--output-on-failure"])
+            environment = Environment()
+            environment.define("CTEST_OUTPUT_ON_FAILURE", "1")
+
+            with environment.vars(self).apply():
+                cmake.test()
 
     def package(self):
         cmake = CMake(self)

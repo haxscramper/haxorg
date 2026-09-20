@@ -97,7 +97,7 @@ add_library(hstd::hstd_cpp_lib ALIAS hstd_cpp_lib)
 haxorg_glob_add_sources2(
     TARGET hstd_cpp_lib
     LS_REGEX
-        "${CMAKE_CURRENT_LIST_DIR}/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
+        "${CMAKE_CURRENT_LIST_DIR}/hstd/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
     SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
 )
 
@@ -163,7 +163,9 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
         $<INSTALL_INTERFACE:src>
 )
+
 if(ORG_BUILD_TESTS)
+    enable_testing()
     haxorg_add_executable(hstd_cpp_tests)
 
     if(ORG_BUILD_WITH_QT)

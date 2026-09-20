@@ -36,8 +36,7 @@ inline std::ostream& operator<<(std::ostream& os, std::ostream const&) { return 
 #define __xxloc() std::cout << __FILE__ << ":" << __LINE__ << "\n";
 
 template <typename T>
-concept StdFormattable = requires(T& v, fmt::format_context ctx) {
-    fmt::formatter<std::remove_cvref_t<T>>().format(v, ctx);
-};
+concept StdFormattable = fmt::is_formattable<std::remove_cvref_t<T>, char>::value;
+
 
 } // namespace hstd

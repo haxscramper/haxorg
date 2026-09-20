@@ -22,8 +22,8 @@ Vec<SequenceAnnotation> hstd::annotateSequence(
 
         trees.push_back(
             GroupTree{
-                .group = g,
                 .tree  = RangeTree<int>(slices),
+                .group = g,
             });
     }
 
