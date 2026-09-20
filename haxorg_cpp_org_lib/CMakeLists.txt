@@ -1,655 +1,58 @@
 cmake_minimum_required(VERSION 3.28)
 
-cmake_policy(SET CMP0135 NEW)
-cmake_policy(SET CMP0148 NEW)
-cmake_policy(SET CMP0155 NEW)
-if(POLICY CMP0167)
-    cmake_policy(SET CMP0167 NEW)
-endif()
+project(haxorg_cpp_org_lib VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
-
-# include(conda_toolchain.cmake)
-
-set(ABSL_CC_LIB_COPTS "-fPIC")
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
-project(
-    haxorg
-    LANGUAGES
-        CXX
-        C
-)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-enable_testing()
-
-set(BASE "${CMAKE_SOURCE_DIR}")
-message(STATUS "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
-set(LLVM_DIR "${BASE}/toolchain/llvm")
-set(TOOLCHAIN_DIR "${BASE}/toolchain")
-
-set(SCRIPT_DIR "${BASE}/src/scripts")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-attributes")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder-init-list")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c99-designator")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-attributes")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-macro-redefined")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pedantic")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-defaulted-function-deleted")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder-init-list")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-ambiguous-reversed-operator")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Qunused-arguments")
+include(CTest)
+include(CMakePackageConfigHelpers)
 
-# Describe relative paths to the shared and header libraries packaged with LLVM in order for the
-# code to compile, link and execute correctly. Note that runtime execution will use these library
-# paths as well
+option(HAXORG_WITH_PROTOBUF "Build protobuf serialization support" ON)
+option(HAXORG_WITH_PROTOVALIDATE "Build protobuf validation support" OFF)
+option(HAXORG_WITH_PERFETTO "Build Perfetto instrumentation support" OFF)
 
-list(PREPEND CMAKE_MODULE_PATH ${DEPS_DIR})
-include(src/cmake/functions_aux.cmake)
-include(src/cmake/functions_setup.cmake)
-
-option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root" "")
-
-# Adaptagrams in the editor project uses libtooling for compilation and does not react well to the
-# changes in the main environment. Sometimes it does not build or does not rebuild things. By
-# default this option forces the dependency to be configured for all builds.
-option(
-    ORG_FORCE_ADAPTAGRAMS_BUILD
-    "Force update and build of the external adaptagrams library"
-    ON
-)
-option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
-option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
-option(ORG_SEPARATE_DEBUG_SYMBOLS "Strip debug symbols into separate `.debug` file" OFF)
-
-option(ORG_DEPS_USE_PACKAGED_BOOST "Use boost library headers from the third-party" OFF)
-
-option(ORG_INSTRUMENT_TRACE "Generate instrumentation trace" OFF)
-option(MAX_COMPILE_ERRORS "Max number of compilation errors before compiler stops")
-
-option(ORG_USE_COVERAGE "Enable test coverage" OFF)
-option(ORG_USE_PGO_GENERATION "Compile binary with profile data generation" OFF)
-option(ORG_USE_PGO_READER "Compile binary using profile data generation" OFF)
-option(ORG_USE_XRAY "Use LLVM XRay instrumentation for profiling" OFF)
-option(ORG_USE_SANITIZER "Use sanitizers" OFF)
-option(ORG_USE_CONAN_INSTALL "Auto-install dependencies by calling conan from cmake" OFF)
-
-# Optional features in the haxorg library
-option(ORG_BUILD_WITH_PROTOBUF "Include protobuf functionality in the build" ON)
-option(ORG_BUILD_WITH_PROTOVALIDATE "Include protobuf functionality in the build" OFF)
-option(ORG_BUILD_WITH_CGRAPH "Include cpgrah/graphviz-based features" OFF)
-option(ORG_BUILD_WITH_ADAPTAGRAMS "Enable adaptagrams graph layout" OFF)
-option(ORG_BUILD_WITH_KIWI "Enable kiwisolver graph layout" OFF)
-option(ORG_BUILD_WITH_ELK "Enable JNI-ELK graph layout" OFF)
-option(ORG_BUILD_WITH_PERFETTO "Enable perfetto profiling" OFF)
-option(ORG_BUILD_WITH_TRACY "Enable performance profiling using tracy" OFF)
-option(ORG_BUILD_WITH_QT "Enable Qt-related API" OFF)
-option(ORG_BUILD_WRAPPERS_C "Enable compilation of the C wrappers" ON)
-option(ORG_BUILD_CLI "Build C++ CLI tool" ON)
-
-# Optional targets for the build
-option(ORG_BUILD_EMCC "Building for emscripten target" OFF)
-option(ORG_BUILD_PYHAXORG_BINDINGS "Build py-haxorg module library" ON)
-option(ORG_BUILD_INTERNAL_TOOLS "The build and configure internal development tools" ON)
-option(ORG_BUILD_TEXT_LAYOUTER_BINDINGS "Build text layouter python module library" ON)
-option(ORG_BUILD_TESTS "Build cmake tests and benchmarks" OFF)
-option(ORG_BUILD_ASSUME_CLANG "Assume clang++ compiler for the build" ON)
-option(ORG_BUILD_IMGUI_GUI "Build imgui apps and API" OFF)
-# TODO: ORG_BUILD_QT_GUI and ORG_BUILD_WITH_QT are not fully represented in the HaxorgConfig options
-# list. Ideally, there should be one source of truth for all configuration parameters in the
-# repository instead of the current random jumble of options scattered across different python and
-# cmake files.
-option(ORG_BUILD_QT_GUI "Build qt apps" OFF)
-
-option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
-option(ORG_IS_WHEEL_BUILD "The project is being built by the python wheel distribution")
-
-if(
-    ORG_BUILD_WITH_CGRAPH
-    OR ORG_BUILD_WITH_ADAPTAGRAMS
-    OR ORG_BUILD_WITH_ELK
-    OR ORG_BUILD_WITH_KIWI
-)
-    set(ORG_BUILD_WITH_GRAPH_VISUAL ON)
-else()
-    set(ORG_BUILD_WITH_GRAPH_VISUAL OFF)
+if(HAXORG_WITH_PROTOVALIDATE AND NOT HAXORG_WITH_PROTOBUF)
+    message(FATAL_ERROR "HAXORG_WITH_PROTOVALIDATE requires HAXORG_WITH_PROTOBUF")
 endif()
 
-if(${ORG_BUILD_WITH_ADAPTAGRAMS} AND NOT ${ORG_BUILD_WITH_CGRAPH})
-    message(FATAL_ERROR "Adaptagrams features require cgraph to be enabled")
-endif()
-
-if(${ORG_BUILD_QT_GUI} AND NOT ${ORG_BUILD_WITH_QT})
-    message(
-        FATAL_ERROR
-        "Build configuration enabled Qt GUI but not QT features, set ORG_BUILD_WITH_QT=ON or ORG_BUILD_QT_GUI=OFF to fix."
-    )
-endif()
-
-if(${ORG_BUILD_TESTS} OR ${ORG_BUILD_QT_GUI} OR ${ORG_BUILD_IMGUI_GUI})
-    if(
-        NOT ${ORG_BUILD_WITH_ADAPTAGRAMS}
-        OR NOT ${ORG_BUILD_WITH_CGRAPH}
-        OR NOT ${ORG_BUILD_WITH_KIWI}
-        OR NOT ${ORG_BUILD_WITH_PROTOBUF}
-    )
-        message(
-            STATUS
-            "ORG_BUILD_WITH_ADAPTAGRAMS = ${ORG_BUILD_WITH_ADAPTAGRAMS} -- must be ON\n"
-            "-- ORG_BUILD_WITH_CGRAPH = ${ORG_BUILD_WITH_CGRAPH} -- must be ON\n"
-            "-- ORG_BUILD_WITH_PROTOBUF = ${ORG_BUILD_WITH_PROTOBUF} -- must be ON\n"
-            "-- ORG_BUILD_WITH_KIWI = ${ORG_BUILD_WITH_KIWI} -- must be ON\n"
-            "-- Alternatively, disable test/example compilation:\n"
-            "-- ORG_BUILD_TESTS = ${ORG_BUILD_TESTS} -- must be OFF\n"
-            "-- ORG_BUILD_WITH_QT = ${ORG_BUILD_WITH_QT} -- must be OFF\n"
-            "-- ORG_BUILD_IMGUI_GUI = ${ORG_BUILD_IMGUI_GUI} -- must be OFF\n"
-        )
-        message(
-            FATAL_ERROR
-            "Test or example compilation is enabled, but one of the optional build features it not. "
-            "Test suite expects the full set of features to be available. "
-            "See detailed status earlier in the logs. "
-        )
-    endif()
-endif()
-
-if(${ORG_BUILD_WITH_TRACY} AND ${ORG_BUILD_WITH_PERFETTO})
-    message(
-        FATAL_ERROR
-        "Tracy and perfetto profiling are mutually exclusive. Enable either ORG_BUILD_WITH_TRACY or ORG_BUILD_WITH_PERFETTO but not both"
-    )
-endif()
-
-if(${ORG_BUILD_EMCC})
-    if(NOT CMAKE_SIZEOF_VOID_P STREQUAL "4")
-        message(
-            FATAL_ERROR
-            "CMAKE_SIZEOF_VOID_P is not '4' (set to '${CMAKE_SIZEOF_VOID_P}') -- wasm build expects 32-bit compile"
-        )
-    endif()
-endif()
-
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PROTOBUF)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_ADAPTAGRAMS)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_KIWI)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_ELK)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_CGRAPH)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_PERFETTO)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_TESTS)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_INTERNAL_TOOLS)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_PYHAXORG_BINDINGS)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WITH_TRACY)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_WRAPPERS_C)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_IMGUI_GUI)
-haxorg_opt_1_excludes_opt_2(ORG_BUILD_EMCC ORG_BUILD_CLI)
-haxorg_opt_1_excludes_opt_2(ORG_IS_CONAN_BUILD ORG_BUILD_IMGUI_GUI)
-haxorg_opt_1_excludes_opt_2(ORG_IS_CONAN_BUILD ORG_BUILD_QT_GUI)
-
-set(DEPS_DIR "${BASE}/thirdparty")
-message(STATUS "ORG_DEPS_INSTALL_ROOT = '${ORG_DEPS_INSTALL_ROOT}'")
-message(STATUS "ORG_USE_SANITIZER = ${ORG_USE_SANITIZER}")
-message(
-    STATUS
-    "ORG_USE_CONAN_INSTALL = ${ORG_USE_CONAN_INSTALL} ORG_IS_CONAN_BUILD = ${ORG_IS_CONAN_BUILD}"
-)
-
-if(${ORG_USE_CONAN_INSTALL})
-    add_definitions(-DORG_USE_CONAN_INSTALL=1)
-
-    # if(NOT EXISTS "${CONAN_TOOLCHAIN}")
-    message(STATUS "Running Conan install...")
-
-    set(CONAN_OUT_BASE "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}")
-
-    if(${ORG_BUILD_EMCC})
-        set(CONAN_PROFILE_PATH "${BASE}/conanprofile_emcc.txt")
-        set(CONAN_OPTS "-o use_emcc=True")
-        set(CONAN_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/.conan_install_emcc")
-    else()
-        set(CONAN_PROFILE_PATH "${BASE}/conanprofile.txt")
-        set(CONAN_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/.conan_install")
-    endif()
-
-    execute_process(
-        COMMAND
-            conan install ${CMAKE_SOURCE_DIR} --output-folder=${CONAN_OUTPUT_DIR}
-            -pr:h=${CONAN_PROFILE_PATH} --build=missing -s build_type=${CMAKE_BUILD_TYPE}
-            ${CONAN_OPTS}
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        RESULT_VARIABLE CONAN_RESULT
-        OUTPUT_VARIABLE CONAN_STDOUT
-        ERROR_VARIABLE CONAN_STDERR
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_STRIP_TRAILING_WHITESPACE
-    )
-
-    message(
-        STATUS
-        "Conan install\n"
-        "---- stdout ----\n${CONAN_STDOUT}\n"
-        "---- stderr ----\n${CONAN_STDERR}\n"
-    )
-
-    if(NOT CONAN_RESULT EQUAL 0)
-        message(FATAL_ERROR "Conan install failed (exit code: ${CONAN_RESULT})")
-    endif()
-
-    set(CONAN_TOOLCHAIN
-        "${CONAN_OUTPUT_DIR}/build/${CMAKE_BUILD_TYPE}/generators/conan_toolchain.cmake"
-    )
-
-    include("${CONAN_TOOLCHAIN}")
-    if(${ORG_BUILD_EMCC})
-        # for EMCC build, conan is only used to provide some header-only libraries like boost, the rest
-        # of dependencies still has to be built using emcc and properly linked into the main project.
-        include("${ORG_DEPS_INSTALL_ROOT}/paths.cmake")
-    endif()
-
-elseif(NOT ORG_DEPS_INSTALL_ROOT OR ORG_DEPS_INSTALL_ROOT STREQUAL "OFF")
-    add_definitions(-DORG_USE_CONAN_INSTALL=0)
-    message(STATUS "No dependency path specified, will be using system-provided deps")
-else()
-    add_definitions(-DORG_USE_CONAN_INSTALL=0)
-    include("${ORG_DEPS_INSTALL_ROOT}/paths.cmake")
-endif()
-
-message(STATUS "lexy_DIR = ${lexy_DIR}")
-
-if(${ORG_BUILD_INTERNAL_TOOLS})
-    set(ENV{PKG_CONFIG_PATH}
-        "${ORG_DEPS_INSTALL_ROOT}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}"
-    )
-endif()
-
-find_package(PkgConfig)
-if(NOT ${ORG_BUILD_EMCC} AND ${ORG_BUILD_WITH_CGRAPH})
-    pkg_check_modules(CAIROMM REQUIRED cairomm-1.0)
-endif()
-
-if(${ORG_BUILD_INTERNAL_TOOLS})
-    pkg_check_modules(LIBGIT2 REQUIRED libgit2)
-endif()
-
-find_package(cctz REQUIRED)
-
-if(NOT ${ORG_BUILD_EMCC})
-    # TODO: What package requires zstd?
-    find_package(zstd QUIET CONFIG)
-
-    if(zstd_FOUND)
-        message(STATUS "Found zstd via CMake config")
-        # zstd::zstd target should be available
-    else()
-        # Fallback to pkg-config
-        message(STATUS "zstd CMake config not found, trying pkg-config")
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(ZSTD REQUIRED libzstd)
-
-        # Create an imported target to match the CONFIG mode interface
-        add_library(zstd::zstd INTERFACE IMPORTED)
-        set_target_properties(
-            zstd::zstd
-            PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES
-                    "${ZSTD_INCLUDE_DIRS}"
-                INTERFACE_LINK_LIBRARIES
-                    "${ZSTD_LIBRARIES}"
-                INTERFACE_LINK_DIRECTORIES
-                    "${ZSTD_LIBRARY_DIRS}"
-        )
-    endif()
-endif()
-
-if(NOT ${ORG_BUILD_EMCC})
-    if(${ORG_BUILD_PYHAXORG_BINDINGS} OR ${ORG_BUILD_TEXT_LAYOUTER_BINDINGS})
-        find_package(
-            Python
-            COMPONENTS
-                Interpreter
-                Development.Module
-            REQUIRED
-        )
-        find_package(nanobind CONFIG REQUIRED)
-    endif()
-endif()
-
-if(${ORG_BUILD_WITH_TRACY})
-    find_package(Tracy CONFIG REQUIRED)
-endif()
+find_package(hstd CONFIG REQUIRED)
+find_package(HstdCppTextLayout CONFIG REQUIRED)
 
 find_package(range-v3 CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(lexy CONFIG REQUIRED)
 find_package(Immer CONFIG REQUIRED)
-if(NOT TARGET immer::immer)
-    if(TARGET immer AND NOT TARGET immer::immer)
-        add_library(immer::immer ALIAS immer)
-    endif()
+
+if(HAXORG_WITH_PROTOBUF)
+    find_package(protobuf CONFIG REQUIRED)
 endif()
 
-find_package(Lager CONFIG REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-
-if(${ORG_BUILD_INTERNAL_TOOLS})
-    find_package(SQLiteCpp CONFIG REQUIRED)
+if(HAXORG_WITH_PROTOVALIDATE)
+    find_package(protovalidate_cc CONFIG REQUIRED)
 endif()
 
-if(NOT ${ORG_BUILD_EMCC})
+if(HAXORG_WITH_PERFETTO)
+    find_package(Perfetto CONFIG REQUIRED)
+endif()
+
+if(BUILD_TESTING)
+    find_package(GTest CONFIG REQUIRED)
     find_package(absl CONFIG REQUIRED)
 endif()
 
-if(${ORG_BUILD_TESTS})
-    find_package(GTest CONFIG REQUIRED)
-    find_package(benchmark CONFIG REQUIRED)
-endif()
-if(${ORG_DEPS_USE_PACKAGED_BOOST})
-    message(STATUS "ORG_DEPS_TMP_TOGGLE = ${ORG_DEPS_TMP_TOGGLE}")
-    find_package(boost_mp11 CONFIG REQUIRED)
-endif()
-find_package(nlohmann_json CONFIG REQUIRED)
+set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-find_package(lexy CONFIG REQUIRED)
-if(${ORG_BUILD_WITH_PERFETTO})
-    find_package(Perfetto CONFIG REQUIRED)
-endif()
-if(${ORG_DEPS_USE_PACKAGED_BOOST})
-    find_package(BoostDescribe CONFIG REQUIRED)
-    find_package(BoostPreprocessor CONFIG REQUIRED)
-endif()
-if(${ORG_BUILD_WITH_ADAPTAGRAMS})
-    find_package(Adaptagrams CONFIG REQUIRED)
-endif()
-if(NOT ${ORG_BUILD_EMCC})
-    find_package(cpptrace CONFIG REQUIRED)
-endif()
-
-find_package(
-    Boost
-    REQUIRED
-    COMPONENTS
-        process
-        describe
-        preprocessor
-        headers
-        log
-)
-message(STATUS "Boost_DIR = ${Boost_DIR}")
-
-if(${ORG_BUILD_EMCC})
-    add_definitions(-DORG_BUILD_EMCC=1)
-else()
-    add_definitions(-DORG_BUILD_EMCC=0)
-endif()
-
-if(${ORG_BUILD_CLI})
-    find_package(argparse REQUIRED)
-endif()
-
-if(${ORG_BUILD_WITH_ELK})
-    add_definitions(-DORG_BUILD_WITH_ELK=1)
-else()
-    add_definitions(-DORG_BUILD_WITH_ELK=0)
-endif()
-
-if(${ORG_BUILD_WITH_KIWI})
-    add_subdirectory(thirdparty/kiwi)
-    add_definitions(-DORG_BUILD_WITH_KIWI=1)
-else()
-    add_definitions(-DORG_BUILD_WITH_KIWI=0)
-endif()
-
-if(ORG_BUILD_WITH_PROTOBUF)
-    message(STATUS "protobuf_DIR = ${protobuf_DIR}")
-    find_package(protobuf CONFIG REQUIRED)
-    add_definitions(-DORG_BUILD_WITH_PROTOBUF=1)
-
-    if(NOT ORG_IS_CONAN_BUILD)
-        include("${DEPS_DIR}/protobuf/cmake/protobuf-generate.cmake")
-    endif()
-
-    get_target_property(PROTOC_PATH protobuf::protoc IMPORTED_LOCATION_RELWITHDEBINFO)
-
-    message(STATUS "PROTOC_PATH: ${PROTOC_PATH}")
-
-    execute_process(
-        COMMAND
-            "${PROTOC_PATH}" --version
-        OUTPUT_VARIABLE PROTOC_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    message(STATUS "PROTOC_VERSION: ${PROTOC_VERSION}")
-
-    if(${ORG_BUILD_WITH_PROTOVALIDATE})
-        set(PROTOVALIDATE_CC_SOURCE_DIR "${DEPS_DIR}/protovalidate-cc")
-
-        set(PROTOVALIDATE_SOURCE_DIR "${DEPS_DIR}/protovalidate")
-
-        set(FETCHCONTENT_SOURCE_DIR_PROTOVALIDATE
-            "${PROTOVALIDATE_SOURCE_DIR}"
-            CACHE PATH
-            "Local protovalidate schema checkout"
-            FORCE
-        )
-
-        add_subdirectory(
-            "${PROTOVALIDATE_CC_SOURCE_DIR}"
-            "${CMAKE_BINARY_DIR}/third_party/protovalidate-cc"
-            EXCLUDE_FROM_ALL
-        )
-
-        set(PROTOVALIDATE_PROTO_IMPORT_DIR
-            "${PROTOVALIDATE_SOURCE_DIR}/proto/protovalidate"
-        )
-
-        if(NOT TARGET protovalidate_cc::protovalidate_cc)
-            message(FATAL_ERROR "protovalidate_cc::protovalidate_cc was not created")
-        endif()
-
-        if(NOT EXISTS "${PROTOVALIDATE_PROTO_IMPORT_DIR}/buf/validate/validate.proto")
-            message(
-                FATAL_ERROR
-                "Cannot find buf/validate/validate.proto under "
-                "${PROTOVALIDATE_PROTO_IMPORT_DIR}"
-            )
-        endif()
-        add_definitions(-DORG_BUILD_WITH_PROTOVALIDATE=1)
-    else()
-        add_definitions(-DORG_BUILD_WITH_PROTOVALIDATE=0)
-    endif()
-else()
-    add_definitions(-DORG_BUILD_WITH_PROTOBUF=0)
-    add_definitions(-DORG_BUILD_WITH_PROTOVALIDATE=0)
-endif()
-
-message(STATUS "Python_LIBRARIES = ${Python_LIBRARIES}")
-
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-
-if(${ORG_BUILD_WITH_ADAPTAGRAMS})
-    add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=1)
-
-    set(COLA_DIR "${DEPS_DIR}/adaptagrams/cola")
-    include(CMakeParseArguments)
-
-    add_library(adaptagrams)
-    haxorg_target_setup_v2(TARGET adaptagrams FORCE_NO_ASAN ON)
-    target_link_libraries(
-        adaptagrams
-        PUBLIC
-            Adaptagrams::dialect
-            Adaptagrams::cola
-            Adaptagrams::avoid
-            Adaptagrams::topology
-            Adaptagrams::vpsc
-            hstd
-            absl::log
-            absl::base
-    )
-
-    target_include_directories(
-        adaptagrams
-        PUBLIC
-            $<BUILD_INTERFACE:${COLA_DIR}>
-            $<INSTALL_INTERFACE:include>
-    )
-
-    install(DIRECTORY ${COLA_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.h")
-
-    haxorg_glob_add_sources2(
-        TARGET "adaptagrams"
-        LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/.*"
-        SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
-        RECURSE OFF
-    )
-
-else()
-    add_definitions(-DORG_BUILD_WITH_ADAPTAGRAMS=0)
-endif()
-
-add_subdirectory(src/hstd)
-
-if(${ORG_BUILD_EMCC})
-    add_subdirectory(src/wrappers/js)
-endif()
-
-if(${ORG_BUILD_WRAPPERS_C})
-    add_definitions(-DORG_BUILD_WRAPPERS_C=1)
-    add_subdirectory(src/wrappers/c)
-else()
-    add_definitions(-DORG_BUILD_WRAPPERS_C=0)
-endif()
-
-add_subdirectory(src/haxorg)
-
-if(${ORG_BUILD_PYHAXORG_BINDINGS})
-    add_subdirectory(src/py_libs)
-endif()
-
-if(${ORG_BUILD_INTERNAL_TOOLS})
-    add_subdirectory(scripts/cxx_repository)
-    add_subdirectory(scripts/cxx_executor)
-    add_subdirectory(scripts/cxx_codegen)
-endif()
-
-if(${ORG_BUILD_QT_GUI})
-    add_subdirectory(src/app/org_viewer)
-endif()
-
-if(${ORG_BUILD_CLI})
-    add_subdirectory(src/app/org_cli)
-endif()
-
-if(${ORG_BUILD_IMGUI_GUI})
-    find_package(glfw3 CONFIG REQUIRED)
-    find_package(OpenGL REQUIRED)
-
-    set(IMGUI_ORG_ROOT "${BASE}/src/app/org_imgui")
-    set(IMGUI_DEP_ROOT "${DEPS_DIR}/imgui")
-    message(STATUS "IMGUI_ORG_ROOT = ${IMGUI_ORG_ROOT}")
-
-    # external dependency for imgui library
-
-    set(IMCONFIG_TEMPLATE_PATH "${IMGUI_ORG_ROOT}/imconfig.h")
-    set(IMCONFIG_FILE_PATH "${IMGUI_DEP_ROOT}/imconfig.h")
-
-    configure_file("${IMCONFIG_TEMPLATE_PATH}" "${IMCONFIG_FILE_PATH}" @ONLY)
-
-    file(GLOB IMGUI_SOURCES "${IMGUI_DEP_ROOT}/*.cpp")
-
-    add_library(
-        imgui
-        STATIC
-        ${IMGUI_SOURCES}
-        "${IMGUI_DEP_ROOT}/backends/imgui_impl_glfw.cpp"
-        "${IMGUI_DEP_ROOT}/misc/cpp/imgui_stdlib.cpp" #
-        "${IMGUI_DEP_ROOT}/backends/imgui_impl_opengl3.cpp" #
-    )
-
-    target_link_libraries(imgui PUBLIC "${FONTCONFIG_LIBRARIES}")
-    target_include_directories(
-        imgui
-        PUBLIC
-            "${IMGUI_ORG_ROOT}"
-            "${DEPS_DIR}"
-            "${IMGUI_DEP_ROOT}"
-            "${IMGUI_DEP_ROOT}/backends"
-            "${FONTCONFIG_INCLUDE_DIRS}"
-            "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine"
-    )
-
-    file(
-        GLOB IMGUI_TEST_ENGINE_SOURCES
-        "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine/*.cpp"
-    )
-    add_library(imgui_test_engine STATIC "${IMGUI_TEST_ENGINE_SOURCES}")
-    target_include_directories(
-        imgui_test_engine
-        PUBLIC
-            "${IMGUI_DEP_ROOT}"
-            "${BASE}/thirdparty/imgui_test_engine"
-            "${BASE}/thirdparty/imgui_test_engine/imgui_test_engine"
-    )
-
-    add_subdirectory(src/app/org_imgui)
-    add_subdirectory(src/app/log_viewer)
-endif()
-
-# Build the list of "CMake package" targets (no pyhaxorg here)
-set(ORG_INSTALL_TARGET_LIST
-    haxorg
-    hstd
-)
-
-if(${ORG_BUILD_WITH_ADAPTAGRAMS})
-    list(APPEND ORG_INSTALL_TARGET_LIST adaptagrams)
-endif()
-
-if(${ORG_BUILD_WITH_KIWI})
-    list(APPEND ORG_INSTALL_TARGET_LIST kiwi)
-endif()
-
-if(${ORG_BUILD_WITH_ELK})
-    list(APPEND ORG_INSTALL_TARGET_LIST jni_elk_lib)
-endif()
-
-# Install normal libs into lib/, export them, etc.
-install(
-    TARGETS
-        ${ORG_INSTALL_TARGET_LIST}
-    EXPORT HaxorgTargets
-    LIBRARY
-        DESTINATION lib
-    ARCHIVE
-        DESTINATION lib
-    RUNTIME
-        DESTINATION bin
-    INCLUDES DESTINATION
-        include
-)
-
-# Install the Python extension into the *platlib root* (site-packages/)
-if(${ORG_BUILD_PYHAXORG_BINDINGS})
-    install(
-        TARGETS
-            pyhaxorg
-            py_textlayout_cpp
-        LIBRARY
-            DESTINATION "."
-    )
-endif()
+add_subdirectory(src)
 
 install(
     DIRECTORY
         src/
     DESTINATION include
     FILES_MATCHING
+    PATTERN "*.h"
     PATTERN "*.hpp"
     PATTERN "*.tcc"
     PATTERN "*Exporter.cpp"
@@ -657,39 +60,34 @@ install(
 
 install(
     DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/
+        "${CMAKE_CURRENT_BINARY_DIR}/"
     DESTINATION include
     FILES_MATCHING
     PATTERN "*.pb.h"
 )
 
 install(
-    EXPORT HaxorgTargets
-    FILE HaxorgTargets.cmake
+    EXPORT HaxorgCppOrgLibTargets
+    FILE HaxorgCppOrgLibTargets.cmake
     NAMESPACE haxorg::
-    DESTINATION lib/cmake/haxorg
+    DESTINATION lib/cmake/HaxorgCppOrgLib
 )
 
-include(CMakePackageConfigHelpers)
-
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/HaxorgConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/haxorg
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgCppOrgLibConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/HaxorgCppOrgLib
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
-    VERSION "0.3.7"
-    COMPATIBILITY AnyNewerVersion
+    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfigVersion.cmake"
+    VERSION "${PROJECT_VERSION}"
+    COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgConfigVersion.cmake"
-    DESTINATION lib/cmake/haxorg
+        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfigVersion.cmake"
+    DESTINATION lib/cmake/HaxorgCppOrgLib
 )
-
-add_library(haxorg::haxorg ALIAS haxorg)
-add_library(haxorg::hstd ALIAS hstd)

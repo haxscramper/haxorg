@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(
+    hstd
+    CONFIG
+    REQUIRED
+)
+
+include("${CMAKE_CURRENT_LIST_DIR}/HstdCppTextLayoutTargets.cmake")
+
+check_required_components(HstdCppTextLayout)
