@@ -1,17 +1,17 @@
 #include "graph_diagram_validate.hpp"
-#include "hstd/ext/graph/base/graph_base.hpp"
 #include "hstd/ext/graph/visual/graph_diagram.hpp"
 #include "hstd/ext/graph/visual/visual_factory.hpp"
 #include "hstd/ext/hstd_serde_json_interop.hpp"
 #include "hstd/stdlib/ExceptionSerde.hpp"
+#include <hstd/graph/graph_base.hpp>
 #include <hstd/stdlib/containers/MapSerde.hpp>
 #include <hstd/stdlib/containers/OutcomeSerde.hpp>
 #include <hstd/stdlib/containers/VariantSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd/ext/geometry/hstd_geometry.hpp>
-#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/formatting/Formatter.hpp>
 
 #    include <string>

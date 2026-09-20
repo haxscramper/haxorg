@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <hstd/ext/geometry/hstd_geometry_test.hpp>
+#include <hstd/stdlib/algorithms/reflection/hstd_geometry_test.hpp>
 
 namespace hg = hstd::ext::geometry;
 

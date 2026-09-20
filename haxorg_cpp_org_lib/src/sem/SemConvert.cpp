@@ -3,7 +3,7 @@
 #include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/Func.hpp>
 
-#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/facilities/overload.hpp>

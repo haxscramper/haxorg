@@ -5,7 +5,7 @@
 #    include <chrono>
 #    include <condition_variable>
 #    include <fstream>
-#    include <hstd/stdlib/Debug.hpp>
+#    include <hstd/stdlib/formatting/Debug.hpp>
 #    include <thread>
 
 

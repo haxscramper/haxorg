@@ -42,6 +42,7 @@ class HstdConan(ConanFile):
         self.test_requires("benchmark/[>=1.9 <2]")
         self.test_requires("abseil/[>=20240722.0 <20270000]")
         self.test_requires("immer/[>=0.8 <1]")
+        self.tool_requires("protobuf/[>=5 <6]")
 
     def layout(self):
         cmake_layout(self)
@@ -97,7 +98,8 @@ class HstdConan(ConanFile):
     def build(self):
         cmake = CMake(self)
         cmake.configure()
-        cmake.build()
+        # assuming ninja for now, I want to see all errors at once
+        cmake.build(build_tool_args=["-k", "0"])
 
         skip_tests = self.conf.get(
             "tools.build:skip_test",

@@ -1,9 +1,9 @@
 #if ORG_BUILD_WITH_PROTOBUF
 
 #    include "graph_diagram.hpp"
-#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/ext/hstd_serde.hpp>
 #    include <hstd/ext/hstd_serde_dispatch.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 #    include <hstd/ext/graph/visual/visual_factory.hpp>

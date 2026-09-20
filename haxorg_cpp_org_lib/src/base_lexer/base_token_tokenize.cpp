@@ -1,7 +1,7 @@
 #include "base_token_tokenize.hpp"
-#include "hstd/stdlib/Debug.hpp"
 #include <cctype>
 #include <haxorg/lexbase/TraceStructured.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/algorithms/strutils.hpp>

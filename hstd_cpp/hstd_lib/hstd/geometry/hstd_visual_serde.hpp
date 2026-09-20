@@ -2,7 +2,7 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd/ext/geometry/hstd_visual.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_visual.hpp>
 #    include <src/hstd/ext/geometry/hstd_visual.pb.h>
 
 namespace hstd::serde {

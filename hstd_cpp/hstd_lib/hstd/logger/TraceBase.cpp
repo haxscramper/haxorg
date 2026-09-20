@@ -1,10 +1,10 @@
-#include "hstd/stdlib/Debug.hpp"
 #include <fstream>
 #include <hstd/logger/TraceBase.hpp>
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/TraceBaseStructuredLog.hpp>
 #include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/containers/VariantSerde.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 #include <hstd/stdlib/formatting/specializations/SpanFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>

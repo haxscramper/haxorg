@@ -6,7 +6,7 @@
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
 #include <hstd/logger/logger.hpp>
 
-#include <hstd/stdlib/reflection_visitor.hpp>
+#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
 
 FILE* trace_out;

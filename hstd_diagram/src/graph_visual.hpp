@@ -2,7 +2,7 @@
 
 #include <hstd/logger/TraceBase.hpp>
 
-#include <hstd/ext/graph/base/graph_base.hpp>
+#include <hstd/graph/graph_base.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
 #endif

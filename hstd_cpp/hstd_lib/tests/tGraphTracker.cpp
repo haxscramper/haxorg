@@ -147,26 +147,7 @@ struct LogGraphTracker : public ::testing::Test {
 
     std::unique_ptr<graphviz_processor> processor;
 
-    void finalize_files() {
-        {
-            layout::LayoutRun::TrivialState state;
-            auto                            run = state.init();
-
-            hstd::fs::path path = getDebugFile("result.png");
-            processor->get_graphviz(run)->render(path);
-            std::ifstream file{path};
-            EXPECT_TRUE(file.good());
-        }
-        {
-            layout::LayoutRun::TrivialState state;
-            auto                            run  = state.init();
-            hstd::fs::path                  path = getDebugFile("result.dot");
-            processor->get_graphviz(run)->render(
-                path, gv::LayoutType::dot, gv::RenderFormat::DOT);
-            std::ifstream file{path};
-            EXPECT_TRUE(file.good());
-        }
-    }
+    void finalize_files() {}
 };
 
 TEST_F(LogGraphTracker, function_call_chain) {

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/RecursivePathTracker.hpp>
+#include <hstd/stdlib/algorithms/reflection/RecursivePathTracker.hpp>
 #include <string>
 #include <vector>
 

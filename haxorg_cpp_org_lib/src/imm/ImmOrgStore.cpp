@@ -6,6 +6,7 @@
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/TimeReflVisitor.hpp>
+#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
 #include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
@@ -13,7 +14,6 @@
 #include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/reflection_visitor.hpp>
 #include <immer/flex_vector.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <immer/map_transient.hpp>

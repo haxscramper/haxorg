@@ -1,8 +1,8 @@
-#include "hstd/stdlib/Debug.hpp"
 #include <boost/mp11.hpp>
 #include <filesystem>
 #include <haxorg/test/NodeTest.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
 #include <hstd/system/reflection.hpp>
 #include <string>

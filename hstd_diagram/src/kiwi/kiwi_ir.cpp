@@ -1,7 +1,7 @@
 #include "kiwi_ir.hpp"
 #if ORG_BUILD_WITH_KIWI
 
-#    include "hstd/stdlib/Debug.hpp"
+#    include <hstd/stdlib/formatting/Debug.hpp>
 
 #    include <algorithm>
 #    include <filesystem>

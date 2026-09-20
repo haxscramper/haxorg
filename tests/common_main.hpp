@@ -10,7 +10,7 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
-#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 #include <hstd/system/aux_utils.hpp>
 #include <iostream>
 

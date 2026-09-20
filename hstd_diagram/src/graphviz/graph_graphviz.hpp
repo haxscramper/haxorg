@@ -5,8 +5,8 @@
 #    include <google/protobuf/message.h>
 #    include <graphviz/cgraph.h>
 #    include <graphviz/gvc.h>
-#    include <hstd/ext/graph/base/graph_base.hpp>
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
+#    include <hstd/graph/graph_base.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
 #    include <hstd/stdlib/Func.hpp>
 #    include <hstd/stdlib/containers/Opt.hpp>

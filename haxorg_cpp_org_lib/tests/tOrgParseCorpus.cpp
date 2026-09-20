@@ -10,8 +10,8 @@
 #include <iostream>
 
 #include <haxorg/sem/SemConvert.hpp>
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 
 #include "../testprofiler.hpp"
 #include <fnmatch.h>

@@ -4,17 +4,17 @@
 
 #    include "hstd/ext/hstd_serde.hpp"
 #    include "hstd/system/exceptions.hpp"
-#    include <hstd/ext/graph/base/graph_base.hpp>
 #    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
 #    include <hstd/ext/graph/visual/graph_vpsc.hpp>
 #    include <hstd/ext/logger.hpp>
+#    include <hstd/graph/graph_base.hpp>
 #    include <hstd/stdlib/containers/algorithms.hpp>
 #    include <hstd/stdlib/containers/bimap_wrap.hpp>
 
 #    include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
-#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/ext/geometry/hstd_visual_serde.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
 
 namespace hstd::ext::graph::cst {
 

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <boost/outcome/result.hpp>
-#include <hstd/ext/geometry/hstd_geometry.hpp>
-#include <hstd/ext/geometry/hstd_visual.hpp>
 #include <hstd/stdlib/Exception.hpp>
+#include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
+#include <hstd/stdlib/algorithms/reflection/hstd_visual.hpp>
 #include <hstd/stdlib/containers/Outcome.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>

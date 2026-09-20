@@ -1,6 +1,6 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <hstd/ext/error_write.hpp>
-#include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>

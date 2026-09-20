@@ -8,8 +8,8 @@
 #    include <optional>
 #    include <variant>
 
-#    include <hstd/ext/geometry/hstd_geometry.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
 #    include <hstd/stdlib/containers/Opt.hpp>
 #    include <hstd/stdlib/containers/Variant.hpp>
 #    include <hstd/stdlib/containers/Vec.hpp>

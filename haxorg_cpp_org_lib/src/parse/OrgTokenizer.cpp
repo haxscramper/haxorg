@@ -1,8 +1,8 @@
 #include "OrgTokenizer.hpp"
 
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/facilities/overload.hpp>

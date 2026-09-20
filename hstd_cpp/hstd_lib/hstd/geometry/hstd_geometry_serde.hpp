@@ -2,8 +2,8 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd/ext/geometry/hstd_geometry.hpp>
 #    include <hstd/ext/hstd_serde.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_geometry.hpp>
 #    include <src/hstd/ext/geometry/hstd_geometry.pb.h>
 
 namespace hstd::serde {

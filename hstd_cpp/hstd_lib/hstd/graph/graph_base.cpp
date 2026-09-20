@@ -1,9 +1,9 @@
 #include "graph_base.hpp"
 #include "hstd/ext/graph/visual/graph_visual.hpp"
 
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <stack>

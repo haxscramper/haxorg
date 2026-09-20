@@ -3,14 +3,14 @@
 #if ORG_BUILD_WITH_ELK
 
 #    include "elk_jni_wrapper.hpp"
-#    include <hstd/ext/graph/base/graph_base.hpp>
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
 #    include <hstd/ext/hstd_serde.hpp>
-#    include <hstd/stdlib/Debug.hpp>
+#    include <hstd/graph/graph_base.hpp>
 #    include <hstd/stdlib/Exception.hpp>
 #    include <hstd/stdlib/Str.hpp>
 #    include <hstd/stdlib/containers/Opt.hpp>
 #    include <hstd/stdlib/containers/Vec.hpp>
+#    include <hstd/stdlib/formatting/Debug.hpp>
 #    include <hstd/stdlib/serde/Json.hpp>
 #    include <hstd/stdlib/serde/JsonSerde.hpp>
 #    include <hstd/stdlib/serde/JsonUse.hpp>

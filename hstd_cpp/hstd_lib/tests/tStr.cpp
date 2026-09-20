@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/ColTextHShow.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/formatting/ColText.hpp>
+#include <hstd/stdlib/formatting/ColTextHShow.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 #include <hstd/extra/error_format/gtest_utils.hpp>

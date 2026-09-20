@@ -14,7 +14,7 @@
 #endif
 #include <haxorg/imm/ImmGetterApi.hpp>
 #include <haxorg/serde/SemOrgSerde.hpp>
-#include <hstd/ext/graph/base/graph_base.hpp>
+#include <hstd/graph/graph_base.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
 

@@ -17,10 +17,10 @@
 #include <boost/mp11/algorithm.hpp>
 #include <boost/mp11/list.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <hstd/stdlib/ColTextHShow.hpp>
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/TimeReflVisitor.hpp>
 #include <hstd/stdlib/algorithms/strutils.hpp>
+#include <hstd/stdlib/formatting/ColTextHShow.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 #include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>

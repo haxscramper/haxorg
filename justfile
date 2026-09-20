@@ -156,12 +156,15 @@ conan_validate_deps_protovalidate_cc: conan_remove_deps
 
 [working-directory("/tmp")]
 conan_validate_hstd_cpp:
+  conan remove "hstd/*" --confirm
   conan create {{HAXORG_ROOT}}/hstd_cpp/hstd_lib \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
-    --build=missing
+    --build=missing \
+     -vstatus
 
 conan_clean_validate_hstd_cpp: conan_remove_deps conan_export_deps conan_validate_hstd_cpp
 
-loop_target target:
-  fd | entr -rc bash -c "just {{target}} > build/target_result.log 2>&1"
+run_to_output target:
+  -just {{target}} > build/target_result.log 2>&1
+  ./repo_py_orchestrate/remap_conan_error_paths.py build/target_result.log

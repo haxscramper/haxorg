@@ -1,7 +1,7 @@
 #include <boost/stacktrace.hpp>
 #include <hstd/ext/textlayouter.hpp>
-#include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/formatting/Debug.hpp>
 #include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>

@@ -1,10 +1,10 @@
 #include "hstd/ext/hstd_serde.hpp"
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 #    include <filesystem>
-#    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
-#    include <hstd/stdlib/Debug.hpp>
+#    include <hstd/stdlib/algorithms/reflection/hstd_geometry_serde.hpp>
+#    include <hstd/stdlib/formatting/Debug.hpp>
 
 using namespace hstd;
 using namespace hstd::ext;
