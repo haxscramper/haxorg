@@ -3,17 +3,6 @@ revision = 3
 requires-python = "==3.13.*"
 
 [manifest]
-members = [
-    "cxx-repository",
-    "py-ci",
-    "py-cli",
-    "py-codegen",
-    "py-haxorg",
-    "py-repository",
-    "py-scriptutils",
-    "py-wrappers",
-    "testtest",
-]
 overrides = [{ name = "isort", specifier = ">=7.0.0" }]
 
 [[package]]
@@ -325,11 +314,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/88/96/df576fbacc522e9fb8d1c4b7a7fc62eb734be56e2cba1d88d2eabe08ea3f/coverage-7.13.2-cp313-cp313t-win_arm64.whl", hash = "sha256:69e526e14f3f854eda573d3cf40cffd29a1a91c684743d904c33dbdcd0e0f3e7", size = 221707, upload-time = "2026-01-25T12:59:08.363Z" },
     { url = "https://files.pythonhosted.org/packages/d2/db/d291e30fdf7ea617a335531e72294e0c723356d7fdde8fba00610a76bda9/coverage-7.13.2-py3-none-any.whl", hash = "sha256:40ce1ea1e25125556d8e76bd0b61500839a07944cc287ac21d5626f3e620cad5", size = 210943, upload-time = "2026-01-25T13:00:02.388Z" },
 ]
-
-[[package]]
-name = "cxx-repository"
-version = "0.1.0"
-source = { editable = "scripts/cxx_repository" }
 
 [[package]]
 name = "cycler"
@@ -1195,77 +1179,6 @@ wheels = [
 ]
 
 [[package]]
-name = "py-ci"
-version = "0.1.0"
-source = { editable = "scripts/py_ci" }
-
-[[package]]
-name = "py-cli"
-version = "0.1.0"
-source = { editable = "scripts/py_cli" }
-
-[[package]]
-name = "py-codegen"
-version = "0.1.0"
-source = { editable = "scripts/py_codegen" }
-
-[[package]]
-name = "py-haxorg"
-version = "0.1.0"
-source = { editable = "scripts/py_haxorg" }
-dependencies = [
-    { name = "beartype" },
-    { name = "dominate" },
-    { name = "jsonpath-ng" },
-    { name = "more-itertools" },
-    { name = "plumbum" },
-    { name = "py-scriptutils" },
-    { name = "pydantic" },
-    { name = "pyyaml" },
-    { name = "rich" },
-    { name = "rich-click" },
-    { name = "sqlalchemy" },
-    { name = "toml" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "beartype", specifier = ">=0.22.0" },
-    { name = "dominate", specifier = ">=2.0.0,<3.0.0" },
-    { name = "jsonpath-ng", specifier = ">=1.6.1,<2.0.0" },
-    { name = "more-itertools", specifier = ">=10.1.0,<11.0.0" },
-    { name = "plumbum", specifier = ">=1.8.2,<2.0.0" },
-    { name = "py-scriptutils", editable = "scripts/py_scriptutils" },
-    { name = "pydantic", specifier = ">=2.4.2,<3.0.0" },
-    { name = "pyyaml", specifier = ">=6.0.1,<7.0.0" },
-    { name = "rich", specifier = ">=13.0.0,<14.0.0" },
-    { name = "rich-click", specifier = ">=1.6.1,<2.0.0" },
-    { name = "sqlalchemy", specifier = ">=2.0.0,<3.0.0" },
-    { name = "toml", specifier = ">=0.10.2,<0.11.0" },
-]
-
-[[package]]
-name = "py-repository"
-version = "0.1.0"
-source = { editable = "scripts/py_repository" }
-dependencies = [
-    { name = "py-scriptutils" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "py-scriptutils", editable = "scripts/py_scriptutils" }]
-
-[[package]]
-name = "py-scriptutils"
-version = "0.1.0"
-source = { editable = "scripts/py_scriptutils" }
-
-[[package]]
-name = "py-wrappers"
-version = "0.1.0"
-source = { editable = "scripts/py_wrappers" }
-
-[[package]]
 name = "pydantic"
 version = "2.12.5"
 source = { registry = "https://pypi.org/simple" }
@@ -1870,15 +1783,6 @@ dev = [
     { name = "tree-sitter" },
     { name = "tree-sitter-cpp" },
 ]
-local = [
-    { name = "cxx-repository" },
-    { name = "py-ci" },
-    { name = "py-cli" },
-    { name = "py-codegen" },
-    { name = "py-haxorg" },
-    { name = "py-repository" },
-    { name = "py-scriptutils" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -1938,15 +1842,7 @@ dev = [
     { name = "tree-sitter", specifier = ">=0.25.2" },
     { name = "tree-sitter-cpp", specifier = ">=0.23.4" },
 ]
-local = [
-    { name = "cxx-repository", editable = "scripts/cxx_repository" },
-    { name = "py-ci", editable = "scripts/py_ci" },
-    { name = "py-cli", editable = "scripts/py_cli" },
-    { name = "py-codegen", editable = "scripts/py_codegen" },
-    { name = "py-haxorg", editable = "scripts/py_haxorg" },
-    { name = "py-repository", editable = "scripts/py_repository" },
-    { name = "py-scriptutils", editable = "scripts/py_scriptutils" },
-]
+local = []
 
 [[package]]
 name = "texttable"

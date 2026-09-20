@@ -81,13 +81,10 @@ repos:
         language: system
         types: [c++]
         stages: [manual]
-  - repo: local
+  - repo: https://github.com/BlankSpruce/gersemi-pre-commit
+    rev: 0.29.1
     hooks:
-      - id: cmake-format
-        name: cmake-format
-        entry: cmake-format -i
-        language: system
-        files: (CMakeLists\.txt|\.cmake)$
+    - id: gersemi
   - repo: local
     hooks:
       - id: no-undocumented-api

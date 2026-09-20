@@ -68,38 +68,35 @@ dev = [
   "tree-sitter-cpp>=0.23.4",
 ]
 local = [
-  "py_ci",
-  "py_scriptutils",
-  "py_codegen",
-  "py_cli",
-  "py_repository",
-  "cxx_repository",
-  "py_haxorg",
+  # "py_ci",
+  # "py_scriptutils",
+  # "py_codegen",
+  # "py_cli",
+  # "py_repository",
+  # "cxx_repository",
+  # "py_haxorg",
 ]
 
 [tool.uv.workspace]
 members = [
-  "scripts/py_haxorg",
-  "scripts/py_ci",
-  "scripts/py_scriptutils",
-  "scripts/py_codegen",
-  "scripts/py_cli",
-  "scripts/py_repository",
-  "scripts/py_wrappers",
-  "scripts/cxx_repository",
+  # "haxorg_py_lib_wrap/package",
+  # "repo_ci_config/py_ci",
+  # # "repo_py_orchestrate",
+  # "haxorg_py_codegen/py_codegen",
+  # "haxorg_py_cli/py_cli",
 ]
 exclude = [
   "scripts/py_repository/py_repository/code_analysis/codechecker_environment",
 ]
 
 [tool.uv.sources]
-py_ci = { workspace = true }
-py_scriptutils = { workspace = true }
-py_codegen = { workspace = true }
-py_cli = { workspace = true }
-py_repository = { workspace = true }
-cxx_repository = { workspace = true }
-py_haxorg = { workspace = true }
+# py_ci = { workspace = true }
+# py_scriptutils = { workspace = true }
+# py_codegen = { workspace = true }
+# py_cli = { workspace = true }
+# py_repository = { workspace = true }
+# cxx_repository = { workspace = true }
+# py_haxorg = { workspace = true }
 
 [tool.isort]
 profile = "google"
