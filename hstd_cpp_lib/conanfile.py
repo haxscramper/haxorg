@@ -143,6 +143,7 @@ class HstdConan(ConanFile):
         cmake_modules = [
             "lib/cmake/hstd_cpp_lib/functions_aux.cmake",
             "lib/cmake/hstd_cpp_lib/functions_setup.cmake",
+            "lib/cmake/hstd_cpp_lib/hstd_cpp_lib_proto.cmake",
         ]
 
         self.cpp_info.set_property("cmake_build_modules", cmake_modules)

@@ -1,10 +1,10 @@
 syntax = "proto3";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
-import "src/haxorg/serde/SemOrgProto.proto";
-import "src/haxorg/serde/OrgApiProto.proto";
-import "src/hstd/ext/error_write.proto";
-import "src/hstd/ext/graph/base/graph_base.proto";
+import "haxorg_cpp_org_lib/SemOrgProto.proto";
+import "haxorg_cpp_org_lib/OrgApiProto.proto";
+import "hstd_cpp_lib/error_write.proto";
+import "hstd_cpp_lib/graph_base.proto";
 
 package org.graph.proto;
 

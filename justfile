@@ -141,19 +141,23 @@ conan_info_package_path package:
   conan graph info {{package}} --format=html > /tmp/graph.html
   echo /tmp/graph.html
 
-conan_remove_deps:
+conan_remove_external_deps:
   conan remove "protovalidate-cc/*" -c
+
+conan_remove_local_deps:
   conan remove "hstd_cpp_lib/*" --confirm
   conan remove "hstd_cpp_text_layout/*" --confirm
 
-# Export local dependencies so subsequent build
-conan_export_deps:
+conan_export_external_deps:
   conan export "repo_conan_wraps/protovalidate-cc"
+
+conan_export_local_deps:
   conan export "hstd_cpp_lib"
   conan export "hstd_cpp_text_layout"
 
 [working-directory("/tmp")]
-conan_validate_deps_protovalidate_cc: conan_remove_deps
+conan_validate_deps_protovalidate_cc:
+  conan remove "protovalidate-cc/*" -c
   conan create {{HAXORG_ROOT}}/repo_conan_wraps/protovalidate-cc \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
@@ -172,7 +176,13 @@ conan_validate target:
     --build=missing \
      -vstatus
 
-conan_clean_validate target: conan_remove_deps conan_export_deps
+conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
+conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
+
+conan_clean_total_validate target: conan_update_local_deps conan_update_external_deps
+  just conan_validate {{target}}
+
+conan_clean_local_validate target: conan_update_local_deps
   just conan_validate {{target}}
 
 run_to_output target *ARGS:

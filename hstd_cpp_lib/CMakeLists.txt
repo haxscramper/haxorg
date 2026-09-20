@@ -233,5 +233,14 @@ install(
     FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/functions_aux.cmake"
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/functions_setup.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/hstd_cpp_lib_proto.cmake"
     DESTINATION "lib/cmake/hstd_cpp_lib"
+)
+
+install(
+    DIRECTORY
+        "${CMAKE_CURRENT_SOURCE_DIR}/proto/"
+    DESTINATION "share/hstd_cpp_lib/proto"
+    FILES_MATCHING
+    PATTERN "*.proto"
 )

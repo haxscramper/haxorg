@@ -1,6 +1,15 @@
+from typing import Protocol, cast
+
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.env import Environment
+
+
+class RecipeOptions(Protocol):
+    with_protobuf: bool
+    with_protovalidate: bool
+    with_perfetto: bool
 
 
 class HaxorgCppOrgLibConan(ConanFile):
@@ -9,24 +18,26 @@ class HaxorgCppOrgLibConan(ConanFile):
 
     settings = "os", "compiler", "build_type", "arch"
 
-    options = {
-        "with_protobuf": [True, False],
-        "with_protovalidate": [True, False],
-        "with_perfetto": [True, False],
-        "build_tests": [True, False],
-    }
+    options = cast(
+        RecipeOptions,
+        {
+            "with_protobuf": [True, False],
+            "with_protovalidate": [True, False],
+            "with_perfetto": [True, False],
+        },
+    )
 
     default_options = {
         "with_protobuf": True,
         "with_protovalidate": False,
         "with_perfetto": False,
-        "build_tests": False,
     }
 
     exports_sources = (
         "CMakeLists.txt",
         "cmake/*",
         "src/*",
+        "proto/*",
         "tests/*",
     )
 
@@ -57,11 +68,10 @@ class HaxorgCppOrgLibConan(ConanFile):
         if self.options.with_perfetto:
             self.requires("perfetto/[>=52.0 <53]", **transitive)
 
-        if self.options.build_tests:
-            self.requires("gtest/[>=1.17 <2]")
-            self.requires("abseil/[>=20250127.0 <20260000]")
-
     def build_requirements(self):
+        self.test_requires("gtest/[>=1.17 <2]")
+        self.test_requires("abseil/[>=20250127.0 <20260000]")
+
         if self.options.with_protobuf:
             self.tool_requires("protobuf/[>=5 <6]")
 
@@ -69,13 +79,19 @@ class HaxorgCppOrgLibConan(ConanFile):
         cmake_layout(self)
 
     def generate(self):
+        skip_tests = self.conf.get(
+            "tools.build:skip_test",
+            default=False,
+            check_type=bool,
+        )
+
         toolchain = CMakeToolchain(self)
         toolchain.cache_variables["HAXORG_WITH_PROTOBUF"] = self.options.with_protobuf
         toolchain.cache_variables["HAXORG_WITH_PROTOVALIDATE"] = (
             self.options.with_protovalidate
         )
         toolchain.cache_variables["HAXORG_WITH_PERFETTO"] = self.options.with_perfetto
-        toolchain.cache_variables["BUILD_TESTING"] = self.options.build_tests
+        toolchain.cache_variables["BUILD_TESTING"] = not skip_tests
         toolchain.generate()
 
         dependencies = CMakeDeps(self)
@@ -83,11 +99,26 @@ class HaxorgCppOrgLibConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure(cli_args=["--fresh"])
-        cmake.build()
+        cmake.configure()
+        ninja_args = self.conf.get(
+            "user.hstd:ninja_args",
+            default=[],
+            check_type=list,
+        )
+        cmake.build(build_tool_args=ninja_args)
 
-        if self.options.build_tests:
-            cmake.test()
+        skip_tests = self.conf.get(
+            "tools.build:skip_test",
+            default=False,
+            check_type=bool,
+        )
+
+        if not skip_tests and can_run(self):
+            environment = Environment()
+            environment.define("CTEST_OUTPUT_ON_FAILURE", "1")
+
+            with environment.vars(self).apply():
+                cmake.test()
 
     def package(self):
         cmake = CMake(self)

@@ -28,10 +28,9 @@ find_package(Immer CONFIG REQUIRED)
 
 if(HAXORG_WITH_PROTOBUF)
     find_package(protobuf CONFIG REQUIRED)
-endif()
-
-if(HAXORG_WITH_PROTOVALIDATE)
-    find_package(protovalidate_cc CONFIG REQUIRED)
+    if(HAXORG_WITH_PROTOVALIDATE)
+        find_package(protovalidate_cc CONFIG REQUIRED)
+    endif()
 endif()
 
 if(HAXORG_WITH_PERFETTO)
@@ -43,16 +42,120 @@ if(BUILD_TESTING)
     find_package(absl CONFIG REQUIRED)
 endif()
 
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
+haxorg_add_library(haxorg_cpp_org_lib)
 
-add_subdirectory(src)
+haxorg_glob_add_sources2(
+    TARGET haxorg_cpp_org_lib
+    LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/src/haxorg/.*"
+    SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
+)
+
+haxorg_set_target_output(haxorg_cpp_org_lib)
+haxorg_set_target_flags(haxorg_cpp_org_lib)
+
+target_link_libraries(
+    haxorg_cpp_org_lib
+    PUBLIC
+        hstd::hstd_cpp_lib
+        hstd::hstd_cpp_text_layout
+        range-v3::range-v3
+        nlohmann_json::nlohmann_json
+        foonathan::lexy
+        immer::immer
+)
+
+target_include_directories(
+    haxorg_cpp_org_lib
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<INSTALL_INTERFACE:include>
+)
+
+target_compile_definitions(
+    haxorg_cpp_org_lib
+    PUBLIC
+        ORG_BUILD_WITH_PROTOBUF=$<BOOL:${HAXORG_WITH_PROTOBUF}>
+        ORG_BUILD_WITH_PROTOVALIDATE=$<BOOL:${HAXORG_WITH_PROTOVALIDATE}>
+        ORG_BUILD_WITH_PERFETTO=$<BOOL:${HAXORG_WITH_PERFETTO}>
+)
+
+if(HAXORG_WITH_PROTOBUF)
+    set(HAXORG_PROTO_PUBLIC_LIBRARIES)
+    set(HAXORG_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
+    list(APPEND HAXORG_PROTO_IMPORT_DIRS "${hstd_cpp_lib_PROTO_IMPORT_DIR}")
+
+    if(HAXORG_WITH_PROTOVALIDATE)
+        list(APPEND HAXORG_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
+        list(APPEND HAXORG_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
+    endif()
+
+    haxorg_add_protobuf(
+        TARGET haxorg_cpp_org_lib
+        UNIQUE_TARGET haxorg_sem_protobuf
+        IMPORT_DIRS
+            ${HAXORG_PROTO_IMPORT_DIRS}
+        PROTO_SOURCES
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProto.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProtoManual.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/OrgApiProto.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/ImmOrgGraph.proto"
+        PUBLIC_LIBRARIES
+            ${HAXORG_PROTO_PUBLIC_LIBRARIES}
+    )
+endif()
+
+if(HAXORG_WITH_PERFETTO)
+    target_link_libraries(haxorg_cpp_org_lib PUBLIC Perfetto::perfetto)
+endif()
+
+add_library(haxorg::haxorg_cpp_org_lib ALIAS haxorg_cpp_org_lib)
+
+install(
+    TARGETS
+        haxorg_cpp_org_lib
+    EXPORT HaxorgCppOrgLibTargets
+    LIBRARY
+        DESTINATION lib
+    ARCHIVE
+        DESTINATION lib
+    RUNTIME
+        DESTINATION bin
+    INCLUDES DESTINATION
+        include
+)
+
+if(BUILD_TESTING)
+    add_executable(haxorg_cpp_org_tests)
+
+    haxorg_glob_add_sources2(
+        TARGET haxorg_cpp_org_tests
+        LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/tests/.*"
+        SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
+    )
+
+    target_link_libraries(
+        haxorg_cpp_org_tests
+        PRIVATE
+            haxorg_cpp_org_lib
+            GTest::gtest
+            absl::base
+            absl::log
+            absl::flags
+    )
+
+    haxorg_set_target_output(haxorg_cpp_org_tests)
+    haxorg_set_target_flags(haxorg_cpp_org_tests)
+
+    add_test(NAME haxorg_cpp_org_tests COMMAND haxorg_cpp_org_tests)
+endif()
 
 install(
     DIRECTORY
         src/
     DESTINATION include
     FILES_MATCHING
-    PATTERN "*.h"
     PATTERN "*.hpp"
     PATTERN "*.tcc"
     PATTERN "*Exporter.cpp"

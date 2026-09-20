@@ -6,8 +6,8 @@
 #include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
-#    include "src/haxorg/serde/OrgApiProto.pb.h"
-#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#    include <haxorg_cpp_org_lib/OrgApiProto.pb.h>
+#    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 #endif
 
 namespace org::parse {

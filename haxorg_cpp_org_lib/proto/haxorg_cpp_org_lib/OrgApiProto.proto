@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-import "src/haxorg/serde/SemOrgProto.proto";
-import "src/hstd/ext/error_write.proto";
-import "src/haxorg/serde/SemOrgProtoManual.proto";
+import "haxorg_cpp_org_lib/SemOrgProto.proto";
+import "hstd_cpp_lib/error_write.proto";
+import "haxorg_cpp_org_lib/SemOrgProtoManual.proto";
 
 package orgproto;
 
