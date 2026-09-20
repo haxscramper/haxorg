@@ -1,15 +1,15 @@
-#include <haxorg/test/corpusrunner.hpp>
+#include <haxorg_cpp_org_lib/test/corpusrunner.hpp>
 
 #include <gtest/gtest.h>
-#include <haxorg/lexbase/NodeIO.hpp>
-#include <haxorg/parse/OrgParser.hpp>
-#include <haxorg/parse/OrgTokenizer.hpp>
-#include <haxorg/test/NodeTest.hpp>
+#include <haxorg_cpp_org_lib/lexbase/NodeIO.hpp>
+#include <haxorg_cpp_org_lib/parse/OrgParser.hpp>
+#include <haxorg_cpp_org_lib/parse/OrgTokenizer.hpp>
+#include <haxorg_cpp_org_lib/test/NodeTest.hpp>
 #include <hstd_cpp_lib/ext/error_write.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 #include <iostream>
 
-#include <haxorg/sem/SemConvert.hpp>
+#include <haxorg_cpp_org_lib/sem/SemConvert.hpp>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
@@ -17,7 +17,7 @@
 #include <fnmatch.h>
 
 #include "tOrgTestCommon.hpp"
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 
 #include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>

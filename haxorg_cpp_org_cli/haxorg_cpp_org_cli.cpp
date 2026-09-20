@@ -3,7 +3,7 @@
 #include <app/org_cli/diagram_ctx.hpp>
 #include <app/org_cli/export_ctx.hpp>
 #include <app/org_cli/parse_ctx.hpp>
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/ext/logger.hpp>
 #include <hstd_cpp_lib/ext/perfetto_aux_impl_template.hpp>
 #include <hstd_cpp_lib/stdlib/IntSetSerde.hpp>

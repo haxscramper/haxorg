@@ -7,7 +7,7 @@
 #include <xray/xray_log_interface.h>
 #include <xray/xray_records.h>
 
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 
 namespace fs = std::filesystem;
 

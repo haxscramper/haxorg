@@ -1,7 +1,7 @@
 #include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <app/org_cli/common_ctx.hpp>
 #include <google/protobuf/util/json_util.h>
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/ext/error_write_proto.hpp>
 #include <hstd_cpp_lib/ext/logger.hpp>
 

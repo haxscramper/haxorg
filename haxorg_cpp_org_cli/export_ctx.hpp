@@ -2,9 +2,9 @@
 
 #include <app/org_cli/cli_opts.hpp>
 #include <app/org_cli/common_ctx.hpp>
-#include <haxorg/api/ParseContext.hpp>
-#include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/lexbase/NodeIO.hpp>
+#include <haxorg_cpp_org_lib/api/ParseContext.hpp>
+#include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
+#include <haxorg_cpp_org_lib/lexbase/NodeIO.hpp>
 #include <hstd_cpp_lib/stdlib/JsonUse.hpp>
 
 namespace org::cli {

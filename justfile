@@ -144,11 +144,13 @@ conan_info_package_path package:
 conan_remove_deps:
   conan remove "protovalidate-cc/*" -c
   conan remove "hstd_cpp_lib/*" --confirm
+  conan remove "hstd_cpp_text_layout/*" --confirm
 
 # Export local dependencies so subsequent build
 conan_export_deps:
   conan export "repo_conan_wraps/protovalidate-cc"
   conan export "hstd_cpp_lib"
+  conan export "hstd_cpp_text_layout"
 
 [working-directory("/tmp")]
 conan_validate_deps_protovalidate_cc: conan_remove_deps

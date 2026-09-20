@@ -18,8 +18,8 @@ if(HAXORG_WITH_PROTOVALIDATE AND NOT HAXORG_WITH_PROTOBUF)
     message(FATAL_ERROR "HAXORG_WITH_PROTOVALIDATE requires HAXORG_WITH_PROTOBUF")
 endif()
 
-find_package(hstd CONFIG REQUIRED)
-find_package(HstdCppTextLayout CONFIG REQUIRED)
+find_package(hstd_cpp_lib CONFIG REQUIRED)
+find_package(hstd_cpp_text_layout CONFIG REQUIRED)
 
 find_package(range-v3 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)

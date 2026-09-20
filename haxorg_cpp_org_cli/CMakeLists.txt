@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CMakePackageConfigHelpers)
 
-find_package(hstd CONFIG REQUIRED)
+find_package(hstd_cpp_lib CONFIG REQUIRED)
 find_package(HaxorgCppOrgLib CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(argparse CONFIG REQUIRED)

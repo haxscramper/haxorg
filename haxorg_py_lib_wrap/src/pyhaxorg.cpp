@@ -19,8 +19,8 @@
 #include <nanobind/operators.h>
 #include <nanobind/make_iterator.h>
 #include <nanobind/ndarray.h>
-#include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <haxorg/sem/SemOrg.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp>
+#include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
 #include "pyhaxorg_manual_impl.hpp"
 NB_MAKE_OPAQUE(hstd::StrCommon<hstd::Str>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)

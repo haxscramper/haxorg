@@ -1,6 +1,6 @@
 #include "tOrgTestCommon.hpp"
-#include <haxorg/exporters/exporteryaml.hpp>
-#include <haxorg/test/corpusrunner.hpp>
+#include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
+#include <haxorg_cpp_org_lib/test/corpusrunner.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>

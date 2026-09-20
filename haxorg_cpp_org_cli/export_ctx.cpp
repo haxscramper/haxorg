@@ -1,13 +1,13 @@
 #include "export_ctx.hpp"
 
-#include "haxorg/exporters/ExporterJson.hpp"
-#include "haxorg/exporters/exporteryaml.hpp"
 #include "src/haxorg/imm/ImmOrgGraph.pb.h"
 #include "src/haxorg/serde/OrgApiProto.pb.h"
 #include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <google/protobuf/util/json_util.h>
-#include <haxorg/imm/ImmOrgGraph.hpp>
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/exporters/ExporterJson.hpp>
+#include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/ext/logger.hpp>
 
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstddef>
-#include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/sem/SemOrg.hpp>
+#include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
+#include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
 #include <hstd_cpp_lib/stdlib/Exception.hpp>
 #include <hstd_cpp_lib/system/reflection.hpp>
 #include <optional>

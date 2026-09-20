@@ -3,7 +3,7 @@
 #include <app/org_cli/cli_opts.hpp>
 #include <app/org_cli/proto_to_xml.hpp>
 #include <fstream>
-#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 
 
 hstd::ProtoXmlMapper make_proto_xml_mapper();

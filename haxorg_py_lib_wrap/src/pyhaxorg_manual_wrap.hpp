@@ -1,7 +1,7 @@
 #ifndef PY_HAXORG_COMPILING
 
 #    undef slots
-#    include <haxorg/sem/SemOrg.hpp>
+#    include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
 #    include <nanobind/nanobind.h>
 
 #    include "pyhaxorg_manual_impl.hpp"

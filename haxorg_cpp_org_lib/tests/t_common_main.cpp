@@ -2,7 +2,7 @@
 #include "../common_main.hpp"
 #include "../testprofiler.hpp"
 
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/ext/perfetto_aux_impl_template.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>
 

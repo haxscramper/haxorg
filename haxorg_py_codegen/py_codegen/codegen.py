@@ -230,7 +230,7 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                     [
                         GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
                         GenTuPass("#pragma once"),
-                        GenTuPass("#include <haxorg/serde/SemOrgSerde.hpp>"),
+                        GenTuPass("#include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>"),
                         GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
                     ]
                     + [
@@ -245,8 +245,10 @@ def gen_pyhaxorg_source(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups) -> GenF
                     "{base}/serde/SemOrgSerdeDefinitions.cpp",
                     [
                         GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
-                        GenTuPass("#include <haxorg/serde/SemOrgSerde.hpp>"),
-                        GenTuPass("#include <haxorg/serde/SemOrgSerdeDeclarations.hpp>"),
+                        GenTuPass("#include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>"),
+                        GenTuPass(
+                            "#include <haxorg_cpp_org_lib/serde/SemOrgSerdeDeclarations.hpp>"
+                        ),
                     ]
                     + [
                         GenTuPass(t.stack([ast.Any(rec), t.text("")]))

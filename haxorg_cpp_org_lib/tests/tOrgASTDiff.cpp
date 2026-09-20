@@ -1,9 +1,9 @@
 #include "tOrgTestCommon.hpp"
 #include <gtest/gtest.h>
-#include <haxorg/api/SemBaseApi.hpp>
-#include <haxorg/sem/SemAstDiff.hpp>
-#include <haxorg/sem/SemOrg.hpp>
-#include <haxorg/test/org_parse_aux.hpp>
+#include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
+#include <haxorg_cpp_org_lib/sem/SemAstDiff.hpp>
+#include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
+#include <haxorg_cpp_org_lib/test/org_parse_aux.hpp>
 #include <hstd_cpp_lib/ext/astdiff/astdiff.hpp>
 #include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>

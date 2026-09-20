@@ -1,8 +1,8 @@
 #include "parse_ctx.hpp"
-#include "haxorg/exporters/ExporterJson.hpp"
-#include "haxorg/exporters/exporteryaml.hpp"
-#include <haxorg/exporters/exportertree.hpp>
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/exporters/ExporterJson.hpp>
+#include <haxorg_cpp_org_lib/exporters/exportertree.hpp>
+#include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 
 void org::cli::ParseCommandContext::configure(SharedContext& shared) {
     params->parseTracePath     = cmd.parseTracePath;
