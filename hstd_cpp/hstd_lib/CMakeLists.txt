@@ -223,8 +223,8 @@ install(
 
 install(
     DIRECTORY
-        "${CMAKE_CURRENT_LIST_DIR}"
-    DESTINATION include
+        "${CMAKE_CURRENT_SOURCE_DIR}/hstd/"
+    DESTINATION include/hstd
     FILES_MATCHING
     PATTERN "*.hpp"
 )

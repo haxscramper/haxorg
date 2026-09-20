@@ -304,6 +304,11 @@ include(
         )
 
     def package_info(self):
+        self.cpp_info.set_property("cmake_file_name", "protovalidate_cc")
+        self.cpp_info.set_property(
+            "cmake_target_name",
+            "protovalidate_cc::protovalidate_cc",
+        )
         self.cpp_info.set_property("cmake_find_mode", "none")
 
         self.cpp_info.builddirs = [

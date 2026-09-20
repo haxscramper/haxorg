@@ -24,15 +24,17 @@ class HstdConan(ConanFile):
     )
 
     def requirements(self):
-        self.requires("yaml-cpp/[>=0.8.0 <0.9]")
-        self.requires("range-v3/[>=0.12.0 <0.13]")
-        self.requires("nlohmann_json/[>=3.11.3 <4]")
-        self.requires("cctz/[>=2.4.0 <3]")
-        self.requires("fmt/[>=11 <13]")
-        self.requires("boost/[>=1.86.0 <2]")
-        self.requires("cpptrace/[>=0.8.0 <2]")
+        self.requires("yaml-cpp/[>=0.8.0 <0.9]", transitive_headers=True)
+        # TODO: range-v3 could be made non-transitive, in theory, but it
+        # would require separate cleanup of the headers.
+        self.requires("range-v3/[>=0.12.0 <0.13]", transitive_headers=True)
+        self.requires("nlohmann_json/[>=3.11.3 <4]", transitive_headers=True)
+        self.requires("cctz/[>=2.4.0 <3]", transitive_headers=True)
+        self.requires("fmt/[>=11 <13]", transitive_headers=True)
+        self.requires("boost/[>=1.86.0 <2]", transitive_headers=True)
+        self.requires("cpptrace/[>=0.8.0 <2]", transitive_headers=True)
         self.requires("protobuf/[>=5 <6]")
-        self.requires("perfetto/[>=46 <100]")
+        self.requires("perfetto/[>=46 <100]", transitive_headers=True)
         self.requires("tracy/[>=0.11 <1]")
         # for protovalidate dependency
         self.requires("re2/[>=20230301]")

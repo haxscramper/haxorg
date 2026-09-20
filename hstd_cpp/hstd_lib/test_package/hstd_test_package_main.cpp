@@ -1,6 +1,9 @@
-#include <hstd/your_public_header.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
 
 int main() {
-    // Construct or call a small stable hstd API here.
+    hstd::Vec<int> test;
+    int            idx = test.push_back_idx(123);
+    LOGIC_ASSERTION_CHECK_FMT(
+        idx == 0, "Push back must generate index of the inserted item, got {}", idx);
     return 0;
 }
