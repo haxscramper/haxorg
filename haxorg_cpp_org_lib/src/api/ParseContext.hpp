@@ -4,10 +4,10 @@
 #include "haxorg/parse/OrgParserTypes.hpp"
 #include <haxorg/lexbase/SourceManager.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/ext/error_write.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/ext/error_write.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
 
 
 namespace org::parse {

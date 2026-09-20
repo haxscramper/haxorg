@@ -12,14 +12,14 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/test/corpusrunner.hpp>
-#include <hstd/extra/error_format/gtest_utils.hpp>
-#include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 
 using namespace hstd;

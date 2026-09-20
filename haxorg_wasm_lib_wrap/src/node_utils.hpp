@@ -3,8 +3,8 @@
 #include <cstddef>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 #include <optional>
 #include <stdexcept>
 #include <string>

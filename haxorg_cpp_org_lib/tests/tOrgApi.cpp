@@ -1,12 +1,12 @@
 #include "tOrgTestCommon.hpp"
 #include <haxorg/api/EvalContext.hpp>
-#include <hstd/stdlib/containers/MapSerde.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/MapSerde.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 template <typename T>
 struct JsonSerde<sem::SemId<T>> {

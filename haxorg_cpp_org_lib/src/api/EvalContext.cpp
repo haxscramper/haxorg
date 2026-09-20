@@ -4,18 +4,18 @@
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/OptSerde.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/OptSerde.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
 #endif
 
 using namespace org;

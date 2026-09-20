@@ -5,10 +5,10 @@
 #pragma warning(pop)
 
 #include <boost/mp11.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 using yaml = YAML::Node;
 

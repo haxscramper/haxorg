@@ -3,7 +3,7 @@
 
 #include <haxorg/lexbase/TraceStructured.hpp>
 #include <haxorg/parse/OrgTokenizer.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 using namespace org::parse;
 using namespace hstd;

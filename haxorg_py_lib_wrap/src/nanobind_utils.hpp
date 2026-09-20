@@ -1,15 +1,15 @@
 #pragma once
 
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/IntSet.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/containers/immer.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/immer.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 #include <immer/box.hpp>
 #include <immer/flex_vector.hpp>
 #include <immer/vector.hpp>

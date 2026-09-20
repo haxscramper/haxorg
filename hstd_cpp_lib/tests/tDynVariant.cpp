@@ -1,6 +1,6 @@
 #include <fmt/format.h>
 #include <gtest/gtest.h>
-#include <hstd/stdlib/DynVariant.hpp>
+#include <hstd_cpp_lib/stdlib/DynVariant.hpp>
 #include <string>
 
 struct Shape {

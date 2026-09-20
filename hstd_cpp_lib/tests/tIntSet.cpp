@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/charsets.hpp>
-#include <hstd/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/charsets.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
 
 using namespace hstd;
 

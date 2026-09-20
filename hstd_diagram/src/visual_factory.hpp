@@ -1,15 +1,15 @@
 #pragma once
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd/ext/graph/base/graph_common.hpp>
-#    include <hstd/ext/graph/visual/graph_visual.hpp>
-#    include <hstd/ext/hstd_serde_dispatch.hpp>
-#    include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#    include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#    include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#    include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
+#    include <hstd_cpp_lib/ext/graph/base/graph_common.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde_dispatch.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 
-#    include <hstd/ext/hstd_serde_dispatch.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde_dispatch.hpp>
 #    include <src/hstd/ext/graph/visual/graph_avoid.pb.h>
 #    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
 #    include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>

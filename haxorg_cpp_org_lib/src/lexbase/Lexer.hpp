@@ -1,8 +1,8 @@
 #pragma once
 
 #include <haxorg/lexbase/TokenStore.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 
 namespace org::parse {
 template <typename K, typename V>

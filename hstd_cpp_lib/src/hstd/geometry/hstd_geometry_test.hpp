@@ -1,13 +1,13 @@
 #pragma once
 
 #include <boost/outcome/result.hpp>
-#include <hstd/geometry/hstd_geometry.hpp>
-#include <hstd/geometry/hstd_visual.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/containers/Outcome.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#include <hstd_cpp_lib/geometry/hstd_visual.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <utility>
 
 namespace hstd::ext::geometry {

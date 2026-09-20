@@ -6,16 +6,16 @@
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/PairFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SetFormatter.hpp>
 
 #include <haxorg/api/EvalContext.hpp>
 #include <haxorg/exporters/Exporter.cpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/perfetto_aux_impl_template.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/ext/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
 
 using namespace org;
 using namespace hstd;

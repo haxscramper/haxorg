@@ -5,7 +5,7 @@
 #endif
 
 
-#include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
 
 
 hstd::SPtr<hstd::ext::graph::gv::GraphGroup> graphviz_processor::get_graphviz(

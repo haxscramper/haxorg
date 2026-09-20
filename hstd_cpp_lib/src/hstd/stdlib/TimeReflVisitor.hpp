@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Time.hpp>
-#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
+#include <hstd_cpp_lib/stdlib/Time.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
 
 namespace hstd {
 

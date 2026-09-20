@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/charsets.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/system/generator.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/charsets.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/system/generator.hpp>
 
 namespace hstd {
 

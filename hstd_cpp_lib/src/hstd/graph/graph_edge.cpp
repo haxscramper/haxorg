@@ -1,7 +1,7 @@
 #include "graph_edge.hpp"
 #include "graph_base.hpp"
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
 
 using namespace hstd::ext::graph;

@@ -2,9 +2,9 @@
 
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/logger/TraceBase.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
 
 namespace org {

@@ -1,13 +1,13 @@
 #pragma once
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/containers/bimap_wrap.hpp>
-#include <hstd/stdlib/dod/dod_base.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/haxorg/serde/OrgApiProto.pb.h"
-#    include <hstd/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
 #endif
 
 namespace org::parse {

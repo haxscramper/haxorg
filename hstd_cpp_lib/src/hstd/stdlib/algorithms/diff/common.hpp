@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
 
 namespace hstd::ext::diff {
 

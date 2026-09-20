@@ -2,13 +2,13 @@
 
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/containers/Outcome.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/sequtils.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/sequtils.hpp>
 
-#include <hstd/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
 
 namespace hstd::ext {
 class ReportSourceCache;

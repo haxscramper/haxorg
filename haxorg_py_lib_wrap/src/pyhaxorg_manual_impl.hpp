@@ -25,8 +25,8 @@
 #include <nanobind/stl/vector.h>
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/stdlib/serde/Yaml.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Yaml.hpp>
 
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/exporters/Exporter.hpp>
@@ -35,13 +35,13 @@
 #include <haxorg/parse/OrgTypes.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/PtrsFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/PairFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/PtrsFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SetFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 // #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 
 
@@ -54,7 +54,7 @@
 #include <frameobject.h>
 #include <haxorg/api/SemBaseApi.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
-#include <hstd/stdlib/RangeSegmentation.hpp>
+#include <hstd_cpp_lib/stdlib/RangeSegmentation.hpp>
 
 
 template <>

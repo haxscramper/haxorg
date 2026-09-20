@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/algorithms/diff/astdiff.hpp>
-#include <hstd/stdlib/algorithms/diff/astdiff_eager.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/astdiff.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/astdiff_eager.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 using namespace hstd::ext::diff;
 using namespace hstd;

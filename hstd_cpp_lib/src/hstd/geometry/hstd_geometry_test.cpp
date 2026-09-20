@@ -5,8 +5,8 @@
 #include <boost/preprocessor/stringize.hpp>
 #include <boost/preprocessor/variadic/to_seq.hpp>
 #include <cmath>
-#include <hstd/geometry/hstd_geometry_test.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 #include <limits>
 
 namespace hstd::ext::geometry {

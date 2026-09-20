@@ -23,21 +23,21 @@
 #    include <boost/log/attributes/mutable_constant.hpp>
 #    include <boost/log/sinks/basic_sink_frontend.hpp>
 #    include <boost/preprocessor.hpp>
-#    include <hstd/stdlib/Func.hpp>
-#    include <hstd/stdlib/Str.hpp>
-#    include <hstd/stdlib/containers/Opt.hpp>
-#    include <hstd/stdlib/serde/Json.hpp>
-#    include <hstd/system/macros.hpp>
-#    include <hstd/system/reflection.hpp>
+#    include <hstd_cpp_lib/stdlib/Func.hpp>
+#    include <hstd_cpp_lib/stdlib/Str.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#    include <hstd_cpp_lib/system/macros.hpp>
+#    include <hstd_cpp_lib/system/reflection.hpp>
 #    include <stack>
 
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
-#    include <hstd/logger/TraceBase.hpp>
-#    include <hstd/stdlib/algorithms/strutils.hpp>
-#    include <hstd/stdlib/containers/ContainerAPI.hpp>
-#    include <hstd/stdlib/containers/Set.hpp>
-#    include <hstd/stdlib/formatting/Formatter.hpp>
+#    include <hstd_cpp_lib/logger/TraceBase.hpp>
+#    include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/ContainerAPI.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QBuffer>

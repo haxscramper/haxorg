@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/formatting/ColText.hpp>
-#include <hstd/stdlib/formatting/ColTextFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextFormatter.hpp>
 
 namespace hstd {
 

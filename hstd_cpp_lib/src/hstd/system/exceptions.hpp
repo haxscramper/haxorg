@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstring>
-#include <hstd/system/aux_utils.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
 #include <stdexcept>
 #include <string>
 #if !ORG_BUILD_EMCC

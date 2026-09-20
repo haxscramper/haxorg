@@ -2,10 +2,10 @@
 
 #include <cctz/civil_time.h>
 #include <cctz/time_zone.h>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/system/aux_utils.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
 
 
 #pragma clang diagnostic ignored "-Wunknown-attributes"

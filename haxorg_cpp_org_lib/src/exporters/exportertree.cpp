@@ -1,8 +1,8 @@
 #include <filesystem>
 #include <fstream>
 #include <haxorg/exporters/exportertree.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 #define __scope() ScopedField CONCAT(close, __COUNTER__){this};
 

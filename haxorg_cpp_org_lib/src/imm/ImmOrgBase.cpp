@@ -3,7 +3,7 @@
 
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgBase.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 
 hstd::fmt_iter fmt::formatter<hstd::ext::ImmBox<std::string>>::format(
     hstd::ext::ImmBox<std::string> const& p,

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 namespace hstd {
 

@@ -3,18 +3,18 @@
 #include "hstd/ext/hstd_serde.hpp"
 #if ORG_BUILD_WITH_KIWI
 
-#    include <hstd/stdlib/containers/Map.hpp>
-#    include <hstd/stdlib/containers/Outcome.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
 #    include <optional>
 #    include <variant>
 
-#    include <hstd/geometry/hstd_geometry.hpp>
-#    include <hstd/stdlib/Filesystem.hpp>
-#    include <hstd/stdlib/containers/Opt.hpp>
-#    include <hstd/stdlib/containers/Variant.hpp>
-#    include <hstd/stdlib/containers/Vec.hpp>
-#    include <hstd/stdlib/serde/Xml.hpp>
-#    include <hstd/system/reflection.hpp>
+#    include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#    include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/Xml.hpp>
+#    include <hstd_cpp_lib/system/reflection.hpp>
 #    include <kiwi/constraint.h>
 #    include <kiwi/expression.h>
 #    include <kiwi/solver.h>

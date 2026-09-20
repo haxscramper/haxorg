@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Slice.hpp>
-#include <hstd/stdlib/containers/Span.hpp>
-#include <hstd/system/basic_typedefs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Span.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>
 #include <string>
 #include <string_view>
 

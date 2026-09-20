@@ -4,25 +4,25 @@
 #pragma once
 
 #include <functional>
-#include <hstd/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
 #include <utility>
 
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
 #include <boost/describe.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/containers/bimap_wrap.hpp>
-#include <hstd/stdlib/dod/dod_base.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 
 namespace hstd::ext {

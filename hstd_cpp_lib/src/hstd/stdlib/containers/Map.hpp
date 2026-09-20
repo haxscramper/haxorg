@@ -4,10 +4,10 @@
 #include <optional>
 #include <unordered_map>
 
-#include <hstd/stdlib/containers/ContainerAPI.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/system/all.hpp>
-#include <hstd/system/generator.hpp>
+#include <hstd_cpp_lib/stdlib/containers/ContainerAPI.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/system/all.hpp>
+#include <hstd_cpp_lib/system/generator.hpp>
 
 namespace hstd {
 

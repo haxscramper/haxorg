@@ -1,5 +1,5 @@
 #include "Str.hpp"
-#include <hstd/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 #include <sstream>
 #include <stdexcept>
 

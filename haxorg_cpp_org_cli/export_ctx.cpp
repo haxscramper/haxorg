@@ -8,7 +8,7 @@
 #include <google/protobuf/util/json_util.h>
 #include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/logger.hpp>
+#include <hstd_cpp_lib/ext/logger.hpp>
 
 
 org::parse::OrgParseParameters::Ptr org::cli::ExportCommandContext::paramsForPath(

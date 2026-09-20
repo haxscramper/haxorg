@@ -10,7 +10,7 @@ from conan.tools.env import Environment
 
 
 class HstdConan(ConanFile):
-    name = "hstd"
+    name = "hstd_cpp_lib"
     version = "0.1.0"
     package_type = "static-library"
 
@@ -136,10 +136,10 @@ class HstdConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "hstd")
+        self.cpp_info.set_property("cmake_file_name", "hstd_cpp_lib")
         self.cpp_info.set_property("cmake_target_name", "hstd::hstd_cpp_lib")
 
-        self.cpp_info.libs = ["hstd"]
+        self.cpp_info.libs = ["hstd_cpp_lib"]
         self.cpp_info.includedirs = ["include"]
 
     # custom functionality

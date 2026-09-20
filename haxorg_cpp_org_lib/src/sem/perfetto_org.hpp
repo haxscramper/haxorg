@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/ext/perfetto_aux.hpp>
+#include <hstd_cpp_lib/ext/perfetto_aux.hpp>
 
 #if ORG_BUILD_WITH_PERFETTO
 // The set of track event categories that the example is using.

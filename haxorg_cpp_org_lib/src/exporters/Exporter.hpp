@@ -2,7 +2,7 @@
 
 #include <boost/mp11.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
 
 using boost::mp11::mp_for_each;
 using namespace boost::describe;

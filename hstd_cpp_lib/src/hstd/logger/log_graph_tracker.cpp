@@ -3,10 +3,10 @@
 #if !ORG_BUILD_EMCC
 
 
-#    include <hstd/logger/logger.hpp>
-#    include <hstd/stdlib/formatting/Formatter.hpp>
-#    include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
-#    include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
+#    include <hstd_cpp_lib/logger/logger.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/specializations/PairFormatter.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QMetaMethod>

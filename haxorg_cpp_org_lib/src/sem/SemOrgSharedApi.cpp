@@ -5,11 +5,11 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
 
 using namespace org;

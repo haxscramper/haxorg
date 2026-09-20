@@ -1,7 +1,7 @@
 #include "kiwi_ir.hpp"
 #if ORG_BUILD_WITH_KIWI
 
-#    include <hstd/stdlib/formatting/Debug.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
 #    include <algorithm>
 #    include <filesystem>
@@ -13,10 +13,10 @@
 #    include <boost/geometry/geometries/point.hpp>
 #    include <boost/graph/adjacency_list.hpp>
 #    include <boost/graph/topological_sort.hpp>
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#    include <hstd/stdlib/Ranges.hpp>
-#    include <hstd/stdlib/algorithms/Enumerate.hpp>
-#    include <hstd/stdlib/algorithms/strutils.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
+#    include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#    include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
+#    include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 
 namespace hstd::ext::kiwi_ir {
 

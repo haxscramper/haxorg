@@ -7,12 +7,12 @@
 #    include <google/protobuf/any.pb.h>
 #    include <google/protobuf/text_format.h>
 #    include <google/protobuf/util/json_util.h>
-#    include <hstd/stdlib/Str.hpp>
-#    include <hstd/stdlib/containers/Map.hpp>
-#    include <hstd/stdlib/containers/Opt.hpp>
-#    include <hstd/stdlib/containers/Variant.hpp>
-#    include <hstd/stdlib/containers/Vec.hpp>
-#    include <hstd/stdlib/serde/Json.hpp>
+#    include <hstd_cpp_lib/stdlib/Str.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 namespace google::protobuf {
 class Struct;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/system/basic_typedefs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>
 
 namespace hstd {
 

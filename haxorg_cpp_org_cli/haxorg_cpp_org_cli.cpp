@@ -4,13 +4,13 @@
 #include <app/org_cli/export_ctx.hpp>
 #include <app/org_cli/parse_ctx.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/logger.hpp>
-#include <hstd/ext/perfetto_aux_impl_template.hpp>
-#include <hstd/stdlib/IntSetSerde.hpp>
-#include <hstd/stdlib/JsonCLIParser.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd_cpp_lib/ext/logger.hpp>
+#include <hstd_cpp_lib/ext/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/stdlib/IntSetSerde.hpp>
+#include <hstd_cpp_lib/stdlib/JsonCLIParser.hpp>
+#include <hstd_cpp_lib/stdlib/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/VariantSerde.hpp>
+#include <hstd_cpp_lib/stdlib/VecFormatter.hpp>
 
 int main(int argc, char* argv[]) {
     org::cli::CommandStore store;

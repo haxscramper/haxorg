@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/containers/immer.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/immer.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
 using namespace hstd;
 

@@ -1,17 +1,17 @@
 #ifndef TEXTLAYOUTER_HPP
 #define TEXTLAYOUTER_HPP
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/dod/dod_base.hpp>
-#include <hstd/system/aux_utils.hpp>
-#include <hstd/system/generator.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
+#include <hstd_cpp_lib/system/generator.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 #include <source_location>
 
 

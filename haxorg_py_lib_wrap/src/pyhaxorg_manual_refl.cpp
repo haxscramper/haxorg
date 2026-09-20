@@ -9,8 +9,8 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/RangeSegmentation.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/RangeSegmentation.hpp>
 
 #include <memory>
 

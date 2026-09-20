@@ -1,11 +1,11 @@
 #include "base_token_tokenize.hpp"
 #include <cctype>
 #include <haxorg/lexbase/TraceStructured.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 #include <lexy/action/parse.hpp>
 #include <lexy/action/trace.hpp>
 #include <lexy/callback.hpp>

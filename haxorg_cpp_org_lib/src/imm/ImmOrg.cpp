@@ -5,11 +5,11 @@
 #include <haxorg/imm/ImmOrgBase.hpp>
 #include <haxorg/imm/ImmOrgHash.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/algorithms/Enumerate.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <immer/map_transient.hpp>
 #include <immer/vector_transient.hpp>
@@ -17,17 +17,17 @@
 #include <boost/mp11/algorithm.hpp>
 #include <boost/mp11/list.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <hstd/stdlib/TimeReflVisitor.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/ColTextHShow.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/TimeReflVisitor.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextHShow.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <type_traits>
 
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
 #endif
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"

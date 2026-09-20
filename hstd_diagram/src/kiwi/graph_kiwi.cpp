@@ -2,8 +2,8 @@
 
 #if ORG_BUILD_WITH_KIWI
 
-#    include <hstd/ext/geometry/kiwi_ir_serde.hpp>
-#    include <hstd/stdlib/Ranges.hpp>
+#    include <hstd_cpp_lib/ext/geometry/kiwi_ir_serde.hpp>
+#    include <hstd_cpp_lib/stdlib/Ranges.hpp>
 
 using namespace hstd::ext::graph;
 using namespace hstd::ext;

@@ -2,16 +2,16 @@
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <haxorg/sem/SemOrgBase.hpp>
-#include <hstd/stdlib/Time.hpp>
-#include <hstd/stdlib/dod/dod_base.hpp>
+#include <hstd_cpp_lib/stdlib/Time.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
 
 #include <haxorg/sem/SemOrgTypes.hpp>
-#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
-#include <hstd/stdlib/containers/Array.hpp>
-#include <hstd/stdlib/containers/immer.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
-#include <hstd/stdlib/formatting/ColTextHShow.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Array.hpp>
+#include <hstd_cpp_lib/stdlib/containers/immer.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextHShow.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 namespace org::imm {
 struct ImmReflFieldId;

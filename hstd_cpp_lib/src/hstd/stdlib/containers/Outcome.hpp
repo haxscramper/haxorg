@@ -1,8 +1,8 @@
 #pragma once
 
 #include <boost/outcome.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/system/macros.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
 
 namespace hstd {
 

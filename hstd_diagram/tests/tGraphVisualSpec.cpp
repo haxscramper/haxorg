@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <hstd/ext/graph/visual/graph_diagram.hpp>
-#include <hstd/ext/graph/visual/graph_diagram_validate.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_diagram.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_diagram_validate.hpp>
 #include <string>
 #include <vector>
 

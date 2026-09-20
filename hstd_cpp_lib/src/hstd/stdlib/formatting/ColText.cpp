@@ -1,9 +1,9 @@
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
-#include <hstd/stdlib/formatting/ColTextHShow.hpp>
-#include <hstd/stdlib/formatting/ColTextSerde.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextHShow.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextSerde.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
 using namespace hstd;
 

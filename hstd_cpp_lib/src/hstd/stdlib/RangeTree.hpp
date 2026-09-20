@@ -2,14 +2,14 @@
 
 #include <algorithm>
 
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Slice.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 #include <sstream>
 
 namespace hstd {

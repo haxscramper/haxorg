@@ -1,7 +1,7 @@
 #include "astdiff_eager.hpp"
-#include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
 
 #define _cat "model.tree"
 

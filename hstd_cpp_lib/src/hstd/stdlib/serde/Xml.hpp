@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 #include <ostream>
 #include <string>
 #include <vector>

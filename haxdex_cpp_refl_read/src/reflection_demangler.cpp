@@ -29,17 +29,17 @@
 #include <absl/log/log.h>
 #include <boost/describe.hpp>
 
-#include <hstd/ext/perfetto_aux.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/algorithms/Enumerate.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
-#include <hstd/system/aux_utils.hpp>
-#include <hstd/system/macros.hpp>
+#include <hstd_cpp_lib/ext/perfetto_aux.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
 
 #include "reflection_demangler.hpp"
 #include "reflection_perf.hpp"

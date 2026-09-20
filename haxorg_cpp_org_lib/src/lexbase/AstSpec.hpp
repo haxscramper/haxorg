@@ -1,17 +1,17 @@
 #pragma once
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/containers/Array.hpp>
-#include <hstd/stdlib/containers/IntSet.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/system/exceptions.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Array.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/system/exceptions.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 
 namespace org::parse {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 namespace hstd {
 template <typename K, typename V>

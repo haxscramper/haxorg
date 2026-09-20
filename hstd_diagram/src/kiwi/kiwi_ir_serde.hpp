@@ -2,8 +2,8 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd/ext/geometry/kiwi_ir.hpp>
-#    include <hstd/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
 
 namespace hstd::serde {
 template <>

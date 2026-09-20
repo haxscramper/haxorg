@@ -1,6 +1,6 @@
 #include "SemAstDiff.hpp"
 #include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 
 using namespace org::algo;
 using namespace hstd::ext;

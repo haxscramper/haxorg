@@ -7,7 +7,7 @@
 #include <llvm/Support/TimeProfiler.h>
 
 #include <fstream>
-#include <hstd/logger/logger.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
 #include <llvm/ADT/StringRef.h>
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/Object/ELFObjectFile.h>

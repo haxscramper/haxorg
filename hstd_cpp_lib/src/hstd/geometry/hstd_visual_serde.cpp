@@ -4,11 +4,11 @@
 
 #    include <google/protobuf/struct.pb.h>
 #    include <google/protobuf/wrappers.pb.h>
-#    include <hstd/stdlib/serde/Json.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 #    include <stdexcept>
 
-#    include <hstd/ext/hstd_serde.hpp>
-#    include <hstd/geometry/hstd_geometry_serde.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
 
 using namespace hstd;
 

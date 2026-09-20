@@ -4,10 +4,10 @@
 #    include <boost/graph/adjacency_list.hpp>
 #    include <boost/graph/breadth_first_search.hpp>
 #    include <boost/graph/depth_first_search.hpp>
-#    include <hstd/stdlib/Func.hpp>
-#    include <hstd/stdlib/serde/Json.hpp>
-#    include <hstd/system/aux_templates.hpp>
-#    include <hstd/system/aux_utils.hpp>
+#    include <hstd_cpp_lib/stdlib/Func.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#    include <hstd_cpp_lib/system/aux_templates.hpp>
+#    include <hstd_cpp_lib/system/aux_utils.hpp>
 
 namespace hstd::ext {
 

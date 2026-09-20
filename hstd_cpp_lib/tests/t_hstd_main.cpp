@@ -1,11 +1,11 @@
 #include <absl/flags/parse.h>
 #include <gtest/gtest.h>
 
-#include <hstd/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 
 #include "hstd_tests_common.hpp"
-#include <hstd/logger/perfetto_aux_impl_template.hpp>
-#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
+#include <hstd_cpp_lib/logger/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
 
 HSTD_REGISTER_TYPE_FIELD_NAMES(reflection_test::reflection_named);
 

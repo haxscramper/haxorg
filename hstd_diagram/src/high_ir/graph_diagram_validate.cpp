@@ -3,16 +3,16 @@
 #include "hstd/ext/graph/visual/visual_factory.hpp"
 #include "hstd/ext/hstd_serde_json_interop.hpp"
 #include "hstd/stdlib/ExceptionSerde.hpp"
-#include <hstd/graph/graph_base.hpp>
-#include <hstd/stdlib/containers/MapSerde.hpp>
-#include <hstd/stdlib/containers/OutcomeSerde.hpp>
-#include <hstd/stdlib/containers/VariantSerde.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/stdlib/containers/MapSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/OutcomeSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/VariantSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd/geometry/hstd_geometry.hpp>
-#    include <hstd/geometry/hstd_geometry_serde.hpp>
-#    include <hstd/stdlib/formatting/Formatter.hpp>
+#    include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 #    include <string>
 #    include <unordered_set>

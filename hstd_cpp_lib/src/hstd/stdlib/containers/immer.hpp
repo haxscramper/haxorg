@@ -1,10 +1,10 @@
 #pragma once
 
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
-#include <hstd/stdlib/containers/Array.hpp>
-#include <hstd/stdlib/containers/ContainerAPI.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Array.hpp>
+#include <hstd_cpp_lib/stdlib/containers/ContainerAPI.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 #include <immer/box.hpp>
 #include <immer/flex_vector.hpp>
 #include <immer/flex_vector_transient.hpp>

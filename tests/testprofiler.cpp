@@ -1,7 +1,7 @@
 #include "testprofiler.hpp"
 
 #include <filesystem>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #include <regex>
 #include <xray/xray_interface.h>
 #include <xray/xray_log_interface.h>

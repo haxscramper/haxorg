@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/dod/dod_base.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
 
 
 namespace hstd::dod {

@@ -3,18 +3,18 @@
 #if ORG_BUILD_WITH_ELK
 
 #    include "elk_jni_wrapper.hpp"
-#    include <hstd/ext/graph/visual/graph_visual.hpp>
-#    include <hstd/ext/hstd_serde.hpp>
-#    include <hstd/graph/graph_base.hpp>
-#    include <hstd/stdlib/Exception.hpp>
-#    include <hstd/stdlib/Str.hpp>
-#    include <hstd/stdlib/containers/Opt.hpp>
-#    include <hstd/stdlib/containers/Vec.hpp>
-#    include <hstd/stdlib/formatting/Debug.hpp>
-#    include <hstd/stdlib/serde/Json.hpp>
-#    include <hstd/stdlib/serde/JsonSerde.hpp>
-#    include <hstd/stdlib/serde/JsonUse.hpp>
-#    include <hstd/system/reflection.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/graph/graph_base.hpp>
+#    include <hstd_cpp_lib/stdlib/Exception.hpp>
+#    include <hstd_cpp_lib/stdlib/Str.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
+#    include <hstd_cpp_lib/system/reflection.hpp>
 #    include <memory>
 
 

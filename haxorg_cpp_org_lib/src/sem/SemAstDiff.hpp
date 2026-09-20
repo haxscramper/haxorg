@@ -1,8 +1,8 @@
 #pragma once
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/ext/astdiff/astdiff.hpp>
-#include <hstd/stdlib/containers/bimap_wrap.hpp>
+#include <hstd_cpp_lib/ext/astdiff/astdiff.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
 
 namespace org::algo {
 

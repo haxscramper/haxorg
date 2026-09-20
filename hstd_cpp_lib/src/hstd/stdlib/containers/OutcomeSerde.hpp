@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Outcome.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 namespace hstd {
 template <typename Value, typename Error, class NoValuePolicy>

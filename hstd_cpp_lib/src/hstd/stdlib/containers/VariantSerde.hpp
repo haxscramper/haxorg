@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
 namespace hstd {
 

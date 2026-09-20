@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <hstd/extra/error_format/gtest_utils.hpp>
-#include <hstd/geometry/hstd_geometry_test.hpp>
-#include <hstd/graph/graph_base.hpp>
-#include <hstd/stdlib/containers/MapSerde.hpp>
-#include <hstd/stdlib/containers/VariantSerde.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/stdlib/containers/MapSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/VariantSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 template <typename A, typename T>
 hstd::SPtr<A> as(hstd::SPtr<T> const& value) {

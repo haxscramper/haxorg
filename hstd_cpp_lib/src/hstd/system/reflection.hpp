@@ -6,8 +6,8 @@
 #include <boost/describe.hpp>
 #include <boost/mp11.hpp>
 #include <fmt/base.h>
-#include <hstd/system/basic_templates.hpp>
-#include <hstd/system/basic_typedefs.hpp>
+#include <hstd_cpp_lib/system/basic_templates.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>

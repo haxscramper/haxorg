@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Slice.hpp>
-#include <hstd/system/all.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/system/all.hpp>
 #include <optional>
 #include <span>
 

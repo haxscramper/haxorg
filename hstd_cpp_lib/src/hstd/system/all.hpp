@@ -1,5 +1,5 @@
 #pragma once
 
-#include <hstd/system/aux_utils.hpp>
-#include <hstd/system/basic_templates.hpp>
-#include <hstd/system/basic_typedefs.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
+#include <hstd_cpp_lib/system/basic_templates.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>

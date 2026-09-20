@@ -1,11 +1,11 @@
 #include "TraceBaseStructuredLog.hpp"
 
 #include <chrono>
-#include <hstd/stdlib/containers/MapSerde.hpp>
-#include <hstd/stdlib/containers/OptSerde.hpp>
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/stdlib/containers/VariantSerde.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/MapSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/OptSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/stdlib/containers/VariantSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>

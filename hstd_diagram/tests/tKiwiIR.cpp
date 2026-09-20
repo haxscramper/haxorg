@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include <hstd/ext/geometry/kiwi_ir.hpp>
-#include <hstd/extra/error_format/gtest_utils.hpp>
-#include <hstd/geometry/hstd_geometry_test.hpp>
+#include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
 
 namespace hstd::ext::kiwi_ir {
 

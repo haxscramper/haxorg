@@ -1,4 +1,4 @@
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
 int main() {
     hstd::Vec<int> test;

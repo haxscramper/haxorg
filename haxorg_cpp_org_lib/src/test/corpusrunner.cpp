@@ -10,22 +10,22 @@
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/ColTextSerde.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/algorithms/diff/diffs.hpp>
-#include <hstd/stdlib/containers/IntSetSerde.hpp>
-#include <hstd/stdlib/containers/MapSerde.hpp>
-#include <hstd/stdlib/containers/VariantSerde.hpp>
-#include <hstd/stdlib/containers/bimap_wrap_serde.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
-#include <hstd/stdlib/serde/YamlSerde.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/ColTextSerde.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/diffs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSetSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/MapSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/VariantSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap_serde.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/YamlSerde.hpp>
 
 using namespace org::test;
 using namespace hstd;

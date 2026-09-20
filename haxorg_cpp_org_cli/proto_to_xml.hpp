@@ -1,7 +1,7 @@
 #pragma once
 
 #include <google/protobuf/message.h>
-#include <hstd/stdlib/Xml.hpp>
+#include <hstd_cpp_lib/stdlib/Xml.hpp>
 
 #include <functional>
 #include <optional>

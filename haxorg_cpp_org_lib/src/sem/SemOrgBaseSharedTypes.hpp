@@ -1,21 +1,21 @@
 #pragma once
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <haxorg/sem/SemOrgEnums.hpp>
-#include <hstd/system/basic_typedefs.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/IntSet.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
 #include <haxorg/lexbase/SourceManager.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 namespace org::sem {
 struct [[refl]] OrgJson {

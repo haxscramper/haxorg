@@ -1,6 +1,6 @@
-#include <hstd/stdlib/RangeSegmentation.hpp>
-#include <hstd/stdlib/RangeTree.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/RangeSegmentation.hpp>
+#include <hstd_cpp_lib/stdlib/RangeTree.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
 
 using namespace hstd;
 

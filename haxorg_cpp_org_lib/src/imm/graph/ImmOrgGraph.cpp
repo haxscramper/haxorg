@@ -5,12 +5,12 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <haxorg/imm/ImmOrgEdit.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
@@ -18,9 +18,9 @@
 #endif
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
-#include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SetFormatter.hpp>
 
 using namespace org::graph;
 using namespace hstd;

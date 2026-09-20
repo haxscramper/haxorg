@@ -1,13 +1,13 @@
 #include <haxorg/parse/OrgParserTypes.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 #include <haxorg/lexbase/Node.cpp>
 
 #include <haxorg/parse/OrgTypesFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/PtrsFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/PtrsFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
 
 namespace org::parse {
 template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;

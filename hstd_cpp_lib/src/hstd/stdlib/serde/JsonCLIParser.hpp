@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 namespace hstd {
 template <typename T>

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
 
 using namespace hstd;
 

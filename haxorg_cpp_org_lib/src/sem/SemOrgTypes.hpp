@@ -1,14 +1,14 @@
 /* clang-format off */
 #pragma once
 #include <haxorg/sem/SemOrgEnums.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/stdlib/Time.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/stdlib/Time.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
 #include <boost/describe.hpp>
-#include <hstd/system/macros.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
 #include <haxorg/sem/SemOrgBase.hpp>
 #include <haxorg/sem/SemOrgEnums.hpp>
 #include <haxorg/sem/SemOrgSharedTypes.hpp>

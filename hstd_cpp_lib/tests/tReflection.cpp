@@ -1,19 +1,19 @@
 #include "hstd_tests_common.hpp"
 #include <gtest/gtest.h>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/PtrsFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/system/aux_utils.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/PairFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/PtrsFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SetFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 
 using namespace hstd;

@@ -2,11 +2,11 @@
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <google/protobuf/message.h>
-#include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/algorithms/diff/diffs.hpp>
-#include <hstd/stdlib/containers/Outcome.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/diffs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
 
 #include <absl/log/initialize.h>
 #include <absl/log/internal/globals.h>
@@ -16,8 +16,8 @@
 
 #include <fstream>
 #include <gtest/gtest.h>
-#include <hstd/stdlib/formatting/Debug.hpp>
-#include <hstd/system/aux_utils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
 #include <iostream>
 
 

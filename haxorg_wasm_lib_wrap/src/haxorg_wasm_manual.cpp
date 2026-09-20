@@ -1,7 +1,7 @@
 #include "haxorg_wasm_manual.hpp"
 
 #include <haxorg/api/ParseContext.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 #include <memory>
 
 namespace {

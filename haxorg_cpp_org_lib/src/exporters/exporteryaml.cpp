@@ -1,7 +1,7 @@
 #include <haxorg/exporters/exporteryaml.hpp>
 
 #include <haxorg/exporters/Exporter.cpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 namespace org::algo {
 template class Exporter<ExporterYaml, yaml>;

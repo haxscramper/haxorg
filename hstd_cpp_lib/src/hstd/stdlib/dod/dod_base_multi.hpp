@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/dod/dod_base_intern.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base_intern.hpp>
 
 namespace hstd::dod {
 

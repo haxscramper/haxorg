@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/bimap_wrap.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 namespace hstd {
 template <typename L, typename R, typename LHash, typename RHash>

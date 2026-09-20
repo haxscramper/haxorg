@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/stdlib/containers/SetCommon.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/system/all.hpp>
+#include <hstd_cpp_lib/stdlib/containers/SetCommon.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/system/all.hpp>
 #include <unordered_set>
 
 namespace hstd {

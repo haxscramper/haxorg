@@ -1,10 +1,10 @@
 #include <boost/mp11.hpp>
 #include <haxorg/exporters/exportertree.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 using namespace hstd;
 using namespace org::sem;

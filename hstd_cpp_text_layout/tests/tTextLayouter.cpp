@@ -1,12 +1,12 @@
-#include <hstd/ext/textlayouter.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/ext/textlayouter.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
 #include <absl/log/log.h>
 
-#include <hstd/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 
 using namespace hstd;
 using namespace hstd::layout;

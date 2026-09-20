@@ -4,7 +4,7 @@
 
 #    include "hstd/ext/error_write.hpp"
 #    include "src/hstd/ext/error_write.pb.h"
-#    include <hstd/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
 
 namespace hstd::serde {
 

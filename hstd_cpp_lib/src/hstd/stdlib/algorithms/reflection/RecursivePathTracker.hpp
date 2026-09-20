@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 #include <iterator>
 #include <memory>
 

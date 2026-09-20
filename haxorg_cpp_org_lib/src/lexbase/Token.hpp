@@ -1,16 +1,16 @@
 #pragma once
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/IntSet.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Variant.hpp>
-#include <hstd/stdlib/dod/dod_base.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
 
 #include <haxorg/lexbase/Errors.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 namespace org::parse {
 

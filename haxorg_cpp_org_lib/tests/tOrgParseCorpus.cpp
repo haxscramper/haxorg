@@ -5,13 +5,13 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/test/NodeTest.hpp>
-#include <hstd/ext/error_write.hpp>
-#include <hstd/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/ext/error_write.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
 #include <iostream>
 
 #include <haxorg/sem/SemConvert.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
 #include "../testprofiler.hpp"
 #include <fnmatch.h>
@@ -19,10 +19,10 @@
 #include "tOrgTestCommon.hpp"
 #include <haxorg/sem/perfetto_org.hpp>
 
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 
 using namespace hstd;
 using namespace org::test;

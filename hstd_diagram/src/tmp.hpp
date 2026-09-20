@@ -1,7 +1,7 @@
-#include <hstd/ext/graph/visual/adaptagrams_common.hpp>
-#include <hstd/ext/graph/visual/graph_elk.hpp>
-#include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#include <hstd/ext/graph/visual/graph_kiwi.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/adaptagrams_common.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_elk.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_kiwi.hpp>
 #include <libcola/output_svg.h>
 
 #include <libdialect/hola.h>

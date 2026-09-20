@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <haxorg/lexbase/Node.cpp>
 #include <haxorg/lexbase/Node.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 enum class NodeKind : u8
 {

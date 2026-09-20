@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/ext/hstd_serde.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 namespace hstd {
 #if ORG_BUILD_WITH_PROTOBUF

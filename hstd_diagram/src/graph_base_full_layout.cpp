@@ -1,11 +1,11 @@
-#include <hstd/ext/graph/visual/graph_visual.hpp>
-#include <hstd/graph/graph_base.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
 
-#include <hstd/ext/graph/visual/graph_avoid.hpp>
-#include <hstd/ext/graph/visual/graph_vpsc.hpp>
-#include <hstd/geometry/hstd_geometry.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
-#include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_avoid.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/graph_vpsc.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SetFormatter.hpp>
 
 using namespace hstd::ext::graph;
 

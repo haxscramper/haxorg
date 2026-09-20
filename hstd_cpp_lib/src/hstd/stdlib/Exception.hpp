@@ -1,6 +1,6 @@
 #pragma once
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/system/exceptions.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/system/exceptions.hpp>
 #include <memory>
 
 namespace hstd {

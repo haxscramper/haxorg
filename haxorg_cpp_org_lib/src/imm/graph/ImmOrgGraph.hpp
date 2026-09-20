@@ -7,16 +7,16 @@
 #endif
 #include <haxorg/imm/ImmOrg.hpp>
 
-#include <hstd/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
 #include <immer/map_transient.hpp>
 #if !ORG_BUILD_EMCC
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
 #endif
 #include <haxorg/imm/ImmGetterApi.hpp>
 #include <haxorg/serde/SemOrgSerde.hpp>
-#include <hstd/graph/graph_base.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 namespace org::graph {
 

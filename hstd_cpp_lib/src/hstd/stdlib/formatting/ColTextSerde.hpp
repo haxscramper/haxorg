@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/stdlib/formatting/ColText.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
 namespace hstd {
 

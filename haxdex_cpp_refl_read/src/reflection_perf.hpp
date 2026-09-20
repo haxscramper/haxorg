@@ -3,7 +3,7 @@
 
 #if ORG_BUILD_WITH_PERFETTO
 
-#    include <hstd/ext/perfetto_aux.hpp>
+#    include <hstd_cpp_lib/ext/perfetto_aux.hpp>
 
 PERFETTO_DEFINE_CATEGORIES(
     perfetto::Category("sym").SetDescription("Symbol processing performance"),

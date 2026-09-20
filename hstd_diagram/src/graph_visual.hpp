@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
 
-#include <hstd/graph/graph_base.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
 #endif

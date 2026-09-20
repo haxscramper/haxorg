@@ -6,7 +6,7 @@
 #        include <QObject>
 #    endif
 
-#    include <hstd/logger/logger.hpp>
+#    include <hstd_cpp_lib/logger/logger.hpp>
 #    include <memory>
 #    include <stack>
 #    include <string>

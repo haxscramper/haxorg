@@ -1,11 +1,11 @@
 #pragma once
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Span.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Span.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
-#include <hstd/system/generator.hpp>
+#include <hstd_cpp_lib/system/generator.hpp>
 
 namespace hstd {
 

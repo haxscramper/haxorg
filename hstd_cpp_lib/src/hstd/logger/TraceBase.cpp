@@ -1,15 +1,15 @@
 #include <fstream>
-#include <hstd/logger/TraceBase.hpp>
-#include <hstd/logger/TraceBaseStructuredLog.hpp>
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/containers/VariantSerde.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
-#include <hstd/stdlib/formatting/specializations/SpanFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/logger/TraceBaseStructuredLog.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/containers/VariantSerde.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SpanFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <cpptrace/cpptrace.hpp>

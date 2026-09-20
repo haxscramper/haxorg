@@ -2,8 +2,8 @@
 #include <app/org_cli/common_ctx.hpp>
 #include <google/protobuf/util/json_util.h>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/error_write_proto.hpp>
-#include <hstd/ext/logger.hpp>
+#include <hstd_cpp_lib/ext/error_write_proto.hpp>
+#include <hstd_cpp_lib/ext/logger.hpp>
 
 
 org::cli::SharedContext::SharedContext(CliOpts options)

@@ -1,10 +1,10 @@
 #include "kiwi_ir.hpp"
-#include <hstd/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 
 #if ORG_BUILD_WITH_KIWI
 
-#    include <hstd/stdlib/algorithms/Enumerate.hpp>
-#    include <hstd/stdlib/formatting/ColText.hpp>
+#    include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
 
 namespace hstd::ext::kiwi_ir {
 namespace {

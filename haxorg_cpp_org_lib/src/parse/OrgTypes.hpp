@@ -1,8 +1,8 @@
 #pragma once
 
 #include <haxorg/sem/SemOrgSharedTypes.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 namespace org {
 std::string fieldname_to_code(std::string_view str);

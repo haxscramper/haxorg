@@ -1,9 +1,9 @@
 #pragma once
 
 #include <filesystem>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/system/exceptions.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/system/exceptions.hpp>
 #include <iostream>
 #include <string>
 

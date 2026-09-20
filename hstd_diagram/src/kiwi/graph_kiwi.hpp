@@ -2,12 +2,12 @@
 
 #if ORG_BUILD_WITH_KIWI
 
-#    include <hstd/ext/geometry/kiwi_ir.hpp>
-#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
-#    include <hstd/ext/graph/visual/graph_avoid.hpp>
-#    include <hstd/ext/graph/visual/graph_visual.hpp>
-#    include <hstd/graph/graph_base.hpp>
-#    include <hstd/stdlib/containers/algorithms.hpp>
+#    include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/adaptagrams_common.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_avoid.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
+#    include <hstd_cpp_lib/graph/graph_base.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 #    include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
 
 

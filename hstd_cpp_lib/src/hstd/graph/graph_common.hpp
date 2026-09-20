@@ -2,17 +2,17 @@
 
 #include <boost/bimap.hpp>
 #include <boost/serialization/strong_typedef.hpp>
-#include <hstd/geometry/hstd_geometry.hpp>
-#include <hstd/geometry/hstd_visual.hpp>
-#include <hstd/logger/TraceBase.hpp>
-#include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/containers/bimap_wrap.hpp>
-#include <hstd/stdlib/dod/dod_base.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#include <hstd_cpp_lib/geometry/hstd_visual.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/hstd/ext/graph/base/graph_base.pb.h"
 #    include "src/hstd/ext/graph/visual/graph_visual.pb.h"

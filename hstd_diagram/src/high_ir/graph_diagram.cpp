@@ -1,12 +1,12 @@
 #if ORG_BUILD_WITH_PROTOBUF
 
 #    include "graph_diagram.hpp"
-#    include <hstd/ext/hstd_serde.hpp>
-#    include <hstd/ext/hstd_serde_dispatch.hpp>
-#    include <hstd/geometry/hstd_geometry_serde.hpp>
-#    include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/ext/hstd_serde_dispatch.hpp>
+#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#    include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 
-#    include <hstd/ext/graph/visual/visual_factory.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/visual_factory.hpp>
 
 #    pragma clang diagnostic error "-Wswitch"
 

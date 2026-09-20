@@ -11,14 +11,14 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <src/haxorg/serde/SemOrgProto.pb.h>

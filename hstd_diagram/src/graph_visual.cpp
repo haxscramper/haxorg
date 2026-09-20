@@ -2,10 +2,10 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
-#    include <hstd/geometry/hstd_geometry_serde.hpp>
+#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
 #endif
-#include <hstd/geometry/hstd_geometry_test.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 
 using namespace hstd::ext::graph;
 

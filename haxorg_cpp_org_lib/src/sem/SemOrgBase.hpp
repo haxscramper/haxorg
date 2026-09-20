@@ -2,16 +2,16 @@
 #include "haxorg/lexbase/Errors.hpp"
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
-#include <hstd/system/basic_typedefs.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/IntSet.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
 #include <haxorg/parse/OrgTypes.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 
 using SemSet = hstd::IntSet<OrgSemKind>;

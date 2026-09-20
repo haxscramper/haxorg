@@ -1,7 +1,7 @@
 #pragma once
 
 #include <coroutine>
-#include <hstd/system/exceptions.hpp>
+#include <hstd_cpp_lib/system/exceptions.hpp>
 #include <optional>
 
 namespace hstd {

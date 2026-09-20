@@ -1,17 +1,17 @@
 #include "error_write.hpp"
 #include <boost/preprocessor/seq.hpp>
-#include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/algorithms/Enumerate.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/formatting/ColTextFormatter.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
-#include <hstd/stdlib/sequtils.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/sequtils.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;

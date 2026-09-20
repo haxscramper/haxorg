@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 /// \brief Vector formatting operator
 template <typename T>

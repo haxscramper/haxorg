@@ -1,9 +1,9 @@
 #include "Json.hpp"
 #include "JsonUse.hpp"
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
-#include <hstd/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
 #include <string>
 
 

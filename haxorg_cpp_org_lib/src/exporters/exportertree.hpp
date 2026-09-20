@@ -1,7 +1,7 @@
 #pragma once
 
 #include <haxorg/exporters/Exporter.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
 
 namespace org::algo {
 struct QFileInfo;

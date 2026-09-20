@@ -1,5 +1,5 @@
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
 #include <gtest/gtest.h>
 

@@ -6,9 +6,9 @@
 #include <thread>
 #include <vector>
 
-#include <hstd/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 
-#include <hstd/logger/log_graph_tracker.hpp>
+#include <hstd_cpp_lib/logger/log_graph_tracker.hpp>
 
 using namespace hstd::log;
 

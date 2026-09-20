@@ -1,6 +1,6 @@
 #include "graph_common.hpp"
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/system/bit_utils.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/system/bit_utils.hpp>
 
 using namespace hstd::ext::graph;
 

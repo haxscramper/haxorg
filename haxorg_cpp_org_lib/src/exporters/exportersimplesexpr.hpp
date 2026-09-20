@@ -1,10 +1,10 @@
 #pragma once
 
 #include <haxorg/exporters/Exporter.hpp>
-#include <hstd/ext/textlayouter.hpp>
-#include <hstd/stdlib/algorithms/strutils.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/ext/textlayouter.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
 
 namespace org::algo {
 

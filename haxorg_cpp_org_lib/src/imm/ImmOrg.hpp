@@ -5,14 +5,14 @@
 #include <haxorg/imm/ImmOrgBase.hpp>
 #include <haxorg/imm/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/logger/TraceBase.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
-#include <hstd/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
 #include <immer/map_transient.hpp>
 
 #include <boost/preprocessor.hpp>
-#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
-#include <hstd/stdlib/dod/dod_base_intern.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
+#include <hstd_cpp_lib/stdlib/dod/dod_base_intern.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <immer/vector_transient.hpp>
 

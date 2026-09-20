@@ -3,11 +3,11 @@
 #include "../testprofiler.hpp"
 
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/perfetto_aux_impl_template.hpp>
-#include <hstd/logger/logger.hpp>
+#include <hstd_cpp_lib/ext/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
 
-#include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
 FILE* trace_out;
 

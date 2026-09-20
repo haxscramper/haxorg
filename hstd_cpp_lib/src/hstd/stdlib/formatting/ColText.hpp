@@ -1,10 +1,10 @@
 #pragma once
 
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/IntSet.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/system/basic_typedefs.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 
 namespace hstd {
 

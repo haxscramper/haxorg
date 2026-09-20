@@ -6,13 +6,13 @@
 #include <haxorg/lexbase/NodeStore.hpp>
 #include <haxorg/lexbase/Token.hpp>
 #include <haxorg/lexbase/TokenStore.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
-#include <hstd/stdlib/serde/Yaml.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Yaml.hpp>
 
 namespace org::test {
 

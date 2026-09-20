@@ -37,9 +37,9 @@ CAT = "codegen"
 def with_enum_reflection_api(body: List[Any]) -> List[Any]:
     return [
         GenTuPass("#pragma once"),
-        GenTuPass("#include <hstd/system/basic_templates.hpp>"),
-        GenTuPass("#include <hstd/system/reflection.hpp>"),
-        GenTuPass("#include <hstd/stdlib/containers/Opt.hpp>"),
+        GenTuPass("#include <hstd_cpp_lib/system/basic_templates.hpp>"),
+        GenTuPass("#include <hstd_cpp_lib/system/reflection.hpp>"),
+        GenTuPass("#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>"),
     ] + body
 
 

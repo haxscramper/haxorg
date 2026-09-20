@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/IntSet.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 
 namespace hstd {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/containers/IntSet.hpp>
+#include <hstd_cpp_lib/stdlib/containers/IntSet.hpp>
 
 namespace hstd {
 using CharSet = IntSet<char>;

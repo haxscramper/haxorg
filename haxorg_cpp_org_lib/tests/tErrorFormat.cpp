@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include <hstd/ext/error_write.hpp>
-#include <hstd/extra/error_format/gtest_utils.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/algorithms/diff/diffs.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/ext/error_write.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/diffs.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;

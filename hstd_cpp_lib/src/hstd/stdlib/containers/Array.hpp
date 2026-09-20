@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Slice.hpp>
-#include <hstd/system/all.hpp>
-#include <hstd/system/aux_templates.hpp>
-#include <hstd/system/generator.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/system/all.hpp>
+#include <hstd_cpp_lib/system/aux_templates.hpp>
+#include <hstd_cpp_lib/system/generator.hpp>
 
 #include <array>
 #include <span>

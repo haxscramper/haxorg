@@ -5,7 +5,7 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <haxorg/imm/ImmOrgGraph.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/RangeSegmentation.hpp>
+#include <hstd_cpp_lib/stdlib/RangeSegmentation.hpp>
 #include <wrappers/c/haxorg_c_api.h>
 
 namespace org::bind::c {

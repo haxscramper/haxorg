@@ -1,8 +1,8 @@
 #pragma once
 
 #undef slots
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>

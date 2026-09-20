@@ -1,10 +1,10 @@
 #include <boost/mp11.hpp>
 #include <filesystem>
 #include <haxorg/test/NodeTest.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
-#include <hstd/stdlib/serde/JsonUse.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 #include <string>
 
 using namespace hstd;

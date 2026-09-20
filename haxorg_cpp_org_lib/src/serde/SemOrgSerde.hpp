@@ -1,7 +1,7 @@
 #pragma once
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/ext/hstd_serde.hpp>
+#include <hstd_cpp_lib/ext/hstd_serde.hpp>
 
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC

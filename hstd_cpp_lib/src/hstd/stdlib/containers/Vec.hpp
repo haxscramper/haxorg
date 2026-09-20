@@ -1,14 +1,14 @@
 #pragma once
 #pragma clang diagnostic ignored "-Wcxx-attribute-extension"
 
-#include <hstd/stdlib/containers/Slice.hpp>
-#include <hstd/stdlib/containers/Span.hpp>
-#include <hstd/stdlib/sequtils.hpp>
-#include <hstd/system/all.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Span.hpp>
+#include <hstd_cpp_lib/stdlib/sequtils.hpp>
+#include <hstd_cpp_lib/system/all.hpp>
 #if !ORG_BUILD_EMCC
 #    include <boost/container/small_vector.hpp>
 #endif
-#include <hstd/system/exceptions.hpp>
+#include <hstd_cpp_lib/system/exceptions.hpp>
 
 
 #include <span>

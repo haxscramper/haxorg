@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 

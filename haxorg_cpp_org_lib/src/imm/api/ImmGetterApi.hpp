@@ -2,8 +2,8 @@
 
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <hstd/stdlib/containers/Outcome.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 namespace org::imm {
 

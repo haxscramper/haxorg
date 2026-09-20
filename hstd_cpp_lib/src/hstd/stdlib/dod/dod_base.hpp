@@ -2,14 +2,14 @@
 
 #include <string>
 
-#include <hstd/stdlib/Exception.hpp>
-#include <hstd/system/all.hpp>
-#include <hstd/system/generator.hpp>
-#include <hstd/system/string_base.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/system/all.hpp>
+#include <hstd_cpp_lib/system/generator.hpp>
+#include <hstd_cpp_lib/system/string_base.hpp>
 
-#include <hstd/stdlib/containers/Slice.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/system/aux_templates.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/system/aux_templates.hpp>
 
 /// \brief Data-oriented design primitives
 ///

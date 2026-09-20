@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/serde/JsonSerde.hpp>
-#include <hstd/stdlib/serde/Yaml.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Yaml.hpp>
 
 template <>
 struct hstd::JsonSerde<YAML::Mark> {

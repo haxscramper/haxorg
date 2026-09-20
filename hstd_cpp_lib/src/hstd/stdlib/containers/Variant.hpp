@@ -1,10 +1,10 @@
 #pragma once
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/system/basic_templates.hpp>
-#include <hstd/system/exceptions.hpp>
-#include <hstd/system/macros.hpp>
-#include <hstd/system/reflection.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/system/basic_templates.hpp>
+#include <hstd_cpp_lib/system/exceptions.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
 #include <variant>
 
 

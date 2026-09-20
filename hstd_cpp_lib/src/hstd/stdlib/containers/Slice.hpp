@@ -1,11 +1,11 @@
 #pragma once
 
-#include <hstd/system/basic_templates.hpp>
+#include <hstd_cpp_lib/system/basic_templates.hpp>
 
-#include <hstd/stdlib/BackwardsIndex.hpp>
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/system/exceptions.hpp>
+#include <hstd_cpp_lib/stdlib/BackwardsIndex.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/system/exceptions.hpp>
 
 namespace hstd {
 template <typename A, typename B>

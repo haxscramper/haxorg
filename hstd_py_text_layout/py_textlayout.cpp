@@ -1,7 +1,7 @@
 #include <boost/stacktrace.hpp>
-#include <hstd/ext/textlayouter.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/ext/textlayouter.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 #include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
@@ -21,7 +21,7 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #undef slots
-#include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 
 #include <py_type_casters.hpp>
 

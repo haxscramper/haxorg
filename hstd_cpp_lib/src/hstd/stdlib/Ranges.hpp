@@ -1,9 +1,9 @@
 #pragma once
 
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/stdlib/containers/Ptrs.hpp>
-#include <hstd/system/generator.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/system/generator.hpp>
 #include <range/v3/all.hpp>
 
 namespace hstd {

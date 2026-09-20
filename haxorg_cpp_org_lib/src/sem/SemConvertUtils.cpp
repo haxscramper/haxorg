@@ -1,9 +1,9 @@
 #include <haxorg/lexbase/TraceStructured.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemConvert.hpp>
-#include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
-#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/Func.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
 
 
 using namespace org::sem;

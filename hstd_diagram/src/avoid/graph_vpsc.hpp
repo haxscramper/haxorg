@@ -1,12 +1,12 @@
 #pragma once
 
 #if ORG_BUILD_WITH_ADAPTAGRAMS
-#    include <hstd/ext/graph/visual/adaptagrams_common.hpp>
-#    include <hstd/ext/graph/visual/graph_visual.hpp>
-#    include <hstd/ext/logger.hpp>
-#    include <hstd/graph/graph_base.hpp>
-#    include <hstd/stdlib/containers/algorithms.hpp>
-#    include <hstd/stdlib/containers/bimap_wrap.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/adaptagrams_common.hpp>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
+#    include <hstd_cpp_lib/ext/logger.hpp>
+#    include <hstd_cpp_lib/graph/graph_base.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
 #    include <libdialect/hola.h>
 
 namespace hstd::ext::graph::cst {

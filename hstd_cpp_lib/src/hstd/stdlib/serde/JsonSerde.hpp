@@ -1,11 +1,11 @@
 #pragma once
 
-#include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/OptSerde.hpp>
-#include <hstd/stdlib/containers/Slice.hpp>
-#include <hstd/stdlib/containers/Vec.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
-#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/OptSerde.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Slice.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
 
 namespace hstd {

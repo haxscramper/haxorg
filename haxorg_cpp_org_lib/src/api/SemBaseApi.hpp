@@ -2,9 +2,9 @@
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/lexbase/SourceManager.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/ext/error_write.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/ext/error_write.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 
 namespace org {
 

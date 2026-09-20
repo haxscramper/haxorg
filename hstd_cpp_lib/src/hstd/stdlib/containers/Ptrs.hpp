@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/system/aux_utils.hpp>
+#include <hstd_cpp_lib/system/aux_utils.hpp>
 #include <memory>
 
 namespace hstd {

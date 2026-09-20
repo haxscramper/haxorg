@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/containers/Pair.hpp>
-#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
 namespace hstd {
 template <typename Tuple, std::size_t... Is>

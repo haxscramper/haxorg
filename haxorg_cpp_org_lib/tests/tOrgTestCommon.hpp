@@ -1,4 +1,4 @@
-#include <hstd/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgTokenizer.hpp>
@@ -6,12 +6,12 @@
 
 #include <haxorg/lexbase/AstSpec.hpp>
 #include <haxorg/test/NodeTest.hpp>
-#include <hstd/ext/astdiff/astdiff.hpp>
+#include <hstd_cpp_lib/ext/astdiff/astdiff.hpp>
 
-#include <hstd/stdlib/algorithms/diff/diffs.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/diffs.hpp>
 
 #include <haxorg/serde/SemOrgSerde.hpp>
-#include <hstd/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
 #    include <google/protobuf/util/json_util.h>
 #endif
