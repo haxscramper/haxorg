@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from conan import ConanFile
 from conan.tools.build import can_run
 from conan.tools.cmake import (
@@ -86,11 +84,14 @@ class HstdConan(ConanFile):
 
         toolchain = CMakeToolchain(self)
 
-        toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = ";".join(
-            str(dependency.package_folder)
-            for dependency in self.dependencies.host.values()
-            if dependency.package_folder
+        warning_suppressions = self.conf.get(
+            "user.hstd:warning_suppressions",
+            default="",
+            check_type=str,
         )
+
+        if warning_suppressions:
+            toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = warning_suppressions
 
         toolchain.variables["ORG_BUILD_WITH_QT"] = False
         toolchain.variables["ORG_BUILD_EMCC"] = False
@@ -107,14 +108,12 @@ class HstdConan(ConanFile):
     def build(self):
         cmake = CMake(self)
         cmake.configure()
-        # assuming ninja for now, I want to see all errors at once
-        cmake.build(
-            build_tool_args=[
-                "-k",
-                "0",
-                "--verbose",
-            ]
+        ninja_args = self.conf.get(
+            "user.hstd:ninja_args",
+            default=[],
+            check_type=list,
         )
+        cmake.build(build_tool_args=ninja_args)
 
         skip_tests = self.conf.get(
             "tools.build:skip_test",

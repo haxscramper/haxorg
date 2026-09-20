@@ -132,12 +132,15 @@ function(haxorg_set_target_flags_impl)
         endif()
     endif()
 
-    haxorg_add_target_supression_paths(
-        TARGET ${ARG_TARGET}
-        PATHS
-            ${ORG_WARNING_SUPPRESSIONS}
-    )
     if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        if(ORG_WARNING_SUPPRESSIONS)
+            target_compile_options(
+                "${ARG_TARGET}"
+                PRIVATE
+                    "$<$<COMPILE_LANGUAGE:CXX>:--warning-suppression-mappings=${ORG_WARNING_SUPPRESSIONS}>"
+            )
+        endif()
+
         # Avoid getting flooded with compilation errors set(CMAKE_CXX_COMPILER clang++)
         haxorg_add_target_property(
             ${ARG_TARGET}

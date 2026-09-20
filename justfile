@@ -135,6 +135,7 @@ repo_prepare_git_hooks:
 
 HAXORG_ROOT := source_directory()
 CONAN_PROFILE := HAXORG_ROOT / "repo_tool_configs/conan/conanprofile.txt"
+SUPPRESSION_FILE := HAXORG_ROOT / "repo_tool_configs/clang_suppressions.supp"
 
 conan_info_package_path package:
   conan graph info {{package}} --format=html > /tmp/graph.html
@@ -160,6 +161,8 @@ conan_validate_hstd_cpp:
   conan create {{HAXORG_ROOT}}/hstd_cpp/hstd_lib \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
+    -o 'user.hstd/*:warning_suppressions={{SUPPRESSION_FILE}}' \
+    -c 'user.hstd/*:ninja_args=["-k","0","--verbose"]' \
     --build=missing \
      -vstatus
 
