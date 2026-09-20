@@ -33,6 +33,6 @@ class HstdTestPackage(ConanFile):
         if can_run(self):
             executable = os.path.join(
                 self.cpp.build.bindir,
-                "hstd_package_test",
+                "hstd_cpp_lib_package_test",
             )
             self.run(executable, env="conanrun")

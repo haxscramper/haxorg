@@ -166,19 +166,19 @@ target_include_directories(
 
 if(ORG_BUILD_TESTS)
     enable_testing()
-    haxorg_add_executable(hstd_cpp_tests)
+    haxorg_add_executable(hstd_cpp_lib_tests)
 
     if(ORG_BUILD_WITH_QT)
-        target_compile_definitions(hstd_cpp_tests PUBLIC ORG_BUILD_WITH_QT=1)
+        target_compile_definitions(hstd_cpp_lib_tests PUBLIC ORG_BUILD_WITH_QT=1)
     endif()
 
     haxorg_glob_add_sources2(
-        TARGET hstd_cpp_tests
+        TARGET hstd_cpp_lib_tests
         LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/tests/.*"
         SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
     )
     target_link_libraries(
-        hstd_cpp_tests
+        hstd_cpp_lib_tests
         PRIVATE
             GTest::gtest
             GTest::gmock
@@ -187,16 +187,16 @@ if(ORG_BUILD_TESTS)
             absl::flags_parse
             immer::immer
     )
-    add_test(NAME hstd_tests COMMAND hstd_cpp_tests)
+    add_test(NAME hstd_cpp_lib_tests COMMAND hstd_cpp_lib_tests)
 endif()
 
 set_target_properties(
     hstd_cpp_lib
     PROPERTIES
         OUTPUT_NAME
-            hstd
+            hstd_cpp_lib
         EXPORT_NAME
-            hstd
+            hstd_cpp_lib
 )
 
 target_include_directories(
@@ -224,7 +224,7 @@ install(
 install(
     DIRECTORY
         "${CMAKE_CURRENT_SOURCE_DIR}/src/"
-    DESTINATION include/hstd_cpp_lib
+    DESTINATION include/
     FILES_MATCHING
     PATTERN "*.hpp"
 )
