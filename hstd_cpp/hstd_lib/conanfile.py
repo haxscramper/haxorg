@@ -21,6 +21,7 @@ class HstdConan(ConanFile):
         "graph/*",
         "logger/*",
         "proto_serde/*",
+        "proto_defs/*",
         "stdlib/*",
         "system/*",
         "tests/*",
@@ -39,7 +40,8 @@ class HstdConan(ConanFile):
         self.requires("protobuf/[>=5 <6]")
         self.requires("perfetto/[>=46 <100]")
         self.requires("tracy/[>=0.11 <1]")
-
+        # for protovalidate dependency
+        self.requires("re2/[>=20230301]")
         self.requires("protovalidate-cc/1.1.0")
 
     def build_requirements(self):

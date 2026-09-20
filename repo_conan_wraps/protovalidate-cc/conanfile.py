@@ -50,6 +50,7 @@ class ProtovalidateCcConan(ConanFile):
         # https://github.com/bufbuild/protovalidate-cc/blob/v1.1.0/cmake/README.md
         # known compatible version for 1.1.0 is 29.2 (5.29.6 is close-ish?)
         self.requires("protobuf/5.29.6")
+        self.requires("re2/[>=20230301]")
 
     def build_requirements(self):
         self.tool_requires("openjdk/21.0.2")

@@ -17,6 +17,7 @@ if(ORG_BUILD_WITH_PROTOBUF)
 endif()
 
 if(ORG_BUILD_WITH_PROTOVALIDATE)
+  find_package(re2 CONFIG REQUIRED)
   find_package(protovalidate_cc CONFIG REQUIRED)
 
   if(NOT DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
@@ -71,15 +72,8 @@ haxorg_glob_add_sources2(
   SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}")
 
 target_link_libraries(
-  hstd_cpp_lib
-  PUBLIC yaml-cpp::yaml-cpp
-         range-v3::range-v3
-         nlohmann_json::nlohmann_json
-         cctz::cctz
-         fmt::fmt
-         Boost::boost_describe
-         Boost::boost_preprocessor
-         Boost::headers)
+  hstd_cpp_lib PUBLIC yaml-cpp::yaml-cpp range-v3::range-v3 nlohmann_json::nlohmann_json cctz::cctz
+                      fmt::fmt Boost::headers)
 
 if(NOT ORG_BUILD_EMCC)
   target_link_libraries(hstd_cpp_lib PUBLIC Boost::log cpptrace::cpptrace)
@@ -96,7 +90,7 @@ endif()
 
 if(ORG_BUILD_WITH_PROTOBUF)
   set(HSTD_PROTO_PUBLIC_LIBRARIES)
-  set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}")
+  set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto_defs")
 
   if(ORG_BUILD_WITH_PROTOVALIDATE)
     list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
@@ -111,24 +105,13 @@ if(ORG_BUILD_WITH_PROTOBUF)
     IMPORT_DIRS
     ${HSTD_PROTO_IMPORT_DIRS}
     PROTO_SOURCES
-    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/graph/base/graph_base.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/graph/visual/graph_visual.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/geometry/hstd_geometry.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/geometry/hstd_geometry_test_ir.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/graph/visual/graph_diagram_validate.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/geometry/hstd_visual.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/graph_base.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/error_write.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/hstd_geometry_test_ir.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/hstd_geometry.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/hstd_visual.proto"
     PUBLIC_LIBRARIES
     ${HSTD_PROTO_PUBLIC_LIBRARIES})
-
-  haxorg_add_protobuf(
-    TARGET
-    hstd_cpp_lib
-    UNIQUE_TARGET
-    hstd_proto_error_write
-    IMPORT_DIRS
-    ${HSTD_PROTO_IMPORT_DIRS}
-    PROTO_SOURCES
-    "${CMAKE_CURRENT_LIST_DIR}/src/hstd/ext/error_write.proto")
 endif()
 
 target_include_directories(hstd_cpp_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>

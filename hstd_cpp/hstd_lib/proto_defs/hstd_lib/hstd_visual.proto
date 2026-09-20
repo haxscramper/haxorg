@@ -4,7 +4,7 @@ package hstd.ext.visual.proto;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/wrappers.proto";
-import "src/hstd/ext/geometry/hstd_geometry.proto";
+import "hstd_lib/hstd_geometry.proto";
 
 message VisColor {
   uint32 r = 1;
