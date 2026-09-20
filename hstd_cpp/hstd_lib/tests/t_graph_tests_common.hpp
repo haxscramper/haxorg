@@ -26,7 +26,7 @@ struct TestGraph : public TrivialGraph {};
 
 class GraphUtils_Test : public ::testing::Test {
   protected:
-    void SetUp() override { state = layout::LayoutRun::TrivialState{}; }
+    void SetUp() override { state = hstd::ext::graph::TrivialState{}; }
 
     hstd::SPtr<TrivialGraph>     getGraph() const { return state.graph; }
     hstd::SPtr<TrivialHierarchy> getHierarchy() const { return state.hierarchy; }
@@ -92,5 +92,5 @@ class GraphUtils_Test : public ::testing::Test {
     }
 
 
-    layout::LayoutRun::TrivialState state;
+    hstd::ext::graph::TrivialState state;
 };

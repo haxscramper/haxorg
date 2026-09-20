@@ -204,11 +204,11 @@ function(haxorg_set_target_flags_impl)
 
         haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
 
-        if(${ORG_BUILD_WITH_PERFETTO})
+        if(ORG_BUILD_WITH_PERFETTO)
             haxorg_add_target_property(
                 ${ARG_TARGET}
                 COMPILE_DEFINITIONS
-                ORG_BUILD_WITH_PERFETTO
+                "ORG_BUILD_WITH_PERFETTO=0"
             )
         endif()
 

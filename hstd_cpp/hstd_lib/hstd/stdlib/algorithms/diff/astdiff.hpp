@@ -464,15 +464,15 @@ class ASTDiff {
             case ChangeKind::UpdateMove:
             case ChangeKind::Move: {
                 result.data = typename Change::Move{
-                    .update = node.Change == ChangeKind::Update,
                     .from   = Change::MovePoint{
-                         src.getNode(srcNode).Parent,
-                         src.findPositionInParent(srcNode, true),
+                        src.getNode(srcNode).Parent,
+                        src.findPositionInParent(srcNode, true),
                     },
                     .to     = Change::MovePoint{
                         dst.getNode(dstNode).Parent,
                         dst.findPositionInParent(dstNode, true),
                     },
+                    .update = node.Change == ChangeKind::Update,
                 };
                 break;
             }

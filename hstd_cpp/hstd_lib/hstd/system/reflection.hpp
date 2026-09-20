@@ -244,9 +244,9 @@ std::vector<EnumFieldDesc<E>> describe_enumerators() {
     for (int i = 0; i < D.size(); ++i) {
         result.push_back(
             EnumFieldDesc<E>{
-                .index = i,
-                .value = D[i],
                 .name  = enum_serde<E>::to_string(D[i]),
+                .value = D[i],
+                .index = i,
             });
     }
 

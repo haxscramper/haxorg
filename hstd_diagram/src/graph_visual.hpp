@@ -302,19 +302,7 @@ class LayoutRun
 
     /// \brief Minimal set of graph object collections required to manage
     /// the full layout run.
-    struct TrivialState {
-        hstd::SPtr<TrivialPortCollection> ports;
-        hstd::SPtr<TrivialHierarchy>      hierarchy;
-        hstd::SPtr<TrivialGraph>          graph;
-
-        TrivialState()
-            : ports{std::make_shared<TrivialPortCollection>()}
-            , hierarchy{std::make_shared<TrivialHierarchy>()}
-            , graph{std::make_shared<TrivialGraph>(
-                  hstd::Vec<hstd::SPtr<IEdgeCollection>>{},
-                  hstd::Vec<hstd::SPtr<IPortCollection>>{ports},
-                  hstd::Vec<hstd::SPtr<IVertexHierarchy>>{hierarchy})} {}
-
+    struct TrivialLayoutState : public hstd::ext::graph::TrivialState {
         hstd::SPtr<LayoutRun> init() {
             return LayoutRun::shared(
                 graph,

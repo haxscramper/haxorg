@@ -4,7 +4,7 @@
 #include <hstd/extra/error_format/gtest_utils.hpp>
 
 #include "hstd_tests_common.hpp"
-#include <hstd/ext/perfetto_aux_impl_template.hpp>
+#include <hstd/logger/perfetto_aux_impl_template.hpp>
 #include <hstd/stdlib/algorithms/reflection/reflection_visitor.hpp>
 
 HSTD_REGISTER_TYPE_FIELD_NAMES(reflection_test::reflection_named);
@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     hstd::log::push_sink(hstd::log::init_file_sink("/tmp/t_hstd_test.log"));
 
     HSLOG_INFO("test");
-#ifdef ORG_BUILD_WITH_PERFETTO
+#if ORG_BUILD_WITH_PERFETTO
     std::unique_ptr<perfetto::TracingSession> tracing_session = StartProcessTracing(
         "Perfetto track example");
 

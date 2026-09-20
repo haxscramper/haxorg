@@ -155,14 +155,16 @@ conan_validate_deps_protovalidate_cc: conan_remove_deps
     -s build_type=Release \
     --build=missing
 
+# -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
+
 [working-directory("/tmp")]
 conan_validate_hstd_cpp:
   conan remove "hstd/*" --confirm
   conan create {{HAXORG_ROOT}}/hstd_cpp/hstd_lib \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
-    -o 'user.hstd/*:warning_suppressions={{SUPPRESSION_FILE}}' \
-    -c 'user.hstd/*:ninja_args=["-k","0","--verbose"]' \
+    -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
+    -c 'user.hstd:ninja_args=["-k","0"]' \
     --build=missing \
      -vstatus
 

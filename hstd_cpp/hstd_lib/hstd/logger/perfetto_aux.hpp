@@ -1,7 +1,7 @@
 #pragma once
 
 // clang-format off
-#ifdef ORG_BUILD_WITH_PERFETTO
+#if ORG_BUILD_WITH_PERFETTO
 
 #    include <perfetto/perfetto.h>
 #    include <filesystem>

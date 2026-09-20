@@ -477,5 +477,19 @@ struct TrivialGraph : public TrivialGraphBase {
     }
 };
 
+struct TrivialState {
+    hstd::SPtr<TrivialPortCollection> ports;
+    hstd::SPtr<TrivialHierarchy>      hierarchy;
+    hstd::SPtr<TrivialGraph>          graph;
+
+    TrivialState()
+        : ports{std::make_shared<TrivialPortCollection>()}
+        , hierarchy{std::make_shared<TrivialHierarchy>()}
+        , graph{std::make_shared<TrivialGraph>(
+              hstd::Vec<hstd::SPtr<IEdgeCollection>>{},
+              hstd::Vec<hstd::SPtr<IPortCollection>>{ports},
+              hstd::Vec<hstd::SPtr<IVertexHierarchy>>{hierarchy})} {}
+};
+
 
 } // namespace hstd::ext::graph

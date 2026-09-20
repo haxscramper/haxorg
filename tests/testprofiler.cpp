@@ -89,7 +89,7 @@ bool move_latest_xray_log_to_path(std::string const& path) {
 
 
 void TestProfiler::SetUp() {
-#ifdef ORG_BUILD_WITH_PERFETTO
+#if ORG_BUILD_WITH_PERFETTO
     TRACE_EVENT_BEGIN("cli", "Execute test");
 #endif
     __perf_trace("cli", "Setup test");
@@ -232,7 +232,7 @@ void TestProfiler::TearDown() {
 #endif
 
 
-#ifdef ORG_BUILD_WITH_PERFETTO
+#if ORG_BUILD_WITH_PERFETTO
     TRACE_EVENT_END("cli");
 #endif
 }
