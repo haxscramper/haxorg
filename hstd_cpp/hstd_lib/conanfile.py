@@ -85,9 +85,13 @@ class HstdConan(ConanFile):
         )
 
         toolchain = CMakeToolchain(self)
-        toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = str(
-            self.generate_warning_suppressions()
+
+        toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = ";".join(
+            str(dependency.package_folder)
+            for dependency in self.dependencies.host.values()
+            if dependency.package_folder
         )
+
         toolchain.variables["ORG_BUILD_WITH_QT"] = False
         toolchain.variables["ORG_BUILD_EMCC"] = False
 
@@ -104,7 +108,13 @@ class HstdConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         # assuming ninja for now, I want to see all errors at once
-        cmake.build(build_tool_args=["-k", "0", "--verbose"])
+        cmake.build(
+            build_tool_args=[
+                "-k",
+                "0",
+                "--verbose",
+            ]
+        )
 
         skip_tests = self.conf.get(
             "tools.build:skip_test",
@@ -127,16 +137,3 @@ class HstdConan(ConanFile):
         self.cpp_info.includedirs = ["include"]
 
     # custom functionality
-
-    def generate_warning_suppressions(self) -> Path:
-        output_path = Path(self.generators_folder) / "conan-warning-suppressions.txt"
-
-        suppression_lines = ["[*]"]
-
-        for dependency in self.dependencies.host.values():
-            if dependency.package_folder:
-                suppression_lines.append(f"src:{dependency.package_folder}/*")
-
-        output_path.write_text("\n".join(suppression_lines) + "\n")
-
-        return output_path
