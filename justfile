@@ -143,8 +143,8 @@ conan_info_package_path package:
 conan_remove_deps:
   conan remove "protovalidate-cc/*" -c
 
-# Export local dependencies so subsequent build 
-conan_export_deps: 
+# Export local dependencies so subsequent build
+conan_export_deps:
   conan export "repo_conan_wraps/protovalidate-cc"
 
 [working-directory("/tmp")]
@@ -155,10 +155,13 @@ conan_validate_deps_protovalidate_cc: conan_remove_deps
     --build=missing
 
 [working-directory("/tmp")]
-conan_validate_hstd_cpp: 
+conan_validate_hstd_cpp:
   conan create {{HAXORG_ROOT}}/hstd_cpp/hstd_lib \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
     --build=missing
 
 conan_clean_validate_hstd_cpp: conan_remove_deps conan_export_deps conan_validate_hstd_cpp
+
+loop_target target:
+  fd | entr -rc bash -c "just {{target}} > build/target_result.log 2>&1"

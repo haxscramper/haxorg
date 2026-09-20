@@ -2,14 +2,14 @@
 #include "hstd/stdlib/Enumerate.hpp"
 #include <boost/preprocessor/seq.hpp>
 #include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/ColTextFormatter.hpp>
 #include <hstd/stdlib/Debug.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
+#include <hstd/stdlib/formatting/ColTextFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 #include <hstd/stdlib/sequtils.hpp>
-#include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
 

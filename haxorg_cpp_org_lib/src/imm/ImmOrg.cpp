@@ -20,10 +20,10 @@
 #include <hstd/stdlib/ColTextHShow.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/TimeReflVisitor.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
-#include <hstd/stdlib/strutils.hpp>
 #include <type_traits>
 
 #if !ORG_BUILD_EMCC

@@ -7,7 +7,7 @@
 #endif
 #include <haxorg/imm/ImmOrg.hpp>
 
-#include <hstd/stdlib/TraceBase.hpp>
+#include <hstd/logger/TraceBase.hpp>
 #include <immer/map_transient.hpp>
 #if !ORG_BUILD_EMCC
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>

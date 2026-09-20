@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 
 namespace hstd::log {
 template <hstd::DescribedRecord Rec>

@@ -2,12 +2,12 @@
 #include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
 
-#include "../common.hpp"
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/sinks.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
+#include <hstd/extra/error_format/gtest_utils.hpp>
 #include <hstd/logger/log_graph_tracker.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 

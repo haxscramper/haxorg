@@ -2,11 +2,11 @@
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 
-#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 #include <hstd/system/reflection.hpp>
 

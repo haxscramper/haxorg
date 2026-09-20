@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>
 
 

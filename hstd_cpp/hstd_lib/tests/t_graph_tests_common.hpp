@@ -9,8 +9,8 @@
 #include <libdialect/hola.h>
 #include <libdialect/opts.h>
 
-#include "../common.hpp"
 #include <hstd/ext/geometry/hstd_geometry_test.hpp>
+#include <hstd/extra/error_format/gtest_utils.hpp>
 #include <hstd/stdlib/containers/MapSerde.hpp>
 #include <hstd/stdlib/containers/VariantSerde.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>

@@ -1,4 +1,3 @@
-#include "../common.hpp"
 #include "tOrgTestCommon.hpp"
 #include <absl/log/log.h>
 #include <google/protobuf/util/json_util.h>
@@ -13,6 +12,7 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/test/corpusrunner.hpp>
+#include <hstd/extra/error_format/gtest_utils.hpp>
 #include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>

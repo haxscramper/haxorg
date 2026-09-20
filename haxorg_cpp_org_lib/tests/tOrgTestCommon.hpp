@@ -1,4 +1,4 @@
-#include "../common.hpp"
+#include <hstd/extra/error_format/gtest_utils.hpp>
 
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgTokenizer.hpp>
@@ -8,7 +8,7 @@
 #include <haxorg/test/NodeTest.hpp>
 #include <hstd/ext/astdiff/astdiff.hpp>
 
-#include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/algorithms/diff/diffs.hpp>
 
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <hstd/stdlib/Filesystem.hpp>

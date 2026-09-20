@@ -1,4 +1,4 @@
-#include "common.hpp"
+#include "gtest_utils.hpp"
 
 #include <google/protobuf/util/json_util.h>
 

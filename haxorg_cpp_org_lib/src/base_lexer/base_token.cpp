@@ -1,5 +1,5 @@
 #include <haxorg/base_lexer/base_token.hpp>
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 
 hstd::fmt_iter fmt::formatter<org::parse::OrgFill>::format(
     org::parse::OrgFill const& p,

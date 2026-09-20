@@ -1,4 +1,4 @@
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <numeric>
 #include <sstream>
 

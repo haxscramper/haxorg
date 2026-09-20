@@ -8,7 +8,7 @@
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/sequtils.hpp>
 
-#include <hstd/stdlib/TraceBase.hpp>
+#include <hstd/logger/TraceBase.hpp>
 
 namespace hstd::ext {
 class ReportSourceCache;

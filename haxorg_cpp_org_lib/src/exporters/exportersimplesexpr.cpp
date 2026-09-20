@@ -1,5 +1,5 @@
 #include "exportersimplesexpr.hpp"
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 
 #include <haxorg/exporters/Exporter.cpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>

@@ -1,6 +1,6 @@
 #include "Node.hpp"
 #include "NodeStore.hpp"
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 
 using namespace org::parse;
 using namespace hstd;

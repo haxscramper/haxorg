@@ -1,5 +1,5 @@
 #include <haxorg/exporters/ExporterUltraplain.hpp>
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 
 #include <haxorg/exporters/Exporter.cpp>
 

@@ -16,6 +16,7 @@
 
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
@@ -23,7 +24,6 @@
 #include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
-#include <hstd/stdlib/strutils.hpp>
 #include <lexy/action/parse.hpp>
 #include <lexy/action/trace.hpp>
 #include <lexy/callback.hpp>

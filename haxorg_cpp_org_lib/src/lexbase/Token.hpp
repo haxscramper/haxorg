@@ -1,6 +1,5 @@
 #pragma once
 
-#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/containers/IntSet.hpp>
@@ -8,6 +7,7 @@
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 
 #include <haxorg/lexbase/Errors.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>

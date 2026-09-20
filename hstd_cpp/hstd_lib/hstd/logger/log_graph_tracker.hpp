@@ -6,8 +6,7 @@
 #        include <QObject>
 #    endif
 
-#    include <hstd/ext/graph/visual/graph_graphviz.hpp>
-#    include <hstd/ext/logger.hpp>
+#    include <hstd/logger/logger.hpp>
 #    include <memory>
 #    include <stack>
 #    include <string>
@@ -426,9 +425,6 @@ struct graphviz_processor : public log_graph_processor {
     void track_qobject(qobject_info const& info) override {}
     void track_connect(connect_info const& info) override {}
 #        endif
-
-    hstd::SPtr<hstd::ext::graph::gv::GraphGroup> get_graphviz(
-        hstd::SPtr<hstd::ext::graph::layout::LayoutRun> const& run);
 
   private:
     std::stack<std::string>                    call_stack{};

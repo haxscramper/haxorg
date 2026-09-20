@@ -5,8 +5,8 @@
 #include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/algorithms/diff/diffs.hpp>
 #include <hstd/stdlib/containers/Outcome.hpp>
-#include <hstd/stdlib/diffs.hpp>
 
 struct TestParameters {
     hstd::Str corpusGlob;

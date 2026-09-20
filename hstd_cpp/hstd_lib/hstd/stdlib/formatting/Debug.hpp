@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/preprocessor.hpp>
-#include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 #include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>

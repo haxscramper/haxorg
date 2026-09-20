@@ -1,10 +1,10 @@
 #pragma once
 
-#include "hstd/stdlib/TraceBase.hpp"
 #include <boost/bimap.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/ext/geometry/hstd_visual.hpp>
+#include <hstd/logger/TraceBase.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
 #include <hstd/stdlib/containers/Set.hpp>

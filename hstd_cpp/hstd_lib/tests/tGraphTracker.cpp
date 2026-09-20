@@ -6,7 +6,7 @@
 #include <thread>
 #include <vector>
 
-#include "../common.hpp"
+#include <hstd/extra/error_format/gtest_utils.hpp>
 
 #include <hstd/logger/log_graph_tracker.hpp>
 

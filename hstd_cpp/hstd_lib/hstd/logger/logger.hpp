@@ -33,11 +33,11 @@
 
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
-#    include <hstd/stdlib/TraceBase.hpp>
+#    include <hstd/logger/TraceBase.hpp>
+#    include <hstd/stdlib/algorithms/strutils.hpp>
 #    include <hstd/stdlib/containers/ContainerAPI.hpp>
 #    include <hstd/stdlib/containers/Set.hpp>
 #    include <hstd/stdlib/formatting/Formatter.hpp>
-#    include <hstd/stdlib/strutils.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QBuffer>

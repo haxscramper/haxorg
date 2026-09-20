@@ -2,12 +2,12 @@
 
 #include "hstd/stdlib/Debug.hpp"
 #include <hstd/ext/geometry/hstd_geometry.hpp>
-#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 #include <hstd/stdlib/serde/Xml.hpp>
 #include <hstd/system/macros.hpp>
 

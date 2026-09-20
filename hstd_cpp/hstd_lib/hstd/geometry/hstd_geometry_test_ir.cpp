@@ -6,7 +6,7 @@
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/stdlib/formatting/Formatter.hpp>
 
-#    include <hstd/stdlib/strutils.hpp>
+#    include <hstd/stdlib/algorithms/strutils.hpp>
 #    include <sstream>
 #    include <unordered_map>
 #    include <utility>

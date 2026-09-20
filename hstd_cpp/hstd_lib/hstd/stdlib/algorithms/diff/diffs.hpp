@@ -1,18 +1,18 @@
 #pragma once
 
-#include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/ColTextFormatter.hpp>
+#include <hstd/logger/TraceBase.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/TraceBase.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
+#include <hstd/stdlib/formatting/ColTextFormatter.hpp>
 #include <math.h>
 
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/system/reflection.hpp>
 
 using std::operator""s;

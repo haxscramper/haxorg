@@ -5,8 +5,8 @@
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
 
-#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 
 #include <haxorg/lexbase/Token.hpp>
 

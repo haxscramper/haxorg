@@ -4,8 +4,8 @@
 #include <haxorg/lexbase/TraceStructured.hpp>
 
 #include <haxorg/sem/perfetto_org.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>
-#include <hstd/stdlib/strutils.hpp>
 #include <lexy/action/parse.hpp>
 #include <lexy/action/trace.hpp>
 #include <lexy/callback.hpp>

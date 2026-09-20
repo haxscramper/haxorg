@@ -2,11 +2,11 @@
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/strutils.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 
 #include <absl/log/log.h>
 
-#include "../common.hpp"
+#include <hstd/extra/error_format/gtest_utils.hpp>
 
 using namespace hstd;
 using namespace hstd::layout;

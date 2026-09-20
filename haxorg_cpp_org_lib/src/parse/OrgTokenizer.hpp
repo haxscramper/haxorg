@@ -2,16 +2,16 @@
 
 #include <string>
 
-#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/containers/Array.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 
 #include <haxorg/parse/OrgTypes.hpp>
 
 #include <haxorg/lexbase/Lexer.hpp>
 #include <haxorg/parse/OrgParserTypes.hpp>
-#include <hstd/stdlib/TraceBase.hpp>
+#include <hstd/logger/TraceBase.hpp>
 
 namespace org::parse {
 

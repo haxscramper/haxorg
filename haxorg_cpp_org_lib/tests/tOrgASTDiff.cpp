@@ -1,4 +1,3 @@
-#include "../common.hpp"
 #include "tOrgTestCommon.hpp"
 #include <gtest/gtest.h>
 #include <haxorg/api/SemBaseApi.hpp>
@@ -6,6 +5,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <haxorg/test/org_parse_aux.hpp>
 #include <hstd/ext/astdiff/astdiff.hpp>
+#include <hstd/extra/error_format/gtest_utils.hpp>
 #include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/containers/Map.hpp>

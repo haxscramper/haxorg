@@ -1,9 +1,9 @@
-#include "../common.hpp"
 #include <gtest/gtest.h>
 #include <hstd/ext/error_write.hpp>
+#include <hstd/extra/error_format/gtest_utils.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/algorithms/diff/diffs.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 

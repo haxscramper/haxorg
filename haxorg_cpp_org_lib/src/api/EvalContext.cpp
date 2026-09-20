@@ -4,6 +4,7 @@
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/OptSerde.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
@@ -12,7 +13,6 @@
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
-#include <hstd/stdlib/strutils.hpp>
 
 #if !ORG_BUILD_EMCC
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>

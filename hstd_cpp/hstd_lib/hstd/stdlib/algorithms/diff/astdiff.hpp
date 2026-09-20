@@ -1,11 +1,11 @@
 #pragma once
 
-#include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/formatting/ColText.hpp>
 #include <hstd/system/generator.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>

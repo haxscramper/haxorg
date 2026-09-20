@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common.hpp"
+#include <hstd/extra/error_format/gtest_utils.hpp>
 
 
 namespace reflection_test {

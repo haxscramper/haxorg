@@ -9,11 +9,11 @@
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/logger/logger.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 #include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
-#include <hstd/stdlib/strutils.hpp>
 
 using namespace hstd;
 using namespace org::parse;

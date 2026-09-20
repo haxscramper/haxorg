@@ -6,10 +6,10 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/Ranges.hpp>
+#include <hstd/stdlib/algorithms/strutils.hpp>
 #include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
-#include <hstd/stdlib/strutils.hpp>
 
 
 using namespace org;
