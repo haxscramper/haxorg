@@ -60,7 +60,11 @@ option(ORG_DEPS_INSTALL_ROOT "Root path for custom dependency installation root"
 # Adaptagrams in the editor project uses libtooling for compilation and does not react well to the
 # changes in the main environment. Sometimes it does not build or does not rebuild things. By
 # default this option forces the dependency to be configured for all builds.
-option(ORG_FORCE_ADAPTAGRAMS_BUILD "Force update and build of the external adaptagrams library" ON)
+option(
+    ORG_FORCE_ADAPTAGRAMS_BUILD
+    "Force update and build of the external adaptagrams library"
+    ON
+)
 option(ORG_DISABLE_WARNINGS "Disable warnings in the build" OFF)
 option(ORG_USE_SARIF "Enable SARIF reporting for build" OFF)
 option(ORG_SEPARATE_DEBUG_SYMBOLS "Strip debug symbols into separate `.debug` file" OFF)
@@ -107,7 +111,12 @@ option(ORG_BUILD_QT_GUI "Build qt apps" OFF)
 option(ORG_IS_CONAN_BUILD "The project is being built by conan" OFF)
 option(ORG_IS_WHEEL_BUILD "The project is being built by the python wheel distribution")
 
-if(ORG_BUILD_WITH_CGRAPH OR ORG_BUILD_WITH_ADAPTAGRAMS OR ORG_BUILD_WITH_ELK OR ORG_BUILD_WITH_KIWI)
+if(
+    ORG_BUILD_WITH_CGRAPH
+    OR ORG_BUILD_WITH_ADAPTAGRAMS
+    OR ORG_BUILD_WITH_ELK
+    OR ORG_BUILD_WITH_KIWI
+)
     set(ORG_BUILD_WITH_GRAPH_VISUAL ON)
 else()
     set(ORG_BUILD_WITH_GRAPH_VISUAL OFF)
@@ -254,7 +263,9 @@ endif()
 message(STATUS "lexy_DIR = ${lexy_DIR}")
 
 if(${ORG_BUILD_INTERNAL_TOOLS})
-    set(ENV{PKG_CONFIG_PATH} "${ORG_DEPS_INSTALL_ROOT}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    set(ENV{PKG_CONFIG_PATH}
+        "${ORG_DEPS_INSTALL_ROOT}/libgit2/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}"
+    )
 endif()
 
 find_package(PkgConfig)
@@ -433,7 +444,9 @@ if(ORG_BUILD_WITH_PROTOBUF)
             EXCLUDE_FROM_ALL
         )
 
-        set(PROTOVALIDATE_PROTO_IMPORT_DIR "${PROTOVALIDATE_SOURCE_DIR}/proto/protovalidate")
+        set(PROTOVALIDATE_PROTO_IMPORT_DIR
+            "${PROTOVALIDATE_SOURCE_DIR}/proto/protovalidate"
+        )
 
         if(NOT TARGET protovalidate_cc::protovalidate_cc)
             message(FATAL_ERROR "protovalidate_cc::protovalidate_cc was not created")
@@ -642,7 +655,13 @@ install(
     PATTERN "*Exporter.cpp"
 )
 
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ DESTINATION include FILES_MATCHING PATTERN "*.pb.h")
+install(
+    DIRECTORY
+        ${CMAKE_CURRENT_BINARY_DIR}/
+    DESTINATION include
+    FILES_MATCHING
+    PATTERN "*.pb.h"
+)
 
 install(
     EXPORT HaxorgTargets

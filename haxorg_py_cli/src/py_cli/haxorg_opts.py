@@ -1,12 +1,11 @@
 import enum
 from pathlib import Path
 
-from beartype.typing import Annotated, List, Optional, Tuple, TypeVar
 import py_haxorg.pyhaxorg_utils as org_utils
+from beartype.typing import Annotated, List, Optional, Tuple, TypeVar
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import CliField
-from pydantic import AfterValidator, AliasChoices, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
 CAT = __name__
 
@@ -64,7 +63,8 @@ class TexExportOptions(BaseModel, extra="forbid"):
     infile: ReadableFilePath
     outfile: Path
     do_compile: bool = Field(
-        description="Compile the tex document if the export was successful", default=True)
+        description="Compile the tex document if the export was successful", default=True
+    )
 
     backend: str = Field(
         description="TeX backend to use",
@@ -82,7 +82,8 @@ class TypstExportOptions(BaseModel, extra="forbid"):
 
     do_compile: bool = Field(
         description="Compile the typst document if the export was successful",
-        default=True)
+        default=True,
+    )
 
     backend: str = Field(
         description="TeX backend to use",
@@ -101,7 +102,8 @@ class ExportOptions(BaseModel, extra="forbid"):
     exportTraceFile: Optional[str] = Field(  # type: ignore
         description="Write python export trace to this file",
         default=None,
-        alias=AliasChoices("exportTraceFile", "export_trace_file"))
+        alias=AliasChoices("exportTraceFile", "export_trace_file"),
+    )
 
 
 class GenerateActivityAnalysisOptions(BaseModel):
@@ -110,7 +112,8 @@ class GenerateActivityAnalysisOptions(BaseModel):
     force_db: bool = False
     db_path: Optional[Path] = Field(
         default=None,
-        description="Path to the generated SQLite DB, defaults to outdir/db.sqlite")
+        description="Path to the generated SQLite DB, defaults to outdir/db.sqlite",
+    )
 
 
 class MMapDiagramEdgeLabelType(str, enum.Enum):
@@ -134,7 +137,9 @@ class MMapDiagramConfig(BaseModel, extra="forbid"):
     label_node_font_size: float = 8.0
     label_node_max_height: Optional[float] = None
     label_node_min_height: Optional[float] = None
-    edge_label_type: MMapDiagramEdgeLabelType = MMapDiagramEdgeLabelType.INSERT_LABEL_NODES
+    edge_label_type: MMapDiagramEdgeLabelType = (
+        MMapDiagramEdgeLabelType.INSERT_LABEL_NODES
+    )
     edge_color_map: Optional[str] = "tab10"
 
 
@@ -144,7 +149,8 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
 
     auto_build_elk: bool = True
     org_diagram_tool: Path = Field(
-        default_factory=lambda: Path("build/haxorg/org_diagram"))
+        default_factory=lambda: Path("build/haxorg/org_diagram")
+    )
 
     group_hyperedges: bool = True
     group_single_item_hyperedge: bool = True
@@ -152,11 +158,23 @@ class GenerateMindMapOptions(BaseModel, extra="forbid"):
     typst_do_compile: bool = True
     typst_compile_root: Optional[str] = "/"
     typst_import_list: List[Tuple[str, List[str]]] = Field(
-        default_factory=lambda: [(str(get_haxorg_repo_root_path().joinpath(
-            "scripts/py_cli/py_cli/generate/mind_map/haxorg_mind_map.typ")), ["*"])])
+        default_factory=lambda: [
+            (
+                str(
+                    get_haxorg_repo_root_path().joinpath(
+                        "scripts/py_cli/py_cli/generate/mind_map/haxorg_mind_map.typ"
+                    )
+                ),
+                ["*"],
+            )
+        ]
+    )
 
-    wrapper_dir: Path = Field(default_factory=lambda: Path(
-        "scripts/py_cli/py_cli/generate/mind_map/elk_cli_wrapper"))
+    wrapper_dir: Path = Field(
+        default_factory=lambda: Path(
+            "scripts/py_cli/py_cli/generate/mind_map/elk_cli_wrapper"
+        )
+    )
 
     use_padding: bool = True
     use_nested_todo: bool = True
@@ -203,7 +221,8 @@ class GenerateOptions(BaseModel, extra="forbid"):
 
 class RootOptions(BaseModel, extra="forbid"):
     baseToken_traceDir: Optional[str] = Field(
-        description="Write lexer operation trace into the directory", default=None)
+        description="Write lexer operation trace into the directory", default=None
+    )
     tokenizer_traceDir: Optional[str] = None
     parse_traceDir: Optional[str] = None
     sem_traceDir: Optional[str] = None
@@ -214,12 +233,13 @@ class RootOptions(BaseModel, extra="forbid"):
     jsonDump_traceDir: Optional[str] = None
 
     cache: Optional[Path] = Field(
-        description=
-        "Optional directory to cache file parsing to speed up large corpus processing",
-        default=None)
+        description="Optional directory to cache file parsing to speed up large corpus processing",
+        default=None,
+    )
 
     trace_path: Optional[str] = Field(
-        description="Trace execution of the CLI to the file", default=None)
+        description="Trace execution of the CLI to the file", default=None
+    )
 
     tmp_dir: Path = Field(default_factory=lambda: Path("/tmp/haxorg_cli/tmp"))
 
@@ -228,4 +248,5 @@ class RootOptions(BaseModel, extra="forbid"):
     generate: SubcommandField[GenerateOptions] = None
     export: SubcommandField[ExportOptions] = None
     todo_ident_names: List[str] = Field(
-        default_factory=lambda: list(org_utils.SEMANTIC_BIG_IDENT_ITEMS))
+        default_factory=lambda: list(org_utils.SEMANTIC_BIG_IDENT_ITEMS)
+    )

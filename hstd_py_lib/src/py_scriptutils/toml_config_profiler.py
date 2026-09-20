@@ -1,26 +1,27 @@
-from dataclasses import dataclass, field
 import functools
 import json
 import os
-from pathlib import Path
 import traceback
+from dataclasses import dataclass
+from pathlib import Path
 
-from beartype import beartype
-from beartype.typing import Any, Dict, get_args, get_origin, List, Optional, Type, TypeVar
-from py_scriptutils.files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
-from pydantic import AliasChoices, BaseModel
-from pydantic_core import PydanticUndefined
 import rich_click as click
 import toml
 import yaml
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Type, TypeVar, get_args, get_origin
+from pydantic import AliasChoices, BaseModel
+from pydantic_core import PydanticUndefined
+
+from py_scriptutils.files import get_haxorg_repo_root_path
+from py_scriptutils.script_logging import log
 
 CAT = __name__
 
 
 @beartype
 @dataclass
-class CliField():
+class CliField:
     is_option: bool = True
 
 
@@ -35,8 +36,9 @@ class DefaultWrapper(click.ParamType):
             return value
 
         else:
-            return DefaultWrapperValue(value=self.base_type.convert(value, param, ctx),
-                                       is_provided=True)
+            return DefaultWrapperValue(
+                value=self.base_type.convert(value, param, ctx), is_provided=True
+            )
 
 
 class DefaultWrapperValue:
@@ -66,8 +68,12 @@ def merge_cli_model(
             else:
                 on_default[param] = value.value
 
-        elif isinstance(value, list) or isinstance(value, tuple) and 0 < len(value) and (
-                isinstance(value[0], DefaultWrapperValue)):
+        elif (
+            isinstance(value, list)
+            or isinstance(value, tuple)
+            and 0 < len(value)
+            and (isinstance(value[0], DefaultWrapperValue))
+        ):
             if value[0].is_provided:
                 on_cli[param] = [it.Value for it in value]
 
@@ -94,7 +100,8 @@ def get_cli_model(ctx: click.Context, ModelType: Type[T], kwargs: dict) -> T:
     if "config" in kwargs:
         config = kwargs["config"]
         config_base = run_config_provider(
-            ([str(Path(config).resolve())] if config else []), True)
+            ([str(Path(config).resolve())] if config else []), True
+        )
 
     else:
         config_base = dict()
@@ -121,7 +128,8 @@ def options_from_model(model: BaseModel) -> List[Any]:
     result: List[Any] = []
     for name, field in model.model_fields.items():
         if hasattr(field, "metadata") and any(
-                isinstance(meta, CliField) for meta in field.metadata):
+            isinstance(meta, CliField) for meta in field.metadata
+        ):
             cli_field = [meta for meta in field.metadata if isinstance(meta, CliField)][0]
             if not cli_field.is_option:
                 continue
@@ -144,12 +152,20 @@ def options_from_model(model: BaseModel) -> List[Any]:
                 type=DefaultWrapper(py_type_to_click(field.annotation)),
                 help=field.description,
                 expose_value=True,
-                **({  # type: ignore
-                    "default": [DefaultWrapperValue(it, False) for it in field.default] if
-                               is_multiple else DefaultWrapperValue(field.default, False)
-                } if has_default else {}),
+                **(
+                    {  # type: ignore
+                        "default": [
+                            DefaultWrapperValue(it, False) for it in field.default
+                        ]
+                        if is_multiple
+                        else DefaultWrapperValue(field.default, False)
+                    }
+                    if has_default
+                    else {}
+                ),
                 multiple=is_multiple,
-            ))
+            )
+        )
 
     return result
 
@@ -159,7 +175,7 @@ def merge_dicts(dicts: List[Dict]) -> Dict:
 
     def recursive_merge(base: Dict, new: Dict) -> None:
         for key, value in new.items():
-            if (isinstance(value, dict) and key in base and isinstance(base[key], dict)):
+            if isinstance(value, dict) and key in base and isinstance(base[key], dict):
                 recursive_merge(base[key], value)
             else:
                 base[key] = value
@@ -208,8 +224,9 @@ def find_default_search_locations(config_file_name: str) -> List[str]:
     potential_paths = [os.path.join(os.getcwd(), config_file_name)]
 
     # Add $XDG_CONFIG_HOME/haxorg/config.toml
-    xdg_config_home = os.environ.get("XDG_CONFIG_HOME",
-                                     os.path.join(os.path.expanduser("~"), ".config"))
+    xdg_config_home = os.environ.get(
+        "XDG_CONFIG_HOME", os.path.join(os.path.expanduser("~"), ".config")
+    )
     potential_paths.append(os.path.join(xdg_config_home, "haxorg", config_file_name))
     return potential_paths
 
@@ -225,13 +242,13 @@ def find_config_files(with_trace: bool, potential_paths: List[str]) -> List[str]
 
         elif with_trace:
             log("org.cli").debug(
-                f"Trying {path} for config -- file does not exist, skipping")
+                f"Trying {path} for config -- file does not exist, skipping"
+            )
 
     return result
 
 
 class SafeDict(dict):
-
     def __missing__(self, key: str) -> str:
         return "{" + key + "}"
 
@@ -286,7 +303,7 @@ def run_config_provider(
             potential_paths=search_paths,
         )
 
-        if (not file_paths):
+        if not file_paths:
             return {}
 
         configs: List[Dict] = []
@@ -311,12 +328,17 @@ def run_config_provider(
 
             config_value = interpolate_dictionary(
                 config_dict,
-                merge_dicts([
-                    content_value_substitution,
-                    dict(config_path=path,
-                         config_dir=os.path.dirname(path),
-                         haxorg_root=str(get_haxorg_repo_root_path()))
-                ]))
+                merge_dicts(
+                    [
+                        content_value_substitution,
+                        dict(
+                            config_path=path,
+                            config_dir=os.path.dirname(path),
+                            haxorg_root=str(get_haxorg_repo_root_path()),
+                        ),
+                    ]
+                ),
+            )
 
             configs.append(config_value)
 

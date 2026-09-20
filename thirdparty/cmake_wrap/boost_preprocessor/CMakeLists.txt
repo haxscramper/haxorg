@@ -5,7 +5,10 @@ project(PreprocessorWrapper)
 set(BOOST_PREPROCESSOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../preprocessor")
 
 # Add the subdirectory containing the boost_preprocessor CMakeLists.txt
-add_subdirectory("${BOOST_PREPROCESSOR_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/boost_preprocessor")
+add_subdirectory(
+    "${BOOST_PREPROCESSOR_DIR}"
+    "${CMAKE_CURRENT_BINARY_DIR}/boost_preprocessor"
+)
 
 # Include helper for creating package configurations
 include(CMakePackageConfigHelpers)
@@ -18,7 +21,13 @@ configure_package_config_file(
 )
 
 # Install the library target
-install(TARGETS boost_preprocessor EXPORT BoostPreprocessorTargets INCLUDES DESTINATION include)
+install(
+    TARGETS
+        boost_preprocessor
+    EXPORT BoostPreprocessorTargets
+    INCLUDES DESTINATION
+        include
+)
 
 # Install the headers from boost_preprocessor
 install(DIRECTORY ${BOOST_PREPROCESSOR_DIR}/include/ DESTINATION include)

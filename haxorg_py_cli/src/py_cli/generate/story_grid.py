@@ -1,34 +1,27 @@
 #!/usr/bin/env python
 
-import dataclasses
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timedelta
-import itertools
-from numbers import Number
 from pathlib import Path
-import statistics
 
-from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Tuple, Union
 import dominate
 import dominate.tags as tags
-from dominate.util import text
-from py_cli import haxorg_cli, haxorg_opts
-import py_haxorg.astbuilder.astbuilder_typst as typ
-from py_haxorg.exporters.export_html import add_html, add_new, ExporterHtml
-from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
-from py_haxorg.pyhaxorg_utils import evalDateTime
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.algorithm import maybe_splice
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Optional, Tuple, Union
+from dominate.util import text
+from py_haxorg.exporters.export_html import ExporterHtml, add_html, add_new
+from py_haxorg.pyhaxorg_utils import evalDateTime
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = "story-grid"
 
 
 @beartype
 @dataclass
-class Header():
+class Header:
     title: List[org.Org]
     level: int
     words: Optional[int] = None
@@ -131,10 +124,13 @@ def rec_node(node: org.Org) -> List[Header]:
                             # item: org.ListItem
                             tag = [
                                 w.text
-                                for w in rec_filter_subnodes(item.header, [
-                                    org.OrgSemKind.Word,
-                                    org.OrgSemKind.RawText,
-                                ])
+                                for w in rec_filter_subnodes(
+                                    item.header,
+                                    [
+                                        org.OrgSemKind.Word,
+                                        org.OrgSemKind.RawText,
+                                    ],
+                                )
                             ]
 
                             if len(tag) == 1:
@@ -162,12 +158,14 @@ def rec_node(node: org.Org) -> List[Header]:
                                         match it:
                                             case org.Time():
                                                 header.time = evalDateTime(
-                                                    it.getStatic().time)
+                                                    it.getStatic().time
+                                                )
 
                                             case org.TimeRange():
                                                 header.time = (
                                                     evalDateTime(
-                                                        it.from_.getStatic().time),
+                                                        it.from_.getStatic().time
+                                                    ),
                                                     evalDateTime(it.to.getStatic().time),
                                                 )
 
@@ -319,7 +317,8 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                     add_new(
                         tags.td(style=header_style),
                         [to_html(prefix), to_html(h.title)],
-                    ))
+                    )
+                )
 
             elif field.name == "words":
                 if h.words:
@@ -328,7 +327,10 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                         add_new(
                             tags.td(
                                 style=f"background-color: rgba(0, 255, 0, {opacity:.2f});"
-                            ), to_html(h.words)))
+                            ),
+                            to_html(h.words),
+                        )
+                    )
 
                 else:
                     opt(h.words, **cell_args)
@@ -337,13 +339,16 @@ def get_html_story_grid(nested_headers: List[Header]) -> dominate.document:
                 if h.time:
                     prev = prev_time()
                     offset = ""
-                    start, end = (h.time,
-                                  None) if isinstance(h.time, datetime) else h.time
+                    start, end = (
+                        (h.time, None) if isinstance(h.time, datetime) else h.time
+                    )
                     if prev:
-                        prev_start, prev_end = (prev, None) if isinstance(
-                            prev, datetime) else prev
-                        offset += "{}".format(" ".join(
-                            format_time_difference(start - prev_start)[:2]))
+                        prev_start, prev_end = (
+                            (prev, None) if isinstance(prev, datetime) else prev
+                        )
+                        offset += "{}".format(
+                            " ".join(format_time_difference(start - prev_start)[:2])
+                        )
 
                     if isinstance(h.time, datetime):
                         opt(offset, **cell_args)

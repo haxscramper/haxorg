@@ -1,18 +1,20 @@
 from enum import Enum
 
 from beartype.typing import Any, List, Optional
+
+import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.exporters.export_base import ExporterBase
 from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.layout.wrap import BlockId, TextLayout
 from py_haxorg.pyhaxorg_utils import formatDateTime
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
-import py_haxorg.pyhaxorg_wrap as org
 
 
 class TexCommand(Enum):
     """
     Collection of the latex commands used in the generated tex sources
     """
+
     part = 1  # nodoc
     chapter = 2  # nodoc
     section = 3  # nodoc
@@ -28,6 +30,7 @@ class ExporterLatex(ExporterBase):
     """
     Export org-mode document to latex
     """
+
     t: TextLayout  # nodoc
 
     def __init__(self, CRTP_derived: Any = None) -> None:
@@ -62,10 +65,13 @@ class ExporterLatex(ExporterBase):
         """
         Generate line block with the latex command call.
         """
-        return self.t.line([
-            self.t.text("\\" + name), *[self.wrap(it, "[", "]") for it in opts],
-            *[self.wrap(it, "{", "}") for it in args]
-        ])
+        return self.t.line(
+            [
+                self.t.text("\\" + name),
+                *[self.wrap(it, "[", "]") for it in opts],
+                *[self.wrap(it, "{", "}") for it in args],
+            ]
+        )
 
     def escape(self, value: str) -> str:
         """
@@ -83,7 +89,8 @@ class ExporterLatex(ExporterBase):
     def evalPlaceholder(self, node: org.Placeholder) -> BlockId:
         return self.command(
             "textsc",
-            [self.command("texttt", [self.string(self.string("<" + node.text + ">"))])])
+            [self.command("texttt", [self.string(self.string("<" + node.text + ">"))])],
+        )
 
     def evalBigIdent(self, node: org.BigIdent) -> BlockId:
         specialColor = ""
@@ -94,12 +101,15 @@ class ExporterLatex(ExporterBase):
                 specialColor = "brown"
 
         if specialColor:
-            return self.command("fbox", [
-                self.command(
-                    "colorbox",
-                    [self.string(specialColor),
-                     self.string(self.escape(node.text))])
-            ])
+            return self.command(
+                "fbox",
+                [
+                    self.command(
+                        "colorbox",
+                        [self.string(specialColor), self.string(self.escape(node.text))],
+                    )
+                ],
+            )
 
         else:
             return self.string(node.text)
@@ -123,12 +133,18 @@ class ExporterLatex(ExporterBase):
                 return self.string(self.escape(node.target.getRaw().text))
 
             case org.LinkTargetKind.Person:
-                return self.eval(node.description) if node.description else self.string(
-                    node.target.getPerson().name)
+                return (
+                    self.eval(node.description)
+                    if node.description
+                    else self.string(node.target.getPerson().name)
+                )
 
             case org.LinkTargetKind.Id:
-                return self.eval(node.description) if node.description else self.string(
-                    node.target.getId().text)
+                return (
+                    self.eval(node.description)
+                    if node.description
+                    else self.string(node.target.getId().text)
+                )
 
             case _:
                 return self.string(f"TODO LINK KIND {node.target.getKind()}")
@@ -199,11 +215,13 @@ class ExporterLatex(ExporterBase):
             return self.string(node.content)
 
     def evalList(self, node: org.List) -> BlockId:
-        return self.t.stack([
-            self.command("begin", ["itemize"]),
-            self.stackSubnodes(node),
-            self.command("end", ["itemize"])
-        ])
+        return self.t.stack(
+            [
+                self.command("begin", ["itemize"]),
+                self.stackSubnodes(node),
+                self.command("end", ["itemize"]),
+            ]
+        )
 
     def getLatexClassOptions(self, node: org.Document) -> List[BlockId]:
         """
@@ -235,9 +253,12 @@ class ExporterLatex(ExporterBase):
         res: List[BlockId] = []
 
         res.append(
-            self.command("documentclass",
-                         opts=self.getLatexClassOptions(node),
-                         args=[self.getLatexClass(node)]))
+            self.command(
+                "documentclass",
+                opts=self.getLatexClassOptions(node),
+                args=[self.getLatexClass(node)],
+            )
+        )
 
         res.append(self.command("usepackage", ["csquotes"]))
         res.append(self.command("usepackage", opts=["bookmarks"], args=["hyperref"]))
@@ -348,21 +369,28 @@ class ExporterLatex(ExporterBase):
                 case _:
                     self.t.add_at(
                         title_text,
-                        self.command("texorpdfstring", [
-                            self.exp.eval(item),
-                            self.string(self.escape(ExporterUltraplain.getStr(item)))
-                        ]))
+                        self.command(
+                            "texorpdfstring",
+                            [
+                                self.exp.eval(item),
+                                self.string(self.escape(ExporterUltraplain.getStr(item))),
+                            ],
+                        ),
+                    )
 
         cmd = self.getSubtreeCommand(node)
         self.t.add_at(
-            res, self.command(self.getOrgCommand(cmd) if cmd else "texbf", [title_text]))
+            res, self.command(self.getOrgCommand(cmd) if cmd else "texbf", [title_text])
+        )
 
         if cmd in [TexCommand.part, TexCommand.chapter, TexCommand.section]:
             self.t.add_at(
                 res,
                 self.command(
                     "label",
-                    [self.string(self.getRefKind(node) or "" + "\\the" + cmd.name)]))
+                    [self.string(self.getRefKind(node) or "" + "\\the" + cmd.name)],
+                ),
+            )
 
         for it in node:
             self.t.add_at(res, self.exp.eval(it))
@@ -374,6 +402,5 @@ class ExporterLatex(ExporterBase):
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
         return self.t.line(
-            [self.exp.eval(node.from_),
-             self.string("--"),
-             self.exp.eval(node.to)])
+            [self.exp.eval(node.from_), self.string("--"), self.exp.eval(node.to)]
+        )

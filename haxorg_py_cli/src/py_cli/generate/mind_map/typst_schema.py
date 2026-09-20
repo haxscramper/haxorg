@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class TypstNode(BaseModel):
     """Base class for all Typst AST nodes"""
+
     pass
 
 
@@ -14,11 +15,13 @@ class PtSize(TypstNode):
 
 class Text(TypstNode):
     """Plain text content"""
+
     content: str
 
 
 class Command(TypstNode):
     """Typst command (prefixed with #)"""
+
     name: str
     args: Optional[List[Union["Expression", "NamedArg"]]] = Field(default_factory=list)
     content: Optional[List["TypstNode"]] = None
@@ -26,71 +29,84 @@ class Command(TypstNode):
 
 class NamedArg(TypstNode):
     """Named argument in a function call"""
+
     name: str
     value: "Expression"
 
 
 class Expression(TypstNode):
     """Base class for expressions"""
+
     pass
 
 
 class Literal(Expression):
     """Literal value (string, number, boolean, none)"""
+
     value: Union[str, int, float, bool, None, PtSize, dict]
 
 
 class RawLiteral(Expression):
     """Raw literal that should be inserted as-is without quotes"""
+
     value: str
 
 
 class Array(Expression):
     """Array expression"""
+
     items: List[Expression]
 
 
 class Dictionary(Expression):
     """Dictionary expression"""
+
     items: Dict[str, Expression]
 
 
 class Content(TypstNode):
     """Content block [...]"""
+
     body: List[TypstNode]
 
 
 class Set(TypstNode):
     """Set rule (#set ...)"""
+
     target: str
     args: Dict[str, Expression] = Field(default_factory=dict)
 
 
 class Show(TypstNode):
     """Show rule (#show ...)"""
+
     selector: Optional[Expression] = None
     transform: Optional[TypstNode] = None
 
 
 class Let(TypstNode):
     """Variable binding (#let ...)"""
+
     name: str
     value: Expression
 
 
 class Import(TypstNode):
     """Import statement (#import ...)"""
+
     path: str
     items: Optional[List[str]] = None
 
 
 class Include(TypstNode):
     """Include statement (#include ...)"""
+
     path: str
 
 
 class Document(TypstNode):
     """Root document node"""
+
     subnodes: List[TypstNode] = Field(default_factory=list)
 
 
@@ -218,13 +234,23 @@ class TypstGenerator:
             return f"{value.size}pt"
 
         elif isinstance(value, dict):
-            return "(" + ", ".join(
-                self._normalize(key) + ": " + self._generate_literal(it)
-                for key, it in value.items()) + ("," if value else "") + ")"
+            return (
+                "("
+                + ", ".join(
+                    self._normalize(key) + ": " + self._generate_literal(it)
+                    for key, it in value.items()
+                )
+                + ("," if value else "")
+                + ")"
+            )
 
         elif isinstance(value, list):
-            return "(" + ", ".join(
-                self._generate_literal(it) for it in value) + ("," if value else "") + ")"
+            return (
+                "("
+                + ", ".join(self._generate_literal(it) for it in value)
+                + ("," if value else "")
+                + ")"
+            )
 
         else:
             return str(value)
@@ -327,18 +353,21 @@ def generate_typst(document: Union[Document, TypstNode]) -> str:
 # Example usage:
 if __name__ == "__main__":
     # Create a simple document
-    doc = Document(subnodes=[
-        Set(target="text",
-            args={
-                "font": Literal(value="Arial"),
-                "size": RawLiteral(value="12pt")
-            }),
-        Command(name="heading",
+    doc = Document(
+        subnodes=[
+            Set(
+                target="text",
+                args={"font": Literal(value="Arial"), "size": RawLiteral(value="12pt")},
+            ),
+            Command(
+                name="heading",
                 args=[Literal(value="My Document")],
-                content=[Content(body=[Text(content="Introduction")])]),
-        Text(content="This is a paragraph with "),
-        Command(name="strong", content=[Content(body=[Text(content="bold text")])]),
-        Text(content="."),
-    ])
+                content=[Content(body=[Text(content="Introduction")])],
+            ),
+            Text(content="This is a paragraph with "),
+            Command(name="strong", content=[Content(body=[Text(content="bold text")])]),
+            Text(content="."),
+        ]
+    )
 
     print(generate_typst(doc))

@@ -1,12 +1,15 @@
-from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
 
-from beartype import beartype
-from beartype.typing import Any, Optional
 import igraph as ig
 import plumbum
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, Optional
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.generate.mind_map import (
     elk_converter,
@@ -14,15 +17,12 @@ from py_cli.generate.mind_map import (
     haxorg_mind_map,
     typst_schema,
 )
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
-import rich_click as click
 
 CAT = __name__
 
 
 @beartype
-class MindMapBuildArtifacts():
+class MindMapBuildArtifacts:
     mmap_model: haxorg_mind_map.Graph
     mmap_igraph: ig.Graph
     mmap_elk_layout: elk_schema.Graph
@@ -55,26 +55,34 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
         return haxorg_cli.get_tmp_file(opts, f"mind_map/{name}")
 
     result.mman_initial_path = get_out("mind-map-dump.json")
-    org_diagram_cmd = plumbum.local[str(
-        opts.generate.mind_map.org_diagram_tool)].with_env(ASAN_OPTIONS="detect_leaks=0",)
+    org_diagram_cmd = plumbum.local[
+        str(opts.generate.mind_map.org_diagram_tool)
+    ].with_env(
+        ASAN_OPTIONS="detect_leaks=0",
+    )
 
-    org_diagram_cmd.run([
-        json.dumps(
-            dict(
-                documentPath=str(opts.generate.mind_map.infile),
-                mode="MindMapDump",
-                outputPath=str(result.mman_initial_path),
-                use_padding=opts.generate.mind_map.use_padding,
-                use_nested_todo=opts.generate.mind_map.use_nested_todo,
-            ))
-    ])
+    org_diagram_cmd.run(
+        [
+            json.dumps(
+                dict(
+                    documentPath=str(opts.generate.mind_map.infile),
+                    mode="MindMapDump",
+                    outputPath=str(result.mman_initial_path),
+                    use_padding=opts.generate.mind_map.use_padding,
+                    use_nested_todo=opts.generate.mind_map.use_nested_todo,
+                )
+            )
+        ]
+    )
 
     result.mmap_model = haxorg_mind_map.Graph.model_validate(
-        json.loads(Path(result.mman_initial_path).read_text()))
+        json.loads(Path(result.mman_initial_path).read_text())
+    )
     result.mmap_igraph = haxorg_mind_map.convert_to_igraph(result.mmap_model)
 
     result.mmap_igraph = result.mmap_igraph.induced_subgraph(
-        filter(lambda vertex: vertex["data"].vertexKind == "Item", result.mmap_igraph.vs))
+        filter(lambda vertex: vertex["data"].vertexKind == "Item", result.mmap_igraph.vs)
+    )
 
     mmap_walker = haxorg_mind_map.HaxorgMMapWalker(
         result.mmap_igraph,
@@ -83,6 +91,7 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
     )
 
     from py_scriptutils.rich_utils import render_rich
+
     get_out("mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
     pprint_to_file(to_debug_json(mmap_walker), get_out("mmap_walker.py"))
     mmap_elk = mmap_walker.getELKGraph()
@@ -90,8 +99,9 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
 
     pprint_to_file(mmap_elk, result.mmap_elk_dump)
 
-    layout_script = Path(
-        opts.cache).joinpath("build/install/elk_cli_wrapper/bin/elk_cli_wrapper")
+    layout_script = Path(opts.cache).joinpath(
+        "build/install/elk_cli_wrapper/bin/elk_cli_wrapper"
+    )
 
     assert layout_script.exists()
     result.mmap_elk_layout = elk_schema.perform_graph_layout(mmap_elk, str(layout_script))
@@ -103,8 +113,10 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
             hyperedge_polygon_width=opts.generate.mind_map.diagram_config.hyperedge_width,
         )
 
-    pprint_to_file(to_debug_json(result.mmap_elk_layout),
-                   get_out("mmap_elk_layout_post_hyperedge.py"))
+    pprint_to_file(
+        to_debug_json(result.mmap_elk_layout),
+        get_out("mmap_elk_layout_post_hyperedge.py"),
+    )
     doc = elk_converter.graph_to_typst(result.mmap_elk_layout)
 
     for path, items in opts.generate.mind_map.typst_import_list:
@@ -129,10 +141,12 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
 
         result.final_pdf = opts.generate.mind_map.outfile
 
-        compile_args.extend([
-            str(result.final_typst),
-            str(opts.generate.mind_map.outfile),
-        ])
+        compile_args.extend(
+            [
+                str(result.final_typst),
+                str(opts.generate.mind_map.outfile),
+            ]
+        )
 
         compile_cmd = plumbum.local["typst"]
         compile_cmd.run(compile_args)

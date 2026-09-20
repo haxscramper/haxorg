@@ -3,22 +3,23 @@
 import json
 from pathlib import Path
 
-from beartype.typing import Any, cast, Dict, List, Optional
+import py_scriptutils.toml_config_profiler as conf_provider
+import rich_click as click
+from beartype.typing import Any, Dict, List, Optional, cast
+from py_scriptutils.script_logging import log
+from py_scriptutils.tracer import TraceCollector
+
+import py_codegen.wrapper_gen_nim as gen_nim
 from py_codegen.refl_extract import (
     CompileCommand,
-    expand_input,
     PathMapping,
-    read_compile_cmmands,
-    run_reflection_tool_for_path,
     TuOptions,
     TuWrap,
+    expand_input,
+    read_compile_cmmands,
+    run_reflection_tool_for_path,
 )
 from py_codegen.refl_wrapper_graph import GenGraph
-import py_codegen.wrapper_gen_nim as gen_nim
-from py_scriptutils.script_logging import log
-import py_scriptutils.toml_config_profiler as conf_provider
-from py_scriptutils.tracer import GlobExportJson, TraceCollector
-import rich_click as click
 
 CONFIG_FILE_NAME = "tu_collector.toml"
 
@@ -52,8 +53,9 @@ def run_wrap_for_config(
         mapping: PathMapping
         for mapping in paths:
             if any([cmd.file == str(mapping.path) for cmd in commands]):
-                with wrap_time_trace.complete_event("Run collector", "read",
-                                                    {"path": str(mapping.path)}):
+                with wrap_time_trace.complete_event(
+                    "Run collector", "read", {"path": str(mapping.path)}
+                ):
                     wrap = run_reflection_tool_for_path(conf, mapping, commands)
                     if wrap:
                         wraps.append(wrap)
@@ -89,14 +91,18 @@ def run_wrap_for_config(
 
     with wrap_time_trace.complete_event("Write wrapper output", "write"):
         for sub in graph.subgraphs:
-            with wrap_time_trace.complete_event("Single file wrap", "write",
-                                                {"original": str(sub.original)}):
+            with wrap_time_trace.complete_event(
+                "Single file wrap", "write", {"original": str(sub.original)}
+            ):
                 code: Optional[str] = gen_nim.to_nim(
                     graph=graph,
                     sub=sub,
                     conf=conf.nim.model_copy(
-                        update=dict(path_resolution_impl=conf.nim.path_resolution_impl or
-                                    get_header_path)),
+                        update=dict(
+                            path_resolution_impl=conf.nim.path_resolution_impl
+                            or get_header_path
+                        )
+                    ),
                     get_out_path=get_out_path,
                     output_directory=Path(conf.output_directory),
                 ).content
@@ -111,16 +117,18 @@ def run_wrap_for_config(
 
     with wrap_time_trace.complete_event("Write translation unit information", "write"):
         for sub in graph.subgraphs:
-            with wrap_time_trace.complete_event("Write subgraph information", "write",
-                                                {"original": str(sub.original)}):
+            with wrap_time_trace.complete_event(
+                "Write subgraph information", "write", {"original": str(sub.original)}
+            ):
                 with wrap_time_trace.complete_event("Collect declaration info", "write"):
                     info = graph.to_decl_info(sub)
 
                 result = get_out_path(sub.original)
                 result = result.with_stem(result.stem + "-tu").with_suffix(".json")
 
-                with wrap_time_trace.complete_event("Write JSON information for file",
-                                                    "write"):
+                with wrap_time_trace.complete_event(
+                    "Write JSON information for file", "write"
+                ):
                     with open(str(result), "w") as file:
                         file.write(json.dumps(info.model_dump(), indent=2))
 
@@ -128,20 +136,25 @@ def run_wrap_for_config(
 
 
 @click.command()
-@click.option("--config",
-              type=click.Path(exists=True),
-              default=None,
-              help="Path to config file.")
+@click.option(
+    "--config", type=click.Path(exists=True), default=None, help="Path to config file."
+)
 @model_options
 @click.pass_context
 def run(ctx: click.Context, config: str, **kwargs: Any) -> None:
     assert Path(config).exists()
     config = str(Path(config).resolve())
     config_base = conf_provider.run_config_provider(
-        ([config] if config else
-         conf_provider.find_default_search_locations(CONFIG_FILE_NAME)), True)
+        (
+            [config]
+            if config
+            else conf_provider.find_default_search_locations(CONFIG_FILE_NAME)
+        ),
+        True,
+    )
     conf: TuOptions = cast(
-        TuOptions, conf_provider.merge_cli_model(ctx, config_base, kwargs, TuOptions))
+        TuOptions, conf_provider.merge_cli_model(ctx, config_base, kwargs, TuOptions)
+    )
 
     run_wrap_for_config(conf)
 

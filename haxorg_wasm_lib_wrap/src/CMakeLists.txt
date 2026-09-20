@@ -21,9 +21,9 @@ if(${ORG_BUILD_EMCC})
             haxorg
     )
 
-    set_common_files(haxorg_wasm)
-    set_target_output(haxorg_wasm)
-    set_target_flags(haxorg_wasm)
+    haxorg_set_common_files(haxorg_wasm)
+    haxorg_set_target_output(haxorg_wasm)
+    haxorg_set_target_flags(haxorg_wasm)
 
     set_target_properties(
         haxorg_wasm

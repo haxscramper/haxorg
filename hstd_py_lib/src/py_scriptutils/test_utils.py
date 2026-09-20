@@ -1,8 +1,7 @@
 from typing import Any
 
 
-class HasAnyAttr():
-
+class HasAnyAttr:
     def __getattribute__(self, name: str) -> "HasAnyAttr":
         return HasAnyAttr()
 

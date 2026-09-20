@@ -5,9 +5,9 @@ This module is the build backend specified in pyproject.toml. It delegates to ei
 scikit-build-core (for full C++ builds) or setuptools (for Python-only/source installs).
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-import os
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 
 _CUSTOM_CFG_KEYS = {"HAXORG_PY_SOURCE_DISTRIBUTION"}
 
@@ -48,14 +48,17 @@ class HaxorgBuildConfig:
     HAXORG_PY_SOURCE_DISTRIBUTION == True  -> setuptools (no C++ build)
     HAXORG_PY_SOURCE_DISTRIBUTION == False -> scikit-build-core (CMake build)
     """
+
     HAXORG_PY_SOURCE_DISTRIBUTION: bool = False
 
     @classmethod
     def from_config_settings(cls, config_settings: Optional[Mapping[str, Any]]):
-        return cls(HAXORG_PY_SOURCE_DISTRIBUTION=_as_bool(
-            _cfg_get(config_settings, "HAXORG_PY_SOURCE_DISTRIBUTION", None),
-            False,
-        ))
+        return cls(
+            HAXORG_PY_SOURCE_DISTRIBUTION=_as_bool(
+                _cfg_get(config_settings, "HAXORG_PY_SOURCE_DISTRIBUTION", None),
+                False,
+            )
+        )
 
 
 def _binary_build_requires() -> list[str]:
@@ -95,9 +98,11 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     downstream = _filter_for_downstream(config_settings)
     if cfg.HAXORG_PY_SOURCE_DISTRIBUTION:
         import setuptools.build_meta as st
+
         return st.build_wheel(wheel_directory, downstream, metadata_directory)
     else:
         import scikit_build_core.build as sk
+
         return sk.build_wheel(wheel_directory, downstream, metadata_directory)
 
 
@@ -106,9 +111,11 @@ def build_editable(wheel_directory, config_settings=None, metadata_directory=Non
     downstream = _filter_for_downstream(config_settings)
     if cfg.HAXORG_PY_SOURCE_DISTRIBUTION:
         import setuptools.build_meta as st
+
         return st.build_editable(wheel_directory, downstream, metadata_directory)
     else:
         import scikit_build_core.build as sk
+
         return sk.build_editable(wheel_directory, downstream, metadata_directory)
 
 
@@ -117,9 +124,11 @@ def build_sdist(sdist_directory, config_settings=None):
     downstream = _filter_for_downstream(config_settings)
     if cfg.HAXORG_PY_SOURCE_DISTRIBUTION:
         import setuptools.build_meta as st
+
         return st.build_sdist(sdist_directory, downstream)
     else:
         import scikit_build_core.build as sk
+
         return sk.build_sdist(sdist_directory, downstream)
 
 
@@ -128,9 +137,11 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     downstream = _filter_for_downstream(config_settings)
     if cfg.HAXORG_PY_SOURCE_DISTRIBUTION:
         import setuptools.build_meta as st
+
         return st.prepare_metadata_for_build_wheel(metadata_directory, downstream)
     else:
         import scikit_build_core.build as sk
+
         return sk.prepare_metadata_for_build_wheel(metadata_directory, downstream)
 
 
@@ -139,6 +150,7 @@ def prepare_metadata_for_build_editable(metadata_directory, config_settings=None
     downstream = _filter_for_downstream(config_settings)
     if cfg.HAXORG_PY_SOURCE_DISTRIBUTION:
         import setuptools.build_meta as st
+
         return st.prepare_metadata_for_build_editable(metadata_directory, downstream)
     else:
         import scikit_build_core.build as sk

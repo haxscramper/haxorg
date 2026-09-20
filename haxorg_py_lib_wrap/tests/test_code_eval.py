@@ -1,19 +1,21 @@
 from pathlib import Path
 
+import py_haxorg.pyhaxorg_wrap as org
+import pytest
 from beartype.typing import List
 from py_haxorg.babel import evalCode
-import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
-import pytest
 
 CAT = __name__
 
 
 def test_trivial_code_eval() -> None:
     parse = org.ParseContext()
-    node = parse.parseString("""#+begin_src test :results value raw
+    node = parse.parseString(
+        """#+begin_src test :results value raw
 content
-#+end_src""", "<test>")
+#+end_src""",
+        "<test>",
+    )
 
     conf = org.PyCodeEvalParameters()
     buf: List[org.OrgCodeEvalInput] = []
@@ -62,6 +64,8 @@ Bob --> Alice: Authentication Response
 Alice -> Bob: Another authentication Request
 Alice <-- Bob: Another authentication Response
 @enduml
-#+end_src""", "<test>")
+#+end_src""",
+        "<test>",
+    )
 
     evaluated = evalCode(node, Path("/tmp/babel_trivial_eval.log"))

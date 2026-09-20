@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
-from typing import NewType, TYPE_CHECKING
 
+import py_haxorg.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import List, Optional
-from py_codegen.codegen_ir import QualType
-import py_haxorg.astbuilder.astbuilder_base as base
 from py_haxorg.layout.wrap import BlockId, TextLayout
+
+from py_codegen.codegen_ir import QualType
 
 
 @beartype
@@ -73,7 +73,6 @@ class EnumParams:
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
-
     def __init__(self, in_b: TextLayout) -> None:
         self.b = in_b
 
@@ -82,12 +81,14 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Type(self, p: QualType) -> BlockId:
         if p.Params:
-            return self.b.line([
-                self.string(p.Name),
-                self.string("["),
-                self.csv([self.Type(T) for T in p.Params]),
-                self.string("]")
-            ])
+            return self.b.line(
+                [
+                    self.string(p.Name),
+                    self.string("["),
+                    self.csv([self.Type(T) for T in p.Params]),
+                    self.string("]"),
+                ]
+            )
 
         else:
             return self.string(p.Name)
@@ -105,12 +106,18 @@ class ASTBuilder(base.AstbuilderBase):
             b.text("def "),
             b.text(p.Name),
             self.pars(
-                self.csv(([b.text("self")] if withSelf else []) +
-                         [self.Arg(A) for A in p.Args])),
-            *([
-                b.text(" -> "),
-                self.Type(p.ResultTy),
-            ] if p.ResultTy else []),
+                self.csv(
+                    ([b.text("self")] if withSelf else []) + [self.Arg(A) for A in p.Args]
+                )
+            ),
+            *(
+                [
+                    b.text(" -> "),
+                    self.Type(p.ResultTy),
+                ]
+                if p.ResultTy
+                else []
+            ),
             b.text(":"),
         ]
 
@@ -139,10 +146,12 @@ class ASTBuilder(base.AstbuilderBase):
             result = b.stack([b.line(def_head), b.indent(4, b.stack(p.Func.Body))])
 
         if p.Func.Decorators:
-            return b.stack([
-                *[self.Decorator(D) for D in p.Func.Decorators],
-                result,
-            ])
+            return b.stack(
+                [
+                    *[self.Decorator(D) for D in p.Func.Decorators],
+                    result,
+                ]
+            )
 
         else:
             return result
@@ -152,11 +161,12 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Enum(self, p: EnumParams) -> BlockId:
         b = self.b
-        return b.stack([
-            b.line([b.text("class "), b.text(p.Name),
-                    b.text("(Enum):")]),
-            b.indent(4, b.stack([b.text(f"{F.Name} = {F.Value}") for F in p.Fields]))
-        ])
+        return b.stack(
+            [
+                b.line([b.text("class "), b.text(p.Name), b.text("(Enum):")]),
+                b.indent(4, b.stack([b.text(f"{F.Name} = {F.Value}") for F in p.Fields])),
+            ]
+        )
 
     def Class(self, p: ClassParams) -> BlockId:
         b = self.b
@@ -167,13 +177,20 @@ class ASTBuilder(base.AstbuilderBase):
         if len(methods) == 0 and len(fields) == 0:
             methods = [b.text("pass")]
 
-        return self.b.stack([
-            b.line([
-                b.text("class "),
-                b.text(p.Name),
-                *([self.pars(self.csv([self.Type(B)
-                                       for B in p.Bases]))] if p.Bases else []),
-                b.text(":"),
-            ]),
-            b.indent(4, b.stack(methods + fields))
-        ])
+        return self.b.stack(
+            [
+                b.line(
+                    [
+                        b.text("class "),
+                        b.text(p.Name),
+                        *(
+                            [self.pars(self.csv([self.Type(B) for B in p.Bases]))]
+                            if p.Bases
+                            else []
+                        ),
+                        b.text(":"),
+                    ]
+                ),
+                b.indent(4, b.stack(methods + fields)),
+            ]
+        )

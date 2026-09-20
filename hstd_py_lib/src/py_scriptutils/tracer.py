@@ -1,12 +1,12 @@
-from contextlib import contextmanager
-from dataclasses import dataclass
-from enum import Enum
 import inspect
 import json
 import os
-from pathlib import Path
 import threading
 import time
+from contextlib import contextmanager
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Dict, Iterator, List, Optional
@@ -36,7 +36,6 @@ class TraceEvent:
 
 @beartype
 class TraceCollector:
-
     def __init__(self) -> None:
         self.traceEvents: List[TraceEvent] = []
         self.metadata: Dict[str, Any] = {}
@@ -71,7 +70,8 @@ class TraceCollector:
                 dur=0,
                 ts=self.get_time(),
                 cat="metadata",
-            ))
+            )
+        )
 
     def add_process_name_event(self, name: str) -> TraceEvent:
         return self.add_metadata_event("process_name", dict(name=name))
@@ -88,10 +88,9 @@ class TraceCollector:
     def get_time(self) -> int:
         return int(time.time() * 1e6)
 
-    def push_complete_event(self,
-                            name: str,
-                            category: str,
-                            args: Optional[Dict[str, Any]] = None) -> TraceEvent:
+    def push_complete_event(
+        self, name: str, category: str, args: Optional[Dict[str, Any]] = None
+    ) -> TraceEvent:
         pid = os.getpid()
         tid = threading.get_ident()
 
@@ -155,7 +154,7 @@ class TraceCollector:
     def export_to_json(self, filename: Path) -> None:
         data = {
             "traceEvents": [event.__dict__ for event in self.traceEvents],
-            "otherData": self.metadata
+            "otherData": self.metadata,
         }
 
         if not filename.parent.exists():
@@ -194,12 +193,12 @@ def GlobCompleteEvent(
     info = inspect.getframeinfo(frame)
 
     with getGlobalTraceCollector().complete_event(
-            name,
-            category,
-            args,
-            file=file or info.filename,
-            line=line or info.lineno,
-            function=function or info.function,
+        name,
+        category,
+        args,
+        file=file or info.filename,
+        line=line or info.lineno,
+        function=function or info.function,
     ) as new_event:
         yield new_event
 

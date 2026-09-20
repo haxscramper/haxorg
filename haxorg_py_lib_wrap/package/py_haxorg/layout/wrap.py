@@ -1,16 +1,15 @@
-import sys
 from typing import TYPE_CHECKING
 
 from beartype import beartype
 from beartype.typing import Iterable, NewType, Union
 
 if TYPE_CHECKING:
-    from py_haxorg.layout.types import BlockId, TextOptions
     import py_haxorg.layout.types as lyt
+    from py_haxorg.layout.types import BlockId
 
 else:
-    from py_textlayout_cpp import TextOptions
     import py_textlayout_cpp as lyt
+
     BlockId = NewType("BlockId", int)
 
 
@@ -47,4 +46,4 @@ class TextLayout(lyt.TextLayout):
 
     def wrap_quote(self, text: str) -> BlockId:
         "Wrap text in quotes and return block"
-        return self.text(f"\"{text}\"")
+        return self.text(f'"{text}"')

@@ -1,18 +1,14 @@
-from collections import defaultdict
+import inspect
 from dataclasses import dataclass, field, replace
 from datetime import timedelta
 from functools import wraps
-from graphlib import TopologicalSorter
-import inspect
 from pathlib import Path
 
-from beartype import beartype
-from beartype.typing import Any, Callable, Dict, get_type_hints, List, Optional, Set
-import docker
-import docker.models.containers
 import igraph as ig
 import plumbum
-from py_repository.repo_tasks.config import get_tmpdir, HaxorgConfig
+from beartype import beartype
+from beartype.typing import Any, Callable, Dict, List, Optional, Set, get_type_hints
+from py_repository.repo_tasks.config import HaxorgConfig, get_tmpdir
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import ExceptionContextNote, log
@@ -22,7 +18,7 @@ CAT = __name__
 
 @beartype
 @dataclass
-class TaskMetadata():
+class TaskMetadata:
     dependencies: List[Callable]
     task_id: str
     signature: inspect.Signature
@@ -64,7 +60,8 @@ def haxorg_task(
             for dep in dependencies:
                 if not hasattr(dep, "_haxorg_metadata"):
                     raise ValueError(
-                        f"Dependency {dep.__name__} must be decorated with @haxorg_task")
+                        f"Dependency {dep.__name__} must be decorated with @haxorg_task"
+                    )
 
         @wraps(func)
         def wrapper(**context: Any) -> None:
@@ -91,7 +88,8 @@ def haxorg_task(
                 else:
                     raise ValueError(
                         f"Required parameter '{param_name}' not found in context for task {func.__name__}. "
-                        f"Available parameters: {list(context.keys())}")
+                        f"Available parameters: {list(context.keys())}"
+                    )
 
                 kwargs[param_name] = value
 
@@ -127,13 +125,13 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
-    "retry_delay": timedelta(minutes=5)
+    "retry_delay": timedelta(minutes=5),
 }
 
 
 @beartype
 @dataclass
-class PythonOperator():
+class PythonOperator:
     task_id: str
     python_callable: Callable
     params: Optional[Dict[Any, Any]] = field(default_factory=dict)
@@ -186,7 +184,8 @@ def ui_notify(message: str, is_ok: bool = True) -> None:
     try:
         cmd = plumbum.local["notify-send"]
         cmd.run(
-            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message])
+            [message] if is_ok else ["--urgency=critical", "--expire-time=1000", message]
+        )
 
     except Exception:
         if is_ok:
@@ -198,7 +197,7 @@ def ui_notify(message: str, is_ok: bool = True) -> None:
 
 @beartype
 @dataclass
-class TaskContext():
+class TaskContext:
     graph: TaskGraph
     stamp_root: Path
     config: HaxorgConfig
@@ -211,6 +210,7 @@ class TaskContext():
 
     def get_config_hash(self) -> str:
         import hashlib
+
         return hashlib.md5(self.config.model_dump_json().encode()).hexdigest()
 
     def track_task_completion(self, task: str) -> None:
@@ -238,12 +238,15 @@ class TaskContext():
         Get unique stderr, stdout pair of files for the command to write output to.
         """
         import hashlib
+
         digest = hashlib.md5(f"{cmd} {args}".encode()).hexdigest()[:8]
         result = (
             get_tmpdir("run_command").joinpath(
-                f"{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"),
+                f"{self.get_task_debug_suffix(cmd)}_{digest}_stderr.log"
+            ),
             get_tmpdir("run_command").joinpath(
-                f"{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"),
+                f"{self.get_task_debug_suffix(cmd)}_{digest}_stdout.log"
+            ),
         )
 
         result[0].parent.mkdir(parents=True, exist_ok=True)
@@ -260,8 +263,9 @@ args: {args}
         return result
 
     def run(self, target_name: str | Callable, *args: Any, **kwargs: Any) -> None:
-        target_name = target_name if isinstance(target_name,
-                                                str) else target_name.__name__
+        target_name = (
+            target_name if isinstance(target_name, str) else target_name.__name__
+        )
 
         log(CAT).info(f"Starting with target {target_name}")
         target_id = self.graph.graph.vs.find(name=target_name).index
@@ -304,7 +308,8 @@ args: {args}
                     else:
                         log(CAT).info(f"Skipping [red]{task_id}[/red], no run needed")
                         log(CAT).info(
-                            operation.explain(task_id, self.stamp_root, *args, **kwargs))
+                            operation.explain(task_id, self.stamp_root, *args, **kwargs)
+                        )
 
             else:
                 log(CAT).info(f"Running [yellow]{task_id}[/yellow]")

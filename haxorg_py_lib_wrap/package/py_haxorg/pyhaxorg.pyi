@@ -1,21 +1,20 @@
-from typing import *
 from enum import Enum
-from datetime import datetime, date, time
+from typing import *
 
 T = TypeVar("T")
 
-class ImmBox[T]():
+class ImmBox[T]:
     def get(self) -> T: ...
 
-class ImmFlexVec[T]():
+class ImmFlexVec[T]:
     def at(self, idx: int) -> T: ...
     def __len__(self) -> int: ...
 
-class ImmVec[T]():
+class ImmVec[T]:
     def at(self, idx: int) -> T: ...
     def __len__(self) -> int: ...
 
-class IntSet[T]():
+class IntSet[T]:
     def __len__(self) -> int: ...
 
 class ImmAdapterTBase[T](ImmAdapter):
@@ -607,7 +606,16 @@ class BackwardsIndex:
     value: int
 
 class UserTimeBreakdown:
-    def __init__(self, year: Optional[int], month: Optional[int], day: Optional[int], hour: Optional[int], minute: Optional[int], second: Optional[int], zone: Optional[str]) -> None: ...
+    def __init__(
+        self,
+        year: Optional[int],
+        month: Optional[int],
+        day: Optional[int],
+        hour: Optional[int],
+        minute: Optional[int],
+        second: Optional[int],
+        zone: Optional[str],
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     year: Optional[int]
@@ -641,7 +649,9 @@ class ParseSourceManager:
     def addSource(self, path: str, content: str) -> ParseSourceFileId: ...
 
 class ParseSourceLoc:
-    def __init__(self, line: int, column: int, file_id: ParseSourceFileId, pos: int) -> None: ...
+    def __init__(
+        self, line: int, column: int, file_id: ParseSourceFileId, pos: int
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     line: int
@@ -681,7 +691,14 @@ class Org:
     subnodes: list[SemId]
 
 class OperationsTracer:
-    def __init__(self, traceToFile: bool, traceToBuffer: bool, traceStructured: bool, traceColored: bool, traceBuffer: str) -> None: ...
+    def __init__(
+        self,
+        traceToFile: bool,
+        traceToBuffer: bool,
+        traceStructured: bool,
+        traceColored: bool,
+        traceBuffer: str,
+    ) -> None: ...
     def setTraceFileStr(self, outfile: str, overwrite: bool) -> None: ...
     def sendMessage(self, value: str, function: str, line: int, file: str) -> None: ...
     def __repr__(self) -> str: ...
@@ -709,7 +726,13 @@ class ParseOrgParseFragment:
     text: str
 
 class OrgParseParameters:
-    def __init__(self, baseTokenTracePath: Optional[str], tokenTracePath: Optional[str], parseTracePath: Optional[str], semTracePath: Optional[str]) -> None: ...
+    def __init__(
+        self,
+        baseTokenTracePath: Optional[str],
+        tokenTracePath: Optional[str],
+        parseTracePath: Optional[str],
+        semTracePath: Optional[str],
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     baseTokenTracePath: Optional[str]
@@ -729,11 +752,19 @@ class ParseContext:
     def parseFileOpts(self, file: str, opts: OrgParseParameters) -> SemId: ...
     def parseFile(self, file: str) -> SemId: ...
     def parseString(self, text: str, file_name: str) -> SemId: ...
-    def parseStringOpts(self, text: str, file_name: str, opts: OrgParseParameters) -> SemId: ...
+    def parseStringOpts(
+        self, text: str, file_name: str, opts: OrgParseParameters
+    ) -> SemId: ...
     def parseDirectory(self, path: str) -> Optional[SemId]: ...
-    def parseDirectoryOpts(self, path: str, opts: OrgDirectoryParseParameters) -> Optional[SemId]: ...
-    def parseFileWithIncludes(self, file: str, opts: OrgDirectoryParseParameters) -> SemId: ...
-    def collectDiagnostics(self, tree: SemId, cache: ReportSourceCache) -> list[Report]: ...
+    def parseDirectoryOpts(
+        self, path: str, opts: OrgDirectoryParseParameters
+    ) -> Optional[SemId]: ...
+    def parseFileWithIncludes(
+        self, file: str, opts: OrgDirectoryParseParameters
+    ) -> SemId: ...
+    def collectDiagnostics(
+        self, tree: SemId, cache: ReportSourceCache
+    ) -> list[Report]: ...
     def collectErrorNodes(self, tree: SemId) -> list[SemId]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -798,7 +829,13 @@ class ImmAstVersion:
     def __getattr__(self, name: str) -> object: ...
 
 class ImmAdapterTreeReprConf:
-    def __init__(self, maxDepth: int, withAuxFields: bool, withReflFields: bool, withFieldSubset: HstdSet[tuple[OrgSemKind, ImmReflFieldId]]) -> None: ...
+    def __init__(
+        self,
+        maxDepth: int,
+        withAuxFields: bool,
+        withReflFields: bool,
+        withFieldSubset: HstdSet[tuple[OrgSemKind, ImmReflFieldId]],
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     maxDepth: int
@@ -837,7 +874,14 @@ class ImmAdapterVirtualBase:
     def __init__(self) -> None: ...
 
 class OrgYamlExportOpts:
-    def __init__(self, skipNullFields: bool, skipFalseFields: bool, skipZeroFields: bool, skipLocation: bool, skipId: bool) -> None: ...
+    def __init__(
+        self,
+        skipNullFields: bool,
+        skipFalseFields: bool,
+        skipZeroFields: bool,
+        skipLocation: bool,
+        skipId: bool,
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     skipNullFields: bool
@@ -847,7 +891,16 @@ class OrgYamlExportOpts:
     skipId: bool
 
 class OrgTreeExportOpts:
-    def __init__(self, withLineCol: bool, withOriginalId: bool, withSubnodeIdx: bool, skipEmptyFields: bool, startLevel: int, withColor: bool, maxDepth: int) -> None: ...
+    def __init__(
+        self,
+        withLineCol: bool,
+        withOriginalId: bool,
+        withSubnodeIdx: bool,
+        skipEmptyFields: bool,
+        startLevel: int,
+        withColor: bool,
+        maxDepth: int,
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     withLineCol: bool
@@ -887,7 +940,9 @@ class AstTrackingGroupSingle:
     node: SemId
 
 class AstTrackingGroupTrackedHashtag:
-    def __init__(self, tag: SemId, targets: Dict[HashTagFlat, AstTrackingPath]) -> None: ...
+    def __init__(
+        self, tag: SemId, targets: Dict[HashTagFlat, AstTrackingPath]
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     tag: SemId
@@ -911,7 +966,15 @@ class AstTrackingGroup:
     def __getattr__(self, name: str) -> object: ...
 
 class AstTrackingMap:
-    def __init__(self, footnotes: Dict[str, AstTrackingAlternatives], subtrees: Dict[str, AstTrackingAlternatives], names: Dict[str, AstTrackingAlternatives], anchorTargets: Dict[str, AstTrackingAlternatives], radioTargets: Dict[str, AstTrackingAlternatives], hashtagDefinitions: Dict[HashTagFlat, AstTrackingAlternatives]) -> None: ...
+    def __init__(
+        self,
+        footnotes: Dict[str, AstTrackingAlternatives],
+        subtrees: Dict[str, AstTrackingAlternatives],
+        names: Dict[str, AstTrackingAlternatives],
+        anchorTargets: Dict[str, AstTrackingAlternatives],
+        radioTargets: Dict[str, AstTrackingAlternatives],
+        hashtagDefinitions: Dict[HashTagFlat, AstTrackingAlternatives],
+    ) -> None: ...
     def getIdPath(self, id: str) -> Optional[AstTrackingAlternatives]: ...
     def getNamePath(self, id: str) -> Optional[AstTrackingAlternatives]: ...
     def getAnchorTarget(self, id: str) -> Optional[AstTrackingAlternatives]: ...
@@ -948,7 +1011,9 @@ class SequenceAnnotationTag:
     segmentKinds: list[int]
 
 class SequenceAnnotation:
-    def __init__(self, first: int, last: int, annotations: list[SequenceAnnotationTag]) -> None: ...
+    def __init__(
+        self, first: int, last: int, annotations: list[SequenceAnnotationTag]
+    ) -> None: ...
     def isAnnotatedWith(self, groupKind: int, segmentKind: int) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1000,6 +1065,7 @@ class ExporterPython:
 ImmIdIdType = U64
 ImmIdNodeIdxT = U32
 ImmTreeAccessPathStore = ImmFlexVector[ImmSubnodeAccessStep]
+
 class LispCodeCall:
     def __init__(self, name: str, args: list[LispCode]) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -1072,7 +1138,19 @@ class LispCodeReal:
     def __getattr__(self, name: str) -> object: ...
     value: float
 
-LispCodeData = StdVariant[LispCodeCall, LispCodeQuoted, LispCodeList, LispCodeVector, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal]
+LispCodeData = StdVariant[
+    LispCodeCall,
+    LispCodeQuoted,
+    LispCodeList,
+    LispCodeVector,
+    LispCodeKeyValue,
+    LispCodeNumber,
+    LispCodeText,
+    LispCodeIdent,
+    LispCodeBoolean,
+    LispCodeReal,
+]
+
 class LispCodeKind(Enum):
     Call = 1
     Quoted = 2
@@ -1127,6 +1205,7 @@ class TimeValueDynamicTime:
     time: LispCode
 
 TimeValueData = StdVariant[TimeValueFixedTime, TimeValueDynamicTime]
+
 class TimeValueKind(Enum):
     FixedTime = 1
     DynamicTime = 2
@@ -1157,7 +1236,10 @@ class TblfmExprAxisRefPositionName:
     def __getattr__(self, name: str) -> object: ...
     name: str
 
-TblfmExprAxisRefPositionData = StdVariant[TblfmExprAxisRefPositionIndex, TblfmExprAxisRefPositionName]
+TblfmExprAxisRefPositionData = StdVariant[
+    TblfmExprAxisRefPositionIndex, TblfmExprAxisRefPositionName
+]
+
 class TblfmExprAxisRefPositionKind(Enum):
     Index = 1
     Name = 2
@@ -1174,7 +1256,9 @@ class TblfmExprAxisRefPosition:
     def __getattr__(self, name: str) -> object: ...
 
 class TblfmExprAxisRef:
-    def __init__(self, col: TblfmExprAxisRefPosition, row: Optional[TblfmExprAxisRefPosition]) -> None: ...
+    def __init__(
+        self, col: TblfmExprAxisRefPosition, row: Optional[TblfmExprAxisRefPosition]
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1203,7 +1287,9 @@ class TblfmExprFloatLiteral:
     value: float
 
 class TblfmExprRangeRef:
-    def __init__(self, first: Optional[TblfmExprAxisRef], last: Optional[TblfmExprAxisRef]) -> None: ...
+    def __init__(
+        self, first: Optional[TblfmExprAxisRef], last: Optional[TblfmExprAxisRef]
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1225,7 +1311,16 @@ class TblfmExprElisp:
     def __getattr__(self, name: str) -> object: ...
     value: str
 
-TblfmExprData = StdVariant[TblfmExprAxisRef, TblfmExprAxisName, TblfmExprIntLiteral, TblfmExprFloatLiteral, TblfmExprRangeRef, TblfmExprCall, TblfmExprElisp]
+TblfmExprData = StdVariant[
+    TblfmExprAxisRef,
+    TblfmExprAxisName,
+    TblfmExprIntLiteral,
+    TblfmExprFloatLiteral,
+    TblfmExprRangeRef,
+    TblfmExprCall,
+    TblfmExprElisp,
+]
+
 class TblfmExprKind(Enum):
     AxisRef = 1
     AxisName = 2
@@ -1274,7 +1369,12 @@ class TblfmAssignFlag(Enum):
     CellQuote = 15
 
 class TblfmAssign:
-    def __init__(self, target: TblfmExprAxisRef, expr: list[TblfmExpr], flags: list[TblfmAssignFlag]) -> None: ...
+    def __init__(
+        self,
+        target: TblfmExprAxisRef,
+        expr: list[TblfmExpr],
+        flags: list[TblfmAssignFlag],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1319,14 +1419,23 @@ class AttrValueLispValue:
     def __getattr__(self, name: str) -> object: ...
     code: LispCode
 
-AttrValueDataVariant = StdVariant[AttrValueTextValue, AttrValueFileReference, AttrValueLispValue]
+AttrValueDataVariant = StdVariant[
+    AttrValueTextValue, AttrValueFileReference, AttrValueLispValue
+]
+
 class AttrValueKind(Enum):
     TextValue = 1
     FileReference = 2
     LispValue = 3
 
 class AttrValue:
-    def __init__(self, name: Optional[str], varname: Optional[str], span: list[AttrValueDimensionSpan], isQuoted: bool) -> None: ...
+    def __init__(
+        self,
+        name: Optional[str],
+        varname: Optional[str],
+        span: list[AttrValueDimensionSpan],
+        isQuoted: bool,
+    ) -> None: ...
     def getBool(self) -> Optional[bool]: ...
     def getInt(self) -> Optional[int]: ...
     def getString(self) -> str: ...
@@ -1360,7 +1469,13 @@ class TodoKeywordTransition(Enum):
     Timestamp = 3
 
 class TodoKeyword:
-    def __init__(self, name: str, shortcut: Optional[str], onEnter: TodoKeywordTransition, onLeave: TodoKeywordTransition) -> None: ...
+    def __init__(
+        self,
+        name: str,
+        shortcut: Optional[str],
+        onEnter: TodoKeywordTransition,
+        onLeave: TodoKeywordTransition,
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1458,7 +1573,19 @@ class LinkTargetAttachment:
     def __getattr__(self, name: str) -> object: ...
     file: str
 
-LinkTargetData = StdVariant[LinkTargetRaw, LinkTargetId, LinkTargetCustomId, LinkTargetSubtreeTitle, LinkTargetPerson, LinkTargetUserProtocol, LinkTargetInternal, LinkTargetFootnote, LinkTargetFile, LinkTargetAttachment]
+LinkTargetData = StdVariant[
+    LinkTargetRaw,
+    LinkTargetId,
+    LinkTargetCustomId,
+    LinkTargetSubtreeTitle,
+    LinkTargetPerson,
+    LinkTargetUserProtocol,
+    LinkTargetInternal,
+    LinkTargetFootnote,
+    LinkTargetFile,
+    LinkTargetAttachment,
+]
+
 class LinkTargetKind(Enum):
     Raw = 1
     Id = 2
@@ -1504,7 +1631,13 @@ class SubtreeLogHeadPriorityAction(Enum):
     Changed = 3
 
 class SubtreeLogHeadPriority:
-    def __init__(self, oldPriority: Optional[str], newPriority: Optional[str], on: UserTime, action: SubtreeLogHeadPriorityAction) -> None: ...
+    def __init__(
+        self,
+        oldPriority: Optional[str],
+        newPriority: Optional[str],
+        on: UserTime,
+        action: SubtreeLogHeadPriorityAction,
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1578,7 +1711,18 @@ class SubtreeLogHeadUnknown:
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
 
-SubtreeLogHeadLogEntry = StdVariant[SubtreeLogHeadPriority, SubtreeLogHeadNote, SubtreeLogHeadRefile, SubtreeLogHeadClock, SubtreeLogHeadState, SubtreeLogHeadDeadline, SubtreeLogHeadSchedule, SubtreeLogHeadTag, SubtreeLogHeadUnknown]
+SubtreeLogHeadLogEntry = StdVariant[
+    SubtreeLogHeadPriority,
+    SubtreeLogHeadNote,
+    SubtreeLogHeadRefile,
+    SubtreeLogHeadClock,
+    SubtreeLogHeadState,
+    SubtreeLogHeadDeadline,
+    SubtreeLogHeadSchedule,
+    SubtreeLogHeadTag,
+    SubtreeLogHeadUnknown,
+]
+
 class SubtreeLogHeadKind(Enum):
     Priority = 1
     Note = 2
@@ -1689,7 +1833,17 @@ class OrgCodeEvalInputResultHandling(Enum):
     Prepend = 6
 
 class OrgCodeEvalInput:
-    def __init__(self, blockAttrs: AttrGroup, tangledCode: str, exportType: Optional[str], resultType: OrgCodeEvalInputResultType, resultFormat: OrgCodeEvalInputResultFormat, resultHandling: OrgCodeEvalInputResultHandling, language: str, argList: list[OrgCodeEvalInputVar]) -> None: ...
+    def __init__(
+        self,
+        blockAttrs: AttrGroup,
+        tangledCode: str,
+        exportType: Optional[str],
+        resultType: OrgCodeEvalInputResultType,
+        resultFormat: OrgCodeEvalInputResultFormat,
+        resultHandling: OrgCodeEvalInputResultHandling,
+        language: str,
+        argList: list[OrgCodeEvalInputVar],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def getVariable(self, name: str) -> Optional[OrgCodeEvalInputVar]: ...
     def __repr__(self) -> str: ...
@@ -1704,7 +1858,16 @@ class OrgCodeEvalInput:
     argList: list[OrgCodeEvalInputVar]
 
 class OrgCodeEvalOutput:
-    def __init__(self, stdoutText: str, stderrText: str, code: int, cmd: Optional[str], args: list[str], cwd: str, appliedHeaderArg: AttrGroup) -> None: ...
+    def __init__(
+        self,
+        stdoutText: str,
+        stderrText: str,
+        code: int,
+        cmd: Optional[str],
+        args: list[str],
+        cwd: str,
+        appliedHeaderArg: AttrGroup,
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1736,7 +1899,12 @@ class ColumnViewSummaryMathAggregateKind(Enum):
     LowHighEst = 5
 
 class ColumnViewSummaryMathAggregate:
-    def __init__(self, kind: ColumnViewSummaryMathAggregateKind, formatDigits: Optional[int], formatPrecision: Optional[int]) -> None: ...
+    def __init__(
+        self,
+        kind: ColumnViewSummaryMathAggregateKind,
+        formatDigits: Optional[int],
+        formatPrecision: Optional[int],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1744,7 +1912,10 @@ class ColumnViewSummaryMathAggregate:
     formatDigits: Optional[int]
     formatPrecision: Optional[int]
 
-ColumnViewSummaryData = StdVariant[ColumnViewSummaryCheckboxAggregate, ColumnViewSummaryMathAggregate]
+ColumnViewSummaryData = StdVariant[
+    ColumnViewSummaryCheckboxAggregate, ColumnViewSummaryMathAggregate
+]
+
 class ColumnViewSummaryKind(Enum):
     CheckboxAggregate = 1
     MathAggregate = 2
@@ -1761,7 +1932,13 @@ class ColumnViewSummary:
     def __getattr__(self, name: str) -> object: ...
 
 class ColumnViewColumn:
-    def __init__(self, summary: Optional[ColumnViewSummary], width: Optional[int], property: Optional[str], propertyTitle: Optional[str]) -> None: ...
+    def __init__(
+        self,
+        summary: Optional[ColumnViewSummary],
+        width: Optional[int],
+        property: Optional[str],
+        propertyTitle: Optional[str],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -1798,7 +1975,10 @@ class BlockCodeLinePartTangle:
     def __getattr__(self, name: str) -> object: ...
     target: str
 
-BlockCodeLinePartData = StdVariant[BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle]
+BlockCodeLinePartData = StdVariant[
+    BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle
+]
+
 class BlockCodeLinePartKind(Enum):
     Raw = 1
     Callout = 2
@@ -1867,13 +2047,50 @@ class DocumentExportConfigExportFixed:
     def __getattr__(self, name: str) -> object: ...
     exportLevels: int
 
-DocumentExportConfigTocExport = StdVariant[DocumentExportConfigDoExport, DocumentExportConfigExportFixed]
+DocumentExportConfigTocExport = StdVariant[
+    DocumentExportConfigDoExport, DocumentExportConfigExportFixed
+]
+
 class DocumentExportConfigTocExportKind(Enum):
     DoExport = 1
     ExportFixed = 2
 
 class DocumentExportConfig:
-    def __init__(self, inlinetasks: Optional[bool], footnotes: Optional[bool], clock: Optional[bool], author: Optional[bool], emphasis: Optional[bool], specialStrings: Optional[bool], propertyDrawers: Optional[bool], statisticsCookies: Optional[bool], todoText: Optional[bool], smartQuotes: Optional[bool], fixedWidth: Optional[bool], timestamps: Optional[bool], preserveBreaks: Optional[bool], subSuperscripts: Optional[bool], expandLinks: Optional[bool], creator: Optional[bool], drawers: Optional[bool], date: Optional[bool], entities: Optional[bool], email: Optional[bool], sectionNumbers: Optional[bool], planning: Optional[bool], priority: Optional[bool], latex: Optional[bool], timestamp: Optional[bool], title: Optional[bool], tables: Optional[bool], headlineLevels: Optional[int], brokenLinks: DocumentExportConfigBrokenLinks, tagExport: DocumentExportConfigTagExport, taskFiltering: DocumentExportConfigTaskFiltering, archivedTrees: DocumentExportConfigArchivedTrees) -> None: ...
+    def __init__(
+        self,
+        inlinetasks: Optional[bool],
+        footnotes: Optional[bool],
+        clock: Optional[bool],
+        author: Optional[bool],
+        emphasis: Optional[bool],
+        specialStrings: Optional[bool],
+        propertyDrawers: Optional[bool],
+        statisticsCookies: Optional[bool],
+        todoText: Optional[bool],
+        smartQuotes: Optional[bool],
+        fixedWidth: Optional[bool],
+        timestamps: Optional[bool],
+        preserveBreaks: Optional[bool],
+        subSuperscripts: Optional[bool],
+        expandLinks: Optional[bool],
+        creator: Optional[bool],
+        drawers: Optional[bool],
+        date: Optional[bool],
+        entities: Optional[bool],
+        email: Optional[bool],
+        sectionNumbers: Optional[bool],
+        planning: Optional[bool],
+        priority: Optional[bool],
+        latex: Optional[bool],
+        timestamp: Optional[bool],
+        title: Optional[bool],
+        tables: Optional[bool],
+        headlineLevels: Optional[int],
+        brokenLinks: DocumentExportConfigBrokenLinks,
+        tagExport: DocumentExportConfigTagExport,
+        taskFiltering: DocumentExportConfigTaskFiltering,
+        archivedTrees: DocumentExportConfigArchivedTrees,
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def isDoExport(self) -> bool: ...
     def getDoExport(self) -> DocumentExportConfigDoExport: ...
@@ -1925,7 +2142,9 @@ class SubtreePeriodKind(Enum):
     Repeated = 7
 
 class SubtreePeriod:
-    def __init__(self, kind: SubtreePeriodKind, from_: UserTime, to: Optional[UserTime]) -> None: ...
+    def __init__(
+        self, kind: SubtreePeriodKind, from_: UserTime, to: Optional[UserTime]
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2135,7 +2354,36 @@ class NamedPropertyCustomSubtreeFlags:
     name: str
     value: AttrGroup
 
-NamedPropertyData = StdVariant[NamedPropertyNonblocking, NamedPropertyArchiveTime, NamedPropertyArchiveFile, NamedPropertyArchiveOlpath, NamedPropertyArchiveTarget, NamedPropertyArchiveCategory, NamedPropertyArchiveTodo, NamedPropertyTrigger, NamedPropertyExportLatexClass, NamedPropertyCookieData, NamedPropertyExportLatexClassOptions, NamedPropertyExportLatexHeader, NamedPropertyExportLatexCompiler, NamedPropertyOrdered, NamedPropertyEffort, NamedPropertyVisibility, NamedPropertyExportOptions, NamedPropertyBlocker, NamedPropertyUnnumbered, NamedPropertyCreated, NamedPropertyRadioId, NamedPropertyHashtagDef, NamedPropertyCustomArgs, NamedPropertyCustomRaw, NamedPropertyCustomId, NamedPropertyCustomSubtreeJson, NamedPropertyCustomSubtreeFlags]
+NamedPropertyData = StdVariant[
+    NamedPropertyNonblocking,
+    NamedPropertyArchiveTime,
+    NamedPropertyArchiveFile,
+    NamedPropertyArchiveOlpath,
+    NamedPropertyArchiveTarget,
+    NamedPropertyArchiveCategory,
+    NamedPropertyArchiveTodo,
+    NamedPropertyTrigger,
+    NamedPropertyExportLatexClass,
+    NamedPropertyCookieData,
+    NamedPropertyExportLatexClassOptions,
+    NamedPropertyExportLatexHeader,
+    NamedPropertyExportLatexCompiler,
+    NamedPropertyOrdered,
+    NamedPropertyEffort,
+    NamedPropertyVisibility,
+    NamedPropertyExportOptions,
+    NamedPropertyBlocker,
+    NamedPropertyUnnumbered,
+    NamedPropertyCreated,
+    NamedPropertyRadioId,
+    NamedPropertyHashtagDef,
+    NamedPropertyCustomArgs,
+    NamedPropertyCustomRaw,
+    NamedPropertyCustomId,
+    NamedPropertyCustomSubtreeJson,
+    NamedPropertyCustomSubtreeFlags,
+]
+
 class NamedPropertyKind(Enum):
     Nonblocking = 1
     ArchiveTime = 2
@@ -2230,7 +2478,18 @@ class NamedProperty:
     def __getattr__(self, name: str) -> object: ...
 
 class OrgDiagnosticsParseTokenError:
-    def __init__(self, brief: str, detail: str, parserFunction: str, parserLine: int, tokenKind: OrgTokenKind, tokenText: str, loc: Optional[ParseSourceLoc], errName: str, errCode: str) -> None: ...
+    def __init__(
+        self,
+        brief: str,
+        detail: str,
+        parserFunction: str,
+        parserLine: int,
+        tokenKind: OrgTokenKind,
+        tokenText: str,
+        loc: Optional[ParseSourceLoc],
+        errName: str,
+        errCode: str,
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2245,7 +2504,16 @@ class OrgDiagnosticsParseTokenError:
     errCode: str
 
 class OrgDiagnosticsParseError:
-    def __init__(self, brief: str, detail: str, parserFunction: str, parserLine: int, errName: str, errCode: str, loc: Optional[ParseSourceLoc]) -> None: ...
+    def __init__(
+        self,
+        brief: str,
+        detail: str,
+        parserFunction: str,
+        parserLine: int,
+        errName: str,
+        errCode: str,
+        loc: Optional[ParseSourceLoc],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2267,7 +2535,17 @@ class OrgDiagnosticsIncludeError:
     workingFile: str
 
 class OrgDiagnosticsConvertError:
-    def __init__(self, brief: str, detail: str, convertFunction: str, convertLine: int, convertFile: str, errName: str, errCode: str, loc: Optional[ParseSourceLoc]) -> None: ...
+    def __init__(
+        self,
+        brief: str,
+        detail: str,
+        convertFunction: str,
+        convertLine: int,
+        convertFile: str,
+        errName: str,
+        errCode: str,
+        loc: Optional[ParseSourceLoc],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2281,7 +2559,14 @@ class OrgDiagnosticsConvertError:
     loc: Optional[ParseSourceLoc]
 
 class OrgDiagnosticsInternalError:
-    def __init__(self, message: str, function: str, line: int, file: str, loc: Optional[ParseSourceLoc]) -> None: ...
+    def __init__(
+        self,
+        message: str,
+        function: str,
+        line: int,
+        file: str,
+        loc: Optional[ParseSourceLoc],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -2291,7 +2576,14 @@ class OrgDiagnosticsInternalError:
     file: str
     loc: Optional[ParseSourceLoc]
 
-OrgDiagnosticsData = StdVariant[OrgDiagnosticsParseTokenError, OrgDiagnosticsParseError, OrgDiagnosticsIncludeError, OrgDiagnosticsConvertError, OrgDiagnosticsInternalError]
+OrgDiagnosticsData = StdVariant[
+    OrgDiagnosticsParseTokenError,
+    OrgDiagnosticsParseError,
+    OrgDiagnosticsIncludeError,
+    OrgDiagnosticsConvertError,
+    OrgDiagnosticsInternalError,
+]
+
 class OrgDiagnosticsKind(Enum):
     ParseTokenError = 1
     ParseError = 2
@@ -2645,7 +2937,9 @@ class TimeRepeatPeriod(Enum):
     Minute = 6
 
 class TimeRepeat:
-    def __init__(self, mode: TimeRepeatMode, period: TimeRepeatPeriod, count: int) -> None: ...
+    def __init__(
+        self, mode: TimeRepeatMode, period: TimeRepeatPeriod, count: int
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     mode: TimeRepeatMode
@@ -2653,7 +2947,9 @@ class TimeRepeat:
     count: int
 
 class TimeStatic:
-    def __init__(self, repeat: list[TimeRepeat], warn: Optional[TimeRepeat], time: UserTime) -> None: ...
+    def __init__(
+        self, repeat: list[TimeRepeat], warn: Optional[TimeRepeat], time: UserTime
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     repeat: list[TimeRepeat]
@@ -2667,6 +2963,7 @@ class TimeDynamic:
     expr: LispCode
 
 TimeTimeVariant = StdVariant[TimeStatic, TimeDynamic]
+
 class TimeTimeKind(Enum):
     Static = 1
     Dynamic = 2
@@ -2712,7 +3009,9 @@ class SymbolParam:
     value: str
 
 class Symbol(Org):
-    def __init__(self, name: str, parameters: list[SymbolParam], positional: list[SemId]) -> None: ...
+    def __init__(
+        self, name: str, parameters: list[SymbolParam], positional: list[SemId]
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     name: str
@@ -2748,13 +3047,34 @@ class SubtreeLog(Org):
     desc: Optional[SemId]
 
 class Subtree(Org):
-    def __init__(self, level: int, treeId: Optional[str], todo: Optional[str], completion: Optional[SubtreeCompletion], description: Optional[SemId], tags: list[SemId], title: SemId, logbook: list[SemId], properties: list[NamedProperty], closed: Optional[SemId], deadline: Optional[SemId], scheduled: Optional[SemId], isComment: bool, isArchived: bool, priority: Optional[str]) -> None: ...
+    def __init__(
+        self,
+        level: int,
+        treeId: Optional[str],
+        todo: Optional[str],
+        completion: Optional[SubtreeCompletion],
+        description: Optional[SemId],
+        tags: list[SemId],
+        title: SemId,
+        logbook: list[SemId],
+        properties: list[NamedProperty],
+        closed: Optional[SemId],
+        deadline: Optional[SemId],
+        scheduled: Optional[SemId],
+        isComment: bool,
+        isArchived: bool,
+        priority: Optional[str],
+    ) -> None: ...
     def getTimePeriods(self, kinds: IntSet[SubtreePeriodKind]) -> list[SubtreePeriod]: ...
     def getProperties(self, kind: str, subkind: Optional[str]) -> list[NamedProperty]: ...
-    def getProperty(self, kind: str, subkind: Optional[str]) -> Optional[NamedProperty]: ...
+    def getProperty(
+        self, kind: str, subkind: Optional[str]
+    ) -> Optional[NamedProperty]: ...
     def removeProperty(self, kind: str, subkind: Optional[str]) -> None: ...
     def setProperty(self, value: NamedProperty) -> None: ...
-    def setPropertyStrValue(self, value: str, kind: str, subkind: Optional[str]) -> None: ...
+    def setPropertyStrValue(
+        self, value: str, kind: str, subkind: Optional[str]
+    ) -> None: ...
     def getCleanTitle(self) -> str: ...
     def getTodoKeyword(self) -> Optional[str]: ...
     def __repr__(self) -> str: ...
@@ -2789,7 +3109,9 @@ class Call(Org):
     isCommand: bool
 
 class ListItem(Org):
-    def __init__(self, checkbox: CheckboxState, header: Optional[SemId], bullet: Optional[str]) -> None: ...
+    def __init__(
+        self, checkbox: CheckboxState, header: Optional[SemId], bullet: Optional[str]
+    ) -> None: ...
     def isDescriptionItem(self) -> bool: ...
     def getCleanHeader(self) -> Optional[str]: ...
     def __repr__(self) -> str: ...
@@ -2799,9 +3121,26 @@ class ListItem(Org):
     bullet: Optional[str]
 
 class DocumentOptions(Org):
-    def __init__(self, initialVisibility: InitialSubtreeVisibility, properties: list[NamedProperty], exportConfig: DocumentExportConfig, fixedWidthSections: Optional[bool], linkVisibility: Optional[LinkVisibility], blockVisibility: Optional[BlockVisibility], startupIndented: Optional[bool], category: Optional[str], setupfile: Optional[str], maxSubtreeLevelExport: Optional[int], columns: Optional[ColumnView], todoKeywords: list[TodoKeyword], doneKeywords: list[TodoKeyword]) -> None: ...
+    def __init__(
+        self,
+        initialVisibility: InitialSubtreeVisibility,
+        properties: list[NamedProperty],
+        exportConfig: DocumentExportConfig,
+        fixedWidthSections: Optional[bool],
+        linkVisibility: Optional[LinkVisibility],
+        blockVisibility: Optional[BlockVisibility],
+        startupIndented: Optional[bool],
+        category: Optional[str],
+        setupfile: Optional[str],
+        maxSubtreeLevelExport: Optional[int],
+        columns: Optional[ColumnView],
+        todoKeywords: list[TodoKeyword],
+        doneKeywords: list[TodoKeyword],
+    ) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> list[NamedProperty]: ...
-    def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[NamedProperty]: ...
+    def getProperty(
+        self, kind: str, subKind: Optional[str]
+    ) -> Optional[NamedProperty]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     initialVisibility: InitialSubtreeVisibility
@@ -2839,9 +3178,21 @@ class CriticMarkup(Org):
     kind: CriticMarkupKind
 
 class Document(Org):
-    def __init__(self, title: Optional[SemId], author: Optional[SemId], creator: Optional[SemId], filetags: list[SemId], email: Optional[SemId], language: list[str], options: SemId, exportFileName: Optional[str]) -> None: ...
+    def __init__(
+        self,
+        title: Optional[SemId],
+        author: Optional[SemId],
+        creator: Optional[SemId],
+        filetags: list[SemId],
+        email: Optional[SemId],
+        language: list[str],
+        options: SemId,
+        exportFileName: Optional[str],
+    ) -> None: ...
     def getProperties(self, kind: str, subKind: Optional[str]) -> list[NamedProperty]: ...
-    def getProperty(self, kind: str, subKind: Optional[str]) -> Optional[NamedProperty]: ...
+    def getProperty(
+        self, kind: str, subKind: Optional[str]
+    ) -> Optional[NamedProperty]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     title: Optional[SemId]
@@ -2854,7 +3205,15 @@ class Document(Org):
     exportFileName: Optional[str]
 
 class FileTarget(Org):
-    def __init__(self, path: str, line: Optional[int], searchTarget: Optional[str], restrictToHeadlines: bool, targetId: Optional[str], regexp: Optional[str]) -> None: ...
+    def __init__(
+        self,
+        path: str,
+        line: Optional[int],
+        searchTarget: Optional[str],
+        restrictToHeadlines: bool,
+        targetId: Optional[str],
+        regexp: Optional[str],
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     path: str
@@ -2890,6 +3249,7 @@ class FileSource:
     def __getattr__(self, name: str) -> object: ...
 
 FileData = StdVariant[FileDocument, FileAttachment, FileSource]
+
 class FileKind(Enum):
     Document = 1
     Attachment = 2
@@ -2952,7 +3312,13 @@ class CmdIncludeSrc(CmdIncludeIncludeBase):
     language: str
 
 class CmdIncludeOrgDocument(CmdIncludeIncludeBase):
-    def __init__(self, onlyContent: Optional[bool], subtreePath: Optional[SubtreePath], minLevel: Optional[int], customIdTarget: Optional[str]) -> None: ...
+    def __init__(
+        self,
+        onlyContent: Optional[bool],
+        subtreePath: Optional[SubtreePath],
+        minLevel: Optional[int],
+        customIdTarget: Optional[str],
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     onlyContent: Optional[bool]
@@ -2960,7 +3326,14 @@ class CmdIncludeOrgDocument(CmdIncludeIncludeBase):
     minLevel: Optional[int]
     customIdTarget: Optional[str]
 
-CmdIncludeData = StdVariant[CmdIncludeExample, CmdIncludeExport, CmdIncludeCustom, CmdIncludeSrc, CmdIncludeOrgDocument]
+CmdIncludeData = StdVariant[
+    CmdIncludeExample,
+    CmdIncludeExport,
+    CmdIncludeCustom,
+    CmdIncludeSrc,
+    CmdIncludeOrgDocument,
+]
+
 class CmdIncludeKind(Enum):
     Example = 1
     Export = 2
@@ -2969,7 +3342,9 @@ class CmdIncludeKind(Enum):
     OrgDocument = 5
 
 class CmdInclude(Org):
-    def __init__(self, path: str, firstLine: Optional[int], lastLine: Optional[int]) -> None: ...
+    def __init__(
+        self, path: str, firstLine: Optional[int], lastLine: Optional[int]
+    ) -> None: ...
     def isExample(self) -> bool: ...
     def getExample(self) -> CmdIncludeExample: ...
     def isExport(self) -> bool: ...
@@ -3258,8 +3633,11 @@ class ImmIdTCmdInclude(ImmId):
 
 ImmTimeRepeatMode = TimeRepeatMode
 ImmTimeRepeatPeriod = TimeRepeatPeriod
+
 class ImmTimeRepeat:
-    def __init__(self, mode: ImmTimeRepeatMode, period: ImmTimeRepeatPeriod, count: int) -> None: ...
+    def __init__(
+        self, mode: ImmTimeRepeatMode, period: ImmTimeRepeatPeriod, count: int
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -3268,7 +3646,12 @@ class ImmTimeRepeat:
     count: int
 
 class ImmTimeStatic:
-    def __init__(self, repeat: ImmVec[ImmTimeRepeat], warn: ImmBox[Optional[ImmTimeRepeat]], time: UserTime) -> None: ...
+    def __init__(
+        self,
+        repeat: ImmVec[ImmTimeRepeat],
+        warn: ImmBox[Optional[ImmTimeRepeat]],
+        time: UserTime,
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -3284,6 +3667,7 @@ class ImmTimeDynamic:
     expr: LispCode
 
 ImmTimeTimeVariant = StdVariant[ImmTimeStatic, ImmTimeDynamic]
+
 class ImmTimeTimeKind(Enum):
     Static = 1
     Dynamic = 2
@@ -3297,6 +3681,7 @@ class ImmSymbolParam:
     value: ImmBox[str]
 
 ImmCriticMarkupKind = CriticMarkupKind
+
 class ImmFileDocument:
     def __init__(self) -> None: ...
     def __eq__(self, other: object) -> bool: ...
@@ -3316,6 +3701,7 @@ class ImmFileSource:
     def __getattr__(self, name: str) -> object: ...
 
 ImmFileData = StdVariant[ImmFileDocument, ImmFileAttachment, ImmFileSource]
+
 class ImmFileKind(Enum):
     Document = 1
     Attachment = 2
@@ -3355,7 +3741,13 @@ class ImmCmdIncludeSrc(ImmCmdIncludeIncludeBase):
     language: ImmBox[str]
 
 class ImmCmdIncludeOrgDocument(ImmCmdIncludeIncludeBase):
-    def __init__(self, onlyContent: ImmBox[Optional[bool]], subtreePath: ImmBox[Optional[SubtreePath]], minLevel: ImmBox[Optional[int]], customIdTarget: ImmBox[Optional[str]]) -> None: ...
+    def __init__(
+        self,
+        onlyContent: ImmBox[Optional[bool]],
+        subtreePath: ImmBox[Optional[SubtreePath]],
+        minLevel: ImmBox[Optional[int]],
+        customIdTarget: ImmBox[Optional[str]],
+    ) -> None: ...
     def __eq__(self, other: object) -> bool: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -3364,7 +3756,14 @@ class ImmCmdIncludeOrgDocument(ImmCmdIncludeIncludeBase):
     minLevel: ImmBox[Optional[int]]
     customIdTarget: ImmBox[Optional[str]]
 
-ImmCmdIncludeData = StdVariant[ImmCmdIncludeExample, ImmCmdIncludeExport, ImmCmdIncludeCustom, ImmCmdIncludeSrc, ImmCmdIncludeOrgDocument]
+ImmCmdIncludeData = StdVariant[
+    ImmCmdIncludeExample,
+    ImmCmdIncludeExport,
+    ImmCmdIncludeCustom,
+    ImmCmdIncludeSrc,
+    ImmCmdIncludeOrgDocument,
+]
+
 class ImmCmdIncludeKind(Enum):
     Example = 1
     Export = 2
@@ -4016,7 +4415,13 @@ class BlockCodeEvalResult(Block):
     node: SemId
 
 class BlockCode(Block):
-    def __init__(self, lang: Optional[str], result: list[SemId], lines: list[BlockCodeLine], switches: AttrGroup) -> None: ...
+    def __init__(
+        self,
+        lang: Optional[str],
+        result: list[SemId],
+        lines: list[BlockCodeLine],
+        switches: AttrGroup,
+    ) -> None: ...
     def getVariable(self, varname: str) -> Optional[AttrValue]: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
@@ -4181,7 +4586,15 @@ class CmdName(Attached):
     name: str
 
 class CmdCall(Attached):
-    def __init__(self, name: str, fileName: Optional[str], insideHeaderAttrs: AttrGroup, callAttrs: AttrGroup, endHeaderAttrs: AttrGroup, result: list[SemId]) -> None: ...
+    def __init__(
+        self,
+        name: str,
+        fileName: Optional[str],
+        insideHeaderAttrs: AttrGroup,
+        callAttrs: AttrGroup,
+        endHeaderAttrs: AttrGroup,
+        result: list[SemId],
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __getattr__(self, name: str) -> object: ...
     name: str
@@ -4381,41 +4794,28 @@ class ImmCmdAttrAdapter(ImmAdapterCmdAttrAPI):
     def getTarget(self) -> str: ...
 
 def newSemTimeStatic(breakdown: UserTimeBreakdown, isActive: bool) -> SemId: ...
-
 def initImmutableAstContext() -> ImmAstContext: ...
-
 def asOneNode(arg: SemId) -> SemId: ...
-
 def formatToString(arg: SemId) -> str: ...
-
 def exportToYamlString(node: SemId, opts: OrgYamlExportOpts) -> str: ...
-
 def exportToYamlFile(node: SemId, path: str, opts: OrgYamlExportOpts) -> None: ...
-
 def exportToJsonString(node: SemId) -> str: ...
-
 def exportToJsonFile(node: SemId, path: str) -> None: ...
-
 def readProtobufFile(file: str) -> SemId: ...
-
 def exportToProtobufFile(doc: SemId, file: str) -> None: ...
-
 def exportToTreeString(node: SemId, opts: OrgTreeExportOpts) -> str: ...
-
 def exportToTreeFile(node: SemId, path: str, opts: OrgTreeExportOpts) -> None: ...
-
 def getAstTrackingMap(nodes: list[SemId]) -> AstTrackingMap: ...
-
 def getSubnodeGroups(node: SemId, map: AstTrackingMap) -> list[AstTrackingGroup]: ...
-
-def annotateSequence(groups: list[SequenceSegmentGroup], first: int, last: int) -> list[SequenceAnnotation]: ...
-
+def annotateSequence(
+    groups: list[SequenceSegmentGroup], first: int, last: int
+) -> list[SequenceAnnotation]: ...
 def eachSubnodeRec(node: SemId, callback: Callable) -> None: ...
-
 def eachSubnodeRecSimplePath(node: SemId, callback: Callable) -> None: ...
-
-def setShouldProcessPath(parameters: OrgDirectoryParseParameters, callback: Callable) -> None: ...
-
+def setShouldProcessPath(
+    parameters: OrgDirectoryParseParameters, callback: Callable
+) -> None: ...
 def setGetParsedNode(params: OrgDirectoryParseParameters, callback: Callable) -> None: ...
-
-def evaluateCodeBlocks(node: SemId, conf: PyCodeEvalParameters, parse_context: ParseContext) -> SemId: ...
+def evaluateCodeBlocks(
+    node: SemId, conf: PyCodeEvalParameters, parse_context: ParseContext
+) -> SemId: ...

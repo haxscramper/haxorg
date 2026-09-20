@@ -2,13 +2,13 @@
 
 from dataclasses import dataclass, field
 
+import pandas as pd
+import py_haxorg.pyhaxorg_wrap as org
+import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, List, Tuple
-import pandas as pd
+
 from py_cli import haxorg_cli, haxorg_opts
-import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
-import rich_click as click
 
 CAT = __name__
 
@@ -59,15 +59,17 @@ def codex_tracking(ctx: haxorg_cli.CliRunContext) -> None:
     "Main entry point for the codex tracking logic"
     assert ctx.opts.generate
     assert ctx.opts.generate.codex_tracking
-    target_node = haxorg_cli.parseCachedFile(ctx,
-                                             ctx.opts.generate.codex_tracking.target_file)
+    target_node = haxorg_cli.parseCachedFile(
+        ctx, ctx.opts.generate.codex_tracking.target_file
+    )
     codex_nodes = [
         haxorg_cli.parseCachedFile(ctx, f)
         for f in ctx.opts.generate.codex_tracking.codex_files
     ]
 
     tracking: org.AstTrackingMap = org.getAstTrackingMap(
-        org.HstdVecOfSemIdOfOrg([target_node] + codex_nodes))
+        org.HstdVecOfSemIdOfOrg([target_node] + codex_nodes)
+    )
 
     radio_entries: List[RadioEntry] = list()
 
@@ -90,8 +92,9 @@ def codex_tracking(ctx: haxorg_cli.CliRunContext) -> None:
                 @beartype
                 def flat_span(first: int, last: int) -> List[org.Org]:
                     result: List[org.Org] = []
-                    for item in groups[clamp(first, 0, len(groups)
-                                            ):clamp(last, 0, len(groups))]:
+                    for item in groups[
+                        clamp(first, 0, len(groups)) : clamp(last, 0, len(groups))
+                    ]:
                         if item.isRadioTarget():
                             for n in item.getRadioTarget().nodes:
                                 result.append(n)
@@ -117,23 +120,28 @@ def codex_tracking(ctx: haxorg_cli.CliRunContext) -> None:
                                 prev_context=flat_span(i - 10, i),
                                 post_context=flat_span(i + 1, i + 11),
                                 radio_use=list(radio.nodes),
-                            ))
+                            )
+                        )
 
     org.eachSubnodeRecSimplePath(target_node, visit_node)
 
     if radio_entries:
-        df = pd.DataFrame.from_records([
-            dict(
-                path=tuple(entry.use_path),
-                prev=_format_list(entry.prev_context),
-                use=_format_list(entry.radio_use),
-                post=_format_list(entry.post_context),
-                # use_line=entry.radio_use.lo
-            ) for entry in radio_entries
-        ])
+        df = pd.DataFrame.from_records(
+            [
+                dict(
+                    path=tuple(entry.use_path),
+                    prev=_format_list(entry.prev_context),
+                    use=_format_list(entry.radio_use),
+                    post=_format_list(entry.post_context),
+                    # use_line=entry.radio_use.lo
+                )
+                for entry in radio_entries
+            ]
+        )
 
         ctx.opts.generate.codex_tracking.outfile.write_text(
-            _format_dataframe_for_file(df))
+            _format_dataframe_for_file(df)
+        )
 
     else:
         ctx.opts.generate.codex_tracking.outfile.write_text("no codex entries detected")

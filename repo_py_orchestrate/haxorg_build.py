@@ -1,10 +1,9 @@
-from pathlib import Path
 import shutil
-from typing import Generator
+from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Iterable, List
-from py_ci.util_scripting import cmake_opt, get_j_cap
+from py_ci.util_scripting import cmake_opt
 from py_repository.repo_tasks.command_execution import (
     get_uv_develop_env_flags,
     run_cmake_build,
@@ -24,7 +23,7 @@ from py_repository.repo_tasks.haxorg_base import (
     get_deps_install_dir,
     symlink_build,
 )
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils import os_utils
 from py_scriptutils.algorithm import cond
 from py_scriptutils.files import FileOperation
@@ -93,8 +92,9 @@ def build_haxorg(ctx: TaskContext) -> None:
     log(CAT).info(f"Building with\n{' '.join(get_cmake_defines(ctx))}")
     build_dir = get_component_build_dir(ctx, "haxorg")
 
-    targets = cond(0 < len(ctx.config.build_conf.target), ctx.config.build_conf.target,
-                   ["all"])
+    targets = cond(
+        0 < len(ctx.config.build_conf.target), ctx.config.build_conf.target, ["all"]
+    )
 
     log(CAT).debug(f"Building targets {targets}")
 
@@ -122,15 +122,16 @@ def build_targets(ctx: TaskContext, targets: List[str]) -> None:
 def build_and_setup_text_layout_lib(ctx: TaskContext) -> None:
     "Build the py text layout library and add .so to path"
     import sys
+
     build_targets(ctx=ctx, targets=["py_textlayout_cpp"])
     ctx.run(symlink_build, ctx=ctx)
 
     build_path = get_build_root(ctx, "haxorg")
     if str(build_path) not in sys.path:
         text_layout_so = list(build_path.glob("py_textlayout_cpp*.so"))
-        assert 0 < len(
-            text_layout_so
-        ), f"Text layout library was not compiled to dir {build_path}, workflow would not be able to run codegen."
+        assert 0 < len(text_layout_so), (
+            f"Text layout library was not compiled to dir {build_path}, workflow would not be able to run codegen."
+        )
         sys.path.append(str(build_path))
 
 
@@ -152,7 +153,8 @@ def install_haxorg_develop(ctx: TaskContext, perfetto: bool = False) -> None:
             # cmake_opt("ORG_BUILD_WITH_PERFETTO", perfetto),
             # "--component",
             # "haxorg_component"
-        ])
+        ],
+    )
 
 
 @haxorg_task()
@@ -160,15 +162,20 @@ def run_cmake_haxorg_clean(ctx: TaskContext) -> None:
     """Clean build directory for the current configuration"""
     build_dir = get_component_build_dir(ctx, "haxorg")
     if build_dir.joinpath("CMakeCache.txt").exists():
-        run_command(ctx, "cmake", [
-            "--build",
-            build_dir,
-            "--target",
-            "clean",
-        ])
+        run_command(
+            ctx,
+            "cmake",
+            [
+                "--build",
+                build_dir,
+                "--target",
+                "clean",
+            ],
+        )
 
     adaptagrams_dir = build_dir.joinpath("libcola")
     import shutil
+
     if adaptagrams_dir.exists():
         shutil.rmtree(str(adaptagrams_dir))
 

@@ -1,9 +1,9 @@
 if(${ORG_BUILD_TEXT_LAYOUTER_BINDINGS})
     nanobind_add_module(py_textlayout_cpp "${BASE}/src/py_libs/py_textlayout/py_textlayout.cpp")
 
-    set_common_files(py_textlayout_cpp)
-    set_target_output(py_textlayout_cpp)
-    set_target_flags(py_textlayout_cpp)
+    haxorg_set_common_files(py_textlayout_cpp)
+    haxorg_set_target_output(py_textlayout_cpp)
+    haxorg_set_target_flags(py_textlayout_cpp)
 
     set_target_properties(
         py_textlayout_cpp
@@ -44,9 +44,9 @@ if(${ORG_BUILD_PYHAXORG_BINDINGS})
       "${BASE}/src/py_libs/pyhaxorg/pyhaxorg_manual_impl.hpp"
     )
 
-    set_common_files(pyhaxorg)
-    set_target_output(pyhaxorg)
-    set_target_flags(pyhaxorg)
+    haxorg_set_common_files(pyhaxorg)
+    haxorg_set_target_output(pyhaxorg)
+    haxorg_set_target_flags(pyhaxorg)
 
     set_target_properties(
         pyhaxorg

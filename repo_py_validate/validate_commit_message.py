@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -51,7 +51,7 @@ SCOPES: dict[str, str] = {
     "report": "Reporting outputs (coverage, docs)",
     "sem": "Semantic analysis phase",
     "test": "Test suites, corpus, CI tests",
-    "imm": "Immutable AST edits"
+    "imm": "Immutable AST edits",
 }
 
 _ALLOWED_TYPES_CASEFOLD = {k.casefold(): k for k in TYPES.keys()}
@@ -74,8 +74,9 @@ SUBJECT_RE = re.compile(
 
 def save_failed_message(msg_path: Path) -> Path:
     bak = msg_path.with_name(msg_path.name + ".failed")
-    bak.write_text(msg_path.read_text(encoding="utf-8", errors="replace"),
-                   encoding="utf-8")
+    bak.write_text(
+        msg_path.read_text(encoding="utf-8", errors="replace"), encoding="utf-8"
+    )
     log.info(f"saved your commit message to: {bak}")
     log.info("Continue editing with `git commit --edit -F .git/COMMIT_EDITMSG.failed`")
     return bak
@@ -164,7 +165,7 @@ def main() -> int:
             return 1
 
     # Body requirement: must have blank line after subject, then non-empty body text.
-    rest = lines[subject_idx + 1:]
+    rest = lines[subject_idx + 1 :]
 
     try:
         blank_pos = next(i for i, ln in enumerate(rest) if ln.strip() == "")
@@ -174,7 +175,7 @@ def main() -> int:
         save_failed_message(msg_path)
         return 1
 
-    body_lines = rest[blank_pos + 1:]
+    body_lines = rest[blank_pos + 1 :]
     if not any(ln.strip() for ln in body_lines):
         log.error("error: commit must have a non-empty body")
         save_failed_message(msg_path)

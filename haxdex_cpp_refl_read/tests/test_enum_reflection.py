@@ -1,13 +1,14 @@
 from pathlib import Path
 from pprint import pprint
 
-from more_itertools import first_true
 import pytest
+from more_itertools import first_true
 
 
 @pytest.mark.test_release
 def test_enum_field_extract(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     enum = refl_test_driver.get_enum(
         "enum CEnum { Member1, Member2 };",
         stable_test_dir=stable_test_dir,
@@ -21,6 +22,7 @@ def test_enum_field_extract(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     enum = refl_test_driver.get_enum(
         "namespace Space { enum Enum { member1 }; }",
         stable_test_dir=stable_test_dir,
@@ -33,13 +35,14 @@ def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_nim_enum_conversion(stable_test_dir: Path) -> None:
     import py_codegen.wrapper_gen_nim as gen_nim
-
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     con = refl_test_driver.get_nim_code(
         refl_test_driver.get_enum(
             "enum En { Field1, Field2 };",
             stable_test_dir=stable_test_dir,
-        ))
+        )
+    )
 
     with open("/tmp/a.py", "w") as file:
         pprint(con, stream=file)
@@ -60,7 +63,8 @@ def test_nim_enum_conversion(stable_test_dir: Path) -> None:
     nim_set_to_cint = first_true(
         con.procs,
         default=None,
-        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "set")
+        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "set",
+    )
 
     assert nim_set_to_cint
     assert len(nim_set_to_cint.Arguments) == 1
@@ -72,7 +76,8 @@ def test_nim_enum_conversion(stable_test_dir: Path) -> None:
     c_en_to_cint = first_true(
         con.procs,
         default=None,
-        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "c_En")
+        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "c_En",
+    )
 
     assert c_en_to_cint
     assert len(c_en_to_cint.Arguments) == 1
@@ -83,7 +88,8 @@ def test_nim_enum_conversion(stable_test_dir: Path) -> None:
     en_to_cint = first_true(
         con.procs,
         default=None,
-        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "En")
+        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "En",
+    )
 
     assert en_to_cint
     assert len(en_to_cint.Arguments) == 1

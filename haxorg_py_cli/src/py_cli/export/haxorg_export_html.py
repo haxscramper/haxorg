@@ -1,8 +1,9 @@
-from beartype import beartype
-from beartype.typing import Any, Optional
-from py_cli import haxorg_cli, haxorg_opts
-from py_haxorg.exporters.export_html import ExporterHtml
 import rich_click as click
+from beartype import beartype
+from beartype.typing import Any
+from py_haxorg.exporters.export_html import ExporterHtml
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = "haxorg.export.html"
 

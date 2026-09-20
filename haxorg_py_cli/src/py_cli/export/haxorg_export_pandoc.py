@@ -1,11 +1,12 @@
 import json
 
-from beartype import beartype
-from beartype.typing import Any, Optional
-from py_cli import haxorg_cli, haxorg_opts
-from py_haxorg.exporters.export_pandoc import ExporterPandoc
 import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
+from beartype import beartype
+from beartype.typing import Any
+from py_haxorg.exporters.export_pandoc import ExporterPandoc
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = "haxorg.export.pandoc"
 
@@ -21,8 +22,11 @@ def export_pandoc(ctx: haxorg_cli.CliRunContext) -> None:
         node = haxorg_cli.parseCachedFile(ctx, ctx.opts.export.pandoc.infile)
 
         if ctx.opts.export.pandoc.debug_tree:
-            org.exportToTreeFile(node, str(ctx.opts.export.pandoc.debug_tree),
-                                 org.OrgTreeExportOpts(withColor=False))
+            org.exportToTreeFile(
+                node,
+                str(ctx.opts.export.pandoc.debug_tree),
+                org.OrgTreeExportOpts(withColor=False),
+            )
 
         exp = ExporterPandoc()
         if ctx.opts.export.exportTraceFile:

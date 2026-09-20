@@ -1,4 +1,3 @@
-from beartype.typing import Optional
 from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
@@ -8,8 +7,11 @@ class NanobindAstbuilderConfig(AstbulderConfig):
     "Configuration for the nanobind wrapper generators"
 
     def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
-        if isinstance(entry, codegen_ir.GenTuStruct
-                     ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+        if (
+            isinstance(entry, codegen_ir.GenTuStruct)
+            and entry.IsTemplateRecord
+            and not entry.IsExplicitInstantiation
+        ):
             # Auto-generation of the classes from the template classes is not
             # yet supported on the python backend.
             return False
@@ -20,7 +22,7 @@ class NanobindAstbuilderConfig(AstbulderConfig):
     def isUnwrappedTemplateInstantiation(self, t: QualType) -> bool:
         "Exclude nanobind-specific templates from instantiations"
         match tuple(t.flatQualName()):
-        # nanobind has explicit casters for this
+            # nanobind has explicit casters for this
             case ("std", "variant") | ("std", "pair"):
                 return False
 
@@ -100,8 +102,9 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                     return self.getBackendType(Type.par0())
 
                 case ["org", "imm", "ImmIdT", _]:
-                    return QualType(Name="ImmIdT" +
-                                    Type.par0().Name.replace("Imm", "", 1))
+                    return QualType(
+                        Name="ImmIdT" + Type.par0().Name.replace("Imm", "", 1)
+                    )
 
                 case ["org", "imm", "ImmAdapterT", _]:
                     return QualType(Name=Type.par0().Name + "Adapter")
@@ -133,8 +136,13 @@ class NanobindAstbuilderConfig(AstbulderConfig):
                 case ["immer", "map", _, _]:
                     name = "ImmMap"
 
-                case ["hstd", "Str"] | ["string"] | ["std", "string"] | ["basic_string" \
-                                                                 ] | ["std", "basic_string"]:
+                case (
+                    ["hstd", "Str"]
+                    | ["string"]
+                    | ["std", "string"]
+                    | ["basic_string"]
+                    | ["std", "basic_string"]
+                ):
                     name = "str"
 
                 case ["org", "sem", "SemId"]:

@@ -1,15 +1,15 @@
-from dataclasses import dataclass, field
-from os import rename
-from pathlib import Path
 import re
+from dataclasses import dataclass, field
+from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Callable, List, Optional
+from beartype.typing import List
+from py_haxorg.layout.wrap import BlockId
+from pydantic import BaseModel, Field
+
 from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
-from py_haxorg.layout.wrap import BlockId
-from pydantic import BaseModel, Field
 
 
 class WrapRenameRule(BaseModel):
@@ -19,9 +19,11 @@ class WrapRenameRule(BaseModel):
 
 class NimAstbuilderStaticConfig(BaseModel):
     function_renames: List[WrapRenameRule] = Field(
-        default=[], description="List of renaming rules for generated wrappers")
-    universal_import: List[str] = Field(default=[],
-                                        description="Import added to all generated files")
+        default=[], description="List of renaming rules for generated wrappers"
+    )
+    universal_import: List[str] = Field(
+        default=[], description="Import added to all generated files"
+    )
 
     common_function_pragmas: List[str] = Field(
         default=[],
@@ -39,7 +41,8 @@ class NimAstbuilderStaticConfig(BaseModel):
     )
 
     importx_structs: bool = Field(
-        default=True, description="Generate 'importcpp' or 'import' for structures")
+        default=True, description="Generate 'importcpp' or 'import' for structures"
+    )
 
 
 @beartype
@@ -52,11 +55,14 @@ class PragmaParams:
 @beartype
 class NimAstbuilderConfig(AstbulderConfig):
     "Codegen configuration for nim wrappers"
+
     opts: NimAstbuilderStaticConfig
 
-    def __init__(self,
-                 type_map: codegen_ir.GenTypeMap,
-                 opts: NimAstbuilderStaticConfig = NimAstbuilderStaticConfig()):
+    def __init__(
+        self,
+        type_map: codegen_ir.GenTypeMap,
+        opts: NimAstbuilderStaticConfig = NimAstbuilderStaticConfig(),
+    ):
         super().__init__(type_map)
         self.opts = opts
 
@@ -82,72 +88,72 @@ class NimAstbuilderConfig(AstbulderConfig):
 
     def getSanitizedIdent(self, name: str) -> str:
         if name in {
-                "addr",
-                "and",
-                "as",
-                "asm",
-                "bind",
-                "block",
-                "break",
-                "case",
-                "cast",
-                "concept",
-                "const",
-                "continue",
-                "converter",
-                "defer",
-                "discard",
-                "distinct",
-                "div",
-                "do",
-                "elif",
-                "else",
-                "end",
-                "enum",
-                "except",
-                "export",
-                "finally",
-                "for",
-                "from",
-                "func",
-                "if",
-                "import",
-                "in",
-                "include",
-                "interface",
-                "is",
-                "isnot",
-                "iterator",
-                "let",
-                "macro",
-                "method",
-                "mixin",
-                "mod",
-                "nil",
-                "not",
-                "notin",
-                "object",
-                "of",
-                "or",
-                "out",
-                "proc",
-                "ptr",
-                "raise",
-                "ref",
-                "return",
-                "shl",
-                "shr",
-                "static",
-                "template",
-                "try",
-                "tuple",
-                "type",
-                "using",
-                "var",
-                "when",
-                "while",
-                "xor",
-                "yield",
+            "addr",
+            "and",
+            "as",
+            "asm",
+            "bind",
+            "block",
+            "break",
+            "case",
+            "cast",
+            "concept",
+            "const",
+            "continue",
+            "converter",
+            "defer",
+            "discard",
+            "distinct",
+            "div",
+            "do",
+            "elif",
+            "else",
+            "end",
+            "enum",
+            "except",
+            "export",
+            "finally",
+            "for",
+            "from",
+            "func",
+            "if",
+            "import",
+            "in",
+            "include",
+            "interface",
+            "is",
+            "isnot",
+            "iterator",
+            "let",
+            "macro",
+            "method",
+            "mixin",
+            "mod",
+            "nil",
+            "not",
+            "notin",
+            "object",
+            "of",
+            "or",
+            "out",
+            "proc",
+            "ptr",
+            "raise",
+            "ref",
+            "return",
+            "shl",
+            "shr",
+            "static",
+            "template",
+            "try",
+            "tuple",
+            "type",
+            "using",
+            "var",
+            "when",
+            "while",
+            "xor",
+            "yield",
         }:
             return f"`{name}`"
 

@@ -1,7 +1,7 @@
-from beartype.typing import Any, Optional
-from py_cli import haxorg_cli, haxorg_opts
-from py_scriptutils.script_logging import log
 import rich_click as click
+from beartype.typing import Any
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = __name__
 

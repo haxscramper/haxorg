@@ -1,12 +1,13 @@
+import re
 from dataclasses import dataclass, field
 from enum import Enum
-import re
 
+import py_haxorg.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, PragmaParams
-import py_haxorg.astbuilder.astbuilder_base as base
 from py_haxorg.layout.wrap import BlockId, TextLayout
+
+from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, PragmaParams
 
 
 class ExprKind(Enum):
@@ -47,8 +48,11 @@ class ImportParamsMode(Enum):
 class ImportParams:
     ## Configuration for the import statement
     Imported: List[ImportParamsFile] = field(
-        default_factory=list)  ## One or more files to be imported
-    QuoteImport: bool = True  ## Quote each individual import statement or paste them as raw identifiers
+        default_factory=list
+    )  ## One or more files to be imported
+    QuoteImport: bool = (
+        True  ## Quote each individual import statement or paste them as raw identifiers
+    )
     FormatMode: ImportParamsMode = ImportParamsMode.Stack
 
 
@@ -131,7 +135,6 @@ def sanitize_name(name: str) -> str:
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
-
     def __init__(self, in_b: TextLayout, conf: NimAstbuilderConfig) -> None:
         super().__init__(in_b)
         self.conf = conf
@@ -139,92 +142,120 @@ class ASTBuilder(base.AstbuilderBase):
     def Type(self, t: Type) -> BlockId:
         match t.Kind:
             case TypeKind.Function:
-                return self.b.line([
-                    self.string("proc "),
-                    self.pars(
-                        self.csv([
-                            self.b.line([
-                                self.string("a" + str(idx)),
-                                self.string(": "),
-                                self.Type(t),
-                            ]) for idx, t in enumerate(t.Parameters[1:])
-                        ])),
-                    self.string(": "),
-                    self.Type(t.Parameters[0])
-                ])
+                return self.b.line(
+                    [
+                        self.string("proc "),
+                        self.pars(
+                            self.csv(
+                                [
+                                    self.b.line(
+                                        [
+                                            self.string("a" + str(idx)),
+                                            self.string(": "),
+                                            self.Type(t),
+                                        ]
+                                    )
+                                    for idx, t in enumerate(t.Parameters[1:])
+                                ]
+                            )
+                        ),
+                        self.string(": "),
+                        self.Type(t.Parameters[0]),
+                    ]
+                )
 
             case TypeKind.Expr:
                 return t.Expr
 
             case TypeKind.RegularType:
-                head: BlockId = self.string(
-                    t.Name) if t.Name in ["ptr", "ref"] else self.string(
-                        self.conf.getSanitizedIdent(t.Name))
+                head: BlockId = (
+                    self.string(t.Name)
+                    if t.Name in ["ptr", "ref"]
+                    else self.string(self.conf.getSanitizedIdent(t.Name))
+                )
 
                 if 0 < len(t.Parameters):
                     if t.Name == "ptr":
                         return self.b.line(
-                            [head, self.string(" "),
-                             self.Type(t.Parameters[0])])
+                            [head, self.string(" "), self.Type(t.Parameters[0])]
+                        )
 
                     else:
-                        return self.b.line([
-                            head,
-                            self.pars(self.csv([self.Type(p) for p in t.Parameters]), "[",
-                                      "]"),
-                        ])
+                        return self.b.line(
+                            [
+                                head,
+                                self.pars(
+                                    self.csv([self.Type(p) for p in t.Parameters]),
+                                    "[",
+                                    "]",
+                                ),
+                            ]
+                        )
 
                 else:
                     return head
 
     def Typedef(self, typedef: TypedefParams) -> BlockId:
-        return self.b.line([
-            self.string(typedef.Name),
-            self.string("*" if typedef.Exported else ""),
-            self.string(" = "),
-            self.Type(typedef.Base),
-        ])
+        return self.b.line(
+            [
+                self.string(typedef.Name),
+                self.string("*" if typedef.Exported else ""),
+                self.string(" = "),
+                self.Type(typedef.Base),
+            ]
+        )
 
     def EnumField(self, f: EnumFieldParams, padTo: int = 0) -> BlockId:
-        return self.b.line([
-            self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
-            *([] if f.Value is None else [self.string(" = "), f.Value]),
-        ])
+        return self.b.line(
+            [
+                self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
+                *([] if f.Value is None else [self.string(" = "), f.Value]),
+            ]
+        )
 
     def Lit(self, value: Union[str, int]) -> BlockId:
         match value:
             case str():
-                return self.string(f"\"{value}\"")
+                return self.string(f'"{value}"')
 
             case int():
                 return self.string(str(value))
 
     def Enum(self, enum: EnumParams) -> BlockId:
-        head = self.b.line([
-            self.string(self.conf.getSanitizedIdent(enum.Name)),
-            self.string("*" if enum.Exported else ""),
-            self.Pragmas(enum.Pragmas),
-            self.string(" = "),
-            self.string("enum"),
-        ])
+        head = self.b.line(
+            [
+                self.string(self.conf.getSanitizedIdent(enum.Name)),
+                self.string("*" if enum.Exported else ""),
+                self.Pragmas(enum.Pragmas),
+                self.string(" = "),
+                self.string("enum"),
+            ]
+        )
 
         field_widths: int = max(
-            [len(self.conf.getSanitizedIdent(f.Name)) for f in enum.Fields] + [0])
+            [len(self.conf.getSanitizedIdent(f.Name)) for f in enum.Fields] + [0]
+        )
 
-        return self.b.stack([
-            head,
-            self.b.indent(
-                2,
-                self.b.stack([self.EnumField(f, padTo=field_widths) for f in enum.Fields
-                             ]))
-        ])
+        return self.b.stack(
+            [
+                head,
+                self.b.indent(
+                    2,
+                    self.b.stack(
+                        [self.EnumField(f, padTo=field_widths) for f in enum.Fields]
+                    ),
+                ),
+            ]
+        )
 
     def Function(self, func: FunctionParams) -> BlockId:
-        head = self.b.line([
-            self.string(str(func.Kind.name).lower() + " "),
-            self.string(self.conf.getSanitizedIdent(func.Name)),
-            self.string("*" if func.Exported else "")
-        ])
+        head = self.b.line(
+            [
+                self.string(str(func.Kind.name).lower() + " "),
+                self.string(self.conf.getSanitizedIdent(func.Name)),
+                self.string("*" if func.Exported else ""),
+            ]
+        )
 
         with self.Line():
             self.Item(": ")
@@ -241,7 +272,8 @@ class ASTBuilder(base.AstbuilderBase):
                 with self.Line():
                     self.Item(head)
                     self.Item(
-                        self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments])))
+                        self.pars(self.csv([self.Field(Arg) for Arg in func.Arguments]))
+                    )
                     self.Item(tail)
 
             else:
@@ -269,29 +301,37 @@ class ASTBuilder(base.AstbuilderBase):
         return self.Result()
 
     def Field(self, f: IdentParams, padTo: int = 0) -> BlockId:
-        return self.b.line([
-            self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
-            self.string("*" if f.Exported else ""),
-            self.Pragmas(f.Pragmas),
-            self.string(": "),
-            self.Type(f.Type),
-        ])
+        return self.b.line(
+            [
+                self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
+                self.string("*" if f.Exported else ""),
+                self.Pragmas(f.Pragmas),
+                self.string(": "),
+                self.Type(f.Type),
+            ]
+        )
 
     def Pragma(self, p: PragmaParams) -> BlockId:
-        return self.b.line([
-            self.string(self.conf.getSanitizedIdent(p.Name)),
-            *([] if len(p.Arguments) == 0 else [
-                self.string(": "),
-                *p.Arguments,
-            ])
-        ])
+        return self.b.line(
+            [
+                self.string(self.conf.getSanitizedIdent(p.Name)),
+                *(
+                    []
+                    if len(p.Arguments) == 0
+                    else [
+                        self.string(": "),
+                        *p.Arguments,
+                    ]
+                ),
+            ]
+        )
 
     def Import(self, p: ImportParams) -> BlockId:
 
         @beartype
         def quot(item: str) -> BlockId:
             if p.QuoteImport:
-                return self.string(f"\"{item}\"")
+                return self.string(f'"{item}"')
 
             else:
                 return self.string(item)
@@ -310,42 +350,62 @@ class ASTBuilder(base.AstbuilderBase):
 
         match p.FormatMode:
             case ImportParamsMode.Single:
-                return self.b.stack([
-                    self.b.line([self.string("import "),
-                                 quot(it.Name),
-                                 comm(it.Comment)]) for it in p.Imported
-                ])
+                return self.b.stack(
+                    [
+                        self.b.line(
+                            [self.string("import "), quot(it.Name), comm(it.Comment)]
+                        )
+                        for it in p.Imported
+                    ]
+                )
 
             case ImportParamsMode.Oneline:
-                return self.b.line([
-                    self.string("import "),
-                    self.csv([
-                        self.b.line([quot(it.Name), comm(it.Comment)])
-                        for it in p.Imported
-                    ])
-                ])
+                return self.b.line(
+                    [
+                        self.string("import "),
+                        self.csv(
+                            [
+                                self.b.line([quot(it.Name), comm(it.Comment)])
+                                for it in p.Imported
+                            ]
+                        ),
+                    ]
+                )
 
     def Pragmas(self, pragmas: List[PragmaParams]) -> BlockId:
-        return self.b.line([
-            self.string(" {."),
-            self.csv([self.Pragma(p) for p in pragmas]),
-            self.string(".}"),
-        ]) if 0 < len(pragmas) else self.string("")
+        return (
+            self.b.line(
+                [
+                    self.string(" {."),
+                    self.csv([self.Pragma(p) for p in pragmas]),
+                    self.string(".}"),
+                ]
+            )
+            if 0 < len(pragmas)
+            else self.string("")
+        )
 
     def Object(self, Obj: ObjectParams) -> BlockId:
-        head = self.b.line([
-            self.string(Obj.Name),
-            self.string("*" if Obj.Exported else ""),
-            self.Pragmas(Obj.Pragmas),
-            self.string(" = "),
-            self.string("object"),
-        ])
+        head = self.b.line(
+            [
+                self.string(Obj.Name),
+                self.string("*" if Obj.Exported else ""),
+                self.Pragmas(Obj.Pragmas),
+                self.string(" = "),
+                self.string("object"),
+            ]
+        )
 
-        field_widths: int = max(
-            [len(self.conf.getSanitizedIdent(f.Name)) for f in Obj.Fields] + [0]) + 1
+        field_widths: int = (
+            max([len(self.conf.getSanitizedIdent(f.Name)) for f in Obj.Fields] + [0]) + 1
+        )
 
-        return self.b.stack([
-            head,
-            self.b.indent(
-                2, self.b.stack([self.Field(f, padTo=field_widths) for f in Obj.Fields]))
-        ])
+        return self.b.stack(
+            [
+                head,
+                self.b.indent(
+                    2,
+                    self.b.stack([self.Field(f, padTo=field_widths) for f in Obj.Fields]),
+                ),
+            ]
+        )

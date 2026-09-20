@@ -1,12 +1,6 @@
-from dataclasses import fields
 import itertools
-import json
 from pathlib import Path
-import sys
-import typing
 
-import betterproto
-import igraph as ig
 import py_repository.code_analysis.gen_coverage_cookies as cov
 from py_repository.repo_tasks.command_execution import (
     get_python_binary,
@@ -20,15 +14,14 @@ from py_repository.repo_tasks.common import (
     get_script_root,
     get_workflow_out,
 )
-from py_repository.repo_tasks.config import get_tmpdir, HaxorgLogLevel
+from py_repository.repo_tasks.config import HaxorgLogLevel, get_tmpdir
 from py_repository.repo_tasks.haxorg_base import get_deps_install_dir, symlink_build
 from py_repository.repo_tasks.haxorg_build import (
     build_and_setup_text_layout_lib,
-    build_haxorg,
     build_targets,
     configure_cmake_haxorg,
 )
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -76,20 +69,24 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
 
     from py_codegen.proto_lib import Tu
     from py_codegen.refl_schema_gen import write_schema
+
     write_schema(Tu, proto_lib / "TU.schema.json")
 
 
 @haxorg_task(
-    dependencies=[generate_python_protobuf_files, build_and_setup_text_layout_lib])
+    dependencies=[generate_python_protobuf_files, build_and_setup_text_layout_lib]
+)
 def generate_reflection_snapshot(ctx: TaskContext) -> None:
     """Generate new source code reflection file for the python source code wrapper"""
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
     build_targets(
         ctx=ctx,
-        targets=["reflection_tool"] + [
+        targets=["reflection_tool"]
+        + [
             # trigger protobuf file generation to allow for clang semantic
             # analysis to properly resolve all headers
-            f"{it}_generate_files" for it in [
+            f"{it}_generate_files"
+            for it in [
                 "haxorg_sem_protobuf",
                 "haxorg_imm_graph_protobuf",
                 "hstd_proto_base_graph",
@@ -113,7 +110,9 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
             log_path=str(get_workflow_out(ctx, f"{task}_reflection_run.log")),
             mode=cov.Mode.AllAnotatedSymbols,
             verbose_log=ctx.config.log_level == HaxorgLogLevel.VERBOSE,
-            reflection=cov.ReflectionConfig(compilation_database=str(compile_commands),),
+            reflection=cov.ReflectionConfig(
+                compilation_database=str(compile_commands),
+            ),
         ).model_dump(),
     )
 
@@ -136,7 +135,8 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
         reflection_path=get_build_root(ctx).joinpath(f"{task}.pb"),
         is_tmp_codegen=ctx.config.generate_sources_conf.tmp,
         manual_tu_path=get_script_root(
-            ctx, "scripts/py_codegen/py_codegen/codegen_extra_types.json"),
+            ctx, "scripts/py_codegen/py_codegen/codegen_extra_types.json"
+        ),
     )
 
     log(CAT).info("Updated code definitions")
@@ -145,11 +145,12 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
 @haxorg_task()
 def merge_build_times(ctx: TaskContext) -> None:
     from py_repository.code_analysis.gen_include_graph import TraceFile
+
     out_merge = TraceFile()
 
     for file in itertools.chain(
-            get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"),
-            get_build_root(ctx, "haxorg/").rglob("*.time-trace"),
+        get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"),
+        get_build_root(ctx, "haxorg/").rglob("*.time-trace"),
     ):
         log(CAT).debug(file)
         read_file = TraceFile.model_validate_json(file.read_text())
@@ -164,12 +165,14 @@ def merge_build_times(ctx: TaskContext) -> None:
         out_merge.traceEvents.extend(read_file.traceEvents)
 
     get_build_root(ctx, "haxorg/full-profile-merge.json").write_text(
-        out_merge.model_dump_json(indent=2))
+        out_merge.model_dump_json(indent=2)
+    )
 
 
 @haxorg_task()
 def generate_binary_size_report(ctx: TaskContext) -> None:
     from py_repository.code_analysis import gen_symbol_size_report as gsrs
+
     if ctx.config.binary_size_conf.update_db:
         build_targets(ctx=ctx, targets=["reflection_tool"])
         gsrs.generate_binary_size_db(ctx)
@@ -179,13 +182,15 @@ def generate_binary_size_report(ctx: TaskContext) -> None:
 @haxorg_task(dependencies=[generate_python_protobuf_files])
 def generate_include_graph(ctx: TaskContext) -> None:
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
-    header_commands = get_script_root(ctx,
-                                      "build/haxorg/compile_commands_with_headers.json")
+    header_commands = get_script_root(
+        ctx, "build/haxorg/compile_commands_with_headers.json"
+    )
     # re-configure the whole project to generate new compilation database.
     configure_cmake_haxorg(ctx=ctx)
     build_targets(ctx=ctx, targets=["reflection_tool"])
 
     from py_repository.code_analysis.gen_include_graph import gen_include_graph
+
     gen_include_graph(
         ctx,
         compile_commands=compile_commands,
@@ -199,6 +204,7 @@ def generate_import_graph(ctx: TaskContext) -> None:
     Generate import graph for all sub-projects and modules.
     """
     from py_repository.code_analysis import gen_import_graph
+
     import_graph = gen_import_graph.gen_import_graph(ctx)
     tmp = get_tmpdir("haxorg_import")
     ensure_existing_dir(ctx, tmp)

@@ -2,14 +2,14 @@ import copy
 from dataclasses import replace
 
 from beartype import beartype
-from beartype.typing import Any, List, Sequence, Tuple
-from py_codegen import codegen_ir
-import py_codegen.astbuilder_cpp as cpp
-from py_codegen.codegen_ir import GenTuField, GenTuFunction, n_org, QualType
+from beartype.typing import Any, List, Sequence
 from py_haxorg.astbuilder import astbuilder_utils
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
-from py_scriptutils.script_logging import log
+
+import py_codegen.astbuilder_cpp as cpp
+from py_codegen import codegen_ir
+from py_codegen.codegen_ir import GenTuField, QualType
 
 CAT = __name__
 
@@ -27,7 +27,8 @@ def rewrite_type_to_immutable(obj: QualType) -> QualType:
                 "Params": [rewrite_type_to_immutable(P) for P in o.Params],
                 "DbgOrigin": o.DbgOrigin + "imm_write",
                 **kwargs,
-            })
+            }
+        )
 
     def map_spaces(o: QualType) -> List[QualType]:
         "Recursively map used type spaces"
@@ -52,9 +53,9 @@ def rewrite_type_to_immutable(obj: QualType) -> QualType:
                 case [QualType(Name="org"), QualType(Name="sem"), *rest]:
                     if rest and rest[0].isOrgType():
                         if 1 == len(rest):
-                            return get_update(obj,
-                                              Name=f"Imm{obj.Name}",
-                                              Spaces=[codegen_ir.n_imm()])
+                            return get_update(
+                                obj, Name=f"Imm{obj.Name}", Spaces=[codegen_ir.n_imm()]
+                            )
 
                         elif 1 < len(rest):
                             reuse_spaces = copy.copy(rest)
@@ -115,8 +116,8 @@ def rewrite_field_to_immutable(obj: codegen_ir.GenTuField) -> codegen_ir.GenTuFi
             assert par0
             new_type = rewrite_type_to_immutable(par0)
             new_type = new_type.withWrapperType(
-                QualType(Name="Opt",
-                         Spaces=[codegen_ir.n_hstd()])).withWrapperType(IMM_BOX)
+                QualType(Name="Opt", Spaces=[codegen_ir.n_hstd()])
+            ).withWrapperType(IMM_BOX)
 
             return replace(obj, Type=new_type)
 
@@ -133,7 +134,8 @@ def rewrite_field_to_immutable(obj: codegen_ir.GenTuField) -> codegen_ir.GenTuFi
 
 @beartype
 def rewrite_function_to_immutable(
-        func: codegen_ir.GenTuFunction) -> codegen_ir.GenTuFunction:
+    func: codegen_ir.GenTuFunction,
+) -> codegen_ir.GenTuFunction:
     "Rewrite all arguments, return types and parameters for a function to immutable AST"
     return replace(
         func,
@@ -141,7 +143,8 @@ def rewrite_function_to_immutable(
         Args=rewrite_any_to_immutable(func.Args),
         Params=rewrite_any_to_immutable(func.Params),
         ParentClass=rewrite_type_to_immutable(func.ParentClass)
-        if func.ParentClass else None,
+        if func.ParentClass
+        else None,
     )
 
 
@@ -171,10 +174,12 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
             Name="operator==",
             IsConst=True,
             Args=[
-                codegen_ir.GenTuIdent(Type=rewrite_type_to_immutable(self_arg),
-                                      Name="other")
+                codegen_ir.GenTuIdent(
+                    Type=rewrite_type_to_immutable(self_arg), Name="other"
+                )
             ],
-        ))
+        )
+    )
 
     new_reflection_params = copy.deepcopy(obj.ReflectionParams)
     if new_reflection_params.backend.wasm.holder_type:
@@ -184,7 +189,8 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
     if hasattr(obj, "isOrgType"):
         prefix_nested = [
             codegen_ir.GenTuPass(
-                f"using Imm{obj.Bases[0].Name}::Imm{obj.Bases[0].Name};"),
+                f"using Imm{obj.Bases[0].Name}::Imm{obj.Bases[0].Name};"
+            ),
             codegen_ir.GenTuPass(f"virtual ~Imm{obj.Name.Name}() = default;"),
         ]
 
@@ -202,8 +208,12 @@ def rewrite_struct_to_immutable(obj: codegen_ir.GenTuStruct) -> codegen_ir.GenTu
 
 @beartype
 def rewrite_any_to_immutable(
-    it: codegen_ir.GenTuUnion | codegen_ir.GenTuTypeGroup | QualType | list | None |
-    codegen_ir.GenTuTypeGroup
+    it: codegen_ir.GenTuUnion
+    | codegen_ir.GenTuTypeGroup
+    | QualType
+    | list
+    | None
+    | codegen_ir.GenTuTypeGroup,
 ) -> Any:
     """
     Recursively rewrite any input item to the immutable AST version
@@ -251,19 +261,24 @@ def rewrite_any_to_immutable(
 
 @beartype
 def rewrite_to_immutable(
-        recs: Sequence[codegen_ir.GenTuStruct]) -> List[codegen_ir.GenTuStruct]:
+    recs: Sequence[codegen_ir.GenTuStruct],
+) -> List[codegen_ir.GenTuStruct]:
     "Rewrite collection of structures to immutable AST"
     return [rewrite_struct_to_immutable(rec) for rec in recs]
 
 
 @beartype
-def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField, T: QualType,
-                             ParentClass: QualType) -> codegen_ir.GenTuFunction:
+def get_adapter_field_getter(
+    ast: cpp.ASTBuilder, f: codegen_ir.GenTuField, T: QualType, ParentClass: QualType
+) -> codegen_ir.GenTuFunction:
     "Generate getter function for immutable data access for adapter specialization"
-    field_access = ast.Dot(ast.XCallPtr(
-        ast.string("this"),
-        "value",
-    ), ast.string(f.Name))
+    field_access = ast.Dot(
+        ast.XCallPtr(
+            ast.string("this"),
+            "value",
+        ),
+        ast.string(f.Name),
+    )
 
     field_type = rewrite_field_to_immutable(f).Type
     assert field_type
@@ -272,15 +287,18 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField, T: Q
         is_specialization = field_par0.Name != "ImmOrg"
 
         nonlocal field_access
-        field_access = ast.XCall("org::imm::get_adapter_field", [
-            ast.string("this"),
-            ast.Addr(ast.Scoped(T, ast.string(f.Name))),
-        ])
+        field_access = ast.XCall(
+            "org::imm::get_adapter_field",
+            [
+                ast.string("this"),
+                ast.Addr(ast.Scoped(T, ast.string(f.Name))),
+            ],
+        )
 
         if is_specialization:
-            return QualType(Name="ImmAdapterT",
-                            Spaces=[codegen_ir.n_imm()],
-                            Params=[field_par0])
+            return QualType(
+                Name="ImmAdapterT", Spaces=[codegen_ir.n_imm()], Params=[field_par0]
+            )
 
         else:
             return QualType(Name="ImmAdapter", Spaces=[codegen_ir.n_imm()])
@@ -296,7 +314,8 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField, T: Q
 
         case ["hstd", "ext", "ImmBox", [["hstd", "Opt", [["org", "imm", "ImmIdT", _]]]]]:
             result_type = codegen_ir.t_opt(
-                use_get_adapter_field(field_type.par0().par0().par0()))
+                use_get_adapter_field(field_type.par0().par0().par0())
+            )
 
         case ["hstd", "ext", "ImmBox", [["hstd", "Opt", [["org", "imm", "ImmId"]]]]]:
             result_type = codegen_ir.t_opt(use_get_adapter_field(imm_org))
@@ -321,8 +340,8 @@ def get_adapter_field_getter(ast: cpp.ASTBuilder, f: codegen_ir.GenTuField, T: Q
 
 @beartype
 def generate_adapter_specializations(
-        ast: cpp.ASTBuilder,
-        types: List[codegen_ir.GenTuStruct]) -> List[codegen_ir.GenTuStruct]:
+    ast: cpp.ASTBuilder, types: List[codegen_ir.GenTuStruct]
+) -> List[codegen_ir.GenTuStruct]:
     """
     Create value reader types and explicit instantiations of the adapter template structures.
     """
@@ -350,9 +369,11 @@ def generate_adapter_specializations(
             ),
             Nested=[
                 codegen_ir.GenTuPass(
-                    ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])),
+                    ast.XCall("USE_IMM_ADAPTER_BASE", [ast.Type(Derived)])
+                ),
                 codegen_ir.GenTuPass(
-                    ast.Using(cpp.UsingParams(newName="api_type", baseType=Api)))
+                    ast.Using(cpp.UsingParams(newName="api_type", baseType=Api))
+                ),
             ],
         )
 
@@ -364,7 +385,8 @@ def generate_adapter_specializations(
                         f,
                         Derived,
                         Specialization.declarationQualName(),
-                    ))
+                    )
+                )
 
         Specialization.Methods.append(
             codegen_ir.GenTuFunction(
@@ -378,14 +400,18 @@ def generate_adapter_specializations(
                 IsConstructor=True,
                 ParentClass=Specialization.declarationQualName(),
                 InitList=[ast.XConstructObj(Base, Args=[ast.string("other")])],
-                Body=ast.XCall("LOGIC_ASSERTION_CHECK_FMT", [
-                    ast.Literal(
-                        "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
-                    ),
-                    ast.Literal(derived_base),
-                    ast.XCallRef(ast.string("other"), "getKind"),
-                ]),
-            ))
+                Body=ast.XCall(
+                    "LOGIC_ASSERTION_CHECK_FMT",
+                    [
+                        ast.Literal(
+                            "Adapter type mismatch, cannot create adapter of type {} from generic adapter of type {}"
+                        ),
+                        ast.Literal(derived_base),
+                        ast.XCallRef(ast.string("other"), "getKind"),
+                    ],
+                ),
+            )
+        )
 
         adapters.append(Specialization)
 
@@ -481,28 +507,39 @@ def get_imm_serde(
 
                         def check_cond(cond_method: str, then: BlockId, **xcall_kwargs):
                             return ast.IfStmt(
-                                cpp.IfStmtParams(Branches=[
-                                    cpp.IfStmtParams.Branch(
-                                        Cond=ast.XCall(cond_method, **xcall_kwargs),
-                                        Then=then,
-                                    )
-                                ]))
+                                cpp.IfStmtParams(
+                                    Branches=[
+                                        cpp.IfStmtParams.Branch(
+                                            Cond=ast.XCall(cond_method, **xcall_kwargs),
+                                            Then=then,
+                                        )
+                                    ]
+                                )
+                            )
 
                         if field.Name == "loc":
                             writer_body.append(
-                                check_cond("addLocations", get_field_writer_call(field)))
+                                check_cond("addLocations", get_field_writer_call(field))
+                            )
                             reader_body.append(
-                                check_cond("addLocations", get_field_reader_call(field)))
+                                check_cond("addLocations", get_field_reader_call(field))
+                            )
 
                         elif field.Name == "subnodes":
                             writer_body.append(
-                                check_cond("addSubnodes",
-                                           get_field_writer_call(field),
-                                           args=[ast.string("value")]))
+                                check_cond(
+                                    "addSubnodes",
+                                    get_field_writer_call(field),
+                                    args=[ast.string("value")],
+                                )
+                            )
                             reader_body.append(
-                                check_cond("addSubnodes",
-                                           get_field_reader_call(field),
-                                           args=[ast.string("value")]))
+                                check_cond(
+                                    "addSubnodes",
+                                    get_field_reader_call(field),
+                                    args=[ast.string("value")],
+                                )
+                            )
 
                         else:
                             writer_body.append(get_field_writer_call(field))
@@ -522,35 +559,44 @@ def get_imm_serde(
                 writer_body.append(ast.Return(ast.string("result")))
                 reader_body.append(ast.Return(ast.string("result")))
 
-                writer = cpp.MethodDeclParams(Params=cpp.FunctionParams(
-                    Name="to_immer",
-                    ResultTy=imm_type,
-                    Args=[
-                        cpp.ParmVarParams(name="value", type=sem_type.asConstRef()),
-                        cpp.ParmVarParams(
-                            name="ctx", type=QualType(Name="ImmAstEditContext").asRef()),
-                    ],
-                    Body=writer_body,
-                    AllowOneLine=False,
-                ),)
+                writer = cpp.MethodDeclParams(
+                    Params=cpp.FunctionParams(
+                        Name="to_immer",
+                        ResultTy=imm_type,
+                        Args=[
+                            cpp.ParmVarParams(name="value", type=sem_type.asConstRef()),
+                            cpp.ParmVarParams(
+                                name="ctx",
+                                type=QualType(Name="ImmAstEditContext").asRef(),
+                            ),
+                        ],
+                        Body=writer_body,
+                        AllowOneLine=False,
+                    ),
+                )
 
-                reader = cpp.MethodDeclParams(Params=cpp.FunctionParams(
-                    Name="from_immer",
-                    ResultTy=sem_type,
-                    Args=[
-                        cpp.ParmVarParams(name="value", type=imm_type.asConstRef()),
-                        cpp.ParmVarParams(
-                            name="ctx", type=QualType(Name="ImmAstContext").asConstRef()),
-                    ],
-                    Body=reader_body,
-                    AllowOneLine=False,
-                ),)
+                reader = cpp.MethodDeclParams(
+                    Params=cpp.FunctionParams(
+                        Name="from_immer",
+                        ResultTy=sem_type,
+                        Args=[
+                            cpp.ParmVarParams(name="value", type=imm_type.asConstRef()),
+                            cpp.ParmVarParams(
+                                name="ctx",
+                                type=QualType(Name="ImmAstContext").asConstRef(),
+                            ),
+                        ],
+                        Body=reader_body,
+                        AllowOneLine=False,
+                    ),
+                )
 
                 rec = cpp.RecordParams(
                     name=QualType(Name="ImmSemSerde"),
                     NameParams=[sem_type, imm_type],
                     Template=cpp.GenTuTemplateParams(
-                        Stacks=[codegen_ir.GenTuTemplateGroup(Params=[])]),
+                        Stacks=[codegen_ir.GenTuTemplateGroup(Params=[])]
+                    ),
                     members=[writer, reader],
                     bases=[QualType(Name="ImmSemSerdeBase")],
                 )

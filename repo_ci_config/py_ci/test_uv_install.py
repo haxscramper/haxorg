@@ -18,10 +18,10 @@ Examples:
 
 import argparse
 import logging
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -31,7 +31,8 @@ logging.basicConfig(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Verify a Python package can be installed and used independently")
+        description="Verify a Python package can be installed and used independently"
+    )
     parser.add_argument(
         "project_path",
         type=Path,
@@ -57,15 +58,20 @@ def main():
     project_path = args.project_path.resolve()
     if not project_path.is_dir():
         logging.error(
-            f"project path does not exist: {project_path} or is not a directory")
+            f"project path does not exist: {project_path} or is not a directory"
+        )
         sys.exit(1)
 
-    test_package = (args.test_package.resolve() if args.test_package else project_path /
-                    "test_package")
+    test_package = (
+        args.test_package.resolve()
+        if args.test_package
+        else project_path / "test_package"
+    )
 
     if not test_package.is_dir():
         logging.error(
-            f"test package path does not exist: {test_package} or is not a directory")
+            f"test package path does not exist: {test_package} or is not a directory"
+        )
         sys.exit(1)
 
     test_script = test_package / "test.py"
@@ -138,7 +144,8 @@ def main():
 
         if result.returncode != 0:
             logging.error(
-                f"\n==> FAILED: test script exited with code {result.returncode}")
+                f"\n==> FAILED: test script exited with code {result.returncode}"
+            )
             sys.exit(result.returncode)
 
         logging.info("\n==> SUCCESS: package installed and test passed")

@@ -1,22 +1,24 @@
-from dataclasses import dataclass, field
 import itertools
+from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Set
+from py_scriptutils.json_utils import Json
+
+import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.exporters.export_base import ExporterBase
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
-import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.json_utils import Json
 
 CAT = "export.pandoc"
 
 
 @beartype
 @dataclass
-class AttrKv():
+class AttrKv:
     """
     Pandoc attribute key-value mapping
     """
+
     key: str  # nodoc
     value: Json  # nodoc
 
@@ -31,10 +33,11 @@ def Attr(identifier: str, classes: List[str] = [], kvpairs: List[AttrKv] = []) -
 
 @beartype
 @dataclass
-class PandocRes():
+class PandocRes:
     """
     Result of the evaluation for a single org-mode node
     """
+
     unpacked: List[Json] = field(default_factory=list)
     """
     One or more elements that correspond to the input org-mode node
@@ -147,11 +150,15 @@ class ExporterPandoc(ExporterBase):
     def evalListItem(self, node: org.ListItem) -> PandocRes:
         return PandocRes.Multiple(
             list(
-                itertools.chain(*[
-                    self.eval(it).unpacked
-                    for it in node
-                    if it.getKind() not in [osk.Newline]
-                ])))
+                itertools.chain(
+                    *[
+                        self.eval(it).unpacked
+                        for it in node
+                        if it.getKind() not in [osk.Newline]
+                    ]
+                )
+            )
+        )
 
     def evalList(self, node: org.List) -> PandocRes:
         return PandocRes.Node("BulletList", [self.content(node)])
@@ -161,10 +168,12 @@ class ExporterPandoc(ExporterBase):
 
     def evalTimeRange(self, node: org.TimeRange) -> PandocRes:
         return PandocRes.Node(
-            "Str", "{}--{}".format(
+            "Str",
+            "{}--{}".format(
                 formatDateTime(node.from_.getStatic().time),
                 formatDateTime(node.to.getStatic().time),
-            ))
+            ),
+        )
 
     def evalHashTag(self, node: org.HashTag) -> PandocRes:
         return PandocRes.Node("Str", formatHashTag(node))
@@ -184,11 +193,14 @@ class ExporterPandoc(ExporterBase):
         if node.treeId:
             attrs.append(AttrKv("id", node.treeId))
 
-        result = PandocRes.Node("Header", [
-            node.level,
-            Attr("preface", [], attrs),
-            self.content(node.title, NonTopLevel),
-        ])
+        result = PandocRes.Node(
+            "Header",
+            [
+                node.level,
+                Attr("preface", [], attrs),
+                self.content(node.title, NonTopLevel),
+            ],
+        )
 
         for sub in node:
             if sub.getKind() not in NonTopLevel:
@@ -197,8 +209,10 @@ class ExporterPandoc(ExporterBase):
         return result
 
     def evalDocument(self, node: org.Org) -> PandocRes:
-        return PandocRes.Single({
-            "pandoc-api-version": [1, 23, 1],
-            "meta": {},
-            "blocks": self.content(node, NonTopLevel)
-        })
+        return PandocRes.Single(
+            {
+                "pandoc-api-version": [1, 23, 1],
+                "meta": {},
+                "blocks": self.content(node, NonTopLevel),
+            }
+        )

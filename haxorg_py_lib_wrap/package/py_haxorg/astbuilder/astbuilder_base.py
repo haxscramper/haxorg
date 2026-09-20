@@ -2,18 +2,15 @@
 Base types for all classes building code AST.
 """
 
-from dataclasses import dataclass, field
 import itertools
-from typing import NewType, TYPE_CHECKING
+from dataclasses import dataclass, field
 
 from beartype import beartype
-from beartype.typing import List, Optional, overload, Union
-from py_haxorg.astbuilder.astbuilder_utils import pascal_case
+from beartype.typing import List, Optional, Union
 from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 
 
 class AstLineCtx:
-
     def __init__(self, builder: "AstbuilderBase") -> None:
         self.builder = builder
         self.block_ids: List[BlockId] = []
@@ -31,7 +28,6 @@ class AstLineCtx:
 
 
 class AstIndentCtx:
-
     def __init__(self, builder: "AstbuilderBase", indent: int) -> None:
         self.builder = builder
         self.indent_size = indent
@@ -42,8 +38,9 @@ class AstIndentCtx:
         return self
 
     def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
-        Indent_id = self.builder.b.indent(self.indent_size,
-                                          self.builder.b.stack(self.block_ids))
+        Indent_id = self.builder.b.indent(
+            self.indent_size, self.builder.b.stack(self.block_ids)
+        )
         self.builder.last_result = Indent_id
         self.builder.context_stack.pop()
         if self.builder.context_stack:
@@ -51,7 +48,6 @@ class AstIndentCtx:
 
 
 class AstStackCtx:
-
     def __init__(self, builder: "AstbuilderBase") -> None:
         self.builder = builder
         self.block_ids: List[BlockId] = []
@@ -72,8 +68,9 @@ class AstStackCtx:
 @dataclass
 class AstbuilderBase:
     b: TextLayout
-    context_stack: List[Union[AstLineCtx, AstStackCtx,
-                              AstIndentCtx]] = field(default_factory=list)
+    context_stack: List[Union[AstLineCtx, AstStackCtx, AstIndentCtx]] = field(
+        default_factory=list
+    )
     last_result: Optional[BlockId] = None
 
     def toString(self, block: BlockId) -> str:
@@ -148,15 +145,16 @@ class AstbuilderBase:
     def indent(self, indent: int, *args: BlockId) -> BlockId:
         return self.b.indent(indent, self.b.stack(args))
 
-    def brace(self,
-              elements: List[BlockId],
-              left: str = "{",
-              right: str = "}") -> BlockId:
-        return self.b.stack([
-            self.string(left),
-            self.b.stack(elements),
-            self.string(right),
-        ])
+    def brace(
+        self, elements: List[BlockId], left: str = "{", right: str = "}"
+    ) -> BlockId:
+        return self.b.stack(
+            [
+                self.string(left),
+                self.b.stack(elements),
+                self.string(right),
+            ]
+        )
 
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
         return self.b.line([self.string(left), arg, self.string(right)])

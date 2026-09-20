@@ -1,11 +1,10 @@
-from collections import defaultdict
 import itertools
-from itertools import dropwhile, takewhile
 import re
+from collections import defaultdict
+from itertools import dropwhile
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Iterable, List, Optional, TypeVar
-import more_itertools as mit
 
 T = TypeVar("T")
 
@@ -63,7 +62,7 @@ def maybe_splice(expr: Any, item: T) -> List[T]:
 
 
 def remove_ansi(text: str) -> str:
-    ansi_escape = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+    ansi_escape = re.compile(r"\x1B[@-_][0-?]*[ -/]*[@-~]")
     return ansi_escape.sub("", text)
 
 
@@ -158,8 +157,14 @@ def iterate_object_tree(
                 )
 
         # Primitive types cannot be walked over, end iteration
-        elif (tree is True or tree is False or tree is None or isinstance(tree, str) or
-              isinstance(tree, type) or isinstance(tree, int)):
+        elif (
+            tree is True
+            or tree is False
+            or tree is None
+            or isinstance(tree, str)
+            or isinstance(tree, type)
+            or isinstance(tree, int)
+        ):
             pass
 
         elif isinstance(tree, object):

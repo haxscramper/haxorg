@@ -16,7 +16,7 @@ from py_repository.repo_tasks.haxorg_codegen import (
 from py_repository.repo_tasks.haxorg_coverage import run_cxx_coverage_merge
 from py_repository.repo_tasks.haxorg_docs import build_custom_docs
 from py_repository.repo_tasks.haxorg_tests import run_py_tests
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -54,18 +54,22 @@ def run_develop_ci(ctx: TaskContext) -> None:
 
     if conf.develop_ci_conf.forensics:
         from cxx_repository import code_forensics_cli
+
         code_forensics_cli.main_impl(
             code_forensics_cli.CodeForensicsCLI(
                 input=str(get_script_root(ctx)),
                 out=str(get_build_root(ctx).joinpath("develop_ci_forensics/db.sqlite")),
                 result_dir=str(get_build_root(ctx).joinpath("develop_ci_forensics")),
-            ))
+            )
+        )
 
     if conf.develop_ci_conf.example_run:
         ctx.run(run_examples, ctx=ctx)
 
     if conf.develop_ci_conf.coverage:
-        assert conf.instrument.coverage, "Coverage was enabled in the workflow develop CI configuration, but not in the build"
+        assert conf.instrument.coverage, (
+            "Coverage was enabled in the workflow develop CI configuration, but not in the build"
+        )
         ctx.run(run_cxx_coverage_merge, ctx=ctx)
 
     if conf.develop_ci_conf.docs:

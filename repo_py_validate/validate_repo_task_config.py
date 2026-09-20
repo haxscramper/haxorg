@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import commentjson
 

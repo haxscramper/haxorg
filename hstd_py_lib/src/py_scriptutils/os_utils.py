@@ -1,8 +1,7 @@
-import os
-from pathlib import Path
 import shutil
 import tempfile
-from typing import Any, Optional
+from pathlib import Path
+from typing import Any
 
 
 def rmdir_quiet(path: Path) -> None:
@@ -17,4 +16,4 @@ def gettempdir(*relative: str) -> Path:
 def json_path_serializer(obj: Any) -> str:
     if isinstance(obj, Path):
         return str(obj)
-    raise TypeError(f'Object of type {obj.__class__.__name__} is not JSON serializable')
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")

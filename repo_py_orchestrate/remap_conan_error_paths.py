@@ -3,9 +3,7 @@
 import argparse
 import re
 import shlex
-import sys
 from pathlib import Path
-
 
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 CONAN_CREATE_RE = re.compile(r"(?:^|\s)conan\s+create\s+")

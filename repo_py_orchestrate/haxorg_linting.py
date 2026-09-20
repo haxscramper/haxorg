@@ -1,5 +1,6 @@
 import itertools
 
+import requests
 from py_ci.util_scripting import get_threading_count
 from py_repository.repo_tasks.command_execution import run_command
 from py_repository.repo_tasks.common import (
@@ -8,9 +9,8 @@ from py_repository.repo_tasks.common import (
     get_workflow_out,
     get_workflow_tmp,
 )
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.script_logging import log
-import requests
 
 CAT = __name__
 
@@ -21,7 +21,8 @@ def run_mypy(ctx: TaskContext) -> None:
         itertools.chain(
             get_script_root(ctx, "scripts").rglob("*.py"),
             get_script_root(ctx, "tests/python").rglob("*.py"),
-        ))
+        )
+    )
 
     script_files = [f for f in script_files if (".venv" not in str(f))]
     all_outputs = []
@@ -89,7 +90,8 @@ def _is_http_up(url="http://127.0.0.1:8001/", timeout=1.0) -> bool:
 def run_codechecker_server(ctx: TaskContext):
     "Run codechecker server for analysis upload"
     tool_dir = get_script_root(ctx).joinpath(
-        "scripts/py_repository/py_repository/code_analysis/codechecker_environment")
+        "scripts/py_repository/py_repository/code_analysis/codechecker_environment"
+    )
 
     run_command(
         ctx,
@@ -109,7 +111,8 @@ def run_codechecker_server(ctx: TaskContext):
 def run_codechecker_analysis(ctx: TaskContext):
     "run codechecker on the whole cxx code"
     tool_dir = get_script_root(ctx).joinpath(
-        "scripts/py_repository/py_repository/code_analysis/codechecker_environment")
+        "scripts/py_repository/py_repository/code_analysis/codechecker_environment"
+    )
 
     compile_commands = get_script_root(ctx, "build/haxorg/compile_commands.json")
     analysis_artifact_outdir = get_script_root(ctx, "build/codechecker_result")
@@ -141,8 +144,9 @@ def run_codechecker_analysis(ctx: TaskContext):
         str(clang_tidy_config),
     ]
 
-    assert _is_http_up(
-    ), "Analysis commands requires a working codechecker server to upload results run the server with `run_codechecker_server` command"
+    assert _is_http_up(), (
+        "Analysis commands requires a working codechecker server to upload results run the server with `run_codechecker_server` command"
+    )
 
     run_command(
         ctx,

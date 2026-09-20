@@ -1,12 +1,11 @@
 import os
-from pathlib import Path
 import shutil
+from pathlib import Path
 
+import docker.models.containers
+import psutil
 from beartype import beartype
 from beartype.typing import Iterable, List, Optional
-import docker.models.containers
-from plumbum import local
-import psutil
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.script_logging import log
 
@@ -63,23 +62,32 @@ def ensure_clean_file(ctx: TaskContext, file: Path) -> Path:
 
 
 @beartype
-def path_exists_in_container(container: docker.models.containers.Container,
-                             path: Path) -> bool:
-    exit_code, _ = container.exec_run(cmd=["test", "-e", str(path)],)
+def path_exists_in_container(
+    container: docker.models.containers.Container, path: Path
+) -> bool:
+    exit_code, _ = container.exec_run(
+        cmd=["test", "-e", str(path)],
+    )
     return exit_code == 0
 
 
 @beartype
-def is_file_in_container(container: docker.models.containers.Container,
-                         path: Path) -> bool:
-    exit_code, _ = container.exec_run(cmd=["test", "-f", str(path)],)
+def is_file_in_container(
+    container: docker.models.containers.Container, path: Path
+) -> bool:
+    exit_code, _ = container.exec_run(
+        cmd=["test", "-f", str(path)],
+    )
     return exit_code == 0
 
 
 @beartype
-def is_dir_in_container(container: docker.models.containers.Container,
-                        path: Path) -> bool:
-    exit_code, _ = container.exec_run(cmd=["test", "-d", str(path)],)
+def is_dir_in_container(
+    container: docker.models.containers.Container, path: Path
+) -> bool:
+    exit_code, _ = container.exec_run(
+        cmd=["test", "-d", str(path)],
+    )
     return exit_code == 0
 
 
@@ -130,6 +138,7 @@ def ctx_remove_path(ctx: TaskContext, path: Path) -> None:
     docker container. The function will remove both files and directories.
     """
     import shutil
+
     if path.is_dir():
         shutil.rmtree(path)
     else:
@@ -197,15 +206,19 @@ def get_log_dir(ctx: TaskContext) -> Path:
 
 @beartype
 def get_build_tmpdir(ctx: TaskContext, component: str) -> Path:
-    result = get_build_root(ctx).joinpath("tmp").joinpath(
-        get_real_build_basename(ctx, component))
+    result = (
+        get_build_root(ctx)
+        .joinpath("tmp")
+        .joinpath(get_real_build_basename(ctx, component))
+    )
     ensure_existing_dir(ctx, result)
     return result
 
 
 @beartype
-def create_symlink(ctx: TaskContext, link_path: Path, real_path: Path,
-                   is_dir: bool) -> None:
+def create_symlink(
+    ctx: TaskContext, link_path: Path, real_path: Path, is_dir: bool
+) -> None:
 
     if link_path.exists():
         assert link_path.is_symlink(), link_path
@@ -234,9 +247,11 @@ def find_process(
 ) -> Optional[psutil.Process]:
     for proc in psutil.process_iter(["pid", "name", "cmdline", "cwd"]):
         try:
-            if ((proc.name() == name) and
-                (root_dir is None or proc.cwd() == str(root_dir)) and
-                (args is None or all(arg in proc.cmdline() for arg in args))):
+            if (
+                (proc.name() == name)
+                and (root_dir is None or proc.cwd() == str(root_dir))
+                and (args is None or all(arg in proc.cmdline() for arg in args))
+            ):
                 return proc
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
@@ -246,14 +261,14 @@ def find_process(
 def get_lldb_py_import(ctx: TaskContext) -> List[str]:
     return [
         "-o",
-        f"command script import {get_script_root(ctx, 'scripts/cxx_repository/lldb_script.py')}"
+        f"command script import {get_script_root(ctx, 'scripts/cxx_repository/lldb_script.py')}",
     ]
 
 
 def get_lldb_source_on_crash(ctx: TaskContext) -> List[str]:
     return [
         "--source-on-crash",
-        str(get_script_root(ctx, "scripts/cxx_repository/lldb-script.txt"))
+        str(get_script_root(ctx, "scripts/cxx_repository/lldb-script.txt")),
     ]
 
 

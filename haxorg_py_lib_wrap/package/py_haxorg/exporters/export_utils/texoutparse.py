@@ -2,9 +2,10 @@
 """
 Parser for LaTeX log files.
 """
+
+import re
 from collections import deque
 from dataclasses import dataclass, field
-import re
 
 from beartype import beartype
 from beartype.typing import Any, Iterable, List, Optional, Tuple
@@ -98,7 +99,8 @@ class LatexLogParser:
         r"\((?:badness (\d+)|(\d+(?:\.\d+)?pt) too \w+)\) (?:"
         r"(?:(?:in paragraph|in alignment|detected) "
         r"(?:at lines (\d+)--(\d+)|at line (\d+)))"
-        r"|(?:has occurred while [\\]output is active [\[][\]]))")
+        r"|(?:has occurred while [\\]output is active [\[][\]]))"
+    )
 
     warnings: List[LogFileMessage] = field(default_factory=list)
     """
@@ -118,9 +120,11 @@ class LatexLogParser:
     """
 
     def __str__(self) -> str:
-        return (f"Errors: {len(self.errors)}, "
-                f"Warnings: {len(self.warnings)}, "
-                f"Badboxes: {len(self.badboxes)}")
+        return (
+            f"Errors: {len(self.errors)}, "
+            f"Warnings: {len(self.warnings)}, "
+            f"Badboxes: {len(self.badboxes)}"
+        )
 
     def get_context_lines(self) -> List[str]:
         """

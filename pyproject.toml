@@ -60,6 +60,7 @@ override-dependencies = ["isort>=7.0.0"]
 
 [dependency-groups]
 dev = [
+  "conan>=2.32.0",
   "grimp>=3.14",
   "sphinx>=8.1.3",
   "tree-sitter>=0.25.2",

@@ -1,12 +1,14 @@
-from dataclasses import dataclass, field
 import enum
 import itertools
 import json
+from dataclasses import dataclass, field
 from pathlib import Path
 
+import py_codegen.proto_lib as pb
+import py_codegen.refl_extract as ex
+import py_codegen.wrapper_gen_nim as gen_nim
 from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Tuple, Union
-from fontTools.cffLib.transforms import remove_unused_subroutines
+from beartype.typing import Any, Dict, List, Optional, Union
 from plumbum import CommandNotFound, local
 from py_codegen import astbuilder_cpp, astbuilder_embind, astbuilder_nim
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
@@ -23,13 +25,10 @@ from py_codegen.codegen_ir import (
     GenTuUnion,
     GenTypeMap,
 )
-import py_codegen.proto_lib as pb
-import py_codegen.refl_extract as ex
-from py_codegen.refl_read import ConvTu, QualType
+from py_codegen.refl_read import QualType
 from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
-import py_codegen.wrapper_gen_nim as gen_nim
 from py_haxorg.layout.wrap import TextLayout
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 from py_scriptutils.toml_config_profiler import get_haxorg_repo_root_path
 
 
@@ -41,14 +40,14 @@ class PathComponentKind(enum.Enum):
 
 @beartype
 @dataclass
-class PathComponent():
+class PathComponent:
     kind: PathComponentKind
     value: str
 
 
 @beartype
 @dataclass
-class PathFail():
+class PathFail:
     path: List[PathComponent]
     message: str
     given_node: Optional[Any] = None
@@ -56,9 +55,9 @@ class PathFail():
 
 
 @beartype
-def is_dict_subset(expected: dict,
-                   given: dict,
-                   path: List[PathComponent] = []) -> List[PathFail]:
+def is_dict_subset(
+    expected: dict, given: dict, path: List[PathComponent] = []
+) -> List[PathFail]:
 
     failures = []
     if isinstance(expected, dict) and isinstance(given, dict):
@@ -76,15 +75,15 @@ def is_dict_subset(expected: dict,
                 failures += is_dict_subset(
                     expected=expected[key],
                     given=given[key],
-                    path=path + [PathComponent(PathComponentKind.DICT_KEY, key)])
+                    path=path + [PathComponent(PathComponentKind.DICT_KEY, key)],
+                )
 
     elif isinstance(expected, list) and isinstance(given, list):
         if len(expected) != len(given):
             return [
                 PathFail(
                     path=path,
-                    message=
-                    f"List len mismatch {len(expected)} for expected, {len(given)} for given"
+                    message=f"List len mismatch {len(expected)} for expected, {len(given)} for given",
                 )
             ]
 
@@ -92,8 +91,10 @@ def is_dict_subset(expected: dict,
             fails = []
             for index, (expected_item, given_item) in enumerate(zip(expected, given)):
                 fails += is_dict_subset(
-                    expected_item, given_item,
-                    path + [PathComponent(PathComponentKind.LIST_INDEX, str(index))])
+                    expected_item,
+                    given_item,
+                    path + [PathComponent(PathComponentKind.LIST_INDEX, str(index))],
+                )
 
     elif isinstance(expected, set) and isinstance(given, set):
         if not set(expected).issubset(set(given)):
@@ -103,7 +104,8 @@ def is_dict_subset(expected: dict,
                     message="Subset mismatch in set",
                     given_node=given,
                     expected_node=expected,
-                ))
+                )
+            )
 
     elif expected != given:
         failures.append(
@@ -112,7 +114,8 @@ def is_dict_subset(expected: dict,
                 message="Value mismatch",
                 given_node=given,
                 expected_node=expected,
-            ))
+            )
+        )
 
     return failures
 
@@ -174,13 +177,15 @@ def run_reflection_tool_provider(
             command=f"clang++ -std=c++23 {file}",
             file=file,
             output=str(Path(file).with_suffix(".o")),
-        ) for file in text.keys()
+        )
+        for file in text.keys()
     ]
 
     # log().info(compile_commands_content)
 
     compile_commands.write_text(
-        json.dumps([cmd.model_dump() for cmd in compile_commands_content]))
+        json.dumps([cmd.model_dump() for cmd in compile_commands_content])
+    )
 
     for file, content in text.items():
         full = Path(code_dir).joinpath(file)
@@ -196,11 +201,12 @@ def run_reflection_tool_provider(
     commands = ex.read_compile_cmmands(conf)
     wraps: List[TuWrap] = []
     for mapping in mappings:
-        assert any([cmd.file == str(mapping.path) for cmd in compile_commands_content
-                   ]), "Full command list {}, mapping path {}".format(
-                       [cmd.file for cmd in compile_commands_content],
-                       mapping.path,
-                   )
+        assert any([cmd.file == str(mapping.path) for cmd in compile_commands_content]), (
+            "Full command list {}, mapping path {}".format(
+                [cmd.file for cmd in compile_commands_content],
+                mapping.path,
+            )
+        )
 
         wrap = ex.run_reflection_tool_for_path(
             conf,
@@ -224,12 +230,16 @@ def get_struct(
     **kwargs: Any,
 ) -> GenTuStruct:
     code_dir = stable_test_dir
-    tu = run_reflection_tool_provider(
-        text,
-        code_dir_override or Path(code_dir),
-        output_dir=stable_test_dir,
-        **kwargs,
-    ).wraps[0].tu
+    tu = (
+        run_reflection_tool_provider(
+            text,
+            code_dir_override or Path(code_dir),
+            output_dir=stable_test_dir,
+            **kwargs,
+        )
+        .wraps[0]
+        .tu
+    )
     assert len(tu.structs) == 1
     return tu.structs[0]
 
@@ -248,8 +258,11 @@ def get_include_tree(
         output_dir=stable_test_dir,
         **kwargs,
     ).wraps
-    tu = next(it for it in tus
-              if it.tu.main_file_include_tree.absolute_path.endswith(main_file_suffix))
+    tu = next(
+        it
+        for it in tus
+        if it.tu.main_file_include_tree.absolute_path.endswith(main_file_suffix)
+    )
 
     assert tu.tu.main_file_include_tree
     return tu.tu.main_file_include_tree
@@ -258,24 +271,32 @@ def get_include_tree(
 @beartype
 def get_entires(text: str, stable_test_dir: Path, **kwargs: Any) -> List[GenTuUnion]:
     code_dir = stable_test_dir
-    tu = run_reflection_tool_provider(
-        text,
-        Path(code_dir),
-        output_dir=stable_test_dir,
-        **kwargs,
-    ).wraps[0].tu
+    tu = (
+        run_reflection_tool_provider(
+            text,
+            Path(code_dir),
+            output_dir=stable_test_dir,
+            **kwargs,
+        )
+        .wraps[0]
+        .tu
+    )
     return tu.enums + tu.structs + tu.functions + tu.typedefs
 
 
 @beartype
 def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
     code_dir = stable_test_dir
-    tu = run_reflection_tool_provider(
-        text,
-        Path(code_dir),
-        output_dir=stable_test_dir,
-        **kwargs,
-    ).wraps[0].tu
+    tu = (
+        run_reflection_tool_provider(
+            text,
+            Path(code_dir),
+            output_dir=stable_test_dir,
+            **kwargs,
+        )
+        .wraps[0]
+        .tu
+    )
     assert len(tu.enums) == 1
     return tu.enums[0]
 
@@ -283,25 +304,31 @@ def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
 @beartype
 def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFunction:
     code_dir = stable_test_dir
-    tu = run_reflection_tool_provider(
-        text,
-        Path(code_dir),
-        output_dir=stable_test_dir,
-        **kwargs,
-    ).wraps[0].tu
+    tu = (
+        run_reflection_tool_provider(
+            text,
+            Path(code_dir),
+            output_dir=stable_test_dir,
+            **kwargs,
+        )
+        .wraps[0]
+        .tu
+    )
 
     assert len(tu.functions) == 1
     return tu.functions[0]
 
 
 @beartype
-def get_type(*,
-             preamble: List[str],
-             stable_test_dir: Path,
-             typ: str = "",
-             struct_header: str = "struct [[refl]] test",
-             field_decl: Optional[str] = None,
-             **kwargs: Any) -> QualType:
+def get_type(
+    *,
+    preamble: List[str],
+    stable_test_dir: Path,
+    typ: str = "",
+    struct_header: str = "struct [[refl]] test",
+    field_decl: Optional[str] = None,
+    **kwargs: Any,
+) -> QualType:
     """
     Parse the `typ` parameter to qualified type and return result.
 
@@ -320,7 +347,8 @@ def get_type(*,
         type_use = f"[[refl]] {typ} field;"
 
     struct = get_struct(
-        "\n".join(preamble) + f"""
+        "\n".join(preamble)
+        + f"""
 {struct_header} {{
     {type_use}
 }};
@@ -342,9 +370,11 @@ def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
 
 
 @beartype
-def format_nim_code(refl: ReflProviderRunResult,
-                    is_cpp_wrap: bool = True,
-                    with_header_imports: bool = True) -> Dict[str, gen_nim.GenNimResult]:
+def format_nim_code(
+    refl: ReflProviderRunResult,
+    is_cpp_wrap: bool = True,
+    with_header_imports: bool = True,
+) -> Dict[str, gen_nim.GenNimResult]:
     graph: gen_nim.GenGraph = gen_nim.GenGraph()
     for wrap in refl.wraps:
         graph.add_unit(wrap)
@@ -360,11 +390,13 @@ def format_nim_code(refl: ReflProviderRunResult,
         code = gen_nim.to_nim(
             graph=graph,
             sub=sub,
-            conf=NimAstbuilderConfig(type_map=GenTypeMap(),
-                                     opts=NimAstbuilderStaticConfig(
-                                         with_header_imports=with_header_imports,
-                                         is_cpp_wrap=is_cpp_wrap,
-                                     )),
+            conf=NimAstbuilderConfig(
+                type_map=GenTypeMap(),
+                opts=NimAstbuilderStaticConfig(
+                    with_header_imports=with_header_imports,
+                    is_cpp_wrap=is_cpp_wrap,
+                ),
+            ),
             output_directory=refl.code_dir,
             get_out_path=get_out_path,
         )
@@ -397,17 +429,18 @@ def compile_nim_code(code_dir: Path, files: Dict[str, str]) -> None:
         code_dir.joinpath(file).write_text(content)
 
     for file in files.keys():
-        compile_nim_path(code_dir.joinpath(file),
-                         code_dir.joinpath(file).with_suffix(".bin"))
+        compile_nim_path(
+            code_dir.joinpath(file), code_dir.joinpath(file).with_suffix(".bin")
+        )
 
 
 @beartype
-def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
-                    test_text: str) -> tuple[int, str, str]:
-    compile_nim_code(code_dir=code_dir,
-                     files={
-                         file: res.content for file, res in formatted.items()
-                     })
+def verify_nim_code(
+    code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult], test_text: str
+) -> tuple[int, str, str]:
+    compile_nim_code(
+        code_dir=code_dir, files={file: res.content for file, res in formatted.items()}
+    )
 
     compile_nim_code(code_dir, files={"main.nim": test_text})
 
@@ -418,13 +451,13 @@ def verify_nim_code(code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult],
 
 @beartype
 @dataclass
-class AllCodeWrappers():
+class AllCodeWrappers:
     nim: list[gen_nim.GenNimResult] = field(default_factory=list)
     python: list[NbModule] = field(default_factory=list)
     embind: list[astbuilder_embind.WasmModule] = field(default_factory=list)
 
     def getNimEntries(
-            self, name: str
+        self, name: str
     ) -> list[astbuilder_nim.NimEntryParams | astbuilder_nim.IdentParams]:
         return list(itertools.chain(*[gen.getEntryForName(name) for gen in self.nim]))
 
@@ -436,8 +469,9 @@ class AllCodeWrappers():
 
 
 @beartype
-def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
-                 **kwargs: Any) -> AllCodeWrappers:
+def get_all_code(
+    text: Union[str, Dict[str, str]], *, stable_test_dir: Path, **kwargs: Any
+) -> AllCodeWrappers:
     wraps = run_reflection_tool_provider(
         text,
         Path(stable_test_dir),
@@ -473,7 +507,8 @@ def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
                 get_out_path=get_out_path,
                 conf=nim_conf,
                 output_directory=stable_test_dir.joinpath("nim"),
-            ))
+            )
+        )
 
         py_conf = NanobindAstbuilderConfig(type_map=type_map)
         nb_module = NbModule(sub.original.name, py_conf)
@@ -493,6 +528,7 @@ def get_all_code(text: Union[str, Dict[str, str]], *, stable_test_dir: Path,
 
     pprint_to_file(result, stable_test_dir.joinpath("result.py"), width=120)
     stable_test_dir.joinpath("result.json").write_text(
-        json.dumps(to_debug_json(result), indent=2))
+        json.dumps(to_debug_json(result), indent=2)
+    )
 
     return result

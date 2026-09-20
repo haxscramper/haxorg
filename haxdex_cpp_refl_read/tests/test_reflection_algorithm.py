@@ -1,9 +1,10 @@
+import pytest
 from py_codegen.codegen_algo import (
-    group_by_template,
-    match_specializations,
     SpecializationMatchResult,
     TemplateUnificationMatcher,
     TypedefExpansionMatcher,
+    group_by_template,
+    match_specializations,
     unify_qualtype,
     unify_template_params,
 )
@@ -17,7 +18,6 @@ from py_codegen.codegen_ir import (
     ReferenceKind,
     TemplateParamKind,
 )
-import pytest
 
 
 def test_unify_qualtype_simple_template_param() -> None:
@@ -157,19 +157,23 @@ def test_template_declaration_matching_with_default_type_argument() -> None:
     matcher = TemplateUnificationMatcher(debug=True)
 
     template_name = QualType(Name="X")
-    template_params = GenTuTemplateParams(Stacks=[
-        GenTuTemplateGroup(Params=[
-            GenTuTemplateTypename(
-                Kind=TemplateParamKind.Type,
-                TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
-            ),
-            GenTuTemplateTypename(
-                Kind=TemplateParamKind.Type,
-                TypeExpr=QualType(Name="U", IsTemplateTypeParam=True),
-                Default=QualType(Name="int", IsBuiltin=True),
-            ),
-        ])
-    ])
+    template_params = GenTuTemplateParams(
+        Stacks=[
+            GenTuTemplateGroup(
+                Params=[
+                    GenTuTemplateTypename(
+                        Kind=TemplateParamKind.Type,
+                        TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+                    ),
+                    GenTuTemplateTypename(
+                        Kind=TemplateParamKind.Type,
+                        TypeExpr=QualType(Name="U", IsTemplateTypeParam=True),
+                        Default=QualType(Name="int", IsBuiltin=True),
+                    ),
+                ]
+            )
+        ]
+    )
 
     specialization = QualType(
         Name="X",
@@ -197,23 +201,27 @@ def test_template_declaration_matching_with_instantiated_default_argument() -> N
     matcher = TemplateUnificationMatcher(debug=True)
 
     template_name = QualType(Name="X")
-    template_params = GenTuTemplateParams(Stacks=[
-        GenTuTemplateGroup(Params=[
-            GenTuTemplateTypename(
-                Kind=TemplateParamKind.Type,
-                TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
-            ),
-            GenTuTemplateTypename(
-                Kind=TemplateParamKind.Type,
-                TypeExpr=QualType(Name="U", IsTemplateTypeParam=True),
-                Default=QualType(
-                    Name="hash",
-                    Spaces=[QualType(Name="std", IsNamespace=True)],
-                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-                ),
-            ),
-        ])
-    ])
+    template_params = GenTuTemplateParams(
+        Stacks=[
+            GenTuTemplateGroup(
+                Params=[
+                    GenTuTemplateTypename(
+                        Kind=TemplateParamKind.Type,
+                        TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+                    ),
+                    GenTuTemplateTypename(
+                        Kind=TemplateParamKind.Type,
+                        TypeExpr=QualType(Name="U", IsTemplateTypeParam=True),
+                        Default=QualType(
+                            Name="hash",
+                            Spaces=[QualType(Name="std", IsNamespace=True)],
+                            Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                        ),
+                    ),
+                ]
+            )
+        ]
+    )
 
     specialization = QualType(
         Name="X",
@@ -230,23 +238,21 @@ def test_template_declaration_matching_with_instantiated_default_argument() -> N
         SpecializationMatchResult(
             instantiated_name=specialization,
             substitution_map={
-                "T":
-                    QualType(Name="float", IsBuiltin=True),
-                "U":
-                    QualType(
-                        Name="hash",
-                        Spaces=[QualType(Name="std", IsNamespace=True)],
-                        Params=[
-                            QualType(
-                                Name="float",
-                                IsBuiltin=True,
-                                OriginalSubstitutedTemplate=QualType(
-                                    Name="T",
-                                    IsTemplateTypeParam=True,
-                                ),
-                            )
-                        ],
-                    ),
+                "T": QualType(Name="float", IsBuiltin=True),
+                "U": QualType(
+                    Name="hash",
+                    Spaces=[QualType(Name="std", IsNamespace=True)],
+                    Params=[
+                        QualType(
+                            Name="float",
+                            IsBuiltin=True,
+                            OriginalSubstitutedTemplate=QualType(
+                                Name="T",
+                                IsTemplateTypeParam=True,
+                            ),
+                        )
+                    ],
+                ),
             },
         )
     ], matcher.get_debug()
@@ -258,14 +264,18 @@ def test_template_template_parameter_matches_single_type_param_template() -> Non
     template_param = GenTuTemplateTypename(
         Kind=TemplateParamKind.Template,
         TypeExpr=QualType(Name="TT"),
-        TemplateParams=GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[
-                GenTuTemplateTypename(
-                    Kind=TemplateParamKind.Type,
-                    TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+        TemplateParams=GenTuTemplateParams(
+            Stacks=[
+                GenTuTemplateGroup(
+                    Params=[
+                        GenTuTemplateTypename(
+                            Kind=TemplateParamKind.Type,
+                            TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+                        )
+                    ]
                 )
-            ])
-        ]),
+            ]
+        ),
     )
 
     specialization = QualType(
@@ -279,9 +289,7 @@ def test_template_template_parameter_matches_single_type_param_template() -> Non
     assert result == {
         "TT": specialization,
         "X": QualType(Name="X", IsTemplateTypeParam=True),
-    } or result == {
-        "TT": specialization
-    }, matcher.get_debug()
+    } or result == {"TT": specialization}, matcher.get_debug()
 
 
 def test_template_template_parameter_mismatch_on_arity() -> None:
@@ -290,14 +298,18 @@ def test_template_template_parameter_mismatch_on_arity() -> None:
     template_param = GenTuTemplateTypename(
         Kind=TemplateParamKind.Template,
         TypeExpr=QualType(Name="TT"),
-        TemplateParams=GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[
-                GenTuTemplateTypename(
-                    Kind=TemplateParamKind.Type,
-                    TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+        TemplateParams=GenTuTemplateParams(
+            Stacks=[
+                GenTuTemplateGroup(
+                    Params=[
+                        GenTuTemplateTypename(
+                            Kind=TemplateParamKind.Type,
+                            TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+                        )
+                    ]
                 )
-            ])
-        ]),
+            ]
+        ),
     )
 
     specialization = QualType(
@@ -320,14 +332,18 @@ def test_template_template_parameter_matches_non_type_inner_param() -> None:
     template_param = GenTuTemplateTypename(
         Kind=TemplateParamKind.Template,
         TypeExpr=QualType(Name="TT"),
-        TemplateParams=GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[
-                GenTuTemplateTypename(
-                    Kind=TemplateParamKind.NonType,
-                    TypeExpr=QualType(Name="N"),
+        TemplateParams=GenTuTemplateParams(
+            Stacks=[
+                GenTuTemplateGroup(
+                    Params=[
+                        GenTuTemplateTypename(
+                            Kind=TemplateParamKind.NonType,
+                            TypeExpr=QualType(Name="N"),
+                        )
+                    ]
                 )
-            ])
-        ]),
+            ]
+        ),
     )
 
     specialization = QualType(
@@ -346,14 +362,18 @@ def test_template_template_parameter_matches_auto_inner_param() -> None:
     template_param = GenTuTemplateTypename(
         Kind=TemplateParamKind.Template,
         TypeExpr=QualType(Name="TT"),
-        TemplateParams=GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[
-                GenTuTemplateTypename(
-                    Kind=TemplateParamKind.NonType,
-                    TypeExpr=QualType(Name="auto"),
+        TemplateParams=GenTuTemplateParams(
+            Stacks=[
+                GenTuTemplateGroup(
+                    Params=[
+                        GenTuTemplateTypename(
+                            Kind=TemplateParamKind.NonType,
+                            TypeExpr=QualType(Name="auto"),
+                        )
+                    ]
                 )
-            ])
-        ]),
+            ]
+        ),
     )
 
     specialization = QualType(
@@ -372,21 +392,26 @@ def test_template_template_parameter_matches_nested_template_template_param() ->
     nested_inner = GenTuTemplateTypename(
         Kind=TemplateParamKind.Template,
         TypeExpr=QualType(Name="Inner"),
-        TemplateParams=GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[
-                GenTuTemplateTypename(
-                    Kind=TemplateParamKind.Type,
-                    TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+        TemplateParams=GenTuTemplateParams(
+            Stacks=[
+                GenTuTemplateGroup(
+                    Params=[
+                        GenTuTemplateTypename(
+                            Kind=TemplateParamKind.Type,
+                            TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+                        )
+                    ]
                 )
-            ])
-        ]),
+            ]
+        ),
     )
 
     outer_param = GenTuTemplateTypename(
         Kind=TemplateParamKind.Template,
         TypeExpr=QualType(Name="TT"),
         TemplateParams=GenTuTemplateParams(
-            Stacks=[GenTuTemplateGroup(Params=[nested_inner])]),
+            Stacks=[GenTuTemplateGroup(Params=[nested_inner])]
+        ),
     )
 
     specialization = QualType(
@@ -410,15 +435,19 @@ def test_template_template_parameter_variadic_inner_param() -> None:
     template_param = GenTuTemplateTypename(
         Kind=TemplateParamKind.Template,
         TypeExpr=QualType(Name="TT"),
-        TemplateParams=GenTuTemplateParams(Stacks=[
-            GenTuTemplateGroup(Params=[
-                GenTuTemplateTypename(
-                    Kind=TemplateParamKind.Type,
-                    TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
-                    Variadic=True,
+        TemplateParams=GenTuTemplateParams(
+            Stacks=[
+                GenTuTemplateGroup(
+                    Params=[
+                        GenTuTemplateTypename(
+                            Kind=TemplateParamKind.Type,
+                            TypeExpr=QualType(Name="T", IsTemplateTypeParam=True),
+                            Variadic=True,
+                        )
+                    ]
                 )
-            ])
-        ]),
+            ]
+        ),
     )
 
     specialization = QualType(
@@ -510,10 +539,12 @@ def test_get_non_template_name_flattens_nested_spaces_by_traversal_order() -> No
 
     right = QualType(
         Name="C",
-        Spaces=[QualType(
-            Name="B",
-            Spaces=[QualType(Name="A")],
-        )],
+        Spaces=[
+            QualType(
+                Name="B",
+                Spaces=[QualType(Name="A")],
+            )
+        ],
     )
 
     assert left.flatQualNameNoTemplateParams() == ("A", "B", "C")
@@ -521,27 +552,30 @@ def test_get_non_template_name_flattens_nested_spaces_by_traversal_order() -> No
 
 
 def test_typedef_expands_simple_template_alias() -> None:
-    matcher = TypedefExpansionMatcher([
-        GenTuTypedef(
-            Name=QualType(
-                Name="Opt",
-                Spaces=[QualType(Name="hstd")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-            Base=QualType(
-                Name="optional",
-                Spaces=[QualType(Name="std")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-        )
-    ])
+    matcher = TypedefExpansionMatcher(
+        [
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="optional",
+                    Spaces=[QualType(Name="std")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+            )
+        ]
+    )
 
     resolved = matcher.getResolvedType(
         QualType(
             Name="Opt",
             Spaces=[QualType(Name="hstd")],
             Params=[QualType(Name="int")],
-        ))
+        )
+    )
 
     assert resolved.Name == "optional"
     assert resolved.Spaces[0].Name == "std"
@@ -549,20 +583,22 @@ def test_typedef_expands_simple_template_alias() -> None:
 
 
 def test_typedef_expands_nested_parameter_recursively() -> None:
-    matcher = TypedefExpansionMatcher([
-        GenTuTypedef(
-            Name=QualType(
-                Name="Opt",
-                Spaces=[QualType(Name="hstd")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-            Base=QualType(
-                Name="optional",
-                Spaces=[QualType(Name="std")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-        )
-    ])
+    matcher = TypedefExpansionMatcher(
+        [
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="optional",
+                    Spaces=[QualType(Name="std")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+            )
+        ]
+    )
 
     resolved = matcher.getResolvedType(
         QualType(
@@ -575,7 +611,8 @@ def test_typedef_expands_nested_parameter_recursively() -> None:
                     Params=[QualType(Name="int")],
                 )
             ],
-        ))
+        )
+    )
 
     assert resolved.Name == "vector"
     assert resolved.Spaces[0].Name == "std"
@@ -585,39 +622,42 @@ def test_typedef_expands_nested_parameter_recursively() -> None:
 
 
 def test_typedef_expands_chain_until_fixed_point() -> None:
-    matcher = TypedefExpansionMatcher([
-        GenTuTypedef(
-            Name=QualType(
-                Name="Opt",
-                Spaces=[QualType(Name="hstd")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+    matcher = TypedefExpansionMatcher(
+        [
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="Maybe",
+                    Spaces=[QualType(Name="app")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
             ),
-            Base=QualType(
-                Name="Maybe",
-                Spaces=[QualType(Name="app")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Maybe",
+                    Spaces=[QualType(Name="app")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="optional",
+                    Spaces=[QualType(Name="std")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
             ),
-        ),
-        GenTuTypedef(
-            Name=QualType(
-                Name="Maybe",
-                Spaces=[QualType(Name="app")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-            Base=QualType(
-                Name="optional",
-                Spaces=[QualType(Name="std")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-        ),
-    ])
+        ]
+    )
 
     resolved = matcher.getResolvedType(
         QualType(
             Name="Opt",
             Spaces=[QualType(Name="hstd")],
             Params=[QualType(Name="int")],
-        ))
+        )
+    )
 
     assert resolved.Name == "optional"
     assert resolved.Spaces[0].Name == "std"
@@ -625,20 +665,22 @@ def test_typedef_expands_chain_until_fixed_point() -> None:
 
 
 def test_typedef_expands_inside_function_signature() -> None:
-    matcher = TypedefExpansionMatcher([
-        GenTuTypedef(
-            Name=QualType(
-                Name="Opt",
-                Spaces=[QualType(Name="hstd")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-            Base=QualType(
-                Name="optional",
-                Spaces=[QualType(Name="std")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-        )
-    ])
+    matcher = TypedefExpansionMatcher(
+        [
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="optional",
+                    Spaces=[QualType(Name="std")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+            )
+        ]
+    )
 
     source = QualType(
         Name="",
@@ -677,27 +719,30 @@ def test_typedef_expands_inside_function_signature() -> None:
 
 
 def test_typedef_does_not_match_only_by_partial_inner_prefix() -> None:
-    matcher = TypedefExpansionMatcher([
-        GenTuTypedef(
-            Name=QualType(
-                Name="Opt",
-                Spaces=[QualType(Name="hstd")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-            Base=QualType(
-                Name="optional",
-                Spaces=[QualType(Name="std")],
-                Params=[QualType(Name="T", IsTemplateTypeParam=True)],
-            ),
-        )
-    ])
+    matcher = TypedefExpansionMatcher(
+        [
+            GenTuTypedef(
+                Name=QualType(
+                    Name="Opt",
+                    Spaces=[QualType(Name="hstd")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+                Base=QualType(
+                    Name="optional",
+                    Spaces=[QualType(Name="std")],
+                    Params=[QualType(Name="T", IsTemplateTypeParam=True)],
+                ),
+            )
+        ]
+    )
 
     resolved = matcher.getResolvedType(
         QualType(
             Name="vector",
             Spaces=[QualType(Name="std")],
             Params=[QualType(Name="char")],
-        ))
+        )
+    )
 
     assert resolved == QualType(
         Name="vector",
@@ -706,8 +751,9 @@ def test_typedef_does_not_match_only_by_partial_inner_prefix() -> None:
     )
 
 
-def test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrappers(
-) -> None:
+def test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrappers() -> (
+    None
+):
     matcher = TypedefExpansionMatcher(
         [
             GenTuTypedef(
@@ -731,7 +777,8 @@ def test_typedef_preserves_cvref_on_outer_type_when_alias_target_has_own_wrapper
             Name="Ref",
             Spaces=[QualType(Name="hstd")],
             Params=[QualType(Name="int")],
-        ))
+        )
+    )
 
     assert resolved.Name == "int"
     assert resolved.RefKind == ReferenceKind.LValue
@@ -761,7 +808,8 @@ def test_typedef_substitution_sets_original_substituted_template() -> None:
             Name="Opt",
             Spaces=[QualType(Name="hstd")],
             Params=[QualType(Name="int")],
-        ))
+        )
+    )
 
     assert len(resolved.Params) == 1
     assert resolved.Params[0].Name == "int"

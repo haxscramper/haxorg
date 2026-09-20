@@ -1,13 +1,16 @@
+import itertools
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
-import itertools
 from pathlib import Path
 from pprint import pformat
 
-from beartype import beartype
-from beartype.typing import Dict, List, Optional, Set, TypeAlias, Union
 import graphviz as gv
 import igraph as ig
+from beartype import beartype
+from beartype.typing import Dict, List, Optional, Set
+from py_scriptutils.script_logging import log
+from pydantic import BaseModel, Field
+
 from py_codegen.codegen_ir import (
     GenTuEnum,
     GenTuFunction,
@@ -18,8 +21,6 @@ from py_codegen.codegen_ir import (
     QualTypeKind,
 )
 from py_codegen.refl_read import ConvTu
-from py_scriptutils.script_logging import log
-from pydantic import BaseModel, Field
 
 
 @beartype
@@ -45,7 +46,8 @@ def get_declared_types_rec(
                     get_declared_types_rec(
                         _nested,  # type: ignore
                         expanded_use=expanded_use,
-                    ))
+                    )
+                )
 
         case GenTuTypedef():
             add(decl.Name)
@@ -55,10 +57,12 @@ def get_declared_types_rec(
 
         case ConvTu():
             for it in decl.get_all():
-                result.extend(get_declared_types_rec(
-                    it,
-                    expanded_use=expanded_use,
-                ))
+                result.extend(
+                    get_declared_types_rec(
+                        it,
+                        expanded_use=expanded_use,
+                    )
+                )
 
     return result
 
@@ -107,10 +111,12 @@ def get_used_types_rec(
 
         case ConvTu():
             for it in decl.get_all():
-                result.extend(get_used_types_rec(
-                    it,
-                    expanded_use=expanded_use,
-                ))
+                result.extend(
+                    get_used_types_rec(
+                        it,
+                        expanded_use=expanded_use,
+                    )
+                )
 
         case GenTuEnum():
             pass
@@ -140,16 +146,19 @@ def hash_qual_type(
                     hash_qual_type(
                         t.Func.ReturnType,
                         with_namespace=with_namespace,
-                    ))
+                    )
+                )
 
             else:
                 parts.append(0)
 
             for T in t.Func.Args:
-                parts.append(hash_qual_type(
-                    T,
-                    with_namespace=with_namespace,
-                ))
+                parts.append(
+                    hash_qual_type(
+                        T,
+                        with_namespace=with_namespace,
+                    )
+                )
 
         case QualTypeKind.Array:
             pass
@@ -158,16 +167,20 @@ def hash_qual_type(
             parts.append(hash(t.Name))
 
             for space in t.Spaces:
-                parts.append(hash_qual_type(
-                    space,
-                    with_namespace=with_namespace,
-                ))
+                parts.append(
+                    hash_qual_type(
+                        space,
+                        with_namespace=with_namespace,
+                    )
+                )
 
             for param in t.Params:
-                parts.append(hash_qual_type(
-                    param,
-                    with_namespace=with_namespace,
-                ))
+                parts.append(
+                    hash_qual_type(
+                        param,
+                        with_namespace=with_namespace,
+                    )
+                )
 
     assert parts != [0], pformat(t)
 
@@ -180,9 +193,11 @@ class TranslationUnitLocations(BaseModel):
     Information about external dependencies of a translation unit -- `Name` of the dependency
     library/package and the relative path inside of this library.
     """
+
     Name: str = Field(description="Name of the translation unit group", default="")
     Files: List[Path] = Field(
-        description="Paths relative to the root directory of this translation unit group")
+        description="Paths relative to the root directory of this translation unit group"
+    )
 
 
 @beartype
@@ -192,12 +207,15 @@ class TranslationUnitInfo(BaseModel):
     alongside the generated files and translation unit JSON dumps, to simplify
     search for "who defines" and "what is imported" information.
     """
+
     Defines: List[QualType] = Field(
         description="List of types defined in the translation module",
-        default_factory=list)
+        default_factory=list,
+    )
     Depends: List[TranslationUnitLocations] = Field(
         description="Dependencies on translation units from other external locations",
-        default_factory=list)
+        default_factory=list,
+    )
 
 
 @dataclass
@@ -205,6 +223,7 @@ class TuWrap:
     """
     Converted translation unit
     """
+
     name: str
     tu: ConvTu
     original: Path  ## Path of the original main file of the translation unit
@@ -231,6 +250,7 @@ class GenGraph:
         start each translation unit gets its own subgraph, later on the subgraphs
         might be merged together if mutually recursive file imports are detected.
         """
+
         ## Name of the original translatuion unit
         name: str
         ## Full path of the path of the main translation unit file
@@ -271,8 +291,10 @@ class GenGraph:
     def get_declared_sub(self, typ: QualType) -> Optional[Sub]:
         """Get subgraph defining the qualified type"""
         _id = self.id_from_hash(hash_qual_type(typ))
-        if not (typ.isPrimitive() or typ.isArray() or
-                typ.isFunction()) and _id not in self.id_to_entry:
+        if (
+            not (typ.isPrimitive() or typ.isArray() or typ.isFunction())
+            and _id not in self.id_to_entry
+        ):
             log().warning(f"No known declaration of the [red]{typ.format()}[/red]")
 
         return self.get_sub(_id)
@@ -298,10 +320,15 @@ class GenGraph:
             case GenTuFunction():
                 return self.id_from_hash(
                     hash(
-                        tuple([
-                            hash_qual_type(entry.ReturnType),
-                            hash(entry.Name),
-                        ] + [hash_qual_type(t.Type) for t in entry.Args])))
+                        tuple(
+                            [
+                                hash_qual_type(entry.ReturnType),
+                                hash(entry.Name),
+                            ]
+                            + [hash_qual_type(t.Type) for t in entry.Args]
+                        )
+                    )
+                )
 
             case _:
                 assert False
@@ -313,13 +340,17 @@ class GenGraph:
             self.graph.vs[_type]["label"] = Type.format()
             self.graph.vs[_type]["dbg_origin"] = Type.DbgOrigin
             self.graph.vs[_type]["is_builtin"] = Type.IsBuiltin or Type.Name in [
-                "size_t", "uint32_t", "uint16_t", "int32_t"
+                "size_t",
+                "uint32_t",
+                "uint16_t",
+                "int32_t",
             ]
 
         if not self.graph.are_connected(_id, _type):
             self.graph.add_edge(_id, _type)
-            self.graph.es[self.graph.get_eid(
-                _id, _type)]["dbg_origin"] = f"{dbg_from} -> {Type.format()}"
+            self.graph.es[self.graph.get_eid(_id, _type)]["dbg_origin"] = (
+                f"{dbg_from} -> {Type.format()}"
+            )
 
     def get_used_type(self, decl: GenTuUnion) -> List[QualType]:
         """
@@ -479,7 +510,9 @@ class GenGraph:
             type_ids = list(
                 itertools.dropwhile(
                     lambda _id: isinstance(self.id_to_entry[_id], GenTuFunction),
-                    sub.nodes))
+                    sub.nodes,
+                )
+            )
 
             if 1 < len(type_ids):
                 for decl1, decl2 in itertools.pairwise(type_ids):
@@ -499,8 +532,10 @@ class GenGraph:
             for idx, scc in enumerate(sccs):
                 print(f"[{idx}] SCC group " + "~" * 120, file=file)
                 for node in scc:
-                    print(f"  Node {g.vs[node]['label']} in {g.vs[node]['dbg_origin']}",
-                          file=file)
+                    print(
+                        f"  Node {g.vs[node]['label']} in {g.vs[node]['dbg_origin']}",
+                        file=file,
+                    )
                     for edge in g.incident(node, mode="out"):
                         print(f"    -> {g.vs[g.es[edge].target]['label']}", file=file)
 
@@ -537,9 +572,17 @@ class GenGraph:
 
             if 1 < len(group):
                 log("refl.cli.read").info(
-                    "Merging strongly connected files %s" % (", ".join([
-                        f"[green]{g.original.name}[/green]" for g in group if g.original
-                    ])))
+                    "Merging strongly connected files %s"
+                    % (
+                        ", ".join(
+                            [
+                                f"[green]{g.original.name}[/green]"
+                                for g in group
+                                if g.original
+                            ]
+                        )
+                    )
+                )
 
         self.subgraphs = new_grouped + ungrouped_sets
 
@@ -549,8 +592,11 @@ class GenGraph:
         for _id in sub.nodes:
             decl = self.id_to_entry[_id]
             match decl:
-                case GenTuEnum(Name=name) | GenTuStruct(Name=name) | GenTuTypedef(
-                    Name=name):
+                case (
+                    GenTuEnum(Name=name)
+                    | GenTuStruct(Name=name)
+                    | GenTuTypedef(Name=name)
+                ):
                     result.Defines.append(name)
 
         return result
@@ -572,8 +618,7 @@ class GenGraph:
 
         # Export Nodes to CSV
         nodes_data = [
-            dict(node_id=node, **{attr: g.vs[node][attr]
-                                  for attr in g.vs.attributes()})
+            dict(node_id=node, **{attr: g.vs[node][attr] for attr in g.vs.attributes()})
             for node in range(len(g.vs))
         ]
         nodes_df = pd.DataFrame(nodes_data)
@@ -581,21 +626,24 @@ class GenGraph:
 
         # Export Edges to CSV
         edges_data = [
-            dict(edge_id=edge,
-                 source_id=g.es[edge].source,
-                 target_id=g.es[edge].target,
-                 **{attr: g.es[edge][attr]
-                    for attr in g.es.attributes()})
+            dict(
+                edge_id=edge,
+                source_id=g.es[edge].source,
+                target_id=g.es[edge].target,
+                **{attr: g.es[edge][attr] for attr in g.es.attributes()},
+            )
             for edge in range(len(g.es))
         ]
         edges_df = pd.DataFrame(edges_data)
         edges_df.to_csv(edge_file, index=False)
 
-    def to_graphviz(self,
-                    output_file: str,
-                    with_subgraphs: bool = True,
-                    drop_zero_degree: bool = False,
-                    drop_builtin_types: bool = True) -> None:
+    def to_graphviz(
+        self,
+        output_file: str,
+        with_subgraphs: bool = True,
+        drop_zero_degree: bool = False,
+        drop_builtin_types: bool = True,
+    ) -> None:
         dot = gv.Digraph(format="dot")
         dot.attr(rankdir="LR")
         dot.attr(overlap="false")
@@ -637,8 +685,9 @@ class GenGraph:
             for node in sub.nodes:
                 if is_accepted_node(node):
                     target.node(
-                        f'{sub.name}_{node}',
-                        **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
+                        f"{sub.name}_{node}",
+                        **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()},
+                    )
                     added_nodes.add(node)
                     if node in parent_tus and 1 < len(parent_tus[node]):
                         for target in parent_tus[node]:
@@ -648,7 +697,7 @@ class GenGraph:
         # Add nodes to subgraphs
         for sub in self.subgraphs:
             if with_subgraphs:
-                with dot.subgraph(name=f'cluster_{sub.name}') as c:
+                with dot.subgraph(name=f"cluster_{sub.name}") as c:
                     c.attr(label=sub.name)
                     rec_subgraph(c, sub)
 
@@ -659,8 +708,10 @@ class GenGraph:
         for node in range(len(g.vs)):
             if node not in added_nodes:
                 if is_accepted_node(node):
-                    dot.node(str(node),
-                             **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()})
+                    dot.node(
+                        str(node),
+                        **{attr: str(g.vs[node][attr]) for attr in g.vs.attributes()},
+                    )
 
         # Add edges
         for edge in g.es:
@@ -678,14 +729,15 @@ class GenGraph:
 
             if source_subs and target_subs:
                 # Find subgraphs of source and target
-                dot.edge(f'{source_subs[0]}_{source}', f'{target_subs[0]}_{target}',
-                         **attrs)
+                dot.edge(
+                    f"{source_subs[0]}_{source}", f"{target_subs[0]}_{target}", **attrs
+                )
 
             elif source_subs:
-                dot.edge(f'{source_subs[0]}_{source}', f'{target}', **attrs)
+                dot.edge(f"{source_subs[0]}_{source}", f"{target}", **attrs)
 
             elif target_subs:
-                dot.edge(f'{source}', f'{target_subs[0]}_{target}', **attrs)
+                dot.edge(f"{source}", f"{target_subs[0]}_{target}", **attrs)
 
             else:
                 dot.edge(str(source), str(target), **attrs)

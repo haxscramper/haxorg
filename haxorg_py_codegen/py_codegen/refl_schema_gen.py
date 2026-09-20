@@ -1,16 +1,16 @@
-from dataclasses import fields
 import json
-from pathlib import Path
 import re
 import typing
+from dataclasses import fields
+from pathlib import Path
 
+import betterproto
 from beartype import beartype
 from beartype.typing import Any
-import betterproto
-from py_codegen import codegen_ir
-import py_codegen.proto_lib as pb
-from py_scriptutils.script_logging import log
 from pydantic import BaseModel
+
+import py_codegen.proto_lib as pb
+from py_codegen import codegen_ir
 
 CAT = __name__
 

@@ -1,8 +1,9 @@
-from beartype import beartype
-from beartype.typing import Any, List, Optional, Tuple
-from py_cli import haxorg_cli, haxorg_opts
 import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, List, Tuple
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = "haxorg.export.sqlite"
 
@@ -22,14 +23,19 @@ def export_sqlite(ctx: haxorg_cli.CliRunContext) -> None:
         with ctx.event("Parse input files", CAT):
             for file in ctx.opts.export.sqlite.infile:
                 filesize = len(file.read_text()) if ctx.is_trace_enabled() else 0
-                with ctx.event("Parse file", CAT, dict(
+                with ctx.event(
+                    "Parse file",
+                    CAT,
+                    dict(
                         path=str(file),
                         size=filesize,
-                )):
+                    ),
+                ):
                     nodes.append((haxorg_cli.parseFile(ctx, file), str(file)))
 
         from py_haxorg.exporters.export_sqlite import Base, registerDocument
-        from sqlalchemy import create_engine, Engine
+        from sqlalchemy import Engine, create_engine
+
         if ctx.opts.export.sqlite.outfile.exists():
             ctx.opts.export.sqlite.outfile.unlink()
 

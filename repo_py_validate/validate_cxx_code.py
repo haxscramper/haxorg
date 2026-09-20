@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
-from tree_sitter import Language, Parser
 import tree_sitter_cpp as tscpp
+from tree_sitter import Language, Parser
 
 CPP_LANGUAGE = Language(tscpp.language())
 
@@ -23,7 +23,7 @@ def find_debug_calls(source_code: bytes, filename: str) -> list[tuple[int, int, 
     tree = parser.parse(source_code)
 
     findings = []
-    lines = source_code.split(b'\n')
+    lines = source_code.split(b"\n")
 
     def visit(node):
         # Match call_expression nodes
@@ -31,16 +31,20 @@ def find_debug_calls(source_code: bytes, filename: str) -> list[tuple[int, int, 
             # First child is the function being called
             func_node = node.child_by_field_name("function")
             if func_node:
-                func_name = source_code[func_node.start_byte:func_node.end_byte].decode
+                func_name = source_code[func_node.start_byte : func_node.end_byte].decode
                 if func_name in DEBUG_FUNCTIONS:
                     end_line_idx = node.end_point[0]
-                    line_content = lines[end_line_idx] if end_line_idx < len(
-                        lines) else b''
-                    if b'// hook-ignore' not in line_content:
-                        findings.append((
-                            node.start_point[0] + 1,  # line (1-indexed)
-                            node.start_point[1] + 1,  # column (1-indexed)
-                            func_name))
+                    line_content = (
+                        lines[end_line_idx] if end_line_idx < len(lines) else b""
+                    )
+                    if b"// hook-ignore" not in line_content:
+                        findings.append(
+                            (
+                                node.start_point[0] + 1,  # line (1-indexed)
+                                node.start_point[1] + 1,  # column (1-indexed)
+                                func_name,
+                            )
+                        )
 
         for child in node.children:
             visit(child)

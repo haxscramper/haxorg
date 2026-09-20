@@ -1,16 +1,14 @@
 from beartype import beartype
-from beartype.typing import Optional
+
 from py_codegen import codegen_ir
-from py_codegen.astbuilder_base_config import AstbulderConfig, BUILTIN_TYPES
+from py_codegen.astbuilder_base_config import BUILTIN_TYPES, AstbulderConfig
 from py_codegen.codegen_ir import QualType
-from py_scriptutils.script_logging import log
 
 CAT = __name__
 
 
 @beartype
 class CAstbuilderConfig(AstbulderConfig):
-
     def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
         return self._isExposedByBackendImpl(entry, "c")
 
@@ -18,8 +16,11 @@ class CAstbuilderConfig(AstbulderConfig):
         template_type = self.type_map.get_structs_for_template_name(Type)
         # FIXME: This assumes the type does not have a template specializations
         # that are wrapped as independent structures.
-        if template_type and template_type[
-                0].ReflectionParams.backend.c.instantiation_mode == "void-handle":
+        if (
+            template_type
+            and template_type[0].ReflectionParams.backend.c.instantiation_mode
+            == "void-handle"
+        ):
             useParams = False
 
         else:
@@ -41,11 +42,13 @@ class CAstbuilderConfig(AstbulderConfig):
                 match Type.RefKind:
                     case codegen_ir.ReferenceKind.LValue:
                         return NewType.copy_update(
-                            RefKind=codegen_ir.ReferenceKind.NotRef, PtrCount=1)
+                            RefKind=codegen_ir.ReferenceKind.NotRef, PtrCount=1
+                        )
 
                     case codegen_ir.ReferenceKind.RValue:
                         return NewType.copy_update(
-                            RefKind=codegen_ir.ReferenceKind.NotRef)
+                            RefKind=codegen_ir.ReferenceKind.NotRef
+                        )
 
                     case _:
                         return NewType
@@ -95,11 +98,20 @@ class CAstbuilderConfig(AstbulderConfig):
                 return QualType(Name=prefix + "immer_flex_vector")
 
             case ["org", "imm", "ImmAdapterT", _]:
-                return QualType(Name=prefix + self.getTypeBindName(Type.par0()) +
-                                "Adapter")
+                return QualType(
+                    Name=prefix + self.getTypeBindName(Type.par0()) + "Adapter"
+                )
 
-            case ["hstd", bit_int
-                 ] if bit_int in {"i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64"}:
+            case ["hstd", bit_int] if bit_int in {
+                "i8",
+                "i16",
+                "i32",
+                "i64",
+                "u8",
+                "u16",
+                "u32",
+                "u64",
+            }:
                 sign = bit_int[0]
                 if sign == "u":
                     return QualType(Name=f"uint{bit_int[1:]}_t")
@@ -113,8 +125,9 @@ class CAstbuilderConfig(AstbulderConfig):
                     return self.getBackendType(Type.par0())
 
                 else:
-                    return QualType(Name=prefix +
-                                    self.getTypeBindName(Type, withParams=True))
+                    return QualType(
+                        Name=prefix + self.getTypeBindName(Type, withParams=True)
+                    )
 
             case builtin if builtin in BUILTIN_TYPES:
                 return aux_api(Type)

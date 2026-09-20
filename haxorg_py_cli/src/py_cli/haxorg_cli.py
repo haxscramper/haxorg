@@ -1,28 +1,21 @@
-from pathlib import Path
 import time
+from pathlib import Path
 
-from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, TypeVar
-from py_cli.haxorg_opts import RootOptions
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.files import FileOperation
-from py_scriptutils.script_logging import log
-from py_scriptutils.toml_config_profiler import (
-    apply_options,
-    DefaultWrapperValue,
-    get_cli_model,
-    get_user_provided_params,
-    get_wrap_options,
-    make_config_provider,
-    merge_cli_model,
-    options_from_model,
-    pack_context,
-    run_config_provider,
-)
-from py_scriptutils.tracer import TraceCollector
 import rich.highlighter
 import rich.text
 import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Optional
+from py_scriptutils.files import FileOperation
+from py_scriptutils.script_logging import log
+from py_scriptutils.toml_config_profiler import (
+    get_user_provided_params,
+    pack_context,
+)
+from py_scriptutils.tracer import TraceCollector
+
+from py_cli.haxorg_opts import RootOptions
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
 CAT = __name__
@@ -30,7 +23,6 @@ CAT = __name__
 
 @beartype
 class CliRunContext:
-
     def __init__(self, opts: RootOptions) -> None:
         self.tracer = TraceCollector()
         self.opts = opts
@@ -83,18 +75,23 @@ def parseFile(
 
     if ctx.opts.yamlDump_traceDir:
         org.exportToYamlFile(
-            result, str(get_file(ctx.opts.yamlDump_traceDir, ".yaml")),
+            result,
+            str(get_file(ctx.opts.yamlDump_traceDir, ".yaml")),
             org.OrgYamlExportOpts(
                 skipNullFields=True,
                 skipLocation=True,
-            ))
+            ),
+        )
 
     if ctx.opts.jsonDump_traceDir:
         org.exportToJsonFile(result, str(get_file(ctx.opts.jsonDump_traceDir, ".json")))
 
     if ctx.opts.treeDump_traceDir:
-        org.exportToTreeFile(result, str(get_file(ctx.opts.treeDump_traceDir, ".txt")),
-                             org.OrgTreeExportOpts())
+        org.exportToTreeFile(
+            result,
+            str(get_file(ctx.opts.treeDump_traceDir, ".txt")),
+            org.OrgTreeExportOpts(),
+        )
 
     return result
 
@@ -171,16 +168,19 @@ def parseDirectory(ctx: CliRunContext, dir: Path) -> org.Org:
 
         except Exception as e:
             message = rich.highlighter.ReprHighlighter()(
-                rich.text.Text(f"Failed parsing '{path}'"))
+                rich.text.Text(f"Failed parsing '{path}'")
+            )
 
             for line in str(e).split("\n")[:10]:
                 message.append(rich.text.Text(f"\n{line}", style="dim"))
 
-            log(CAT).error(message,
-                           extra={
-                               "highlighter": rich.highlighter.NullHighlighter(),
-                               "markup": True,
-                           })
+            log(CAT).error(
+                message,
+                extra={
+                    "highlighter": rich.highlighter.NullHighlighter(),
+                    "markup": True,
+                },
+            )
 
             return org.Empty()
 

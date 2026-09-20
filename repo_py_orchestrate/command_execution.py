@@ -1,10 +1,13 @@
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
+from dataclasses import dataclass
+from pathlib import Path
 
+import docker
+import docker.models.containers
+import plumbum
 from beartype import beartype
 from beartype.typing import (
     Any,
@@ -18,9 +21,6 @@ from beartype.typing import (
     Union,
     Unpack,
 )
-import docker
-import docker.models.containers
-import plumbum
 from py_ci.util_scripting import get_j_cap
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import TaskContext
@@ -96,7 +96,7 @@ def _consume_execution_fail(
 ) -> None:
     message = "Failed to execute the command {} {}{}{}".format(
         cmd,
-        " ".join((f"\"{s}\"" for s in args)),
+        " ".join((f'"{s}"' for s in args)),
         f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
         f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
     )
@@ -257,16 +257,16 @@ def run_command(
 
     str_args: List[str] = [conv_arg(it) for it in args]
 
-    args_repr = " ".join((f"\"[cyan]{s}[/cyan]\"" for s in str_args))
+    args_repr = " ".join((f'"[cyan]{s}[/cyan]"' for s in str_args))
 
     def append_to_log(path: Path) -> None:
         with path.open("a") as file:
             file.write(f"""
-{'*' * 120}
+{"*" * 120}
 cwd : {cwd}
 args: {args}
 cmd:  {cmd}
-{'*' * 120}
+{"*" * 120}
 
 
 """)
@@ -278,9 +278,11 @@ cmd:  {cmd}
     if append_stdout_debug:
         append_to_log(stdout_debug)
 
-    log(CAT).debug(f"Running [red]{cmd}[/red] {args_repr}" +
-                   (f" in [green]{cwd}[/green]" if cwd else "") +
-                   (f" with [purple]{env}[/purple]" if env else ""))
+    log(CAT).debug(
+        f"Running [red]{cmd}[/red] {args_repr}"
+        + (f" in [green]{cwd}[/green]" if cwd else "")
+        + (f" with [purple]{env}[/purple]" if env else "")
+    )
 
     if ctx.config.dryrun:
         log(CAT).warning("Dry run, early exit")
@@ -349,6 +351,7 @@ def run_command_with_json_args(
     import json
 
     from py_repository.repo_tasks.common import ctx_write_text
+
     if json_file_path:
         ctx_write_text(ctx, json_file_path, json.dumps(args, indent=2))
         return run_command(ctx, cmd, [str(json_file_path)], **kwargs)
@@ -364,11 +367,13 @@ def get_cmake_generator(ctx: TaskContext, build_dir: Path) -> Optional[str]:
     If there is no cache, will return None.
     """
     from py_repository.repo_tasks.common import check_path_exists, ctx_read_text
+
     cache = build_dir.joinpath("CMakeCache.txt")
     log(CAT).debug(f"Get cmake generator for file {cache} in build dir {build_dir}")
     if check_path_exists(ctx, cache):
         old_generator_line = [
-            line for line in ctx_read_text(ctx, cache).splitlines()
+            line
+            for line in ctx_read_text(ctx, cache).splitlines()
             if "CMAKE_GENERATOR:INTERNAL=" in line
         ][0]
 
@@ -406,7 +411,8 @@ def run_cmake_configure(
     if old_generator != generator and old_generator is not None:
         log(CAT).info(
             f"cmake generator is different. Old:'{old_generator}', new:'{generator}'. "
-            f"Removing build directory")
+            f"Removing build directory"
+        )
 
         # Unfortunately cmake is incapable of changing or overwriting the build generator
         # cleanly, and there is no easy way to determine if the project has anything like
@@ -471,10 +477,7 @@ def run_cmake_build(
             *get_j_cap(),
             *build_args,
         ],
-        env={
-            "NINJA_FORCE_COLOR": "1",
-            **kwargs.get("env", {})
-        },
+        env={"NINJA_FORCE_COLOR": "1", **kwargs.get("env", {})},
         **kwargs,
     )
 
@@ -484,6 +487,7 @@ def get_python_binary(ctx: TaskContext) -> Path:
     _, python_stdout, _ = run_command(ctx, "uv", ["run", "which", "python"], capture=True)
     python_stdout = Path(python_stdout.strip())
     from py_repository.repo_tasks.common import check_is_file
+
     assert check_is_file(ctx, python_stdout), f"File {python_stdout} does not exist"
     return python_stdout
 
@@ -498,6 +502,7 @@ def get_python_develop_env_File(ctx: TaskContext) -> Path:
     taken from the main build directory.
     """
     import sysconfig
+
     sysconfig.get_config_var("EXT_SUFFIX").lstrip(".")
 
     from py_repository.repo_tasks.common import (
@@ -505,14 +510,18 @@ def get_python_develop_env_File(ctx: TaskContext) -> Path:
         ensure_existing_dir,
         get_build_root,
     )
+
     build_dir = get_build_root(ctx, "haxorg").absolute().resolve()
     env_file = build_dir.joinpath("dev_env")
     ensure_existing_dir(ctx, build_dir)
     ctx_write_text(
-        ctx, env_file, f"""
+        ctx,
+        env_file,
+        f"""
 export PYTHONPATH={build_dir}
 export LD_LIBRARY_PATH={build_dir}
-    """)
+    """,
+    )
     log(CAT).info(f"Adding build directory to python path {build_dir}")
 
     return env_file
@@ -558,14 +567,18 @@ def clone_repo_with_uncommitted_changes(
 ) -> None:
     run_command(ctx, "git", ["clone", src_repo, dst_repo])
 
-    code, stdout, stderr = run_command(ctx, "git", [
-        "-C",
-        src_repo,
-        "ls-files",
-        "--modified",
-        "--others",
-        "--exclude-standard",
-    ])
+    code, stdout, stderr = run_command(
+        ctx,
+        "git",
+        [
+            "-C",
+            src_repo,
+            "ls-files",
+            "--modified",
+            "--others",
+            "--exclude-standard",
+        ],
+    )
 
     if stdout.strip():
         file_list = stdout.strip().split("\n")

@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
-from datetime import datetime, timedelta
 import functools
 import itertools
-from pathlib import Path
 import statistics
+from datetime import datetime, timedelta
 
+import pandas as pd
+import py_haxorg.pyhaxorg_wrap as org
+import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Tuple
-import pandas as pd
-from py_cli import haxorg_cli, haxorg_opts
 from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
-import rich_click as click
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = __name__
 
@@ -23,22 +23,27 @@ CAT = __name__
 class SubtreeInfo(BaseModel, extra="forbid"):
     clock_count: int
     total_clock: Optional[timedelta] = Field(
-        default=None, description="Total number the task has been clocked")
+        default=None, description="Total number the task has been clocked"
+    )
 
     average_clock_restart: Optional[timedelta] = Field(
         default=None,
-        description="Average time between the start of each subsequent clock record")
+        description="Average time between the start of each subsequent clock record",
+    )
 
     first_clock_start: Optional[datetime] = Field(
-        default=None, description="Start time of the first clock in logbook")
+        default=None, description="Start time of the first clock in logbook"
+    )
 
     last_clock_end: Optional[datetime] = Field(
-        default=None, description="End time of the last completed clock in logbook")
+        default=None, description="End time of the last completed clock in logbook"
+    )
 
     title: str = Field(description="Plaintext title of the subtree")
 
-    tags: List[str] = Field(default_factory=list,
-                            description="List of tags associated with subtree")
+    tags: List[str] = Field(
+        default_factory=list, description="List of tags associated with subtree"
+    )
 
 
 @beartype
@@ -49,12 +54,15 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
         clocks: List[Tuple[datetime, datetime]] = []
         time: org.SubtreePeriod
         for time in node.getTimePeriods(
-                org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Clocked])):
+            org.IntSetOfSubtreePeriodKind([org.SubtreePeriodKind.Clocked])
+        ):
             if time.to and time.from_:
-                clocks.append((
-                    evalDateTime(time.from_),
-                    evalDateTime(time.to),
-                ))
+                clocks.append(
+                    (
+                        evalDateTime(time.from_),
+                        evalDateTime(time.to),
+                    )
+                )
 
         # log(CAT).info(org.treeRepr(node))
 
@@ -63,7 +71,9 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
             clock_count=len(clocks),
             tags=list(
                 itertools.chain(
-                    *[["##".join(tag) for tag in getFlatTags(it)] for it in node.tags])),
+                    *[["##".join(tag) for tag in getFlatTags(it)] for it in node.tags]
+                )
+            ),
         )
 
         if clocks:
@@ -71,14 +81,19 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
             info.last_clock_end = clocks[-1][1]
 
             if 1 < len(clocks):
-                info.average_clock_restart = timedelta(seconds=statistics.mean(
-                    map(
-                        lambda it: (it[1] - it[0]).total_seconds(),
-                        itertools.pairwise(map(
-                            lambda it: it[0],
-                            clocks,
-                        )),
-                    )))
+                info.average_clock_restart = timedelta(
+                    seconds=statistics.mean(
+                        map(
+                            lambda it: (it[1] - it[0]).total_seconds(),
+                            itertools.pairwise(
+                                map(
+                                    lambda it: it[0],
+                                    clocks,
+                                )
+                            ),
+                        )
+                    )
+                )
 
             info.total_clock = functools.reduce(
                 lambda delta, clock: delta + clock[1] - clock[0],

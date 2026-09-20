@@ -1,17 +1,7 @@
-from datetime import datetime
 import enum
 
 from beartype import beartype
 from beartype.typing import List, Optional, Type
-from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
-from py_haxorg.pyhaxorg_utils import (
-    evalDateTime,
-    formatHashTag,
-    getCreationTime,
-    getSubtreeTime,
-)
-import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
 from py_scriptutils.sqlalchemy_utils import (
     DateTimeColumn,
     ForeignId,
@@ -22,6 +12,15 @@ from py_scriptutils.sqlalchemy_utils import (
 from sqlalchemy import Boolean, Column, Engine, Enum
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+import py_haxorg.pyhaxorg_wrap as org
+from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
+from py_haxorg.pyhaxorg_utils import (
+    evalDateTime,
+    formatHashTag,
+    getCreationTime,
+    getSubtreeTime,
+)
+
 Base: Type = declarative_base()
 
 
@@ -29,6 +28,7 @@ class Document(Base):
     """
     nodoc
     """
+
     __tablename__ = "Document"
     id = IdColumn()  # nodoc
 
@@ -37,6 +37,7 @@ class Location(Base):
     """
     Source code location information
     """
+
     __tablename__ = "Location"
     id = IdColumn()  # nodoc
     line = IntColumn()  # nodoc
@@ -48,6 +49,7 @@ class File(Base):
     """
     Parsed org-mode file
     """
+
     __tablename__ = "File"
     id = IdColumn()  # nodoc
     path = StrColumn()  # nodoc
@@ -57,6 +59,7 @@ class Subtree(Base):
     """
     All subtrees in the document
     """
+
     __tablename__ = "Subtree"
     id = IdColumn()  # nodoc
     plaintext_title = StrColumn()  # nodoc
@@ -72,6 +75,7 @@ class Subtree(Base):
 
 class BlockKind(enum.Enum):
     "Type of the org-mode document block"
+
     Paragraph = 1  # nodoc
     Src = 2  # nodoc
     Example = 3  # nodoc
@@ -82,6 +86,7 @@ class Block(Base):
     """
     Structural element in the org-mode document
     """
+
     __tablename__ = "Block"
     id = IdColumn()  # nodoc
     kind = Column(Enum(BlockKind))  # type: ignore[var-annotated], nodoc
@@ -96,6 +101,7 @@ class ValueEditOperation(enum.Enum):
     """
     Type of change recorded recorded in the subtree logbook drawer
     """
+
     Added = 1  # nodoc
     Removed = 2  # nodoc
     Changed = 3  # nodoc
@@ -105,6 +111,7 @@ class PriorityModified(Base):
     """
     Subtree priority has been modified
     """
+
     __tablename__ = "PriorityModified"
     id = IdColumn()  # nodoc
     subtree = ForeignId(name="Subtree.id", nullable=False)  # nodoc
@@ -119,6 +126,7 @@ class StateModified(Base):
     """
     Subtree todo state has been modified
     """
+
     __tablename__ = "StateModified"
     id = IdColumn()  # nodoc
     subtree = ForeignId(name="Subtree.id", nullable=False)  # nodoc
@@ -133,6 +141,7 @@ class TagModified(Base):
     """
     Subtree title tag has been modified
     """
+
     __tablename__ = "TagModified"
     id = IdColumn()  # nodoc
     subtree = ForeignId(name="Subtree.id", nullable=False)  # nodoc
@@ -158,6 +167,7 @@ class ClockModified(Base):
     """
     Subtree was clocked in or out
     """
+
     __tablename__ = "ClockModified"
     id = IdColumn()  # nodoc
     subtree = ForeignId(name="Subtree.id")  # nodoc
@@ -169,6 +179,7 @@ class NoteModified(Base):
     """
     Added note to the subtree logbook
     """
+
     __tablename__ = "NoteModified"
     id = IdColumn()  # nodoc
     subtree = ForeignId(name="Subtree.id")  # nodoc
@@ -180,6 +191,7 @@ class RefileModified(Base):
     """
     Subtree was refiled
     """
+
     __tablename__ = "RefileModified"
     id = IdColumn()  # nodoc
 
@@ -214,7 +226,7 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
             return None
 
         nonlocal counter
-        result = file_record.id * 1E6 + counter
+        result = file_record.id * 1e6 + counter
         counter += 1
         session.add(
             Location(
@@ -222,7 +234,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                 column=node.loc.column,
                 file=file_record.id,
                 id=result,
-            ))
+            )
+        )
 
         return result
 
@@ -243,9 +256,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                                 new_priority=priority.newPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
-                                description=node.desc and
-                                ExporterUltraplain.getStr(node.desc),
-                            ))
+                                description=node.desc
+                                and ExporterUltraplain.getStr(node.desc),
+                            )
+                        )
 
                     case org.SubtreeLogHeadPriorityAction.Removed:
                         session.add(
@@ -254,9 +268,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                                 new_priority=priority.oldPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
-                                description=node.desc and
-                                ExporterUltraplain.getStr(node.desc),
-                            ))
+                                description=node.desc
+                                and ExporterUltraplain.getStr(node.desc),
+                            )
+                        )
 
                     case org.SubtreeLogHeadPriorityAction.Changed:
                         session.add(
@@ -266,9 +281,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                                 old_priority=priority.oldPriority,
                                 timestamp=time,
                                 subtree=subtree_id,
-                                description=node.desc and
-                                ExporterUltraplain.getStr(node.desc),
-                            ))
+                                description=node.desc
+                                and ExporterUltraplain.getStr(node.desc),
+                            )
+                        )
 
             case org.SubtreeLogHeadKind.State:
                 state = node.head.getState()
@@ -291,7 +307,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                         kind=change,
                         timestamp=evalDateTime(state.on),
                         description=node.desc and ExporterUltraplain.getStr(node.desc),
-                    ))
+                    )
+                )
 
             case org.SubtreeLogHeadKind.Tag:
                 tag: org.SubtreeLogHeadTag = node.head.getTag()
@@ -302,7 +319,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                         timestamp=evalDateTime(tag.on),
                         tag=formatHashTag(tag.tag),
                         description=node.desc and ExporterUltraplain.getStr(node.desc),
-                    ))
+                    )
+                )
 
             case org.SubtreeLogHeadKind.Clock:
                 clock: org.SubtreeLogHeadClock = node.head.getClock()
@@ -311,7 +329,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                         subtree=subtree_id,
                         from_=evalDateTime(clock.from_),
                         to=evalDateTime(clock.to) if clock.to else None,
-                    ))
+                    )
+                )
 
             case org.SubtreeLogHeadKind.Note:
                 note: org.SubtreeLogHeadNote = node.head.getNote()
@@ -319,8 +338,10 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                     NoteModified(
                         subtree=subtree_id,
                         plaintext=ExporterUltraplain.getStr(node.desc)
-                        if node.desc else "",
-                    ))
+                        if node.desc
+                        else "",
+                    )
+                )
 
     @beartype
     def aux(node: org.Org, parent: Optional[int] = None) -> None:
@@ -343,8 +364,13 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                     else:
                         result = 0
                         match node:
-                            case org.Word() | org.BigIdent() | org.RawText(
-                            ) | org.HashTag() | org.AtMention():
+                            case (
+                                org.Word()
+                                | org.BigIdent()
+                                | org.RawText()
+                                | org.HashTag()
+                                | org.AtMention()
+                            ):
                                 result += 1
 
                             case _:
@@ -367,7 +393,8 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                         plaintext_title=node.getCleanTitle().strip(),
                         location=get_location(node),
                         wordcount=count,
-                    ))
+                    )
+                )
 
                 subtree_count += 1
 
@@ -405,10 +432,18 @@ def registerDocument(node: org.Org, engine: Engine, file: str) -> None:
                             timestamp=getCreationTime(node),
                             plaintext=ExporterUltraplain.getStr(node).strip(),
                             location=get_location(node),
-                        ))
+                        )
+                    )
 
-            case org.Newline() | org.Space() | org.Empty() | org.TextSeparator(
-            ) | org.CmdCaption() | org.CmdTblfm() | org.CmdInclude():
+            case (
+                org.Newline()
+                | org.Space()
+                | org.Empty()
+                | org.TextSeparator()
+                | org.CmdCaption()
+                | org.CmdTblfm()
+                | org.CmdInclude()
+            ):
                 pass
 
             case org.BlockCode():

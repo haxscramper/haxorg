@@ -1,20 +1,19 @@
-from enum import Enum
-from pathlib import Path
 import shutil
+from pathlib import Path
 
-from beartype import beartype
+import toml
 from beartype.typing import Any, Dict, List
-import py_haxorg.astbuilder.astbuilder_typst as typ
-from py_haxorg.exporters.export_base import ExporterBase, with_export_context
-from py_haxorg.layout.wrap import BlockId
-from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
-from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import algorithm, toml_config_profiler
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
-import toml
+
+import py_haxorg.astbuilder.astbuilder_typst as typ
+import py_haxorg.pyhaxorg_wrap as org
+from py_haxorg.exporters.export_base import ExporterBase, with_export_context
+from py_haxorg.layout.wrap import BlockId
+from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags
+from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 
 CAT = "typst"
 this_dir = get_haxorg_repo_root_path().joinpath("scripts/py_haxorg/py_haxorg/exporters")
@@ -31,11 +30,13 @@ def refresh_typst_export_package() -> None:
     utility package.
     """
     config = typ.get_typst_export_package(typst_toml)
-    out_path = Path("~/.local/share/typst/packages/{namespace}/{name}/{version}".format(
-        version=config.package.version,
-        name=config.package.name,
-        namespace="local",
-    )).expanduser()
+    out_path = Path(
+        "~/.local/share/typst/packages/{namespace}/{name}/{version}".format(
+            version=config.package.version,
+            name=config.package.name,
+            namespace="local",
+        )
+    ).expanduser()
 
     out_path.mkdir(parents=True, exist_ok=True)
 
@@ -134,8 +135,9 @@ class ExporterTypst(ExporterBase):
         """
         Remove leading/trailing newline/space nodes,
         """
-        return algorithm.trim_both(node,
-                                   lambda it: it.getKind() in [osk.Newline, osk.Space])
+        return algorithm.trim_both(
+            node, lambda it: it.getKind() in [osk.Newline, osk.Space]
+        )
 
     def lineSubnodes(self, node: org.Org | List[org.Org]) -> BlockId:
         """
@@ -150,8 +152,11 @@ class ExporterTypst(ExporterBase):
         return self.t.stack([self.exp.eval(it) for it in node])
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
-        if (node.isFootnoteDefinition() or node.hasTimestamp() or
-                self.isDefaultAdmonition(node)) and 0 < len(node.getBody()):
+        if (
+            node.isFootnoteDefinition()
+            or node.hasTimestamp()
+            or self.isDefaultAdmonition(node)
+        ) and 0 < len(node.getBody()):
             result = self.lineSubnodes(self.trimSub(node.getBody()))
             args = dict()
             if node.isFootnoteDefinition():
@@ -166,14 +171,16 @@ class ExporterTypst(ExporterBase):
                 args["kind"] = "timestamp"
                 args["timestamp"] = formatDateTime(node.getTimestamps()[0])
 
-            result = self.t.call(self.c.tags.paragraph,
-                                 args=args,
-                                 body=[result],
-                                 isLine=True)
+            result = self.t.call(
+                self.c.tags.paragraph, args=args, body=[result], isLine=True
+            )
             return result
 
-        elif (len(node.subnodes) == 1 and isinstance(node[0], org.Link) and
-              node[0].target.isAttachment()):
+        elif (
+            len(node.subnodes) == 1
+            and isinstance(node[0], org.Link)
+            and node[0].target.isAttachment()
+        ):
             return self.t.string("")
 
         elif len(node.subnodes) == 0:
@@ -187,8 +194,10 @@ class ExporterTypst(ExporterBase):
             )
 
     def evalBlockDynamicFallback(self, node: org.BlockDynamicFallback) -> BlockId:
-        if (0 < len(node.attrs.positional.items) and
-                node.attrs.getPositional(0).getString() == "typst-call-wrap"):
+        if (
+            0 < len(node.attrs.positional.items)
+            and node.attrs.getPositional(0).getString() == "typst-call-wrap"
+        ):
             return self.t.call(
                 node.getFirstAttr("call").getString(),
                 args={
@@ -338,13 +347,15 @@ class ExporterTypst(ExporterBase):
 
         self.t.add_at(
             res,
-            self.t.line([
-                self.t.call(
-                    self.c.tags.subtree,
-                    dict(level=self.getRealSubtreeLevel(node), tags=tags),
-                    self.exp.eval(node.title),
-                ),
-            ]),
+            self.t.line(
+                [
+                    self.t.call(
+                        self.c.tags.subtree,
+                        dict(level=self.getRealSubtreeLevel(node), tags=tags),
+                        self.exp.eval(node.title),
+                    ),
+                ]
+            ),
         )
 
         for it in node:
@@ -364,10 +375,12 @@ class ExporterTypst(ExporterBase):
             if self.c.with_standard_base:
                 self.t.add_at(
                     res,
-                    self.t.string('#import "@local/{name}:{version}": *'.format(
-                        name=module.package.name,
-                        version=module.package.version,
-                    )),
+                    self.t.string(
+                        '#import "@local/{name}:{version}": *'.format(
+                            name=module.package.name,
+                            version=module.package.version,
+                        )
+                    ),
                 )
 
             for it in node:
@@ -414,11 +427,13 @@ class ExporterTypst(ExporterBase):
                 return self.t.string(f"TODO {node.getIncludeKind()}")
 
     def evalTimeRange(self, node: org.TimeRange) -> BlockId:
-        return self.t.line([
-            self.exp.eval(node.from_),
-            self.t.string("--"),
-            self.exp.eval(node.to),
-        ])
+        return self.t.line(
+            [
+                self.exp.eval(node.from_),
+                self.t.string("--"),
+                self.exp.eval(node.to),
+            ]
+        )
 
     def getNodeAttrs(self, node: org.Org) -> Dict[str, List[Any]]:
         """
@@ -448,16 +463,19 @@ class ExporterTypst(ExporterBase):
         if any(desc_status) and not all(desc_status):
             raise ValueError(
                 "Typst export does not support mixed description list items, list starting at {} "
-                "has a mix of description and non-description items. First non-description item is at {}. List parsed as {}"
-                .format(
+                "has a mix of description and non-description items. First non-description item is at {}. List parsed as {}".format(
                     node.loc,
-                    list(filter(lambda it: not it.isDescriptionItem(),
-                                node.subnodes))[0].loc,
+                    list(filter(lambda it: not it.isDescriptionItem(), node.subnodes))[
+                        0
+                    ].loc,
                     org.treeRepr(node, maxDepth=1),
-                ))
+                )
+            )
 
-        if (node.isDescriptionList() and
-                node.getListFormattingMode() == org.ListFormattingMode.Table1D2Col):
+        if (
+            node.isDescriptionList()
+            and node.getListFormattingMode() == org.ListFormattingMode.Table1D2Col
+        ):
             items = []
             item: org.ListItem = None
             for item in node:
@@ -468,7 +486,9 @@ class ExporterTypst(ExporterBase):
                             isFirst=False,
                             args=dict(column=0),
                             body=self.eval(item.header),
-                        )))
+                        )
+                    )
+                )
                 items.append(
                     typ.RawBlock(
                         self.t.call(
@@ -476,7 +496,9 @@ class ExporterTypst(ExporterBase):
                             isFirst=False,
                             args=dict(column=1),
                             body=self.t.stack([self.eval(it) for it in item]),
-                        )))
+                        )
+                    )
+                )
 
             return self.t.call(
                 self.c.tags.table,
@@ -507,7 +529,9 @@ class ExporterTypst(ExporterBase):
                                         isFirst=False,
                                         args=dict(column=idx),
                                         body=self.t.stack([self.eval(it) for it in cell]),
-                                    )))
+                                    )
+                                )
+                            )
 
                         if nested_list.size() < column_count:
                             for i in range(column_count - nested_list.size()):
@@ -518,7 +542,9 @@ class ExporterTypst(ExporterBase):
                                             isFirst=False,
                                             args=dict(column=idx),
                                             body=self.t.string(""),
-                                        )))
+                                        )
+                                    )
+                                )
 
             return self.t.call(
                 self.c.tags.table,
@@ -537,14 +563,16 @@ class ExporterTypst(ExporterBase):
                     args=dict(
                         isDescription=node.isDescriptionList(),
                         items=typ.RawBlock(
-                            self.expr([typ.RawBlock(self.exp.eval(it)) for it in node])),
+                            self.expr([typ.RawBlock(self.exp.eval(it)) for it in node])
+                        ),
                     ),
                 ),
             )
 
     def evalListItem(self, node: org.ListItem) -> BlockId:
         args = dict(
-            content=typ.RawBlock(self.t.content(self.stackSubnodes(self.trimSub(node)))))
+            content=typ.RawBlock(self.t.content(self.stackSubnodes(self.trimSub(node))))
+        )
 
         if node.isDescriptionItem():
             args["header"] = typ.RawBlock(self.t.content(self.exp.eval(node.header)))

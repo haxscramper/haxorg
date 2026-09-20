@@ -2,16 +2,17 @@
 
 import argparse
 import ast
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
-from typing import Iterable, Optional
+from collections.abc import Iterable
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional
 
-from tree_sitter import Language, Parser
 import tree_sitter_cpp as tscpp
+from tree_sitter import Language, Parser
 
 PY_SUFFIXES = {".py"}
 CPP_SUFFIXES = {".h", ".hh", ".hpp", ".hxx", ".c", ".cc", ".cpp", ".cxx"}
@@ -23,6 +24,7 @@ HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 @dataclass(frozen=True)
 class Range:
     "Inclusive range of lines for the documentable entry"
+
     start: int  # 1-based
     end: int  # 1-based
 
@@ -36,6 +38,7 @@ class Entry:
     """
     Simplified common representation for the documentable cxx entries
     """
+
     kind: str  # "function" | "class" | "field"
     name: str  # Entry name
     file: str  # Definition file name
@@ -130,8 +133,9 @@ def _py_is_pydantic_documented(stmt: ast.Assign | ast.AnnAssign) -> bool:
         return False
 
     func = value.func
-    is_field = ((isinstance(func, ast.Name) and func.id == "Field") or
-                (isinstance(func, ast.Attribute) and func.attr == "Field"))
+    is_field = (isinstance(func, ast.Name) and func.id == "Field") or (
+        isinstance(func, ast.Attribute) and func.attr == "Field"
+    )
     if not is_field:
         return False
 
@@ -169,11 +173,14 @@ def python_entries(path: str, src: str) -> list[Entry]:
             end_lineno = lineno
 
         entries.append(
-            Entry(kind=kind,
-                  name=name,
-                  file=path,
-                  line_range=Range(lineno, end_lineno),
-                  documented=documented))
+            Entry(
+                kind=kind,
+                name=name,
+                file=path,
+                line_range=Range(lineno, end_lineno),
+                documented=documented,
+            )
+        )
 
     def visit(node: ast.AST, prefix: list[str]) -> None:
         "Recusirvely traverse the AST"
@@ -181,10 +188,12 @@ def python_entries(path: str, src: str) -> list[Entry]:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             doc = ast.get_docstring(node, clean=False)
             if node.name not in CAN_SKIP_DOCUMENTATION:
-                emit("function",
-                     qualname(prefix, node.name),
-                     node,
-                     documented=(doc is not None))
+                emit(
+                    "function",
+                    qualname(prefix, node.name),
+                    node,
+                    documented=(doc is not None),
+                )
 
         elif isinstance(node, ast.ClassDef):
             doc = ast.get_docstring(node, clean=False)
@@ -203,12 +212,13 @@ def python_entries(path: str, src: str) -> list[Entry]:
                         continue
 
                     documented = (
-                        _py_is_pydantic_documented(stmt) or
-                        _py_has_inline_comment(lines,
-                                               getattr(stmt, "lineno", 0) or 0) or
-                        _py_has_preceding_comment(lines,
-                                                  getattr(stmt, "lineno", 0) or 0) or
-                        _py_has_following_string_doc(stmt, next_stmt))
+                        _py_is_pydantic_documented(stmt)
+                        or _py_has_inline_comment(lines, getattr(stmt, "lineno", 0) or 0)
+                        or _py_has_preceding_comment(
+                            lines, getattr(stmt, "lineno", 0) or 0
+                        )
+                        or _py_has_following_string_doc(stmt, next_stmt)
+                    )
                     for fn in field_names:
                         emit("field", f"{cls_name}.{fn}", stmt, documented=documented)
 
@@ -218,12 +228,13 @@ def python_entries(path: str, src: str) -> list[Entry]:
                     if not isinstance(t, ast.Name):
                         continue
                     documented = (
-                        _py_is_pydantic_documented(stmt) or
-                        _py_has_inline_comment(lines,
-                                               getattr(stmt, "lineno", 0) or 0) or
-                        _py_has_preceding_comment(lines,
-                                                  getattr(stmt, "lineno", 0) or 0) or
-                        _py_has_following_string_doc(stmt, next_stmt))
+                        _py_is_pydantic_documented(stmt)
+                        or _py_has_inline_comment(lines, getattr(stmt, "lineno", 0) or 0)
+                        or _py_has_preceding_comment(
+                            lines, getattr(stmt, "lineno", 0) or 0
+                        )
+                        or _py_has_following_string_doc(stmt, next_stmt)
+                    )
                     emit("field", f"{cls_name}.{t.id}", stmt, documented=documented)
 
             # Recurse into nested content with updated prefix
@@ -258,14 +269,18 @@ def _walk_ts(node) -> Iterable:
 
 def _node_text(src_bytes: bytes, node) -> str:
     "Get full text representation of the documentable cxx entry"
-    return src_bytes[node.start_byte:node.end_byte].decode("utf-8", errors="replace")
+    return src_bytes[node.start_byte : node.end_byte].decode("utf-8", errors="replace")
 
 
 def _find_first_identifier(node, src_bytes: bytes) -> Optional[str]:
     "Attempt to find name of the documentable cxx entry"
     for n in _walk_ts(node):
-        if n.type in ("identifier", "field_identifier", "type_identifier",
-                      "namespace_identifier"):
+        if n.type in (
+            "identifier",
+            "field_identifier",
+            "type_identifier",
+            "namespace_identifier",
+        ):
             return _node_text(src_bytes, n)
     return None
 
@@ -322,7 +337,8 @@ def cpp_entries(path: str, src: str, parser: Parser) -> list[Entry]:
             end_line = dn.end_point[0] + 1
             documented = _has_leading_comment(lines, start_line)
             entries.append(
-                Entry("function", name, path, Range(start_line, end_line), documented))
+                Entry("function", name, path, Range(start_line, end_line), documented)
+            )
 
         elif n.type in ("declaration", "field_declaration"):
             decl = n.child_by_field_name("declarator")
@@ -337,7 +353,8 @@ def cpp_entries(path: str, src: str, parser: Parser) -> list[Entry]:
             end_line = dn.end_point[0] + 1
             documented = _has_leading_comment(lines, start_line)
             entries.append(
-                Entry("function", name, path, Range(start_line, end_line), documented))
+                Entry("function", name, path, Range(start_line, end_line), documented)
+            )
 
         elif n.type in ("class_specifier", "struct_specifier", "union_specifier"):
             name_node = n.child_by_field_name("name")
@@ -346,10 +363,14 @@ def cpp_entries(path: str, src: str, parser: Parser) -> list[Entry]:
             start_line = dn.start_point[0] + 1
             end_line = dn.end_point[0] + 1
             documented = _has_leading_comment(lines, start_line)
-            kind = "class" if n.type == "class_specifier" else (
-                "struct" if n.type == "struct_specifier" else "union")
+            kind = (
+                "class"
+                if n.type == "class_specifier"
+                else ("struct" if n.type == "struct_specifier" else "union")
+            )
             entries.append(
-                Entry(kind, name, path, Range(start_line, end_line), documented))
+                Entry(kind, name, path, Range(start_line, end_line), documented)
+            )
 
         elif n.type in ("enum_specifier", "enum_class_specifier"):
             name_node = n.child_by_field_name("name")
@@ -359,7 +380,8 @@ def cpp_entries(path: str, src: str, parser: Parser) -> list[Entry]:
             end_line = dn.end_point[0] + 1
             documented = _has_leading_comment(lines, start_line)
             entries.append(
-                Entry("enum", name, path, Range(start_line, end_line), documented))
+                Entry("enum", name, path, Range(start_line, end_line), documented)
+            )
 
     return entries
 
@@ -370,8 +392,9 @@ def relevant_file(path: str) -> bool:
     return ext in PY_SUFFIXES or ext in CPP_SUFFIXES
 
 
-def should_check_entry(entry: Entry, whole_file: bool,
-                       change_ranges: list[Range]) -> bool:
+def should_check_entry(
+    entry: Entry, whole_file: bool, change_ranges: list[Range]
+) -> bool:
     "Check if documentable entry intersects with the changed range"
     if whole_file:
         return True
@@ -402,14 +425,12 @@ def should_check_entry(entry: Entry, whole_file: bool,
 def parse_args(argv: list[str]) -> argparse.Namespace:
     "nodoc"
     ap = argparse.ArgumentParser(
-        description=
-        "Fail if new/changed (or all, in --whole-file mode) functions/classes are undocumented."
+        description="Fail if new/changed (or all, in --whole-file mode) functions/classes are undocumented."
     )
     ap.add_argument(
         "--whole-file",
         action="store_true",
-        help=
-        "Ignore staged diff and validate the entire file for missing documentation/comments.",
+        help="Ignore staged diff and validate the entire file for missing documentation/comments.",
     )
     ap.add_argument("files", nargs="*")
     return ap.parse_args(argv[1:])
@@ -444,8 +465,10 @@ def main(argv: list[str]) -> int:
                 continue
             if should_check_entry(e, ns.whole_file, change_ranges):
                 scope = "in file" if ns.whole_file else "changed in staged diff"
-                problems.append(f"{e.file}:{e.line_range.start}-{e.line_range.end}: "
-                                f"Undocumented {e.kind} '{e.name}' {scope} ")
+                problems.append(
+                    f"{e.file}:{e.line_range.start}-{e.line_range.end}: "
+                    f"Undocumented {e.kind} '{e.name}' {scope} "
+                )
 
     if problems:
         sys.stderr.write(

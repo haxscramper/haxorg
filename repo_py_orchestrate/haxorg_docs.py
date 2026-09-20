@@ -1,21 +1,17 @@
-from pathlib import Path
-import shutil
 import sys
+from pathlib import Path
 
-from beartype.typing import List, Optional
+from beartype.typing import Optional
 from py_repository.repo_tasks.command_execution import (
-    get_uv_develop_env_flags,
-    get_uv_develop_sync_flags,
     run_command,
 )
 from py_repository.repo_tasks.common import (
     check_path_exists,
     get_build_root,
-    get_list_cli_pass,
     get_script_root,
 )
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_profdata_params
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -47,6 +43,7 @@ def docs_doxygen(ctx: TaskContext) -> None:
 def docs_python(ctx: TaskContext) -> None:
     "Build documentation for the Python workspace using Sphinx"
     from py_repository.repo_docgen.gen_documentation_python import gen_docs
+
     gen_docs(ctx)
 
 
@@ -70,20 +67,23 @@ def build_custom_docs(ctx: TaskContext, out_dir: Optional[str] = None) -> None:
 
     from py_repository.repo_docgen.gen_coverage import DocGenerationOptions, gen_coverage
 
-    assert check_path_exists(ctx, Path(
-        get_cxx_profdata_params(ctx).output)), get_cxx_profdata_params(ctx).output
+    assert check_path_exists(ctx, Path(get_cxx_profdata_params(ctx).output)), (
+        get_cxx_profdata_params(ctx).output
+    )
 
-    gen_coverage(conf=DocGenerationOptions(
-        html_out_path=out_dir_path,
-        root_path=get_script_root(ctx),
-        src_path=[
-            get_script_root(ctx, "src"),
-            get_script_root(ctx, "scripts"),
-        ],
-        py_coverage_path=get_script_root(ctx, ".coverage"),
-        test_path=[get_script_root(ctx, "tests")],
-        profile_out_path=out_dir_path.joinpath("profile.json"),
-        coverage_file_whitelist=ctx.config.coverage_conf.coverage_html_whitelist,
-        coverage_file_blacklist=ctx.config.coverage_conf.coverage_html_blacklist,
-        cxx_coverage_path=get_cxx_profdata_params(ctx).output,
-    ))
+    gen_coverage(
+        conf=DocGenerationOptions(
+            html_out_path=out_dir_path,
+            root_path=get_script_root(ctx),
+            src_path=[
+                get_script_root(ctx, "src"),
+                get_script_root(ctx, "scripts"),
+            ],
+            py_coverage_path=get_script_root(ctx, ".coverage"),
+            test_path=[get_script_root(ctx, "tests")],
+            profile_out_path=out_dir_path.joinpath("profile.json"),
+            coverage_file_whitelist=ctx.config.coverage_conf.coverage_html_whitelist,
+            coverage_file_blacklist=ctx.config.coverage_conf.coverage_html_blacklist,
+            cxx_coverage_path=get_cxx_profdata_params(ctx).output,
+        )
+    )

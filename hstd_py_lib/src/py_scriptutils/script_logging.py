@@ -1,15 +1,15 @@
-from dataclasses import dataclass
 import enum
 import logging
 import os
-from pathlib import Path
 import sys
 import traceback
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict
 
+import plumbum
 from beartype import beartype
 from beartype.typing import Any, Callable, Literal, Optional, Set
-import plumbum
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.text import Text
@@ -70,9 +70,11 @@ def to_debug_json(
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
                 is_regular = not has_single
-                return (has_double and include_double_underscore_attrs) or (
-                    not has_double and has_single and
-                    include_single_underscore_attrs) or is_regular
+                return (
+                    (has_double and include_double_underscore_attrs)
+                    or (not has_double and has_single and include_single_underscore_attrs)
+                    or is_regular
+                )
 
             try:
                 hasattr(obj, "__dict__")
@@ -136,6 +138,7 @@ def pprint_to_file(value: Any, path: str | Path, width: int = 120) -> None:
     with open(path, "w") as file:
         print("# pyright: reportUndefinedVariable=false", file=file)
         from py_scriptutils.rich_utils import render_rich_pprint
+
         print(render_rich_pprint(value, width=width, color=False), file=file)
 
 
@@ -144,19 +147,22 @@ def pprint_to_file_json(value: Any, path: str | Path, width: int = 120) -> None:
     Convert the document to the debug JSON and print it to the document
     """
     import json
+
     formatted = json.dumps(to_debug_json(value), indent=2)
     Path(path).write_text(formatted)
     try:
         # Attempt to pretty-print JSON if the FracturedJSON is installed in the system.
         # Install fjson with `cargo install fracturedjson`
         cmd = plumbum.local["fjson"]
-        cmd.run([
-            "--comments",
-            "preserve",
-            "--max-width",
-            str(width),
-            str(path),
-        ])
+        cmd.run(
+            [
+                "--comments",
+                "preserve",
+                "--max-width",
+                str(width),
+                str(path),
+            ]
+        )
 
     except plumbum.CommandNotFound:
         pass
@@ -164,11 +170,11 @@ def pprint_to_file_json(value: Any, path: str | Path, width: int = 120) -> None:
 
 def pprint_to_string(value: Any, width: int = 120) -> str:
     from py_scriptutils.rich_utils import render_rich_pprint
+
     return render_rich_pprint(value, width=width, color=False)
 
 
 class NoTTYFormatter(logging.Formatter):
-
     def __init__(self, fmt: Any, datefmt: Any = None) -> None:
         super().__init__(fmt, datefmt)
         self.console = Console()
@@ -198,14 +204,17 @@ def log(category: str = "rich") -> logging.Logger:
             )
             rich_handler.setFormatter(
                 logging.Formatter(
-                    "[dim]%(name)s %(filename)s:%(lineno)d[/dim] - %(message)s"))
+                    "[dim]%(name)s %(filename)s:%(lineno)d[/dim] - %(message)s"
+                )
+            )
 
             log.addHandler(rich_handler)
 
         else:
             handler = logging.StreamHandler()
             handler.setFormatter(
-                NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s"))
+                NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s")
+            )
 
             log.addHandler(handler)
 
@@ -313,22 +322,31 @@ def get_custom_traceback_handler(
                 runtime_types = {}
 
                 if show_args:
-                    arg_names = frame.f_code.co_varnames[:frame.f_code.co_argcount]
+                    arg_names = frame.f_code.co_varnames[: frame.f_code.co_argcount]
                     for arg_name in arg_names:
                         if arg_name in frame.f_locals:
                             args[arg_name] = frame.f_locals[arg_name]
 
                             if show_argument_type_runtime:
                                 runtime_types[arg_name] = type(
-                                    frame.f_locals[arg_name]).__name__
+                                    frame.f_locals[arg_name]
+                                ).__name__
 
                     if show_argument_type_annotated:
                         arg_types = get_function_annotations(frame)
 
                 extracted_frame = traceback.extract_tb(current_tb, limit=1)[0]
                 frames_info.append(
-                    FrameInfo(filename, line_no, func_name, args, arg_types,
-                              runtime_types, extracted_frame.line or ""))
+                    FrameInfo(
+                        filename,
+                        line_no,
+                        func_name,
+                        args,
+                        arg_types,
+                        runtime_types,
+                        extracted_frame.line or "",
+                    )
+                )
 
             current_tb = current_tb.tb_next
 
@@ -342,10 +360,11 @@ def get_custom_traceback_handler(
                 if frame_info.args:
                     max_arg_name_width = max(
                         max_arg_name_width,
-                        max(len(arg_name) for arg_name in frame_info.args.keys()))
+                        max(len(arg_name) for arg_name in frame_info.args.keys()),
+                    )
 
         for frame_info in frames_info:
-            header = f"File \"{frame_info.filename}\", line {frame_info.line_no}, in {frame_info.func_name}"
+            header = f'File "{frame_info.filename}", line {frame_info.line_no}, in {frame_info.func_name}'
             print(f"{header} : {frame_info.code_line}")
 
             if show_args:
@@ -355,30 +374,35 @@ def get_custom_traceback_handler(
                     if show_argument_type_annotated and arg_name in frame_info.arg_types:
                         type_info = f": {frame_info.arg_types[arg_name]}"
 
-                    if show_argument_type_runtime and arg_name in frame_info.runtime_types:
+                    if (
+                        show_argument_type_runtime
+                        and arg_name in frame_info.runtime_types
+                    ):
                         runtime_type = frame_info.runtime_types[arg_name]
                         if type_info:
                             type_info += f" ({runtime_type})"
                         else:
                             type_info = f": {runtime_type}"
 
-                    available_width = console.width - max_arg_name_width - len(
-                        type_info) - 5
+                    available_width = (
+                        console.width - max_arg_name_width - len(type_info) - 5
+                    )
 
                     if truncate_value:
                         arg_repr = repr(arg_value)
                         if available_width < len(arg_repr):
-                            arg_repr = arg_repr[:available_width - 3] + "..."
+                            arg_repr = arg_repr[: available_width - 3] + "..."
                         print(
-                            f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {arg_repr}"
+                            f"  {arg_name}{type_info:<{max_arg_name_width - len(arg_name)}} = {arg_repr}"
                         )
                     else:
                         import pprint
+
                         formatted_value = pprint.pformat(arg_value, width=available_width)
                         lines = formatted_value.split("\n")
 
                         print(
-                            f"  {arg_name}{type_info:<{max_arg_name_width-len(arg_name)}} = {lines[0]}"
+                            f"  {arg_name}{type_info:<{max_arg_name_width - len(arg_name)}} = {lines[0]}"
                         )
                         for line in lines[1:]:
                             print(f"  {'':<{max_arg_name_width}}   {line}")
@@ -395,7 +419,6 @@ def get_custom_traceback_handler(
 
 
 class MultiFileHandler(logging.Handler):
-
     @beartype
     def __init__(self, base_dir: Path) -> None:
         super().__init__()
@@ -404,12 +427,15 @@ class MultiFileHandler(logging.Handler):
         self.logger_handlers: Dict[str, logging.FileHandler] = {}
         self.main_handler = logging.FileHandler(self.base_dir / "main.log", mode="w")
         self.main_handler.setFormatter(
-            logging.Formatter("%(levelname)s - %(filename)s:%(lineno)d - %(message)s"))
-        self.plain_console = Console(color_system=None,
-                                     legacy_windows=False,
-                                     force_terminal=False,
-                                     no_color=True,
-                                     width=999999)
+            logging.Formatter("%(levelname)s - %(filename)s:%(lineno)d - %(message)s")
+        )
+        self.plain_console = Console(
+            color_system=None,
+            legacy_windows=False,
+            force_terminal=False,
+            no_color=True,
+            width=999999,
+        )
 
     @beartype
     def _strip_rich_formatting(self, message: str) -> str:
@@ -425,8 +451,8 @@ class MultiFileHandler(logging.Handler):
             log_file = self.base_dir / f"{safe_name}.log"
             handler = logging.FileHandler(log_file, mode="w")
             handler.setFormatter(
-                logging.Formatter(
-                    "%(levelname)s - %(filename)s:%(lineno)d - %(message)s"))
+                logging.Formatter("%(levelname)s - %(filename)s:%(lineno)d - %(message)s")
+            )
             self.logger_handlers[logger_name] = handler
         return self.logger_handlers[logger_name]
 
@@ -436,7 +462,8 @@ class MultiFileHandler(logging.Handler):
         if hasattr(record, "args") and record.args:
             record.args = tuple(
                 self._strip_rich_formatting(str(arg)) if isinstance(arg, str) else arg
-                for arg in record.args)
+                for arg in record.args
+            )
 
         self.main_handler.emit(record)
         logger_handler = self._get_logger_handler(record.name)

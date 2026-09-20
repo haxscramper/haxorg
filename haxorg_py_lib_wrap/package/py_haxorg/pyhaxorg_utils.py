@@ -1,47 +1,52 @@
+import os
+import shutil
 from dataclasses import dataclass, field
 from datetime import datetime
-import os
 from pathlib import Path
-import shutil
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
+from py_scriptutils.script_logging import ExceptionContextNote, log
+
+import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_wrap import UserTime
-import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = "org"
 
-TODO_ITEMS = set([
-    "TODO",
-    "DONE",
-    "COMPLETED",
-    "NEXT",
-    "WIP",
-    "TRIAGED",
-    "FAILED",
-    "PARTIALLY",
-    "CANCELLED",
-    "PAUSED",
-    "REVIEW",
-])
+TODO_ITEMS = set(
+    [
+        "TODO",
+        "DONE",
+        "COMPLETED",
+        "NEXT",
+        "WIP",
+        "TRIAGED",
+        "FAILED",
+        "PARTIALLY",
+        "CANCELLED",
+        "PAUSED",
+        "REVIEW",
+    ]
+)
 
-ADMONITION_ITEMS = set([
-    "QUESTION",
-    "NOTE",
-    "IDEA",
-    "WARNING",
-    "ERROR",
-    "BUG",
-    "FIXME",
-    "XXX",
-    "XXXX",
-    "XXXXX",
-    "IMPLEMENT",
-    "TEMP",
-    "HACK",
-])
+ADMONITION_ITEMS = set(
+    [
+        "QUESTION",
+        "NOTE",
+        "IDEA",
+        "WARNING",
+        "ERROR",
+        "BUG",
+        "FIXME",
+        "XXX",
+        "XXXX",
+        "XXXXX",
+        "IMPLEMENT",
+        "TEMP",
+        "HACK",
+    ]
+)
 
 SEMANTIC_BIG_IDENT_ITEMS = TODO_ITEMS.union(ADMONITION_ITEMS)
 
@@ -136,8 +141,9 @@ def formatHashTag(node: Union[org.HashTag, org.HashTagText]) -> str:
 
 
 @beartype
-def formatOrgWithoutPrefix(node: org.Org | List[org.Org],
-                           skip: Set[org.OrgSemKind]) -> str:
+def formatOrgWithoutPrefix(
+    node: org.Org | List[org.Org], skip: Set[org.OrgSemKind]
+) -> str:
     items = []
 
     def add(it: org.Org) -> None:
@@ -158,19 +164,25 @@ def formatOrgWithoutPrefix(node: org.Org | List[org.Org],
 def formatOrgWithoutTime(node: org.Org | List[org.Org]) -> str:
     return formatOrgWithoutPrefix(
         node,
-        set([
-            org.OrgSemKind.Time,
-            org.OrgSemKind.TimeRange,
-        ]),
+        set(
+            [
+                org.OrgSemKind.Time,
+                org.OrgSemKind.TimeRange,
+            ]
+        ),
     )
 
 
 @beartype
-def getTitleBody(node: org.Subtree,
-                 todo_items: Set[str] = SEMANTIC_BIG_IDENT_ITEMS) -> List[org.Org]:
+def getTitleBody(
+    node: org.Subtree, todo_items: Set[str] = SEMANTIC_BIG_IDENT_ITEMS
+) -> List[org.Org]:
     title = [sub for sub in node.title]  # type: ignore
-    while title and isinstance(title[0], (org.Time, org.TimeRange, org.Space)) or (
-            isinstance(title[0], org.BigIdent) and title[0].text in todo_items):
+    while (
+        title
+        and isinstance(title[0], (org.Time, org.TimeRange, org.Space))
+        or (isinstance(title[0], org.BigIdent) and title[0].text in todo_items)
+    ):
         title.pop(0)
 
     while title and isinstance(title[-1], org.Space):
@@ -183,9 +195,13 @@ def getTitleBody(node: org.Subtree,
 def getSubtreeTime(node: org.Subtree, kind: org.SubtreePeriodKind) -> Optional[datetime]:
     result: Optional[datetime] = None
     time: org.SubtreePeriod
-    for time in node.getTimePeriods(org.IntSetOfSubtreePeriodKind([  # type: ignore
-            kind
-    ])):
+    for time in node.getTimePeriods(
+        org.IntSetOfSubtreePeriodKind(
+            [  # type: ignore
+                kind
+            ]
+        )
+    ):
         result = evalDateTime(time.from_)
 
     return result
@@ -196,7 +212,8 @@ def getCreationTime(node: org.Org) -> Optional[datetime]:
     match node:
         case org.Subtree():
             return getSubtreeTime(node, org.SubtreePeriodKind.Created) or getSubtreeTime(
-                node, org.SubtreePeriodKind.Titled)
+                node, org.SubtreePeriodKind.Titled
+            )
 
         case org.Paragraph() if node.hasTimestamp():
             return evalDateTime(node.getTimestamps()[0])
@@ -230,20 +247,25 @@ def doExportAttachments(
     for item in attachments:
         path = item.target.getAttachment().file
         do_attach = item.getAttrs("attach-on-export")
-        if do_attach and 0 < len(do_attach) and (do_attach[0].getString() == "t" or
-                                                 normalize(do_attach[0].getString())
-                                                 in [normalize(it) for it in backends]):
-
+        if (
+            do_attach
+            and 0 < len(do_attach)
+            and (
+                do_attach[0].getString() == "t"
+                or normalize(do_attach[0].getString())
+                in [normalize(it) for it in backends]
+            )
+        ):
             method = item.getAttrs("attach-method")
             op = method[0].getString()
             with ExceptionContextNote(
-                    "Attachment operation {}, for base path '{}', destination '{}', relative '{}'"
-                    .format(
-                        op,
-                        base.parent,
-                        destination,
-                        path,
-                    )):
+                "Attachment operation {}, for base path '{}', destination '{}', relative '{}'".format(
+                    op,
+                    base.parent,
+                    destination,
+                    path,
+                )
+            ):
                 match op:
                     case "copy" | "symlink":
                         src = base.parent.joinpath(path)
@@ -270,7 +292,7 @@ def doExportAttachments(
 
 @beartype
 @dataclass
-class NodeIdProvider():
+class NodeIdProvider:
     nodeIdCounter: Dict[org.Org, int] = field(default_factory=dict)
 
     def getNodeId(self, value: org.Org) -> str:

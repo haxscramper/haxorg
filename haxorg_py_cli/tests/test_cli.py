@@ -1,15 +1,14 @@
 from pathlib import Path
 
-from beartype.typing import Any, Dict, List
 import more_itertools
 import pandas as pd
+import pytest
+from beartype.typing import Any, Dict, List
 from plumbum import CommandNotFound, local
 from py_cli import haxorg_cli, haxorg_opts
 from py_haxorg.exporters import export_sqlite
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
-import pytest
 from sqlalchemy.orm import sessionmaker
 
 CAT = __name__
@@ -46,14 +45,18 @@ def test_tex_export(stable_test_dir: Path) -> None:
 
     export_tex(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-                **get_export_debug(stable_test_dir),
-                tex=haxorg_opts.TexExportOptions(
-                    infile=org_file,
-                    outfile=tex_file,
-                    do_compile=False,
-                ),
-            ))))
+            haxorg_opts.RootOptions(
+                export=haxorg_opts.ExportOptions(
+                    **get_export_debug(stable_test_dir),
+                    tex=haxorg_opts.TexExportOptions(
+                        infile=org_file,
+                        outfile=tex_file,
+                        do_compile=False,
+                    ),
+                )
+            )
+        )
+    )
 
 
 @pytest.mark.test_release
@@ -62,11 +65,16 @@ def test_html_export(stable_test_dir: Path) -> None:
 
     export_html(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-                html=haxorg_opts.ExportHtmlOptions(
-                    infile=all_org_file,
-                    outfile=stable_test_dir.joinpath("html_file.html"),
-                )))))
+            haxorg_opts.RootOptions(
+                export=haxorg_opts.ExportOptions(
+                    html=haxorg_opts.ExportHtmlOptions(
+                        infile=all_org_file,
+                        outfile=stable_test_dir.joinpath("html_file.html"),
+                    )
+                )
+            )
+        )
+    )
 
 
 @pytest.mark.test_release
@@ -75,13 +83,17 @@ def test_sqlite_export(stable_test_dir: Path) -> None:
 
     export_sqlite(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-                **get_export_debug(stable_test_dir),
-                sqlite=haxorg_opts.ExportSQliteOptions(
-                    infile=[all_org_file],
-                    outfile=stable_test_dir.joinpath("out_file.sqlite"),
-                ),
-            ))))
+            haxorg_opts.RootOptions(
+                export=haxorg_opts.ExportOptions(
+                    **get_export_debug(stable_test_dir),
+                    sqlite=haxorg_opts.ExportSQliteOptions(
+                        infile=[all_org_file],
+                        outfile=stable_test_dir.joinpath("out_file.sqlite"),
+                    ),
+                )
+            )
+        )
+    )
 
 
 def has_cmd(cmd: str) -> bool:
@@ -99,27 +111,31 @@ def test_pandoc_export(stable_test_dir: Path) -> None:
     dir = stable_test_dir
     dir.mkdir(parents=True, exist_ok=True)
     out_file = dir.joinpath("out_file.json")
-    opts = haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-        **get_export_debug(stable_test_dir),
-        pandoc=haxorg_opts.ExportPandocOptions(
-            infile=all_org_file,
-            outfile=out_file,
-        ),
-    ))
+    opts = haxorg_opts.RootOptions(
+        export=haxorg_opts.ExportOptions(
+            **get_export_debug(stable_test_dir),
+            pandoc=haxorg_opts.ExportPandocOptions(
+                infile=all_org_file,
+                outfile=out_file,
+            ),
+        )
+    )
 
     export_pandoc(haxorg_cli.get_run(opts))
 
     if has_cmd("pandoc"):
         pandoc = local["pandoc"]
-        pandoc.run([
-            "-f",
-            "json",
-            "-t",
-            "markdown",
-            str(out_file),
-            "-o",
-            out_file.with_suffix(".md"),
-        ])
+        pandoc.run(
+            [
+                "-f",
+                "json",
+                "-t",
+                "markdown",
+                str(out_file),
+                "-o",
+                out_file.with_suffix(".md"),
+            ]
+        )
 
 
 @pytest.mark.test_release
@@ -163,14 +179,16 @@ def test_typst_export_1(stable_test_dir: Path) -> None:
 
         """)
 
-        opts = haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-            **get_export_debug(stable_test_dir),
-            typst=haxorg_opts.TypstExportOptions(
-                infile=all_org_file,
-                outfile=outfile,
-                do_compile=has_cmd("typst"),
-            ),
-        ))
+        opts = haxorg_opts.RootOptions(
+            export=haxorg_opts.ExportOptions(
+                **get_export_debug(stable_test_dir),
+                typst=haxorg_opts.TypstExportOptions(
+                    infile=all_org_file,
+                    outfile=outfile,
+                    do_compile=has_cmd("typst"),
+                ),
+            )
+        )
 
         export_typst(haxorg_cli.get_run(opts))
 
@@ -223,14 +241,16 @@ subtree = "changeSubtree"
 
         """)
 
-    opts = haxorg_opts.RootOptions(export=haxorg_opts.ExportOptions(
-        **get_export_debug(stable_test_dir),
-        typst=haxorg_opts.TypstExportOptions(
-            infile=infile,
-            outfile=outfile,
-            do_compile=False,
-        ),
-    ))
+    opts = haxorg_opts.RootOptions(
+        export=haxorg_opts.ExportOptions(
+            **get_export_debug(stable_test_dir),
+            typst=haxorg_opts.TypstExportOptions(
+                infile=infile,
+                outfile=outfile,
+                do_compile=False,
+            ),
+        )
+    )
 
     export_typst(haxorg_cli.get_run(opts))
 
@@ -261,11 +281,16 @@ def test_story_grid(stable_test_dir: Path) -> None:
 
     story_grid(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-                story_grid=haxorg_opts.StoryGridOpts(
-                    infile=org_file,
-                    outfile=res_file,
-                )))))
+            haxorg_opts.RootOptions(
+                generate=haxorg_opts.GenerateOptions(
+                    story_grid=haxorg_opts.StoryGridOpts(
+                        infile=org_file,
+                        outfile=res_file,
+                    )
+                )
+            )
+        )
+    )
 
 
 @pytest.mark.test_release
@@ -283,11 +308,16 @@ Word1 Word1 Word1
 
     node_clouds(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-                node_clouds=haxorg_opts.GenerateNodeCloudOptions(
-                    infile=[org_file],
-                    outfile=csv_file,
-                )))))
+            haxorg_opts.RootOptions(
+                generate=haxorg_opts.GenerateOptions(
+                    node_clouds=haxorg_opts.GenerateNodeCloudOptions(
+                        infile=[org_file],
+                        outfile=csv_file,
+                    )
+                )
+            )
+        )
+    )
 
     df = pd.read_csv(csv_file)
     mapping = {key: group for key, group in df.groupby("kind")}
@@ -335,11 +365,16 @@ def test_subtree_clocking(stable_test_dir: Path) -> None:
 
     subtree_clocking(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-                subtree_clocking=haxorg_opts.ClockTimeAnalysisOptions(
-                    infile=[org_file],
-                    outfile=csv_file,
-                )))))
+            haxorg_opts.RootOptions(
+                generate=haxorg_opts.GenerateOptions(
+                    subtree_clocking=haxorg_opts.ClockTimeAnalysisOptions(
+                        infile=[org_file],
+                        outfile=csv_file,
+                    )
+                )
+            )
+        )
+    )
 
     df = pd.read_csv(csv_file)
     assert df["tags"][0] == "tag##sub1,tag2"
@@ -374,12 +409,17 @@ Sentence with Character name should trigger radio target detection
 
     codex_tracking(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-                codex_tracking=haxorg_opts.CodexTrackingOptions(
-                    target_file=target_file,
-                    codex_files=[codex_file],
-                    outfile=outfile,
-                )))))
+            haxorg_opts.RootOptions(
+                generate=haxorg_opts.GenerateOptions(
+                    codex_tracking=haxorg_opts.CodexTrackingOptions(
+                        target_file=target_file,
+                        codex_files=[codex_file],
+                        outfile=outfile,
+                    )
+                )
+            )
+        )
+    )
 
 
 @pytest.mark.unstable
@@ -427,12 +467,17 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
 
     activity_analysis(
         haxorg_cli.get_run(
-            haxorg_opts.RootOptions(generate=haxorg_opts.GenerateOptions(
-                activity_analysis=haxorg_opts.GenerateActivityAnalysisOptions(
-                    infile=[org_file],
-                    db_path=db_file,
-                    outdir=stable_test_dir,
-                )))))
+            haxorg_opts.RootOptions(
+                generate=haxorg_opts.GenerateOptions(
+                    activity_analysis=haxorg_opts.GenerateActivityAnalysisOptions(
+                        infile=[org_file],
+                        db_path=db_file,
+                        outdir=stable_test_dir,
+                    )
+                )
+            )
+        )
+    )
 
     assert db_file.exists()
     engine = open_sqlite(db_file)
@@ -446,11 +491,11 @@ def test_base_activity_analysis(stable_test_dir: Path) -> None:
 
     blocks = get_t(export_sqlite.Block)
     for expected_text in [
-            "Nested logging",
-            "Message 3",
-            "Some more nested logging",
-            "More logging in the text",
-            "Test list item with message",
+        "Nested logging",
+        "Message 3",
+        "Some more nested logging",
+        "More logging in the text",
+        "Test list item with message",
     ]:
         assert more_itertools.first_true(
             iterable=blocks,
@@ -504,5 +549,8 @@ def test_todo_collector(stable_test_dir: Path) -> None:
                     todo_collector=haxorg_opts.TodoCollectorOptions(
                         infile=[stable_test_dir],
                         outdir=stable_test_dir.joinpath("report.txt"),
-                    )),
-            )))
+                    )
+                ),
+            )
+        )
+    )

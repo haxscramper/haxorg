@@ -2,25 +2,20 @@
 
 from pathlib import Path
 
+import dominate
+import py_haxorg.pyhaxorg_wrap as org
+import yaml
 from ansi2html import Ansi2HTMLConverter
 from beartype import beartype
 from beartype.typing import *
 from beartype.typing import Any, List
-import dominate
 from dominate import tags, util
-from py_haxorg.exporters.export_tex import ExporterLatex
-from py_haxorg.layout.wrap import BlockId, TextOptions
 from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.files import get_haxorg_repo_root_path
-from py_scriptutils.rich_utils import render_debug
-from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
-import pygments
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import YamlLexer
-import yaml
 
 osk: Type = org.OrgSemKind
 CAT = "test_simple_org_use.py"
@@ -159,7 +154,8 @@ def test_sem_parser_expected() -> None:
         for entry in file.items:
             head_row = tags.tr()
             head_row.add(
-                tags.td(tags.b(util.text(entry.name)), style="text-align:center;"))
+                tags.td(tags.b(util.text(entry.name)), style="text-align:center;")
+            )
 
             row = tags.tr()
             if entry.source:
@@ -197,7 +193,8 @@ def test_sem_parser_expected() -> None:
                 try:
                     conv = Ansi2HTMLConverter()
                     tree.add_raw_string(
-                        conv.convert(org.treeRepr(node, colored=True), full=False))
+                        conv.convert(org.treeRepr(node, colored=True), full=False)
+                    )
 
                 except Exception as e:
                     tree.add_raw_string(str(e))
@@ -215,8 +212,10 @@ def test_sem_parser_expected() -> None:
         tags.link(
             rel="stylesheet",
             href=get_haxorg_repo_root_path().joinpath(
-                "tests/python/test_sem_parser_expected.css"),
-        ))
+                "tests/python/test_sem_parser_expected.css"
+            ),
+        )
+    )
     doc.add(table)
 
     Path("/tmp/test_sem_parser_expected.html").write_text(str(doc))
@@ -227,12 +226,14 @@ def test_segment_tree() -> None:
         org.SequenceSegmentGroup(
             kind=1,
             segments=org.HstdVecOfSequenceSegment(
-                [org.SequenceSegment(kind=2, first=0, last=2)]),
+                [org.SequenceSegment(kind=2, first=0, last=2)]
+            ),
         )
     ]
 
     annotations: List[org.SequenceAnnotation] = org.annotateSequence(
-        org.HstdVecOfSequenceSegmentGroup(segments), 0, 2)
+        org.HstdVecOfSequenceSegmentGroup(segments), 0, 2
+    )
 
     assert len(annotations) == 1
     assert annotations[0].first == 0

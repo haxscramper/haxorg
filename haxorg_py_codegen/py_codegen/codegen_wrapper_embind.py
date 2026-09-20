@@ -1,5 +1,7 @@
 from beartype import beartype
-from py_codegen import astbuilder_cpp as cpp, astbuilder_embind as napi
+
+from py_codegen import astbuilder_cpp as cpp
+from py_codegen import astbuilder_embind as napi
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
 from py_codegen.codegen_algo import collect_type_specializations
 from py_codegen.codegen_ir import GenFiles, GenTu, GenTuPass, GenTypeMap, GenUnit
@@ -21,8 +23,9 @@ def gen_pyhaxorg_napi_wrappers(
 
     res.add_specializations(
         b=ast,
-        specializations=collect_type_specializations(groups.get_entries_for_wrapping(),
-                                                     conf),
+        specializations=collect_type_specializations(
+            groups.get_entries_for_wrapping(), conf
+        ),
     )
 
     for decl in groups.get_entries_for_wrapping():
@@ -36,11 +39,23 @@ def gen_pyhaxorg_napi_wrappers(
 
     res.add_decl(napi.WasmBindPass(ast.string("haxorg_wasm_manual_register();")))
 
-    return GenFiles([
-        GenUnit(header=GenTu("{root}/src/wrappers/js/haxorg_wasm.cpp", [
-            GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
-        ])),
-        GenUnit(header=GenTu("{root}/src/wrappers/js/haxorg_wasm_types.d.ts", [
-            GenTuPass(res.build_typedef(ast=ast)),
-        ])),
-    ])
+    return GenFiles(
+        [
+            GenUnit(
+                header=GenTu(
+                    "{root}/src/wrappers/js/haxorg_wasm.cpp",
+                    [
+                        GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
+                    ],
+                )
+            ),
+            GenUnit(
+                header=GenTu(
+                    "{root}/src/wrappers/js/haxorg_wasm_types.d.ts",
+                    [
+                        GenTuPass(res.build_typedef(ast=ast)),
+                    ],
+                )
+            ),
+        ]
+    )

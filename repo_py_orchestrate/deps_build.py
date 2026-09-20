@@ -10,7 +10,6 @@ from py_ci.data_build import (
 )
 from py_ci.util_scripting import cmake_opt
 from py_repository.repo_tasks.command_execution import (
-    get_cmd_debug_file,
     run_cmake_build,
     run_cmake_configure,
     run_command,
@@ -25,7 +24,7 @@ from py_repository.repo_tasks.haxorg_base import (
     get_deps_build_dir,
     get_deps_install_dir,
 )
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.algorithm import maybe_splice
 from py_scriptutils.files import FileOperation
 from py_scriptutils.script_logging import log
@@ -36,8 +35,9 @@ CAT = __name__
 @haxorg_task()
 def validate_dependencies_install(ctx: TaskContext) -> None:
     install_dir = get_deps_install_dir(ctx).joinpath("paths.cmake")
-    assert check_path_exists(ctx,
-                             install_dir), f"No dependency paths found at '{install_dir}'"
+    assert check_path_exists(ctx, install_dir), (
+        f"No dependency paths found at '{install_dir}'"
+    )
 
 
 @beartype
@@ -48,10 +48,12 @@ def get_develop_deps_stamp(ctx: TaskContext) -> Any:
     )
 
 
-@haxorg_task(file_operation=FileOperation.OnlyStamp(
-    "build_develop_deps",
-    get_develop_deps_stamp,
-))
+@haxorg_task(
+    file_operation=FileOperation.OnlyStamp(
+        "build_develop_deps",
+        get_develop_deps_stamp,
+    )
+)
 def build_develop_deps(ctx: TaskContext) -> None:
     "Install dependencies for cmake project development"
     conf = ctx.config
@@ -68,17 +70,21 @@ def build_develop_deps(ctx: TaskContext) -> None:
 
     @beartype
     def dep(item: ExternalDep) -> None:
-        if 0 < len(
-                conf.build_develop_deps_conf.build_whitelist
-        ) and item.build_name not in conf.build_develop_deps_conf.build_whitelist:
+        if (
+            0 < len(conf.build_develop_deps_conf.build_whitelist)
+            and item.build_name not in conf.build_develop_deps_conf.build_whitelist
+        ):
             return
 
         configure_args = list(
-            itertools.chain(*[
-                it.get_cli()
-                for it in item.configure_args
-                if isinstance(it, CmakeOptConfig) or not it.isBuild
-            ]))
+            itertools.chain(
+                *[
+                    it.get_cli()
+                    for it in item.configure_args
+                    if isinstance(it, CmakeOptConfig) or not it.isBuild
+                ]
+            )
+        )
 
         log(CAT).info(f"Running build name='{item.build_name}' deps='{item.deps_name}'")
         if conf.build_develop_deps_conf.configure:
@@ -88,8 +94,9 @@ def build_develop_deps(ctx: TaskContext) -> None:
                 script_root=deps_dir.joinpath(item.deps_name),
                 generator=ctx.config.build_conf.cmake_generator,
                 args=[
-                    cmake_opt("CMAKE_INSTALL_PREFIX",
-                              install_dir.joinpath(item.build_name)),
+                    cmake_opt(
+                        "CMAKE_INSTALL_PREFIX", install_dir.joinpath(item.build_name)
+                    ),
                     cmake_opt("CMAKE_BUILD_TYPE", "RelWithDebInfo"),
                     cmake_opt("CMAKE_CXX_COMPILER", conf.build_conf.cxx_compiler),
                     cmake_opt("CMAKE_C_COMPILER", conf.build_conf.c_compiler),
@@ -100,11 +107,14 @@ def build_develop_deps(ctx: TaskContext) -> None:
             )
 
         build_args = list(
-            itertools.chain(*[
-                it.get_cli()
-                for it in item.configure_args
-                if isinstance(it, CmakeFlagConfig) and it.isBuild
-            ]))
+            itertools.chain(
+                *[
+                    it.get_cli()
+                    for it in item.configure_args
+                    if isinstance(it, CmakeFlagConfig) and it.isBuild
+                ]
+            )
+        )
 
         run_cmake_build(
             ctx,
@@ -115,17 +125,21 @@ def build_develop_deps(ctx: TaskContext) -> None:
         )
 
     if conf.in_ci:
-        run_command(ctx, "git", [
-            "config",
-            "--global",
-            "--add",
-            "safe.directory",
-            deps_dir.joinpath("range-v3"),
-        ])
+        run_command(
+            ctx,
+            "git",
+            [
+                "config",
+                "--global",
+                "--add",
+                "safe.directory",
+                deps_dir.joinpath("range-v3"),
+            ],
+        )
 
     for item in get_external_deps_list(
-            install_dir,
-            is_emcc=ctx.config.emscripten.build,
+        install_dir,
+        is_emcc=ctx.config.emscripten.build,
     ):
         dep(item)
 

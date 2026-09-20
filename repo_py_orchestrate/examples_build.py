@@ -1,32 +1,26 @@
-import json
-from pathlib import Path
 import signal
+from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import List, Unpack
-import plumbum
 from py_ci.util_scripting import cmake_opt
 from py_repository.repo_tasks.command_execution import (
+    RunCommandKwargs,
     run_cmake,
     run_command,
-    RunCommandKwargs,
 )
 from py_repository.repo_tasks.common import (
     ensure_clean_dir,
     find_process,
     get_build_tmpdir,
     get_component_build_dir,
-    get_log_dir,
     get_script_root,
-    get_workflow_out,
 )
-from py_repository.repo_tasks.deps_build import validate_dependencies_install
 from py_repository.repo_tasks.haxorg_base import get_toolchain_path, symlink_build
-from py_repository.repo_tasks.haxorg_build import build_haxorg, install_haxorg_develop
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.haxorg_build import build_haxorg
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.algorithm import maybe_splice
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -55,7 +49,8 @@ def run_cmake_configure_component(
             "-G",
             ctx.config.build_conf.cmake_generator,
             "-Wno-dev",
-        ] + args,
+        ]
+        + args,
         **kwargs,
     )
 
@@ -75,7 +70,8 @@ def run_cmake_build_component(
             get_component_build_dir(ctx, component),
             "--target",
             *targets,
-        ] + args,  # type: ignore
+        ]
+        + args,  # type: ignore
         **kwargs,
     )
 
@@ -108,6 +104,7 @@ def run_d3_example(ctx: TaskContext, sync: bool = False) -> None:
     deno_run = find_process("deno", d3_example_dir, ["task", "run-gui"])
 
     import time
+
     time.sleep(1)
 
     if not sync and deno_run:

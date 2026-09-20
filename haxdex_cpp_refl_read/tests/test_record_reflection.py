@@ -2,13 +2,14 @@ import itertools
 from pathlib import Path
 from tempfile import gettempdir
 
-from more_itertools import first_true
 import pytest
+from more_itertools import first_true
 
 
 @pytest.mark.test_release
 def test_simple_structure_registration(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     struct = refl_test_driver.get_struct(
         "struct Test {};",
         stable_test_dir=stable_test_dir,
@@ -21,6 +22,7 @@ def test_simple_structure_registration(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_structure_field_registration(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     struct = refl_test_driver.get_struct(
         "struct Test { int field; };",
         stable_test_dir=stable_test_dir,
@@ -34,6 +36,7 @@ def test_structure_field_registration(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_anon_structure_fields(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     struct = refl_test_driver.get_struct(
         "struct Main { union { int int_field; char char_field; }; };",
         stable_test_dir=stable_test_dir,
@@ -53,12 +56,17 @@ def test_anon_structure_fields(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_field_with_std_import(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     code_dir = Path(stable_test_dir)
-    tu = refl_test_driver.run_reflection_tool_provider(
-        "#include <vector>\nstruct Content { std::vector<int> items; };",
-        code_dir,
-        output_dir=stable_test_dir,
-    ).wraps[0].tu
+    tu = (
+        refl_test_driver.run_reflection_tool_provider(
+            "#include <vector>\nstruct Content { std::vector<int> items; };",
+            code_dir,
+            output_dir=stable_test_dir,
+        )
+        .wraps[0]
+        .tu
+    )
 
     assert len(tu.structs) == 1
     assert len(tu.enums) == 0
@@ -79,6 +87,7 @@ def test_field_with_std_import(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_anon_struct_for_field(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     struct = refl_test_driver.get_struct(
         "struct Main { struct { int nested; } field; };",
         code_dir_override=Path(gettempdir()) / "code_dir_override",
@@ -100,6 +109,7 @@ def test_anon_struct_for_field(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_anon_struct_for_field_2(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     struct = refl_test_driver.get_struct(
         "struct Main { struct Named { int nested; } field; };",
         stable_test_dir=stable_test_dir,
@@ -120,10 +130,11 @@ def test_anon_struct_for_field_2(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_namespace_extraction_for_nested_struct(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     struct = refl_test_driver.get_struct(
         "struct Main { struct Nested {}; Nested field; };",
-        code_dir_override=Path(gettempdir()) /
-        "test_namespace_extraction_for_nested_struct",
+        code_dir_override=Path(gettempdir())
+        / "test_namespace_extraction_for_nested_struct",
         stable_test_dir=stable_test_dir,
     )
     field = struct.Fields[0]
@@ -134,6 +145,7 @@ def test_namespace_extraction_for_nested_struct(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_namespace_extraction(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     entires = refl_test_driver.get_entires(
         "namespace Space { struct Nest {}; } struct Main { Space::Nest field; };",
         stable_test_dir=stable_test_dir,
@@ -149,11 +161,13 @@ def test_namespace_extraction(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_nim_record_conversion(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     conv = refl_test_driver.get_nim_code(
         refl_test_driver.get_struct(
             "struct Main {};",
             stable_test_dir=stable_test_dir,
-        ))
+        )
+    )
 
     assert len(conv.procs) == 0
     assert len(conv.types) == 1
@@ -166,11 +180,13 @@ def test_nim_record_conversion(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_nim_record_field_conversion(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     conv = refl_test_driver.get_nim_code(
         refl_test_driver.get_struct(
             "struct Main { int field; };",
             stable_test_dir=stable_test_dir,
-        ))
+        )
+    )
 
     assert len(conv.procs) == 0
     assert len(conv.types) == 1
@@ -185,11 +201,11 @@ def test_nim_record_field_conversion(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_nim_record_with_compile(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     code_dir = stable_test_dir
     value = refl_test_driver.run_reflection_tool_provider(
         {
-            "file.hpp":
-                """
+            "file.hpp": """
         #include <cstdio>
 
         struct Test {
@@ -218,21 +234,27 @@ def test_nim_record_with_compile(stable_test_dir: Path) -> None:
     formatted = refl_test_driver.format_nim_code(value)
     if refl_test_driver.has_nim_installed():
         _, stdout, _ = refl_test_driver.verify_nim_code(
-            code_dir, formatted, """
+            code_dir,
+            formatted,
+            """
 import file
 let value = Test()
 echo "value field ", value.field
 echo "method field", value.run_method()
-""")
+""",
+        )
 
         assert stdout.split("\n")[0:3] == [
-            "value field 0", "-- default constructor", "method field24"
+            "value field 0",
+            "-- default constructor",
+            "method field24",
         ]
 
 
 @pytest.mark.test_release
 def test_annotated_declaration(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     value = refl_test_driver.run_reflection_tool_provider(
         """
 struct NotAnnotatedStruct {};
@@ -271,6 +293,7 @@ struct [[refl]] PartiallyAnnotatedFields {
 @pytest.mark.test_release
 def test_reflection_bases(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     value = refl_test_driver.get_struct(
         """
         struct A {};
@@ -294,6 +317,7 @@ def test_reflection_bases(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_trivial_method_reflection(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     value = refl_test_driver.get_struct(
         """
         struct [[refl]] Derived {
@@ -344,14 +368,13 @@ def test_trivial_method_reflection(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_type_cross_dependency(stable_test_dir: Path) -> None:
     import py_codegen.wrapper_gen_nim as gen_nim
-
     import tests.python.refl.refl_test_driver as refl_test_driver
 
     code_dir = stable_test_dir
     value = refl_test_driver.run_reflection_tool_provider(
         {
             "a.hpp": "struct B; struct A { B* field; };",
-            "b.hpp": "struct A; struct B { A* field; };"
+            "b.hpp": "struct A; struct B { A* field; };",
         },
         code_dir=code_dir,
         output_dir=stable_test_dir,
@@ -402,6 +425,7 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_templates_record(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     s = refl_test_driver.get_struct(
         """
 
@@ -674,7 +698,8 @@ def test_templates_record_template_template_param(stable_test_dir: Path) -> None
 
 @pytest.mark.test_release
 def test_templates_record_template_template_param_named_nested(
-    stable_test_dir: Path,) -> None:
+    stable_test_dir: Path,
+) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
 
     s = refl_test_driver.get_struct(
@@ -706,7 +731,8 @@ def test_templates_record_template_template_param_named_nested(
 
 @pytest.mark.test_release
 def test_templates_record_template_template_param_with_non_type_nested(
-    stable_test_dir: Path,) -> None:
+    stable_test_dir: Path,
+) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
 
     s = refl_test_driver.get_struct(
@@ -782,7 +808,8 @@ def test_templates_record_mixed_params(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_templates_record_constrained_and_defaulted_params(
-    stable_test_dir: Path,) -> None:
+    stable_test_dir: Path,
+) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
 
     s = refl_test_driver.get_struct(

@@ -1,32 +1,29 @@
-from contextlib import contextmanager
-from dataclasses import dataclass, field
-from datetime import datetime
 import difflib
-from functools import wraps
 import json
 import os
-from pathlib import Path
 import pickle
-import traceback
+from contextlib import contextmanager
+from dataclasses import dataclass
+from datetime import datetime
+from functools import wraps
+from pathlib import Path
 from types import GeneratorType
 
 from beartype import beartype
 from beartype.typing import (
     Any,
     Callable,
-    cast,
     Dict,
     Generator,
     Iterable,
     List,
     Optional,
     Sequence,
-    Type,
     TypeAlias,
     TypeVar,
     Union,
 )
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
+
 from py_scriptutils.script_logging import to_debug_json
 
 T = TypeVar("T")
@@ -189,24 +186,31 @@ class FileOperation:
         stamp_path = self.get_stamp_path(root)
         if stamp_path is not None and stamp_path.exists():
             return bool(
-                stamp_path.exists() and self.get_stamp_content(**kwargs) and
-                stamp_path.read_text() != self.get_stamp_content(**kwargs),)
+                stamp_path.exists()
+                and self.get_stamp_content(**kwargs)
+                and stamp_path.read_text() != self.get_stamp_content(**kwargs),
+            )
 
         else:
             return True
 
     def get_output_files(self, root: Path, **kwargs: Any) -> List[Path]:
         stamp_path = self.get_stamp_path(root)
-        return (self.get_output(**kwargs) or
-                []) + ([stamp_path] if stamp_path is not None else [])
+        return (self.get_output(**kwargs) or []) + (
+            [stamp_path] if stamp_path is not None else []
+        )
 
     def should_run(self, root: Path, **kwargs: Any) -> bool:
         stamp_path = self.get_stamp_path(root)
-        return (self.input and IsNewInput(
-            self.input,
-            self.get_output_files(root) or
-            ([stamp_path] if stamp_path is not None else []), **kwargs)) or bool(
-                stamp_path and self.stamp_content_is_new(root, **kwargs))
+        return (
+            self.input
+            and IsNewInput(
+                self.input,
+                self.get_output_files(root)
+                or ([stamp_path] if stamp_path is not None else []),
+                **kwargs,
+            )
+        ) or bool(stamp_path and self.stamp_content_is_new(root, **kwargs))
 
     def explain(self, name: str, root: Path, **kwargs: Any) -> str:
         if self.should_run(root, **kwargs):
@@ -222,24 +226,30 @@ class FileOperation:
             if stamp_path is not None and self.stamp_content_is_new(root, **kwargs):
                 why += f" stamp content value changed\n"
                 for line in difflib.context_diff(
-                        stamp_path.read_text().splitlines(),
-                        self.get_stamp_content(**kwargs).splitlines(),
-                        fromfile="before",
-                        tofile="after",
+                    stamp_path.read_text().splitlines(),
+                    self.get_stamp_content(**kwargs).splitlines(),
+                    fromfile="before",
+                    tofile="after",
                 ):
                     why += f"\n{line}"
 
             min_time = min_mtime(self.get_output_files(root))
             newer = [
-                p for p in self.get_input(**kwargs)
+                p
+                for p in self.get_input(**kwargs)
                 if p.exists() and min_time < p.stat().st_mtime
             ]
 
             def format_files(files: Iterable[Path]) -> str:
-                return ", ".join(("{} ({})".format(
-                    it.name,
-                    mtime_str(it.stat().st_mtime) if it.exists() else "<missing>",
-                ) for it in files))
+                return ", ".join(
+                    (
+                        "{} ({})".format(
+                            it.name,
+                            mtime_str(it.stat().st_mtime) if it.exists() else "<missing>",
+                        )
+                        for it in files
+                    )
+                )
 
             if newer:
                 why += " {} files were changed since last creation of {}: {}".format(
@@ -289,10 +299,14 @@ def cache_file_processing_result(input_arg_names: List[str]) -> Callable:
                     mod_times.append((file_path, file_path.stat().st_mtime))
 
             if cache_key in cache:
-                cached_mod_times, cached_result = cache[cache_key]["mod_times"], cache[
-                    cache_key]["result"]
-                if all(mod_time == cached_mod_times[i][1]
-                       for i, (file_path, mod_time) in enumerate(mod_times)):
+                cached_mod_times, cached_result = (
+                    cache[cache_key]["mod_times"],
+                    cache[cache_key]["result"],
+                )
+                if all(
+                    mod_time == cached_mod_times[i][1]
+                    for i, (file_path, mod_time) in enumerate(mod_times)
+                ):
                     return cached_result
 
             result = func(*args, **kwargs)

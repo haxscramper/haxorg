@@ -1,10 +1,10 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from beartype.typing import Optional
 from plumbum import CommandNotFound, local
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
+
+import py_haxorg.pyhaxorg_wrap as org
 
 CAT = __name__
 
@@ -23,11 +23,13 @@ def babel_eval(input: org.OrgCodeEvalInput) -> org.HstdVecOfOrgCodeEvalOutput:
             input_file.write_text(input.tangledCode)
             log(CAT).info("Running plantuml evaluation")
 
-            cmd.run([
-                str(input_file),
-                "-o",
-                str(dir),
-            ])
+            cmd.run(
+                [
+                    str(input_file),
+                    "-o",
+                    str(dir),
+                ]
+            )
 
     except CommandNotFound:
         pass

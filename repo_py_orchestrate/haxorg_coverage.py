@@ -1,11 +1,11 @@
 import os
-from pathlib import Path
 import re
+from pathlib import Path
 from shutil import rmtree
 
+import plumbum
 from beartype import beartype
 from beartype.typing import List, Optional
-import plumbum
 from py_ci.util_scripting import get_threading_count
 from py_repository.code_analysis import gen_coverage_cookies
 from py_repository.repo_tasks.command_execution import (
@@ -15,7 +15,6 @@ from py_repository.repo_tasks.command_execution import (
 from py_repository.repo_tasks.common import (
     ctx_read_text,
     ctx_write_text,
-    ensure_clean_file,
     ensure_existing_dir,
     get_build_root,
     get_component_build_dir,
@@ -23,7 +22,7 @@ from py_repository.repo_tasks.common import (
 from py_repository.repo_tasks.config import HaxorgCoverageRunPattern
 from py_repository.repo_tasks.haxorg_base import get_llvm_root
 from py_repository.repo_tasks.haxorg_build import build_haxorg
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -49,10 +48,12 @@ def filter_cookies(
 
 
 @beartype
-def matches_pattern(cookie: gen_coverage_cookies.ProfdataCookie,
-                    pattern: HaxorgCoverageRunPattern) -> bool:
-    if pattern.binary_pattern and not re.search(pattern.binary_pattern,
-                                                cookie.test_binary):
+def matches_pattern(
+    cookie: gen_coverage_cookies.ProfdataCookie, pattern: HaxorgCoverageRunPattern
+) -> bool:
+    if pattern.binary_pattern and not re.search(
+        pattern.binary_pattern, cookie.test_binary
+    ):
         return False
 
     if pattern.name_pattern and not re.search(pattern.name_pattern, cookie.test_name):
@@ -112,11 +113,15 @@ def run_profdata_coverrage(
 
     assert default_profraw.exists()
 
-    run_command(ctx, tools / "llvm-profdata", [
-        "merge",
-        "-output=" + str(result_profdata),
-        default_profraw,
-    ])
+    run_command(
+        ctx,
+        tools / "llvm-profdata",
+        [
+            "merge",
+            "-output=" + str(result_profdata),
+            default_profraw,
+        ],
+    )
 
     if report_path:
         report_dir = Path(report_path)
@@ -129,13 +134,17 @@ def run_profdata_coverrage(
 
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    run_command(ctx, tools / "llvm-cov", [
-        "show",
-        bin_path,
-        "-instr-profile=" + str(result_profdata),
-        "-format=html",
-        "-output-dir=" + str(report_dir),
-    ])
+    run_command(
+        ctx,
+        tools / "llvm-cov",
+        [
+            "show",
+            bin_path,
+            "-instr-profile=" + str(result_profdata),
+            "-format=html",
+            "-output-dir=" + str(report_dir),
+        ],
+    )
 
 
 @beartype
@@ -153,50 +162,68 @@ def xray_coverage(ctx: TaskContext, test: Path) -> None:
     log(CAT).info(f"Running XRAY log agregation for directory {dir}")
     run_command(
         ctx,
-        test, [],
+        test,
+        [],
         env={"XRAY_OPTIONS": "patch_premain=true xray_mode=xray-basic verbosity=1"},
         allow_fail=True,
         capture=True,
-        cwd=dir)
+        cwd=dir,
+    )
 
     # Find the latest XRay log file
-    log_files = sorted(dir.glob(f"xray-log.{test.stem}.*"),
-                       key=os.path.getmtime,
-                       reverse=True)
+    log_files = sorted(
+        dir.glob(f"xray-log.{test.stem}.*"), key=os.path.getmtime, reverse=True
+    )
     if log_files:
         log(CAT).info(f"Latest XRay log file '{log_files[0]}'")
         logfile = log_files[0]
 
         # Process log file with llvm-xray and llvm-profdata
-        run_command(ctx, tools / "llvm-xray", [
-            "convert",
-            "--symbolize",
-            "--instr_map=" + str(test),
-            "--output-format=trace_event",
-            "--output=" + str(dir / "trace_events.json"),
-            logfile,
-        ])
+        run_command(
+            ctx,
+            tools / "llvm-xray",
+            [
+                "convert",
+                "--symbolize",
+                "--instr_map=" + str(test),
+                "--output-format=trace_event",
+                "--output=" + str(dir / "trace_events.json"),
+                logfile,
+            ],
+        )
 
-        run_command(ctx, tools / "llvm-xray", [
-            "graph",
-            "--instr_map=" + str(test),
-            "--output=" + str(dir / "trace_events.dot"),
-            logfile,
-        ])
+        run_command(
+            ctx,
+            tools / "llvm-xray",
+            [
+                "graph",
+                "--instr_map=" + str(test),
+                "--output=" + str(dir / "trace_events.dot"),
+                logfile,
+            ],
+        )
 
-        run_command(ctx, tools / "llvm-profdata", [
-            "merge",
-            "-output=" + str(dir / "bench.profdata"),
-            dir / "default.profraw",
-        ])
+        run_command(
+            ctx,
+            tools / "llvm-profdata",
+            [
+                "merge",
+                "-output=" + str(dir / "bench.profdata"),
+                dir / "default.profraw",
+            ],
+        )
 
-        run_command(ctx, tools / "llvm-cov", [
-            "show",
-            test,
-            "-instr-profile=" + str(dir / "bench.profdata"),
-            "-format=html",
-            "-output-dir=" + str(dir / "coverage_report"),
-        ])
+        run_command(
+            ctx,
+            tools / "llvm-cov",
+            [
+                "show",
+                test,
+                "-instr-profile=" + str(dir / "bench.profdata"),
+                "-format=html",
+                "-output-dir=" + str(dir / "coverage_report"),
+            ],
+        )
     else:
         raise RuntimeError(
             f"No XRay log files found in '{dir}', xray coverage enabled in settings {ctx.config.instrument.xray}"
@@ -227,10 +254,8 @@ def get_cxx_profdata_params_path(ctx: TaskContext) -> Path:
 
 
 HELP_profdata_file = {
-    "profdata-file-whitelist":
-        f"List of blacklist regexps to allow in the coverage database.",
-    "profdata-file-blacklist":
-        f"List of regexps to disallow in the coverage database."
+    "profdata-file-whitelist": f"List of blacklist regexps to allow in the coverage database.",
+    "profdata-file-blacklist": f"List of regexps to disallow in the coverage database.",
 }
 
 HELP_coverage_file = {
@@ -246,18 +271,25 @@ def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.Reflection
     database based on the previously collected test run profiles.
     """
     coverage_dir = get_cxx_coverage_dir(ctx)
-    stored_summary_collection = ctx_read_text(ctx,
-                                              coverage_dir.joinpath("test-summary.json"))
-    summary_data: gen_coverage_cookies.ProfdataFullProfile = gen_coverage_cookies.ProfdataFullProfile.model_validate_json(
-        stored_summary_collection)
-    filtered_summary = gen_coverage_cookies.ProfdataFullProfile(runs=filter_cookies(
-        cookies=summary_data.runs,
-        whitelist=ctx.config.coverage_conf.coverage_run_whitelist,
-        blacklist=ctx.config.coverage_conf.coverage_run_blacklist,
-    ))
+    stored_summary_collection = ctx_read_text(
+        ctx, coverage_dir.joinpath("test-summary.json")
+    )
+    summary_data: gen_coverage_cookies.ProfdataFullProfile = (
+        gen_coverage_cookies.ProfdataFullProfile.model_validate_json(
+            stored_summary_collection
+        )
+    )
+    filtered_summary = gen_coverage_cookies.ProfdataFullProfile(
+        runs=filter_cookies(
+            cookies=summary_data.runs,
+            whitelist=ctx.config.coverage_conf.coverage_run_whitelist,
+            blacklist=ctx.config.coverage_conf.coverage_run_blacklist,
+        )
+    )
     filtered_summary_collection = coverage_dir.joinpath("test-summary-filtered.json")
-    ctx_write_text(ctx, filtered_summary_collection,
-                   filtered_summary.model_dump_json(indent=2))
+    ctx_write_text(
+        ctx, filtered_summary_collection, filtered_summary.model_dump_json(indent=2)
+    )
     return gen_coverage_cookies.ReflectionCLI(
         mode=gen_coverage_cookies.Mode.RunProfileMerge,
         output=str(coverage_dir.joinpath("coverage.sqlite")),
@@ -272,8 +304,7 @@ def get_cxx_profdata_params(ctx: TaskContext) -> gen_coverage_cookies.Reflection
 
 
 HELP_coverage_mapping_dump = {
-    "coverage_mapping_dump":
-        "Directory to dump JSON information for every processed coverage mapping object"
+    "coverage_mapping_dump": "Directory to dump JSON information for every processed coverage mapping object"
 }
 
 
@@ -324,8 +355,9 @@ def cxx_target_coverage(
 
     if run_tests:
         if pytest_filter:
-            run_py_tests(ctx,
-                         arg=[f"--markfilter", pytest_filter, "--markfilter-debug=True"])
+            run_py_tests(
+                ctx, arg=[f"--markfilter", pytest_filter, "--markfilter-debug=True"]
+            )
         else:
             run_py_tests(ctx)
 

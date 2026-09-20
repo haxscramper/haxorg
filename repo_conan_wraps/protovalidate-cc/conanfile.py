@@ -12,9 +12,9 @@ from conan.tools.files import (
     download,
     get,
     mkdir,
+    replace_in_file,
     rmdir,
     save,
-    replace_in_file,
 )
 
 

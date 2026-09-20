@@ -2,14 +2,13 @@
 
 import sys
 
-from beartype import beartype
-from beartype.typing import Any, Optional
+import rich_click as click
+from beartype.typing import Any
+from py_scriptutils.script_logging import custom_traceback_handler
+
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.export.haxorg_export import export
 from py_cli.generate.haxorg_generate import generate
-from py_scriptutils.script_logging import custom_traceback_handler, log
-from py_scriptutils.toml_config_profiler import DefaultWrapperValue
-import rich_click as click
 
 CAT = __name__
 

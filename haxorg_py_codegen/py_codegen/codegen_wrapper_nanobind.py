@@ -1,8 +1,8 @@
-from pathlib import Path
-
 from beartype import beartype
-from py_codegen import astbuilder_py as pya, codegen_cpp, refl_read
+
 import py_codegen.astbuilder_cpp as cpp
+from py_codegen import astbuilder_py as pya
+from py_codegen import codegen_cpp
 from py_codegen.astbuilder_nanobind import NbModule
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.codegen_algo import collect_type_specializations
@@ -12,10 +12,8 @@ from py_codegen.codegen_ir import (
     GenTuInclude,
     GenTuPass,
     GenUnit,
-    get_type_map,
 )
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, verify_type_usage
-from py_scriptutils.script_logging import ExceptionContextNote, log
 
 CAT = __name__
 
@@ -93,21 +91,27 @@ def gen_pyhaxorg_python_wrappers(
 
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
-    return GenFiles([
-        GenUnit(header=GenTu(
-            "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-            [GenTuPass(res.build_typedef(pyast))],
-            clangFormatGuard=False,
-        )),
-        GenUnit(header=GenTu(
-            "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
-            [
-                GenTuPass("#undef slots"),
-                *NB_INCLUDE_LIST,
-                GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
-                GenTuInclude("haxorg/sem/SemOrg.hpp", True),
-                GenTuInclude("pyhaxorg_manual_impl.hpp", False),
-                GenTuPass(res.build_bind(ast)),
-            ],
-        )),
-    ])
+    return GenFiles(
+        [
+            GenUnit(
+                header=GenTu(
+                    "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
+                    [GenTuPass(res.build_typedef(pyast))],
+                    clangFormatGuard=False,
+                )
+            ),
+            GenUnit(
+                header=GenTu(
+                    "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
+                    [
+                        GenTuPass("#undef slots"),
+                        *NB_INCLUDE_LIST,
+                        GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
+                        GenTuInclude("haxorg/sem/SemOrg.hpp", True),
+                        GenTuInclude("pyhaxorg_manual_impl.hpp", False),
+                        GenTuPass(res.build_bind(ast)),
+                    ],
+                )
+            ),
+        ]
+    )

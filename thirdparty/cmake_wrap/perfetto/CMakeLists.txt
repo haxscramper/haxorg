@@ -58,4 +58,8 @@ install(
 )
 
 # Install the generated config file
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/PerfettoConfig.cmake" DESTINATION lib/cmake/Perfetto)
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/PerfettoConfig.cmake"
+    DESTINATION lib/cmake/Perfetto
+)

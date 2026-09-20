@@ -30,7 +30,10 @@ message(STATUS "Setting JAVA_HOME to: ${JAVA_HOME}")
 # Find system Gradle for wrapper generation
 find_program(SYSTEM_GRADLE_COMMAND gradle)
 if(NOT SYSTEM_GRADLE_COMMAND)
-    message(FATAL_ERROR "System gradle not found. Please install gradle to generate wrapper.")
+    message(
+        FATAL_ERROR
+        "System gradle not found. Please install gradle to generate wrapper."
+    )
 endif()
 
 set(GRADLE_WRAPPER "${CMAKE_CURRENT_SOURCE_DIR}/gradlew")
@@ -50,8 +53,9 @@ add_custom_command(
         ${GRADLE_WRAPPER_JAR}
         ${GRADLE_WRAPPER_PROPERTIES}
     COMMAND
-        ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}" "PATH=${JAVA_HOME}/bin:$ENV{PATH}"
-        ${SYSTEM_GRADLE_COMMAND} wrapper --gradle-version 8.5
+        ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}"
+        "PATH=${JAVA_HOME}/bin:$ENV{PATH}" ${SYSTEM_GRADLE_COMMAND} wrapper
+        --gradle-version 8.5
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/build.gradle
@@ -74,9 +78,9 @@ add_custom_command(
     COMMAND
         ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/lib
     COMMAND
-        ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}" "PATH=${JAVA_HOME}/bin:$ENV{PATH}"
-        ${GRADLE_WRAPPER} --info clean build -PbuildDir=${GRADLE_BUILD_DIR}
-        --project-dir=${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_COMMAND} -E env "JAVA_HOME=${JAVA_HOME}"
+        "PATH=${JAVA_HOME}/bin:$ENV{PATH}" ${GRADLE_WRAPPER} --info clean build
+        -PbuildDir=${GRADLE_BUILD_DIR} --project-dir=${CMAKE_CURRENT_SOURCE_DIR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS
         gradle_wrapper
@@ -96,7 +100,7 @@ add_library(
     src/elk_jni_wrapper.cpp
     include/elk_jni_wrapper.hpp
 )
-set_target_flags(jni_elk_lib)
+haxorg_set_target_flags(jni_elk_lib)
 
 target_include_directories(
     jni_elk_lib
@@ -188,7 +192,8 @@ add_custom_target(
     COMMAND
         ${CMAKE_COMMAND} -E echo "=== Available Java versions ==="
     COMMAND
-        bash -c "update-alternatives --list java 2>/dev/null || echo 'No alternatives found'"
+        bash -c
+        "update-alternatives --list java 2>/dev/null || echo 'No alternatives found'"
     COMMAND
         ${CMAKE_COMMAND} -E echo "=== Current Java version ==="
     COMMAND

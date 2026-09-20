@@ -1,24 +1,26 @@
 import itertools
 from pathlib import Path
 
-from beartype import beartype
-from beartype.typing import Any, List, Optional
 import plumbum
-from py_cli import haxorg_cli, haxorg_opts
+import py_haxorg.pyhaxorg_wrap as org
+import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, List
 from py_haxorg.exporters.export_tex import ExporterLatex
 from py_haxorg.exporters.export_utils.texoutparse import LatexLogParser
 from py_haxorg.layout.wrap import BlockId, TextOptions
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.script_logging import log
-import rich_click as click
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = "haxorg.export.tex"
 
 
 def run_lualatex(filename: Path) -> None:
     lualatex = plumbum.local["lualatex"].with_cwd(str(filename.parent))
-    code, stdout, stderr = lualatex.run(("-interaction=nonstopmode", filename),
-                                        retcode=None)
+    code, stdout, stderr = lualatex.run(
+        ("-interaction=nonstopmode", filename), retcode=None
+    )
 
     log_file = filename.with_suffix(".log")
 
@@ -41,20 +43,23 @@ def run_lualatex(filename: Path) -> None:
 
 
 class DerivedLatexExporter(ExporterLatex):
-
     def __init__(self) -> None:
         super().__init__(self)
         self.paragraphCount = 0
 
     def evalParagraph(self, node: org.Paragraph) -> BlockId:
         self.paragraphCount += 1
-        return self.t.line([
-            self.string("\\orgLocation{{p{}{}}} ".format(
-                self.paragraphCount,
-                ":" + str(node.loc.line) if node.loc else "",
-            )),
-            super().evalParagraph(node),
-        ])
+        return self.t.line(
+            [
+                self.string(
+                    "\\orgLocation{{p{}{}}} ".format(
+                        self.paragraphCount,
+                        ":" + str(node.loc.line) if node.loc else "",
+                    )
+                ),
+                super().evalParagraph(node),
+            ]
+        )
 
     def getDocumentStart(self, node: org.Document) -> List[BlockId]:
         return [
@@ -67,7 +72,7 @@ class DerivedLatexExporter(ExporterLatex):
 
 \newcommand{\quot}[1]{\textcolor{brown}{#1}}
 \newcommand{\orgLocation}[1]{\fbox{\textbf{#1}}}
-        """)
+        """),
         ]
 
 

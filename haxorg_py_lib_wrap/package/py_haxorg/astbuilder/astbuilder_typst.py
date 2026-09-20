@@ -3,13 +3,13 @@ from numbers import Number
 from pathlib import Path
 from typing import TypeAlias
 
+import py_haxorg.astbuilder.astbuilder_base as base
+import toml
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional
-import py_haxorg.astbuilder.astbuilder_base as base
 from py_haxorg.layout.wrap import BlockId, TextLayout
 from py_scriptutils.algorithm import cond, maybe_splice
 from pydantic import BaseModel
-import toml
 
 
 class TypstPackageFields(BaseModel):
@@ -30,22 +30,20 @@ def get_typst_export_package(path: Path) -> TypstPackageModel:
 
 
 @beartype
-class RawStr():
-
+class RawStr:
     def __init__(self, value: str) -> None:
         self.value = value
 
 
 @beartype
-class RawBlock():
-
+class RawBlock:
     def __init__(self, value: BlockId) -> None:
         self.value = value
 
 
 @beartype
 @dataclass
-class RawLiteral():
+class RawLiteral:
     value: str
 
 
@@ -55,7 +53,6 @@ AnySingleValue: TypeAlias = BlockId | str | RawBlock | RawStr | RawLiteral
 
 @beartype
 class ASTBuilder(base.AstbuilderBase):
-
     def __init__(self, in_b: Optional[TextLayout] = None) -> None:
         b = in_b if in_b else TextLayout()
         super().__init__(b)
@@ -107,7 +104,7 @@ class ASTBuilder(base.AstbuilderBase):
     def escape_str_lit(self, text: str) -> str:
         res = ""
         for ch in text:
-            if ch in ["\""]:
+            if ch in ['"']:
                 res += "\\" + ch
 
             else:
@@ -150,12 +147,15 @@ class ASTBuilder(base.AstbuilderBase):
         )
 
     def set(self, name: str, args: Dict[str, AnySingleValue] = dict()) -> BlockId:
-        return self.cmd("set", self.call(
-            name=name,
-            args=args,
-            isFirst=False,
-            isLine=True,
-        ))
+        return self.cmd(
+            "set",
+            self.call(
+                name=name,
+                args=args,
+                isFirst=False,
+                isLine=True,
+            ),
+        )
 
     def cmd(self, name: str, body: BlockId) -> BlockId:
         return self.line(self.string(f"#{name} "), body)
@@ -196,10 +196,13 @@ class ASTBuilder(base.AstbuilderBase):
             if isinstance(values, list):
                 for it in values:
                     arglist.append(
-                        self.b.line([
-                            self.expr(it),
-                            self.string(cond(isLine, ", ", ",")),
-                        ]))
+                        self.b.line(
+                            [
+                                self.expr(it),
+                                self.string(cond(isLine, ", ", ",")),
+                            ]
+                        )
+                    )
 
             else:
                 arglist.append(values)
@@ -208,43 +211,62 @@ class ASTBuilder(base.AstbuilderBase):
 
         for key in sorted(args.keys()):
             arglist.append(
-                self.b.line([
-                    self.string(key),
-                    self.string(": "),
-                    self.expr(args[key]),
-                    self.string(cond(isLine, ", ", ",")),
-                ]))
+                self.b.line(
+                    [
+                        self.string(key),
+                        self.string(": "),
+                        self.expr(args[key]),
+                        self.string(cond(isLine, ", ", ",")),
+                    ]
+                )
+            )
 
         add_direct_arglist(post_positional)
 
-        result = cond(isLine, self.b.line, self.b.stack)([
-            self.string(
-                cond([
-                    (arglist, f"{prefix}{name}("),
-                    (b and not isLine, f"{prefix}{name}["),
-                    (True, f"{prefix}{name}"),
-                ])),
-            *maybe_splice(
-                arglist,
-                self.b.line(arglist) if isLine else self.b.indent(
-                    2,
-                    self.b.stack(arglist),
-                )),
-            *maybe_splice(
-                arglist,
+        result = cond(isLine, self.b.line, self.b.stack)(
+            [
                 self.string(
-                    cond([
-                        (b and arglist and not isLine, ")["),
-                        (arglist, ")"),
-                        (True, ""),
-                    ]))),
-        ] + [
-            cond(isLine, self.b.line, self.b.stack)([
-                *maybe_splice(isLine, self.string("[")),
-                self.b.indent(cond(isLine, 0, 2), b[idx]),
-                self.string("]") if idx == len(b) - 1 else self.string("]["),
-            ]) for idx in range(len(b))
-        ])
+                    cond(
+                        [
+                            (arglist, f"{prefix}{name}("),
+                            (b and not isLine, f"{prefix}{name}["),
+                            (True, f"{prefix}{name}"),
+                        ]
+                    )
+                ),
+                *maybe_splice(
+                    arglist,
+                    self.b.line(arglist)
+                    if isLine
+                    else self.b.indent(
+                        2,
+                        self.b.stack(arglist),
+                    ),
+                ),
+                *maybe_splice(
+                    arglist,
+                    self.string(
+                        cond(
+                            [
+                                (b and arglist and not isLine, ")["),
+                                (arglist, ")"),
+                                (True, ""),
+                            ]
+                        )
+                    ),
+                ),
+            ]
+            + [
+                cond(isLine, self.b.line, self.b.stack)(
+                    [
+                        *maybe_splice(isLine, self.string("[")),
+                        self.b.indent(cond(isLine, 0, 2), b[idx]),
+                        self.string("]") if idx == len(b) - 1 else self.string("]["),
+                    ]
+                )
+                for idx in range(len(b))
+            ]
+        )
 
         if isContent:
             return self.content(result)
@@ -275,8 +297,11 @@ class ASTBuilder(base.AstbuilderBase):
             case list():
                 if all(isinstance(it, (int, str, float)) for it in value):
                     return self.b.pars(
-                        self.b.csv([self.expr(it, isLine=isLine) for it in value] +
-                                   [self.string("")]))
+                        self.b.csv(
+                            [self.expr(it, isLine=isLine) for it in value]
+                            + [self.string("")]
+                        )
+                    )
 
                 else:
                     return self.spatial(
@@ -295,14 +320,21 @@ class ASTBuilder(base.AstbuilderBase):
 
             case dict():
                 return self.b.pars(
-                    self.b.csv([
-                        self.b.line([
-                            self.string(key),
-                            self.string(": "),
-                            self.expr(value[key], isLine=isLine),
-                        ]) for key in sorted(value.keys())
-                    ]))
+                    self.b.csv(
+                        [
+                            self.b.line(
+                                [
+                                    self.string(key),
+                                    self.string(": "),
+                                    self.expr(value[key], isLine=isLine),
+                                ]
+                            )
+                            for key in sorted(value.keys())
+                        ]
+                    )
+                )
 
             case _:
                 raise ValueError(
-                    f"Unexpected type for `expr()` conversion: {type(value)}")
+                    f"Unexpected type for `expr()` conversion: {type(value)}"
+                )

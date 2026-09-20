@@ -64,9 +64,9 @@ function(haxorg_trace ARGS)
 endfunction()
 
 function(haxorg_print_list LIST)
-    trace("> ${cRed}List")
+    haxorg_trace("> ${cRed}List")
     foreach(item ${LIST})
-        trace("  - ${item}")
+        haxorg_trace("  - ${item}")
     endforeach()
 endfunction()
 
@@ -75,11 +75,17 @@ function(haxorg_print_target_property TARGET PROPERTY)
     get_target_property(TMP ${TARGET} ${PROPERTY})
     list(LENGTH TMP LEN)
     if(${LEN} LESS 2)
-        trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' " "is set to ${TMP}")
+        haxorg_trace(
+            "'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' "
+            "is set to ${TMP}"
+        )
     else()
-        trace("'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' " "is set to list of lenth ${LEN}")
+        haxorg_trace(
+            "'${cRed}${PROPERTY}${c0}' of '${cBlue}${TARGET}${c0}' "
+            "is set to list of lenth ${LEN}"
+        )
         foreach(item ${TMP})
-            trace("  - ${item}")
+            haxorg_trace("  - ${item}")
         endforeach()
     endif()
 endfunction()
@@ -136,7 +142,13 @@ function(haxorg_glob_add_sources)
 endfunction()
 
 function(haxorg_glob_add_sources2)
-    cmake_parse_arguments(ARG "" "RECURSE;TARGET;LS_REGEX;SEARCH_BASE;DEBUG" "EXTENSIONS" "${ARGN}")
+    cmake_parse_arguments(
+        ARG
+        ""
+        "RECURSE;TARGET;LS_REGEX;SEARCH_BASE;DEBUG"
+        "EXTENSIONS"
+        "${ARGN}"
+    )
     if(NOT ARG_EXTENSIONS)
         set(ARG_EXTENSIONS "hpp;cpp")
     endif()

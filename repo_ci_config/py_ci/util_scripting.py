@@ -1,11 +1,12 @@
-from contextlib import contextmanager
 import inspect
 import json
 import logging
 import os
-from pathlib import Path
 import subprocess
-from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple, Union
+from collections.abc import Generator, Sequence
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 logging.root.setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -72,7 +73,8 @@ def run_cmd(
 
         if check and process.returncode != 0:
             err = RuntimeError(
-                f"Failed to execute command '{cmd_str}'  from {filename}:{lineno}")
+                f"Failed to execute command '{cmd_str}'  from {filename}:{lineno}"
+            )
             if process.stdout:
                 err.add_note(f"stdout:\n{process.stdout}")
 
@@ -210,14 +212,13 @@ def parse_haxorg_env() -> Dict[str, Any]:
 
 
 def cmake_opt(name: str, value: Union[str, bool, Path, None, List, int]) -> str:
-    """Convert a Python value to a CMake `-D` option string: `-D<name>=<value>`
-    """
+    """Convert a Python value to a CMake `-D` option string: `-D<name>=<value>`"""
     result = "-D" + name + "="
     if isinstance(value, (str, Path)):
         result += str(value)
 
     elif isinstance(value, bool):
-        result += ("ON" if value else "OFF")
+        result += "ON" if value else "OFF"
 
     elif isinstance(value, list):
         result += ";".join([str(it) for it in value])

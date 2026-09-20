@@ -3,25 +3,28 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
-import py_scriptutils.json_utils as ju
 from rich.console import Console
 from rich.table import Table
 from sqlalchemy import (
     Boolean,
     Column,
-    create_engine,
     DateTime,
     Engine,
     ForeignKey,
-    inspect,
     Integer,
     MetaData,
     String,
+    create_engine,
+    inspect,
+)
+from sqlalchemy import (
     Table as SATable,
 )
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.sql import Executable, select
 from sqlalchemy.types import TypeDecorator
+
+import py_scriptutils.json_utils as ju
 
 
 def IdColumn() -> Column:
@@ -50,6 +53,7 @@ def DateTimeColumn(**kwargs: Any) -> Column:
 
 class MillisecondsUnixTimestamp(TypeDecorator):
     """Converts between Unix timestamp in milliseconds and Python datetime objects."""
+
     impl = Integer
 
     def process_bind_param(self, value: Any, dialect: Any) -> Any:
@@ -117,12 +121,14 @@ def format_rich_table(
     )
 
     for column in columns_to_fetch:
-        rich_table.add_column(str(column.name),
-                              no_wrap=True,
-                              overflow="ignore",
-                              width=None,
-                              min_width=None,
-                              max_width=None)
+        rich_table.add_column(
+            str(column.name),
+            no_wrap=True,
+            overflow="ignore",
+            width=None,
+            min_width=None,
+            max_width=None,
+        )
 
     for row in result:
 
@@ -131,7 +137,7 @@ def format_rich_table(
             if text.strip() == str(it):
                 return text
             else:
-                return f"\"{text}\""
+                return f'"{text}"'
 
         rich_table.add_row(*[get_cell(it) for it in row])
 
@@ -176,7 +182,8 @@ def get_table_names(engine: Engine, excluded_tables: List[str] = []) -> List[str
     """
     excluded_tables = excluded_tables or []
     tables = [
-        table for table in inspect(engine).get_table_names()
+        table
+        for table in inspect(engine).get_table_names()
         if table not in excluded_tables
     ]
     return tables
@@ -208,7 +215,6 @@ def format_db_all(
     with console.capture() as capture:
         tables = get_table_names(engine, excluded_tables)
         for table_name in tables:
-
             table_content = format_rich_table(
                 engine,
                 table_name,
@@ -293,8 +299,9 @@ def dump_db_all(
 
     result = dict()
     for table_name in get_table_names(engine, excluded_tables):
-        result[table_name] = dump_flat_table(engine, table_name,
-                                             excluded_columns.get(table_name, []))
+        result[table_name] = dump_flat_table(
+            engine, table_name, excluded_columns.get(table_name, [])
+        )
 
     return result
 

@@ -1,10 +1,9 @@
-import copy
-from dataclasses import dataclass, field
-from enum import auto, Enum
 import json
+from dataclasses import dataclass, field
+from enum import Enum, auto
 
 from beartype import beartype
-from beartype.typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from beartype.typing import Callable, Dict, List, Optional, Tuple, Union
 from jsonpath_ng import DatumInContext, Fields, Index, jsonpath
 
 Json = Union[str, int, float, None, Dict, List, Tuple]
@@ -70,8 +69,9 @@ def json_diff(
         for key in source:
             assert isinstance(key, str), f"{type(key)} {key}"
             if key in target:
-                temp_diff = json_diff(source[key], target[key], path.child(Fields(key)),
-                                      ignore)
+                temp_diff = json_diff(
+                    source[key], target[key], path.child(Fields(key)), ignore
+                )
                 result.extend(temp_diff)
 
             else:
@@ -97,7 +97,8 @@ def get_subset_diff(main_set: Json, expected_subset: Json) -> List[DiffItem]:
     # If some element from expect *sub*set was added, it is an expected behavior. All other operations
     # are returned.
     return [
-        it for it in json_diff(source=expected_subset, target=main_set)
+        it
+        for it in json_diff(source=expected_subset, target=main_set)
         if it.op != Op.AddField
     ]
 
@@ -160,7 +161,9 @@ def describe_diff(
             description += "    to   " + source_val
 
         else:
-            description += f"    from {target_val} ({target_name}) to {source_val} ({source_name})"
+            description += (
+                f"    from {target_val} ({target_name}) to {source_val} ({source_name})"
+            )
 
     return description
 
@@ -170,17 +173,21 @@ def assert_subset(main: Json, subset: Json, message: Optional[str] = None) -> No
     diff = get_subset_diff(main_set=main, expected_subset=subset)
 
     compare = "Could not find expected subset of values in the main set\n\n"
-    compare += "\n".join([
-        "[{}]{}".format(
-            idx,
-            describe_diff(
-                value,
-                source=subset,
-                target=main,
-                source_name="expected subset",
-                target_name="given main",
-            )) for idx, value in enumerate(diff)
-    ])
+    compare += "\n".join(
+        [
+            "[{}]{}".format(
+                idx,
+                describe_diff(
+                    value,
+                    source=subset,
+                    target=main,
+                    source_name="expected subset",
+                    target_name="given main",
+                ),
+            )
+            for idx, value in enumerate(diff)
+        ]
+    )
 
     if message:
         if "\n" not in compare and "\n" not in message:

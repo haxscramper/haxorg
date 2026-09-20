@@ -1,7 +1,11 @@
 add_library(haxorg)
 haxorg_set_common_files(haxorg)
 
-haxorg_glob_add_sources2(TARGET haxorg LS_REGEX "${BASE}/src/haxorg/.*" SEARCH_BASE "${BASE}")
+haxorg_glob_add_sources2(
+    TARGET haxorg
+    LS_REGEX "${BASE}/src/haxorg/.*"
+    SEARCH_BASE "${BASE}"
+)
 
 haxorg_set_target_output(haxorg)
 haxorg_set_target_flags(haxorg)
@@ -75,8 +79,10 @@ if(${ORG_BUILD_TESTS})
     )
     haxorg_set_target_output(haxorg_cpp_org_tests)
     haxorg_set_target_flags(haxorg_cpp_org_tests)
-    glob_add_sources2(TARGET haxorg_cpp_org_tests LS_REGEX "${BASE}/tests/org/.*" SEARCH_BASE
-                    "${BASE}"
+    haxorg_glob_add_sources2(
+        TARGET haxorg_cpp_org_tests
+        LS_REGEX "${BASE}/tests/org/.*"
+        SEARCH_BASE "${BASE}"
     )
 
     add_custom_command(

@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 
-from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Set
 import glom
 import igraph as ig
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Optional, Set
+from py_scriptutils.json_utils import Json
+from pydantic import BaseModel, Field
+
 from py_cli import haxorg_opts
 from py_cli.generate.mind_map import elk_converter, elk_schema
-from py_scriptutils.json_utils import Json
-from py_scriptutils.script_logging import log
-from pydantic import BaseModel, Field
 
 CAT = __name__
 
@@ -131,7 +131,7 @@ def convert_to_igraph(g: Graph) -> ig.Graph:
 
 @beartype
 @dataclass
-class HaxorgMMapEdgeCrossingSegment():
+class HaxorgMMapEdgeCrossingSegment:
     source: str
     target: str
     edgeId: str
@@ -145,14 +145,14 @@ class HaxorgMMapEdgeCrossingSegment():
 
 @beartype
 @dataclass
-class HaxorgMMapPortCrossing():
+class HaxorgMMapPortCrossing:
     portId: str
     originalEdgeId: str
 
 
 @beartype
 @dataclass
-class HaxorgMMapLabelNode():
+class HaxorgMMapLabelNode:
     originalEdgeId: str
 
     def getLabelNodeId(self) -> str:
@@ -172,9 +172,7 @@ class HaxorgMMapLabelNode():
 
 
 from collections import defaultdict
-from numbers import Number
 
-from beartype.typing import Tuple
 from rich.tree import Tree
 
 
@@ -195,8 +193,9 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
     def hasEdgeLabel(self, e: Edge) -> bool:
         return bool(e.extra and (e.extra.edgeBrief or e.extra.edgeDetailed))
 
-    def addCrossingConnection(self, vertexID: str, isCrossing: bool,
-                              e: Edge) -> tuple[str, Optional[str]]:
+    def addCrossingConnection(
+        self, vertexID: str, isCrossing: bool, e: Edge
+    ) -> tuple[str, Optional[str]]:
         if isCrossing:
             portId = f"{vertexID}-crossed-by-{e.edgeId}"
 
@@ -229,8 +228,11 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             elif v in self.label_nodes:
                 vert = self.label_nodes[v]
                 edge = self.all_edges[vert.originalEdgeId]
-                label += " '" + re.sub(r"\s{2,}", " ",
-                                       (edge.extra and edge.extra.edgeBrief) or "") + "'"
+                label += (
+                    " '"
+                    + re.sub(r"\s{2,}", " ", (edge.extra and edge.extra.edgeBrief) or "")
+                    + "'"
+                )
 
             result = Tree(label)
 
@@ -274,10 +276,13 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
     def addSegmentedEdge(self, e: Edge, cross: Dict[str, List[str]]) -> None:
         import itertools
+
         color = self.getEdgeColor(e.edgeId)
-        edge_segmentation = [(e.sourceId, False)] + [
-            (n, True) for n in cross[e.edgeId] if n not in self.excluded_vertices
-        ] + [(e.targetId, False)]
+        edge_segmentation = (
+            [(e.sourceId, False)]
+            + [(n, True) for n in cross[e.edgeId] if n not in self.excluded_vertices]
+            + [(e.targetId, False)]
+        )
 
         for index, (source, target) in enumerate(itertools.pairwise(edge_segmentation)):
             sourceId, sourcePortId = self.addCrossingConnection(source[0], source[1], e)
@@ -297,8 +302,10 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             )
 
     def isParent(self, parent: str, vertex: str) -> bool:
-        return parent in self.hgraph.vertexNestingMap and vertex in self.hgraph.vertexNestingMap[
-            parent]
+        return (
+            parent in self.hgraph.vertexNestingMap
+            and vertex in self.hgraph.vertexNestingMap[parent]
+        )
 
     def getParent(self, vertex: str) -> Optional[str]:
         result = self.hgraph.vertexParentMap.get(vertex, None)
@@ -310,12 +317,14 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
     def addDirectEdge(self, e: Edge) -> None:
         color = self.getEdgeColor(e.edgeId)
-        if self.hasEdgeLabel(
-                e
-        ) and self.conf.edge_label_type == haxorg_opts.MMapDiagramEdgeLabelType.INSERT_LABEL_NODES:
+        if (
+            self.hasEdgeLabel(e)
+            and self.conf.edge_label_type
+            == haxorg_opts.MMapDiagramEdgeLabelType.INSERT_LABEL_NODES
+        ):
             label_node = HaxorgMMapLabelNode(originalEdgeId=e.edgeId)
-            self.fragmented_edge_map[
-                label_node.getHeadSegmentId()] = HaxorgMMapEdgeCrossingSegment(
+            self.fragmented_edge_map[label_node.getHeadSegmentId()] = (
+                HaxorgMMapEdgeCrossingSegment(
                     edgeId=label_node.getHeadSegmentId(),
                     source=label_node.getLabelNodeId(),
                     sourcePortId=label_node.getHeadSegmentPortId(),
@@ -326,9 +335,10 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     segmentCount=2,
                     color=color,
                 )
+            )
 
-            self.fragmented_edge_map[
-                label_node.getTailSegmentId()] = HaxorgMMapEdgeCrossingSegment(
+            self.fragmented_edge_map[label_node.getTailSegmentId()] = (
+                HaxorgMMapEdgeCrossingSegment(
                     edgeId=label_node.getTailSegmentId(),
                     target=label_node.getLabelNodeId(),
                     targetPortId=label_node.getTailSegmentPortId(),
@@ -339,6 +349,7 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     segmentCount=2,
                     color=color,
                 )
+            )
 
             self.label_nodes[label_node.getLabelNodeId()] = label_node
 
@@ -349,9 +360,9 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                 self.label_node_nesting[e.targetId].add(label_node.getLabelNodeId())
 
             else:
-                self.label_node_nesting[self.getParent(e.targetId) or
-                                        self.getParent(e.sourceId)].add(
-                                            label_node.getLabelNodeId())
+                self.label_node_nesting[
+                    self.getParent(e.targetId) or self.getParent(e.sourceId)
+                ].add(label_node.getLabelNodeId())
 
         else:
             if e.extra:
@@ -387,8 +398,9 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         for top in self.hgraph.rootVertexIDs:
             append_root_items(top)
 
-    def __init__(self, igraph: ig.Graph, hgraph: Graph,
-                 conf: haxorg_opts.MMapDiagramConfig) -> None:
+    def __init__(
+        self, igraph: ig.Graph, hgraph: Graph, conf: haxorg_opts.MMapDiagramConfig
+    ) -> None:
         super().__init__()
         self.igraph = igraph
         self.hgraph = hgraph
@@ -424,7 +436,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
     def getEdges(self) -> List[str]:
         return sorted(k for k in self.edge_no_crossings) + sorted(
-            k for k in self.fragmented_edge_map)
+            k for k in self.fragmented_edge_map
+        )
 
     def getELKEdge(self, edge_id: str) -> elk_schema.Edge:
         if edge_id in self.edge_no_crossings:
@@ -448,7 +461,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
         else:
             crossing_edge: HaxorgMMapEdgeCrossingSegment = self.fragmented_edge_map[
-                edge_id]
+                edge_id
+            ]
 
             haxorg_edge_crossing: Edge = self.all_edges[crossing_edge.originalEdgeId]
 
@@ -494,8 +508,9 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             )
 
             assert isinstance(size, (float, int)), type(size)
-            assert size not in [-1, 0, None
-                               ] and 0 < size, f"size:{size} fallback:{fallback}"
+            assert size not in [-1, 0, None] and 0 < size, (
+                f"size:{size} fallback:{fallback}"
+            )
             return size
 
         node_width = get_dimension("width", self.conf.diagram_node_default_width)
@@ -534,7 +549,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                         id=f"{data.vertexId}-title-label",
                         text=data.vertexName,
                         font_size=self.conf.diagram_node_title_label_font_size,
-                    ))
+                    )
+                )
 
         else:
             result = elk_schema.Node(
@@ -557,9 +573,9 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
         if not result.layoutOptions:
             result.layoutOptions = dict()
 
-        opt_padding: Optional[RectSpacing] = glom.glom(data,
-                                                       "extra.geometry.padding",
-                                                       default=None)
+        opt_padding: Optional[RectSpacing] = glom.glom(
+            data, "extra.geometry.padding", default=None
+        )
         if opt_padding:
             padding: List[str] = []
             default_padding = self.conf.default_inner_padding
@@ -568,7 +584,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
 
             if padding:
                 result.layoutOptions["org.eclipse.elk.padding"] = "[{}]".format(
-                    ",".join(padding))
+                    ",".join(padding)
+                )
 
         if data.vertexId in self.node_crossing_ports:
             if not result.ports:
@@ -581,7 +598,8 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                         width=self.conf.diagram_node_port_dimensions[0],
                         height=self.conf.diagram_node_port_dimensions[1],
                         extra=dict(port_color=self.getEdgeColor(port.originalEdgeId)),
-                    ))
+                    )
+                )
 
         return result
 
@@ -592,8 +610,14 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
             id=label_node.getLabelNodeId(),
             width=self.conf.label_node_expected_width,
             height=elk_converter.get_node_height_for_text(
-                (label_edge.extra and ((label_edge.extra.edgeBrief or "") +
-                                       (label_edge.extra.edgeDetailed or ""))) or "",
+                (
+                    label_edge.extra
+                    and (
+                        (label_edge.extra.edgeBrief or "")
+                        + (label_edge.extra.edgeDetailed or "")
+                    )
+                )
+                or "",
                 expected_width=self.conf.label_node_expected_width,
                 font_size=self.conf.label_node_font_size,
                 max_height=self.conf.label_node_max_height,
@@ -604,14 +628,18 @@ class HaxorgMMapWalker(elk_converter.GraphWalker):
                     id=label_node.getHeadSegmentPortId(),
                     width=self.conf.label_node_port_dimensions[0],
                     height=self.conf.label_node_port_dimensions[1],
-                    extra=dict(port_color=self.getEdgeColor(label_node.originalEdgeId))),
+                    extra=dict(port_color=self.getEdgeColor(label_node.originalEdgeId)),
+                ),
                 elk_schema.Port(
                     id=label_node.getTailSegmentPortId(),
                     width=self.conf.label_node_port_dimensions[0],
                     height=self.conf.label_node_port_dimensions[1],
-                    extra=dict(port_color=self.getEdgeColor(label_node.originalEdgeId)))
+                    extra=dict(port_color=self.getEdgeColor(label_node.originalEdgeId)),
+                ),
             ],
-            extra=dict(haxorg_label_edge=label_edge,),
+            extra=dict(
+                haxorg_label_edge=label_edge,
+            ),
             layoutOptions={
                 "elk.margins": 0,
             },

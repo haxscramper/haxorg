@@ -2,10 +2,10 @@ import abc
 
 from beartype import beartype
 from beartype.typing import List, Optional
+from py_haxorg.astbuilder.astbuilder_utils import pascal_case
+
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import QualType
-from py_haxorg.astbuilder.astbuilder_utils import pascal_case
-from py_scriptutils.script_logging import log
 
 CAT = __name__
 
@@ -52,16 +52,22 @@ class AstbulderConfig(abc.ABC):
     def __init__(self, type_map: codegen_ir.GenTypeMap):
         self.type_map = type_map
 
-    def _isExposedByBackendImpl(self, entry: codegen_ir.GenTuDeclaration,
-                                backend: str) -> bool:
+    def _isExposedByBackendImpl(
+        self, entry: codegen_ir.GenTuDeclaration, backend: str
+    ) -> bool:
         match entry:
-            case codegen_ir.GenTuStruct() | codegen_ir.GenTuField(
-            ) | codegen_ir.GenTuFunction() | codegen_ir.GenTuTypedef():
+            case (
+                codegen_ir.GenTuStruct()
+                | codegen_ir.GenTuField()
+                | codegen_ir.GenTuFunction()
+                | codegen_ir.GenTuTypedef()
+            ):
                 if not entry.IsExposedForWrap:
                     return False
 
         return not entry.ReflectionParams or entry.ReflectionParams.isAcceptedBackend(
-            backend)
+            backend
+        )
 
     @abc.abstractmethod
     def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
@@ -73,10 +79,14 @@ class AstbulderConfig(abc.ABC):
         match Type.Kind:
             case codegen_ir.QualTypeKind.FunctionPtr:
                 assert Type.Func
-                return Type.copy_update(Func=Type.Func.model_copy(update=dict(
-                    ReturnType=self.getBackendType(Type.Func.ReturnType),
-                    Args=[self.getBackendType(A) for A in Type.Func.Args],
-                )))
+                return Type.copy_update(
+                    Func=Type.Func.model_copy(
+                        update=dict(
+                            ReturnType=self.getBackendType(Type.Func.ReturnType),
+                            Args=[self.getBackendType(A) for A in Type.Func.Args],
+                        )
+                    )
+                )
 
             case _:
                 return Type
@@ -92,12 +102,16 @@ class AstbulderConfig(abc.ABC):
             return True
 
         match Type.flatQualNameWithParams():
-            case l if l in [
-                # Universally registered types -- if some backend does not expose them,
-                # it can override the method to return false.
-                ["std", "string"],
-                ["hstd", "Str"],
-            ] + BUILTIN_TYPES:
+            case l if (
+                l
+                in [
+                    # Universally registered types -- if some backend does not expose them,
+                    # it can override the method to return false.
+                    ["std", "string"],
+                    ["hstd", "Str"],
+                ]
+                + BUILTIN_TYPES
+            ):
                 return True
 
             case ["hstd", "SharedPtrApi", _]:
@@ -109,7 +123,8 @@ class AstbulderConfig(abc.ABC):
             case _:
                 if self.isTypedef(Type):
                     return self.isRegisteredForBacked(
-                        self.getResolvedType(Type)) or self.isKnownClass(Type)
+                        self.getResolvedType(Type)
+                    ) or self.isKnownClass(Type)
 
                 else:
                     return self.isKnownClass(Type)
@@ -133,13 +148,16 @@ class AstbulderConfig(abc.ABC):
 
     def getTypeDefinition(
         self, t: QualType
-    ) -> Optional[codegen_ir.GenTuEnum | codegen_ir.GenTuStruct |
-                  codegen_ir.GenTuTypedef]:
+    ) -> Optional[
+        codegen_ir.GenTuEnum | codegen_ir.GenTuStruct | codegen_ir.GenTuTypedef
+    ]:
         mapped = self.type_map.get_types_for_qual_name(t)
         if 0 < len(mapped):
             assert len(mapped) == 1, f"{t} maps to more than one type"
-            assert isinstance(mapped[0], (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct,
-                                          codegen_ir.GenTuTypedef)), type(mapped[0])
+            assert isinstance(
+                mapped[0],
+                (codegen_ir.GenTuEnum, codegen_ir.GenTuStruct, codegen_ir.GenTuTypedef),
+            ), type(mapped[0])
             return mapped[0]
 
         else:
@@ -236,23 +254,25 @@ class AstbulderConfig(abc.ABC):
 
                     # Skip verbose namespaces for name generation
                     elif Type.Name not in [
-                            "sem",
-                            "org",
-                            "hstd",
-                            "ext",
-                            "algo",
-                            "bind",
-                            "python",
-                            "imm",
+                        "sem",
+                        "org",
+                        "hstd",
+                        "ext",
+                        "algo",
+                        "bind",
+                        "python",
+                        "imm",
                     ]:
                         res += pascal_case(Type.Name)
 
         if withParams and 0 < len(Type.Params):
             res += "Of"
-            res += "".join([
-                pascal_case(self.getTypeBindName(T, withParams=withParams))
-                for T in Type.Params
-            ])
+            res += "".join(
+                [
+                    pascal_case(self.getTypeBindName(T, withParams=withParams))
+                    for T in Type.Params
+                ]
+            )
 
         return res
 
@@ -263,14 +283,18 @@ class AstbulderConfig(abc.ABC):
         """
 
         def get_base(spaces: List[str], name: str, params: List[QualType]) -> QualType:
-            return QualType(Name=name,
-                            Spaces=[QualType(Name=S, IsNamespace=True) for S in spaces],
-                            Params=params)
+            return QualType(
+                Name=name,
+                Spaces=[QualType(Name=S, IsNamespace=True) for S in spaces],
+                Params=params,
+            )
 
         def get_base_par0(spaces: List[str], name: str) -> QualType:
-            return QualType(Name=name,
-                            Spaces=[QualType(Name=S, IsNamespace=True) for S in spaces],
-                            Params=[derived.par0()])
+            return QualType(
+                Name=name,
+                Spaces=[QualType(Name=S, IsNamespace=True) for S in spaces],
+                Params=[derived.par0()],
+            )
 
         match derived.flatQualName():
             case ["hstd", "Vec"]:
@@ -284,8 +308,7 @@ class AstbulderConfig(abc.ABC):
 
             case ["hstd", "UnorderedMap"]:
                 return [
-                    get_base(["std"], "unordered_map",
-                             [derived.par0(), derived.par1()])
+                    get_base(["std"], "unordered_map", [derived.par0(), derived.par1()])
                 ]
 
             case ["hstd", "ImmMap"]:

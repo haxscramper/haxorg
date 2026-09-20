@@ -1,6 +1,6 @@
 import enum
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import List, Optional
@@ -51,6 +51,7 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     Shared build configuration parameters used for the haxorg project
     and all compiled dependencies: compiler, generator etc.
     """
+
     target: List[str] = Field(default_factory=lambda: list(["all"]))
     force: bool = False
     use_protobuf: bool = True
@@ -61,27 +62,33 @@ class HaxorgBuildConfig(BaseModel, extra="forbid"):
     use_warnings: bool = True
     use_packaged_boost: bool = False
     real_time_output_print: bool = Field(
-        default=False, description="Print the build output in real time")
+        default=False, description="Print the build output in real time"
+    )
     # TODO: Replace the field collection with the dictionary of str->bool flags, and put the
     # cmake defines directly into the config instead of re-declaring every individual field
     # here.
     use_kiwi: bool = Field(default=True)
     use_adaptagrams: bool = Field(
-        default=True, description="Build the project with adaptagrams support")
+        default=True, description="Build the project with adaptagrams support"
+    )
     use_elk: bool = Field(default=True, description="Build the project with elk support")
     build_python: bool = Field(default=True, description="Build python bindings")
-    build_tests: bool = Field(default=True,
-                              description="Build tests for hstd/haxorg project")
-    build_internal_tools: bool = Field(default=True,
-                                       description="ORG_BUILD_INTERNAL_TOOLS")
+    build_tests: bool = Field(
+        default=True, description="Build tests for hstd/haxorg project"
+    )
+    build_internal_tools: bool = Field(
+        default=True, description="ORG_BUILD_INTERNAL_TOOLS"
+    )
     build_wrappers_c: bool = Field(default=True, description="ORG_BUILD_WRAPPERS_C")
     cmake_extra_build_flags: list[str] = Field(
         default_factory=list,
-        description="Extra flags provided directly to cmake configuration")
+        description="Extra flags provided directly to cmake configuration",
+    )
 
 
 class HaxorgGenerateSourcesConfig(BaseModel, extra="forbid"):
     "Configuration for how sources would be generated"
+
     tmp: bool = False
     "Put generated sources in a temporary directory"
 
@@ -96,16 +103,19 @@ class HaxorgDevelopCiConfig(BaseModel, extra="forbid"):
     test: bool = Field(True, description="Execute testse via pytest")
     docs: bool = Field(True, description="Generate HTML documentation and coverage files")
     coverage: bool = Field(True, description="Build coverage database for the project")
-    reflection: bool = Field(True,
-                             description="Update source code generation for project")
-    linter: bool = Field(True,
-                         description="Run linter and formatter for pyton and cxx code")
+    reflection: bool = Field(
+        True, description="Update source code generation for project"
+    )
+    linter: bool = Field(
+        True, description="Run linter and formatter for pyton and cxx code"
+    )
     install: bool = Field(True, description="Execute cxx code installation")
     example_build: bool = Field(True, description="Build example projects")
     example_run: bool = Field(True, description="Run example projects and tests")
     include_graph: bool = Field(True, description="Generate include graph visualization")
-    symbol_size: bool = Field(True,
-                              description="Visualization for the library symbol sizes")
+    symbol_size: bool = Field(
+        True, description="Visualization for the library symbol sizes"
+    )
 
     emscripten_deps: bool = True
     emscripten_build: bool = True
@@ -119,17 +129,20 @@ class HaxorgExampleConfig(BaseModel, extra="forbid"):
 
 class HaxorgPyTestsConfig(BaseModel, extra="forbid"):
     "Pytest config parameters"
+
     extra_pytest_args: List[str] = Field(default_factory=list)
     use_lldb: bool = Field(
-        default=False, description="Automatically trigger LLDB backtrace on exception")
+        default=False, description="Automatically trigger LLDB backtrace on exception"
+    )
     use_valgrind: bool = Field(
-        default=False, description="Execute pytest with valgrind memory leak detection")
+        default=False, description="Execute pytest with valgrind memory leak detection"
+    )
     valgrind_suppression: Optional[Path] = Field(
-        default=None, description="Path to valgrind suppression file")
+        default=None, description="Path to valgrind suppression file"
+    )
     real_time_output_print: bool = Field(
         default=True,
-        description=
-        "Print the pytest output as it happens intead or capture the stdout/stderr and store it in a file."
+        description="Print the pytest output as it happens intead or capture the stdout/stderr and store it in a file.",
     )
 
 
@@ -154,15 +167,19 @@ class HaxorgCoverageRunPattern(BaseModel, extra="forbid"):
     Group of regular expression patterns to match against the test binary,
     class or name.
     """
+
     binary_pattern: Optional[str] = Field(
         default=None,
-        description="Pattern matching against the full path of the compiled test binary")
+        description="Pattern matching against the full path of the compiled test binary",
+    )
     class_pattern: Optional[str] = Field(
         default=None,
-        description="Pattern matching against the cxx/gtest/qtest class name")
+        description="Pattern matching against the cxx/gtest/qtest class name",
+    )
 
     name_pattern: Optional[str] = Field(
-        default=None, description="Pattern matching against specific test name")
+        default=None, description="Pattern matching against specific test name"
+    )
 
 
 class HaxorgCoverageConfig(BaseModel, extra="forbid"):
@@ -190,15 +207,14 @@ class HaxorgCoverageConfig(BaseModel, extra="forbid"):
                 name_pattern=".*",
             )
         ],
-        description=
-        "List of run patterns to narrow down which coverage runs should be included in the DB."
+        description="List of run patterns to narrow down which coverage runs should be included in the DB.",
     )
 
     coverage_run_blacklist: List[HaxorgCoverageRunPattern] = Field(
         default_factory=list,
-        description=
-        "Inverse of the `coverage_run_whitelist`, determines which runs should not "
-        "be added to the final database.")
+        description="Inverse of the `coverage_run_whitelist`, determines which runs should not "
+        "be added to the final database.",
+    )
 
     profdata_merge_file_whitelist: List[str] = Field(
         default_factory=lambda: [".*"],
@@ -206,22 +222,25 @@ class HaxorgCoverageConfig(BaseModel, extra="forbid"):
         "to the profile merge database. File must match at least one regex to be accepted."
         "Ideally, the list of the regular expressions can be as inclusive as possible, as "
         "the only consideration when constructing the database is the time it takes to "
-        "process all the files.")
+        "process all the files.",
+    )
 
     profdata_merge_file_blacklist: List[str] = Field(
         default_factory=lambda: ["base_lexer_gen.cpp", "thirdparty"],
         description="Inverse pair to the `profdata_merge_file_whitelist`. List of regular "
-        "expressions to filter out which files are not allowed to be added to the database."
+        "expressions to filter out which files are not allowed to be added to the database.",
     )
 
     coverage_html_whitelist: List[str] = Field(
         default_factory=lambda: [".*"],
-        description="Which source files should have the HTML coverage documentation.")
+        description="Which source files should have the HTML coverage documentation.",
+    )
 
     coverage_html_blacklist: List[str] = Field(
         default_factory=lambda: [],
         description="Inverse of the `coverage_html_whitelist` -- which files to exclude "
-        "from HTML generation.")
+        "from HTML generation.",
+    )
 
 
 class HaxorgLogLevel(str, enum.Enum):
@@ -232,42 +251,50 @@ class HaxorgLogLevel(str, enum.Enum):
 
 class HaxorgConfig(BaseModel, extra="forbid"):
     "Main workflow script configuration object"
+
     log_level: HaxorgLogLevel = Field(default=HaxorgLogLevel.NORMAL)
     debug: bool = Field(default=False)
     force_subprocess_tracking: bool = Field(
         default=False,
-        description=
-        "Force build of the execution tracker script at the very start of the workflow")
+        description="Force build of the execution tracker script at the very start of the workflow",
+    )
 
     use: HaxorgUseConfig = Field(default_factory=lambda: HaxorgUseConfig())
     use_unchanged_tasks: bool = Field(default=False)
     use_dependencies: bool = Field(default=True)
     use_conan_install: bool = Field(default=False)
     emscripten: HaxorgEmscriptenConfig = Field(
-        default_factory=lambda: HaxorgEmscriptenConfig())
+        default_factory=lambda: HaxorgEmscriptenConfig()
+    )
     instrument: HaxorgInstrumentConfig = Field(
-        default_factory=lambda: HaxorgInstrumentConfig())
+        default_factory=lambda: HaxorgInstrumentConfig()
+    )
     tasks: HaxorgTasksConfig = Field(default_factory=lambda: HaxorgTasksConfig())
     workflow_log_dir: Path = Field(
-        default_factory=lambda: Path("/tmp/haxorg/workflow_log"))
+        default_factory=lambda: Path("/tmp/haxorg/workflow_log")
+    )
 
     workflow_out_dir: Path = Field(
-        default_factory=lambda: Path("/tmp/haxorg/workflow_out"))
+        default_factory=lambda: Path("/tmp/haxorg/workflow_out")
+    )
 
     workflow_tmp_dir: Path = Field(
-        default_factory=lambda: Path("/tmp/haxorg/workflow_tmp"))
+        default_factory=lambda: Path("/tmp/haxorg/workflow_tmp")
+    )
 
     use_sarif: bool = Field(default=False)
     force_full_build: bool = Field(
         default=False,
-        description="Don't stop the build of the cmake targets on the first error")
+        description="Don't stop the build of the cmake targets on the first error",
+    )
 
     forceall: bool = Field(default=False)
     ci: bool = Field(default=False)
     dryrun: bool = Field(default=False)
     build_base_override: Optional[str] = Field(
         default=None,
-        description="Overide the name of the sub-directory in the build/ output")
+        description="Overide the name of the sub-directory in the build/ output",
+    )
 
     separate_debug_symbols: bool = False
 
@@ -293,17 +320,21 @@ class HaxorgConfig(BaseModel, extra="forbid"):
     develop_ci_conf: HaxorgDevelopCiConfig = Field(default_factory=HaxorgDevelopCiConfig)
     py_test_conf: HaxorgPyTestsConfig = Field(default_factory=HaxorgPyTestsConfig)
     build_develop_deps_conf: HaxorgBuildDevelopDepsConfig = Field(
-        default_factory=HaxorgBuildDevelopDepsConfig)
+        default_factory=HaxorgBuildDevelopDepsConfig
+    )
     build_conf: HaxorgBuildConfig = Field(default_factory=HaxorgBuildConfig)
     coverage_conf: HaxorgCoverageConfig = Field(default_factory=HaxorgCoverageConfig)
     generate_sources_conf: HaxorgGenerateSourcesConfig = Field(
-        default_factory=HaxorgGenerateSourcesConfig)
+        default_factory=HaxorgGenerateSourcesConfig
+    )
 
     custom_docs_conf: HaxorgCustomDocsConfig = Field(
-        default_factory=HaxorgCustomDocsConfig)
+        default_factory=HaxorgCustomDocsConfig
+    )
 
     binary_size_conf: HaxorgBinarySizeReportConfig = Field(
-        default_factory=HaxorgBinarySizeReportConfig)
+        default_factory=HaxorgBinarySizeReportConfig
+    )
 
     example_conf: HaxorgExampleConfig = Field(default_factory=HaxorgExampleConfig)
 

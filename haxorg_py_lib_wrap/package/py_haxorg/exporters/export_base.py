@@ -5,9 +5,10 @@ import re
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Generator, List, Set
-from py_haxorg.layout.wrap import *
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils import algorithm
+
+import py_haxorg.pyhaxorg_wrap as org
+from py_haxorg.layout.wrap import *
 
 
 def with_export_context(func: Callable) -> Callable:
@@ -32,6 +33,7 @@ class ExporterBase:
     """
     Base class for all the python exporters
     """
+
     context: List[org.Org]
     """
     Stack of active python nodes that will be automatically populated as the
@@ -65,8 +67,9 @@ class ExporterBase:
         info = inspect.getframeinfo(frame)
         self.exp.print_trace(text, info.filename, info.function, info.lineno)
 
-    def getContextOfKind(self,
-                         kind: org.OrgSemKind | Set[org.OrgSemKind]) -> List[org.Org]:
+    def getContextOfKind(
+        self, kind: org.OrgSemKind | Set[org.OrgSemKind]
+    ) -> List[org.Org]:
         """
         Find all parent nodes with the specifid kind in the parent context.
         """
@@ -91,7 +94,8 @@ class ExporterBase:
         Check if the paragraph uses one of the default set of admonitions.
         """
         return node.hasAdmonition() and 0 < len(
-            set(node.getAdmonitions()).intersection(set(self.admonitionNames)))
+            set(node.getAdmonitions()).intersection(set(self.admonitionNames))
+        )
 
     def getRealSubtreeLevel(self, node: org.Subtree) -> int:
         """
@@ -105,9 +109,10 @@ class ExporterBase:
         """
         compound_level = 0
         for group in algorithm.partition_list(
-                self.getContextOfKind(
-                    set([org.OrgSemKind.Subtree, org.OrgSemKind.CmdInclude])),
-                lambda it: it.getKind() == org.OrgSemKind.CmdInclude,
+            self.getContextOfKind(
+                set([org.OrgSemKind.Subtree, org.OrgSemKind.CmdInclude])
+            ),
+            lambda it: it.getKind() == org.OrgSemKind.CmdInclude,
         ):
             if node != group[-1]:
                 compound_level += group[-1].level
@@ -197,11 +202,14 @@ class ExporterBase:
         ]
 
         for method_name in dir(derived):
-            if method_name.startswith(
-                    "__") or method_name in direct_mappings or method_name in ["evalTop"]:
+            if (
+                method_name.startswith("__")
+                or method_name in direct_mappings
+                or method_name in ["evalTop"]
+            ):
                 continue
 
-            for (prefix, setter) in prefix_to_setter_with_kind:
+            for prefix, setter in prefix_to_setter_with_kind:
                 match = re.match(prefix, method_name)
                 if match:
                     kind_str = match.group(1)

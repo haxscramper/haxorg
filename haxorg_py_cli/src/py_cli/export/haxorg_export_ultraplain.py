@@ -1,11 +1,12 @@
 from pathlib import Path
 
-from beartype import beartype
-from beartype.typing import Any, Optional
 import glom
-from py_cli import haxorg_cli, haxorg_opts
-from py_scriptutils.script_logging import log
 import rich_click as click
+from beartype import beartype
+from beartype.typing import Any
+from py_scriptutils.script_logging import log
+
+from py_cli import haxorg_cli, haxorg_opts
 
 
 @beartype
@@ -16,6 +17,7 @@ def export_ultraplain(opts: haxorg_opts.RootOptions) -> None:
     assert opts.export
     node = haxorg_cli.parseFile(opts, glom.glom(opts, "export.ultraplain.infile"))
     from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
+
     exp = ExporterUltraplain()
     if opts.export:
         exp.exp.enableFileTrace(opts.export.exportTraceFile, False)

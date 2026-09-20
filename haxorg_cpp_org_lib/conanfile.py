@@ -1,7 +1,7 @@
 import os
 
 from conan import ConanFile
-from conan.tools.cmake import CMake, cmake_layout, CMakeDeps, CMakeToolchain
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import copy
 
 
@@ -84,10 +84,12 @@ class HaxorgConan(ConanFile):
         tc.cache_variables["ORG_BUILD_WITH_PERFETTO"] = self.options.use_perfetto
         tc.cache_variables["ORG_BUILD_WITH_TRACY"] = self.options.use_tracy
 
-        tc.cache_variables[
-            "ORG_BUILD_PYHAXORG_BINDINGS"] = self.options.use_python_bindings
-        tc.cache_variables[
-            "ORG_BUILD_TEXT_LAYOUTER_BINDINGS"] = self.options.use_python_bindings
+        tc.cache_variables["ORG_BUILD_PYHAXORG_BINDINGS"] = (
+            self.options.use_python_bindings
+        )
+        tc.cache_variables["ORG_BUILD_TEXT_LAYOUTER_BINDINGS"] = (
+            self.options.use_python_bindings
+        )
 
         tc.cache_variables["ORG_BUILD_CLI"] = self.options.use_cli
         tc.cache_variables["ORG_BUILD_WITH_PROTOBUF"] = self.options.use_protobuf
@@ -117,36 +119,48 @@ class HaxorgConan(ConanFile):
             self.tool_requires("protobuf/[>=6.32.1 <7]")
 
     def package(self):
-        copy(self,
-             "*.hpp",
-             src=os.path.join(self.source_folder, "src"),
-             dst=os.path.join(self.package_folder, "include"))
-        copy(self,
-             "*.h",
-             src=os.path.join(self.source_folder, "src"),
-             dst=os.path.join(self.package_folder, "include"))
-        copy(self,
-             "*.lib",
-             src=self.build_folder,
-             dst=os.path.join(self.package_folder, "lib"),
-             keep_path=False)
-        copy(self,
-             "*.a",
-             src=self.build_folder,
-             dst=os.path.join(self.package_folder, "lib"),
-             keep_path=False)
-        copy(self,
-             "*.so*",
-             src=self.build_folder,
-             dst=os.path.join(self.package_folder, "lib"),
-             keep_path=False)
+        copy(
+            self,
+            "*.hpp",
+            src=os.path.join(self.source_folder, "src"),
+            dst=os.path.join(self.package_folder, "include"),
+        )
+        copy(
+            self,
+            "*.h",
+            src=os.path.join(self.source_folder, "src"),
+            dst=os.path.join(self.package_folder, "include"),
+        )
+        copy(
+            self,
+            "*.lib",
+            src=self.build_folder,
+            dst=os.path.join(self.package_folder, "lib"),
+            keep_path=False,
+        )
+        copy(
+            self,
+            "*.a",
+            src=self.build_folder,
+            dst=os.path.join(self.package_folder, "lib"),
+            keep_path=False,
+        )
+        copy(
+            self,
+            "*.so*",
+            src=self.build_folder,
+            dst=os.path.join(self.package_folder, "lib"),
+            keep_path=False,
+        )
 
         if self.options.use_cli:
-            copy(self,
-                 "haxorg_cpp_org_cli",
-                 src=self.build_folder,
-                 dst=os.path.join(self.package_folder, "bin"),
-                 keep_path=False)
+            copy(
+                self,
+                "haxorg_cpp_org_cli",
+                src=self.build_folder,
+                dst=os.path.join(self.package_folder, "bin"),
+                keep_path=False,
+            )
 
     def package_info(self):
         self.cpp_info.includedirs = ["include"]

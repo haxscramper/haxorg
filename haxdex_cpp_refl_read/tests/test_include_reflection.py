@@ -1,18 +1,16 @@
-import itertools
 from pathlib import Path
-from tempfile import gettempdir
 
-from more_itertools import first_true
 import py_codegen.proto_lib as pb
+import pytest
 from py_codegen.refl_read import include_visit_to_rich_tree
 from py_scriptutils.rich_utils import render_rich
 from py_scriptutils.script_logging import log
-import pytest
 
 
 @pytest.mark.test_release
 def test_standard_library_include(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "a.hpp": '#include "b.hpp"',
@@ -23,11 +21,15 @@ def test_standard_library_include(stable_test_dir: Path) -> None:
         stable_test_dir=stable_test_dir,
     )
 
-    log().info("\n" + render_rich(
-        include_visit_to_rich_tree(
-            incl,
-            absolute_prefix=str(stable_test_dir),
-        )))
+    log().info(
+        "\n"
+        + render_rich(
+            include_visit_to_rich_tree(
+                incl,
+                absolute_prefix=str(stable_test_dir),
+            )
+        )
+    )
 
     assert incl.absolute_path.endswith("a.hpp")
     assert incl.nested[0].relative_path == "b.hpp"
@@ -122,16 +124,16 @@ def test_skipped_blocks_under_ifdef(stable_test_dir: Path) -> None:
 
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
-            "main.hpp":
-                '#include "cond.hpp"',
-            "cond.hpp":
-                "\n".join([
+            "main.hpp": '#include "cond.hpp"',
+            "cond.hpp": "\n".join(
+                [
                     "#if 0",
                     "int skip1;",
                     "int skip2;",
                     "#endif",
                     "int live;",
-                ]),
+                ]
+            ),
         },
         main_file_suffix="main.hpp",
         stable_test_dir=stable_test_dir,
@@ -150,10 +152,8 @@ def test_include_guard_header_included_twice(stable_test_dir: Path) -> None:
 
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
-            "main.hpp":
-                '#include "guarded.hpp"\n#include "guarded.hpp"',
-            "guarded.hpp":
-                "#ifndef GUARDED_HPP\n#define GUARDED_HPP\nint guarded;\n#endif",
+            "main.hpp": '#include "guarded.hpp"\n#include "guarded.hpp"',
+            "guarded.hpp": "#ifndef GUARDED_HPP\n#define GUARDED_HPP\nint guarded;\n#endif",
         },
         main_file_suffix="main.hpp",
         stable_test_dir=stable_test_dir,

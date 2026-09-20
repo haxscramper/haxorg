@@ -1,13 +1,14 @@
+import shlex
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-import shlex
-from typing import Any, Callable, List, Optional
+from typing import Any, List, Optional
 
 from py_ci.util_scripting import cmake_opt
 
 
 @dataclass
-class CmakeOptConfig():
+class CmakeOptConfig:
     name: str
     value: str | Path | bool
 
@@ -23,7 +24,7 @@ class CmakeOptConfig():
 
 
 @dataclass
-class CmakeFlagConfig():
+class CmakeFlagConfig:
     name: str
     value: Optional[str] = None
     isBuild: bool = False
@@ -48,7 +49,7 @@ CmakeCLIConfig = CmakeOptConfig | CmakeFlagConfig
 
 
 @dataclass
-class ExternalDep():
+class ExternalDep:
     build_name: str
     deps_name: str
     cmake_dirs: List[tuple[str, List[str]]]
@@ -58,7 +59,7 @@ class ExternalDep():
 
     def get_install_prefix(self, install_dir: Path) -> str:
         dirs: List[str] = []
-        for (name, dirs) in self.cmake_dirs:
+        for name, dirs in self.cmake_dirs:
             dirs.extend(dirs)
 
         return ";".join([str(install_dir.joinpath(it)) for it in dirs])
@@ -74,10 +75,12 @@ def get_emscripten_cmake_flags() -> List[CmakeCLIConfig]:
     return [
         CmakeOptConfig(
             name="CMAKE_CXX_FLAGS",
-            value=" ".join([
-                "-fexceptions",
-                # "-sUSE_BOOST_HEADERS=1",
-            ]),
+            value=" ".join(
+                [
+                    "-fexceptions",
+                    # "-sUSE_BOOST_HEADERS=1",
+                ]
+            ),
         ),
         # CmakeOptConfig(name="HAVE_NEON", value=False),
         # CmakeOptConfig(name="HAVE_AVX", value=False),
@@ -96,9 +99,9 @@ def get_external_deps_list(
     def opt(name: str, value: Any) -> CmakeOptConfig:
         return CmakeOptConfig(name=name, value=value)
 
-    def flag(name: str,
-             value: Optional[str] = None,
-             isBuild: bool = False) -> CmakeFlagConfig:
+    def flag(
+        name: str, value: Optional[str] = None, isBuild: bool = False
+    ) -> CmakeFlagConfig:
         return CmakeFlagConfig(name=name, value=value, isBuild=isBuild)
 
     def ninja_build() -> List[CmakeFlagConfig]:
@@ -185,7 +188,8 @@ def get_external_deps_list(
             opt("TRACY_LTO", False),
             opt("CCACHE", "OFF"),
             # opt("CMAKE_CXX_FLAGS", "-fPIC"),
-        ])
+        ],
+    )
 
     dep(
         build_name="tracy_profiler",
@@ -219,7 +223,8 @@ def get_external_deps_list(
         ],
     )
 
-    dep(build_name="cctz",
+    dep(
+        build_name="cctz",
         is_emcc_ready=True,
         deps_name="cctz",
         configure_args=[
@@ -231,7 +236,8 @@ def get_external_deps_list(
         ],
         cmake_dirs=[
             ("cctz", make_lib("cctz/{}/cmake/cctz")),
-        ])
+        ],
+    )
 
     dep(
         build_name="preprocessor",
@@ -353,8 +359,10 @@ def get_external_deps_list(
         deps_name="yaml-cpp",
         is_emcc_ready=True,
         cmake_dirs=[
-            ("yaml-cpp",
-             make_lib("yaml/{}/cmake/yaml-cpp") + ["yaml/share/cmake/yaml-cpp"]),
+            (
+                "yaml-cpp",
+                make_lib("yaml/{}/cmake/yaml-cpp") + ["yaml/share/cmake/yaml-cpp"],
+            ),
         ],
         configure_args=[
             opt("YAML_CPP_BUILD_TESTS", False),
@@ -416,10 +424,14 @@ def get_external_deps_list(
             opt("utf8_range_ENABLE_INSTALL", True),
             opt("protobuf_ABSL_PROVIDER", "package"),
             opt(
-                "CMAKE_PREFIX_PATH", ";".join([
-                    absl.get_install_prefix(install_dir=install_dir),
-                    utf8.get_install_prefix(install_dir=install_dir),
-                ])),
+                "CMAKE_PREFIX_PATH",
+                ";".join(
+                    [
+                        absl.get_install_prefix(install_dir=install_dir),
+                        utf8.get_install_prefix(install_dir=install_dir),
+                    ]
+                ),
+            ),
             opt("ABSL_CC_LIB_COPTS", "-fPIC"),
             opt("CMAKE_POSITION_INDEPENDENT_CODE", "TRUE"),
             *ninja_build(),
@@ -467,9 +479,9 @@ def get_deps_install_config(
                 possible_path = install_dir.joinpath(possible_install)
                 tried_paths.append(possible_path)
                 if exists_check(possible_path):
-                    assert possible_path != Path(
-                        "/"
-                    ), f"install_dir = {install_dir}, possible_install = {possible_install}"
+                    assert possible_path != Path("/"), (
+                        f"install_dir = {install_dir}, possible_install = {possible_install}"
+                    )
                     path = possible_path
                     break
 
@@ -478,7 +490,7 @@ def get_deps_install_config(
                     f"{dir[0]} is not insalled: could not find cmake installation dir in {install_dir}, tried {tried_paths} relative paths"
                 )
 
-            cmake_paths.append(f"set({dir[0]}_DIR \"{path}\")")
+            cmake_paths.append(f'set({dir[0]}_DIR "{path}")')
 
     return "\n".join(cmake_paths)
 

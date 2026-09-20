@@ -1,10 +1,11 @@
-from beartype.typing import Any, Callable, List, Literal, Optional
 import dominate
 import dominate.tags as tags
+from beartype.typing import Any, Callable, List, Optional
 from dominate.util import text
+
+import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.exporters.export_base import ExporterBase
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
-import py_haxorg.pyhaxorg_wrap as org
 
 CAT = "haxorg.export.html"
 
@@ -42,8 +43,9 @@ class ExporterHtml(ExporterBase):
     Export org-mode document as an HTML
     """
 
-    def __init__(self,
-                 get_break_tag: Optional[Callable[[org.Newline], Any]] = None) -> None:
+    def __init__(
+        self, get_break_tag: Optional[Callable[[org.Newline], Any]] = None
+    ) -> None:
         super().__init__(self)
         self.get_break_tag = get_break_tag
 

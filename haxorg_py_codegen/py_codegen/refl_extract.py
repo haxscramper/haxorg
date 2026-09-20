@@ -1,25 +1,30 @@
-from dataclasses import dataclass, field
-from hashlib import md5
 import io
 import json
-from pathlib import Path
 import time
+from dataclasses import dataclass, field
+from hashlib import md5
+from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Any, cast, Dict, List, Optional, Tuple
+from beartype.typing import Any, Dict, List, Optional, Tuple, cast
 from plumbum import local
-from py_codegen.refl_read import conv_proto_file, ConvTu, open_proto_file
-from py_codegen.refl_wrapper_graph import TuWrap
 from py_scriptutils.files import IsNewInput
 from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
+
+from py_codegen.refl_read import ConvTu, conv_proto_file, open_proto_file
+from py_codegen.refl_wrapper_graph import TuWrap
 
 CAT = __name__
 
 
 class TuOptions(BaseModel, extra="forbid"):
-    input: List[str] = Field(description="List of input files, directories or globs",)
-    indexing_tool: str = Field(description="Path to the TU index generator tool",)
+    input: List[str] = Field(
+        description="List of input files, directories or globs",
+    )
+    indexing_tool: str = Field(
+        description="Path to the TU index generator tool",
+    )
 
     compilation_database: Optional[str] = Field(
         description="Explicit path to the compilation database to use for analysis",
@@ -39,9 +44,12 @@ class TuOptions(BaseModel, extra="forbid"):
     )
 
     source_root: Optional[str] = Field(
-        description="Main project root where cmake is located", default=None)
+        description="Main project root where cmake is located", default=None
+    )
 
-    header_root: str = Field(description="Path to the header file directory wrapped",)
+    header_root: str = Field(
+        description="Path to the header file directory wrapped",
+    )
 
     binary_tmp: str = Field(
         description="Path to store temporary binary artifacts",
@@ -55,7 +63,8 @@ class TuOptions(BaseModel, extra="forbid"):
 
     cmake_configure_options: List[str] = Field(
         description="Parameters for cmake run when creating compilation database",
-        default_factory=list)
+        default_factory=list,
+    )
 
     toolchain_include: Optional[str] = Field(
         description="Path to the toolchain that was used to compile indexing tool",
@@ -83,17 +92,19 @@ class TuOptions(BaseModel, extra="forbid"):
         default=None,
     )
 
-    output_directory: str = Field(description="Directory to write output wrapped files",)
+    output_directory: str = Field(
+        description="Directory to write output wrapped files",
+    )
 
     convert_failure_log_dir: str = Field(
         default="/tmp/tu_collector/converter_fails",
-        description=
-        "Directory to dump debug information about failed translation unit converter runs"
+        description="Directory to dump debug information about failed translation unit converter runs",
     )
 
     print_reflection_run_fail_to_stdout: bool = Field(
         description="If reflection tool run fails, write the error report to stdout",
-        default=False)
+        default=False,
+    )
 
     reflection_run_verbose: bool = Field(default=False)
     reflection_run_serialize: bool = Field(
@@ -102,10 +113,10 @@ class TuOptions(BaseModel, extra="forbid"):
     )
     reflection_run_path: Optional[str] = Field(
         default=None,
-        description=
-        "Absolute path to the reflection run serialization output. If not specified but the "
+        description="Absolute path to the reflection run serialization output. If not specified but the "
         "reflection serialization itself is requested, script will will write JSON file "
-        "in the same output directory as the rest of the conversion.")
+        "in the same output directory as the rest of the conversion.",
+    )
 
 
 @beartype
@@ -163,20 +174,22 @@ def get_compile_commands(conf: TuOptions) -> Path:
 
         if not build.joinpath(comp).exists():
             cmake = local["cmake"]
-            cmake.run([
-                *conf.cmake_configure_options,
-                "-B",
-                str(conf.build_root),
-                "-S",
-                str(conf.source_root),
-                "-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE",
-            ])
+            cmake.run(
+                [
+                    *conf.cmake_configure_options,
+                    "-B",
+                    str(conf.build_root),
+                    "-S",
+                    str(conf.source_root),
+                    "-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE",
+                ]
+            )
 
         if not source.joinpath(comp).exists():
             compdb = local["uv"]
             _, stdout, _ = compdb.run(
-                ["run", "compdb", "-p",
-                 str(conf.build_root), "list"])
+                ["run", "compdb", "-p", str(conf.build_root), "list"]
+            )
 
             source.joinpath(comp).write_text(stdout)
 
@@ -190,6 +203,7 @@ def get_compile_commands(conf: TuOptions) -> Path:
 @dataclass
 class CollectorRunResult:
     "Reflection tool run conversion result"
+
     conv_tu: Optional[ConvTu]
     "Converted translation unit"
     pb_path: Optional[Path]
@@ -228,14 +242,20 @@ def run_reflection_tool(
         with open(conf.reflect_cache, "r") as file:
             refl = json.load(file)
 
-    if (str(input) in refl) and (max(input.stat().st_mtime,
-                                     Path(conf.indexing_tool).stat().st_mtime)
-                                 < refl[str(input)]) and (output.exists()):
+    if (
+        (str(input) in refl)
+        and (
+            max(input.stat().st_mtime, Path(conf.indexing_tool).stat().st_mtime)
+            < refl[str(input)]
+        )
+        and (output.exists())
+    ):
         # return
         pass
 
-    assert Path(conf.indexing_tool).exists(
-    ), f"Indexing tool binary is missing, '{conf.indexing_tool}' does not exist"
+    assert Path(conf.indexing_tool).exists(), (
+        f"Indexing tool binary is missing, '{conf.indexing_tool}' does not exist"
+    )
 
     tool = local[conf.indexing_tool]
 
@@ -254,7 +274,9 @@ def run_reflection_tool(
     database = get_compile_commands(conf)
 
     opts: Dict[str, Any] = dict(
-        reflection=dict(compilation_database=str(database),),
+        reflection=dict(
+            compilation_database=str(database),
+        ),
         output=str(tmp_output),
         input=[str(input)],
         mode="AllAnotatedSymbols" if conf.only_annotated else "AllTargetedFiles",
@@ -267,11 +289,12 @@ def run_reflection_tool(
     if conf.reflection_run_verbose:
         opts["verbose"] = True
 
-    if not conf.cache_collector_runs or IsNewInput([str(input), conf.indexing_tool],
-                                                   tmp_output):
-
+    if not conf.cache_collector_runs or IsNewInput(
+        [str(input), conf.indexing_tool], tmp_output
+    ):
         res_code, res_stdout, res_stderr = cast(
-            Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None))
+            Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None)
+        )
 
     else:
         log("refl.cli.read").info(f"Using cache for {input}")
@@ -363,10 +386,14 @@ def write_run_result_information(
                 file.write(" ^\n    ".join(cmd.command.split()))
 
         sep("Flags:")
-        file.write(" ^\n    ".join([
-            conf.indexing_tool,
-            "'" + json.dumps(tu.flags) + "'",
-        ]))
+        file.write(
+            " ^\n    ".join(
+                [
+                    conf.indexing_tool,
+                    "'" + json.dumps(tu.flags) + "'",
+                ]
+            )
+        )
 
         sep("Serialized data:")
         if tu.pb_path and tu.pb_path.exists():

@@ -1,6 +1,6 @@
+import py_scriptutils.json_utils as ju
 from beartype.typing import Any, List
 from jsonpath_ng import Fields, Index, Root
-import py_scriptutils.json_utils as ju
 
 
 def get_diff(source: Any, target: Any) -> List[ju.DiffItem]:

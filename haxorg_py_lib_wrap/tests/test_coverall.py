@@ -1,21 +1,22 @@
-from contextlib import contextmanager
 import copy
 import dataclasses
-from dataclasses import dataclass, field, replace
 import functools
 import inspect
-from pathlib import Path
 import re
-from tempfile import gettempdir
 import types
+from contextlib import contextmanager
+from dataclasses import dataclass, field, replace
+from pathlib import Path
+from tempfile import gettempdir
 
+import py_haxorg.pyhaxorg_wrap as org
+import pytest
 from beartype import beartype
 from beartype.typing import (
     Any,
     Callable,
     Dict,
     Generator,
-    Iterable,
     List,
     Mapping,
     Optional,
@@ -25,13 +26,9 @@ from beartype.typing import (
 )
 from coverage import Coverage
 from plumbum import CommandNotFound, local
-import py_haxorg.pyhaxorg_wrap as org
 from py_scriptutils.algorithm import validate_unique
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich
-from py_scriptutils.script_logging import log
-import pytest
-from rich.repr import rich_repr
 from rich.tree import Tree
 
 CAT = __name__
@@ -45,7 +42,7 @@ def add_if_ok(target: Tree, other: Optional[Tree]) -> None:
 
 @beartype
 @dataclass
-class ValueCheckResult():
+class ValueCheckResult:
     is_ok: bool = False
     on_fail: Optional[Tree] = None
 
@@ -62,7 +59,8 @@ def format_value(val: Any) -> str:
             return f"{{{items}}}"
     elif isinstance(val, dict):
         items = ", ".join(
-            f"{format_value(k)}: {format_value(val[k])}" for k in sorted(val))
+            f"{format_value(k)}: {format_value(val[k])}" for k in sorted(val)
+        )
         return f"{{{items}}}"
     elif isinstance(val, str):
         return f'[yellow]"{val}"[/yellow]'
@@ -130,7 +128,7 @@ ValuePredicateFunc = Callable[[Any], ValueCheckResult]
 
 @beartype
 @dataclass
-class ValuePredicate():
+class ValuePredicate:
     func: ValuePredicateFunc
 
     def treeRepr(self) -> Tree:
@@ -139,7 +137,7 @@ class ValuePredicate():
 
 @beartype
 @dataclass
-class FieldCheckResult():
+class FieldCheckResult:
     field: str
     value_check: Optional[ValueCheckResult]
     field_predicate_id: str
@@ -177,7 +175,7 @@ class FieldCheckResult():
 
 @beartype
 @dataclass
-class FieldPredicate():
+class FieldPredicate:
     name: str
     check: ValuePredicate
     field_predicate_id: str
@@ -200,7 +198,7 @@ class FieldPredicate():
 
 @beartype
 @dataclass
-class FieldAlternatives():
+class FieldAlternatives:
     items: List[FieldPredicate] = field(default_factory=list)
 
     def treeRepr(self) -> Tree:
@@ -219,7 +217,9 @@ class FieldAlternatives():
         final_res: Optional[FieldCheckResult] = None
         visisted_alternatives: Set[str] = set()
         for alt in self.items:
-            assert alt.field_predicate_id not in visisted_alternatives, f"Field '{field}' already has value alternative with ID '{alt.field_predicate_id}'"
+            assert alt.field_predicate_id not in visisted_alternatives, (
+                f"Field '{field}' already has value alternative with ID '{alt.field_predicate_id}'"
+            )
 
             visisted_alternatives.add(alt.field_predicate_id)
 
@@ -238,7 +238,7 @@ class FieldAlternatives():
 
 @beartype
 @dataclass
-class NodeCheckResult():
+class NodeCheckResult:
     is_ok: bool
     on_fail: Optional[Tree] = None
 
@@ -256,7 +256,7 @@ class NodeCheckResult():
 
 @beartype
 @dataclass
-class ClassCheckResult():
+class ClassCheckResult:
     class_predicate_id: Optional[str]
     class_name: org.OrgSemKind
     fields: List[FieldCheckResult] = field(default_factory=list)
@@ -264,9 +264,9 @@ class ClassCheckResult():
     node_check_result: Optional[NodeCheckResult] = None
 
     def is_matching(self) -> bool:
-        return all(
-            f.is_matching() for f in self.fields) and (self.node_check_result is None or
-                                                       self.node_check_result.is_ok)
+        return all(f.is_matching() for f in self.fields) and (
+            self.node_check_result is None or self.node_check_result.is_ok
+        )
 
     def format(self, format_if_ok: bool) -> Optional[Tree]:
         if self.is_matching():
@@ -305,7 +305,7 @@ class ClassCheckResult():
 
 @beartype
 @dataclass
-class ClassPrediate():
+class ClassPrediate:
     class_predicate_id: str
     fields: Mapping[str, FieldAlternatives] = field(default_factory=dict)
     node_predicate: Optional[Callable[[org.Org], NodeCheckResult]] = None
@@ -330,7 +330,6 @@ class ClassPrediate():
         )
 
         try:
-
             if self.node_predicate:
                 res.node_check_result = self.node_predicate(value)
 
@@ -338,7 +337,8 @@ class ClassPrediate():
             for field_name, field_value in value.__dict__.items():
                 if field_name in self.fields:
                     visit_res = self.fields[field_name].visit_field(
-                        field_name, field_value)
+                        field_name, field_value
+                    )
                     if visit_res is not None:
                         res.fields.append(visit_res)
 
@@ -354,7 +354,7 @@ class ClassPrediate():
 
 @beartype
 @dataclass
-class ClassAlternatives():
+class ClassAlternatives:
     items: List[ClassPrediate] = field(default_factory=list)
 
     def get_for_id(self, name: str) -> Optional[ClassPrediate]:
@@ -368,7 +368,9 @@ class ClassAlternatives():
         res_list: List[ClassCheckResult] = []
         visited: Set[str] = set()
         for item in self.items:
-            assert item.class_predicate_id not in visited, f"Duplicate class alternative for ID {item.class_predicate_id}"
+            assert item.class_predicate_id not in visited, (
+                f"Duplicate class alternative for ID {item.class_predicate_id}"
+            )
             visited.add(item.class_predicate_id)
             res_list.append(item.visit_type(value))
 
@@ -428,12 +430,14 @@ def get_regex_field_check(field: str, regex: str, predicate_id: str) -> FieldPre
         else:
             return ValueCheckResult(
                 is_ok=False,
-                on_fail=Tree(f"Value '{value}' did not match regex '{regex}'"))
+                on_fail=Tree(f"Value '{value}' did not match regex '{regex}'"),
+            )
 
     return FieldPredicate(
         name=field,
-        check=ValuePredicate(func=functools.partial(regex_check_impl, copy.deepcopy(
-            regex))),  # type: ignore
+        check=ValuePredicate(
+            func=functools.partial(regex_check_impl, copy.deepcopy(regex))
+        ),  # type: ignore
         field_predicate_id=predicate_id,
     )
 
@@ -478,8 +482,9 @@ def boolableField(field_name: str, expected: bool) -> Tuple[str, ValuePredicateF
             return ValueCheckResult(is_ok=True)
 
         else:
-            return ValueCheckResult(is_ok=False,
-                                    on_fail=Tree(f"Expected bool({field_name}) == {val}"))
+            return ValueCheckResult(
+                is_ok=False, on_fail=Tree(f"Expected bool({field_name}) == {val}")
+            )
 
     return (f"{field_name}_{expected}", functools.partial(impl, expected))
 
@@ -499,8 +504,8 @@ def boolableField2(field_name: str) -> List[Tuple[str, ValuePredicateFunc]]:
 
 @beartype
 def nodeFnBoolOrText(
-        func: Callable[[org.Org], Union[Tree,
-                                        bool]]) -> Callable[[org.Org], NodeCheckResult]:
+    func: Callable[[org.Org], Union[Tree, bool]],
+) -> Callable[[org.Org], NodeCheckResult]:
     """
     Get callable for checking the node property and convert it to the function returning
     a node check result. The input callable cal return a `True` value for successful
@@ -520,15 +525,17 @@ def nodeFnBoolOrText(
 
 
 @beartype
-def nodeCls(class_predicate_id: str, func: Callable[[org.Org],
-                                                    NodeCheckResult]) -> ClassPrediate:
+def nodeCls(
+    class_predicate_id: str, func: Callable[[org.Org], NodeCheckResult]
+) -> ClassPrediate:
     """Shortcut constructor to create a single class predicate"""
     return ClassPrediate(class_predicate_id=class_predicate_id, node_predicate=func)
 
 
 @beartype
 def get_regex_field_alternatives(
-        field: str, regex_with_id: List[Tuple[str, str]]) -> FieldAlternatives:
+    field: str, regex_with_id: List[Tuple[str, str]]
+) -> FieldAlternatives:
     """
     Get a field alternative for checking that the document contains at least
     one node with a field matching provided regex.
@@ -553,51 +560,57 @@ def make_check_node_has_subnode_of_kind(kind: org.OrgSemKind) -> Callable:
                 on_fail=Tree(
                     f"No subnode of kind [red]{kind}[/red] in"
                     # f"No subnode of kind [red]{kind}[/red] in {org.treeRepr(node, colored=False)}"
-                ))
+                ),
+            )
 
     return functools.partial(impl, kind)
 
 
 @beartype
 def altFieldsCheck1(
-        name: str, check: Callable[[Any],
-                                   ValueCheckResult]) -> Mapping[str, FieldAlternatives]:
+    name: str, check: Callable[[Any], ValueCheckResult]
+) -> Mapping[str, FieldAlternatives]:
     """
     Helper function create a field alternatives mapping from a single field name
     and callable function.
     """
     return {
-        name:
-            altN(
-                FieldPredicate(
-                    name=name,
-                    check=ValuePredicate(func=check),
-                    field_predicate_id=name,
-                ))
+        name: altN(
+            FieldPredicate(
+                name=name,
+                check=ValuePredicate(func=check),
+                field_predicate_id=name,
+            )
+        )
     }
 
 
 @beartype
 def altFieldsCheckN(
-        name: str,
-        checks: List[Tuple[str, ValuePredicateFunc]]) -> Mapping[str, FieldAlternatives]:
+    name: str, checks: List[Tuple[str, ValuePredicateFunc]]
+) -> Mapping[str, FieldAlternatives]:
     """
     Create field alternative mapping for a single field and a list of value predicate checks.
     """
     validate_unique(checks, lambda it: it[0])
     return {
-        name:
-            altN(*(FieldPredicate(
-                name=name,
-                check=ValuePredicate(func=check),
-                field_predicate_id=f"{name}_{idx}",
-            ) for idx, check in checks))
+        name: altN(
+            *(
+                FieldPredicate(
+                    name=name,
+                    check=ValuePredicate(func=check),
+                    field_predicate_id=f"{name}_{idx}",
+                )
+                for idx, check in checks
+            )
+        )
     }
 
 
 @beartype
-def clsField1Check(predicate_name: str, field_name: str,
-                   mapping: dict | list | Callable) -> ClassPrediate:
+def clsField1Check(
+    predicate_name: str, field_name: str, mapping: dict | list | Callable
+) -> ClassPrediate:
     if isinstance(mapping, dict):
         return ClassPrediate(
             class_predicate_id=predicate_name,
@@ -626,8 +639,9 @@ def get_subtree_property_spec() -> List[ClassPrediate]:
 
     PK = org.NamedPropertyKind
 
-    def impl(kind: org.NamedPropertyKind,
-             properties: List[org.NamedProperty]) -> ValueCheckResult:
+    def impl(
+        kind: org.NamedPropertyKind, properties: List[org.NamedProperty]
+    ) -> ValueCheckResult:
         for prop in properties:
             if prop.getKind() == kind:
                 return ValueCheckResult(is_ok=True)
@@ -644,7 +658,10 @@ def get_subtree_property_spec() -> List[ClassPrediate]:
                 "properties",
                 functools.partial(impl, property_kind),
             ),
-        ) for property_kind in org.NamedPropertyKind(0) if property_kind not in [
+        )
+        for property_kind in org.NamedPropertyKind(0)
+        if property_kind
+        not in [
             # TODO Re-enable properties once they are properly covered in the sem layer
             PK.Blocker,
             PK.Nonblocking,
@@ -662,7 +679,8 @@ def get_subtree_property_spec() -> List[ClassPrediate]:
             PK.ArchiveTime,
             PK.ArchiveCategory,
             PK.ExportLatexCompiler,
-        ])
+        ]
+    )
 
 
 @beartype
@@ -690,9 +708,13 @@ def get_subtree_logbook_head_spec() -> List[ClassPrediate]:
                 "head",
                 functools.partial(impl, property_kind),
             ),
-        ) for property_kind in org.SubtreeLogHeadKind(0) if property_kind not in [
+        )
+        for property_kind in org.SubtreeLogHeadKind(0)
+        if property_kind
+        not in [
             org.SubtreeLogHeadKind.Schedule,
-        ])
+        ]
+    )
 
 
 @beartype
@@ -712,7 +734,8 @@ def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
                 f"with_{attached_kind}_attached",
                 "attached",
                 [(f"{attached_kind}", functools.partial(impl_expect, attached_kind))],
-            ))
+            )
+        )
 
     def impl_not_expect(attached: List[org.Org]) -> ValueCheckResult:
         if len(attached) == 0:
@@ -726,7 +749,8 @@ def get_block_spec(kind: org.OrgSemKind) -> List[ClassPrediate]:
             f"with_no_attached",
             "attached",
             [(f"{attached_kind}", impl_not_expect)],
-        ))
+        )
+    )
 
     return Block_alternatives
 
@@ -744,7 +768,8 @@ def get_subtree_spec() -> ClassAlternatives:
     return altCls(
         *get_subtree_property_spec(),
         *[
-            clsField1Check(f"subtree_{name}", name, boolableField2(name)) for name in [
+            clsField1Check(f"subtree_{name}", name, boolableField2(name))
+            for name in [
                 "closed",
                 "isArchived",
                 "treeId",
@@ -773,14 +798,18 @@ def get_time_spec() -> ClassAlternatives:
                     return NodeCheckResult(
                         is_ok=False,
                         on_fail=Tree(
-                            f"Expected field {field_name} to be listed in breakdown"))
+                            f"Expected field {field_name} to be listed in breakdown"
+                        ),
+                    )
 
             else:
                 if isinstance(value, int) and value != 0:
                     return NodeCheckResult(
                         is_ok=False,
                         on_fail=Tree(
-                            f"Expected field {field_name} to be absent from breakdown"))
+                            f"Expected field {field_name} to be absent from breakdown"
+                        ),
+                    )
 
         return NodeCheckResult(is_ok=True)
 
@@ -793,13 +822,19 @@ def get_time_spec() -> ClassAlternatives:
             nodeCls(
                 f"breakdown_for_{field_names}",
                 functools.partial(breakdown_cutoff, field_names),
-            ))
+            )
+        )
 
     Time_alternatives.append(
-        clsField1Check("time_isActive", "isActive", [
-            boolableField("isActive", True),
-            boolableField("isActive", False),
-        ]))
+        clsField1Check(
+            "time_isActive",
+            "isActive",
+            [
+                boolableField("isActive", True),
+                boolableField("isActive", False),
+            ],
+        )
+    )
 
     return altCls(*Time_alternatives)
 
@@ -813,13 +848,15 @@ def get_spec() -> OrgSpecification:
         ClassPrediate(
             fields=dict(text=altN(get_regex_field_check("text", ".*", "any_value"))),
             class_predicate_id="text_field",
-        ),)
+        ),
+    )
 
     markup_node_kind = [osk.Bold, osk.Italic, osk.Underline, osk.Strike]
     for kind in markup_node_kind:
 
-        def has_different_nested_markup_kind(kind: org.OrgSemKind,
-                                             node: org.Org) -> NodeCheckResult:
+        def has_different_nested_markup_kind(
+            kind: org.OrgSemKind, node: org.Org
+        ) -> NodeCheckResult:
             if any(sub.getKind() in markup_node_kind for sub in node):
                 return NodeCheckResult(is_ok=True)
 
@@ -829,7 +866,8 @@ def get_spec() -> OrgSpecification:
                     on_fail=Tree(
                         f"No subnode of kind [red]{kind}[/red]"
                         # f"No subnode of kind [red]{kind}[/red] in {org.treeRepr(node, colored=False)}"
-                    ))
+                    ),
+                )
 
         res.alternatives[kind] = altCls(
             ClassPrediate(
@@ -848,27 +886,39 @@ def get_spec() -> OrgSpecification:
     res.alternatives[osk.Paragraph] = altCls(
         nodeCls(
             "footnote_definition_paragraph",
-            nodeFnBoolOrText(lambda node:
-                             (isinstance(node, org.Paragraph) and node.
-                              isFootnoteDefinition()) or Tree("No footnote definition")),
+            nodeFnBoolOrText(
+                lambda node: (
+                    (isinstance(node, org.Paragraph) and node.isFootnoteDefinition())
+                    or Tree("No footnote definition")
+                )
+            ),
         ),
         nodeCls(
             "paragraph_with_admonition",
-            nodeFnBoolOrText(lambda node:
-                             (isinstance(node, org.Paragraph) and node.hasAdmonition()
-                             ) or Tree("No paragraph with admonition")),
+            nodeFnBoolOrText(
+                lambda node: (
+                    (isinstance(node, org.Paragraph) and node.hasAdmonition())
+                    or Tree("No paragraph with admonition")
+                )
+            ),
         ),
         nodeCls(
             "paragraph_with_lead_hashtag",
-            nodeFnBoolOrText(lambda node:
-                             (isinstance(node, org.Paragraph) and node.hasLeadHashtags()
-                             ) or Tree("No paragraph with lead hashtag")),
+            nodeFnBoolOrText(
+                lambda node: (
+                    (isinstance(node, org.Paragraph) and node.hasLeadHashtags())
+                    or Tree("No paragraph with lead hashtag")
+                )
+            ),
         ),
         nodeCls(
             "paragraph_with_lead_timestamp",
-            nodeFnBoolOrText(lambda node:
-                             (isinstance(node, org.Paragraph) and node.hasTimestamp()
-                             ) or Tree("No paragraph with lead timestamp")),
+            nodeFnBoolOrText(
+                lambda node: (
+                    (isinstance(node, org.Paragraph) and node.hasTimestamp())
+                    or Tree("No paragraph with lead timestamp")
+                )
+            ),
         ),
     )
 
@@ -894,7 +944,8 @@ def get_spec() -> OrgSpecification:
                 nodeCls(
                     f"{class_name}_with_subkind_{kind}",
                     functools.partial(impl, kind),
-                ))
+                )
+            )
 
         return result
 
@@ -918,32 +969,45 @@ def get_spec() -> OrgSpecification:
                     f"{field_name}_with_subkind_{kind}",
                     field_name,
                     [(f"{kind}", functools.partial(impl, kind))],
-                ))
+                )
+            )
 
         return result
 
-    res.alternatives[osk.CmdInclude] = altCls(*get_all_alternatives_for_class(
-        org.CmdIncludeKind(0),
-        lambda kind, target: target.getIncludeKind() == kind,
-        "cmd_include",
-    ))
+    res.alternatives[osk.CmdInclude] = altCls(
+        *get_all_alternatives_for_class(
+            org.CmdIncludeKind(0),
+            lambda kind, target: target.getIncludeKind() == kind,
+            "cmd_include",
+        )
+    )
 
-    res.alternatives[osk.Link] = altCls(*get_all_alternatives_for_field(
-        org.LinkTargetKind(0),
-        lambda kind, target: target.getKind() == kind,
-        "target",
-    ))
+    res.alternatives[osk.Link] = altCls(
+        *get_all_alternatives_for_field(
+            org.LinkTargetKind(0),
+            lambda kind, target: target.getKind() == kind,
+            "target",
+        )
+    )
 
-    res.alternatives[osk.SubtreeLog] = altCls(*get_subtree_logbook_head_spec(),)
+    res.alternatives[osk.SubtreeLog] = altCls(
+        *get_subtree_logbook_head_spec(),
+    )
 
     res.alternatives[org.OrgSemKind.BigIdent] = altCls(
         ClassPrediate(
-            fields=dict(text=get_regex_field_alternatives("text", [
-                ("[A-Z]+", "single_ident"),
-                ("[A-Z]+_[A-Z]+", "underscore_ident"),
-            ])),
+            fields=dict(
+                text=get_regex_field_alternatives(
+                    "text",
+                    [
+                        ("[A-Z]+", "single_ident"),
+                        ("[A-Z]+_[A-Z]+", "underscore_ident"),
+                    ],
+                )
+            ),
             class_predicate_id="big_ident_text",
-        ),)
+        ),
+    )
 
     block_kinds = [
         osk.BlockQuote,
@@ -992,7 +1056,12 @@ class TypeDefinitionRanges:
     methods: Set[int] = field(default_factory=set)
 
     def in_range(self, it: int) -> bool:
-        return it in self.decorators or it in self.class_def or it in self.fields or it in self.methods
+        return (
+            it in self.decorators
+            or it in self.class_def
+            or it in self.fields
+            or it in self.methods
+        )
 
 
 def get_type_definition_lines(cls_type: type) -> TypeDefinitionRanges:
@@ -1017,8 +1086,9 @@ def get_type_definition_lines(cls_type: type) -> TypeDefinitionRanges:
 
 
 @contextmanager
-def verify_full_coverage(cov: Optional[Coverage], cls: Any,
-                         report_path: str) -> Generator:
+def verify_full_coverage(
+    cov: Optional[Coverage], cls: Any, report_path: str
+) -> Generator:
     """
     Verify that all lines in the class methods are covered.
     Raises AssertionError with coverage report if not fully covered.
@@ -1034,6 +1104,7 @@ def verify_full_coverage(cov: Optional[Coverage], cls: Any,
 
     if use_target_cov:
         import sys
+
         cov_plugin = None
         if hasattr(sys, "_pytest_cov"):
             # Get the active coverage object from pytest-cov
@@ -1063,7 +1134,8 @@ def verify_full_coverage(cov: Optional[Coverage], cls: Any,
     definition_lines = get_type_definition_lines(cls)
 
     file_analysis = list(
-        get_analysis_to_report(coverage=cov_obj, morfs=[str(source_file)]))
+        get_analysis_to_report(coverage=cov_obj, morfs=[str(source_file)])
+    )
     end_line = start_line + len(source_lines)
     file_reporter, analysis = file_analysis[0]
 
@@ -1086,9 +1158,11 @@ def verify_full_coverage(cov: Optional[Coverage], cls: Any,
         )
 
         missing_lines_text = "\n".join(missing_lines)
-        pytest.fail(f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
-                    f"Missing lines:\n{missing_lines_text}\n"
-                    f"Coverage Report: {report_path}\n")
+        pytest.fail(
+            f"Incomplete coverage for {cls.__name__} in {source_file}:\n"
+            f"Missing lines:\n{missing_lines_text}\n"
+            f"Coverage Report: {report_path}\n"
+        )
 
 
 org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
@@ -1104,15 +1178,24 @@ def test_total_representation() -> None:
     parse = org.ParseContext()
     node = parse.parseFile(str(file))
     Path(gettempdir()).joinpath("content.yaml").write_text(
-        org.exportToYamlString(node, org.OrgYamlExportOpts()))
+        org.exportToYamlString(node, org.OrgYamlExportOpts())
+    )
     Path(gettempdir()).joinpath("content.txt").write_text(
-        org.exportToTreeString(node, org.OrgTreeExportOpts(withColor=False,)))
+        org.exportToTreeString(
+            node,
+            org.OrgTreeExportOpts(
+                withColor=False,
+            ),
+        )
+    )
     spec = get_spec()
 
-    Path(gettempdir()).joinpath("spec.txt").write_text(render_rich(
-        spec.treeRepr(), False))
-    Path(gettempdir()).joinpath("spec.ansi").write_text(render_rich(
-        spec.treeRepr(), True))
+    Path(gettempdir()).joinpath("spec.txt").write_text(
+        render_rich(spec.treeRepr(), False)
+    )
+    Path(gettempdir()).joinpath("spec.ansi").write_text(
+        render_rich(spec.treeRepr(), True)
+    )
 
     coverage = spec.visit_all(node)
 
@@ -1157,7 +1240,8 @@ def test_total_representation() -> None:
                     class_kind,
                     Tree(
                         f"Document does not cover ID {class_kind}.{alt.class_predicate_id}"
-                    ))
+                    ),
+                )
 
     for kind in org.OrgSemKind(0):
         if kind not in class_cover_tree:
@@ -1200,15 +1284,19 @@ def test_total_representation() -> None:
                         field_cover_tree[key].append(field_check)
 
                 if class_predicate_id is not None:
-                    for field_name, field_predicate in spec.alternatives[
-                            class_kind].get_for_id(class_predicate_id).fields.items():
+                    for field_name, field_predicate in (
+                        spec.alternatives[class_kind]
+                        .get_for_id(class_predicate_id)
+                        .fields.items()
+                    ):
                         for wanted_check in field_predicate.items:
                             key = (field_name, wanted_check.field_predicate_id)
                             if key not in field_cover_tree:
                                 field_cover_tree[key] = []
 
                 field_coverage = Tree(
-                    f"Field coverage for {class_kind}.{class_predicate_id}")
+                    f"Field coverage for {class_kind}.{class_predicate_id}"
+                )
 
                 for key in sorted(field_cover_tree):
                     check_result = field_cover_tree[key]
@@ -1222,13 +1310,17 @@ def test_total_representation() -> None:
                                     check_result[0],
                                     msg=Tree(
                                         f"Field coverage for {class_kind}.{class_predicate_id}"
-                                    )))
+                                    ),
+                                )
+                            )
                             field_coverage.add(
-                                Tree(f"No node ever matched {key[0]}.{key[1]}"))
+                                Tree(f"No node ever matched {key[0]}.{key[1]}")
+                            )
 
                     else:
                         field_coverage.add(
-                            Tree(f"No node ever checked {key[0]}.{key[1]}"))
+                            Tree(f"No node ever checked {key[0]}.{key[1]}")
+                        )
 
                         missing_trigger.append(
                             FieldCheckResult(
@@ -1237,7 +1329,9 @@ def test_total_representation() -> None:
                                 field_predicate_id=key[1],
                                 msg=Tree(
                                     f"Field coverage for {class_kind}.{class_predicate_id}"
-                                )))
+                                ),
+                            )
+                        )
 
                 if 0 < len(field_coverage.children):
                     add_final_to_type(class_kind, field_coverage)
@@ -1269,15 +1363,18 @@ def test_total_representation() -> None:
 
     if 0 < len(missing_trigger):
         missing_trigger_repr = Tree(
-            "Some spec checks are not triggered by the test document")
+            "Some spec checks are not triggered by the test document"
+        )
 
         for missing_item in missing_trigger:
             missing_trigger_repr.add(missing_item.format(format_if_ok=True))
 
-        pytest.fail(render_rich(
-            missing_trigger_repr,
-            color=False,
-        ))
+        pytest.fail(
+            render_rich(
+                missing_trigger_repr,
+                color=False,
+            )
+        )
 
 
 @beartype
@@ -1338,7 +1435,10 @@ def test_run_typst_exporter(cov: Coverage) -> None:
                     """
             - header :: body
             - mixed
-            """, "<test>"))
+            """,
+                    "<test>",
+                )
+            )
 
             assert "mixed description list" in str(ex.value)
 
@@ -1350,7 +1450,10 @@ def test_run_typst_exporter(cov: Coverage) -> None:
 #+begin_export typst :edit-config
 
 #+end_export
-            """, "<test>"))
+            """,
+                    "<test>",
+                )
+            )
 
             assert "edit-config parameter" in str(ex.value)
 
@@ -1385,14 +1488,18 @@ def test_run_pandoc_exporter(cov: Coverage) -> None:
 
 def test_run_tex_exporter(cov: Optional[Coverage] = None) -> None:
     from py_haxorg.exporters.export_tex import ExporterLatex
+
     with verify_full_coverage(cov, ExporterLatex, gettempdir()):
         ExporterLatex().eval(get_test_node_from_text())
         exp2 = ExporterLatex()
         exp2.eval(
-            get_test_node_from_text(prefix="""
+            get_test_node_from_text(
+                prefix="""
 #+latex_class: article
 #+LATEX_CLASS_OPTIONS: [a4paper]
-        """))
+        """
+            )
+        )
 
         ExporterLatex().evalUnderline(org.Underline())
 

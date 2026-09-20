@@ -15,7 +15,6 @@ def rename_kwargs_for_svg(kwargs: Dict[str, Any]) -> Dict[str, Any]:
 
 
 class svg(tags.html_tag):
-
     def __init__(self, width: int, height: int, *args: Any, **kwargs: Any) -> None:
         super().__init__(
             *args,
@@ -35,8 +34,9 @@ class svg_circle(tags.html_tag):
 class svg_rect(tags.html_tag):
     tagname = "rect"
 
-    def __init__(self, x: int, y: int, width: int, height: int, *args: Any,
-                 **kwargs: Any) -> None:
+    def __init__(
+        self, x: int, y: int, width: int, height: int, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(
             *args,
             x=x,
@@ -57,8 +57,9 @@ class svg_text(tags.html_tag):
 class svg_line(tags.html_tag):
     tagname = "line"
 
-    def __init__(self, x1: Number, y1: Number, x2: Number, y2: Number, *args: Any,
-                 **kwargs: Any) -> None:
+    def __init__(
+        self, x1: Number, y1: Number, x2: Number, y2: Number, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(
             x1=x1,
             x2=x2,
@@ -85,7 +86,6 @@ class svg_g(tags.html_tag):
 
 @beartype
 class SvgPathBuilder:
-
     def __init__(self) -> None:
         self.commands: list[str] = []
 
@@ -97,8 +97,9 @@ class SvgPathBuilder:
         self.commands.append(f"L {x:.3f} {y:.3f}")
         return self
 
-    def curve_to(self, x1: Number, y1: Number, x2: Number, y2: Number, x: Number,
-                 y: Number) -> "SvgPathBuilder":
+    def curve_to(
+        self, x1: Number, y1: Number, x2: Number, y2: Number, x: Number, y: Number
+    ) -> "SvgPathBuilder":
         self.commands.append(f"C {x1:.3f} {y1:.3f}, {x2:.3f} {y2:.3f}, {x:.3f} {y:.3f}")
         return self
 

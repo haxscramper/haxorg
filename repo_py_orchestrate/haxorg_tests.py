@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 from beartype.typing import List
 from py_repository.repo_tasks.command_execution import (
     get_uv_develop_env_flags,
@@ -13,7 +10,7 @@ from py_repository.repo_tasks.haxorg_base import symlink_build
 from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_coverage_dir
-from py_repository.repo_tasks.workflow_utils import haxorg_task, TaskContext
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
 from py_scriptutils.script_logging import log
 
 CAT = __name__
@@ -139,11 +136,13 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
         raise RuntimeError("running py tests failed")
 
 
-@haxorg_task(dependencies=[
-    build_haxorg,
-    generate_python_protobuf_files,
-    symlink_build,
-])
+@haxorg_task(
+    dependencies=[
+        build_haxorg,
+        generate_python_protobuf_files,
+        symlink_build,
+    ]
+)
 def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
     """
     Run script with arguments with all environment variables set.

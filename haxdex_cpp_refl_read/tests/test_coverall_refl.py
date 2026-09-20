@@ -8,6 +8,7 @@ INPUT = Path(__file__).parent.joinpath("test_coverall_input.cpp")
 @pytest.mark.test_release
 def test_coverall_extract(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     value = refl_test_driver.run_reflection_tool_provider(
         {str(INPUT): INPUT.read_text()},
         code_dir=INPUT.parent,
@@ -21,13 +22,16 @@ def test_coverall_extract(stable_test_dir: Path) -> None:
 @pytest.mark.test_release
 def test_coverall_nim(stable_test_dir: Path) -> None:
     import tests.python.refl.refl_test_driver as refl_test_driver
-    value = refl_test_driver.run_reflection_tool_provider(
-        {
-            str(INPUT): INPUT.read_text()
-        },
-        code_dir=INPUT.parent,
-        output_dir=stable_test_dir,
-    ).wraps[0].tu
+
+    value = (
+        refl_test_driver.run_reflection_tool_provider(
+            {str(INPUT): INPUT.read_text()},
+            code_dir=INPUT.parent,
+            output_dir=stable_test_dir,
+        )
+        .wraps[0]
+        .tu
+    )
 
     for _enum in value.enums:
         refl_test_driver.get_nim_code(_enum)

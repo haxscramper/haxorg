@@ -1,28 +1,21 @@
 #!/usr/bin/env python
 
-from datetime import datetime
 import json
 import logging
-from pathlib import Path
 import subprocess
 import sys
+from datetime import datetime
+from pathlib import Path
 
-from beartype.typing import Any, Optional
 import commentjson
+import py_repository.repo_tasks.workflow_utils as workflow_utils
+import rich_click as click
+from beartype.typing import Any, Optional
 from py_repository.repo_tasks import (
-    examples_build,
-    haxorg_base,
     haxorg_build,
-    haxorg_codegen,
-    haxorg_coverage,
-    haxorg_docker,
-    haxorg_docs,
-    haxorg_linting,
-    haxorg_tests,
 )
 from py_repository.repo_tasks.common import get_build_root
 from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
-import py_repository.repo_tasks.workflow_utils as workflow_utils
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import (
     get_custom_traceback_handler,
@@ -37,7 +30,6 @@ from py_scriptutils.toml_config_profiler import (
     pack_context,
 )
 from pydantic import BaseModel, Field
-import rich_click as click
 
 CAT = __name__
 
@@ -46,7 +38,8 @@ class WorkflowOptions(BaseModel):
     task: Optional[str] = Field(default=None)
     workflow_log_dir: str = "/tmp/haxorg/workflow_log"
     stamp_root: str = str(
-        get_haxorg_repo_root_path().joinpath("build").joinpath("workflow_stamps"))
+        get_haxorg_repo_root_path().joinpath("build").joinpath("workflow_stamps")
+    )
     config_override: Optional[Path] = None
     verbose: bool = False
     config: Optional[str] = None
@@ -66,15 +59,17 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
     setup_multi_file_logging(Path(opts.workflow_log_dir))
 
     logging.getLogger("plumbum.local").setLevel(logging.WARNING)
-    sys.excepthook = get_custom_traceback_handler(show_args=False,)
+    sys.excepthook = get_custom_traceback_handler(
+        show_args=False,
+    )
 
     graph = workflow_utils.create_dag_from_tasks(workflow_utils.get_haxorg_tasks())
     config_json = HaxorgConfig().model_dump()
 
     if opts.config_override:
         config_json = merge_dicts(
-            [config_json,
-             commentjson.loads(opts.config_override.read_text())])
+            [config_json, commentjson.loads(opts.config_override.read_text())]
+        )
 
     config_obj = HaxorgConfig(**config_json)
     if opts.verbose:
@@ -101,7 +96,8 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
         assert executor_tracker.exists(), executor_tracker
 
     tracker_path = Path(
-        f"/tmp/workflow_log/execution_tracker/track-{datetime.now().isoformat()}.jsonl")
+        f"/tmp/workflow_log/execution_tracker/track-{datetime.now().isoformat()}.jsonl"
+    )
     tracker_path.parent.mkdir(parents=True, exist_ok=True)
 
     if executor_tracker.exists():
@@ -112,10 +108,12 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
             "path": str(tracker_path),
         }
         log(CAT).info(f"Opening executor tracker with {tracker_configuration}")
-        proc = subprocess.Popen([
-            str(executor_tracker),
-            json.dumps(tracker_configuration),
-        ])
+        proc = subprocess.Popen(
+            [
+                str(executor_tracker),
+                json.dumps(tracker_configuration),
+            ]
+        )
 
     else:
         proc = None
@@ -142,6 +140,7 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
 
     if tracker_path.exists():
         import shutil
+
         shutil.copy(tracker_path, tracker_path.with_name("last.jsonl"))
 
 

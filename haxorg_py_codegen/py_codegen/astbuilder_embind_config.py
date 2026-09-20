@@ -1,4 +1,3 @@
-from beartype.typing import Optional
 from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
@@ -7,19 +6,24 @@ GEN = "haxorg_wasm"
 
 
 class EmbindAstbuilderConfig(AstbulderConfig):
-
     def isAcceptedByBackend(self, entry: codegen_ir.GenTuDeclaration) -> bool:
-        if isinstance(entry, codegen_ir.GenTuStruct
-                     ) and entry.IsTemplateRecord and not entry.IsExplicitInstantiation:
+        if (
+            isinstance(entry, codegen_ir.GenTuStruct)
+            and entry.IsTemplateRecord
+            and not entry.IsExplicitInstantiation
+        ):
             return False
 
         else:
             return self._isExposedByBackendImpl(entry, "wasm")
 
     def getSanitizedIdent(self, s: str) -> str:
-        return codegen_ir.sanitize_ident(s, {
-            "function",
-        })
+        return codegen_ir.sanitize_ident(
+            s,
+            {
+                "function",
+            },
+        )
 
     def getBackendType(self, Type: QualType) -> QualType:
         wrapper_override = self.type_map.get_wrapper_type(Type)
@@ -29,10 +33,12 @@ class EmbindAstbuilderConfig(AstbulderConfig):
             case _ if wrapper_override:
                 name = wrapper_override
 
-            case ["std", "shared_ptr",
-                  _] if self.isKnownClass(Type.par0()) and self.type_map.is_known_type(
-                      Type.par0()) and self.getReflectionParams(
-                          Type.par0()).backend.wasm.holder_type == "shared":
+            case ["std", "shared_ptr", _] if (
+                self.isKnownClass(Type.par0())
+                and self.type_map.is_known_type(Type.par0())
+                and self.getReflectionParams(Type.par0()).backend.wasm.holder_type
+                == "shared"
+            ):
                 return self.getBackendType(Type.par0())
 
             case ["int"] | ["float"] | ["double"]:
@@ -44,11 +50,13 @@ class EmbindAstbuilderConfig(AstbulderConfig):
             case ["bool"]:
                 name = "boolean"
 
-            case ["Str"] |  \
-                ["string"] | \
-                ["std", "string"] | \
-                ["basic_string" ] | \
-                ["std", "basic_string"]:
+            case (
+                ["Str"]
+                | ["string"]
+                | ["std", "string"]
+                | ["basic_string"]
+                | ["std", "basic_string"]
+            ):
                 name = "string"
 
             case ["void"]:
@@ -57,20 +65,21 @@ class EmbindAstbuilderConfig(AstbulderConfig):
             case ["org", "sem", "SemId", _]:
                 return self.getBackendType(Type.par0())
 
-            case ["hstd", "Opt", _] | \
-                ["std", "optional", _]:
+            case ["hstd", "Opt", _] | ["std", "optional", _]:
                 name = GEN + ".Optional"
 
-            case ["hstd", "Vec", _] | \
-                ["immer", "box", _] | \
-                ["org", "imm", "ImmIdT", _] | \
-                ["immer", "flex_vector", _] | \
-                ["hstd", "UnorderedMap", _, _] | \
-                ["std", "variant", *_] | \
-                ["hstd", "Variant", *_] | \
-                ["org", "imm", "ImmBox", _] | \
-                ["org", "imm", "ImmVec", _] | \
-                ["hstd", "IntSet", _]:
+            case (
+                ["hstd", "Vec", _]
+                | ["immer", "box", _]
+                | ["org", "imm", "ImmIdT", _]
+                | ["immer", "flex_vector", _]
+                | ["hstd", "UnorderedMap", _, _]
+                | ["std", "variant", *_]
+                | ["hstd", "Variant", *_]
+                | ["org", "imm", "ImmBox", _]
+                | ["org", "imm", "ImmVec", _]
+                | ["hstd", "IntSet", _]
+            ):
                 name = GEN + "." + self.getTypeBindName(Type, withParams=False)
 
             case _:

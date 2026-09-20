@@ -1,24 +1,25 @@
-from dataclasses import dataclass, field
-from datetime import datetime
 import itertools
 import json
+from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 
-from beartype import beartype
-from beartype.typing import Any, Dict, List, Literal, Optional
 import pandas as pd
-from py_cli import haxorg_cli, haxorg_opts
 import py_haxorg.pyhaxorg_utils as org_utils
 import py_haxorg.pyhaxorg_wrap as org
-from py_scriptutils.script_logging import log
 import rich_click as click
+from beartype import beartype
+from beartype.typing import Any, Dict, List, Literal, Optional
+from py_scriptutils.script_logging import log
+
+from py_cli import haxorg_cli, haxorg_opts
 
 CAT = __name__
 
 
 @beartype
 @dataclass
-class Entry():
+class Entry:
     title: List[org.Org]
     todo: str
     type: Literal["subtree", "list_item"]
@@ -43,7 +44,8 @@ def rec_node(node: org.Org, opts: haxorg_opts.RootOptions) -> List[Entry]:
                         created=org_utils.getCreationTime(node),
                         todo=node.todo,
                         type="subtree",
-                    ))
+                    )
+                )
 
             else:
                 result.extend(aux_nested(node))
@@ -81,27 +83,30 @@ def rec_node(node: org.Org, opts: haxorg_opts.RootOptions) -> List[Entry]:
     return result
 
 
-class TodoCollectorResult():
+class TodoCollectorResult:
     nested_report: Path
     chronological_report: Path
     json_dump: Path
 
 
 @beartype
-def _generate_report(ctx: haxorg_cli.CliRunContext, entries: List[Entry],
-                     result: TodoCollectorResult) -> None:
+def _generate_report(
+    ctx: haxorg_cli.CliRunContext, entries: List[Entry], result: TodoCollectorResult
+) -> None:
 
     assert ctx.opts.generate
     assert ctx.opts.generate.todo_collector
 
     items: List[Dict[str, Any]] = list(dict())
 
-    title_skip = set([
-        org.OrgSemKind.Time,
-        org.OrgSemKind.TimeRange,
-        org.OrgSemKind.Space,
-        org.OrgSemKind.BigIdent,
-    ])
+    title_skip = set(
+        [
+            org.OrgSemKind.Time,
+            org.OrgSemKind.TimeRange,
+            org.OrgSemKind.Space,
+            org.OrgSemKind.BigIdent,
+        ]
+    )
 
     def _aux_nested(entry: Entry, path: List[int]) -> None:
         items.append(
@@ -112,7 +117,8 @@ def _generate_report(ctx: haxorg_cli.CliRunContext, entries: List[Entry],
                 created=entry.created if entry.created else datetime.fromtimestamp(0),
                 depth=len(path),
                 type=entry.type,
-            ))
+            )
+        )
 
         for index, sub in enumerate(entry.nested):
             _aux_nested(sub, path + [index])

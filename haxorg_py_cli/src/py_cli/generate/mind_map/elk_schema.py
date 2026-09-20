@@ -4,24 +4,21 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
-from beartype import beartype
-from beartype.typing import List, Optional, Tuple
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 import matplotlib.patches as patches
-from matplotlib.path import Path as MPath
 import matplotlib.pyplot as plt
 import numpy as np
+from beartype import beartype
+from beartype.typing import List, Optional, Tuple
+from matplotlib.patches import FancyArrowPatch
 from plumbum import local
 from pydantic import (
     BaseModel,
     Field,
-    field_serializer,
-    field_validator,
+    ValidationError,
     model_serializer,
     model_validator,
-    ValidationError,
 )
 
 
@@ -366,7 +363,6 @@ from typing import Any, Dict, Optional
 
 
 class GraphSerializer:
-
     @staticmethod
     def to_nested_json(graph: Graph) -> Dict[str, Any]:
         return graph.model_dump(exclude_none=True)
@@ -453,12 +449,14 @@ def validate_graph_structure(graph: Graph) -> bool:
             if edge.source is not None:
                 if edge.source not in node_ids and edge.source not in port_ids:
                     raise ValueError(
-                        f"Edge {edge.id} references unknown source: {edge.source}")
+                        f"Edge {edge.id} references unknown source: {edge.source}"
+                    )
 
             if edge.target is not None:
                 if edge.target not in node_ids and edge.target not in port_ids:
                     raise ValueError(
-                        f"Edge {edge.id} references unknown target: {edge.target}")
+                        f"Edge {edge.id} references unknown target: {edge.target}"
+                    )
 
             if edge.sourcePort is not None:
                 if edge.sourcePort not in port_ids:
@@ -476,13 +474,15 @@ def validate_graph_structure(graph: Graph) -> bool:
                 for source in edge.sources:
                     if source not in node_ids and source not in port_ids:
                         raise ValueError(
-                            f"Edge {edge.id} references unknown source: {source}")
+                            f"Edge {edge.id} references unknown source: {source}"
+                        )
 
             if edge.targets:
                 for target in edge.targets:
                     if target not in node_ids and target not in port_ids:
                         raise ValueError(
-                            f"Edge {edge.id} references unknown target: {target}")
+                            f"Edge {edge.id} references unknown target: {target}"
+                        )
 
     validate_edges(graph.edges)
 
@@ -512,7 +512,7 @@ class AbsolutePosition:
 
 @beartype
 def compute_absolute_positions(
-    graph: Graph
+    graph: Graph,
 ) -> Tuple[List[AbsolutePosition], List[Tuple[Point, List[Point], Point]]]:
     nodes = []
     edges_coords = []
@@ -522,12 +522,15 @@ def compute_absolute_positions(
         abs_y = parent_y + (node.y or 0)
 
         nodes.append(
-            AbsolutePosition(x=abs_x,
-                             y=abs_y,
-                             width=node.width or 0,
-                             height=node.height or 0,
-                             id=str(node.id),
-                             type=node.type))
+            AbsolutePosition(
+                x=abs_x,
+                y=abs_y,
+                width=node.width or 0,
+                height=node.height or 0,
+                id=str(node.id),
+                type=node.type,
+            )
+        )
 
         if node.children:
             for child in node.children:
@@ -537,35 +540,43 @@ def compute_absolute_positions(
         for node in graph.children:
             process_node(node)
 
-    def process_edges(edges: Optional[List[Edge]],
-                      container_x: float = 0,
-                      container_y: float = 0) -> None:
+    def process_edges(
+        edges: Optional[List[Edge]], container_x: float = 0, container_y: float = 0
+    ) -> None:
         if not edges:
             return
 
         for edge in edges:
             if edge.sections:
                 for section in edge.sections:
-                    start = Point(x=container_x + section.startPoint.x,
-                                  y=container_y + section.startPoint.y)
-                    end = Point(x=container_x + section.endPoint.x,
-                                y=container_y + section.endPoint.y)
+                    start = Point(
+                        x=container_x + section.startPoint.x,
+                        y=container_y + section.startPoint.y,
+                    )
+                    end = Point(
+                        x=container_x + section.endPoint.x,
+                        y=container_y + section.endPoint.y,
+                    )
                     bends = []
                     if section.bendPoints:
                         for bend in section.bendPoints:
                             bends.append(
-                                Point(x=container_x + bend.x, y=container_y + bend.y))
+                                Point(x=container_x + bend.x, y=container_y + bend.y)
+                            )
                     edges_coords.append((start, bends, end))
             elif edge.sourcePoint and edge.targetPoint:
-                start = Point(x=container_x + edge.sourcePoint.x,
-                              y=container_y + edge.sourcePoint.y)
-                end = Point(x=container_x + edge.targetPoint.x,
-                            y=container_y + edge.targetPoint.y)
+                start = Point(
+                    x=container_x + edge.sourcePoint.x, y=container_y + edge.sourcePoint.y
+                )
+                end = Point(
+                    x=container_x + edge.targetPoint.x, y=container_y + edge.targetPoint.y
+                )
                 bends = []
                 if edge.bendPoints:
                     for bend in edge.bendPoints:
-                        bends.append(Point(x=container_x + bend.x,
-                                           y=container_y + bend.y))
+                        bends.append(
+                            Point(x=container_x + bend.x, y=container_y + bend.y)
+                        )
                 edges_coords.append((start, bends, end))
 
     process_edges(graph.edges)
@@ -607,18 +618,17 @@ class BoundingBox:
         return self.max_y - self.min_y
 
 
-def compute_graph_bounding_box(graph: Graph,
-                               parent_x: float = 0.0,
-                               parent_y: float = 0.0) -> BoundingBox:
+def compute_graph_bounding_box(
+    graph: Graph, parent_x: float = 0.0, parent_y: float = 0.0
+) -> BoundingBox:
     min_x = float("inf")
     min_y = float("inf")
     max_x = float("-inf")
     max_y = float("-inf")
 
-    def update_bounds(x: float,
-                      y: float,
-                      width: float = 0.0,
-                      height: float = 0.0) -> None:
+    def update_bounds(
+        x: float, y: float, width: float = 0.0, height: float = 0.0
+    ) -> None:
         nonlocal min_x, min_y, max_x, max_y
         min_x = min(min_x, x)
         min_y = min(min_y, y)
@@ -711,9 +721,11 @@ def compute_graph_bounding_box(graph: Graph,
     return BoundingBox(min_x, min_y, max_x, max_y)
 
 
-def render_to_png(nodes: List[AbsolutePosition], edges: List[Tuple[Point, List[Point],
-                                                                   Point]],
-                  output_file: Path) -> None:
+def render_to_png(
+    nodes: List[AbsolutePosition],
+    edges: List[Tuple[Point, List[Point], Point]],
+    output_file: Path,
+) -> None:
     fig, ax = plt.subplots(1, 1, figsize=(16, 10))
 
     max_x = max((n.x + n.width for n in nodes), default=100)
@@ -729,52 +741,63 @@ def render_to_png(nodes: List[AbsolutePosition], edges: List[Tuple[Point, List[P
         "start": "#90EE90",
         "activity": "#87CEEB",
         "gateway": "#FFD700",
-        None: "#D3D3D3"
+        None: "#D3D3D3",
     }
 
     for node in nodes:
         color = node_colors.get(node.type, "#D3D3D3")
 
         if node.type == "gateway":
-            diamond = patches.FancyBboxPatch((node.x, node.y),
-                                             node.width,
-                                             node.height,
-                                             boxstyle="round,pad=0.02",
-                                             facecolor=color,
-                                             edgecolor="black",
-                                             linewidth=1.5)
+            diamond = patches.FancyBboxPatch(
+                (node.x, node.y),
+                node.width,
+                node.height,
+                boxstyle="round,pad=0.02",
+                facecolor=color,
+                edgecolor="black",
+                linewidth=1.5,
+            )
             ax.add_patch(diamond)
         elif node.type == "start":
-            circle = patches.Circle((node.x + node.width / 2, node.y + node.height / 2),
-                                    min(node.width, node.height) / 2,
-                                    facecolor=color,
-                                    edgecolor="black",
-                                    linewidth=1.5)
+            circle = patches.Circle(
+                (node.x + node.width / 2, node.y + node.height / 2),
+                min(node.width, node.height) / 2,
+                facecolor=color,
+                edgecolor="black",
+                linewidth=1.5,
+            )
             ax.add_patch(circle)
         else:
-            rect = patches.Rectangle((node.x, node.y),
-                                     node.width,
-                                     node.height,
-                                     facecolor=color,
-                                     edgecolor="black",
-                                     linewidth=1.5)
+            rect = patches.Rectangle(
+                (node.x, node.y),
+                node.width,
+                node.height,
+                facecolor=color,
+                edgecolor="black",
+                linewidth=1.5,
+            )
             ax.add_patch(rect)
 
-        ax.text(node.x + node.width / 2,
-                node.y + node.height / 2,
-                node.id,
-                ha="center",
-                va="center",
-                fontsize=8,
-                fontweight="bold")
+        ax.text(
+            node.x + node.width / 2,
+            node.y + node.height / 2,
+            node.id,
+            ha="center",
+            va="center",
+            fontsize=8,
+            fontweight="bold",
+        )
 
     for start, bends, end in edges:
         points = [start] + bends + [end]
 
         for i in range(len(points) - 1):
-            ax.plot([points[i].x, points[i + 1].x], [points[i].y, points[i + 1].y],
-                    "k-",
-                    linewidth=1.5)
+            ax.plot(
+                [points[i].x, points[i + 1].x],
+                [points[i].y, points[i + 1].y],
+                "k-",
+                linewidth=1.5,
+            )
 
         if len(points) < 2:
             continue
@@ -789,12 +812,14 @@ def render_to_png(nodes: List[AbsolutePosition], edges: List[Tuple[Point, List[P
         if length < 0.001:
             continue
 
-        arrow = FancyArrowPatch((last_segment_start.x, last_segment_start.y),
-                                (last_segment_end.x, last_segment_end.y),
-                                arrowstyle="->",
-                                mutation_scale=15,
-                                linewidth=1.5,
-                                color="black")
+        arrow = FancyArrowPatch(
+            (last_segment_start.x, last_segment_start.y),
+            (last_segment_end.x, last_segment_end.y),
+            arrowstyle="->",
+            mutation_scale=15,
+            linewidth=1.5,
+            color="black",
+        )
         ax.add_patch(arrow)
 
     plt.tight_layout()
@@ -953,7 +978,7 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str, Any]]) -> Gr
     return graph
 
 
-from py_scriptutils.script_logging import pprint_to_file, to_debug_json
+from py_scriptutils.script_logging import pprint_to_file
 
 
 def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:

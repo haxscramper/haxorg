@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 hook_path = Path(__file__).resolve()
 module_path = hook_path.parents[2]

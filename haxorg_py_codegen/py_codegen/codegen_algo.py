@@ -1,11 +1,10 @@
-from dataclasses import dataclass, replace
 import functools
 import inspect
-import itertools
-from pathlib import Path
+from dataclasses import dataclass, replace
 
 from beartype import beartype
-from beartype.typing import Any, Dict, List, Optional, Sequence, Set, Tuple
+from beartype.typing import Any, Dict, List, Optional, Set, Tuple
+
 from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import (
@@ -17,16 +16,14 @@ from py_codegen.codegen_ir import (
     TemplateParamKind,
     TypeSpecialization,
 )
-from py_scriptutils.algorithm import iterate_object_tree
-from py_scriptutils.script_logging import log
 
 CAT = __name__
 
 
 @beartype
 def collect_type_specializations(
-        entries: List[codegen_ir.GenTuUnion],
-        conf: AstbulderConfig) -> List[codegen_ir.TypeSpecialization]:
+    entries: List[codegen_ir.GenTuUnion], conf: AstbulderConfig
+) -> List[codegen_ir.TypeSpecialization]:
     res = []
     seen_types: Set[int] = set()
 
@@ -42,10 +39,12 @@ def collect_type_specializations(
                     used_type=T,
                     bind_name=conf.getTypeBindName(T),
                     used_in=used_in,
-                ))
+                )
+            )
 
-    def visit_type_rec(value: Optional[QualType],
-                       used_in: Optional[codegen_ir.GenTuEntry] = None) -> None:
+    def visit_type_rec(
+        value: Optional[QualType], used_in: Optional[codegen_ir.GenTuEntry] = None
+    ) -> None:
         if value is None:
             return
 
@@ -76,7 +75,8 @@ def collect_type_specializations(
                         map(
                             lambda it: visit_type_rec(it.Type, used_in=entry),
                             entry.Args,
-                        ))
+                        )
+                    )
 
             case codegen_ir.GenTuStruct():
                 list(map(lambda it: visit_entry(it, used_in=it), entry.Methods))
@@ -115,11 +115,13 @@ def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType 
     def aux(Type: QualType | None) -> QualType | None:
 
         def aux_type(Func: QualType.Function) -> QualType.Function:
-            return Func.model_copy(update=dict(
-                ReturnType=aux(Func.ReturnType),
-                Args=list(map(aux, Func.Args)),
-                Class=aux(Func.Class),
-            ))
+            return Func.model_copy(
+                update=dict(
+                    ReturnType=aux(Func.ReturnType),
+                    Args=list(map(aux, Func.Args)),
+                    Class=aux(Func.Class),
+                )
+            )
 
         if not Type:
             return Type
@@ -128,7 +130,8 @@ def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType 
             subst = ctx.substitution_map[Type.Name]
             if subst.Kind == codegen_ir.QualTypeKind.TypeExpr:
                 return subst.copy_update(
-                    OriginalSubstitutedTemplate=Type.model_copy(deep=True),)
+                    OriginalSubstitutedTemplate=Type.model_copy(deep=True),
+                )
 
             elif subst.isFunction():
                 assert subst.Func
@@ -167,8 +170,9 @@ def _map_template_type(Type: QualType | None, ctx: _InstantiateCtx) -> QualType 
 
 
 @beartype
-def _map_template_struct(ctx: _InstantiateCtx,
-                         base: codegen_ir.GenTuStruct) -> codegen_ir.GenTuStruct:
+def _map_template_struct(
+    ctx: _InstantiateCtx, base: codegen_ir.GenTuStruct
+) -> codegen_ir.GenTuStruct:
     if not base.TemplateParams:
         return base
 
@@ -183,8 +187,10 @@ def _map_template_struct(ctx: _InstantiateCtx,
                 substituted = ctx.substitution_map[_param.getName()]
                 for _nested in substituted.getTemplateParameters():
                     updated_group.Params.append(
-                        codegen_ir.GenTuTemplateTypename(TypeExpr=QualType(
-                            Name=_nested.Name)))
+                        codegen_ir.GenTuTemplateTypename(
+                            TypeExpr=QualType(Name=_nested.Name)
+                        )
+                    )
 
                 explicit_params.append(substituted)
 
@@ -208,8 +214,9 @@ def _map_template_struct(ctx: _InstantiateCtx,
 
 
 @beartype
-def _map_template_function(ctx: _InstantiateCtx,
-                           func: codegen_ir.GenTuFunction) -> codegen_ir.GenTuFunction:
+def _map_template_function(
+    ctx: _InstantiateCtx, func: codegen_ir.GenTuFunction
+) -> codegen_ir.GenTuFunction:
     result = replace(
         func,
         Args=[replace(Arg, Type=_map_template_type(Arg.Type, ctx)) for Arg in func.Args],
@@ -221,8 +228,9 @@ def _map_template_function(ctx: _InstantiateCtx,
 
 
 @beartype
-def _instantiate_template(_ctx: _InstantiateCtx,
-                          Base: codegen_ir.GenTuEntry) -> codegen_ir.GenTuEntry:
+def _instantiate_template(
+    _ctx: _InstantiateCtx, Base: codegen_ir.GenTuEntry
+) -> codegen_ir.GenTuEntry:
     match Base:
         case codegen_ir.GenTuStruct():
             return _map_template_struct(_ctx, Base)
@@ -305,8 +313,13 @@ class TemplateUnificationMatcher:
                 name = code.co_name
                 filename = code.co_filename
 
-                if (name != "_log" and name != "wrapper" and name != "wrapped" and
-                        "@beartype" not in filename and "beartype" not in filename):
+                if (
+                    name != "_log"
+                    and name != "wrapper"
+                    and name != "wrapped"
+                    and "@beartype" not in filename
+                    and "beartype" not in filename
+                ):
                     break
 
                 frame = frame.f_back
@@ -375,7 +388,8 @@ class TemplateUnificationMatcher:
         - template `T**`, specialization `int***` => bind `T = int*`
         """
         self._log(
-            f"strip qualifiers specialization={specialization!r} template={template!r}")
+            f"strip qualifiers specialization={specialization!r} template={template!r}"
+        )
 
         if template.RefKind != ReferenceKind.NotRef:
             if specialization.RefKind != template.RefKind:
@@ -466,8 +480,9 @@ class TemplateUnificationMatcher:
                     self._substitute_qualtype(arg, substitution)
                     for arg in value.Func.Args
                 ],
-                Class=None if value.Func.Class is None else self._substitute_qualtype(
-                    value.Func.Class, substitution),
+                Class=None
+                if value.Func.Class is None
+                else self._substitute_qualtype(value.Func.Class, substitution),
                 IsConst=value.Func.IsConst,
             )
 
@@ -591,8 +606,8 @@ class TemplateUnificationMatcher:
 
         if template_param.Kind == TemplateParamKind.NonType:
             if not self._qualtype_non_type_category_matches(
-                    specialization,
-                    template_param.TypeExpr,
+                specialization,
+                template_param.TypeExpr,
             ):
                 self._log("non-type template parameter category mismatch")
                 return None
@@ -666,7 +681,8 @@ class TemplateUnificationMatcher:
                         return None
 
                     instantiated_default = self._substitute_qualtype(
-                        default_expr, current)
+                        default_expr, current
+                    )
                     self._log(
                         f"use default for parameter index {idx}: {instantiated_default!r}"
                     )
@@ -688,8 +704,10 @@ class TemplateUnificationMatcher:
                     if variadic_param.Kind == TemplateParamKind.Type:
                         template_expr = variadic_param.TypeExpr
 
-                        if (template_expr.IsTemplateTypeParam and
-                                variadic_name is not None):
+                        if (
+                            template_expr.IsTemplateTypeParam
+                            and variadic_name is not None
+                        ):
                             # Variadic template parameter packs are represented in the
                             # external substitution map by binding the pack name to the
                             # whole matched template entity elsewhere, not by forcing all
@@ -720,7 +738,8 @@ class TemplateUnificationMatcher:
                     )
                     if current is None:
                         self._log(
-                            f"failed to unify trailing parameter at index {actual_idx}")
+                            f"failed to unify trailing parameter at index {actual_idx}"
+                        )
                         return None
 
         return current
@@ -758,8 +777,11 @@ class TemplateUnificationMatcher:
         template = template_param.TypeExpr
 
         if template.IsTemplateTypeParam:
-            has_qualifiers = (template.IsConst or 0 < template.PtrCount or
-                              template.RefKind != ReferenceKind.NotRef)
+            has_qualifiers = (
+                template.IsConst
+                or 0 < template.PtrCount
+                or template.RefKind != ReferenceKind.NotRef
+            )
 
             if has_qualifiers:
                 stripped = self._strip_qualifiers(specialization, template)
@@ -899,8 +921,9 @@ class TemplateUnificationMatcher:
                     self._log("not enough params for pack expansion")
                     return None
 
-                for t_param, s_param in zip(non_pack,
-                                            specialization.Params[:len(non_pack)]):
+                for t_param, s_param in zip(
+                    non_pack, specialization.Params[: len(non_pack)]
+                ):
                     current = self.unify_qualtype(
                         specialization=s_param,
                         template=t_param,
@@ -911,7 +934,7 @@ class TemplateUnificationMatcher:
                         return None
 
                 pack_pattern = pack_param.copy_update(IsPackExpansion=False)
-                for s_param in specialization.Params[len(non_pack):]:
+                for s_param in specialization.Params[len(non_pack) :]:
                     current = self.unify_qualtype(
                         specialization=s_param,
                         template=pack_pattern,
@@ -991,7 +1014,8 @@ class TemplateUnificationMatcher:
                     SpecializationMatchResult(
                         instantiated_name=spec,
                         substitution_map=subst,
-                    ))
+                    )
+                )
         return results
 
     def match_specializations_for_template_params(
@@ -1028,11 +1052,14 @@ class TemplateUnificationMatcher:
 
             ok = True
             for t_space, s_space in zip(template_name.Spaces, spec.Spaces):
-                current = (self.unify_qualtype(
-                    specialization=s_space,
-                    template=t_space,
-                    substitution=current,
-                ) or {})
+                current = (
+                    self.unify_qualtype(
+                        specialization=s_space,
+                        template=t_space,
+                        substitution=current,
+                    )
+                    or {}
+                )
                 if current is None:
                     ok = False
                     break
@@ -1050,7 +1077,8 @@ class TemplateUnificationMatcher:
                     SpecializationMatchResult(
                         instantiated_name=spec,
                         substitution_map=subst,
-                    ))
+                    )
+                )
 
         return results
 
@@ -1076,12 +1104,14 @@ class TemplateUnificationMatcher:
                         TemplateMatchCandidate(
                             template_index=idx,
                             substitution_map=subst,
-                        ))
+                        )
+                    )
 
             if 1 < len(matches):
                 raise ValueError(
                     f"Ambiguous specialization match for {spec!r}: "
-                    f"matched templates {[m.template_index for m in matches]}")
+                    f"matched templates {[m.template_index for m in matches]}"
+                )
 
             if len(matches) == 1:
                 match = matches[0]
@@ -1089,7 +1119,8 @@ class TemplateUnificationMatcher:
                     SpecializationMatchResult(
                         instantiated_name=spec,
                         substitution_map=match.substitution_map,
-                    ))
+                    )
+                )
 
         return groups
 
@@ -1123,14 +1154,17 @@ class TemplateUnificationMatcher:
                         TemplateMatchCandidate(
                             template_index=idx,
                             substitution_map=result[0].substitution_map,
-                        ))
+                        )
+                    )
 
             if 1 < len(matches):
                 details = ", ".join(
                     f"template#{m.template_index} subst={m.substitution_map!r}"
-                    for m in matches)
+                    for m in matches
+                )
                 raise ValueError(
-                    f"Ambiguous specialization match for {spec!r}: {details}")
+                    f"Ambiguous specialization match for {spec!r}: {details}"
+                )
 
             if len(matches) == 1:
                 match = matches[0]
@@ -1138,7 +1172,8 @@ class TemplateUnificationMatcher:
                     SpecializationMatchResult(
                         instantiated_name=spec,
                         substitution_map=match.substitution_map,
-                    ))
+                    )
+                )
 
         return groups
 
@@ -1322,7 +1357,8 @@ class TypedefExpansionMatcher:
                     name_pattern=typedef.Name,
                     base_pattern=typedef.Base,
                     key=typedef.Name.flatQualNameNoTemplateParams(),
-                ))
+                )
+            )
 
     def _log(self, message: str) -> None:
         if self.debug:
@@ -1346,8 +1382,9 @@ class TypedefExpansionMatcher:
             resolved_func = QualType.Function(
                 ReturnType=self._resolve_recursive(value.Func.ReturnType),
                 Args=[self._resolve_recursive(arg) for arg in value.Func.Args],
-                Class=None if value.Func.Class is None else self._resolve_recursive(
-                    value.Func.Class),
+                Class=None
+                if value.Func.Class is None
+                else self._resolve_recursive(value.Func.Class),
                 IsConst=value.Func.IsConst,
             )
 
@@ -1363,7 +1400,7 @@ class TypedefExpansionMatcher:
             if len(current_key) < len(entry.key):
                 continue
 
-            if current_key[:len(entry.key)] != entry.key:
+            if current_key[: len(entry.key)] != entry.key:
                 continue
 
             subst = self.unifier.unify_qualtype(
@@ -1398,7 +1435,10 @@ class TypedefExpansionMatcher:
             if current.RefKind == expanded.RefKind:
                 updated_ref = expanded.RefKind
 
-            elif current.RefKind == codegen_ir.ReferenceKind.LValue or expanded.RefKind == codegen_ir.ReferenceKind.LValue:
+            elif (
+                current.RefKind == codegen_ir.ReferenceKind.LValue
+                or expanded.RefKind == codegen_ir.ReferenceKind.LValue
+            ):
                 updated_ref = codegen_ir.ReferenceKind.LValue
 
             else:
@@ -1410,8 +1450,10 @@ class TypedefExpansionMatcher:
                 RefKind=updated_ref,
             )
 
-            self._log(f"expand typedef {entry.typedef.Name!r} -> {entry.typedef.Base!r} "
-                      f"for {current!r} with subst={subst!r}")
+            self._log(
+                f"expand typedef {entry.typedef.Name!r} -> {entry.typedef.Base!r} "
+                f"for {current!r} with subst={subst!r}"
+            )
 
             return self._resolve_recursive(expanded)
 
@@ -1458,7 +1500,8 @@ def _rewrite_type_typedefs(matcher: TypedefExpansionMatcher, obj: QualType) -> Q
                 ReturnType=_rewrite_type_typedefs(matcher, obj.Func.ReturnType),
                 Args=[_rewrite_type_typedefs(matcher, A) for A in obj.Func.Args],
                 Class=_rewrite_type_typedefs(matcher, obj.Func.Class)
-                if obj.Func.Class else None,
+                if obj.Func.Class
+                else None,
                 IsConst=obj.Func.IsConst,
             )
             return obj.copy_update(Func=new_func)
@@ -1474,15 +1517,17 @@ def _rewrite_type_typedefs(matcher: TypedefExpansionMatcher, obj: QualType) -> Q
 
 
 @beartype
-def _rewrite_ident_typedefs(matcher: TypedefExpansionMatcher,
-                            obj: codegen_ir.GenTuIdent) -> codegen_ir.GenTuIdent:
+def _rewrite_ident_typedefs(
+    matcher: TypedefExpansionMatcher, obj: codegen_ir.GenTuIdent
+) -> codegen_ir.GenTuIdent:
     """Rewrite typed identifier with typedef-resolved types."""
     return replace(obj, Type=_rewrite_type_typedefs(matcher, obj.Type))
 
 
 @beartype
-def _rewrite_field_typedefs(matcher: TypedefExpansionMatcher,
-                            obj: codegen_ir.GenTuField) -> codegen_ir.GenTuField:
+def _rewrite_field_typedefs(
+    matcher: TypedefExpansionMatcher, obj: codegen_ir.GenTuField
+) -> codegen_ir.GenTuField:
     """Convert field to use typedef-resolved types."""
     if obj.Type is None:
         return obj
@@ -1492,8 +1537,8 @@ def _rewrite_field_typedefs(matcher: TypedefExpansionMatcher,
 
 @beartype
 def _rewrite_function_typedefs(
-        func: codegen_ir.GenTuFunction,
-        matcher: TypedefExpansionMatcher) -> codegen_ir.GenTuFunction:
+    func: codegen_ir.GenTuFunction, matcher: TypedefExpansionMatcher
+) -> codegen_ir.GenTuFunction:
     """Rewrite all arguments, return types and parameters for a function with typedef resolution."""
 
     def _rewrite_params(
@@ -1511,10 +1556,13 @@ def _rewrite_function_typedefs(
                             param,
                             TypeExpr=_rewrite_type_typedefs(matcher, param.TypeExpr),
                             Default=_rewrite_type_typedefs(matcher, param.Default)
-                            if param.Default else None,
-                        ) for param in stack.Params
+                            if param.Default
+                            else None,
+                        )
+                        for param in stack.Params
                     ],
-                ) for stack in params.Stacks
+                )
+                for stack in params.Stacks
             ],
         )
 
@@ -1524,14 +1572,16 @@ def _rewrite_function_typedefs(
         Args=[_rewrite_ident_typedefs(matcher, arg) for arg in func.Args],
         Params=_rewrite_params(func.Params),
         ParentClass=_rewrite_type_typedefs(matcher, func.ParentClass)
-        if func.ParentClass else None,
+        if func.ParentClass
+        else None,
         Spaces=[_rewrite_type_typedefs(matcher, s) for s in func.Spaces],
     )
 
 
 @beartype
-def _rewrite_struct_typedefs(obj: codegen_ir.GenTuStruct,
-                             matcher: TypedefExpansionMatcher) -> codegen_ir.GenTuStruct:
+def _rewrite_struct_typedefs(
+    obj: codegen_ir.GenTuStruct, matcher: TypedefExpansionMatcher
+) -> codegen_ir.GenTuStruct:
     """
     Rewrite all nested structure content with typedef-resolved types.
     """

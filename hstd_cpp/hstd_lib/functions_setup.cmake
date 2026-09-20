@@ -48,13 +48,25 @@ function(haxorg_set_target_flags_impl)
 
     if(${ORG_USE_SARIF})
         # Specify output file for the sarif report
-        haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fdiagnostics-format=sarif")
+        haxorg_add_target_property(
+            ${ARG_TARGET}
+            COMPILE_OPTIONS
+            "-fdiagnostics-format=sarif"
+        )
     endif()
 
     if(${ORG_BUILD_WITH_CGRAPH})
-        haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=1)
+        haxorg_add_target_property(
+            ${ARG_TARGET}
+            COMPILE_DEFINITIONS
+            ORG_BUILD_WITH_CGRAPH=1
+        )
     else()
-        haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_CGRAPH=0)
+        haxorg_add_target_property(
+            ${ARG_TARGET}
+            COMPILE_DEFINITIONS
+            ORG_BUILD_WITH_CGRAPH=0
+        )
     endif()
 
     if(${ORG_DISABLE_WARNINGS})
@@ -65,10 +77,26 @@ function(haxorg_set_target_flags_impl)
     haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wdangling")
     haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=dangling")
     haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Xclang")
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fexperimental-lifetime-safety")
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wexperimental-lifetime-safety")
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=experimental-lifetime-safety")
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
+    haxorg_add_target_property(
+        ${ARG_TARGET}
+        COMPILE_OPTIONS
+        "-fexperimental-lifetime-safety"
+    )
+    haxorg_add_target_property(
+        ${ARG_TARGET}
+        COMPILE_OPTIONS
+        "-Wexperimental-lifetime-safety"
+    )
+    haxorg_add_target_property(
+        ${ARG_TARGET}
+        COMPILE_OPTIONS
+        "-Werror=experimental-lifetime-safety"
+    )
+    haxorg_add_target_property(
+        ${ARG_TARGET}
+        COMPILE_OPTIONS
+        "-Werror=implicit-fallthrough"
+    )
     set_target_properties(
         "${ARG_TARGET}"
         PROPERTIES
@@ -105,11 +133,23 @@ function(haxorg_set_target_flags_impl)
     endif()
 
     if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        add_compile_options(
+            "$<$<COMPILE_LANGUAGE:CXX>:--warning-suppression-mappings=${ORG_WARNING_SUPPRESSIONS}>"
+        )
+
         # Avoid getting flooded with compilation errors set(CMAKE_CXX_COMPILER clang++)
 
-        haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fno-omit-frame-pointer")
+        haxorg_add_target_property(
+            ${ARG_TARGET}
+            COMPILE_OPTIONS
+            "-fno-omit-frame-pointer"
+        )
         haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fPIC")
-        haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-ftemplate-backtrace-limit=0")
+        haxorg_add_target_property(
+            ${ARG_TARGET}
+            COMPILE_OPTIONS
+            "-ftemplate-backtrace-limit=0"
+        )
 
         if(${ORG_USE_SANITIZER})
             if(NOT ${ARG_FORCE_NO_ASAN})
@@ -120,7 +160,11 @@ function(haxorg_set_target_flags_impl)
                 )
                 # LLVM ships with sanitizer runtime and I could not figure out how to compile it in
                 # statically nor do I know whether this is really necessary or not
-                haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-shared-libasan")
+                haxorg_add_target_property(
+                    ${ARG_TARGET}
+                    COMPILE_OPTIONS
+                    "-shared-libasan"
+                )
                 haxorg_add_target_property(
                     ${ARG_TARGET}
                     COMPILE_OPTIONS
@@ -158,11 +202,19 @@ function(haxorg_set_target_flags_impl)
         haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
 
         if(${ORG_BUILD_WITH_PERFETTO})
-            haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_PERFETTO)
+            haxorg_add_target_property(
+                ${ARG_TARGET}
+                COMPILE_DEFINITIONS
+                ORG_BUILD_WITH_PERFETTO
+            )
         endif()
 
         if(${ORG_BUILD_WITH_TRACY})
-            haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_BUILD_WITH_TRACY)
+            haxorg_add_target_property(
+                ${ARG_TARGET}
+                COMPILE_DEFINITIONS
+                ORG_BUILD_WITH_TRACY
+            )
         endif()
 
         if(${ORG_USE_XRAY})
@@ -171,8 +223,16 @@ function(haxorg_set_target_flags_impl)
 
         if(${ORG_USE_PGO})
             haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_PGO)
-            haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fprofile-instr-generate")
-            haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-fprofile-instr-generate")
+            haxorg_add_target_property(
+                ${ARG_TARGET}
+                COMPILE_OPTIONS
+                "-fprofile-instr-generate"
+            )
+            haxorg_add_target_property(
+                ${ARG_TARGET}
+                LINK_OPTIONS
+                "-fprofile-instr-generate"
+            )
             haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-fcoverage-mapping")
             haxorg_add_target_property(${ARG_TARGET} LINK_OPTIONS "-fcoverage-mapping")
         endif()
@@ -244,7 +304,10 @@ endfunction()
 function(haxorg_target_setup_v2)
     cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
     haxorg_set_target_output("${ARG_TARGET}")
-    haxorg_set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
+    haxorg_set_target_flags_impl(
+        TARGET "${ARG_TARGET}"
+        FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}"
+    )
 endfunction()
 
 function(haxorg_add_executable TARGET)
@@ -292,7 +355,10 @@ function(haxorg_add_protobuf)
     endif()
 
     if(NOT TARGET "${HAP_TARGET}")
-        message(FATAL_ERROR "haxorg_add_protobuf(): target '${HAP_TARGET}' does not exist")
+        message(
+            FATAL_ERROR
+            "haxorg_add_protobuf(): target '${HAP_TARGET}' does not exist"
+        )
     endif()
 
     if(NOT HAP_UNIQUE_TARGET)
@@ -377,7 +443,11 @@ function(haxorg_add_protobuf)
                 )
             endif()
 
-            install(FILES "${HAP_GENERATED_FILE}" DESTINATION "${HAP_GENERATED_INSTALL_DIR}")
+            install(
+                FILES
+                    "${HAP_GENERATED_FILE}"
+                DESTINATION "${HAP_GENERATED_INSTALL_DIR}"
+            )
         endif()
     endforeach()
 endfunction()

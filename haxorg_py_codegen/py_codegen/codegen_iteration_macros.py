@@ -1,13 +1,14 @@
 from dataclasses import dataclass, field
 
 from beartype import beartype
-from beartype.typing import List, Tuple
-import py_codegen.astbuilder_cpp as cpp
-from py_codegen.codegen_ir import QualType
-import py_codegen.codegen_ir as tu
-from py_codegen.codegen_type_groups import get_concrete_types
+from beartype.typing import List
 from py_haxorg.astbuilder.astbuilder_utils import pascal_case
 from py_scriptutils.algorithm import iterate_object_tree
+
+import py_codegen.astbuilder_cpp as cpp
+import py_codegen.codegen_ir as tu
+from py_codegen.codegen_ir import QualType
+from py_codegen.codegen_type_groups import get_concrete_types
 
 
 @beartype
@@ -35,8 +36,9 @@ class PyhaxorgTypeFieldGroup:
 
 
 @beartype
-def collect_type_field_groups(types: List[tu.GenTuStruct],
-                              type_map: tu.GenTypeMap) -> PyhaxorgTypeFieldGroup:
+def collect_type_field_groups(
+    types: List[tu.GenTuStruct], type_map: tu.GenTypeMap
+) -> PyhaxorgTypeFieldGroup:
 
     def aux(t: tu.GenTuStruct) -> List[tu.GenTuField]:
         result: List[tu.GenTuField] = []
@@ -69,11 +71,13 @@ def collect_type_field_groups(types: List[tu.GenTuStruct],
 
 @beartype
 def collect_pyhaxorg_typename_groups(
-        types: List[tu.GenTuStruct]) -> PyhaxorgTypenameGroups:
+    types: List[tu.GenTuStruct],
+) -> PyhaxorgTypenameGroups:
     res = PyhaxorgTypenameGroups()
 
-    def aux(it: tu.GenTuStruct | tu.GenTuEnum | tu.GenTuTypedef | tu.GenTuFunction
-           ) -> None:
+    def aux(
+        it: tu.GenTuStruct | tu.GenTuEnum | tu.GenTuTypedef | tu.GenTuFunction,
+    ) -> None:
         match it:
             case tu.GenTuStruct() | tu.GenTuEnum():
                 flat = it.Name.flatQualScope() + [it.Name.withoutAllScopeQualifiers()]
@@ -84,7 +88,7 @@ def collect_pyhaxorg_typename_groups(
                 name_start = without_namespaces[0]
                 if 1 < len(without_namespaces):
                     parent = flat[name_start]
-                    nested = flat[without_namespaces[1]:]
+                    nested = flat[without_namespaces[1] :]
                     value = (
                         parent.Name,
                         "::".join(it.Name for it in nested),
@@ -97,10 +101,12 @@ def collect_pyhaxorg_typename_groups(
                         res.nested_enums.append(value)
 
                 if isinstance(it, tu.GenTuStruct):
-                    res.all_records.append((
-                        "::".join(it.Name for it in flat[name_start:]),
-                        "({})".format(", ".join(it.Name for it in flat[name_start:])),
-                    ))
+                    res.all_records.append(
+                        (
+                            "::".join(it.Name for it in flat[name_start:]),
+                            "({})".format(", ".join(it.Name for it in flat[name_start:])),
+                        )
+                    )
 
     iterate_object_tree(types, [], pre_visit=aux)
 
@@ -108,30 +114,47 @@ def collect_pyhaxorg_typename_groups(
 
 
 @beartype
-def gen_iteration_macros(res: PyhaxorgTypenameGroups,
-                         macro_group: str) -> List[tu.GenTuPass]:
+def gen_iteration_macros(
+    res: PyhaxorgTypenameGroups, macro_group: str
+) -> List[tu.GenTuPass]:
     result: List[tu.GenTuPass] = []
 
     result.append(
         tu.GenTuPass(
-            f"#define EACH_{macro_group}_ORG_RECORD_NESTED(__IMPL) \\\n" + (" \\\n".join(
-                ["    __IMPL({}, {}, {})".format(*it) for it in res.nested_records]))))
+            f"#define EACH_{macro_group}_ORG_RECORD_NESTED(__IMPL) \\\n"
+            + (
+                " \\\n".join(
+                    ["    __IMPL({}, {}, {})".format(*it) for it in res.nested_records]
+                )
+            )
+        )
+    )
 
     result.append(
         tu.GenTuPass(
-            f"#define EACH_{macro_group}_ORG_ENUM_NESTED(__IMPL) \\\n" + (" \\\n".join(
-                ["    __IMPL({}, {}, {})".format(*it) for it in res.nested_enums]))))
+            f"#define EACH_{macro_group}_ORG_ENUM_NESTED(__IMPL) \\\n"
+            + (
+                " \\\n".join(
+                    ["    __IMPL({}, {}, {})".format(*it) for it in res.nested_enums]
+                )
+            )
+        )
+    )
 
     result.append(
-        tu.GenTuPass(f"#define EACH_{macro_group}_ORG_RECORD(__IMPL) \\\n" + (
-            " \\\n".join(["    __IMPL({}, {})".format(*it) for it in res.all_records]))))
+        tu.GenTuPass(
+            f"#define EACH_{macro_group}_ORG_RECORD(__IMPL) \\\n"
+            + (" \\\n".join(["    __IMPL({}, {})".format(*it) for it in res.all_records]))
+        )
+    )
 
     return result
 
 
 @beartype
 def gen_pyhaxorg_shared_iteration_macros(
-        types: List[tu.GenTuStruct]) -> List[tu.GenTuPass]:
+    types: List[tu.GenTuStruct],
+) -> List[tu.GenTuPass]:
     return gen_iteration_macros(collect_pyhaxorg_typename_groups(types), "SHARED")
 
 
@@ -160,38 +183,45 @@ def gen_pyhaxorg_field_iteration_macros(
                     def_stack,
                     ast.string(
                         f"#define EACH_{macro_namespace}_ORG_{group.name}_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \\"
-                    ))
+                    ),
+                )
 
             else:
                 ast.b.add_at(
                     def_stack,
                     ast.string(
                         f"#define EACH_{macro_namespace}_ORG_{group.name}_FIELD_WITH_BASES(__IMPL_BASE) \\"
-                    ))
+                    ),
+                )
 
             def impl_field(field: tu.GenTuField) -> None:
                 "nodoc"
                 ast.b.add_at(
                     def_stack,
-                    ast.b.line([
-                        ast.string("    "),
-                        ast.XCall(
-                            "__IMPL_FIELD",
-                            [
-                                # Type of the field
-                                ast.pars(ast.Type(field.Type)) if field.Type else
-                                ast.string("void"),  # type: ignore[arg-type]
-                                # field name without changes
-                                ast.string(field.Name),
-                                # field name for `getField` etc.
-                                ast.string(pascal_case(field.Name)),
-                                # Parent type for field, in case you need to define methods for
-                                # each field outside of the class body.
-                                ast.pars(ast.Type(group.typ)),
-                                ast.string(group.name.replace("Imm", "")),
-                            ]),
-                        ast.string(" \\"),
-                    ]))
+                    ast.b.line(
+                        [
+                            ast.string("    "),
+                            ast.XCall(
+                                "__IMPL_FIELD",
+                                [
+                                    # Type of the field
+                                    ast.pars(ast.Type(field.Type))
+                                    if field.Type
+                                    else ast.string("void"),  # type: ignore[arg-type]
+                                    # field name without changes
+                                    ast.string(field.Name),
+                                    # field name for `getField` etc.
+                                    ast.string(pascal_case(field.Name)),
+                                    # Parent type for field, in case you need to define methods for
+                                    # each field outside of the class body.
+                                    ast.pars(ast.Type(group.typ)),
+                                    ast.string(group.name.replace("Imm", "")),
+                                ],
+                            ),
+                            ast.string(" \\"),
+                        ]
+                    ),
+                )
 
             if with_base_fields:
                 for field in group.parent_fields:
@@ -201,13 +231,19 @@ def gen_pyhaxorg_field_iteration_macros(
                 for base in group.bases:
                     ast.b.add_at(
                         def_stack,
-                        ast.b.line([
-                            ast.string("    "),
-                            ast.XCall("__IMPL_BASE", [
-                                ast.pars(ast.Type(base)),
-                            ]),
-                            ast.string(" \\"),
-                        ]))
+                        ast.b.line(
+                            [
+                                ast.string("    "),
+                                ast.XCall(
+                                    "__IMPL_BASE",
+                                    [
+                                        ast.pars(ast.Type(base)),
+                                    ],
+                                ),
+                                ast.string(" \\"),
+                            ]
+                        ),
+                    )
 
             for field in group.fields:
                 impl_field(field)
@@ -225,19 +261,45 @@ def gen_pyhaxorg_iteration_macros(types: List[tu.GenTuStruct]) -> List[tu.GenTuP
 
     result: List[tu.GenTuPass] = gen_iteration_macros(res, "SEM")
     result.append(
-        tu.GenTuPass("#define EACH_SEM_ORG_KIND(__IMPL) \\\n" + (" \\\n".join(
-            [f"    __IMPL({struct.Name.Name})"
-             for struct in get_concrete_types(types)]))))
+        tu.GenTuPass(
+            "#define EACH_SEM_ORG_KIND(__IMPL) \\\n"
+            + (
+                " \\\n".join(
+                    [
+                        f"    __IMPL({struct.Name.Name})"
+                        for struct in get_concrete_types(types)
+                    ]
+                )
+            )
+        )
+    )
 
     result.append(
-        tu.GenTuPass("#define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
-            f"    __IMPL({struct.Name.Name}, {struct.Bases[0].Name})"
-            for struct in get_concrete_types(types)
-        ]))))
+        tu.GenTuPass(
+            "#define EACH_SEM_ORG_FINAL_TYPE_BASE(__IMPL) \\\n"
+            + (
+                " \\\n".join(
+                    [
+                        f"    __IMPL({struct.Name.Name}, {struct.Bases[0].Name})"
+                        for struct in get_concrete_types(types)
+                    ]
+                )
+            )
+        )
+    )
 
     result.append(
-        tu.GenTuPass("#define EACH_SEM_ORG_TYPE_BASE(__IMPL) \\\n" + (" \\\n".join([
-            f"    __IMPL({struct.Name.Name}, {struct.Bases[0].Name})" for struct in types
-        ]))))
+        tu.GenTuPass(
+            "#define EACH_SEM_ORG_TYPE_BASE(__IMPL) \\\n"
+            + (
+                " \\\n".join(
+                    [
+                        f"    __IMPL({struct.Name.Name}, {struct.Bases[0].Name})"
+                        for struct in types
+                    ]
+                )
+            )
+        )
+    )
 
     return result

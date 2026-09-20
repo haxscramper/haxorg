@@ -1,11 +1,10 @@
 from pathlib import Path
 
-from beartype.typing import List, Optional
 import py_codegen.astbuilder_cpp as cpp
+import pytest
+from beartype.typing import List, Optional
 from py_codegen.codegen_ir import QualTypeKind
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-import pytest
-from setuptools.build_meta import prepare_metadata_for_build_editable
 
 from tests.python.conf_test_common import WithBinaryCoverageTest
 
@@ -21,10 +20,12 @@ def get_type(
 ) -> cpp.QualType:
     "Utility function to get reflection type value"
     import tests.python.refl.refl_test_driver as refl_test_driver
+
     with WithBinaryCoverageTest(
-            test_binary=f"{get_haxorg_repo_root_path()}/build/haxorg/reflection_tool",
-            uniq_name=stable_unique_test_name,
-            coverage_out_dir=stable_test_dir) as profraw_path:
+        test_binary=f"{get_haxorg_repo_root_path()}/build/haxorg/reflection_tool",
+        uniq_name=stable_unique_test_name,
+        coverage_out_dir=stable_test_dir,
+    ) as profraw_path:
         t = refl_test_driver.get_type(
             preamble=preamble,
             typ=typ,
@@ -39,8 +40,9 @@ def get_type(
 
 @pytest.mark.test_release
 @pytest.mark.parametrize("type_name", ["int", "char", "bool", "float"])
-def test_primitive_type(stable_test_dir: Path, stable_unique_test_name: str,
-                        type_name: str):
+def test_primitive_type(
+    stable_test_dir: Path, stable_unique_test_name: str, type_name: str
+):
     t = get_type(
         stable_test_dir=stable_test_dir,
         stable_unique_test_name=stable_unique_test_name,
@@ -122,11 +124,13 @@ def test_namespaced_user_defined(stable_test_dir: Path, stable_unique_test_name:
     t = get_type(
         stable_test_dir=stable_test_dir,
         stable_unique_test_name=stable_unique_test_name,
-        preamble=["""
+        preamble=[
+            """
 namespace ns {
     struct UserDefined {};
 }
-"""],
+"""
+        ],
         typ="ns::UserDefined",
     )
 
@@ -141,13 +145,15 @@ def test_nested_namespaces(stable_test_dir: Path, stable_unique_test_name: str):
     t = get_type(
         stable_test_dir=stable_test_dir,
         stable_unique_test_name=stable_unique_test_name,
-        preamble=["""
+        preamble=[
+            """
 namespace n1 {
 namespace n2 {
     struct DeepType {};
 }
 }
-"""],
+"""
+        ],
         typ="n1::n2::DeepType",
     )
 
@@ -182,11 +188,13 @@ def test_nested_type_qualifier(stable_test_dir: Path, stable_unique_test_name: s
     t = get_type(
         stable_test_dir=stable_test_dir,
         stable_unique_test_name=stable_unique_test_name,
-        preamble=["""
+        preamble=[
+            """
 struct Outer {
     struct Inner {};
 };
-"""],
+"""
+        ],
         typ="Outer::Inner",
     )
 
@@ -223,11 +231,13 @@ def test_global_namespace_qualified(stable_test_dir: Path, stable_unique_test_na
     t = get_type(
         stable_test_dir=stable_test_dir,
         stable_unique_test_name=stable_unique_test_name,
-        preamble=["""
+        preamble=[
+            """
 namespace top {
     struct GlobalRef {};
 }
-"""],
+"""
+        ],
         typ="::top::GlobalRef",
     )
 

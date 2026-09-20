@@ -2,19 +2,19 @@
 
 from datetime import datetime, timedelta
 
-from beartype import beartype
-from beartype.typing import Any, List, Tuple
 import glom
 import matplotlib.figure as matplotlib_figure
 import matplotlib.pyplot as plt
 import pandas as pd
+import py_haxorg.exporters.export_sqlite as sql
+from beartype import beartype
+from beartype.typing import Any, List, Tuple
+from py_scriptutils.files import IsNewInput
+from sqlalchemy import Engine, create_engine, literal, select, union_all
+from sqlalchemy.orm import sessionmaker
+
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.haxorg_cli import *
-import py_haxorg.exporters.export_sqlite as sql
-from py_scriptutils.files import IsNewInput
-from py_scriptutils.script_logging import log
-from sqlalchemy import create_engine, Engine, literal, select, union_all
-from sqlalchemy.orm import sessionmaker
 
 CAT = "example.activity_analysis"
 
@@ -165,15 +165,19 @@ def activity_analysis(ctx: haxorg_cli.CliRunContext) -> None:
     outdir: Path = glom.glom(opts, "generate.activity_analysis.outdir")
     infile: List[Path] = glom.glom(opts, "generate.activity_analysis.infile")
     sql_db = Path(
-        glom.glom(opts,
-                  "generate.activity_analysis.db_path",
-                  default=outdir.joinpath("db.sqlite")))
+        glom.glom(
+            opts,
+            "generate.activity_analysis.db_path",
+            default=outdir.joinpath("db.sqlite"),
+        )
+    )
 
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
-    if opts.generate.activity_analysis.force_db or IsNewInput(input_path=infile,
-                                                              output_path=[sql_db]):
+    if opts.generate.activity_analysis.force_db or IsNewInput(
+        input_path=infile, output_path=[sql_db]
+    ):
         nodes: List[Tuple[org.Org, str]] = []
         for file in infile:
             nodes.append((parseCachedFile(ctx, file), file.name))
