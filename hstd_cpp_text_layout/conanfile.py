@@ -16,7 +16,7 @@ class HstdCppTextLayoutConan(ConanFile):
 
     def requirements(self):
         self.requires(
-            "hstd/0.1.0",
+            "hstd_cpp_lib/0.1.0",
             transitive_headers=True,
             transitive_libs=True,
         )

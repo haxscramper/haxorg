@@ -21,7 +21,7 @@ class HstdConan(ConanFile):
         "tests/*",
         "proto/*",
         "CMakeLists.txt",
-        "*.cmake",
+        "cmake/*",
     )
 
     def requirements(self):
@@ -139,6 +139,13 @@ class HstdConan(ConanFile):
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "hstd_cpp_lib")
         self.cpp_info.set_property("cmake_target_name", "hstd::hstd_cpp_lib")
+
+        cmake_modules = [
+            "lib/cmake/hstd_cpp_lib/functions_aux.cmake",
+            "lib/cmake/hstd_cpp_lib/functions_setup.cmake",
+        ]
+
+        self.cpp_info.set_property("cmake_build_modules", cmake_modules)
 
         self.cpp_info.libs = ["hstd_cpp_lib"]
         self.cpp_info.includedirs = ["include"]

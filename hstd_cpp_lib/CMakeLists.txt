@@ -3,8 +3,8 @@ project(hstd)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-include(functions_setup.cmake)
-include(functions_aux.cmake)
+include(cmake/functions_setup.cmake)
+include(cmake/functions_aux.cmake)
 
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
@@ -227,4 +227,11 @@ install(
     DESTINATION include/
     FILES_MATCHING
     PATTERN "*.hpp"
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/functions_aux.cmake"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/functions_setup.cmake"
+    DESTINATION "lib/cmake/hstd_cpp_lib"
 )
