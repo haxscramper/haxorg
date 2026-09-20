@@ -97,7 +97,7 @@ add_library(hstd::hstd_cpp_lib ALIAS hstd_cpp_lib)
 haxorg_glob_add_sources2(
     TARGET hstd_cpp_lib
     LS_REGEX
-        "${CMAKE_CURRENT_LIST_DIR}/hstd/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
+        "${CMAKE_CURRENT_LIST_DIR}/hstd/src/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
     SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
 )
 

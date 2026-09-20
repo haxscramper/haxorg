@@ -172,9 +172,9 @@ conan_validate_hstd_cpp:
 
 
 [working-directory("/tmp")]
-conan_validate_haxorg_cpp_org_lib:
-  conan remove "haxorg_cpp_org_lib/*" --confirm
-  conan create {{HAXORG_ROOT}}/haxorg_cpp_org_lib \
+conan_validate target:
+  conan remove "{{target}}/*" --confirm
+  conan create {{HAXORG_ROOT}}/{{target}} \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
@@ -184,6 +184,6 @@ conan_validate_haxorg_cpp_org_lib:
 
 conan_clean_validate_hstd_cpp: conan_remove_deps conan_export_deps conan_validate_hstd_cpp
 
-run_to_output target:
-  -just {{target}} > build/target_result.log 2>&1
+run_to_output target *ARGS:
+  -just {{target}} {{ARGS}} > build/target_result.log 2>&1
   ./repo_py_orchestrate/remap_conan_error_paths.py build/target_result.log
