@@ -4,7 +4,7 @@
 
 #    include <boost/outcome/result.hpp>
 #    include <hstd/ext/geometry/hstd_geometry_test.hpp>
-#    include <hstd/stdlib/Vec.hpp>
+#    include <hstd/stdlib/containers/Vec.hpp>
 #    include <src/hstd/ext/geometry/hstd_geometry_test_ir.pb.h>
 
 #    include <cstddef>

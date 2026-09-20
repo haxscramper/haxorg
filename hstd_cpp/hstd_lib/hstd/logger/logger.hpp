@@ -24,19 +24,19 @@
 #    include <boost/log/sinks/basic_sink_frontend.hpp>
 #    include <boost/preprocessor.hpp>
 #    include <hstd/stdlib/Func.hpp>
-#    include <hstd/stdlib/Json.hpp>
-#    include <hstd/stdlib/Opt.hpp>
 #    include <hstd/stdlib/Str.hpp>
+#    include <hstd/stdlib/containers/Opt.hpp>
+#    include <hstd/stdlib/serde/Json.hpp>
 #    include <hstd/system/macros.hpp>
 #    include <hstd/system/reflection.hpp>
 #    include <stack>
 
 #    include <boost/log/core.hpp>
 #    include <boost/log/sinks/sink.hpp>
-#    include <hstd/stdlib/ContainerAPI.hpp>
-#    include <hstd/stdlib/Formatter.hpp>
-#    include <hstd/stdlib/Set.hpp>
 #    include <hstd/stdlib/TraceBase.hpp>
+#    include <hstd/stdlib/containers/ContainerAPI.hpp>
+#    include <hstd/stdlib/containers/Set.hpp>
+#    include <hstd/stdlib/formatting/Formatter.hpp>
 #    include <hstd/stdlib/strutils.hpp>
 
 #    if ORG_BUILD_WITH_QT

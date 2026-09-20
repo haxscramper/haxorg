@@ -7,15 +7,15 @@
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/containers/MapFormatter.hpp>
-#include <hstd/stdlib/containers/PairFormatter.hpp>
-#include <hstd/stdlib/containers/SetFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
 
 #include <haxorg/api/EvalContext.hpp>
 #include <haxorg/exporters/Exporter.cpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/perfetto_aux_impl_template.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 
 using namespace org;
 using namespace hstd;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
 #include <ostream>

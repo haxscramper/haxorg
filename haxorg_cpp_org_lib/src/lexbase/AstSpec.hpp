@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hstd/stdlib/ColText.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/containers/Array.hpp>
 #include <hstd/stdlib/containers/IntSet.hpp>
@@ -10,6 +9,7 @@
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/system/exceptions.hpp>
 #include <hstd/system/reflection.hpp>
 

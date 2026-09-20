@@ -4,7 +4,7 @@
 
 #    include <google/protobuf/struct.pb.h>
 #    include <google/protobuf/wrappers.pb.h>
-#    include <hstd/stdlib/Json.hpp>
+#    include <hstd/stdlib/serde/Json.hpp>
 #    include <stdexcept>
 
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>

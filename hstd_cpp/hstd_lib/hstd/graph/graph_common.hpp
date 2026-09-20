@@ -3,15 +3,15 @@
 #include "hstd/stdlib/TraceBase.hpp"
 #include <boost/bimap.hpp>
 #include <boost/serialization/strong_typedef.hpp>
-#include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/ext/geometry/hstd_visual.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/containers/bimap_wrap.hpp>
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
 #    include "src/hstd/ext/graph/base/graph_base.pb.h"

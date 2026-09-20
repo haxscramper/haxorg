@@ -30,8 +30,8 @@
 #    include <boost/thread/shared_mutex.hpp>
 #    include <cpptrace/cpptrace.hpp>
 #    include <fstream>
-#    include <hstd/stdlib/JsonUse.hpp>
-#    include <hstd/stdlib/Opt.hpp>
+#    include <hstd/stdlib/containers/Opt.hpp>
+#    include <hstd/stdlib/serde/JsonUse.hpp>
 #    include <mutex>
 #    include <stack>
 

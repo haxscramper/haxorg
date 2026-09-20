@@ -3,7 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include <boost/describe.hpp>
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 #include <hstd/system/reflection.hpp>
 

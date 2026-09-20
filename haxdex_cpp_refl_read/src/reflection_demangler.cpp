@@ -32,10 +32,10 @@
 #include <hstd/ext/perfetto_aux.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 #include <hstd/system/aux_utils.hpp>

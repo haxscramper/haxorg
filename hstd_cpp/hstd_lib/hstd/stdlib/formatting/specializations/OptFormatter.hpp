@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 
 template <typename T>
 struct fmt::formatter<hstd::Opt<T>> {

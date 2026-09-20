@@ -9,7 +9,7 @@
 #include <hstd/stdlib/containers/algorithms.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
 #include <hstd/stdlib/serde/Yaml.hpp>

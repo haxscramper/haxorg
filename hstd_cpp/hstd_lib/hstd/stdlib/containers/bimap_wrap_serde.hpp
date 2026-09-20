@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd/ext/bimap_wrap.hpp>
+#include <hstd/stdlib/containers/bimap_wrap.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 
 namespace hstd {

@@ -12,7 +12,7 @@
 
 #    include <hstd/ext/geometry/hstd_geometry.hpp>
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
-#    include <hstd/stdlib/Formatter.hpp>
+#    include <hstd/stdlib/formatting/Formatter.hpp>
 
 #    include <string>
 #    include <unordered_set>

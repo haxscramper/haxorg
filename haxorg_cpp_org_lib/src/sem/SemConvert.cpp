@@ -16,12 +16,12 @@
 
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/containers/MapFormatter.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <lexy/action/parse.hpp>

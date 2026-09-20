@@ -4,7 +4,7 @@
 #include <hstd/stdlib/RangeSegmentation.hpp>
 #include <hstd/stdlib/RangeTree.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 #include <string>
 
 using namespace hstd;

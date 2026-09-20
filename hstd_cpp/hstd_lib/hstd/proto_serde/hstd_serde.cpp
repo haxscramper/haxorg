@@ -6,7 +6,7 @@
 #    include <google/protobuf/struct.pb.h>
 #    include <google/protobuf/util/json_util.h>
 #    include <google/protobuf/wrappers.pb.h>
-#    include <hstd/stdlib/JsonUse.hpp>
+#    include <hstd/stdlib/serde/JsonUse.hpp>
 
 namespace hstd::serde {
 

@@ -3,10 +3,10 @@
 #include <haxorg/lexbase/TraceStructured.hpp>
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/PtrsFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/PtrsFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 
 using namespace hstd;

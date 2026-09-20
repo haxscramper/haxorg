@@ -3,10 +3,10 @@
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
 #include <hstd/stdlib/TraceBaseStructuredLog.hpp>
-#include <hstd/stdlib/containers/SpanFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
 #include <hstd/stdlib/containers/VariantSerde.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SpanFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 #include <hstd/stdlib/strutils.hpp>

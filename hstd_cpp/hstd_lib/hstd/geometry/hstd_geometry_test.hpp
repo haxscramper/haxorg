@@ -4,10 +4,10 @@
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/ext/geometry/hstd_visual.hpp>
 #include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
 #include <hstd/stdlib/containers/Outcome.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <utility>
 
 namespace hstd::ext::geometry {

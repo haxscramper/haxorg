@@ -7,7 +7,7 @@
 #    include <hstd/ext/hstd_serde.hpp>
 #    include <hstd/stdlib/Exception.hpp>
 #    include <hstd/stdlib/Str.hpp>
-#    include <hstd/stdlib/Vec.hpp>
+#    include <hstd/stdlib/containers/Vec.hpp>
 #    include <optional>
 #    include <ranges>
 #    include <string>

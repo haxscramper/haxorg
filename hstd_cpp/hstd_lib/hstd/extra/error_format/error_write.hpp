@@ -15,13 +15,13 @@
 #include <hstd/stdlib/containers/Vec.hpp>
 
 #include <boost/describe.hpp>
-#include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
+#include <hstd/stdlib/containers/bimap_wrap.hpp>
 #include <hstd/stdlib/dod_base.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/system/reflection.hpp>
 
 

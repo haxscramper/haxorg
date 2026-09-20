@@ -1,7 +1,7 @@
 #pragma once
 
 #include <haxorg/lexbase/Errors.hpp>
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 
 
 template <>

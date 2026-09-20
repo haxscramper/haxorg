@@ -3,9 +3,9 @@
 #include <hstd/ext/error_write.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
 #include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 
 using namespace hstd::ext;
 using namespace hstd;

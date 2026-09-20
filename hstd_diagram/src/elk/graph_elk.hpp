@@ -8,12 +8,12 @@
 #    include <hstd/ext/hstd_serde.hpp>
 #    include <hstd/stdlib/Debug.hpp>
 #    include <hstd/stdlib/Exception.hpp>
-#    include <hstd/stdlib/Json.hpp>
-#    include <hstd/stdlib/JsonSerde.hpp>
-#    include <hstd/stdlib/JsonUse.hpp>
-#    include <hstd/stdlib/Opt.hpp>
 #    include <hstd/stdlib/Str.hpp>
-#    include <hstd/stdlib/Vec.hpp>
+#    include <hstd/stdlib/containers/Opt.hpp>
+#    include <hstd/stdlib/containers/Vec.hpp>
+#    include <hstd/stdlib/serde/Json.hpp>
+#    include <hstd/stdlib/serde/JsonSerde.hpp>
+#    include <hstd/stdlib/serde/JsonUse.hpp>
 #    include <hstd/system/reflection.hpp>
 #    include <memory>
 

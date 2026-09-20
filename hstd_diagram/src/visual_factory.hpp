@@ -4,10 +4,10 @@
 #    include <hstd/ext/graph/base/graph_common.hpp>
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
 #    include <hstd/ext/hstd_serde_dispatch.hpp>
-#    include <hstd/stdlib/MapFormatter.hpp>
-#    include <hstd/stdlib/OptFormatter.hpp>
-#    include <hstd/stdlib/VariantFormatter.hpp>
-#    include <hstd/stdlib/VecFormatter.hpp>
+#    include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
+#    include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#    include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#    include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 #    include <hstd/ext/hstd_serde_dispatch.hpp>
 #    include <src/hstd/ext/graph/visual/graph_avoid.pb.h>

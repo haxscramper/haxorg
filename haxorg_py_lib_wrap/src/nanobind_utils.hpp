@@ -1,7 +1,5 @@
 #pragma once
 
-#include <hstd/ext/immer.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/containers/IntSet.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
@@ -9,6 +7,8 @@
 #include <hstd/stdlib/containers/Pair.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/containers/immer.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/system/reflection.hpp>
 #include <immer/box.hpp>
 #include <immer/flex_vector.hpp>

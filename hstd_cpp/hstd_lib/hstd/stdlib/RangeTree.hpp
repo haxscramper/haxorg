@@ -6,10 +6,10 @@
 #include <hstd/stdlib/containers/Slice.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
 
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <sstream>
 
 namespace hstd {

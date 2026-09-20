@@ -2,7 +2,7 @@
 
 #include <hstd/stdlib/Exception.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 
 namespace hstd {

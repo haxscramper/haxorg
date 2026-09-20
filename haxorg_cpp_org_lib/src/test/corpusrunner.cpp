@@ -10,7 +10,6 @@
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/bimap_wrap_serde.hpp>
 #include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/ColTextSerde.hpp>
@@ -18,12 +17,13 @@
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/containers/IntSetSerde.hpp>
 #include <hstd/stdlib/containers/MapSerde.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
 #include <hstd/stdlib/containers/VariantSerde.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/containers/bimap_wrap_serde.hpp>
 #include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 #include <hstd/stdlib/serde/YamlSerde.hpp>
 

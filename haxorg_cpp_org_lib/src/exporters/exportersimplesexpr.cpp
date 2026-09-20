@@ -2,9 +2,9 @@
 #include <hstd/stdlib/strutils.hpp>
 
 #include <haxorg/exporters/Exporter.cpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 template class org::algo::Exporter<ExporterSimpleSExpr, layout::BlockId>;
 

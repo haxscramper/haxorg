@@ -1,8 +1,8 @@
 #pragma once
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
-#include <hstd/ext/bimap_wrap.hpp>
 #include <hstd/stdlib/containers/Ptrs.hpp>
+#include <hstd/stdlib/containers/bimap_wrap.hpp>
 #include <hstd/stdlib/dod_base.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF

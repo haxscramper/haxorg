@@ -12,12 +12,12 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/JsonSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC

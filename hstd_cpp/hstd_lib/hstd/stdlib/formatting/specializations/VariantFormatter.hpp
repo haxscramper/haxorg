@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 
 
 template <hstd::DescribedSubVariantType V>

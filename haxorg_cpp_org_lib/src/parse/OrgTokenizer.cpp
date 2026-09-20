@@ -8,10 +8,10 @@
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/containers/SpanFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SpanFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 
 using namespace hstd;

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(hstd)
 
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 include(functions_setup.cmake)
 include(functions_aux.cmake)
 

@@ -2,7 +2,7 @@
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/ColTextHShow.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
 #include "../common.hpp"

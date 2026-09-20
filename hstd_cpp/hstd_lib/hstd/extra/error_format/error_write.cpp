@@ -5,9 +5,9 @@
 #include <hstd/stdlib/ColTextFormatter.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/containers/Opt.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
 #include <hstd/stdlib/sequtils.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/macros.hpp>

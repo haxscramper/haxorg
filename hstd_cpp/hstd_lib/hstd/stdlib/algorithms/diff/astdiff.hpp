@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <iostream>
 #include <limits>
 #include <queue>

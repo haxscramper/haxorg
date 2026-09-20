@@ -3,9 +3,9 @@
 
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
 #include <hstd/stdlib/containers/algorithms.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <stack>
 
 using namespace hstd::ext::graph;

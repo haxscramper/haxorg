@@ -1,12 +1,12 @@
 #if ORG_BUILD_WITH_ELK
 #    include "graph_elk.hpp"
 
-#    include <hstd/ext/bimap_wrap.hpp>
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #    include <hstd/ext/geometry/hstd_visual_serde.hpp>
 #    include <hstd/ext/logger.hpp>
-#    include <hstd/stdlib/JsonSerde.hpp>
 #    include <hstd/stdlib/Ranges.hpp>
+#    include <hstd/stdlib/containers/bimap_wrap.hpp>
+#    include <hstd/stdlib/serde/JsonSerde.hpp>
 #    include <src/hstd/ext/graph/visual/graph_elk.pb.h>
 #    include <unordered_set>
 

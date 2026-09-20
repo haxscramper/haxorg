@@ -9,9 +9,9 @@
 
 #    include <hstd/ext/graph/visual/graph_graphviz.hpp>
 #    include <hstd/ext/logger.hpp>
-#    include <hstd/stdlib/Formatter.hpp>
-#    include <hstd/stdlib/PairFormatter.hpp>
-#    include <hstd/stdlib/VecFormatter.hpp>
+#    include <hstd/stdlib/formatting/Formatter.hpp>
+#    include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
+#    include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 #    if ORG_BUILD_WITH_QT
 #        include <QMetaMethod>

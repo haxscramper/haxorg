@@ -5,7 +5,7 @@
 #    include <boost/graph/breadth_first_search.hpp>
 #    include <boost/graph/depth_first_search.hpp>
 #    include <hstd/stdlib/Func.hpp>
-#    include <hstd/stdlib/Json.hpp>
+#    include <hstd/stdlib/serde/Json.hpp>
 #    include <hstd/system/aux_templates.hpp>
 #    include <hstd/system/aux_utils.hpp>
 

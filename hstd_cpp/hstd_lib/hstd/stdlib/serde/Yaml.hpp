@@ -5,9 +5,9 @@
 #pragma warning(pop)
 
 #include <boost/mp11.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/containers/Variant.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/system/reflection.hpp>
 
 using yaml = YAML::Node;

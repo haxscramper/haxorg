@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <hstd/ext/immer.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 #include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/containers/immer.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 #include <hstd/stdlib/serde/JsonUse.hpp>
 
 using namespace hstd;

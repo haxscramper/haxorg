@@ -4,7 +4,7 @@
 #    pragma clang diagnostic error "-Wswitch"
 
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
-#    include <hstd/stdlib/Formatter.hpp>
+#    include <hstd/stdlib/formatting/Formatter.hpp>
 
 #    include <hstd/stdlib/strutils.hpp>
 #    include <sstream>

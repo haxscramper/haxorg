@@ -14,11 +14,11 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <haxorg/test/corpusrunner.hpp>
 #include <hstd/logger/logger.hpp>
-#include <hstd/stdlib/containers/MapFormatter.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/serde/Json.hpp>
 
 

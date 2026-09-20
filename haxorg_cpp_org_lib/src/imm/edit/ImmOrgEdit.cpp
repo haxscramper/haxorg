@@ -1,7 +1,7 @@
 #include "ImmOrgEdit.hpp"
 #include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <immer/flex_vector_transient.hpp>
 
 using namespace org;

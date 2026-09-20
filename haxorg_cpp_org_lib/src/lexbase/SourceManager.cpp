@@ -1,5 +1,5 @@
 #include <haxorg/lexbase/SourceManager.hpp>
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 
 std::string org::parse::SourceManager::getPath(SourceFileId const& id) const {
     LOGIC_ASSERTION_CHECK_FMT(

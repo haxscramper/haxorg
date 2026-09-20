@@ -10,7 +10,7 @@
 #include <hstd/stdlib/dod_base.hpp>
 
 #include <haxorg/lexbase/Errors.hpp>
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 
 namespace org::parse {
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <haxorg/sem/SemOrgTypes.hpp>
-#include <hstd/stdlib/Formatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
 
 template <>
 struct fmt::formatter<org::sem::SemId<org::sem::Org>> {

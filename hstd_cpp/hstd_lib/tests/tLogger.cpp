@@ -11,8 +11,8 @@
 #include <hstd/logger/log_graph_tracker.hpp>
 #include <hstd/stdlib/containers/Map.hpp>
 
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/PairFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
 
 #if ORG_BUILD_WITH_QT
 #    include <QString>

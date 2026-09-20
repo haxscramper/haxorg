@@ -2,8 +2,8 @@
 
 #include <haxorg/exporters/Exporter.hpp>
 #include <hstd/ext/textlayouter.hpp>
-#include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/containers/MapFormatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
 namespace org::algo {

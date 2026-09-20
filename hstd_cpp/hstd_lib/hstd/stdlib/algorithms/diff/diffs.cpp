@@ -1,9 +1,9 @@
 #include "diffs.hpp"
 #include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 

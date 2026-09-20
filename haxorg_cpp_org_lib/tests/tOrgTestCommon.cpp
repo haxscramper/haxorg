@@ -1,11 +1,11 @@
 #include "tOrgTestCommon.hpp"
 #include <haxorg/exporters/exporteryaml.hpp>
 #include <haxorg/test/corpusrunner.hpp>
-#include <hstd/stdlib/containers/MapFormatter.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/SliceFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 
 bool enableFullTraceOnCli = false;
 void enable_full_trace_on_cli() { enableFullTraceOnCli = true; }

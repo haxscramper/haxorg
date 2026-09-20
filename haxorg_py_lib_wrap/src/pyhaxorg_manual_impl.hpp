@@ -35,13 +35,13 @@
 #include <haxorg/parse/OrgTypes.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
-#include <hstd/stdlib/containers/MapFormatter.hpp>
-#include <hstd/stdlib/containers/OptFormatter.hpp>
-#include <hstd/stdlib/containers/PairFormatter.hpp>
-#include <hstd/stdlib/containers/PtrsFormatter.hpp>
-#include <hstd/stdlib/containers/SetFormatter.hpp>
-#include <hstd/stdlib/containers/VariantFormatter.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/PairFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/PtrsFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/SetFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 // #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 
 

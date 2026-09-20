@@ -9,10 +9,10 @@
 #    include <hstd/ext/graph/visual/graph_visual.hpp>
 #    include <hstd/stdlib/Filesystem.hpp>
 #    include <hstd/stdlib/Func.hpp>
-#    include <hstd/stdlib/Opt.hpp>
-#    include <hstd/stdlib/Ptrs.hpp>
-#    include <hstd/stdlib/Variant.hpp>
-#    include <hstd/stdlib/Xml.hpp>
+#    include <hstd/stdlib/containers/Opt.hpp>
+#    include <hstd/stdlib/containers/Ptrs.hpp>
+#    include <hstd/stdlib/containers/Variant.hpp>
+#    include <hstd/stdlib/serde/Xml.hpp>
 #    include <hstd/system/all.hpp>
 #    include <hstd/system/generator.hpp>
 #    include <hstd/system/reflection.hpp>

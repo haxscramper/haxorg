@@ -1,10 +1,10 @@
 #include "textlayouter.hpp"
 #include <algorithm>
-#include <hstd/stdlib/Formatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
 #include <hstd/stdlib/charsets.hpp>
 #include <hstd/stdlib/containers/Set.hpp>
-#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/formatting/Formatter.hpp>
+#include <hstd/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <hstd/system/generator.hpp>
 #include <numeric>
