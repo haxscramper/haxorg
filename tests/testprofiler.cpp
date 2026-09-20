@@ -1,13 +1,13 @@
 #include "testprofiler.hpp"
 
 #include <filesystem>
-#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #include <regex>
 #include <xray/xray_interface.h>
 #include <xray/xray_log_interface.h>
 #include <xray/xray_records.h>
 
-#include <haxorg/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 
 namespace fs = std::filesystem;
 
@@ -89,7 +89,7 @@ bool move_latest_xray_log_to_path(std::string const& path) {
 
 
 void TestProfiler::SetUp() {
-#ifdef ORG_BUILD_WITH_PERFETTO
+#if ORG_BUILD_WITH_PERFETTO
     TRACE_EVENT_BEGIN("cli", "Execute test");
 #endif
     __perf_trace("cli", "Setup test");
@@ -232,7 +232,7 @@ void TestProfiler::TearDown() {
 #endif
 
 
-#ifdef ORG_BUILD_WITH_PERFETTO
+#if ORG_BUILD_WITH_PERFETTO
     TRACE_EVENT_END("cli");
 #endif
 }

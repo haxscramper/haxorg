@@ -1,0 +1,169 @@
+from beartype.typing import List
+from py_repository.repo_tasks.command_execution import (
+    get_uv_develop_env_flags,
+    get_uv_develop_sync_flags,
+    run_command,
+)
+from py_repository.repo_tasks.common import get_build_root
+from py_repository.repo_tasks.config import get_tmpdir
+from py_repository.repo_tasks.haxorg_base import symlink_build
+from py_repository.repo_tasks.haxorg_build import build_haxorg
+from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
+from py_repository.repo_tasks.haxorg_coverage import get_cxx_coverage_dir
+from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
+from py_scriptutils.script_logging import log
+
+CAT = __name__
+
+
+@haxorg_task(dependencies=[build_haxorg, symlink_build, generate_python_protobuf_files])
+def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
+    """
+    Execute the whole python test suite or run a single test file in non-interactive
+    LLDB debugger to work on compiled component issues.
+    """
+
+    for file in get_build_root(ctx).rglob("*.gcda"):
+        file.unlink()
+
+    args = arg
+    env = dict()
+
+    if ctx.config.py_test_conf.extra_pytest_args:
+        args.extend(ctx.config.py_test_conf.extra_pytest_args)
+
+    # env = get_py_env(ctx)
+    if ctx.config.instrument.coverage:
+        coverage_dir = get_cxx_coverage_dir(ctx)
+        env["HAX_COVERAGE_OUT_DIR"] = str(coverage_dir)
+
+    if not ctx.config.py_test_conf.real_time_output_print:
+        env["NO_COLOR"] = "1"
+        args.append("--color=no")
+
+    run_command(
+        ctx,
+        "uv",
+        [
+            "run",
+            "--all-groups",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
+            "python",
+            "scripts/py_repository/py_repository/code_analysis/gen_coverage_cxx.py",
+        ],
+        print_output=ctx.config.py_test_conf.real_time_output_print,
+    )
+
+    pytest_cmd = [
+        "pytest",
+        "-vv",
+        "-ra",
+        "-s",
+        "--log-cli-level=DEBUG",
+        "--tb=short",
+        "--disable-warnings",
+    ]
+
+    if not ctx.config.py_test_conf.use_valgrind and not ctx.config.py_test_conf.use_lldb:
+        pytest_cmd += [
+            "--cov=scripts",
+            "--cov-report=html",
+            "--cov-context=test",
+        ]
+
+    if ctx.config.py_test_conf.use_valgrind and ctx.config.py_test_conf.use_lldb:
+        raise RuntimeError("`use_lldb` and `use_valgrind` are mutually exclusive")
+
+    if ctx.config.py_test_conf.use_valgrind:
+        env["DEBUGINFOD_URLS"] = "https://debuginfod.archlinux.org"
+        uv_cmd_args = [
+            "valgrind",
+            "--tool=memcheck",
+            "--leak-check=full",
+            "--show-leak-kinds=definite",
+            f"--suppressions={str(ctx.config.py_test_conf.valgrind_suppression)}",
+            "--log-file=" + str(get_tmpdir().joinpath("valgrind-out.txt")),
+            "python",
+            "-m",
+            *pytest_cmd,
+        ]
+    elif ctx.config.py_test_conf.use_lldb:
+        env["DEBUGINFOD_URLS"] = "https://debuginfod.archlinux.org"
+        uv_cmd_args = [
+            "lldb",
+            "--batch",
+            "-o",
+            "breakpoint set -n __cxa_call_terminate",
+            "-o",
+            "breakpoint set -n std::terminate",
+            "-o",
+            "run",
+            "-o",
+            "thread backtrace all",
+            "--",
+            "python",
+            "-m",
+            *pytest_cmd,
+        ]
+    else:
+        uv_cmd_args = pytest_cmd
+
+    retcode, stdout, stderr = run_command(
+        ctx,
+        "uv",
+        [
+            "run",
+            "--all-groups",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
+            *uv_cmd_args,
+            *args,
+        ],
+        allow_fail=True,
+        env=env,
+        print_output=ctx.config.py_test_conf.real_time_output_print,
+        stderr_debug=get_tmpdir().joinpath("test_stderr.log"),
+        stdout_debug=get_tmpdir().joinpath("test_stdout.log"),
+    )
+
+    if not ctx.config.py_test_conf.real_time_output_print:
+        log(CAT).info("PYTEST SCRIPT EXECUTION")
+        log(CAT).info(f"{stdout}")
+        log(CAT).info(f"{stderr}")
+
+    if retcode != 0:
+        raise RuntimeError("running py tests failed")
+
+
+@haxorg_task(
+    dependencies=[
+        build_haxorg,
+        generate_python_protobuf_files,
+        symlink_build,
+    ]
+)
+def run_py_script(ctx: TaskContext, script: str, arg: List[str] = []) -> None:
+    """
+    Run script with arguments with all environment variables set.
+    Debug task.
+    """
+    run_command(
+        ctx,
+        "uv",
+        [
+            "run",
+            *get_uv_develop_sync_flags(ctx),
+            *get_uv_develop_env_flags(ctx),
+            script,
+            *arg,
+        ],
+    )
+
+
+@haxorg_task(dependencies=[run_py_tests])
+def run_py_tests_ci() -> None:
+    """
+    CI task that builds base lexer codegen before running the build
+    """
+    pass

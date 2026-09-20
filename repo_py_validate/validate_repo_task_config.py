@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+import sys
+from pathlib import Path
+
+import commentjson
+
+
+def check_json_file(filepath: Path) -> list[str]:
+    "Check if all JSON configurations have expected values"
+    errors = []
+
+    with open(filepath) as f:
+        data = commentjson.load(f)
+
+    # Check use_dependencies
+    if "only_source" not in str(filepath):
+        if "use_dependencies" in data and data["use_dependencies"] is not True:
+            errors.append(f"{filepath}: 'use_dependencies' must be true or not set")
+
+    # Check py_test_conf.extra_pytest_args
+    if "py_test_conf" in data and "extra_pytest_args" in data["py_test_conf"]:
+        args = data["py_test_conf"]["extra_pytest_args"]
+        if args:
+            for arg in args:
+                if not arg.startswith("-"):
+                    errors.append(
+                        f"{filepath}: 'py_test_conf.extra_pytest_args' contains non-flag argument: {arg}"
+                    )
+
+    if "build_conf" in data:
+        if "target" in data["build_conf"]:
+            errors.append(
+                f"{filepath}: 'build_conf.target' contains narrow list of build targets, must use default"
+            )
+
+        if "cmake_extra_build_flags" in data["build_conf"]:
+            errors.append(
+                f"{filepath}: 'build_conf.cmake_extra_build_flags' contains non-default build flags, must be empty"
+            )
+
+    return errors
+
+
+def main() -> int:
+    all_errors = []
+
+    for filepath in sys.argv[1:]:
+        all_errors.extend(check_json_file(Path(filepath)))
+
+    for error in all_errors:
+        print(error)
+
+    return 1 if all_errors else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

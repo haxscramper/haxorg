@@ -1,0 +1,590 @@
+import os
+import re
+import shutil
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+
+import docker
+import docker.models.containers
+import plumbum
+from beartype import beartype
+from beartype.typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    TypedDict,
+    Union,
+    Unpack,
+)
+from py_ci.util_scripting import get_j_cap
+from py_repository.repo_tasks.config import HaxorgLogLevel
+from py_repository.repo_tasks.workflow_utils import TaskContext
+from py_scriptutils.algorithm import remove_ansi
+from py_scriptutils.script_logging import log
+
+CAT = __name__
+
+
+@beartype
+def get_cmd_debug_file(kind: str) -> Path:
+    return Path(f"/tmp/debug_{kind}.log")
+
+
+class RunCommandKwargs(TypedDict, total=False):
+    capture: bool
+    allow_fail: bool
+    env: dict[str, str]
+    cwd: Optional[Union[str, Path]]
+    stderr_debug: Optional[Path]
+    stdout_debug: Optional[Path]
+    append_stdout_debug: bool
+    append_stderr_debug: bool
+    run_mode: Literal["nohup", "bg", "fg"]
+    print_output: bool
+
+
+@dataclass
+class CommandResult:
+    retcode: int
+    stdout: str
+    stderr: str
+
+
+@beartype
+def write_debug_file(path: Path, append: bool, text: str) -> None:
+    if append:
+        if not path.exists():
+            path.write_text("")
+
+        with path.open("a") as file:
+            file.write(remove_ansi(text))
+            file.flush()
+
+    else:
+        path.write_text(remove_ansi(text))
+
+
+@beartype
+def _write_debug_outputs(
+    result: CommandResult,
+    stdout_debug: Optional[Path],
+    stderr_debug: Optional[Path],
+    append_stdout_debug: bool,
+    append_stderr_debug: bool,
+) -> None:
+    if stdout_debug and result.stdout:
+        write_debug_file(stdout_debug, append_stdout_debug, result.stdout)
+
+    if stderr_debug and result.stderr:
+        write_debug_file(stderr_debug, append_stderr_debug, result.stderr)
+
+
+@beartype
+def _consume_execution_fail(
+    cmd: str,
+    args: List[str],
+    stdout_debug: Optional[Path],
+    stderr_debug: Optional[Path],
+    stdout: str,
+    stderr: str,
+    allow_fail: bool,
+) -> None:
+    message = "Failed to execute the command {} {}{}{}".format(
+        cmd,
+        " ".join((f'"{s}"' for s in args)),
+        f"\nwrote stdout to {stdout_debug}" if (stdout_debug and stdout) else "",
+        f"\nwrote stderr to {stderr_debug}" if (stderr_debug and stderr) else "",
+    )
+
+    if allow_fail:
+        log(CAT).warning(message)
+
+    else:
+        raise RuntimeError(message) from None
+
+
+@beartype
+def run_command_in_docker(
+    container: docker.models.containers.Container,
+    cmd: str,
+    args: List[str],
+    env: dict[str, str],
+    cwd: Optional[str],
+    print_output: bool,
+    log_level: HaxorgLogLevel,
+) -> CommandResult:
+    full_command = [cmd] + args
+
+    if env:
+        env_prefix = [f"{k}={v}" for k, v in env.items()]
+        full_command = ["env"] + env_prefix + full_command
+
+    exit_code, output = container.exec_run(
+        cmd=full_command,
+        workdir=cwd,
+        stream=False,
+        demux=True,
+    )
+
+    stdout = output[0].decode("utf-8") if output[0] else ""
+    stderr = output[1].decode("utf-8") if output[1] else ""
+
+    if log_level == HaxorgLogLevel.VERBOSE or print_output:
+        if stdout:
+            print(stdout, end="")
+        if stderr:
+            print(stderr, end="")
+
+    return CommandResult(retcode=exit_code, stdout=stdout, stderr=stderr)
+
+
+@beartype
+def run_command_on_host(
+    cmd: str,
+    args: List[str],
+    env: dict[str, str],
+    cwd: Optional[str],
+    run_mode: Literal["nohup", "bg", "fg"],
+    print_output: bool,
+    log_level: HaxorgLogLevel,
+    stdout_debug: Optional[Path],
+    stderr_debug: Optional[Path],
+) -> CommandResult:
+    try:
+        run = plumbum.local[cmd]
+
+    except plumbum.CommandNotFound as e:
+        log(CAT).error(e)
+        for path in e.path:
+            log(CAT).info(path)
+            dir = Path(path)
+            if "haxorg" in str(dir):
+                if not dir.exists():
+                    log(CAT).error("Dir does not exist")
+
+                for file in dir.glob("*"):
+                    log(CAT).debug(f"  - {file}")
+
+            else:
+                log(CAT).debug(f"- is a system dir")
+
+        raise e
+
+    if env:
+        run = run.with_env(**env)
+
+    if cwd is not None:
+        run = run.with_cwd(cwd)
+
+    if run_mode == "nohup" or run_mode == "bg":
+        stderr_stream = open(stderr_debug, "w") if stderr_debug else None
+        stdout_stream = open(stdout_debug, "w") if stdout_debug else None
+
+        try:
+            subprocess.Popen(
+                [cmd, *args],
+                cwd=cwd,
+                start_new_session=run_mode == "nohup",
+                stdout=stdout_stream if stdout_stream else subprocess.DEVNULL,
+                stderr=stderr_stream if stderr_stream else subprocess.DEVNULL,
+            )
+
+        finally:
+            if stdout_stream:
+                stdout_stream.close()
+
+            if stderr_stream:
+                stderr_stream.close()
+
+        return CommandResult(retcode=0, stdout="", stderr="")
+
+    else:
+        if not print_output:
+            retcode, stdout, stderr = run.run(list(args), retcode=None)
+
+        else:
+            retcode, stdout, stderr = run[*args] & plumbum.TEE(retcode=None)
+
+        return CommandResult(retcode=retcode, stdout=stdout, stderr=stderr)
+
+
+@beartype
+def run_command(
+    ctx: TaskContext,
+    cmd: Union[str, Path],
+    args: Sequence[Union[str, Path, Callable]],
+    capture: bool = False,
+    allow_fail: bool = False,
+    env: dict[str, str] = {},
+    cwd: Optional[Union[str, Path]] = None,
+    stderr_debug: Optional[Path] = None,
+    stdout_debug: Optional[Path] = None,
+    append_stdout_debug: bool = False,
+    append_stderr_debug: bool = False,
+    run_mode: Literal["nohup", "bg", "fg"] = "fg",
+    print_output: bool = False,
+) -> tuple[int, str, str]:
+    """
+    Return tuple: (code, stdout, stderr)
+    """
+    debug_override = ctx.get_task_debug_streams(
+        str(str(cmd).split("/")[-1] if "/" in str(cmd) else cmd),
+        args,
+    )
+
+    from py_repository.repo_tasks.common import check_path_exists
+
+    stderr_debug = stderr_debug or debug_override[0]
+    stdout_debug = stdout_debug or debug_override[1]
+    if isinstance(cmd, Path):
+        assert check_path_exists(ctx, cmd), f"{cmd} does not exist"
+        cmd = str(cmd.resolve())
+
+    def conv_arg(arg: Any) -> str:
+        if isinstance(arg, Callable):  # type: ignore
+            return arg.name.replace("_", "-")
+
+        elif isinstance(arg, Path):
+            return str(arg)
+
+        else:
+            return arg
+
+    str_args: List[str] = [conv_arg(it) for it in args]
+
+    args_repr = " ".join((f'"[cyan]{s}[/cyan]"' for s in str_args))
+
+    def append_to_log(path: Path) -> None:
+        with path.open("a") as file:
+            file.write(f"""
+{"*" * 120}
+cwd : {cwd}
+args: {args}
+cmd:  {cmd}
+{"*" * 120}
+
+
+""")
+            file.flush()
+
+    if append_stderr_debug:
+        append_to_log(stderr_debug)
+
+    if append_stdout_debug:
+        append_to_log(stdout_debug)
+
+    log(CAT).debug(
+        f"Running [red]{cmd}[/red] {args_repr}"
+        + (f" in [green]{cwd}[/green]" if cwd else "")
+        + (f" with [purple]{env}[/purple]" if env else "")
+    )
+
+    if ctx.config.dryrun:
+        log(CAT).warning("Dry run, early exit")
+        return (0, "", "")
+
+    str_cwd = str(cwd) if cwd else None
+
+    result = run_command_on_host(
+        cmd=str(cmd),
+        args=str_args,
+        env=env,
+        cwd=str_cwd,
+        run_mode=run_mode,
+        print_output=print_output,
+        log_level=ctx.config.log_level,
+        stdout_debug=stdout_debug,
+        stderr_debug=stderr_debug,
+    )
+
+    _write_debug_outputs(
+        result=result,
+        stdout_debug=stdout_debug,
+        stderr_debug=stderr_debug,
+        append_stdout_debug=append_stdout_debug,
+        append_stderr_debug=append_stderr_debug,
+    )
+
+    if result.retcode != 0:
+        _consume_execution_fail(
+            cmd=str(cmd),
+            args=str_args,
+            stdout_debug=stdout_debug,
+            stderr_debug=stderr_debug,
+            stdout=result.stdout,
+            stderr=result.stderr,
+            allow_fail=allow_fail,
+        )
+
+    elif ctx.config.log_level == HaxorgLogLevel.VERBOSE:
+        if stdout_debug and result.stdout:
+            log(CAT).debug(f"Wrote stdout to {stdout_debug}")
+
+        if stderr_debug and result.stderr:
+            log(CAT).debug(f"Wrote stderr to {stderr_debug}")
+
+    return (result.retcode, result.stdout, result.stderr)
+
+
+@beartype
+def run_cmake(
+    ctx: TaskContext,
+    args: List[str | Path],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    return run_command(ctx, "cmake", args, **kwargs)
+
+
+@beartype
+def run_command_with_json_args(
+    ctx: TaskContext,
+    cmd: str | Path,
+    args: Dict[str, Any],
+    json_file_path: Optional[Path] = None,
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    import json
+
+    from py_repository.repo_tasks.common import ctx_write_text
+
+    if json_file_path:
+        ctx_write_text(ctx, json_file_path, json.dumps(args, indent=2))
+        return run_command(ctx, cmd, [str(json_file_path)], **kwargs)
+
+    else:
+        return run_command(ctx, cmd, [json.dumps(args)], **kwargs)
+
+
+@beartype
+def get_cmake_generator(ctx: TaskContext, build_dir: Path) -> Optional[str]:
+    """
+    Get generator name from a cache file for an already configured cmake project.
+    If there is no cache, will return None.
+    """
+    from py_repository.repo_tasks.common import check_path_exists, ctx_read_text
+
+    cache = build_dir.joinpath("CMakeCache.txt")
+    log(CAT).debug(f"Get cmake generator for file {cache} in build dir {build_dir}")
+    if check_path_exists(ctx, cache):
+        old_generator_line = [
+            line
+            for line in ctx_read_text(ctx, cache).splitlines()
+            if "CMAKE_GENERATOR:INTERNAL=" in line
+        ][0]
+
+        log(CAT).debug(f"Old generator line is {old_generator_line.strip()}")
+        match = re.match("^CMAKE_GENERATOR:INTERNAL=(.*?)$", old_generator_line)
+        assert match
+        generator = match.group(1)
+        log(CAT).info(f"Old generator found: '{generator}'")
+        return generator
+
+    else:
+        log(CAT).warning("Cmake cache file does not exist, no generator found")
+        return None
+
+
+@beartype
+def run_cmake_configure(
+    ctx: TaskContext,
+    build_dir: Path,
+    script_root: Path,
+    generator: str,
+    args: List[str],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    """
+    Configure cmake for the future build.
+
+    Note: if the generator has changed between the configurations, the
+    function will also remove the build directory to allow for the new
+    configuration to take place.
+    """
+    from py_repository.repo_tasks.common import ctx_remove_path
+
+    old_generator = get_cmake_generator(ctx, build_dir)
+    if old_generator != generator and old_generator is not None:
+        log(CAT).info(
+            f"cmake generator is different. Old:'{old_generator}', new:'{generator}'. "
+            f"Removing build directory"
+        )
+
+        # Unfortunately cmake is incapable of changing or overwriting the build generator
+        # cleanly, and there is no easy way to determine if the project has anything like
+        # fetch content, that creates its own cmake cache files. So the only way to really
+        # ensure the configuration can be switched, is to remove the whole build directory.
+        ctx_remove_path(ctx, build_dir)
+
+    return run_command(
+        ctx,
+        "cmake",
+        [
+            "-B",
+            str(build_dir),
+            "-S",
+            str(script_root),
+            "-G",
+            generator,
+            *args,
+        ],
+        **kwargs,
+    )
+
+
+@beartype
+def run_cmake_build(
+    ctx: TaskContext,
+    build_dir: Path,
+    targets: List[str],
+    args: List[str | Path] = [],
+    build_tool_args: List[str | Path] = [],
+    **kwargs: Unpack[RunCommandKwargs],
+) -> tuple[int, str, str]:
+    """
+    Run cmake build, optionally append debugging/logging flags
+    to the generator depending on the target and log level.
+    """
+
+    build_args: List[str | Path] = build_tool_args[:]
+    if ctx.config.build_conf.cmake_generator == "Unix Makefiles":
+        if ctx.config.log_level == HaxorgLogLevel.VERBOSE:
+            build_args.append("--debug=verbose")
+
+    elif ctx.config.build_conf.cmake_generator == "Ninja":
+        if ctx.config.in_ci:
+            build_args.extend(["-d", "explain"])
+
+        if ctx.config.force_full_build:
+            build_args.extend(["-k0"])
+
+    if 0 < len(build_args):
+        build_args.insert(0, "--")
+
+    return run_command(  # type: ignore
+        ctx,
+        "cmake",
+        [
+            "--build",
+            build_dir,
+            "--target",
+            *targets,
+            *args,
+            *get_j_cap(),
+            *build_args,
+        ],
+        env={"NINJA_FORCE_COLOR": "1", **kwargs.get("env", {})},
+        **kwargs,
+    )
+
+
+@beartype
+def get_python_binary(ctx: TaskContext) -> Path:
+    _, python_stdout, _ = run_command(ctx, "uv", ["run", "which", "python"], capture=True)
+    python_stdout = Path(python_stdout.strip())
+    from py_repository.repo_tasks.common import check_is_file
+
+    assert check_is_file(ctx, python_stdout), f"File {python_stdout} does not exist"
+    return python_stdout
+
+
+@beartype
+def get_python_develop_env_File(ctx: TaskContext) -> Path:
+    """
+    Create a temporary file to overwrite the PYTHONPATH and LD_LIBRARY_PATH
+    for the `uv run`. This is necessary when the py-haxorg package is built
+    with the `HAXORG_PY_SOURCE_DISTRIBUTION=1` enabled -- it is a purely
+    source distribution, so the `pyhaxorg.so` is not present and should be
+    taken from the main build directory.
+    """
+    import sysconfig
+
+    sysconfig.get_config_var("EXT_SUFFIX").lstrip(".")
+
+    from py_repository.repo_tasks.common import (
+        ctx_write_text,
+        ensure_existing_dir,
+        get_build_root,
+    )
+
+    build_dir = get_build_root(ctx, "haxorg").absolute().resolve()
+    env_file = build_dir.joinpath("dev_env")
+    ensure_existing_dir(ctx, build_dir)
+    ctx_write_text(
+        ctx,
+        env_file,
+        f"""
+export PYTHONPATH={build_dir}
+export LD_LIBRARY_PATH={build_dir}
+    """,
+    )
+    log(CAT).info(f"Adding build directory to python path {build_dir}")
+
+    return env_file
+
+
+@beartype
+def get_uv_develop_env_flags(ctx: TaskContext) -> List[str]:
+    "Get flag for setting environment variables for UV"
+    return [f"--env-file={get_python_develop_env_File(ctx)}"]
+
+
+@beartype
+def get_uv_develop_sync_flags(ctx: TaskContext) -> List[str]:
+    """
+    Get flags for the uv sync commands for the development run.
+    The flags enable source distribution for the py-haxorg package
+    so it will not build it, and force re-install of some of the
+    locally developed packages.
+    """
+    result = []
+    if ctx.config.log_level == HaxorgLogLevel.VERBOSE:
+        result.append("--verbose")
+
+    result.extend(["-C", "HAXORG_PY_SOURCE_DISTRIBUTION=1"])
+
+    if ctx.config.debug:
+        result.extend(["-C", "cmake.build-type=RelWithDebInfo"])
+        result.extend(["-C", "cmake.define.NB_DEBUG=ON"])
+
+    else:
+        result.extend(["-C", "cmake.build-type=Release"])
+
+    for package in ["py_haxorg"]:
+        result.extend(["--reinstall-package", package])
+
+    return result
+
+
+def clone_repo_with_uncommitted_changes(
+    ctx: TaskContext,
+    src_repo: Path,
+    dst_repo: Path,
+) -> None:
+    run_command(ctx, "git", ["clone", src_repo, dst_repo])
+
+    code, stdout, stderr = run_command(
+        ctx,
+        "git",
+        [
+            "-C",
+            src_repo,
+            "ls-files",
+            "--modified",
+            "--others",
+            "--exclude-standard",
+        ],
+    )
+
+    if stdout.strip():
+        file_list = stdout.strip().split("\n")
+        for file in file_list:
+            src_file = Path(f"{src_repo}/{file}")
+            dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")
+            log(CAT).info(f"Copying uncomitted changes {src_file} -> {dst_file}")
+            dst_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(src=src_file, dst=dst_file)

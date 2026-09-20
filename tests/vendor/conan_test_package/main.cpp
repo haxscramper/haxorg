@@ -1,5 +1,5 @@
-#include <haxorg/api/ParseContext.hpp>
-#include <haxorg/api/SemBaseApi.hpp>
+#include <haxorg_cpp_org_lib/api/ParseContext.hpp>
+#include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 
 int main() {
     org::parse::ParseContext ctx;

@@ -1,0 +1,109 @@
+from pathlib import Path
+from pprint import pprint
+
+import pytest
+from more_itertools import first_true
+
+
+@pytest.mark.test_release
+def test_enum_field_extract(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    enum = refl_test_driver.get_enum(
+        "enum CEnum { Member1, Member2 };",
+        stable_test_dir=stable_test_dir,
+    )
+    assert enum.Name.Name == "CEnum"
+    assert len(enum.Fields) == 2
+    assert enum.Fields[0].Name == "Member1"
+    assert enum.Fields[1].Name == "Member2"
+
+
+@pytest.mark.test_release
+def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    enum = refl_test_driver.get_enum(
+        "namespace Space { enum Enum { member1 }; }",
+        stable_test_dir=stable_test_dir,
+    )
+    assert enum.Name.Name == "Enum"
+    assert len(enum.Name.Spaces) == 1
+    assert enum.Name.Spaces[0].Name == "Space"
+
+
+@pytest.mark.test_release
+def test_nim_enum_conversion(stable_test_dir: Path) -> None:
+    import py_codegen.wrapper_gen_nim as gen_nim
+    import tests.python.refl.refl_test_driver as refl_test_driver
+
+    con = refl_test_driver.get_nim_code(
+        refl_test_driver.get_enum(
+            "enum En { Field1, Field2 };",
+            stable_test_dir=stable_test_dir,
+        )
+    )
+
+    with open("/tmp/a.py", "w") as file:
+        pprint(con, stream=file)
+
+    raw_wrap = first_true(con.types, default=None, pred=lambda it: it.Name == "c_En")
+    assert raw_wrap
+    assert len(raw_wrap.Fields) == 2
+    assert raw_wrap.Fields[0].Name == "c_Field1"
+    assert raw_wrap.Fields[1].Name == "c_Field2"
+
+    nim_wrap = first_true(con.types, default=None, pred=lambda it: it.Name == "En")
+    assert nim_wrap
+    assert len(nim_wrap.Fields) == 2
+    assert nim_wrap.Fields[0].Name == "Field1"
+    assert nim_wrap.Fields[1].Name == "Field2"
+
+    # Convert set of nim enums to C-style set with bitor components
+    nim_set_to_cint = first_true(
+        con.procs,
+        default=None,
+        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "set",
+    )
+
+    assert nim_set_to_cint
+    assert len(nim_set_to_cint.Arguments) == 1
+    assert nim_set_to_cint.ReturnType.Name == "cint"
+    assert nim_set_to_cint.Arguments[0].Type.Parameters[0].Name == "En"
+    assert nim_set_to_cint.Kind == gen_nim.nim.FunctionKind.CONVERTER
+
+    # Convert C enum to cint value
+    c_en_to_cint = first_true(
+        con.procs,
+        default=None,
+        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "c_En",
+    )
+
+    assert c_en_to_cint
+    assert len(c_en_to_cint.Arguments) == 1
+    assert c_en_to_cint.ReturnType.Name == "cint"
+    assert nim_set_to_cint.Kind == gen_nim.nim.FunctionKind.CONVERTER
+
+    # Convert nim enum to cint value
+    en_to_cint = first_true(
+        con.procs,
+        default=None,
+        pred=lambda it: it.Name == "toCInt" and it.Arguments[0].Type.Name == "En",
+    )
+
+    assert en_to_cint
+    assert len(en_to_cint.Arguments) == 1
+    assert en_to_cint.ReturnType.Name == "cint"
+    assert nim_set_to_cint.Kind == gen_nim.nim.FunctionKind.CONVERTER
+
+    nim_to_c = first_true(con.procs, default=None, pred=lambda it: it.Name == "to_c_En")
+    assert nim_to_c
+    assert len(nim_to_c.Arguments) == 1
+    assert nim_to_c.Arguments[0].Type.Name == "En"
+    assert nim_to_c.ReturnType.Name == "c_En"
+
+    c_to_nim = first_true(con.procs, default=None, pred=lambda it: it.Name == "to_En")
+    assert c_to_nim
+    assert len(c_to_nim.Arguments) == 1
+    assert c_to_nim.Arguments[0].Type.Name == "c_En"
+    assert c_to_nim.ReturnType.Name == "En"

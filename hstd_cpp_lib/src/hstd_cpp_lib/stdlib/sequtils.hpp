@@ -1,0 +1,81 @@
+#pragma once
+
+#include <algorithm>
+#include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
+#include <hstd_cpp_lib/system/basic_typedefs.hpp>
+
+namespace hstd {
+
+template <typename T, typename Ref>
+struct EnumerateState {
+
+    class iterator {
+      private:
+        T*  iter;
+        int index = 0;
+
+      public:
+        typedef std::forward_iterator_tag iterator_category;
+
+        typedef Pair<int, Ref>  value_type;
+        typedef Pair<int, Ref>* pointer;
+        typedef Pair<int, Ref>& reference;
+        typedef std::ptrdiff_t  difference_type;
+
+        iterator(T* it) : iter(it) {}
+
+        Pair<int, Ref> operator*() { return {index, *(*iter)}; }
+
+        iterator& operator++() {
+            ++index;
+            ++(*iter);
+            return *this;
+        }
+
+        bool operator!=(iterator const& other) { return (*iter) != (*other.iter); }
+    };
+
+    iterator begin() { return iterator(&beginIterator); }
+    iterator end() { return iterator(&endIterator); }
+
+    EnumerateState(T begin, T end) : beginIterator(begin), endIterator(end) {}
+
+  private:
+    T beginIterator;
+    T endIterator;
+};
+
+template <typename T>
+EnumerateState<typename T::iterator, typename T::iterator::value_type> enumerate(
+    Ref<T> value) {
+    return EnumerateState<typename T::iterator, typename T::iterator::value_type>(
+        value.begin(), value.end());
+}
+
+
+template <typename T>
+EnumerateState<typename T::const_iterator, typename T::const_iterator::value_type> enumerate(
+    T const& value) {
+    return EnumerateState<
+        typename T::const_iterator,
+        typename T::const_iterator::value_type>(value.cbegin(), value.cend());
+}
+
+
+template <typename T, typename Container>
+int index_of(Container const& container, T const& item) {
+    auto pos = std::find(container.begin(), container.end(), item);
+    if (pos != container.end()) {
+        return std::distance(container.begin(), pos);
+    } else {
+        return -1;
+    }
+}
+
+
+template <typename T, typename Pred>
+bool all_of(T const& seq, Pred const& pr) {
+    return std::all_of(seq.begin(), seq.end(), pr);
+}
+
+} // namespace hstd

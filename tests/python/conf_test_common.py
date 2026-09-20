@@ -1,15 +1,15 @@
 from contextlib import contextmanager
 from pathlib import Path
 
+import plumbum
+import pytest
 from beartype import beartype
 from beartype.typing import List, Optional
-import plumbum
 from py_repository.code_analysis.gen_coverage_cxx import (
     ProfdataCookie,
     ProfdataFullProfile,
 )
 from py_scriptutils.script_logging import log
-import pytest
 
 CAT = "conftest"
 
@@ -45,7 +45,7 @@ def WithBinaryCoverageTest(
     parameter_desc: Optional[dict] = None,
     coverage_out_dir: Optional[Path] = None,
 ):
-    "Execute code block "
+    "Execute code block"
     if coverage_out_dir:
         profraw = get_profraw_path(coverage_out_dir, test_name=uniq_name)
         cookie = ProfdataCookie(

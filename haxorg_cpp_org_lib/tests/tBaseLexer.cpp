@@ -1,0 +1,289 @@
+#include "tOrgTestCommon.hpp"
+#include <absl/log/log.h>
+#include <google/protobuf/util/json_util.h>
+#include <gtest/gtest.h>
+#include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
+#include <haxorg_cpp_org_lib/base_lexer/base_token.hpp>
+#include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrg.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/parse/OrgParser.hpp>
+#include <haxorg_cpp_org_lib/parse/OrgTokenizer.hpp>
+#include <haxorg_cpp_org_lib/sem/SemConvert.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
+#include <haxorg_cpp_org_lib/test/corpusrunner.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+
+
+using namespace hstd;
+using namespace org::test;
+using namespace org;
+
+TEST(ManualFileRun, TestCoverallOrg) {
+    {
+        fs::path file{__CURRENT_FILE_DIR__ / "corpus" / "org" / "py_validated_all.org"};
+        std::string content = readFile(file);
+        auto        spec    = ParseSpec::FromSource(std::move(content), file.native());
+        spec.debug.traceAll = true;
+        spec.debug.doFormatReparse = false;
+        gtest_run_spec(
+            TestParams{
+                .spec = spec,
+                .file = "coverall",
+            },
+            getDebugDir());
+
+        auto ctx   = org::parse::ParseContext ::shared();
+        auto start = imm::ImmAstContext::init_start_context();
+        auto n     = start->init(ctx->parseString(content, file));
+
+        writeFile(
+            getDebugFile("imm_repr_subnodes_only.txt"),
+            n.getRootAdapter().treeRepr(imm::ImmAdapter::TreeReprConf{}).toString(false));
+
+
+        writeFile(
+            getDebugFile("imm_repr_clean.txt"),
+            n.getRootAdapter()
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields = true,
+                    })
+                .toString(false));
+
+        writeFile(
+            getDebugFile("imm_repr_refl.txt"),
+            n.getRootAdapter()
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields  = true,
+                        .withReflFields = true,
+                    })
+                .toString(false));
+
+        {
+            imm::ImmAdapter::TreeReprConf conf{};
+#define __visit_fields(                                                                  \
+    __field_type,                                                                        \
+    __field_lowercase,                                                                   \
+    __field_uppercase,                                                                   \
+    __parent_qual_type,                                                                  \
+    __parent_name)                                                                       \
+    conf.with_field(&BOOST_PP_REMOVE_PARENS __parent_qual_type::__field_lowercase);
+
+#define __visit_kind(__Kind)                                                             \
+    EACH_SEM_ORG_##__Kind##_FIELD_WITH_BASE_FIELDS(__visit_fields)
+
+            EACH_SEM_ORG_KIND(__visit_kind);
+
+#undef __visit_kind
+#undef __visit_fields
+
+            auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([&]() {
+                return ::hstd::log::init_file_sink(
+                    getDebugFile("all_fields.log").native());
+            });
+
+            writeFile(
+                getDebugFile("imm_repr_with_all_fields.txt"),
+                n.getRootAdapter().treeRepr(conf).toString(false));
+        }
+    }
+}
+
+TEST(ManualFileRun, TestDoc1) {
+    fs::path file{"/home/haxscramper/tmp/doc1.org"};
+    if (fs::exists(file)) {
+        auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([]() {
+            return ::hstd::log::init_file_sink(
+                getDebugFile("execution_trace.log").native());
+        });
+
+        HSLOG_INFO("Send initial message");
+
+        std::string content        = readFile(file);
+        auto        spec           = ParseSpec::FromSource(std::move(content), file);
+        spec.debug.traceAll        = true;
+        spec.debug.doFormatReparse = false;
+        gtest_run_spec(
+            TestParams{
+                .spec = spec,
+                .file = "doc1",
+            },
+            getDebugDir());
+
+        auto start = imm::ImmAstContext::init_start_context();
+        auto ctx   = org::parse::ParseContext ::shared();
+        auto n     = start->init(ctx->parseString(content, file));
+
+        writeFile(
+            getDebugFile("TestDoc1_clean.txt"),
+            n.getRootAdapter()
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields = true,
+                    })
+                .toString(false));
+
+        writeFile(
+            getDebugFile("TestDoc1_refl.txt"),
+            n.getRootAdapter()
+                .treeRepr(
+                    imm::ImmAdapter::TreeReprConf{
+                        .withAuxFields  = true,
+                        .withReflFields = true,
+                    })
+                .toString(false));
+    }
+}
+
+TEST(ManualFileRun, TestDoc2) {
+    fs::path file{"/home/haxscramper/tmp/doc2.org"};
+    if (fs::exists(file)) {
+        std::string content        = readFile(file);
+        auto        spec           = ParseSpec::FromSource(std::move(content), file);
+        spec.debug.doFormatReparse = false;
+        // spec.debug.printSemToFile         = true;
+        spec.debug.debugOutDir = "/tmp/doc2_run";
+        gtest_run_spec(
+            TestParams{
+                .spec = spec,
+                .file = "doc2",
+            },
+            getDebugDir());
+
+        auto start = imm::ImmAstContext::init_start_context();
+        auto ctx   = org::parse::ParseContext ::shared();
+        auto n     = start->init(ctx->parseString(content, file));
+    }
+}
+
+TEST(ManualFileRun, TestMain1) {
+    fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
+    if (fs::exists(file)) {
+        auto ctx  = org::parse::ParseContext ::shared();
+        auto opts = org::parse::OrgDirectoryParseParameters::shared();
+
+        opts->getParsedNode = [&](std::string const& path) {
+            return ctx->parseFile(path);
+        };
+
+        auto parsed = ctx->parseFileWithIncludes(file, opts);
+    }
+}
+
+
+void test_dir_parsing(fs::path const& dir, bool trace) {
+    LOGIC_ASSERTION_CHECK_FMT(fs::exists(dir), "{}", fs::absolute(dir));
+
+    auto ctx  = org::parse::ParseContext ::shared();
+    auto opts = org::parse::OrgDirectoryParseParameters::shared();
+
+    opts->getParsedNode = [&](std::string const& path) {
+        fs::path relative = fs::relative(path, dir);
+        auto     params   = org::parse::OrgParseParameters::shared();
+        if (trace) {
+            params->parseTracePath = getDebugFile(
+                (relative / "parse_trace.log").native());
+            params->baseTokenTracePath = getDebugFile(
+                (relative / "base_token_trace.log").native());
+            params->tokenTracePath = getDebugFile(
+                (relative / "token_trace_path.log").native());
+            params->semTracePath = getDebugFile(
+                (relative / "sem_trace_path.log").native());
+        }
+
+        auto node = ctx->parseFile(path);
+
+        if (trace) {
+            writeTreeRepr(node, getDebugFile((relative / "node.yaml").native()));
+            writeTreeRepr(node, getDebugFile((relative / "node.txt").native()));
+        }
+
+        return node;
+    };
+
+    opts->shouldProcessPath = [](std::string const& path) -> bool {
+        if (path.contains(".git") || path.contains(".trunk")) {
+            return false;
+        } else {
+            return true;
+        }
+    };
+
+    LOG(INFO) << "Parse directory content";
+    auto parse = ctx->parseDirectoryOpts(dir, opts);
+
+    if (trace) { writeTreeRepr(parse.value(), getDebugFile("parse_sem.yaml")); }
+
+    auto initial_context = imm::ImmAstContext::init_start_context();
+    auto initial_version = initial_context->addRoot(parse.value());
+
+    if (trace) {
+        writeTreeRepr(initial_version.getRootAdapter(), getDebugFile("parse_imm.txt"));
+    }
+
+    LOG(INFO) << "Write tracking debug";
+    if (trace) {
+        writeFile(
+            getDebugFile("graph_tracking.txt"),
+            initial_version.getContext()->currentTrack->toString().toString(false));
+    }
+
+    LOG(INFO) << "Generating mind map";
+    auto conf = org::graph::MapConfig::shared();
+
+    auto state = org::graph::MapGraphState::FromAstContext(initial_version.getContext());
+
+    if (trace) { state->graph->setTraceFile(getDebugFile("graph_trace.log")); }
+
+    state->addNodeRec(
+        initial_version.getContext(), initial_version.getRootAdapter(), conf);
+
+    org::graph::MapGraph::GvConfigCallbackFilters gvc{};
+    gvc.accept_node_cb = [&](hstd::ext::graph::VertexID const& node) -> bool {
+        return 0 < state->graph->getInDegree(node)
+            || 0 < state->graph->getOutDegree(node);
+    };
+
+    auto gv = gvc.toGraphviz(initial_version.getContext(), state->graph)
+                  ->setDirectionLR();
+
+    gv->render(getDebugFile("result.png"));
+    auto const context_path = getDebugFile("context.bin");
+    auto const graph_path   = getDebugFile("graph.bin");
+    auto const epoch_path   = getDebugFile("epoch.bin");
+
+    if (trace) {
+        __perf_trace("cli", "Export mind map as graphviz");
+        gv->setRankDirection(hstd::ext::graph::gv::RankDirection::LR);
+        gv->render(getDebugFile("mind_map.dot"));
+        gv->render(getDebugFile("mind_map.png"));
+    }
+
+    auto serial = state->graph->get_serial();
+
+    std::string                          json;
+    google::protobuf::json::PrintOptions j_opts;
+    j_opts.add_whitespace = true;
+    auto status = google::protobuf::util::MessageToJsonString(*serial, &json, j_opts);
+    EXPECT_TRUE(status.ok());
+    writeFile(getDebugFile("serial.json"), json);
+}
+
+TEST(ManualFileRun, TestDirCorpus) {
+    test_dir_parsing(__CURRENT_FILE_DIR__ / "corpus", true);
+}
+
+
+TEST(ManualFileRun, TestDir1) {
+    fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
+    if (fs::exists(dir)) { test_dir_parsing(dir, is_full_trace_on_cli_enabled()); }
+}

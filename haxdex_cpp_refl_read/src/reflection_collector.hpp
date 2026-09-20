@@ -1,0 +1,244 @@
+#pragma once
+#include <optional>
+
+#undef emit
+#undef slots
+
+#include <clang/AST/ASTConsumer.h>
+#include <clang/AST/RecursiveASTVisitor.h>
+#include <clang/Frontend/ASTConsumers.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/FrontendPluginRegistry.h>
+#undef emit
+#include <clang/Sema/Sema.h>
+
+// Auto-generated protobuf definition, provided by cmake run
+#include "reflection_config.hpp"
+#include "reflection_defs.pb.h"
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/system/macros.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
+#include <llvm/Support/JSON.h>
+
+
+#define REFL_NAME "refl"
+
+/// `[[refl]]` attribute provider
+struct ReflAttrInfo : public clang::ParsedAttrInfo {
+    ReflAttrInfo() {
+        static constexpr Spelling spellings[]{
+            /// __attribute__((REFL_NAME))
+            {clang::ParsedAttr::AS_GNU, REFL_NAME},
+            /// [[REFL_NAME]]
+            {clang::ParsedAttr::AS_CXX11, REFL_NAME},
+        };
+        Spellings = spellings;
+
+        // Allow 0 or 1 arguments
+        OptArgs = 1;
+        NumArgs = 0;
+    }
+    AttrHandling handleDeclAttribute(
+        clang::Sema&             S,
+        clang::Decl*             D,
+        clang::ParsedAttr const& Attr) const override;
+};
+
+
+/// Data extraction AST visitor, collects annotated types into the protobuf
+/// definitions that can later be imported by the python scripts.
+class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
+  public:
+    TU*                                   out;
+    ReflectionCLI                         cli;
+    const std::unordered_set<std::string> target_files;
+
+    void log_visit(
+        clang::Decl const* Decl,
+        std::string const& msg      = "",
+        int                line     = __builtin_LINE(),
+        char const*        function = __builtin_FUNCTION());
+
+
+    explicit ReflASTVisitor(clang::ASTContext* Context, TU* tu, ReflectionCLI const& cli)
+        : Ctx(Context)
+        , out(tu)
+        , cli(cli)
+        , target_files{cli.input.begin(), cli.input.end()} {}
+
+
+    std::optional<std::string> get_refl_params(clang::Decl const* decl);
+
+
+    using DiagKind = clang::DiagnosticsEngine::Level;
+
+    /// Helper wrapper for clang diagnostic printer
+    template <unsigned N>
+    clang::DiagnosticBuilder Diag(
+        clang::DiagnosticsEngine::Level L,
+        const char (&FormatString)[N],
+        std::optional<clang::SourceLocation> const& Loc      = std::nullopt,
+        int                                         line     = __builtin_LINE(),
+        char const*                                 function = __builtin_FUNCTION()) {
+        std::string message = fmt::format("from code {}:{}", function, line);
+        auto&       D       = Ctx->getDiagnostics();
+        if (Loc) {
+            return D.Report(*Loc, D.getCustomDiagID(L, FormatString)) << message;
+        } else {
+            return D.Report(D.getCustomDiagID(L, FormatString)) << message;
+        }
+    }
+
+    /// Print qualified clang type as string
+    std::string dump(clang::QualType const& Typ) {
+        std::string              typeName;
+        llvm::raw_string_ostream rso(typeName);
+        Typ.dump(rso, *Ctx);
+        rso.flush();
+        return typeName;
+    }
+
+
+    std::string dump(clang::Decl const* Decl, int head = -1);
+
+    /// Fill in information about namespaces used in elaborated type
+    std::vector<QualType> getNamespaces(
+        clang::QualType const&                      In,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    std::vector<QualType> getNamespaces(
+        clang::NamespaceDecl const*                 Namespace,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    std::vector<QualType> getNamespaces(
+        clang::Decl*                                Decl,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    void applyNamespaces(
+        QualType*                    Out,
+        std::vector<QualType> const& Namespaces,
+        int                          line     = __builtin_LINE(),
+        char const*                  function = __builtin_FUNCTION());
+
+    void fillTypeTemplates(
+        QualType*                                   Out,
+        clang::QualType const&                      In,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    void fillTypeRec(
+        QualType*                                   Out,
+        clang::QualType const&                      In,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    void fillTemplateParameterList(
+        TemplateParams*                             out,
+        clang::TemplateParameterList*               params,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    /// This function 'fills' the type in both directions (adding parent
+    /// namespaces to the 'left' and parameters to the 'right') around the
+    /// type name as needed. Target output type will be assigned with
+    /// information from the 'base' of the \arg In.
+    void fillType(
+        QualType*                                   Out,
+        clang::QualType const&                      In,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    void fillTypeRec(
+        QualType*                                   Out,
+        clang::TemplateArgument const&              Arg,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    /// Convert expression into a simplified protobuf description --
+    /// mapping whole set of C++ complexities here is likely not possible
+    /// anyway, so simplified approximation will suffice.
+    void fillExpr(
+        Expr*                                       Out,
+        clang::Expr const*                          In,
+        std::optional<clang::SourceLocation> const& Loc);
+
+    void fillFieldDecl(Record::Field* sub, clang::FieldDecl const* field);
+
+    void fillParmVarDecl(Arg* arg, clang::ParmVarDecl const* parm);
+
+    void fillMethodDecl(Record::Method* sub, clang::CXXMethodDecl const* method);
+    void fillRecordDecl(Record* rec, clang::RecordDecl* Decl);
+    void fillCxxRecordDecl(Record* rec, clang::CXXRecordDecl const* Decl);
+    void fillSharedRecordData(Record* rec, clang::RecordDecl const* Decl);
+
+
+    bool VisitCXXRecordDecl(clang::CXXRecordDecl* Declaration);
+    bool VisitFunctionDecl(clang::FunctionDecl* Decl);
+    bool VisitEnumDecl(clang::EnumDecl* Decl);
+    bool VisitTypedefDecl(clang::TypedefDecl* Decl);
+    bool VisitRecordDecl(clang::RecordDecl* Decl);
+    bool IndirectFieldDecl(clang::IndirectFieldDecl* Decl);
+
+
+    bool isDescribedEnum(clang::EnumDecl const* enumDecl);
+    bool isDescribedRecord(clang::RecordDecl const* recordDecl);
+
+    bool                       isRefl(clang::Decl const* Decl);
+    std::optional<std::string> getDoc(clang::Decl const* Decl);
+
+    bool shouldVisit(clang::Decl const* Decl);
+
+    /// What group of declarations must be handled by the visitor
+    enum class VisitMode
+    {
+        /// All elements that are explicitly annotated with `[[refl]]`
+        /// attribute, irreespective of the declaration file.
+        AllAnnotated,
+        /// All declarations contained in explicitly allowed target files.
+        AllTargeted,
+        /// All declarations if they were placed in the main file of the
+        /// translation unit.
+        AllMainTranslationUnit,
+    };
+
+    BOOST_DESCRIBE_NESTED_ENUM(
+        VisitMode,
+        AllAnnotated,
+        AllTargeted,
+        AllMainTranslationUnit);
+
+    VisitMode visitMode = VisitMode::AllAnnotated;
+
+  private:
+    clang::ASTContext* Ctx;
+};
+
+struct IncludeCollectorCallback : public clang::PPCallbacks {
+    clang::SourceManager* sourceManager;
+    TU*                   out;
+
+    IncludeCollectorCallback(TU* tu, clang::SourceManager* sourceManager)
+        : out(tu), sourceManager(sourceManager) {}
+
+    void InclusionDirective(
+        clang::SourceLocation             HashLoc,
+        clang::Token const&               IncludeTok,
+        llvm::StringRef                   FileName,
+        bool                              IsAngled,
+        clang::CharSourceRange            FilenameRange,
+        clang::OptionalFileEntryRef       File,
+        llvm::StringRef                   SearchPath,
+        llvm::StringRef                   RelativePath,
+        clang::Module const*              SuggestedModule,
+        bool                              ModuleImported,
+        clang::SrcMgr::CharacteristicKind FileType) override;
+};
+
+
+class ReflASTConsumer : public clang::ASTConsumer {
+  public:
+    std::unique_ptr<TU>      out;
+    ReflASTVisitor           Visitor;
+    clang::CompilerInstance& CI;
+    ReflectionCLI            cli;
+
+    explicit ReflASTConsumer(clang::CompilerInstance& CI, ReflectionCLI const& cli);
+
+    virtual void HandleTranslationUnit(clang::ASTContext& Context);
+};

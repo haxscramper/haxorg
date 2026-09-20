@@ -1,0 +1,1550 @@
+#include <boost/mp11.hpp>
+#include <boost/preprocessor.hpp>
+#include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrg.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrgBase.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrgHash.hpp>
+#include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Set.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
+#include <immer/flex_vector_transient.hpp>
+#include <immer/map_transient.hpp>
+#include <immer/vector_transient.hpp>
+
+#include <boost/mp11/algorithm.hpp>
+#include <boost/mp11/list.hpp>
+#include <haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp>
+#include <hstd_cpp_lib/stdlib/TimeReflVisitor.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextHShow.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <type_traits>
+
+#if !ORG_BUILD_EMCC
+#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
+#endif
+
+#pragma clang diagnostic ignored "-Wreorder-init-list"
+
+using namespace hstd;
+using namespace org::imm;
+using namespace hstd::ext;
+
+const u64 ImmId::NodeIdxMask    = 0x000000FFFFFFFFFF; // >>0*0=0,
+const u64 ImmId::NodeIdxOffset  = 0;
+const u64 ImmId::NodeKindMask   = 0x000FFF0000000000; // >>10*4=40
+const u64 ImmId::NodeKindOffset = 40;
+
+const org::imm::ParentPathMap EmptyParentPathMap;
+
+std::size_t std::hash<ImmReflFieldId>::operator()(
+    ImmReflFieldId const& it) const noexcept {
+    std::size_t result = 0;
+    hax_hash_combine(result, it.index);
+    return result;
+}
+
+ImmId::IdType ImmId::combineMask(OrgSemKind kind) {
+    auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
+
+    auto t = ImmId{ImmId::FromMaskedIdx(0, res >> ImmIdMaskOffset)};
+    LOGIC_ASSERTION_CHECK_FMT(
+        t.getKind() == kind,
+        R"(
+kind:    {0:016X} {0:064b} {1}
+kind<<:  {2:016X} {2:064b}
+mask:    {3:016X} {3:064b}
+t.kind:  {4:016X} {4:064b}
+t.kind<<:{5:016X} {5:064b}
+t.value: {6:016X} {6:064b}
+res:     {7:016X} {7:064b})",
+        u64(kind),
+        kind,
+        u64(kind) << NodeKindOffset,
+        NodeKindMask,
+        u64(t.getKind()),
+        u64(t.getKind()) << NodeKindOffset,
+        t.value,
+        res >> ImmIdMaskOffset);
+
+
+    return res >> ImmIdMaskOffset;
+}
+
+ImmId::IdType ImmId::combineFullValue(OrgSemKind kind, NodeIdxT node) {
+    return (combineMask(kind) << ImmIdMaskOffset)
+         | (u64(node) << NodeIdxOffset) & NodeIdxMask;
+}
+
+
+std::string ImmId::getReadableId() const {
+    if (isNil()) {
+        return "nil";
+    } else {
+        try {
+            return fmt::format("{}_{}", getKind(), getNodeIndex());
+        } catch (std::domain_error const& err) {
+            return fmt::format(
+                "ERR {} MASK:{:016b} IDX:{:032b}",
+                err.what(),
+                static_cast<u64>(getKind()),
+                static_cast<u64>(getNodeIndex()));
+        }
+    }
+}
+
+void ImmId::assertValid() const {
+    u64 kind     = static_cast<u64>(getKind());
+    u64 kindLow  = static_cast<u64>(value_domain<OrgSemKind>::low());
+    u64 kindHigh = static_cast<u64>(value_domain<OrgSemKind>::high());
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        kindLow <= kind && kind <= kindHigh,
+        "ID kind value out of range: ID int value is: {} (bin: {:032b}, "
+        "hex: {:032X}), low {} high {}",
+        kind,
+        kind,
+        kind,
+        kindLow,
+        kindHigh);
+
+    if (!isNil()) {
+        LOGIC_ASSERTION_CHECK_FMT(
+            getKind() != OrgSemKind::NoNode,
+            "Valid ID must have a kind different from 'NoNode', got value {:0{}b}:{}",
+            getMask(),
+            ImmIdMaskSize,
+            getIndex());
+    }
+}
+
+#define _define_static(__Kind)                                                           \
+    const OrgSemKind org::imm::Imm##__Kind::staticKind = OrgSemKind::__Kind;
+
+EACH_SEM_ORG_KIND(_define_static)
+#undef _define_static
+
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmOrg)
+
+#define _register_type(__Kind)                                                           \
+    HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::Imm##__Kind)                                \
+    HSTD_REGISTER_TYPE_FIELD_NAMES(org::sem::__Kind)
+
+EACH_SEM_ORG_KIND(_register_type)
+#undef _register_type
+
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmStmt);
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmCmd);
+HSTD_REGISTER_TYPE_FIELD_NAMES(org::imm::ImmLeaf);
+
+using namespace org;
+
+
+const ImmOrg* ImmAstStore::at(ImmId index) const {
+    ImmOrg const* res;
+    switch_node_kind(index, [&, index]<typename K>(ImmIdT<K> id) {
+        res = getStore<K>()->at(index);
+        LOGIC_ASSERTION_CHECK_FMT(
+            res->getKind() == index.getKind(),
+            "index kind {} does not match result node kind {}",
+            index.getKind(),
+            res->getKind());
+    });
+    return res;
+}
+
+
+void org::eachSubnodeRec(ImmAdapter const& id, bool withPath, org::ImmSubnodeVisitor cb) {
+    cb(id);
+    for (auto const& sub : id.getAllSubnodes(id.path, withPath)) {
+        eachSubnodeRec(sub, withPath, cb);
+    }
+}
+
+
+namespace {
+struct ImmTreeReprContext {
+    int                      level;
+    Vec<int>                 path;
+    ImmAdapter::TreeReprConf conf;
+    ImmAstContext::WPtr      ctx;
+
+    ImmTreeReprContext addPath(int diff) const {
+        ImmTreeReprContext result = *this;
+        result.path.push_back(diff);
+        return result;
+    }
+
+    ImmTreeReprContext addLevel(int diff) const {
+        ImmTreeReprContext result = *this;
+        result.level += diff;
+        return result;
+    }
+};
+
+namespace {
+template <typename T>
+struct TreeReprFieldPrint {
+    static void format(
+        ColStream&                os,
+        ImmTreeReprContext const& ctx,
+        std::string const&        field_name,
+        T const&                  field) {
+        os.indent(ctx.level * 2);
+        os << os.yellow() << field_name << os.end() << " ";
+        os << hstd::fmt1(field);
+        os << "\n";
+    }
+};
+
+
+template <typename T>
+struct TreeReprFieldPrint<hstd::ext::ImmVec<T>> {
+    static void format(
+        ColStream&                  os,
+        ImmTreeReprContext const&   ctx,
+        std::string const&          field_name,
+        hstd::ext::ImmVec<T> const& field) {
+        os.indent(ctx.level * 2);
+        os << field_name << "\n";
+        for (auto const& it : hstd::enumerator(field)) {
+            os.indent((ctx.level + 1) * 2);
+            os << os.cyan() << hstd::fmt("  [{}]: ", it.index()) << os.end()
+               << hstd::fmt1(it.value()) << "\n";
+        }
+    }
+};
+
+template <>
+struct TreeReprFieldPrint<hstd::ext::ImmVec<org::sem::NamedProperty>> {
+    static void format(
+        ColStream&                                        os,
+        ImmTreeReprContext const&                         ctx,
+        std::string const&                                field_name,
+        hstd::ext::ImmVec<org::sem::NamedProperty> const& field) {
+        int prop_width = 0;
+
+        for (auto const& it : field) {
+            prop_width = std::max(it.getName().size(), prop_width);
+        }
+
+        os.indent(ctx.level * 2);
+        os << field_name << "\n";
+        for (auto const& it : field) {
+            os.indent((ctx.level + 1) * 2);
+            os << os.green()
+               << hstd::left_aligned(hstd::fmt(":{}: ", it.getName()), prop_width + 3)
+               << hstd::fmt1(it.getKind()) << os.end();
+
+            std::visit([&](auto const& prop) { os << hstd::fmt1(prop); }, it.data);
+            os << "\n";
+        }
+    }
+};
+} // namespace
+
+#define _cat "imm.repr"
+
+namespace {
+template <typename T>
+struct get_value_format {
+    static std::string get(
+        org::imm::ImmAdapterT<T> const& t,
+        ImmTreeReprContext const&       ctx) {
+        return "";
+    }
+};
+
+template <typename T>
+    requires std::derived_from<T, org::imm::ImmLeaf>
+struct get_value_format<T> {
+    static std::string get(
+        org::imm::ImmAdapterT<T> const& t,
+        ImmTreeReprContext const&       ctx) {
+        return hstd::escape_for_write(get_str_view(t.value().text));
+    }
+};
+
+
+template <>
+struct get_value_format<org::imm::ImmSubtree> {
+    static std::string get(
+        org::imm::ImmAdapterT<org::imm::ImmSubtree> const& t,
+        ImmTreeReprContext const&                          ctx) {
+        return hstd::escape_for_write(t.getCleanTitle());
+    }
+};
+
+
+} // namespace
+
+void treeReprRec(ImmAdapter id, ColStream& os, ImmTreeReprContext const& ctx) {
+    os.indent(ctx.level * 2);
+    // TODO: Align the subtree kind and readable ID using fixed width
+    // padding on the subtree.
+    os << hstd::fmt("{} {}", id->getKind(), id.id.getReadableId());
+    if (!ctx.path.empty()) { os << hstd::fmt(" PATH:[{}]", id.getSimplePathFormat()); }
+    bool printed_field_repr    = false;
+    auto print_detailed_fields = [&]() {
+        switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& value) {
+            hstd::for_each_field_with_base_value<N>(
+                value, [&](auto const& object_value, auto const& desc) {
+                    hstd::Pair<OrgSemKind, ImmReflFieldId> key{
+                        N::staticKind, ImmReflFieldId::FromTypeField(desc.pointer)};
+                    using F = DESC_FIELD_TYPE(desc);
+                    if (ctx.conf.withFieldSubset.contains(key)) {
+                        printed_field_repr = true;
+                        TreeReprFieldPrint<F>::format(
+                            os, ctx.addLevel(1), desc.name, object_value.*desc.pointer);
+                    }
+                });
+        });
+    };
+
+    switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
+        auto s = get_value_format<N>::get(id.as<N>(), ctx);
+        if (!s.empty()) { os << " " << s; }
+    });
+
+
+    if (ctx.conf.withReflFields) {
+        if (ctx.conf.withAuxFields) {
+            switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
+                os << " " << fmt1(node);
+            });
+        }
+        os << "\n";
+        print_detailed_fields();
+
+        if (printed_field_repr) {
+            os.indent((ctx.level + 1) * 2);
+            os << "subnodes\n";
+        }
+
+        for (auto const& sub : id.getAllSubnodes(std::nullopt)) {
+            os.indent((ctx.level + 1) * 2);
+            os << hstd::fmt("{}", sub.getSimplePathFormat());
+            os << "\n";
+            treeReprRec(sub, os, ctx.addLevel(printed_field_repr ? 3 : 2));
+        }
+    } else {
+        if (ctx.conf.withAuxFields) {
+            switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& node) {
+                os << " " << fmt1(node);
+            });
+        }
+
+        os << "\n";
+        print_detailed_fields();
+
+        if (printed_field_repr) {
+            os.indent((ctx.level + 1) * 2);
+            os << "subnodes\n";
+        }
+
+        int idx = 0;
+        for (auto const& it : id.sub()) {
+            treeReprRec(it, os, ctx.addLevel(printed_field_repr ? 2 : 1).addPath(idx));
+            ++idx;
+        }
+    }
+}
+} // namespace
+
+Str ImmAdapter::selfSelect() const {
+    Str result = "root";
+    for (ImmSubnodeAccessStep const& step : path.path) {
+        auto const& i = step.path.path;
+        if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()
+            && i.at(0).getFieldName().name.getName() == "subnodes") {
+            result += hstd::fmt(".at({})", i.at(1).getIndex().index);
+        } else if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isAnyKey()) {
+            result += hstd::fmt(
+                R"(.{}.at("{}"))",
+                i.at(0).getFieldName().name.getName(),
+                i.at(1).getAnyKey().get<Str>());
+        } else if (i.size() == 1 && i.at(0).isFieldName()) {
+            return hstd::fmt(".{}", i.at(0).getFieldName().name.getName());
+        } else if (i.size() == 2 && i.at(0).isFieldName() && i.at(1).isIndex()) {
+            result += hstd::fmt(
+                ".{}.at({})",
+                i.at(0).getFieldName().name.getName(),
+                i.at(1).getIndex().index);
+        } else {
+            result += fmt1(i);
+        }
+    }
+
+    return result;
+}
+
+void ImmAdapter::treeRepr(ColStream& os, TreeReprConf const& conf) const {
+    treeReprRec(
+        *this,
+        os,
+        ImmTreeReprContext{
+            .conf  = conf,
+            .level = 0,
+            .ctx   = this->ctx,
+        });
+}
+
+bool ImmAdapter::isDirectParentOf(ImmAdapter const& other) const {
+    if (auto parent = other.getParent(); parent) {
+        return parent->id == this->id;
+    } else {
+        return false;
+    }
+}
+
+bool ImmAdapter::isIndirectParentOf(ImmAdapter const& other) const {
+    for (auto const& parent : other.getParentChain(false)) {
+        if (parent.id == this->id) { return true; }
+    }
+
+    return false;
+}
+
+hstd::Str ImmTreeAccessPath::getSimplePathFormat() const {
+    hstd::Vec<hstd::Str> result;
+    result.push_back(hstd::fmt("{}//", root));
+    using K = org::imm::ImmAccessStep::Kind;
+    for (auto const& steps : path) {
+        auto const& p = steps.path.path;
+        if (p.size() == 2 && p.at(0).isFieldName()
+            && p.at(0).getFieldName().name.getName() == "subnodes" && p.at(1).isIndex()) {
+            result.push_back(hstd::fmt(".{}", p.at(1).getIndex().index));
+        } else {
+            for (auto const& step : p) {
+
+                switch (step.getKind()) {
+                    case K::Deref: {
+                        result.push_back("<deref>");
+                        break;
+                    }
+                    case K::AnyKey: {
+                        result.push_back(
+                            hstd::fmt("[{}]", step.getAnyKey().get<hstd::Str>()));
+                        break;
+                    }
+                    case K::FieldName: {
+                        result.push_back(hstd::fmt(".{}", step.getFieldName().name));
+                        break;
+                    }
+                    case K::Index: {
+                        result.push_back(hstd::fmt(".{}", step.getIndex().index));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return hstd::join(""_str_view, result);
+}
+
+hstd::Str ImmUniqId::getSimplePathFormat() const {
+    return hstd::fmt("{}-{}", path.getSimplePathFormat(), id);
+}
+
+hstd::Str ImmAdapter::getSimplePathFormat() const {
+    return hstd::fmt("{}-{}", path.getSimplePathFormat(), id);
+}
+
+Opt<ImmAdapter> ImmAdapter::getAdjacentNode(int offset) const {
+    auto parent = getParent();
+    if (parent) {
+        int pos = getSelfIndex() + offset;
+        if (0 <= pos && pos < parent->size()) {
+            return parent->at(pos);
+        } else {
+            return std::nullopt;
+        }
+    } else {
+        return std::nullopt;
+    }
+}
+
+Opt<ImmAdapter> ImmAdapter::getFirstMatchingParent(
+    Func<bool(ImmAdapter const&)> pred) const {
+    auto parent = getParent();
+    while (parent) {
+        if (pred(parent.value())) {
+            return parent;
+        } else {
+            parent = parent->getParent();
+        }
+    }
+    return std::nullopt;
+}
+
+Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
+    return getFirstMatchingParent(
+        [](ImmAdapter const& ad) { return ad->is(OrgSemKind::Subtree); });
+}
+
+Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
+    Opt<ImmTreeAccessPath> const& rootPath,
+    bool                          withPath) const {
+    Vec<ImmAdapter> result;
+    auto const&     root = *this;
+
+    visitAllSubnodes([&](ImmValueAccessPathCtx const& parent, ImmId const& id) {
+        if (withPath) {
+            if (rootPath) {
+                ImmTreeAccessPath path;
+                path      = *rootPath;
+                path.path = path.path.push_back(ImmSubnodeAccessStep{parent.toPath()});
+                result.push_back(root.pass(id, path));
+            } else {
+                ImmTreeAccessPath path;
+                path.root = this->id;
+                path.path = path.path.push_back(ImmSubnodeAccessStep{parent.toPath()});
+                result.push_back(root.pass(id, path));
+            }
+        } else {
+            result.push_back(root.ctx.lock()->adaptUnrooted(id));
+        }
+    });
+
+    return result;
+}
+
+Vec<ImmAdapter> ImmAdapter::getAllSubnodesDFS(
+    Opt<ImmTreeAccessPath> const&      rootPath,
+    bool                               withPath,
+    Opt<Func<bool(ImmAdapter)>> const& acceptFilter) const {
+    Vec<ImmAdapter>                                              result;
+    Func<void(ImmAdapter const&, ImmTreeAccessPath const& root)> aux;
+    aux = [&](ImmAdapter const& it, ImmTreeAccessPath const& root) {
+        if (!acceptFilter.has_value() || acceptFilter.value()(it)) {
+            result.push_back(it);
+            for (auto const& sub : it.getAllSubnodes(root, withPath)) {
+                aux(sub, sub.path);
+            }
+        }
+    };
+    for (auto const& it : getAllSubnodes(rootPath, withPath)) { aux(it, it.path); }
+    return result;
+}
+
+Vec<ImmSubnodeAccessStep> ImmAdapter::getRelativeSubnodePaths(
+    ImmId const& subnode) const {
+    Vec<ImmSubnodeAccessStep> result;
+    visitAllSubnodes(
+        overloaded{
+            [&](ImmValueAccessPathCtx const& parent, ImmId const& id) {
+                if (id == subnode) {
+                    result.push_back(ImmSubnodeAccessStep{parent.toPath()});
+                }
+            },
+            [&]<typename K>(ImmValueAccessPathCtx const& parent, ImmIdT<K> const& id) {
+                if (id.toId() == subnode) {
+                    result.push_back(ImmSubnodeAccessStep{parent.toPath()});
+                }
+            },
+            [&](ImmValueAccessPathCtx const& parent, auto const& other) {},
+        });
+
+    return result;
+}
+
+Vec<ImmAdapter> ImmAdapter::getParentChain(bool withSelf) const {
+    Vec<ImmAdapter> result;
+    for (auto const& span : path.pathSpans()) {
+        result.push_back(
+            ImmAdapter{
+                ImmTreeAccessPath{path.root, span},
+                ctx,
+            });
+    }
+    result.push_back(ImmAdapter{ImmTreeAccessPath{path.root}, ctx});
+    return result;
+}
+
+ImmAdapter ImmAdapter::at(int idx, bool withPath) const {
+    auto const& nodes = ctx.lock()->at(id)->subnodes;
+    LOGIC_ASSERTION_CHECK_FMT(
+        0 <= idx && idx < nodes.size(),
+        "Node with ID {} does not have subnode at index {}, subnode count {}",
+        id,
+        idx,
+        nodes.size());
+    if (withPath) {
+        return at(
+            nodes.at(idx),
+            ImmSubnodeAccessStep::FieldIdx(
+                ImmReflFieldId::FromTypeField<ImmOrg>(&ImmOrg::subnodes), idx));
+    } else {
+        return ImmAdapter{nodes.at(idx), ctx, {}};
+    }
+}
+
+Vec<ImmAdapter> ImmAdapter::sub(bool withPath) const {
+    Vec<ImmAdapter> result;
+    for (int i = 0; i < size(); ++i) { result.push_back(at(i, withPath)); }
+    return result;
+}
+
+void ImmAstTrackingMapTransient::setAsParentOf(ImmId const& parent, ImmId const& target) {
+    auto const* newParent = parents.find(target);
+    if (newParent == nullptr) { parents.set(target, ImmParentIdVec{}); }
+
+    if (!parents.at(target).contains(parent)) {
+        parents.update(target, [&](ImmParentIdVec value) {
+            value.push_back(parent);
+            return value;
+        });
+    }
+}
+
+SemSet FastTrackNodes{
+    OrgSemKind::Word,
+    OrgSemKind::Space,
+    OrgSemKind::Punctuation,
+    OrgSemKind::Time,
+};
+
+void ImmAstTrackingMapTransient::removeAllSubnodesOf(ImmAdapter const& parent) {
+    if (!isTrackingParent(parent)) { return; }
+    for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
+        auto subParents = parents.find(sub.id);
+        if (isTrackingParent(sub) && subParents != nullptr) {
+            if (subParents->contains(parent.id)) {
+                parents.update(sub.id, [&](ImmParentIdVec value) {
+                    value.erase(value.begin() + value.indexOf(parent.id));
+                    return value;
+                });
+            }
+        }
+    }
+}
+
+void ImmAstTrackingMapTransient::insertAllSubnodesOf(ImmAdapter const& parent) {
+    if (!isTrackingParent(parent)) { return; }
+    for (auto const& sub : parent.getAllSubnodes(std::nullopt, false)) {
+        if (isTrackingParent(sub)) { setAsParentOf(parent.id, sub.id); }
+    }
+}
+
+ImmAstTrackingMap ImmAstTrackingMapTransient::persistent() {
+    return ImmAstTrackingMap{
+        .footnotes          = footnotes.persistent(),
+        .subtrees           = subtrees.persistent(),
+        .radioTargets       = radioTargets.persistent(),
+        .anchorTargets      = anchorTargets.persistent(),
+        .parents            = parents.persistent(),
+        .names              = names.persistent(),
+        .customIds          = customIds.persistent(),
+        .isTrackingParent   = isTrackingParentImpl,
+        .hashtagDefinitions = hashtagDefinitions.persistent(),
+    };
+}
+
+SPtr<ImmAstContext> ImmAstEditContext::finish() { return ctx.lock()->finishEdit(*this); }
+
+ImmAstStore& ImmAstEditContext::store() { return *ctx.lock()->store; }
+
+hstd::OperationsTracer const* org::imm::ImmAstEditContext::get_tracer_obj() const {
+    return ctx.lock()->debug.get();
+}
+
+
+template <org::imm::IsImmOrgValueType T>
+struct imm_api_type {
+    using api_type = typename ImmAdapterT<T>::api_type;
+};
+
+template <typename T, typename API>
+concept ProvidesImmApi //
+    = std::is_base_of_v<API, typename imm_api_type<T>::api_type>
+   || std::is_same_v<API, typename imm_api_type<T>::api_type>;
+
+void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
+    auto edit_radio_targets = [&](auto const& words, ImmId const& target) {
+        auto&             rt    = transientTrack.radioTargets;
+        auto              word  = words.at(0);
+        Vec<ImmId> const* items = rt.find(word);
+        LOGIC_ASSERTION_CHECK_FMT(
+            items != nullptr || add,
+            "Cannot remove radio target from transient lookup map. "
+            "The first radio target subnode word is {}, but the "
+            "transient map does not contain ID vector for this "
+            "start.",
+            word);
+        if (add) {
+            if (items == nullptr) {
+                rt.set(word, {target});
+            } else if (items->indexOf(target) == -1) {
+                rt.set(word, *items + Vec<ImmId>{target});
+            }
+        } else {
+            int index = items->indexOf(target);
+            LOGIC_ASSERTION_CHECK_FMT(
+                index != -1,
+                "Target ID {} first node {} is mapped to a vector in "
+                "transient lookup map, but the vector itself does not "
+                "contain the target ID",
+                target,
+                word);
+
+            Vec<ImmId> copy = *items;
+            copy.erase(copy.begin() + index);
+            if (copy.empty()) {
+                rt.erase(word);
+            } else {
+                rt.set(word, copy);
+            }
+        }
+    };
+
+    auto search_radio_targets = [&](ImmAdapter const& id) {
+        __perf_trace("imm", "search radio targets");
+        for (auto const& target : id.subAs<org::imm::ImmRadioTarget>(false)) {
+            OP_TRACER_MESSAGE(
+                ctx,
+                "Node {} contains radio target {} at {}",
+                node,
+                target,
+                ctx.lock()->adaptUnrooted(node).treeReprString());
+            edit_radio_targets(target->words, target.id);
+        }
+    };
+
+    switch_node_value(
+        node,
+        ctx.lock(),
+        overloaded{
+            [&]<typename N>(N const& nodeValue)
+                requires(ProvidesImmApi<N, ImmAdapterStmtAPI>)
+                        {
+                            auto adapter = ctx.lock()->adaptUnrooted(node).as<N>();
+                            __perf_trace("imm", "track names");
+                            hstd::Vec<hstd::Str> names = adapter.getAttachedBlockNames();
+                            for (hstd::Str const& name : names) {
+                                OP_TRACER_FUNC_MESSAGE(
+                                    ctx,
+                                    "updateTracking",
+                                    "Tracking name '{}' pfor node {}",
+                                    name,
+                                    node);
+
+                                if (add) {
+                                    transientTrack.names.set(name, node);
+                                } else {
+                                    transientTrack.names.erase(name);
+                                }
+                            }
+                        },
+                        [&]<typename N>(N const& nodeValue)
+                            requires(!ProvidesImmApi<N, ImmAdapterStmtAPI>)
+            { /*_dfmt(node, nodeValue); */ },
+        });
+
+    if (auto kind = node.getKind();
+        kind != OrgSemKind::Subtree && kind == OrgSemKind::Paragraph) {
+        return;
+    }
+
+    switch_node_value(
+        node,
+        ctx.lock(),
+        overloaded{
+            [&](org::imm::ImmSubtree const& subtree) {
+                __perf_trace("imm", "track subtree");
+                if (auto id = subtree.treeId.get(); id) {
+                    OP_TRACER_FUNC_MESSAGE(
+                        ctx, "updateTracking", "Subtree ID {}", id.value());
+                    if (add) {
+                        transientTrack.subtrees.set(*id, node);
+                    } else {
+                        transientTrack.subtrees.erase(*id);
+                    }
+                }
+
+                for (auto const& id :
+                     org::getSubtreeProperties<sem::NamedProperty::CustomId>(subtree)) {
+                    OP_TRACER_FUNC_MESSAGE(
+                        ctx, "updateTracking", "Subtree custom ID {}", id.value);
+                    if (add) {
+                        transientTrack.customIds.set(id.value, node);
+                    } else {
+                        transientTrack.customIds.erase(id.value);
+                    }
+                }
+
+                for (auto const& id :
+                     org::getSubtreeProperties<sem::NamedProperty::RadioId>(subtree)) {
+                    edit_radio_targets(id.words, node);
+                }
+
+                for (auto const& tag :
+                     org::getSubtreeProperties<sem::NamedProperty::HashtagDef>(subtree)) {
+                    // only track fully resolved nodes, for node details
+                    // see [[hashtag_track_set_minimization]]
+                    for (auto const& hashtag : tag.hashtag.getFlatHashes(false)) {
+                        transientTrack.hashtagDefinitions.insert({hashtag, node});
+                    }
+                }
+            },
+            [&](org::imm::ImmParagraph const&) {
+                __perf_trace("imm", "track paragraph");
+                auto par = ctx.lock()->adaptUnrooted(node).as<org::imm::ImmParagraph>();
+                if (par.isFootnoteDefinition()) {
+                    auto id = par.getFootnoteName().value();
+                    OP_TRACER_MESSAGE(ctx, "Footnote ID {}", id);
+                    if (add) {
+                        transientTrack.footnotes.set(id, node);
+                    } else {
+                        transientTrack.footnotes.erase(id);
+                    }
+                }
+                search_radio_targets(ctx.lock()->adaptUnrooted(node));
+            },
+            [&](auto const& nodeValue) {},
+        });
+}
+
+hstd::SPtr<OperationsTracer> ImmAstEditContext::debug() { return ctx.lock()->debug; }
+
+template <typename T>
+struct value_metadata<hstd::ext::ImmVec<T>> {
+    static bool isEmpty(hstd::ext::ImmVec<T> const& value) { return value.empty(); }
+};
+
+
+template <typename T>
+struct value_metadata<hstd::ext::ImmSet<T>> {
+    static bool isEmpty(hstd::ext::ImmSet<T> const& value) { return value.empty(); }
+};
+
+
+template <typename T>
+struct value_metadata<hstd::ext::ImmBox<Opt<T>>> {
+    static bool isEmpty(hstd::ext::ImmBox<Opt<T>> const& value) {
+        return value.impl() == nullptr || !value.get().has_value();
+    }
+};
+
+template <typename T>
+struct value_metadata<hstd::ext::ImmBox<T>> {
+    static bool isEmpty(hstd::ext::ImmBox<T> const& value) {
+        return value.impl() == nullptr;
+    }
+};
+
+
+#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
+hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
+    Vec<ImmAstVersion> const& history,
+    ImmAstGraphvizConf const& conf) {
+    // TODO: rewrite to use full IGraph API instead of NodeGroup fallback.
+    using namespace hstd::ext::graph;
+    hstd::SPtr<gv::GraphGroup> g = gv::GraphGroup::newStandaloneRootGraph("g"_ss);
+    g->setBackgroundColor("beige");
+
+    UnorderedSet<ImmId>                                             visited;
+    UnorderedMap<ImmId, hstd::SPtr<gv::NodeAttribute>>              gvNodes;
+    UnorderedMap<Pair<ImmId, ImmId>, hstd::SPtr<gv::EdgeAttribute>> gvEdges;
+    Vec<hstd::SPtr<gv::GraphGroup>>                                 gvClusters;
+    ImmAstContext::Ptr ctx = history.front().context;
+
+    auto get_graph = [&](int epoch) -> hstd::SPtr<gv::GraphGroup> {
+        if (conf.withEpochClusters && epoch < history.size()) {
+            if (!gvClusters.has(epoch)) {
+                auto sub = g->newSubgraph(hstd::fmt("epoch_{}", epoch));
+                sub->setLabel(hstd::fmt("Epoch {}", epoch));
+                gvClusters.resize_at(epoch, sub);
+            }
+
+            return gvClusters.at(epoch);
+        } else {
+            return g;
+        }
+    };
+
+    auto get_node = [&](ImmId id, int idx) -> Opt<hstd::SPtr<gv::NodeAttribute>> {
+        if (conf.skippedKinds.contains(id.getKind()) || id.isNil()) {
+            return std::nullopt;
+        } else {
+            if (!gvNodes.contains(id)) {
+                auto node = get_graph(idx)->node(id.getReadableId());
+                if (auto color = conf.epochColors.get(idx); color) {
+                    node->setColor(*color);
+                }
+                node->setNodeShape(gv::NodeShape::rectangle);
+                gvNodes.insert_or_assign(id, node);
+                Vec<Str> label;
+                int      maxFieldWidth = 0;
+
+                auto field = [&]<typename T>(Str const& name, T const& value) {
+                    auto value_fmt = fmt1(value);
+                    auto prefix    = left_aligned(name, maxFieldWidth);
+                    if (value_fmt.contains('\n')) {
+                        auto split = hstd::split(value_fmt, '\n');
+                        label.push_back(hstd::fmt("{}: {}", prefix, split.at(0)));
+                        for (int i = 1; i < split.size(); ++i) {
+                            label.push_back(
+                                Str{" "}.repeated(prefix.size() + 2) + split.at(i));
+                        }
+                    } else {
+                        label.push_back(hstd::fmt("{}: {}", prefix, value_fmt));
+                    }
+                };
+
+
+                switch_node_fields(
+                    id, ctx, [&]<typename F>(Str const& name, F const& value) {
+                        maxFieldWidth = std::max<int>(maxFieldWidth, name.size());
+                    });
+
+                field("ID", id);
+                switch_node_fields(
+                    id, ctx, [&]<typename F>(Str const& name, F const& value) {
+                        if constexpr (
+                            std::is_same_v<
+                                hstd::ext::ImmBox<hstd::Opt<org::sem::AttrGroup>>,
+                                F>) {
+                            if (name == "attrs") {
+                                if (value.get()) {
+                                    org::sem::AttrGroup group = value.get().value();
+                                    Vec<Str>            attrs;
+                                    for (auto const& it :
+                                         hstd::enumerator(group.positional.items)) {
+                                        attrs.push_back(
+                                            hstd::fmt(
+                                                "[{}] = {}", it.index(), it.value()));
+                                    }
+
+                                    for (auto const& key : sorted(group.named.keys())) {
+                                        for (auto const& it : group.named.at(key).items) {
+                                            attrs.push_back(
+                                                hstd::fmt(
+                                                    "{} = {}", escape_literal(key), it));
+                                        }
+                                    }
+
+                                    field("attrs", hstd::join("\n", attrs));
+                                }
+                                return;
+                            }
+                        }
+
+                        if (auto skipped = conf.skippedFields.get(fmt1(id.getKind()));
+                            skipped && skipped->contains(name)) {
+                            return;
+                        } else if (value_metadata<F>::isEmpty(value)) {
+                            return;
+                        } else {
+                            field(name, value);
+                        }
+                    });
+
+                node->setLabel(join("\n", label));
+            }
+
+            return gvNodes.at(id);
+        }
+    };
+
+
+    Func<void(ImmId, int)> aux;
+    aux = [&](ImmId id, int idx) {
+        auto node = get_node(id, idx);
+        if (node) {
+            auto subnodes = allSubnodes(id, ctx);
+            for (auto const& it : enumerator(subnodes)) {
+                it.value().assertValid();
+                aux(it.value(), idx);
+                auto sub_imm = get_node(it.value(), idx);
+                if (sub_imm) {
+                    Pair<ImmId, ImmId> pair{id, it.value()};
+                    if (!gvEdges.contains(pair)) {
+                        auto edge = g->edge(*node.value(), *sub_imm.value());
+                        edge->setColor(conf.epochColors.at(idx));
+                        edge->setLabel(fmt1(it.index()));
+                        gvEdges.insert_or_assign(pair, edge);
+                    }
+                }
+            }
+        }
+    };
+
+    for (auto const& [idx, epoch] : enumerate(history)) {
+        aux(epoch.epoch->getRoot(), idx);
+    }
+
+    if (conf.withAuxNodes) {
+        for (ImmId id : ctx->store->all_ids()) {
+            if (!gvNodes.contains(id)) { aux(id, history.size()); }
+        }
+    }
+
+    if (conf.withEditHistory) {
+        for (auto const& epoch : history) {
+            for (auto const& act : epoch.epoch->replaced.allReplacements()) {
+                auto const& src = gvNodes.get(act.original->id);
+                auto const& dst = gvNodes.get(act.replaced.id);
+                if (src && dst) {
+                    auto edge = g->edge(*src.value(), *dst.value());
+                    edge->setConstraint(false);
+                    edge->setStyle(gv::Style::dashed);
+                    edge->setColor("darkgreen");
+                }
+            }
+        }
+    }
+
+    return g;
+}
+
+#endif
+
+template <typename T>
+struct ImmSubnodeCollectionVisitor {};
+
+#define IMM_SUBNODE_COLLECTOR(__TemplateArgs, __VisitorTypeSpecification)                \
+    DEFINE_VISITOR_BASE_ALL(                                                             \
+        /*Typename=*/ImmSubnodeCollectionVisitor,                                        \
+        /*TemplateArgs=*/__TemplateArgs,                                                 \
+        /*SharedArgs=*/(org::imm::ImmAstContext::Ptr const& ctx),                        \
+        /*TypeSpecification=*/__VisitorTypeSpecification,                                \
+        /*ResultType=*/(Vec<ImmId>),                                                     \
+        /*MethodName=*/getSubnodes)
+
+IMM_SUBNODE_COLLECTOR((typename T), (ImmIdT<T>)) { return Vec<ImmId>{arg.toId()}; }
+
+IMM_SUBNODE_COLLECTOR((), (ImmId)) { return Vec<ImmId>{arg}; }
+IMM_SUBNODE_COLLECTOR((), (Str)) { return {}; }
+IMM_SUBNODE_COLLECTOR((), (bool)) { return {}; }
+IMM_SUBNODE_COLLECTOR((), (int)) { return {}; }
+IMM_SUBNODE_COLLECTOR((IsEnum E), (E)) { return {}; }
+IMM_SUBNODE_COLLECTOR((DescribedRecord R), (R)) { return {}; }
+IMM_SUBNODE_COLLECTOR((typename K, typename V), (hstd::ext::ImmMap<K, V>)) {
+    Vec<ImmId> result;
+    for (auto const& [key, value] : arg) {
+        result.append(ImmSubnodeCollectionVisitor<V>::getSubnodes(value, ctx));
+    }
+    return result;
+}
+
+IMM_SUBNODE_COLLECTOR((typename T), (hstd::ext::ImmVec<T>)) {
+    Vec<ImmId> result{};
+    for (auto const& it : arg) {
+        result.append(ImmSubnodeCollectionVisitor<T>::getSubnodes(it, ctx));
+    }
+    return result;
+}
+
+
+IMM_SUBNODE_COLLECTOR((IsVariant T), (T)) {
+    return std::visit(
+        [&]<typename VarT>(VarT const& it) {
+            return ImmSubnodeCollectionVisitor<VarT>::getSubnodes(it, ctx);
+        },
+        arg);
+}
+
+
+IMM_SUBNODE_COLLECTOR((typename T), (ImmBox<T>)) {
+    if (arg.impl() == nullptr) {
+        return {};
+    } else {
+        return ImmSubnodeCollectionVisitor<T>::getSubnodes(arg.get(), ctx);
+    }
+}
+
+IMM_SUBNODE_COLLECTOR((typename T), (Opt<T>)) {
+    if (arg) {
+        return ImmSubnodeCollectionVisitor<T>::getSubnodes(arg.value(), ctx);
+    } else {
+        return {};
+    }
+}
+
+template <IsImmOrgValueType T>
+Vec<ImmId> imm::allSubnodes(T const& value, ImmAstContext::Ptr const& ctx) {
+    Vec<ImmId> subnodes;
+    for_each_field_with_bases<T>([&](auto const& f) {
+        using FieldType = DESC_FIELD_TYPE(f);
+        auto tmp        = ImmSubnodeCollectionVisitor<FieldType>::getSubnodes(
+            value.*f.pointer, ctx);
+        subnodes.append(tmp);
+    });
+    return subnodes;
+}
+
+
+Vec<ImmId> imm::allSubnodes(ImmId const& value, ImmAstContext::Ptr const& ctx) {
+    value.assertValid();
+    switch (value.getKind()) {
+#define _case(__Kind)                                                                    \
+    case OrgSemKind::__Kind: {                                                           \
+        return allSubnodes(ctx->value<org::imm::Imm##__Kind>(value), ctx);               \
+    }
+        EACH_SEM_ORG_KIND(_case)
+    }
+
+#undef _case
+}
+
+
+ImmAdapter ImmAstVersion::getRootAdapter() const {
+    return ImmAdapter{
+        epoch->getRoot(),
+        context,
+        ImmTreeAccessPath{epoch->getRoot()},
+    };
+}
+
+ImmAstVersion ImmAstVersion::getEditVersion(
+    Func<ImmAstReplaceGroup(ImmAstContext::Ptr, ImmAstEditContext&)> cb) {
+    return context->getEditVersion(getRootAdapter(), cb);
+}
+
+void ImmAstReplaceGroup::set(ImmAstReplace const& replace) {
+    LOGIC_ASSERTION_CHECK_FMT(replace.original.has_value(), "");
+    for (auto const& it : Vec<ImmUniqId>{replace.original.value(), replace.replaced}) {
+        bool check = it.id.is(OrgSemKind::Document) || it.id.is(OrgSemKind::DocumentGroup)
+                  || !it.path.empty();
+        LOGIC_ASSERTION_CHECK_FMT(
+            check,
+            "Replace group origina/replaced ID must either be a tree root "
+            "-- document or a document group -- or have a non-empty path, "
+            "otherwise replacing the node with a new value would create a "
+            "completely independent root. Provided node {} does not match "
+            "the requirement. Kind is {}, path is {}",
+            replace,
+            it.id.getKind(),
+            it.path);
+    }
+    LOGIC_ASSERTION_CHECK_FMT(
+        replace.original != replace.replaced,
+        "Identical original and replaced node: {}",
+        replace);
+    replace.original->id.assertValid();
+    replace.replaced.id.assertValid();
+
+    nodeReplaceMap.insert_or_assign(replace.original->id, replace.replaced.id);
+    map.insert_or_assign(*replace.original, replace.replaced);
+}
+
+void ImmAstReplaceGroup::incl(ImmAstReplace const& replace) {
+    LOGIC_ASSERTION_CHECK_FMT(
+        !map.contains(replace.original.value()),
+        "replacement group cannot contain duplicate nodes. {0} -> {1} "
+        "is already added, {0} -> {2} cannot be included",
+        /*0*/ replace.original,
+        /*1*/ map.at(replace.original.value()),
+        /*2*/ replace.replaced);
+    set(replace);
+}
+
+hstd::ext::ImmVec<ImmId> ImmAstReplaceGroup::newSubnodes(
+    hstd::ext::ImmVec<ImmId> oldSubnodes) const {
+    hstd::ext::ImmVec<ImmId> result;
+    auto                     tmp = result.transient();
+    for (auto const& it : oldSubnodes) {
+        if (auto update = nodeReplaceMap.get(it); update) {
+            tmp.push_back(*update);
+        } else {
+            tmp.push_back(it);
+        }
+    }
+
+    for (auto const& it : tmp) { it.assertValid(); }
+
+    return tmp.persistent();
+}
+
+Vec<ImmId> ImmAstReplaceGroup::newSubnodes(Vec<ImmId> oldSubnodes) const {
+    auto tmp = newSubnodes(
+        hstd::ext::ImmVec<ImmId>{oldSubnodes.begin(), oldSubnodes.end()});
+    return Vec<ImmId>{tmp.begin(), tmp.end()};
+}
+
+ImmParentIdVec EmptyImmParentIdVec;
+
+ColText ImmAstTrackingMap::toString() const {
+    ColStream os;
+
+    hshow_opts const& opts = hshow_opts{};
+
+    auto write_map = [&]<typename K, typename V>(ImmMap<K, V> const& map) {
+        auto keys = map.keys();
+        for (auto const& key : sorted(keys)) {
+            os.indent(2);
+            os << hstd::fmt("{}: {}\n", key, map.at(key));
+        }
+    };
+
+#define __it(name)                                                                       \
+    os << #name << "\n";                                                                 \
+    write_map(name);
+
+    __it(footnotes);
+    __it(subtrees);
+    __it(anchorTargets);
+    __it(names);
+    // __it(parents);
+    __it(hashtagDefinitions);
+    __it(radioTargets);
+
+    return os.getBuffer();
+}
+
+const ImmParentIdVec& ImmAstTrackingMap::getParentIds(ImmId const& it) const {
+    if (parents.contains(it)) {
+        return parents.at(it);
+    } else {
+        return EmptyImmParentIdVec;
+    }
+}
+
+ParentPathMap ImmAstTrackingMap::getParentsFor(ImmId const& it, ImmAstContext const* ctx)
+    const {
+    if (parents.contains(it)) {
+        ParentPathMap result;
+        for (auto const& parent : parents.at(it)) {
+            for (auto const& relative :
+                 ctx->adaptUnrooted(parent).getRelativeSubnodePaths(it)) {
+                if (!result.contains(parent)) {
+                    result.insert_or_assign(parent, ImmParentPathVec{});
+                }
+
+                result.at(parent).push_back(relative);
+            }
+        }
+
+        return result;
+    } else {
+        return EmptyParentPathMap;
+    }
+}
+
+namespace {
+Vec<ImmTreeAccessPath> aux_get_paths_form(
+    ImmAstTrackingMap const& map,
+    ImmId const&             id,
+    ImmAstContext const*     ctx) {
+    Vec<ImmTreeAccessPath> result;
+    for (auto const& [parentId, parentPaths] : map.getParentsFor(id, ctx)) {
+        auto auxRes = aux_get_paths_form(map, parentId, ctx);
+        if (auxRes.empty()) {
+            for (auto const& full : parentPaths) {
+                ImmTreeAccessPath path;
+                path.root = parentId;
+                path.path = path.path.push_back(full);
+                result.push_back(path);
+            }
+        } else {
+            for (auto const& added : auxRes) {
+                for (auto const& full : parentPaths) {
+                    ImmTreeAccessPath path = added;
+                    path.path              = path.path.push_back(full);
+                    result.push_back(path);
+                }
+            }
+        }
+    }
+    return result;
+}
+} // namespace
+
+Vec<ImmUniqId> ImmAstTrackingMap::getPathsFor(ImmId const& it, ImmAstContext const* ctx)
+    const {
+    Vec<ImmUniqId> result;
+    for (auto const& path : aux_get_paths_form(*this, it, ctx)) {
+        result.push_back(ImmUniqId{.path = path, .id = it});
+    }
+
+    std::sort(result.begin(), result.end());
+#if ORG_BUILD_WITH_PERFETTO
+    TRACE_EVENT_INSTANT(
+        "imm", "getAdaptersFor", "id", it.getValue(), "adapter_count", result.size());
+#endif
+    return result;
+}
+
+Vec<ImmAdapter> ImmAstContext::getAdaptersFor(ImmId const& it) const {
+    __perf_trace("imm", "getAdaptersFor", "id_value", it.getValue());
+    Vec<ImmAdapter> result;
+    for (auto const& id : getPathsFor(it)) { result.push_back(adapt(id)); }
+    return result;
+}
+
+Vec<ImmAdapter> ImmAstContext::getParentPathsFor(ImmId const& id) const {
+    Vec<ImmAdapter> result;
+    for (auto const& parent : getParentsFor(id)) {
+        for (auto const& path : getPathsFor(parent.first)) {
+            result.push_back(adapt(path));
+        }
+    }
+    return result;
+}
+
+ImmAstEditContext ImmAstContext::getEditContext() {
+    return ImmAstEditContext{
+        .transientTrack = currentTrack->transient(this),
+        .ctx            = shared_from_this(),
+    };
+}
+
+namespace {
+SemSet TrackingParentDefaultSet{
+    OrgSemKind::Space,
+    OrgSemKind::Word,
+    OrgSemKind::BigIdent,
+    OrgSemKind::Time,
+    OrgSemKind::Punctuation,
+    OrgSemKind::Newline,
+};
+}
+
+bool imm::isTrackingParentDefault(ImmAdapter const& node) {
+    return !TrackingParentDefaultSet.contains(node.getKind());
+}
+
+namespace {
+
+struct RadioTargetSearchResult {
+    Opt<ImmSubnodeGroup::RadioTarget> target;
+    int                               nextGroupIdx;
+};
+
+
+RadioTargetSearchResult tryRadioTargetSearch(
+    auto const&            words,
+    Vec<ImmAdapter> const& sub,
+    int const&             groupingIdx,
+    ImmId                  targetId,
+    ImmAstContext::Ptr     ctx) {
+    int                     sourceOffset = 0;
+    int                     radioOffset  = 0;
+    RadioTargetSearchResult result;
+    while (radioOffset < words.size()) {
+        auto atSource   = sub.at(groupingIdx + sourceOffset);
+        auto sourceWord = atSource->dyn_cast<org::imm::ImmLeaf>();
+        if (sourceWord == nullptr) {
+            OP_TRACER_MESSAGE(
+                ctx, "Source word at offset {} is not a leaf", sourceOffset);
+            // Source word at position is not a final
+            // leaf, radio target tracking us used only
+            // in the flat leaf sequences.
+            return result;
+        } else if (sourceWord->text == words.at(radioOffset)) {
+            if (radioOffset == (words.size() - 1)) {
+                auto range    = slice(groupingIdx, groupingIdx + sourceOffset);
+                result.target = ImmSubnodeGroup::RadioTarget{
+                    .target = targetId, .nodes = Vec<ImmAdapter>{sub.at(range)}};
+                OP_TRACER_MESSAGE(
+                    ctx,
+                    "Fully matched radio target "
+                    "offset, subnode range {} is a "
+                    "radio target linked with {}",
+                    range,
+                    targetId);
+                auto __scope = ctx->debug->begin_scope();
+                for (auto const& it : result.target->nodes) {
+                    OP_TRACER_MESSAGE(ctx, "- target {}", it);
+                }
+                result.nextGroupIdx = groupingIdx + sourceOffset;
+                // Successfully found radio target,
+                // resetting the grouping index and
+                // exiting the search. Single
+                // subsequence of words can only be
+                // targeting a single radio target.
+                return result;
+            } else {
+                // Radio target search matched one
+                // word, moving to the next one.
+                ++sourceOffset;
+                ++radioOffset;
+            }
+        } else if (atSource.is(OrgSemKind::Space)) {
+            // pass, differences in space sizes are
+            // ignored for radio node target searching
+            ++sourceOffset;
+        } else {
+            // found mismatched subnode
+            return result;
+        }
+    }
+
+    return result;
+}
+
+} // namespace
+
+Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
+    std::shared_ptr<ImmAstContext> const& ctx,
+    ImmAdapter const&                     node,
+    bool                                  withPath) {
+    ImmAstTrackingMap const& track = *ctx->currentTrack;
+    Vec<ImmAdapter>          sub   = node.sub(withPath);
+    Vec<ImmSubnodeGroup>     result;
+
+    OP_TRACER_MESSAGE(
+        ctx,
+        "Radio targets count {} using context {:#010x}",
+        track.radioTargets.size(),
+        reinterpret_cast<intptr_t>(ctx.get()));
+
+    for (auto const& [key, value] : track.radioTargets) {
+        OP_TRACER_MESSAGE(ctx, "{}", _dfmt_expr(key, value));
+    }
+
+    OP_TRACER_MESSAGE(ctx, "Get subnode groups for {}", node.uniq());
+    auto __scope = ctx->debug->begin_scope();
+
+    for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
+        ImmAdapter const& it = sub.at(groupingIdx);
+        if (auto leaf = it->dyn_cast<ImmLeaf>();
+            leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
+            OP_TRACER_MESSAGE(ctx, "Subnode {} is leaf", groupingIdx);
+            Vec<ImmId> const* radioTargets = track.radioTargets.find(leaf->text.get());
+            if (radioTargets == nullptr) {
+                OP_TRACER_MESSAGE(
+                    ctx, "No radio target starting with word '{}'", leaf->text);
+                result.push_back(ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+            } else {
+                OP_TRACER_MESSAGE(ctx, "Found potential radio targets");
+                RadioTargetSearchResult searchResult;
+                for (ImmId const& radioId : *radioTargets) {
+                    OP_TRACER_MESSAGE(ctx, "Trying radio ID {}", radioId);
+                    auto __scope      = ctx->debug->begin_scope();
+                    auto radioAdapter = it.ctx.lock()->adaptUnrooted(radioId);
+
+                    if (radioAdapter.is(OrgSemKind::RadioTarget)) {
+                        auto radio   = radioAdapter.as<ImmRadioTarget>();
+                        searchResult = tryRadioTargetSearch(
+                            radio->words, sub, groupingIdx, radio.id, ctx);
+
+                        if (searchResult.target) { goto radio_search_exit; }
+                    } else if (radioAdapter.is(OrgSemKind::Subtree)) {
+                        auto subtree = radioAdapter.as<ImmSubtree>();
+                        for (auto const& id :
+                             org::getSubtreeProperties<sem::NamedProperty::RadioId>(
+                                 subtree.value())) {
+                            OP_TRACER_MESSAGE(
+                                ctx, "Searcing for radio target with words {}", id.words);
+                            searchResult = tryRadioTargetSearch(
+                                id.words, sub, groupingIdx, subtree.id, ctx);
+                            if (searchResult.target) { goto radio_search_exit; }
+                        }
+
+                    } else {
+                        LOGIC_ASSERTION_CHECK_FMT(
+                            false,
+                            "Expected radio target tracking for radio "
+                            "target nodes or subtrees but got {}",
+                            radioAdapter.getKind());
+                    }
+                }
+
+            radio_search_exit:
+                if (searchResult.target) {
+                    OP_TRACER_MESSAGE(ctx, "Found radio ID target");
+                    result.push_back(ImmSubnodeGroup{searchResult.target.value()});
+                    groupingIdx = searchResult.nextGroupIdx;
+                } else {
+                    result.push_back(
+                        ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+                }
+            }
+        } else if (auto tag = it.asOpt<ImmHashTag>()) {
+            ImmSubnodeGroup::TrackedHashtag rt;
+            // <<hashtag_track_set_minimization>>
+            // hashtag group tracking will only search for a fully
+            // resolved paths. So tag like `#parent##nested1` would only have one
+            // target: subtree that defines the full `#parent##nested1` node.
+            // `#parent` target itself is not tracked directly and not resolved
+            // as a group target since there can be many different trees
+            // that define something like `#parent##XXXX`, and placing all of them to the target
+            // map is not useful.
+            for (auto const& flat : tag->value().text.getFlatHashes(false)) {
+                if (auto target = ctx->currentTrack->hashtagDefinitions.get(flat)) {
+                    rt.targets.insert_or_assign(flat, target.value());
+                }
+            }
+
+            if (rt.targets.empty()) {
+                result.push_back(ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+            } else {
+                rt.tag = it;
+                result.push_back(ImmSubnodeGroup{rt});
+            }
+
+        } else {
+            result.push_back(ImmSubnodeGroup{ImmSubnodeGroup::Single{.node = it}});
+        }
+    }
+
+
+    {
+        OP_TRACER_MESSAGE_SCOPE(ctx, "Final result grouping");
+        for (auto const& it : result) { OP_TRACER_MESSAGE(ctx, "Final {}", it); }
+    }
+
+    int totalNodes = 0;
+    for (auto const& it : result) {
+        std::visit(
+            overloaded{
+                [&](ImmSubnodeGroup::RadioTarget const& t) {
+                    totalNodes += t.nodes.size();
+                },
+                [&](ImmSubnodeGroup::Single const&) { totalNodes += 1; },
+                [&](ImmSubnodeGroup::TrackedHashtag const&) { totalNodes += 1; },
+            },
+            it.data);
+    }
+
+    LOGIC_ASSERTION_CHECK_FMT(
+        totalNodes == sub.size(),
+        "Missing nodes from result {}",
+        _dfmt_expr(totalNodes, sub.size()));
+
+
+    return result;
+}
+
+std::size_t std::hash<org::imm::ImmAccessStep>::operator()(
+    org::imm::ImmAccessStep const& it) const noexcept {
+    hstd::AnyHasher<hstd::Str> hasher;
+    std::size_t                result = 0;
+    hstd::hax_hash_combine(result, it.getKind());
+    using K = org::imm::ImmAccessStep::Kind;
+    switch (it.getKind()) {
+        case K::Index: hstd::hax_hash_combine(result, it.getIndex().index); break;
+        case K::FieldName: hstd::hax_hash_combine(result, it.getFieldName().name); break;
+        case K::AnyKey: hstd::hax_hash_combine(result, hasher(it.getAnyKey().key)); break;
+        case K::Deref: break;
+    }
+
+    return result;
+}
+
+std::size_t std::hash<org::imm::ImmSubnodeAccessStep>::operator()(
+    org::imm::ImmSubnodeAccessStep const& step) const noexcept {
+    hstd::AnyHasher<hstd::Str> hasher;
+    std::size_t                result = 0;
+    for (int i = 0; i < step.path.path.size(); ++i) {
+        org::imm::ImmAccessStep const& it = step.path.path.at(i);
+        hstd::hax_hash_combine(result, i);
+        hstd::hax_hash_combine(result, it);
+    }
+    return result;
+}
+
+std::size_t std::hash<org::imm::ImmTreeAccessPath>::operator()(
+    org::imm::ImmTreeAccessPath const& it) const noexcept {
+    std::size_t result = 0;
+    hstd::hax_hash_combine(result, it.root);
+    hstd::hax_hash_combine(result, it.path);
+    return result;
+}

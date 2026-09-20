@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+import sys
+from pathlib import Path
+
+hook_path = Path(__file__).resolve()
+module_path = hook_path.parents[2]
+sys.path.insert(0, str(module_path))
+
+from repo_py_validate.validate_commit_message import SCOPES, TYPES
+
+if 2 < len(sys.argv) and sys.argv[2] == "commit":
+    sys.exit(0)
+
+msg_path = Path(sys.argv[1])
+content = msg_path.read_text() if msg_path.exists() else ""
+
+# Check if our help block is already present in the message
+marker = "# <type>(<scope>): <subject>"
+if marker in content:
+    sys.exit(0)
+
+lines = ["", "", marker, "#", "# Available types:"]
+for name, desc in TYPES.items():
+    lines.append(f"#   {name:<10} {desc}")
+lines.extend(["#", "# Available scopes:"])
+for name, desc in SCOPES.items():
+    lines.append(f"#   {name:<10} {desc}")
+lines.extend(["#", ""])
+
+msg_path.write_text("\n".join(lines) + content)

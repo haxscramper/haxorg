@@ -1,0 +1,13 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(
+    HaxorgCppOrgLib
+    CONFIG
+    REQUIRED
+)
+
+include("${CMAKE_CURRENT_LIST_DIR}/HaxorgCHaxorgTargets.cmake")
+
+check_required_components(HaxorgCHaxorg)

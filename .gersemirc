@@ -1,0 +1,3 @@
+definitions: [./hstd_cpp_lib/cmake/functions_setup.cmake, ./hstd_cpp_lib/cmake/functions_aux.cmake]
+line_length: 90
+list_expansion: favour-expansion

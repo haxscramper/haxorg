@@ -4,14 +4,14 @@ import ast
 import copy
 import logging
 import os
-from pathlib import Path
 import subprocess
 import sys
 import time
 import warnings
+from pathlib import Path
 
+import pytest
 from _pytest.config import Config
-from _pytest.config.argparsing import Parser
 from _pytest.main import Session
 from _pytest.nodes import Item
 from _pytest.python import Module
@@ -21,11 +21,9 @@ from beartype import beartype
 from beartype.typing import Any, Generator, List, Optional
 from conf_gtest import GTestFile  # type: ignore
 from conf_test_common import summarize_cookies  # type: ignore
-from plumbum import local
 from py_scriptutils.repo_files import get_haxorg_build_path
 from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 from py_scriptutils.tracer import TraceCollector
-import pytest
 
 CAT = "conftest"
 
@@ -35,13 +33,13 @@ trace_collector: TraceCollector = None
 def pytest_configure(config: Any) -> None:
     "nodoc"
     for logger_name in [
-            "plumbum.local",
-            "matplotlib.font_manager",
-            "graphviz._tools",
-            "matplotlib",
-            "asyncio",
-            "git.cmd",
-            "git.util",
+        "plumbum.local",
+        "matplotlib.font_manager",
+        "graphviz._tools",
+        "matplotlib",
+        "asyncio",
+        "git.cmd",
+        "git.util",
     ]:
         logger = logging.getLogger(logger_name)
         logger.disabled = True
@@ -81,10 +79,9 @@ def check_gui_application_on_display(app_command: str, display: str) -> None:
     env["DISPLAY"] = display
 
     try:
-        process = subprocess.Popen(app_command,
-                                   env=env,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            app_command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         time.sleep(2)
         if process.poll() is not None:
             stdout, stderr = process.communicate()
@@ -199,7 +196,6 @@ def pytest_runtest_makereport(item: Item, call: CallInfo) -> Optional[pytest.Tes
 
 
 class FunctionNameExtractor(ast.NodeVisitor):
-
     def __init__(self) -> None:
         self.function_names: List[str] = []
 
@@ -216,8 +212,9 @@ def get_function_names(expression: str) -> List[str]:
     return extractor.function_names
 
 
-def pytest_collection_modifyitems(config: pytest.Config,
-                                  items: List[pytest.Item]) -> None:
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: List[pytest.Item]
+) -> None:
     try:
         filter = config.getoption("--markfilter")
         debug = config.getoption("--markfilter-debug")
@@ -256,38 +253,44 @@ def pytest_collection_modifyitems(config: pytest.Config,
                 """
                 dbg(f"    > has_params {mark.name}({mark.args}, {mark.kwargs})")
                 if len(mark.args) < len(args):
-                    dbg(f"    > len(mark.args = {len(mark.args)}) < len(args = {len(args)})"
-                       )
+                    dbg(
+                        f"    > len(mark.args = {len(mark.args)}) < len(args = {len(args)})"
+                    )
                     return False
 
                 if len(mark.kwargs) < len(mark.kwargs):
-                    dbg(f"    > len(mark.kwargs = {len(mark.kwargs)}) < len(kwargs = {len(kwargs)})"
-                       )
+                    dbg(
+                        f"    > len(mark.kwargs = {len(mark.kwargs)}) < len(kwargs = {len(kwargs)})"
+                    )
                     return False
 
                 for idx, positional in enumerate(args):
                     if positional != mark.args[idx]:
-                        dbg(f"    > (args[{idx}] = {positional}) != (mark.args[{idx}] = {mark.args[idx]})"
-                           )
+                        dbg(
+                            f"    > (args[{idx}] = {positional}) != (mark.args[{idx}] = {mark.args[idx]})"
+                        )
                         return False
 
                 for key, value in kwargs.items():
                     if key not in mark.kwargs or mark.kwargs[key] != value:
-                        dbg(f"    > (kwargs[{key}] = {value}) != (mark.kwargs[{key}] = {mark.kwargs[key]})"
-                           )
+                        dbg(
+                            f"    > (kwargs[{key}] = {value}) != (mark.kwargs[{key}] = {mark.kwargs[key]})"
+                        )
                         return False
 
                 return True
 
             def has_marker_impl(name: str, *args: list, **kwargs: dict) -> bool:
-                dbg(f"    > has_marker_name({name}) in {[mark.name for mark in item.iter_markers()]}"
-                   )
+                dbg(
+                    f"    > has_marker_name({name}) in {[mark.name for mark in item.iter_markers()]}"
+                )
                 return any(
                     has_params(mark, *args, **kwargs)
                     for mark in item.iter_markers()
-                    if mark.name == name)
+                    if mark.name == name
+                )
 
-            class HasMarker():
+            class HasMarker:
                 """
                 Implementation function wrapper to hold the copy of `name` context
                 from the for loop.
@@ -338,8 +341,8 @@ def pytest_collection_modifyitems(config: pytest.Config,
 
 
 def get_test_dir(
-        request: pytest.FixtureRequest,
-        test_dir_root: Path = Path("/tmp/haxorg/test_out"),
+    request: pytest.FixtureRequest,
+    test_dir_root: Path = Path("/tmp/haxorg/test_out"),
 ) -> Path:
     import hashlib
     from pathlib import Path
@@ -412,9 +415,11 @@ def stable_unique_test_name(request: pytest.FixtureRequest) -> str:
 @pytest.fixture
 def cached_test_dir(request: pytest.FixtureRequest) -> Path:
     import platformdirs
+
     return get_test_dir(
         request,
-        Path(platformdirs.user_cache_dir("haxorg_test")).joinpath("py_test_cache"))
+        Path(platformdirs.user_cache_dir("haxorg_test")).joinpath("py_test_cache"),
+    )
 
 
 @pytest.fixture
@@ -438,8 +443,13 @@ continue
         script_path.write_text(lldb_script_content)
 
         pytest_cmd = [
-            sys.executable, "-m", "pytest", f"{test_path}::{test_name}", "-v", "-s",
-            "--tb=line"
+            sys.executable,
+            "-m",
+            "pytest",
+            f"{test_path}::{test_name}",
+            "-v",
+            "-s",
+            "--tb=line",
         ]
 
         lldb_cmd = ["lldb", "--source", str(script_path), "--"] + pytest_cmd

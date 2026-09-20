@@ -1,0 +1,62 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(
+    hstd
+    CONFIG
+    REQUIRED
+)
+find_dependency(
+    HstdCppTextLayout
+    CONFIG
+    REQUIRED
+)
+find_dependency(
+    range-v3
+    CONFIG
+    REQUIRED
+)
+find_dependency(
+    nlohmann_json
+    CONFIG
+    REQUIRED
+)
+find_dependency(
+    lexy
+    CONFIG
+    REQUIRED
+)
+find_dependency(
+    Immer
+    CONFIG
+    REQUIRED
+)
+
+if(@HAXORG_WITH_PROTOBUF@)
+    find_dependency(
+        protobuf
+        CONFIG
+        REQUIRED
+    )
+endif()
+
+if(@HAXORG_WITH_PROTOVALIDATE@)
+    find_dependency(
+        protovalidate_cc
+        CONFIG
+        REQUIRED
+    )
+endif()
+
+if(@HAXORG_WITH_PERFETTO@)
+    find_dependency(
+        Perfetto
+        CONFIG
+        REQUIRED
+    )
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/HaxorgCppOrgLibTargets.cmake")
+
+check_required_components(HaxorgCppOrgLib)

@@ -1,0 +1,989 @@
+#pragma once
+
+#if ORG_BUILD_WITH_CGRAPH
+#    include <google/protobuf/descriptor.h>
+#    include <google/protobuf/message.h>
+#    include <graphviz/cgraph.h>
+#    include <graphviz/gvc.h>
+#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
+#    include <hstd_cpp_lib/graph/graph_base.hpp>
+#    include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#    include <hstd_cpp_lib/stdlib/Func.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#    include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#    include <hstd_cpp_lib/stdlib/serde/Xml.hpp>
+#    include <hstd_cpp_lib/system/all.hpp>
+#    include <hstd_cpp_lib/system/generator.hpp>
+#    include <hstd_cpp_lib/system/reflection.hpp>
+#    include <src/hstd/ext/graph/base/graph_base.pb.h>
+#    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
+#    include <stdexcept>
+#    include <string>
+
+#    define _attr_aligned(__Class, Method, key, Type)                                    \
+        __Class* set##Method(Type const& value, TextAlign direction = TextAlign::Left) { \
+            setAttr(#key, value, direction);                                             \
+            return this;                                                                 \
+        }                                                                                \
+                                                                                         \
+        Opt<Type> get##Method() const {                                                  \
+            Opt<Type> value;                                                             \
+            getAttr(#key, value);                                                        \
+            return value;                                                                \
+        }
+
+#    define _attr(__Class, Method, key, Type)                                            \
+        __Class* set##Method(Type const& value) {                                        \
+            setAttr(#key, value);                                                        \
+            return this;                                                                 \
+        }                                                                                \
+                                                                                         \
+        Opt<Type> get##Method() const {                                                  \
+            Opt<Type> value;                                                             \
+            getAttr(#key, value);                                                        \
+            return value;                                                                \
+        }
+
+#    define _attrx(__Class, Method, key, Type) __Class* set##Method(Type const& value);
+
+
+#    define _eattr_use(__Class, Name, key, Type)                                         \
+        __Class* set##Name(Type value) {                                                 \
+            setAttr(#key, enum_serde<Type>::to_string(value));                           \
+            return this;                                                                 \
+        }                                                                                \
+        Opt<Type> get##Name() const {                                                    \
+            Opt<Str> result;                                                             \
+            getAttr(#key, result);                                                       \
+            if (result) {                                                                \
+                return enum_serde<Type>::from_string(result.value());                    \
+            } else {                                                                     \
+                return std::nullopt;                                                     \
+            }                                                                            \
+        }
+
+
+#    define _eattr(__Class, Name, key, ...)                                              \
+        DECL_DESCRIBED_ENUM(Name, __VA_ARGS__);                                          \
+        _eattr_use(__Class, Name, key);
+
+
+namespace hstd::ext::graph::gv {
+
+// TODO: update for newer Graphviz where `dpi` can be set — if you ever set the `dpi`
+// graph attribute, the 72 constant must come from `GD_drawing(graph)->dpi`. Also verify
+// the scaling usage in the other code, it is inconsistent, changing it to anything other
+// to 72 causes the node sizes to scale appropriately, but positions drift randomly.
+static constexpr double scaling = 72.0f;
+
+
+struct GvInchTag {
+    constexpr static bool is_tagged_geometry_tag = true;
+};
+
+struct GvPointTag {
+    constexpr static bool is_tagged_geometry_tag = true;
+};
+
+using GvInchRect     = geometry::tagged::TaggedRect<GvInchTag>;
+using GvPointRect    = geometry::tagged::TaggedRect<GvPointTag>;
+using GvInchScalar   = geometry::tagged::TaggedScalar<GvInchTag>;
+using GvPointScalar  = geometry::tagged::TaggedScalar<GvPointTag>;
+using GvInchPadding  = geometry::tagged::TaggedPadding<GvInchTag>;
+using GvPointPadding = geometry::tagged::TaggedPadding<GvPointTag>;
+using GvInchPoint    = geometry::tagged::TaggedPoint<GvInchTag>;
+using GvPointPoint   = geometry::tagged::TaggedPoint<GvPointTag>;
+using GvInchPath     = geometry::tagged::TaggedPath<GvInchTag>;
+using GvPointPath    = geometry::tagged::TaggedPath<GvPointTag>;
+using GvInchPolygon  = geometry::tagged::TaggedPolygon<GvInchTag>;
+using GvPointPolygon = geometry::tagged::TaggedPolygon<GvPointTag>;
+using GvInchSize     = geometry::tagged::TaggedSize<GvInchTag>;
+using GvPointSize    = geometry::tagged::TaggedSize<GvPointTag>;
+
+} // namespace hstd::ext::graph::gv
+
+namespace hstd::ext::geometry::tagged {
+template <>
+struct TaggedValueConverter</*SourceTag=*/graph::gv::GvInchTag,
+                            /*TargetTag=*/graph::gv::GvPointTag>
+    : public TaggedValueConverterBase<graph::gv::GvInchTag, graph::gv::GvPointTag> {
+    using TaggedValueConverterBase<graph::gv::GvInchTag, graph::gv::GvPointTag>::convert;
+    static graph::gv::GvPointScalar convert(graph::gv::GvInchScalar const& s) {
+        return graph::gv::GvPointScalar{s.getUnsizedValue() * graph::gv::scaling};
+    }
+};
+
+template <>
+struct TaggedValueConverter</*SourceTag=*/graph::gv::GvPointTag,
+                            /*TargetTag=*/graph::gv::GvInchTag>
+    : public TaggedValueConverterBase<graph::gv::GvPointTag, graph::gv::GvInchTag> {
+    using TaggedValueConverterBase<graph::gv::GvPointTag, graph::gv::GvInchTag>::convert;
+    static graph::gv::GvInchScalar convert(graph::gv::GvPointScalar const& s) {
+        return graph::gv::GvInchScalar{s.getUnsizedValue() / graph::gv::scaling};
+    }
+};
+
+} // namespace hstd::ext::geometry::tagged
+
+namespace hstd::ext::graph::gv {
+
+
+struct UserDataBase {
+    Agrec_t header;
+};
+
+DECL_DESCRIBED_ENUM_STANDALONE(TextAlign, Left, Center, Right);
+
+/// \brief `circo dot fdp neato nop nop1 nop2 osage patchwork sfdp twopi`
+/// matching official lowercase names for the graphviz.
+enum class LayoutType : hstd::u8
+{
+    dot,   /// Hierarchical layout
+    neato, /// Spring model layout
+    fdp,   /// Force-directed layout
+    sfdp,  /// Multiscale version of Fdp for large graphs
+    twopi, /// Radial layout
+    circo, /// Circular layout
+    osage,
+    patchwork, /// Patchwork, squarified treemap layout
+};
+
+BOOST_DESCRIBE_ENUM(LayoutType, dot, neato, fdp, sfdp, twopi, circo);
+
+enum class RenderFormat : hstd::u8
+{
+    PNG,  /// Portable Network Graphics format
+    PDF,  /// Portable Document Format
+    SVG,  /// Scalable Vector Graphics format
+    PS,   /// PostScript format
+    JPEG, /// Joint Photographic Experts Group format
+    GIF,  /// Graphics Interchange Format
+    TIF,  /// Tagged Image File Format
+    BMP,  /// Windows Bitmap format
+    XDOT, /// Extended dot format
+    DOT,  /// Write original DOT file
+};
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    Style,
+    solid,
+    dashed,
+    dotted,
+    bold,
+    invis,
+    tapered,
+    filled,
+    striped,
+    wedged,
+    diagonals,
+    rounded);
+
+DECL_DESCRIBED_ENUM_STANDALONE(NodeArrowSize, tiny, small, normal, large, huge);
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    NodeArrowType,
+    normal,
+    inv,
+    dot,
+    odot,
+    none,
+    tee,
+    empty,
+    invempty,
+    diamond,
+    odiamond,
+    ediamond,
+    open,
+    halfopen,
+    vee,
+    invvee,
+    box,
+    obox,
+    crow,
+    invcrow,
+    curve,
+    icurve,
+    lace,
+    ilace);
+
+DECL_DESCRIBED_ENUM_STANDALONE(EdgeDir, forward, back, both, none);
+DECL_DESCRIBED_ENUM_STANDALONE(Rank, none, same, source, sink);
+DECL_DESCRIBED_ENUM_STANDALONE(RankDirection, LR, TB, BT, RL);
+DECL_DESCRIBED_ENUM_STANDALONE(Splines, Ortho, Polyline, Curved);
+
+DECL_DESCRIBED_ENUM_STANDALONE(
+    NodeShape,
+    box,
+    polygon,
+    ellipse,
+    oval,
+    circle,
+    point,
+    egg,
+    triangle,
+    plaintext,
+    plain,
+    diamond,
+    trapezium,
+    parallelogram,
+    house,
+    pentagon,
+    hexagon,
+    septagon,
+    octagon,
+    doublecircle,
+    doubleoctagon,
+    tripleoctagon,
+    invtriangle,
+    invtrapezium,
+    invhouse,
+    Mdiamond,
+    Msquare,
+    Mcircle,
+    rect,
+    rectangle,
+    square,
+    star,
+    none,
+    underline,
+    cylinder,
+    note,
+    tab,
+    folder,
+    box3d,
+    component,
+    promoter,
+    cds,
+    terminator,
+    utr,
+    primersite,
+    restrictionsite,
+    fivepoverhang,
+    threepoverhang,
+    noverhang,
+    assembly,
+    signature,
+    insulator,
+    ribosite,
+    record,
+    rnastab,
+    proteasesite,
+    proteinstab,
+    rpromoter,
+    rarrow,
+    larrow,
+    lpromoter);
+
+
+#    define _GV_NODE_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)      \
+        __eattr_use_impl(NodeAttribute, NodeShape, shape, gv::NodeShape);                \
+        __eattr_use_impl(NodeAttribute, NodeArrowSize, arrowsize, gv::NodeArrowSize);    \
+        __eattr_use_impl(NodeAttribute, Style, style, gv::Style);                        \
+        __attr_impl(NodeAttribute, PenWidth, penwidth, double);                          \
+        __attr_impl(NodeAttribute, Color, color, Str);                                   \
+        __attr_impl(NodeAttribute, FillColor, fillcolor, Str);                           \
+        __attr_impl(NodeAttribute, FontColor, fontcolor, Str);                           \
+        __attr_impl(NodeAttribute, FontName, fontname, Str);                             \
+        __attr_impl(NodeAttribute, FontSize, fontsize, double);                          \
+        __attr_impl(NodeAttribute, Height, height, hstd::ext::graph::gv::GvInchScalar);  \
+        __attr_aligned_impl(NodeAttribute, Label, label, Str);                           \
+        __attr_impl(NodeAttribute, Position, pos, geometry::Point);                      \
+        __attr_impl(NodeAttribute, URL, URL, Str);                                       \
+        __attr_impl(NodeAttribute, Width, width, hstd::ext::graph::gv::GvInchScalar);    \
+        __attr_aligned_impl(NodeAttribute, XLabel, xlabel, Str);                         \
+        __attr_impl(NodeAttribute, XLabelPosition, xlabelpos, geometry::Point);          \
+        __attr_impl(NodeAttribute, Margin, margin, geometry::Point);
+
+#    define _GV_EDGE_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)      \
+        __attr_impl(EdgeAttribute, Constraint, constraint, bool);                        \
+        __attr_impl(EdgeAttribute, Color, color, Str /*Str*/);                           \
+        __eattr_use_impl(EdgeAttribute, EdgeDir, dir, gv::EdgeDir);                      \
+        __attr_impl(EdgeAttribute, FontColor, fontcolor, Str /*Str*/);                   \
+        __attr_impl(EdgeAttribute, FontName, fontname, Str);                             \
+        __attr_impl(EdgeAttribute, FontSize, fontsize, double);                          \
+        __attr_aligned_impl(EdgeAttribute, Label, label, Str);                           \
+        __attr_impl(EdgeAttribute, LabelPosition, lp, geometry::Point);                  \
+        __attr_impl(EdgeAttribute, PenWidth, penwidth, double);                          \
+        __eattr_use_impl(EdgeAttribute, Style, style, gv::Style);                        \
+        __attr_impl(EdgeAttribute, URL, URL, Str);                                       \
+        __attr_impl(EdgeAttribute, LHead, lhead, Str);                                   \
+        __attr_impl(EdgeAttribute, LTail, ltail, Str);
+
+#    define _GV_LAYOUTS(...) (IntSet<LayoutType>{__VA_ARGS__})
+
+#    define _GV_ALL_LAYOUTS                                                              \
+        _GV_LAYOUTS(                                                                     \
+            LayoutType::dot,                                                             \
+            LayoutType::neato,                                                           \
+            LayoutType::fdp,                                                             \
+            LayoutType::sfdp,                                                            \
+            LayoutType::twopi,                                                           \
+            LayoutType::circo,                                                           \
+            LayoutType::patchwork)
+
+/// \brief Iterate over all layout specific attributes.
+#    define _GV_GRAPH_ATTRIBUTES(__attr_impl, __eattr_use_impl, __attr_aligned_impl)     \
+        __eattr_use_impl(                                                                \
+            GraphGroup,                                                                  \
+            RankDirection,                                                               \
+            rankdir,                                                                     \
+            gv::RankDirection,                                                           \
+            _GV_LAYOUTS(LayoutType::dot));                                               \
+        __eattr_use_impl(                                                                \
+            GraphGroup, Rank, rank, gv::Rank, _GV_LAYOUTS(LayoutType::dot));             \
+        __attr_impl(                                                                     \
+            GraphGroup, Damping, Damping, double, _GV_LAYOUTS(LayoutType::neato));       \
+        __attr_impl(                                                                     \
+            GraphGroup, K, K, double, _GV_LAYOUTS(LayoutType::fdp, LayoutType::sfdp));   \
+        __attr_impl(GraphGroup, URL, URL, Str, _GV_ALL_LAYOUTS);                         \
+        __attr_impl(                                                                     \
+            GraphGroup, AspectRatio, aspect, double, _GV_LAYOUTS(LayoutType::dot));      \
+        __attr_impl(GraphGroup, BackgroundColor, bgcolor, Str, _GV_ALL_LAYOUTS);         \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            DefaultDistance,                                                             \
+            defaultdist,                                                                 \
+            double,                                                                      \
+            _GV_LAYOUTS(LayoutType::neato));                                             \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            Root,                                                                        \
+            root,                                                                        \
+            Str,                                                                         \
+            _GV_LAYOUTS(LayoutType::circo, LayoutType::twopi));                          \
+        __attr_impl(                                                                     \
+            GraphGroup, DefaultNodeColor, defaultNodeColor, Str, _GV_ALL_LAYOUTS);       \
+        __attr_impl(                                                                     \
+            GraphGroup, DefaultEdgeColor, defaultEdgeColor, Str, _GV_ALL_LAYOUTS);       \
+        __attr_impl(GraphGroup, FontColor, fontcolor, Str, _GV_ALL_LAYOUTS);             \
+        __attr_impl(GraphGroup, Color, color, Str, _GV_ALL_LAYOUTS);                     \
+        __attr_impl(GraphGroup, PenWidth, penwidth, double, _GV_ALL_LAYOUTS);            \
+        __attr_impl(GraphGroup, FillColor, fillcolor, Str, _GV_ALL_LAYOUTS);             \
+        __eattr_use_impl(GraphGroup, Style, style, gv::Style, _GV_ALL_LAYOUTS);          \
+        __attr_impl(GraphGroup, FontName, fontname, Str, _GV_ALL_LAYOUTS);               \
+        __attr_impl(GraphGroup, FontSize, fontsize, double, _GV_ALL_LAYOUTS);            \
+        __attr_aligned_impl(GraphGroup, Label, label, Str, _GV_ALL_LAYOUTS);             \
+        __attr_aligned_impl(GraphGroup, LabelURL, labelURL, Str, _GV_ALL_LAYOUTS);       \
+        __attr_impl(GraphGroup, LabelJustification, labeljust, Str, _GV_ALL_LAYOUTS);    \
+        __attr_impl(GraphGroup, LabelLocator, labelloc, Str, _GV_ALL_LAYOUTS);           \
+        __attr_impl(GraphGroup, LayerListSeparator, layersep, Str, _GV_ALL_LAYOUTS);     \
+        __attr_impl(GraphGroup, Layers, layers, Str, _GV_ALL_LAYOUTS);                   \
+        __attr_impl(GraphGroup, Margin, margin, geometry::Point, _GV_ALL_LAYOUTS);       \
+        __attr_impl(GraphGroup, Pad, pad, geometry::Point, _GV_ALL_LAYOUTS);             \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            NodeSeparation,                                                              \
+            nodesep,                                                                     \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
+            _GV_LAYOUTS(LayoutType::dot));                                               \
+        __attr_impl(GraphGroup, OutputOrder, outputorder, Str, _GV_ALL_LAYOUTS);         \
+        __attr_impl(GraphGroup, PageDirection, pagedir, Str, _GV_ALL_LAYOUTS);           \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            PageHeight,                                                                  \
+            pageheight,                                                                  \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
+            _GV_ALL_LAYOUTS);                                                            \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            PageWidth,                                                                   \
+            pagewidth,                                                                   \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
+            _GV_ALL_LAYOUTS);                                                            \
+        __attr_impl(GraphGroup, Quantum, quantum, double, _GV_LAYOUTS(LayoutType::dot)); \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            RankSeparation,                                                              \
+            ranksep,                                                                     \
+            hstd::ext::graph::gv::GvInchScalar,                                          \
+            _GV_LAYOUTS(LayoutType::dot, LayoutType::twopi));                            \
+        __attr_impl(GraphGroup, Resolution, resolution, double, _GV_ALL_LAYOUTS);        \
+        __attr_impl(                                                                     \
+            GraphGroup, SearchSize, searchsize, int, _GV_LAYOUTS(LayoutType::dot));      \
+        __attr_impl(GraphGroup, Size, size, geometry::Point, _GV_ALL_LAYOUTS);           \
+        __attr_impl(                                                                     \
+            GraphGroup,                                                                  \
+            Spline,                                                                      \
+            splines,                                                                     \
+            Str,                                                                         \
+            _GV_LAYOUTS(                                                                 \
+                LayoutType::dot,                                                         \
+                LayoutType::neato,                                                       \
+                LayoutType::fdp,                                                         \
+                LayoutType::sfdp,                                                        \
+                LayoutType::twopi,                                                       \
+                LayoutType::circo));                                                     \
+        __attr_impl(GraphGroup, StyleSheet, stylesheet, Str, _GV_ALL_LAYOUTS);           \
+        __attr_impl(GraphGroup, TrueColor, truecolor, bool, _GV_ALL_LAYOUTS);            \
+        __attr_impl(GraphGroup, ViewPort, viewport, geometry::Point, _GV_ALL_LAYOUTS);   \
+        __attr_impl(GraphGroup, Compound, compound, bool, _GV_LAYOUTS(LayoutType::dot)); \
+        __attr_impl(                                                                     \
+            GraphGroup, Concentrate, concentrate, bool, _GV_LAYOUTS(LayoutType::dot));
+
+
+Str alignText(Str const& text, TextAlign direction);
+
+std::string escapeHtmlForGraphviz(
+    std::string const& input,
+    TextAlign          direction = TextAlign::Left);
+
+Str escape(Str const& input);
+
+Str escapeHtml(Str const& input);
+
+Str layoutTypeToString(LayoutType layoutType);
+Str renderFormatToString(RenderFormat renderFormat);
+
+
+template <typename T>
+struct GraphvizObjBase : CRTP_this_method<T> {
+    using CRTP_this_method<T>::_this;
+
+    /// \brief graphviz allows binding arbitrary objects to the graph
+    /// elements: this method can be used to store some additional payload
+    /// that cannot be serialized to the simple string attributes.
+    template <typename Rec, typename... Args>
+    Rec* bindPayload(Str const& name, Args&&... args) {
+        Rec* result = (Rec*)agbindrec(
+            _this()->get(), strdup(name.c_str()), sizeof(Rec), false);
+        if (result != nullptr) {
+            result = new (result) Rec(std::forward<Args>(args)...);
+            return result;
+        } else {
+            return nullptr;
+        }
+    }
+
+    template <typename Rec>
+    Rec* getPayload(Str const& name) {
+        return (Rec*)aggetrec(_this()->get(), strdup(name.c_str()), false);
+    }
+
+    void delPayload(Str const& name);
+
+    Func<void(Str const&, Str const&)> setOverride;
+
+    void setAttr(Str const& attribute, Str const& value, TextAlign direction) {
+        setAttr(attribute, alignText(value, direction));
+    }
+
+    template <typename AttrType>
+    Opt<AttrType> getAttr(Str const& attribute) const {
+        Opt<AttrType> res;
+        getAttr(attribute, res);
+        return res;
+    }
+
+    bool hasAttr(Str const& attribute);
+
+    void getAttr(Str const& attribute, Opt<Str>& value) const;
+    void getAttr(Str const& key, Opt<int>& value) const;
+    void getAttr(Str const& key, Opt<hstd::u64>& value) const;
+    void getAttr(Str const& key, Opt<double>& value) const;
+    void getAttr(Str const& key, Opt<gv::GvInchScalar>& value) const {
+        hstd::Opt<double> res;
+        getAttr(key, res);
+        if (res) { value = gv::GvInchScalar{res.value()}; }
+    }
+    void getAttr(Str const& key, Opt<bool>& value) const;
+    void getAttr(Str const& key, Opt<geometry::Point>& value) const;
+
+    void setHtmlAttr(Str attribute, Str const& value);
+
+    void setAttr(Str attribute, Str const& value);
+    void setAttr(Str const& key, int value);
+    void setAttr(Str const& key, hstd::u64 value);
+    void setAttr(Str const& key, geometry::Point value);
+    void setAttr(Str const& key, double value);
+    void setAttr(Str const& key, gv::GvInchScalar value) {
+        setAttr(key, value.getUnsizedValue());
+    }
+    void setAttr(Str const& key, bool value);
+
+    Agobj_s*       obj() { return (Agobj_s*)(_this()->get()); }
+    Agobj_s const* obj() const { return (Agobj_s const*)(_this()->get()); }
+    Agtag_s const& tag() const { return obj()->tag; }
+
+    bool isAgraph() const { return tag().objtype == AGRAPH; }
+    bool isAgnode() const { return tag().objtype == AGNODE; }
+    bool isAgOutEdge() const { return tag().objtype == AGOUTEDGE; }
+    bool isAgInEdge() const { return tag().objtype == AGINEDGE; }
+};
+
+
+/// \brief Structured representation of the graphviz 'record' node type.
+struct Record {
+    Opt<Str>                                     tag;
+    Variant<Str, Vec<Record>>                    content;
+    std::unordered_map<std::string, std::string> htmlAttrs;
+
+    DESC_FIELDS(Record, (tag, content, htmlAttrs));
+
+    /// \brief Export the record content into a HTML table and attempt to
+    /// detect the simple patterns (2d grid of elements) to result in a
+    /// better alignment of the content.
+    XmlNode toHtml(bool horizontal = true) const;
+
+    Record() {}
+    Record(Str const& content, Opt<Str> const& tag = std::nullopt)
+        : content(content), tag(tag) {}
+
+    Record(Vec<Record> const& sub) : content(sub) {}
+
+    void push_back(Vec<Str> const& cells) {
+        Vec<Record> row;
+        for (const auto& it : cells) { row.push_back(it); }
+        getNested().push_back(Record(row));
+    }
+
+    void push_back(Record const& rec) { getNested().push_back(rec); }
+
+    bool isFinal() const { return std::holds_alternative<Str>(content); }
+
+    /// \brief Treat the record as a key-value table, with the first column
+    /// used as a key and the second one used as a value.
+    void set(Str const& columnKey, Record const& value);
+    void setEscaped(Str const& columnKey, Str const& value) {
+        set(columnKey, fromEscapedText(value));
+    }
+
+    void setHtml(Str const& columnKey, Str const& value) {
+        set(columnKey, fromHtmlText(value));
+    }
+
+    bool               isRecord() const { return !isFinal(); }
+    Str&               getLabel() { return std::get<Str>(content); }
+    Str const&         getLabel() const { return std::get<Str>(content); }
+    Vec<Record>&       getNested() { return std::get<1>(content); }
+    Vec<Record> const& getNested() const { return std::get<1>(content); }
+
+
+    static Record fromEscapedText(Str const& text, TextAlign align = TextAlign::Left);
+
+    static Record fromHtmlText(Str const& text) { return Record{text}; }
+
+    static Record fromRow(Vec<Record> const& recs);
+
+    static Record fromEscapedTextRow(Vec<Str> const& cells);
+
+    void add(Record const& rec) { getNested().push_back(rec); }
+    void addHtml(Str const& html) { getLabel().append(html); }
+    void addEscaped(Str const& text, TextAlign align = TextAlign::Left) {
+        getLabel().append(escapeHtmlForGraphviz(text.toBase(), align));
+    }
+
+    Record& htmlAttr(std::string const& key, std::string const& value) {
+        htmlAttrs.insert_or_assign(key, value);
+        return *this;
+    }
+
+    Str toString(bool braceCount = 1) const;
+};
+
+class NodeAttribute
+    : public GraphvizObjBase<NodeAttribute>
+    , public layout::IVertexVisualAttribute {
+  public:
+    static const int graphvizKind = AGNODE;
+
+
+    _GV_NODE_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
+
+    void setNodeRecord(Record const& rec, int braceCount = 1) {
+        setLabel(rec.toString(braceCount));
+    }
+
+    void setHtmlNodeRecord(Record const& rec) {
+        setHtmlAttr("label", rec.toHtml().to_string());
+    }
+
+    Record* getNodeRecord() { return getPayload<Record>("record"); }
+
+    NodeAttribute(Agraph_t* graph, Str const& name, Record const& record);
+
+    NodeAttribute(Agraph_t* graph, Agnode_t* node_) : node(node_), graph(graph) {}
+
+    NodeAttribute(Agraph_t* graph, Str const& name);
+    NodeAttribute(NodeAttribute const& other) = default;
+
+    Agnode_t*       get() { return node; }
+    Agnode_t const* get() const { return node; }
+
+    Str name() const { return agnameof(node); }
+
+    std::string getRepr() const override { return getPropertiesAsString(); }
+
+    std::string getPropertiesAsString() const;
+
+    NodeAttribute* setInchWidth(double inches) {
+        setAttr("width", inches);
+        setAttr("fixedsize", true);
+        return this;
+    }
+
+    NodeAttribute* setPointWidth(double points) {
+        setInchWidth(points / scaling);
+        return this;
+    }
+
+    GvInchScalar getInchWidth() const {
+        hstd::Opt<double> result = 0;
+        getAttr("width", result);
+        return GvInchScalar{result.value()};
+    }
+
+    GvPointScalar getPointWidth() const {
+        return getInchWidth().toOtherTag<GvPointTag>();
+    }
+
+    NodeAttribute* setInchHeight(double inches) {
+        setAttr("height", inches);
+        setAttr("fixedsize", true);
+        return this;
+    }
+
+    NodeAttribute* setPointHeight(double points) {
+        setInchHeight(points / scaling);
+        return this;
+    }
+
+    gv::GvInchScalar getInchHeight() const {
+        hstd::Opt<double> result = 0;
+        getAttr("height", result);
+        return gv::GvInchScalar{result.value()};
+    }
+
+    gv::GvPointScalar getPointHeight() const {
+        return getInchHeight().toOtherTag<GvPointTag>();
+    }
+
+    Agnodeinfo_t*       info() { return (Agnodeinfo_t*)AGDATA(node); }
+    Agnodeinfo_t const* info() const { return (Agnodeinfo_t*)AGDATA(node); }
+
+    NodeAttribute* setFixedInchesWH(GvInchScalar w, GvInchScalar h);
+    NodeAttribute* setFixedPointWH(GvPointScalar w, GvPointScalar h) {
+        return setFixedInchesWH(w.toOtherTag<GvInchTag>(), h.toOtherTag<GvInchTag>());
+    }
+
+    NodeAttribute* setWH(gv::GvPointSize const& size) {
+        return setFixedInchesWH(
+            size.width().toOtherTag<GvInchTag>(), size.height().toOtherTag<GvInchTag>());
+    }
+
+  public:
+    Agnode_t* node;
+    Agraph_t* graph;
+
+#    if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(graph::proto::IAttribute*, IGraph const* graph) const override;
+
+    void readSerial(
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory,
+        IAttributeObject const*         vertex) override;
+#    endif
+};
+
+class EdgeAttribute
+    : public GraphvizObjBase<EdgeAttribute>
+    , public layout::IEdgeVisualAttribute {
+  public:
+    static const int graphvizKind = AGEDGE;
+    EdgeAttribute(Agraph_t* graph, Agedge_t* edge) : edge_(edge), graph(graph) {}
+
+    std::string getRepr() const override { return "gv::EdgeAttribute"; }
+
+    EdgeAttribute(Agraph_t* graph, NodeAttribute const& head, NodeAttribute const& tail);
+
+    _GV_EDGE_ATTRIBUTES(_attr, _eattr_use, _attr_aligned);
+
+    Agedge_t*       get() { return edge_; }
+    Agedge_t const* get() const { return edge_; }
+
+    std::string getPropertiesAsString() const;
+
+    NodeAttribute head() const { return NodeAttribute(graph, AGHEAD(edge_)); }
+    NodeAttribute tail() const { return NodeAttribute(graph, AGTAIL(edge_)); }
+
+    void setLHead(NodeAttribute node) { setLHead(node.name()); }
+    void setLTail(NodeAttribute node) { setLTail(node.name()); }
+
+
+    void setArrowHead(NodeArrowType type) {
+        setAttr("arrowhead", enum_serde<NodeArrowType>::to_string(type));
+    };
+
+    void setArrowTail(NodeArrowType type) {
+        setAttr("arrowtail", enum_serde<NodeArrowType>::to_string(type));
+    };
+
+    Agedgeinfo_t*       info() { return (Agedgeinfo_t*)AGDATA(edge_); }
+    Agedgeinfo_t const* info() const { return (Agedgeinfo_t*)AGDATA(edge_); }
+
+  public:
+    Agraph_t* graph;
+    Agedge_t* edge_;
+
+#    if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(graph::proto::IAttribute*, IGraph const* graph) const override;
+    void readSerial(
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory,
+        IAttributeObject const*         vertex) override;
+#    endif
+};
+
+class Layout;
+class GraphGroup
+    : public GraphvizObjBase<GraphGroup>
+    , public layout::IGroupVisualAttribute {
+    void initDefaultSetters();
+
+  public:
+    using Base = layout::IGroupVisualAttribute;
+
+    hstd::Opt<GvPointPadding> outerPadding;
+
+    void setOuterPadding(geometry::Padding const& pad) override {
+        outerPadding = GvPointPadding{pad};
+    }
+
+    hstd::Opt<geometry::Padding> getOuterPadding() const override {
+        if (outerPadding) {
+            return outerPadding->getUnsizedValue();
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    hstd::Opt<GvPointPadding> getSizedOuterPadding() const { return outerPadding; }
+
+    static const int graphvizKind = AGRAPH;
+
+    struct GVContext : hstd::SharedPtrApi<GVContext> {};
+
+    struct GroupContext {
+        hstd::SPtr<layout::LayoutRun> run;
+        GVContext::Ptr                context;
+        SPtr<GVC_t>                   gvc;
+    };
+
+    GraphGroup(GroupContext ctx, Str const& name, Agdesc_t desc = Agdirected);
+    GraphGroup(GroupContext ctx, fs::path const& file);
+    GraphGroup(GroupContext ctx, Agraph_t* graph);
+
+    Agraph_t*       get() { return graph; }
+    Agraph_t const* get() const { return graph; }
+
+    SPtr<GVC_t> gvc() { return ctx.gvc; }
+
+    std::string getPropertiesAsString() const;
+
+    hstd::SPtr<GraphGroup> newSubgraph(Str const& name);
+
+    void setSplines(Splines splines);
+    void eachNode(Func<void(NodeAttribute)> cb);
+    void eachEdge(Func<void(EdgeAttribute)> cb);
+    void eachSubgraph(Func<void(GraphGroup)> cb) const;
+
+    int nodeCount() { return agnnodes(graph); }
+
+    void render(
+        fs::path const& path,
+        LayoutType      layout = LayoutType::dot,
+        RenderFormat    format = RenderFormat::PNG);
+
+    /// Set default attriute value for edge
+    void setDefaultEdgeAttr(Str const& key, Str const& value) {}
+
+    NodeAttribute subNode(NodeAttribute const& node) {
+        agsubnode(graph, node.node, 1);
+        return node;
+    }
+
+    Agraphinfo_t*       info() { return (Agraphinfo_t*)AGDATA(graph); }
+    Agraphinfo_t const* info() const { return (Agraphinfo_t*)AGDATA(graph); }
+
+    /// \brief Create a new graphviz graph node and return attribute handle
+    /// for it.
+    hstd::SPtr<NodeAttribute> node(Str const& name);
+
+    /// \brief Create new edge between two existing graph nodes, return
+    /// graph edge attribute handle.
+    hstd::SPtr<EdgeAttribute> edge(NodeAttribute const& head, NodeAttribute const& tail);
+
+#    define _attr_group(__Class, Method, key, Type, __layout)                            \
+        _attr(__Class, Method, key, Type)
+
+#    define _eattr_use_group(__Class, Name, key, Type, __layout)                         \
+        _eattr_use(__Class, Name, key, Type)
+
+#    define _attr_aligned_group(__Class, Name, key, Type, __layout)                      \
+        _attr_aligned(__Class, Name, key, Type)
+
+    _GV_GRAPH_ATTRIBUTES(_attr_group, _eattr_use_group, _attr_aligned_group);
+
+    _eattr_use(GraphGroup, Layout, layout, gv::LayoutType);
+
+
+    GraphGroup* setDirectionLR() { return setRankDirection(RankDirection::LR); }
+
+    std::string getRepr() const override { return "gv::GraphGroup"; }
+
+  public:
+    Agraph_t*     graph;
+    NodeAttribute defaultNode;
+    EdgeAttribute defaultEdge;
+    GroupContext  ctx;
+
+    Str            name() const { return agnameof(graph); }
+    GVContext::Ptr context() { return ctx.context; }
+
+    hstd::SPtr<NodeAttribute> addVertex(EdgeID const& edge);
+    hstd::SPtr<EdgeAttribute> addEdge(EdgeID const& id);
+
+    /// \brief Legacy method for constructing graph group without the use
+    /// layout run. graphviz API makes it reasonably easy to generate a
+    /// quick graph visualization, without setting up the full layout run,
+    /// so this method is used as an escape hatch for cases like these.
+    static hstd::SPtr<gv::GraphGroup> newStandaloneRootGraph(hstd::Str const& name);
+
+
+    static hstd::SPtr<GraphGroup> newRootGraph(
+        hstd::SPtr<layout::LayoutRun> run,
+        hstd::Str const&              name = "");
+
+    hstd::SPtr<GraphGroup> addNewNativeSubgroup(
+        EdgeID const& edge,
+        bool          with_algorithm = false);
+
+    std::string getStableId() const override {
+        return hstd::fmt("graph-group-{}", name());
+    }
+
+#    if ORG_BUILD_WITH_PROTOBUF
+    void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
+
+    void readSerial(
+        graph::proto::IAttribute const* in,
+        IGraph const*                   graph,
+        IGraphSerialReaderFactory*      factory,
+        IAttributeObject const*         vertex) override;
+#    endif
+};
+
+class Graphviz;
+class Layout : public layout::IPlacementAlgorithm {
+  public:
+    Layout(SPtr<GVC_t> gvc, hstd::SPtr<layout::LayoutRun> run)
+        : layout::IPlacementAlgorithm{run}, gvc{gvc} {}
+    LayoutType layout = LayoutType::dot;
+
+    // FIXME: this might not be necessary, using 1 returns the correct
+    // results in tests.
+    /// \brief Which DPI to use when converting to and from graphviz sizes.
+    /// Backend-specific, 72 is the default used by graphviz.
+    [[refl]] int graphviz_size_scaling = 1;
+
+    void createLayout(GraphGroup const& graph);
+
+    void freeLayout(GraphGroup graph);
+
+    void writeFile(
+        fs::path const&   path,
+        GraphGroup const& graph,
+        RenderFormat      format = RenderFormat::DOT);
+
+    void renderToFile(
+        fs::path const&   path,
+        GraphGroup const& graph,
+        RenderFormat      format = RenderFormat::PNG);
+
+    SPtr<GVC_t> gvc;
+
+    Result runSingleLayout(VertexID const& group) override;
+};
+
+class GraphVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
+  public:
+    NodeAttribute  node;
+    GraphGroup     graph;
+    gv::GvInchRect bbox;
+
+    GraphVertexLayoutAttribute(
+        NodeAttribute const&  node,
+        GraphGroup const&     graph,
+        gv::GvInchRect const& bbox)
+        : node{node}, graph{graph}, bbox{bbox} {}
+
+    geometry::Rect getBBox() const override {
+        return bbox.toOtherTag<gv::GvPointTag>().getUnsizedValue();
+    }
+
+    std::string getRepr() const override { return node.getPropertiesAsString(); }
+
+    visual::VisGroup getVisual(VertexID const& selfId) const override;
+};
+
+
+class GraphEdgeLayoutAttribute : public layout::IEdgeLayoutAttribute {
+  public:
+    EdgeAttribute edge;
+    GraphGroup    graph;
+    /// \brief parent-group-relative
+    gv::GvInchPath path;
+    /// \brief arrowhead polygon points
+    gv::GvInchPolygon arrow;
+
+    struct GraphLabel {
+        hstd::Opt<gv::GvInchPoint>  anchor;
+        hstd::Str                   text;
+        hstd::Opt<gv::GvInchRect>   bbox;
+        visual::VisFont             font;
+        hstd::Opt<visual::VisColor> color;
+    };
+
+    /// \brief label/head_label/tail_label, graphviz point scale
+    Vec<GraphLabel> labels;
+
+    GraphEdgeLayoutAttribute(
+        EdgeAttribute const&   edge,
+        GraphGroup const&      graph,
+        gv::GvInchPoint const& parent_offset = gv::GvInchPoint{geometry::Point{0, 0}});
+
+    geometry::Path getPath() const override {
+        return path.toOtherTag<GvPointTag>().getUnsizedValue();
+    }
+
+    std::string      getRepr() const override { return edge.getPropertiesAsString(); }
+    visual::VisGroup getVisual(EdgeID const& selfId) const override;
+};
+
+class GraphGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
+  public:
+    gv::GvInchRect         graph;
+    hstd::SPtr<GraphGroup> group;
+
+    GraphGroupLayoutAttribute(
+        gv::GvInchRect const&         graph,
+        hstd::SPtr<GraphGroup> const& group)
+        : graph{graph}, group{group} {}
+
+    geometry::Rect getBBox() const override {
+        return graph.toOtherTag<gv::GvPointTag>().getUnsizedValue();
+    }
+
+    void setBBox(geometry::Rect const& rect) override {
+        graph = gv::GvPointRect{rect}.toOtherTag<gv::GvInchTag>();
+    }
+
+    std::string getRepr() const override { return group->getPropertiesAsString(); }
+
+    visual::VisGroup getVisual(VertexID const& selfId) const override;
+};
+
+} // namespace hstd::ext::graph::gv
+#endif

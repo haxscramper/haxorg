@@ -1,24 +1,23 @@
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from pathlib import Path
-import subprocess
 
-from beartype import beartype
-from beartype.typing import Any, Dict, Generator, List, Optional, Tuple
 import conf_test_common as tconf
 import plumbum
-from plumbum import local, ProcessExecutionError
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
-from pydantic import BaseModel, Field
 import pytest
+from beartype import beartype
+from beartype.typing import Any, Dict, Generator, List, Optional
+from plumbum import ProcessExecutionError
+from py_scriptutils.repo_files import get_haxorg_repo_root_path
+from py_scriptutils.script_logging import pprint_to_file, to_debug_json
+from pydantic import BaseModel
 
 CAT = __name__
 
 
 @beartype
 @dataclass
-class GTestParams():
+class GTestParams:
     class_name: str
     test_name: str
     binary_path: Path
@@ -105,10 +104,12 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
     # <<empty_ld_preload>>
     cmd = cmd.with_env(LD_PRELOAD="")
     report_file = Path(f"/tmp/report_{binary_path.name}.json")
-    cmd.run([
-        "--gtest_list_tests",
-        f"--gtest_output=json:{report_file}",
-    ])
+    cmd.run(
+        [
+            "--gtest_list_tests",
+            f"--gtest_output=json:{report_file}",
+        ]
+    )
 
     model = GTestsuiteModel.model_validate(json.loads(report_file.read_text()))
 
@@ -132,10 +133,10 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
                         binary_path=binary_path,
                         test_params=json.loads(method.value_param),
                         parameter_name=gparam_name,
-                        gtest_run_name=
-                        f"{gsuite_name}/{gclass_name}.{gtest_name}/{gparam_name}",
+                        gtest_run_name=f"{gsuite_name}/{gclass_name}.{gtest_name}/{gparam_name}",
                         gsuite_name=gsuite_name,
-                    ))
+                    )
+                )
 
             else:
                 tests.append(
@@ -144,7 +145,8 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
                         class_name=suite.name,
                         test_name=method.name,
                         binary_path=binary_path,
-                    ))
+                    )
+                )
 
     pprint_to_file(to_debug_json(tests), f"/tmp/gtest_parse_{binary_path.name}.py")
 
@@ -152,7 +154,6 @@ def parse_google_tests(binary_path: Path) -> list[GTestParams]:
 
 
 class GTestClass(pytest.Class):
-
     def __init__(self, coverage_out_dir: Path, name: str, parent: Any) -> None:
         super().__init__(name, parent)
         self.tests: list[GTestParams] = []
@@ -195,9 +196,9 @@ class GTestRunError(Exception):
 
 
 class GTestItem(pytest.Function):
-
-    def __init__(self, gtest: GTestParams, coverage_out_dir: Path, *args: Any,
-                 **kwargs: Any) -> None:
+    def __init__(
+        self, gtest: GTestParams, coverage_out_dir: Path, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.gtest = gtest
         self.coverage_out_dir = coverage_out_dir
@@ -232,9 +233,9 @@ class GTestItem(pytest.Function):
 
 
 class GTestFile(pytest.Module):
-
-    def __init__(self, binary_path: Path, coverage_out_dir: Path, *args: Any,
-                 **kwargs: Any) -> None:
+    def __init__(
+        self, binary_path: Path, coverage_out_dir: Path, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.test_classes: List[GTestClass] = []
         class_tests: Dict[str, List[GTestParams]] = {}

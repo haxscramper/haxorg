@@ -126,3 +126,65 @@ generate_diagram_schema:
   rm -rf build/jsonschema
   buf generate --path src/hstd/ext/graph/visual/graph_diagram.proto
   buf generate --path src/hstd/ext/graph/visual/graph_diagram_validate.proto
+
+
+repo_prepare_git_hooks:
+  install -Dm755 repo_py_validate/prepare_commit_message.py .git/hooks/prepare-commit-msg
+
+
+
+HAXORG_ROOT := source_directory()
+CONAN_PROFILE := HAXORG_ROOT / "repo_tool_configs/conan/conanprofile.txt"
+SUPPRESSION_FILE := HAXORG_ROOT / "repo_tool_configs/clang_suppressions.supp"
+
+conan_info_package_path package:
+  conan graph info {{package}} --format=html > /tmp/graph.html
+  echo /tmp/graph.html
+
+conan_remove_external_deps:
+  conan remove "protovalidate-cc/*" -c
+
+conan_remove_local_deps:
+  conan remove "hstd_cpp_lib/*" --confirm
+  conan remove "hstd_cpp_text_layout/*" --confirm
+
+conan_export_external_deps:
+  conan export "repo_conan_wraps/protovalidate-cc"
+
+conan_export_local_deps:
+  conan export "hstd_cpp_lib"
+  conan export "hstd_cpp_text_layout"
+
+[working-directory("/tmp")]
+conan_validate_deps_protovalidate_cc:
+  conan remove "protovalidate-cc/*" -c
+  conan create {{HAXORG_ROOT}}/repo_conan_wraps/protovalidate-cc \
+    --profile:all={{CONAN_PROFILE}} \
+    -s build_type=Release \
+    --build=missing
+
+# -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
+
+[working-directory("/tmp")]
+conan_validate target:
+  conan remove "{{target}}/*" --confirm
+  conan create {{HAXORG_ROOT}}/{{target}} \
+    --profile:all={{CONAN_PROFILE}} \
+    -s build_type=Release \
+    -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
+    -c 'user.hstd:ninja_args=["-k","0"]' \
+    --build=missing \
+     -vstatus
+
+conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
+conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
+
+conan_clean_total_validate target: conan_update_local_deps conan_update_external_deps
+  just conan_validate {{target}}
+
+conan_clean_local_validate target: conan_update_local_deps
+  just conan_validate {{target}}
+
+run_to_output target *ARGS:
+  -just {{target}} {{ARGS}} > build/target_result.log 2>&1
+  ./repo_py_orchestrate/remap_conan_error_paths.py build/target_result.log

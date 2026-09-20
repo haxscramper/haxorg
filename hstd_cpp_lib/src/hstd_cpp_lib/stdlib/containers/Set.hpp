@@ -1,0 +1,69 @@
+#pragma once
+
+#include <hstd_cpp_lib/stdlib/containers/SetCommon.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/system/all.hpp>
+#include <unordered_set>
+
+namespace hstd {
+
+template <typename T>
+struct UnorderedSet
+    : public std::unordered_set<T>
+    , public SetBase<UnorderedSet<T>, T> {
+    using Base = std::unordered_set<T>;
+    using API  = SetBase<UnorderedSet<T>, T>;
+    using API::operator-;
+    using API::operator&;
+    using API::operator^;
+    using API::operator|;
+    using API::operator+;
+    using API::operator<;
+    using API::operator<=;
+
+    using Base::Base;
+    using Base::begin;
+    using Base::count;
+    using Base::end;
+    using Base::erase;
+    using Base::insert;
+
+
+    inline bool contains(T const& key) const { return count(key) != 0; }
+    void        incl(T const& value) { insert(value); }
+    void        excl(T const& value) { erase(value); }
+
+    void incl(UnorderedSet<T> const& other) {
+        for (const auto& it : other) { this->incl(it); }
+    }
+
+    void excl(UnorderedSet<T> const& value) {
+        for (const auto& it : value) { this->erase(it); }
+    }
+
+    hstd::Vec<T> items() const { return hstd::Vec<T>{begin(), end()}; }
+
+    static UnorderedSet<T> FromVec(hstd::Vec<T> const& v) {
+        return UnorderedSet<T>{v.begin(), v.end()};
+    }
+
+    template <typename It>
+    static UnorderedSet<T> FromIterable(It&& v) {
+        UnorderedSet<T> res{};
+        for (auto const& it : v) { res.incl(it); }
+        return res;
+    }
+};
+
+
+} // namespace hstd
+
+
+namespace hstd {
+template <typename T>
+struct value_metadata<hstd::UnorderedSet<T>> {
+    static bool isEmpty(UnorderedSet<T> const& value) { return value.empty(); }
+
+    static bool isNil(UnorderedSet<T> const& value) { return false; }
+};
+} // namespace hstd
