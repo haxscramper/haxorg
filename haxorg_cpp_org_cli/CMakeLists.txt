@@ -8,9 +8,11 @@ target_link_libraries(
         absl::flags
         argparse::argparse
 )
-set_common_files(haxorg_cpp_org_cli)
-set_target_output(haxorg_cpp_org_cli)
-set_target_flags(haxorg_cpp_org_cli)
-glob_add_sources2(TARGET haxorg_cpp_org_cli LS_REGEX "${BASE}/src/app/org_cli/.*" SEARCH_BASE
-                  "${BASE}"
+
+haxorg_set_target_output(haxorg_cpp_org_cli)
+haxorg_set_target_flags(haxorg_cpp_org_cli)
+haxorg_glob_add_sources2(
+    TARGET haxorg_cpp_org_cli
+    LS_REGEX "${BASE}/src/app/org_cli/.*"
+    SEARCH_BASE "${BASE}"
 )
