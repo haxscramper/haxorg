@@ -3,7 +3,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
 class HstdCppTextLayoutConan(ConanFile):
-    name = "hstd-cpp-text-layout"
+    name = "hstd_cpp_text_layout"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"

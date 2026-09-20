@@ -2,8 +2,8 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
-class HaxorgCHaxorgConan(ConanFile):
-    name = "haxorg_c_lib_wrap"
+class HstdPyTextLayoutConan(ConanFile):
+    name = "hstd-py-text-layout"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"
@@ -12,15 +12,20 @@ class HaxorgCHaxorgConan(ConanFile):
         "CMakeLists.txt",
         "cmake/*",
         "src/*",
-        "tests/*",
     )
 
     def requirements(self):
         self.requires(
-            "haxorg_cpp_org_lib/0.1.0",
+            "hstd/0.1.0",
             transitive_headers=True,
             transitive_libs=True,
         )
+        self.requires(
+            "hstd-cpp-text-layout/0.1.0",
+            transitive_headers=True,
+            transitive_libs=True,
+        )
+        self.requires("nanobind/[>=2.9.2 <3]")
 
     def layout(self):
         cmake_layout(self)
@@ -42,5 +47,5 @@ class HaxorgCHaxorgConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.builddirs = ["lib/cmake/HaxorgCHaxorg"]
+        self.cpp_info.builddirs = ["lib/cmake/HstdPyTextLayout"]
         self.cpp_info.set_property("cmake_find_mode", "none")

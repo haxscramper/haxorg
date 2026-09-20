@@ -143,10 +143,12 @@ conan_info_package_path package:
 
 conan_remove_deps:
   conan remove "protovalidate-cc/*" -c
+  conan remove "hstd/*" --confirm
 
 # Export local dependencies so subsequent build
 conan_export_deps:
   conan export "repo_conan_wraps/protovalidate-cc"
+  conan export "hstd_cpp/hstd_lib"
 
 [working-directory("/tmp")]
 conan_validate_deps_protovalidate_cc: conan_remove_deps
@@ -161,6 +163,18 @@ conan_validate_deps_protovalidate_cc: conan_remove_deps
 conan_validate_hstd_cpp:
   conan remove "hstd/*" --confirm
   conan create {{HAXORG_ROOT}}/hstd_cpp/hstd_lib \
+    --profile:all={{CONAN_PROFILE}} \
+    -s build_type=Release \
+    -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
+    -c 'user.hstd:ninja_args=["-k","0"]' \
+    --build=missing \
+     -vstatus
+
+
+[working-directory("/tmp")]
+conan_validate_haxorg_cpp_org_lib:
+  conan remove "haxorg_cpp_org_lib/*" --confirm
+  conan create {{HAXORG_ROOT}}/haxorg_cpp_org_lib \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \

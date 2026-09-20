@@ -3,7 +3,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
 class HaxdexCppReflReadConan(ConanFile):
-    name = "haxdex-cpp-refl-read"
+    name = "haxdex_cpp_refl_read"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"

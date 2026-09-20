@@ -3,7 +3,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
 class HaxorgCppOrgCliConan(ConanFile):
-    name = "haxorg-cpp-org-cli"
+    name = "haxorg_cpp_org_cli"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"
@@ -17,7 +17,7 @@ class HaxorgCppOrgCliConan(ConanFile):
     def requirements(self):
         self.requires("hstd/0.1.0")
         self.requires(
-            "haxorg-cpp-org-lib/0.1.0",
+            "haxorg_cpp_org_lib/0.1.0",
             transitive_headers=True,
             transitive_libs=True,
         )

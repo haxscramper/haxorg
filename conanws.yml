@@ -4,3 +4,24 @@ packages:
 
   - path: hstd_cpp/hstd_lib
     ref: hstd/0.1.0
+
+  - path: hstd_cpp_text_layout
+    ref: hstd_cpp_text_layout/0.1.0
+
+  - path: hstd_py_text_layout
+    ref: hstd_py_text_layout/0.1.0
+
+  - path: haxorg_cpp_org_lib
+    ref: haxorg_cpp_org_lib/0.1.0
+
+  - path: haxorg_cpp_org_cli
+    ref: haxorg_cpp_org_cli/0.1.0
+
+  - path: haxorg_py_lib_wrap
+    ref: haxorg_py_lib_wrap/0.1.0
+
+  - path: haxorg_c_lib_wrap
+    ref: haxorg_c_lib_wrap/0.1.0
+
+  - path: haxdex_cpp_refl_read
+    ref: haxdex_cpp_refl_read/0.1.0

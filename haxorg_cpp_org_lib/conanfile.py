@@ -4,7 +4,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
 class HaxorgCppOrgLibConan(ConanFile):
-    name = "haxorg-cpp-org-lib"
+    name = "haxorg_cpp_org_lib"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"
@@ -41,7 +41,7 @@ class HaxorgCppOrgLibConan(ConanFile):
         }
 
         self.requires("hstd/0.1.0", **transitive)
-        self.requires("hstd-cpp-text-layout/0.1.0", **transitive)
+        self.requires("hstd_cpp_text_layout/0.1.0", **transitive)
 
         self.requires("foonathan-lexy/[>=2025.05.0 <2026]", **transitive)
         self.requires("range-v3/[>=0.12.0 <1]", **transitive)
