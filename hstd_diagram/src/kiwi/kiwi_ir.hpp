@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hstd/ext/hstd_serde.hpp"
+#include <hstd_cpp_lib/ext/hstd_serde.hpp"
 #if ORG_BUILD_WITH_KIWI
 
 #    include <hstd_cpp_lib/stdlib/containers/Map.hpp>

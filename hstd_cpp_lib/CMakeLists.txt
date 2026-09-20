@@ -97,7 +97,7 @@ add_library(hstd::hstd_cpp_lib ALIAS hstd_cpp_lib)
 haxorg_glob_add_sources2(
     TARGET hstd_cpp_lib
     LS_REGEX
-        "${CMAKE_CURRENT_LIST_DIR}/hstd/src/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
+        "${CMAKE_CURRENT_LIST_DIR}/src/hstd_cpp_lib/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
     SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
 )
 
@@ -134,7 +134,7 @@ endif()
 
 if(ORG_BUILD_WITH_PROTOBUF)
     set(HSTD_PROTO_PUBLIC_LIBRARIES)
-    set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs")
+    set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
 
     if(ORG_BUILD_WITH_PROTOVALIDATE)
         list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
@@ -147,11 +147,11 @@ if(ORG_BUILD_WITH_PROTOBUF)
         IMPORT_DIRS
             ${HSTD_PROTO_IMPORT_DIRS}
         PROTO_SOURCES
-            "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/graph_base.proto"
-            "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/error_write.proto"
-            "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/hstd_geometry_test_ir.proto"
-            "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/hstd_geometry.proto"
-            "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/hstd_visual.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/graph_base.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/error_write.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/hstd_geometry_test_ir.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/hstd_geometry.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/hstd_visual.proto"
         PUBLIC_LIBRARIES
             ${HSTD_PROTO_PUBLIC_LIBRARIES}
     )
@@ -223,8 +223,8 @@ install(
 
 install(
     DIRECTORY
-        "${CMAKE_CURRENT_SOURCE_DIR}/hstd/"
-    DESTINATION include/hstd
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/"
+    DESTINATION include/hstd_cpp_lib
     FILES_MATCHING
     PATTERN "*.hpp"
 )

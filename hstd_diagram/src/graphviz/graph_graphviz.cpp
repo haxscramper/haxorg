@@ -1,4 +1,4 @@
-#include "hstd/ext/hstd_serde.hpp"
+#include <hstd_cpp_lib/ext/hstd_serde.hpp"
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
 #    include <filesystem>
 #    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>

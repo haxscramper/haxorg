@@ -3,7 +3,7 @@ syntax = "proto3";
 package hstd.ext.geometry.proto;
 
 import "buf/validate/validate.proto";
-import "hstd_lib/hstd_geometry.proto";
+import "hstd_cpp_lib/hstd_geometry.proto";
 
 message GeometryElement {
   string id = 1 [(buf.validate.field).string.min_len = 1];

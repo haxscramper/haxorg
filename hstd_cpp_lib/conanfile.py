@@ -17,8 +17,9 @@ class HstdConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
 
     exports_sources = (
-        "hstd/*",
+        "src/*",
         "tests/*",
+        "proto/*",
         "CMakeLists.txt",
         "*.cmake",
     )

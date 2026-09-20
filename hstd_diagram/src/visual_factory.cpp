@@ -1,11 +1,11 @@
 #if ORG_BUILD_WITH_PROTOBUF
 
 #    include "visual_factory.hpp"
-#    include "hstd/ext/graph/visual/graph_graphviz.hpp"
-#    include "hstd/ext/graph/visual/graph_kiwi.hpp"
-#    include "hstd/system/exceptions.hpp"
+#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp"
+#    include <hstd_cpp_lib/ext/graph/visual/graph_kiwi.hpp"
 #    include <hstd_cpp_lib/ext/hstd_serde.hpp>
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#    include <hstd_cpp_lib/system/exceptions.hpp"
 
 
 using namespace hstd::ext::graph;

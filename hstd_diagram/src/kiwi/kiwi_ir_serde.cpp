@@ -1,7 +1,7 @@
 #if ORG_BUILD_WITH_PROTOBUF
 
 #    include "kiwi_ir_serde.hpp"
-#    include "hstd/ext/hstd_serde.hpp"
+#    include <hstd_cpp_lib/ext/hstd_serde.hpp"
 
 using namespace hstd::ext::kiwi_ir;
 using namespace hstd::ext;

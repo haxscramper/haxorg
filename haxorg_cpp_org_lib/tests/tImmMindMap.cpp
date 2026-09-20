@@ -1,8 +1,8 @@
 /// \file Immutable AST mind map tests
 
 
-#include "hstd/ext/graph/visual/visual_factory.hpp"
 #include "tOrgTestCommon.hpp"
+#include <hstd_cpp_lib/ext/graph/visual/visual_factory.hpp"
 #include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>

@@ -40,7 +40,7 @@ class HaxorgCppOrgLibConan(ConanFile):
             "transitive_libs": True,
         }
 
-        self.requires("hstd/0.1.0", **transitive)
+        self.requires("hstd_cpp_lib/0.1.0", **transitive)
         self.requires("hstd_cpp_text_layout/0.1.0", **transitive)
 
         self.requires("foonathan-lexy/[>=2025.05.0 <2026]", **transitive)
