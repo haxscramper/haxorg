@@ -15,8 +15,8 @@
 // Auto-generated protobuf definition, provided by cmake run
 #include "reflection_config.hpp"
 #include "reflection_defs.pb.h"
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 #include <hstd/system/macros.hpp>
 #include <hstd/system/reflection.hpp>
 #include <llvm/Support/JSON.h>

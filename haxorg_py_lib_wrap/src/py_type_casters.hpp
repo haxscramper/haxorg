@@ -2,7 +2,7 @@
 
 #undef slots
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/containers/algorithms.hpp>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>

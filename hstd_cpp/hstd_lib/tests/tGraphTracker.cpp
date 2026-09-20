@@ -8,7 +8,7 @@
 
 #include "../common.hpp"
 
-#include <hstd/ext/log_graph_tracker.hpp>
+#include <hstd/logger/log_graph_tracker.hpp>
 
 using namespace hstd::log;
 using namespace hstd::ext::graph;

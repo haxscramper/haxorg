@@ -2,7 +2,7 @@
 #include "reflection_config.hpp"
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/JSONCompilationDatabase.h>
-#include <hstd/ext/logger.hpp>
+#include <hstd/logger/logger.hpp>
 
 #include "reflection_collector.hpp"
 

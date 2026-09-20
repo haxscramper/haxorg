@@ -3,7 +3,7 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgSpec.hpp>
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/containers/Ptrs.hpp>
 
 namespace org::sem {
 struct OrgConverter : public hstd::OperationsTracer {

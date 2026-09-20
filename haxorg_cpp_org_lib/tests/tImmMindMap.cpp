@@ -3,10 +3,10 @@
 
 #include "hstd/ext/graph/visual/visual_factory.hpp"
 #include "tOrgTestCommon.hpp"
-#include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/MapFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 
 #include "src/haxorg/imm/ImmOrgGraph.pb.h"
 

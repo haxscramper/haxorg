@@ -7,9 +7,9 @@
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Enumerate.hpp>
 #include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/Set.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/Set.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
 #include <immer/flex_vector_transient.hpp>
 #include <immer/map_transient.hpp>
 #include <immer/vector_transient.hpp>
@@ -19,10 +19,10 @@
 #include <haxorg/imm/ImmOrgAdapter.hpp>
 #include <hstd/stdlib/ColTextHShow.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/TimeReflVisitor.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/MapFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <type_traits>
 

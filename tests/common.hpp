@@ -2,10 +2,10 @@
 
 #include <boost/preprocessor/facilities/overload.hpp>
 #include <google/protobuf/message.h>
-#include <hstd/ext/logger.hpp>
+#include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Outcome.hpp>
 #include <hstd/stdlib/Str.hpp>
+#include <hstd/stdlib/containers/Outcome.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
 struct TestParameters {

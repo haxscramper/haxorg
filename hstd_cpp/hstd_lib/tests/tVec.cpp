@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/Vec.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 
 using namespace hstd;
 

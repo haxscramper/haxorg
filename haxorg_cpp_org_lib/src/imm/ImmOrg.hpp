@@ -2,12 +2,12 @@
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include "hstd/stdlib/TraceBase.hpp"
-#include "hstd/stdlib/algorithms.hpp"
 #include <boost/preprocessor/facilities/expand.hpp>
 #include <haxorg/imm/ImmOrgBase.hpp>
 #include <haxorg/imm/ImmOrgTypes.hpp>
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/ColText.hpp>
+#include <hstd/stdlib/containers/algorithms.hpp>
 #include <immer/map_transient.hpp>
 
 #include <boost/preprocessor.hpp>

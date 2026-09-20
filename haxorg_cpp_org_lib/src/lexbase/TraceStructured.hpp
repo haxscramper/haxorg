@@ -1,10 +1,10 @@
 #pragma once
 
 #include <haxorg/lexbase/SourceManager.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/containers/Variant.hpp>
+#include <hstd/stdlib/containers/VariantSerde.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd/stdlib/serde/JsonSerde.hpp>
 #include <hstd/system/reflection.hpp>
 
 /// \brief Structured org-mode processing report types.

@@ -4,7 +4,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/stdlib/Func.hpp>
 #include <hstd/stdlib/TraceBase.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
 
 
 namespace org {

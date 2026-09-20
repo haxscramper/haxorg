@@ -1,8 +1,8 @@
 #pragma once
 
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 #include <hstd/system/macros.hpp>
 #include <string>
 

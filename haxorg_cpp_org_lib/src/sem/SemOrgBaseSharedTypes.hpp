@@ -6,15 +6,15 @@
 #include <hstd/system/basic_typedefs.hpp>
 
 #include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/containers/IntSet.hpp>
+#include <hstd/stdlib/containers/Opt.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
 
 #include <haxorg/lexbase/SourceManager.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/containers/Map.hpp>
+#include <hstd/stdlib/containers/Variant.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
 #include <hstd/system/reflection.hpp>
 
 namespace org::sem {

@@ -2,9 +2,9 @@
 #include <gtest/gtest.h>
 #include <hstd/ext/error_write.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
 using namespace hstd::ext;

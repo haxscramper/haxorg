@@ -4,10 +4,10 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/PtrsFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/PtrsFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
 
 using namespace hstd;
 using namespace org::parse;

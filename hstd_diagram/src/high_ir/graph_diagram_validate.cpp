@@ -4,9 +4,9 @@
 #include "hstd/ext/graph/visual/visual_factory.hpp"
 #include "hstd/ext/hstd_serde_json_interop.hpp"
 #include "hstd/stdlib/ExceptionSerde.hpp"
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/stdlib/OutcomeSerde.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/containers/MapSerde.hpp>
+#include <hstd/stdlib/containers/OutcomeSerde.hpp>
+#include <hstd/stdlib/containers/VariantSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF
 

@@ -47,7 +47,7 @@ def with_enum_reflection_api(body: List[Any]) -> List[Any]:
         GenTuPass("#pragma once"),
         GenTuPass("#include <hstd/system/basic_templates.hpp>"),
         GenTuPass("#include <hstd/system/reflection.hpp>"),
-        GenTuPass("#include <hstd/stdlib/Opt.hpp>"),
+        GenTuPass("#include <hstd/stdlib/containers/Opt.hpp>"),
     ] + body
 
 

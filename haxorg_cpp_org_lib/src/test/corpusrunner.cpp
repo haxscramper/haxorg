@@ -11,21 +11,21 @@
 #include <haxorg/sem/SemOrgFormat.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/ext/bimap_wrap_serde.hpp>
-#include <hstd/ext/logger.hpp>
+#include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/ColTextSerde.hpp>
 #include <hstd/stdlib/Debug.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/IntSetSerde.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
-#include <hstd/stdlib/YamlSerde.hpp>
+#include <hstd/stdlib/containers/IntSetSerde.hpp>
+#include <hstd/stdlib/containers/MapSerde.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VariantSerde.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 #include <hstd/stdlib/diffs.hpp>
+#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd/stdlib/serde/YamlSerde.hpp>
 
 using namespace org::test;
 using namespace hstd;

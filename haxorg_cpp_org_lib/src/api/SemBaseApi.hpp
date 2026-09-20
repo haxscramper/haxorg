@@ -4,7 +4,7 @@
 #include <haxorg/sem/SemOrg.hpp>
 #include <hstd/ext/error_write.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Json.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
 
 namespace org {
 

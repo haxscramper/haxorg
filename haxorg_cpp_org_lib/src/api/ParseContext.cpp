@@ -8,11 +8,11 @@
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
-#include <hstd/ext/logger.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/logger/logger.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/serde/JsonSerde.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
 using namespace hstd;

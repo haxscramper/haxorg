@@ -30,7 +30,7 @@ repos:
       - id: pre-commit-sg-rewrite
         name: Remove and unify code styles
         language: system
-        entry: ast-grep scan --color=never -c scripts/py_repository/py_repository/repo_hooks/sgconfig.yaml scripts/cxx_repository/code_forensics.cpp -U
+        entry: ast-grep scan --color=never -c repo_py_validate/sgconfig.yaml scripts/cxx_repository/code_forensics.cpp -U
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -45,6 +45,7 @@ repos:
         entry: uv run --dev isort
         language: system
         types: [python]
+        stages: [manual]
   - repo: local
     hooks:
       - id: yapf
@@ -52,6 +53,7 @@ repos:
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/safe_yapf_format.py
         language: system
         types: [python]
+        stages: [manual]
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:
@@ -70,6 +72,7 @@ repos:
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_repo_task_config.py
         language: system
         files: ^scripts/py_repository/py_repository/repo_tasks/.*\.json$
+        stages: [manual]
   - repo: local
     hooks:
       - id: find-debug-calls
@@ -77,6 +80,7 @@ repos:
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_cxx_code.py
         language: system
         types: [c++]
+        stages: [manual]
   - repo: local
     hooks:
       - id: cmake-format
@@ -92,3 +96,4 @@ repos:
         language: system
         pass_filenames: true
         files: \.(py|h|hh|hpp|hxx|c|cc|cpp|cxx)$
+        stages: [manual]

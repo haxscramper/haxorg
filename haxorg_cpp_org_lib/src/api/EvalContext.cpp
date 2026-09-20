@@ -4,14 +4,14 @@
 #include <haxorg/exporters/ExporterJson.hpp>
 #include <haxorg/imm/ImmOrg.hpp>
 #include <haxorg/imm/ImmOrgAdapter.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/OptSerde.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/Map.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/OptSerde.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/serde/JsonSerde.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 #include <hstd/stdlib/strutils.hpp>
 
 #if !ORG_BUILD_EMCC

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <haxorg/exporters/Exporter.hpp>
-#include <hstd/stdlib/Yaml.hpp>
+#include <hstd/stdlib/serde/Yaml.hpp>
 
 namespace org::algo {
 struct ExporterYaml : public Exporter<ExporterYaml, yaml> {

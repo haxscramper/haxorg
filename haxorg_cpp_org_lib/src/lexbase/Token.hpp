@@ -2,11 +2,11 @@
 
 #include <hstd/stdlib/ColText.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/containers/IntSet.hpp>
+#include <hstd/stdlib/containers/Map.hpp>
+#include <hstd/stdlib/containers/Opt.hpp>
+#include <hstd/stdlib/containers/Variant.hpp>
 #include <hstd/stdlib/dod_base.hpp>
 
 #include <haxorg/lexbase/Errors.hpp>

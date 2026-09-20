@@ -25,8 +25,8 @@
 #include <nanobind/stl/vector.h>
 
 #include <haxorg/sem/SemOrg.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Yaml.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd/stdlib/serde/Yaml.hpp>
 
 #include <haxorg/api/ParseContext.hpp>
 #include <haxorg/exporters/Exporter.hpp>
@@ -35,13 +35,13 @@
 #include <haxorg/parse/OrgTypes.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/PairFormatter.hpp>
-#include <hstd/stdlib/PtrsFormatter.hpp>
-#include <hstd/stdlib/SetFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/MapFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/PairFormatter.hpp>
+#include <hstd/stdlib/containers/PtrsFormatter.hpp>
+#include <hstd/stdlib/containers/SetFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 // #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
 
 

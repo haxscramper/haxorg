@@ -2,11 +2,11 @@
 
 #include <haxorg/parse/OrgTypes.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
 #include <hstd/stdlib/Time.hpp>
-#include <hstd/stdlib/Variant.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/containers/Opt.hpp>
+#include <hstd/stdlib/containers/Variant.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
 
 #include <boost/describe.hpp>
 #include <hstd/system/macros.hpp>

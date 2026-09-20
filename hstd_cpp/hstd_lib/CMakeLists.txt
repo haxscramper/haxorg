@@ -47,7 +47,6 @@ if(ORG_BUILD_WITH_QT)
     REQUIRED Core)
 
   qt_add_library(hstd_cpp_lib STATIC)
-  haxorg_set_common_files(hstd_cpp_lib)
   haxorg_set_target_output(hstd_cpp_lib)
   haxorg_set_target_flags(hstd_cpp_lib)
 
@@ -64,12 +63,14 @@ else()
 
 endif()
 
-add_library(hstd::hstd ALIAS hstd_cpp_lib)
+add_library(hstd::hstd_cpp_lib ALIAS hstd_cpp_lib)
 
 haxorg_glob_add_sources2(
   TARGET hstd_cpp_lib LS_REGEX
   "${CMAKE_CURRENT_LIST_DIR}/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
   SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}")
+
+target_include_directories(hstd_cpp_lib PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
 
 target_link_libraries(
   hstd_cpp_lib PUBLIC yaml-cpp::yaml-cpp range-v3::range-v3 nlohmann_json::nlohmann_json cctz::cctz
@@ -90,7 +91,7 @@ endif()
 
 if(ORG_BUILD_WITH_PROTOBUF)
   set(HSTD_PROTO_PUBLIC_LIBRARIES)
-  set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto_defs")
+  set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs")
 
   if(ORG_BUILD_WITH_PROTOVALIDATE)
     list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
@@ -105,11 +106,11 @@ if(ORG_BUILD_WITH_PROTOBUF)
     IMPORT_DIRS
     ${HSTD_PROTO_IMPORT_DIRS}
     PROTO_SOURCES
-    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/graph_base.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/error_write.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/hstd_geometry_test_ir.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/hstd_geometry.proto"
-    "${CMAKE_CURRENT_LIST_DIR}/proto_defs/hstd_lib/hstd_visual.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/graph_base.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/error_write.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/hstd_geometry_test_ir.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/hstd_geometry.proto"
+    "${CMAKE_CURRENT_LIST_DIR}/hstd/proto_defs/hstd_lib/hstd_visual.proto"
     PUBLIC_LIBRARIES
     ${HSTD_PROTO_PUBLIC_LIBRARIES})
 endif()

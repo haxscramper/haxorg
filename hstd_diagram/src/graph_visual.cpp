@@ -5,7 +5,7 @@
 #    include <hstd/ext/geometry/hstd_geometry_serde.hpp>
 #endif
 #include <hstd/ext/geometry/hstd_geometry_test.hpp>
-#include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/containers/algorithms.hpp>
 
 using namespace hstd::ext::graph;
 

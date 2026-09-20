@@ -5,10 +5,10 @@
 #include <hstd/system/basic_typedefs.hpp>
 
 #include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Opt.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/containers/IntSet.hpp>
+#include <hstd/stdlib/containers/Opt.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
 
 #include <haxorg/parse/OrgTypes.hpp>
 #include <hstd/system/reflection.hpp>

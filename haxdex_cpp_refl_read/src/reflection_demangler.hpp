@@ -8,7 +8,7 @@
 #include <llvm/ADT/StringMap.h>
 #include <llvm/Support/JSON.h>
 
-#include <hstd/stdlib/Variant.hpp>
+#include <hstd/stdlib/containers/Variant.hpp>
 #include <hstd/stdlib/dod_base.hpp>
 
 #include "reflection_config.hpp"

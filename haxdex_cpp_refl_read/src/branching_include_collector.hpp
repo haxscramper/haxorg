@@ -6,7 +6,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 
-#include <hstd/stdlib/Set.hpp>
+#include <hstd/stdlib/containers/Set.hpp>
 
 #include "reflection_config.hpp"
 #include "reflection_defs.pb.h"

@@ -19,10 +19,10 @@
 #include "tOrgTestCommon.hpp"
 #include <haxorg/sem/perfetto_org.hpp>
 
-#include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/MapFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 
 using namespace hstd;
 using namespace org::test;

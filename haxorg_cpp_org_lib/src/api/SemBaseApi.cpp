@@ -13,12 +13,12 @@
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
 #include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/serde/JsonSerde.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <src/haxorg/serde/SemOrgProto.pb.h>

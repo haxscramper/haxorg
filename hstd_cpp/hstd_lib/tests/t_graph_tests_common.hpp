@@ -11,9 +11,9 @@
 
 #include "../common.hpp"
 #include <hstd/ext/geometry/hstd_geometry_test.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
-#include <hstd/stdlib/MapSerde.hpp>
-#include <hstd/stdlib/VariantSerde.hpp>
+#include <hstd/stdlib/containers/MapSerde.hpp>
+#include <hstd/stdlib/containers/VariantSerde.hpp>
+#include <hstd/stdlib/serde/JsonSerde.hpp>
 #include <libcola/output_svg.h>
 
 template <typename A, typename T>

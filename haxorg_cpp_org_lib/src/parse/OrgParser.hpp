@@ -1,11 +1,11 @@
 #pragma once
 
-#include "hstd/stdlib/Set.hpp"
 #include <haxorg/parse/OrgTokenizer.hpp>
 #include <haxorg/parse/OrgTypes.hpp>
 #include <hstd/stdlib/Exception.hpp>
-#include <hstd/stdlib/Outcome.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/containers/Outcome.hpp>
+#include <hstd/stdlib/containers/Ptrs.hpp>
+#include <hstd/stdlib/containers/Set.hpp>
 #include <hstd/stdlib/sequtils.hpp>
 
 #include <hstd/stdlib/TraceBase.hpp>

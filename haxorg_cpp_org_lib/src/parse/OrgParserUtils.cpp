@@ -1,9 +1,9 @@
 #include <haxorg/parse/OrgParser.hpp>
 #include <hstd/ext/error_write.hpp>
 #include <hstd/stdlib/Debug.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 
 using namespace hstd;
 using namespace org::parse;

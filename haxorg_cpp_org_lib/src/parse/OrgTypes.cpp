@@ -5,9 +5,9 @@
 #include <haxorg/lexbase/Node.cpp>
 
 #include <haxorg/parse/OrgTypesFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/PtrsFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/PtrsFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
 
 namespace org::parse {
 template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;

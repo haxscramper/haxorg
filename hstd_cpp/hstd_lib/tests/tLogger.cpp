@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <hstd/ext/logger.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/logger/logger.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 
 #include "../common.hpp"
 #include <boost/core/null_deleter.hpp>
@@ -8,11 +8,11 @@
 #include <boost/log/sinks.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
-#include <hstd/ext/log_graph_tracker.hpp>
-#include <hstd/stdlib/Map.hpp>
+#include <hstd/logger/log_graph_tracker.hpp>
+#include <hstd/stdlib/containers/Map.hpp>
 
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/PairFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/PairFormatter.hpp>
 
 #if ORG_BUILD_WITH_QT
 #    include <QString>

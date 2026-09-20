@@ -62,6 +62,7 @@ function(haxorg_set_target_flags_impl)
   haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wlifetime-safety-all")
   haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=lifetime-safety-all")
   haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=implicit-fallthrough")
+  set_target_properties("${ARG_TARGET}" PROPERTIES CMAKE_CXX_STANDARD 20 CXX_STANDARD 20)
 
   set_target_properties(
     ${ARG_TARGET}
@@ -179,33 +180,20 @@ function(haxorg_set_target_flags TARGET)
   haxorg_set_target_flags_impl(TARGET "${TARGET}")
 endfunction()
 
-function(haxorg_set_common_files TARGET)
-  set_target_properties("${TARGET}" PROPERTIES CMAKE_CXX_STANDARD 20 CXX_STANDARD 20)
-
-  haxorg_add_target_property("${TARGET}" SOURCES "${SRC_FILES}")
-  haxorg_add_target_property("${TARGET}" SOURCES "${HEADER_FILES}")
-  haxorg_add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${BASE}/src")
-  # haxorg_add_target_property("${TARGET}" LINK_LIBRARIES dw)
-  haxorg_add_target_property("${TARGET}" INCLUDE_DIRECTORIES "${AUTOGEN_BUILD_DIR}")
-endfunction()
-
 function(haxorg_target_setup_v2)
   cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
-  haxorg_set_common_files("${ARG_TARGET}")
   haxorg_set_target_output("${ARG_TARGET}")
   haxorg_set_target_flags_impl(TARGET "${ARG_TARGET}" FORCE_NO_ASAN "${ARG_FORCE_NO_ASAN}")
 endfunction()
 
 function(haxorg_add_executable TARGET)
   add_executable("${TARGET}")
-  haxorg_set_common_files("${TARGET}")
   haxorg_set_target_output("${TARGET}")
   haxorg_set_target_flags("${TARGET}")
 endfunction()
 
 function(haxorg_add_library TARGET)
   add_library("${TARGET}")
-  haxorg_set_common_files("${TARGET}")
   haxorg_set_target_output("${TARGET}")
   haxorg_set_target_flags("${TARGET}")
 endfunction()
@@ -222,8 +210,8 @@ function(haxorg_add_protobuf)
   cmake_parse_arguments(HAP "" "TARGET;UNIQUE_TARGET"
                         "IMPORT_DIRS;PROTO_SOURCES;PUBLIC_LIBRARIES;PRIVATE_LIBRARIES" ${ARGN})
 
-  # TODO: Add optional configuration option to debug-print every configuration element
-  # in the parameters here. 
+  # TODO: Add optional configuration option to debug-print every configuration element in the
+  # parameters here.
 
   if(HAP_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "haxorg_add_protobuf(): unknown arguments: " "${HAP_UNPARSED_ARGUMENTS}")

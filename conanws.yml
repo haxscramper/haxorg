@@ -2,5 +2,5 @@ packages:
   - path: repo_conan_wraps/protovalidate-cc
     ref: protovalidate-cc/1.1.0
 
-  - path: hstd_cpp/hstd_lib
+  - path: hstd_cpp/hstd
     ref: hstd/0.1.0

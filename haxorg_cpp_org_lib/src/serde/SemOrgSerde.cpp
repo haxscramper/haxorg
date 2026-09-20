@@ -1,6 +1,6 @@
 #include <haxorg/serde/SemOrgSerde.hpp>
 #include <haxorg/serde/SemOrgSerdeDeclarations.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 
 using namespace hstd::serde;

@@ -4,8 +4,8 @@
 #include <hstd/ext/geometry/hstd_geometry.hpp>
 #include <hstd/ext/graph/visual/graph_avoid.hpp>
 #include <hstd/ext/graph/visual/graph_vpsc.hpp>
-#include <hstd/stdlib/SetFormatter.hpp>
-#include <hstd/stdlib/algorithms.hpp>
+#include <hstd/stdlib/containers/SetFormatter.hpp>
+#include <hstd/stdlib/containers/algorithms.hpp>
 
 using namespace hstd::ext::graph;
 

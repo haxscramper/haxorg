@@ -1,5 +1,5 @@
 #include "ImmOrgHash.hpp"
-#include <hstd/ext/logger.hpp>
+#include <hstd/logger/logger.hpp>
 
 using namespace hstd;
 

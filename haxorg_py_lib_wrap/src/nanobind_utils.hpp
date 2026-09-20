@@ -2,13 +2,13 @@
 
 #include <hstd/ext/immer.hpp>
 #include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/IntSet.hpp>
-#include <hstd/stdlib/Map.hpp>
-#include <hstd/stdlib/Opt.hpp>
-#include <hstd/stdlib/Pair.hpp>
-#include <hstd/stdlib/Set.hpp>
 #include <hstd/stdlib/Str.hpp>
-#include <hstd/stdlib/Vec.hpp>
+#include <hstd/stdlib/containers/IntSet.hpp>
+#include <hstd/stdlib/containers/Map.hpp>
+#include <hstd/stdlib/containers/Opt.hpp>
+#include <hstd/stdlib/containers/Pair.hpp>
+#include <hstd/stdlib/containers/Set.hpp>
+#include <hstd/stdlib/containers/Vec.hpp>
 #include <hstd/system/reflection.hpp>
 #include <immer/box.hpp>
 #include <immer/flex_vector.hpp>

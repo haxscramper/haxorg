@@ -16,14 +16,7 @@ class HstdConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
 
     exports_sources = (
-        "extra/*",
-        "geometry/*",
-        "graph/*",
-        "logger/*",
-        "proto_serde/*",
-        "proto_defs/*",
-        "stdlib/*",
-        "system/*",
+        "hstd/*",
         "tests/*",
         "CMakeLists.txt",
         "*.cmake",
@@ -121,7 +114,7 @@ class HstdConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "hstd")
-        self.cpp_info.set_property("cmake_target_name", "hstd::hstd")
+        self.cpp_info.set_property("cmake_target_name", "hstd::hstd_cpp_lib")
 
         self.cpp_info.libs = ["hstd"]
         self.cpp_info.includedirs = ["include"]

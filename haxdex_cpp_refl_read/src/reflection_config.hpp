@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/JsonSerde.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd/stdlib/serde/JsonSerde.hpp>
 
 #define NO_COVERAGE __attribute__((no_sanitize("coverage", "address", "thread")))
 

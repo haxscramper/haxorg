@@ -2,13 +2,13 @@
 
 #include <haxorg/lexbase/Node.hpp>
 #include <haxorg/lexbase/Token.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 
 #include <haxorg/lexbase/NodeAdapter.hpp>
 #include <haxorg/lexbase/TokenStore.hpp>
 #include <hstd/stdlib/Filesystem.hpp>
-#include <hstd/stdlib/Json.hpp>
-#include <hstd/stdlib/Yaml.hpp>
+#include <hstd/stdlib/serde/Json.hpp>
+#include <hstd/stdlib/serde/Yaml.hpp>
 #include <hstd/system/macros.hpp>
 
 namespace org::test {

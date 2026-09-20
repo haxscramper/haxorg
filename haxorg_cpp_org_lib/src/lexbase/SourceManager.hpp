@@ -2,7 +2,7 @@
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
 #include <hstd/ext/bimap_wrap.hpp>
-#include <hstd/stdlib/Ptrs.hpp>
+#include <hstd/stdlib/containers/Ptrs.hpp>
 #include <hstd/stdlib/dod_base.hpp>
 
 #if ORG_BUILD_WITH_PROTOBUF

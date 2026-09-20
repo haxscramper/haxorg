@@ -1,6 +1,6 @@
 #include <haxorg/parse/OrgSpec.hpp>
 #include <haxorg/sem/SemConvert.hpp>
-#include <hstd/ext/logger.hpp>
+#include <hstd/logger/logger.hpp>
 #include <hstd/stdlib/Func.hpp>
 
 #include <hstd/stdlib/Debug.hpp>
@@ -17,12 +17,12 @@
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemOrgTypesFormatter.hpp>
 #include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
-#include <hstd/stdlib/MapFormatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/MapFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 #include <hstd/stdlib/strutils.hpp>
 #include <lexy/action/parse.hpp>
 #include <lexy/action/trace.hpp>

@@ -2,8 +2,8 @@
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/SemConvert.hpp>
 #include <hstd/stdlib/Func.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
 
 
 using namespace org::sem;

@@ -1,6 +1,6 @@
 #include "hstd_tests_common.hpp"
 #include <gtest/gtest.h>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 #include <hstd/stdlib/diffs.hpp>
 
 using namespace hstd;

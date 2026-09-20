@@ -1,5 +1,5 @@
 #include <haxorg/sem/SemOrgBaseSharedTypes.hpp>
-#include <hstd/stdlib/JsonUse.hpp>
+#include <hstd/stdlib/serde/JsonUse.hpp>
 
 std::string org::sem::detail::format_enum_value(OrgTokenKind p) {
     return hstd::enum_serde<OrgTokenKind>::to_string(p);

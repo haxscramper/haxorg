@@ -6,11 +6,11 @@
 #include <haxorg/parse/OrgTypesFormatter.hpp>
 #include <haxorg/sem/perfetto_org.hpp>
 #include <hstd/stdlib/Formatter.hpp>
-#include <hstd/stdlib/OptFormatter.hpp>
 #include <hstd/stdlib/Ranges.hpp>
-#include <hstd/stdlib/SliceFormatter.hpp>
-#include <hstd/stdlib/VariantFormatter.hpp>
-#include <hstd/stdlib/VecFormatter.hpp>
+#include <hstd/stdlib/containers/OptFormatter.hpp>
+#include <hstd/stdlib/containers/SliceFormatter.hpp>
+#include <hstd/stdlib/containers/VariantFormatter.hpp>
+#include <hstd/stdlib/containers/VecFormatter.hpp>
 
 #pragma clang diagnostic error "-Wunused-result"
 
