@@ -1,5 +1,5 @@
+#include "hstd_cpp_diagram/graph_base.pb.h"
 #include "proto_to_xml.hpp"
-#include "src/hstd/ext/graph/base/graph_base.pb.h"
 #include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>
 
 using CB  = hstd::ProtoXmlMapper::Override;

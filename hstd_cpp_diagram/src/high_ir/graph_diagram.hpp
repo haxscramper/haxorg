@@ -1,7 +1,7 @@
 #pragma once
 
 #if ORG_BUILD_WITH_PROTOBUF
-#    include <src/hstd/ext/graph/visual/graph_diagram.pb.h>
+#    include <hstd_cpp_diagram/graph_diagram.pb.h>
 
 namespace hstd::ext::graph::diagram {
 

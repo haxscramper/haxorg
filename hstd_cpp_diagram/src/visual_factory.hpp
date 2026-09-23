@@ -9,10 +9,10 @@
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 
+#    include <hstd_cpp_diagram/graph_avoid.pb.h>
+#    include <hstd_cpp_diagram/graph_graphviz.pb.h>
+#    include <hstd_cpp_diagram/graph_kiwi.pb.h>
 #    include <hstd_cpp_lib/ext/hstd_serde_dispatch.hpp>
-#    include <src/hstd/ext/graph/visual/graph_avoid.pb.h>
-#    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
-#    include <src/hstd/ext/graph/visual/graph_kiwi.pb.h>
 
 namespace hstd::serde {
 

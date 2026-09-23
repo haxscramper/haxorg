@@ -14,10 +14,6 @@
 #include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
-#if !ORG_BUILD_EMCC
-#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
-#endif
-
 using namespace org;
 using namespace hstd;
 namespace {

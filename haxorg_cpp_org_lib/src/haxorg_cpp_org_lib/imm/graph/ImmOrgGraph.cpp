@@ -1,9 +1,9 @@
-#include "ImmOrgGraph.hpp"
-#include "ImmGetterApi.hpp"
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 #include <haxorg_cpp_org_lib/exporters/ExporterUltraplain.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgEdit.hpp>
+#include <haxorg_cpp_org_lib/imm/api/ImmGetterApi.hpp>
+#include <haxorg_cpp_org_lib/imm/edit/ImmOrgEdit.hpp>
+#include <haxorg_cpp_org_lib/imm/graph/ImmOrgGraph.hpp>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 #include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>

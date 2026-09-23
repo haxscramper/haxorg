@@ -124,8 +124,8 @@ profile_perf_view:
 
 generate_diagram_schema:
   rm -rf build/jsonschema
-  buf generate --path src/hstd/ext/graph/visual/graph_diagram.proto
-  buf generate --path src/hstd/ext/graph/visual/graph_diagram_validate.proto
+  buf generate --path hstd_cpp_diagram/graph_diagram.proto
+  buf generate --path hstd_cpp_diagram/graph_diagram_validate.proto
 
 
 repo_prepare_git_hooks:

@@ -4,7 +4,7 @@
 
 #include <hstd_cpp_lib/graph/graph_base.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
-#    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
+#    include "hstd_cpp_diagram/graph_visual.pb.h"
 #endif
 
 namespace hstd::ext::graph {

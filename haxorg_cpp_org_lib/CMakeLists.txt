@@ -47,8 +47,10 @@ haxorg_add_library(haxorg_cpp_org_lib)
 
 haxorg_glob_add_sources2(
     TARGET haxorg_cpp_org_lib
-    LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/src/haxorg/.*"
+    LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/src/haxorg_cpp_org_lib/.*"
     SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
+    DEBUG ON
+    RECURSE ON
 )
 
 haxorg_set_target_output(haxorg_cpp_org_lib)

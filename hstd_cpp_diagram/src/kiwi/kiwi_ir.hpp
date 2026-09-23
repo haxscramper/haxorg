@@ -9,6 +9,7 @@
 #    include <variant>
 
 #    include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#    include <hstd_cpp_lib/kiwi_ir.pb.h>
 #    include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
 #    include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
@@ -20,7 +21,6 @@
 #    include <kiwi/solver.h>
 #    include <kiwi/symbolics.h>
 #    include <kiwi/variable.h>
-#    include <src/hstd/ext/geometry/kiwi_ir.pb.h>
 
 template <>
 struct fmt::formatter<kiwi::Variable> {

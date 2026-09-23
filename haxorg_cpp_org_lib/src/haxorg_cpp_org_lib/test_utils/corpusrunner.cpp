@@ -11,7 +11,6 @@
 #include <haxorg_cpp_org_lib/sem/SemOrgFormat.hpp>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>
-#include <hstd_cpp_lib/stdlib/ColTextSerde.hpp>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/algorithms/diff/diffs.hpp>
 #include <hstd_cpp_lib/stdlib/containers/IntSetSerde.hpp>
@@ -19,6 +18,7 @@
 #include <hstd_cpp_lib/stdlib/containers/VariantSerde.hpp>
 #include <hstd_cpp_lib/stdlib/containers/bimap_wrap_serde.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/ColText.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/ColTextSerde.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/SliceFormatter.hpp>

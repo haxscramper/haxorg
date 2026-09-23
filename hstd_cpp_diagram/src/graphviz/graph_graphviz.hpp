@@ -5,6 +5,8 @@
 #    include <google/protobuf/message.h>
 #    include <graphviz/cgraph.h>
 #    include <graphviz/gvc.h>
+#    include <hstd_cpp_diagram/graph_base.pb.h>
+#    include <hstd_cpp_diagram/graph_graphviz.pb.h>
 #    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
 #    include <hstd_cpp_lib/graph/graph_base.hpp>
 #    include <hstd_cpp_lib/stdlib/Filesystem.hpp>
@@ -16,8 +18,6 @@
 #    include <hstd_cpp_lib/system/all.hpp>
 #    include <hstd_cpp_lib/system/generator.hpp>
 #    include <hstd_cpp_lib/system/reflection.hpp>
-#    include <src/hstd/ext/graph/base/graph_base.pb.h>
-#    include <src/hstd/ext/graph/visual/graph_graphviz.pb.h>
 #    include <stdexcept>
 #    include <string>
 

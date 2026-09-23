@@ -26,10 +26,6 @@
 #include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <type_traits>
 
-#if !ORG_BUILD_EMCC
-#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
-#endif
-
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 
 using namespace hstd;
@@ -840,6 +836,9 @@ struct value_metadata<hstd::ext::ImmBox<T>> {
 
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
+// TODO: re-enable
+#    warning TODO re-enable
+#    if false
 hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
     Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const& conf) {
@@ -1002,7 +1001,7 @@ hstd::SPtr<graph::gv::GraphGroup> org::imm::toGraphviz(
 
     return g;
 }
-
+#    endif
 #endif
 
 template <typename T>

@@ -28,7 +28,7 @@ haxorg_add_protobuf(
     IMPORT_DIRS
         "${BASE}"
     PROTO_SOURCES
-        "${BASE}/src/hstd/ext/graph/visual/graph_graphviz.proto"
+        "${BASE}/hstd_cpp_diagram/graph_graphviz.proto"
 )
 
 haxorg_add_protobuf(
@@ -37,7 +37,7 @@ haxorg_add_protobuf(
     IMPORT_DIRS
         "${BASE}"
     PROTO_SOURCES
-        "${BASE}/src/hstd/ext/graph/visual/graph_avoid.proto"
+        "${BASE}/hstd_cpp_diagram/graph_avoid.proto"
 )
 
 haxorg_add_protobuf(
@@ -46,7 +46,7 @@ haxorg_add_protobuf(
     IMPORT_DIRS
         "${BASE}"
     PROTO_SOURCES
-        "${BASE}/src/hstd/ext/graph/visual/graph_elk.proto"
+        "${BASE}/hstd_cpp_diagram/graph_elk.proto"
 )
 
 haxorg_add_protobuf(
@@ -55,8 +55,8 @@ haxorg_add_protobuf(
     IMPORT_DIRS
         "${BASE}"
     PROTO_SOURCES
-        "${BASE}/src/hstd/ext/geometry/kiwi_ir.proto"
-        "${BASE}/src/hstd/ext/graph/visual/graph_kiwi.proto"
+        "${BASE}/hstd_cpp_lib/kiwi_ir.proto"
+        "${BASE}/hstd_cpp_diagram/graph_kiwi.proto"
 )
 
 haxorg_add_protobuf(
@@ -65,5 +65,5 @@ haxorg_add_protobuf(
     IMPORT_DIRS
         "${BASE}"
     PROTO_SOURCES
-        "${BASE}/src/hstd/ext/graph/visual/graph_diagram.proto"
+        "${BASE}/hstd_cpp_diagram/graph_diagram.proto"
 )

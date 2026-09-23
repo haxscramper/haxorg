@@ -12,14 +12,14 @@ find_package(HaxorgCppOrgLib CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(argparse CONFIG REQUIRED)
 
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
-
 add_executable(haxorg_cpp_org_cli)
 
 haxorg_glob_add_sources2(
     TARGET haxorg_cpp_org_cli
-    LS_REGEX "${BASE}/src/.*"
-    SEARCH_BASE "${BASE}"
+    LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/.*"
+    SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
+    DEBUG ON
+    RECURSE ON
 )
 
 haxorg_set_target_output(haxorg_cpp_org_cli)

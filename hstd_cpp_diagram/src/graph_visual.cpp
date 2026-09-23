@@ -1,7 +1,7 @@
 #include "graph_visual.hpp"
 
 #if ORG_BUILD_WITH_PROTOBUF
-#    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
+#    include "hstd_cpp_diagram/graph_visual.pb.h"
 #    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
 #endif
 #include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>

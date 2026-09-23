@@ -1,6 +1,3 @@
-#pragma once
-
-
 #include <haxorg_cpp_org_lib/imm/ImmOrg.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrgBase.hpp>
 #include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>

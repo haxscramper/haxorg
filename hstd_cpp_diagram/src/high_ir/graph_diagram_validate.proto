@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package hstd.ext.graph.diagram.proto;
 
-import "src/hstd/ext/geometry/hstd_geometry_test_ir.proto";
-import "src/hstd/ext/graph/visual/graph_diagram.proto";
+import "hstd_cpp_lib/hstd_geometry_test_ir.proto";
+import "hstd_cpp_diagram/graph_diagram.proto";
 
 message DiagramTest {
   hstd.ext.graph.diagram.proto.DiaCluster diagram = 1;
