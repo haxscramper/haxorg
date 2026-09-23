@@ -7,8 +7,8 @@
 #    include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 #    include <stdexcept>
 
-#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
 #    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
 using namespace hstd;
 

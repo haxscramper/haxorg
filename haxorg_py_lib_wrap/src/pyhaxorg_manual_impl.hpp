@@ -46,7 +46,7 @@
 
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
-#    include <src/haxorg/serde/SemOrgProto.pb.h>
+#    include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 #endif
 #include <py_libs/nanobind_utils.hpp>
 #include <py_libs/py_type_casters.hpp>

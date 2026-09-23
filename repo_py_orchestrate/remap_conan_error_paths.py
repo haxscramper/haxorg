@@ -8,6 +8,10 @@ from pathlib import Path
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 CONAN_CREATE_RE = re.compile(r"(?:^|\s)conan\s+create\s+")
 SOURCES_IN_RE = re.compile(r"^\s*Sources in (.+?)\s*$")
+INSTALL_PACKAGE_RE = re.compile(
+    r"^\s*-+\s+Installing package ([^/\s]+)/\S+ "
+    r"\(\d+ of \d+\) -+\s*$"
+)
 
 
 def strip_ansi(text: str) -> str:
@@ -17,6 +21,7 @@ def strip_ansi(text: str) -> str:
 def find_path_replacements(log: str) -> list[tuple[str, str]]:
     replacements: list[tuple[str, str]] = []
     current_source: str | None = None
+    installing_target = False
 
     for raw_line in log.splitlines():
         line = strip_ansi(raw_line)
@@ -30,21 +35,27 @@ def find_path_replacements(log: str) -> list[tuple[str, str]]:
                 raise RuntimeError(f"Malformed conan create command: {line}")
 
             current_source = arguments[2]
+            installing_target = False
+            continue
+
+        install_match = INSTALL_PACKAGE_RE.match(line)
+        if install_match:
+            installing_target = (
+                current_source is not None
+                and install_match.group(1) == Path(current_source).name
+            )
             continue
 
         sources_match = SOURCES_IN_RE.match(line)
-        if sources_match and current_source is not None:
-            conan_source = sources_match.group(1)
-            replacement = (conan_source, current_source)
+        if sources_match and installing_target and current_source is not None:
+            replacement = (sources_match.group(1), current_source)
 
             if replacement not in replacements:
                 replacements.append(replacement)
 
-            current_source = None
-
     if not replacements:
         raise RuntimeError(
-            "Could not find a matching 'conan create' command and 'Sources in ...' line"
+            "Could not find a 'Sources in ...' line for the conan create target"
         )
 
     return replacements

@@ -75,6 +75,7 @@ function(haxorg_set_target_flags_impl)
         # FIXME: Adding attribute configurations here does not propagate them to the compiler.
     endif()
     haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wdangling")
+    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
     haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=dangling")
     haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Xclang")
     haxorg_add_target_property(

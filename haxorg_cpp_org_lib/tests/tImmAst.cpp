@@ -331,6 +331,9 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     EXPECT_EQ(word2_id.value<imm::ImmWord>().text, "word2");
     EXPECT_EQ(word4_id.value<imm::ImmWord>().text, "word4");
 
+    // TODO: re-enable
+#warning TODO re-enable
+#if false
     auto gv = imm::toGraphviz(
         {version1, version2},
         imm::ImmAstGraphvizConf{
@@ -339,6 +342,7 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
 
     gv->render("/tmp/ReplaceSubnodeAtPath.png");
     gv->render("/tmp/ReplaceSubnodeAtPath.dot");
+#endif
 }
 
 

@@ -1,11 +1,11 @@
-#include <haxorg_cpp_org_lib/test/corpusrunner.hpp>
+#include <haxorg_cpp_org_lib/test_utils/corpusrunner.hpp>
 
 #include <gtest/gtest.h>
 #include <haxorg_cpp_org_lib/lexbase/NodeIO.hpp>
 #include <haxorg_cpp_org_lib/parse/OrgParser.hpp>
 #include <haxorg_cpp_org_lib/parse/OrgTokenizer.hpp>
-#include <haxorg_cpp_org_lib/test/NodeTest.hpp>
-#include <hstd_cpp_lib/ext/error_write.hpp>
+#include <haxorg_cpp_org_lib/test_utils/NodeTest.hpp>
+#include <hstd_cpp_lib/extra/error_format/error_write.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 #include <iostream>
 
@@ -13,7 +13,6 @@
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
-#include "../testprofiler.hpp"
 #include <fnmatch.h>
 
 #include "tOrgTestCommon.hpp"
@@ -78,22 +77,7 @@ Vec<TestParams> generateTestRuns() {
     return results;
 }
 
-class TestOrgParseCorpus : public ::testing::TestWithParam<TestParams> {
-  protected:
-    Opt<TestProfiler> profiler;
-
-
-    void SetUp() override {
-        profiler = TestProfiler{
-            ("/tmp/" + GetParam().testName() + "_xray"),
-            ("/tmp/" + GetParam().testName() + "_pgo"),
-            json::object({
-                {"meta", GetParam().fullName()},
-            })};
-        profiler->SetUp();
-    }
-    void TearDown() override { profiler->TearDown(); }
-};
+class TestOrgParseCorpus : public ::testing::TestWithParam<TestParams> {};
 
 
 std::string getTestName(
@@ -202,8 +186,7 @@ TEST(ParseFileAux, GenerateYamlSchema) {
 TEST_P(TestOrgParseCorpus, CorpusAll) {
     auto       testDir = getDebugDir("", false);
     TestParams params  = GetParam();
-    if (is_full_trace_on_cli_enabled()) { params.spec.debug.traceAll = true; }
-    TestResult result = gtest_run_spec(params, getDebugDir());
+    TestResult result  = gtest_run_spec(params, getDebugDir());
 
     auto add_gtest_prefix = [](hstd::Str const& text) {
         auto                       lines = split(text, "\n");

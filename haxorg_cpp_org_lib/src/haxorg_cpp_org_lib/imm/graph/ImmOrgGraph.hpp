@@ -1,22 +1,19 @@
 #pragma once
 #if ORG_BUILD_WITH_PROTOBUF
-#    include "src/haxorg/imm/ImmOrgGraph.pb.h"
+#    include "haxorg_cpp_org_lib/ImmOrgGraph.pb.h"
 #endif
 #if !ORG_BUILD_EMCC
 #    include <boost/graph/properties.hpp>
 #endif
 #include <haxorg_cpp_org_lib/imm/ImmOrg.hpp>
 
-#include <hstd_cpp_lib/logger/TraceBase.hpp>
-#include <immer/map_transient.hpp>
-#if !ORG_BUILD_EMCC
-#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
-#endif
-#include <haxorg_cpp_org_lib/imm/ImmGetterApi.hpp>
+#include <haxorg_cpp_org_lib/imm/api/ImmGetterApi.hpp>
 #include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>
 #include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>
 #include <hstd_cpp_lib/system/reflection.hpp>
+#include <immer/map_transient.hpp>
 
 namespace org::graph {
 
@@ -380,9 +377,13 @@ struct MapGraph
             org::imm::ImmAdapter const& node,
             MapNodeProp::Ptr const&     prop) const;
 
+        // TODO: re-enable
+#    warning TODO re-enable
+#    if false
         hstd::SPtr<hgraph::gv::GraphGroup> toGraphviz(
             org::imm::ImmAstContext::Ptr const& ctx,
             MapGraph::Ptr const&                graph);
+#    endif
     };
 
     struct GvConfigCallbackFilters : public GvConfig {

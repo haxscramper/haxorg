@@ -4,7 +4,7 @@
 
 #    include <boost/mp11/list.hpp>
 #    include <google/protobuf/any.pb.h>
-#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 #    include <hstd_cpp_lib/stdlib/Exception.hpp>
 #    include <hstd_cpp_lib/stdlib/Str.hpp>
 #    include <hstd_cpp_lib/stdlib/containers/Vec.hpp>

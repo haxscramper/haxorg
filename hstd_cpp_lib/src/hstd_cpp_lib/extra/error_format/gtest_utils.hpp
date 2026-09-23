@@ -131,8 +131,8 @@ inline hstd::fs::path getDebugDir(
 }
 
 inline hstd::log::log_sink_scope getDebugLogScope(
-    hstd::Str const& suffix,
-    bool             cleanParent) {
+    hstd::Str const& suffix      = "",
+    bool             cleanParent = false) {
     return HSLOG_SINK_FACTORY_SCOPED(([suffix, cleanParent]() {
         return ::hstd::log::init_file_sink(getDebugFile(suffix, cleanParent));
     }));

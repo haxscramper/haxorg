@@ -5,8 +5,8 @@
 
 
 #include <haxorg_cpp_org_lib/lexbase/AstSpec.hpp>
-#include <haxorg_cpp_org_lib/test/NodeTest.hpp>
-#include <hstd_cpp_lib/ext/astdiff/astdiff.hpp>
+#include <haxorg_cpp_org_lib/test_utils/NodeTest.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/astdiff.hpp>
 
 #include <hstd_cpp_lib/stdlib/algorithms/diff/diffs.hpp>
 
@@ -19,10 +19,10 @@
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 #include <haxorg_cpp_org_lib/exporters/ExporterJson.hpp>
 #include <haxorg_cpp_org_lib/exporters/exportertree.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmGetterApi.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrg.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgEdit.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/imm/api/ImmGetterApi.hpp>
+#include <haxorg_cpp_org_lib/imm/edit/ImmOrgEdit.hpp>
+#include <haxorg_cpp_org_lib/imm/graph/ImmOrgGraph.hpp>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 
 using namespace hstd;
@@ -38,7 +38,7 @@ GTEST_ADL_PRINT_TYPE(UserTimeBreakdown);
 
 #pragma clang diagnostic ignored "-Wreorder-init-list"
 #include <gtest/gtest.h>
-#include <haxorg_cpp_org_lib/test/org_parse_aux.hpp>
+#include <haxorg_cpp_org_lib/test_utils/org_parse_aux.hpp>
 
 
 void writeTreeRepr(
@@ -510,8 +510,12 @@ struct ImmOrgApiTestBase : public ::testing::Test {
             .withAuxNodes    = true,
             .withEditHistory = true,
         }) {
+// TODO: re-enable
+#warning TODO re-enable
+#if false
         auto gv = imm::toGraphviz(history, conf);
         gv->render(getDebugFile(suffix + ".dot"));
         gv->render(getDebugFile(suffix + ".png"));
+#endif
     }
 };

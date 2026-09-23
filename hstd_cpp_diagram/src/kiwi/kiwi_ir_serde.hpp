@@ -3,7 +3,7 @@
 #if ORG_BUILD_WITH_PROTOBUF
 
 #    include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
-#    include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
 namespace hstd::serde {
 template <>

@@ -86,6 +86,15 @@ class HaxorgCppOrgLibConan(ConanFile):
         )
 
         toolchain = CMakeToolchain(self)
+        warning_suppressions = self.conf.get(
+            "user.hstd:warning_suppressions",
+            default="",
+            check_type=str,
+        )
+
+        if warning_suppressions:
+            toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = warning_suppressions
+
         toolchain.cache_variables["HAXORG_WITH_PROTOBUF"] = self.options.with_protobuf
         toolchain.cache_variables["HAXORG_WITH_PROTOVALIDATE"] = (
             self.options.with_protovalidate

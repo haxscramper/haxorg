@@ -1,12 +1,12 @@
 #pragma once
 
 #include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
-#include <hstd_cpp_lib/ext/hstd_serde.hpp>
+#include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
 
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <concepts>
-#    include <src/haxorg/serde/SemOrgProto.pb.h>
+#    include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 
 namespace hstd::serde {
 

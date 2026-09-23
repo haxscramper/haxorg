@@ -5,8 +5,8 @@
 
 #include <string>
 
-#include <haxorg_cpp_org_lib/test/NodeTest.hpp>
-#include <hstd_cpp_lib/ext/textlayouter.hpp>
+#include <haxorg_cpp_org_lib/test_utils/NodeTest.hpp>
+#include <hstd_cpp_text_layout/textlayouter.hpp>
 
 namespace org::test {
 

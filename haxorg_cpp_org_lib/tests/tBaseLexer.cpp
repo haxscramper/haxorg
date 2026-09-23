@@ -6,12 +6,12 @@
 #include <haxorg_cpp_org_lib/base_lexer/base_token.hpp>
 #include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrg.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/imm/graph/ImmOrgGraph.hpp>
 #include <haxorg_cpp_org_lib/parse/OrgParser.hpp>
 #include <haxorg_cpp_org_lib/parse/OrgTokenizer.hpp>
 #include <haxorg_cpp_org_lib/sem/SemConvert.hpp>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
-#include <haxorg_cpp_org_lib/test/corpusrunner.hpp>
+#include <haxorg_cpp_org_lib/test_utils/corpusrunner.hpp>
 #include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
@@ -247,11 +247,15 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
     state->addNodeRec(
         initial_version.getContext(), initial_version.getRootAdapter(), conf);
 
+    // TODO: re-enable
+#warning TODO re-enable
+#if false
     org::graph::MapGraph::GvConfigCallbackFilters gvc{};
     gvc.accept_node_cb = [&](hstd::ext::graph::VertexID const& node) -> bool {
         return 0 < state->graph->getInDegree(node)
             || 0 < state->graph->getOutDegree(node);
     };
+
 
     auto gv = gvc.toGraphviz(initial_version.getContext(), state->graph)
                   ->setDirectionLR();
@@ -267,6 +271,7 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
         gv->render(getDebugFile("mind_map.dot"));
         gv->render(getDebugFile("mind_map.png"));
     }
+#endif
 
     auto serial = state->graph->get_serial();
 
@@ -280,10 +285,4 @@ void test_dir_parsing(fs::path const& dir, bool trace) {
 
 TEST(ManualFileRun, TestDirCorpus) {
     test_dir_parsing(__CURRENT_FILE_DIR__ / "corpus", true);
-}
-
-
-TEST(ManualFileRun, TestDir1) {
-    fs::path dir{"/home/haxscramper/tmp/org_test_dir"};
-    if (fs::exists(dir)) { test_dir_parsing(dir, is_full_trace_on_cli_enabled()); }
 }

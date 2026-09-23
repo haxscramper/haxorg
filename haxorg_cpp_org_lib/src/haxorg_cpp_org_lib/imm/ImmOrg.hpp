@@ -837,9 +837,13 @@ void switch_node_fields(
 
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
+// TODO: re-enable
+#    warning TODO re-enable
+#    if false
 hstd::SPtr<hstd::ext::graph::gv::GraphGroup> toGraphviz(
     hstd::Vec<ImmAstVersion> const& history,
     ImmAstGraphvizConf const&       conf = ImmAstGraphvizConf{});
+#    endif
 #endif
 
 template <typename T>

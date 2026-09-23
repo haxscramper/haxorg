@@ -5,14 +5,14 @@
 #    include <hstd_cpp_lib/ext/graph/visual/adaptagrams_common.hpp>
 #    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
 #    include <hstd_cpp_lib/ext/graph/visual/graph_vpsc.hpp>
-#    include <hstd_cpp_lib/ext/hstd_serde.hpp"
 #    include <hstd_cpp_lib/ext/logger.hpp>
 #    include <hstd_cpp_lib/graph/graph_base.hpp>
+#    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp"
 #    include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 #    include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
 #    include <hstd_cpp_lib/system/exceptions.hpp"
 
-#    include "src/hstd/ext/graph/visual/graph_avoid.pb.h"
+#    include <haxorg_cpp_org_lib/graph_avoid.pb.h>
 #    include <hstd_cpp_lib/ext/geometry/hstd_visual_serde.hpp>
 #    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
 

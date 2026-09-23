@@ -14,8 +14,7 @@
 #include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
-#    include "src/hstd/ext/graph/base/graph_base.pb.h"
-#    include "src/hstd/ext/graph/visual/graph_visual.pb.h"
+#    include "hstd_cpp_lib/graph_base.pb.h"
 #endif
 
 namespace hstd {

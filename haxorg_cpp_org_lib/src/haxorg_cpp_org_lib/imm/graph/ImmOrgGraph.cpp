@@ -14,7 +14,7 @@
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
 #if ORG_BUILD_WITH_PROTOBUF
-#    include "src/haxorg/imm/ImmOrgGraph.pb.h"
+#    include "haxorg_cpp_org_lib/ImmOrgGraph.pb.h"
 #endif
 #include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>
 #include <haxorg_cpp_org_lib/serde/SemOrgSerdeDeclarations.hpp>
@@ -617,6 +617,9 @@ MapConfig::MapConfig(SPtr<MapInterface> impl) : impl{impl} {}
 MapConfig::MapConfig() : impl{std::make_shared<MapInterface>()} {}
 
 #if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
+// TODO: re-enable
+#    warning TODO re-enable
+#    if false
 hstd::SPtr<gv::GraphGroup> org::graph::MapGraph::GvConfig::toGraphviz(
     org::imm::ImmAstContext::Ptr const& ctx,
     MapGraph::Ptr const&                graph) {
@@ -659,6 +662,7 @@ hstd::SPtr<gv::GraphGroup> org::graph::MapGraph::GvConfig::toGraphviz(
 
     return res;
 }
+#    endif
 #endif
 
 namespace {

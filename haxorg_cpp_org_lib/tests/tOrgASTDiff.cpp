@@ -3,11 +3,11 @@
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 #include <haxorg_cpp_org_lib/sem/SemAstDiff.hpp>
 #include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
-#include <haxorg_cpp_org_lib/test/org_parse_aux.hpp>
-#include <hstd_cpp_lib/ext/astdiff/astdiff.hpp>
+#include <haxorg_cpp_org_lib/test_utils/org_parse_aux.hpp>
 #include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/diff/astdiff.hpp>
 #include <hstd_cpp_lib/stdlib/containers/Map.hpp>
 #include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>

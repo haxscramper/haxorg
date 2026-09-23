@@ -1,18 +1,12 @@
-
-#include "../common_main.hpp"
-#include "../testprofiler.hpp"
-
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
-#include <hstd_cpp_lib/ext/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/logger/perfetto_aux_impl_template.hpp>
 
 #include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
-FILE* trace_out;
-
 const char* __asan_default_options() { return "verbosity=1:detect_leaks=0"; }
-
 
 int main(int argc, char** argv) {
     hstd::log::clear_sink_backends();
@@ -29,12 +23,5 @@ int main(int argc, char** argv) {
 
     init_gtest_tests(argc, argv);
 
-    auto result = RUN_ALL_TESTS();
-
-    json          records = TestProfiler::getJsonRecords();
-    std::ofstream test_records{"/tmp/compact_records.json"};
-    test_records << hstd::to_compact_json(records);
-
-
-    return result;
+    return RUN_ALL_TESTS();
 }

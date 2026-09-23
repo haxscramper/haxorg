@@ -1,9 +1,9 @@
 #include "export_ctx.hpp"
 
-#include "src/haxorg/imm/ImmOrgGraph.pb.h"
-#include "src/haxorg/serde/OrgApiProto.pb.h"
-#include "src/haxorg/serde/SemOrgProto.pb.h"
 #include <google/protobuf/util/json_util.h>
+#include <haxorg_cpp_org_lib/ImmOrgGraph.pb.h>
+#include <haxorg_cpp_org_lib/OrgApiProto.pb.h>
+#include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 #include <haxorg_cpp_org_lib/exporters/ExporterJson.hpp>
 #include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
