@@ -1,3 +1,15 @@
+function(haxorg_add_bool_compile_definitions target)
+    foreach(option IN LISTS ARGN)
+        if(${option})
+            set(value 1)
+        else()
+            set(value 0)
+        endif()
+
+        haxorg_add_target_property(${target} COMPILE_DEFINITIONS "${option}=${value}")
+    endforeach()
+endfunction()
+
 function(haxorg_set_target_flags_impl)
     cmake_parse_arguments(ARG "" "TARGET;FORCE_NO_ASAN" "" "${ARGN}")
 
@@ -191,21 +203,14 @@ function(haxorg_set_target_flags_impl)
 
         haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
 
-        if(ORG_BUILD_WITH_PERFETTO)
-            haxorg_add_target_property(
-                ${ARG_TARGET}
-                COMPILE_DEFINITIONS
-                "ORG_BUILD_WITH_PERFETTO=0"
-            )
-        endif()
-
-        if(${ORG_BUILD_WITH_TRACY})
-            haxorg_add_target_property(
-                ${ARG_TARGET}
-                COMPILE_DEFINITIONS
-                ORG_BUILD_WITH_TRACY
-            )
-        endif()
+        # TODO: remove these options from the setup functions, and instead have a dedicated
+        # utility and/or top-level logic to validate all options are translated to defines
+        haxorg_add_bool_compile_definitions(
+            ${ARG_TARGET}
+            ORG_BUILD_WITH_PROTOBUF
+            ORG_BUILD_WITH_PERFETTO
+            ORG_BUILD_WITH_TRACY
+        )
 
         if(${ORG_USE_XRAY})
             haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
