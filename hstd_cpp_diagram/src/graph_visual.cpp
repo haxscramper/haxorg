@@ -1,9 +1,7 @@
 #include "graph_visual.hpp"
 
-#if ORG_BUILD_WITH_PROTOBUF
-#    include "hstd_cpp_diagram/graph_visual.pb.h"
-#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
-#endif
+#include <hstd_cpp_diagram/graph_visual.pb.h>
+#include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
 #include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
 #include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 
@@ -290,7 +288,6 @@ hstd::SPtr<IGraph> hstd::ext::graph::layout::IGroupVisualAttribute::getGraph() c
     return run->getGraph();
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
 void layout::IPlacementAlgorithm::writeSerialConstraints(
     google::protobuf::RepeatedPtrField<hstd::ext::graph::proto::IConstraint>* out,
     IGraph const* graph) const {
@@ -307,7 +304,6 @@ void layout::IPlacementAlgorithm::readSerialConstraints(
         addConstraint(new_constraint);
     }
 }
-#endif
 
 hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::EdgeIteration::
     getEdgesForGroup(VertexID const& id) {
@@ -350,7 +346,6 @@ hstd::ext::graph::EdgeIDSet hstd::ext::graph::layout::LayoutRun::EdgeIteration::
     return result;
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
 
 void layout::IVertexLayoutAttribute::writeSerial(
     graph::proto::IAttribute* out,
@@ -375,6 +370,3 @@ void hstd::ext::graph::layout::IGroupLayoutAttribute::writeSerial(
     hstd::serde::write_serde(payload.mutable_bbox(), getBBox());
     *out->mutable_payload() = hstd::serde::packMessage(payload);
 }
-
-
-#endif

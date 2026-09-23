@@ -1,7 +1,6 @@
 #pragma once
 
-#if ORG_BUILD_WITH_PROTOBUF
-#    include <hstd_cpp_diagram/graph_diagram.pb.h>
+#include <hstd_cpp_diagram/graph_diagram.pb.h>
 
 namespace hstd::ext::graph::diagram {
 
@@ -13,4 +12,3 @@ hstd::ext::graph::proto::IGraph diaClusterToGraph(
     hstd::ext::graph::diagram::proto::DiaCluster const& root);
 
 } // namespace hstd::ext::graph::diagram
-#endif

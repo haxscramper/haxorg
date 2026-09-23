@@ -97,14 +97,22 @@ class HstdConan(ConanFile):
         if warning_suppressions:
             toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = warning_suppressions
 
+        # TODO: remove this option entirely, create a separate package for qt utils
         toolchain.variables["ORG_BUILD_WITH_QT"] = False
+        # TODO: Infer the compilation configuration from the compiler, do not
+        # request explicit flag
         toolchain.variables["ORG_BUILD_EMCC"] = False
 
+        # TODO: Make this part properly configurable, defaults to false
         toolchain.variables["ORG_BUILD_WITH_PERFETTO"] = True
+        # TODO: Remove all usage of the tracy compiler
         toolchain.variables["ORG_BUILD_WITH_TRACY"] = True
+        # TODO: make this configurable, defaults to false
         toolchain.variables["ORG_BUILD_WITH_PROTOBUF"] = True
+        # TODO: Make this part configurable, defaults to true if the protobuf is built
         toolchain.variables["ORG_BUILD_WITH_PROTOVALIDATE"] = True
 
+        # TODO: Only react to BUILD_TESTING
         toolchain.variables["ORG_BUILD_TESTS"] = not skip_tests
         toolchain.variables["BUILD_TESTING"] = not skip_tests
         toolchain.generate()

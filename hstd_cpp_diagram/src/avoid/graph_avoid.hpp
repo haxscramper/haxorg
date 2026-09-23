@@ -27,7 +27,6 @@ class AvoidPort
 
 class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
   public:
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override {
         hstd::ext::graph::avoid::proto::PortVisualAttributePayload load;
         load.set_visibility(static_cast<avoid::proto::EdgeVisibility>(visibility));
@@ -45,7 +44,6 @@ class AvoidPortVisualAttribute : public layout::IPortVisualAttribute {
         visibility = static_cast<VisibilityDirection>(load.visibility());
         if (load.has_edge_offset()) { edgeOffset = load.edge_offset(); }
     }
-#    endif
 
     DECL_DESCRIBED_ENUM(VisibilityDirection, Left, Right, Top, Bottom);
     VisibilityDirection visibility;

@@ -96,7 +96,6 @@ struct AnchorSpec {
     }
 
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::kiwi_ir::proto::AnchorSpec* anc) const {
         anc->set_x(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(x));
         anc->set_y(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(y));
@@ -106,7 +105,6 @@ struct AnchorSpec {
         hstd::serde::read_serde(anc.x(), &x);
         hstd::serde::read_serde(anc.y(), &y);
     }
-#    endif
 
     DESC_FIELDS(AnchorSpec, (x, y));
 };
@@ -190,10 +188,7 @@ class Expr {
         int                             origin_line     = -1;
         char const*                     origin_function = nullptr;
 
-#    if ORG_BUILD_WITH_PROTOBUF
         void writeSerial(::hstd::ext::kiwi_ir::proto::Expr::Node* n) const;
-
-#    endif
     };
 
     std::shared_ptr<Node> node;
@@ -207,7 +202,6 @@ class Expr {
     std::string format(bool tree) const;
 
 
-#    if ORG_BUILD_WITH_PROTOBUF
     using VariableResolver = std::optional<
         std::function<Expr(std::string const& vertexStableId, RectAttr attr)>>;
 
@@ -224,7 +218,6 @@ class Expr {
     static std::shared_ptr<Node> readNode(
         ::hstd::ext::kiwi_ir::proto::Expr::Node const& n,
         VariableResolver const&                        resolve = std::nullopt);
-#    endif
 
 
   private:
@@ -388,12 +381,10 @@ struct AlignSpec {
     Anchor anchor;
     double offset = 0.0;
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(::hstd::ext::kiwi_ir::proto::AlignSpec* as) const {
         as->set_anchor(static_cast<::hstd::ext::kiwi_ir::proto::Anchor>(anchor));
         as->set_offset(offset);
     }
-#    endif
 };
 
 struct AlignItem {
@@ -524,7 +515,6 @@ struct RelDimensionSpec {
     double absolute_offset = 0.0;
     DESC_FIELDS(RelDimensionSpec, (size_factor, relative_offset, absolute_offset));
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(::hstd::ext::kiwi_ir::proto::RelDimensionSpec* rd) const {
         if (size_factor.has_value()) { rd->set_size_factor(size_factor.value()); }
 
@@ -540,7 +530,6 @@ struct RelDimensionSpec {
         if (rd.has_relative_offset()) { this->relative_offset = rd.relative_offset(); }
         absolute_offset = rd.absolute_offset();
     }
-#    endif
 };
 
 /// \brief Constrain the nested rectangle position in relation to the

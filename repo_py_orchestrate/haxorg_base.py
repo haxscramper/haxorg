@@ -126,7 +126,6 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
         cmake_opt("ORG_BUILD_WITH_ADAPTAGRAMS", conf.build_conf.use_adaptagrams)
     )
     result.append(cmake_opt("ORG_BUILD_WITH_ELK", conf.build_conf.use_elk))
-    result.append(cmake_opt("ORG_BUILD_WITH_CGRAPH", conf.build_conf.use_cgraph))
     result.append(cmake_opt("ORG_BUILD_TESTS", conf.build_conf.build_tests))
     result.append(cmake_opt("ORG_BUILD_WITH_QT", conf.use.qt))
     result.append(cmake_opt("ORG_BUILD_IMGUI_GUI", conf.use.imgui))

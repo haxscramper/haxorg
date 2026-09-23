@@ -231,7 +231,6 @@ class ElkPortVisualAttribute
   public:
     std::string getRepr() const override { return "ElkPortVisualAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -239,7 +238,6 @@ class ElkPortVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 };
 
 class ElkPortLayoutAttribute
@@ -248,7 +246,6 @@ class ElkPortLayoutAttribute
   public:
     std::string getRepr() const override { return "ElkPortLayoutAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -256,7 +253,6 @@ class ElkPortLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 
     geometry::Rect getBBox() const override {
         // port placement may omit some values if they are zeroed out, and
@@ -336,7 +332,6 @@ class ElkEdgeVisualAttribute
   public:
     std::string getRepr() const override { return "ElkPortVisualAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -344,7 +339,6 @@ class ElkEdgeVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 };
 
 class ElkEdgeLayoutAttribute
@@ -363,7 +357,6 @@ class ElkEdgeLayoutAttribute
         return res;
     }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -371,7 +364,6 @@ class ElkEdgeLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 };
 
 class NodeElkLayoutData {
@@ -442,7 +434,6 @@ class ElkNodeVisualAttribute
   public:
     std::string getRepr() const override { return "ElkNodeVisualAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -450,7 +441,6 @@ class ElkNodeVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 };
 
 class ElkGroupVisualAttribute
@@ -459,7 +449,6 @@ class ElkGroupVisualAttribute
   public:
     std::string getRepr() const override { return "ElkGroupVisualAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -467,7 +456,6 @@ class ElkGroupVisualAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 
     void setOuterPadding(geometry::Padding const& pad) override { logic_todo_impl(); }
 
@@ -532,7 +520,6 @@ class ElkNodeLayoutAttribute
   public:
     std::string getRepr() const override { return "ElkNodeLayoutAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -540,7 +527,6 @@ class ElkNodeLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 
     hstd::SPtr<layout::LayoutRun> run;
 
@@ -580,7 +566,6 @@ class ElkGroupLayoutAttribute
   public:
     std::string getRepr() const override { return "ElkGroupLayoutAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IAttribute* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -588,7 +573,6 @@ class ElkGroupLayoutAttribute
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory,
         IAttributeObject const*    vertex) override;
-#    endif
 
     geometry::Rect bbox;
 

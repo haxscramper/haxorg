@@ -55,20 +55,6 @@ function(haxorg_set_target_flags_impl)
         )
     endif()
 
-    if(${ORG_BUILD_WITH_CGRAPH})
-        haxorg_add_target_property(
-            ${ARG_TARGET}
-            COMPILE_DEFINITIONS
-            ORG_BUILD_WITH_CGRAPH=1
-        )
-    else()
-        haxorg_add_target_property(
-            ${ARG_TARGET}
-            COMPILE_DEFINITIONS
-            ORG_BUILD_WITH_CGRAPH=0
-        )
-    endif()
-
     if(${ORG_DISABLE_WARNINGS})
         haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-everything")
     elseif(${ORG_BUILD_ASSUME_CLANG})

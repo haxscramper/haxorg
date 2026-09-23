@@ -29,11 +29,9 @@ void writeVisual() {
         getDebugFile("result.svg"),
         hstd::ext::visual::toSvg(visual, /*debug=*/false).to_string());
 
-#if ORG_BUILD_WITH_PROTOBUF
     hstd::ext::graph::proto::IGraph out;
     state.graph->writeSerial(&out);
     hstd::writeFile(getDebugFile("serial.json"), hstd::serde::getJString(out));
-#endif
 }
 
 

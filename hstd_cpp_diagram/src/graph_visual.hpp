@@ -2,10 +2,8 @@
 
 #include <hstd_cpp_lib/logger/TraceBase.hpp>
 
+#include "hstd_cpp_diagram/graph_visual.pb.h"
 #include <hstd_cpp_lib/graph/graph_base.hpp>
-#if ORG_BUILD_WITH_PROTOBUF
-#    include "hstd_cpp_diagram/graph_visual.pb.h"
-#endif
 
 namespace hstd::ext::graph {
 
@@ -53,7 +51,6 @@ class ILayoutAttribute : public IAttribute {
     DECL_DESCRIBED_ENUM(Kind, Port, Edge, Vertex, Group);
 
 
-#if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         graph::proto::IAttribute const* in,
         IGraph const*                   graph,
@@ -63,7 +60,6 @@ class ILayoutAttribute : public IAttribute {
             "default implementation of the layout attribute does not support reading the "
             "serial data");
     }
-#endif
 };
 
 class IPortLayoutAttribute : public ILayoutAttribute {
@@ -86,9 +82,7 @@ class IEdgeLayoutAttribute : public ILayoutAttribute {
   public:
     virtual geometry::Path getPath() const = 0;
 
-#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
-#endif
 
     virtual visual::VisGroup getVisual(EdgeID const& selfId) const {
         visual::VisGroup result;
@@ -104,9 +98,7 @@ class IVertexLayoutAttribute : public ILayoutAttribute {
     /// \brief Vertex bounding box + position relative to the parent
     virtual geometry::Rect getBBox() const = 0;
 
-#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const override;
-#endif
 
     virtual visual::VisGroup getVisual(VertexID const& selfId) const {
         visual::VisGroup res;
@@ -127,9 +119,7 @@ class IGroupLayoutAttribute : public IVertexLayoutAttribute {
     /// re-arranges the placement.
     virtual void setBBox(geometry::Rect const& bbox) = 0;
 
-#if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(graph::proto::IAttribute* out, IGraph const* graph) const;
-#endif
 };
 
 
@@ -175,7 +165,6 @@ class IPlacementAlgorithm {
     }
 
 
-#if ORG_BUILD_WITH_PROTOBUF
     void writeSerialConstraints(
         google::protobuf::RepeatedPtrField<hstd::ext::graph::proto::IConstraint>* out,
         IGraph const* graph) const;
@@ -185,14 +174,12 @@ class IPlacementAlgorithm {
                                    in,
         IGraph const*              graph,
         IGraphSerialReaderFactory* factory);
-#endif
 };
 
 class IConstraint {
   public:
     virtual hstd::Vec<VertexID> getAllVertices() const = 0;
 
-#if ORG_BUILD_WITH_PROTOBUF
     virtual void writeSerial(
         hstd::ext::graph::proto::IConstraint* out,
         IGraph const*                         graph) const = 0;
@@ -202,7 +189,6 @@ class IConstraint {
         IGraph const*                               graph,
         IGraphSerialReaderFactory*                  factory,
         IPlacementAlgorithm const*                  vertex) = 0;
-#endif
 };
 
 
@@ -240,8 +226,7 @@ class IGroupVisualAttribute : public IVertexVisualAttribute {
 class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
   public:
     std::string getRepr() const override { return "UnboundEdgeVisualAttr"; }
-#if ORG_BUILD_WITH_PROTOBUF
-    void readSerial(
+    void        readSerial(
         hstd::ext::graph::proto::IAttribute const* in,
         IGraph const*                              graph,
         IGraphSerialReaderFactory*                 factory,
@@ -253,12 +238,10 @@ class UnboundEdgeVisualAttribute : public IEdgeVisualAttribute {
         const override {
         logic_todo_impl();
     }
-#endif
 };
 
 class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
   public:
-#if ORG_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IAttribute const* in,
         IGraph const*                              graph,
@@ -271,7 +254,6 @@ class UnboundEdgeLayoutAttribute : public IEdgeLayoutAttribute {
         const override {
         logic_todo_impl();
     }
-#endif
 
     geometry::Path path;
     UnboundEdgeLayoutAttribute(geometry::Path const& path) : path{path} {}

@@ -1,14 +1,12 @@
-#if ORG_BUILD_WITH_PROTOBUF
+#include "graph_diagram.hpp"
+#include <hstd_cpp_lib/ext/hstd_serde_dispatch.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 
-#    include "graph_diagram.hpp"
-#    include <hstd_cpp_lib/ext/hstd_serde_dispatch.hpp>
-#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
-#    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
-#    include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
+#include <hstd_cpp_lib/ext/graph/visual/visual_factory.hpp>
 
-#    include <hstd_cpp_lib/ext/graph/visual/visual_factory.hpp>
-
-#    pragma clang diagnostic error "-Wswitch"
+#pragma clang diagnostic error "-Wswitch"
 
 namespace {
 
@@ -880,4 +878,3 @@ hstd::ext::graph::diagram::proto::DiaCluster hstd::ext::graph::diagram::graphToD
 
     return result;
 }
-#endif

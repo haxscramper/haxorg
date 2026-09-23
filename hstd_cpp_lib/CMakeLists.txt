@@ -99,6 +99,8 @@ haxorg_glob_add_sources2(
     LS_REGEX
         "${CMAKE_CURRENT_LIST_DIR}/src/hstd_cpp_lib/(extra|geometry|graph|logger|proto_serde|stdlib|system)/.*"
     SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
+    DEBUG ON
+    RECURSE ON
 )
 
 target_include_directories(hstd_cpp_lib PUBLIC "${CMAKE_CURRENT_LIST_DIR}")

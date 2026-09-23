@@ -8,15 +8,14 @@
 #include <hstd_cpp_lib/stdlib/containers/OutcomeSerde.hpp>
 #include <hstd_cpp_lib/stdlib/containers/VariantSerde.hpp>
 
-#if ORG_BUILD_WITH_PROTOBUF
 
-#    include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
-#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
-#    include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 
-#    include <string>
-#    include <unordered_set>
-#    include <utility>
+#include <string>
+#include <unordered_set>
+#include <utility>
 
 namespace hstd {
 template <>
@@ -264,5 +263,3 @@ hstd::ext::geometry::GeometryValidationErrors hstd::ext::graph::diagram::runSpec
 
 
 } // namespace hstd::ext::graph::diagram
-
-#endif

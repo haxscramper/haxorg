@@ -1,10 +1,9 @@
+#include <filesystem>
+#include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
+#include <hstd_cpp_lib/ext/logger.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
 #include <hstd_cpp_lib/proto_serde/hstd_serde.hpp"
-#if !ORG_BUILD_EMCC && ORG_BUILD_WITH_CGRAPH
-#    include <filesystem>
-#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
-#    include <hstd_cpp_lib/ext/logger.hpp>
-#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
-#    include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
 using namespace hstd;
 using namespace hstd::ext;
@@ -1835,113 +1834,105 @@ bool getProtoField(hstd::Vec<Message const*> messages, Str const& name, T& value
 template <typename Attr, typename Payload>
 void writeAttrs(Attr const* self, Payload* payload, LayoutType layout = LayoutType::dot) {
 
-#    define WRITE_ATTR_DIRECT(__Class, Method, key, Type)                                \
-        {                                                                                \
-            auto v = self->get##Method();                                                \
-            if (v) { setProtoField(__PAYLOAD_EXPR(), #key, *v); }                        \
-        }
+#define WRITE_ATTR_DIRECT(__Class, Method, key, Type)                                    \
+    {                                                                                    \
+        auto v = self->get##Method();                                                    \
+        if (v) { setProtoField(__PAYLOAD_EXPR(), #key, *v); }                            \
+    }
 
-#    define WRITE_EATTR_DIRECT(__Class, Name, key, _type)                                \
-        {                                                                                \
-            auto v = self->get##Name();                                                  \
-            if (v) { setProtoField(__PAYLOAD_EXPR(), #key, *v); }                        \
-        }
+#define WRITE_EATTR_DIRECT(__Class, Name, key, _type)                                    \
+    {                                                                                    \
+        auto v = self->get##Name();                                                      \
+        if (v) { setProtoField(__PAYLOAD_EXPR(), #key, *v); }                            \
+    }
 
-#    define WRITE_ALIGNED_DIRECT(__Class, Method, key, Type)                             \
-        {                                                                                \
-            Opt<Type>      value;                                                        \
-            Opt<TextAlign> dir;                                                          \
-            self->getAttr(#key, value);                                                  \
-            if (value) { setProtoField(__PAYLOAD_EXPR(), #key, *value); }                \
-            if (dir) {                                                                   \
-                setProtoField(__PAYLOAD_EXPR(), Str(#key) + Str("_align"), *dir);        \
-            }                                                                            \
-        }
+#define WRITE_ALIGNED_DIRECT(__Class, Method, key, Type)                                 \
+    {                                                                                    \
+        Opt<Type>      value;                                                            \
+        Opt<TextAlign> dir;                                                              \
+        self->getAttr(#key, value);                                                      \
+        if (value) { setProtoField(__PAYLOAD_EXPR(), #key, *value); }                    \
+        if (dir) { setProtoField(__PAYLOAD_EXPR(), Str(#key) + Str("_align"), *dir); }   \
+    }
 
 
-#    define WRITE_GRAPH_ATTR(__Class, Method, key, Type, Layouts)                        \
-        if ((Layouts).contains(layout)) { WRITE_ATTR_DIRECT(__Class, Method, key, Type); }
+#define WRITE_GRAPH_ATTR(__Class, Method, key, Type, Layouts)                            \
+    if ((Layouts).contains(layout)) { WRITE_ATTR_DIRECT(__Class, Method, key, Type); }
 
-#    define WRITE_GRAPH_EATTR(__Class, Name, key, Type, Layouts)                         \
-        if ((Layouts).contains(layout)) { WRITE_EATTR_DIRECT(__Class, Name, key, Type); }
+#define WRITE_GRAPH_EATTR(__Class, Name, key, Type, Layouts)                             \
+    if ((Layouts).contains(layout)) { WRITE_EATTR_DIRECT(__Class, Name, key, Type); }
 
-#    define WRITE_GRAPH_ALIGNED(__Class, Method, key, Type, Layouts)                     \
-        if ((Layouts).contains(layout)) {                                                \
-            WRITE_ALIGNED_DIRECT(__Class, Method, key, Type);                            \
-        }
+#define WRITE_GRAPH_ALIGNED(__Class, Method, key, Type, Layouts)                         \
+    if ((Layouts).contains(layout)) { WRITE_ALIGNED_DIRECT(__Class, Method, key, Type); }
 
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {
 
-#    define __PAYLOAD_EXPR() {payload}
+#define __PAYLOAD_EXPR() {payload}
         _GV_NODE_ATTRIBUTES(WRITE_ATTR_DIRECT, WRITE_EATTR_DIRECT, WRITE_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
         _GV_EDGE_ATTRIBUTES(WRITE_ATTR_DIRECT, WRITE_EATTR_DIRECT, WRITE_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
-#    define __PAYLOAD_EXPR() {payload, payload->mutable_common()}
+#define __PAYLOAD_EXPR() {payload, payload->mutable_common()}
         _GV_GRAPH_ATTRIBUTES(WRITE_GRAPH_ATTR, WRITE_GRAPH_EATTR, WRITE_GRAPH_ALIGNED);
     }
-#    undef __PAYLOAD_EXPR
+#undef __PAYLOAD_EXPR
 
-#    undef WRITE_ATTR
-#    undef WRITE_EATTR
-#    undef WRITE_ALIGNED
+#undef WRITE_ATTR
+#undef WRITE_EATTR
+#undef WRITE_ALIGNED
 }
 
 template <typename Attr, typename Payload>
 void readAttrs(Attr* self, Payload const& payload, LayoutType layout = LayoutType::dot) {
 
-#    define READ_ATTR_DIRECT(__Class, Method, key, Type)                                 \
-        {                                                                                \
-            Type v;                                                                      \
-            if (getProtoField(__PAYLOAD_EXPR(), #key, v)) { self->set##Method(v); }      \
-        }
+#define READ_ATTR_DIRECT(__Class, Method, key, Type)                                     \
+    {                                                                                    \
+        Type v;                                                                          \
+        if (getProtoField(__PAYLOAD_EXPR(), #key, v)) { self->set##Method(v); }          \
+    }
 
-#    define READ_EATTR_DIRECT(__Class, Name, key, _type)                                 \
-        {                                                                                \
-            _type v;                                                                     \
-            if (getProtoField(__PAYLOAD_EXPR(), #key, v)) { self->set##Name(v); }        \
-        }
+#define READ_EATTR_DIRECT(__Class, Name, key, _type)                                     \
+    {                                                                                    \
+        _type v;                                                                         \
+        if (getProtoField(__PAYLOAD_EXPR(), #key, v)) { self->set##Name(v); }            \
+    }
 
-#    define READ_ALIGNED_DIRECT(__Class, Method, key, Type)                              \
-        {                                                                                \
-            Type v;                                                                      \
-            if (getProtoField(__PAYLOAD_EXPR(), #key, v)) {                              \
-                TextAlign dir = TextAlign::Left;                                         \
-                (void)getProtoField(__PAYLOAD_EXPR(), Str(#key) + Str("_align"), dir);   \
-                self->set##Method(v, dir);                                               \
-            }                                                                            \
-        }
+#define READ_ALIGNED_DIRECT(__Class, Method, key, Type)                                  \
+    {                                                                                    \
+        Type v;                                                                          \
+        if (getProtoField(__PAYLOAD_EXPR(), #key, v)) {                                  \
+            TextAlign dir = TextAlign::Left;                                             \
+            (void)getProtoField(__PAYLOAD_EXPR(), Str(#key) + Str("_align"), dir);       \
+            self->set##Method(v, dir);                                                   \
+        }                                                                                \
+    }
 
-#    define READ_GRAPH_ATTR(__Class, Method, key, Type, Layouts)                         \
-        if ((Layouts).contains(layout)) { READ_ATTR_DIRECT(__Class, Method, key, Type); }
+#define READ_GRAPH_ATTR(__Class, Method, key, Type, Layouts)                             \
+    if ((Layouts).contains(layout)) { READ_ATTR_DIRECT(__Class, Method, key, Type); }
 
-#    define READ_GRAPH_EATTR(__Class, Name, key, Type, Layouts)                          \
-        if ((Layouts).contains(layout)) { READ_EATTR_DIRECT(__Class, Name, key, Type); }
+#define READ_GRAPH_EATTR(__Class, Name, key, Type, Layouts)                              \
+    if ((Layouts).contains(layout)) { READ_EATTR_DIRECT(__Class, Name, key, Type); }
 
-#    define READ_GRAPH_ALIGNED(__Class, Method, key, Type, Layouts)                      \
-        if ((Layouts).contains(layout)) {                                                \
-            READ_ALIGNED_DIRECT(__Class, Method, key, Type);                             \
-        }
+#define READ_GRAPH_ALIGNED(__Class, Method, key, Type, Layouts)                          \
+    if ((Layouts).contains(layout)) { READ_ALIGNED_DIRECT(__Class, Method, key, Type); }
 
-#    define __PAYLOAD_EXPR()                                                             \
-        { &payload }
+#define __PAYLOAD_EXPR()                                                                 \
+    { &payload }
     if constexpr (std::is_same_v<Attr, NodeAttribute>) {
         _GV_NODE_ATTRIBUTES(READ_ATTR_DIRECT, READ_EATTR_DIRECT, READ_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, EdgeAttribute>) {
         _GV_EDGE_ATTRIBUTES(READ_ATTR_DIRECT, READ_EATTR_DIRECT, READ_ALIGNED_DIRECT);
     } else if constexpr (std::is_same_v<Attr, GraphGroup>) {
-#    define __PAYLOAD_EXPR() {&payload, &payload.common()}
+#define __PAYLOAD_EXPR() {&payload, &payload.common()}
         _GV_GRAPH_ATTRIBUTES(READ_GRAPH_ATTR, READ_GRAPH_EATTR, READ_GRAPH_ALIGNED);
     }
-#    undef __PAYLOAD_EXPR
+#undef __PAYLOAD_EXPR
 
-#    undef READ_ATTR
-#    undef READ_EATTR
-#    undef READ_ALIGNED
+#undef READ_ATTR
+#undef READ_EATTR
+#undef READ_ALIGNED
 }
 } // namespace
-
-#    if ORG_BUILD_WITH_PROTOBUF
 
 void hstd::ext::graph::gv::GraphGroup::writeSerial(
     graph::proto::IAttribute* out,
@@ -2124,6 +2115,3 @@ void hstd::ext::graph::gv::EdgeAttribute::readSerial(
         hstd::serde::unpackMessage<proto::EdgeAttributePayload>(
             in->payload(), "gv::EdgeAttribute"));
 }
-#    endif
-
-#endif

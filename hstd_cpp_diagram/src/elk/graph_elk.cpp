@@ -1,14 +1,13 @@
-#if ORG_BUILD_WITH_ELK
-#    include "graph_elk.hpp"
+#include "graph_elk.hpp"
 
-#    include <hstd_cpp_diagram/graph_elk.pb.h>
-#    include <hstd_cpp_lib/ext/geometry/hstd_visual_serde.hpp>
-#    include <hstd_cpp_lib/ext/logger.hpp>
-#    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
-#    include <hstd_cpp_lib/stdlib/Ranges.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
-#    include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
-#    include <unordered_set>
+#include <hstd_cpp_diagram/graph_elk.pb.h>
+#include <hstd_cpp_lib/ext/geometry/hstd_visual_serde.hpp>
+#include <hstd_cpp_lib/ext/logger.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#include <unordered_set>
 
 
 using namespace hstd;
@@ -975,7 +974,6 @@ Payload unpack_attr_payload(::hstd::ext::graph::proto::IAttribute const* in) {
 
 } // namespace
 
-#    if ORG_BUILD_WITH_PROTOBUF
 void ElkPortVisualAttribute::writeSerial(
     ::hstd::ext::graph::proto::IAttribute* out,
     IGraph const*) const {
@@ -1148,9 +1146,5 @@ void ElkGroupLayoutAttribute::readSerial(
     bbox = bbox_value;
 }
 
-#    endif
 
 } // namespace hstd::ext::graph::elk
-
-
-#endif

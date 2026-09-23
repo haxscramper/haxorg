@@ -172,7 +172,7 @@ conan_validate target:
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
-    -c 'user.hstd:ninja_args=["-k","0"]' \
+    -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
     --build=missing \
      -vstatus
 

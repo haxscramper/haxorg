@@ -17,7 +17,6 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiVertexAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
         const override {
         kw::proto::KiwiVertexVisualAttributePayload load;
@@ -42,7 +41,6 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
         if (rect.has_width0()) { this->rect->width0 = rect.width0(); }
         if (rect.has_height0()) { this->rect->height0 = rect.height0(); }
     }
-#    endif
 
     KiwiVertexAttribute* setRectWidth(hstd::Opt<double> width) {
         rect->width0 = width;
@@ -82,15 +80,13 @@ class KiwiVertexAttribute : public layout::IVertexVisualAttribute {
 class KiwiEdgeAttribute : public layout::IEdgeVisualAttribute {
   public:
     std::string getRepr() const override { return "KiwiEdgeAttribute"; }
-#    if ORG_BUILD_WITH_PROTOBUF
-    void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
+    void        writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
         const override {}
     void readSerial(
         hstd::ext::graph::proto::IAttribute const* in,
         IGraph const*                              graph,
         IGraphSerialReaderFactory*                 factory,
         IAttributeObject const*                    vertex) override {}
-#    endif
 };
 
 class KiwiConstraint;
@@ -113,7 +109,6 @@ class KiwiGroup
 
     std::string getRepr() const override { return "KiwiGroup"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
         const override {
         layout::IGroupVisualAttribute::writeSerial(out, graph);
@@ -130,7 +125,6 @@ class KiwiGroup
         hstd::serde::unpackMessage<kw::proto::KiwiGroupVisualAttributePayload>(
             in->payload());
     }
-#    endif
 
     hstd::SPtr<SharedCtx>        shared;
     LocalCtx                     local;
@@ -189,7 +183,6 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
   public:
     std::string getRepr() const override { return "KiwiVertexLayoutAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
         const override {
         layout::IVertexLayoutAttribute::writeSerial(out, graph);
@@ -205,7 +198,6 @@ class KiwiVertexLayoutAttribute : public layout::IVertexLayoutAttribute {
         IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
-#    endif
 
     geometry::Rect rect;
     std::string    text;
@@ -233,7 +225,6 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
   public:
     std::string getRepr() const override { return "KiwiGroupLayoutAttribute"; }
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IAttribute* out, IGraph const* graph)
         const override {
         kw::proto::KiwiGroupLayoutAttributePayload load;
@@ -248,7 +239,6 @@ class KiwiGroupLayoutAttribute : public layout::IGroupLayoutAttribute {
         IAttributeObject const*                    vertex) override {
         logic_todo_impl();
     }
-#    endif
 
     visual::VisGroup getVisual(VertexID const& id) const override;
 
@@ -317,7 +307,6 @@ class RelativeConstraint : public KiwiConstraint {
         VertexID            id     = VertexID::Nil();
         kiwi_ir::AnchorSpec anchor = kiwi_ir::AnchorSpec::UpperLeft();
 
-#    if ORG_BUILD_WITH_PROTOBUF
         void writeSerial(
             hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload::VertexRef* vr,
             IGraph const* graph) const {
@@ -332,7 +321,6 @@ class RelativeConstraint : public KiwiConstraint {
             this->id = graph->getVertexIDByStableId(vr.id());
             anchor.readSerial(vr.anchor());
         }
-#    endif
     };
 
     VertexRef fixed;
@@ -341,7 +329,6 @@ class RelativeConstraint : public KiwiConstraint {
     kiwi_ir::RelDimensionSpec x_dim;
     kiwi_ir::RelDimensionSpec y_dim;
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IConstraint* out, IGraph const* graph)
         const override {
         hstd::ext::graph::kw::proto::KiwiRelativeConstraintPayload load;
@@ -364,7 +351,6 @@ class RelativeConstraint : public KiwiConstraint {
         fixed.readSerial(load.fixed(), graph);
         relative.readSerial(load.relative(), graph);
     }
-#    endif
 
     RelativeConstraint* setRelativeOffset(hstd::Opt<double> x, hstd::Opt<double> y) {
         x_dim.relative_offset = x;
@@ -427,7 +413,6 @@ class EvenGapConstraint : public KiwiConstraint {
 
     hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> getKiwi() const override;
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IConstraint* out, IGraph const* graph)
         const override {
         hstd::ext::graph::kw::proto::KiwiEvenGapConstraintPayload load;
@@ -454,7 +439,6 @@ class EvenGapConstraint : public KiwiConstraint {
         hstd::serde::read_serde(load.axis(), axis);
         hstd::serde::read_serde(load.anchor(), anchor);
     }
-#    endif
 };
 
 
@@ -492,7 +476,6 @@ class LinearConstraint : public KiwiConstraint {
     kiwi_ir::Relation        rel;
 
   public:
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IConstraint* out, IGraph const* graph)
         const override {
         hstd::ext::graph::kw::proto::KiwiLinearConstraintPayload load;
@@ -507,8 +490,6 @@ class LinearConstraint : public KiwiConstraint {
         IGraph const*                               graph,
         IGraphSerialReaderFactory*                  factory,
         layout::IPlacementAlgorithm const*          vertex) override;
-
-#    endif
 
     kiwi_ir::Expr use(VertexID const& id, kiwi_ir::RectAttr attr) {
         vertices.incl(id);
@@ -583,7 +564,6 @@ class AlignConstraint : public KiwiConstraint {
     DESC_FIELDS(AlignConstraint, (vertices, dimension));
 
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IConstraint* out, IGraph const* graph)
         const override;
 
@@ -601,7 +581,6 @@ class AlignConstraint : public KiwiConstraint {
     void readPayload(
         hstd::ext::graph::kw::proto::KiwiAlignConstraintPayload const* in,
         IGraph const*                                                  graph);
-#    endif
 
 
     using KiwiConstraint::KiwiConstraint;
@@ -656,7 +635,6 @@ class SeparateConstraint : public KiwiConstraint {
     explicit SeparateConstraint(hstd::SPtr<KiwiGroup> const& group)
         : KiwiConstraint(group), left(group), right(group) {}
 
-#    if ORG_BUILD_WITH_PROTOBUF
     void writeSerial(hstd::ext::graph::proto::IConstraint* out, IGraph const* graph)
         const override {
         kw::proto::KiwiSeparateConstraintPayload load;
@@ -679,7 +657,6 @@ class SeparateConstraint : public KiwiConstraint {
         left.readPayload(&data.left(), graph);
         right.readPayload(&data.right(), graph);
     }
-#    endif
 
     VertexIDVec getAllVertices() const override {
         return left.getAllVertices() + right.getAllVertices();

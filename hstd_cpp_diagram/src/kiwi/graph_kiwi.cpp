@@ -247,7 +247,6 @@ hstd::SPtr<kw::KiwiGroup> kw::KiwiGroup::newRootGraph(
     return result;
 }
 
-#    if ORG_BUILD_WITH_PROTOBUF
 
 void hstd::ext::graph::kw::AlignConstraint::writeSerial(
     hstd::ext::graph::proto::IConstraint* out,
@@ -294,8 +293,6 @@ void kw::AlignConstraint::readPayload(
             graph->getVertexIDByStableId(spec.id()), align_spec);
     }
 }
-#    endif
-
 
 kw::AlignConstraint* kw::AlignConstraint::addAlignVertex(
     VertexID const&            id,
@@ -513,7 +510,6 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::EqualSizeConstraint::getKiwi(
     };
 }
 
-#    if ORG_BUILD_WITH_PROTOBUF
 void kw::LinearConstraint::readSerial(
     ext::graph::proto::IConstraint const* in,
     IGraph const*                         graph,
@@ -537,7 +533,7 @@ void kw::LinearConstraint::readSerial(
     lhs = kiwi_ir::Expr::readSerial(load.lhs(), resolve);
     rhs = kiwi_ir::Expr::readSerial(load.rhs(), resolve);
 }
-#    endif
+#endif
 
 hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::LinearConstraint::getKiwi() const {
     return {
@@ -548,5 +544,3 @@ hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::LinearConstraint::getKiwi() c
             /*strength=*/strength),
     };
 }
-
-#endif
