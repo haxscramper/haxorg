@@ -21,6 +21,10 @@ class KiwiConan(ConanFile):
         cmake_layout(self)
 
     def source(self):
+        # TODO: Find if there is a cleaner way to do this, there is
+        # conandata.yml, but GPT says it won't be downloaded automatically
+        # I don't have right now to figure this out, but I'm 90% sure it
+        # just has no idea what it is talking about.
         get(
             self,
             url=f"https://github.com/nucleic/kiwi/archive/refs/tags/{self.version}.tar.gz",

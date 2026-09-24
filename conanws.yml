@@ -5,8 +5,8 @@ packages:
   - path: repo_conan_wraps/adaptagrams
     ref: adaptagrams/0.0.20251029
 
-  - path: repo_conan_wraps/graphviz
-    ref: graphviz/15.1.0
+  - path: repo_conan_wraps/cgraph
+    ref: cgraph/15.1.0
 
   - path: repo_conan_wraps/kiwi
     ref: kiwi/1.5.1

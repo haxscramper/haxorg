@@ -143,13 +143,13 @@ conan_info_package_path package:
 
 conan_remove_external_deps:
   conan remove "protovalidate-cc/*" -c
-  conan remove "graphviz/*" -c
+  conan remove "cgraph/*" -c
   conan remove "kiwi/*" -c
   conan remove "adaptagrams/*" -c
 
 conan_export_external_deps:
   conan export "repo_conan_wraps/protovalidate-cc"
-  conan export "repo_conan_wraps/graphviz"
+  conan export "repo_conan_wraps/cgraph"
   conan export "repo_conan_wraps/kiwi"
   conan export "repo_conan_wraps/adaptagrams"
 
