@@ -23,8 +23,10 @@ class HstdCppDiagramLibConan(ConanFile):
         self.requires("hstd_cpp_lib/0.1.0", transitive_headers=True, transitive_libs=True)
         self.requires("protobuf/5.27.0", transitive_headers=True, transitive_libs=True)
         self.requires("kiwi/1.4.8", transitive_headers=True, transitive_libs=True)
-        self.requires("graphviz/12.2.1", transitive_headers=True, transitive_libs=True)
-        self.requires("adaptagrams/1.0.0", transitive_headers=True, transitive_libs=True)
+        self.requires("cgraph/15.1.0", transitive_headers=True, transitive_libs=True)
+        self.requires(
+            "adaptagrams/0.0.20251029", transitive_headers=True, transitive_libs=True
+        )
 
     def build_requirements(self):
         self.tool_requires("protobuf/<host_version>")
