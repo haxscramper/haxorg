@@ -30,7 +30,7 @@ class haxorg_cpp_org_libConan(ConanFile):
 
     default_options = {
         "with_protobuf": True,
-        "with_protovalidate": False,
+        "with_protovalidate": True,
         "with_perfetto": False,
     }
 
@@ -45,6 +45,13 @@ class haxorg_cpp_org_libConan(ConanFile):
     def validate(self):
         if self.options.with_protovalidate and not self.options.with_protobuf:
             raise ConanInvalidConfiguration("with_protovalidate requires with_protobuf")
+
+    def configure(self):
+        self.options["hstd_cpp_lib/*"].with_perfetto = bool(self.options.with_perfetto)
+        self.options["hstd_cpp_lib/*"].with_protovalidate = bool(
+            self.options.with_protovalidate
+        )
+        self.options["hstd_cpp_lib/*"].with_protobuf = bool(self.options.with_protobuf)
 
     def requirements(self):
         transitive = {
