@@ -3,7 +3,7 @@
 include(CMakeFindDependencyMacro)
 
 find_dependency(
-    hstd
+    hstd_cpp_lib
     CONFIG
     REQUIRED
 )

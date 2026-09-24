@@ -7,4 +7,4 @@ add_executable(haxorg_cpp_org_lib_package_test hstd_test_package_main.cpp)
 
 target_compile_features(haxorg_cpp_org_lib_package_test PRIVATE cxx_std_20)
 
-target_link_libraries(haxorg_cpp_org_lib_package_test PRIVATE hstd::haxorg_cpp_org_lib)
+target_link_libraries(haxorg_cpp_org_lib_package_test PRIVATE hstd::hstd_cpp_lib)
