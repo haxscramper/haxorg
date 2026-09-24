@@ -72,11 +72,7 @@ configure_file(
 )
 
 function(add_adaptagrams_library name)
-    set(_sources)
-
-    foreach(_source IN LISTS ARGN)
-        list(APPEND _sources "${COLA_DIR}/lib${name}/${_source}")
-    endforeach()
+    file(GLOB _sources CONFIGURE_DEPENDS "${COLA_DIR}/lib${name}/*.cpp")
 
     add_library(${name} STATIC ${_sources})
     add_library(Adaptagrams::${name} ALIAS ${name})
@@ -115,113 +111,19 @@ function(add_adaptagrams_library name)
         )
     endif()
 
-    # Only glob headers, not translation units. In particular, do not pick up
-    # upstream tests, examples or alternative implementations as sources.
     file(GLOB _headers CONFIGURE_DEPENDS "${COLA_DIR}/lib${name}/*.h")
 
     # Our generated configuration is installed separately.
     list(FILTER _headers EXCLUDE REGEX "/config\\.h$")
 
-    # FILES avoids the include/libcola/libcola nesting in the original stub.
     install(FILES ${_headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/lib${name}")
 endfunction()
 
-# Source lists mirror the upstream library Makefile.am files.
-add_adaptagrams_library(
-    vpsc
-    block.cpp
-    blocks.cpp
-    constraint.cpp
-    rectangle.cpp
-    solve_VPSC.cpp
-    variable.cpp
-    cbuffer.cpp
-)
-
-add_adaptagrams_library(
-    avoid
-    connectionpin.cpp
-    connector.cpp
-    connend.cpp
-    geometry.cpp
-    geomtypes.cpp
-    graph.cpp
-    junction.cpp
-    makepath.cpp
-    obstacle.cpp
-    orthogonal.cpp
-    router.cpp
-    shape.cpp
-    timer.cpp
-    vertices.cpp
-    viscluster.cpp
-    visibility.cpp
-    vpsc.cpp
-    hyperedge.cpp
-    hyperedgeimprover.cpp
-    mtst.cpp
-    hyperedgetree.cpp
-    scanline.cpp
-    actioninfo.cpp
-)
-
-add_adaptagrams_library(
-    cola
-    cola.cpp
-    colafd.cpp
-    conjugate_gradient.cpp
-    gradient_projection.cpp
-    straightener.cpp
-    connected_components.cpp
-    convex_hull.cpp
-    cluster.cpp
-    compound_constraints.cpp
-    pseudorandom.cpp
-    output_svg.cpp
-    cc_clustercontainmentconstraints.cpp
-    cc_nonoverlapconstraints.cpp
-    box.cpp
-    shapepair.cpp
-)
-
-add_adaptagrams_library(
-    topology
-    topology_graph.cpp
-    topology_constraints.cpp
-    compute_forces.cpp
-    topology_constraints_constructor.cpp
-    resize.cpp
-    cola_topology_addon.cpp
-    orthogonal_topology.cpp
-)
-
-add_adaptagrams_library(
-    dialect
-    aca.cpp
-    bendseqlookup.cpp
-    chains.cpp
-    constraints.cpp
-    edges.cpp
-    expansion.cpp
-    faces.cpp
-    graphs.cpp
-    hola.cpp
-    io.cpp
-    logging.cpp
-    nearalign.cpp
-    nexes.cpp
-    nodeconfig.cpp
-    nodes.cpp
-    ortho.cpp
-    peeling.cpp
-    planarise.cpp
-    qalookup.cpp
-    quadaction.cpp
-    routing.cpp
-    sides.cpp
-    treeplacement.cpp
-    trees.cpp
-)
+add_adaptagrams_library(vpsc)
+add_adaptagrams_library(avoid)
+add_adaptagrams_library(cola)
+add_adaptagrams_library(topology)
+add_adaptagrams_library(dialect)
 
 # Upstream libavoid otherwise uses dllimport declarations under MSVC.
 # This must reach consumers as well as the library's own compilation.

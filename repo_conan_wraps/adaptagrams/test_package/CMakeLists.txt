@@ -11,28 +11,12 @@ if(ADAPTAGRAMS_NATIVE_CONFIG_DIR)
         Adaptagrams
         CONFIG
         REQUIRED
-        COMPONENTS
-            avoid
-            vpsc
-            cola
-            topology
-            dialect
         PATHS
             "${ADAPTAGRAMS_NATIVE_CONFIG_DIR}"
         NO_DEFAULT_PATH
     )
 else()
-    find_package(
-        Adaptagrams
-        CONFIG
-        REQUIRED
-        COMPONENTS
-            avoid
-            vpsc
-            cola
-            topology
-            dialect
-    )
+    find_package(Adaptagrams CONFIG REQUIRED)
 endif()
 
 foreach(
