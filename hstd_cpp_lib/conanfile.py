@@ -43,8 +43,8 @@ class HstdConan(ConanFile):
 
     default_options = {
         "with_protobuf": True,
-        "with_protovalidate": False,
-        "with_perfetto": False,
+        "with_protovalidate": True,
+        "with_perfetto": True,
     }
 
     def requirements(self):
@@ -119,12 +119,15 @@ class HstdConan(ConanFile):
         # request explicit flag
         toolchain.variables["ORG_BUILD_EMCC"] = False
 
-        # TODO: Make this part properly configurable, defaults to false
-        toolchain.variables["HSTD_CPP_BUILD_WITH_PERFETTO"] = True
-        # TODO: make this configurable, defaults to false
-        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOBUF"] = True
-        # TODO: Make this part configurable, defaults to true if the protobuf is built
-        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = True
+        toolchain.variables["HSTD_CPP_BUILD_WITH_PERFETTO"] = bool(
+            self.options.with_perfetto
+        )
+        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOBUF"] = bool(
+            self.options.with_protobuf
+        )
+        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = bool(
+            self.options.with_protovalidate
+        )
 
         toolchain.variables["BUILD_TESTING"] = not skip_tests
         toolchain.generate()
@@ -159,6 +162,12 @@ class HstdConan(ConanFile):
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "hstd_cpp_lib")
         self.cpp_info.set_property("cmake_target_name", "hstd::hstd_cpp_lib")
+
+        self.cpp_info.defines = [
+            f"HSTD_CPP_BUILD_WITH_PROTOBUF={int(bool(self.options.with_protobuf))}",
+            f"HSTD_CPP_BUILD_WITH_PROTOVALIDATE={int(bool(self.options.with_protovalidate))}",
+            f"HSTD_CPP_BUILD_WITH_PERFETTO={int(bool(self.options.with_perfetto))}",
+        ]
 
         cmake_modules = [
             "lib/cmake/hstd_cpp_lib/functions_aux.cmake",

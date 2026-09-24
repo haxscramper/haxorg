@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef HSTD_CPP_BUILD_WITH_PERFETTO
+#    error HSTD_CPP_BUILD_WITH_PERFETTO must be explicitly defined as 0 or 1 for the hstd::hstd_cpp_lib serde header.
+#endif
+
 // clang-format off
 #if HSTD_CPP_BUILD_WITH_PERFETTO
 

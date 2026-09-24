@@ -6,6 +6,12 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 include(cmake/functions_setup.cmake)
 include(cmake/functions_aux.cmake)
 
+option(HSTD_CPP_BUILD_WITH_PROTOBUF "")
+option(HSTD_CPP_BUILD_WITH_PROTOVALIDATE "")
+option(HSTD_CPP_BUILD_WITH_PERFETTO "")
+option(ORG_BUILD_EMCC "")
+option(ORG_BUILD_WITH_QT "")
+
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -72,8 +78,6 @@ if(ORG_BUILD_WITH_QT)
     haxorg_set_target_flags(hstd_cpp_lib)
 
     target_link_libraries(hstd_cpp_lib PUBLIC Qt6::Core)
-    target_compile_definitions(hstd_cpp_lib PUBLIC ORG_BUILD_WITH_QT=1)
-
     set_target_properties(
         hstd_cpp_lib
         PROPERTIES
@@ -89,6 +93,15 @@ else()
 endif()
 
 add_library(hstd::hstd_cpp_lib ALIAS hstd_cpp_lib)
+
+haxorg_add_bool_compile_definitions(
+    hstd_cpp_lib
+    HSTD_CPP_BUILD_WITH_PROTOBUF
+    HSTD_CPP_BUILD_WITH_PERFETTO
+    HSTD_CPP_BUILD_WITH_PROTOVALIDATE
+    ORG_BUILD_WITH_QT
+    ORG_BUILD_EMCC
+)
 
 haxorg_glob_add_sources2(
     TARGET hstd_cpp_lib
@@ -162,15 +175,12 @@ if(BUILD_TESTING)
     enable_testing()
     haxorg_add_executable(hstd_cpp_lib_tests)
 
-    if(ORG_BUILD_WITH_QT)
-        target_compile_definitions(hstd_cpp_lib_tests PUBLIC ORG_BUILD_WITH_QT=1)
-    endif()
-
     haxorg_glob_add_sources2(
         TARGET hstd_cpp_lib_tests
         LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/tests/.*"
         SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
     )
+
     target_link_libraries(
         hstd_cpp_lib_tests
         PRIVATE

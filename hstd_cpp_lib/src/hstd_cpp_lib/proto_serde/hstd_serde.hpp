@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef HSTD_CPP_BUILD_WITH_PROTOBUF
+#    error HSTD_CPP_BUILD_WITH_PROTOBUF must be explicitly defined as 0 or 1 for the hstd::hstd_cpp_lib serde header.
+#endif
+
 #if HSTD_CPP_BUILD_WITH_PROTOBUF
 #    include "google/protobuf/map.h"
 #    include <fstream>

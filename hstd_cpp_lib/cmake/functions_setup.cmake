@@ -6,7 +6,7 @@ function(haxorg_add_bool_compile_definitions target)
             set(value 0)
         endif()
 
-        haxorg_add_target_property(${target} COMPILE_DEFINITIONS "${option}=${value}")
+        target_compile_definitions(${target} PUBLIC "${option}=${value}")
     endforeach()
 endfunction()
 
@@ -202,14 +202,6 @@ function(haxorg_set_target_flags_impl)
         endif()
 
         haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS IMMER_TAGGED_NODE=0)
-
-        # TODO: remove these options from the setup functions, and instead have a dedicated
-        # utility and/or top-level logic to validate all options are translated to defines
-        haxorg_add_bool_compile_definitions(
-            ${ARG_TARGET}
-            HSTD_CPP_BUILD_WITH_PROTOBUF
-            HSTD_CPP_BUILD_WITH_PERFETTO
-        )
 
         if(${ORG_USE_XRAY})
             haxorg_add_target_property(${ARG_TARGET} COMPILE_DEFINITIONS ORG_USE_XRAY)
