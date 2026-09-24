@@ -9,7 +9,7 @@ find_package(hstd_cpp_lib CONFIG REQUIRED)
 find_package(Protobuf CONFIG REQUIRED)
 find_package(kiwi CONFIG REQUIRED)
 find_package(graphviz CONFIG REQUIRED)
-find_package(adaptagrams CONFIG REQUIRED)
+find_package(Adaptagrams CONFIG REQUIRED)
 
 if(NOT DEFINED hstd_cpp_lib_PROTO_IMPORT_DIR)
     message(

@@ -143,17 +143,26 @@ conan_info_package_path package:
 
 conan_remove_external_deps:
   conan remove "protovalidate-cc/*" -c
+  conan remove "graphviz/*" -c
+  conan remove "kiwi/*" -c
+  conan remove "adaptagrams/*" -c
+
+conan_export_external_deps:
+  conan export "repo_conan_wraps/protovalidate-cc"
+  conan export "repo_conan_wraps/graphviz"
+  conan export "repo_conan_wraps/kiwi"
+  conan export "repo_conan_wraps/adaptagrams"
+
 
 conan_remove_local_deps:
   conan remove "hstd_cpp_lib/*" --confirm
   conan remove "hstd_cpp_text_layout/*" --confirm
-
-conan_export_external_deps:
-  conan export "repo_conan_wraps/protovalidate-cc"
+  conan remove "haxorg_cpp_org_lib/*" --confirm
 
 conan_export_local_deps:
   conan export "hstd_cpp_lib"
   conan export "hstd_cpp_text_layout"
+  conan export "haxorg_cpp_org_lib"
 
 [working-directory("/tmp")]
 conan_validate_deps dep_name:
@@ -178,6 +187,8 @@ conan_validate target:
 
 conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
 conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
+
+conan_update_all_deps: conan_update_external_deps conan_update_local_deps
 
 conan_clean_total_validate target: conan_update_local_deps conan_update_external_deps
   just conan_validate {{target}}

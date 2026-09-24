@@ -10,7 +10,7 @@ required_conan_version = ">=2.0"
 
 
 class CgraphConan(ConanFile):
-    name = "cgraph"
+    name = "graphviz"
     version = "15.1.0"
     description = "Graphviz cgraph: abstract graph library (with its cdt dependency)"
     license = "EPL-2.0"
@@ -87,8 +87,8 @@ class CgraphConan(ConanFile):
         CMake(self).install()
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "cgraph")
-        self.cpp_info.set_property("cmake_target_name", "cgraph::cgraph")
+        self.cpp_info.set_property("cmake_file_name", "graphviz")
+        self.cpp_info.set_property("cmake_target_name", "graphviz::cgraph")
         self.cpp_info.set_property("pkg_config_name", "libcgraph")
 
         # order matters for static linking: cgraph depends on cdt
