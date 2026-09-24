@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CMakePackageConfigHelpers)
 
-find_package(hstd CONFIG REQUIRED)
+find_package(hstd_cpp_lib CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(SQLiteCpp CONFIG REQUIRED)
 find_package(TBB CONFIG REQUIRED)

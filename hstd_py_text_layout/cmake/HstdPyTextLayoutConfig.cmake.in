@@ -3,12 +3,12 @@
 include(CMakeFindDependencyMacro)
 
 find_dependency(
-    hstd
+    hstd_cpp_lib
     CONFIG
     REQUIRED
 )
 find_dependency(
-    HstdCppTextLayout
+    hstd_cpp_text_layout
     CONFIG
     REQUIRED
 )

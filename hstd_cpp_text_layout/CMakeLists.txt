@@ -81,24 +81,24 @@ install(
     EXPORT hstd_cpp_text_layout_targets
     FILE hstd_cpp_text_layout_targets.cmake
     NAMESPACE hstd::
-    DESTINATION lib/cmake/HstdCppTextLayout
+    DESTINATION lib/cmake/hstd_cpp_text_layout
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HstdCppTextLayout_config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/HstdCppTextLayoutConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/HstdCppTextLayout
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/hstd_cpp_text_layout_config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config.cmake"
+    INSTALL_DESTINATION lib/cmake/hstd_cpp_text_layout
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/HstdCppTextLayoutConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config_version.cmake"
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/HstdCppTextLayoutConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/HstdCppTextLayoutConfigVersion.cmake"
-    DESTINATION lib/cmake/HstdCppTextLayout
+        "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config_version.cmake"
+    DESTINATION lib/cmake/hstd_cpp_text_layout
 )

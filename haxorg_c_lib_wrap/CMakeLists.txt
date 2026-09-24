@@ -15,7 +15,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(CTest)
 include(CMakePackageConfigHelpers)
 
-find_package(hstd CONFIG REQUIRED)
+find_package(hstd_cpp_lib CONFIG REQUIRED)
 find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 
 set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
