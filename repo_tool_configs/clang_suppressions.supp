@@ -1,2 +1,5 @@
 [deprecated-declarations]
 src:*/.conan2/p/*
+
+[macro-redefined]
+src:*/.conan2/p/*

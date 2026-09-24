@@ -3,7 +3,7 @@
 // clang-format off
 #if ORG_BUILD_WITH_PERFETTO
 
-#    include <perfetto/perfetto.h>
+#    include <perfetto.h>
 #    include <filesystem>
 
 std::unique_ptr<perfetto::TracingSession> StartTracing();

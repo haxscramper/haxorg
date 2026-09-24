@@ -459,6 +459,9 @@ void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* fact
         }
     }
 
+    // TODO: re-enable
+#    warning TODO re-enable
+#    if false
     for (auto const& v : in->vertices()) {
         auto new_vertex = getMVertex(getVertexIDByStableId(v.stable_id()));
         auto group = new_vertex->getOptionalAttribute<layout::IGroupVisualAttribute>();
@@ -467,6 +470,7 @@ void IGraph::readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* fact
             algo->readSerialConstraints(&v.constraints(), this, factory);
         }
     }
+#    endif
 }
 #endif
 

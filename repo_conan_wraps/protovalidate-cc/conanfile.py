@@ -7,15 +7,7 @@ from conan.tools.cmake import (
     CMakeToolchain,
     cmake_layout,
 )
-from conan.tools.files import (
-    copy,
-    download,
-    get,
-    mkdir,
-    replace_in_file,
-    rmdir,
-    save,
-)
+from conan.tools.files import copy, download, get, mkdir, replace_in_file, rmdir, save
 
 
 class ProtovalidateCcConan(ConanFile):
@@ -178,6 +170,8 @@ class ProtovalidateCcConan(ConanFile):
         CMakeDeps(self).generate()
 
         toolchain = CMakeToolchain(self)
+        toolchain.extra_cflags.append("-w")
+        toolchain.extra_cxxflags.append("-w")
         protobuf = self.dependencies["protobuf"]
         toolchain.variables["Protobuf_IMPORT_DIRS"] = os.path.join(
             protobuf.package_folder,
@@ -208,6 +202,33 @@ class ProtovalidateCcConan(ConanFile):
     def package(self):
         cmake = CMake(self)
         cmake.install()
+
+        # protovalidate vendors the CEL dependencies internally,
+        # so the headers must be copied over to the target location.
+        copy(
+            self,
+            pattern="*.h",
+            src=os.path.join(self.build_folder, "_deps", "cel_cpp-src"),
+            dst=os.path.join(self.package_folder, "include"),
+            keep_path=True,
+        )
+
+        # The header is generated under `cel_cpp-build`, so the earlier copy from `cel_cpp-src`
+        # cannot include it.
+        copy(
+            self,
+            pattern="*.h",
+            src=os.path.join(
+                self.build_folder,
+                "_deps",
+                "cel_cpp-build",
+                "gen",
+                "proto_cc_cel_spec",
+                "proto",
+            ),
+            dst=os.path.join(self.package_folder, "include"),
+            keep_path=True,
+        )
 
         rmdir(
             self,

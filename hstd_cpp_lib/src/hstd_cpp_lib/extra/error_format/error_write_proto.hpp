@@ -2,8 +2,8 @@
 
 #if ORG_BUILD_WITH_PROTOBUF
 
-#    include "src/hstd/ext/error_write.pb.h"
-#    include <hstd_cpp_lib/extra/error_format/error_write.hpp"
+#    include <hstd_cpp_lib/error_write.pb.h>
+#    include <hstd_cpp_lib/extra/error_format/error_write.hpp>
 #    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
 namespace hstd::serde {
