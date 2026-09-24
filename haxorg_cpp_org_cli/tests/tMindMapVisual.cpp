@@ -131,7 +131,7 @@ std::unique_ptr<proto::IGraph> run_layout(
 class TestClass {
     void runExternalizedLayoutPipeline() {
         auto serial = state->graph->get_serial();
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
         auto completed_layout = run_layout(serial);
 #endif
     }

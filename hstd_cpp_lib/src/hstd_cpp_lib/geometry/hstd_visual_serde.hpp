@@ -1,6 +1,6 @@
 #pragma once
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 
 #    include <hstd_cpp_lib/geometry/hstd_visual.hpp>
 #    include <hstd_cpp_lib/hstd_visual.pb.h>

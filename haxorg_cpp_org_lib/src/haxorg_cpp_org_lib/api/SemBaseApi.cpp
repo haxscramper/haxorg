@@ -20,7 +20,7 @@
 #include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 
-#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 #endif
 
@@ -101,7 +101,7 @@ void org::exportToTreeFile(
 
 
 sem::SemId<sem::Document> org::readProtobufFile(std::string const& file) {
-#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     sem::SemId        read_node = sem::SemId<sem::Org>::Nil();
     std::ifstream     stream{file};
     orgproto::AnyNode result;
@@ -115,12 +115,12 @@ sem::SemId<sem::Document> org::readProtobufFile(std::string const& file) {
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
-        "`ORG_BUILD_WITH_PROTOBUF` and rebuild to enable protobuf serde.");
+        "`HAXORG_CPP_BUILD_WITH_PROTOBUF` and rebuild to enable protobuf serde.");
 #endif
 }
 
 void org::exportToProtobufFile(sem::SemId<sem::Document> doc, std::string const& file) {
-#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
     std::ofstream     stream{file};
     orgproto::AnyNode result;
     hstd::serde::proto_serde<orgproto::AnyNode, sem::SemId<sem::Org>>::write(
@@ -131,7 +131,7 @@ void org::exportToProtobufFile(sem::SemId<sem::Document> doc, std::string const&
 #else
     throw std::logic_error(
         "haxorg was not compiled with protobuf support. Enable "
-        "`ORG_BUILD_WITH_PROTOBUF` and rebuild to enable protobuf serde.");
+        "`HAXORG_CPP_BUILD_WITH_PROTOBUF` and rebuild to enable protobuf serde.");
 #endif
 }
 

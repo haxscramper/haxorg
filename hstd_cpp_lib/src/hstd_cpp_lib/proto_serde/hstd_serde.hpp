@@ -1,6 +1,6 @@
 #pragma once
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 #    include "google/protobuf/map.h"
 #    include <fstream>
 #    include <google/protobuf/any.pb.h>

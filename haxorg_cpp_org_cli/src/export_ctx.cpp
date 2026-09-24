@@ -88,7 +88,7 @@ void org::cli::ExportCommandContext::run(SharedContext& shared) {
             [&](EO::Token const&) { exportIrReprs(); },
             [&](EO::BaseToken const&) { exportIrReprs(); },
             [&](EO::ParseNode const&) { exportIrReprs(); },
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
             [&](EO::Proto const& options) { exportProto(shared, node.value(), options); },
             [&](EO::Map const& options) { exportMap(shared, node.value(), options); },
 #endif
@@ -97,7 +97,7 @@ void org::cli::ExportCommandContext::run(SharedContext& shared) {
 }
 
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 void org::cli::ExportCommandContext::exportProto(
     SharedContext&                        shared,
     org::sem::SemId<org::sem::Org> const& node,
@@ -205,7 +205,7 @@ void org::cli::ExportCommandContext::getSubcommand(
     parsenode_cmd.add_description("export parse node result");
     export_cmd.add_subparser(parsenode_cmd);
 
-#    if ORG_BUILD_WITH_PROTOBUF
+#    if HAXORG_CPP_BUILD_WITH_PROTOBUF
     argparse::ArgumentParser& proto_cmd = store.addSubcommand(
         export_cmd, lower_enum(EK::Proto));
     proto_cmd.add_description("export to protobuf");
@@ -254,7 +254,7 @@ org::cli::CliOpts::ExportOpts org::cli::ExportCommandContext::parseCommand(
         OPT_GET(sub, yaml, skipLocation, bool);
         OPT_GET(sub, yaml, skipId, bool);
         opts.data = yaml;
-#    if ORG_BUILD_WITH_PROTOBUF
+#    if HAXORG_CPP_BUILD_WITH_PROTOBUF
     } else if (export_cmd.is_subcommand_used(lower_enum(EK::Proto))) {
         auto&     sub = export_cmd.at<argparse::ArgumentParser>(lower_enum(EK::Proto));
         EO::Proto res;

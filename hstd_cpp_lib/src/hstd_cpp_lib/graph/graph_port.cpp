@@ -118,7 +118,7 @@ void hstd::ext::graph::IPortCollection::connectPort(
     }
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IPortCollection::writeSerial(
     proto::IPortCollection* out,
     IGraph const*           graph) const {}

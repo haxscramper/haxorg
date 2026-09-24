@@ -57,7 +57,7 @@ CliOpts org::cli::parseCli(int argc, char** argv, CommandStore& store) {
 
     argparse::ArgumentParser program("haxorg");
     program.add_epilog(
-        hstd::fmt("ORG_BUILD_WITH_PROTOBUF = {}", ORG_BUILD_WITH_PROTOBUF));
+        hstd::fmt("HAXORG_CPP_BUILD_WITH_PROTOBUF = {}", HAXORG_CPP_BUILD_WITH_PROTOBUF));
 
     addBoolOpt(program, CliOpts::withIncludes_opt, "parse input with all includes", true);
     program.add_argument(CliOpts::loggingFlags_opt)

@@ -36,7 +36,7 @@ class IVertexHierarchy : public IEdgeProvider {
   public:
     virtual ~IVertexHierarchy() = default;
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     virtual void writeSerial(proto::IVertexHierarchy* out, IGraph const* graph) const;
 
     virtual void readSerial(
@@ -227,7 +227,7 @@ struct TrivialHierarchy : public IVertexHierarchy {
         VertexID const&               sub,
         hstd::Opt<TrivialEdge> const& init_vertex = std::nullopt);
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IVertexHierarchy* out, IGraph const* graph) const override;
 
     void readSerial(
@@ -302,7 +302,7 @@ class AutoSegmentingCollection : public IEdgeCollection {
 
     bool hasEdge(EdgeID const& id) const override { return segmented_edges->hasEdge(id); }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IEdgeCollection* out, IGraph const* graph) const override {
         IEdgeCollection::writeSerial(out, graph);
         proto::AutoSegmentingCollectioneCollection tag;

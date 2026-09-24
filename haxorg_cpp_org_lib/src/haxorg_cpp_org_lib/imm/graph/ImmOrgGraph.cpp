@@ -13,7 +13,7 @@
 #include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
 #include <immer/set_transient.hpp>
 #include <immer/vector_transient.hpp>
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 #    include "haxorg_cpp_org_lib/ImmOrgGraph.pb.h"
 #endif
 #include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>
@@ -769,7 +769,7 @@ Opt<MapLink> org::graph::MapGraphState::getUnresolvedLink(
     }
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 void org::graph::MapNode::writeSerial(
     hgraph::proto::IVertex* out,
     hgraph::IGraph const*   graph,
@@ -794,7 +794,7 @@ std::shared_ptr<MapGraphState> org::graph::initMapGraphState(
     return MapGraphState::FromAstContext(ast);
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 void org::graph::MapEdge::readSerial(
     hstd::ext::graph::proto::IEdge const*        in,
     hstd::ext::graph::IGraph const*              graph,
@@ -944,7 +944,7 @@ Vec<MapLinkResolveResult> org::graph::getResolveTarget(
     return result;
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 void org::graph::MapEdgeCollection::writeSerial(
     hstd::ext::graph::proto::IEdgeCollection* out,
     hstd::ext::graph::IGraph const*           graph) const {

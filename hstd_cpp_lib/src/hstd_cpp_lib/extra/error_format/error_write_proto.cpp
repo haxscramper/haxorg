@@ -1,6 +1,6 @@
 #include "error_write_proto.hpp"
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 
 namespace hstd::serde {
 

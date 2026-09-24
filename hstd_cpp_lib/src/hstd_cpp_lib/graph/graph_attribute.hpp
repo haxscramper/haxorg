@@ -21,7 +21,7 @@ struct IAttribute {
         return dynamic_cast<T const*>(this) != nullptr;
     }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     virtual void writeSerial(proto::IAttribute* out, IGraph const* graph) const = 0;
     virtual void readSerial(
         proto::IAttribute const*   in,
@@ -148,7 +148,7 @@ class IAttributeObject {
         setAttributes(new_list);
     }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(
         ::google::protobuf::RepeatedPtrField<::hstd::ext::graph::proto::IAttribute>* out,
         IGraph const* graph) const;

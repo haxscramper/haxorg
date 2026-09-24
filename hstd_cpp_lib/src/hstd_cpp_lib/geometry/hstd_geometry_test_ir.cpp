@@ -1,6 +1,6 @@
 #include <hstd_cpp_lib/geometry/hstd_geometry_test_ir.hpp>
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 #    pragma clang diagnostic error "-Wswitch"
 
 #    include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>

@@ -174,7 +174,7 @@ EdgeIDSet IEdgeCollection::getEdges() const {
 }
 
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 
 void hstd::ext::graph::IEdgeCollection::writeSerial(
     proto::IEdgeCollection* out,

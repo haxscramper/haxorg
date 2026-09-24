@@ -232,7 +232,7 @@ hstd::Opt<VertexID> IVertexHierarchy::getParentVertex(VertexID const& id) const 
     return hstd::Opt<VertexID>{};
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IVertexHierarchy::writeSerial(
     proto::IVertexHierarchy* out,
     IGraph const*            graph) const {

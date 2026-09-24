@@ -480,7 +480,7 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
         return result;
     };
 
-#if ORG_BUILD_WITH_PERFETTO || ORG_BUILD_WITH_TRACY
+#if ORG_BUILD_WITH_PERFETTO
     static SemSet AddTrackingKinds{
         OrgSemKind::Subtree,
         OrgSemKind::Document,

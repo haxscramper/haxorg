@@ -1,6 +1,6 @@
 #include "graph_vertex.hpp"
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 void hstd::ext::graph::IVertex::writeSerial(
     proto::IVertex* out,
     IGraph const*   graph,

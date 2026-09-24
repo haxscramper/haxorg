@@ -396,7 +396,7 @@ class IGraph {
         DESC_FIELDS(SerialSchema, (vertices, edges, hierarchies, flatVertexIDs));
     };
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IGraph* out) const;
 
     void readSerial(proto::IGraph const* in, IGraphSerialReaderFactory* factory);
@@ -404,7 +404,7 @@ class IGraph {
 
     virtual VertexID addVertex(hstd::SPtr<IVertex> const& vertex) = 0;
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     std::unique_ptr<proto::IGraph> get_serial() const;
 #endif
 

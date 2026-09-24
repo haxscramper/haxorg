@@ -13,7 +13,7 @@
 #include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 #    include "hstd_cpp_lib/graph_base.pb.h"
 #endif
 
@@ -244,7 +244,7 @@ namespace layout {
 class IConstraint;
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
 class IGraphSerialReaderFactory : public hstd::OperationsTracer {
   public:
     virtual hstd::SPtr<IVertexHierarchy> newVertexHierarchy(

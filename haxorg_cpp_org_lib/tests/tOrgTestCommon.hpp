@@ -12,7 +12,7 @@
 
 #include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 #    include <google/protobuf/util/json_util.h>
 #endif
 #include <boost/graph/graphml.hpp>

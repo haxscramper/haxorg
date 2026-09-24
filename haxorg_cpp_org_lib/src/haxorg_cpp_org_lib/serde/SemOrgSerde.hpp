@@ -4,7 +4,7 @@
 #include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
 
-#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <concepts>
 #    include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 

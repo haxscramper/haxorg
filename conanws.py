@@ -16,9 +16,8 @@ class MonorepoConan(ConanFile):
         toolchain.variables["ORG_BUILD_WITH_QT"] = False
         toolchain.variables["ORG_BUILD_EMCC"] = False
         toolchain.variables["ORG_BUILD_WITH_PERFETTO"] = True
-        toolchain.variables["ORG_BUILD_WITH_TRACY"] = True
         toolchain.variables["ORG_BUILD_WITH_PROTOBUF"] = True
-        toolchain.variables["ORG_BUILD_WITH_PROTOVALIDATE"] = True
+        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = True
         toolchain.variables["ORG_BUILD_TESTS"] = True
         toolchain.variables["BUILD_TESTING"] = True
         toolchain.generate()

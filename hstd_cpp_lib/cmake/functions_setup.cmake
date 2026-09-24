@@ -28,7 +28,7 @@ function(haxorg_set_target_flags_impl)
             "-sNO_DISABLE_EXCEPTION_CATCHING"
         )
 
-        if(${ORG_BUILD_WITH_PERFETTO})
+        if(${HSTD_CPP_BUILD_WITH_PERFETTO})
             list(APPEND EMSCRIPTEN_FLAGS "-s INITIAL_HEAP=600MB")
         endif()
 
@@ -207,9 +207,8 @@ function(haxorg_set_target_flags_impl)
         # utility and/or top-level logic to validate all options are translated to defines
         haxorg_add_bool_compile_definitions(
             ${ARG_TARGET}
-            ORG_BUILD_WITH_PROTOBUF
-            ORG_BUILD_WITH_PERFETTO
-            ORG_BUILD_WITH_TRACY
+            HSTD_CPP_BUILD_WITH_PROTOBUF
+            HSTD_CPP_BUILD_WITH_PERFETTO
         )
 
         if(${ORG_USE_XRAY})

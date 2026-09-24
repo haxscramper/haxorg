@@ -1,5 +1,5 @@
 #pragma once
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 #    include "haxorg_cpp_org_lib/ImmOrgGraph.pb.h"
 #endif
 #if !ORG_BUILD_EMCC
@@ -55,7 +55,7 @@ struct MapNodeProp
 
     std::string getRepr() const override { return "MapNodeProp"; }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         hstd::ext::graph::IGraph const*      graph) const override {}
@@ -82,7 +82,7 @@ struct MapEdgeProp
     std::string getRepr() const override { return "MapEdgeProp"; }
 
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IAttribute* out,
         hstd::ext::graph::IGraph const*      graph) const override {
@@ -150,7 +150,7 @@ struct MapNode
 
 
   public:
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IVertex const*      in,
         hstd::ext::graph::IGraph const*              graph,
@@ -182,7 +182,7 @@ struct MapEdge
 
     EdgeKind kind = EdgeKind::Default;
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     void readSerial(
         hstd::ext::graph::proto::IEdge const*        in,
         hstd::ext::graph::IGraph const*              graph,
@@ -219,7 +219,7 @@ class MapEdgeCollection : public hgraph::IEdgeCollection {
     DESC_FIELDS(MapEdgeCollection, ());
 
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(
         hstd::ext::graph::proto::IEdgeCollection* out,
         hstd::ext::graph::IGraph const*           graph) const override;

@@ -14,11 +14,11 @@ find_package(fmt CONFIG REQUIRED)
 find_package(Boost CONFIG REQUIRED)
 find_package(cpptrace CONFIG REQUIRED)
 
-if(ORG_BUILD_WITH_PROTOBUF)
+if(HSTD_CPP_BUILD_WITH_PROTOBUF)
     find_package(Protobuf CONFIG REQUIRED)
 endif()
 
-if(ORG_BUILD_WITH_PROTOVALIDATE)
+if(HSTD_CPP_BUILD_WITH_PROTOVALIDATE)
     find_package(re2 CONFIG REQUIRED)
     find_package(protovalidate_cc CONFIG REQUIRED)
 
@@ -31,15 +31,11 @@ if(ORG_BUILD_WITH_PROTOVALIDATE)
     endif()
 endif()
 
-if(ORG_BUILD_WITH_PERFETTO)
+if(HSTD_CPP_BUILD_WITH_PERFETTO)
     find_package(Perfetto CONFIG REQUIRED)
 endif()
 
-if(ORG_BUILD_WITH_TRACY)
-    find_package(Tracy CONFIG REQUIRED)
-endif()
-
-if(ORG_BUILD_TESTS)
+if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
     find_package(benchmark CONFIG REQUIRED)
     find_package(absl CONFIG REQUIRED)
@@ -126,19 +122,15 @@ if(NOT ORG_BUILD_EMCC)
 endif()
 
 # Tracing
-if(ORG_BUILD_WITH_PERFETTO)
+if(HSTD_CPP_BUILD_WITH_PERFETTO)
     target_link_libraries(hstd_cpp_lib PUBLIC Perfetto::perfetto)
 endif()
 
-if(ORG_BUILD_WITH_TRACY)
-    target_link_libraries(hstd_cpp_lib PUBLIC Tracy::TracyClient)
-endif()
-
-if(ORG_BUILD_WITH_PROTOBUF)
+if(HSTD_CPP_BUILD_WITH_PROTOBUF)
     set(HSTD_PROTO_PUBLIC_LIBRARIES)
     set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
 
-    if(ORG_BUILD_WITH_PROTOVALIDATE)
+    if(HSTD_CPP_BUILD_WITH_PROTOVALIDATE)
         list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
         list(APPEND HSTD_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
     endif()
@@ -166,7 +158,7 @@ target_include_directories(
         $<INSTALL_INTERFACE:src>
 )
 
-if(ORG_BUILD_TESTS)
+if(BUILD_TESTING)
     enable_testing()
     haxorg_add_executable(hstd_cpp_lib_tests)
 

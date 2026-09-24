@@ -50,7 +50,7 @@ org::parse::SourceFileId org::parse::SourceManager::getId(std::string const& pat
     return path_ids.at_right(path);
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 
 void hstd::serde::proto_serde<orgproto::SourceManager, org::parse::SourceManager>::read(
     orgproto::SourceManager const& in,

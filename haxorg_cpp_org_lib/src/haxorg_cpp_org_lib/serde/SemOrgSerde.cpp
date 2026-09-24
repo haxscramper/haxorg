@@ -1,7 +1,7 @@
 #include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>
 #include <haxorg_cpp_org_lib/serde/SemOrgSerdeDeclarations.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
-#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 
 using namespace hstd::serde;
 using namespace org;

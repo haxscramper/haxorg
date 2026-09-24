@@ -26,7 +26,7 @@ struct IEdge
     virtual bool        isEqual(IGraphObjectBase const* other) const override;
     virtual std::string getRepr() const override { return hstd::fmt1(*this); }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     virtual void writeSerial(
         proto::IEdge* out,
         IGraph const* graph,
@@ -148,7 +148,7 @@ class IEdgeCollection : public IEdgeProvider {
 
 
   public:
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     virtual void writeSerial(proto::IEdgeCollection* out, IGraph const* graph) const = 0;
 
     virtual void readSerial(
@@ -270,7 +270,7 @@ struct TrivialEdgeCollection : public IEdgeCollection {
         IEdgeCollection::trackEdge(id, source, target);
     }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IEdgeCollection* out, IGraph const* graph) const override {
         IEdgeCollection::writeSerial(out, graph);
         proto::TrivialEdgeCollectionPayload tag;

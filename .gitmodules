@@ -46,9 +46,6 @@
 [submodule "thirdparty/cctz"]
 	path = thirdparty/cctz
 	url = https://github.com/google/cctz.git
-[submodule "thirdparty/tracy"]
-	path = thirdparty/tracy
-	url = https://github.com/wolfpld/tracy.git
 [submodule "thirdparty/imgui"]
 	path = thirdparty/imgui
 	url = https://github.com/ocornut/imgui.git

@@ -53,7 +53,7 @@ void hstd::serde::proto_serde<orgproto::ParseReport, org::cli::ParseReports>::re
     hstd::serde::read_serde(in.report(), &out->report);
 }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 void org::cli::SharedContext::writeProtoJson(
     std::string const&               output_path,
     google::protobuf::Message const& result) const {

@@ -5,7 +5,7 @@
 #include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
 #include <hstd_cpp_lib/stdlib/dod/dod_base.hpp>
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 #    include <haxorg_cpp_org_lib/OrgApiProto.pb.h>
 #    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 #endif
@@ -83,7 +83,7 @@ struct fmt::formatter<org::parse::SourceLoc> {
     }
 };
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
 
 template <>
 struct hstd::serde::proto_serde<orgproto::SourceManager, org::parse::SourceManager> {

@@ -13,7 +13,7 @@ struct IVertex
 
     using IGraphObjectBase::IGraphObjectBase;
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     virtual void writeSerial(
         proto::IVertex* out,
         IGraph const*   graph,
@@ -35,7 +35,7 @@ struct TrivialVertex
         return hstd::fmt("IVertex({})", getStableId());
     }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HSTD_CPP_BUILD_WITH_PROTOBUF
     void writeSerial(proto::IVertex* out, IGraph const* graph, VertexID const& id)
         const override {
         IVertex::writeSerial(out, graph, id);

@@ -26,7 +26,7 @@ struct SharedContext {
 
     bool shouldProcessPath(std::string const& path) const;
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     void writeProtoJson(
         std::string const&               output_path,
         google::protobuf::Message const& result) const;

@@ -20,7 +20,7 @@ EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
 }
 
 TEST(TestFiles, AllNodeSerdeRoundtrip) {
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     std::string file = (__CURRENT_FILE_DIR__ / "corpus/org/py_validated_all.org");
     // std::string file = "/home/haxscramper/tmp/doc1.org";
     MockFull    p{file, false, false};

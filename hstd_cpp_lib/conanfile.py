@@ -1,3 +1,5 @@
+from typing import Protocol, cast
+
 from conan import ConanFile
 from conan.tools.build import can_run
 from conan.tools.cmake import (
@@ -7,6 +9,12 @@ from conan.tools.cmake import (
     cmake_layout,
 )
 from conan.tools.env import Environment
+
+
+class RecipeOptions(Protocol):
+    with_protobuf: bool
+    with_protovalidate: bool
+    with_perfetto: bool
 
 
 class HstdConan(ConanFile):
@@ -24,6 +32,21 @@ class HstdConan(ConanFile):
         "cmake/*",
     )
 
+    options = cast(
+        RecipeOptions,
+        {
+            "with_protobuf": [True, False],
+            "with_protovalidate": [True, False],
+            "with_perfetto": [True, False],
+        },
+    )
+
+    default_options = {
+        "with_protobuf": True,
+        "with_protovalidate": False,
+        "with_perfetto": False,
+    }
+
     def requirements(self):
         self.requires("yaml-cpp/[>=0.8.0 <0.9]", transitive_headers=True)
         # TODO: range-v3 could be made non-transitive, in theory, but it
@@ -34,12 +57,16 @@ class HstdConan(ConanFile):
         self.requires("fmt/[>=11 <13]", transitive_headers=True)
         self.requires("boost/[>=1.86.0 <2]", transitive_headers=True)
         self.requires("cpptrace/[>=0.8.0 <2]", transitive_headers=True)
-        self.requires("protobuf/[>=5 <6]")
-        self.requires("perfetto/[>=46 <100]", transitive_headers=True)
-        self.requires("tracy/[>=0.11 <1]")
-        # for protovalidate dependency
-        self.requires("re2/[>=20230301]")
-        self.requires("protovalidate-cc/1.1.0")
+        if self.options.with_perfetto:
+            self.requires("perfetto/[>=46 <100]", transitive_headers=True)
+
+        if self.options.with_protobuf:
+            self.requires("protobuf/[>=5 <6]")
+
+        if self.options.with_protovalidate:
+            # for protovalidate dependency
+            self.requires("re2/[>=20230301]")
+            self.requires("protovalidate-cc/1.1.0")
 
     def build_requirements(self):
         self.test_requires("gtest/[>=1.15 <2]")
@@ -65,17 +92,6 @@ class HstdConan(ConanFile):
             "perfetto",
             "cmake_target_name",
             "Perfetto::perfetto",
-        )
-
-        dependencies.set_property(
-            "tracy",
-            "cmake_file_name",
-            "Tracy",
-        )
-        dependencies.set_property(
-            "tracy",
-            "cmake_target_name",
-            "Tracy::TracyClient",
         )
 
         dependencies.generate()
@@ -104,16 +120,12 @@ class HstdConan(ConanFile):
         toolchain.variables["ORG_BUILD_EMCC"] = False
 
         # TODO: Make this part properly configurable, defaults to false
-        toolchain.variables["ORG_BUILD_WITH_PERFETTO"] = True
-        # TODO: Remove all usage of the tracy compiler
-        toolchain.variables["ORG_BUILD_WITH_TRACY"] = True
+        toolchain.variables["HSTD_CPP_BUILD_WITH_PERFETTO"] = True
         # TODO: make this configurable, defaults to false
-        toolchain.variables["ORG_BUILD_WITH_PROTOBUF"] = True
+        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOBUF"] = True
         # TODO: Make this part configurable, defaults to true if the protobuf is built
-        toolchain.variables["ORG_BUILD_WITH_PROTOVALIDATE"] = True
+        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = True
 
-        # TODO: Only react to BUILD_TESTING
-        toolchain.variables["ORG_BUILD_TESTS"] = not skip_tests
         toolchain.variables["BUILD_TESTING"] = not skip_tests
         toolchain.generate()
 

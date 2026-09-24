@@ -101,7 +101,7 @@ struct ExportCommandContext {
 
     void exportIrReprs() const { hstd::writeFile(cmd.output, irReprs.dump(2), true); }
 
-#if ORG_BUILD_WITH_PROTOBUF
+#if HAXORG_CPP_BUILD_WITH_PROTOBUF
     void exportProto(
         SharedContext&                        shared,
         org::sem::SemId<org::sem::Org> const& node,
