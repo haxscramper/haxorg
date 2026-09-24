@@ -16,7 +16,7 @@ include(CTest)
 include(CMakePackageConfigHelpers)
 
 find_package(hstd CONFIG REQUIRED)
-find_package(HaxorgCppOrgLib CONFIG REQUIRED)
+find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 
 set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -25,14 +25,14 @@ add_subdirectory(src)
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")
 
 install(
-    EXPORT HaxorgCHaxorgTargets
-    FILE HaxorgCHaxorgTargets.cmake
+    EXPORT haxorg_c_haxorg_targets
+    FILE haxorg_c_haxorg_targets.cmake
     NAMESPACE haxorg::
     DESTINATION lib/cmake/HaxorgCHaxorg
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgCHaxorgConfig.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgCHaxorg_config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCHaxorgConfig.cmake"
     INSTALL_DESTINATION lib/cmake/HaxorgCHaxorg
 )

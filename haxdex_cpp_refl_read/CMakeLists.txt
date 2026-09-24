@@ -68,20 +68,20 @@ add_executable(haxdex::haxdex_cpp_refl_read ALIAS haxdex_cpp_refl_read)
 install(
     TARGETS
         haxdex_cpp_refl_read
-    EXPORT HaxdexCppReflReadTargets
+    EXPORT haxdex_cpp_refl_read_targets
     RUNTIME
         DESTINATION bin
 )
 
 install(
-    EXPORT HaxdexCppReflReadTargets
-    FILE HaxdexCppReflReadTargets.cmake
+    EXPORT haxdex_cpp_refl_read_targets
+    FILE haxdex_cpp_refl_read_targets.cmake
     NAMESPACE haxdex::
     DESTINATION lib/cmake/HaxdexCppReflRead
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxdexCppReflReadConfig.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxdexCppReflRead_config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/HaxdexCppReflReadConfig.cmake"
     INSTALL_DESTINATION lib/cmake/HaxdexCppReflRead
 )

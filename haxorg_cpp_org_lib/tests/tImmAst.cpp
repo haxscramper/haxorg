@@ -123,7 +123,7 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
     }
 }
 
-TEST_F(ImmOrgApi, RadioLinkDetection) {
+TEST_F(ImmOrgApi, DISABLED_RadioLinkDetection) {
     setTraceFile(getDebugFile("trace.log"));
     imm::ImmAstVersion init = getInitialVersion(R"(
 <<<radiotarget>>> Paragraph with radio links

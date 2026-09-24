@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(CMakePackageConfigHelpers)
 
 find_package(hstd_cpp_lib CONFIG REQUIRED)
-find_package(HaxorgCppOrgLib CONFIG REQUIRED)
+find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
 find_package(argparse CONFIG REQUIRED)
 
@@ -37,17 +37,23 @@ target_link_libraries(
 
 add_executable(haxorg::haxorg_cpp_cli ALIAS haxorg_cpp_org_cli)
 
-install(TARGETS haxorg_cpp_org_cli EXPORT HaxorgCppOrgCliTargets RUNTIME DESTINATION bin)
+install(
+    TARGETS
+        haxorg_cpp_org_cli
+    EXPORT haxorg_cpp_org_cli_targets
+    RUNTIME
+        DESTINATION bin
+)
 
 install(
-    EXPORT HaxorgCppOrgCliTargets
-    FILE HaxorgCppOrgCliTargets.cmake
+    EXPORT haxorg_cpp_org_cli_targets
+    FILE haxorg_cpp_org_cli_targets.cmake
     NAMESPACE haxorg::
     DESTINATION lib/cmake/HaxorgCppOrgCli
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgCppOrgCliConfig.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgCppOrgCli_config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgCliConfig.cmake"
     INSTALL_DESTINATION lib/cmake/HaxorgCppOrgCli
 )

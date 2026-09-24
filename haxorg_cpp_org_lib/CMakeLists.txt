@@ -118,7 +118,7 @@ add_library(haxorg::haxorg_cpp_org_lib ALIAS haxorg_cpp_org_lib)
 install(
     TARGETS
         haxorg_cpp_org_lib
-    EXPORT HaxorgCppOrgLibTargets
+    EXPORT haxorg_cpp_org_libTargets
     LIBRARY
         DESTINATION lib
     ARCHIVE
@@ -173,27 +173,27 @@ install(
 )
 
 install(
-    EXPORT HaxorgCppOrgLibTargets
-    FILE HaxorgCppOrgLibTargets.cmake
+    EXPORT haxorg_cpp_org_libTargets
+    FILE haxorg_cpp_org_libTargets.cmake
     NAMESPACE haxorg::
-    DESTINATION lib/cmake/HaxorgCppOrgLib
+    DESTINATION lib/cmake/haxorg_cpp_org_lib
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgCppOrgLibConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/HaxorgCppOrgLib
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/haxorg_cpp_org_lib_config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/haxorg_cpp_org_lib
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfigVersion.cmake"
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgLibConfigVersion.cmake"
-    DESTINATION lib/cmake/HaxorgCppOrgLib
+        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfigVersion.cmake"
+    DESTINATION lib/cmake/haxorg_cpp_org_lib
 )

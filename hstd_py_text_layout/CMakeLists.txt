@@ -66,7 +66,7 @@ install(
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HstdPyTextLayoutConfig.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HstdPyTextLayout_config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/HstdPyTextLayoutConfig.cmake"
     INSTALL_DESTINATION lib/cmake/HstdPyTextLayout
 )

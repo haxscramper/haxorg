@@ -56,7 +56,7 @@ endif()
 install(
     TARGETS
         hstd_cpp_text_layout
-    EXPORT HstdCppTextLayoutTargets
+    EXPORT hstd_cpp_text_layout_targets
     LIBRARY
         DESTINATION lib
     ARCHIVE
@@ -78,14 +78,14 @@ install(
 )
 
 install(
-    EXPORT HstdCppTextLayoutTargets
-    FILE HstdCppTextLayoutTargets.cmake
+    EXPORT hstd_cpp_text_layout_targets
+    FILE hstd_cpp_text_layout_targets.cmake
     NAMESPACE hstd::
     DESTINATION lib/cmake/HstdCppTextLayout
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HstdCppTextLayoutConfig.cmake.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HstdCppTextLayout_config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/HstdCppTextLayoutConfig.cmake"
     INSTALL_DESTINATION lib/cmake/HstdCppTextLayout
 )

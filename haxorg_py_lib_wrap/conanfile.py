@@ -2,7 +2,7 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
-class HaxorgPyHaxorgConan(ConanFile):
+class haxorg_py_haxorgConan(ConanFile):
     name = "haxorg_py_lib_wrap"
     version = "0.1.0"
 
@@ -42,5 +42,5 @@ class HaxorgPyHaxorgConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.builddirs = ["lib/cmake/HaxorgPyHaxorg"]
+        self.cpp_info.builddirs = ["lib/cmake/haxorg_py_haxorg"]
         self.cpp_info.set_property("cmake_find_mode", "none")

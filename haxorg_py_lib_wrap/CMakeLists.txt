@@ -18,7 +18,7 @@ find_package(
 
 find_package(nanobind CONFIG REQUIRED)
 find_package(hstd CONFIG REQUIRED)
-find_package(HaxorgCppOrgLib CONFIG REQUIRED)
+find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 
 set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -51,7 +51,7 @@ add_library(haxorg::haxorg_py_haxorg ALIAS haxorg_py_haxorg)
 install(
     TARGETS
         haxorg_py_haxorg
-    EXPORT HaxorgPyHaxorgTargets
+    EXPORT haxorg_py_haxorg_targets
     LIBRARY
         DESTINATION "."
     RUNTIME
@@ -59,27 +59,27 @@ install(
 )
 
 install(
-    EXPORT HaxorgPyHaxorgTargets
-    FILE HaxorgPyHaxorgTargets.cmake
+    EXPORT haxorg_py_haxorg_targets
+    FILE haxorg_py_haxorg_targets.cmake
     NAMESPACE haxorg::
-    DESTINATION lib/cmake/HaxorgPyHaxorg
+    DESTINATION lib/cmake/haxorg_py_haxorg
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgPyHaxorgConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgPyHaxorgConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/HaxorgPyHaxorg
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/haxorg_py_haxorg_config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config.cmake"
+    INSTALL_DESTINATION lib/cmake/haxorg_py_haxorg
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgPyHaxorgConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config_version.cmake"
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgPyHaxorgConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgPyHaxorgConfigVersion.cmake"
-    DESTINATION lib/cmake/HaxorgPyHaxorg
+        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config_version.cmake"
+    DESTINATION lib/cmake/haxorg_py_haxorg
 )

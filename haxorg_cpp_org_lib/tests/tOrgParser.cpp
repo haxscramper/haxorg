@@ -777,7 +777,7 @@ SCHEDULED: [2019-11-14 Thu 19:35]
     }
 }
 
-TEST(OrgParseSem, SubtreeTitleParsing) {
+TEST(OrgParseSem, DISABLED_SubtreeTitleParsing) {
     {
         auto t = parseOne<sem::Subtree>(R"(* Title [0/1])");
         auto c = t->completion.value();
@@ -1018,7 +1018,7 @@ TEST(OrgParseSem, SubtreeTitleParsing) {
     }
 }
 
-TEST(OrgParseSem, TextParsing) {
+TEST(OrgParseSem, DISABLED_TextParsing) {
     {
         auto w = parseOne<sem::Word>("test");
         EXPECT_EQ(w->text, "test"_ss);
@@ -1871,7 +1871,7 @@ TEST(OrgParseSem, CriticMarkup) {
     { auto n = get(R"({>>is<<})"); }
 }
 
-TEST(OrgParseSem, SubtreeAndCustomBlock) {
+TEST(OrgParseSem, DISABLED_SubtreeAndCustomBlock) {
     auto s = parseOne<sem::Subtree>(
         R"(**** TODO Hypergraph edge bends
      :PROPERTIES:

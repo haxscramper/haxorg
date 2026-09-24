@@ -8,6 +8,6 @@ find_dependency(
     REQUIRED
 )
 
-include("${CMAKE_CURRENT_LIST_DIR}/HstdCppTextLayoutTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/hstd_cpp_text_layout_targets.cmake")
 
 check_required_components(HstdCppTextLayout)

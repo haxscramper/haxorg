@@ -13,7 +13,7 @@ class RecipeOptions(Protocol):
     with_perfetto: bool
 
 
-class HaxorgCppOrgLibConan(ConanFile):
+class haxorg_cpp_org_libConan(ConanFile):
     name = "haxorg_cpp_org_lib"
     version = "0.1.0"
 
@@ -135,5 +135,5 @@ class HaxorgCppOrgLibConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.builddirs = ["lib/cmake/HaxorgCppOrgLib"]
+        self.cpp_info.builddirs = ["lib/cmake/haxorg_cpp_org_lib"]
         self.cpp_info.set_property("cmake_find_mode", "none")

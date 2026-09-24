@@ -25,7 +25,7 @@ add_library(haxorg::haxorg_c_haxorg ALIAS haxorg_c_haxorg)
 install(
     TARGETS
         haxorg_c_haxorg
-    EXPORT HaxorgCHaxorgTargets
+    EXPORT haxorg_c_haxorg_targets
     LIBRARY
         DESTINATION lib
     ARCHIVE

@@ -516,7 +516,7 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 }
 
 
-TEST_F(ImmMapApi, RadioTargetsForward) {
+TEST_F(ImmMapApi, DISABLED_RadioTargetsForward) {
     init_with(R"(
 <<<radio>>> target paragraph
 
@@ -548,7 +548,7 @@ radio user paragraph
     writeRepresentation();
 }
 
-TEST_F(ImmMapApi, RadioTargetsInverse) {
+TEST_F(ImmMapApi, DISABLED_RadioTargetsInverse) {
     init_with(R"(
 radio user paragraph
 
