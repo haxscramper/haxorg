@@ -1,14 +1,13 @@
 #pragma once
 
-#if ORG_BUILD_WITH_KIWI
 
-#    include <hstd_cpp_diagram/graph_kiwi.pb.h>
-#    include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
-#    include <hstd_cpp_lib/ext/graph/visual/adaptagrams_common.hpp>
-#    include <hstd_cpp_lib/ext/graph/visual/graph_avoid.hpp>
-#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
-#    include <hstd_cpp_lib/graph/graph_base.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_diagram_lib/adaptagrams_common.hpp>
+#include <hstd_cpp_diagram_lib/graph_avoid.hpp>
+#include <hstd_cpp_diagram_lib/graph_kiwi.pb.h>
+#include <hstd_cpp_diagram_lib/graph_visual.hpp>
+#include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 
 
 namespace hstd::ext::graph::kw {
@@ -839,5 +838,3 @@ class KiwiLayoutAlgorithm : public layout::IPlacementAlgorithm {
 };
 
 } // namespace hstd::ext::graph::kw
-
-#endif

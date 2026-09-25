@@ -1,4 +1,4 @@
-#include "../t_graph_tests_common.hpp"
+#include "tDiagramTestsCommon.hpp"
 
 struct GraphAdaptagramsRaw_Test : public GraphUtils_Test {};
 

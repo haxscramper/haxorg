@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
+#include <hstd_cpp_diagram_lib/kiwi/kiwi_ir.hpp>
 #include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
 namespace hstd::serde {

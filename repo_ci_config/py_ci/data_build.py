@@ -505,6 +505,4 @@ def get_published_build_opts() -> List[CmakeOptConfig]:
         CmakeOptConfig("CMAKE_CXX_COMPILER", "clang++"),
         CmakeOptConfig("CMAKE_C_COMPILER", "clang "),
         CmakeOptConfig("ORG_USE_SANITIZER", False),
-        CmakeOptConfig("ORG_BUILD_WITH_ADAPTAGRAMS", False),
-        CmakeOptConfig("ORG_DEPS_USE_PACKAGED_BOOST", False),
     ]

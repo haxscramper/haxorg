@@ -1,4 +1,4 @@
-#include "../t_graph_tests_common.hpp"
+#include "tDiagramTestsCommon.hpp"
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 
 struct GraphMixed_Test : public GraphUtils_Test {};

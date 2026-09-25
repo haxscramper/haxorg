@@ -1,21 +1,20 @@
 #pragma once
 
-#if ORG_BUILD_WITH_ELK
 
-#    include "elk_jni_wrapper.hpp"
-#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
-#    include <hstd_cpp_lib/graph/graph_base.hpp>
-#    include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
-#    include <hstd_cpp_lib/stdlib/Exception.hpp>
-#    include <hstd_cpp_lib/stdlib/Str.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
-#    include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
-#    include <hstd_cpp_lib/stdlib/serde/Json.hpp>
-#    include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
-#    include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
-#    include <hstd_cpp_lib/system/reflection.hpp>
-#    include <memory>
+#include "elk_jni_wrapper.hpp"
+#include <hstd_cpp_diagram_lib/graph_visual.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
+#include <hstd_cpp_lib/stdlib/Exception.hpp>
+#include <hstd_cpp_lib/stdlib/Str.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Json.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
+#include <memory>
 
 
 namespace hstd::ext::graph::elk {
@@ -69,17 +68,17 @@ class Options {
         data[key] = value;
     }
 
-#    if false
-#        include <algorithm>
-#        include <stdexcept>
-#        include <string>
-#        include <string_view>
-#        include <vector>
+#if false
+#    include <algorithm>
+#    include <stdexcept>
+#    include <string>
+#    include <string_view>
+#    include <vector>
 
-#        include <lexy/action/parse.hpp>
-#        include <lexy/callback.hpp>
-#        include <lexy/dsl.hpp>
-#        include <lexy/input/string_input.hpp>
+#    include <lexy/action/parse.hpp>
+#    include <lexy/callback.hpp>
+#    include <lexy/dsl.hpp>
+#    include <lexy/input/string_input.hpp>
 
 class IdentifierList {
 public:
@@ -167,7 +166,7 @@ private:
         return std::find(items.begin(), items.end(), ident) != items.end();
     }
 };
-#    endif
+#endif
 };
 
 class Label {
@@ -671,10 +670,10 @@ struct hstd::value_metadata<hstd::ext::graph::elk::Options> {
     }
 };
 
-#    define SPECIALIZE_WO_NULL_FIELDS(__name)                                            \
-        template <>                                                                      \
-        struct hstd::JsonSerde<hstd::ext::graph::elk::__name>                            \
-            : hstd::JsonSerdeDescribedRecordBaseEx<hstd::ext::graph::elk::__name> {};
+#define SPECIALIZE_WO_NULL_FIELDS(__name)                                                \
+    template <>                                                                          \
+    struct hstd::JsonSerde<hstd::ext::graph::elk::__name>                                \
+        : hstd::JsonSerdeDescribedRecordBaseEx<hstd::ext::graph::elk::__name> {};
 
 SPECIALIZE_WO_NULL_FIELDS(GraphElkLayoutData);
 SPECIALIZE_WO_NULL_FIELDS(PortProperties);
@@ -699,4 +698,3 @@ struct fmt::formatter<hstd::ext::graph::elk::Options> {
         return hstd::fmt_ctx(p.data, ctx);
     }
 };
-#endif

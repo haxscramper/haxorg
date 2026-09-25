@@ -4,8 +4,8 @@
 #include <hstd_cpp_lib/hstd_geometry_test_ir.pb.h>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
-#include <htsd_cpp_diagram/graph_diagram.pb.h>
-#include <htsd_cpp_diagram/graph_diagram_validate.pb.h>
+#include <htsd_cpp_diagram_lib/graph_diagram.pb.h>
+#include <htsd_cpp_diagram_lib/graph_diagram_validate.pb.h>
 
 namespace hstd::ext::graph::diagram {
 hstd::ext::geometry::GeometryElementListResult diagramGeometryElements(

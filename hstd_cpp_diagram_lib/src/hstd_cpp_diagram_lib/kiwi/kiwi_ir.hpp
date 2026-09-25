@@ -1,26 +1,25 @@
 #pragma once
 
-#include <hstd_cpp_lib/proto_serde/hstd_serde.hpp"
-#if ORG_BUILD_WITH_KIWI
+#include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
-#    include <hstd_cpp_lib/stdlib/containers/Map.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
-#    include <optional>
-#    include <variant>
+#include <hstd_cpp_lib/stdlib/containers/Map.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
+#include <optional>
+#include <variant>
 
-#    include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
-#    include <hstd_cpp_lib/kiwi_ir.pb.h>
-#    include <hstd_cpp_lib/stdlib/Filesystem.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
-#    include <hstd_cpp_lib/stdlib/serde/Xml.hpp>
-#    include <hstd_cpp_lib/system/reflection.hpp>
-#    include <kiwi/constraint.h>
-#    include <kiwi/expression.h>
-#    include <kiwi/solver.h>
-#    include <kiwi/symbolics.h>
-#    include <kiwi/variable.h>
+#include <hstd_cpp_diagram_lib/kiwi_ir.pb.h>
+#include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Variant.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+#include <hstd_cpp_lib/stdlib/serde/Xml.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
+#include <kiwi/constraint.h>
+#include <kiwi/expression.h>
+#include <kiwi/solver.h>
+#include <kiwi/symbolics.h>
+#include <kiwi/variable.h>
 
 template <>
 struct fmt::formatter<kiwi::Variable> {
@@ -673,4 +672,3 @@ class Layout {
 };
 
 } // namespace hstd::ext::kiwi_ir
-#endif

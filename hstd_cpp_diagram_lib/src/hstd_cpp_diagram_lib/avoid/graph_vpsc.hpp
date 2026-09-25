@@ -1,13 +1,12 @@
 #pragma once
 
-#if ORG_BUILD_WITH_ADAPTAGRAMS
-#    include <hstd_cpp_lib/ext/graph/visual/adaptagrams_common.hpp>
-#    include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
-#    include <hstd_cpp_lib/ext/logger.hpp>
-#    include <hstd_cpp_lib/graph/graph_base.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
-#    include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
-#    include <libdialect/hola.h>
+#include <hstd_cpp_diagram_lib/avoid/adaptagrams_common.hpp>
+#include <hstd_cpp_diagram_lib/graph_visual.hpp>
+#include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
+#include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
+#include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
+#include <libdialect/hola.h>
 
 namespace hstd::ext::graph::cst {
 
@@ -80,4 +79,3 @@ class VpscRectTracker {
 };
 
 } // namespace hstd::ext::graph::cst
-#endif

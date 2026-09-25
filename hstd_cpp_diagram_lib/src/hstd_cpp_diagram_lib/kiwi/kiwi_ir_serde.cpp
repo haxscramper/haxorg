@@ -1,5 +1,5 @@
-#include "kiwi_ir_serde.hpp"
-#include <hstd_cpp_lib/proto_serde/hstd_serde.hpp"
+#include <hstd_cpp_diagram_lib/kiwi/kiwi_ir_serde.hpp>
+#include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 
 using namespace hstd::ext::kiwi_ir;
 using namespace hstd::ext;

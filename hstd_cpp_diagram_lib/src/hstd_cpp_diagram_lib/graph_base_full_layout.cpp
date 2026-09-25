@@ -1,8 +1,8 @@
-#include <hstd_cpp_lib/ext/graph/visual/graph_visual.hpp>
+#include <hstd_cpp_diagram_lib/graph_visual.hpp>
 #include <hstd_cpp_lib/graph/graph_base.hpp>
 
-#include <hstd_cpp_lib/ext/graph/visual/graph_avoid.hpp>
-#include <hstd_cpp_lib/ext/graph/visual/graph_vpsc.hpp>
+#include <hstd_cpp_diagram_lib/avoid/graph_avoid.hpp>
+#include <hstd_cpp_diagram_lib/avoid/graph_vpsc.hpp>
 #include <hstd_cpp_lib/geometry/hstd_geometry.hpp>
 #include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/SetFormatter.hpp>
@@ -138,7 +138,6 @@ void layout_run_full_layout(layout::LayoutRun* run) {
     //     run->getDebug(missing_graph_vertices));
 }
 
-#if ORG_BUILD_WITH_ADAPTAGRAMS
 void run_placement_with_subset(
     layout::LayoutRun* run,
     EdgeIDSet const&   edge_set,
@@ -178,7 +177,6 @@ void run_placement_with_subset(
         run->result.edges.insert_or_assign(edge, attr);
     }
 }
-#endif
 
 void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
     auto        __scope = run->begin_scope("unbound edge placement", "unbound-edge");
@@ -206,23 +204,19 @@ void layout_run_unbound_edge_placement(layout::LayoutRun* run) {
         }
     }
 
-#if ORG_BUILD_WITH_ADAPTAGRAMS
     hstd::logic_assertion_check_not_nil(run);
     run_placement_with_subset(
         run, vertex_vertex_edges, vertex_set, "vertex_only_routing");
 
     run_placement_with_subset(
         run, group_vertex_edges, group_set + vertex_set, "vertex_and_group_routing");
-#endif
 }
 
 } // namespace
 
 void layout::LayoutRun::runFullLayout() {
     layout_run_full_layout(this);
-#if ORG_BUILD_WITH_ADAPTAGRAMS
     layout_run_unbound_edge_placement(this);
-#endif
 
     for (auto const& v : groups->getAllVertices()) {
         if (hasLayout(v)) { getMVertex(v)->addUniqueAttribute(getLayout(v)); }

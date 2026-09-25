@@ -359,6 +359,8 @@ function(haxorg_add_protobuf)
     # from separate invocations from colliding.
     set(HAP_PROTO_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/${HAP_UNIQUE_TARGET}")
 
+    message(STATUS "HAP_PROTO_OUT_DIR for ${HAP_TARGET} = ${HAP_PROTO_OUT_DIR}")
+
     file(MAKE_DIRECTORY "${HAP_PROTO_OUT_DIR}")
 
     set(HAP_EFFECTIVE_IMPORT_DIRS ${HAP_IMPORT_DIRS})

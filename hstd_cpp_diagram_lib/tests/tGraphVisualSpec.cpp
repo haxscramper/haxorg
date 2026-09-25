@@ -1,10 +1,10 @@
-#include "../t_graph_tests_common.hpp"
+#include "tDiagramTestsCommon.hpp"
 
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <hstd_cpp_lib/ext/graph/visual/graph_diagram.hpp>
-#include <hstd_cpp_lib/ext/graph/visual/graph_diagram_validate.hpp>
+#include <hstd_cpp_diagram_lib/graph_diagram.hpp>
+#include <hstd_cpp_diagram_lib/graph_diagram_validate.hpp>
 #include <string>
 #include <vector>
 

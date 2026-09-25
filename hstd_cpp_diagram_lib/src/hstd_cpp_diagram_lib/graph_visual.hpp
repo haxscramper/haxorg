@@ -2,7 +2,7 @@
 
 #include <hstd_cpp_lib/logger/TraceBase.hpp>
 
-#include "hstd_cpp_diagram/graph_visual.pb.h"
+#include <hstd_cpp_diagram_lib/graph_visual.pb.h>
 #include <hstd_cpp_lib/graph/graph_base.hpp>
 
 namespace hstd::ext::graph {

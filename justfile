@@ -145,6 +145,10 @@ conan_reset_external_dep target:
   conan remove "{{target}}/*" -c
   conan export "repo_conan_wraps/{{target}}"
 
+conan_reset_local_dep target:
+  conan remove "{{target}}/*" -c
+  conan export "{{target}}"
+
 conan_remove_external_deps:
   conan remove "protovalidate-cc/*" -c
   conan remove "cgraph/*" -c

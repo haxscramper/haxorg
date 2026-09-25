@@ -1,9 +1,7 @@
 #include "graph_kiwi.hpp"
 
-#if ORG_BUILD_WITH_KIWI
-
-#    include <hstd_cpp_lib/ext/geometry/kiwi_ir_serde.hpp>
-#    include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/ext/geometry/kiwi_ir_serde.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
 
 using namespace hstd::ext::graph;
 using namespace hstd::ext;
@@ -533,7 +531,6 @@ void kw::LinearConstraint::readSerial(
     lhs = kiwi_ir::Expr::readSerial(load.lhs(), resolve);
     rhs = kiwi_ir::Expr::readSerial(load.rhs(), resolve);
 }
-#endif
 
 hstd::Vec<hstd::SPtr<kiwi_ir::ConstraintBase>> kw::LinearConstraint::getKiwi() const {
     return {

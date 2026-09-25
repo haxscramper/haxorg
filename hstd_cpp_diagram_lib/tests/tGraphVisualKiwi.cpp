@@ -1,5 +1,5 @@
-#include "../t_graph_tests_common.hpp"
-#include <hstd_cpp_lib/ext/graph/visual/graph_kiwi.hpp>
+#include "tDiagramTestsCommon.hpp"
+#include <hstd_cpp_diagram_lib/graph_kiwi.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 
 struct GraphKiwi_Test : public GraphUtils_Test {};

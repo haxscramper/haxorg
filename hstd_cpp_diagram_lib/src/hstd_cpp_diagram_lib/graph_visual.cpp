@@ -1,6 +1,6 @@
 #include "graph_visual.hpp"
 
-#include <hstd_cpp_diagram/graph_visual.pb.h>
+#include <hstd_cpp_diagram_lib/graph_visual.pb.h>
 #include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
 #include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
 #include <hstd_cpp_lib/stdlib/containers/algorithms.hpp>

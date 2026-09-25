@@ -122,15 +122,10 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
     result.append(cmake_opt("ORG_USE_XRAY", conf.instrument.xray))
     result.append(cmake_opt("ORG_USE_SANITIZER", conf.instrument.asan))
     result.append(cmake_opt("ORG_BUILD_WITH_PERFETTO", conf.instrument.perfetto))
-    result.append(
-        cmake_opt("ORG_BUILD_WITH_ADAPTAGRAMS", conf.build_conf.use_adaptagrams)
-    )
-    result.append(cmake_opt("ORG_BUILD_WITH_ELK", conf.build_conf.use_elk))
     result.append(cmake_opt("ORG_BUILD_TESTS", conf.build_conf.build_tests))
     result.append(cmake_opt("ORG_BUILD_WITH_QT", conf.use.qt))
     result.append(cmake_opt("ORG_BUILD_IMGUI_GUI", conf.use.imgui))
     result.append(cmake_opt("ORG_BUILD_PYHAXORG_BINDINGS", conf.build_conf.build_python))
-    result.append(cmake_opt("ORG_BUILD_WITH_KIWI", conf.build_conf.use_kiwi))
     result.append(
         cmake_opt("ORG_BUILD_TEXT_LAYOUTER_BINDINGS", conf.build_conf.build_python)
     )
@@ -150,9 +145,6 @@ def get_cmake_defines(ctx: TaskContext) -> List[str]:
         cmake_opt("ORG_BUILD_INTERNAL_TOOLS", conf.build_conf.build_internal_tools)
     )
     result.append(cmake_opt("ORG_BUILD_WRAPPERS_C", conf.build_conf.build_wrappers_c))
-    result.append(
-        cmake_opt("ORG_DEPS_USE_PACKAGED_BOOST", conf.build_conf.use_packaged_boost)
-    )
     result.append(cmake_opt("ORG_USE_CONAN_INSTALL", conf.use_conan_install))
 
     if conf.build_conf.cmake_generator == "Ninja":

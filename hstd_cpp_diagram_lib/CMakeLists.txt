@@ -79,6 +79,7 @@ haxorg_add_protobuf(
         "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/kiwi_ir.proto"
         "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_kiwi.proto"
         "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_diagram.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_visual.proto"
 )
 
 target_include_directories(

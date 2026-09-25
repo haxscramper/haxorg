@@ -1,11 +1,10 @@
-#if ORG_BUILD_WITH_ELK
-#    include "elk_jni_wrapper.hpp"
-#    include <fmt/format.h>
-#    include <jni.h>
+#include "elk_jni_wrapper.hpp"
+#include <fmt/format.h>
+#include <jni.h>
 
 
-#    include <dlfcn.h>
-#    define PATH_SEPARATOR ":"
+#include <dlfcn.h>
+#define PATH_SEPARATOR ":"
 
 namespace elk_jni {
 
@@ -146,4 +145,3 @@ std::string ElkLayoutEngine::performLayout(std::string const& inputJson) {
 bool ElkLayoutEngine::isInitialized() const { return pImpl->isInitialized(); }
 
 } // namespace elk_jni
-#endif

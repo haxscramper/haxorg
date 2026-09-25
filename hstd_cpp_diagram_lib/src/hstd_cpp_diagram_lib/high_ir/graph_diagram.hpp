@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hstd_cpp_diagram/graph_diagram.pb.h>
+#include <hstd_cpp_diagram_lib/graph_diagram.pb.h>
 
 namespace hstd::ext::graph::diagram {
 

@@ -1,22 +1,21 @@
 #include "kiwi_ir.hpp"
-#if ORG_BUILD_WITH_KIWI
 
-#    include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 
-#    include <algorithm>
-#    include <filesystem>
-#    include <sstream>
-#    include <stdexcept>
+#include <algorithm>
+#include <filesystem>
+#include <sstream>
+#include <stdexcept>
 
-#    include <boost/geometry.hpp>
-#    include <boost/geometry/geometries/box.hpp>
-#    include <boost/geometry/geometries/point.hpp>
-#    include <boost/graph/adjacency_list.hpp>
-#    include <boost/graph/topological_sort.hpp>
-#    include <hstd_cpp_lib/ext/graph/visual/graph_graphviz.hpp>
-#    include <hstd_cpp_lib/stdlib/Ranges.hpp>
-#    include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
-#    include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/box.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/topological_sort.hpp>
+#include <hstd_cpp_diagram_lib/graphviz/graph_graphviz.hpp>
+#include <hstd_cpp_lib/stdlib/Ranges.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
+#include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 
 namespace hstd::ext::kiwi_ir {
 
@@ -1537,5 +1536,3 @@ Rect::Ptr KiwiCtx::use_rect(
 
 
 } // namespace hstd::ext::kiwi_ir
-
-#endif

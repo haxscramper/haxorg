@@ -1,4 +1,4 @@
-#include <hstd_cpp_lib/ext/graph/visual/visual_factory.hpp>
+#include <hstd_cpp_diagram_lib/visual_factory.hpp>
 
 class TestFactory : public hstd::ext::graph::VisualFactory {
     using hstd::ext::graph::VisualFactory::VisualFactory;
