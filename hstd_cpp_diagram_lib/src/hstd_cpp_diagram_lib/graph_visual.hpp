@@ -662,7 +662,7 @@ class LayoutRun
     std::string getDebug(PortID const& vert) const { return getGraph()->getDebug(vert); }
 };
 
-hstd::SPtr<LayoutRun> initLayoutRun(TrivialState& state) {
+inline hstd::SPtr<LayoutRun> initLayoutRun(TrivialState& state) {
     return LayoutRun::shared(
         state.graph,
         state.graph->edges->getCollectionID(),

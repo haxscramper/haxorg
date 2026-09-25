@@ -1,5 +1,5 @@
 #include "graph_diagram_validate.hpp"
-#include <hstd_cpp_diagram_lib/graph_diagram.hpp>
+#include <hstd_cpp_diagram_lib/high_ir/graph_diagram.hpp>
 #include <hstd_cpp_diagram_lib/visual_factory.hpp>
 #include <hstd_cpp_lib/graph/graph_base.hpp>
 #include <hstd_cpp_lib/proto_serde/hstd_serde_json_interop.hpp>

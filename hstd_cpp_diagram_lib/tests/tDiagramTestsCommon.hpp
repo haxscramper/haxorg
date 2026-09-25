@@ -3,6 +3,7 @@
 #include <hstd_cpp_diagram_lib/avoid/graph_avoid.hpp>
 #include <hstd_cpp_diagram_lib/elk/graph_elk.hpp>
 #include <hstd_cpp_diagram_lib/graphviz/graph_graphviz.hpp>
+#include <hstd_cpp_diagram_lib/kiwi/graph_kiwi.hpp>
 #include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 #include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
 #include <hstd_cpp_lib/graph/graph_base.hpp>
@@ -24,7 +25,7 @@ class GraphUtils_Test : public ::testing::Test {
   protected:
     void SetUp() override {
         state = hstd::ext::graph::TrivialState{};
-        run   = initLayoutRun(state);
+        run   = hstd::ext::graph::layout::initLayoutRun(state);
         run->setTraceFile(getDebugFile("layout_trace.log"));
     }
 

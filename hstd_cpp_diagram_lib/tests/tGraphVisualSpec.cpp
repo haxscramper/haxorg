@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <hstd_cpp_diagram_lib/graph_diagram.hpp>
-#include <hstd_cpp_diagram_lib/graph_diagram_validate.hpp>
+#include <hstd_cpp_diagram_lib/high_ir/graph_diagram.hpp>
+#include <hstd_cpp_diagram_lib/high_ir/graph_diagram_validate.hpp>
 #include <string>
 #include <vector>
 
