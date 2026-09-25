@@ -20,6 +20,12 @@
 #include <hstd_cpp_lib/system/aux_utils.hpp>
 #include <iostream>
 
+template <typename A, typename T>
+hstd::SPtr<A> as(hstd::SPtr<T> const& value) {
+    auto result = std::dynamic_pointer_cast<A>(value);
+    hstd::logic_assertion_check_not_nil(result);
+    return result;
+}
 
 struct TestParameters {
     hstd::Str corpusGlob;

@@ -1,6 +1,6 @@
 #include "graph_kiwi.hpp"
 
-#include <hstd_cpp_lib/ext/geometry/kiwi_ir_serde.hpp>
+#include <hstd_cpp_diagram_lib/kiwi/kiwi_ir_serde.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 
 using namespace hstd::ext::graph;

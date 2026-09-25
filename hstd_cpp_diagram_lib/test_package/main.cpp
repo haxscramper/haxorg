@@ -2,7 +2,7 @@
 #include <memory>
 #include <optional>
 
-#include <hstd_cpp_lib/ext/geometry/kiwi_ir.hpp>
+#include <hstd_cpp_diagram_lib/kiwi/kiwi_ir.hpp>
 
 // Use the same using-declarations as tests/tKiwiIR.cpp
 using namespace hstd;

@@ -29,7 +29,7 @@
 #include <absl/log/log.h>
 #include <boost/describe.hpp>
 
-#include <hstd_cpp_lib/ext/perfetto_aux.hpp>
+#include <hstd_cpp_lib/logger/perfetto_aux.hpp>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/algorithms/Enumerate.hpp>
 #include <hstd_cpp_lib/stdlib/containers/Map.hpp>

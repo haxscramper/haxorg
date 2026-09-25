@@ -2,8 +2,8 @@
 #include <google/protobuf/util/json_util.h>
 #include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
-#include <hstd_cpp_lib/ext/error_write_proto.hpp>
-#include <hstd_cpp_lib/ext/logger.hpp>
+#include <hstd_cpp_lib/extra/error_format/error_write_proto.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
 
 
 org::cli::SharedContext::SharedContext(CliOpts options)

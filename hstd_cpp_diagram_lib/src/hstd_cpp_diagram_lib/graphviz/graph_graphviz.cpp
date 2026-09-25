@@ -1,7 +1,7 @@
 #include <filesystem>
 #include <hstd_cpp_diagram_lib/graphviz/graph_graphviz.hpp>
-#include <hstd_cpp_lib/ext/logger.hpp>
 #include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
 #include <hstd_cpp_lib/proto_serde/hstd_serde.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 

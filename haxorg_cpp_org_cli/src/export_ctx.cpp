@@ -8,7 +8,7 @@
 #include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
-#include <hstd_cpp_lib/ext/logger.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
 
 
 org::parse::OrgParseParameters::Ptr org::cli::ExportCommandContext::paramsForPath(

@@ -4,8 +4,8 @@
 #include <app/org_cli/export_ctx.hpp>
 #include <app/org_cli/parse_ctx.hpp>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
-#include <hstd_cpp_lib/ext/logger.hpp>
-#include <hstd_cpp_lib/ext/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/extra/error_format/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
 #include <hstd_cpp_lib/stdlib/IntSetSerde.hpp>
 #include <hstd_cpp_lib/stdlib/JsonCLIParser.hpp>
 #include <hstd_cpp_lib/stdlib/OptFormatter.hpp>

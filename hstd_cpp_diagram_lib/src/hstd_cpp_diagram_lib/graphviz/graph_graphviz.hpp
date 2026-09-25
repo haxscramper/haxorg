@@ -3,6 +3,7 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include <graphviz/cgraph.h>
+#include <graphviz/gvc.h>
 #include <hstd_cpp_diagram_lib/graph_graphviz.pb.h>
 #include <hstd_cpp_diagram_lib/graph_visual.hpp>
 #include <hstd_cpp_lib/graph/graph_base.hpp>
