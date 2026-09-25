@@ -10,9 +10,9 @@
 #include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
 #include <hstd_cpp_lib/system/exceptions.hpp>
 
-#include <haxorg_cpp_org_lib/graph_avoid.pb.h>
-#include <hstd_cpp_lib/ext/geometry/hstd_visual_serde.hpp>
+#include <hstd_cpp_diagram_lib/graph_avoid.pb.h>
 #include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#include <hstd_cpp_lib/geometry/hstd_visual_serde.hpp>
 
 namespace hstd::ext::graph::cst {
 

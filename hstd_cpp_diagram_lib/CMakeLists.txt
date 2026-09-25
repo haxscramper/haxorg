@@ -7,7 +7,7 @@ include(CMakePackageConfigHelpers)
 
 find_package(Protobuf CONFIG REQUIRED)
 find_package(kiwi CONFIG REQUIRED)
-find_package(cgraph CONFIG REQUIRED)
+find_package(graphviz CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 
 find_package(hstd_cpp_lib CONFIG REQUIRED)
@@ -60,7 +60,8 @@ target_link_libraries(
     PUBLIC
         hstd::hstd_cpp_lib
         kiwi::kiwi
-        cgraph::cgraph
+        graphviz::cgraph
+        graphviz::gvc
         adaptagrams::adaptagrams
         jni_elk_lib
 )

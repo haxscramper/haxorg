@@ -1,9 +1,9 @@
 #include "graph_elk.hpp"
 
 #include <hstd_cpp_diagram_lib/graph_elk.pb.h>
-#include <hstd_cpp_lib/ext/geometry/hstd_visual_serde.hpp>
-#include <hstd_cpp_lib/ext/logger.hpp>
 #include <hstd_cpp_lib/geometry/hstd_geometry_serde.hpp>
+#include <hstd_cpp_lib/geometry/hstd_visual_serde.hpp>
+#include <hstd_cpp_lib/logger/logger.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 #include <hstd_cpp_lib/stdlib/containers/bimap_wrap.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonSerde.hpp>

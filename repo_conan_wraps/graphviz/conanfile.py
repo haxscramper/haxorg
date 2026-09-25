@@ -14,7 +14,7 @@ required_conan_version = ">=2.0"
 
 
 class CgraphConan(ConanFile):
-    name = "cgraph"
+    name = "graphviz"
     version = "15.1.0"
     description = "Graphviz cgraph graph library (built with upstream CMake)"
     license = "EPL-1.0"
@@ -146,7 +146,7 @@ class CgraphConan(ConanFile):
     def build(self):
         cmake = CMake(self)
         cmake.configure()
-        cmake.build(target="cgraph")  # pulls in cdt + util only
+        cmake.build(target="gvc")
 
     def package(self):
         copy(
@@ -163,45 +163,136 @@ class CgraphConan(ConanFile):
         )
 
         inc = os.path.join(self.package_folder, "include", "graphviz")
-        copy(
-            self,
-            "cgraph.h",
-            src=os.path.join(self.source_folder, "lib", "cgraph"),
-            dst=inc,
-        )
-        copy(self, "cdt.h", src=os.path.join(self.source_folder, "lib", "cdt"), dst=inc)
-        copy(self, "graphviz_version.h", src=self.build_folder, dst=inc, keep_path=False)
-
         lib_dst = os.path.join(self.package_folder, "lib")
         bin_dst = os.path.join(self.package_folder, "bin")
-        for sub in ("cgraph", "cdt"):
+        os.makedirs(inc, exist_ok=True)
+        os.makedirs(lib_dst, exist_ok=True)
+        os.makedirs(bin_dst, exist_ok=True)
+
+        # Package the headers for gvc and its public cgraph/cdt dependencies.
+        # Include the other library headers as well, since their components are
+        # exposed by package_info().
+        for sub in (
+            "gvc",
+            "cgraph",
+            "cdt",
+            "common",
+            "pack",
+            "pathplan",
+            "label",
+            "xdot",
+        ):
+            src = os.path.join(self.source_folder, "lib", sub)
+            if os.path.isdir(src):
+                copy(self, "*.h", src=src, dst=inc, keep_path=False)
+
+        # This header is generated during CMake configuration.
+        copy(
+            self,
+            "graphviz_version.h",
+            src=self.build_folder,
+            dst=inc,
+            keep_path=False,
+        )
+
+        # Package gvc and the libraries in its dependency closure.
+        for sub in (
+            "gvc",
+            "cgraph",
+            "cdt",
+            "common",
+            "pack",
+            "pathplan",
+            "label",
+            "xdot",
+        ):
             src = os.path.join(self.build_folder, "lib", sub)
+            if not os.path.isdir(src):
+                continue
+
             for pattern in ("*.a", "*.lib", "*.so*", "*.dylib"):
                 copy(self, pattern, src=src, dst=lib_dst, keep_path=False)
+
             copy(self, "*.dll", src=src, dst=bin_dst, keep_path=False)
 
         if not self.options.shared:
-            # upstream never installs its private static 'util' lib, which
-            # libcgraph.a needs; ship it under a non-clashing name
+            # Upstream's util library is private and is not installed with the
+            # other libraries. Rename it to avoid a generic "util" library name.
             util_dir = os.path.join(self.build_folder, "lib", "util")
-            for f in glob.glob(os.path.join(util_dir, "**", "*util.*"), recursive=True):
-                if f.endswith(".lib"):
-                    shutil.copy2(f, os.path.join(lib_dst, "gvutil.lib"))
-                elif f.endswith(".a"):
-                    shutil.copy2(f, os.path.join(lib_dst, "libgvutil.a"))
+            for path in glob.glob(
+                os.path.join(util_dir, "**", "*util.*"), recursive=True
+            ):
+                if path.endswith(".lib"):
+                    shutil.copy2(path, os.path.join(lib_dst, "gvutil.lib"))
+                elif path.endswith(".a"):
+                    shutil.copy2(path, os.path.join(lib_dst, "libgvutil.a"))
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "cgraph")
-        self.cpp_info.set_property("cmake_target_name", "cgraph::cgraph")
-        self.cpp_info.set_property("pkg_config_name", "libcgraph")
-        self.cpp_info.includedirs = ["include", os.path.join("include", "graphviz")]
+        self.cpp_info.set_property("cmake_file_name", "graphviz")
 
-        # link order: cgraph -> cdt -> util
-        self.cpp_info.libs = (
-            ["cgraph", "cdt"] if self.options.shared else ["cgraph", "cdt", "gvutil"]
-        )
+        # Graphviz headers are installed under include/graphviz.
+        components = {
+            "cdt": {
+                "libs": ["cdt"],
+                "requires": [],
+            },
+            "cgraph": {
+                "libs": ["cgraph"],
+                "requires": ["cdt"],
+            },
+            "util": {
+                # The recipe renames upstream's util archive to avoid a
+                # collision with libraries commonly named "util".
+                "libs": ["gvutil"],
+                "requires": [],
+            },
+            "pathplan": {
+                "libs": ["pathplan"],
+                "requires": ["util"],
+            },
+            "label": {
+                "libs": ["label"],
+                "requires": ["cdt"],
+            },
+            "xdot": {
+                "libs": ["xdot"],
+                "requires": [],
+            },
+            "pack": {
+                "libs": ["pack"],
+                "requires": ["util"],
+            },
+            "common": {
+                "libs": ["common"],
+                "requires": [
+                    "cgraph",
+                    "pathplan",
+                    "label",
+                    "xdot",
+                    "util",
+                ],
+            },
+            "gvc": {
+                "libs": ["gvc"],
+                "requires": [
+                    "cdt",
+                    "cgraph",
+                    "common",
+                    "pack",
+                    "util",
+                ],
+            },
+        }
+
+        for name, data in components.items():
+            component = self.cpp_info.components[name]
+            component.set_property("cmake_target_name", f"graphviz::{name}")
+            component.includedirs = ["include", "include/graphviz"]
+            component.libs = data["libs"]
+            component.requires = data["requires"]
 
         if self.settings.os in ("Linux", "FreeBSD"):
-            self.cpp_info.system_libs = ["m"]
+            self.cpp_info.components["gvc"].system_libs = ["m"]
+
         if self.settings.os == "Windows" and self.options.shared:
-            self.cpp_info.defines = ["GVDLL"]  # dllimport in cgraph.h / cdt.h
+            self.cpp_info.components["gvc"].defines = ["GVDLL"]

@@ -1,4 +1,5 @@
 #include <graphviz/cgraph.h>
+#include <graphviz/gvc.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,6 +48,9 @@ static int buf_flush(void* chan) {
 static int streq(const char* a, const char* b) { return a && b && strcmp(a, b) == 0; }
 
 int main(void) {
+    // validate gvc types are OK
+    Agnodeinfo_t* type_declaration_test;
+
     strbuf_t out = {NULL, 0, 0};
 
     /* 1. build a graph programmatically */

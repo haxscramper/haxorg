@@ -3,10 +3,10 @@
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
 #include <graphviz/cgraph.h>
-#include <hstd_cpp_diagram_lib/graph_base.pb.h>
 #include <hstd_cpp_diagram_lib/graph_graphviz.pb.h>
 #include <hstd_cpp_diagram_lib/graph_visual.hpp>
 #include <hstd_cpp_lib/graph/graph_base.hpp>
+#include <hstd_cpp_lib/graph_base.pb.h>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/Func.hpp>
 #include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
