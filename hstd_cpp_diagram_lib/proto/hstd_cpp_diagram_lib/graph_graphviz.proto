@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package hstd.ext.graph.gv.proto;
 
-import "hstd_cpp_diagram/graph_base.proto";
-import "hstd_cpp_diagram/graph_visual.proto";
+import "hstd_cpp_lib/graph_base.proto";
+import "hstd_cpp_diagram_lib/graph_visual.proto";
 
 enum TextAlign {
   TEXTALIGN_LEFT = 0;

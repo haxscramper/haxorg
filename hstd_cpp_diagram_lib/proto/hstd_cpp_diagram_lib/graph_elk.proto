@@ -4,8 +4,8 @@ import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 import "hstd_cpp_lib/hstd_geometry.proto";
 import "hstd_cpp_lib/hstd_visual.proto";
-import "hstd_cpp_diagram/graph_base.proto";
-import "hstd_cpp_diagram/graph_visual.proto";
+import "hstd_cpp_lib/graph_base.proto";
+import "hstd_cpp_diagram_lib/graph_visual.proto";
 
 package hstd.ext.graph.elk.proto;
 

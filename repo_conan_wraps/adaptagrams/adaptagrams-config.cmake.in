@@ -1,0 +1,27 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/adaptagrams_targets.cmake")
+
+set(adaptagrams_VERSION "@PROJECT_VERSION@")
+
+set(_adaptagrams_components
+    avoid
+    vpsc
+    cola
+    topology
+    dialect
+)
+
+foreach(_component IN LISTS adaptagrams_FIND_COMPONENTS)
+    if(_component IN_LIST _adaptagrams_components)
+        set(adaptagrams_${_component}_FOUND TRUE)
+    else()
+        set(adaptagrams_${_component}_FOUND FALSE)
+        set(adaptagrams_NOT_FOUND_MESSAGE "Unknown adaptagrams component: ${_component}")
+    endif()
+endforeach()
+
+check_required_components(adaptagrams)
+
+unset(_component)
+unset(_adaptagrams_components)

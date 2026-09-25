@@ -30,7 +30,7 @@ class AdaptagramsConan(ConanFile):
 
     exports_sources = (
         "CMakeLists.txt",
-        "Config.cmake.in",
+        "adaptagrams-config.cmake.in",
         "cola_config.h.in",
     )
 
@@ -102,14 +102,14 @@ class AdaptagramsConan(ConanFile):
             )
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "Adaptagrams")
+        self.cpp_info.set_property("cmake_file_name", "adaptagrams")
         self.cpp_info.set_property(
             "cmake_target_name",
-            "Adaptagrams::Adaptagrams",
+            "adaptagrams::adaptagrams",
         )
 
         # Conan consumers use CMakeDeps. Native CMake consumers can still
-        # discover the files installed under lib/cmake/Adaptagrams.
+        # discover the files installed under lib/cmake/adaptagrams.
         self.cpp_info.builddirs = []
 
         dependencies = {
@@ -129,7 +129,7 @@ class AdaptagramsConan(ConanFile):
 
             component.set_property(
                 "cmake_target_name",
-                f"Adaptagrams::{name}",
+                f"adaptagrams::{name}",
             )
 
         self.cpp_info.components["avoid"].defines = ["LIBAVOID_NO_DLL"]

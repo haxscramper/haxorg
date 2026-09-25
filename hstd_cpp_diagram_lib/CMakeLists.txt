@@ -5,17 +5,28 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 include(CMakePackageConfigHelpers)
 
-find_package(hstd_cpp_lib CONFIG REQUIRED)
 find_package(Protobuf CONFIG REQUIRED)
 find_package(kiwi CONFIG REQUIRED)
-find_package(graphviz CONFIG REQUIRED)
+find_package(cgraph CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 
+find_package(hstd_cpp_lib CONFIG REQUIRED)
 if(NOT DEFINED hstd_cpp_lib_PROTO_IMPORT_DIR)
     message(
         FATAL_ERROR
         "hstd_cpp_lib did not expose "
         "hstd_cpp_lib_PROTO_IMPORT_DIR"
+    )
+endif()
+
+find_package(re2 CONFIG REQUIRED)
+find_package(protovalidate_cc CONFIG REQUIRED)
+
+if(NOT DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
+    message(
+        FATAL_ERROR
+        "protovalidate_cc did not expose "
+        "protovalidate_cc_PROTO_IMPORT_DIR"
     )
 endif()
 
@@ -49,8 +60,7 @@ target_link_libraries(
     PUBLIC
         hstd::hstd_cpp_lib
         kiwi::kiwi
-        graphviz::cgraph
-        graphviz::gvc
+        cgraph::cgraph
         adaptagrams::adaptagrams
         jni_elk_lib
 )
@@ -61,13 +71,14 @@ haxorg_add_protobuf(
     IMPORT_DIRS
         "${CMAKE_CURRENT_LIST_DIR}/proto"
         "${hstd_cpp_lib_PROTO_IMPORT_DIR}"
+        "${protovalidate_cc_PROTO_IMPORT_DIR}"
     PROTO_SOURCES
-        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram/graph_graphviz.proto"
-        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram/graph_avoid.proto"
-        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram/graph_elk.proto"
-        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram/kiwi_ir.proto"
-        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram/graph_kiwi.proto"
-        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram/graph_diagram.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_graphviz.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_avoid.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_elk.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/kiwi_ir.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_kiwi.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_diagram_lib/graph_diagram.proto"
 )
 
 target_include_directories(

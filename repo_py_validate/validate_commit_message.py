@@ -43,6 +43,8 @@ SCOPES: dict[str, str] = {
     "js": "JavaScript bindings",
     "lex": "Lexer implementation",
     "mmap": "Mind map/org graph handling",
+    "diag": "Diagram handling, hstd_cpp_diagram",
+    "graph": "Graph data structure and processing, hstd_cpp_lib",
     "org": "Org-mode parser/AST core",
     "parse": "Parsing pipeline (lexer → parser → sem)",
     "py": "Python bindings, scripts, tests",

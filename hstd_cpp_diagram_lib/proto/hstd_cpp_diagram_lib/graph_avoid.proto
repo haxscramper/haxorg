@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "hstd_cpp_lib/hstd_geometry.proto";
-import "hstd_cpp_diagram/graph_visual.proto";
+import "hstd_cpp_diagram_lib/graph_visual.proto";
 
 package hstd.ext.graph.avoid.proto;
 

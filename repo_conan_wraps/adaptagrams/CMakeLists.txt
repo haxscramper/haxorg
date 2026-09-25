@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.20)
 set(ADAPTAGRAMS_VERSION
     "0.0.20251029"
     CACHE STRING
-    "Version of this Adaptagrams package snapshot"
+    "Version of this adaptagrams package snapshot"
 )
 
-project(Adaptagrams VERSION "${ADAPTAGRAMS_VERSION}" LANGUAGES CXX)
+project(adaptagrams VERSION "${ADAPTAGRAMS_VERSION}" LANGUAGES CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -14,7 +14,7 @@ include(CMakePackageConfigHelpers)
 set(ADAPTAGRAMS_SOURCE_DIR
     "${CMAKE_CURRENT_SOURCE_DIR}/upstream"
     CACHE PATH
-    "Root of the upstream Adaptagrams checkout"
+    "Root of the upstream adaptagrams checkout"
 )
 
 get_filename_component(
@@ -29,7 +29,7 @@ set(COLA_DIR "${ADAPTAGRAMS_SOURCE_DIR}/cola")
 if(NOT EXISTS "${COLA_DIR}/libcola/cola.h")
     message(
         FATAL_ERROR
-        "ADAPTAGRAMS_SOURCE_DIR must point to the upstream Adaptagrams "
+        "ADAPTAGRAMS_SOURCE_DIR must point to the upstream adaptagrams "
         "repository root. Expected: ${COLA_DIR}/libcola/cola.h"
     )
 endif()
@@ -75,7 +75,7 @@ function(add_adaptagrams_library name)
     file(GLOB _sources CONFIGURE_DEPENDS "${COLA_DIR}/lib${name}/*.cpp")
 
     add_library(${name} STATIC ${_sources})
-    add_library(Adaptagrams::${name} ALIAS ${name})
+    add_library(adaptagrams::${name} ALIAS ${name})
 
     target_compile_features(${name} PUBLIC cxx_std_11)
 
@@ -147,11 +147,11 @@ target_link_libraries(
 )
 
 # Convenience target matching Conan's aggregate target.
-add_library(Adaptagrams INTERFACE)
-add_library(Adaptagrams::Adaptagrams ALIAS Adaptagrams)
+add_library(adaptagrams INTERFACE)
+add_library(adaptagrams::adaptagrams ALIAS adaptagrams)
 
 target_link_libraries(
-    Adaptagrams
+    adaptagrams
     INTERFACE
         dialect
         topology
@@ -173,8 +173,8 @@ install(
         cola
         topology
         dialect
-        Adaptagrams
-    EXPORT AdaptagramsTargets
+        adaptagrams
+    EXPORT adaptagrams_targets
     ARCHIVE
         DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     LIBRARY
@@ -183,31 +183,31 @@ install(
         DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
-set(ADAPTAGRAMS_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/Adaptagrams")
+set(ADAPTAGRAMS_CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/adaptagrams")
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfig.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/adaptagrams-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/adaptagrams-config.cmake"
     INSTALL_DESTINATION "${ADAPTAGRAMS_CMAKE_INSTALL_DIR}"
 )
 
 # Snapshot versions do not imply compatibility with other snapshots.
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/adaptagrams-config-version.cmake"
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY ExactVersion
 )
 
 install(
-    EXPORT AdaptagramsTargets
-    FILE AdaptagramsTargets.cmake
-    NAMESPACE Adaptagrams::
+    EXPORT adaptagrams_targets
+    FILE adaptagrams_targets.cmake
+    NAMESPACE adaptagrams::
     DESTINATION "${ADAPTAGRAMS_CMAKE_INSTALL_DIR}"
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/adaptagrams-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/adaptagrams-config-version.cmake"
     DESTINATION "${ADAPTAGRAMS_CMAKE_INSTALL_DIR}"
 )

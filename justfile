@@ -141,6 +141,10 @@ conan_info_package_path package:
   conan graph info {{package}} --format=html > /tmp/graph.html
   echo /tmp/graph.html
 
+conan_reset_external_dep target:
+  conan remove "{{target}}/*" -c
+  conan export "repo_conan_wraps/{{target}}"
+
 conan_remove_external_deps:
   conan remove "protovalidate-cc/*" -c
   conan remove "cgraph/*" -c
@@ -152,7 +156,6 @@ conan_export_external_deps:
   conan export "repo_conan_wraps/cgraph"
   conan export "repo_conan_wraps/kiwi"
   conan export "repo_conan_wraps/adaptagrams"
-
 
 conan_remove_local_deps:
   conan remove "hstd_cpp_lib/*" --confirm
