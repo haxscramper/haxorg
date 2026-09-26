@@ -7,6 +7,21 @@
 
 static int failures = 0;
 
+static int contains_bytes(
+    const char* data,
+    size_t      data_len,
+    const void* expected,
+    size_t      expected_len) {
+    if (!data || !expected || expected_len > data_len) { return 0; }
+
+    for (size_t i = 0; i <= data_len - expected_len; ++i) {
+        if (memcmp(data + i, expected, expected_len) == 0) { return 1; }
+    }
+
+    return 0;
+}
+
+
 #define CHECK(cond)                                                                      \
     do {                                                                                 \
         if (cond) {                                                                      \
@@ -142,7 +157,8 @@ int main(void) {
     agseterr(AGWARN);
 
     /* 5. run the dot layout engine */
-    printf("[5] dot layout\n");
+    /* 5. run the dot layout engine and validate render plugins */
+    printf("[5] dot layout and rendering\n");
     GVC_t* gvc = gvContext();
     CHECK(gvc != NULL);
 
@@ -159,11 +175,81 @@ int main(void) {
         int layout_result = gvLayout(gvc, layout_graph, "dot");
         CHECK(layout_result == 0);
 
-        if (layout_result == 0) { gvFreeLayout(gvc, layout_graph); }
+        if (layout_result == 0) {
+            static const unsigned char png_signature[] = {
+                0x89,
+                'P',
+                'N',
+                'G',
+                '\r',
+                '\n',
+                0x1a,
+                '\n',
+            };
+
+            printf("[6] PNG rendering\n");
+            char*  png_data   = NULL;
+            size_t png_length = 0;
+            int    png_result = gvRenderData(
+                gvc, layout_graph, "png", &png_data, &png_length);
+
+            CHECK(png_result == 0);
+            CHECK(png_data != NULL);
+            CHECK(png_length > sizeof(png_signature));
+
+            if (png_data) {
+                CHECK(
+                    png_length >= sizeof(png_signature)
+                    && memcmp(png_data, png_signature, sizeof(png_signature)) == 0);
+                gvFreeRenderData(png_data);
+            }
+
+            printf("[7] SVG rendering\n");
+            char*  svg_data   = NULL;
+            size_t svg_length = 0;
+            int    svg_result = gvRenderData(
+                gvc, layout_graph, "svg", &svg_data, &svg_length);
+
+            CHECK(svg_result == 0);
+            CHECK(svg_data != NULL);
+            CHECK(svg_length > 0);
+
+            if (svg_data) {
+                CHECK(contains_bytes(svg_data, svg_length, "<svg", strlen("<svg")));
+                CHECK(contains_bytes(svg_data, svg_length, "</svg>", strlen("</svg>")));
+                gvFreeRenderData(svg_data);
+            }
+
+            printf("[8] xdot rendering\n");
+            char*  xdot_data   = NULL;
+            size_t xdot_length = 0;
+            int    xdot_result = gvRenderData(
+                gvc, layout_graph, "xdot", &xdot_data, &xdot_length);
+
+            CHECK(xdot_result == 0);
+            CHECK(xdot_data != NULL);
+            CHECK(xdot_length > 0);
+
+            if (xdot_data) {
+                CHECK(contains_bytes(
+                    xdot_data,
+                    xdot_length,
+                    "digraph layout_test",
+                    strlen("digraph layout_test")));
+                CHECK(contains_bytes(xdot_data, xdot_length, "_draw_", strlen("_draw_")));
+                CHECK(contains_bytes(
+                    xdot_data, xdot_length, "xdotversion", strlen("xdotversion")));
+                gvFreeRenderData(xdot_data);
+            }
+
+            gvFreeLayout(gvc, layout_graph);
+        }
     }
 
     if (layout_graph) { agclose(layout_graph); }
     if (gvc) { CHECK(gvFreeContext(gvc) == 0); }
+
+    // end
 
     free(out.data);
 

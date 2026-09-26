@@ -173,7 +173,7 @@ conan_export_local_deps:
 
 [working-directory("/tmp")]
 conan_validate_deps dep_name:
-  conan remove "protovalidate-cc/*" -c
+  conan remove "{{dep_name}}/*" -c
   conan create {{HAXORG_ROOT}}/repo_conan_wraps/{{dep_name}} \
     --profile:all={{CONAN_PROFILE}} \
     -s build_type=Release \

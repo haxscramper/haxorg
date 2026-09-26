@@ -3,3 +3,5 @@ include(default)
 [conf]
 tools.build:compiler_executables={"c":"clang","cpp":"clang++"}
 tools.cmake.cmaketoolchain:generator=Ninja
+glib/*:tools.build:exelinkflags=["-L./glib","-L./gobject","-L./gmodule","-L./gio"]
+graphviz/*:tools.build:sharedlinkflags=["-Wl,--trace-symbol=sysprof_clock"]

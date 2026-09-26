@@ -5,6 +5,7 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 from conan.tools.env import Environment
 from conan.tools.files import copy, get
+from conan.tools.gnu import PkgConfigDeps
 
 required_conan_version = ">=2.0"
 
@@ -56,22 +57,25 @@ class GraphvizConan(ConanFile):
 
     _packages_off = (
         "ANN",
-        "CAIRO",
         "GTS",
-        "PANGOCAIRO",
         "GD",
         "AA",
         "DevIL",
-        "Freetype",
         "GLUT",
         "GTK2",
-        "Fontconfig",
-        "PkgConfig",
         "EXPAT",
         "ZLIB",
         "GS",
         "TCL",
         "SWIG",
+        # TODO: make this an optional (on by default) configuration
+        # part, so the graphviz could be built without the PNG deps.
+        #
+        # "CAIRO",
+        # "PANGOCAIRO",
+        # "Freetype",
+        # "Fontconfig",
+        # "PkgConfig",
     )
 
     def configure(self):
@@ -81,11 +85,25 @@ class GraphvizConan(ConanFile):
     def requirements(self):
         self.requires("libtool/[>=2.4.7 <3]")
 
+        # To diagnose ordering issue with link ordering, add the tracing link flags to the
+        # conan profile.
+        # `glib/*:tools.build:exelinkflags=["-Wl,--trace","-Wl,--trace-symbol=g_trace_define_int64_counter"]`
+        #
+        # These dependencies require
+        # `glib/*:tools.build:exelinkflags=["-L./glib","-L./gobject","-L./gmodule","-L./gio"]` to be
+        # added to the conan profile, otherwise the build picks system-provided `glib` instead of
+        # the one installed by conan, which in turn fails because `g_trace_set_int64_counter` is
+        # not defined in the system libraries.
+        if True:
+            self.requires("cairo/[>=1.18 <2]")
+            self.requires("pango/[>=1.54 <2]")
+
     def layout(self):
         cmake_layout(self, src_folder="src")
 
     def build_requirements(self):
         self.tool_requires("cmake/[>=3.21 <5]")
+        self.tool_requires("pkgconf/[>=2.2 <3]")
 
         if self.settings_build.os == "Windows":
             self.tool_requires("winflexbison/2.5.25")
@@ -101,7 +119,21 @@ class GraphvizConan(ConanFile):
         )
 
     def generate(self):
+        pkg_config = PkgConfigDeps(self)
+        pkg_config.generate()
+
         toolchain = CMakeToolchain(self)
+
+        # graphviz -> pango -> glib -- glib enables the sysprof
+        # by default it seems, and conan recipe does not
+        # expose this option, so for now it will have this
+        # hardcoded hack.
+        sysprof_capture = "/usr/lib/libsysprof-capture-4.a"
+
+        for language in ("C", "CXX"):
+            toolchain.cache_variables[f"CMAKE_{language}_STANDARD_LIBRARIES"] = (
+                sysprof_capture
+            )
 
         toolchain.cache_variables["BUILD_SHARED_LIBS"] = True
         toolchain.cache_variables["BUILD_TESTING"] = False
