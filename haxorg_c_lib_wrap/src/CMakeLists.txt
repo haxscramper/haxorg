@@ -2,8 +2,8 @@ haxorg_add_library(haxorg_c_haxorg)
 
 haxorg_glob_add_sources2(
     TARGET haxorg_c_haxorg
-    LS_REGEX "${BASE}/src/.*"
-    SEARCH_BASE "${BASE}"
+    LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/.*"
+    SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
     ARG_EXTENSIONS
     "hpp;cpp;c;h"
 )
@@ -16,7 +16,7 @@ target_link_libraries(haxorg_c_haxorg PUBLIC haxorg::haxorg_cpp_lib)
 target_include_directories(
     haxorg_c_haxorg
     PUBLIC
-        $<BUILD_INTERFACE:${BASE}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<INSTALL_INTERFACE:include>
 )
 

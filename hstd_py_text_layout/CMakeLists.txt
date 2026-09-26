@@ -20,13 +20,11 @@ find_package(nanobind CONFIG REQUIRED)
 if(NOT TARGET hstd::hstd_cpp_lib)
     find_package(hstd_cpp_lib CONFIG REQUIRED)
 endif()
-find_package(HstdCppTextLayout CONFIG REQUIRED)
-
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
+find_package(hstd_cpp_text_layout CONFIG REQUIRED)
 
 nanobind_add_module(
     hstd_py_text_layout
-    "${BASE}/src/py_textlayout.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/py_textlayout.cpp"
 )
 
 haxorg_set_target_output(hstd_py_text_layout)
@@ -39,7 +37,7 @@ set_target_properties(
             "py_textlayout_cpp"
 )
 
-target_include_directories(hstd_py_text_layout PRIVATE "${BASE}/src")
+target_include_directories(hstd_py_text_layout PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 target_link_libraries(
     hstd_py_text_layout
@@ -53,7 +51,7 @@ add_library(hstd::hstd_py_text_layout ALIAS hstd_py_text_layout)
 install(
     TARGETS
         hstd_py_text_layout
-    EXPORT HstdPyTextLayoutTargets
+    EXPORT hstd_py_text_layout-targets
     LIBRARY
         DESTINATION "."
     RUNTIME
@@ -61,27 +59,27 @@ install(
 )
 
 install(
-    EXPORT HstdPyTextLayoutTargets
-    FILE HstdPyTextLayoutTargets.cmake
+    EXPORT hstd_py_text_layout-targets
+    FILE hstd_py_text_layout-targets.cmake
     NAMESPACE hstd::
-    DESTINATION lib/cmake/HstdPyTextLayout
+    DESTINATION lib/cmake/hstd_py_text_layout
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HstdPyTextLayout_config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/HstdPyTextLayoutConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/HstdPyTextLayout
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/hstd_py_text_layout-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/hstd_py_text_layout-config.cmake"
+    INSTALL_DESTINATION lib/cmake/hstd_py_text_layout
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/HstdPyTextLayoutConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/hstd_py_text_layout-config-version.cmake"
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/HstdPyTextLayoutConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/HstdPyTextLayoutConfigVersion.cmake"
-    DESTINATION lib/cmake/HstdPyTextLayout
+        "${CMAKE_CURRENT_BINARY_DIR}/hstd_py_text_layout-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/hstd_py_text_layout-config-version.cmake"
+    DESTINATION lib/cmake/hstd_py_text_layout
 )

@@ -23,8 +23,6 @@ if(NOT TARGET haxorg::haxorg_cpp_org_lib)
     find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 endif()
 
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
-
 add_subdirectory(src)
 
 install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp")

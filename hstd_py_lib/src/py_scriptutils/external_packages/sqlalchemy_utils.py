@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
+import py_scriptutils.json_utils as ju
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
 from rich.console import Console
@@ -23,8 +24,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.sql import Executable, select
 from sqlalchemy.types import TypeDecorator
-
-import py_scriptutils.json_utils as ju
 
 
 def IdColumn() -> Column:

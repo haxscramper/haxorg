@@ -170,12 +170,12 @@ function(haxorg_set_target_flags_impl)
                 haxorg_add_target_property(
                     ${ARG_TARGET}
                     COMPILE_OPTIONS
-                    "-fsanitize-ignorelist=${BASE}/ignorelist.txt"
+                    "-fsanitize-ignorelist=${CMAKE_CURRENT_SOURCE_DIR}/ignorelist.txt"
                 )
                 haxorg_add_target_property(
                     ${ARG_TARGET}
                     LINK_OPTIONS
-                    "-fsanitize-ignorelist=${BASE}/ignorelist.txt"
+                    "-fsanitize-ignorelist=${CMAKE_CURRENT_SOURCE_DIR}/ignorelist.txt"
                 )
                 haxorg_add_target_property(
                     ${ARG_TARGET}
@@ -197,7 +197,7 @@ function(haxorg_set_target_flags_impl)
             haxorg_add_target_property(
                 ${ARG_TARGET}
                 COMPILE_OPTIONS
-                "-fxray-attr-list=${BASE}/scripts/cxx_repository/xray_list.txt"
+                "-fxray-attr-list=${CMAKE_CURRENT_SOURCE_DIR}/scripts/cxx_repository/xray_list.txt"
             )
         endif()
 
@@ -229,7 +229,7 @@ function(haxorg_set_target_flags_impl)
             haxorg_add_target_property(
                 ${ARG_TARGET}
                 COMPILE_OPTIONS
-                "-fprofile-use=${BASE}/haxorg-compile.profdata"
+                "-fprofile-use=${CMAKE_CURRENT_SOURCE_DIR}/haxorg-compile.profdata"
             )
         endif()
 

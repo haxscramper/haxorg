@@ -14,14 +14,12 @@ if(NOT TARGET hstd::hstd_cpp_lib)
     find_package(hstd_cpp_lib CONFIG REQUIRED)
 endif()
 
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
-
 haxorg_add_library(hstd_cpp_text_layout)
 
 haxorg_glob_add_sources2(
     TARGET hstd_cpp_text_layout
-    LS_REGEX "${BASE}/src/.*"
-    SEARCH_BASE "${BASE}"
+    LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/.*"
+    SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 haxorg_set_target_output(hstd_cpp_text_layout)
@@ -32,7 +30,7 @@ target_link_libraries(hstd_cpp_text_layout PUBLIC hstd::hstd_cpp_lib)
 target_include_directories(
     hstd_cpp_text_layout
     PUBLIC
-        $<BUILD_INTERFACE:${BASE}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<INSTALL_INTERFACE:include>
 )
 
@@ -41,7 +39,7 @@ add_library(hstd::hstd_cpp_text_layout ALIAS hstd_cpp_text_layout)
 if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
 
-    add_executable(tTextLayouter "${BASE}/tests/tTextLayouter.cpp")
+    add_executable(tTextLayouter "${CMAKE_CURRENT_SOURCE_DIR}/tests/tTextLayouter.cpp")
 
     target_link_libraries(
         tTextLayouter

@@ -25,16 +25,14 @@ if(NOT TARGET haxorg::haxorg_cpp_org_lib)
     find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 endif()
 
-set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
-
 nanobind_add_module(
     haxorg_py_haxorg
-    "${BASE}/src/pyhaxorg/pyhaxorg.cpp"
-    "${BASE}/src/py_type_casters.hpp"
-    "${BASE}/src/py_type_casters.cpp"
-    "${BASE}/src/pyhaxorg/pyhaxorg_manual_impl.cpp"
-    "${BASE}/src/pyhaxorg/pyhaxorg_manual_refl.cpp"
-    "${BASE}/src/pyhaxorg/pyhaxorg_manual_impl.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/py_type_casters.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/py_type_casters.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg_manual_impl.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg_manual_refl.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg_manual_impl.hpp"
 )
 
 haxorg_set_target_output(haxorg_py_haxorg)
@@ -47,7 +45,7 @@ set_target_properties(
             "pyhaxorg"
 )
 
-target_include_directories(haxorg_py_haxorg PRIVATE "${BASE}/src")
+target_include_directories(haxorg_py_haxorg PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 target_link_libraries(haxorg_py_haxorg PRIVATE haxorg::haxorg_cpp_lib)
 

@@ -8,9 +8,10 @@ import pytest
 from beartype import beartype
 from beartype.typing import Any, Dict, Generator, List, Optional
 from plumbum import ProcessExecutionError
+from pydantic import BaseModel
+
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
-from pydantic import BaseModel
 
 CAT = __name__
 
@@ -256,3 +257,39 @@ class GTestFile(pytest.Module):
     def collect(self) -> Generator["GTestClass"]:
         for it in self.test_classes:
             yield it
+
+
+def pytest_collect_file(parent: Module, path: str) -> Optional[GTestFile]:
+    test = Path(path)
+
+    def debug(it: Any, file: str) -> None:
+        pprint_to_file(to_debug_json(it), file + ".json")
+
+    coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
+
+    if test.name.startswith("test_integrate_cxx"):
+        log(CAT).info(f"File '{test.name}' integrates execution of the cxx binary")
+        if test.name.endswith("_cxx_org.py"):
+            binary_path_str = "haxorg/haxorg_cpp_org_tests"
+
+        else:
+            binary_path_str = "haxorg/tests_hstd"
+
+        binary_path = get_haxorg_build_path().joinpath(binary_path_str)
+
+        assert binary_path.exists(), f"{binary_path} {test.name}"
+
+        result = GTestFile.from_parent(
+            parent,
+            path=test,
+            coverage_out_dir=coverage and Path(coverage),
+            binary_path=binary_path,
+        )
+
+        if test.name.endswith("_cxx_hstd.py"):
+            debug(result, "/tmp/google_tests_cxx_hstd")
+
+        return result
+
+    else:
+        return None
