@@ -13,8 +13,8 @@
 #include <clang/Sema/Sema.h>
 
 // Auto-generated protobuf definition, provided by cmake run
-#include "reflection_config.hpp"
-#include "reflection_defs.pb.h"
+#include <haxdex_cpp_refl_read/reflection_config.hpp>
+#include <haxdex_cpp_refl_read/reflection_defs.pb.h>
 #include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>

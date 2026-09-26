@@ -41,8 +41,8 @@
 #include <hstd_cpp_lib/system/aux_utils.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>
 
-#include "reflection_demangler.hpp"
-#include "reflection_perf.hpp"
+#include <haxdex_cpp_refl_read/reflection_demangler.hpp>
+#include <haxdex_cpp_refl_read/reflection_perf.hpp>
 
 
 using namespace llvm::itanium_demangle;

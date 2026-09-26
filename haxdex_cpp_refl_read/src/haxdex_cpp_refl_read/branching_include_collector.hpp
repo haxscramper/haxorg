@@ -8,9 +8,9 @@
 
 #include <hstd_cpp_lib/stdlib/containers/Set.hpp>
 
-#include "reflection_config.hpp"
-#include "reflection_defs.pb.h"
 #include <filesystem>
+#include <haxdex_cpp_refl_read/reflection_config.hpp>
+#include <haxdex_cpp_refl_read/reflection_defs.pb.h>
 
 
 struct BranchingIncludeCollectorCallback : public clang::PPCallbacks {

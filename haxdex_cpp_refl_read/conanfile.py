@@ -12,7 +12,13 @@ class HaxdexCppReflReadConan(ConanFile):
         "CMakeLists.txt",
         "cmake/*",
         "src/*",
+        "proto/*",
+        "tests/*",
     )
+
+    default_options = {
+        "hwloc/*:shared": True,
+    }
 
     def requirements(self):
         self.requires(
