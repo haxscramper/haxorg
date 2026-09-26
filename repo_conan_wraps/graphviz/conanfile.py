@@ -1,36 +1,31 @@
-import glob
 import os
-import shutil
 import sys
 
 from conan import ConanFile
-from conan.errors import ConanInvalidConfiguration
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import copy, get, replace_in_file
-from conan.tools.microsoft import is_msvc
-from conan.tools.scm import Version
+from conan.tools.env import Environment
+from conan.tools.files import copy, get
 
 required_conan_version = ">=2.0"
 
 
-class CgraphConan(ConanFile):
+class GraphvizConan(ConanFile):
     name = "graphviz"
     version = "15.1.0"
-    description = "Graphviz cgraph graph library (built with upstream CMake)"
+    description = "Graphviz graph visualization libraries and plugins"
     license = "EPL-1.0"
     url = "https://gitlab.com/graphviz/graphviz"
     homepage = "https://graphviz.org"
     topics = ("graphviz", "graph", "dot", "cgraph")
-    package_type = "library"
+    package_type = "shared-library"
 
     settings = "os", "arch", "compiler", "build_type"
-    # no fPIC option: upstream forces CMAKE_POSITION_INDEPENDENT_CODE ON
-    options = {"shared": [True, False]}
-    default_options = {"shared": False}
 
-    # Upstream AUTO-detected features, none of which cgraph needs
+    default_options = {
+        "libtool/*:shared": True,
+    }
+
     _features_off = (
-        "ENABLE_LTDL",
         "WITH_EXPAT",
         "WITH_ZLIB",
         "WITH_GVEDIT",
@@ -58,7 +53,7 @@ class CgraphConan(ConanFile):
         "ENABLE_R",
         "ENABLE_RUBY",
     )
-    # Unconditional find_package() calls in upstream's top-level CMakeLists
+
     _packages_off = (
         "ANN",
         "CAIRO",
@@ -74,30 +69,24 @@ class CgraphConan(ConanFile):
         "PkgConfig",
         "EXPAT",
         "ZLIB",
-        "LTDL",
         "GS",
         "TCL",
         "SWIG",
     )
 
     def configure(self):
-        # the packaged artifacts are pure C
         self.settings.rm_safe("compiler.cppstd")
         self.settings.rm_safe("compiler.libcxx")
+
+    def requirements(self):
+        self.requires("libtool/[>=2.4.7 <3]")
 
     def layout(self):
         cmake_layout(self, src_folder="src")
 
-    def validate(self):
-        # upstream passes /experimental:c11atomics unconditionally (VS 2022 17.5+)
-        if (
-            self.settings.compiler == "msvc"
-            and Version(self.settings.compiler.version) < "193"
-        ):
-            raise ConanInvalidConfiguration("graphviz 15 requires MSVC >= 193")
-
     def build_requirements(self):
         self.tool_requires("cmake/[>=3.21 <5]")
+
         if self.settings_build.os == "Windows":
             self.tool_requires("winflexbison/2.5.25")
         else:
@@ -105,48 +94,46 @@ class CgraphConan(ConanFile):
             self.tool_requires("flex/2.6.4")
 
     def source(self):
-        get(self, **self.conan_data["sources"][self.version], strip_root=True)
-        # Upstream forces LTO in Release. LTO bitcode inside a static library
-        # ties consumers to the exact same compiler/linker, so leave it opt-in.
-        replace_in_file(
+        get(
             self,
-            os.path.join(self.source_folder, "CMakeLists.txt"),
-            "set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)",
-            "",
-            strict=False,
+            **self.conan_data["sources"][self.version],
+            strip_root=True,
         )
 
     def generate(self):
-        tc = CMakeToolchain(self)  # sets BUILD_SHARED_LIBS from options.shared
-        tc.cache_variables["GRAPHVIZ_CLI"] = "OFF"
-        tc.cache_variables["BUILD_TESTING"] = "OFF"
-        tc.cache_variables["with_cxx_api"] = "OFF"
-        tc.cache_variables["with_cxx_tests"] = "OFF"
-        tc.cache_variables["use_win_pre_inst_libs"] = "OFF"
-        tc.cache_variables["install_win_dependency_dlls"] = "OFF"
-        for opt in self._features_off:
-            tc.cache_variables[opt] = "OFF"
-        for pkg in self._packages_off:
-            tc.cache_variables[f"CMAKE_DISABLE_FIND_PACKAGE_{pkg}"] = "ON"
+        toolchain = CMakeToolchain(self)
 
-        # gen_version.py is run at configure time; reuse Conan's interpreter if possible
+        toolchain.cache_variables["BUILD_SHARED_LIBS"] = True
+        toolchain.cache_variables["BUILD_TESTING"] = False
+
+        # The dot executable is required to generate Graphviz's plugin registry.
+        toolchain.cache_variables["GRAPHVIZ_CLI"] = True
+
+        toolchain.cache_variables["with_cxx_api"] = False
+        toolchain.cache_variables["with_cxx_tests"] = False
+        toolchain.cache_variables["use_win_pre_inst_libs"] = False
+        toolchain.cache_variables["install_win_dependency_dlls"] = False
+
+        for feature in self._features_off:
+            toolchain.cache_variables[feature] = False
+
+        for package in self._packages_off:
+            variable = f"CMAKE_DISABLE_FIND_PACKAGE_{package}"
+            toolchain.cache_variables[variable] = True
+
         if os.path.basename(sys.executable).lower().startswith("python"):
-            tc.cache_variables["Python3_EXECUTABLE"] = sys.executable.replace("\\", "/")
+            python_executable = sys.executable.replace("\\", "/")
+            toolchain.cache_variables["Python3_EXECUTABLE"] = python_executable
 
-        if is_msvc(self):
-            # FindGETOPT is REQUIRED when <getopt.h> is missing, but only the
-            # CLI tools (disabled) use it. Satisfy the check without a dependency.
-            tc.cache_variables["GETOPT_INCLUDE_DIR"] = self.source_folder.replace(
-                "\\", "/"
-            )
-            tc.cache_variables["GETOPT_LIBRARY"] = "getopt-unused"
-            tc.cache_variables["GETOPT_RUNTIME_LIBRARY"] = "getopt-unused"
-        tc.generate()
+        toolchain.generate()
 
     def build(self):
         cmake = CMake(self)
         cmake.configure()
-        cmake.build(target="gvc")
+
+        # Build the complete enabled target set. In particular, libgvc alone
+        # does not contain layout engines; dot is provided by a plugin.
+        cmake.build()
 
     def package(self):
         copy(
@@ -162,75 +149,36 @@ class CgraphConan(ConanFile):
             dst=os.path.join(self.package_folder, "licenses"),
         )
 
-        inc = os.path.join(self.package_folder, "include", "graphviz")
-        lib_dst = os.path.join(self.package_folder, "lib")
-        bin_dst = os.path.join(self.package_folder, "bin")
-        os.makedirs(inc, exist_ok=True)
-        os.makedirs(lib_dst, exist_ok=True)
-        os.makedirs(bin_dst, exist_ok=True)
+        cmake = CMake(self)
+        cmake.install()
 
-        # Package the headers for gvc and its public cgraph/cdt dependencies.
-        # Include the other library headers as well, since their components are
-        # exposed by package_info().
-        for sub in (
-            "gvc",
-            "cgraph",
-            "cdt",
-            "common",
-            "pack",
-            "pathplan",
-            "label",
-            "xdot",
-        ):
-            src = os.path.join(self.source_folder, "lib", sub)
-            if os.path.isdir(src):
-                copy(self, "*.h", src=src, dst=inc, keep_path=False)
+        self._generate_plugin_registry()
 
-        # This header is generated during CMake configuration.
-        copy(
-            self,
-            "graphviz_version.h",
-            src=self.build_folder,
-            dst=inc,
-            keep_path=False,
-        )
+    def _generate_plugin_registry(self):
+        bin_directory = os.path.join(self.package_folder, "bin")
+        lib_directory = os.path.join(self.package_folder, "lib")
+        plugin_directory = os.path.join(lib_directory, "graphviz")
 
-        # Package gvc and the libraries in its dependency closure.
-        for sub in (
-            "gvc",
-            "cgraph",
-            "cdt",
-            "common",
-            "pack",
-            "pathplan",
-            "label",
-            "xdot",
-        ):
-            src = os.path.join(self.build_folder, "lib", sub)
-            if not os.path.isdir(src):
-                continue
+        executable_name = "dot.exe" if self.settings.os == "Windows" else "dot"
+        dot_executable = os.path.join(bin_directory, executable_name)
 
-            for pattern in ("*.a", "*.lib", "*.so*", "*.dylib"):
-                copy(self, pattern, src=src, dst=lib_dst, keep_path=False)
+        environment = Environment()
+        environment.define("GVBINDIR", plugin_directory)
+        environment.prepend_path("PATH", bin_directory)
 
-            copy(self, "*.dll", src=src, dst=bin_dst, keep_path=False)
+        if self.settings.os == "Linux":
+            environment.prepend_path("LD_LIBRARY_PATH", lib_directory)
+        elif self.settings.os == "Macos":
+            environment.prepend_path("DYLD_LIBRARY_PATH", lib_directory)
+        elif self.settings.os == "Windows":
+            environment.prepend_path("PATH", lib_directory)
 
-        if not self.options.shared:
-            # Upstream's util library is private and is not installed with the
-            # other libraries. Rename it to avoid a generic "util" library name.
-            util_dir = os.path.join(self.build_folder, "lib", "util")
-            for path in glob.glob(
-                os.path.join(util_dir, "**", "*util.*"), recursive=True
-            ):
-                if path.endswith(".lib"):
-                    shutil.copy2(path, os.path.join(lib_dst, "gvutil.lib"))
-                elif path.endswith(".a"):
-                    shutil.copy2(path, os.path.join(lib_dst, "libgvutil.a"))
+        with environment.vars(self).apply():
+            self.run(f'"{dot_executable}" -c')
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "graphviz")
 
-        # Graphviz headers are installed under include/graphviz.
         components = {
             "cdt": {
                 "libs": ["cdt"],
@@ -240,67 +188,32 @@ class CgraphConan(ConanFile):
                 "libs": ["cgraph"],
                 "requires": ["cdt"],
             },
-            "util": {
-                # The recipe renames upstream's util archive to avoid a
-                # collision with libraries commonly named "util".
-                "libs": ["gvutil"],
-                "requires": [],
-            },
             "pathplan": {
                 "libs": ["pathplan"],
-                "requires": ["util"],
-            },
-            "label": {
-                "libs": ["label"],
-                "requires": ["cdt"],
+                "requires": [],
             },
             "xdot": {
                 "libs": ["xdot"],
                 "requires": [],
             },
-            "pack": {
-                "libs": ["pack"],
-                "requires": ["util"],
-            },
-            "common": {
-                "libs": ["common"],
-                "requires": [
-                    "cgraph",
-                    "pathplan",
-                    "label",
-                    "xdot",
-                    "util",
-                ],
-            },
             "gvc": {
                 "libs": ["gvc"],
-                "requires": [
-                    "cdt",
-                    "cgraph",
-                    "common",
-                    "pack",
-                    "util",
-                ],
+                "requires": ["cgraph"],
             },
         }
 
         for name, data in components.items():
             component = self.cpp_info.components[name]
-            component.set_property("cmake_target_name", f"graphviz::{name}")
-            component.includedirs = ["include", "include/graphviz"]
+            component.set_property(
+                "cmake_target_name",
+                f"graphviz::{name}",
+            )
+            component.includedirs = [
+                "include",
+                "include/graphviz",
+            ]
             component.libs = data["libs"]
             component.requires = data["requires"]
 
-        if self.settings.os in ("Linux", "FreeBSD"):
-            self.cpp_info.components["gvc"].system_libs = ["m"]
-
-        if self.settings.os == "Windows" and self.options.shared:
+        if self.settings.os == "Windows":
             self.cpp_info.components["gvc"].defines = ["GVDLL"]
-
-        gvc = self.cpp_info.components["gvc"]
-
-        if not self.options.shared and self.settings.os in ("Linux", "FreeBSD"):
-            # force these symbols as undefined, otherwise linking fails.
-            force_gvevent = ["-Wl,-u,gvevent_key_binding"]
-            gvc.exelinkflags = force_gvevent
-            gvc.sharedlinkflags = force_gvevent

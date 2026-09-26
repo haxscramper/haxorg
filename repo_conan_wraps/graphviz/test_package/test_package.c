@@ -48,8 +48,9 @@ static int buf_flush(void* chan) {
 static int streq(const char* a, const char* b) { return a && b && strcmp(a, b) == 0; }
 
 int main(void) {
-    // validate gvc types are OK
-    Agnodeinfo_t* type_declaration_test;
+    /* Validate that GVC types are available. */
+    Agnodeinfo_t* type_declaration_test = NULL;
+    (void)type_declaration_test;
 
     strbuf_t out = {NULL, 0, 0};
 
@@ -140,12 +141,36 @@ int main(void) {
     agreseterrors();
     agseterr(AGWARN);
 
+    /* 5. run the dot layout engine */
+    printf("[5] dot layout\n");
+    GVC_t* gvc = gvContext();
+    CHECK(gvc != NULL);
+
+    Agraph_t* layout_graph = agmemread(
+        "digraph layout_test {\n"
+        "  rankdir=LR;\n"
+        "  a -> b;\n"
+        "  b -> c;\n"
+        "  a -> c;\n"
+        "}\n");
+    CHECK(layout_graph != NULL);
+
+    if (gvc && layout_graph) {
+        int layout_result = gvLayout(gvc, layout_graph, "dot");
+        CHECK(layout_result == 0);
+
+        if (layout_result == 0) { gvFreeLayout(gvc, layout_graph); }
+    }
+
+    if (layout_graph) { agclose(layout_graph); }
+    if (gvc) { CHECK(gvFreeContext(gvc) == 0); }
+
     free(out.data);
 
     if (failures) {
         fprintf(stderr, "%d check(s) failed\n", failures);
         return EXIT_FAILURE;
     }
-    printf("all cgraph checks passed\n");
+    printf("all cgraph and GVC checks passed\n");
     return EXIT_SUCCESS;
 }
