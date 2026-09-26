@@ -29,14 +29,18 @@ class ProtovalidateCcConan(ConanFile):
         "fPIC": True,
     }
 
+    @property
+    def _upstream_source_folder(self):
+        return os.path.join(self.source_folder, "_source")
+
     def requirements(self):
         # Specific version pinned because protovalidate internally vendors google CEL
         # which in turn expects a specific version of the abseil to be present, with
         # features like `Nonnull`. Protobuf version 7.35 does not fit -- it pulls
-        # abseil that is too recent, without `Nonnul`. Since neither CEL nor
+        # abseil that is too recent, without `Nonnull`. Since neither CEL nor
         # protovalidate were properly packaged before, there is no clear mapping as to
         # what dependency version specifically is required. So protovalidate is
-        # packaged with a specific pinned version
+        # packaged with a specific pinned version.
         #
         # Nonnull was officially removed in LTS version 20250814.1
         # https://github.com/bufbuild/protovalidate-cc/blob/v1.1.0/cmake/README.md
@@ -50,6 +54,8 @@ class ProtovalidateCcConan(ConanFile):
 
     def source(self):
         version = str(self.version)
+        source_folder = self._upstream_source_folder
+        mkdir(self, source_folder)
 
         source_data = self.conan_data["sources"][version]
         get(
@@ -57,11 +63,17 @@ class ProtovalidateCcConan(ConanFile):
             url=source_data["url"],
             sha256=source_data["sha256"],
             strip_root=True,
+            destination=source_folder,
+        )
+
+        root_cmake_file = os.path.join(
+            source_folder,
+            "CMakeLists.txt",
         )
 
         replace_in_file(
             self,
-            os.path.join(self.source_folder, "CMakeLists.txt"),
+            root_cmake_file,
             "    # CMake configuration scripts\n",
             (
                 "    # CMake configuration scripts\n"
@@ -71,8 +83,8 @@ class ProtovalidateCcConan(ConanFile):
 
         replace_in_file(
             self,
-            os.path.join(self.source_folder, "CMakeLists.txt"),
-            ("        TARGETS protovalidate_cc ${PROTOVALIDATE_CC_EXPORT_TARGETS}\n"),
+            root_cmake_file,
+            "        TARGETS protovalidate_cc ${PROTOVALIDATE_CC_EXPORT_TARGETS}\n",
             (
                 "        TARGETS\n"
                 "            protovalidate_cc\n"
@@ -85,7 +97,7 @@ class ProtovalidateCcConan(ConanFile):
         replace_in_file(
             self,
             os.path.join(
-                self.source_folder,
+                source_folder,
                 "protovalidate_cc-config.cmake.in",
             ),
             "protovalidate-cc-targets.cmake",
@@ -93,7 +105,7 @@ class ProtovalidateCcConan(ConanFile):
         )
 
         cel_cmake_file = os.path.join(
-            self.source_folder,
+            source_folder,
             "cmake",
             "cel-cpp",
             "CMakeLists.txt",
@@ -113,11 +125,6 @@ class ProtovalidateCcConan(ConanFile):
                 "    $<INSTALL_INTERFACE:include>\n"
                 ")\n"
             ),
-        )
-
-        root_cmake_file = os.path.join(
-            self.source_folder,
-            "CMakeLists.txt",
         )
 
         replace_in_file(
@@ -148,7 +155,7 @@ class ProtovalidateCcConan(ConanFile):
         schema_data = self.conan_data["schemas"][version]
 
         schema_dir = os.path.join(
-            self.source_folder,
+            source_folder,
             "_conan",
             "protovalidate-schema",
             "buf",
@@ -172,13 +179,12 @@ class ProtovalidateCcConan(ConanFile):
         toolchain = CMakeToolchain(self)
         toolchain.extra_cflags.append("-w")
         toolchain.extra_cxxflags.append("-w")
+
         protobuf = self.dependencies["protobuf"]
         toolchain.variables["Protobuf_IMPORT_DIRS"] = os.path.join(
             protobuf.package_folder,
             protobuf.cpp_info.includedirs[0],
         )
-
-        toolchain.variables["BUILD_SHARED_LIBS"] = False
 
         toolchain.variables["BUILD_SHARED_LIBS"] = False
         toolchain.variables["PROTOVALIDATE_CC_ENABLE_VENDORING"] = False
@@ -196,12 +202,17 @@ class ProtovalidateCcConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure()
+        cmake.configure(
+            build_script_folder=self._upstream_source_folder,
+        )
         cmake.build()
 
     def package(self):
         cmake = CMake(self)
         cmake.install()
+
+        assert self.build_folder
+        assert self.package_folder
 
         # protovalidate vendors the CEL dependencies internally,
         # so the headers must be copied over to the target location.
@@ -213,8 +224,8 @@ class ProtovalidateCcConan(ConanFile):
             keep_path=True,
         )
 
-        # The header is generated under `cel_cpp-build`, so the earlier copy from `cel_cpp-src`
-        # cannot include it.
+        # The header is generated under `cel_cpp-build`, so the earlier copy from
+        # `cel_cpp-src` cannot include it.
         copy(
             self,
             pattern="*.h",
@@ -236,7 +247,7 @@ class ProtovalidateCcConan(ConanFile):
         )
 
         schema_source_dir = os.path.join(
-            self.source_folder,
+            self._upstream_source_folder,
             "_conan",
             "protovalidate-schema",
             "buf",
@@ -261,6 +272,7 @@ class ProtovalidateCcConan(ConanFile):
         self._install_cmake_resource_metadata()
 
     def _install_cmake_resource_metadata(self):
+        assert self.package_folder
         cmake_config_dir = os.path.join(
             self.package_folder,
             "lib",
