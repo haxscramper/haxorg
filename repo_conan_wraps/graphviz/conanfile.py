@@ -296,3 +296,11 @@ class CgraphConan(ConanFile):
 
         if self.settings.os == "Windows" and self.options.shared:
             self.cpp_info.components["gvc"].defines = ["GVDLL"]
+
+        gvc = self.cpp_info.components["gvc"]
+
+        if not self.options.shared and self.settings.os in ("Linux", "FreeBSD"):
+            # force these symbols as undefined, otherwise linking fails.
+            force_gvevent = ["-Wl,-u,gvevent_key_binding"]
+            gvc.exelinkflags = force_gvevent
+            gvc.sharedlinkflags = force_gvevent
