@@ -5,6 +5,12 @@ from conan.tools.cmake import CMakeDeps, CMakeToolchain, cmake_layout
 class MonorepoConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
 
+    def requirements(self):
+        self.requires("haxorg_cpp_org_cli/[>=0.1.0 <999]")
+        self.requires("haxdex_cpp_refl_wrap/[>=0.1.0 <999]")
+        # self.requires("haxorg_c_lib_wrap/[>=0.1.0 <999]")
+        # self.requires("haxorg_py_lib_wrap/[>=0.1.0 <999]")
+
     def layout(self):
         cmake_layout(self)
 
@@ -13,13 +19,7 @@ class MonorepoConan(ConanFile):
         deps.generate()
 
         toolchain = CMakeToolchain(self)
-        toolchain.variables["ORG_BUILD_WITH_QT"] = False
-        toolchain.variables["ORG_BUILD_EMCC"] = False
-        toolchain.variables["ORG_BUILD_WITH_PERFETTO"] = True
-        toolchain.variables["ORG_BUILD_WITH_PROTOBUF"] = True
-        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = True
-        toolchain.variables["ORG_BUILD_TESTS"] = True
-        toolchain.variables["BUILD_TESTING"] = True
+        toolchain.cache_variables["CMAKE_EXPORT_COMPILE_COMMANDS"] = True
         toolchain.generate()
 
 
