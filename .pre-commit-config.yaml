@@ -113,3 +113,7 @@ repos:
         pass_filenames: true
         files: \.(py|h|hh|hpp|hxx|c|cc|cpp|cxx)$
         stages: [manual]
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 3.0.0
+    hooks:
+      - id: forbid-binary

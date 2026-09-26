@@ -134,6 +134,8 @@ repo_prepare_git_hooks:
 
 
 HAXORG_ROOT := source_directory()
+# custom profile is mandatory for full builds, otherwise onetbb fails
+# to configure hwloc, see profile text for more details.
 CONAN_PROFILE := HAXORG_ROOT / "repo_tool_configs/conan/conanprofile.txt"
 SUPPRESSION_FILE := HAXORG_ROOT / "repo_tool_configs/clang_suppressions.supp"
 
@@ -209,8 +211,25 @@ conan_clean_total_validate target: conan_update_local_deps conan_update_external
 conan_clean_local_validate target: conan_update_local_deps
   just conan_validate {{target}}
 
+# Conan currently has no `conan workspace source` command.
+# Enumerate the workspace members from `conanws.yml` and invoke `conan source` for each:
+conan_workspace_source:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    yq -r '.packages[].path' conanws.yml |
+        while IFS= read -r package; do
+            conan source "$package"
+        done
+
 conan_workspace_install:
-  conan workspace install -s build_type=Debug --build=missing --profile:all={{CONAN_PROFILE}}
+  mkdir -p build
+  conan workspace install \
+    -s build_type=Debug \
+    --build=missing \
+    --profile:all={{CONAN_PROFILE}}
+
+  conan workspace build --build=missing --profile:all={{CONAN_PROFILE}}
 
 # !! completely reset the conan state -- WILL CLEAN EVERYTHING
 conan_clean_all:

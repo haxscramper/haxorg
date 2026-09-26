@@ -49,16 +49,12 @@ class AdaptagramsConan(ConanFile):
             check_min_cppstd(self, "11")
 
     def source(self):
-        # exports_sources already occupies the source root, so clone into a
-        # dedicated subdirectory rather than attempting to clone into ".".
-        git = Git(self)
-        git.clone(self._upstream_url, target="upstream")
+        upstream = os.path.join(self.source_folder, "upstream")
 
-        upstream_git = Git(
-            self,
-            folder=os.path.join(self.source_folder, "upstream"),
-        )
-        upstream_git.checkout(self._upstream_commit)
+        if not os.path.exists(upstream):
+            Git(self).clone(self._upstream_url, target=upstream)
+
+        Git(self, folder=upstream).checkout(self._upstream_commit)
 
     def generate(self):
         tc = CMakeToolchain(self)

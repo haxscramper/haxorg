@@ -3,7 +3,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
 class HstdPyTextLayoutConan(ConanFile):
-    name = "hstd-py-text-layout"
+    name = "hstd_py_text_layout"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"
