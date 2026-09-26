@@ -10,7 +10,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(CTest)
 include(CMakePackageConfigHelpers)
 
-find_package(hstd_cpp_lib CONFIG REQUIRED)
+if(NOT TARGET hstd::hstd_cpp_lib)
+    find_package(hstd_cpp_lib CONFIG REQUIRED)
+endif()
 
 set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")
 

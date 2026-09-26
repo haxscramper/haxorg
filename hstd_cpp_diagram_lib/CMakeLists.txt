@@ -10,7 +10,9 @@ find_package(kiwi CONFIG REQUIRED)
 find_package(graphviz CONFIG REQUIRED)
 find_package(Adaptagrams CONFIG REQUIRED)
 
-find_package(hstd_cpp_lib CONFIG REQUIRED)
+if(NOT TARGET hstd::hstd_cpp_lib)
+    find_package(hstd_cpp_lib CONFIG REQUIRED)
+endif()
 if(NOT DEFINED hstd_cpp_lib_PROTO_IMPORT_DIR)
     message(
         FATAL_ERROR

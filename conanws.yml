@@ -14,6 +14,9 @@ packages:
   - path: hstd_cpp_lib
     ref: hstd_cpp_lib/0.1.0
 
+  - path: hstd_cpp_diagram_lib
+    ref: hstd_cpp_diagram_lib/0.1.0
+
   - path: hstd_cpp_text_layout
     ref: hstd_cpp_text_layout/0.1.0
 

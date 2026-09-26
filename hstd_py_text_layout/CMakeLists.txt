@@ -17,7 +17,9 @@ find_package(
 )
 
 find_package(nanobind CONFIG REQUIRED)
-find_package(hstd_cpp_lib CONFIG REQUIRED)
+if(NOT TARGET hstd::hstd_cpp_lib)
+    find_package(hstd_cpp_lib CONFIG REQUIRED)
+endif()
 find_package(HstdCppTextLayout CONFIG REQUIRED)
 
 set(BASE "${CMAKE_CURRENT_SOURCE_DIR}")

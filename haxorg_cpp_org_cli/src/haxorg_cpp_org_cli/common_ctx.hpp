@@ -1,8 +1,8 @@
 #pragma once
 
-#include <app/org_cli/cli_opts.hpp>
-#include <app/org_cli/proto_to_xml.hpp>
 #include <fstream>
+#include <haxorg_cpp_org_cli/cli_opts.hpp>
+#include <haxorg_cpp_org_cli/proto_to_xml.hpp>
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 
 

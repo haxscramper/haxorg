@@ -19,8 +19,13 @@ if(HAXORG_WITH_PROTOVALIDATE AND NOT HAXORG_WITH_PROTOBUF)
     message(FATAL_ERROR "HAXORG_WITH_PROTOVALIDATE requires HAXORG_WITH_PROTOBUF")
 endif()
 
-find_package(hstd_cpp_lib CONFIG REQUIRED)
-find_package(hstd_cpp_text_layout CONFIG REQUIRED)
+if(NOT TARGET hstd::hstd_cpp_lib)
+    find_package(hstd_cpp_lib CONFIG REQUIRED)
+endif()
+
+if(NOT TARGET hstd::hstd_cpp_text_layout)
+    find_package(hstd_cpp_text_layout CONFIG REQUIRED)
+endif()
 
 find_package(range-v3 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -49,7 +54,6 @@ haxorg_glob_add_sources2(
     TARGET haxorg_cpp_org_lib
     LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/src/haxorg_cpp_org_lib/.*"
     SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
-    DEBUG ON
     RECURSE ON
 )
 

@@ -1,5 +1,5 @@
-#include "diagram_ctx.hpp"
 #include <google/protobuf/util/json_util.h>
+#include <haxorg_cpp_org_cli/diagram_ctx.hpp>
 #include <hstd_cpp_diagram_lib/graph_diagram.hpp>
 #include <hstd_cpp_diagram_lib/visual_factory.hpp>
 #include <hstd_cpp_lib/stdlib/JsonSerde.hpp>

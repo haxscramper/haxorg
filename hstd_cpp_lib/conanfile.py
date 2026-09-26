@@ -71,7 +71,7 @@ class HstdConan(ConanFile):
     def build_requirements(self):
         self.test_requires("gtest/[>=1.15 <2]")
         self.test_requires("benchmark/[>=1.9 <2]")
-        self.test_requires("abseil/[>=20240722.0 <20270000]")
+        self.test_requires("abseil/[>=20240722.0 <20260000]")
         self.test_requires("immer/[>=0.8 <1]")
         self.tool_requires("protobuf/[>=5 <6]")
 

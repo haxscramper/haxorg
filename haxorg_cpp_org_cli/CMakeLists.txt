@@ -7,8 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(CMakePackageConfigHelpers)
 
-find_package(hstd_cpp_lib CONFIG REQUIRED)
-find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
+if(NOT TARGET hstd::hstd_cpp_lib)
+    find_package(hstd_cpp_lib CONFIG REQUIRED)
+endif()
+
+if(NOT TARGET haxorg::haxorg_cpp_org_lib)
+    find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
+endif()
+
 find_package(absl CONFIG REQUIRED)
 find_package(argparse CONFIG REQUIRED)
 
@@ -18,7 +24,6 @@ haxorg_glob_add_sources2(
     TARGET haxorg_cpp_org_cli
     LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/.*"
     SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
-    DEBUG ON
     RECURSE ON
 )
 

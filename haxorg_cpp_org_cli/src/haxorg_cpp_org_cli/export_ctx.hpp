@@ -1,7 +1,7 @@
 #pragma once
 
-#include <app/org_cli/cli_opts.hpp>
-#include <app/org_cli/common_ctx.hpp>
+#include <haxorg_cpp_org_cli/cli_opts.hpp>
+#include <haxorg_cpp_org_cli/common_ctx.hpp>
 #include <haxorg_cpp_org_lib/api/ParseContext.hpp>
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 #include <haxorg_cpp_org_lib/lexbase/NodeIO.hpp>

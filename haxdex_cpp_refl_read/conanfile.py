@@ -28,7 +28,7 @@ class HaxdexCppReflReadConan(ConanFile):
         )
         self.requires("protobuf/[>=5 <6]")
         self.requires("sqlitecpp/[>=3.3 <4]")
-        self.requires("onetbb/[>=2022.0 <2023]")
+        self.requires("onetbb/[>=2022.0 <2024]")
 
     def build_requirements(self):
         self.tool_requires("protobuf/[>=5 <6]")

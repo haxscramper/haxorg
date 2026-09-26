@@ -165,11 +165,15 @@ conan_remove_local_deps:
   conan remove "hstd_cpp_lib/*" --confirm
   conan remove "hstd_cpp_text_layout/*" --confirm
   conan remove "haxorg_cpp_org_lib/*" --confirm
+  conan remove "hstd_cpp_diagram_lib/*" --confirm
+  conan remove "haxdex_cpp_refl_read/*" --confirm
 
 conan_export_local_deps:
   conan export "hstd_cpp_lib"
   conan export "hstd_cpp_text_layout"
   conan export "haxorg_cpp_org_lib"
+  conan export "hstd_cpp_diagram_lib"
+  conan export "haxdex_cpp_refl_read"
 
 [working-directory("/tmp")]
 conan_validate_deps dep_name:
@@ -195,13 +199,23 @@ conan_validate target:
 conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
 conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
 
+# remove and export all dependencies in project
 conan_update_all_deps: conan_update_external_deps conan_update_local_deps
 
+# remove all dependencies (local+external), then validate target from scratch
 conan_clean_total_validate target: conan_update_local_deps conan_update_external_deps
   just conan_validate {{target}}
 
 conan_clean_local_validate target: conan_update_local_deps
   just conan_validate {{target}}
+
+conan_workspace_install:
+  conan workspace install -s build_type=Debug --build=missing --profile:all={{CONAN_PROFILE}}
+
+# !! completely reset the conan state -- WILL CLEAN EVERYTHING
+conan_clean_all:
+  conan cache clean
+  conan remove "*" -c
 
 run_to_output target *ARGS:
   -just {{target}} {{ARGS}} > build/target_result.log 2>&1

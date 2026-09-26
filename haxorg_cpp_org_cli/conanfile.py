@@ -16,6 +16,7 @@ class HaxorgCppOrgCliConan(ConanFile):
 
     def requirements(self):
         self.requires("hstd_cpp_lib/0.1.0")
+        self.requires("hstd_cpp_diagram_lib/0.1.0")
         self.requires(
             "haxorg_cpp_org_lib/0.1.0",
             transitive_headers=True,
