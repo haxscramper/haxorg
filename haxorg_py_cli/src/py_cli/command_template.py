@@ -4,8 +4,6 @@ from beartype.typing import Any
 
 from py_cli import haxorg_cli, haxorg_opts
 
-CAT = __name__
-
 
 @beartype
 def node_clouds(ctx: haxorg_cli.CliRunContext) -> None:

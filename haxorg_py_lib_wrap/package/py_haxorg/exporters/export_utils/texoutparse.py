@@ -10,8 +10,6 @@ from dataclasses import dataclass, field
 from beartype import beartype
 from beartype.typing import Any, Iterable, List, Optional, Tuple
 
-CAT = __name__
-
 
 @beartype
 @dataclass

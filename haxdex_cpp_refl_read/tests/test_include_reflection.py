@@ -4,7 +4,6 @@ import py_codegen.proto_lib as pb
 import pytest
 from py_codegen.refl_read import include_visit_to_rich_tree
 from py_scriptutils.rich_utils import render_rich
-from py_scriptutils.script_logging import log
 
 
 @pytest.mark.test_release

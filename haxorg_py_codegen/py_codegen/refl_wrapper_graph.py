@@ -8,7 +8,6 @@ import graphviz as gv
 import igraph as ig
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set
-from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
 from py_codegen.codegen_ir import (

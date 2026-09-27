@@ -2,6 +2,7 @@ import itertools
 from pathlib import Path
 
 import py_repository.code_analysis.gen_coverage_cookies as cov
+from loguru import logger
 from py_repository.repo_tasks.command_execution import (
     get_python_binary,
     run_command,
@@ -22,9 +23,6 @@ from py_repository.repo_tasks.haxorg_build import (
     configure_cmake_haxorg,
 )
 from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
-from py_scriptutils.script_logging import log
-
-CAT = __name__
 
 
 @haxorg_task(dependencies=[symlink_build, build_and_setup_text_layout_lib])
@@ -32,7 +30,7 @@ def generate_python_protobuf_files(ctx: TaskContext) -> None:
     """Generate new python code from the protobuf reflection files"""
     proto_config = get_script_root(ctx, "scripts/cxx_codegen/reflection_defs.proto")
     python_path = str(get_python_binary(ctx)).replace("/bin/python", "")
-    log(CAT).info(f"Using protoc plugin path '{python_path}'")
+    logger.info(f"Using protoc plugin path '{python_path}'")
     protoc_plugin = Path(python_path).joinpath("bin/protoc-gen-python_betterproto")
 
     if not check_is_file(ctx, protoc_plugin):
@@ -119,7 +117,7 @@ def generate_reflection_snapshot(ctx: TaskContext) -> None:
     reflection_debug = get_tmpdir().joinpath(f"reflection_{task}.json")
     reflection_debug.write_text(open_proto_file(out_file).to_json(2))
 
-    log(CAT).info(f"Updated reflection, wrote debug JSON to {reflection_debug}")
+    logger.info(f"Updated reflection, wrote debug JSON to {reflection_debug}")
 
 
 # TODO Make compiled reflection generation build optional
@@ -139,7 +137,7 @@ def generate_haxorg_sources(ctx: TaskContext) -> None:
         ),
     )
 
-    log(CAT).info("Updated code definitions")
+    logger.info("Updated code definitions")
 
 
 @haxorg_task()
@@ -152,7 +150,7 @@ def merge_build_times(ctx: TaskContext) -> None:
         get_build_root(ctx, "haxorg/src/haxorg/CMakeFiles/").rglob("*.cpp.json"),
         get_build_root(ctx, "haxorg/").rglob("*.time-trace"),
     ):
-        log(CAT).debug(file)
+        logger.debug(file)
         read_file = TraceFile.model_validate_json(file.read_text())
         read_file.path = str(file)
 

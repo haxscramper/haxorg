@@ -10,14 +10,12 @@ import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Tuple
+from loguru import logger
 from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
 from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
-from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
 from py_cli import haxorg_cli, haxorg_opts
-
-CAT = __name__
 
 
 class SubtreeInfo(BaseModel, extra="forbid"):
@@ -64,7 +62,7 @@ def getSubtreeInfo(node: org.Org) -> List[SubtreeInfo]:
                     )
                 )
 
-        # log(CAT).info(org.treeRepr(node))
+        # logger.info(org.treeRepr(node))
 
         info = SubtreeInfo(
             title=ExporterUltraplain.getStr(node.title),
@@ -116,7 +114,7 @@ def subtree_clocking(ctx: haxorg_cli.CliRunContext) -> None:
 
     subtrees: List[SubtreeInfo] = []
     for file in ctx.opts.generate.subtree_clocking.infile:
-        log(CAT).info(file)
+        logger.info(file)
         subtrees += getSubtreeInfo(haxorg_cli.parseCachedFile(ctx, file))
 
     df = pd.DataFrame([model.model_dump() for model in subtrees])

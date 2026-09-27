@@ -5,7 +5,7 @@ import yaml
 from py_haxorg.layout.wrap import TextLayout, TextOptions
 from py_scriptutils.algorithm import cond
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import ExceptionContextNote, log
+from py_scriptutils.script_logging import ExceptionContextNote
 from py_scriptutils.toml_config_profiler import (
     apply_options,
     options_from_model,
@@ -419,7 +419,7 @@ def gen_unit(
     directory = os.path.dirname(path)
     if not os.path.exists(directory):
         os.makedirs(directory)
-        log(CAT).info(f"Created dir for {path}")
+        logger.info(f"Created dir for {path}")
 
     opts = TextOptions()
     opts.rightMargin = 160
@@ -432,13 +432,13 @@ def gen_unit(
         if oldCode != newCode:
             with open(path, "w") as out:
                 out.write(newCode)
-            log(CAT).info(f"[red]Updated code[/red] in {define.path}")
+            logger.info(f"[red]Updated code[/red] in {define.path}")
         else:
-            log(CAT).info(f"[green]No changes[/green] on {define.path}")
+            logger.info(f"[green]No changes[/green] on {define.path}")
     else:
         with open(path, "w") as out:
             out.write(newCode)
-        log(CAT).info(f"[red]Wrote[/red] to {define.path}")
+        logger.info(f"[red]Wrote[/red] to {define.path}")
 
 
 def gen_description_files(
@@ -518,12 +518,12 @@ def run_codegen_pyhaxorg(
     groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_groups.yaml")
     with groups_dump_yaml.open("w") as file:
         yaml.safe_dump(to_base_types(groups.conv_tu), stream=file)
-        log(CAT).info(f"Wrote debug for type groups to {groups_dump_yaml}")
+        logger.info(f"Wrote debug for type groups to {groups_dump_yaml}")
 
     groups_dump_yaml = get_tmpdir().joinpath("pyhaxorg_manual_groups.yaml")
     with groups_dump_yaml.open("w") as file:
         yaml.safe_dump(to_base_types(groups.manual_tu), stream=file)
-        log(CAT).info(f"Wrote debug for manual type groups to {groups_dump_yaml}")
+        logger.info(f"Wrote debug for manual type groups to {groups_dump_yaml}")
 
     _write_files_group(
         gen_haxorg_c_wrappers(

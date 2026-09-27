@@ -19,7 +19,6 @@ from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import (
     get_custom_traceback_handler,
-    log,
     setup_multi_file_logging,
 )
 from py_scriptutils.toml_config_profiler import (
@@ -30,8 +29,6 @@ from py_scriptutils.toml_config_profiler import (
     pack_context,
 )
 from pydantic import BaseModel, Field
-
-CAT = __name__
 
 
 class WorkflowOptions(BaseModel):
@@ -81,16 +78,16 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
         config=config_obj,
     )
 
-    log(CAT).info(f"{context.config.model_dump_json(indent=2)}")
-    log(CAT).info(opts.config_override)
+    logger.info(f"{context.config.model_dump_json(indent=2)}")
+    logger.info(opts.config_override)
 
     if context.config.force_subprocess_tracking:
-        log(CAT).warning(f"force_subprocess_tracking is enabled, configuring haxorg")
+        logger.warning(f"force_subprocess_tracking is enabled, configuring haxorg")
         haxorg_build.configure_cmake_haxorg(ctx=context)
         haxorg_build.build_targets(ctx=context, targets=["executor_tracker"])
 
     executor_tracker = get_build_root(context, "haxorg").joinpath("executor_tracker")
-    log(CAT).info(f"executor_tracker = {executor_tracker}")
+    logger.info(f"executor_tracker = {executor_tracker}")
 
     if context.config.force_subprocess_tracking:
         assert executor_tracker.exists(), executor_tracker
@@ -107,7 +104,7 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
             "pids": [os.getpid()],
             "path": str(tracker_path),
         }
-        log(CAT).info(f"Opening executor tracker with {tracker_configuration}")
+        logger.info(f"Opening executor tracker with {tracker_configuration}")
         proc = subprocess.Popen(
             [
                 str(executor_tracker),
@@ -123,7 +120,7 @@ def cli(ctx: click.Context, cmd: str, **kwargs: Any) -> None:
             case "run":
                 assert opts.task is not None
                 context.run(opts.task, ctx=context)
-                log(CAT).info("Done")
+                logger.info("Done")
 
             case "list_tasks":
                 for t in graph.get_tasks():

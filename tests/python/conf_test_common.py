@@ -5,11 +5,11 @@ import plumbum
 import pytest
 from beartype import beartype
 from beartype.typing import List, Optional
+from loguru import logger
 from py_repository.code_analysis.gen_coverage_cxx import (
     ProfdataCookie,
     ProfdataFullProfile,
 )
-from py_scriptutils.script_logging import log
 
 CAT = "conftest"
 
@@ -34,7 +34,7 @@ def _get_cookie_list() -> List[ProfdataCookie]:
 
 
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    log(CAT).info(f"Summarizing full count of summaries is {len(_get_cookie_list())}")
+    logger.info(f"Summarizing full count of summaries is {len(_get_cookie_list())}")
     return ProfdataFullProfile(runs=_get_cookie_list())
 
 
@@ -108,7 +108,7 @@ def runtest(
 
         result = run(dict(**env, LLVM_PROFILE_FILE=str(profraw)))
         _get_cookie_list().append(cookie)
-        # log(CAT).info(
+        # logger.info(
         #     f"Test {cookie.test_class}::{cookie.test_name} result {cookie.test_profile}, full count of summaries is {len(_get_cookie_list())}"
         # )
         return result

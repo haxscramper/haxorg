@@ -15,8 +15,6 @@ from py_codegen.codegen_ir import (
 )
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, verify_type_usage
 
-CAT = __name__
-
 NB_INCLUDE_LIST = [
     GenTuInclude("nanobind/nanobind.h", True),
     GenTuInclude("nanobind/stl/string.h", True),

@@ -17,7 +17,7 @@ from _pytest.runner import CallInfo
 from beartype import beartype
 from beartype.typing import Any, Generator, List, Optional
 from conf_test_common import summarize_cookies  # type: ignore
-from py_scriptutils.script_logging import log
+from loguru import logger
 from py_scriptutils.tracer import TraceCollector
 
 CAT = "conftest"
@@ -105,7 +105,7 @@ def trace_session() -> Generator[None, Any, Any]:
         coverage = Path(coverage_env)
         summary = summarize_cookies(coverage)
         respath = coverage.joinpath("test-summary.json")
-        log(CAT).info(
+        logger.info(
             f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions, writing to {respath}"
         )
         respath.parent.mkdir(parents=True, exist_ok=True)

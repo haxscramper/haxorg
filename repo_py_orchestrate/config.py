@@ -6,8 +6,6 @@ from beartype import beartype
 from beartype.typing import List, Optional
 from pydantic import BaseModel, Field
 
-CAT = __name__
-
 
 @beartype
 def get_tmpdir(*name: str) -> Path:

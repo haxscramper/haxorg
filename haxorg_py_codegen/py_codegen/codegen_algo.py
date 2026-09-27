@@ -17,8 +17,6 @@ from py_codegen.codegen_ir import (
     TypeSpecialization,
 )
 
-CAT = __name__
-
 
 @beartype
 def collect_type_specializations(
@@ -1474,11 +1472,11 @@ class TypedefExpansionMatcher:
         result = self._resolve_recursive(Input)
         # if ("hstd::Opt" in str(Input) and "const&" in str(Input) and
         #         "std::optional" in str(result) and "const&" not in str(result)):
-        #     log(CAT).debug(
+        #     logger.debug(
         #         f"{Input} ({Input.flatQualNameNoTemplateParams()}) -> {result} ({result.flatQualNameNoTemplateParams()})"
         #     )
         #     for it in self.debug_sink:
-        #         log(CAT).debug(f"  {it}")
+        #         logger.debug(f"  {it}")
 
         return result
 

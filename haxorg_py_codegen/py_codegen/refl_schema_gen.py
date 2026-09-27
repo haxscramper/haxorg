@@ -12,8 +12,6 @@ from pydantic import BaseModel
 import py_codegen.proto_lib as pb
 from py_codegen import codegen_ir
 
-CAT = __name__
-
 # Map of (parent_class, field_name) -> pydantic model class for override
 _FIELD_SCHEMA_OVERRIDES: dict[tuple[type[Any], str], type[BaseModel]] = {
     (pb.Record, "reflection_params"): codegen_ir.GenTuReflParams,

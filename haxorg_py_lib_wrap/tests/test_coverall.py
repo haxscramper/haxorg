@@ -31,8 +31,6 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.rich_utils import render_rich
 from rich.tree import Tree
 
-CAT = __name__
-
 
 @beartype
 def add_if_ok(target: Tree, other: Optional[Tree]) -> None:
@@ -333,7 +331,7 @@ class ClassPrediate:
             if self.node_predicate:
                 res.node_check_result = self.node_predicate(value)
 
-            # log(CAT).info(f"{value}, {type(value)}")
+            # logger.info(f"{value}, {type(value)}")
             for field_name, field_value in value.__dict__.items():
                 if field_name in self.fields:
                     visit_res = self.fields[field_name].visit_field(

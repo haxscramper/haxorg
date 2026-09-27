@@ -21,13 +21,11 @@ from beartype.typing import (
     Union,
     Unpack,
 )
+from loguru import logger
 from py_ci.util_scripting import get_j_cap
 from py_repository.repo_tasks.config import HaxorgLogLevel
 from py_repository.repo_tasks.workflow_utils import TaskContext
 from py_scriptutils.algorithm import remove_ansi
-from py_scriptutils.script_logging import log
-
-CAT = __name__
 
 
 @beartype
@@ -102,7 +100,7 @@ def _consume_execution_fail(
     )
 
     if allow_fail:
-        log(CAT).warning(message)
+        logger.warning(message)
 
     else:
         raise RuntimeError(message) from None
@@ -159,19 +157,19 @@ def run_command_on_host(
         run = plumbum.local[cmd]
 
     except plumbum.CommandNotFound as e:
-        log(CAT).error(e)
+        logger.error(e)
         for path in e.path:
-            log(CAT).info(path)
+            logger.info(path)
             dir = Path(path)
             if "haxorg" in str(dir):
                 if not dir.exists():
-                    log(CAT).error("Dir does not exist")
+                    logger.error("Dir does not exist")
 
                 for file in dir.glob("*"):
-                    log(CAT).debug(f"  - {file}")
+                    logger.debug(f"  - {file}")
 
             else:
-                log(CAT).debug(f"- is a system dir")
+                logger.debug(f"- is a system dir")
 
         raise e
 
@@ -278,14 +276,14 @@ cmd:  {cmd}
     if append_stdout_debug:
         append_to_log(stdout_debug)
 
-    log(CAT).debug(
+    logger.debug(
         f"Running [red]{cmd}[/red] {args_repr}"
         + (f" in [green]{cwd}[/green]" if cwd else "")
         + (f" with [purple]{env}[/purple]" if env else "")
     )
 
     if ctx.config.dryrun:
-        log(CAT).warning("Dry run, early exit")
+        logger.warning("Dry run, early exit")
         return (0, "", "")
 
     str_cwd = str(cwd) if cwd else None
@@ -323,10 +321,10 @@ cmd:  {cmd}
 
     elif ctx.config.log_level == HaxorgLogLevel.VERBOSE:
         if stdout_debug and result.stdout:
-            log(CAT).debug(f"Wrote stdout to {stdout_debug}")
+            logger.debug(f"Wrote stdout to {stdout_debug}")
 
         if stderr_debug and result.stderr:
-            log(CAT).debug(f"Wrote stderr to {stderr_debug}")
+            logger.debug(f"Wrote stderr to {stderr_debug}")
 
     return (result.retcode, result.stdout, result.stderr)
 
@@ -369,7 +367,7 @@ def get_cmake_generator(ctx: TaskContext, build_dir: Path) -> Optional[str]:
     from py_repository.repo_tasks.common import check_path_exists, ctx_read_text
 
     cache = build_dir.joinpath("CMakeCache.txt")
-    log(CAT).debug(f"Get cmake generator for file {cache} in build dir {build_dir}")
+    logger.debug(f"Get cmake generator for file {cache} in build dir {build_dir}")
     if check_path_exists(ctx, cache):
         old_generator_line = [
             line
@@ -377,15 +375,15 @@ def get_cmake_generator(ctx: TaskContext, build_dir: Path) -> Optional[str]:
             if "CMAKE_GENERATOR:INTERNAL=" in line
         ][0]
 
-        log(CAT).debug(f"Old generator line is {old_generator_line.strip()}")
+        logger.debug(f"Old generator line is {old_generator_line.strip()}")
         match = re.match("^CMAKE_GENERATOR:INTERNAL=(.*?)$", old_generator_line)
         assert match
         generator = match.group(1)
-        log(CAT).info(f"Old generator found: '{generator}'")
+        logger.info(f"Old generator found: '{generator}'")
         return generator
 
     else:
-        log(CAT).warning("Cmake cache file does not exist, no generator found")
+        logger.warning("Cmake cache file does not exist, no generator found")
         return None
 
 
@@ -409,7 +407,7 @@ def run_cmake_configure(
 
     old_generator = get_cmake_generator(ctx, build_dir)
     if old_generator != generator and old_generator is not None:
-        log(CAT).info(
+        logger.info(
             f"cmake generator is different. Old:'{old_generator}', new:'{generator}'. "
             f"Removing build directory"
         )
@@ -522,7 +520,7 @@ export PYTHONPATH={build_dir}
 export LD_LIBRARY_PATH={build_dir}
     """,
     )
-    log(CAT).info(f"Adding build directory to python path {build_dir}")
+    logger.info(f"Adding build directory to python path {build_dir}")
 
     return env_file
 
@@ -585,6 +583,6 @@ def clone_repo_with_uncommitted_changes(
         for file in file_list:
             src_file = Path(f"{src_repo}/{file}")
             dst_file = Path(f"{dst_repo}/{os.path.dirname(file)}")
-            log(CAT).info(f"Copying uncomitted changes {src_file} -> {dst_file}")
+            logger.info(f"Copying uncomitted changes {src_file} -> {dst_file}")
             dst_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(src=src_file, dst=dst_file)

@@ -7,8 +7,8 @@ import plumbum
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, Optional
+from loguru import logger, pprint_to_file, to_debug_json
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log, pprint_to_file, to_debug_json
 
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.generate.mind_map import (
@@ -17,8 +17,6 @@ from py_cli.generate.mind_map import (
     haxorg_mind_map,
     typst_schema,
 )
-
-CAT = __name__
 
 
 @beartype
@@ -162,10 +160,10 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
 @click.pass_context
 def gen_mind_map_cli(ctx: click.Context, **kwargs: Any) -> None:
     "Main CLI entry point for mind map generation command"
-    log(CAT).info("Starting mind map generation")
+    logger.info("Starting mind map generation")
     result = gen_mind_map(haxorg_cli.get_run(ctx))
-    log(CAT).info(f"Typst file in {result.final_typst}")
-    log(CAT).info(f"Dump of the mind map model {result.mman_initial_path}")
-    log(CAT).info(f"MMAP ELK structure {result.mmap_elk_dump}")
+    logger.info(f"Typst file in {result.final_typst}")
+    logger.info(f"Dump of the mind map model {result.mman_initial_path}")
+    logger.info(f"MMAP ELK structure {result.mmap_elk_dump}")
     if result.final_pdf:
-        log(CAT).info(f"Generated PDF in {result.final_pdf}")
+        logger.info(f"Generated PDF in {result.final_pdf}")

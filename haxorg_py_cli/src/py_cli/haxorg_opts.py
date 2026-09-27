@@ -7,8 +7,6 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.toml_config_profiler import CliField
 from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 
-CAT = __name__
-
 
 def _validate_readable_path(value: str | Path) -> Path:
     """Validate and return a Path object"""

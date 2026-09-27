@@ -11,8 +11,6 @@ from py_haxorg.pyhaxorg_utils import getFlatTags
 
 from py_cli import haxorg_cli, haxorg_opts
 
-CAT = __name__
-
 
 @beartype
 def node_clouds(ctx: haxorg_cli.CliRunContext) -> None:

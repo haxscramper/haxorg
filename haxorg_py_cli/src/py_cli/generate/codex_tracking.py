@@ -10,8 +10,6 @@ from beartype.typing import Any, List, Tuple
 
 from py_cli import haxorg_cli, haxorg_opts
 
-CAT = __name__
-
 
 @beartype
 @dataclass

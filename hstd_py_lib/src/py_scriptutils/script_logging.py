@@ -1,22 +1,11 @@
 import enum
-import logging
-import os
-import sys
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
 
 import plumbum
-from beartype import beartype
 from beartype.typing import Any, Callable, Literal, Optional, Set
 from rich.console import Console
-from rich.logging import RichHandler
-from rich.text import Text
-
-
-def is_ci() -> bool:
-    return bool(os.getenv("INVOKE_CI"))
 
 
 def to_debug_json(
@@ -137,7 +126,9 @@ def pprint_to_file(value: Any, path: str | Path, width: int = 120) -> None:
     """
     with open(path, "w") as file:
         print("# pyright: reportUndefinedVariable=false", file=file)
-        from py_scriptutils.rich_utils import render_rich_pprint
+        from hstd_py_lib.src.py_scriptutils.external_packages.rich_utils import (
+            render_rich_pprint,
+        )
 
         print(render_rich_pprint(value, width=width, color=False), file=file)
 
@@ -169,60 +160,11 @@ def pprint_to_file_json(value: Any, path: str | Path, width: int = 120) -> None:
 
 
 def pprint_to_string(value: Any, width: int = 120) -> str:
-    from py_scriptutils.rich_utils import render_rich_pprint
+    from hstd_py_lib.src.py_scriptutils.external_packages.rich_utils import (
+        render_rich_pprint,
+    )
 
     return render_rich_pprint(value, width=width, color=False)
-
-
-class NoTTYFormatter(logging.Formatter):
-    def __init__(self, fmt: Any, datefmt: Any = None) -> None:
-        super().__init__(fmt, datefmt)
-        self.console = Console()
-
-    def format(self, record: Any) -> str:
-        record.msg = self.console.render_str(record.getMessage(), highlight=False)
-        return super().format(record)
-
-
-def log(category: str = "rich") -> logging.Logger:
-    log = logging.getLogger(category)
-    log.setLevel(logging.DEBUG)
-
-    if "pytest" in sys.modules or hasattr(sys, "_called_from_test"):
-        return log
-
-    if not hasattr(log, "__has_haxorg_handler__"):
-        setattr(log, "__has_haxorg_handler__", True)
-        if sys.stdout.isatty():
-            rich_handler = RichHandler(
-                console=Console(width=None),
-                rich_tracebacks=True,
-                markup=True,
-                enable_link_path=False,
-                show_time=False,
-                show_path=False,
-            )
-            rich_handler.setFormatter(
-                logging.Formatter(
-                    "[dim]%(name)s %(filename)s:%(lineno)d[/dim] - %(message)s"
-                )
-            )
-
-            log.addHandler(rich_handler)
-
-        else:
-            handler = logging.StreamHandler()
-            handler.setFormatter(
-                NoTTYFormatter("[%(name)s %(filename)s:%(lineno)s] %(message)s")
-            )
-
-            log.addHandler(handler)
-
-    return log
-
-
-def ci_log() -> logging.Logger:
-    return log("ci")
 
 
 class ExceptionContextNote:
@@ -416,72 +358,3 @@ def get_custom_traceback_handler(
             console.print(getattr(exc_value, "__rich_msg__"))
 
     return impl
-
-
-class MultiFileHandler(logging.Handler):
-    @beartype
-    def __init__(self, base_dir: Path) -> None:
-        super().__init__()
-        self.base_dir = base_dir
-        self.base_dir.mkdir(parents=True, exist_ok=True)
-        self.logger_handlers: Dict[str, logging.FileHandler] = {}
-        self.main_handler = logging.FileHandler(self.base_dir / "main.log", mode="w")
-        self.main_handler.setFormatter(
-            logging.Formatter("%(levelname)s - %(filename)s:%(lineno)d - %(message)s")
-        )
-        self.plain_console = Console(
-            color_system=None,
-            legacy_windows=False,
-            force_terminal=False,
-            no_color=True,
-            width=999999,
-        )
-
-    @beartype
-    def _strip_rich_formatting(self, message: str) -> str:
-        text = Text.from_markup(message)
-        with self.plain_console.capture() as capture:
-            self.plain_console.print(text, end="")
-        return capture.get()
-
-    @beartype
-    def _get_logger_handler(self, logger_name: str) -> logging.FileHandler:
-        if logger_name not in self.logger_handlers:
-            safe_name = logger_name.replace("/", "_").replace("\\", "_")
-            log_file = self.base_dir / f"{safe_name}.log"
-            handler = logging.FileHandler(log_file, mode="w")
-            handler.setFormatter(
-                logging.Formatter("%(levelname)s - %(filename)s:%(lineno)d - %(message)s")
-            )
-            self.logger_handlers[logger_name] = handler
-        return self.logger_handlers[logger_name]
-
-    @beartype
-    def emit(self, record: logging.LogRecord) -> None:
-        record.msg = self._strip_rich_formatting(str(record.msg))
-        if hasattr(record, "args") and record.args:
-            record.args = tuple(
-                self._strip_rich_formatting(str(arg)) if isinstance(arg, str) else arg
-                for arg in record.args
-            )
-
-        self.main_handler.emit(record)
-        logger_handler = self._get_logger_handler(record.name)
-        logger_handler.emit(record)
-
-    @beartype
-    def close(self) -> None:
-        self.main_handler.close()
-        for handler in self.logger_handlers.values():
-            handler.close()
-        super().close()
-
-
-@beartype
-def setup_multi_file_logging(base_dir: Path) -> MultiFileHandler:
-    handler = MultiFileHandler(base_dir)
-    handler.setLevel(logging.DEBUG)
-    root_logger = logging.getLogger()
-    root_logger.addHandler(handler)
-    root_logger.setLevel(logging.DEBUG)
-    return handler

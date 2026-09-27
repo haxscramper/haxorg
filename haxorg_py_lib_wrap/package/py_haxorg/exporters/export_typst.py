@@ -3,9 +3,9 @@ from pathlib import Path
 
 import toml
 from beartype.typing import Any, Dict, List
+from loguru import logger
 from py_scriptutils import algorithm, toml_config_profiler
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
 import py_haxorg.astbuilder.astbuilder_typst as typ
@@ -42,7 +42,7 @@ def refresh_typst_export_package() -> None:
 
     shutil.copy(typst_typ, out_path.joinpath(typst_typ.name))
     shutil.copy(typst_toml, out_path.joinpath("typst.toml"))
-    log(CAT).info(f"Refresh package to {out_path}")
+    logger.info(f"Refresh package to {out_path}")
 
 
 class ExporterTypstConfigTags(BaseModel):

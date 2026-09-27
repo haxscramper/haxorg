@@ -5,8 +5,6 @@ import pytest
 from beartype.typing import List
 from py_haxorg.babel import evalCode
 
-CAT = __name__
-
 
 def test_trivial_code_eval() -> None:
     parse = org.ParseContext()

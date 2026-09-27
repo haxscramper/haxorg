@@ -8,8 +8,6 @@ import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_cpp, codegen_ir
 from py_codegen.codegen_ir import QualType
 
-CAT = __name__
-
 
 @beartype
 @dataclass

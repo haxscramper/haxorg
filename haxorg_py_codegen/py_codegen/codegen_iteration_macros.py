@@ -84,7 +84,7 @@ def collect_pyhaxorg_typename_groups(
                 without_namespaces = [
                     i for i in range(len(flat)) if not flat[i].IsNamespace
                 ]
-                # log(CAT).info(f"{it.name} {flat} {name_start} {without_namespaces}")
+                # logger.info(f"{it.name} {flat} {name_start} {without_namespaces}")
                 name_start = without_namespaces[0]
                 if 1 < len(without_namespaces):
                     parent = flat[name_start]

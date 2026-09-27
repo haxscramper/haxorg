@@ -4,9 +4,9 @@ import plumbum
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any
+from loguru import logger
 from py_haxorg import pyhaxorg_utils
 from py_haxorg.exporters.export_typst import ExporterTypst, refresh_typst_export_package
-from py_scriptutils.script_logging import log
 
 from py_cli import haxorg_cli, haxorg_opts
 
@@ -44,7 +44,7 @@ def export_typst(ctx: haxorg_cli.CliRunContext) -> None:
         cmd = plumbum.local["typst"].with_cwd(str(infile.parent))
         pdf = outfile.with_suffix(".pdf")
         cmd.run(["compile", str(outfile), str(pdf)])
-        log(CAT).info(f"Export to {pdf}")
+        logger.info(f"Export to {pdf}")
 
 
 @click.command("typst")

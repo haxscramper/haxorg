@@ -12,8 +12,6 @@ from py_codegen import codegen_ir
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.codegen_ir import GenTuDoc, GenTuFunction, GenTuIdent, QualType
 
-CAT = __name__
-
 
 @beartype
 def maybe_list(it: Any) -> Any:
@@ -758,7 +756,7 @@ class NbClass:
                 )
 
             # else:
-            #     log(CAT).warning(f"Non-abstract type {self.Class} is missing boost reflection annotation")
+            #     logger.warning(f"Non-abstract type {self.Class} is missing boost reflection annotation")
 
         getitem_list = []
         for m in self.Methods:

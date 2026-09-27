@@ -7,8 +7,8 @@ import rich.text
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional
+from loguru import logger
 from py_scriptutils.files import FileOperation
-from py_scriptutils.script_logging import log
 from py_scriptutils.toml_config_profiler import (
     get_user_provided_params,
     pack_context,
@@ -18,7 +18,6 @@ from py_scriptutils.tracer import TraceCollector
 from py_cli.haxorg_opts import RootOptions
 
 CONFIG_FILE_NAME = "pyhaxorg.toml"
-CAT = __name__
 
 
 @beartype
@@ -162,7 +161,7 @@ def parseDirectory(ctx: CliRunContext, dir: Path) -> org.Org:
 
             elapsed = time.perf_counter() - start
 
-            log(CAT).info(f"Parsed '{path}' in {elapsed:.3f} sec")
+            logger.info(f"Parsed '{path}' in {elapsed:.3f} sec")
 
             return result
 
@@ -174,7 +173,7 @@ def parseDirectory(ctx: CliRunContext, dir: Path) -> org.Org:
             for line in str(e).split("\n")[:10]:
                 message.append(rich.text.Text(f"\n{line}", style="dim"))
 
-            log(CAT).error(
+            logger.error(
                 message,
                 extra={
                     "highlighter": rich.highlighter.NullHighlighter(),

@@ -6,10 +6,8 @@ import docker.models.containers
 import psutil
 from beartype import beartype
 from beartype.typing import Iterable, List, Optional
+from loguru import logger
 from py_repository.repo_tasks.workflow_utils import TaskContext
-from py_scriptutils.script_logging import log
-
-CAT = __name__
 
 
 @beartype
@@ -223,10 +221,10 @@ def create_symlink(
     if link_path.exists():
         assert link_path.is_symlink(), link_path
         link_path.unlink()
-        log(CAT).debug(f"'{link_path}' exists and is a symlink, removing")
+        logger.debug(f"'{link_path}' exists and is a symlink, removing")
         assert not link_path.exists(), link_path
 
-    log(CAT).debug(f"'{link_path}'.symlink_to('{real_path}')")
+    logger.debug(f"'{link_path}'.symlink_to('{real_path}')")
 
     assert not link_path.exists(), link_path
     assert real_path.exists(), real_path

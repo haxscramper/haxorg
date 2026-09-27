@@ -126,7 +126,7 @@ def plot_timestamped_events_with_pandas(
     if grouped.empty:
         return None
 
-    # log(CAT).info("\n" + render_rich(dataframe_to_rich_table(grouped.head(20))))
+    # logger.info("\n" + render_rich(dataframe_to_rich_table(grouped.head(20))))
     n_plots = len(grouped.columns)
     fig, axes = plt.subplots(n_plots, 1, sharex=True, figsize=(10, 2 * n_plots))
 
@@ -193,7 +193,7 @@ def activity_analysis(ctx: haxorg_cli.CliRunContext) -> None:
     else:
         engine: Engine = create_engine("sqlite:///" + str(sql_db))  # type: ignore
 
-    # log(CAT).info("Plotting data")
+    # logger.info("Plotting data")
     # plot = plot_timestamped_events_with_pandas(
     #     engine,
     #     bin_size=30,

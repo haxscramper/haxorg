@@ -18,12 +18,10 @@ from beartype.typing import (
     Union,
     cast,
 )
+from loguru import logger
 from py_haxorg.layout.wrap import BlockId
 from py_scriptutils.algorithm import iterate_object_tree
-from py_scriptutils.script_logging import log
 from pydantic import AliasChoices, BaseModel, Field
-
-CAT = __name__
 
 DEBUG_TYPE_ORIGIN = False
 
@@ -1568,7 +1566,7 @@ class GenTypeMap:
 
         if isinstance(typ, GenTuStruct) and typ.IsTemplateRecord:
             flat_key = tuple(typ.Name.withTemplateParams([]).flatQualName())
-            log(CAT).info(
+            logger.info(
                 f"Registered type {typ} as a template in type map with key {flat_key}"
             )
             self.template_name_to_index[flat_key].append(new_index)
@@ -1577,7 +1575,7 @@ class GenTypeMap:
 
     @staticmethod
     def FromTypes(types: Sequence[GenTuUnion]) -> "GenTypeMap":
-        # log(CAT).info("Called `fromType`", stack_info=True)
+        # logger.info("Called `fromType`", stack_info=True)
         result = GenTypeMap()
 
         def callback(obj: Any) -> None:

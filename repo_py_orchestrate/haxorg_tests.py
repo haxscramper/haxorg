@@ -1,4 +1,5 @@
 from beartype.typing import List
+from loguru import logger
 from py_repository.repo_tasks.command_execution import (
     get_uv_develop_env_flags,
     get_uv_develop_sync_flags,
@@ -11,9 +12,6 @@ from py_repository.repo_tasks.haxorg_build import build_haxorg
 from py_repository.repo_tasks.haxorg_codegen import generate_python_protobuf_files
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_coverage_dir
 from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
-from py_scriptutils.script_logging import log
-
-CAT = __name__
 
 
 @haxorg_task(dependencies=[build_haxorg, symlink_build, generate_python_protobuf_files])
@@ -128,9 +126,9 @@ def run_py_tests(ctx: TaskContext, arg: List[str] = []) -> None:
     )
 
     if not ctx.config.py_test_conf.real_time_output_print:
-        log(CAT).info("PYTEST SCRIPT EXECUTION")
-        log(CAT).info(f"{stdout}")
-        log(CAT).info(f"{stderr}")
+        logger.info("PYTEST SCRIPT EXECUTION")
+        logger.info(f"{stdout}")
+        logger.info(f"{stderr}")
 
     if retcode != 0:
         raise RuntimeError("running py tests failed")

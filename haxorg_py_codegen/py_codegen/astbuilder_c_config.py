@@ -4,8 +4,6 @@ from py_codegen import codegen_ir
 from py_codegen.astbuilder_base_config import BUILTIN_TYPES, AstbulderConfig
 from py_codegen.codegen_ir import QualType
 
-CAT = __name__
-
 
 @beartype
 class CAstbuilderConfig(AstbulderConfig):

@@ -10,11 +10,9 @@ import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Literal, Optional
-from py_scriptutils.script_logging import log
+from loguru import logger
 
 from py_cli import haxorg_cli, haxorg_opts
-
-CAT = __name__
 
 
 @beartype
@@ -164,6 +162,6 @@ def todo_collector(ctx: haxorg_cli.CliRunContext) -> TodoCollectorResult:
 @haxorg_cli.get_wrap_options(haxorg_opts.GenerateNodeCloudOptions)
 @click.pass_context
 def todo_collector_cli(ctx: click.Context, **kwargs: Any) -> None:
-    log(CAT).info("Starting todo collector command")
+    logger.info("Starting todo collector command")
     result = todo_collector(haxorg_cli.get_run(ctx))
-    log(CAT).info(f"Wrote JSON to {result.json_dump}")
+    logger.info(f"Wrote JSON to {result.json_dump}")

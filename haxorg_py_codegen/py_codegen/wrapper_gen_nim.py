@@ -7,7 +7,6 @@ from beartype import beartype
 from beartype.typing import Callable, List, Optional, Set, Tuple, Union
 from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 from py_scriptutils.files import file_relpath
-from py_scriptutils.script_logging import log
 
 import py_codegen.astbuilder_nim as nim
 from py_codegen.astbuilder_nim_config import NimAstbuilderConfig

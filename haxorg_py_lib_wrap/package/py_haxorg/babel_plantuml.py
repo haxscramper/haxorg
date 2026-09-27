@@ -1,12 +1,10 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from loguru import logger
 from plumbum import CommandNotFound, local
-from py_scriptutils.script_logging import log
 
 import py_haxorg.pyhaxorg_wrap as org
-
-CAT = __name__
 
 
 def babel_eval(input: org.OrgCodeEvalInput) -> org.HstdVecOfOrgCodeEvalOutput:
@@ -21,7 +19,7 @@ def babel_eval(input: org.OrgCodeEvalInput) -> org.HstdVecOfOrgCodeEvalOutput:
             dir = Path("/tmp")
             input_file = dir.joinpath("input.puml")
             input_file.write_text(input.tangledCode)
-            log(CAT).info("Running plantuml evaluation")
+            logger.info("Running plantuml evaluation")
 
             cmd.run(
                 [

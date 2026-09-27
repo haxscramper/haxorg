@@ -6,7 +6,6 @@ from pathlib import Path
 import py_scriptutils.toml_config_profiler as conf_provider
 import rich_click as click
 from beartype.typing import Any, Dict, List, Optional, cast
-from py_scriptutils.script_logging import log
 from py_scriptutils.tracer import TraceCollector
 
 import py_codegen.wrapper_gen_nim as gen_nim

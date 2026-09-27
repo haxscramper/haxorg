@@ -13,14 +13,11 @@ from beartype import beartype
 from beartype.typing import Any, List, Optional
 from betterproto.lib.google import protobuf as pb_google
 from py_scriptutils.script_logging import ExceptionContextNote
+from rich.tree import Tree
 
 import py_codegen.proto_lib as pb
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import QualType
-
-CAT = __name__
-
-from rich.tree import Tree
 
 
 def include_visit_to_rich_tree(

@@ -4,7 +4,6 @@ import glom
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any
-from py_scriptutils.script_logging import log
 
 from py_cli import haxorg_cli, haxorg_opts
 

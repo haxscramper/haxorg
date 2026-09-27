@@ -64,7 +64,7 @@ def test_attached_property_link() -> None:
     assert p.getKind() == org.OrgSemKind.Paragraph
     l: org.Link = p[0]
     assert l.getKind() == org.OrgSemKind.Link
-    # log(CAT).info(org.treeRepr(l))
+    # logger.info(org.treeRepr(l))
     onExport: org.AttrList = l.getAttrs("attach-on-export")
     assert onExport
     onExport0 = onExport[0]

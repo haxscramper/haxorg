@@ -14,9 +14,6 @@ from pydantic import AliasChoices, BaseModel
 from pydantic_core import PydanticUndefined
 
 from py_scriptutils.files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import log
-
-CAT = __name__
 
 
 @beartype

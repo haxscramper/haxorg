@@ -10,8 +10,6 @@ from py_cli import haxorg_cli, haxorg_opts
 from py_cli.export.haxorg_export import export
 from py_cli.generate.haxorg_generate import generate
 
-CAT = __name__
-
 
 @click.group()
 @haxorg_cli.get_wrap_options(haxorg_opts.RootOptions)

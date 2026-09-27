@@ -9,7 +9,6 @@ from beartype import beartype
 from beartype.typing import Callable, Dict, List, Sequence
 from py_scriptutils.script_logging import (
     ExceptionContextNote,
-    log,
     pprint_to_file_json,
     to_debug_json,
 )
@@ -21,8 +20,6 @@ from py_codegen import codegen_ir, refl_read
 from py_codegen.astbuilder_base_config import AstbulderConfig
 from py_codegen.codegen_ir import QualType
 from py_codegen.refl_read import ConvTu
-
-CAT = __name__
 
 
 @beartype
@@ -455,7 +452,7 @@ class PyhaxorgTypeGroups:
         def aux(e: codegen_ir.GenTuEntry, ind: int) -> None:
             match e:
                 case codegen_ir.GenTuStruct():
-                    log(CAT).info(
+                    logger.info(
                         f"{'  ' * ind}{e.Name.Name} {e.Name} wrapper:{e.ReflectionParams.wrapper_name} py:{py_type(e.Name, self.type_map)}"
                     )
                     for sub in e.Nested:

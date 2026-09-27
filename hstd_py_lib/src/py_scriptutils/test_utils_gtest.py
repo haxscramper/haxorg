@@ -13,8 +13,6 @@ from pydantic import BaseModel
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.script_logging import pprint_to_file, to_debug_json
 
-CAT = __name__
-
 
 @beartype
 @dataclass
@@ -268,7 +266,7 @@ def pytest_collect_file(parent: Module, path: str) -> Optional[GTestFile]:
     coverage = os.getenv("HAX_COVERAGE_OUT_DIR")
 
     if test.name.startswith("test_integrate_cxx"):
-        log(CAT).info(f"File '{test.name}' integrates execution of the cxx binary")
+        logger.info(f"File '{test.name}' integrates execution of the cxx binary")
         if test.name.endswith("_cxx_org.py"):
             binary_path_str = "haxorg/haxorg_cpp_org_tests"
 

@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from beartype.typing import Optional
+from loguru import logger
 from py_repository.repo_tasks.command_execution import (
     run_command,
 )
@@ -12,9 +13,6 @@ from py_repository.repo_tasks.common import (
 )
 from py_repository.repo_tasks.haxorg_coverage import get_cxx_profdata_params
 from py_repository.repo_tasks.workflow_utils import TaskContext, haxorg_task
-from py_scriptutils.script_logging import log
-
-CAT = __name__
 
 
 @haxorg_task()
@@ -36,7 +34,7 @@ def docs_doxygen(ctx: TaskContext) -> None:
         stderr_debug=get_build_root(ctx).joinpath("doxygen_stderr.log"),
     )
 
-    log(CAT).info("Completed CXX docs build")
+    logger.info("Completed CXX docs build")
 
 
 @haxorg_task()

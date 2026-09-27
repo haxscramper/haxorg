@@ -12,8 +12,6 @@ from pydantic import BaseModel, Field
 from py_cli import haxorg_opts
 from py_cli.generate.mind_map import elk_converter, elk_schema
 
-CAT = __name__
-
 
 class EdgeExtra(BaseModel, extra="forbid"):
     structuredEdgeBrief: Optional[Dict[str, Any]] = None

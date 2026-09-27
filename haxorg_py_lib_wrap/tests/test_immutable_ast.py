@@ -1,7 +1,5 @@
 import py_haxorg.pyhaxorg_wrap as org
 
-CAT = __name__
-
 
 def test_immutable_ast_conversion() -> None:
     parse = org.ParseContext()

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
-from py_scriptutils.script_logging import ExceptionContextNote, log
+from py_scriptutils.script_logging import ExceptionContextNote
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
@@ -274,7 +274,7 @@ def doExportAttachments(
                             if src != dst:
                                 if op == "copy":
                                     shutil.copy(src=src, dst=dst)
-                                    log(CAT).info(f"Copied {path}")
+                                    logger.info(f"Copied {path}")
 
                                 elif op == "symlink":
                                     if dst.exists() or dst.is_symlink():
@@ -284,7 +284,7 @@ def doExportAttachments(
                                     assert src.exists()
 
                                     dst.symlink_to(src)
-                                    log(CAT).info(f"Symlinked {path}")
+                                    logger.info(f"Symlinked {path}")
 
                     case _:
                         assert False

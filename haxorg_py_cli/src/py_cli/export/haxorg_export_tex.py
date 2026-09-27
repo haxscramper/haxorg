@@ -6,10 +6,10 @@ import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, List
+from loguru import logger
 from py_haxorg.exporters.export_tex import ExporterLatex
 from py_haxorg.exporters.export_utils.texoutparse import LatexLogParser
 from py_haxorg.layout.wrap import BlockId, TextOptions
-from py_scriptutils.script_logging import log
 
 from py_cli import haxorg_cli, haxorg_opts
 
@@ -29,17 +29,17 @@ def run_lualatex(filename: Path) -> None:
         parser.process(f)
 
     if parser.errors:
-        log(CAT).error(f"Error during compilation of {filename}")
+        logger.error(f"Error during compilation of {filename}")
         sorted_errors = itertools.groupby(
             iterable=sorted(parser.errors, key=lambda it: it.type_),
             key=lambda it: it.type_,
         )
 
         for key, group in sorted_errors:
-            log(CAT).error(repr([it for it in group][0]))
+            logger.error(repr([it for it in group][0]))
 
     else:
-        log(CAT).info(f"Compilation of {filename} successful!")
+        logger.info(f"Compilation of {filename} successful!")
 
 
 class DerivedLatexExporter(ExporterLatex):
@@ -86,7 +86,7 @@ def export_tex(ctx: haxorg_cli.CliRunContext) -> None:
     tex = DerivedLatexExporter()
     # tex.exp.enableFileTrace("/tmp/trace.txt", False)
     if opts.export.exportTraceFile:
-        log(CAT).debug(f"Enabled export file trace to {opts.export.exportTraceFile}")
+        logger.debug(f"Enabled export file trace to {opts.export.exportTraceFile}")
         tex.exp.enableFileTrace(opts.export.exportTraceFile, True)
 
     res = tex.exp.evalTop(node)

@@ -11,9 +11,7 @@ from beartype.typing import Any, Callable, Dict, List, Optional, Set, get_type_h
 from py_repository.repo_tasks.config import HaxorgConfig, get_tmpdir
 from py_scriptutils.files import FileOperation
 from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import ExceptionContextNote, log
-
-CAT = __name__
+from py_scriptutils.script_logging import ExceptionContextNote
 
 
 @beartype
@@ -189,10 +187,10 @@ def ui_notify(message: str, is_ok: bool = True) -> None:
 
     except Exception:
         if is_ok:
-            log(CAT).info(message)
+            logger.info(message)
 
         else:
-            log(CAT).error(message)
+            logger.error(message)
 
 
 @beartype
@@ -267,7 +265,7 @@ args: {args}
             target_name if isinstance(target_name, str) else target_name.__name__
         )
 
-        log(CAT).info(f"Starting with target {target_name}")
+        logger.info(f"Starting with target {target_name}")
         target_id = self.graph.graph.vs.find(name=target_name).index
 
         if not self.config.use_dependencies:
@@ -286,14 +284,14 @@ args: {args}
             operation = op.get_metadata().file_operation
 
             if self.is_already_executed_task(task_id):
-                log(CAT).info(f"Skipping [cyan]{task_id}[/cyan], already executed")
+                logger.info(f"Skipping [cyan]{task_id}[/cyan], already executed")
                 continue
 
             def run_op():
                 with ExceptionContextNote(f"Running task {task_id}"):
                     try:
                         op.python_callable(ctx=self)
-                        log(CAT).info(f"Done {task_id}")
+                        logger.info(f"Done {task_id}")
                         ui_notify(f"OK__ <span color='green'>{task_id:<40}</span>")
                     except Exception as e:
                         ui_notify(f"FAIL {task_id:<40}", is_ok=False)
@@ -302,17 +300,17 @@ args: {args}
             if operation and not self.config.use_unchanged_tasks:
                 with operation.scoped_operation(self.stamp_root, *args, **kwargs):
                     if operation.should_run(self.stamp_root, *args, **kwargs):
-                        log(CAT).info(f"Running [green]{task_id}[/green], should run")
+                        logger.info(f"Running [green]{task_id}[/green], should run")
                         run_op()
 
                     else:
-                        log(CAT).info(f"Skipping [red]{task_id}[/red], no run needed")
-                        log(CAT).info(
+                        logger.info(f"Skipping [red]{task_id}[/red], no run needed")
+                        logger.info(
                             operation.explain(task_id, self.stamp_root, *args, **kwargs)
                         )
 
             else:
-                log(CAT).info(f"Running [yellow]{task_id}[/yellow]")
+                logger.info(f"Running [yellow]{task_id}[/yellow]")
                 run_op()
 
             self.track_task_completion(task_id)

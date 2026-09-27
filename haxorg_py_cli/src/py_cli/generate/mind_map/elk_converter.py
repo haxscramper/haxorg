@@ -22,8 +22,6 @@ from sklearn.cluster import KMeans
 import py_cli.generate.mind_map.typst_schema as typ
 from py_cli.generate.mind_map import elk_schema
 
-CAT = __name__
-
 
 class MoveCommand(BaseModel, extra="forbid"):
     type: str = "move"

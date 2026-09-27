@@ -9,13 +9,10 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, cast
 from plumbum import local
 from py_scriptutils.files import IsNewInput
-from py_scriptutils.script_logging import log
 from pydantic import BaseModel, Field
 
 from py_codegen.refl_read import ConvTu, conv_proto_file, open_proto_file
 from py_codegen.refl_wrapper_graph import TuWrap
-
-CAT = __name__
 
 
 class TuOptions(BaseModel, extra="forbid"):

@@ -2,8 +2,8 @@ from dataclasses import dataclass, field, replace
 
 from beartype import beartype
 from beartype.typing import List, Optional, cast
+from loguru import logger, pprint_to_file_json
 from py_haxorg.layout.wrap import BlockId
-from py_scriptutils.script_logging import log, pprint_to_file_json
 
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_ir
@@ -19,8 +19,6 @@ from py_codegen.codegen_algo import (
 )
 from py_codegen.codegen_ir import QualType, n_sem
 from py_codegen.codegen_type_groups import PyhaxorgTypeGroups, topological_sort_entries
-
-CAT = __name__
 
 _CONTEXT_ARG = codegen_ir.GenTuIdent(
     Type=QualType(Name="OrgContext", PtrCount=1),
@@ -899,7 +897,7 @@ def _get_entries_for_wrapping(
             and isinstance(entry, codegen_ir.GenTuTypedef)
             and entry.ReflectionParams.expand_typedef
         ):
-            log(CAT).info(f"Typedef entry {entry}")
+            logger.info(f"Typedef entry {entry}")
             typedefs_to_expand.append(entry)
 
         else:
@@ -983,7 +981,7 @@ def gen_haxorg_c_wrappers(
         ]:
             for s in specializations:
                 if target_type in str(s.used_type) and target_type in str(template_type):
-                    log(CAT).debug(f"{s.used_type}")
+                    logger.debug(f"{s.used_type}")
                     debug = list()
                     match_result = match_specializations_for_struct(
                         [s.used_type],
@@ -993,13 +991,13 @@ def gen_haxorg_c_wrappers(
                     )
 
                     if not match_result:
-                        log(CAT).warning("\n" + "\n".join(debug))
+                        logger.warning("\n" + "\n".join(debug))
 
         if (
             template_type.ReflectionParams.backend.c.instantiation_mode
             == "each-specialization"
         ):
-            log(CAT).info(f"Found template type with each-specialization {template_type}")
+            logger.info(f"Found template type with each-specialization {template_type}")
             for match in template_usage_types:
                 _add_struct(
                     cast(
@@ -1013,7 +1011,7 @@ def gen_haxorg_c_wrappers(
                 )
 
         elif template_type.ReflectionParams.backend.c.instantiation_mode == "void-handle":
-            log(CAT).info(f"Found void-handle type {template_type}")
+            logger.info(f"Found void-handle type {template_type}")
             assert template_type.ReflectionParams.backend.c.value_template_parameters, (
                 "void-handle must provide names for the template type parameters"
             )

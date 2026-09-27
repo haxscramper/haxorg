@@ -11,8 +11,6 @@ import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import GenTuField, QualType
 
-CAT = __name__
-
 
 @beartype
 def rewrite_type_to_immutable(obj: QualType) -> QualType:

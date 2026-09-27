@@ -11,8 +11,6 @@ from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
 from sqlalchemy.orm import sessionmaker
 
-CAT = __name__
-
 org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
 all_org_file = org_corpus_dir.joinpath("all.org")
 all_org = all_org_file.read_text()

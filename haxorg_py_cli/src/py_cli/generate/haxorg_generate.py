@@ -3,8 +3,6 @@ from beartype.typing import Any
 
 from py_cli import haxorg_cli, haxorg_opts
 
-CAT = __name__
-
 
 @click.group()
 @click.pass_context
