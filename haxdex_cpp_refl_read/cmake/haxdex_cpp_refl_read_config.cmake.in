@@ -1,5 +1,0 @@
-@PACKAGE_INIT@
-
-include("${CMAKE_CURRENT_LIST_DIR}/haxdex_cpp_refl_read_targets.cmake")
-
-check_required_components(HaxdexCppReflRead)

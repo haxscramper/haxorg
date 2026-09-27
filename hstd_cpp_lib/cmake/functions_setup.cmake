@@ -375,9 +375,6 @@ function(haxorg_add_protobuf)
         ${HAXORG_DEPS_PROTO_IMPORT_DIRS}
         ${HAP_IMPORT_DIRS}
     )
-    if(DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
-        list(APPEND HAP_EFFECTIVE_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
-    endif()
     list(REMOVE_DUPLICATES HAP_EFFECTIVE_IMPORT_DIRS)
 
     protobuf_generate(

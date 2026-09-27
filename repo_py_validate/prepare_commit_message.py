@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -20,7 +21,17 @@ marker = "# <type>(<scope>): <subject>"
 if marker in content:
     sys.exit(0)
 
-lines = ["", "", marker, "#", "# Available types:"]
+
+lines = ["", ""]
+
+stat = subprocess.run(
+    ["git", "diff", "--staged", "--stat"],
+    check=True,
+    capture_output=True,
+)
+
+lines.extend(f"# {it.decode()}" for it in stat.stdout.splitlines())
+lines.extend(["#", marker, "#", "# Available types:"])
 for name, desc in TYPES.items():
     lines.append(f"#   {name:<10} {desc}")
 lines.extend(["#", "# Available scopes:"])

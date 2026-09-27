@@ -1,6 +1,7 @@
 import os
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from conan import ConanFile
 from conan.errors import ConanException
@@ -10,9 +11,15 @@ from conan.tools.env import Environment
 from conan.tools.files import copy
 
 PACKAGE_NAME_RE = re.compile(r"[a-z][a-z0-9]*(_[a-z0-9]+)*")
+CMAKE_TEMPLATE_SUFFIX_RE = r"-[a-z0-9]+(-[a-z0-9]+)*\.cmake\.in"
+
+if TYPE_CHECKING:
+    _HaxorgTypingBase = ConanFile
+else:
+    _HaxorgTypingBase = object
 
 
-class HaxorgPackage:
+class HaxorgPackage(_HaxorgTypingBase):
     package_type = "static-library"
     settings = "os", "arch", "compiler", "build_type"
     exports_sources = (
@@ -30,6 +37,10 @@ class HaxorgPackage:
     haxorg_header_patterns: tuple[str, ...] = ("*.hpp", "*.h")
 
     @property
+    def haxorg_is_application(self) -> bool:
+        return self.package_type == "application"
+
+    @property
     def haxorg_namespace(self) -> str:
         return self.name.split("_")[0]
 
@@ -38,12 +49,14 @@ class HaxorgPackage:
         return f"{self.haxorg_namespace}::{self.name}"
 
     @property
-    def haxorg_kebab_name(self) -> str:
-        return self.name.replace("_", "-")
+    def haxorg_has_tests(self) -> bool:
+        return (Path(self.source_folder) / "tests").is_dir()
 
     @property
-    def haxorg_skip_tests(self) -> bool:
-        return self.conf.get("tools.build:skip_test", default=False, check_type=bool)
+    def haxorg_run_tests(self) -> bool:
+        return self.haxorg_has_tests and not self.conf.get(
+            "tools.build:skip_test", default=False, check_type=bool
+        )
 
     # Hooks for package-specific configuration
     def haxorg_configure_deps(self, deps: CMakeDeps):
@@ -82,18 +95,24 @@ class HaxorgPackage:
         check_single_subdir("proto", required=False)
 
         cmake_dir = root / "cmake"
+        template_re = re.compile(re.escape(self.name) + CMAKE_TEMPLATE_SUFFIX_RE)
         for template in cmake_dir.glob("*.cmake.in"):
-            if template.name != template.name.lower() or not template.name.startswith(
-                f"{self.haxorg_kebab_name}-"
-            ):
+            if not template_re.fullmatch(template.name):
                 errors.append(
                     f"'cmake/{template.name}' must be named "
-                    f"'{self.haxorg_kebab_name}-<suffix>.cmake.in'"
+                    f"'{self.name}-<kebab-suffix>.cmake.in'"
                 )
 
         for module in self.haxorg_cmake_build_modules:
             if not (cmake_dir / module).is_file():
                 errors.append(f"build module 'cmake/{module}' does not exist")
+
+        if (root / "tests").is_dir() and "enable_testing()" not in (
+            root / "CMakeLists.txt"
+        ).read_text():
+            errors.append(
+                "'tests/' exists but CMakeLists.txt does not call enable_testing()"
+            )
 
         if errors:
             raise ConanException(
@@ -115,18 +134,26 @@ class HaxorgPackage:
     def layout(self):
         cmake_layout(self)
         build_modules = [f"cmake/{name}" for name in self.haxorg_cmake_build_modules]
+        assert self.cpp
+        assert self.cpp.source
+        assert self.cpp.package
 
         self.cpp.source.includedirs = ["src"]
         self.cpp.source.resdirs = ["proto"]
         self.cpp.source.set_property("cmake_build_modules", build_modules)
 
         self.cpp.build.includedirs = ["generated/proto"]
-        self.cpp.build.libdirs = ["."]
-
-        self.cpp.package.includedirs = ["include"]
-        self.cpp.package.libdirs = ["lib"]
         self.cpp.package.resdirs = ["proto"]
         self.cpp.package.set_property("cmake_build_modules", build_modules)
+
+        if self.haxorg_is_application:
+            self.cpp.build.bindirs = ["."]
+            self.cpp.package.includedirs = []
+            self.cpp.package.bindirs = ["bin"]
+        else:
+            self.cpp.build.libdirs = ["."]
+            self.cpp.package.includedirs = ["include"]
+            self.cpp.package.libdirs = ["lib"]
 
     def generate(self):
         self.haxorg_validate_structure(self.source_folder)
@@ -141,7 +168,7 @@ class HaxorgPackage:
         toolchain.variables["HAXORG_DEPS_PROTO_IMPORT_DIRS"] = ";".join(
             self.haxorg_dependency_proto_dirs()
         )
-        toolchain.variables["BUILD_TESTING"] = not self.haxorg_skip_tests
+        toolchain.variables["BUILD_TESTING"] = self.haxorg_run_tests
 
         warning_suppressions = self.conf.get(
             "user.haxorg:warning_suppressions", default="", check_type=str
@@ -161,16 +188,28 @@ class HaxorgPackage:
             )
         )
 
-        if not self.haxorg_skip_tests and can_run(self):
+        if self.haxorg_run_tests and can_run(self):
             environment = Environment()
             environment.define("CTEST_OUTPUT_ON_FAILURE", "1")
             with environment.vars(self).apply():
                 cmake.test()
 
     def package(self):
+        assert self.source_folder
+        assert self.build_folder
+        assert self.package_folder
         src = self.source_folder
         build = self.build_folder
         pkg = self.package_folder
+
+        copy(self, "*.proto", os.path.join(src, "proto"), os.path.join(pkg, "proto"))
+
+        for module in self.haxorg_cmake_build_modules:
+            copy(self, module, os.path.join(src, "cmake"), os.path.join(pkg, "cmake"))
+
+        if self.haxorg_is_application:
+            copy(self, self.name, build, os.path.join(pkg, "bin"), keep_path=False)
+            return
 
         for pattern in self.haxorg_header_patterns:
             copy(self, pattern, os.path.join(src, "src"), os.path.join(pkg, "include"))
@@ -181,18 +220,15 @@ class HaxorgPackage:
             os.path.join(build, "generated", "proto"),
             os.path.join(pkg, "include"),
         )
-        copy(self, "*.proto", os.path.join(src, "proto"), os.path.join(pkg, "proto"))
-
-        for module in self.haxorg_cmake_build_modules:
-            copy(self, module, os.path.join(src, "cmake"), os.path.join(pkg, "cmake"))
-
         copy(self, f"lib{self.name}.a", build, os.path.join(pkg, "lib"), keep_path=False)
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", self.name)
         self.cpp_info.set_property("cmake_target_name", self.haxorg_cmake_target)
         self.cpp_info.set_property("haxorg_package", True)
-        self.cpp_info.libs = [self.name]
+        if not self.haxorg_is_application:
+            self.cpp_info.libs = [self.name]
+
         self.haxorg_package_info()
 
 

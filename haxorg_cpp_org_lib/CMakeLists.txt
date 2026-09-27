@@ -8,35 +8,23 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-include(CTest)
-include(CMakePackageConfigHelpers)
-
 option(HAXORG_WITH_PROTOBUF "Build protobuf serialization support" ON)
 option(HAXORG_WITH_PROTOVALIDATE "Build protobuf validation support" OFF)
 option(HAXORG_WITH_PERFETTO "Build Perfetto instrumentation support" OFF)
 
-if(HAXORG_WITH_PROTOVALIDATE AND NOT HAXORG_WITH_PROTOBUF)
-    message(FATAL_ERROR "HAXORG_WITH_PROTOVALIDATE requires HAXORG_WITH_PROTOBUF")
-endif()
-
-if(NOT TARGET hstd::hstd_cpp_lib)
-    find_package(hstd_cpp_lib CONFIG REQUIRED)
-endif()
-
-if(NOT TARGET hstd::hstd_cpp_text_layout)
-    find_package(hstd_cpp_text_layout CONFIG REQUIRED)
-endif()
-
+find_package(hstd_cpp_lib CONFIG REQUIRED)
+find_package(hstd_cpp_text_layout CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(lexy CONFIG REQUIRED)
 find_package(Immer CONFIG REQUIRED)
 
 if(HAXORG_WITH_PROTOBUF)
-    find_package(protobuf CONFIG REQUIRED)
-    if(HAXORG_WITH_PROTOVALIDATE)
-        find_package(protovalidate_cc CONFIG REQUIRED)
-    endif()
+    find_package(Protobuf CONFIG REQUIRED)
+endif()
+
+if(HAXORG_WITH_PROTOVALIDATE)
+    find_package(protovalidate_cc CONFIG REQUIRED)
 endif()
 
 if(HAXORG_WITH_PERFETTO)
@@ -49,6 +37,7 @@ if(BUILD_TESTING)
 endif()
 
 haxorg_add_library(haxorg_cpp_org_lib)
+add_library(haxorg::haxorg_cpp_org_lib ALIAS haxorg_cpp_org_lib)
 
 haxorg_glob_add_sources2(
     TARGET haxorg_cpp_org_lib
@@ -59,6 +48,12 @@ haxorg_glob_add_sources2(
 
 haxorg_set_target_output(haxorg_cpp_org_lib)
 haxorg_set_target_flags(haxorg_cpp_org_lib)
+
+target_include_directories(
+    haxorg_cpp_org_lib
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>"
+)
 
 target_link_libraries(
     haxorg_cpp_org_lib
@@ -71,31 +66,25 @@ target_link_libraries(
         immer::immer
 )
 
-target_include_directories(
-    haxorg_cpp_org_lib
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
-        $<INSTALL_INTERFACE:include>
-)
-
 target_compile_definitions(
     haxorg_cpp_org_lib
     PUBLIC
         HAXORG_CPP_BUILD_WITH_PROTOBUF=$<BOOL:${HAXORG_WITH_PROTOBUF}>
-        HSTD_CPP_BUILD_WITH_PROTOVALIDATE=$<BOOL:${HAXORG_WITH_PROTOVALIDATE}>
         ORG_BUILD_WITH_PERFETTO=$<BOOL:${HAXORG_WITH_PERFETTO}>
 )
 
 if(HAXORG_WITH_PROTOBUF)
     set(HAXORG_PROTO_PUBLIC_LIBRARIES)
+    set(HAXORG_PROTO_IMPORT_DIRS)
     if(HAXORG_WITH_PROTOVALIDATE)
         list(APPEND HAXORG_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
+        list(APPEND HAXORG_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
     endif()
 
     haxorg_add_protobuf(
         TARGET haxorg_cpp_org_lib
+        IMPORT_DIRS
+            ${HAXORG_PROTO_IMPORT_DIRS}
         PROTO_SOURCES
             "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProto.proto"
             "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProtoManual.proto"
@@ -110,24 +99,9 @@ if(HAXORG_WITH_PERFETTO)
     target_link_libraries(haxorg_cpp_org_lib PUBLIC Perfetto::perfetto)
 endif()
 
-add_library(haxorg::haxorg_cpp_org_lib ALIAS haxorg_cpp_org_lib)
-
-install(
-    TARGETS
-        haxorg_cpp_org_lib
-    EXPORT haxorg_cpp_org_libTargets
-    LIBRARY
-        DESTINATION lib
-    ARCHIVE
-        DESTINATION lib
-    RUNTIME
-        DESTINATION bin
-    INCLUDES DESTINATION
-        include
-)
-
 if(BUILD_TESTING)
-    add_executable(haxorg_cpp_org_tests)
+    enable_testing()
+    haxorg_add_executable(haxorg_cpp_org_tests)
 
     haxorg_glob_add_sources2(
         TARGET haxorg_cpp_org_tests
@@ -145,52 +119,5 @@ if(BUILD_TESTING)
             absl::flags
     )
 
-    haxorg_set_target_output(haxorg_cpp_org_tests)
-    haxorg_set_target_flags(haxorg_cpp_org_tests)
-
     add_test(NAME haxorg_cpp_org_tests COMMAND haxorg_cpp_org_tests)
 endif()
-
-install(
-    DIRECTORY
-        src/
-    DESTINATION include
-    FILES_MATCHING
-    PATTERN "*.hpp"
-    PATTERN "*.tcc"
-    PATTERN "*Exporter.cpp"
-)
-
-install(
-    DIRECTORY
-        "${CMAKE_CURRENT_BINARY_DIR}/"
-    DESTINATION include
-    FILES_MATCHING
-    PATTERN "*.pb.h"
-)
-
-install(
-    EXPORT haxorg_cpp_org_libTargets
-    FILE haxorg_cpp_org_libTargets.cmake
-    NAMESPACE haxorg::
-    DESTINATION lib/cmake/haxorg_cpp_org_lib
-)
-
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/haxorg_cpp_org_lib_config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/haxorg_cpp_org_lib
-)
-
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfigVersion.cmake"
-    VERSION "${PROJECT_VERSION}"
-    COMPATIBILITY SameMajorVersion
-)
-
-install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_libConfigVersion.cmake"
-    DESTINATION lib/cmake/haxorg_cpp_org_lib
-)

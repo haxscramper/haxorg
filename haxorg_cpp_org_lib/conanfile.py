@@ -2,9 +2,7 @@ from typing import Protocol, cast
 
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
-from conan.tools.build import can_run
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.env import Environment
+from conan.tools.cmake import CMakeDeps, CMakeToolchain
 
 
 class RecipeOptions(Protocol):
@@ -13,11 +11,14 @@ class RecipeOptions(Protocol):
     with_perfetto: bool
 
 
-class haxorg_cpp_org_libConan(ConanFile):
+class HaxorgCppOrgLibConan(ConanFile):
     name = "haxorg_cpp_org_lib"
     version = "0.1.0"
 
-    settings = "os", "compiler", "build_type", "arch"
+    python_requires = "haxorg_conan_base/0.1.0"
+    python_requires_extend = "haxorg_conan_base.HaxorgPackage"
+
+    haxorg_header_patterns = ("*.hpp", "*.h", "*.tcc", "*Exporter.cpp")
 
     options = cast(
         RecipeOptions,
@@ -33,14 +34,6 @@ class haxorg_cpp_org_libConan(ConanFile):
         "with_protovalidate": True,
         "with_perfetto": False,
     }
-
-    exports_sources = (
-        "CMakeLists.txt",
-        "cmake/*",
-        "src/*",
-        "proto/*",
-        "tests/*",
-    )
 
     def validate(self):
         if self.options.with_protovalidate and not self.options.with_protobuf:
@@ -76,6 +69,10 @@ class haxorg_cpp_org_libConan(ConanFile):
         if self.options.with_perfetto:
             self.requires("perfetto/[>=52.0 <53]", **transitive)
 
+    def haxorg_configure_deps(self, deps: CMakeDeps):
+        deps.set_property("perfetto", "cmake_file_name", "Perfetto")
+        deps.set_property("perfetto", "cmake_target_name", "Perfetto::perfetto")
+
     def build_requirements(self):
         self.test_requires("gtest/[>=1.17 <2]")
         self.test_requires("abseil/[>=20250127.0 <20260000]")
@@ -83,64 +80,15 @@ class haxorg_cpp_org_libConan(ConanFile):
         if self.options.with_protobuf:
             self.tool_requires("protobuf/[>=5 <6]")
 
-    def layout(self):
-        cmake_layout(self)
-
-    def generate(self):
-        skip_tests = self.conf.get(
-            "tools.build:skip_test",
-            default=False,
-            check_type=bool,
-        )
-
-        toolchain = CMakeToolchain(self)
-        warning_suppressions = self.conf.get(
-            "user.hstd:warning_suppressions",
-            default="",
-            check_type=str,
-        )
-
-        if warning_suppressions:
-            toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = warning_suppressions
-
-        toolchain.cache_variables["HAXORG_WITH_PROTOBUF"] = self.options.with_protobuf
-        toolchain.cache_variables["HAXORG_WITH_PROTOVALIDATE"] = (
+    def haxorg_configure_toolchain(self, toolchain: CMakeToolchain):
+        toolchain.variables["HAXORG_WITH_PROTOBUF"] = bool(self.options.with_protobuf)
+        toolchain.variables["HAXORG_WITH_PROTOVALIDATE"] = bool(
             self.options.with_protovalidate
         )
-        toolchain.cache_variables["HAXORG_WITH_PERFETTO"] = self.options.with_perfetto
-        toolchain.cache_variables["BUILD_TESTING"] = not skip_tests
-        toolchain.generate()
+        toolchain.variables["HAXORG_WITH_PERFETTO"] = bool(self.options.with_perfetto)
 
-        dependencies = CMakeDeps(self)
-        dependencies.generate()
-
-    def build(self):
-        cmake = CMake(self)
-        cmake.configure()
-        ninja_args = self.conf.get(
-            "user.hstd:ninja_args",
-            default=[],
-            check_type=list,
-        )
-        cmake.build(build_tool_args=ninja_args)
-
-        skip_tests = self.conf.get(
-            "tools.build:skip_test",
-            default=False,
-            check_type=bool,
-        )
-
-        if not skip_tests and can_run(self):
-            environment = Environment()
-            environment.define("CTEST_OUTPUT_ON_FAILURE", "1")
-
-            with environment.vars(self).apply():
-                cmake.test()
-
-    def package(self):
-        cmake = CMake(self)
-        cmake.install()
-
-    def package_info(self):
-        self.cpp_info.builddirs = ["lib/cmake/haxorg_cpp_org_lib"]
-        self.cpp_info.set_property("cmake_find_mode", "none")
+    def haxorg_package_info(self):
+        self.cpp_info.defines = [
+            f"HAXORG_CPP_BUILD_WITH_PROTOBUF={int(bool(self.options.with_protobuf))}",
+            f"ORG_BUILD_WITH_PERFETTO={int(bool(self.options.with_perfetto))}",
+        ]

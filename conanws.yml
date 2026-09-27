@@ -35,6 +35,10 @@ packages:
     ref: haxorg_cpp_org_lib/0.1.0
     output_folder: build/conan_build/haxorg_cpp_org_lib
 
+  - path: haxorg_conan_base
+    ref: haxorg_conan_base/0.1.0
+    output_folder: build/conan_build/haxorg_conan_base
+
   - path: haxorg_cpp_org_cli
     ref: haxorg_cpp_org_cli/0.1.0
     output_folder: build/conan_build/haxorg_cpp_org_cli

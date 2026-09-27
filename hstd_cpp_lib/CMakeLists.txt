@@ -144,12 +144,16 @@ endif()
 
 if(HSTD_CPP_BUILD_WITH_PROTOBUF)
     set(HSTD_PROTO_PUBLIC_LIBRARIES)
+    set(HSTD_PROTO_IMPORT_DIRS)
     if(HSTD_CPP_BUILD_WITH_PROTOVALIDATE)
         list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
+        list(APPEND HSTD_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
     endif()
 
     haxorg_add_protobuf(
         TARGET hstd_cpp_lib
+        IMPORT_DIRS
+            ${HSTD_PROTO_IMPORT_DIRS}
         PROTO_SOURCES
             "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/graph_base.proto"
             "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/error_write.proto"
