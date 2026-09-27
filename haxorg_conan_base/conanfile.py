@@ -217,6 +217,10 @@ class HaxorgPackage(_HaxorgTypingBase):
         build = self.build_folder
         pkg = self.package_folder
 
+        if self.haxorg_use_cmake_install:
+            CMake(self).install()
+            return
+
         copy(self, "*.proto", os.path.join(src, "proto"), os.path.join(pkg, "proto"))
 
         for module in self.haxorg_cmake_build_modules:

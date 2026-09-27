@@ -4,7 +4,7 @@
 #include <haxorg_cpp_org_cli/diagram_ctx.hpp>
 #include <haxorg_cpp_org_cli/export_ctx.hpp>
 #include <haxorg_cpp_org_cli/parse_ctx.hpp>
-#include <hstd_cpp_lib/stdlib/VecFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 
 namespace org::cli {
 

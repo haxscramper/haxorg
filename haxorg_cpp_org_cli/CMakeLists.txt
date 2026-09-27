@@ -15,6 +15,10 @@ if(NOT TARGET haxorg::haxorg_cpp_org_lib)
     find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 endif()
 
+if(NOT TARGET hstd::hstd_cpp_diagram_lib)
+    find_package(hstd_cpp_diagram_lib CONFIG REQUIRED)
+endif()
+
 find_package(absl CONFIG REQUIRED)
 find_package(argparse CONFIG REQUIRED)
 
@@ -22,7 +26,7 @@ add_executable(haxorg_cpp_org_cli)
 
 haxorg_glob_add_sources2(
     TARGET haxorg_cpp_org_cli
-    LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/.*"
+    LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/haxorg_cpp_org_cli/.*"
     SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
     RECURSE ON
 )
@@ -34,13 +38,20 @@ target_link_libraries(
     haxorg_cpp_org_cli
     PRIVATE
         haxorg::haxorg_cpp_org_lib
+        hstd::hstd_cpp_diagram_lib
         absl::base
         absl::log
         absl::flags
         argparse::argparse
 )
 
-add_executable(haxorg::haxorg_cpp_cli ALIAS haxorg_cpp_org_cli)
+target_include_directories(
+    haxorg_cpp_org_cli
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>"
+)
+
+add_executable(haxorg::haxorg_cpp_org_cli ALIAS haxorg_cpp_org_cli)
 
 install(
     TARGETS
@@ -52,26 +63,26 @@ install(
 
 install(
     EXPORT haxorg_cpp_org_cli_targets
-    FILE haxorg_cpp_org_cli_targets.cmake
+    FILE haxorg_cpp_org_cli-targets.cmake
     NAMESPACE haxorg::
-    DESTINATION lib/cmake/HaxorgCppOrgCli
+    DESTINATION lib/cmake/haxorg_cpp_org_cli
 )
 
 configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/HaxorgCppOrgCli_config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgCliConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/HaxorgCppOrgCli
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/haxorg_cpp_org_cli-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_cli-config.cmake"
+    INSTALL_DESTINATION lib/cmake/haxorg_cpp_org_cli
 )
 
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgCliConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_cli-config-version.cmake"
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgCliConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/HaxorgCppOrgCliConfigVersion.cmake"
-    DESTINATION lib/cmake/HaxorgCppOrgCli
+        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_cli-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_cpp_org_cli-config-version.cmake"
+    DESTINATION lib/cmake/haxorg_cpp_org_cli
 )

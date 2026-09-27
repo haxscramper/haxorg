@@ -2,7 +2,7 @@
 
 #include <argparse/argparse.hpp>
 #include <haxorg_cpp_org_lib/api/ParseContext.hpp>
-#include <hstd_cpp_lib/stdlib/Opt.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>
 
 #define OPT_NAME(__field, __value) static constexpr char const* __field = __value;
 

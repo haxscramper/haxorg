@@ -1,6 +1,6 @@
 #include <haxorg_cpp_org_cli/proto_to_xml.hpp>
 #include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>
-#include <hstd_cpp_diagram_lib/graph_base.pb.h"
+#include <hstd_cpp_lib/graph_base.pb.h>
 
 using CB  = hstd::ProtoXmlMapper::Override;
 using Xml = hstd::XmlNode;

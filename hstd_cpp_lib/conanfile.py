@@ -27,6 +27,11 @@ class HstdConan(ConanFile):
         {
             "with_protobuf": [True, False],
             "with_protovalidate": [True, False],
+            # TODO: This option is very similar to qt -- it might be unnecessary
+            # to actually compile the perfetto utilities into the main package
+            # instead i can define everything using inline functions or
+            # configure the dependent packages to include a special header for the
+            # sources.
             "with_perfetto": [True, False],
         },
     )

@@ -5,7 +5,7 @@
 #include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 #include <haxorg_cpp_org_lib/exporters/ExporterJson.hpp>
 #include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/imm/graph/ImmOrgGraph.hpp>
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>
 

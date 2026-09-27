@@ -5,7 +5,7 @@
 #include <haxorg_cpp_org_lib/api/ParseContext.hpp>
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 #include <haxorg_cpp_org_lib/lexbase/NodeIO.hpp>
-#include <hstd_cpp_lib/stdlib/JsonUse.hpp>
+#include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
 namespace org::cli {
 struct ExportCommandContext {
