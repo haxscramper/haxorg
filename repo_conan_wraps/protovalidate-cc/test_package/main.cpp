@@ -1,9 +1,9 @@
 #include <buf/validate/validate.pb.h>
-#include <protovalidate/validator.h>
+#include <buf/validate/validator.h>
 
 int main() {
-    buf::validate::FieldConstraints constraints;
-    constraints.set_required(true);
+    buf::validate::FieldRules rules;
+    rules.set_required(true);
 
-    return constraints.required() ? 0 : 1;
+    return rules.required() ? 0 : 1;
 }

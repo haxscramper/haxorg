@@ -20,4 +20,9 @@ add_executable(protovalidate_cc_test main.cpp)
 
 target_compile_features(protovalidate_cc_test PRIVATE cxx_std_17)
 
-target_link_libraries(protovalidate_cc_test PRIVATE protovalidate_cc::protovalidate_cc)
+target_link_libraries(
+    protovalidate_cc_test
+    PRIVATE
+        protovalidate_cc::protovalidate_cc
+        protobuf::libprotobuf
+)
