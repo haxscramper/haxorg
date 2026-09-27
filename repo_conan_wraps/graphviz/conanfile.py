@@ -109,24 +109,22 @@ class GraphvizConan(ConanFile):
             "gvc",
         )
 
-        source_include_dirs = [
-            "lib",
-            "lib/cdt",
-            "lib/cgraph",
-            "lib/common",
-            "lib/gvc",
-            "lib/pathplan",
-            "lib/xdot",
+        workspace_include_dirs = [
+            "../../include",
+            "../../include/graphviz",
         ]
+        workspace_libdirs = ["../../lib"]
+        workspace_bindirs = ["../../bin"]
 
-        self.cpp.source.includedirs = source_include_dirs
-        self.cpp.build.includedirs = ["."]
-        self.cpp.build.libdirs = [f"lib/{name}" for name in component_names]
+        self.cpp.build.includedirs = workspace_include_dirs
+        self.cpp.build.libdirs = workspace_libdirs
+        self.cpp.build.bindirs = workspace_bindirs
 
         for name in component_names:
-            self.cpp.source.components[name].includedirs = source_include_dirs
-            self.cpp.build.components[name].includedirs = ["."]
-            self.cpp.build.components[name].libdirs = [f"lib/{name}"]
+            component = self.cpp.build.components[name]
+            component.includedirs = workspace_include_dirs
+            component.libdirs = workspace_libdirs
+            component.bindirs = workspace_bindirs
 
     def build_requirements(self):
         self.tool_requires("cmake/[>=3.21 <5]")
@@ -190,51 +188,9 @@ class GraphvizConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+        cmake.install()
 
-        self._generate_build_plugin_registry()
-
-    def _generate_build_plugin_registry(self):
-        plugin_directory = os.path.join(
-            self.package_folder,
-            "lib",
-            "graphviz",
-        )
-
-        copy(
-            self,
-            pattern="libgvplugin_*.so*",
-            src=os.path.join(self.build_folder, "plugin"),
-            dst=plugin_directory,
-            keep_path=False,
-        )
-
-        executable_name = "dot.exe" if self.settings.os == "Windows" else "dot"
-        dot_executable = os.path.join(
-            self.build_folder,
-            "cmd",
-            "dot",
-            executable_name,
-        )
-
-        library_directories = [
-            plugin_directory,
-            *[
-                os.path.join(self.build_folder, "lib", name)
-                for name in (
-                    "cdt",
-                    "cgraph",
-                    "pathplan",
-                    "xdot",
-                    "gvc",
-                )
-            ],
-        ]
-
-        self._generate_plugin_registry(
-            dot_executable=dot_executable,
-            library_directories=library_directories,
-            plugin_directory=plugin_directory,
-        )
+        self._generate_plugin_registry()
 
     def package(self):
         copy(
@@ -253,6 +209,9 @@ class GraphvizConan(ConanFile):
         cmake = CMake(self)
         cmake.install()
 
+        self._generate_plugin_registry()
+
+    def _generate_plugin_registry(self):
         bin_directory = os.path.join(self.package_folder, "bin")
         lib_directory = os.path.join(self.package_folder, "lib")
         plugin_directory = os.path.join(
@@ -261,42 +220,35 @@ class GraphvizConan(ConanFile):
         )
 
         executable_name = "dot.exe" if self.settings.os == "Windows" else "dot"
-
-        self._generate_plugin_registry(
-            dot_executable=os.path.join(
-                bin_directory,
-                executable_name,
-            ),
-            library_directories=[lib_directory],
-            plugin_directory=plugin_directory,
+        dot_executable = os.path.join(
+            bin_directory,
+            executable_name,
         )
 
-    def _generate_plugin_registry(
-        self,
-        dot_executable,
-        library_directories,
-        plugin_directory,
-    ):
         environment = Environment()
         environment.define("GVBINDIR", plugin_directory)
+        environment.prepend_path("PATH", bin_directory)
 
-        for directory in library_directories:
-            if self.settings.os == "Linux":
-                environment.prepend_path("LD_LIBRARY_PATH", directory)
-            elif self.settings.os == "Macos":
-                environment.prepend_path("DYLD_LIBRARY_PATH", directory)
-            elif self.settings.os == "Windows":
-                environment.prepend_path("PATH", directory)
+        if self.settings.os == "Linux":
+            environment.prepend_path(
+                "LD_LIBRARY_PATH",
+                lib_directory,
+            )
+        elif self.settings.os == "Macos":
+            environment.prepend_path(
+                "DYLD_LIBRARY_PATH",
+                lib_directory,
+            )
+        elif self.settings.os == "Windows":
+            environment.prepend_path(
+                "PATH",
+                lib_directory,
+            )
 
         with environment.vars(self).apply():
             self.run(f'"{dot_executable}" -c')
 
     def package_info(self):
-        plugin_directory = os.path.join(self.package_folder, "lib", "graphviz")
-
-        self.runenv_info.define("GVBINDIR", plugin_directory)
-        self.buildenv_info.define("GVBINDIR", plugin_directory)
-
         self.cpp_info.set_property("cmake_file_name", "graphviz")
 
         # Existing component configuration follows.
@@ -339,8 +291,3 @@ class GraphvizConan(ConanFile):
 
         if self.settings.os == "Windows":
             self.cpp_info.components["gvc"].defines = ["GVDLL"]
-
-        self.runenv_info.define(
-            "GVBINDIR",
-            os.path.join(self.package_folder, "lib", "graphviz"),
-        )

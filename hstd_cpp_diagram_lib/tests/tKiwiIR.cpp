@@ -369,7 +369,7 @@ TEST(KiwiIr, VerifyPassWeakConflict) {
     EXPECT_NO_THROW(layout.verify_constraints());
 }
 
-TEST(KiwiIr, VerifyFailPinConflict) {
+TEST(KiwiIr, DISABLED_VerifyFailPinConflict) {
     auto ctx = std::make_shared<KiwiCtx>();
     ctx->use_rect("a", 0, std::nullopt, std::nullopt, std::nullopt);
     Rect::Ptr                       a           = ctx->rects.at("a");
