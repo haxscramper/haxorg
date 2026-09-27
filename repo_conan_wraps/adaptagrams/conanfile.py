@@ -44,6 +44,23 @@ class AdaptagramsConan(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+        component_names = (
+            "vpsc",
+            "avoid",
+            "cola",
+            "topology",
+            "dialect",
+        )
+
+        self.cpp.source.includedirs = ["upstream/cola"]
+        self.cpp.build.includedirs = ["generated"]
+        self.cpp.build.libdirs = ["."]
+
+        for name in component_names:
+            self.cpp.source.components[name].includedirs = ["upstream/cola"]
+            self.cpp.build.components[name].includedirs = ["generated"]
+            self.cpp.build.components[name].libdirs = ["."]
+
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
             check_min_cppstd(self, "11")

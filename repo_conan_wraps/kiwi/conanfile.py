@@ -19,6 +19,7 @@ class KiwiConan(ConanFile):
 
     def layout(self):
         cmake_layout(self)
+        self.cpp.source.includedirs = ["upstream"]
 
     def source(self):
         # TODO: Find if there is a cleaner way to do this, there is

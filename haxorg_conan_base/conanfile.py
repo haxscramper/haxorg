@@ -235,7 +235,19 @@ class HaxorgPackage(_HaxorgTypingBase):
             os.path.join(build, "generated", "proto"),
             os.path.join(pkg, "include"),
         )
-        copy(self, f"lib{self.name}.a", build, os.path.join(pkg, "lib"), keep_path=False)
+
+        library_names = self.haxorg_package_libs
+        if library_names is None:
+            library_names = (self.name,)
+
+        for library_name in library_names:
+            copy(
+                self,
+                f"lib{library_name}.a",
+                build,
+                os.path.join(pkg, "lib"),
+                keep_path=False,
+            )
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", self.name)
