@@ -43,9 +43,9 @@ packages:
     ref: haxorg_cpp_org_cli/0.1.0
     output_folder: build/conan_build/haxorg_cpp_org_cli
 
-  - path: haxorg_py_lib_wrap
-    ref: haxorg_py_lib_wrap/0.1.0
-    output_folder: build/conan_build/haxorg_py_lib_wrap
+  - path: haxorg_cpp_py_wrap
+    ref: haxorg_cpp_py_wrap/0.1.0
+    output_folder: build/conan_build/haxorg_cpp_py_wrap
 
   - path: haxorg_c_lib_wrap
     ref: haxorg_c_lib_wrap/0.1.0

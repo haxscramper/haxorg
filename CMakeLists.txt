@@ -29,4 +29,4 @@ add_subdirectory(haxorg_c_lib_wrap)
 add_subdirectory(haxdex_cpp_refl_read)
 
 add_subdirectory(hstd_py_text_layout)
-add_subdirectory(haxorg_py_lib_wrap)
+add_subdirectory(haxorg_cpp_py_wrap)

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(haxorg_py_lib_wrap VERSION 0.1.0 LANGUAGES CXX)
+project(haxorg_cpp_py_wrap VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

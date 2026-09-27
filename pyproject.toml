@@ -78,7 +78,7 @@ local = [
 
 [tool.uv.workspace]
 members = [
-  # "haxorg_py_lib_wrap/package",
+  # "haxorg_cpp_py_wrap/package",
   # "repo_ci_config/py_ci",
   # # "repo_py_orchestrate",
   # "haxorg_py_codegen/py_codegen",

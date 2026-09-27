@@ -3,7 +3,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
 class haxorg_py_haxorgConan(ConanFile):
-    name = "haxorg_py_lib_wrap"
+    name = "haxorg_cpp_py_wrap"
     version = "0.1.0"
 
     settings = "os", "compiler", "build_type", "arch"
