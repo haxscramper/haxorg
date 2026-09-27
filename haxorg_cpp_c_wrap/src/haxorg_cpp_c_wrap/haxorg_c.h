@@ -1,6 +1,6 @@
 /* clang-format off */
 #pragma once
-#include <wrappers/c/haxorg_c_api.h>
+#include <haxorg_cpp_c_wrap/haxorg_c_api.h>
 struct haxorg_SemIdOfOrg;
 
 struct haxorg_HstdVecOfOrgJson;

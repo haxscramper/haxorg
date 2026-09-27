@@ -36,6 +36,16 @@ class HaxorgPackage(_HaxorgTypingBase):
     # Patterns copied from `src/` into the installed `include/`
     haxorg_header_patterns: tuple[str, ...] = ("*.hpp", "*.h")
 
+    # Use the CMake install rules instead of the default artifact copying.
+    haxorg_use_cmake_install = False
+
+    # Libraries exposed through Conan's cpp_info. None selects the default
+    # based on package_type; an empty tuple exposes no linkable libraries.
+    haxorg_package_libs: tuple[str, ...] | None = None
+
+    # Runtime environment variables populated with package-relative paths.
+    haxorg_runenv_paths: dict[str, tuple[str, ...]] = {}
+
     @property
     def haxorg_is_application(self) -> bool:
         return self.package_type == "application"
@@ -66,6 +76,9 @@ class HaxorgPackage(_HaxorgTypingBase):
         pass
 
     def haxorg_package_info(self):
+        pass
+
+    def haxorg_configure_layout(self):
         pass
 
     def haxorg_validate_structure(self, root_dir: str):
@@ -155,6 +168,8 @@ class HaxorgPackage(_HaxorgTypingBase):
             self.cpp.package.includedirs = ["include"]
             self.cpp.package.libdirs = ["lib"]
 
+        self.haxorg_configure_layout()
+
     def generate(self):
         self.haxorg_validate_structure(self.source_folder)
 
@@ -226,8 +241,20 @@ class HaxorgPackage(_HaxorgTypingBase):
         self.cpp_info.set_property("cmake_file_name", self.name)
         self.cpp_info.set_property("cmake_target_name", self.haxorg_cmake_target)
         self.cpp_info.set_property("haxorg_package", True)
-        if not self.haxorg_is_application:
-            self.cpp_info.libs = [self.name]
+
+        if self.haxorg_package_libs is None:
+            if self.package_type in ("static-library", "shared-library"):
+                self.cpp_info.libs = [self.name]
+        else:
+            self.cpp_info.libs = list(self.haxorg_package_libs)
+
+        assert self.package_folder
+        for variable, directories in self.haxorg_runenv_paths.items():
+            for directory in directories:
+                self.runenv_info.prepend_path(
+                    variable,
+                    os.path.join(self.package_folder, directory),
+                )
 
         self.haxorg_package_info()
 

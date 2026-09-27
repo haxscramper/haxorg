@@ -48,12 +48,12 @@
 #if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC
 #    include <haxorg_cpp_org_lib/SemOrgProto.pb.h>
 #endif
-#include <py_libs/nanobind_utils.hpp>
-#include <py_libs/py_type_casters.hpp>
+#include <hstd_cpp_lib/extra/nanobind_utils/py_type_casters.hpp>
+#include <hstd_cpp_lib/extra/nanobind_utils/register_types.hpp>
 
 #include <frameobject.h>
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/imm/graph/ImmOrgGraph.hpp>
 #include <hstd_cpp_lib/stdlib/RangeSegmentation.hpp>
 
 

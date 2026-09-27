@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-include(CMakePackageConfigHelpers)
-
 find_package(
     Python
     COMPONENTS
@@ -17,6 +15,7 @@ find_package(
 )
 
 find_package(nanobind CONFIG REQUIRED)
+
 if(NOT TARGET hstd::hstd_cpp_lib)
     find_package(hstd_cpp_lib CONFIG REQUIRED)
 endif()
@@ -25,64 +24,33 @@ if(NOT TARGET haxorg::haxorg_cpp_org_lib)
     find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
 endif()
 
+set(HAXORG_CPP_PY_WRAP_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/haxorg_cpp_py_wrap")
+
 nanobind_add_module(
-    haxorg_py_haxorg
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/py_type_casters.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/py_type_casters.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg_manual_impl.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg_manual_refl.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/pyhaxorg/pyhaxorg_manual_impl.hpp"
+    haxorg_cpp_py_wrap
+    "${HAXORG_CPP_PY_WRAP_SOURCE_DIR}/pyhaxorg.cpp"
+    "${HAXORG_CPP_PY_WRAP_SOURCE_DIR}/pyhaxorg_manual_impl.cpp"
+    "${HAXORG_CPP_PY_WRAP_SOURCE_DIR}/pyhaxorg_manual_refl.cpp"
+    "${HAXORG_CPP_PY_WRAP_SOURCE_DIR}/pyhaxorg_manual_impl.hpp"
 )
 
-haxorg_set_target_output(haxorg_py_haxorg)
-haxorg_set_target_flags(haxorg_py_haxorg)
+haxorg_set_target_flags(haxorg_cpp_py_wrap)
 
 set_target_properties(
-    haxorg_py_haxorg
+    haxorg_cpp_py_wrap
     PROPERTIES
         OUTPUT_NAME
             "pyhaxorg"
+        LIBRARY_OUTPUT_DIRECTORY
+            "${CMAKE_CURRENT_BINARY_DIR}/python"
+        RUNTIME_OUTPUT_DIRECTORY
+            "${CMAKE_CURRENT_BINARY_DIR}/python"
 )
 
-target_include_directories(haxorg_py_haxorg PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(haxorg_cpp_py_wrap PRIVATE "${HAXORG_CPP_PY_WRAP_SOURCE_DIR}")
 
-target_link_libraries(haxorg_py_haxorg PRIVATE haxorg::haxorg_cpp_lib)
+target_link_libraries(haxorg_cpp_py_wrap PRIVATE haxorg::haxorg_cpp_org_lib)
 
-add_library(haxorg::haxorg_py_haxorg ALIAS haxorg_py_haxorg)
+add_library(haxorg::haxorg_cpp_py_wrap ALIAS haxorg_cpp_py_wrap)
 
-install(
-    TARGETS
-        haxorg_py_haxorg
-    EXPORT haxorg_py_haxorg_targets
-    LIBRARY
-        DESTINATION "."
-    RUNTIME
-        DESTINATION "."
-)
-
-install(
-    EXPORT haxorg_py_haxorg_targets
-    FILE haxorg_py_haxorg_targets.cmake
-    NAMESPACE haxorg::
-    DESTINATION lib/cmake/haxorg_py_haxorg
-)
-
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/haxorg_py_haxorg_config.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config.cmake"
-    INSTALL_DESTINATION lib/cmake/haxorg_py_haxorg
-)
-
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config_version.cmake"
-    VERSION "${PROJECT_VERSION}"
-    COMPATIBILITY SameMajorVersion
-)
-
-install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/haxorg_py_haxorg_config_version.cmake"
-    DESTINATION lib/cmake/haxorg_py_haxorg
-)
+install(TARGETS haxorg_cpp_py_wrap LIBRARY DESTINATION python RUNTIME DESTINATION python)

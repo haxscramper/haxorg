@@ -2,12 +2,12 @@
 
 #if ORG_BUILD_WRAPPERS_C
 #    include "tOrgTestCommon.hpp"
+#    include <haxorg_cpp_c_wrap/haxorg_c.h>
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/PairFormatter.hpp>
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
 #    include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
-#    include <wrappers/c/haxorg_c.h>
 
 
 TEST(OrgCApi, TestSimpleParsing) {

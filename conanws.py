@@ -8,7 +8,7 @@ class MonorepoConan(ConanFile):
     def requirements(self):
         self.requires("haxorg_cpp_org_cli/[>=0.1.0 <999]")
         self.requires("haxdex_cpp_refl_wrap/[>=0.1.0 <999]")
-        # self.requires("haxorg_c_lib_wrap/[>=0.1.0 <999]")
+        # self.requires("haxorg_cpp_c_wrap/[>=0.1.0 <999]")
         # self.requires("haxorg_cpp_py_wrap/[>=0.1.0 <999]")
 
     def layout(self):

@@ -1,8 +1,8 @@
 /* clang-format off */
 #pragma once
-#include <wrappers/c/haxorg_c.h>
-#include <wrappers/c/haxorg_c_utils.hpp>
-#include <wrappers/c/haxorg_c_vtables_manual.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c.h>
+#include <haxorg_cpp_c_wrap/haxorg_c_utils.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c_vtables_manual.hpp>
 template <>
 struct org::bind::c::VTable<hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath, std::hash<org::sem::HashTagFlat>>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());

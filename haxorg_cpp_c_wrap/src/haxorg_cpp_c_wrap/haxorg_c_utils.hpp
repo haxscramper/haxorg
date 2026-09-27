@@ -1,12 +1,12 @@
 #pragma once
 
+#include <haxorg_cpp_c_wrap/haxorg_c_api.h>
 #include <haxorg_cpp_org_lib/api/ParseContext.hpp>
 #include <haxorg_cpp_org_lib/api/SemBaseApi.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/imm/graph/ImmOrgGraph.hpp>
 #include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
 #include <hstd_cpp_lib/stdlib/RangeSegmentation.hpp>
-#include <wrappers/c/haxorg_c_api.h>
 
 namespace org::bind::c {
 

@@ -1,8 +1,8 @@
 /* clang-format off */
-#include <wrappers/c/haxorg_c.h>
-#include <wrappers/c/haxorg_c_vtables.hpp>
-#include <wrappers/c/haxorg_c_vtables_manual.hpp>
-#include <wrappers/c/haxorg_c_utils.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c.h>
+#include <haxorg_cpp_c_wrap/haxorg_c_vtables.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c_vtables_manual.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c_utils.hpp>
 
 
 

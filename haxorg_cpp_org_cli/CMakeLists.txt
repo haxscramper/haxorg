@@ -33,7 +33,7 @@ haxorg_set_target_flags(haxorg_cpp_org_cli)
 target_link_libraries(
     haxorg_cpp_org_cli
     PRIVATE
-        haxorg::haxorg_cpp_lib
+        haxorg::haxorg_cpp_org_lib
         absl::base
         absl::log
         absl::flags

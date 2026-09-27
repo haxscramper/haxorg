@@ -1,8 +1,8 @@
 /* clang-format off */
-#include <wrappers/c/haxorg_c.h>
-#include <wrappers/c/haxorg_c_utils.hpp>
-#include <wrappers/c/haxorg_c_vtables.hpp>
-#include <wrappers/c/haxorg_c_vtables_manual.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c.h>
+#include <haxorg_cpp_c_wrap/haxorg_c_utils.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c_vtables.hpp>
+#include <haxorg_cpp_c_wrap/haxorg_c_vtables_manual.hpp>
 haxorg_ptr_payload org::bind::c::VTable<hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath, std::hash<org::sem::HashTagFlat>>>::keys_const(OrgContext* org_context, haxorg_HstdMap __self) {
   return org::bind::c::execute_cpp<haxorg_ptr_payload>(static_cast<hstd::Vec<org::sem::HashTagFlat>(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath, std::hash<org::sem::HashTagFlat>>::*)() const>(&hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath, std::hash<org::sem::HashTagFlat>>::keys), org_context, __self);
 }

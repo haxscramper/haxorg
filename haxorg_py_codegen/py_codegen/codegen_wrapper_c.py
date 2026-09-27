@@ -1123,24 +1123,28 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
         [
             codegen_ir.GenUnit(
                 header=codegen_ir.GenTu(
-                    "{root}/src/wrappers/c/haxorg_c.h",
+                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c.h",
                     [
                         codegen_ir.GenTuPass(ast.string("#pragma once")),
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c_api.h", True),
+                        codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c_api.h", True),
                     ]
                     + header_only
                     + wrapped_structs
                     + standalone_funcs,
                 ),
                 source=codegen_ir.GenTu(
-                    "{root}/src/wrappers/c/haxorg_c.cpp",
+                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c.cpp",
                     [
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c.h", True),
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables.hpp", True),
+                        codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c.h", True),
                         codegen_ir.GenTuInclude(
-                            "wrappers/c/haxorg_c_vtables_manual.hpp", True
+                            "haxorg_cpp_c_wrap/haxorg_c_vtables.hpp", True
                         ),
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c_utils.hpp", True),
+                        codegen_ir.GenTuInclude(
+                            "haxorg_cpp_c_wrap/haxorg_c_vtables_manual.hpp", True
+                        ),
+                        codegen_ir.GenTuInclude(
+                            "haxorg_cpp_c_wrap/haxorg_c_utils.hpp", True
+                        ),
                     ]
                     + wrapped_structs
                     + standalone_funcs,
@@ -1148,25 +1152,31 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
             ),
             codegen_ir.GenUnit(
                 header=codegen_ir.GenTu(
-                    "{root}/src/wrappers/c/haxorg_c_vtables.hpp",
+                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c_vtables.hpp",
                     [
                         codegen_ir.GenTuPass(ast.string("#pragma once")),
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c.h", True),
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c_utils.hpp", True),
+                        codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c.h", True),
                         codegen_ir.GenTuInclude(
-                            "wrappers/c/haxorg_c_vtables_manual.hpp", True
+                            "haxorg_cpp_c_wrap/haxorg_c_utils.hpp", True
+                        ),
+                        codegen_ir.GenTuInclude(
+                            "haxorg_cpp_c_wrap/haxorg_c_vtables_manual.hpp", True
                         ),
                     ]
                     + vtables,
                 ),
                 source=codegen_ir.GenTu(
-                    "{root}/src/wrappers/c/haxorg_c_vtables.cpp",
+                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c_vtables.cpp",
                     [
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c.h", True),
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c_utils.hpp", True),
-                        codegen_ir.GenTuInclude("wrappers/c/haxorg_c_vtables.hpp", True),
+                        codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c.h", True),
                         codegen_ir.GenTuInclude(
-                            "wrappers/c/haxorg_c_vtables_manual.hpp", True
+                            "haxorg_cpp_c_wrap/haxorg_c_utils.hpp", True
+                        ),
+                        codegen_ir.GenTuInclude(
+                            "haxorg_cpp_c_wrap/haxorg_c_vtables.hpp", True
+                        ),
+                        codegen_ir.GenTuInclude(
+                            "haxorg_cpp_c_wrap/haxorg_c_vtables_manual.hpp", True
                         ),
                     ]
                     + vtables,

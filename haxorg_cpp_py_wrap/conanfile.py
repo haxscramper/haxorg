@@ -1,18 +1,20 @@
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 
-class haxorg_py_haxorgConan(ConanFile):
+class HaxorgCppPyWrapConan(ConanFile):
     name = "haxorg_cpp_py_wrap"
     version = "0.1.0"
+    package_type = "shared-library"
 
-    settings = "os", "compiler", "build_type", "arch"
+    python_requires = "haxorg_conan_base/0.1.0"
+    python_requires_extend = "haxorg_conan_base.HaxorgPackage"
 
-    exports_sources = (
-        "CMakeLists.txt",
-        "cmake/*",
-        "src/*",
-    )
+    haxorg_use_cmake_install = True
+    haxorg_header_patterns = ()
+    haxorg_package_libs = ()
+    haxorg_runenv_paths = {
+        "PYTHONPATH": ("python",),
+    }
 
     def requirements(self):
         self.requires(
@@ -22,25 +24,20 @@ class haxorg_py_haxorgConan(ConanFile):
         )
         self.requires("nanobind/[>=2.9.2 <3]")
 
-    def layout(self):
-        cmake_layout(self)
+    def haxorg_configure_layout(self):
+        assert self.cpp
+        assert self.cpp.source
+        assert self.cpp.build
+        assert self.cpp.package
 
-    def generate(self):
-        toolchain = CMakeToolchain(self)
-        toolchain.generate()
+        self.cpp.source.includedirs = []
+        self.cpp.source.resdirs = []
 
-        dependencies = CMakeDeps(self)
-        dependencies.generate()
+        self.cpp.build.includedirs = []
+        self.cpp.build.libdirs = []
+        self.cpp.build.bindirs = []
 
-    def build(self):
-        cmake = CMake(self)
-        cmake.configure(cli_args=["--fresh"])
-        cmake.build()
-
-    def package(self):
-        cmake = CMake(self)
-        cmake.install()
-
-    def package_info(self):
-        self.cpp_info.builddirs = ["lib/cmake/haxorg_py_haxorg"]
-        self.cpp_info.set_property("cmake_find_mode", "none")
+        self.cpp.package.includedirs = []
+        self.cpp.package.libdirs = []
+        self.cpp.package.bindirs = []
+        self.cpp.package.resdirs = []

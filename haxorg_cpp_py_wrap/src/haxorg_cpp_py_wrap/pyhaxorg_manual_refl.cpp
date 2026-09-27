@@ -7,7 +7,7 @@
 #include <haxorg_cpp_org_lib/exporters/exportertree.hpp>
 #include <haxorg_cpp_org_lib/exporters/exporteryaml.hpp>
 #include <haxorg_cpp_org_lib/imm/ImmOrg.hpp>
-#include <haxorg_cpp_org_lib/imm/ImmOrgGraph.hpp>
+#include <haxorg_cpp_org_lib/imm/graph/ImmOrgGraph.hpp>
 #include <haxorg_cpp_org_lib/sem/SemOrgFormat.hpp>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/RangeSegmentation.hpp>
