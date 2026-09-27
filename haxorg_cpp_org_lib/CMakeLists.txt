@@ -90,19 +90,12 @@ target_compile_definitions(
 
 if(HAXORG_WITH_PROTOBUF)
     set(HAXORG_PROTO_PUBLIC_LIBRARIES)
-    set(HAXORG_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
-    list(APPEND HAXORG_PROTO_IMPORT_DIRS "${hstd_cpp_lib_PROTO_IMPORT_DIR}")
-
     if(HAXORG_WITH_PROTOVALIDATE)
         list(APPEND HAXORG_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
-        list(APPEND HAXORG_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
     endif()
 
     haxorg_add_protobuf(
         TARGET haxorg_cpp_org_lib
-        UNIQUE_TARGET haxorg_sem_protobuf
-        IMPORT_DIRS
-            ${HAXORG_PROTO_IMPORT_DIRS}
         PROTO_SOURCES
             "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProto.proto"
             "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProtoManual.proto"

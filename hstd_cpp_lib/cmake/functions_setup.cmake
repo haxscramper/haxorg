@@ -320,24 +320,16 @@ function(haxorg_add_protobuf)
     cmake_parse_arguments(
         HAP
         ""
-        "TARGET;UNIQUE_TARGET"
+        "TARGET"
         "IMPORT_DIRS;PROTO_SOURCES;PUBLIC_LIBRARIES;PRIVATE_LIBRARIES"
         ${ARGN}
     )
 
-    # TODO: Add optional configuration option to debug-print every configuration element in the
-    # parameters here.
-
     if(HAP_UNPARSED_ARGUMENTS)
         message(
             FATAL_ERROR
-            "haxorg_add_protobuf(): unknown arguments: "
-            "${HAP_UNPARSED_ARGUMENTS}"
+            "haxorg_add_protobuf(): unknown arguments: ${HAP_UNPARSED_ARGUMENTS}"
         )
-    endif()
-
-    if(NOT HAP_TARGET)
-        message(FATAL_ERROR "haxorg_add_protobuf(): TARGET is required")
     endif()
 
     if(NOT TARGET "${HAP_TARGET}")
@@ -347,23 +339,45 @@ function(haxorg_add_protobuf)
         )
     endif()
 
-    if(NOT HAP_UNIQUE_TARGET)
-        message(FATAL_ERROR "haxorg_add_protobuf(): UNIQUE_TARGET is required")
-    endif()
-
     if(NOT HAP_PROTO_SOURCES)
         message(FATAL_ERROR "haxorg_add_protobuf(): PROTO_SOURCES is required")
     endif()
 
-    # Use a separate output directory for each invocation. This prevents similarly named proto files
-    # from separate invocations from colliding.
-    set(HAP_PROTO_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/${HAP_UNIQUE_TARGET}")
+    set(HAP_OWN_PROTO_ROOT "${PROJECT_SOURCE_DIR}/proto")
+    foreach(HAP_SOURCE IN LISTS HAP_PROTO_SOURCES)
+        cmake_path(
+            IS_PREFIX
+            HAP_OWN_PROTO_ROOT
+            "${HAP_SOURCE}"
+            NORMALIZE
+            HAP_IS_OWN
+        )
+        cmake_path(GET HAP_SOURCE PARENT_PATH HAP_SOURCE_DIR)
+        if(
+            NOT HAP_IS_OWN
+            OR NOT HAP_SOURCE_DIR
+                STREQUAL
+                "${HAP_OWN_PROTO_ROOT}/${HAXORG_PACKAGE_NAME}"
+        )
+            message(
+                FATAL_ERROR
+                "haxorg_add_protobuf(): '${HAP_SOURCE}' must be located in "
+                "'${HAP_OWN_PROTO_ROOT}/${HAXORG_PACKAGE_NAME}/'"
+            )
+        endif()
+    endforeach()
 
-    message(STATUS "HAP_PROTO_OUT_DIR for ${HAP_TARGET} = ${HAP_PROTO_OUT_DIR}")
-
+    set(HAP_PROTO_OUT_DIR "${CMAKE_BINARY_DIR}/generated/proto")
     file(MAKE_DIRECTORY "${HAP_PROTO_OUT_DIR}")
 
-    set(HAP_EFFECTIVE_IMPORT_DIRS ${HAP_IMPORT_DIRS})
+    set(HAP_EFFECTIVE_IMPORT_DIRS
+        "${HAP_OWN_PROTO_ROOT}"
+        ${HAXORG_DEPS_PROTO_IMPORT_DIRS}
+        ${HAP_IMPORT_DIRS}
+    )
+    if(DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
+        list(APPEND HAP_EFFECTIVE_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
+    endif()
     list(REMOVE_DUPLICATES HAP_EFFECTIVE_IMPORT_DIRS)
 
     protobuf_generate(
@@ -376,19 +390,12 @@ function(haxorg_add_protobuf)
         PROTOC_OUT_DIR "${HAP_PROTO_OUT_DIR}"
     )
 
-    # protobuf_generate() creates custom commands for its outputs. Once those outputs are target
-    # sources, CMake automatically creates the necessary build dependency. A separate custom
-    # target/add_dependencies pair is not required.
     target_sources("${HAP_TARGET}" PRIVATE ${HAP_GENERATED_FILES})
-
     target_include_directories(
         "${HAP_TARGET}"
         PUBLIC
             "$<BUILD_INTERFACE:${HAP_PROTO_OUT_DIR}>"
-            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
     )
-
-    # Generated public headers include Google Protobuf headers, so this is a public usage requirement.
     target_link_libraries(
         "${HAP_TARGET}"
         PUBLIC
@@ -397,45 +404,4 @@ function(haxorg_add_protobuf)
         PRIVATE
             ${HAP_PRIVATE_LIBRARIES}
     )
-
-    # Install only generated headers, preserving their path relative to the protoc output directory.
-    # Generated .cc files are already compiled into the library and should not be installed.
-    foreach(HAP_GENERATED_FILE IN LISTS HAP_GENERATED_FILES)
-        if(HAP_GENERATED_FILE MATCHES "\\.(h|hpp)$")
-            file(
-                RELATIVE_PATH
-                HAP_GENERATED_RELATIVE_PATH
-                "${HAP_PROTO_OUT_DIR}"
-                "${HAP_GENERATED_FILE}"
-            )
-
-            if(HAP_GENERATED_RELATIVE_PATH MATCHES "^\\.\\.")
-                message(
-                    FATAL_ERROR
-                    "Generated protobuf header is outside its output directory: "
-                    "${HAP_GENERATED_FILE}"
-                )
-            endif()
-
-            get_filename_component(
-                HAP_GENERATED_RELATIVE_DIR
-                "${HAP_GENERATED_RELATIVE_PATH}"
-                DIRECTORY
-            )
-
-            if(HAP_GENERATED_RELATIVE_DIR STREQUAL "")
-                set(HAP_GENERATED_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
-            else()
-                set(HAP_GENERATED_INSTALL_DIR
-                    "${CMAKE_INSTALL_INCLUDEDIR}/${HAP_GENERATED_RELATIVE_DIR}"
-                )
-            endif()
-
-            install(
-                FILES
-                    "${HAP_GENERATED_FILE}"
-                DESTINATION "${HAP_GENERATED_INSTALL_DIR}"
-            )
-        endif()
-    endforeach()
 endfunction()

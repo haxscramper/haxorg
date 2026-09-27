@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(hstd)
+project(hstd_cpp_lib)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
@@ -111,7 +111,11 @@ haxorg_glob_add_sources2(
     RECURSE ON
 )
 
-target_include_directories(hstd_cpp_lib PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
+target_include_directories(
+    hstd_cpp_lib
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>"
+)
 
 target_link_libraries(
     hstd_cpp_lib
@@ -140,18 +144,12 @@ endif()
 
 if(HSTD_CPP_BUILD_WITH_PROTOBUF)
     set(HSTD_PROTO_PUBLIC_LIBRARIES)
-    set(HSTD_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_LIST_DIR}/proto")
-
     if(HSTD_CPP_BUILD_WITH_PROTOVALIDATE)
         list(APPEND HSTD_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
-        list(APPEND HSTD_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
     endif()
 
     haxorg_add_protobuf(
         TARGET hstd_cpp_lib
-        UNIQUE_TARGET hstd_proto_base_graph
-        IMPORT_DIRS
-            ${HSTD_PROTO_IMPORT_DIRS}
         PROTO_SOURCES
             "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/graph_base.proto"
             "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/error_write.proto"
@@ -162,13 +160,6 @@ if(HSTD_CPP_BUILD_WITH_PROTOBUF)
             ${HSTD_PROTO_PUBLIC_LIBRARIES}
     )
 endif()
-
-target_include_directories(
-    hstd_cpp_lib
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<INSTALL_INTERFACE:src>
-)
 
 if(BUILD_TESTING)
     enable_testing()
@@ -200,50 +191,4 @@ set_target_properties(
             hstd_cpp_lib
         EXPORT_NAME
             hstd_cpp_lib
-)
-
-target_include_directories(
-    hstd_cpp_lib
-    PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>"
-        "$<INSTALL_INTERFACE:include>"
-)
-
-install(
-    TARGETS
-        hstd_cpp_lib
-    EXPORT hstdTargets
-    ARCHIVE
-        DESTINATION lib
-    LIBRARY
-        DESTINATION lib
-    RUNTIME
-        DESTINATION bin
-    INCLUDES DESTINATION
-        include
-)
-
-install(
-    DIRECTORY
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/"
-    DESTINATION include/
-    FILES_MATCHING
-    PATTERN "*.hpp"
-)
-
-install(
-    FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/functions_aux.cmake"
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/functions_setup.cmake"
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/hstd_cpp_lib_proto.cmake"
-    DESTINATION "lib/cmake/hstd_cpp_lib"
-)
-
-install(
-    DIRECTORY
-        "${CMAKE_CURRENT_SOURCE_DIR}/proto/"
-    DESTINATION "share/hstd_cpp_lib/proto"
-    FILES_MATCHING
-    PATTERN "*.proto"
 )
