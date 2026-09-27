@@ -1,0 +1,19 @@
+include(CMakeFindDependencyMacro)
+@PROTOVALIDATE_CC_FIND_DEPENDENCIES_STR@
+
+include("${CMAKE_CURRENT_LIST_DIR}/protovalidate_cc-targets.cmake")
+
+get_filename_component(
+    protovalidate_cc_PROTO_IMPORT_DIR
+    "@PROTOVALIDATE_CC_CONFIG_PROTO_IMPORT_DIR@"
+    ABSOLUTE
+)
+
+if(NOT EXISTS "${protovalidate_cc_PROTO_IMPORT_DIR}/buf/validate/validate.proto")
+    message(
+        FATAL_ERROR
+        "The protovalidate_cc package is missing "
+        "'buf/validate/validate.proto' under "
+        "'${protovalidate_cc_PROTO_IMPORT_DIR}'"
+    )
+endif()

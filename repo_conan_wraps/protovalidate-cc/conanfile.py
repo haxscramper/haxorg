@@ -7,7 +7,7 @@ from conan.tools.cmake import (
     CMakeToolchain,
     cmake_layout,
 )
-from conan.tools.files import copy, download, get, mkdir, replace_in_file, rmdir, save
+from conan.tools.files import download, get, mkdir
 
 
 class ProtovalidateCcConan(ConanFile):
@@ -29,9 +29,10 @@ class ProtovalidateCcConan(ConanFile):
         "fPIC": True,
     }
 
-    @property
-    def _upstream_source_folder(self):
-        return os.path.join(self.source_folder, "_source")
+    exports_sources = (
+        "CMakeLists.txt",
+        "protovalidate_cc-config.cmake.in",
+    )
 
     def requirements(self):
         # Specific version pinned because protovalidate internally vendors google CEL
@@ -54,8 +55,6 @@ class ProtovalidateCcConan(ConanFile):
 
     def source(self):
         version = str(self.version)
-        source_folder = self._upstream_source_folder
-        mkdir(self, source_folder)
 
         source_data = self.conan_data["sources"][version]
         get(
@@ -63,106 +62,13 @@ class ProtovalidateCcConan(ConanFile):
             url=source_data["url"],
             sha256=source_data["sha256"],
             strip_root=True,
-            destination=source_folder,
+            destination=os.path.join(self.source_folder, "_source"),
         )
 
-        root_cmake_file = os.path.join(
-            source_folder,
-            "CMakeLists.txt",
-        )
-
-        replace_in_file(
-            self,
-            root_cmake_file,
-            "    # CMake configuration scripts\n",
-            (
-                "    # CMake configuration scripts\n"
-                f'    set(PROTOVALIDATE_CC_GIT_VERSION "{version}")\n'
-            ),
-        )
-
-        replace_in_file(
-            self,
-            root_cmake_file,
-            "        TARGETS protovalidate_cc ${PROTOVALIDATE_CC_EXPORT_TARGETS}\n",
-            (
-                "        TARGETS\n"
-                "            protovalidate_cc\n"
-                "            ${PROTOVALIDATE_CC_EXPORT_TARGETS}\n"
-                "            cel_cpp_empty_descriptor_set\n"
-                "            cel_cpp_spec_proto\n"
-            ),
-        )
-
-        replace_in_file(
-            self,
-            os.path.join(
-                source_folder,
-                "protovalidate_cc-config.cmake.in",
-            ),
-            "protovalidate-cc-targets.cmake",
-            "protovalidate_cc-targets.cmake",
-        )
-
-        cel_cmake_file = os.path.join(
-            source_folder,
-            "cmake",
-            "cel-cpp",
-            "CMakeLists.txt",
-        )
-
-        replace_in_file(
-            self,
-            cel_cmake_file,
-            (
-                "target_include_directories(cel_cpp_spec_proto\n"
-                "    PUBLIC ${CEL_SPEC_PROTO_GEN_DIR}/proto\n"
-                ")\n"
-            ),
-            (
-                "target_include_directories(cel_cpp_spec_proto PUBLIC\n"
-                "    $<BUILD_INTERFACE:${CEL_SPEC_PROTO_GEN_DIR}/proto>\n"
-                "    $<INSTALL_INTERFACE:include>\n"
-                ")\n"
-            ),
-        )
-
-        replace_in_file(
-            self,
-            root_cmake_file,
-            (
-                "    install(\n"
-                "        DIRECTORY ${PROTOVALIDATE_PROTO_GEN_DIR}/buf\n"
-                "        DESTINATION include\n"
-                '        FILES_MATCHING PATTERN "*.h"\n'
-                "    )\n"
-            ),
-            (
-                "    install(\n"
-                "        DIRECTORY ${PROTOVALIDATE_PROTO_GEN_DIR}/buf\n"
-                "        DESTINATION include\n"
-                '        FILES_MATCHING PATTERN "*.h"\n'
-                "    )\n"
-                "\n"
-                "    install(\n"
-                "        DIRECTORY ${CEL_SPEC_PROTO_GEN_DIR}/proto/\n"
-                "        DESTINATION include\n"
-                '        FILES_MATCHING PATTERN "*.h"\n'
-                "    )\n"
-            ),
-        )
-
-        schema_data = self.conan_data["schemas"][version]
-
-        schema_dir = os.path.join(
-            source_folder,
-            "_conan",
-            "protovalidate-schema",
-            "buf",
-            "validate",
-        )
+        schema_dir = os.path.join(self.source_folder, "_schema", "buf", "validate")
         mkdir(self, schema_dir)
 
+        schema_data = self.conan_data["schemas"][version]
         download(
             self,
             url=schema_data["url"],
@@ -173,10 +79,21 @@ class ProtovalidateCcConan(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+        self.cpp.source.resdirs = ["_schema"]
+        self.cpp.build.builddirs = ["."]
+
+        self.cpp.package.resdirs = [os.path.join("res", "proto")]
+        self.cpp.package.builddirs = [os.path.join("lib", "cmake", "protovalidate_cc")]
+
     def generate(self):
         CMakeDeps(self).generate()
 
         toolchain = CMakeToolchain(self)
+
+        # Vendored cel-cpp uses unique_ptr to incomplete types, which fails
+        # under C++23 constexpr unique_ptr. Standard is pinned in CMakeLists.txt.
+        toolchain.blocks.remove("cppstd")
+
         toolchain.extra_cflags.append("-w")
         toolchain.extra_cxxflags.append("-w")
 
@@ -186,155 +103,20 @@ class ProtovalidateCcConan(ConanFile):
             protobuf.cpp_info.includedirs[0],
         )
 
+        toolchain.variables["PROTOVALIDATE_CC_VERSION"] = str(self.version)
         toolchain.variables["BUILD_SHARED_LIBS"] = False
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_VENDORING"] = False
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_INSTALL"] = True
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_TESTS"] = False
-        toolchain.variables["PROTOVALIDATE_CC_ENABLE_CONFORMANCE"] = False
-        toolchain.variables["PROTOVALIDATE_CC_SETUP_COMPILE_COMMANDS"] = False
-
-        if self.options.get_safe("fPIC") is not None:
-            toolchain.variables["CMAKE_POSITION_INDEPENDENT_CODE"] = bool(
-                self.options.fPIC
-            )
+        toolchain.variables["CMAKE_POSITION_INDEPENDENT_CODE"] = bool(self.options.fPIC)
 
         toolchain.generate()
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure(
-            build_script_folder=self._upstream_source_folder,
-        )
+        cmake.configure()
         cmake.build()
 
     def package(self):
         cmake = CMake(self)
         cmake.install()
-
-        assert self.build_folder
-        assert self.package_folder
-
-        # protovalidate vendors the CEL dependencies internally,
-        # so the headers must be copied over to the target location.
-        copy(
-            self,
-            pattern="*.h",
-            src=os.path.join(self.build_folder, "_deps", "cel_cpp-src"),
-            dst=os.path.join(self.package_folder, "include"),
-            keep_path=True,
-        )
-
-        # The header is generated under `cel_cpp-build`, so the earlier copy from
-        # `cel_cpp-src` cannot include it.
-        copy(
-            self,
-            pattern="*.h",
-            src=os.path.join(
-                self.build_folder,
-                "_deps",
-                "cel_cpp-build",
-                "gen",
-                "proto_cc_cel_spec",
-                "proto",
-            ),
-            dst=os.path.join(self.package_folder, "include"),
-            keep_path=True,
-        )
-
-        rmdir(
-            self,
-            os.path.join(self.package_folder, "lib", "pkgconfig"),
-        )
-
-        schema_source_dir = os.path.join(
-            self._upstream_source_folder,
-            "_conan",
-            "protovalidate-schema",
-            "buf",
-            "validate",
-        )
-
-        schema_package_dir = os.path.join(
-            self.package_folder,
-            "res",
-            "proto",
-            "buf",
-            "validate",
-        )
-
-        copy(
-            self,
-            pattern="validate.proto",
-            src=schema_source_dir,
-            dst=schema_package_dir,
-        )
-
-        self._install_cmake_resource_metadata()
-
-    def _install_cmake_resource_metadata(self):
-        assert self.package_folder
-        cmake_config_dir = os.path.join(
-            self.package_folder,
-            "lib",
-            "cmake",
-            "protovalidate_cc",
-        )
-
-        resources_file = os.path.join(
-            cmake_config_dir,
-            "protovalidate_cc-resources.cmake",
-        )
-
-        save(
-            self,
-            resources_file,
-            content=r"""
-get_filename_component(
-    _protovalidate_cc_package_prefix
-    "${CMAKE_CURRENT_LIST_DIR}/../../.."
-    ABSOLUTE
-)
-
-set(
-    protovalidate_cc_PROTO_IMPORT_DIR
-    "${_protovalidate_cc_package_prefix}/res/proto"
-)
-
-if(NOT EXISTS
-   "${protovalidate_cc_PROTO_IMPORT_DIR}/buf/validate/validate.proto")
-    message(
-        FATAL_ERROR
-        "The protovalidate_cc package is missing "
-        "'buf/validate/validate.proto' under "
-        "'${protovalidate_cc_PROTO_IMPORT_DIR}'"
-    )
-endif()
-
-unset(_protovalidate_cc_package_prefix)
-""",
-        )
-
-        native_config_file = os.path.join(
-            cmake_config_dir,
-            "protovalidate_cc-config.cmake",
-        )
-
-        if not os.path.isfile(native_config_file):
-            raise RuntimeError(
-                f"Missing native protovalidate-cc CMake config: {native_config_file}"
-            )
-
-        save(
-            self,
-            native_config_file,
-            content=r"""
-
-include(
-    "${CMAKE_CURRENT_LIST_DIR}/protovalidate_cc-resources.cmake"
-)
-""",
-            append=True,
-        )
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "protovalidate_cc")
@@ -343,11 +125,3 @@ include(
             "protovalidate_cc::protovalidate_cc",
         )
         self.cpp_info.set_property("cmake_find_mode", "none")
-
-        self.cpp_info.builddirs = [
-            os.path.join("lib", "cmake", "protovalidate_cc"),
-        ]
-
-        self.cpp_info.resdirs = [
-            os.path.join("res", "proto"),
-        ]
