@@ -27,7 +27,6 @@ foreach(
         PROTOVALIDATE_CC_EXPORT_TARGETS
         PROTOVALIDATE_CC_FIND_DEPENDENCIES
         PROTOVALIDATE_PROTO_GEN_DIR
-        CEL_SPEC_PROTO_GEN_DIR
 )
     get_directory_property(
         ${var}
@@ -40,6 +39,17 @@ FetchContent_GetProperties(cel_cpp)
 
 # Upstream exposes a raw build-tree include path, which install(EXPORT) rejects.
 get_target_property(_cel_spec_includes cel_cpp_spec_proto INTERFACE_INCLUDE_DIRECTORIES)
+
+foreach(include_dir IN LISTS _cel_spec_includes)
+    install(
+        DIRECTORY
+            "${include_dir}/"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING
+        PATTERN "*.h"
+    )
+endforeach()
+
 list(TRANSFORM _cel_spec_includes PREPEND "$<BUILD_INTERFACE:")
 list(TRANSFORM _cel_spec_includes APPEND ">")
 set_target_properties(
@@ -89,7 +99,6 @@ foreach(
     ITEMS
         "${PROTOVALIDATE_CC_UPSTREAM_DIR}/buf"
         "${PROTOVALIDATE_PROTO_GEN_DIR}/buf"
-        "${CEL_SPEC_PROTO_GEN_DIR}/proto/"
         "${cel_cpp_SOURCE_DIR}/"
 )
     install(

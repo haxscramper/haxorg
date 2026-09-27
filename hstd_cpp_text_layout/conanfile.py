@@ -23,6 +23,9 @@ class HstdCppTextLayoutConan(ConanFile):
 
     def layout(self):
         cmake_layout(self)
+        # The package is consumed in editable/workspace mode, so Conan resolves
+        # `includedirs` from the `layout()` info instead of the installed package.
+        self.cpp.source.includedirs = ["src"]
 
     def generate(self):
         toolchain = CMakeToolchain(self)

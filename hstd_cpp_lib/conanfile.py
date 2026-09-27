@@ -78,6 +78,30 @@ class HstdConan(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+        cmake_module_names = [
+            "functions_aux.cmake",
+            "functions_setup.cmake",
+            "hstd_cpp_lib_proto.cmake",
+        ]
+
+        # Editable / workspace consumption: source tree
+        self.cpp.source.includedirs = ["src", "."]
+        self.cpp.source.set_property(
+            "cmake_build_modules",
+            [f"cmake/{name}" for name in cmake_module_names],
+        )
+
+        # Editable / workspace consumption: build tree (generated proto headers + built lib)
+        self.cpp.build.includedirs = ["."]
+        self.cpp.build.libdirs = ["."]
+
+        # Regular installed package
+        self.cpp.package.includedirs = ["include"]
+        self.cpp.package.set_property(
+            "cmake_build_modules",
+            [f"lib/cmake/hstd_cpp_lib/{name}" for name in cmake_module_names],
+        )
+
     def generate(self):
         dependencies = CMakeDeps(self)
 
@@ -169,15 +193,6 @@ class HstdConan(ConanFile):
             f"HSTD_CPP_BUILD_WITH_PERFETTO={int(bool(self.options.with_perfetto))}",
         ]
 
-        cmake_modules = [
-            "lib/cmake/hstd_cpp_lib/functions_aux.cmake",
-            "lib/cmake/hstd_cpp_lib/functions_setup.cmake",
-            "lib/cmake/hstd_cpp_lib/hstd_cpp_lib_proto.cmake",
-        ]
-
-        self.cpp_info.set_property("cmake_build_modules", cmake_modules)
-
         self.cpp_info.libs = ["hstd_cpp_lib"]
-        self.cpp_info.includedirs = ["include"]
 
     # custom functionality

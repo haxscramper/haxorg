@@ -24,7 +24,7 @@ find_package(hstd_cpp_text_layout CONFIG REQUIRED)
 
 nanobind_add_module(
     hstd_py_text_layout
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/py_textlayout.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/hstd_py_text_layout/py_textlayout.cpp"
 )
 
 haxorg_set_target_output(hstd_py_text_layout)
