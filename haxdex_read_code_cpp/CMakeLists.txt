@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 
 project(
-    haxdex_cpp_refl_read
+    haxdex_read_code_cpp
     VERSION 0.1.0
     LANGUAGES
         CXX
@@ -21,28 +21,28 @@ find_package(Protobuf CONFIG REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
 
-haxorg_add_executable(haxdex_cpp_refl_read)
-add_executable(haxdex::haxdex_cpp_refl_read ALIAS haxdex_cpp_refl_read)
+haxorg_add_executable(haxdex_read_code_cpp)
+add_executable(haxdex::haxdex_read_code_cpp ALIAS haxdex_read_code_cpp)
 
 haxorg_glob_add_sources2(
-    TARGET haxdex_cpp_refl_read
-    LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/src/haxdex_cpp_refl_read/.*"
+    TARGET haxdex_read_code_cpp
+    LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/src/haxdex_read_code_cpp/.*"
     SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
     RECURSE ON
 )
 
 target_include_directories(
-    haxdex_cpp_refl_read
+    haxdex_read_code_cpp
     PRIVATE
         "${CMAKE_CURRENT_LIST_DIR}/src"
         ${LLVM_INCLUDE_DIRS}
         ${CLANG_INCLUDE_DIRS}
 )
 
-target_compile_definitions(haxdex_cpp_refl_read PRIVATE ${LLVM_DEFINITIONS})
+target_compile_definitions(haxdex_read_code_cpp PRIVATE ${LLVM_DEFINITIONS})
 
 target_link_libraries(
-    haxdex_cpp_refl_read
+    haxdex_read_code_cpp
     PRIVATE
         hstd::hstd_cpp_lib
         SQLiteCpp
@@ -52,7 +52,7 @@ target_link_libraries(
 )
 
 haxorg_add_protobuf(
-    TARGET haxdex_cpp_refl_read
+    TARGET haxdex_read_code_cpp
     PROTO_SOURCES
-        "${CMAKE_CURRENT_LIST_DIR}/proto/haxdex_cpp_refl_read/reflection_defs.proto"
+        "${CMAKE_CURRENT_LIST_DIR}/proto/haxdex_read_code_cpp/reflection_defs.proto"
 )

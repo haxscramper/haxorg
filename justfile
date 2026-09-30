@@ -168,14 +168,14 @@ conan_remove_local_deps:
   conan remove "hstd_cpp_text_layout/*" --confirm
   conan remove "haxorg_cpp_org_lib/*" --confirm
   conan remove "hstd_cpp_diagram_lib/*" --confirm
-  conan remove "haxdex_cpp_refl_read/*" --confirm
+  conan remove "haxdex_read_code_cpp/*" --confirm
 
 conan_export_local_deps:
   conan export "hstd_cpp_lib"
   conan export "hstd_cpp_text_layout"
   conan export "haxorg_cpp_org_lib"
   conan export "hstd_cpp_diagram_lib"
-  conan export "haxdex_cpp_refl_read"
+  conan export "haxdex_read_code_cpp"
 
 [working-directory("/tmp")]
 conan_validate_deps dep_name:
@@ -222,7 +222,17 @@ conan_workspace_source:
             conan source "$package"
         done
 
-conan_workspace_install:
+
+# Conan workspace monolithic install
+conan_workspace_install_monorepo:
+  conan workspace super-install \
+    --output-folder=build/conan_super \
+    -s build_type=Debug \
+    --build=missing \
+    --profile:all={{CONAN_PROFILE}}
+
+# Conan workspace install for individual projects
+conan_workspace_install_per_project:
   mkdir -p build
   conan workspace install \
     -s build_type=Debug \

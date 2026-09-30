@@ -10,12 +10,12 @@
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/JSON.h>
 
-#include <haxdex_cpp_refl_read/reflection_perf.hpp>
+#include <haxdex_read_code_cpp/reflection_perf.hpp>
 #include <hstd_cpp_lib/logger/perfetto_aux_impl_template.hpp>
 
-#include <haxdex_cpp_refl_read/profdata_merger.hpp>
-#include <haxdex_cpp_refl_read/reflection_collector.hpp>
-#include <haxdex_cpp_refl_read/reflection_collector_frontend.hpp>
+#include <haxdex_read_code_cpp/profdata_merger.hpp>
+#include <haxdex_read_code_cpp/reflection_collector.hpp>
+#include <haxdex_read_code_cpp/reflection_collector_frontend.hpp>
 
 
 static clang::ParsedAttrInfoRegistry::Add<ReflAttrInfo> ReflectionCollectorDef(

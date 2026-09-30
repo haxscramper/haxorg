@@ -2,7 +2,7 @@ from conan import ConanFile
 
 
 class HaxdexCppReflReadConan(ConanFile):
-    name = "haxdex_cpp_refl_read"
+    name = "haxdex_read_code_cpp"
     version = "0.1.0"
     package_type = "application"
 
