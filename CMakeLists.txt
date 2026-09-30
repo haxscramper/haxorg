@@ -28,5 +28,5 @@ add_subdirectory(haxorg_cpp_org_cli)
 add_subdirectory(haxorg_cpp_c_wrap)
 add_subdirectory(haxdex_read_code_cpp)
 
-add_subdirectory(hstd_py_text_layout)
+add_subdirectory(hstd_cpp_text_layout_py_wrap)
 add_subdirectory(haxorg_cpp_py_wrap)

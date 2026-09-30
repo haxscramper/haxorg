@@ -27,9 +27,9 @@ packages:
     ref: hstd_cpp_text_layout/0.1.0
     output_folder: build/conan_build/hstd_cpp_text_layout
 
-  - path: hstd_py_text_layout
-    ref: hstd_py_text_layout/0.1.0
-    output_folder: build/conan_build/hstd_py_text_layout
+  - path: hstd_cpp_text_layout_py_wrap
+    ref: hstd_cpp_text_layout_py_wrap/0.1.0
+    output_folder: build/conan_build/hstd_cpp_text_layout_py_wrap
 
   - path: haxorg_cpp_org_lib
     ref: haxorg_cpp_org_lib/0.1.0
