@@ -1,0 +1,32 @@
+[build-system]
+requires = [
+  "hatchling>=1.27",
+  "hstd-py-lib==0.1.0",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "haxorg-py-lib"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "hstd-py-lib==0.1.0",
+]
+
+[tool.uv.sources]
+hstd-py-lib = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/haxorg_py_lib"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+  "/pyproject.toml",
+]
+
+[tool.hatch.build.hooks.conan]
+reference = "haxorg_cpp_py_wrap/0.1.0"
+artifact = "python/pyhaxorg*.so"
+destination = ""

@@ -1,154 +1,240 @@
 #!/usr/bin/env python
-"""
-Verify a Python package can be independently installed and used as a dependency.
-
-Usage:
-    verify_package.py <project_path> [--test-package <test_path>] [--config-setting KEY=VALUE]...
-
-Examples:
-    # Basic verification with test package in <project>/test_package/
-    ./verify_package.py ./my-project
-
-    # Custom test package location
-    ./verify_package.py ./my-project --test-package ./my-project/tests/integration
-
-    # With build config settings
-    ./verify_package.py ./my-project --config-setting cmake.define.MY_OPT=ON --config-setting cmake.build-type=Release
-"""
 
 import argparse
 import logging
+import os
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+import tomllib
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s %(filename)s:%(lineno)d: %(message)s",
 )
 
+CONAN_PROJECTS = {
+    "haxorg_py_lib": "haxorg_cpp_py_wrap",
+    "htsd_py_text_layout": "hstd_cpp_text_layout_py_wrap",
+}
 
-def main():
+
+def run(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+) -> None:
+    logging.info("==> %s", " ".join(command))
+    subprocess.run(
+        command,
+        cwd=cwd,
+        env=env,
+        check=True,
+    )
+
+
+def find_workspace_root(project_path: Path) -> Path:
+    for candidate in [project_path, *project_path.parents]:
+        pyproject = candidate / "pyproject.toml"
+        if not pyproject.is_file():
+            continue
+
+        with pyproject.open("rb") as file:
+            data = tomllib.load(file)
+
+        if "workspace" in data.get("tool", {}).get("uv", {}):
+            return candidate
+
+    raise RuntimeError(f"Could not find a UV workspace containing {project_path}")
+
+
+def get_project_name(project_path: Path) -> str:
+    with (project_path / "pyproject.toml").open("rb") as file:
+        data = tomllib.load(file)
+
+    return data["project"]["name"]
+
+
+def validate_structure(project_path: Path) -> None:
+    package_name = project_path.name
+    expected = [
+        project_path / "pyproject.toml",
+        project_path / "src" / package_name,
+        project_path / "tests",
+        project_path / "test_package",
+        project_path / "test_package" / "pyproject.toml",
+        project_path / "test_package" / "main.py",
+    ]
+
+    missing = [path for path in expected if not path.exists()]
+    if missing:
+        formatted = "\n".join(f"  {path}" for path in missing)
+        raise RuntimeError(
+            f"{package_name}: invalid package structure; missing:\n{formatted}"
+        )
+
+
+def create_conan_package(
+    workspace_root: Path,
+    project_path: Path,
+    conan_profile: Path,
+) -> None:
+    conan_project = CONAN_PROJECTS.get(project_path.name)
+    if conan_project is None:
+        return
+
+    run(
+        [
+            "conan",
+            "create",
+            str(workspace_root / conan_project),
+            "--profile:all",
+            str(conan_profile),
+            "-s",
+            "build_type=Release",
+            "--build=missing",
+            "-vstatus",
+        ],
+        cwd=workspace_root,
+    )
+
+
+def validate_package(
+    project_path: Path,
+    *,
+    editable: bool,
+    conan_profile: Path | None,
+) -> None:
+    project_path = project_path.resolve()
+    workspace_root = find_workspace_root(project_path)
+    project_name = get_project_name(project_path)
+    test_package = project_path / "test_package"
+
+    validate_structure(project_path)
+
+    if editable:
+        if project_path.name in CONAN_PROJECTS:
+            if conan_profile is None:
+                raise RuntimeError(
+                    "--conan-profile is required for editable validation of "
+                    f"{project_path.name}"
+                )
+
+            create_conan_package(
+                workspace_root,
+                project_path,
+                conan_profile,
+            )
+
+    run(
+        ["uv", "run", "--group", "dev", "ruff", "check", str(project_path)],
+        cwd=workspace_root,
+    )
+
+    with tempfile.TemporaryDirectory(prefix="verify_pkg_") as temporary:
+        environment_path = Path(temporary) / ".venv"
+        environment = os.environ.copy()
+        environment["UV_PROJECT_ENVIRONMENT"] = str(environment_path)
+
+        if conan_profile is not None:
+            environment["CONAN_PROFILE"] = str(conan_profile)
+
+        sync_command = [
+            "uv",
+            "sync",
+            "--project",
+            str(workspace_root),
+            "--package",
+            project_name,
+            "--group",
+            "dev",
+        ]
+
+        if not editable:
+            sync_command.append("--no-editable")
+
+        run(
+            sync_command,
+            cwd=workspace_root,
+            env=environment,
+        )
+
+        python = environment_path / "bin" / "python"
+
+        run(
+            [
+                str(python),
+                "-m",
+                "pytest",
+                str(project_path / "tests"),
+            ],
+            cwd=workspace_root,
+            env=environment,
+        )
+
+        run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                str(python),
+                str(test_package),
+            ],
+            cwd=workspace_root,
+            env=environment,
+        )
+
+        run(
+            [
+                str(python),
+                str(test_package / "main.py"),
+            ],
+            cwd=test_package,
+            env=environment,
+        )
+
+
+def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Verify a Python package can be installed and used independently"
+        description=(
+            "Validate structure, tests, installation, and the test package "
+            "for a UV workspace package"
+        )
     )
     parser.add_argument(
         "project_path",
         type=Path,
-        help="Path to the Python project to verify",
     )
     parser.add_argument(
-        "--test-package",
+        "--editable",
+        action="store_true",
+        help=(
+            "Install the workspace package in editable mode. Conan-backed "
+            "packages are recreated from their current C++ sources first."
+        ),
+    )
+    parser.add_argument(
+        "--conan-profile",
         type=Path,
-        default=None,
-        help="Path to the test package (default: <project_path>/test_package/)",
-    )
-    parser.add_argument(
-        "--config-setting",
-        "-C",
-        action="append",
-        default=[],
-        dest="config_settings",
-        help="Build config settings passed to uv pip install (e.g. cmake.define.FOO=BAR)",
     )
 
-    args = parser.parse_args()
+    arguments = parser.parse_args()
 
-    project_path = args.project_path.resolve()
-    if not project_path.is_dir():
-        logging.error(
-            f"project path does not exist: {project_path} or is not a directory"
+    try:
+        validate_package(
+            arguments.project_path,
+            editable=arguments.editable,
+            conan_profile=(
+                arguments.conan_profile.resolve() if arguments.conan_profile else None
+            ),
         )
+    except (RuntimeError, subprocess.CalledProcessError) as error:
+        logging.error("%s", error)
         sys.exit(1)
-
-    test_package = (
-        args.test_package.resolve()
-        if args.test_package
-        else project_path / "test_package"
-    )
-
-    if not test_package.is_dir():
-        logging.error(
-            f"test package path does not exist: {test_package} or is not a directory"
-        )
-        sys.exit(1)
-
-    test_script = test_package / "test.py"
-    if not test_script.is_file():
-        logging.error(f"test script not found: {test_script} or is not a file")
-        sys.exit(1)
-
-    with tempfile.TemporaryDirectory(prefix="verify_pkg_") as tmpdir:
-        venv_path = Path(tmpdir) / ".venv"
-
-        logging.info(f"==> Creating virtual environment in {venv_path}")
-        subprocess.run(
-            ["uv", "venv", str(venv_path)],
-            check=True,
-        )
-
-        # Build the install command
-        install_cmd = [
-            "uv",
-            "pip",
-            "install",
-            "--python",
-            str(venv_path / "bin" / "python"),
-            str(project_path),
-        ]
-        for setting in args.config_settings:
-            install_cmd.extend(["--config-setting", setting])
-
-        logging.info(f"==> Installing package from {project_path}")
-        subprocess.run(install_cmd, check=True)
-
-        # Install test package dependencies if it has a pyproject.toml or requirements.txt
-        test_pyproject = test_package / "pyproject.toml"
-        test_requirements = test_package / "requirements.txt"
-        if test_pyproject.is_file():
-            logging.info(f"==> Installing test package from {test_package}")
-            subprocess.run(
-                [
-                    "uv",
-                    "pip",
-                    "install",
-                    "--python",
-                    str(venv_path / "bin" / "python"),
-                    str(test_package),
-                ],
-                check=True,
-            )
-        elif test_requirements.is_file():
-            logging.info(f"==> Installing test requirements from {test_requirements}")
-            subprocess.run(
-                [
-                    "uv",
-                    "pip",
-                    "install",
-                    "--python",
-                    str(venv_path / "bin" / "python"),
-                    "-r",
-                    str(test_requirements),
-                ],
-                check=True,
-            )
-
-        python_bin = venv_path / "bin" / "python"
-
-        logging.info(f"==> Running test script: {test_script}")
-        result = subprocess.run(
-            [str(python_bin), str(test_script)],
-            cwd=test_package,
-        )
-
-        if result.returncode != 0:
-            logging.error(
-                f"\n==> FAILED: test script exited with code {result.returncode}"
-            )
-            sys.exit(result.returncode)
-
-        logging.info("\n==> SUCCESS: package installed and test passed")
 
 
 if __name__ == "__main__":

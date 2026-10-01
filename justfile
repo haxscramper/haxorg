@@ -246,6 +246,12 @@ conan_clean_all:
   conan cache clean
   conan remove "*" -c
 
+py_validate target *args:
+  {{HAXORG_ROOT}}/repo_ci_config/py_ci/test_uv_install.py \
+    {{HAXORG_ROOT}}/{{target}} \
+    --conan-profile={{CONAN_PROFILE}} \
+    {{args}}
+
 run_to_output target *ARGS:
   -just {{target}} {{ARGS}} > build/target_result.log 2>&1
   ./repo_py_orchestrate/remap_conan_error_paths.py build/target_result.log

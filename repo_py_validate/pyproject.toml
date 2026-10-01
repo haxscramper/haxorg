@@ -3,19 +3,18 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "hstd-py-lib"
+name = "repo-py-validate"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+  "hstd-py-lib==0.1.0",
+]
 
-[project.entry-points.hatch]
-conan-build = "py_scriptutils.conan_build.hatch"
+[tool.uv.sources]
+hstd-py-lib = { workspace = true }
 
 [tool.hatch.build.targets.wheel]
-packages = [
-  "src/hstd_py_lib",
-  "src/py_scriptutils",
-]
+packages = ["src/repo_py_validate"]
 
 [tool.hatch.build.targets.sdist]
 include = [
