@@ -12,7 +12,7 @@ import betterproto
 from beartype import beartype
 from beartype.typing import Any, List, Optional
 from betterproto.lib.google import protobuf as pb_google
-from py_scriptutils.script_logging import ExceptionContextNote
+from hstd_py_lib.script_logging import ExceptionContextNote
 from rich.tree import Tree
 
 import py_codegen.proto_lib as pb

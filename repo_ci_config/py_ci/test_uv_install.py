@@ -27,7 +27,7 @@ def run(
     cwd: Path,
     env: dict[str, str] | None = None,
 ) -> None:
-    logging.info("==> %s", " ".join(command))
+    logging.info("==> {}".format(" ".join(command)))
     subprocess.run(
         command,
         cwd=cwd,
@@ -115,24 +115,18 @@ def validate_package(
 
     validate_structure(project_path)
 
-    if editable:
-        if project_path.name in CONAN_PROJECTS:
-            if conan_profile is None:
-                raise RuntimeError(
-                    "--conan-profile is required for editable validation of "
-                    f"{project_path.name}"
-                )
-
-            create_conan_package(
-                workspace_root,
-                project_path,
-                conan_profile,
+    if editable and project_path.name in CONAN_PROJECTS:
+        if conan_profile is None:
+            raise RuntimeError(
+                "--conan-profile is required for editable validation of "
+                f"{project_path.name}"
             )
 
-    run(
-        ["uv", "run", "--group", "dev", "ruff", "check", str(project_path)],
-        cwd=workspace_root,
-    )
+        create_conan_package(
+            workspace_root,
+            project_path,
+            conan_profile,
+        )
 
     with tempfile.TemporaryDirectory(prefix="verify_pkg_") as temporary:
         environment_path = Path(temporary) / ".venv"

@@ -3,9 +3,9 @@ from dataclasses import replace
 
 from beartype import beartype
 from beartype.typing import Any, List, Sequence
+from hstd_py_lib.algorithm import iterate_object_tree
 from py_haxorg.astbuilder import astbuilder_utils
 from py_haxorg.layout.wrap import BlockId
-from py_scriptutils.algorithm import iterate_object_tree
 
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_ir

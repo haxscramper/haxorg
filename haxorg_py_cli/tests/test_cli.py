@@ -4,11 +4,11 @@ import more_itertools
 import pandas as pd
 import pytest
 from beartype.typing import Any, Dict, List
+from hstd_py_lib.repo_files import get_haxorg_repo_root_path
+from hstd_py_lib.sqlalchemy_utils import format_db_all, open_sqlite
 from plumbum import CommandNotFound, local
 from py_cli import haxorg_cli, haxorg_opts
 from py_haxorg.exporters import export_sqlite
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.sqlalchemy_utils import format_db_all, open_sqlite
 from sqlalchemy.orm import sessionmaker
 
 org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")

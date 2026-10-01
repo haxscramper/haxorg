@@ -17,8 +17,8 @@ from _pytest.runner import CallInfo
 from beartype import beartype
 from beartype.typing import Any, Generator, List, Optional
 from conf_test_common import summarize_cookies  # type: ignore
+from hstd_py_lib.tracer import TraceCollector
 from loguru import logger
-from py_scriptutils.tracer import TraceCollector
 
 CAT = "conftest"
 

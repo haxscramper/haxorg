@@ -6,15 +6,17 @@ build-backend = "hatchling.build"
 name = "hstd-py-lib"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+  "beartype",
+  "jsonpath_ng",
+]
 
 [project.entry-points.hatch]
-conan-build = "py_scriptutils.conan_build.hatch"
+conan-build = "hstd_py_lib.conan_build.hatch"
 
 [tool.hatch.build.targets.wheel]
 packages = [
   "src/hstd_py_lib",
-  "src/py_scriptutils",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -22,4 +24,9 @@ include = [
   "/src",
   "/tests",
   "/pyproject.toml",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3",
 ]

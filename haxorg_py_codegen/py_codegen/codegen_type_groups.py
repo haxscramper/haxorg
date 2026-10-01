@@ -7,7 +7,7 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Callable, Dict, List, Sequence
-from py_scriptutils.script_logging import (
+from hstd_py_lib.script_logging import (
     ExceptionContextNote,
     pprint_to_file_json,
     to_debug_json,

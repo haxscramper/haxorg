@@ -24,7 +24,7 @@ from beartype.typing import (
     Union,
 )
 
-from py_scriptutils.script_logging import to_debug_json
+from hstd_py_lib.script_logging import to_debug_json
 
 T = TypeVar("T")
 

@@ -11,23 +11,23 @@ import commentjson
 import py_repository.repo_tasks.workflow_utils as workflow_utils
 import rich_click as click
 from beartype.typing import Any, Optional
-from py_repository.repo_tasks import (
-    haxorg_build,
-)
-from py_repository.repo_tasks.common import get_build_root
-from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import (
+from hstd_py_lib.repo_files import get_haxorg_repo_root_path
+from hstd_py_lib.script_logging import (
     get_custom_traceback_handler,
     setup_multi_file_logging,
 )
-from py_scriptutils.toml_config_profiler import (
+from hstd_py_lib.toml_config_profiler import (
     apply_options,
     get_user_provided_params,
     merge_dicts,
     options_from_model,
     pack_context,
 )
+from py_repository.repo_tasks import (
+    haxorg_build,
+)
+from py_repository.repo_tasks.common import get_build_root
+from py_repository.repo_tasks.config import HaxorgConfig, HaxorgLogLevel
 from pydantic import BaseModel, Field
 
 

@@ -3,8 +3,8 @@ from pathlib import Path
 import py_codegen.astbuilder_cpp as cpp
 import pytest
 from beartype.typing import List, Optional
+from hstd_py_lib.repo_files import get_haxorg_repo_root_path
 from py_codegen.codegen_ir import QualTypeKind
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
 
 from tests.python.conf_test_common import WithBinaryCoverageTest
 

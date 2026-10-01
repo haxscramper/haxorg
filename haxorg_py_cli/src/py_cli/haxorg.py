@@ -4,7 +4,7 @@ import sys
 
 import rich_click as click
 from beartype.typing import Any
-from py_scriptutils.script_logging import custom_traceback_handler
+from hstd_py_lib.script_logging import custom_traceback_handler
 
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.export.haxorg_export import export

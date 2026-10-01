@@ -1,7 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
-import py_scriptutils.json_utils as ju
+import hstd_py_lib.json_utils as ju
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
 from rich.console import Console

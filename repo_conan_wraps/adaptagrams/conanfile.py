@@ -1,9 +1,9 @@
 import os
 
 from conan import ConanFile
-from conan.tools.build import check_min_cppstd
+from conan.tools.build import ConanException, check_min_cppstd
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import copy
+from conan.tools.files import copy, rmdir
 from conan.tools.scm import Git
 
 
@@ -67,8 +67,17 @@ class AdaptagramsConan(ConanFile):
 
     def source(self):
         upstream = os.path.join(self.source_folder, "upstream")
+        self.output.info(f"Adaptagrams is using folder {upstream} for the source")
 
-        if not os.path.exists(upstream):
+        try:
+            git = Git(self, folder=upstream)
+            repository_root = git.run("rev-parse --show-toplevel").strip()
+
+            if os.path.realpath(repository_root) != os.path.realpath(upstream):
+                raise ConanException("upstream is not a git repository")
+
+        except ConanException:
+            rmdir(self, upstream)
             Git(self).clone(self._upstream_url, target=upstream)
 
         Git(self, folder=upstream).checkout(self._upstream_commit)
@@ -92,6 +101,10 @@ class AdaptagramsConan(ConanFile):
         tc.generate()
 
     def build(self):
+        # conan workspace operations do not trigger source, so for
+        # sane first setup and development it is easier to add it here,
+        # after the first fetch it should be a no-op.
+        self.source()
         cmake = CMake(self)
         cmake.configure()
         cmake.build()

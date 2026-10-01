@@ -3,10 +3,10 @@
 import json
 from pathlib import Path
 
-import py_scriptutils.toml_config_profiler as conf_provider
+import hstd_py_lib.toml_config_profiler as conf_provider
 import rich_click as click
 from beartype.typing import Any, Dict, List, Optional, cast
-from py_scriptutils.tracer import TraceCollector
+from hstd_py_lib.tracer import TraceCollector
 
 import py_codegen.wrapper_gen_nim as gen_nim
 from py_codegen.refl_extract import (

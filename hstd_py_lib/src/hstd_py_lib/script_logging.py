@@ -126,7 +126,7 @@ def pprint_to_file(value: Any, path: str | Path, width: int = 120) -> None:
     """
     with open(path, "w") as file:
         print("# pyright: reportUndefinedVariable=false", file=file)
-        from hstd_py_lib.src.py_scriptutils.external_packages.rich_utils import (
+        from hstd_py_lib.src.hstd_py_lib.external_packages.rich_utils import (
             render_rich_pprint,
         )
 
@@ -160,7 +160,7 @@ def pprint_to_file_json(value: Any, path: str | Path, width: int = 120) -> None:
 
 
 def pprint_to_string(value: Any, width: int = 120) -> str:
-    from hstd_py_lib.src.py_scriptutils.external_packages.rich_utils import (
+    from hstd_py_lib.src.hstd_py_lib.external_packages.rich_utils import (
         render_rich_pprint,
     )
 

@@ -5,9 +5,9 @@ import re
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Generator, List, Set
-from py_scriptutils import algorithm
 
 import py_haxorg.pyhaxorg_wrap as org
+from hstd_py_lib import algorithm
 from py_haxorg.layout.wrap import *
 
 

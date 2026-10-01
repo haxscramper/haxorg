@@ -7,8 +7,8 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, cast
+from hstd_py_lib.files import IsNewInput
 from plumbum import local
-from py_scriptutils.files import IsNewInput
 from pydantic import BaseModel, Field
 
 from py_codegen.refl_read import ConvTu, conv_proto_file, open_proto_file

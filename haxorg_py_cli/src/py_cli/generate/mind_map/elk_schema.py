@@ -978,7 +978,7 @@ def restore_extra_data(graph: Graph, extra_map: Dict[str, Dict[str, Any]]) -> Gr
     return graph
 
 
-from py_scriptutils.script_logging import pprint_to_file
+from hstd_py_lib.script_logging import pprint_to_file
 
 
 def perform_graph_layout(graph: Graph, layout_script_path: str) -> Graph:

@@ -2,7 +2,7 @@ import enum
 
 from beartype import beartype
 from beartype.typing import List, Optional, Type
-from py_scriptutils.sqlalchemy_utils import (
+from hstd_py_lib.sqlalchemy_utils import (
     DateTimeColumn,
     ForeignId,
     IdColumn,

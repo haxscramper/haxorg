@@ -6,7 +6,7 @@ import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Set
-from py_scriptutils.json_utils import Json
+from hstd_py_lib.json_utils import Json
 from pydantic import BaseModel, Field
 
 from py_cli import haxorg_opts

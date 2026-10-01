@@ -1,4 +1,4 @@
-import py_scriptutils.json_utils as ju
+import hstd_py_lib.json_utils as ju
 from beartype.typing import Any, List
 from jsonpath_ng import Fields, Index, Root
 

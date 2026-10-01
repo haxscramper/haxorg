@@ -2,14 +2,14 @@
 import os
 
 import yaml
-from py_haxorg.layout.wrap import TextLayout, TextOptions
-from py_scriptutils.algorithm import cond
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import ExceptionContextNote
-from py_scriptutils.toml_config_profiler import (
+from hstd_py_lib.algorithm import cond
+from hstd_py_lib.repo_files import get_haxorg_repo_root_path
+from hstd_py_lib.script_logging import ExceptionContextNote
+from hstd_py_lib.toml_config_profiler import (
     apply_options,
     options_from_model,
 )
+from py_haxorg.layout.wrap import TextLayout, TextOptions
 
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_proto as pb

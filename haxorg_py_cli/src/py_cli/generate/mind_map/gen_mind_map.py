@@ -7,8 +7,8 @@ import plumbum
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, Optional
+from hstd_py_lib.repo_files import get_haxorg_repo_root_path
 from loguru import logger, pprint_to_file, to_debug_json
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
 
 from py_cli import haxorg_cli, haxorg_opts
 from py_cli.generate.mind_map import (
@@ -88,7 +88,7 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
         opts.generate.mind_map.diagram_config,
     )
 
-    from py_scriptutils.rich_utils import render_rich
+    from hstd_py_lib.rich_utils import render_rich
 
     get_out("mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
     pprint_to_file(to_debug_json(mmap_walker), get_out("mmap_walker.py"))

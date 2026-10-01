@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import List
+from hstd_py_lib.algorithm import iterate_object_tree
 from py_haxorg.astbuilder.astbuilder_utils import pascal_case
-from py_scriptutils.algorithm import iterate_object_tree
 
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.codegen_ir as tu

@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Set
-from py_scriptutils.json_utils import Json
+from hstd_py_lib.json_utils import Json
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.exporters.export_base import ExporterBase

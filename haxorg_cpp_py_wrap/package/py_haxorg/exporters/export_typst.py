@@ -3,13 +3,13 @@ from pathlib import Path
 
 import toml
 from beartype.typing import Any, Dict, List
+from hstd_py_lib.repo_files import get_haxorg_repo_root_path
 from loguru import logger
-from py_scriptutils import algorithm, toml_config_profiler
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
 from pydantic import BaseModel, Field
 
 import py_haxorg.astbuilder.astbuilder_typst as typ
 import py_haxorg.pyhaxorg_wrap as org
+from hstd_py_lib import algorithm, toml_config_profiler
 from py_haxorg.exporters.export_base import ExporterBase, with_export_context
 from py_haxorg.layout.wrap import BlockId
 from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag, getFlatTags

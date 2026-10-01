@@ -10,8 +10,8 @@ from beartype.typing import Any, Dict, Generator, List, Optional
 from plumbum import ProcessExecutionError
 from pydantic import BaseModel
 
-from py_scriptutils.repo_files import get_haxorg_repo_root_path
-from py_scriptutils.script_logging import pprint_to_file, to_debug_json
+from hstd_py_lib.repo_files import get_haxorg_repo_root_path
+from hstd_py_lib.script_logging import pprint_to_file, to_debug_json
 
 
 @beartype

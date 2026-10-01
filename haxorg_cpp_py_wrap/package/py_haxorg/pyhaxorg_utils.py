@@ -6,7 +6,7 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
-from py_scriptutils.script_logging import ExceptionContextNote
+from hstd_py_lib.script_logging import ExceptionContextNote
 
 import py_haxorg.pyhaxorg_wrap as org
 from py_haxorg.exporters.export_ultraplain import ExporterUltraplain

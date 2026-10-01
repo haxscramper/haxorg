@@ -7,8 +7,8 @@ import py_haxorg.astbuilder.astbuilder_base as base
 import toml
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional
+from hstd_py_lib.algorithm import cond, maybe_splice
 from py_haxorg.layout.wrap import BlockId, TextLayout
-from py_scriptutils.algorithm import cond, maybe_splice
 from pydantic import BaseModel
 
 

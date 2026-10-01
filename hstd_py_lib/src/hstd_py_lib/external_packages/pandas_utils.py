@@ -1,10 +1,10 @@
+import hstd_py_lib.json_utils as ju
 import pandas as pd
-import py_scriptutils.json_utils as ju
 import rich.box
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Union
-from py_scriptutils.rich_utils import render_rich
-from py_scriptutils.script_logging import to_debug_json
+from hstd_py_lib.rich_utils import render_rich
+from hstd_py_lib.script_logging import to_debug_json
 from rich.table import Table
 
 

@@ -13,7 +13,7 @@ from beartype.typing import Any, Dict, List, Type, TypeVar, get_args, get_origin
 from pydantic import AliasChoices, BaseModel
 from pydantic_core import PydanticUndefined
 
-from py_scriptutils.files import get_haxorg_repo_root_path
+from hstd_py_lib.files import get_haxorg_repo_root_path
 
 
 @beartype

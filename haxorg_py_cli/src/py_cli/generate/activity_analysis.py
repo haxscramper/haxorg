@@ -9,7 +9,7 @@ import pandas as pd
 import py_haxorg.exporters.export_sqlite as sql
 from beartype import beartype
 from beartype.typing import Any, List, Tuple
-from py_scriptutils.files import IsNewInput
+from hstd_py_lib.files import IsNewInput
 from sqlalchemy import Engine, create_engine, literal, select, union_all
 from sqlalchemy.orm import sessionmaker
 
