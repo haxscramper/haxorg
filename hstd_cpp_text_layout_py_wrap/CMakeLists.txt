@@ -5,6 +5,7 @@ project(hstd_cpp_text_layout_py_wrap VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 include(CMakePackageConfigHelpers)
 

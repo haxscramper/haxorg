@@ -3,13 +3,13 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "hstd-py-lib-test-package"
+name = "hstd_py_lib_test_package"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
-dependencies = ["hstd-py-lib==0.1.0"]
+dependencies = ["hstd_py_lib==0.1.0"]
 
 [tool.uv.sources]
-hstd-py-lib = { path = ".." }
+hstd_py_lib = { path = ".." }
 
 [tool.hatch.build.targets.wheel]
 bypass-selection = true

@@ -133,7 +133,7 @@ def test_unexpected_field_passed() -> None:
 
 
 def test_sem_parser_expected() -> None:
-    corpus_root = get_haxorg_repo_root_path().joinpath("tests/org/corpus")
+    corpus_root = Path(__file__).parent.joinpath("corpus")
     corpus_files = corpus_root.rglob("*.yaml")
     corpus_data = [
         (CorpusFile.model_validate(load_yaml(file)), file) for file in corpus_files
@@ -209,9 +209,7 @@ def test_sem_parser_expected() -> None:
     doc.head.add(
         tags.link(
             rel="stylesheet",
-            href=get_haxorg_repo_root_path().joinpath(
-                "tests/python/test_sem_parser_expected.css"
-            ),
+            href=Path(__file__).parent.joinpath("assets/test_sem_parser_expected.css"),
         )
     )
     doc.add(table)

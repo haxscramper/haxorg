@@ -4,9 +4,9 @@ requires-python = "==3.13.*"
 
 [manifest]
 members = [
-    "haxorg-py-lib",
+    "haxorg_py_lib",
     "hstd-py-lib",
-    "hstd-py-text-layout",
+    "hstd_py_text_layout",
     "repo-py-orchestrate",
     "repo-py-validate",
 ]
@@ -88,7 +88,7 @@ wheels = [
 ]
 
 [[package]]
-name = "haxorg-py-lib"
+name = "haxorg_py_lib"
 version = "0.1.0"
 source = { editable = "haxorg_py_lib" }
 dependencies = [
@@ -150,7 +150,7 @@ requires-dist = [
 dev = [{ name = "pytest" }]
 
 [[package]]
-name = "hstd-py-text-layout"
+name = "hstd_py_text_layout"
 version = "0.1.0"
 source = { editable = "hstd_py_text_layout" }
 dependencies = [

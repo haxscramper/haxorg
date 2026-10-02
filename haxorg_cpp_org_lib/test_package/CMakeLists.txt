@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
+
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 project(haxorg_cpp_org_lib_package_test LANGUAGES CXX)
 
 find_package(haxorg_cpp_org_lib CONFIG REQUIRED)

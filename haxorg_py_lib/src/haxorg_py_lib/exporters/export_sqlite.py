@@ -13,8 +13,8 @@ from sqlalchemy import Boolean, Column, Engine, Enum
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 import haxorg_py_lib.pyhaxorg_wrap as org
-from haxorg_py_lib.src.haxorg_py_lib.exporters.export_ultraplain import ExporterUltraplain
-from haxorg_py_lib.src.haxorg_py_lib.pyhaxorg_utils import (
+from haxorg_py_lib.exporters.export_ultraplain import ExporterUltraplain
+from haxorg_py_lib.pyhaxorg_utils import (
     evalDateTime,
     formatHashTag,
     getCreationTime,

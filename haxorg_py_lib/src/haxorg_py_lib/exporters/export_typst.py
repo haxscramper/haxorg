@@ -3,23 +3,23 @@ from pathlib import Path
 
 import toml
 from beartype.typing import Any, Dict, List
+from hstd_py_text_layout.base.wrap import BlockId
 from loguru import logger
 from pydantic import BaseModel, Field
 
 import haxorg_py_lib.astbuilder.astbuilder_typst as typ
 import haxorg_py_lib.pyhaxorg_wrap as org
-from haxorg_py_lib.src.haxorg_py_lib.exporters.export_base import (
+from haxorg_py_lib.exporters.export_base import (
     ExporterBase,
     with_export_context,
 )
-from haxorg_py_lib.src.haxorg_py_lib.pyhaxorg_utils import (
+from haxorg_py_lib.pyhaxorg_utils import (
     formatDateTime,
     formatHashTag,
     getFlatTags,
 )
-from haxorg_py_lib.src.haxorg_py_lib.pyhaxorg_wrap import OrgSemKind as osk
+from haxorg_py_lib.pyhaxorg_wrap import OrgSemKind as osk
 from hstd_py_lib import algorithm, toml_config_profiler
-from hstd_py_text_layout.src.hstd_py_text_layout.base.wrap import BlockId
 
 CAT = "typst"
 this_dir = get_haxorg_repo_root_path().joinpath("scripts/py_haxorg/py_haxorg/exporters")

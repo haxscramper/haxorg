@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "repo-py-orchestrate-test-package"
+name = "repo_py_orchestrate_test_package"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
 dependencies = ["repo-py-orchestrate==0.1.0"]

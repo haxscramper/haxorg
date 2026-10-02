@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 set(ADAPTAGRAMS_VERSION
     "0.0.20251029"
     CACHE STRING

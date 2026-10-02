@@ -5,10 +5,10 @@ import re
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Generator, List, Set
+from hstd_py_text_layout.base.wrap import *
 
 import haxorg_py_lib.pyhaxorg_wrap as org
 from hstd_py_lib import algorithm
-from hstd_py_text_layout.src.hstd_py_text_layout.base.wrap import *
 
 
 def with_export_context(func: Callable) -> Callable:

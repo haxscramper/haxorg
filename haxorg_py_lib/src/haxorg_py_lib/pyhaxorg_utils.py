@@ -9,8 +9,8 @@ from beartype.typing import Dict, List, Optional, Set, Union
 from hstd_py_lib.script_logging import ExceptionContextNote
 
 import haxorg_py_lib.pyhaxorg_wrap as org
-from haxorg_py_lib.src.haxorg_py_lib.exporters.export_ultraplain import ExporterUltraplain
-from haxorg_py_lib.src.haxorg_py_lib.pyhaxorg_wrap import UserTime
+from haxorg_py_lib.exporters.export_ultraplain import ExporterUltraplain
+from haxorg_py_lib.pyhaxorg_wrap import UserTime
 
 CAT = "org"
 

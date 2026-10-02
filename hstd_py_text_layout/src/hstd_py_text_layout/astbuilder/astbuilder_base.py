@@ -7,8 +7,7 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-
-from hstd_py_text_layout.src.hstd_py_text_layout.base.wrap import (
+from hstd_py_text_layout.base.wrap import (
     BlockId,
     TextLayout,
     TextOptions,
