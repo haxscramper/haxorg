@@ -7,6 +7,10 @@ members = [
   "hstd_py_text_layout",
 ]
 
+[tool.uv.sources]
+hstd_py_lib = { workspace = true }
+hstd_py_text_layout = { workspace = true }
+
 [dependency-groups]
 dev = [
   "mypy>=1.18.2",
@@ -16,7 +20,7 @@ dev = [
 
 [tool.pytest.ini_options]
 log_cli_format = "%(levelname)s [%(name)s %(filename)s:%(lineno)d] %(message)s"
-log_capture_format = "%(levelname)s [%(name)s %(filename)s:%(lineno)d] %(message)s"
+# log_capture_format = "%(levelname)s [%(name)s %(filename)s:%(lineno)d] %(message)s"
 testpaths = ["tests"]
 addopts = "--color=yes"
 console_output_style = "classic"
@@ -50,6 +54,7 @@ ignore = [
   "RUF012",
   "RUF009",
   "UP035",
+  "PYI029", # defining `__repr__` in stub
 ]
 
 [tool.ruff.format]

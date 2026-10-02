@@ -13,18 +13,16 @@ dependencies = [
   "hstd_py_lib==0.1.0",
   "dominate", # HTML exporter,
   "toml",
-  # "hstd_py_text_layout", # TODO: Auto-bump minimum version
+  "hstd_py_text_layout", # TODO: Auto-bump minimum version
 ]
 
 [dependency-groups]
 dev = [
   "pytest",
+  "pytest-cov",
   "coverage",
   "ansi2html",
 ]
-
-[tool.uv.sources]
-hstd_py_lib = { workspace = true }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/haxorg_py_lib"]

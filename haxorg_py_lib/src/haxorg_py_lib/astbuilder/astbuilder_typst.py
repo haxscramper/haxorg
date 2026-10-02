@@ -3,7 +3,7 @@ from numbers import Number
 from pathlib import Path
 from typing import TypeAlias
 
-import haxorg_py_lib.astbuilder.astbuilder_base as base
+import hstd_py_text_layout.astbuilder.astbuilder_base as base
 import toml
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional

@@ -14,39 +14,35 @@ from haxorg_py_lib.pyhaxorg_wrap import UserTime
 
 CAT = "org"
 
-TODO_ITEMS = set(
-    [
-        "TODO",
-        "DONE",
-        "COMPLETED",
-        "NEXT",
-        "WIP",
-        "TRIAGED",
-        "FAILED",
-        "PARTIALLY",
-        "CANCELLED",
-        "PAUSED",
-        "REVIEW",
-    ]
-)
+TODO_ITEMS = {
+    "TODO",
+    "DONE",
+    "COMPLETED",
+    "NEXT",
+    "WIP",
+    "TRIAGED",
+    "FAILED",
+    "PARTIALLY",
+    "CANCELLED",
+    "PAUSED",
+    "REVIEW",
+}
 
-ADMONITION_ITEMS = set(
-    [
-        "QUESTION",
-        "NOTE",
-        "IDEA",
-        "WARNING",
-        "ERROR",
-        "BUG",
-        "FIXME",
-        "XXX",
-        "XXXX",
-        "XXXXX",
-        "IMPLEMENT",
-        "TEMP",
-        "HACK",
-    ]
-)
+ADMONITION_ITEMS = {
+    "QUESTION",
+    "NOTE",
+    "IDEA",
+    "WARNING",
+    "ERROR",
+    "BUG",
+    "FIXME",
+    "XXX",
+    "XXXX",
+    "XXXXX",
+    "IMPLEMENT",
+    "TEMP",
+    "HACK",
+}
 
 SEMANTIC_BIG_IDENT_ITEMS = TODO_ITEMS.union(ADMONITION_ITEMS)
 

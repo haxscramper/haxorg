@@ -11,6 +11,7 @@ else:
     import hstd_cpp_text_layout_py_wrap as lyt
 
     BlockId = NewType("BlockId", int)
+    TextOptions = lyt.TextOptions
 
 
 @beartype

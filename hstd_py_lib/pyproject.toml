@@ -13,6 +13,8 @@ dependencies = [
   "plumbum",
   "pyyaml",
   "pydantic",
+  "loguru",
+  "rich_click",
 ]
 
 [project.entry-points.hatch]

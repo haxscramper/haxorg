@@ -18,9 +18,6 @@ dev = [
   "pytest",
 ]
 
-[tool.uv.sources]
-hstd_py_lib = { workspace = true }
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/hstd_py_text_layout"]
 

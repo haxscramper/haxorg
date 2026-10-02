@@ -22,7 +22,7 @@ from haxorg_py_lib.pyhaxorg_wrap import OrgSemKind as osk
 from hstd_py_lib import algorithm, toml_config_profiler
 
 CAT = "typst"
-this_dir = get_haxorg_repo_root_path().joinpath("scripts/py_haxorg/py_haxorg/exporters")
+this_dir = Path(__file__).parent
 typst_toml = this_dir.joinpath("export_typst_base.toml")
 typst_typ = this_dir.joinpath("export_typst_base.typ")
 

@@ -10,9 +10,6 @@ dependencies = [
   "hstd_py_lib==0.1.0",
 ]
 
-[tool.uv.sources]
-hstd_py_lib = { workspace = true }
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/repo_py_orchestrate"]
 

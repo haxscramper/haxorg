@@ -254,8 +254,10 @@ py_validate target *args:
 
 run_to_output target *ARGS:
   -just {{target}} {{ARGS}} > build/target_result.log 2>&1
+  echo "execution OK"
 
 # run target, redirect logs, also trace all subprocess execs
 run_to_output_strace target *ARGS:
   -strace -f -qq -ttt -s 0 -e trace=execve,execveat -A -o /tmp/subprocess_trigger.log just {{target}} {{ARGS}} > build/target_result.log 2>&1
+  echo "execution OK"
 # ./repo_py_orchestrate/remap_conan_error_paths.py build/target_result.log
