@@ -5,6 +5,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import sysconfig
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -65,6 +66,9 @@ class ConanBuildHook(BuildHookInterface):
         self._log(f"selected artifact: {artifact}")
         self._log(f"wheel artifact path: {wheel_path.as_posix()}")
 
+        build_data["pure_python"] = False
+        build_data["infer_tag"] = True
+
         force_include = build_data.setdefault("force_include", {})
         force_include[str(artifact)] = wheel_path.as_posix()
 
@@ -95,6 +99,14 @@ class ConanBuildHook(BuildHookInterface):
                 f"removing temporary deployment directory: {temporary_directory.name}"
             )
             temporary_directory.cleanup()
+
+    def _python_configuration(self) -> list[str]:
+        return [
+            "-c",
+            f"user.haxorg:python_executable={sys.executable}",
+            "-c",
+            f"user.haxorg:python_abi={sysconfig.get_config_var('SOABI')}",
+        ]
 
     def _find_workspace(self, reference: str) -> Path | None:
         project_root = Path(self.root).resolve()
@@ -166,6 +178,8 @@ class ConanBuildHook(BuildHookInterface):
         if conan_profile:
             command.extend(["--profile:all", conan_profile])
 
+        command.extend(self._python_configuration())
+
         self._run(
             phase="install workspace dependencies",
             command=command,
@@ -180,6 +194,8 @@ class ConanBuildHook(BuildHookInterface):
 
         if conan_profile:
             build_command.extend(["--profile:all", conan_profile])
+
+        build_command.extend(self._python_configuration())
 
         self._run(
             phase="build workspace packages",
@@ -213,6 +229,8 @@ class ConanBuildHook(BuildHookInterface):
         conan_profile = os.environ.get("CONAN_PROFILE")
         if conan_profile:
             command.extend(["--profile:all", conan_profile])
+
+        command.extend(self._python_configuration())
 
         self._run(
             phase=f"deploy Conan artifact for {reference}",

@@ -3,9 +3,11 @@
 import argparse
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import ExitStack
 from pathlib import Path
 
 import tomllib
@@ -77,31 +79,6 @@ def validate_structure(project_path: Path) -> None:
         )
 
 
-def create_conan_package(
-    workspace_root: Path,
-    project_path: Path,
-    conan_profile: Path,
-) -> None:
-    conan_project = CONAN_PROJECTS.get(project_path.name)
-    if conan_project is None:
-        return
-
-    run(
-        [
-            "conan",
-            "create",
-            str(workspace_root / conan_project),
-            "--profile:all",
-            str(conan_profile),
-            "-s",
-            "build_type=Release",
-            "--build=missing",
-            "-vstatus",
-        ],
-        cwd=workspace_root,
-    )
-
-
 def validate_package(
     project_path: Path,
     *,
@@ -115,21 +92,26 @@ def validate_package(
 
     validate_structure(project_path)
 
-    if editable and project_path.name in CONAN_PROJECTS:
-        if conan_profile is None:
-            raise RuntimeError(
-                "--conan-profile is required for editable validation of "
-                f"{project_path.name}"
+    with ExitStack() as stack:
+        override = os.environ.get("HAXORG_PY_TEST_UV_INSTALL_DIR_OVERRIDE")
+
+        if override is not None:
+            if not override:
+                raise ValueError("HAXORG_PY_TEST_UV_INSTALL_DIR_OVERRIDE cannot be empty")
+
+            environment_path = Path(override)
+            if environment_path.exists():
+                shutil.rmtree(environment_path)
+
+            environment_path.mkdir(parents=True)
+
+        else:
+            temporary = stack.enter_context(
+                tempfile.TemporaryDirectory(prefix="verify_pkg_")
             )
 
-        create_conan_package(
-            workspace_root,
-            project_path,
-            conan_profile,
-        )
+            environment_path = Path(temporary) / ".venv"
 
-    with tempfile.TemporaryDirectory(prefix="verify_pkg_") as temporary:
-        environment_path = Path(temporary) / ".venv"
         environment = os.environ.copy()
         environment["UV_PROJECT_ENVIRONMENT"] = str(environment_path)
 

@@ -3,7 +3,7 @@ import pandas as pd
 import rich.box
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Union
-from hstd_py_lib.rich_utils import render_rich
+from hstd_py_lib.external_packages.rich_utils import render_rich
 from hstd_py_lib.script_logging import to_debug_json
 from rich.table import Table
 

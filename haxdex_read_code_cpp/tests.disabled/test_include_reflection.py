@@ -2,7 +2,7 @@ from pathlib import Path
 
 import py_codegen.proto_lib as pb
 import pytest
-from hstd_py_lib.rich_utils import render_rich
+from hstd_py_lib.external_packages.rich_utils import render_rich
 from py_codegen.refl_read import include_visit_to_rich_tree
 
 

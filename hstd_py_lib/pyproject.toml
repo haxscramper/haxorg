@@ -9,6 +9,7 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
   "beartype",
   "jsonpath_ng",
+  "rich",
 ]
 
 [project.entry-points.hatch]

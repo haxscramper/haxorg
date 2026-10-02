@@ -1,4 +1,5 @@
 from conan import ConanFile
+from conan.errors import ConanException
 
 
 class HaxorgCppPyWrapConan(ConanFile):
@@ -41,3 +42,25 @@ class HaxorgCppPyWrapConan(ConanFile):
         self.cpp.package.libdirs = []
         self.cpp.package.bindirs = []
         self.cpp.package.resdirs = []
+
+    def haxorg_configure_toolchain(self, toolchain):
+        python_executable = self.conf.get(
+            "user.haxorg:python_executable",
+            check_type=str,
+        )
+        if not python_executable:
+            raise ConanException(
+                f"{self.name}: user.haxorg:python_executable is required"
+            )
+
+        toolchain.cache_variables["Python_EXECUTABLE"] = python_executable
+
+    def package_id(self):
+        python_abi = self.conf.get(
+            "user.haxorg:python_abi",
+            check_type=str,
+        )
+        if not python_abi:
+            raise ConanException(f"{self.name}: user.haxorg:python_abi is required")
+
+        self.info.conf.define("user.haxorg:python_abi", python_abi)

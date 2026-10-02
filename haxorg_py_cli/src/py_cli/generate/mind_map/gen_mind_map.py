@@ -88,7 +88,7 @@ def gen_mind_map(ctx: haxorg_cli.CliRunContext) -> MindMapBuildArtifacts:
         opts.generate.mind_map.diagram_config,
     )
 
-    from hstd_py_lib.rich_utils import render_rich
+    from hstd_py_lib.external_packages.rich_utils import render_rich
 
     get_out("mmap_walker_repr.txt").write_text(render_rich(mmap_walker.getRepr()))
     pprint_to_file(to_debug_json(mmap_walker), get_out("mmap_walker.py"))

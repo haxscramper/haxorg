@@ -26,8 +26,8 @@ from beartype.typing import (
 )
 from coverage import Coverage
 from hstd_py_lib.algorithm import validate_unique
+from hstd_py_lib.external_packages.rich_utils import render_rich
 from hstd_py_lib.repo_files import get_haxorg_repo_root_path
-from hstd_py_lib.rich_utils import render_rich
 from plumbum import CommandNotFound, local
 from rich.tree import Tree
 
