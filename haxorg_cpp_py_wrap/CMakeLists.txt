@@ -40,7 +40,7 @@ set_target_properties(
     haxorg_cpp_py_wrap
     PROPERTIES
         OUTPUT_NAME
-            "pyhaxorg"
+            "haxorg_cpp_py_wrap"
         LIBRARY_OUTPUT_DIRECTORY
             "${CMAKE_CURRENT_BINARY_DIR}/python"
         RUNTIME_OUTPUT_DIRECTORY

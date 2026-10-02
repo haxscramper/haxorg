@@ -33,5 +33,5 @@ include = [
 
 [tool.hatch.build.hooks.conan]
 reference = "haxorg_cpp_py_wrap/0.1.0"
-artifact = "python/pyhaxorg*.so"
+artifact = "python/haxorg_cpp_py_wrap*.so"
 destination = ""

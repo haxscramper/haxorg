@@ -146,7 +146,7 @@ NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotation>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotation>)
 NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegmentGroup>)
-NB_MODULE(pyhaxorg, m) {
+NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
   org::bind::python::bind_hstdStrCommon<hstd::Str>(m, "StrCommonOfStr", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::OrgJson>(m, "HstdVecOfOrgJson", type_registry_guard);

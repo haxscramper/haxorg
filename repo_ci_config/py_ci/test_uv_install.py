@@ -162,7 +162,13 @@ def validate_package(
         ]
 
         run(
-            ["uv", "cache", "clean", *workspace_packages],
+            [
+                "uv",
+                "cache",
+                "clean",
+                "--force",
+                *workspace_packages,
+            ],
             cwd=workspace_root,
             env=environment,
         )
@@ -177,9 +183,7 @@ def validate_package(
 
         run(
             [
-                str(python),
-                "-m",
-                "pytest",
+                str(environment_path / "bin" / "pytest"),
                 "-v",
                 "--color=no",
                 str(project_path / "tests"),
