@@ -26,78 +26,6 @@ using namespace hstd;
 using namespace org::test;
 using namespace org;
 
-TEST(ManualFileRun, TestCoverallOrg) {
-    {
-        fs::path file{__CURRENT_FILE_DIR__ / "corpus" / "org" / "py_validated_all.org"};
-        std::string content = readFile(file);
-        auto        spec    = ParseSpec::FromSource(std::move(content), file.native());
-        spec.debug.traceAll = true;
-        spec.debug.doFormatReparse = false;
-        gtest_run_spec(
-            TestParams{
-                .spec = spec,
-                .file = "coverall",
-            },
-            getDebugDir());
-
-        auto ctx   = org::parse::ParseContext ::shared();
-        auto start = imm::ImmAstContext::init_start_context();
-        auto n     = start->init(ctx->parseString(content, file));
-
-        writeFile(
-            getDebugFile("imm_repr_subnodes_only.txt"),
-            n.getRootAdapter().treeRepr(imm::ImmAdapter::TreeReprConf{}).toString(false));
-
-
-        writeFile(
-            getDebugFile("imm_repr_clean.txt"),
-            n.getRootAdapter()
-                .treeRepr(
-                    imm::ImmAdapter::TreeReprConf{
-                        .withAuxFields = true,
-                    })
-                .toString(false));
-
-        writeFile(
-            getDebugFile("imm_repr_refl.txt"),
-            n.getRootAdapter()
-                .treeRepr(
-                    imm::ImmAdapter::TreeReprConf{
-                        .withAuxFields  = true,
-                        .withReflFields = true,
-                    })
-                .toString(false));
-
-        {
-            imm::ImmAdapter::TreeReprConf conf{};
-#define __visit_fields(                                                                  \
-    __field_type,                                                                        \
-    __field_lowercase,                                                                   \
-    __field_uppercase,                                                                   \
-    __parent_qual_type,                                                                  \
-    __parent_name)                                                                       \
-    conf.with_field(&BOOST_PP_REMOVE_PARENS __parent_qual_type::__field_lowercase);
-
-#define __visit_kind(__Kind)                                                             \
-    EACH_SEM_ORG_##__Kind##_FIELD_WITH_BASE_FIELDS(__visit_fields)
-
-            EACH_SEM_ORG_KIND(__visit_kind);
-
-#undef __visit_kind
-#undef __visit_fields
-
-            auto __log_scoped = HSLOG_SINK_FACTORY_SCOPED([&]() {
-                return ::hstd::log::init_file_sink(
-                    getDebugFile("all_fields.log").native());
-            });
-
-            writeFile(
-                getDebugFile("imm_repr_with_all_fields.txt"),
-                n.getRootAdapter().treeRepr(conf).toString(false));
-        }
-    }
-}
-
 TEST(ManualFileRun, TestDoc1) {
     fs::path file{"/home/haxscramper/tmp/doc1.org"};
     if (fs::exists(file)) {
@@ -120,7 +48,7 @@ TEST(ManualFileRun, TestDoc1) {
             getDebugDir());
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto ctx   = org::parse::ParseContext ::shared();
+        auto ctx   = org::parse::ParseContext::shared();
         auto n     = start->init(ctx->parseString(content, file));
 
         writeFile(
@@ -160,7 +88,7 @@ TEST(ManualFileRun, TestDoc2) {
             getDebugDir());
 
         auto start = imm::ImmAstContext::init_start_context();
-        auto ctx   = org::parse::ParseContext ::shared();
+        auto ctx   = org::parse::ParseContext::shared();
         auto n     = start->init(ctx->parseString(content, file));
     }
 }
@@ -168,7 +96,7 @@ TEST(ManualFileRun, TestDoc2) {
 TEST(ManualFileRun, TestMain1) {
     fs::path file{"/home/haxscramper/tmp/org_test_dir/main/main.org"};
     if (fs::exists(file)) {
-        auto ctx  = org::parse::ParseContext ::shared();
+        auto ctx  = org::parse::ParseContext::shared();
         auto opts = org::parse::OrgDirectoryParseParameters::shared();
 
         opts->getParsedNode = [&](std::string const& path) {
@@ -183,7 +111,7 @@ TEST(ManualFileRun, TestMain1) {
 void test_dir_parsing(fs::path const& dir, bool trace) {
     LOGIC_ASSERTION_CHECK_FMT(fs::exists(dir), "{}", fs::absolute(dir));
 
-    auto ctx  = org::parse::ParseContext ::shared();
+    auto ctx  = org::parse::ParseContext::shared();
     auto opts = org::parse::OrgDirectoryParseParameters::shared();
 
     opts->getParsedNode = [&](std::string const& path) {

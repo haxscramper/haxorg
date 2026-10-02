@@ -1232,14 +1232,12 @@ bool ReflASTVisitor::isRefl(c::Decl const* Decl) {
 
 std::optional<std::string> ReflASTVisitor::getDoc(c::Decl const* Decl) {
     c::ASTContext const& astContext = Decl->getASTContext();
-    c::RawComment const* rawComment = astContext.getRawCommentForDeclNoCache(Decl);
+    c::RawComment const* rawComment = astContext.getRawCommentNoCache(Decl);
+
     if (rawComment) {
-        llvm::StringRef commentText = rawComment->getRawText(
-            astContext.getSourceManager());
-        return commentText.str();
-    } else {
-        return std::nullopt;
+        return rawComment->getRawText(astContext.getSourceManager()).str();
     }
+    return std::nullopt;
 }
 
 bool ReflASTVisitor::shouldVisit(c::Decl const* Decl) {

@@ -72,30 +72,19 @@ function(haxorg_set_target_flags_impl)
     elseif(${ORG_BUILD_ASSUME_CLANG})
         # FIXME: Adding attribute configurations here does not propagate them to the compiler.
     endif()
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wdangling")
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Wno-c99-designator")
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Werror=dangling")
-    haxorg_add_target_property(${ARG_TARGET} COMPILE_OPTIONS "-Xclang")
-    haxorg_add_target_property(
+    target_compile_options(
         ${ARG_TARGET}
-        COMPILE_OPTIONS
-        "-fexperimental-lifetime-safety"
+        PRIVATE
+            "-Wno-c99-designator"
+            "-Xclang"
+            # https://github.com/llvm/llvm-project/issues/222537
+            # cannot enable full lifetime tracking, clang 23.1.1 has crippling false positives
+            "-Werror=lifetime-safety-permissive"
+            # "-Werror=lifetime-safety-validations"
+            "-Werror=dangling"
+            "-Werror=implicit-fallthrough"
     )
-    haxorg_add_target_property(
-        ${ARG_TARGET}
-        COMPILE_OPTIONS
-        "-Wexperimental-lifetime-safety"
-    )
-    haxorg_add_target_property(
-        ${ARG_TARGET}
-        COMPILE_OPTIONS
-        "-Werror=experimental-lifetime-safety"
-    )
-    haxorg_add_target_property(
-        ${ARG_TARGET}
-        COMPILE_OPTIONS
-        "-Werror=implicit-fallthrough"
-    )
+
     set_target_properties(
         "${ARG_TARGET}"
         PROPERTIES

@@ -10,6 +10,9 @@ dependencies = [
   "beartype",
   "jsonpath_ng",
   "rich",
+  "plumbum",
+  "pyyaml",
+  "pydantic",
 ]
 
 [project.entry-points.hatch]

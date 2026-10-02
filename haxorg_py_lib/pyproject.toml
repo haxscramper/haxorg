@@ -11,12 +11,15 @@ version = "0.1.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
   "hstd-py-lib==0.1.0",
+  "dominate", # HTML exporter,
+  "toml",
 ]
 
 [dependency-groups]
 dev = [
   "pytest",
   "coverage",
+  "ansi2html",
 ]
 
 [tool.uv.sources]

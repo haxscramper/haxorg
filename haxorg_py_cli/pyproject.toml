@@ -5,7 +5,8 @@ description = ""
 authors = [{name = "haxscramper", email = "haxscramper@gmail.com"}]
 readme = {file = "README.org", content-type = "text/plain"}
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+]
 
 [build-system]
 requires = ["hatchling"]

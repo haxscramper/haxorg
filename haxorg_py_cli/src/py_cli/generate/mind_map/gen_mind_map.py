@@ -7,7 +7,6 @@ import plumbum
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, Optional
-from hstd_py_lib.repo_files import get_haxorg_repo_root_path
 from loguru import logger, pprint_to_file, to_debug_json
 
 from py_cli import haxorg_cli, haxorg_opts

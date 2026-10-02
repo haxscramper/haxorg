@@ -3,7 +3,6 @@ from pathlib import Path
 
 import haxorg_py_lib.pyhaxorg_utils as org_utils
 from beartype.typing import Annotated, List, Optional, Tuple, TypeVar
-from hstd_py_lib.repo_files import get_haxorg_repo_root_path
 from hstd_py_lib.toml_config_profiler import CliField
 from pydantic import AfterValidator, AliasChoices, BaseModel, Field
 

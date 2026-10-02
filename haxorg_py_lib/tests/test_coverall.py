@@ -27,7 +27,6 @@ from beartype.typing import (
 from coverage import Coverage
 from hstd_py_lib.algorithm import validate_unique
 from hstd_py_lib.external_packages.rich_utils import render_rich
-from hstd_py_lib.repo_files import get_haxorg_repo_root_path
 from plumbum import CommandNotFound, local
 from rich.tree import Tree
 
@@ -1163,7 +1162,7 @@ def verify_full_coverage(
         )
 
 
-org_corpus_dir = get_haxorg_repo_root_path().joinpath("tests/org/corpus/org")
+org_corpus_dir = Path(__file__).parent.joinpath("corpus")
 
 
 def test_total_representation() -> None:

@@ -168,6 +168,7 @@ def validate_package(
                 str(environment_path / "bin" / "pytest"),
                 "-v",
                 "--color=no",
+                "--tb=native",
                 str(project_path / "tests"),
             ],
             cwd=workspace_root,

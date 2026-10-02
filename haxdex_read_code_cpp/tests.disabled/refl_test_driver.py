@@ -11,7 +11,6 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
 from haxorg_py_lib.layout.wrap import TextLayout
 from hstd_py_lib.script_logging import pprint_to_file, to_debug_json
-from hstd_py_lib.toml_config_profiler import get_haxorg_repo_root_path
 from plumbum import CommandNotFound, local
 from py_codegen import astbuilder_cpp, astbuilder_embind, astbuilder_nim
 from py_codegen.astbuilder_embind_config import EmbindAstbuilderConfig
