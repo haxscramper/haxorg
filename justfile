@@ -195,6 +195,7 @@ conan_validate target:
     -s build_type=Release \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
     -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
+    -c 'user.haxorg:uv_project={{HAXORG_ROOT}}' \
     --build=missing \
      -vstatus
 

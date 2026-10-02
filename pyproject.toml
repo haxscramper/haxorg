@@ -5,6 +5,7 @@ members = [
   "repo_py_orchestrate",
   "haxorg_py_lib",
   "hstd_py_text_layout",
+  "haxdex_read_code_cpp/tests",
 ]
 
 [tool.uv.sources]

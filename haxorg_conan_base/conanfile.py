@@ -1,13 +1,15 @@
 import os
 import re
+import shlex
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import tomllib
 from conan import ConanFile
 from conan.errors import ConanException
 from conan.tools.build import can_run
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.env import Environment
+from conan.tools.env import VirtualRunEnv
 from conan.tools.files import copy
 
 PACKAGE_NAME_RE = re.compile(r"[a-z][a-z0-9]*(_[a-z0-9]+)*")
@@ -29,6 +31,10 @@ class HaxorgPackage(_HaxorgTypingBase):
         "proto/*",
         "tests/*",
     )
+
+    # Expected build outputs. Used only for validation, not packaging or lookup.
+    # Applications must declare a nonempty list.
+    provided_binaries: list[str] | None = None
 
     # File names in `cmake/` exported to consumers as CMake build modules.
     haxorg_cmake_build_modules: tuple[str, ...] = ()
@@ -59,8 +65,29 @@ class HaxorgPackage(_HaxorgTypingBase):
         return f"{self.haxorg_namespace}::{self.name}"
 
     @property
+    def haxorg_has_cpp_tests(self) -> bool:
+        tests = Path(self.source_folder) / "tests"
+        return any(tests.rglob("*.cpp"))
+
+    @property
+    def haxorg_has_python_tests(self) -> bool:
+        return (Path(self.source_folder) / "tests" / "pyproject.toml").is_file()
+
+    @property
     def haxorg_has_tests(self) -> bool:
-        return (Path(self.source_folder) / "tests").is_dir()
+        return self.haxorg_has_cpp_tests or self.haxorg_has_python_tests
+
+    @property
+    def haxorg_pytest_package_name(self) -> str:
+        return f"{self.name}_pytest_package"
+
+    @property
+    def haxorg_binary_directories(self) -> list[Path]:
+        assert self.build_folder
+        return [
+            (Path(self.build_folder) / directory).resolve()
+            for directory in self.cpp.build.bindirs
+        ]
 
     @property
     def haxorg_run_tests(self) -> bool:
@@ -120,12 +147,51 @@ class HaxorgPackage(_HaxorgTypingBase):
             if not (cmake_dir / module).is_file():
                 errors.append(f"build module 'cmake/{module}' does not exist")
 
-        if (root / "tests").is_dir() and "enable_testing()" not in (
-            root / "CMakeLists.txt"
-        ).read_text():
+        tests = root / "tests"
+        has_cpp_tests = any(tests.rglob("*.cpp"))
+        has_python_files = any(tests.rglob("*.py"))
+        pytest_project = tests / "pyproject.toml"
+
+        if (
+            has_cpp_tests
+            and "enable_testing()" not in (root / "CMakeLists.txt").read_text()
+        ):
             errors.append(
-                "'tests/' exists but CMakeLists.txt does not call enable_testing()"
+                "'tests/' contains C++ tests but "
+                "CMakeLists.txt does not call enable_testing()"
             )
+
+        if has_python_files and not pytest_project.is_file():
+            errors.append(
+                "'tests/' contains Python files but 'tests/pyproject.toml' does not exist"
+            )
+
+        if pytest_project.is_file():
+            try:
+                with pytest_project.open("rb") as stream:
+                    metadata = tomllib.load(stream)
+            except tomllib.TOMLDecodeError as error:
+                errors.append(f"'tests/pyproject.toml' is invalid: {error}")
+            else:
+                actual_name = metadata.get("project", {}).get("name")
+                expected_name = self.haxorg_pytest_package_name
+                if actual_name != expected_name:
+                    errors.append(
+                        "'tests/pyproject.toml' must declare "
+                        f"project.name = '{expected_name}', found {actual_name!r}"
+                    )
+
+        if self.haxorg_is_application and not self.provided_binaries:
+            errors.append(
+                "application packages must declare a nonempty provided_binaries list"
+            )
+
+        if self.provided_binaries is not None:
+            for binary in self.provided_binaries:
+                if not binary or Path(binary).name != binary:
+                    errors.append(
+                        f"provided_binaries entries must be file names, found {binary!r}"
+                    )
 
         if errors:
             raise ConanException(
@@ -160,7 +226,6 @@ class HaxorgPackage(_HaxorgTypingBase):
         self.cpp.package.set_property("cmake_build_modules", build_modules)
 
         if self.haxorg_is_application:
-            self.cpp.build.bindirs = ["."]
             self.cpp.package.includedirs = []
             self.cpp.package.bindirs = ["bin"]
         else:
@@ -194,6 +259,8 @@ class HaxorgPackage(_HaxorgTypingBase):
         self.haxorg_configure_toolchain(toolchain)
         toolchain.generate()
 
+        VirtualRunEnv(self).generate()
+
     def build(self):
         cmake = CMake(self)
         cmake.configure()
@@ -203,11 +270,21 @@ class HaxorgPackage(_HaxorgTypingBase):
             )
         )
 
+        self.haxorg_validate_provided_binaries()
+
         if self.haxorg_run_tests and can_run(self):
-            environment = Environment()
+            environment = VirtualRunEnv(self).environment()
             environment.define("CTEST_OUTPUT_ON_FAILURE", "1")
+
+            for directory in reversed(self.haxorg_binary_directories):
+                environment.prepend_path("PATH", str(directory))
+
             with environment.vars(self).apply():
-                cmake.test()
+                if self.haxorg_has_cpp_tests:
+                    cmake.test()
+
+                if self.haxorg_has_python_tests:
+                    self.haxorg_test_with_pytest()
 
     def package(self):
         assert self.source_folder
@@ -273,6 +350,67 @@ class HaxorgPackage(_HaxorgTypingBase):
                 )
 
         self.haxorg_package_info()
+
+    def haxorg_validate_provided_binaries(self):
+        if self.provided_binaries is None:
+            return
+
+        directories = self.haxorg_binary_directories
+        missing = [
+            binary
+            for binary in self.provided_binaries
+            if not any((directory / binary).is_file() for directory in directories)
+        ]
+
+        if missing:
+            searched = ", ".join(str(directory) for directory in directories)
+            raise ConanException(
+                f"{self.name}: missing provided binaries: {', '.join(missing)}; "
+                f"searched: {searched}"
+            )
+
+    def haxorg_test_with_pytest(self):
+        assert self.source_folder
+
+        workspace_value = self.conf.get(
+            "user.haxorg:uv_project",
+            check_type=str,
+        )
+        if not workspace_value:
+            raise ConanException(
+                "pytest requires user.haxorg:uv_project pointing to "
+                "the monorepo workspace"
+            )
+
+        workspace = Path(workspace_value)
+        if not workspace.is_absolute():
+            raise ConanException("user.haxorg:uv_project must be an absolute path")
+
+        if not (workspace / "pyproject.toml").is_file():
+            raise ConanException(f"No pyproject.toml in {workspace}")
+
+        tests = Path(self.source_folder) / "tests"
+        command = [
+            "uv",
+            "run",
+            "--locked",
+            "--project",
+            str(workspace),
+            "--package",
+            self.haxorg_pytest_package_name,
+            "--no-default-groups",
+            "python",
+            "-m",
+            "pytest",
+            "-c",
+            str(tests / "pyproject.toml"),
+            str(tests),
+        ]
+
+        self.run(
+            shlex.join(command),
+            cwd=self.source_folder,
+        )
 
 
 class HaxorgConanBase(ConanFile):

@@ -8,6 +8,7 @@ class HaxdexCppReflReadConan(ConanFile):
 
     python_requires = "haxorg_conan_base/0.1.0"
     python_requires_extend = "haxorg_conan_base.HaxorgPackage"
+    provided_binaries = ["haxdex_read_code_cpp"]
 
     default_options = {
         "hwloc/*:shared": True,
