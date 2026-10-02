@@ -170,7 +170,7 @@ BOOST_DESCRIBE_STRUCT(
      cpack));
 
 
-NB_MODULE(py_textlayout_cpp, m) {
+NB_MODULE(hstd_cpp_text_layout_py_wrap, m) {
     using namespace nb;
     TextLayout::py_define(m);
 

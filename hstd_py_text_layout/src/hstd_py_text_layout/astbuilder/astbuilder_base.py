@@ -7,7 +7,12 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
+
+from hstd_py_text_layout.src.hstd_py_text_layout.base.wrap import (
+    BlockId,
+    TextLayout,
+    TextOptions,
+)
 
 
 class AstLineCtx:

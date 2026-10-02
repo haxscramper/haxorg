@@ -17,7 +17,7 @@ logging.basicConfig(
 
 CONAN_PROJECTS = {
     "haxorg_py_lib": "haxorg_cpp_py_wrap",
-    "htsd_py_text_layout": "hstd_cpp_text_layout_py_wrap",
+    "hstd_py_text_layout": "hstd_cpp_text_layout_py_wrap",
 }
 
 
@@ -163,6 +163,8 @@ def validate_package(
                 str(python),
                 "-m",
                 "pytest",
+                "-v",
+                "--color=no",
                 str(project_path / "tests"),
             ],
             cwd=workspace_root,

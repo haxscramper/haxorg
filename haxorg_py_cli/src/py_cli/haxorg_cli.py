@@ -1,7 +1,7 @@
 import time
 from pathlib import Path
 
-import py_haxorg.pyhaxorg_wrap as org
+import haxorg_py_lib.pyhaxorg_wrap as org
 import rich.highlighter
 import rich.text
 import rich_click as click

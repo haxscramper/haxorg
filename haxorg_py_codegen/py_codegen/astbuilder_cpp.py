@@ -4,7 +4,7 @@ from copy import copy
 from dataclasses import dataclass, field, replace
 from enum import Enum
 
-import py_haxorg.astbuilder.astbuilder_base as base
+import haxorg_py_lib.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import Any, Iterable, List, Optional, Tuple, Union
 from py_haxorg.layout.wrap import BlockId, TextLayout

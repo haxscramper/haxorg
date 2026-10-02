@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import dominate
-import py_haxorg.pyhaxorg_wrap as org
+import haxorg_py_lib.pyhaxorg_wrap as org
 import yaml
 from ansi2html import Ansi2HTMLConverter
 from beartype import beartype
@@ -18,7 +18,6 @@ from pygments.formatters import HtmlFormatter
 from pygments.lexers import YamlLexer
 
 osk: Type = org.OrgSemKind
-CAT = "test_simple_org_use.py"
 
 
 def test_word() -> None:

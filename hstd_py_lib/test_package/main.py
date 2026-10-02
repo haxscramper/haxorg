@@ -1,8 +1,9 @@
-from hstd_py_lib import test_function_temporary
+from hstd_py_lib import algorithm
 
 
 def main() -> None:
-    test_function_temporary()
+    value = algorithm.cond(True, 1, 2)
+    assert value == 1
 
 
 if __name__ == "__main__":

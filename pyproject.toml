@@ -4,7 +4,7 @@ members = [
   "repo_py_validate",
   "repo_py_orchestrate",
   "haxorg_py_lib",
-  "htsd_py_text_layout",
+  "hstd_py_text_layout",
 ]
 
 [dependency-groups]

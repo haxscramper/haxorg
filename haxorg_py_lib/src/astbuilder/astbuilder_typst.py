@@ -3,13 +3,14 @@ from numbers import Number
 from pathlib import Path
 from typing import TypeAlias
 
-import py_haxorg.astbuilder.astbuilder_base as base
+import haxorg_py_lib.astbuilder.astbuilder_base as base
 import toml
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional
 from hstd_py_lib.algorithm import cond, maybe_splice
-from py_haxorg.layout.wrap import BlockId, TextLayout
 from pydantic import BaseModel
+
+from hstd_py_text_layout.src.hstd_py_text_layout.base.wrap import BlockId, TextLayout
 
 
 class TypstPackageFields(BaseModel):

@@ -1,8 +1,8 @@
 import itertools
 from pathlib import Path
 
+import haxorg_py_lib.pyhaxorg_wrap as org
 import plumbum
-import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, List

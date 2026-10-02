@@ -1,13 +1,13 @@
 import itertools
 from dataclasses import dataclass, field
 
+import haxorg_py_lib.pyhaxorg_wrap as org
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Set
 from hstd_py_lib.json_utils import Json
 
-import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.exporters.export_base import ExporterBase
-from py_haxorg.pyhaxorg_utils import formatDateTime, formatHashTag
+from haxorg_py_lib.src.exporters.export_base import ExporterBase
+from haxorg_py_lib.src.pyhaxorg_utils import formatDateTime, formatHashTag
 
 CAT = "export.pandoc"
 

@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+import haxorg_py_lib.pyhaxorg_utils as org_utils
+import haxorg_py_lib.pyhaxorg_wrap as org
 import pandas as pd
-import py_haxorg.pyhaxorg_utils as org_utils
-import py_haxorg.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Literal, Optional

@@ -9,7 +9,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from tempfile import gettempdir
 
-import py_haxorg.pyhaxorg_wrap as org
+import haxorg_py_lib.pyhaxorg_wrap as org
 import pytest
 from beartype import beartype
 from beartype.typing import (

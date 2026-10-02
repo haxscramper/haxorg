@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from beartype import beartype
 
 if TYPE_CHECKING:
-    from py_haxorg.pyhaxorg import *
+    from haxorg_py_lib.src.pyhaxorg import *
 else:
     from pyhaxorg import *
 

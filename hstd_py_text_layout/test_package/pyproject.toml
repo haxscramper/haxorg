@@ -3,13 +3,13 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "htsd-py-text-layout-test-package"
+name = "hstd-py-text-layout-test-package"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
-dependencies = ["htsd-py-text-layout==0.1.0"]
+dependencies = ["hstd-py-text-layout==0.1.0"]
 
 [tool.uv.sources]
-htsd-py-text-layout = { path = ".." }
+hstd-py-text-layout = { path = ".." }
 
 [tool.hatch.build.targets.wheel]
 bypass-selection = true

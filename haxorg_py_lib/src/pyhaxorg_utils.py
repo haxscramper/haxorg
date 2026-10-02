@@ -4,13 +4,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+import haxorg_py_lib.pyhaxorg_wrap as org
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
 from hstd_py_lib.script_logging import ExceptionContextNote
 
-import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
-from py_haxorg.pyhaxorg_wrap import UserTime
+from haxorg_py_lib.src.exporters.export_ultraplain import ExporterUltraplain
+from haxorg_py_lib.src.pyhaxorg_wrap import UserTime
 
 CAT = "org"
 

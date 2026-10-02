@@ -34,7 +34,7 @@ set_target_properties(
     hstd_cpp_text_layout_py_wrap
     PROPERTIES
         OUTPUT_NAME
-            "py_textlayout_cpp"
+            "hstd_cpp_text_layout_py_wrap"
 )
 
 target_include_directories(

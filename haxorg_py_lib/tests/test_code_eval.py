@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import py_haxorg.pyhaxorg_wrap as org
+import haxorg_py_lib.pyhaxorg_wrap as org
 import pytest
 from beartype.typing import List
 from py_haxorg.babel import evalCode

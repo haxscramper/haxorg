@@ -1,10 +1,9 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import haxorg_py_lib.pyhaxorg_wrap as org
 from loguru import logger
 from plumbum import CommandNotFound, local
-
-import py_haxorg.pyhaxorg_wrap as org
 
 
 def babel_eval(input: org.OrgCodeEvalInput) -> org.HstdVecOfOrgCodeEvalOutput:

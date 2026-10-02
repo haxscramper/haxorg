@@ -6,18 +6,23 @@ requires = [
 build-backend = "hatchling.build"
 
 [project]
-name = "htsd-py-text-layout"
+name = "hstd-py-text-layout"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
   "hstd-py-lib==0.1.0",
 ]
 
+[dependency-groups]
+dev = [
+  "pytest",
+]
+
 [tool.uv.sources]
 hstd-py-lib = { workspace = true }
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/htsd_py_text_layout"]
+packages = ["src/hstd_py_text_layout"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -28,5 +33,5 @@ include = [
 
 [tool.hatch.build.hooks.conan]
 reference = "hstd_cpp_text_layout_py_wrap/0.1.0"
-artifact = "py_textlayout_cpp*.so"
+artifact = "hstd_cpp_text_layout_py_wrap*.so"
 destination = ""

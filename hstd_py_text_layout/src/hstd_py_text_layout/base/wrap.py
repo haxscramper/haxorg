@@ -4,11 +4,11 @@ from beartype import beartype
 from beartype.typing import Iterable, NewType, Union
 
 if TYPE_CHECKING:
-    import py_haxorg.layout.types as lyt
-    from py_haxorg.layout.types import BlockId
+    import hstd_py_text_layout.layout.types as lyt
+    from hstd_py_text_layout.base.types import BlockId
 
 else:
-    import py_textlayout_cpp as lyt
+    import hstd_cpp_text_layout_py_wrap as lyt
 
     BlockId = NewType("BlockId", int)
 

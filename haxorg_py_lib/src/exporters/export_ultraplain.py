@@ -1,8 +1,8 @@
+import haxorg_py_lib.pyhaxorg_wrap as org
 from beartype import beartype
 
-import py_haxorg.pyhaxorg_wrap as org
-from py_haxorg.exporters.export_base import ExporterBase
-from py_haxorg.layout.wrap import *
+from haxorg_py_lib.src.exporters.export_base import ExporterBase
+from hstd_py_text_layout.src.hstd_py_text_layout.base.wrap import *
 
 
 @beartype

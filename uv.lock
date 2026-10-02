@@ -6,7 +6,7 @@ requires-python = "==3.13.*"
 members = [
     "haxorg-py-lib",
     "hstd-py-lib",
-    "htsd-py-text-layout",
+    "hstd-py-text-layout",
     "repo-py-orchestrate",
     "repo-py-validate",
 ]
@@ -68,18 +68,26 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.3" }]
+dev = [{ name = "pytest" }]
 
 [[package]]
-name = "htsd-py-text-layout"
+name = "hstd-py-text-layout"
 version = "0.1.0"
-source = { editable = "htsd_py_text_layout" }
+source = { editable = "hstd_py_text_layout" }
 dependencies = [
     { name = "hstd-py-lib" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [{ name = "hstd-py-lib", editable = "hstd_py_lib" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest" }]
 
 [[package]]
 name = "iniconfig"
