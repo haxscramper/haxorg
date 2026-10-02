@@ -11,8 +11,8 @@ from beartype.typing import (
     Sequence,
     Tuple,
 )
+from haxorg_py_lib.layout.wrap import BlockId
 from hstd_py_lib.algorithm import drop_none, iterate_object_tree
-from py_haxorg.layout.wrap import BlockId
 
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_ir

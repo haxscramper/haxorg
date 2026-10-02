@@ -5,8 +5,8 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Callable, List, Optional, Set, Tuple, Union
+from haxorg_py_lib.layout.wrap import BlockId, TextLayout, TextOptions
 from hstd_py_lib.files import file_relpath
-from py_haxorg.layout.wrap import BlockId, TextLayout, TextOptions
 
 import py_codegen.astbuilder_nim as nim
 from py_codegen.astbuilder_nim_config import NimAstbuilderConfig

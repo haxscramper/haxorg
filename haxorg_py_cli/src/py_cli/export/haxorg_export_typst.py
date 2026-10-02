@@ -4,9 +4,12 @@ import plumbum
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any
+from haxorg_py_lib.exporters.export_typst import (
+    ExporterTypst,
+    refresh_typst_export_package,
+)
 from loguru import logger
 from py_haxorg import pyhaxorg_utils
-from py_haxorg.exporters.export_typst import ExporterTypst, refresh_typst_export_package
 
 from py_cli import haxorg_cli, haxorg_opts
 

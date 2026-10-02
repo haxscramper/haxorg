@@ -11,8 +11,8 @@ import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, Union
 from dominate.util import text
-from py_haxorg.exporters.export_html import ExporterHtml, add_html, add_new
-from py_haxorg.pyhaxorg_utils import evalDateTime
+from haxorg_py_lib.exporters.export_html import ExporterHtml, add_html, add_new
+from haxorg_py_lib.pyhaxorg_utils import evalDateTime
 
 from py_cli import haxorg_cli, haxorg_opts
 

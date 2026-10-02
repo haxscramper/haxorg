@@ -44,8 +44,16 @@ dependencies = [
     { name = "hstd-py-lib" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [{ name = "hstd-py-lib", editable = "hstd_py_lib" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest" }]
 
 [[package]]
 name = "hstd-py-lib"

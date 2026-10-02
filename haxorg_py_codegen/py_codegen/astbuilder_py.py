@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import haxorg_py_lib.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import List, Optional
-from py_haxorg.layout.wrap import BlockId, TextLayout
+from haxorg_py_lib.layout.wrap import BlockId, TextLayout
 
 from py_codegen.codegen_ir import QualType
 

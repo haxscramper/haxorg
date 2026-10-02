@@ -7,7 +7,7 @@ import pandas as pd
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any
-from py_haxorg.pyhaxorg_utils import getFlatTags
+from haxorg_py_lib.pyhaxorg_utils import getFlatTags
 
 from py_cli import haxorg_cli, haxorg_opts
 

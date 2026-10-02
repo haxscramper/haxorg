@@ -10,9 +10,9 @@ import pandas as pd
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, List, Optional, Tuple
+from haxorg_py_lib.exporters.export_ultraplain import ExporterUltraplain
+from haxorg_py_lib.pyhaxorg_utils import evalDateTime, getFlatTags
 from loguru import logger
-from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
-from py_haxorg.pyhaxorg_utils import evalDateTime, getFlatTags
 from pydantic import BaseModel, Field
 
 from py_cli import haxorg_cli, haxorg_opts

@@ -9,6 +9,7 @@ import py_codegen.refl_extract as ex
 import py_codegen.wrapper_gen_nim as gen_nim
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
+from haxorg_py_lib.layout.wrap import TextLayout
 from hstd_py_lib.script_logging import pprint_to_file, to_debug_json
 from hstd_py_lib.toml_config_profiler import get_haxorg_repo_root_path
 from plumbum import CommandNotFound, local
@@ -29,7 +30,6 @@ from py_codegen.codegen_ir import (
 )
 from py_codegen.refl_read import QualType
 from py_codegen.refl_wrapper_graph import GenGraph, TuWrap
-from py_haxorg.layout.wrap import TextLayout
 
 
 @beartype

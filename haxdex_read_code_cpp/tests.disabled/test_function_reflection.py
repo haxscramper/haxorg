@@ -3,9 +3,9 @@ from pathlib import Path
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_nanobind as py11
 import pytest
+from haxorg_py_lib.layout.wrap import TextLayout, TextOptions
 from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
 from py_codegen.codegen_ir import ReferenceKind, get_type_map
-from py_haxorg.layout.wrap import TextLayout, TextOptions
 
 
 @pytest.mark.test_release

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import List
-from py_haxorg.layout.wrap import BlockId
+from haxorg_py_lib.layout.wrap import BlockId
 
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_cpp, codegen_ir

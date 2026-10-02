@@ -13,6 +13,11 @@ dependencies = [
   "hstd-py-lib==0.1.0",
 ]
 
+[dependency-groups]
+dev = [
+  "pytest",
+]
+
 [tool.uv.sources]
 hstd-py-lib = { workspace = true }
 

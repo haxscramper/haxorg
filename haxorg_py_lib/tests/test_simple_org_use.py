@@ -10,8 +10,8 @@ from beartype import beartype
 from beartype.typing import *
 from beartype.typing import Any, List
 from dominate import tags, util
+from haxorg_py_lib.pyhaxorg_wrap import OrgSemKind as osk
 from hstd_py_lib.files import get_haxorg_repo_root_path
-from py_haxorg.pyhaxorg_wrap import OrgSemKind as osk
 from pydantic import BaseModel, Field
 from pygments import highlight
 from pygments.formatters import HtmlFormatter

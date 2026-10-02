@@ -4,7 +4,7 @@ import haxorg_py_lib.pyhaxorg_wrap as org
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any
-from py_haxorg.exporters.export_pandoc import ExporterPandoc
+from haxorg_py_lib.exporters.export_pandoc import ExporterPandoc
 
 from py_cli import haxorg_cli, haxorg_opts
 

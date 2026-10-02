@@ -18,9 +18,9 @@ from beartype.typing import (
     Union,
     cast,
 )
+from haxorg_py_lib.layout.wrap import BlockId
 from hstd_py_lib.algorithm import iterate_object_tree
 from loguru import logger
-from py_haxorg.layout.wrap import BlockId
 from pydantic import AliasChoices, BaseModel, Field
 
 DEBUG_TYPE_ORIGIN = False

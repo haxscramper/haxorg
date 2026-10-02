@@ -7,7 +7,7 @@ from enum import Enum
 import haxorg_py_lib.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import Any, Iterable, List, Optional, Tuple, Union
-from py_haxorg.layout.wrap import BlockId, TextLayout
+from haxorg_py_lib.layout.wrap import BlockId, TextLayout
 
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import GenTuTemplateParams, QualType, StorageClass

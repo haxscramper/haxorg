@@ -3,10 +3,10 @@ import functools
 import inspect
 import re
 
-import haxorg_py_lib.pyhaxorg_wrap as org
 from beartype import beartype
 from beartype.typing import Any, Callable, Generator, List, Set
 
+import haxorg_py_lib.pyhaxorg_wrap as org
 from hstd_py_lib import algorithm
 from hstd_py_text_layout.src.hstd_py_text_layout.base.wrap import *
 

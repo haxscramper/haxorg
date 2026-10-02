@@ -5,7 +5,7 @@ from enum import Enum
 import haxorg_py_lib.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-from py_haxorg.layout.wrap import BlockId, TextLayout
+from haxorg_py_lib.layout.wrap import BlockId, TextLayout
 
 from py_codegen.astbuilder_nim_config import NimAstbuilderConfig, PragmaParams
 

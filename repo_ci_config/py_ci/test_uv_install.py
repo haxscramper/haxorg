@@ -150,6 +150,23 @@ def validate_package(
         if not editable:
             sync_command.append("--no-editable")
 
+        # drop the workspace packages from cache each time to guarantee
+        # a clean run -- `--no-cache` is not useful here, as it will
+        # also trigger re-download of all transitive third-party deps
+        with (workspace_root / "pyproject.toml").open("rb") as file:
+            workspace_config = tomllib.load(file)
+
+        workspace_packages = [
+            get_project_name(workspace_root / member)
+            for member in workspace_config["tool"]["uv"]["workspace"]["members"]
+        ]
+
+        run(
+            ["uv", "cache", "clean", *workspace_packages],
+            cwd=workspace_root,
+            env=environment,
+        )
+
         run(
             sync_command,
             cwd=workspace_root,

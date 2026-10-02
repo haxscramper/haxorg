@@ -4,7 +4,7 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import List
-from py_haxorg.layout.wrap import BlockId
+from haxorg_py_lib.layout.wrap import BlockId
 from pydantic import BaseModel, Field
 
 from py_codegen import codegen_ir

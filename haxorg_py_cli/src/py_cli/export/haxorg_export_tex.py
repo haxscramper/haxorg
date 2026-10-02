@@ -6,10 +6,10 @@ import plumbum
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any, List
+from haxorg_py_lib.exporters.export_tex import ExporterLatex
+from haxorg_py_lib.exporters.export_utils.texoutparse import LatexLogParser
+from haxorg_py_lib.layout.wrap import BlockId, TextOptions
 from loguru import logger
-from py_haxorg.exporters.export_tex import ExporterLatex
-from py_haxorg.exporters.export_utils.texoutparse import LatexLogParser
-from py_haxorg.layout.wrap import BlockId, TextOptions
 
 from py_cli import haxorg_cli, haxorg_opts
 

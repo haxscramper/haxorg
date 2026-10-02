@@ -1,11 +1,11 @@
 import dominate
 import dominate.tags as tags
-import haxorg_py_lib.pyhaxorg_wrap as org
 from beartype.typing import Any, Callable, List, Optional
 from dominate.util import text
 
-from haxorg_py_lib.src.exporters.export_base import ExporterBase
-from haxorg_py_lib.src.pyhaxorg_utils import formatDateTime, formatHashTag
+import haxorg_py_lib.pyhaxorg_wrap as org
+from haxorg_py_lib.src.haxorg_py_lib.exporters.export_base import ExporterBase
+from haxorg_py_lib.src.haxorg_py_lib.pyhaxorg_utils import formatDateTime, formatHashTag
 
 CAT = "haxorg.export.html"
 

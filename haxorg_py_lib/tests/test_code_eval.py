@@ -3,7 +3,7 @@ from pathlib import Path
 import haxorg_py_lib.pyhaxorg_wrap as org
 import pytest
 from beartype.typing import List
-from py_haxorg.babel import evalCode
+from haxorg_py_lib.babel import evalCode
 
 
 def test_trivial_code_eval() -> None:

@@ -33,7 +33,7 @@ def export_sqlite(ctx: haxorg_cli.CliRunContext) -> None:
                 ):
                     nodes.append((haxorg_cli.parseFile(ctx, file), str(file)))
 
-        from py_haxorg.exporters.export_sqlite import Base, registerDocument
+        from haxorg_py_lib.exporters.export_sqlite import Base, registerDocument
         from sqlalchemy import Engine, create_engine
 
         if ctx.opts.export.sqlite.outfile.exists():

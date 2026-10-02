@@ -2,7 +2,7 @@ import abc
 
 from beartype import beartype
 from beartype.typing import List, Optional
-from py_haxorg.astbuilder.astbuilder_utils import pascal_case
+from haxorg_py_lib.astbuilder.astbuilder_utils import pascal_case
 
 from py_codegen import codegen_ir
 from py_codegen.codegen_ir import QualType

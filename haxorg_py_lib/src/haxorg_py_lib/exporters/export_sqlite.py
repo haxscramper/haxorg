@@ -1,6 +1,5 @@
 import enum
 
-import haxorg_py_lib.pyhaxorg_wrap as org
 from beartype import beartype
 from beartype.typing import List, Optional, Type
 from hstd_py_lib.sqlalchemy_utils import (
@@ -13,8 +12,9 @@ from hstd_py_lib.sqlalchemy_utils import (
 from sqlalchemy import Boolean, Column, Engine, Enum
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from haxorg_py_lib.src.exporters.export_ultraplain import ExporterUltraplain
-from haxorg_py_lib.src.pyhaxorg_utils import (
+import haxorg_py_lib.pyhaxorg_wrap as org
+from haxorg_py_lib.src.haxorg_py_lib.exporters.export_ultraplain import ExporterUltraplain
+from haxorg_py_lib.src.haxorg_py_lib.pyhaxorg_utils import (
     evalDateTime,
     formatHashTag,
     getCreationTime,

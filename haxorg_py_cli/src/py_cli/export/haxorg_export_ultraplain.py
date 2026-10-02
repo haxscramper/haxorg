@@ -15,7 +15,7 @@ def export_ultraplain(opts: haxorg_opts.RootOptions) -> None:
     """
     assert opts.export
     node = haxorg_cli.parseFile(opts, glom.glom(opts, "export.ultraplain.infile"))
-    from py_haxorg.exporters.export_ultraplain import ExporterUltraplain
+    from haxorg_py_lib.exporters.export_ultraplain import ExporterUltraplain
 
     exp = ExporterUltraplain()
     if opts.export:

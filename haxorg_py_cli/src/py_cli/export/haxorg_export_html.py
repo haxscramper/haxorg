@@ -1,7 +1,7 @@
 import rich_click as click
 from beartype import beartype
 from beartype.typing import Any
-from py_haxorg.exporters.export_html import ExporterHtml
+from haxorg_py_lib.exporters.export_html import ExporterHtml
 
 from py_cli import haxorg_cli, haxorg_opts
 

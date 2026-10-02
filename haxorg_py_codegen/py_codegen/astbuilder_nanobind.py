@@ -3,8 +3,8 @@ from dataclasses import dataclass, field, replace
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
+from haxorg_py_lib.layout.wrap import BlockId
 from hstd_py_lib.algorithm import maybe_splice
-from py_haxorg.layout.wrap import BlockId
 
 import py_codegen.astbuilder_cpp as cpp
 import py_codegen.astbuilder_py as pya

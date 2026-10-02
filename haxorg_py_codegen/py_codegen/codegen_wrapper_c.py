@@ -2,8 +2,8 @@ from dataclasses import dataclass, field, replace
 
 from beartype import beartype
 from beartype.typing import List, Optional, cast
+from haxorg_py_lib.layout.wrap import BlockId
 from loguru import logger, pprint_to_file_json
-from py_haxorg.layout.wrap import BlockId
 
 import py_codegen.astbuilder_cpp as cpp
 from py_codegen import codegen_ir
