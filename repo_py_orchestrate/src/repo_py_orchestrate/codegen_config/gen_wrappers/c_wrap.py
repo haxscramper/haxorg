@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import List, Optional, cast
@@ -14,22 +16,28 @@ from hstd_py_codegen.gen_cpp.codegen_ir import QualType, n_sem
 from hstd_py_codegen.lang_build.astbuilder_c_config import (
     CAstbuilderConfig,
 )
+from hstd_py_codegen.lang_convert.conv_c import (
+    StructGenResult,
+    gen_enum,
+    gen_haxorg_vtable_template_instantiation,
+    gen_struct_direct,
+    gen_typedef,
+)
 from loguru import logger, pprint_to_file_json
 
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
-    PyhaxorgTypeGroups,
     topological_sort_entries,
 )
 
 
 @beartype
 def _get_entries_for_wrapping(
-    groups: PyhaxorgTypeGroups, conf: CAstbuilderConfig
+    to_wrap: list[codegen_ir.GenTuUnion], conf: CAstbuilderConfig
 ) -> list[codegen_ir.GenTuUnion]:
     typedefs_to_expand = list()
     entries_to_rewrite = list()
 
-    for entry in groups.get_entries_for_wrapping():
+    for entry in to_wrap:
         if (
             conf.isAcceptedByBackend(entry)
             and isinstance(entry, codegen_ir.GenTuTypedef)
@@ -51,26 +59,29 @@ def _get_entries_for_wrapping(
 
 @beartype
 def gen_haxorg_c_wrappers(
-    groups: PyhaxorgTypeGroups, ast: cpp.ASTBuilder
+    to_wrap: list[codegen_ir.GenTuUnion],
+    ast: cpp.ASTBuilder,
+    type_map: codegen_ir.GenTypeMap,
+    root: Path,
 ) -> codegen_ir.GenFiles:
     "Generate C wrappers"
-    conf = CAstbuilderConfig(type_map=groups.type_map)
+    conf = CAstbuilderConfig(type_map=type_map)
 
     standalone_funcs: List[codegen_ir.GenTuFunction] = list()
     wrapped_structs: List[codegen_ir.GenTuEntry] = list()
     header_only: list[codegen_ir.GenTuEntry] = list()
     vtables: list[codegen_ir.GenTuEntry] = list()
 
-    def _add_struct_result(structs: _StructGenResult):
+    def _add_struct_result(structs: StructGenResult):
         wrapped_structs.extend(structs.wrappers)
         header_only.extend(structs.forward_decls)
         vtables.extend(structs.vtables)
 
     def _add_struct(entry: codegen_ir.GenTuStruct):
-        structs = _gen_struct_direct(entry, ast, conf)
+        structs = gen_struct_direct(entry, ast, conf)
         _add_struct_result(structs)
 
-    expanded_entries = _get_entries_for_wrapping(groups, conf)
+    expanded_entries = _get_entries_for_wrapping(to_wrap, conf)
 
     pprint_to_file_json(expanded_entries, "/tmp/expanded_entries.json")
 
@@ -167,7 +178,7 @@ def gen_haxorg_c_wrappers(
                 )
 
             _add_struct_result(
-                _gen_haxorg_vtable_template_instantiation(
+                gen_haxorg_vtable_template_instantiation(
                     struct=template_type,
                     specializations=template_usage_types,
                     conf=conf,
@@ -239,10 +250,10 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
                             _add_struct(entry)
 
                 case codegen_ir.GenTuEnum():
-                    header_only.append(_gen_enum(entry, ast, conf))
+                    header_only.append(gen_enum(entry, ast, conf))
 
                 case codegen_ir.GenTuTypedef():
-                    tdef = _gen_typedef(entry, ast, conf)
+                    tdef = gen_typedef(entry, ast, conf)
                     wrapped_structs.append(tdef)
 
                 case _:
@@ -261,7 +272,7 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
         [
             codegen_ir.GenUnit(
                 header=codegen_ir.GenTu(
-                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c.h",
+                    root / "src/haxorg_cpp_c_wrap/haxorg_c.h",
                     [
                         codegen_ir.GenTuPass(ast.string("#pragma once")),
                         codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c_api.h", True),
@@ -271,7 +282,7 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
                     + standalone_funcs,
                 ),
                 source=codegen_ir.GenTu(
-                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c.cpp",
+                    root / "src/haxorg_cpp_c_wrap/haxorg_c.cpp",
                     [
                         codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c.h", True),
                         codegen_ir.GenTuInclude(
@@ -290,7 +301,7 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
             ),
             codegen_ir.GenUnit(
                 header=codegen_ir.GenTu(
-                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c_vtables.hpp",
+                    root / "src/haxorg_cpp_c_wrap/haxorg_c_vtables.hpp",
                     [
                         codegen_ir.GenTuPass(ast.string("#pragma once")),
                         codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c.h", True),
@@ -304,7 +315,7 @@ The type cannot be used in each-instantiation mode as there are void-handle API 
                     + vtables,
                 ),
                 source=codegen_ir.GenTu(
-                    "{root}/src/haxorg_cpp_c_wrap/haxorg_c_vtables.cpp",
+                    root / "src/haxorg_cpp_c_wrap/haxorg_c_vtables.cpp",
                     [
                         codegen_ir.GenTuInclude("haxorg_cpp_c_wrap/haxorg_c.h", True),
                         codegen_ir.GenTuInclude(

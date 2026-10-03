@@ -3,17 +3,18 @@ import hstd_py_codegen.lang_build.astbuilder_py as pya
 import yaml
 from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
 from hstd_py_lib.pydantic_utils import to_json_safe
-from hstd_py_lib.script_logging import ExceptionContextNote
 from hstd_py_text_layout.base.wrap import TextLayout
 from repo_py_orchestrate.codegen_config.gen_haxorg.cpp_sources import gen_haxorg_source
+from repo_py_orchestrate.codegen_config.gen_wrappers.py_wrap import (
+    gen_pyhaxorg_cpp_py_wrap_source,
+    gen_pyhaxorg_python_type_stub,
+    init_pyhaxorg_nanobind_module,
+)
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_wrapper_c import (
     gen_haxorg_c_wrappers,
 )
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_wrapper_embind import (
     gen_pyhaxorg_napi_wrappers,
-)
-from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_wrapper_nanobind import (
-    gen_pyhaxorg_python_wrappers,
 )
 
 from repo_py_orchestrate.config import get_tmpdir
@@ -31,21 +32,11 @@ class CodegenOptions(BaseModel):
 
 
 @beartype
-def run_codegen_pyhaxorg(
-    monrepo_root: Path,
+def get_codegen_groups(
     builder: cpp.ASTBuilder,
-    pyast: pya.ASTBuilder,
     reflection_path: Path,
-    t: TextLayout,
     manual_tu_path: Path,
-) -> None:
-    """
-    Generate sources for the haxorg library
-    :param is_tmp_codegen: If set, put newly genrated sources in the
-      temporary directory instead of overwriting existing ones. Useful
-      for development.
-    :param reflection_path: Input protobuf file with reflection information.
-    """
+) -> PyhaxorgTypeGroups:
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
         ast=builder,
         reflection_path=Path(reflection_path),
@@ -62,63 +53,101 @@ def run_codegen_pyhaxorg(
         yaml.safe_dump(to_json_safe(groups.manual_tu), stream=file)
         logger.info(f"Wrote debug for manual type groups to {groups_dump_yaml}")
 
-    sources = gen_haxorg_source(
+    return groups
+
+
+@beartype
+def gen_haxorg_cpp_library_source(
+    groups: PyhaxorgTypeGroups,
+    monorepo_root: Path,
+    builder: cpp.ASTBuilder,
+) -> GenFiles:
+    return gen_haxorg_source(
         ast=builder,
         groups=groups,
-        root=monrepo_root / "haxorg_cpp_org_lib",
-    )
-
-    gen_description_files(sources, builder, t)
-
-    _write_files_group(
-        gen_haxorg_c_wrappers(
-            groups=groups,
-            ast=builder,
-        ),
-        is_tmp_codegen=is_tmp_codegen,
-        builder=builder,
-        t=t,
-    )
-
-    _write_files_group(
-        gen_pyhaxorg_napi_wrappers(
-            groups=groups,
-            ast=builder,
-            type_map=groups.type_map,
-        ),
-        is_tmp_codegen=is_tmp_codegen,
-        builder=builder,
-        t=t,
-    )
-
-    _write_files_group(
-        gen_pyhaxorg_python_wrappers(
-            groups=groups,
-            ast=builder,
-            pyast=pyast,
-        ),
-        is_tmp_codegen=is_tmp_codegen,
-        builder=builder,
-        t=t,
+        root=monorepo_root / "haxorg_cpp_org_lib",
     )
 
 
 @beartype
-def run_codegen_task(
+def gen_haxorg_cpp_library_wrappers(
+    to_wrap: list[GenTuUnion],
+    monorepo_root: Path,
+    builder: cpp.ASTBuilder,
+    pyast: pya.ASTBuilder,
+    type_map: GenTypeMap,
+) -> list[GenFiles]:
+
+    wrapper_file_groups: list[GenFiles] = list()
+
+    wrapper_file_groups.append(
+        gen_haxorg_c_wrappers(
+            to_wrap=to_wrap,
+            type_map=type_map,
+            root=monorepo_root / "haxorg_cpp_c_wrap",
+        )
+    )
+
+    wrapper_file_groups.append(
+        gen_pyhaxorg_napi_wrappers(
+            to_wrap=to_wrap,
+            type_map=type_map,
+            root=monorepo_root / "haxorg_wasm_lib_wrap",
+        )
+    )
+
+    nb_module = init_pyhaxorg_nanobind_module(to_wrap, builder, pyast, type_map)
+    wrapper_file_groups.append(
+        GenFiles(
+            [
+                gen_pyhaxorg_python_type_stub(
+                    nb_module,
+                    pyast,
+                    monorepo_root / "haxorg_py_lib/src/haxorg_py_lib/pyhaxorg.pyi",
+                ),
+                gen_pyhaxorg_cpp_py_wrap_source(
+                    nb_module,
+                    builder,
+                    monorepo_root
+                    / "haxorg_cpp_py_wrap/src/haxorg_cpp_py_wrap/pyhaxorg.cpp",
+                ),
+            ]
+        )
+    )
+
+    return wrapper_file_groups
+
+
+@beartype
+def run_codegen_pyhaxorg(
+    monorepo_root: Path,
+    builder: cpp.ASTBuilder,
+    pyast: pya.ASTBuilder,
     reflection_path: Path,
-    is_tmp_codegen: bool,
+    t: TextLayout,
     manual_tu_path: Path,
 ) -> None:
-    t = TextLayout()
-    pyast = pya.ASTBuilder(t)
-    builder = cpp.ASTBuilder(t)
+    """
+    Generate sources for the haxorg library
+    :param is_tmp_codegen: If set, put newly genrated sources in the
+      temporary directory instead of overwriting existing ones. Useful
+      for development.
+    :param reflection_path: Input protobuf file with reflection information.
+    """
 
-    with ExceptionContextNote(f"reflection_path:{reflection_path}"):
-        run_codegen_pyhaxorg(
-            is_tmp_codegen=is_tmp_codegen,
-            reflection_path=reflection_path,
-            builder=builder,
-            pyast=pyast,
-            t=t,
-            manual_tu_path=manual_tu_path,
-        )
+    groups = get_codegen_groups(builder, reflection_path, manual_tu_path=manual_tu_path)
+
+    sources = gen_haxorg_cpp_library_source(groups, monorepo_root, builder)
+
+    gen_description_files(sources, builder, t)
+
+    wrappers = gen_haxorg_cpp_library_wrappers(
+        to_wrap=groups.get_entries_for_wrapping(),
+        monorepo_root=monorepo_root,
+        type_map=groups.type_map,
+        builder=builder,
+        pyast=pyast,
+    )
+
+    for wrap in wrappers:
+        gen_description_files(wrap, builder, t)

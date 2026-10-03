@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from beartype import beartype
 from hstd_py_codegen.gen_cpp.codegen_algo import (
     collect_type_specializations,
@@ -25,6 +27,7 @@ def gen_pyhaxorg_napi_wrappers(
     groups: PyhaxorgTypeGroups,
     ast: cpp.ASTBuilder,
     type_map: GenTypeMap,
+    root: Path,
 ) -> GenFiles:
     "Generate embind wrappers"
 
@@ -55,7 +58,7 @@ def gen_pyhaxorg_napi_wrappers(
         [
             GenUnit(
                 header=GenTu(
-                    "{root}/src/wrappers/js/haxorg_wasm.cpp",
+                    root / "src/wrappers/js/haxorg_wasm.cpp",
                     [
                         GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
                     ],
@@ -63,7 +66,7 @@ def gen_pyhaxorg_napi_wrappers(
             ),
             GenUnit(
                 header=GenTu(
-                    "{root}/src/wrappers/js/haxorg_wasm_types.d.ts",
+                    root / "src/wrappers/js/haxorg_wasm_types.d.ts",
                     [
                         GenTuPass(res.build_typedef(ast=ast)),
                     ],

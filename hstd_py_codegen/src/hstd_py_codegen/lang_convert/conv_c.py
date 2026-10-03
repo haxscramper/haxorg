@@ -254,7 +254,7 @@ def _gen_func_vtable(
 
 
 @beartype
-def _gen_typedef(
+def gen_typedef(
     tdef: codegen_ir.GenTuTypedef, ast: cpp.ASTBuilder, conf: CAstbuilderConfig
 ) -> codegen_ir.GenTuTypedef:
     return codegen_ir.GenTuTypedef(
@@ -265,7 +265,7 @@ def _gen_typedef(
 
 
 @beartype
-def _gen_enum(
+def gen_enum(
     en: codegen_ir.GenTuEnum, ast: cpp.ASTBuilder, conf: CAstbuilderConfig
 ) -> codegen_ir.GenTuEnum:
     name = conf.getBackendType(en.Name)
@@ -510,7 +510,7 @@ def _gen_vtable_specialization(
 
 @beartype
 @dataclass
-class _StructGenResult:
+class StructGenResult:
     wrappers: list[codegen_ir.GenTuEntry] = field(default_factory=list)
     forward_decls: list[codegen_ir.GenTuEntry] = field(default_factory=list)
     vtables: list[codegen_ir.GenTuEntry] = field(default_factory=list)
@@ -665,7 +665,7 @@ def _gen_wrap_struct_base(
 
 @beartype
 def _append_forward_decl(
-    result: _StructGenResult, wrap_struct: codegen_ir.GenTuStruct
+    result: StructGenResult, wrap_struct: codegen_ir.GenTuStruct
 ) -> None:
     result.forward_decls.append(
         codegen_ir.GenTuStruct(Name=wrap_struct.Name, IsForwardDecl=True)
@@ -674,7 +674,7 @@ def _append_forward_decl(
 
 @beartype
 def _append_nested_entries(
-    result: _StructGenResult,
+    result: StructGenResult,
     struct: codegen_ir.GenTuStruct,
     ast: cpp.ASTBuilder,
     conf: CAstbuilderConfig,
@@ -683,18 +683,18 @@ def _append_nested_entries(
         match entry:
             case codegen_ir.GenTuStruct():
                 if conf.isAcceptedByBackend(entry):
-                    conv = _gen_struct_direct(entry, ast, conf)
+                    conv = gen_struct_direct(entry, ast, conf)
                     result.forward_decls.extend(conv.forward_decls)
                     result.wrappers.extend(conv.wrappers)
                     result.vtables.extend(conv.vtables)
 
             case codegen_ir.GenTuEnum():
                 if conf.isAcceptedByBackend(entry):
-                    result.wrappers.append(_gen_enum(entry, ast, conf))
+                    result.wrappers.append(gen_enum(entry, ast, conf))
 
             case codegen_ir.GenTuTypedef():
                 if conf.isAcceptedByBackend(entry):
-                    result.wrappers.append(_gen_typedef(entry, ast, conf))
+                    result.wrappers.append(gen_typedef(entry, ast, conf))
 
             case codegen_ir.GenTuPass():
                 pass
@@ -705,7 +705,7 @@ def _append_nested_entries(
 
 @beartype
 def _append_direct_fields(
-    result: _StructGenResult,
+    result: StructGenResult,
     struct: codegen_ir.GenTuStruct,
     wrap_struct: codegen_ir.GenTuStruct,
     ast: cpp.ASTBuilder,
@@ -730,10 +730,10 @@ def _make_vtable_struct(basename: str) -> codegen_ir.GenTuStruct:
 
 
 @beartype
-def _gen_struct_direct(
+def gen_struct_direct(
     struct: codegen_ir.GenTuStruct, ast: cpp.ASTBuilder, conf: CAstbuilderConfig
-) -> _StructGenResult:
-    result = _StructGenResult()
+) -> StructGenResult:
+    result = StructGenResult()
     wrap_struct = _gen_wrap_struct_base(struct, conf)
 
     _append_forward_decl(result, wrap_struct)
@@ -779,14 +779,14 @@ def _gen_void_handle_template_instantiation(
 
 
 @beartype
-def _gen_haxorg_vtable_template_instantiation(
+def gen_haxorg_vtable_template_instantiation(
     *,
     struct: codegen_ir.GenTuStruct,
     conf: CAstbuilderConfig,
     ast: cpp.ASTBuilder,
     specializations: List[SpecializationMatchResult],
-) -> _StructGenResult:
-    result = _StructGenResult()
+) -> StructGenResult:
+    result = StructGenResult()
 
     wrap_struct = _gen_wrap_struct_base(struct, conf)
     public_instrantiation_api = _gen_void_handle_template_instantiation(struct, conf)

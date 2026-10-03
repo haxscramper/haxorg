@@ -10,6 +10,8 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTu,
     GenTuInclude,
     GenTuPass,
+    GenTuUnion,
+    GenTypeMap,
     GenUnit,
 )
 from hstd_py_codegen.lang_build import astbuilder_py as pya
@@ -19,7 +21,6 @@ from hstd_py_codegen.lang_build.astbuilder_nanobind_config import (
 )
 
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
-    PyhaxorgTypeGroups,
     verify_type_usage,
 )
 
@@ -74,21 +75,21 @@ class HaxorgNanobindWrapperConfig(NanobindAstbuilderConfig):
 
 @beartype
 def init_pyhaxorg_nanobind_module(
-    groups: PyhaxorgTypeGroups, ast: cpp.ASTBuilder, pyast: pya.ASTBuilder
+    to_wrap: list[GenTuUnion],
+    ast: cpp.ASTBuilder,
+    pyast: pya.ASTBuilder,
+    type_map: GenTypeMap,
 ) -> NbModule:
-    conf = HaxorgNanobindWrapperConfig(groups.type_map)
+    conf = HaxorgNanobindWrapperConfig(type_map)
     res = NbModule("pyhaxorg", conf)
 
-    for decl in groups.get_entries_for_wrapping():
+    for decl in to_wrap:
         if decl.ReflectionParams.isAcceptedBackend("python"):
             res.add_decl(decl, ast=ast)
 
-    specializations = collect_type_specializations(
-        groups.get_entries_for_wrapping(),
-        conf,
-    )
+    specializations = collect_type_specializations(to_wrap, conf)
 
-    verify_type_usage(groups.get_entries_for_wrapping(), conf, specializations)
+    verify_type_usage(to_wrap, conf, specializations)
 
     res.add_type_specializations(ast, specializations=specializations)
 
