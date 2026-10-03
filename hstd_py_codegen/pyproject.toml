@@ -8,6 +8,9 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
   "hstd_py_lib",
   "hstd_py_text_layout",
+  "graphviz",
+  "igraph",
+  "betterproto2",
 ]
 
 [dependency-groups]
@@ -16,5 +19,20 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = [
+  "hatchling",
+  "hstd_py_lib",
+  "conan>=2",
+  "grpcio-tools",
+  "betterproto2-compiler",
+]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.hooks.conan]
+reference = "haxdex_read_code_cpp/0.1.0"
+editable-root = "src"
+
+[tool.hatch.build.hooks.conan.protobuf]
+sources = ["haxdex_read_code_cpp/reflection_defs.proto"]
+destination = "hstd_py_codegen/proto"
+well-known-sources = ["google/protobuf/struct.proto"]

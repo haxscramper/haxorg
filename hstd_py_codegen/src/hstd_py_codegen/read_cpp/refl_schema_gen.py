@@ -4,7 +4,7 @@ import typing
 from dataclasses import fields
 from pathlib import Path
 
-import betterproto
+import betterproto2 as betterproto
 import py_codegen.proto_lib as pb
 from beartype import beartype
 from beartype.typing import Any

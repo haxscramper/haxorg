@@ -17,6 +17,7 @@ dependencies = [
   "rich_click",
   "more_itertools",
   "glom",
+  "betterproto2",
 ]
 
 [project.entry-points.hatch]

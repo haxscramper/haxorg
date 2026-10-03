@@ -8,11 +8,11 @@ from hstd_py_codegen.langs import (
     astbuilder_nim,
 )
 
+from .common import get_all_code
+
 
 def test_structure_wrapping(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {"header.hpp": "struct [[refl]] Defined {};"},
         stable_test_dir=stable_test_dir,
     )
@@ -34,11 +34,7 @@ def test_structure_wrapping(stable_test_dir: Path):
 
 
 def test_function_wrapping(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
-        "[[refl]] int defined();", stable_test_dir=stable_test_dir
-    )
+    wraps = get_all_code("[[refl]] int defined();", stable_test_dir=stable_test_dir)
 
     fun_nim = cast(astbuilder_nim.FunctionParams, wraps.getNimEntries("defined")[0])
 
@@ -58,9 +54,7 @@ def test_function_wrapping(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_function_with_arguments(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         "[[refl]] void func_args(int a, float b);",
         stable_test_dir=stable_test_dir,
     )
@@ -82,9 +76,7 @@ def test_function_with_arguments(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_function_with_stdlib_return(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {"header.hpp": "#include <string>\n[[refl]] std::string get_string();"},
         stable_test_dir=stable_test_dir,
     )
@@ -104,9 +96,7 @@ def test_function_with_stdlib_return(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_function_with_complex_stdlib_arg(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {
             "header.hpp": "#include <map>\n#include <string>\n[[refl]] void complex_arg(std::map<int, std::string> m);"
         },
@@ -130,9 +120,7 @@ def test_function_with_complex_stdlib_arg(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_function_with_nested_vector_arg(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {
             "header.hpp": "#include <vector>\n[[refl]] void nested_vector(std::vector<std::vector<std::vector<int>>> v);"
         },
@@ -158,9 +146,7 @@ def test_function_with_nested_vector_arg(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_structure_with_single_field(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {"header.hpp": "struct [[refl]] SingleField { [[refl]] int field; };"},
         stable_test_dir=stable_test_dir,
     )
@@ -189,9 +175,7 @@ def test_structure_with_single_field(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_structure_with_multiple_fields(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {
             "header.hpp": """
         struct [[refl]] MultiField {
@@ -239,9 +223,7 @@ def test_structure_with_multiple_fields(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_structure_with_methods(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {"header.hpp": "struct [[refl]] WithMethods { [[refl]] void method(); };"},
         stable_test_dir=stable_test_dir,
     )
@@ -265,9 +247,7 @@ def test_structure_with_methods(stable_test_dir: Path):
 
 @pytest.mark.test_release
 def test_structure_with_static_methods(stable_test_dir: Path):
-    from tests.python.refl import refl_test_driver
-
-    wraps = refl_test_driver.get_all_code(
+    wraps = get_all_code(
         {"header.hpp": "struct [[refl]] WithStatic { [[refl]] static void meth(); };"},
         stable_test_dir=stable_test_dir,
     )

@@ -8,14 +8,14 @@ from copy import copy
 from dataclasses import dataclass, field, fields
 from pathlib import Path
 
-import betterproto
-import py_codegen.proto_lib as pb
+import betterproto2 as betterproto
 from beartype import beartype
 from beartype.typing import Any, List, Optional
-from betterproto.lib.google import protobuf as pb_google
 from hstd_py_lib.script_logging import ExceptionContextNote
 from rich.tree import Tree
 
+import hstd_py_codegen.proto as pb
+import hstd_py_codegen.proto.google.protobuf as pb_google
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import QualType
 

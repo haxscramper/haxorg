@@ -3,11 +3,11 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-import py_codegen.proto_lib as pb
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
 from hstd_py_lib.script_logging import pprint_to_file
 
+import hstd_py_codegen as pb
 import hstd_py_codegen.read_cpp.refl_extract as ex
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuEnum,
