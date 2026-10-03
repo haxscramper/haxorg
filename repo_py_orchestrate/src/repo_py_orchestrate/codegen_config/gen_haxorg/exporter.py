@@ -1,11 +1,12 @@
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_lib.algorithm import cond
+from repo_py_orchestrate.codegen_config.codegen_type_groups import PyhaxorgTypeGroups
 
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.org_codegen_data import *
 
 
 @beartype
-def get_exporter_methods(
+def _get_exporter_methods(
     forward: bool,
     expanded: List[GenTuStruct],
     type_map: GenTypeMap,
@@ -119,3 +120,31 @@ def get_exporter_methods(
 
     iterate_object_tree(expanded, iterate_tree_context, pre_visit=callback)
     return methods
+
+
+def gen_exporter_template(groups: PyhaxorgTypeGroups, out_file: Path) -> GenUnit:
+    return GenUnit(
+        header=GenTu(
+            out_file,
+            [
+                *_get_exporter_methods(
+                    False, groups.shared_types, type_map=groups.type_map
+                ),
+                *_get_exporter_methods(False, groups.expanded, type_map=groups.type_map),
+            ],
+        ),
+    )
+
+
+def gen_exporter_methods(groups: PyhaxorgTypeGroups, out_file: Path) -> GenUnit:
+    return GenUnit(
+        header=GenTu(
+            out_file,
+            [
+                *_get_exporter_methods(
+                    True, groups.shared_types, type_map=groups.type_map
+                ),
+                *_get_exporter_methods(True, groups.expanded, type_map=groups.type_map),
+            ],
+        )
+    )

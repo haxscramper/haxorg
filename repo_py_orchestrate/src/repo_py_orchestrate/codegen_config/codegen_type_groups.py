@@ -7,6 +7,10 @@ from beartype import beartype
 from beartype.typing import List, Sequence
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_codegen.gen_cpp.codegen_type_order import (
+    expand_type_groups,
+    topological_sort_entries,
+)
 from hstd_py_codegen.read_cpp import refl_read
 from hstd_py_codegen.read_cpp.refl_read import ConvTu
 from hstd_py_lib.script_logging import (

@@ -5,7 +5,10 @@ from hstd_py_codegen.gen_cpp.iteration_macros import (
     gen_pyhaxorg_iteration_macros,
     gen_pyhaxorg_shared_iteration_macros,
 )
-from repo_py_orchestrate.codegen_config.gen_haxorg.exporter import get_exporter_methods
+from repo_py_orchestrate.codegen_config.gen_haxorg.exporter import (
+    gen_exporter_methods,
+    gen_exporter_template,
+)
 
 import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.gen_haxorg.immutable as gen_imm
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
@@ -14,39 +17,7 @@ from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_gro
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.org_codegen_data import *
 
 
-def with_enum_reflection_api(body: List[Any]) -> List[Any]:
-    return [] + body
-
-
-def gen_exporter_tcc(groups: PyhaxorgTypeGroups, out_file: Path) -> GenUnit:
-    return GenUnit(
-        header=GenTu(
-            out_file,
-            [
-                *get_exporter_methods(
-                    False, groups.shared_types, type_map=groups.type_map
-                ),
-                *get_exporter_methods(False, groups.expanded, type_map=groups.type_map),
-            ],
-        ),
-    )
-
-
-def gen_exporter_methods(groups: PyhaxorgTypeGroups, out_file: Path) -> GenUnit:
-    return GenUnit(
-        header=GenTu(
-            out_file,
-            [
-                *get_exporter_methods(
-                    True, groups.shared_types, type_map=groups.type_map
-                ),
-                *get_exporter_methods(True, groups.expanded, type_map=groups.type_map),
-            ],
-        )
-    )
-
-
-def gen_sem_org_enums(
+def _gen_sem_org_enums(
     ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, header: Path, source: Path
 ) -> GenUnit:
     return GenUnit(
@@ -81,7 +52,7 @@ def gen_sem_org_enums(
     )
 
 
-def gen_sem_org_shared_type(
+def _gen_sem_org_shared_type(
     groups: PyhaxorgTypeGroups,
     header: Path,
 ) -> GenUnit:
@@ -106,7 +77,60 @@ def gen_sem_org_shared_type(
     )
 
 
-def gen_sem_org_serde(
+def _gen_imm_org_serde(
+    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, template_file: Path
+) -> GenUnit:
+    return GenUnit(
+        header=GenTu(
+            template_file,
+            gen_imm.get_imm_serde(
+                types=groups.expanded, ast=ast, type_map=groups.type_map
+            ),
+        ),
+    )
+
+
+def _gen_imm_org_type(
+    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, header: Path
+) -> GenUnit:
+    return GenUnit(
+        header=GenTu(
+            header,
+            [
+                GenTuPass("#pragma once"),
+                GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
+                GenTuNamespace(n_imm(), groups.immutable),
+            ],
+        )
+    )
+
+
+def _gen_imm_org_adapter(
+    groups: PyhaxorgTypeGroups, header: Path, source: Path
+) -> GenUnit:
+    return GenUnit(
+        header=GenTu(
+            header,
+            [
+                GenTuPass("#pragma once"),
+                GenTuPass("#define HAXORG_IMM_ORG_ADAPTER_GENERATED_INCLUDED"),
+                GenTuPass('#pragma clang diagnostic ignored "-Wextra-qualification"'),
+                GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
+                GenTuNamespace(n_imm(), groups.adapter_specializations),
+            ],
+        ),
+        source=GenTu(
+            source,
+            [
+                GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
+                GenTuInclude("haxorg/imm/ImmOrgAdapterGenerated.hpp", True),
+            ]
+            + groups.adapter_specializations,
+        ),
+    )
+
+
+def _gen_sem_org_serde(
     ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, header: Path, source: Path
 ) -> GenUnit:
 
@@ -157,55 +181,49 @@ def gen_sem_org_serde(
     )
 
 
-@beartype
-def gen_pyhaxorg_source(
-    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, haxorg_out_root: Path
+def gen_haxorg_source(
+    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, root: Path
 ) -> GenFiles:
-    """
-    Generate source files compiled as a part of the haxorg library: sem and imm AST definitions.
-    """
-
     return GenFiles(
         [
-            GenUnit(
-                header=GenTu(
-                    haxorg_out_root / "imm/ImmOrgSerde.tcc",
-                    gen_imm.get_imm_serde(
-                        types=groups.expanded, ast=ast, type_map=groups.type_map
-                    ),
-                ),
+            _gen_imm_org_serde(
+                ast,
+                groups,
+                template_file=root / "src/haxorg_cpp_org_lib/imm/ImmOrgSerde.tcc",
             ),
-            GenUnit(
-                header=GenTu(
-                    "{base}/imm/ImmOrgTypes.hpp",
-                    [
-                        GenTuPass("#pragma once"),
-                        GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
-                        GenTuNamespace(n_imm(), groups.immutable),
-                    ],
-                )
+            _gen_imm_org_type(
+                ast,
+                groups,
+                header=root / "src/haxorg_cpp_org_lib/imm/ImmOrgTypes.hpp",
             ),
-            GenUnit(
-                header=GenTu(
-                    "{base}/imm/ImmOrgAdapterGenerated.hpp",
-                    [
-                        GenTuPass("#pragma once"),
-                        GenTuPass("#define HAXORG_IMM_ORG_ADAPTER_GENERATED_INCLUDED"),
-                        GenTuPass(
-                            '#pragma clang diagnostic ignored "-Wextra-qualification"'
-                        ),
-                        GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
-                        GenTuNamespace(n_imm(), groups.adapter_specializations),
-                    ],
-                ),
-                source=GenTu(
-                    "{base}/imm/ImmOrgAdapterGenerated.cpp",
-                    [
-                        GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
-                        GenTuInclude("haxorg/imm/ImmOrgAdapterGenerated.hpp", True),
-                    ]
-                    + groups.adapter_specializations,
-                ),
+            _gen_imm_org_adapter(
+                groups,
+                header=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp",
+                source=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapter.cpp",
+            ),
+            _gen_sem_org_serde(
+                ast,
+                groups,
+                header=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerde.hpp",
+                source=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerde.cpp",
+            ),
+            _gen_sem_org_shared_type(
+                groups,
+                header=root / "src/haxorg_cpp_org_lib/sem/SemOrgSharedTypes.hpp",
+            ),
+            _gen_sem_org_enums(
+                ast,
+                groups,
+                header=root / "src/haxorg_cpp_org_lib/sem/SemOrgEnums.hpp",
+                source=root / "src/haxorg_cpp_org_lib/sem/SemOrgEnums.cpp",
+            ),
+            gen_exporter_template(
+                groups,
+                out_file=root / "src/haxorg_cpp_org_lib/exporters/Exporter.tcc",
+            ),
+            gen_exporter_methods(
+                groups,
+                out_file=root / "src/haxorg_cpp_org_lib/exporters/ExporterMethods.tcc",
             ),
         ]
     )

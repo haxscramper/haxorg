@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from hstd_py_codegen.gen_cpp import codegen_cpp
@@ -5,7 +7,6 @@ from hstd_py_codegen.gen_cpp.codegen_algo import (
     collect_type_specializations,
 )
 from hstd_py_codegen.gen_cpp.codegen_ir import (
-    GenFiles,
     GenTu,
     GenTuInclude,
     GenTuPass,
@@ -72,12 +73,9 @@ class HaxorgNanobindWrapperConfig(NanobindAstbuilderConfig):
 
 
 @beartype
-def gen_pyhaxorg_python_wrappers(
-    groups: PyhaxorgTypeGroups,
-    ast: cpp.ASTBuilder,
-    pyast: pya.ASTBuilder,
-) -> GenFiles:
-    "Generate haxorg python wrappers"
+def init_pyhaxorg_nanobind_module(
+    groups: PyhaxorgTypeGroups, ast: cpp.ASTBuilder, pyast: pya.ASTBuilder
+) -> NbModule:
     conf = HaxorgNanobindWrapperConfig(groups.type_map)
     res = NbModule("pyhaxorg", conf)
 
@@ -96,27 +94,42 @@ def gen_pyhaxorg_python_wrappers(
 
     res.Decls.append(ast.Include("pyhaxorg_manual_wrap.hpp"))
 
-    return GenFiles(
-        [
-            GenUnit(
-                header=GenTu(
-                    "{root}/scripts/py_haxorg/py_haxorg/pyhaxorg.pyi",
-                    [GenTuPass(res.build_typedef(pyast))],
-                    clangFormatGuard=False,
-                )
-            ),
-            GenUnit(
-                header=GenTu(
-                    "{root}/src/py_libs/pyhaxorg/pyhaxorg.cpp",
-                    [
-                        GenTuPass("#undef slots"),
-                        *NB_INCLUDE_LIST,
-                        GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
-                        GenTuInclude("haxorg/sem/SemOrg.hpp", True),
-                        GenTuInclude("pyhaxorg_manual_impl.hpp", False),
-                        GenTuPass(res.build_bind(ast)),
-                    ],
-                )
-            ),
-        ]
+    return res
+
+
+@beartype
+def gen_pyhaxorg_cpp_py_wrap_source(
+    nb_module: NbModule,
+    ast: cpp.ASTBuilder,
+    source: Path,
+) -> GenUnit:
+    return GenUnit(
+        header=GenTu(
+            source,
+            [
+                GenTuPass("#undef slots"),
+                *NB_INCLUDE_LIST,
+                GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
+                GenTuInclude("haxorg/sem/SemOrg.hpp", True),
+                GenTuInclude("pyhaxorg_manual_impl.hpp", False),
+                GenTuPass(nb_module.build_bind(ast)),
+            ],
+        )
+    )
+
+
+@beartype
+def gen_pyhaxorg_python_type_stub(
+    nb_module: NbModule,
+    pyast: pya.ASTBuilder,
+    file: Path,
+) -> GenUnit:
+    "Generate haxorg python wrappers"
+
+    return GenUnit(
+        header=GenTu(
+            file,
+            [GenTuPass(nb_module.build_typedef(pyast))],
+            clangFormatGuard=False,
+        )
     )
