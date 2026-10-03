@@ -4,6 +4,7 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any
+from hstd_py_lib.pydantic_utils import to_json_safe
 from plumbum import local
 
 import haxdex_read_code_cpp.proto as pb
@@ -74,11 +75,21 @@ def run_reflection_tool_provider(
                 "compilation_database": str(compilation_database),
             },
             "verbose_log": reflection_run_verbose,
+            "log_path": output_dir / "reflection_log.log",
             "input": [str(source)],
             "output": str(output),
         }
 
-        executable(json.dumps(configuration))
+        _, stdout, stderr = executable.run(
+            json.dumps(
+                to_json_safe(
+                    configuration,
+                    wrap_type_mapping=False,
+                )
+            )
+        )
+        output_dir.joinpath("stderr.log").write_text(stderr)
+        output_dir.joinpath("stdout.log").write_text(stdout)
         tus.append(pb.Tu.parse(output.read_bytes()))
 
     return ReflProviderRunResult(tus=tus, code_dir=code_dir)

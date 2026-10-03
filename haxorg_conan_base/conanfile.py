@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import shlex
@@ -402,9 +403,7 @@ class HaxorgPackage(_HaxorgTypingBase):
             "python",
             "-m",
             "pytest",
-            "--color=no",
-            "-vv",
-            "--tb=native",
+            *json.loads(os.getenv("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
             "-c",
             str(tests / "pyproject.toml"),
             str(tests),

@@ -16,6 +16,7 @@ dependencies = [
   "loguru",
   "rich_click",
   "more_itertools",
+  "glom",
 ]
 
 [project.entry-points.hatch]

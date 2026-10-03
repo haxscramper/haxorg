@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import json
 import logging
 import os
 import shutil
@@ -166,9 +167,7 @@ def validate_package(
         run(
             [
                 str(environment_path / "bin" / "pytest"),
-                "-vv",
-                "--color=no",
-                "--tb=native",
+                *json.loads(os.getenv("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
                 str(project_path / "tests"),
             ],
             cwd=workspace_root,

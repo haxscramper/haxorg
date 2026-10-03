@@ -172,7 +172,7 @@ class ExceptionContextNote:
     If context body raises an exception, add a note to it.
     """
 
-    def __init__(self, note: str) -> None:
+    def __init__(self, note: str | Callable) -> None:
         self.note = note
 
     def __enter__(self) -> "ExceptionContextNote":
@@ -182,7 +182,9 @@ class ExceptionContextNote:
         if exc_value is not None:
             if not hasattr(exc_value, "__notes__"):
                 exc_value.__notes__ = []
-            exc_value.__notes__.append(self.note)
+            exc_value.__notes__.append(
+                self.note if isinstance(self.note, str) else self.note()
+            )
 
         return False
 

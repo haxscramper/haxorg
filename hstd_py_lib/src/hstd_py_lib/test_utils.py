@@ -1,5 +1,7 @@
 import hashlib
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Callable
 
 import pytest
 
@@ -82,3 +84,45 @@ def cached_test_dir(request: pytest.FixtureRequest) -> Path:
         request,
         Path(platformdirs.user_cache_dir("haxorg_test")).joinpath("py_test_cache"),
     )
+
+
+TEST_REPORTS = pytest.StashKey[dict[str, pytest.TestReport]]()
+
+
+@pytest.fixture
+def failed_test_logs(
+    request: pytest.FixtureRequest,
+) -> Callable[..., None]:
+    def configure(
+        directory: Path,
+        files: Sequence[str | Path],
+        *,
+        max_size: int = 64 * 1024,
+    ) -> None:
+        paths = [directory / filename for filename in files]
+
+        def print_on_failure() -> None:
+            reports = request.node.stash.get(TEST_REPORTS, {})
+            if not any(report.failed for report in reports.values()):
+                return
+
+            for path in paths:
+                print(f"\n--- {path} ---")
+
+                if not path.is_file():
+                    print("File not found")
+                elif max_size < path.stat().st_size:
+                    print(f"File exceeds {max_size} bytes: {path}")
+                else:
+                    print(path.read_text(encoding="utf-8"))
+
+        request.addfinalizer(print_on_failure)
+
+    return configure
+
+
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_makereport(item, call):
+    report = yield
+    item.stash.setdefault(TEST_REPORTS, {})[report.when] = report
+    return report
