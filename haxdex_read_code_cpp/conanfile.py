@@ -14,6 +14,14 @@ class HaxdexCppReflReadConan(ConanFile):
         "hwloc/*:shared": True,
     }
 
+    exports_sources = (
+        "CMakeLists.txt",
+        "cmake/*",
+        "src/*",
+        "proto/*",
+        "tests/*",
+    )
+
     def requirements(self):
         self.requires(
             "hstd_cpp_lib/0.1.0",

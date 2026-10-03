@@ -46,7 +46,7 @@ def test_function_const_ref(stable_test_dir: Path) -> None:
     typ = func.arguments[0].type
     assert typ.name == "int"
     assert any(qualifier.is_const for qualifier in typ.qualifiers)
-    assert typ.ref_kind == pb.ReferenceKind.L_VALUE
+    assert typ.ref_kind == pb.ReferenceKind.LValue
 
 
 @pytest.mark.test_release
@@ -64,4 +64,4 @@ def test_method_const_ref(stable_test_dir: Path) -> None:
     typ = method.args[0].type
     assert typ.name == "int"
     assert any(qualifier.is_const for qualifier in typ.qualifiers)
-    assert typ.ref_kind == pb.ReferenceKind.L_VALUE
+    assert typ.ref_kind == pb.ReferenceKind.LValue

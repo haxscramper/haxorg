@@ -405,6 +405,7 @@ def test_templates_record(stable_test_dir: Path) -> None:
     assert not method1.return_ty.is_template_type_param
     assert len(method1.return_ty.spaces) == 1
 
+    assert method1.return_ty
     scope1 = qualified_spaces(method1.return_ty)
     assert len(scope1) == 1
     assert scope1[0].name == "T"
@@ -415,6 +416,7 @@ def test_templates_record(stable_test_dir: Path) -> None:
     assert method2.return_ty.name == "second"
     assert method2.return_ty.is_template_injected_type
     assert not method2.return_ty.is_template_type_param
+    assert method2.return_ty
 
     scope2 = qualified_spaces(method2.return_ty)
     assert len(scope2) == 2
@@ -440,7 +442,7 @@ def test_templates_record_type_param_plain(stable_test_dir: Path) -> None:
 
     assert record.name.name == "Box"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert param.kind == pb.TemplateParamKind.TYPE
     assert param.type_expr.name == "T"
     assert param.type_expr.is_template_type_param
     assert not param.variadic
@@ -465,7 +467,7 @@ def test_templates_record_type_param_default(stable_test_dir: Path) -> None:
 
     assert record.name.name == "Box"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert param.kind == pb.TemplateParamKind.TYPE
     assert param.type_expr.name == "T"
     assert len(param.default) == 1
     assert param.default[0].name == "DefaultType"
@@ -485,7 +487,7 @@ def test_templates_record_variadic_type_param(stable_test_dir: Path) -> None:
 
     assert record.name.name == "Pack"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert param.kind == pb.TemplateParamKind.TYPE
     assert param.type_expr.name == "Ts"
     assert param.variadic
     assert param.type_expr.is_template_type_param
@@ -505,7 +507,7 @@ def test_templates_record_non_type_param(stable_test_dir: Path) -> None:
 
     assert record.name.name == "Sized"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_NON_TYPE
+    assert param.kind == pb.TemplateParamKind.NON_TYPE
     assert param.type_expr.name == "N"
     assert len(param.non_type_constraint) == 1
     assert param.non_type_constraint[0].name == "int"
@@ -529,7 +531,7 @@ def test_templates_record_non_type_param_default(stable_test_dir: Path) -> None:
 
     assert record.name.name == "Sized"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_NON_TYPE
+    assert param.kind == pb.TemplateParamKind.NON_TYPE
     assert param.type_expr.name == "N"
     assert len(param.default) == 1
 
@@ -548,7 +550,7 @@ def test_templates_record_auto_non_type_param(stable_test_dir: Path) -> None:
 
     assert record.name.name == "ValueHolder"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_NON_TYPE
+    assert param.kind == pb.TemplateParamKind.TYPE
     assert param.type_expr.name == "V"
 
 
@@ -566,12 +568,12 @@ def test_templates_record_template_template_param(stable_test_dir: Path) -> None
 
     assert record.name.name == "Wrapper"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TEMPLATE
+    assert param.kind == pb.TemplateParamKind.TEMPLATE
     assert param.type_expr.name == "TT"
     assert param.type_expr.is_template_type_param
 
     nested = nested_template_param(param)
-    assert nested.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert nested.kind == pb.TemplateParamKind.TYPE
     assert nested.type_expr.name == ""
     assert nested.type_expr.is_template_type_param
     assert not nested.variadic
@@ -593,11 +595,11 @@ def test_templates_record_template_template_param_named_nested(
 
     assert record.name.name == "Wrapper"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TEMPLATE
+    assert param.kind == pb.TemplateParamKind.TEMPLATE
     assert param.type_expr.name == "TT"
 
     nested = nested_template_param(param)
-    assert nested.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert nested.kind == pb.TemplateParamKind.TYPE
     assert nested.type_expr.name == "U"
 
 
@@ -617,11 +619,11 @@ def test_templates_record_template_template_param_with_non_type_nested(
 
     assert record.name.name == "Wrapper"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TEMPLATE
+    assert param.kind == pb.TemplateParamKind.TEMPLATE
     assert param.type_expr.name == "TT"
 
     nested = nested_template_param(param)
-    assert nested.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_NON_TYPE
+    assert nested.kind == pb.TemplateParamKind.NON_TYPE
     assert nested.type_expr.name == "N"
     assert len(nested.non_type_constraint) == 1
     assert nested.non_type_constraint[0].name == "int"
@@ -647,19 +649,19 @@ def test_templates_record_mixed_params(stable_test_dir: Path) -> None:
     param1 = group.params[1]
     param2 = group.params[2]
 
-    assert param0.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert param0.kind == pb.TemplateParamKind.TYPE
     assert param0.type_expr.name == "T"
 
-    assert param1.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_NON_TYPE
+    assert param1.kind == pb.TemplateParamKind.NON_TYPE
     assert param1.type_expr.name == "N"
     assert len(param1.non_type_constraint) == 1
     assert param1.non_type_constraint[0].name == "int"
 
-    assert param2.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TEMPLATE
+    assert param2.kind == pb.TemplateParamKind.TEMPLATE
     assert param2.type_expr.name == "TT"
 
     nested = nested_template_param(param2)
-    assert nested.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert nested.kind == pb.TemplateParamKind.TYPE
 
 
 @pytest.mark.test_release
@@ -691,12 +693,12 @@ def test_templates_record_constrained_and_defaulted_params(
     param0 = group.params[0]
     param1 = group.params[1]
 
-    assert param0.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert param0.kind == pb.TemplateParamKind.TYPE
     assert param0.type_expr.name == "T"
     assert param0.concept == "HasNested"
     assert len(param0.default) == 0
 
-    assert param1.kind == pb.TemplateParamKind.TEMPLATE_PARAM_KIND_TYPE
+    assert param1.kind == pb.TemplateParamKind.TYPE
     assert param1.type_expr.name == "U"
     assert param1.concept == ""
     assert len(param1.default) == 1

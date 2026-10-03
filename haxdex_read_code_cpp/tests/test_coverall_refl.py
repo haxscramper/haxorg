@@ -4,7 +4,7 @@ import pytest
 import refl_test_driver
 from beartype import beartype
 
-INPUT = (Path(__file__).parent / "assets" / "test_coverall_input.cpp").resolve()
+INPUT = (Path(__file__).parent / "assets" / "coverall_input.cpp").resolve()
 
 
 @pytest.mark.test_release

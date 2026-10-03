@@ -18,16 +18,6 @@ def test_standard_library_include(stable_test_dir: Path) -> None:
         stable_test_dir=stable_test_dir,
     )
 
-    log().info(
-        "\n"
-        + render_rich(
-            include_visit_to_rich_tree(
-                incl,
-                absolute_prefix=str(stable_test_dir),
-            )
-        )
-    )
-
     assert incl.absolute_path.endswith("a.hpp")
     assert incl.nested[0].relative_path == "b.hpp"
     assert incl.nested[0].include_location_line == 1

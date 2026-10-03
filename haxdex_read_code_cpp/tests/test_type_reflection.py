@@ -226,16 +226,16 @@ def test_fixed_size_array_type(stable_test_dir: Path) -> None:
         field_decl="[[refl]] int field[8];",
     )
 
-    assert typ.kind == pb.TypeKind.ARRAY
+    assert typ.kind == pb.TypeKind.Array
     assert typ.name == "ConstantArray"
     assert len(typ.parameters) == 2
 
     element = typ.parameters[0]
     extent = typ.parameters[1]
     assert element.name == "int"
-    assert element.kind == pb.TypeKind.REGULAR_TYPE
+    assert element.kind == pb.TypeKind.RegularType
     assert extent.type_value.value == "8"
-    assert extent.kind == pb.TypeKind.TYPE_EXPR
+    assert extent.kind == pb.TypeKind.TypeExpr
 
 
 @pytest.mark.test_release
@@ -247,12 +247,12 @@ def test_multidim_array_type(stable_test_dir: Path) -> None:
         field_decl="[[refl]] float field[2][4];",
     )
 
-    assert typ.kind == pb.TypeKind.ARRAY
+    assert typ.kind == pb.TypeKind.Array
     assert len(typ.parameters) == 2
     assert typ.parameters[1].type_value.value == "2"
 
     inner = typ.parameters[0]
-    assert inner.kind == pb.TypeKind.ARRAY
+    assert inner.kind == pb.TypeKind.Array
     assert len(inner.parameters) == 2
     assert inner.parameters[0].name == "float"
     assert inner.parameters[1].type_value.value == "4"
@@ -267,7 +267,7 @@ def test_function_pointer_type(stable_test_dir: Path) -> None:
         field_decl="[[refl]] int (*field)(double, char const*);",
     )
 
-    assert typ.kind == pb.TypeKind.FUNCTION_PTR
+    assert typ.kind == pb.TypeKind.FunctionPtr
     assert len(typ.parameters) == 3
 
     result = typ.parameters[0]
