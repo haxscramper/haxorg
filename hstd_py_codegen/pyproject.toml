@@ -32,6 +32,11 @@ build-backend = "hatchling.build"
 reference = "haxdex_read_code_cpp/0.1.0"
 editable-root = "src"
 
+[[tool.hatch.build.hooks.conan.artifacts]]
+artifact = "haxdex_read_code_cpp"
+package_type = "application"
+
+
 [tool.hatch.build.hooks.conan.protobuf]
 sources = ["haxdex_read_code_cpp/reflection_defs.proto"]
 destination = "hstd_py_codegen/proto"

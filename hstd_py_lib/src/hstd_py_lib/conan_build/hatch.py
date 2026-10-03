@@ -70,12 +70,21 @@ class ConanBuildHook(BuildHookInterface):
             build_data["infer_tag"] = True
 
         for artifact in manifest["artifacts"]:
-            self._include_artifact(
-                version=version,
-                build_data=build_data,
-                source=deploy_directory / artifact["source"],
-                destination=Path(artifact["destination"]),
-            )
+            source = deploy_directory / artifact["source"]
+
+            if artifact.get("package_type") == "application":
+                self._log(f"installing executable into environment scripts: {source}")
+
+                shared_scripts = build_data.setdefault("shared_scripts", {})
+                shared_scripts[str(source)] = source.name
+
+            else:
+                self._include_artifact(
+                    version=version,
+                    build_data=build_data,
+                    source=source,
+                    destination=Path(artifact["destination"]),
+                )
 
         if protobuf_config is not None:
             generated_directory = self._generate_protobuf(

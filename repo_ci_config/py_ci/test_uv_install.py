@@ -166,7 +166,14 @@ def validate_package(
 
         run(
             [
-                str(environment_path / "bin" / "pytest"),
+                "uv",
+                "run",
+                "--project",
+                str(workspace_root),
+                "--package",
+                project_name,
+                "--no-sync",
+                "pytest",
                 *json.loads(os.getenv("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
                 str(project_path / "tests"),
             ],

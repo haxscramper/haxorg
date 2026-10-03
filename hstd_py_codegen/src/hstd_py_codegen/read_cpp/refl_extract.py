@@ -1,5 +1,6 @@
 import io
 import json
+import os
 import time
 from dataclasses import dataclass, field
 from hashlib import md5
@@ -7,7 +8,8 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Tuple, cast
-from hstd_py_lib.files import IsNewInput
+from hstd_py_lib.os_utils import which_all
+from loguru import logger
 from plumbum import local
 from pydantic import BaseModel, Field
 
@@ -67,11 +69,6 @@ class TuOptions(BaseModel, extra="forbid"):
     toolchain_include: Optional[str] = Field(
         description="Path to the toolchain that was used to compile indexing tool",
         default=None,
-    )
-
-    reflect_cache: str = Field(
-        description="Store last reflection convert timestamps",
-        default="/tmp/tu_collector/runs.json",
     )
 
     cache_collector_runs: bool = Field(
@@ -144,7 +141,7 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
 
         else:
             if "*" not in item and "?" not in item:
-                log().warning(f"{item} is not a file or directory, treating as glob")
+                logger.warning(f"{item} is not a file or directory, treating as glob")
 
             for sub in Path().glob(item):
                 result.append(PathMapping(sub, directory_root))
@@ -221,7 +218,6 @@ def run_reflection_tool(
     conf: TuOptions,
     input: Path,
     output: Path,
-    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> CollectorRunResult:
     """
     Execute reflection data collector binary, producing a new converted translation
@@ -236,29 +232,23 @@ def run_reflection_tool(
         tmp.mkdir(parents=True)
 
     refl = {}
-    if Path(conf.reflect_cache).exists():
-        with open(conf.reflect_cache, "r") as file:
-            refl = json.load(file)
 
-    if (
-        (str(input) in refl)
-        and (
-            max(input.stat().st_mtime, Path(conf.indexing_tool).stat().st_mtime)
-            < refl[str(input)]
+    tools = which_all("haxdex_read_code_cpp")
+    logger.info(f"Found {len(tools)} paths for the reflection reader tool:")
+    for tool in tools:
+        logger.info(f"{tool}")
+
+    assert tools, (
+        "Indexing tool binary is missing, 'haxdex_read_code_cpp' could not be found in path:\n{}".format(
+            "\n".join(os.get_exec_path())
         )
-        and (output.exists())
-    ):
-        # return
-        pass
-
-    assert Path(conf.indexing_tool).exists(), (
-        f"Indexing tool binary is missing, '{conf.indexing_tool}' does not exist"
     )
 
-    tool = local[conf.indexing_tool]
+    indexing_tool = tools[0]
 
-    if reflection_tool_profraw_path:
-        tool = tool.with_env(LLVM_PROFILE_FILE=str(reflection_tool_profraw_path))
+    logger.info(f"using {indexing_tool}")
+
+    tool = local[str(indexing_tool)]
 
     if conf.binary_collection_file:
         tmp_output = Path(conf.binary_collection_file)
@@ -287,21 +277,12 @@ def run_reflection_tool(
     if conf.reflection_run_verbose:
         opts["verbose"] = True
 
-    if not conf.cache_collector_runs or IsNewInput(
-        [str(input), conf.indexing_tool], tmp_output
-    ):
-        res_code, res_stdout, res_stderr = cast(
-            Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None)
-        )
-
-    else:
-        log("refl.cli.read").info(f"Using cache for {input}")
-        res_code = 0
-        res_stdout = ""
-        res_stderr = ""
+    res_code, res_stdout, res_stderr = cast(
+        Tuple[int, str, str], tool.run([json.dumps(opts)], retcode=None)
+    )
 
     if res_code != 0 or not Path(opts["output"]).exists():
-        log("refl.cli.read").warning(f"Failed to run collector for {input}")
+        logger.error(f"Failed to run collector for {input}")
         return CollectorRunResult(
             conv_tu=None,
             pb_path=None,
@@ -314,8 +295,6 @@ def run_reflection_tool(
     else:
         tu = conv_proto_file(tmp_output, original=input)
         refl[str(input)] = time.time()
-        with open(conf.reflect_cache, "w") as file:
-            file.write(json.dumps(refl, indent=2))
 
         return CollectorRunResult(
             conv_tu=tu,
@@ -359,10 +338,10 @@ def write_run_result_information(
         if not conf.print_reflection_run_fail_to_stdout:
             text = f"{'Executed' if tu.success else 'Failed to run'} conversion for '{path}', wrote to {debug_dir}/{sanitized}"
             if conf.reflection_run_verbose:
-                log().debug(text)
+                logger.debug(text)
 
             else:
-                log().error(text)
+                logger.error(text)
 
     def write_reflection_stats(file: io.TextIOWrapper) -> None:
 
@@ -384,14 +363,7 @@ def write_run_result_information(
                 file.write(" ^\n    ".join(cmd.command.split()))
 
         sep("Flags:")
-        file.write(
-            " ^\n    ".join(
-                [
-                    conf.indexing_tool,
-                    "'" + json.dumps(tu.flags) + "'",
-                ]
-            )
-        )
+        file.write(" ^\n    " + json.dumps(tu.flags))
 
         sep("Serialized data:")
         if tu.pb_path and tu.pb_path.exists():
@@ -400,7 +372,7 @@ def write_run_result_information(
     if conf.print_reflection_run_fail_to_stdout:
         buffer = io.StringIO()
         write_reflection_stats(buffer)  # type: ignore
-        log().error(buffer.getvalue())
+        logger.error(buffer.getvalue())
 
     else:
         with open(debug_dir.joinpath(sanitized), "w") as file:
@@ -429,7 +401,6 @@ def run_reflection_tool_for_path(
     conf: TuOptions,
     mapping: PathMapping,
     commands: List[CompileCommand],
-    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> Optional[TuWrap]:
     """
     Run reflection data collector for input path
@@ -439,7 +410,6 @@ def run_reflection_tool_for_path(
         conf,
         path,
         path.with_suffix(".py"),
-        reflection_tool_profraw_path=reflection_tool_profraw_path,
     )
     if tu.success:
         relative = Path(conf.output_directory).joinpath(path.relative_to(mapping.root))

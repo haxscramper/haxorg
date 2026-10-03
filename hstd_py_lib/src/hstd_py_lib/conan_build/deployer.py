@@ -119,6 +119,7 @@ def deploy(
                 "destination": (
                     Path(artifact_config.get("destination", "")) / source.name
                 ).as_posix(),
+                "package_type": artifact_config.get("package_type"),
             }
         )
 

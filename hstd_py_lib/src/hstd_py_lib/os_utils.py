@@ -1,3 +1,4 @@
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -17,3 +18,12 @@ def json_path_serializer(obj: Any) -> str:
     if isinstance(obj, Path):
         return str(obj)
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
+def which_all(name: str) -> list[Path]:
+    "Find all paths for the command by name"
+    return [
+        path.resolve()
+        for directory in os.get_exec_path()
+        if (path := Path(directory) / name).is_file() and os.access(path, os.X_OK)
+    ]

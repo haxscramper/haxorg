@@ -116,7 +116,6 @@ def run_reflection_tool_provider(
     only_annotated: bool = False,
     reflection_run_verbose: bool = False,
     print_reflection_run_fail_to_stdout: bool = False,
-    reflection_tool_profraw_path: Optional[Path] = None,
 ) -> ReflProviderRunResult:
     """
     Run reflection data provider
@@ -192,7 +191,6 @@ def run_reflection_tool_provider(
             conf,
             mapping,
             commands,
-            reflection_tool_profraw_path=reflection_tool_profraw_path,
         )
         assert wrap
         wraps.append(wrap)
