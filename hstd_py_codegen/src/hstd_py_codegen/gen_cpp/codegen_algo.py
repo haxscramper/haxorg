@@ -14,7 +14,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     TemplateParamKind,
     TypeSpecialization,
 )
-from hstd_py_codegen.langs.astbuilder_base_config import (
+from hstd_py_codegen.lang_build.astbuilder_base_config import (
     AstbulderConfig,
 )
 

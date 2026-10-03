@@ -14,7 +14,7 @@ from beartype.typing import (
 from hstd_py_lib.algorithm import drop_none, iterate_object_tree
 from hstd_py_text_layout.base.wrap import BlockId
 
-import hstd_py_codegen.langs.astbuilder_cpp as cpp
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import QualType
 

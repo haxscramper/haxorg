@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field, replace
 
-import hstd_py_codegen.langs.astbuilder_cpp as cpp
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import List, Optional, cast
 from hstd_py_codegen.gen_cpp import codegen_ir
@@ -13,8 +13,8 @@ from hstd_py_codegen.gen_cpp.codegen_algo import (
     rewrite_any_typedefs,
 )
 from hstd_py_codegen.gen_cpp.codegen_ir import QualType, n_sem
-from hstd_py_codegen.langs.astbuilder_base_config import BUILTIN_TYPES
-from hstd_py_codegen.langs.astbuilder_c_config import (
+from hstd_py_codegen.lang_build.astbuilder_base_config import BUILTIN_TYPES
+from hstd_py_codegen.lang_build.astbuilder_c_config import (
     CAstbuilderConfig,
 )
 from hstd_py_text_layout.base.wrap import BlockId

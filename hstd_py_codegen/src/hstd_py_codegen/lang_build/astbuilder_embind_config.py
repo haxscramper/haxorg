@@ -1,6 +1,6 @@
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import QualType
-from hstd_py_codegen.langs.astbuilder_base_config import (
+from hstd_py_codegen.lang_build.astbuilder_base_config import (
     AstbulderConfig,
 )
 

@@ -8,25 +8,30 @@ from beartype.typing import Any, Dict, Union
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTypeMap,
 )
-from hstd_py_codegen.langs import (
+from hstd_py_codegen.lang_build import (
     astbuilder_cpp,
     astbuilder_embind,
     astbuilder_nim,
 )
-from hstd_py_codegen.langs.astbuilder_embind_config import (
+from hstd_py_codegen.lang_build.astbuilder_embind_config import (
     EmbindAstbuilderConfig,
 )
-from hstd_py_codegen.langs.astbuilder_nanobind import (
+from hstd_py_codegen.lang_build.astbuilder_nanobind import (
     NbModule,
     Py11Entry,
     Py11Field,
 )
-from hstd_py_codegen.langs.astbuilder_nanobind_config import (
+from hstd_py_codegen.lang_build.astbuilder_nanobind_config import (
     NanobindAstbuilderConfig,
 )
-from hstd_py_codegen.langs.astbuilder_nim_config import (
+from hstd_py_codegen.lang_build.astbuilder_nim_config import (
     NimAstbuilderConfig,
     NimAstbuilderStaticConfig,
+)
+from hstd_py_codegen.lang_convert import conv_nim
+from hstd_py_codegen.read_cpp.refl_driver import (
+    ReflProviderRunResult,
+    run_reflection_tool_provider,
 )
 from hstd_py_codegen.read_cpp.refl_wrapper_graph import (
     GenGraph,
@@ -35,14 +40,12 @@ from hstd_py_lib.script_logging import pprint_to_file, to_debug_json
 from hstd_py_text_layout.base.wrap import TextLayout
 from plumbum import CommandNotFound, local
 
-import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.wrapper_gen_nim as gen_nim
-
 
 @beartype
-def get_nim_code(content: gen_nim.GenTuUnion) -> gen_nim.ConvRes:
-    t = gen_nim.nim.TextLayout()
-    builder = gen_nim.nim.ASTBuilder(t, conf=NimAstbuilderConfig(type_map=GenTypeMap()))
-    return gen_nim.conv_res_to_nim(builder, content)
+def get_nim_code(content: conv_nim.GenTuUnion) -> conv_nim.ConvRes:
+    t = conv_nim.nim.TextLayout()
+    builder = conv_nim.nim.ASTBuilder(t, conf=NimAstbuilderConfig(type_map=GenTypeMap()))
+    return conv_nim.conv_res_to_nim(builder, content)
 
 
 @beartype
@@ -50,8 +53,8 @@ def format_nim_code(
     refl: ReflProviderRunResult,
     is_cpp_wrap: bool = True,
     with_header_imports: bool = True,
-) -> Dict[str, gen_nim.GenNimResult]:
-    graph: gen_nim.GenGraph = gen_nim.GenGraph()
+) -> Dict[str, conv_nim.GenNimResult]:
+    graph: conv_nim.GenGraph = conv_nim.GenGraph()
     for wrap in refl.wraps:
         graph.add_unit(wrap)
 
@@ -61,9 +64,9 @@ def format_nim_code(
     def get_out_path(path: Path) -> Path:
         return path.with_suffix(".nim")
 
-    mapped: Dict[str, gen_nim.GenNimResult] = {}
+    mapped: Dict[str, conv_nim.GenNimResult] = {}
     for sub in graph.subgraphs:
-        code = gen_nim.to_nim(
+        code = conv_nim.to_nim(
             graph=graph,
             sub=sub,
             conf=NimAstbuilderConfig(
@@ -112,7 +115,7 @@ def compile_nim_code(code_dir: Path, files: Dict[str, str]) -> None:
 
 @beartype
 def verify_nim_code(
-    code_dir: Path, formatted: Dict[str, gen_nim.GenNimResult], test_text: str
+    code_dir: Path, formatted: Dict[str, conv_nim.GenNimResult], test_text: str
 ) -> tuple[int, str, str]:
     compile_nim_code(
         code_dir=code_dir, files={file: res.content for file, res in formatted.items()}
@@ -128,7 +131,7 @@ def verify_nim_code(
 @beartype
 @dataclass
 class AllCodeWrappers:
-    nim: list[gen_nim.GenNimResult] = field(default_factory=list)
+    nim: list[conv_nim.GenNimResult] = field(default_factory=list)
     python: list[NbModule] = field(default_factory=list)
     embind: list[astbuilder_embind.WasmModule] = field(default_factory=list)
 
@@ -177,7 +180,7 @@ def get_all_code(
         nim_conf = NimAstbuilderConfig(type_map=type_map)
 
         result.nim.append(
-            gen_nim.to_nim(
+            conv_nim.to_nim(
                 gen_graph,
                 sub,
                 get_out_path=get_out_path,

@@ -23,9 +23,6 @@ class TuOptions(BaseModel, extra="forbid"):
     input: List[str] = Field(
         description="List of input files, directories or globs",
     )
-    indexing_tool: str = Field(
-        description="Path to the TU index generator tool",
-    )
 
     compilation_database: Optional[str] = Field(
         description="Explicit path to the compilation database to use for analysis",

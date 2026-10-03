@@ -9,9 +9,9 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTypeMap,
     GenUnit,
 )
-from hstd_py_codegen.langs import astbuilder_cpp as cpp
-from hstd_py_codegen.langs import astbuilder_embind as napi
-from hstd_py_codegen.langs.astbuilder_embind_config import (
+from hstd_py_codegen.lang_build import astbuilder_cpp as cpp
+from hstd_py_codegen.lang_build import astbuilder_embind as napi
+from hstd_py_codegen.lang_build.astbuilder_embind_config import (
     EmbindAstbuilderConfig,
 )
 

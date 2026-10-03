@@ -7,7 +7,7 @@ from beartype import beartype
 from beartype.typing import List, Optional, Union
 from hstd_py_text_layout.base.wrap import BlockId, TextLayout
 
-from hstd_py_codegen.langs.astbuilder_nim_config import (
+from hstd_py_codegen.lang_build.astbuilder_nim_config import (
     NimAstbuilderConfig,
     PragmaParams,
 )

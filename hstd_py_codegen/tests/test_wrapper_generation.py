@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from beartype.typing import cast
-from hstd_py_codegen.langs import (
+from hstd_py_codegen.lang_build import (
     astbuilder_embind,
     astbuilder_nanobind,
     astbuilder_nim,

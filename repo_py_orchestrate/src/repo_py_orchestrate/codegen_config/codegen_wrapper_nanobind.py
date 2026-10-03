@@ -1,4 +1,4 @@
-import hstd_py_codegen.langs.astbuilder_cpp as cpp
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from hstd_py_codegen.gen_cpp import codegen_cpp
 from hstd_py_codegen.gen_cpp.codegen_algo import (
@@ -11,9 +11,9 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuPass,
     GenUnit,
 )
-from hstd_py_codegen.langs import astbuilder_py as pya
-from hstd_py_codegen.langs.astbuilder_nanobind import NbModule
-from hstd_py_codegen.langs.astbuilder_nanobind_config import (
+from hstd_py_codegen.lang_build import astbuilder_py as pya
+from hstd_py_codegen.lang_build.astbuilder_nanobind import NbModule
+from hstd_py_codegen.lang_build.astbuilder_nanobind_config import (
     NanobindAstbuilderConfig,
 )
 

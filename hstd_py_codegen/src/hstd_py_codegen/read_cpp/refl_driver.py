@@ -7,15 +7,7 @@ from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
 from hstd_py_lib.script_logging import pprint_to_file
 
-import hstd_py_codegen as pb
 import hstd_py_codegen.read_cpp.refl_extract as ex
-from hstd_py_codegen.gen_cpp.codegen_ir import (
-    GenTuEnum,
-    GenTuFunction,
-    GenTuStruct,
-    GenTuUnion,
-)
-from hstd_py_codegen.read_cpp.refl_read import QualType
 from hstd_py_codegen.read_cpp.refl_wrapper_graph import (
     TuWrap,
 )
@@ -146,7 +138,6 @@ def run_reflection_tool_provider(
 
     conf = ex.TuOptions(
         input=[str(file) for file in text.keys()],
-        indexing_tool=f"{get_haxorg_repo_root_path()}/build/haxorg/reflection_tool",
         compilation_database=str(compile_commands),
         output_directory=str(output_dir),
         header_root=str(code_dir),
@@ -210,142 +201,3 @@ def run_reflection_tool_provider(
 
     assert wraps
     return ReflProviderRunResult(wraps=wraps, code_dir=code_dir)
-
-
-def get_struct(
-    text: str,
-    stable_test_dir: Path,
-    code_dir_override: Optional[Path] = None,
-    **kwargs: Any,
-) -> GenTuStruct:
-    code_dir = stable_test_dir
-    tu = (
-        run_reflection_tool_provider(
-            text,
-            code_dir_override or Path(code_dir),
-            output_dir=stable_test_dir,
-            **kwargs,
-        )
-        .wraps[0]
-        .tu
-    )
-    assert len(tu.structs) == 1
-    return tu.structs[0]
-
-
-def get_include_tree(
-    text: Union[str, Dict[str, str]],
-    stable_test_dir: Path,
-    main_file_suffix: str,
-    code_dir_override: Optional[Path] = None,
-    **kwargs: Any,
-) -> pb.IncludeVisit:
-    code_dir = stable_test_dir
-    tus = run_reflection_tool_provider(
-        text,
-        code_dir_override or Path(code_dir),
-        output_dir=stable_test_dir,
-        **kwargs,
-    ).wraps
-    tu = next(
-        it
-        for it in tus
-        if it.tu.main_file_include_tree.absolute_path.endswith(main_file_suffix)
-    )
-
-    assert tu.tu.main_file_include_tree
-    return tu.tu.main_file_include_tree
-
-
-@beartype
-def get_entires(text: str, stable_test_dir: Path, **kwargs: Any) -> List[GenTuUnion]:
-    code_dir = stable_test_dir
-    tu = (
-        run_reflection_tool_provider(
-            text,
-            Path(code_dir),
-            output_dir=stable_test_dir,
-            **kwargs,
-        )
-        .wraps[0]
-        .tu
-    )
-    return tu.enums + tu.structs + tu.functions + tu.typedefs
-
-
-@beartype
-def get_enum(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuEnum:
-    code_dir = stable_test_dir
-    tu = (
-        run_reflection_tool_provider(
-            text,
-            Path(code_dir),
-            output_dir=stable_test_dir,
-            **kwargs,
-        )
-        .wraps[0]
-        .tu
-    )
-    assert len(tu.enums) == 1
-    return tu.enums[0]
-
-
-@beartype
-def get_function(text: str, stable_test_dir: Path, **kwargs: Any) -> GenTuFunction:
-    code_dir = stable_test_dir
-    tu = (
-        run_reflection_tool_provider(
-            text,
-            Path(code_dir),
-            output_dir=stable_test_dir,
-            **kwargs,
-        )
-        .wraps[0]
-        .tu
-    )
-
-    assert len(tu.functions) == 1
-    return tu.functions[0]
-
-
-@beartype
-def get_type(
-    *,
-    preamble: List[str],
-    stable_test_dir: Path,
-    typ: str = "",
-    struct_header: str = "struct [[refl]] test",
-    field_decl: Optional[str] = None,
-    **kwargs: Any,
-) -> QualType:
-    """
-    Parse the `typ` parameter to qualified type and return result.
-
-    :param preamble: List of extra definitions to insert before the type parsing
-    :param typ: text of the type to parse
-    :param stable_test_dir: Temporary directory to put the text for parsing
-    :param struct_header: Temporary structure wrapping around type usage
-    :param field_decl: Override standard field declaration block
-    """
-    assert not (typ and field_decl), "Declare either typ or field_decl, but not both"
-
-    if field_decl:
-        type_use = field_decl
-
-    else:
-        type_use = f"[[refl]] {typ} field;"
-
-    struct = get_struct(
-        "\n".join(preamble)
-        + f"""
-{struct_header} {{
-    {type_use}
-}};
-""",
-        stable_test_dir=stable_test_dir,
-        only_annotated=True,
-        **kwargs,
-    )
-
-    assert len(struct.Fields) == 1
-    return struct.Fields[0].Type

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import os
 
-import hstd_py_codegen.langs.astbuilder_cpp as cpp
-import hstd_py_codegen.langs.astbuilder_proto as pb
-import hstd_py_codegen.langs.astbuilder_py as pya
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
+import hstd_py_codegen.lang_build.astbuilder_proto as pb
+import hstd_py_codegen.lang_build.astbuilder_py as pya
 import yaml
 from hstd_py_codegen.gen_cpp import codegen_cpp, codegen_ir
 from hstd_py_codegen.gen_cpp.iteration_macros import (

@@ -1,7 +1,7 @@
 import copy
 from dataclasses import replace
 
-import hstd_py_codegen.langs.astbuilder_cpp as cpp
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import Any, List, Sequence
 from haxorg_py_lib.astbuilder import astbuilder_utils

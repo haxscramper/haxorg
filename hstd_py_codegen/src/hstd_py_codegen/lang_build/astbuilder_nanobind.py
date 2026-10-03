@@ -6,8 +6,8 @@ from beartype.typing import Any, Dict, List, Optional, Union
 from hstd_py_lib.algorithm import maybe_splice
 from hstd_py_text_layout.base.wrap import BlockId
 
-import hstd_py_codegen.langs.astbuilder_cpp as cpp
-import hstd_py_codegen.langs.astbuilder_py as pya
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
+import hstd_py_codegen.lang_build.astbuilder_py as pya
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuDoc,
@@ -15,7 +15,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuIdent,
     QualType,
 )
-from hstd_py_codegen.langs.astbuilder_nanobind_config import (
+from hstd_py_codegen.lang_build.astbuilder_nanobind_config import (
     NanobindAstbuilderConfig,
 )
 

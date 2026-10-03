@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-import hstd_py_codegen.langs.astbuilder_cpp as cpp
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import List
 from hstd_py_codegen.gen_cpp import codegen_cpp, codegen_ir
