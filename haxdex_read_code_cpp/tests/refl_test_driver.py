@@ -79,7 +79,7 @@ def run_reflection_tool_provider(
         }
 
         executable(json.dumps(configuration))
-        tus.append(pb.Tu.ParseFromString(output.read_bytes()))
+        tus.append(pb.Tu.parse(output.read_bytes()))
 
     return ReflProviderRunResult(tus=tus, code_dir=code_dir)
 

@@ -191,7 +191,7 @@ continue
             "-m",
             "pytest",
             f"{test_path}::{test_name}",
-            "-v",
+            "-vv",
             "-s",
             "--tb=line",
         ]

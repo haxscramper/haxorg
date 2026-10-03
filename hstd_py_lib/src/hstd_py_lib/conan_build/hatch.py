@@ -115,13 +115,19 @@ class ConanBuildHook(BuildHookInterface):
         raise RuntimeError("Could not find the uv workspace root")
 
     def _python_configuration(self) -> list[str]:
+        run_tests = os.environ.get("HATCH_CONAN_RUN_TESTS") == "1"
+
         return [
+            # fmt: off
+            "-c",
+            f"tools.build:skip_test={not run_tests}",
             "-c",
             f"user.haxorg:python_executable={sys.executable}",
             "-c",
             f"user.haxorg:python_abi={sysconfig.get_config_var('SOABI')}",
             "-c",
             f"user.haxorg:uv_project={self._uv_workspace_root()}",
+            # fmt: on
         ]
 
     def _find_workspace(self, reference: str) -> Path | None:

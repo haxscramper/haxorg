@@ -1,9 +1,9 @@
 from pathlib import Path
 
 import pytest
+import refl_test_driver
 
 import haxdex_read_code_cpp.proto as pb
-import haxorg_py_codegen.py_codegen.refl_test_driver as refl_test_driver
 
 
 @pytest.mark.test_release

@@ -403,7 +403,7 @@ class HaxorgPackage(_HaxorgTypingBase):
             "-m",
             "pytest",
             "--color=no",
-            "-v",
+            "-vv",
             "--tb=native",
             "-c",
             str(tests / "pyproject.toml"),

@@ -166,7 +166,7 @@ def validate_package(
         run(
             [
                 str(environment_path / "bin" / "pytest"),
-                "-v",
+                "-vv",
                 "--color=no",
                 "--tb=native",
                 str(project_path / "tests"),
