@@ -1,15 +1,13 @@
 from pathlib import Path
 
-import py_codegen.proto_lib as pb
 import pytest
-from hstd_py_lib.external_packages.rich_utils import render_rich
-from py_codegen.refl_read import include_visit_to_rich_tree
+
+import haxdex_read_code_cpp.proto as pb
+import haxorg_py_codegen.py_codegen.refl_test_driver as refl_test_driver
 
 
 @pytest.mark.test_release
 def test_standard_library_include(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "a.hpp": '#include "b.hpp"',
@@ -38,8 +36,6 @@ def test_standard_library_include(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_include_standard_library_header(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {"main.hpp": "#include <vector>"},
         main_file_suffix="main.hpp",
@@ -57,8 +53,6 @@ def test_include_standard_library_header(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_nested_directory_inclusion(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "a.hpp": '#include "inc/one/b.hpp"',
@@ -87,8 +81,6 @@ def test_nested_directory_inclusion(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_duplicate_header_names_in_different_directories(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "main.hpp": '#include "x/common.hpp"\n#include "y/common.hpp"',
@@ -119,8 +111,6 @@ def test_duplicate_header_names_in_different_directories(stable_test_dir: Path) 
 
 @pytest.mark.test_release
 def test_skipped_blocks_under_ifdef(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "main.hpp": '#include "cond.hpp"',
@@ -147,8 +137,6 @@ def test_skipped_blocks_under_ifdef(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_include_guard_header_included_twice(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "main.hpp": '#include "guarded.hpp"\n#include "guarded.hpp"',
@@ -168,8 +156,6 @@ def test_include_guard_header_included_twice(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_deep_nested_include_eventually_reaches_stdlib(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "a.hpp": '#include "b.hpp"',

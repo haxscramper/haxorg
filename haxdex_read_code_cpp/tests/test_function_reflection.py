@@ -1,83 +1,67 @@
 from pathlib import Path
 
-import py_codegen.astbuilder_cpp as cpp
-import py_codegen.astbuilder_nanobind as py11
 import pytest
-from haxorg_py_lib.layout.wrap import TextLayout, TextOptions
-from py_codegen.astbuilder_nanobind_config import NanobindAstbuilderConfig
-from py_codegen.codegen_ir import ReferenceKind, get_type_map
+
+import haxdex_read_code_cpp.proto as pb
+import haxorg_py_codegen.py_codegen.refl_test_driver as refl_test_driver
 
 
 @pytest.mark.test_release
 def test_function_extract_0_args(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     func = refl_test_driver.get_function(
         "int get_something();",
         stable_test_dir=stable_test_dir,
     )
-    assert func.Name == "get_something"
-    assert len(func.Args) == 0
-    assert func.ReturnType.Name == "int"
+
+    assert func.name == "get_something"
+    assert len(func.arguments) == 0
+    assert func.result_ty.name == "int"
 
 
 @pytest.mark.test_release
 def test_function_extract_args(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     func = refl_test_driver.get_function(
         "int do_something(int first, char second);",
         stable_test_dir=stable_test_dir,
     )
-    assert func.Name == "do_something"
-    assert len(func.Args) == 2
-    assert func.ReturnType.Name == "int"
-    assert func.Args[0].Type.Name == "int"
-    assert func.Args[1].Type.Name == "char"
-    assert func.Args[0].Name == "first"
-    assert func.Args[1].Name == "second"
+
+    assert func.name == "do_something"
+    assert len(func.arguments) == 2
+    assert func.result_ty.name == "int"
+    assert func.arguments[0].type.name == "int"
+    assert func.arguments[1].type.name == "char"
+    assert func.arguments[0].name == "first"
+    assert func.arguments[1].name == "second"
 
 
 @pytest.mark.test_release
 def test_function_const_ref(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
     func = refl_test_driver.get_function(
         "void enable_file_trace(int const&);",
         stable_test_dir=stable_test_dir,
     )
 
-    assert func.Name == "enable_file_trace"
-    t = func.Args[0].Type
-    assert t.Name == "int"
-    assert t.IsConst
-    assert t.RefKind == ReferenceKind.LValue
+    assert func.name == "enable_file_trace"
+
+    typ = func.arguments[0].type
+    assert typ.name == "int"
+    assert any(qualifier.is_const for qualifier in typ.qualifiers)
+    assert typ.ref_kind == pb.ReferenceKind.L_VALUE
 
 
 @pytest.mark.test_release
 def test_method_const_ref(stable_test_dir: Path) -> None:
-    import tests.python.refl.refl_test_driver as refl_test_driver
-
-    struct = refl_test_driver.get_struct(
+    record = refl_test_driver.get_struct(
         "struct S { void enable_file_trace(int const&); };",
         stable_test_dir=stable_test_dir,
     )
 
-    assert len(struct.Methods) == 1
-    func = struct.Methods[0]
-    assert func.Name == "enable_file_trace"
-    t = func.Args[0].Type
-    assert t.Name == "int"
-    assert t.IsConst
-    assert t.RefKind == ReferenceKind.LValue
+    assert len(record.methods) == 1
 
-    ast = cpp.ASTBuilder(in_b=TextLayout())
-    conf = NanobindAstbuilderConfig(get_type_map([]))
-    wrap: py11.NbClass = py11.NbClass(ast, struct, conf)
-    wrap.InitDefault(ast, wrap.Fields)
-    lyt = TextLayout()
-    builder = cpp.ASTBuilder(lyt)
-    bind = wrap.Methods[0].build_bind(struct.Name, builder)
-    assert "static_cast<void(S::*)(int const&)>(&S::enable_file_trace)" in lyt.toString(
-        bind, TextOptions()
-    )
+    method = record.methods[0]
+    assert method.name == "enable_file_trace"
+
+    typ = method.args[0].type
+    assert typ.name == "int"
+    assert any(qualifier.is_const for qualifier in typ.qualifiers)
+    assert typ.ref_kind == pb.ReferenceKind.L_VALUE

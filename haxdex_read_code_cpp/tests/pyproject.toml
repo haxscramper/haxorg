@@ -2,7 +2,15 @@
 name = "haxdex_read_code_cpp_pytest_package"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
-dependencies = ["pytest>=8.4.2", "hstd_py_lib"]
+dependencies = [
+  "pytest>=8.4.2",
+  "hstd_py_lib",
+  "beartype",
+  "plumbum",
+  "betterproto2",
+  "betterproto2-compiler",
+  "grpcio-tools",
+]
 
 [tool.uv]
 package = false
@@ -10,3 +18,6 @@ package = false
 [tool.pytest.ini_options]
 testpaths = ["."]
 addopts = "--color=yes"
+markers = [
+  "test_release: Reduced test suite done from the packaged release",
+]

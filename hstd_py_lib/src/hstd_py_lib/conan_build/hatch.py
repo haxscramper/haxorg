@@ -10,6 +10,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+import tomllib
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.plugin import hookimpl
 
@@ -100,12 +101,27 @@ class ConanBuildHook(BuildHookInterface):
             )
             temporary_directory.cleanup()
 
+    def _uv_workspace_root(self) -> Path:
+        for directory in (Path(self.root), *Path(self.root).parents):
+            pyproject = directory / "pyproject.toml"
+
+            if pyproject.is_file():
+                with pyproject.open("rb") as file:
+                    data = tomllib.load(file)
+
+                if "workspace" in data.get("tool", {}).get("uv", {}):
+                    return directory
+
+        raise RuntimeError("Could not find the uv workspace root")
+
     def _python_configuration(self) -> list[str]:
         return [
             "-c",
             f"user.haxorg:python_executable={sys.executable}",
             "-c",
             f"user.haxorg:python_abi={sysconfig.get_config_var('SOABI')}",
+            "-c",
+            f"user.haxorg:uv_project={self._uv_workspace_root()}",
         ]
 
     def _find_workspace(self, reference: str) -> Path | None:
