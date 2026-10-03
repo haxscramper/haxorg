@@ -169,6 +169,7 @@ conan_remove_local_deps:
   conan remove "haxorg_cpp_org_lib/*" --confirm
   conan remove "hstd_cpp_diagram_lib/*" --confirm
   conan remove "haxdex_read_code_cpp/*" --confirm
+  conan remove "haxorg_conan_base/*" --confirm
 
 conan_export_local_deps:
   conan export "hstd_cpp_lib"
@@ -176,6 +177,7 @@ conan_export_local_deps:
   conan export "haxorg_cpp_org_lib"
   conan export "hstd_cpp_diagram_lib"
   conan export "haxdex_read_code_cpp"
+  conan export "haxorg_conan_base"
 
 [working-directory("/tmp")]
 conan_validate_deps dep_name:

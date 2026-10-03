@@ -67,7 +67,7 @@ class HaxorgPackage(_HaxorgTypingBase):
     @property
     def haxorg_has_cpp_tests(self) -> bool:
         tests = Path(self.source_folder) / "tests"
-        return any(tests.rglob("*.cpp"))
+        return any(tests.rglob("t*.cpp"))
 
     @property
     def haxorg_has_python_tests(self) -> bool:
@@ -148,12 +148,12 @@ class HaxorgPackage(_HaxorgTypingBase):
                 errors.append(f"build module 'cmake/{module}' does not exist")
 
         tests = root / "tests"
-        has_cpp_tests = any(tests.rglob("*.cpp"))
-        has_python_files = any(tests.rglob("*.py"))
+        has_python_files = any(tests.rglob("test_*.py"))
+        self.output.info(f"Package has python tests: {has_python_files}")
         pytest_project = tests / "pyproject.toml"
 
         if (
-            has_cpp_tests
+            self.haxorg_has_cpp_tests
             and "enable_testing()" not in (root / "CMakeLists.txt").read_text()
         ):
             errors.append(
@@ -402,6 +402,9 @@ class HaxorgPackage(_HaxorgTypingBase):
             "python",
             "-m",
             "pytest",
+            "--color=no",
+            "-v",
+            "--tb=native",
             "-c",
             str(tests / "pyproject.toml"),
             str(tests),

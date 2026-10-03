@@ -15,6 +15,7 @@ dependencies = [
   "pydantic",
   "loguru",
   "rich_click",
+  "more_itertools",
 ]
 
 [project.entry-points.hatch]
