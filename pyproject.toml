@@ -1,6 +1,7 @@
 [tool.uv.workspace]
 members = [
   "hstd_py_lib",
+  "hstd_py_codegen",
   "repo_py_validate",
   "repo_py_orchestrate",
   "haxorg_py_lib",
@@ -11,6 +12,7 @@ members = [
 [tool.uv.sources]
 hstd_py_lib = { workspace = true }
 hstd_py_text_layout = { workspace = true }
+hstd_py_codegen = { workspace = true }
 
 [dependency-groups]
 dev = [

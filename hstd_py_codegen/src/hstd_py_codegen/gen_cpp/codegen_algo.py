@@ -4,9 +4,8 @@ from dataclasses import dataclass, replace
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Set, Tuple
-
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import (
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuTemplateParams,
     GenTuTemplateTypename,
     QualType,
@@ -15,7 +14,7 @@ from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import (
     TemplateParamKind,
     TypeSpecialization,
 )
-from hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_base_config import (
+from hstd_py_codegen.langs.astbuilder_base_config import (
     AstbulderConfig,
 )
 

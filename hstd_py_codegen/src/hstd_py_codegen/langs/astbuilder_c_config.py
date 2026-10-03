@@ -1,8 +1,8 @@
 from beartype import beartype
 
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import QualType
-from hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_base_config import (
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_codegen.langs.astbuilder_base_config import (
     BUILTIN_TYPES,
     AstbulderConfig,
 )

@@ -9,7 +9,7 @@ from beartype.typing import Any, Dict, List, Optional, cast
 from hstd_py_lib.tracer import TraceCollector
 
 import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.wrapper_gen_nim as gen_nim
-from hstd_py_codegen.src.hstd_py_codegen.read_cpp.refl_extract import (
+from hstd_py_codegen.read_cpp.refl_extract import (
     CompileCommand,
     PathMapping,
     TuOptions,
@@ -18,7 +18,7 @@ from hstd_py_codegen.src.hstd_py_codegen.read_cpp.refl_extract import (
     read_compile_cmmands,
     run_reflection_tool_for_path,
 )
-from hstd_py_codegen.src.hstd_py_codegen.read_cpp.refl_wrapper_graph import GenGraph
+from hstd_py_codegen.read_cpp.refl_wrapper_graph import GenGraph
 
 CONFIG_FILE_NAME = "tu_collector.toml"
 

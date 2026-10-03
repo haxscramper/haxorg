@@ -6,6 +6,7 @@ requires-python = "==3.13.*"
 members = [
     "haxdex-read-code-cpp-pytest-package",
     "haxorg-py-lib",
+    "hstd-py-codegen",
     "hstd-py-lib",
     "hstd-py-text-layout",
     "repo-py-orchestrate",
@@ -304,6 +305,29 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
 ]
+
+[[package]]
+name = "hstd-py-codegen"
+version = "0.1.0"
+source = { editable = "hstd_py_codegen" }
+dependencies = [
+    { name = "hstd-py-lib" },
+    { name = "hstd-py-text-layout" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "hstd-py-lib", editable = "hstd_py_lib" },
+    { name = "hstd-py-text-layout", editable = "hstd_py_text_layout" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest" }]
 
 [[package]]
 name = "hstd-py-lib"

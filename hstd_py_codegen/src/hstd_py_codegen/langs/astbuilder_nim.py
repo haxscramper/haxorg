@@ -2,12 +2,12 @@ import re
 from dataclasses import dataclass, field
 from enum import Enum
 
-import haxorg_py_lib.astbuilder.astbuilder_base as base
+import hstd_py_text_layout.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import List, Optional, Union
-from haxorg_py_lib.layout.wrap import BlockId, TextLayout
+from hstd_py_text_layout.base.wrap import BlockId, TextLayout
 
-from hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_nim_config import (
+from hstd_py_codegen.langs.astbuilder_nim_config import (
     NimAstbuilderConfig,
     PragmaParams,
 )

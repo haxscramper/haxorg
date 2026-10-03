@@ -11,12 +11,12 @@ from beartype.typing import (
     Sequence,
     Tuple,
 )
-from haxorg_py_lib.layout.wrap import BlockId
 from hstd_py_lib.algorithm import drop_none, iterate_object_tree
+from hstd_py_text_layout.base.wrap import BlockId
 
-import hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_cpp as cpp
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import QualType
+import hstd_py_codegen.langs.astbuilder_cpp as cpp
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import QualType
 
 PROTO_VALUE_NAME = "out"
 ORG_VALUE_NAME = "in"

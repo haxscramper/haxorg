@@ -10,7 +10,7 @@ from beartype import beartype
 from beartype.typing import Any
 from pydantic import BaseModel
 
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp import codegen_ir
 
 # Map of (parent_class, field_name) -> pydantic model class for override
 _FIELD_SCHEMA_OVERRIDES: dict[tuple[type[Any], str], type[BaseModel]] = {

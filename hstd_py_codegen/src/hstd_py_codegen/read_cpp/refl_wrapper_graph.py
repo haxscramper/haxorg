@@ -10,7 +10,7 @@ from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set
 from pydantic import BaseModel, Field
 
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import (
+from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuEnum,
     GenTuFunction,
     GenTuStruct,
@@ -19,7 +19,7 @@ from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import (
     QualType,
     QualTypeKind,
 )
-from hstd_py_codegen.src.hstd_py_codegen.read_cpp.refl_read import ConvTu
+from hstd_py_codegen.read_cpp.refl_read import ConvTu
 
 
 @beartype

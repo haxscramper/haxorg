@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 import os
 
+import hstd_py_codegen.langs.astbuilder_cpp as cpp
+import hstd_py_codegen.langs.astbuilder_proto as pb
+import hstd_py_codegen.langs.astbuilder_py as pya
 import yaml
-from haxorg_py_lib.layout.wrap import TextLayout, TextOptions
+from hstd_py_codegen.gen_cpp import codegen_cpp, codegen_ir
+from hstd_py_codegen.gen_cpp.iteration_macros import (
+    gen_pyhaxorg_field_iteration_macros,
+    gen_pyhaxorg_iteration_macros,
+    gen_pyhaxorg_shared_iteration_macros,
+)
 from hstd_py_lib.algorithm import cond
 from hstd_py_lib.script_logging import ExceptionContextNote
 from hstd_py_lib.toml_config_profiler import (
     apply_options,
     options_from_model,
 )
+from hstd_py_text_layout.base.wrap import TextLayout, TextOptions
 
-import hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_cpp as cpp
-import hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_proto as pb
-import hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_py as pya
 import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_immutable as gen_imm
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_cpp, codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.iteration_macros import (
-    gen_pyhaxorg_field_iteration_macros,
-    gen_pyhaxorg_iteration_macros,
-    gen_pyhaxorg_shared_iteration_macros,
-)
 from repo_py_orchestrate.config import get_tmpdir
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
     PyhaxorgTypeGroups,

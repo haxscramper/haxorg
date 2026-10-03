@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 
+import hstd_py_codegen.langs.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import List
-from haxorg_py_lib.layout.wrap import BlockId
-
-import hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_cpp as cpp
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_cpp, codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_codegen.gen_cpp import codegen_cpp, codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_text_layout.base.wrap import BlockId
 
 
 @beartype

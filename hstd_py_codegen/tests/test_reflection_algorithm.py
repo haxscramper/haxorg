@@ -1,6 +1,5 @@
 import pytest
-
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_algo import (
+from hstd_py_codegen.gen_cpp.codegen_algo import (
     SpecializationMatchResult,
     TemplateUnificationMatcher,
     TypedefExpansionMatcher,
@@ -9,7 +8,7 @@ from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_algo import (
     unify_qualtype,
     unify_template_params,
 )
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import (
+from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuTemplateGroup,
     GenTuTemplateParams,
     GenTuTemplateTypename,

@@ -16,8 +16,8 @@ from betterproto.lib.google import protobuf as pb_google
 from hstd_py_lib.script_logging import ExceptionContextNote
 from rich.tree import Tree
 
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import QualType
 
 
 def include_visit_to_rich_tree(

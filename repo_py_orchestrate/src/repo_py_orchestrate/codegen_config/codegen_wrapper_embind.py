@@ -1,20 +1,20 @@
 from beartype import beartype
-
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_algo import (
+from hstd_py_codegen.gen_cpp.codegen_algo import (
     collect_type_specializations,
 )
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import (
+from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenFiles,
     GenTu,
     GenTuPass,
     GenTypeMap,
     GenUnit,
 )
-from hstd_py_codegen.src.hstd_py_codegen.langs import astbuilder_cpp as cpp
-from hstd_py_codegen.src.hstd_py_codegen.langs import astbuilder_embind as napi
-from hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_embind_config import (
+from hstd_py_codegen.langs import astbuilder_cpp as cpp
+from hstd_py_codegen.langs import astbuilder_embind as napi
+from hstd_py_codegen.langs.astbuilder_embind_config import (
     EmbindAstbuilderConfig,
 )
+
 from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
     PyhaxorgTypeGroups,
 )

@@ -1,15 +1,14 @@
 import copy
 from dataclasses import replace
 
+import hstd_py_codegen.langs.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import Any, List, Sequence
 from haxorg_py_lib.astbuilder import astbuilder_utils
-from haxorg_py_lib.layout.wrap import BlockId
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import GenTuField, QualType
 from hstd_py_lib.algorithm import iterate_object_tree
-
-import hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_cpp as cpp
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import GenTuField, QualType
+from hstd_py_text_layout.base.wrap import BlockId
 
 
 @beartype

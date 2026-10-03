@@ -4,7 +4,7 @@ from beartype import beartype
 from beartype.typing import Any, List, Optional, Union
 
 # Now you should be able to import your C++ library
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import *
+from hstd_py_codegen.gen_cpp.codegen_ir import *
 
 
 @beartype

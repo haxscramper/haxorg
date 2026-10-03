@@ -2,10 +2,10 @@ import abc
 
 from beartype import beartype
 from beartype.typing import List, Optional
-from haxorg_py_lib.astbuilder.astbuilder_utils import pascal_case
+from hstd_py_text_layout.astbuilder.astbuilder_utils import pascal_case
 
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import QualType
 
 BUILTIN_TYPES = [
     ["char"],

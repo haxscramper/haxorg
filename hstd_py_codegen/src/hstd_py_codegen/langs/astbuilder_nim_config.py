@@ -4,12 +4,12 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import List
-from haxorg_py_lib.layout.wrap import BlockId
+from hstd_py_text_layout.base.wrap import BlockId
 from pydantic import BaseModel, Field
 
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import QualType
-from hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_base_config import (
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_codegen.langs.astbuilder_base_config import (
     AstbulderConfig,
 )
 

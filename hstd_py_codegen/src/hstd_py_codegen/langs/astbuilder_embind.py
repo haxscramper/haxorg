@@ -3,12 +3,12 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Any, Dict, List, Optional, Union
-from haxorg_py_lib.layout.wrap import BlockId
+from hstd_py_text_layout.base.wrap import BlockId
 
-import hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_cpp as cpp
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import QualType
-from hstd_py_codegen.src.hstd_py_codegen.langs.astbuilder_embind_config import (
+import hstd_py_codegen.langs.astbuilder_cpp as cpp
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import QualType
+from hstd_py_codegen.langs.astbuilder_embind_config import (
     EmbindAstbuilderConfig,
 )
 

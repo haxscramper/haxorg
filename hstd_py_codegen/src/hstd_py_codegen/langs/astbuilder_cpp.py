@@ -4,13 +4,13 @@ from copy import copy
 from dataclasses import dataclass, field, replace
 from enum import Enum
 
-import haxorg_py_lib.astbuilder.astbuilder_base as base
+import hstd_py_text_layout.astbuilder.astbuilder_base as base
 from beartype import beartype
 from beartype.typing import Any, Iterable, List, Optional, Tuple, Union
-from haxorg_py_lib.layout.wrap import BlockId, TextLayout
+from hstd_py_text_layout.base.wrap import BlockId, TextLayout
 
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp import codegen_ir
-from hstd_py_codegen.src.hstd_py_codegen.gen_cpp.codegen_ir import (
+from hstd_py_codegen.gen_cpp import codegen_ir
+from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuTemplateParams,
     QualType,
     StorageClass,

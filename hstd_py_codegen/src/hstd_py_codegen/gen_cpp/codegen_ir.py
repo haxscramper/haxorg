@@ -18,8 +18,8 @@ from beartype.typing import (
     Union,
     cast,
 )
-from haxorg_py_lib.layout.wrap import BlockId
 from hstd_py_lib.algorithm import iterate_object_tree
+from hstd_py_text_layout.base.wrap import BlockId
 from loguru import logger
 from pydantic import AliasChoices, BaseModel, Field
 

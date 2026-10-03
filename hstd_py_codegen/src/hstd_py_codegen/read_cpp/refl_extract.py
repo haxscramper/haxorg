@@ -11,12 +11,12 @@ from hstd_py_lib.files import IsNewInput
 from plumbum import local
 from pydantic import BaseModel, Field
 
-from hstd_py_codegen.src.hstd_py_codegen.read_cpp.refl_read import (
+from hstd_py_codegen.read_cpp.refl_read import (
     ConvTu,
     conv_proto_file,
     open_proto_file,
 )
-from hstd_py_codegen.src.hstd_py_codegen.read_cpp.refl_wrapper_graph import TuWrap
+from hstd_py_codegen.read_cpp.refl_wrapper_graph import TuWrap
 
 
 class TuOptions(BaseModel, extra="forbid"):

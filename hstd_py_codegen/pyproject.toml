@@ -1,11 +1,19 @@
 [project]
-name = "py_codegen"
+name = "hstd_py_codegen"
 version = "0.1.0"
 description = ""
 authors = [{name = "haxscramper", email = "haxscramper@gmail.com"}]
 readme = {file = "README.org", content-type = "text/plain"}
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+  "hstd_py_lib",
+  "hstd_py_text_layout",
+]
+
+[dependency-groups]
+dev = [
+  "pytest",
+]
 
 [build-system]
 requires = ["hatchling"]
