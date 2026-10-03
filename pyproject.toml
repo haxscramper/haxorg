@@ -13,6 +13,7 @@ members = [
 hstd_py_lib = { workspace = true }
 hstd_py_text_layout = { workspace = true }
 hstd_py_codegen = { workspace = true }
+repo_py_orchestrate = { workspace = true }
 
 [dependency-groups]
 dev = [

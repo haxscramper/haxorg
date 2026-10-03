@@ -1595,7 +1595,7 @@ class GenTypeMap:
 @beartype
 @dataclass
 class GenTu:
-    path: str
+    path: Path
     entries: Sequence[GenTuEntry]
     clangFormatGuard: bool = True
 

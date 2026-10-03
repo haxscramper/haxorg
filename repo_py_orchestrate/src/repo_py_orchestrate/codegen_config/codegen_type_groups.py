@@ -1,25 +1,20 @@
 import itertools
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
-from beartype.typing import Dict, List, Sequence
+from beartype.typing import List, Sequence
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import QualType
-from hstd_py_codegen.lang_build.astbuilder_base_config import (
-    AstbulderConfig,
-)
 from hstd_py_codegen.read_cpp import refl_read
 from hstd_py_codegen.read_cpp.refl_read import ConvTu
 from hstd_py_lib.script_logging import (
-    ExceptionContextNote,
     pprint_to_file_json,
-    to_debug_json,
 )
+from loguru import logger
 
-import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_immutable as gen_imm
+import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.gen_haxorg.immutable as gen_imm
 import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.org_codegen_data as org_data
 
 
@@ -63,6 +58,9 @@ class PyhaxorgTypeGroups:
 
     # specializations: List[codegen_ir.TypeSpecialization] = field(default_factory=list)
 
+    def get_protobuf_target_entires(self) -> Sequence[codegen_ir.GenTuUnion]:
+        return self.full_enums + self.shared_types + self.expanded
+
     def get_entries_for_wrapping(self) -> List[codegen_ir.GenTuUnion]:
         "Get full list of entries to be wrapped for public API"
 
@@ -96,110 +94,6 @@ class PyhaxorgTypeGroups:
                 )
             )
         )
-
-
-@beartype
-def verify_type_usage(
-    entries: Sequence[codegen_ir.GenTuEntry],
-    conf: AstbulderConfig,
-    specializations: Sequence[codegen_ir.TypeSpecialization],
-):
-    specialization_map: Dict[int, codegen_ir.TypeSpecialization] = dict()
-
-    for spec in specializations:
-        specialization_map[spec.used_type.qual_hash()] = spec
-
-    def aux(
-        entry: codegen_ir.GenTuEntry
-        | codegen_ir.GenTuField
-        | codegen_ir.QualType
-        | codegen_ir.GenTuIdent
-        | None,
-    ):
-
-        if isinstance(
-            entry,
-            (
-                codegen_ir.GenTuStruct,
-                codegen_ir.GenTuField,
-                codegen_ir.GenTuFunction,
-            ),
-        ) and not conf.isAcceptedByBackend(entry):
-            return
-
-        match entry:
-            case None:
-                pass
-
-            case codegen_ir.GenTuIdent():
-                aux(entry.Type)
-
-            case codegen_ir.QualType():
-                # Type with unresolved template parameters should not be a part of the API
-                assert len(entry.getTemplateParameters()) == 0, (
-                    f"Found type {entry} with unresolved template parameters"
-                )
-
-                if all(
-                    [
-                        not conf.isRegisteredForBacked(entry),
-                        #
-                        entry.qual_hash() not in specialization_map,
-                    ]
-                ):
-                    raise ValueError(
-                        f"Type {entry} is not registered in the the API map or the list of specializations. "
-                        f"List match is {entry.flatQualNameWithParams()}."
-                    )
-
-            case codegen_ir.GenTuField():
-                if entry.Type:
-                    with ExceptionContextNote(f"Field {entry.Name}"):
-                        aux(entry.Type)
-
-            case codegen_ir.GenTuStruct():
-                if conf.isAcceptedByBackend(entry):
-                    with ExceptionContextNote(f"Struct {entry.Name}"):
-                        with ExceptionContextNote("Nested elements"):
-                            list(map(aux, entry.Nested))
-
-                        with ExceptionContextNote("Methods"):
-                            list(map(aux, entry.Methods))
-
-                    # Note: bases are not verified as they are not mandatory
-                    # for wrapping on the backends -- the final type can be
-                    # treated as an opaque structure without knowing all of
-                    # its base classes.
-
-            case codegen_ir.GenTuFunction():
-                if conf.isAcceptedByBackend(entry):
-                    with ExceptionContextNote(f"Function '{entry.Name}'"):
-                        for arg in entry.Args:
-                            with ExceptionContextNote(f"Argument {arg.Name}"):
-                                aux(arg)
-
-                        with ExceptionContextNote("Return type"):
-                            aux(entry.ReturnType)
-
-            case codegen_ir.GenTuTypedef():
-                if conf.isAcceptedByBackend(entry):
-                    with ExceptionContextNote(
-                        f"Typedef {json.dumps(to_debug_json(entry))}"
-                    ):
-                        aux(entry.Base)
-
-            case codegen_ir.GenTuEnum():
-                if conf.isAcceptedByBackend(entry):
-                    with ExceptionContextNote(f"Enum {entry.Name}"):
-                        aux(entry.Name)
-
-            case codegen_ir.GenTuPass():
-                pass
-
-            case _:
-                raise TypeError(f"Unexpected entry type {type(entry)}")
-
-    list(map(aux, entries))
 
 
 @beartype
