@@ -371,7 +371,7 @@ def conv_proto_arg(arg: pb.Arg) -> codegen_ir.GenTuIdent:
     return codegen_ir.GenTuIdent(
         Name=arg.name,
         Type=conv_proto_type(arg.type),
-        Value=conv_proto_default(arg.default),
+        Value=conv_proto_default(arg.default) if arg.default else None,
         OriginName="refl",
     )
 
