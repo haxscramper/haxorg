@@ -7,7 +7,13 @@ name = "repo_py_orchestrate"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-  "hstd_py_lib==0.1.0",
+  "hstd_py_lib",
+  "hstd_py_codegen",
+]
+
+[dependency-groups]
+dev = [
+  "pytest",
 ]
 
 [tool.hatch.build.targets.wheel]

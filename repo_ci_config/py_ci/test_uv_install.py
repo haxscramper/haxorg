@@ -239,8 +239,10 @@ def main() -> None:
             ),
         )
     except (RuntimeError, subprocess.CalledProcessError) as error:
-        logging.error("%s", error)
+        logging.error(f"{error}")
         sys.exit(1)
+
+    logging.info("package validation OK, no errors")
 
 
 if __name__ == "__main__":

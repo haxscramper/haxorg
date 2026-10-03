@@ -36,6 +36,10 @@ editable-root = "src"
 artifact = "haxdex_read_code_cpp"
 package_type = "application"
 
+# exclude sources generated in the editable build
+# otherwise the full package triggers a conflict
+[tool.hatch.build.targets.wheel]
+exclude = ["/src/hstd_py_codegen/proto"]
 
 [tool.hatch.build.hooks.conan.protobuf]
 sources = ["haxdex_read_code_cpp/reflection_defs.proto"]
