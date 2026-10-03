@@ -190,7 +190,7 @@ conan_validate_deps dep_name:
 # -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
 
 [working-directory("/tmp")]
-conan_validate target:
+conan_validate target: conan_export_local_deps
   conan remove "{{target}}/*" --confirm
   conan create {{HAXORG_ROOT}}/{{target}} \
     --profile:all={{CONAN_PROFILE}} \
