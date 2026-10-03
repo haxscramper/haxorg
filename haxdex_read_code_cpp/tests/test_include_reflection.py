@@ -7,7 +7,7 @@ import haxdex_read_code_cpp.proto as pb
 
 
 @pytest.mark.test_release
-def test_standard_library_include(stable_test_dir: Path) -> None:
+def test_standard_library_include(logged_test_dir: Path) -> None:
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "a.hpp": '#include "b.hpp"',
@@ -15,7 +15,7 @@ def test_standard_library_include(stable_test_dir: Path) -> None:
             "c.hpp": "",
         },
         main_file_suffix="a.hpp",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert incl.absolute_path.endswith("a.hpp")
@@ -25,11 +25,11 @@ def test_standard_library_include(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_include_standard_library_header(stable_test_dir: Path) -> None:
+def test_include_standard_library_header(logged_test_dir: Path) -> None:
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {"main.hpp": "#include <vector>"},
         main_file_suffix="main.hpp",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     std = incl.nested[0]
@@ -42,7 +42,7 @@ def test_include_standard_library_header(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_nested_directory_inclusion(stable_test_dir: Path) -> None:
+def test_nested_directory_inclusion(logged_test_dir: Path) -> None:
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "a.hpp": '#include "inc/one/b.hpp"',
@@ -50,7 +50,7 @@ def test_nested_directory_inclusion(stable_test_dir: Path) -> None:
             "inc/two/c.hpp": "int c;",
         },
         main_file_suffix="a.hpp",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     b = incl.nested[0]
@@ -70,7 +70,7 @@ def test_nested_directory_inclusion(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_duplicate_header_names_in_different_directories(stable_test_dir: Path) -> None:
+def test_duplicate_header_names_in_different_directories(logged_test_dir: Path) -> None:
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "main.hpp": '#include "x/common.hpp"\n#include "y/common.hpp"',
@@ -78,7 +78,7 @@ def test_duplicate_header_names_in_different_directories(stable_test_dir: Path) 
             "y/common.hpp": "int y;",
         },
         main_file_suffix="main.hpp",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     first = incl.nested[0]
@@ -100,7 +100,7 @@ def test_duplicate_header_names_in_different_directories(stable_test_dir: Path) 
 
 
 @pytest.mark.test_release
-def test_skipped_blocks_under_ifdef(stable_test_dir: Path) -> None:
+def test_skipped_blocks_under_ifdef(logged_test_dir: Path) -> None:
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "main.hpp": '#include "cond.hpp"',
@@ -115,7 +115,7 @@ def test_skipped_blocks_under_ifdef(stable_test_dir: Path) -> None:
             ),
         },
         main_file_suffix="main.hpp",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     cond = incl.nested[0]
@@ -126,14 +126,14 @@ def test_skipped_blocks_under_ifdef(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_include_guard_header_included_twice(stable_test_dir: Path) -> None:
+def test_include_guard_header_included_twice(logged_test_dir: Path) -> None:
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "main.hpp": '#include "guarded.hpp"\n#include "guarded.hpp"',
             "guarded.hpp": "#ifndef GUARDED_HPP\n#define GUARDED_HPP\nint guarded;\n#endif",
         },
         main_file_suffix="main.hpp",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(incl.nested) == 2
@@ -145,7 +145,7 @@ def test_include_guard_header_included_twice(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_deep_nested_include_eventually_reaches_stdlib(stable_test_dir: Path) -> None:
+def test_deep_nested_include_eventually_reaches_stdlib(logged_test_dir: Path) -> None:
     incl: pb.IncludeVisit = refl_test_driver.get_include_tree(
         {
             "a.hpp": '#include "b.hpp"',
@@ -154,7 +154,7 @@ def test_deep_nested_include_eventually_reaches_stdlib(stable_test_dir: Path) ->
             "d.hpp": "#include <string>\nint d;",
         },
         main_file_suffix="a.hpp",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     b = incl.nested[0]

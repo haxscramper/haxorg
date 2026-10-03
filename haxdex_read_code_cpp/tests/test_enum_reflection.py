@@ -7,10 +7,10 @@ from beartype import beartype
 
 @pytest.mark.test_release
 @beartype
-def test_enum_field_extract(stable_test_dir: Path) -> None:
+def test_enum_field_extract(logged_test_dir: Path) -> None:
     enum = refl_test_driver.get_enum(
         "enum CEnum { Member1, Member2 };",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert enum.name.name == "CEnum"
@@ -23,10 +23,10 @@ def test_enum_field_extract(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
+def test_namespaced_enum_extract(logged_test_dir: Path) -> None:
     enum = refl_test_driver.get_enum(
         "namespace Space { enum Enum { member1 }; }",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert enum.name.name == "Enum"

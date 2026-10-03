@@ -57,6 +57,7 @@ ignore = [
   "RUF009",
   "UP035",
   "PYI029", # defining `__repr__` in stub
+  "FLY002", # do not flag `"\n".join(["literal", "literal"])`
 ]
 
 [tool.ruff.format]

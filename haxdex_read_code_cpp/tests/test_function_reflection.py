@@ -7,10 +7,10 @@ import haxdex_read_code_cpp.proto as pb
 
 
 @pytest.mark.test_release
-def test_function_extract_0_args(stable_test_dir: Path) -> None:
+def test_function_extract_0_args(logged_test_dir: Path) -> None:
     func = refl_test_driver.get_function(
         "int get_something();",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert func.name == "get_something"
@@ -19,10 +19,10 @@ def test_function_extract_0_args(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_function_extract_args(stable_test_dir: Path) -> None:
+def test_function_extract_args(logged_test_dir: Path) -> None:
     func = refl_test_driver.get_function(
         "int do_something(int first, char second);",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert func.name == "do_something"
@@ -35,10 +35,10 @@ def test_function_extract_args(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_function_const_ref(stable_test_dir: Path) -> None:
+def test_function_const_ref(logged_test_dir: Path) -> None:
     func = refl_test_driver.get_function(
         "void enable_file_trace(int const&);",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert func.name == "enable_file_trace"
@@ -50,10 +50,10 @@ def test_function_const_ref(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_method_const_ref(stable_test_dir: Path) -> None:
+def test_method_const_ref(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         "struct S { void enable_file_trace(int const&); };",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(record.methods) == 1

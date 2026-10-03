@@ -41,10 +41,10 @@ def qualified_spaces(typ: pb.QualType) -> list[pb.QualType]:
 
 
 @pytest.mark.test_release
-def test_simple_structure_registration(stable_test_dir: Path) -> None:
+def test_simple_structure_registration(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         "struct Test {};",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert record.name.name == "Test"
@@ -53,10 +53,10 @@ def test_simple_structure_registration(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_structure_field_registration(stable_test_dir: Path) -> None:
+def test_structure_field_registration(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         "struct Test { int field; };",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(record.fields) == 1
@@ -66,10 +66,10 @@ def test_structure_field_registration(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_anon_structure_fields(stable_test_dir: Path) -> None:
+def test_anon_structure_fields(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         "struct Main { union { int int_field; char char_field; }; };",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(record.nested_rec) == 1
@@ -87,10 +87,10 @@ def test_anon_structure_fields(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_field_with_std_import(stable_test_dir: Path) -> None:
+def test_field_with_std_import(logged_test_dir: Path) -> None:
     tu = refl_test_driver.get_tu(
         "#include <vector>\nstruct Content { std::vector<int> items; };",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(tu.records) == 1
@@ -112,11 +112,11 @@ def test_field_with_std_import(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_anon_struct_for_field(stable_test_dir: Path) -> None:
+def test_anon_struct_for_field(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         "struct Main { struct { int nested; } field; };",
-        code_dir_override=stable_test_dir / "code_dir_override",
-        stable_test_dir=stable_test_dir,
+        code_dir_override=logged_test_dir / "code_dir_override",
+        stable_test_dir=logged_test_dir,
     )
 
     assert record.name.name == "Main"
@@ -134,10 +134,10 @@ def test_anon_struct_for_field(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_anon_struct_for_field_2(stable_test_dir: Path) -> None:
+def test_anon_struct_for_field_2(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         "struct Main { struct Named { int nested; } field; };",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert record.name.name == "Main"
@@ -153,11 +153,11 @@ def test_anon_struct_for_field_2(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_namespace_extraction_for_nested_struct(stable_test_dir: Path) -> None:
+def test_namespace_extraction_for_nested_struct(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         "struct Main { struct Nested {}; Nested field; };",
-        code_dir_override=stable_test_dir / "code_dir_override",
-        stable_test_dir=stable_test_dir,
+        code_dir_override=logged_test_dir / "code_dir_override",
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(record.fields) == 1
@@ -167,10 +167,10 @@ def test_namespace_extraction_for_nested_struct(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_namespace_extraction(stable_test_dir: Path) -> None:
+def test_namespace_extraction(logged_test_dir: Path) -> None:
     tu = refl_test_driver.get_tu(
         "namespace Space { struct Nest {}; } struct Main { Space::Nest field; };",
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(tu.records) == 2
@@ -184,7 +184,7 @@ def test_namespace_extraction(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_record_method_reflection(stable_test_dir: Path) -> None:
+def test_record_method_reflection(logged_test_dir: Path) -> None:
     tu = refl_test_driver.get_tu(
         """
         #include <cstdio>
@@ -194,7 +194,7 @@ def test_record_method_reflection(stable_test_dir: Path) -> None:
             int run_method() { puts("-- default constructor"); return 24; }
         };
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
     )
 
     assert len(tu.functions) == 0
@@ -212,7 +212,7 @@ def test_record_method_reflection(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_annotated_declaration(stable_test_dir: Path) -> None:
+def test_annotated_declaration(logged_test_dir: Path) -> None:
     tu = refl_test_driver.get_tu(
         """
         struct NotAnnotatedStruct {};
@@ -227,7 +227,7 @@ def test_annotated_declaration(stable_test_dir: Path) -> None:
             [[refl]] int field2;
         };
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
     )
 
@@ -245,7 +245,7 @@ def test_annotated_declaration(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_reflection_bases(stable_test_dir: Path) -> None:
+def test_reflection_bases(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         struct A {};
@@ -253,7 +253,7 @@ def test_reflection_bases(stable_test_dir: Path) -> None:
         template <typename T1, typename T2> struct C {};
         struct [[refl]] Derived : public A, public B, public C<int, float> {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
     )
 
@@ -268,7 +268,7 @@ def test_reflection_bases(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_trivial_method_reflection(stable_test_dir: Path) -> None:
+def test_trivial_method_reflection(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         struct [[refl]] Derived {
@@ -280,7 +280,7 @@ def test_trivial_method_reflection(stable_test_dir: Path) -> None:
             [[refl]] static int test6();
         };
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
     )
 
@@ -318,14 +318,14 @@ def test_trivial_method_reflection(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_type_cross_dependency(stable_test_dir: Path) -> None:
+def test_type_cross_dependency(logged_test_dir: Path) -> None:
     result = refl_test_driver.run_reflection_tool_provider(
         {
             "a.hpp": "struct B; struct A { B* field; };",
             "b.hpp": "struct A; struct B { A* field; };",
         },
-        code_dir=stable_test_dir,
-        output_dir=stable_test_dir,
+        code_dir=logged_test_dir,
+        output_dir=logged_test_dir,
     )
 
     assert len(result.tus) == 2
@@ -333,8 +333,8 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
     a = next(tu for tu in result.tus if Path(tu.absolute_path).name == "a.hpp")
     b = next(tu for tu in result.tus if Path(tu.absolute_path).name == "b.hpp")
 
-    assert Path(a.absolute_path) == (stable_test_dir / "a.hpp").resolve()
-    assert Path(b.absolute_path) == (stable_test_dir / "b.hpp").resolve()
+    assert Path(a.absolute_path) == (logged_test_dir / "a.hpp").resolve()
+    assert Path(b.absolute_path) == (logged_test_dir / "b.hpp").resolve()
     assert len(a.functions) == 0
     assert len(b.functions) == 0
     assert len(a.records) == 2
@@ -360,7 +360,7 @@ def test_type_cross_dependency(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_templates_record(stable_test_dir: Path) -> None:
+def test_templates_record(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <typename Arg>
@@ -377,7 +377,7 @@ def test_templates_record(stable_test_dir: Path) -> None:
             [[refl]] T::multi_nested::second get_multi_nested();
         };
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -429,13 +429,13 @@ def test_templates_record(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_templates_record_type_param_plain(stable_test_dir: Path) -> None:
+def test_templates_record_type_param_plain(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <typename T>
         struct [[refl]] Box {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -452,7 +452,7 @@ def test_templates_record_type_param_plain(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_templates_record_type_param_default(stable_test_dir: Path) -> None:
+def test_templates_record_type_param_default(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         struct DefaultType {};
@@ -460,7 +460,7 @@ def test_templates_record_type_param_default(stable_test_dir: Path) -> None:
         template <typename T = DefaultType>
         struct [[refl]] Box {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -474,13 +474,13 @@ def test_templates_record_type_param_default(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_templates_record_variadic_type_param(stable_test_dir: Path) -> None:
+def test_templates_record_variadic_type_param(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <typename... Ts>
         struct [[refl]] Pack {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -494,13 +494,13 @@ def test_templates_record_variadic_type_param(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_templates_record_non_type_param(stable_test_dir: Path) -> None:
+def test_templates_record_non_type_param(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <int N>
         struct [[refl]] Sized {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -518,13 +518,13 @@ def test_templates_record_non_type_param(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_templates_record_non_type_param_default(stable_test_dir: Path) -> None:
+def test_templates_record_non_type_param_default(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <int N = 8>
         struct [[refl]] Sized {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -537,31 +537,33 @@ def test_templates_record_non_type_param_default(stable_test_dir: Path) -> None:
 
 
 @pytest.mark.test_release
-def test_templates_record_auto_non_type_param(stable_test_dir: Path) -> None:
+def test_templates_record_auto_non_type_param(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <auto V>
         struct [[refl]] ValueHolder {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
 
     assert record.name.name == "ValueHolder"
     param = template_param(record)
-    assert param.kind == pb.TemplateParamKind.TYPE
+    assert param.kind == pb.TemplateParamKind.NON_TYPE
     assert param.type_expr.name == "V"
+    assert len(param.non_type_constraint) == 1
+    assert param.non_type_constraint[0].name == "auto"
 
 
 @pytest.mark.test_release
-def test_templates_record_template_template_param(stable_test_dir: Path) -> None:
+def test_templates_record_template_template_param(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <template <typename> typename TT>
         struct [[refl]] Wrapper {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -581,14 +583,14 @@ def test_templates_record_template_template_param(stable_test_dir: Path) -> None
 
 @pytest.mark.test_release
 def test_templates_record_template_template_param_named_nested(
-    stable_test_dir: Path,
+    logged_test_dir: Path,
 ) -> None:
     record = refl_test_driver.get_struct(
         """
         template <template <typename U> typename TT>
         struct [[refl]] Wrapper {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -605,14 +607,14 @@ def test_templates_record_template_template_param_named_nested(
 
 @pytest.mark.test_release
 def test_templates_record_template_template_param_with_non_type_nested(
-    stable_test_dir: Path,
+    logged_test_dir: Path,
 ) -> None:
     record = refl_test_driver.get_struct(
         """
         template <template <int N> typename TT>
         struct [[refl]] Wrapper {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -630,13 +632,13 @@ def test_templates_record_template_template_param_with_non_type_nested(
 
 
 @pytest.mark.test_release
-def test_templates_record_mixed_params(stable_test_dir: Path) -> None:
+def test_templates_record_mixed_params(logged_test_dir: Path) -> None:
     record = refl_test_driver.get_struct(
         """
         template <typename T, int N, template <typename> typename TT>
         struct [[refl]] Mixed {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )
@@ -666,7 +668,7 @@ def test_templates_record_mixed_params(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_templates_record_constrained_and_defaulted_params(
-    stable_test_dir: Path,
+    logged_test_dir: Path,
 ) -> None:
     record = refl_test_driver.get_struct(
         """
@@ -681,7 +683,7 @@ def test_templates_record_constrained_and_defaulted_params(
         template <HasNested T, typename U = DefaultType>
         struct [[refl]] Constrained {};
         """,
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         only_annotated=True,
         reflection_run_verbose=True,
     )

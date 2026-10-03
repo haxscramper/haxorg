@@ -10,9 +10,9 @@ import haxdex_read_code_cpp.proto as pb
 @pytest.mark.test_release
 @pytest.mark.parametrize("type_name", ["int", "char", "bool", "float"])
 @beartype
-def test_primitive_type(stable_test_dir: Path, type_name: str) -> None:
+def test_primitive_type(logged_test_dir: Path, type_name: str) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[],
         typ=type_name,
     )
@@ -23,9 +23,9 @@ def test_primitive_type(stable_test_dir: Path, type_name: str) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_primitive_type_const(stable_test_dir: Path) -> None:
+def test_primitive_type_const(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[],
         typ="int const",
     )
@@ -38,9 +38,9 @@ def test_primitive_type_const(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_primitive_type_const_ptr(stable_test_dir: Path) -> None:
+def test_primitive_type_const_ptr(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[],
         typ="int const*",
     )
@@ -53,9 +53,9 @@ def test_primitive_type_const_ptr(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_user_defined(stable_test_dir: Path) -> None:
+def test_user_defined(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=["struct UserDefined {};"],
         typ="UserDefined",
     )
@@ -66,9 +66,9 @@ def test_user_defined(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_user_defined_template(stable_test_dir: Path) -> None:
+def test_user_defined_template(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=["template <typename T> struct Templ {};"],
         typ="Templ<int>",
     )
@@ -81,9 +81,9 @@ def test_user_defined_template(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_enum_class(stable_test_dir: Path) -> None:
+def test_enum_class(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=["enum class TestEnum {};"],
         typ="TestEnum",
     )
@@ -93,9 +93,9 @@ def test_enum_class(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_namespaced_user_defined(stable_test_dir: Path) -> None:
+def test_namespaced_user_defined(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[
             """
             namespace ns {
@@ -114,9 +114,9 @@ def test_namespaced_user_defined(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_nested_namespaces(stable_test_dir: Path) -> None:
+def test_nested_namespaces(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[
             """
             namespace n1 {
@@ -136,9 +136,9 @@ def test_nested_namespaces(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_namespace_alias_is_expanded(stable_test_dir: Path) -> None:
+def test_namespace_alias_is_expanded(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[
             """
             namespace real_ns {
@@ -157,9 +157,9 @@ def test_namespace_alias_is_expanded(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_nested_type_qualifier(stable_test_dir: Path) -> None:
+def test_nested_type_qualifier(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[
             """
             struct Outer {
@@ -177,9 +177,9 @@ def test_nested_type_qualifier(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_namespaced_template(stable_test_dir: Path) -> None:
+def test_namespaced_template(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[
             """
             namespace tpl_ns {
@@ -200,9 +200,9 @@ def test_namespaced_template(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_global_namespace_qualified(stable_test_dir: Path) -> None:
+def test_global_namespace_qualified(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[
             """
             namespace top {
@@ -219,9 +219,9 @@ def test_global_namespace_qualified(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_fixed_size_array_type(stable_test_dir: Path) -> None:
+def test_fixed_size_array_type(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[],
         field_decl="[[refl]] int field[8];",
     )
@@ -240,9 +240,9 @@ def test_fixed_size_array_type(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_multidim_array_type(stable_test_dir: Path) -> None:
+def test_multidim_array_type(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[],
         field_decl="[[refl]] float field[2][4];",
     )
@@ -260,9 +260,9 @@ def test_multidim_array_type(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 @beartype
-def test_function_pointer_type(stable_test_dir: Path) -> None:
+def test_function_pointer_type(logged_test_dir: Path) -> None:
     typ = get_type(
-        stable_test_dir=stable_test_dir,
+        stable_test_dir=logged_test_dir,
         preamble=[],
         field_decl="[[refl]] int (*field)(double, char const*);",
     )

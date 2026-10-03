@@ -1258,6 +1258,9 @@ bool ReflASTVisitor::shouldVisit(c::Decl const* Decl) {
 
 void ReflASTVisitor::fillCxxRecordDecl(Record* rec, c::CXXRecordDecl const* Decl) {
     rec->set_isforwarddecl(!Decl->isThisDeclarationADefinition());
+    rec->set_isunion(Decl->isUnion());
+    rec->set_hasname(!Decl->getNameAsString().empty());
+
     fillType(
         rec->mutable_name(),
         Decl->getASTContext().getCanonicalTagType(Decl),
@@ -1429,12 +1432,6 @@ bool ReflASTVisitor::VisitCXXRecordDecl(c::CXXRecordDecl* Decl) {
          && shouldVisit(Decl)                                //
          && isToplevelDecl)) {
 
-        if (!Decl->isThisDeclarationADefinition()) {
-            HSLOG_TRACE(
-                "VisitCXXRecordDecl {} -- not a definition, early exit",
-                formatDeclLocation(Decl));
-            return true;
-        }
 
         HSLOG_TRACE("VisitRecordDecl {}", formatDeclLocation(Decl));
         HSLOG_DEPTH_SCOPE_ANON();
@@ -1574,13 +1571,6 @@ bool ReflASTVisitor::VisitTypedefDecl(c::TypedefDecl* Decl) {
 bool ReflASTVisitor::VisitRecordDecl(c::RecordDecl* Decl) {
     c::TypedefDecl* Typedef   = findTypedefForDecl(Decl, Ctx);
     c::FieldDecl*   FieldDecl = findFieldForDecl(Decl, Ctx);
-
-    if (!Decl->isThisDeclarationADefinition()) {
-        HSLOG_TRACE(
-            "VisitRecordDecl {} -- not a definition, early exit",
-            formatDeclLocation(Decl));
-        return true;
-    }
 
 
     HSLOG_TRACE("VisitRecordDecl {}", formatDeclLocation(Decl));
