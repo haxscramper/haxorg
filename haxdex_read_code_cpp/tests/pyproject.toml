@@ -8,12 +8,36 @@ dependencies = [
   "beartype",
   "plumbum",
   "betterproto2",
-  "betterproto2-compiler",
-  "grpcio-tools",
 ]
 
+[build-system]
+requires = [
+  "hatchling",
+  "beartype",
+  "plumbum",
+  "grpcio-tools",
+  "betterproto2-compiler",
+]
+build-backend = "hatchling.build"
+
 [tool.uv]
-package = false
+package = true
+cache-keys = [
+  { file = "pyproject.toml" },
+  { file = "hatch_build.py" },
+  { file = "../proto/haxdex_read_code_cpp/reflection_defs.proto" },
+]
+
+[tool.hatch.build]
+artifacts = ["proto/**"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["proto/haxdex_read_code_cpp"]
+dev-mode-dirs = ["proto"]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+output-dir = "proto"
 
 [tool.pytest.ini_options]
 testpaths = ["."]
