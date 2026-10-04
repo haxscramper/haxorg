@@ -1,0 +1,44 @@
+cmake_minimum_required(VERSION 3.28)
+
+project(@NATIVE@ VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/fixture.cmake")
+
+if(EX_EXECUTABLE)
+    add_executable(${EX_NAME} "src/${EX_NAME}/executable.cpp")
+
+    target_include_directories(${EX_NAME} PRIVATE "src/${EX_NAME}")
+
+    install(TARGETS ${EX_NAME} RUNTIME DESTINATION bin)
+endif()
+
+if(EX_NANOBIND)
+    find_package(
+        Python
+        COMPONENTS
+            Interpreter
+            Development.Module
+        REQUIRED
+    )
+    find_package(nanobind CONFIG REQUIRED)
+
+    nanobind_add_module(
+        ${EX_NAME}
+        "src/${EX_NAME}/extension.cpp"
+    )
+
+    target_include_directories(${EX_NAME} PRIVATE "src/${EX_NAME}")
+
+    install(TARGETS ${EX_NAME} LIBRARY DESTINATION lib)
+endif()
+
+install(DIRECTORY src/ DESTINATION include FILES_MATCHING PATTERN "*.hpp")
+
+if(EX_PROTOBUF)
+    install(DIRECTORY proto/ DESTINATION proto)
+endif()

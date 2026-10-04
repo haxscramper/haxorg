@@ -24,6 +24,8 @@ CONAN_PROJECTS = {
     "hstd_py_text_layout": "hstd_cpp_text_layout_py_wrap",
 }
 
+TEST_UV_INSTALL_FLAGS = json.loads(os.getenv("HSTD_PY_TEST_UV_INSTALL_UV_FLAGS", "[]"))
+
 
 def run(
     command: list[str],
@@ -122,7 +124,7 @@ def validate_package(
 
         sync_command = [
             "uv",
-            "--verbose",
+            *TEST_UV_INSTALL_FLAGS,
             "sync",
             "--project",
             str(workspace_root),
@@ -169,7 +171,7 @@ def validate_package(
         run(
             [
                 "uv",
-                "--verbose",
+                *TEST_UV_INSTALL_FLAGS,
                 "run",
                 "--project",
                 str(workspace_root),
@@ -187,7 +189,7 @@ def validate_package(
         run(
             [
                 "uv",
-                "--verbose",
+                *TEST_UV_INSTALL_FLAGS,
                 "pip",
                 "install",
                 # installs the test package without replacing its already-synced dependencies.

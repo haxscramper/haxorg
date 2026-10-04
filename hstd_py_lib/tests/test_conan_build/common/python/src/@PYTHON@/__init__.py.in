@@ -1,0 +1,71 @@
+import importlib
+import shutil
+import subprocess
+from pathlib import Path
+
+from ._value import VALUE
+
+
+NATIVE_NAME = @NATIVE_LITERAL@
+HAS_EXECUTABLE = @EXECUTABLE@
+HAS_NANOBIND = @NANOBIND@
+HAS_PROTOBUF = @PROTOBUF@
+
+
+def verify(expected_version: int) -> dict[str, object]:
+    report: dict[str, object] = {
+        "python_file": str(Path(__file__).resolve()),
+        "version": expected_version,
+    }
+
+    if NATIVE_NAME is None:
+        assert VALUE == expected_version
+        return report
+
+    if HAS_EXECUTABLE:
+        executable = shutil.which(NATIVE_NAME)
+        assert executable is not None
+
+        result = subprocess.run(
+            [executable],
+            stdout=subprocess.PIPE,
+            text=True,
+            check=True,
+        )
+        assert int(result.stdout.strip()) == expected_version
+        report["executable_file"] = str(Path(executable).resolve())
+
+    if HAS_NANOBIND:
+        extension = importlib.import_module(f"{__name__}.{NATIVE_NAME}")
+        assert extension.value() == expected_version
+        report["nanobind_file"] = str(Path(extension.__file__).resolve())
+
+    if HAS_PROTOBUF:
+        definitions = importlib.import_module(
+            f"{__name__}.proto.ex_fixture"
+        )
+        well_known = importlib.import_module(
+            f"{__name__}.proto.google.protobuf"
+        )
+
+        message = definitions.Record(
+            payload=f"version-{expected_version}",
+            metadata=well_known.Struct(),
+        )
+        restored = definitions.Record().parse(bytes(message))
+
+        assert restored.payload == message.payload
+        assert isinstance(restored.metadata, well_known.Struct)
+        assert hasattr(restored, "revision") is (expected_version >= 2)
+
+        if expected_version >= 2:
+            message.revision = expected_version
+            restored = definitions.Record().parse(bytes(message))
+            assert restored.revision == expected_version
+
+        report["protobuf_file"] = str(
+            Path(definitions.__file__).resolve()
+        )
+        report["protobuf_revision_field"] = hasattr(restored, "revision")
+
+    return report

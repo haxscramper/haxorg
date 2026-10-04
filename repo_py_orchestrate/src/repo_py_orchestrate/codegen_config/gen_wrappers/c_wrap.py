@@ -18,6 +18,7 @@ from hstd_py_codegen.lang_build.astbuilder_c_config import (
 )
 from hstd_py_codegen.lang_convert.conv_c import (
     StructGenResult,
+    _gen_func,
     gen_enum,
     gen_haxorg_vtable_template_instantiation,
     gen_struct_direct,
