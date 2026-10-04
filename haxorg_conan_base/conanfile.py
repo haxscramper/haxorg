@@ -244,18 +244,27 @@ class HaxorgPackage(_HaxorgTypingBase):
         deps.generate()
 
         toolchain = CMakeToolchain(self)
-        toolchain.variables["HAXORG_PACKAGE_NAME"] = self.name
-        toolchain.variables["HAXORG_PACKAGE_NAMESPACE"] = self.haxorg_namespace
-        toolchain.variables["HAXORG_DEPS_PROTO_IMPORT_DIRS"] = ";".join(
+        toolchain.cache_variables["HAXORG_PACKAGE_NAME"] = self.name
+        toolchain.cache_variables["HAXORG_PACKAGE_NAMESPACE"] = self.haxorg_namespace
+        toolchain.cache_variables["HAXORG_DEPS_PROTO_IMPORT_DIRS"] = ";".join(
             self.haxorg_dependency_proto_dirs()
         )
-        toolchain.variables["BUILD_TESTING"] = self.haxorg_run_tests
+        toolchain.cache_variables["BUILD_TESTING"] = self.haxorg_run_tests
+
+        self.output.info(f"HAXORG_PACKAGE_NAME = {self.name}")
+        self.output.info(
+            "BUILD_TESTING = {} has_cpp_tests = {} has_python_tests = {}".format(
+                self.haxorg_run_tests,
+                self.haxorg_has_cpp_tests,
+                self.haxorg_has_python_tests,
+            )
+        )
 
         warning_suppressions = self.conf.get(
             "user.haxorg:warning_suppressions", default="", check_type=str
         )
         if warning_suppressions:
-            toolchain.variables["ORG_WARNING_SUPPRESSIONS"] = warning_suppressions
+            toolchain.cache_variables["ORG_WARNING_SUPPRESSIONS"] = warning_suppressions
 
         self.haxorg_configure_toolchain(toolchain)
         toolchain.generate()
