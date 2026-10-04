@@ -61,7 +61,7 @@ def test_namespaced_enum_extract(stable_test_dir: Path) -> None:
 
 @pytest.mark.test_release
 def test_nim_enum_conversion(stable_test_dir: Path) -> None:
-    import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.wrapper_gen_nim as gen_nim
+    import repo_py_orchestrate.codegen_config.wrapper_gen_nim as gen_nim
     import tests.python.refl.refl_test_driver as refl_test_driver
 
     con = refl_test_driver.get_nim_code(

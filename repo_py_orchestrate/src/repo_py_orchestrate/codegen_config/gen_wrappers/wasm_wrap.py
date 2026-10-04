@@ -16,8 +16,7 @@ from hstd_py_codegen.lang_build import astbuilder_embind as napi
 from hstd_py_codegen.lang_build.astbuilder_embind_config import (
     EmbindAstbuilderConfig,
 )
-
-from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
+from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     PyhaxorgTypeGroups,
 )
 

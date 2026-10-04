@@ -1,10 +1,9 @@
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 import hstd_py_codegen.lang_build.astbuilder_proto as pb
-
-from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
+from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     PyhaxorgTypeGroups,
 )
-from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.org_codegen_data import *
+from repo_py_orchestrate.codegen_config.org_codegen_data import *
 
 
 def gen(ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, proto_out_root: Path):

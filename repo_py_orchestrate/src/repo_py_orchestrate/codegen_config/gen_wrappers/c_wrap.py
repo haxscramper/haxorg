@@ -23,9 +23,9 @@ from hstd_py_codegen.lang_convert.conv_c import (
     gen_struct_direct,
     gen_typedef,
 )
-from loguru import logger, pprint_to_file_json
-
-from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
+from hstd_py_lib.script_logging import pprint_to_file_json
+from loguru import logger
+from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     topological_sort_entries,
 )
 

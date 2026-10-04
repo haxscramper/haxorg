@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 
 import hstd_py_lib.toml_config_profiler as conf_provider
+import repo_py_orchestrate.codegen_config.wrapper_gen_nim as gen_nim
 import rich_click as click
 from beartype.typing import Any, Dict, List, Optional, cast
 from hstd_py_lib.tracer import TraceCollector
 
-import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.wrapper_gen_nim as gen_nim
 from hstd_py_codegen.read_cpp.refl_extract import (
     CompileCommand,
     PathMapping,

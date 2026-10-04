@@ -14,14 +14,11 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTypeMap,
     GenUnit,
 )
+from hstd_py_codegen.gen_cpp.codegen_type_order import verify_type_usage
 from hstd_py_codegen.lang_build import astbuilder_py as pya
 from hstd_py_codegen.lang_build.astbuilder_nanobind import NbModule
 from hstd_py_codegen.lang_build.astbuilder_nanobind_config import (
     NanobindAstbuilderConfig,
-)
-
-from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.codegen_type_groups import (
-    verify_type_usage,
 )
 
 NB_INCLUDE_LIST = [

@@ -1,8 +1,7 @@
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_lib.algorithm import cond
 from repo_py_orchestrate.codegen_config.codegen_type_groups import PyhaxorgTypeGroups
-
-from repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.org_codegen_data import *
+from repo_py_orchestrate.codegen_config.org_codegen_data import *
 
 
 @beartype

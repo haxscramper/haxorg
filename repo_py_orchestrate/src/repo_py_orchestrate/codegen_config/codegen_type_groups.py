@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
+import repo_py_orchestrate.codegen_config.gen_haxorg.immutable as gen_imm
+import repo_py_orchestrate.codegen_config.org_codegen_data as org_data
 from beartype import beartype
 from beartype.typing import List, Sequence
 from hstd_py_codegen.gen_cpp import codegen_ir
@@ -17,9 +19,6 @@ from hstd_py_lib.script_logging import (
     pprint_to_file_json,
 )
 from loguru import logger
-
-import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.gen_haxorg.immutable as gen_imm
-import repo_py_orchestrate.src.repo_py_orchestrate.codegen_config.org_codegen_data as org_data
 
 
 @beartype
