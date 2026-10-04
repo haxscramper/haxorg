@@ -10,11 +10,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from textwrap import dedent
 
+import plumbum
 import pytest
 import tomli_w
 from beartype.typing import Any
 from hstd_py_lib.os_utils import ensure_clean_dir
-from plumbum import local
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 ASSETS = Path(__file__).with_suffix("")
@@ -202,7 +202,7 @@ class Sandbox:
 
         actual_cwd = cwd if cwd is not None else self.root
 
-        return local[command[0]][command[1:]].run(
+        return plumbum.local[command[0]][command[1:]].run(
             cwd=str(actual_cwd),
             env=actual_environment,
         )
@@ -510,10 +510,10 @@ message Record {{
         if node.get("prev"):
             package_reference += f"#{node['prev']}"
 
-        result = self.run(
+        _, cache_stdout, _ = self.run(
             ["conan", "cache", "path", package_reference],
         )
-        folder = Path(stdout.strip()).resolve()
+        folder = Path(cache_stdout.strip()).resolve()
         assert folder.is_dir()
         assert folder.is_relative_to(Path(self.environment["CONAN_HOME"]).resolve())
         return folder
@@ -819,8 +819,9 @@ def make_sandbox(
     conan_workspace: bool,
 ) -> Sandbox:
     directory = Path(str(directory).replace("[", "_").replace("]", "_"))
+    ensure_clean_dir(directory)
     root = directory / "workspace"
-    root.mkdir(parents=True, exist_ok=True)
+    root.mkdir(parents=True)
 
     environment = os.environ.copy()
     for key in [
@@ -838,7 +839,13 @@ def make_sandbox(
             "UV_CACHE_DIR": str(directory / "uv-cache"),
             "PYTHONNOUSERSITE": "1",
             "HATCH_CONAN_RUN_TESTS": "0",
-            "HSTD_PY_PYTEST_EXTRA_ARGS": json.dumps(["-s"]),
+            "HSTD_PY_PYTEST_EXTRA_ARGS": json.dumps(
+                [
+                    "-s",
+                    "-vv",
+                    "--color=no",
+                ]
+            ),
             "EX_EXPECTED_VERSION": "1",
             "CC": "clang",
             "CXX": "clang++",
@@ -891,6 +898,7 @@ def make_sandbox(
     write_workspace(sandbox, conan_workspace=conan_workspace)
 
     if case is not None:
+        sandbox.run(["uv", "lock", "--project", str(root)])
         sandbox.run(["conan", "profile", "detect", "--force"])
         sandbox.run(
             [
@@ -1163,7 +1171,7 @@ def test_conan_python_test_failure_propagates(
         ),
     )
 
-    with pytest.raises(subprocess.CalledProcessError) as failure:
+    with pytest.raises(plumbum.ProcessExecutionError) as failure:
         sandbox.create_native()
 
     output = (failure.value.stdout or "") + (failure.value.stderr or "")

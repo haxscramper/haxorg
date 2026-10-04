@@ -1,4 +1,5 @@
 import hashlib
+import re
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Callable
@@ -10,46 +11,33 @@ def get_test_dir(
     request: pytest.FixtureRequest,
     test_dir_root: Path = Path("/tmp/haxorg_tests"),
 ) -> Path:
-
-    # Get test file path relative to tests directory
     test_file_path = Path(request.path)
-    tests_root = None
-
-    # Find the 'tests' directory in the path
-    for parent in test_file_path.parents:
-        if parent.name == "tests":
-            tests_root = parent
-            break
+    tests_root = next(
+        (parent for parent in test_file_path.parents if parent.name == "tests"),
+        None,
+    )
 
     if tests_root is None:
         raise ValueError(f"Could not find 'tests' directory in path: {test_file_path}")
 
-    # Get relative path from tests directory, without .py extension
     rel_path = test_file_path.relative_to(tests_root).with_suffix("")
+    test_name = getattr(request.node, "originalname", None) or request.node.name
+    base_dir = test_dir_root / rel_path / test_name
 
-    # Build base directory path
-    base_dir = test_dir_root / rel_path
+    callspec = getattr(request.node, "callspec", None)
+    if callspec is None or not callspec.params:
+        return base_dir
 
-    # Add test function name
-    test_name = request.node.name
+    params_str = "_".join(
+        f"{key}={value}" for key, value in sorted(callspec.params.items())
+    )
+    sanitized_params = re.sub(r"[^a-zA-Z0-9_]", "_", params_str)
 
-    # Handle parametrized tests
-    if hasattr(request.node, "callspec") and request.node.callspec.params:
-        params_items = sorted(request.node.callspec.params.items())
-        params_str = "_".join(f"{k}={v}" for k, v in params_items)
+    if sanitized_params != params_str or 32 < len(sanitized_params):
+        params_hash = hashlib.sha256(params_str.encode()).hexdigest()[:8]
+        sanitized_params = f"{sanitized_params[:24]}_{params_hash}"
 
-        if len(params_str) <= 32:
-            # Use parameters as-is if short enough
-            final_dir = base_dir / test_name / params_str
-        else:
-            # Use first 24 chars + hex digest for long parameters
-            params_prefix = params_str[:24]
-            params_hash = hashlib.md5(params_str.encode()).hexdigest()[:8]
-            final_dir = base_dir / test_name / f"{params_prefix}_{params_hash}"
-    else:
-        final_dir = base_dir / test_name
-
-    return final_dir
+    return base_dir / sanitized_params
 
 
 @pytest.fixture

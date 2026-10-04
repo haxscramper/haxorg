@@ -142,7 +142,17 @@ def deploy(
         resource_roots: dict[Path, Path] = {}
         owner_resource_roots: list[Path] = []
 
-        for dependency_index, resource_dependency in enumerate(dependencies):
+        # Protobuf dependency resolution is transitive for all
+        # packages.
+        resource_dependencies = [
+            node.conanfile
+            for node in graph.nodes
+            if node is not graph.root
+            and node.conanfile is not None
+            and node.conanfile.package_folder is not None
+        ]
+
+        for dependency_index, resource_dependency in enumerate(resource_dependencies):
             for resource_index, directory in enumerate(
                 resource_dependency.cpp_info.resdirs
             ):
@@ -161,7 +171,7 @@ def deploy(
                     shutil.copytree(source_root, output / relative_root)
                     resource_roots[source_root] = relative_root
 
-                if resource_dependency is dependency:
+                if resource_dependency.package_folder == dependency.package_folder:
                     owner_resource_roots.append(source_root)
 
         sources = []
