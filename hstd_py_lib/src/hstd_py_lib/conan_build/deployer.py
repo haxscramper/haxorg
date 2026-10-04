@@ -1,5 +1,6 @@
 import json
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -107,6 +108,18 @@ def deploy(
 
     for index, artifact_config in enumerate(configuration["artifacts"]):
         source = _artifact_source(dependency, artifact_config)
+
+        print(
+            f"[hatch-conan-deployer] "
+            f"reference={dependency.ref} "
+            f"package_folder={dependency.package_folder} "
+            f"bindirs={dependency.cpp_info.bindirs} "
+            f"source={source} "
+            f"size={source.stat().st_size}",
+            file=sys.stderr,
+            flush=True,
+        )
+
         relative_destination = Path("artifacts") / str(index) / source.name
         destination = output / relative_destination
         destination.parent.mkdir(parents=True, exist_ok=True)

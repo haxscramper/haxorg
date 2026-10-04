@@ -74,16 +74,7 @@ def test_get_type_groups_with_reflection(stable_test_dir: Path) -> None:
     groups = get_pyhaxorg_type_groups(
         ast=builder,
         reflection_uv=reflection_uv,
-        manual_tu=ConvTu(
-            structs=[
-                GenTuStruct(
-                    Name=QualType(
-                        Name="UserTime",
-                        Spaces=[QualType(Name="hstd")],
-                    ),
-                )
-            ]
-        ),
+        manual_tu=ConvTu(),
     )
 
     gen_code_from_groups(

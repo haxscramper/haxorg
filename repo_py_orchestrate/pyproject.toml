@@ -9,6 +9,7 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
   "hstd_py_lib",
   "hstd_py_codegen",
+  "deepdiff",
 ]
 
 [dependency-groups]

@@ -3,6 +3,7 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from hashlib import md5
 from pathlib import Path
 
@@ -213,7 +214,9 @@ def run_reflection_tool(
     tools = which_all("haxdex_read_code_cpp")
     logger.info(f"Found {len(tools)} paths for the reflection reader tool:")
     for tool in tools:
-        logger.info(f"{tool}")
+        logger.info(
+            f"{tool} mtime {datetime.fromtimestamp(tool.stat().st_mtime).isoformat()}"
+        )
 
     assert tools, (
         "Indexing tool binary is missing, 'haxdex_read_code_cpp' could not be found in path:\n{}".format(

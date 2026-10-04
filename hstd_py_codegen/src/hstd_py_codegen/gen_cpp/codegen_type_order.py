@@ -28,9 +28,24 @@ def topological_sort_entries(
         match it:
             case codegen_ir.GenTuStruct():
                 qual_hash = it.declarationQualName().qual_hash()
+                if qual_hash in entry_by_hash:
+                    existing_entry = entry_by_hash[qual_hash]
+                    from pprint import pformat
+
+                    from deepdiff import DeepDiff
+
+                    diff = DeepDiff(
+                        to_debug_json(existing_entry), to_debug_json(it), verbose_level=1
+                    )
+                    formatted_diff = pformat(diff)
+
+                else:
+                    formatted_diff = ""
+
                 assert qual_hash not in entry_by_hash, (
-                    f"Duplicate hash for {it.declarationQualName()}, already mapped to {it} "
+                    f"Duplicate hash for {it.declarationQualName()}, already mapped "
                     f"IsExplicitInstantiation={it.IsExplicitInstantiation} IsTemplateRecord={it.IsTemplateRecord}"
+                    f"\n{formatted_diff}"
                 )
                 entry_by_hash[qual_hash] = it
 

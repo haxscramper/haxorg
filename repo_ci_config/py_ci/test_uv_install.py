@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -121,6 +122,7 @@ def validate_package(
 
         sync_command = [
             "uv",
+            "--verbose",
             "sync",
             "--project",
             str(workspace_root),
@@ -140,21 +142,21 @@ def validate_package(
             workspace_config = tomllib.load(file)
 
         workspace_packages = [
-            get_project_name(workspace_root / member)
+            re.sub(
+                r"[-_.]+",
+                "-",
+                get_project_name(workspace_root / member),
+            ).lower()
             for member in workspace_config["tool"]["uv"]["workspace"]["members"]
         ]
 
-        run(
-            [
-                "uv",
-                "cache",
-                "clean",
-                "--force",
-                *workspace_packages,
-            ],
-            cwd=workspace_root,
-            env=environment,
-        )
+        for package_name in workspace_packages:
+            sync_command.extend(
+                [
+                    "--reinstall-package",
+                    package_name,
+                ]
+            )
 
         run(
             sync_command,
@@ -167,6 +169,7 @@ def validate_package(
         run(
             [
                 "uv",
+                "--verbose",
                 "run",
                 "--project",
                 str(workspace_root),
@@ -184,8 +187,13 @@ def validate_package(
         run(
             [
                 "uv",
+                "--verbose",
                 "pip",
                 "install",
+                # installs the test package without replacing its already-synced dependencies.
+                # Any additional test-package dependencies must be included in the selected
+                # package's dev group so that uv sync installs them first.
+                "--no-deps",
                 "--python",
                 str(python),
                 str(test_package),
