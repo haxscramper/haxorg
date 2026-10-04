@@ -18,6 +18,7 @@ dependencies = [
   "more_itertools",
   "glom",
   "betterproto2",
+  "tomli_w",
 ]
 
 [project.entry-points.hatch]
@@ -38,4 +39,5 @@ include = [
 [dependency-groups]
 dev = [
   "pytest",
+  "pytest-xdist",
 ]

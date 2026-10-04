@@ -8,9 +8,13 @@ import sys
 import sysconfig
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from textwrap import dedent
 
 import pytest
+import tomli_w
+from beartype.typing import Any
+from hstd_py_lib.os_utils import ensure_clean_dir
+from plumbum import local
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 ASSETS = Path(__file__).with_suffix("")
@@ -26,6 +30,27 @@ class Case:
     executable: bool = False
     nanobind: bool = False
     protobuf: bool = False
+
+
+@dataclass(frozen=True)
+class FileFingerprint:
+    modified_ns: int
+    sha256: str
+
+
+@dataclass(frozen=True)
+class NativeOutputs:
+    executable: FileFingerprint | None = None
+    nanobind: FileFingerprint | None = None
+
+
+@dataclass(frozen=True)
+class ProbeReport:
+    version: int
+    python_file: Path
+    executable_file: Path | None
+    nanobind_file: Path | None
+    details: dict[str, Any] = field(repr=False)
 
 
 CASES = [
@@ -64,6 +89,10 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def write_toml(path: Path, configuration: dict[str, Any]) -> None:
+    write(path, tomli_w.dumps(configuration))
+
+
 def render_tree(
     source: Path,
     destination: Path,
@@ -90,10 +119,54 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def fingerprint(path: Path) -> FileFingerprint:
+    return FileFingerprint(
+        modified_ns=path.stat().st_mtime_ns,
+        sha256=digest(path),
+    )
+
+
 def one_file(paths: list[Path]) -> Path:
     files = sorted({path.resolve() for path in paths if path.is_file()})
-    assert len(files) == 1, files
+    assert len(files) == 1, f"Expected one file, found {len(files)}: {files}"
     return files[0]
+
+
+def write_package_project(
+    project: Path,
+    *,
+    name: str,
+    dependencies: list[str],
+    development: bool = False,
+) -> None:
+    configuration: dict[str, Any] = {
+        "project": {
+            "name": name,
+            "version": "0.1.0",
+            "requires-python": ">=3.13,<3.14",
+            "dependencies": dependencies,
+        },
+        "build-system": {
+            "requires": ["hatchling>=1.27"],
+            "build-backend": "hatchling.build",
+        },
+        "tool": {
+            "hatch": {
+                "build": {
+                    "targets": {
+                        "wheel": {
+                            "packages": [f"src/{name}"],
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+    if development:
+        configuration["dependency-groups"] = {"dev": ["pytest"]}
+
+    write_toml(project / "pyproject.toml", configuration)
 
 
 @dataclass
@@ -122,43 +195,17 @@ class Sandbox:
         *,
         cwd: Path | None = None,
         environment: dict[str, str] | None = None,
-    ) -> subprocess.CompletedProcess[str]:
-        self.command_number += 1
-        log = self.directory / "logs" / f"{self.command_number:03d}.log"
-        log.parent.mkdir(parents=True, exist_ok=True)
-
+    ) -> tuple[int, str, str]:
         actual_environment = self.environment.copy()
         if environment is not None:
             actual_environment.update(environment)
 
         actual_cwd = cwd if cwd is not None else self.root
 
-        result = subprocess.run(
-            command,
-            cwd=actual_cwd,
+        return local[command[0]][command[1:]].run(
+            cwd=str(actual_cwd),
             env=actual_environment,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
         )
-
-        write(
-            log,
-            (
-                f"cwd: {actual_cwd}\n"
-                f"command: {shlex.join(command)}\n"
-                f"returncode: {result.returncode}\n"
-                f"\nstdout:\n{result.stdout}"
-                f"\nstderr:\n{result.stderr}"
-            ),
-        )
-
-        if result.returncode != 0:
-            print(log.read_text(encoding="utf-8"))
-
-        result.check_returncode()
-        return result
 
     def set_version(self, version: int) -> None:
         self.environment["EX_EXPECTED_VERSION"] = str(version)
@@ -166,47 +213,52 @@ class Sandbox:
         if self.case is None:
             write(
                 self.python_project / "src" / self.python_package / "_value.py",
-                f"VALUE = {version}\n",
+                f"""VALUE = {version}
+""",
             )
             return
 
         native = self.root / self.case.native
         write(
             native / "src" / self.case.native / "value.hpp",
-            (
-                "#pragma once\n"
-                "\n"
-                "namespace ex_fixture {\n"
-                f"inline constexpr int value = {version};\n"
-                "}\n"
+            dedent(
+                f"""\
+                #pragma once
+
+                namespace ex_fixture {{
+                inline constexpr int value = {version};
+                }}
+                """
             ),
         )
 
         if self.case.protobuf:
-            revision = ""
+            fields = [
+                "  string payload = 1;",
+                "  google.protobuf.Struct metadata = 2;",
+            ]
             if 2 <= version:
-                revision = "  int32 revision = 3;\n"
+                fields.append("  int32 revision = 3;")
+
+            record_fields = "\n".join(fields)
 
             write(
                 native / "proto" / self.case.native / "api.proto",
-                (
-                    'syntax = "proto3";\n'
-                    "\n"
-                    "package ex_fixture;\n"
-                    "\n"
-                    f'import "{SHARED_SCHEMA}/shared.proto";\n'
-                    'import "google/protobuf/struct.proto";\n'
-                    "\n"
-                    "message Record {\n"
-                    "  string payload = 1;\n"
-                    "  google.protobuf.Struct metadata = 2;\n"
-                    f"{revision}"
-                    "}\n"
-                ),
+                f"""syntax = "proto3";
+
+package ex_fixture;
+
+import "{SHARED_SCHEMA}/shared.proto";
+import "google/protobuf/struct.proto";
+
+message Record {{
+{record_fields}
+}}
+""",
             )
 
     def reinstall_arguments(self) -> list[str]:
-        arguments = []
+        arguments: list[str] = []
 
         for member in self.members:
             name = member.replace("/", "_").replace("_", "-")
@@ -229,7 +281,7 @@ class Sandbox:
 
         command = [
             "uv",
-            "--verbose",
+            # "--verbose",
             "sync",
             "--project",
             str(self.root),
@@ -280,7 +332,7 @@ class Sandbox:
         package: str | None = None,
         source: Path | None = None,
         editable: bool,
-    ) -> dict[str, Any]:
+    ) -> ProbeReport:
         if package is None:
             package = self.python_package
 
@@ -290,7 +342,7 @@ class Sandbox:
         cwd = self.directory / "empty"
         cwd.mkdir(exist_ok=True)
 
-        result = self.run(
+        _, stdout, _ = self.run(
             [
                 str(environment_path / "bin" / "python"),
                 str(ASSETS / "probe.py.in"),
@@ -298,44 +350,53 @@ class Sandbox:
             cwd=cwd,
             environment={
                 "EX_PROBE_PACKAGE": package,
-                "PATH": (f"{environment_path / 'bin'}:{self.environment['PATH']}"),
+                "PATH": f"{environment_path / 'bin'}:{self.environment['PATH']}",
             },
         )
 
         lines = [
             line.removeprefix("EX_PROBE=")
-            for line in result.stdout.splitlines()
+            for line in stdout.splitlines()
             if line.startswith("EX_PROBE=")
         ]
-        assert len(lines) == 1, result.stdout
+        assert len(lines) == 1, stdout
 
-        report = json.loads(lines[0])
-        python_file = Path(report["python_file"]).resolve()
+        details: dict[str, Any] = json.loads(lines[0])
+        python_file = Path(details["python_file"]).resolve()
 
         assert python_file.is_relative_to(source.resolve()) is editable
 
         if not editable:
             assert python_file.is_relative_to(environment_path.resolve())
 
-        return report
+        executable_file = details.get("executable_file")
+        nanobind_file = details.get("nanobind_file")
 
-    def native_outputs(self) -> dict[str, tuple[int, str]]:
+        return ProbeReport(
+            version=details["version"],
+            python_file=python_file,
+            executable_file=(
+                Path(executable_file) if executable_file is not None else None
+            ),
+            nanobind_file=Path(nanobind_file) if nanobind_file is not None else None,
+            details=details,
+        )
+
+    def native_outputs(self) -> NativeOutputs:
         assert self.case is not None
 
         roots = [
             self.root / self.case.native,
             self.root / "build",
         ]
-        outputs = {}
+        executable = None
+        nanobind = None
 
         if self.case.executable:
             binary = one_file(
                 [path for root in roots for path in root.rglob(self.case.native)],
             )
-            outputs["executable"] = (
-                binary.stat().st_mtime_ns,
-                digest(binary),
-            )
+            executable = fingerprint(binary)
 
         if self.case.nanobind:
             extension = one_file(
@@ -345,21 +406,23 @@ class Sandbox:
                     for path in root.rglob(f"{self.case.native}*.so")
                 ],
             )
-            outputs["nanobind"] = (
-                extension.stat().st_mtime_ns,
-                digest(extension),
-            )
+            nanobind = fingerprint(extension)
 
-        return outputs
+        return NativeOutputs(
+            executable=executable,
+            nanobind=nanobind,
+        )
 
-    def assert_workspace_provenance(self, report: dict[str, Any]) -> None:
+    def assert_workspace_provenance(self, report: ProbeReport) -> None:
         outputs = self.native_outputs()
 
-        if "executable" in outputs:
-            assert digest(Path(report["executable_file"])) == outputs["executable"][1]
+        if outputs.executable is not None:
+            assert report.executable_file is not None
+            assert digest(report.executable_file) == outputs.executable.sha256
 
-        if "nanobind" in outputs:
-            assert digest(Path(report["nanobind_file"])) == outputs["nanobind"][1]
+        if outputs.nanobind is not None:
+            assert report.nanobind_file is not None
+            assert digest(report.nanobind_file) == outputs.nanobind.sha256
 
     def conan_arguments(self) -> list[str]:
         return [
@@ -375,7 +438,7 @@ class Sandbox:
             f"user.haxorg:uv_project={self.root}",
         ]
 
-    def create_native(self) -> subprocess.CompletedProcess[str]:
+    def create_native(self) -> tuple[int, str, str]:
         assert self.case is not None
         assert not (self.root / "conanws.yml").exists()
 
@@ -399,7 +462,7 @@ class Sandbox:
                 environment=native_test_environment,
             )
 
-        result = self.run(
+        code, stdout, stderr = self.run(
             [
                 "conan",
                 "create",
@@ -416,13 +479,13 @@ class Sandbox:
             f"EX_NATIVE_PYTEST:{self.case.native}:"
             f"{self.environment['EX_EXPECTED_VERSION']}"
         )
-        assert marker in result.stdout + result.stderr
-        return result
+        assert marker in stdout + stderr, stdout + stderr
+        return code, stdout, stderr
 
     def cached_package_folder(self) -> Path:
         assert self.case is not None
 
-        result = self.run(
+        _, stdout, stderr = self.run(
             [
                 "conan",
                 "graph",
@@ -432,7 +495,7 @@ class Sandbox:
                 *self.conan_arguments(),
             ],
         )
-        graph = json.loads(result.stdout)
+        graph = json.loads(stdout)
         nodes = [
             node
             for node in graph["graph"]["nodes"].values()
@@ -450,25 +513,27 @@ class Sandbox:
         result = self.run(
             ["conan", "cache", "path", package_reference],
         )
-        folder = Path(result.stdout.strip()).resolve()
+        folder = Path(stdout.strip()).resolve()
         assert folder.is_dir()
         assert folder.is_relative_to(Path(self.environment["CONAN_HOME"]).resolve())
         return folder
 
-    def assert_cache_provenance(self, report: dict[str, Any]) -> None:
+    def assert_cache_provenance(self, report: ProbeReport) -> None:
         assert self.case is not None
         folder = self.cached_package_folder()
 
         if self.case.executable:
-            assert digest(Path(report["executable_file"])) == digest(
+            assert report.executable_file is not None
+            assert digest(report.executable_file) == digest(
                 folder / "bin" / self.case.native
             )
 
         if self.case.nanobind:
+            assert report.nanobind_file is not None
             cached_extension = one_file(
                 list((folder / "lib").glob(f"{self.case.native}*.so"))
             )
-            assert digest(Path(report["nanobind_file"])) == digest(cached_extension)
+            assert digest(report.nanobind_file) == digest(cached_extension)
 
         if self.case.protobuf:
             cached_schema = folder / "proto" / self.case.native / "api.proto"
@@ -513,32 +578,24 @@ def make_native(
     )
     write(
         project / "fixture.cmake",
-        (
-            f"set(EX_NAME {name})\n"
-            f"set(EX_EXECUTABLE {'ON' if executable else 'OFF'})\n"
-            f"set(EX_NANOBIND {'ON' if nanobind else 'OFF'})\n"
-            f"set(EX_PROTOBUF {'ON' if protobuf else 'OFF'})\n"
+        dedent(
+            f"""\
+            set(EX_NAME {name})
+            set(EX_EXECUTABLE {"ON" if executable else "OFF"})
+            set(EX_NANOBIND {"ON" if nanobind else "OFF"})
+            set(EX_PROTOBUF {"ON" if protobuf else "OFF"})
+            """
         ),
     )
-    write(
-        project / "tests" / "pyproject.toml",
-        (
-            "[project]\n"
-            f'name = "{name}_pytest_package"\n'
-            'version = "0.1.0"\n'
-            'requires-python = ">=3.13,<3.14"\n'
-            'dependencies = ["pytest"]\n'
-            "\n"
-            "[build-system]\n"
-            'requires = ["hatchling>=1.27"]\n'
-            'build-backend = "hatchling.build"\n'
-            "\n"
-            "[tool.hatch.build.targets.wheel]\n"
-            f'packages = ["src/{name}_pytest_package"]\n'
-        ),
+
+    test_package = f"{name}_pytest_package"
+    write_package_project(
+        project / "tests",
+        name=test_package,
+        dependencies=["pytest"],
     )
     write(
-        project / "tests" / "src" / f"{name}_pytest_package" / "__init__.py",
+        project / "tests" / "src" / test_package / "__init__.py",
         "",
     )
 
@@ -547,52 +604,92 @@ def make_native(
     if shared_schema:
         write(
             project / "proto" / name / "shared.proto",
-            (
-                'syntax = "proto3";\n'
-                "\n"
-                "package ex_shared;\n"
-                "\n"
-                "// Import-only resource: verifies transitive schema staging.\n"
-                "// Referenced Python types are generated from owner sources\n"
-                "// and explicitly configured well-known sources.\n"
-                "message SharedResource {\n"
-                "  string label = 1;\n"
-                "}\n"
+            dedent(
+                """\
+                syntax = "proto3";
+
+                package ex_shared;
+
+                message SharedResource {
+                  string label = 1;
+                }
+                """
             ),
         )
 
 
 def python_project_toml(case: Case | None, name: str) -> str:
     build_dependencies = ["hatchling>=1.27"]
-    runtime_dependencies = []
-    hook = ""
-    sources = ""
+    runtime_dependencies: list[str] = []
+
+    configuration: dict[str, Any] = {
+        "project": {
+            "name": name,
+            "version": "0.1.0",
+            "requires-python": ">=3.13,<3.14",
+            "dependencies": runtime_dependencies,
+        },
+        "dependency-groups": {
+            "dev": ["pytest"],
+        },
+        "build-system": {
+            "requires": build_dependencies,
+            "build-backend": "hatchling.build",
+        },
+        "tool": {
+            "hatch": {
+                "build": {
+                    "targets": {
+                        "wheel": {
+                            "packages": [f"src/{name}"],
+                            "exclude": [
+                                f"/src/{name}/proto",
+                                f"/src/{name}/*.so",
+                            ],
+                        },
+                    },
+                },
+            },
+        },
+    }
 
     if case is not None:
         build_dependencies.extend(["hstd_py_lib", "conan>=2"])
         runtime_dependencies.append("hstd_py_lib")
 
-        sources = "\n[tool.uv.sources]\nhstd_py_lib = { workspace = true }\n"
-        hook = (
-            "\n[tool.hatch.build.hooks.conan]\n"
-            f'reference = "{case.native}/0.1.0"\n'
-            'editable-root = "src"\n'
-        )
+        configuration["tool"]["uv"] = {
+            "sources": {
+                "hstd_py_lib": {"workspace": True},
+            },
+        }
+
+        hook: dict[str, Any] = {
+            "reference": f"{case.native}/0.1.0",
+            "editable-root": "src",
+        }
+        configuration["tool"]["hatch"]["build"]["hooks"] = {"conan": hook}
+
+        artifacts: list[dict[str, str]] = []
 
         if case.executable:
-            hook += (
-                "\n[[tool.hatch.build.hooks.conan.artifacts]]\n"
-                f'artifact = "{case.native}"\n'
-                'package_type = "application"\n'
+            artifacts.append(
+                {
+                    "artifact": case.native,
+                    "package_type": "application",
+                }
             )
 
         if case.nanobind:
-            hook += (
-                "\n[[tool.hatch.build.hooks.conan.artifacts]]\n"
-                f'artifact = "{case.native}*.so"\n'
-                'package_type = "shared-library"\n'
-                f'destination = "{name}"\n'
+            artifacts.append(
+                {
+                    "artifact": f"{case.native}*.so",
+                    "package_type": "shared-library",
+                    "destination": name,
+                }
             )
+
+        if artifacts:
+            hook["artifacts"] = artifacts
 
         if case.protobuf:
             build_dependencies.extend(
@@ -602,30 +699,13 @@ def python_project_toml(case: Case | None, name: str) -> str:
                 ]
             )
             runtime_dependencies.append("betterproto2")
-            hook += (
-                "\n[tool.hatch.build.hooks.conan.protobuf]\n"
-                f'sources = ["{case.native}/api.proto"]\n'
-                f'destination = "{name}/proto"\n'
-                'well-known-sources = ["google/protobuf/struct.proto"]\n'
-            )
+            hook["protobuf"] = {
+                "sources": [f"{case.native}/api.proto"],
+                "destination": f"{name}/proto",
+                "well-known-sources": ["google/protobuf/struct.proto"],
+            }
 
-    return (
-        "[project]\n"
-        f'name = "{name}"\n'
-        'version = "0.1.0"\n'
-        'requires-python = ">=3.13,<3.14"\n'
-        f"dependencies = {json.dumps(runtime_dependencies)}\n"
-        "\n[dependency-groups]\n"
-        'dev = ["pytest"]\n'
-        "\n[build-system]\n"
-        f"requires = {json.dumps(build_dependencies)}\n"
-        'build-backend = "hatchling.build"\n'
-        "\n[tool.hatch.build.targets.wheel]\n"
-        f'packages = ["src/{name}"]\n'
-        f'exclude = ["/src/{name}/proto", "/src/{name}/*.so"]\n'
-        f"{sources}"
-        f"{hook}"
-    )
+    return tomli_w.dumps(configuration)
 
 
 def make_python(sandbox: Sandbox) -> None:
@@ -649,27 +729,15 @@ def make_python(sandbox: Sandbox) -> None:
         sandbox.python_project / "pyproject.toml",
         python_project_toml(case, name),
     )
-    write(
-        sandbox.python_project / "test_package" / "pyproject.toml",
-        (
-            "[project]\n"
-            f'name = "{name}_test_package"\n'
-            'version = "0.1.0"\n'
-            'requires-python = ">=3.13,<3.14"\n'
-            f'dependencies = ["{name}"]\n'
-            "\n[build-system]\n"
-            'requires = ["hatchling>=1.27"]\n'
-            'build-backend = "hatchling.build"\n'
-            "\n[tool.hatch.build.targets.wheel]\n"
-            f'packages = ["src/{name}_test_package"]\n'
-        ),
+
+    test_package = f"{name}_test_package"
+    write_package_project(
+        sandbox.python_project / "test_package",
+        name=test_package,
+        dependencies=[name],
     )
     write(
-        sandbox.python_project
-        / "test_package"
-        / "src"
-        / f"{name}_test_package"
-        / "__init__.py",
+        sandbox.python_project / "test_package" / "src" / test_package / "__init__.py",
         "",
     )
     sandbox.members.append(name)
@@ -678,50 +746,45 @@ def make_python(sandbox: Sandbox) -> None:
 def make_consumer(root: Path, dependency: str) -> None:
     project = root / "ex_py_consumer"
 
-    write(
-        project / "pyproject.toml",
-        (
-            "[project]\n"
-            'name = "ex_py_consumer"\n'
-            'version = "0.1.0"\n'
-            'requires-python = ">=3.13,<3.14"\n'
-            f'dependencies = ["{dependency}"]\n'
-            "\n[dependency-groups]\n"
-            'dev = ["pytest"]\n'
-            "\n[build-system]\n"
-            'requires = ["hatchling>=1.27"]\n'
-            'build-backend = "hatchling.build"\n'
-            "\n[tool.hatch.build.targets.wheel]\n"
-            'packages = ["src/ex_py_consumer"]\n'
-        ),
+    write_package_project(
+        project,
+        name="ex_py_consumer",
+        dependencies=[dependency],
+        development=True,
     )
     write(
         project / "src" / "ex_py_consumer" / "__init__.py",
-        f"from {dependency} import verify\n",
+        f"""from {dependency} import verify
+""",
     )
 
 
 def write_workspace(sandbox: Sandbox, *, conan_workspace: bool) -> None:
-    sources = []
+    sources: dict[str, dict[str, bool]] = {}
 
     for member in sandbox.members:
-        if member == "hstd_py_lib":
-            name = member
-        elif member.endswith("/tests"):
+        if member.endswith("/tests"):
             name = member.removesuffix("/tests") + "_pytest_package"
         else:
             name = member
 
-        sources.append(f"{name} = {{ workspace = true }}")
+        sources[name] = {"workspace": True}
 
-    write(
+    write_toml(
         sandbox.root / "pyproject.toml",
-        (
-            "[tool.uv.workspace]\n"
-            f"members = {json.dumps(sandbox.members)}\n"
-            "\n[tool.uv.sources]\n" + "\n".join(sources) + "\n\n[dependency-groups]\n"
-            'dev = ["pytest"]\n'
-        ),
+        {
+            "tool": {
+                "uv": {
+                    "workspace": {
+                        "members": sandbox.members,
+                    },
+                    "sources": sources,
+                },
+            },
+            "dependency-groups": {
+                "dev": ["pytest"],
+            },
+        },
     )
 
     if conan_workspace:
@@ -731,7 +794,6 @@ def write_workspace(sandbox: Sandbox, *, conan_workspace: bool) -> None:
         if sandbox.case.protobuf:
             native_names.insert(0, SHARED_SCHEMA)
 
-        # JSON is valid YAML and avoids a second serialization dependency.
         write(
             sandbox.root / "conanws.yml",
             json.dumps(
@@ -756,8 +818,9 @@ def make_sandbox(
     *,
     conan_workspace: bool,
 ) -> Sandbox:
+    directory = Path(str(directory).replace("[", "_").replace("]", "_"))
     root = directory / "workspace"
-    root.mkdir(parents=True)
+    root.mkdir(parents=True, exist_ok=True)
 
     environment = os.environ.copy()
     for key in [
@@ -842,7 +905,7 @@ def make_sandbox(
 
 def make_downstream(sandbox: Sandbox) -> Path:
     root = sandbox.directory / "consumer"
-    root.mkdir()
+    root.mkdir(parents=True, exist_ok=True)
 
     shutil.copytree(
         sandbox.root / "hstd_py_lib",
@@ -853,29 +916,43 @@ def make_downstream(sandbox: Sandbox) -> Path:
         root / sandbox.python_package,
     )
 
+    import tomllib
+
     project_file = root / sandbox.python_package / "pyproject.toml"
-    content = project_file.read_text(encoding="utf-8")
-    content = content.replace(
-        "hstd_py_lib = { workspace = true }",
-        'hstd_py_lib = { path = "../hstd_py_lib" }',
-    )
-    write(project_file, content)
+    configuration = tomllib.loads(project_file.read_text(encoding="utf-8"))
+
+    if sandbox.case is not None:
+        configuration["tool"]["uv"]["sources"]["hstd_py_lib"] = {
+            "path": "../hstd_py_lib",
+        }
+        write_toml(project_file, configuration)
 
     make_consumer(root, sandbox.python_package)
 
-    write(
+    write_toml(
         root / "pyproject.toml",
-        (
-            "[tool.uv.workspace]\n"
-            'members = ["ex_py_consumer"]\n'
-            f'exclude = ["{sandbox.python_package}", "hstd_py_lib"]\n'
-            "\n[tool.uv.sources]\n"
-            f"{sandbox.python_package} = {{ "
-            f'path = "{sandbox.python_package}", editable = false }}\n'
-            'hstd_py_lib = { path = "hstd_py_lib" }\n'
-            "\n[dependency-groups]\n"
-            'dev = ["pytest"]\n'
-        ),
+        {
+            "tool": {
+                "uv": {
+                    "workspace": {
+                        "members": ["ex_py_consumer"],
+                        "exclude": [sandbox.python_package, "hstd_py_lib"],
+                    },
+                    "sources": {
+                        sandbox.python_package: {
+                            "path": sandbox.python_package,
+                            "editable": False,
+                        },
+                        "hstd_py_lib": {
+                            "path": "hstd_py_lib",
+                        },
+                    },
+                },
+            },
+            "dependency-groups": {
+                "dev": ["pytest"],
+            },
+        },
     )
     return root
 
@@ -886,7 +963,7 @@ def sync_downstream(sandbox: Sandbox, root: Path) -> Path:
     sandbox.run(
         [
             "uv",
-            "--verbose",
+            # "--verbose",
             "sync",
             "--project",
             str(root),
@@ -930,9 +1007,16 @@ def test_editable_workspace_updates(
     updated = sandbox.probe(environment, editable=True)
     sandbox.assert_workspace_provenance(updated)
 
-    assert updated["version"] == 2
-    for kind, initial in initial_outputs.items():
-        assert sandbox.native_outputs()[kind][1] != initial[1]
+    assert updated.version == 2
+    updated_outputs = sandbox.native_outputs()
+
+    for initial, current in (
+        (initial_outputs.executable, updated_outputs.executable),
+        (initial_outputs.nanobind, updated_outputs.nanobind),
+    ):
+        if initial is not None:
+            assert current is not None
+            assert current.sha256 != initial.sha256
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case.native)
@@ -953,7 +1037,7 @@ def test_uv_package_validation(
     updated = sandbox.probe(environment, editable=editable)
     sandbox.assert_workspace_provenance(updated)
 
-    assert updated["version"] == 2
+    assert updated.version == 2
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case.native)
@@ -974,14 +1058,12 @@ def test_conan_create_validation(
     updated = sandbox.probe(environment, editable=False)
     sandbox.assert_cache_provenance(updated)
 
-    assert updated["version"] == 2
+    assert updated.version == 2
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case.native)
-def test_downstream_cached_dependency(
-    stable_test_dir: Path,
-    case: Case,
-) -> None:
+def test_downstream_cached_dependency(stable_test_dir: Path, case: Case) -> None:
+    ensure_clean_dir(stable_test_dir)
     sandbox = make_sandbox(stable_test_dir, case, conan_workspace=False)
 
     sandbox.create_native()
@@ -1008,7 +1090,7 @@ def test_downstream_cached_dependency(
     )
     sandbox.assert_cache_provenance(updated)
 
-    assert updated["version"] == 2
+    assert updated.version == 2
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case.native)
@@ -1035,7 +1117,7 @@ def test_transitive_python_dependency(
     )
     sandbox.assert_workspace_provenance(updated)
 
-    assert updated["version"] == 2
+    assert updated.version == 2
 
 
 @pytest.mark.parametrize(
@@ -1051,7 +1133,8 @@ def test_editable_removes_stale_extensions(
     environment = sandbox.sync()
 
     initial = sandbox.probe(environment, editable=True)
-    extension = Path(initial["nanobind_file"])
+    assert initial.nanobind_file is not None
+    extension = initial.nanobind_file
     stale = extension.with_name(f"{case.native}.obsolete-abi.so")
     shutil.copy2(extension, stale)
     assert stale.is_file()
@@ -1076,7 +1159,7 @@ def test_conan_python_test_failure_propagates(
         test_file,
         content.replace(
             "assert value > 0",
-            'assert False, "EX_NATIVE_FORCED_FAILURE"',
+            """assert False, "EX_NATIVE_FORCED_FAILURE" """.rstrip(),
         ),
     )
 
@@ -1084,7 +1167,7 @@ def test_conan_python_test_failure_propagates(
         sandbox.create_native()
 
     output = (failure.value.stdout or "") + (failure.value.stderr or "")
-    assert "EX_NATIVE_FORCED_FAILURE" in output
+    assert "EX_NATIVE_FORCED_FAILURE" in output, output
 
 
 def test_uv_python_test_failure_propagates(
@@ -1095,9 +1178,11 @@ def test_uv_python_test_failure_propagates(
 
     write(
         sandbox.python_project / "tests" / "test_install.py",
-        (
-            "def test_forced_failure() -> None:\n"
-            '    assert False, "EX_UV_FORCED_FAILURE"\n'
+        dedent(
+            """\
+            def test_forced_failure() -> None:
+                assert False, "EX_UV_FORCED_FAILURE"
+            """
         ),
     )
 
@@ -1115,17 +1200,19 @@ def test_clean_python_validation(
 ) -> None:
     sandbox = make_sandbox(stable_test_dir, None, conan_workspace=False)
 
-    sentinel_directory = stable_test_dir / "forbidden-tools"
+    sentinel_directory = sandbox.directory / "forbidden-tools"
     sentinel = sentinel_directory / "conan"
-    called = stable_test_dir / "unexpected-conan-call"
+    called = sandbox.directory / "unexpected-conan-call"
 
     write(
         sentinel,
-        (
-            "#!/bin/sh\n"
-            f"touch {shlex.quote(str(called))}\n"
-            'printf "%s\\n" "Unexpected Conan invocation" >&2\n'
-            "exit 99\n"
+        dedent(
+            f"""\
+            #!/bin/sh
+            touch {shlex.quote(str(called))}
+            printf "%s\\n" "Unexpected Conan invocation" >&2
+            exit 99
+            """
         ),
     )
     sentinel.chmod(0o755)
@@ -1133,11 +1220,11 @@ def test_clean_python_validation(
 
     environment = sandbox.validate_uv(editable=editable)
     first = sandbox.probe(environment, editable=editable)
-    assert first["version"] == 1
+    assert first.version == 1
 
     sandbox.set_version(2)
     environment = sandbox.validate_uv(editable=editable)
     updated = sandbox.probe(environment, editable=editable)
 
-    assert updated["version"] == 2
+    assert updated.version == 2
     assert not called.exists()
