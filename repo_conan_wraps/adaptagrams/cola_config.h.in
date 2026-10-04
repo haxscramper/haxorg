@@ -1,0 +1,12 @@
+#ifndef ADAPTAGRAMS_LIBCOLA_CONFIG_H
+#define ADAPTAGRAMS_LIBCOLA_CONFIG_H
+
+/*
+ * Configuration for the Cairo-free Adaptagrams package.
+ *
+ * HAVE_CAIROMM must be undefined, not defined to zero: upstream uses #ifdef.
+ * Keep the installed declarations consistent with the compiled library.
+ */
+#undef HAVE_CAIROMM
+
+#endif

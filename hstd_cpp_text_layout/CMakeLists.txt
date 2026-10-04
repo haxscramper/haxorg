@@ -1,0 +1,105 @@
+cmake_minimum_required(VERSION 3.28)
+
+project(hstd_cpp_text_layout VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+include(CTest)
+include(CMakePackageConfigHelpers)
+
+if(NOT TARGET hstd::hstd_cpp_lib)
+    find_package(hstd_cpp_lib CONFIG REQUIRED)
+endif()
+
+haxorg_add_library(hstd_cpp_text_layout)
+
+haxorg_glob_add_sources2(
+    TARGET hstd_cpp_text_layout
+    LS_REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/.*"
+    SEARCH_BASE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+haxorg_set_target_output(hstd_cpp_text_layout)
+haxorg_set_target_flags(hstd_cpp_text_layout)
+
+target_link_libraries(hstd_cpp_text_layout PUBLIC hstd::hstd_cpp_lib)
+
+target_include_directories(
+    hstd_cpp_text_layout
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<INSTALL_INTERFACE:include>
+)
+
+add_library(hstd::hstd_cpp_text_layout ALIAS hstd_cpp_text_layout)
+
+if(BUILD_TESTING)
+    find_package(GTest CONFIG REQUIRED)
+
+    add_executable(tTextLayouter "${CMAKE_CURRENT_SOURCE_DIR}/tests/tTextLayouter.cpp")
+
+    target_link_libraries(
+        tTextLayouter
+        PRIVATE
+            hstd_cpp_text_layout
+            GTest::gtest_main
+    )
+
+    haxorg_set_target_flags(tTextLayouter)
+
+    add_test(NAME tTextLayouter COMMAND tTextLayouter)
+endif()
+
+install(
+    TARGETS
+        hstd_cpp_text_layout
+    EXPORT hstd_cpp_text_layout_targets
+    LIBRARY
+        DESTINATION lib
+    ARCHIVE
+        DESTINATION lib
+    RUNTIME
+        DESTINATION bin
+    INCLUDES DESTINATION
+        include
+)
+
+install(
+    DIRECTORY
+        src/
+    DESTINATION include
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp"
+    PATTERN "*.tcc"
+)
+
+install(
+    EXPORT hstd_cpp_text_layout_targets
+    FILE hstd_cpp_text_layout_targets.cmake
+    NAMESPACE hstd::
+    DESTINATION lib/cmake/hstd_cpp_text_layout
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/hstd_cpp_text_layout_config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config.cmake"
+    INSTALL_DESTINATION lib/cmake/hstd_cpp_text_layout
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config_version.cmake"
+    VERSION "${PROJECT_VERSION}"
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/hstd_cpp_text_layout_config_version.cmake"
+    DESTINATION lib/cmake/hstd_cpp_text_layout
+)

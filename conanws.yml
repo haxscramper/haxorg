@@ -1,0 +1,56 @@
+packages:
+  - path: repo_conan_wraps/protovalidate-cc
+    ref: protovalidate-cc/1.1.0
+    output_folder: build/conan_build/protovalidate-cc
+
+  - path: repo_conan_wraps/adaptagrams
+    ref: adaptagrams/0.0.20251029
+    output_folder: build/conan_build/adaptagrams
+
+  - path: repo_conan_wraps/graphviz
+    ref: graphviz/15.1.0
+    output_folder: build/conan_build/graphviz
+
+  - path: repo_conan_wraps/kiwi
+    ref: kiwi/1.5.1
+    output_folder: build/conan_build/kiwi
+
+  - path: hstd_cpp_lib
+    ref: hstd_cpp_lib/0.1.0
+    output_folder: build/conan_build/hstd_cpp_lib
+
+  - path: hstd_cpp_diagram_lib
+    ref: hstd_cpp_diagram_lib/0.1.0
+    output_folder: build/conan_build/hstd_cpp_diagram_lib
+
+  - path: hstd_cpp_text_layout
+    ref: hstd_cpp_text_layout/0.1.0
+    output_folder: build/conan_build/hstd_cpp_text_layout
+
+  - path: hstd_cpp_text_layout_py_wrap
+    ref: hstd_cpp_text_layout_py_wrap/0.1.0
+    output_folder: build/conan_build/hstd_cpp_text_layout_py_wrap
+
+  - path: haxorg_cpp_org_lib
+    ref: haxorg_cpp_org_lib/0.1.0
+    output_folder: build/conan_build/haxorg_cpp_org_lib
+
+  - path: haxorg_conan_base
+    ref: haxorg_conan_base/0.1.0
+    output_folder: build/conan_build/haxorg_conan_base
+
+  - path: haxorg_cpp_org_cli
+    ref: haxorg_cpp_org_cli/0.1.0
+    output_folder: build/conan_build/haxorg_cpp_org_cli
+
+  - path: haxorg_cpp_py_wrap
+    ref: haxorg_cpp_py_wrap/0.1.0
+    output_folder: build/conan_build/haxorg_cpp_py_wrap
+
+  - path: haxorg_cpp_c_wrap
+    ref: haxorg_cpp_c_wrap/0.1.0
+    output_folder: build/conan_build/haxorg_cpp_c_wrap
+
+  - path: haxdex_read_code_cpp
+    ref: haxdex_read_code_cpp/0.1.0
+    output_folder: build/conan_build/haxdex_read_code_cpp

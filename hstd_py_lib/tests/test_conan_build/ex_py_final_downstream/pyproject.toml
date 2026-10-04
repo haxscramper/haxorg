@@ -1,0 +1,24 @@
+[project]
+name = "ex_py_final_downstream"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "ex_py_standalone",
+  "ex_py_need_binary",
+  "ex_py_need_nanobind",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.4.2"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+ex_py_standalone = { workspace = true }
+ex_py_need_binary = { workspace = true }
+ex_py_need_nanobind = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ex_py_final_downstream"]

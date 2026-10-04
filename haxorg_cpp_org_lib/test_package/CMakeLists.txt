@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.24)
+
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+project(haxorg_cpp_org_lib_package_test LANGUAGES CXX)
+
+find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
+
+add_executable(haxorg_cpp_org_lib_package_test hstd_test_package_main.cpp)
+
+target_compile_features(haxorg_cpp_org_lib_package_test PRIVATE cxx_std_20)
+
+target_link_libraries(haxorg_cpp_org_lib_package_test PRIVATE haxorg::haxorg_cpp_org_lib)

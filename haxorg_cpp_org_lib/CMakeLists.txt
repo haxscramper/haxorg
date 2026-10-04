@@ -1,0 +1,123 @@
+cmake_minimum_required(VERSION 3.28)
+
+project(haxorg_cpp_org_lib VERSION 0.1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
+option(HAXORG_WITH_PROTOBUF "Build protobuf serialization support" ON)
+option(HAXORG_WITH_PROTOVALIDATE "Build protobuf validation support" OFF)
+option(HAXORG_WITH_PERFETTO "Build Perfetto instrumentation support" OFF)
+
+find_package(hstd_cpp_lib CONFIG REQUIRED)
+find_package(hstd_cpp_text_layout CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(lexy CONFIG REQUIRED)
+find_package(Immer CONFIG REQUIRED)
+
+if(HAXORG_WITH_PROTOBUF)
+    find_package(Protobuf CONFIG REQUIRED)
+endif()
+
+if(HAXORG_WITH_PROTOVALIDATE)
+    find_package(protovalidate_cc CONFIG REQUIRED)
+endif()
+
+if(HAXORG_WITH_PERFETTO)
+    find_package(Perfetto CONFIG REQUIRED)
+endif()
+
+if(BUILD_TESTING)
+    find_package(GTest CONFIG REQUIRED)
+    find_package(absl CONFIG REQUIRED)
+endif()
+
+haxorg_add_library(haxorg_cpp_org_lib)
+add_library(haxorg::haxorg_cpp_org_lib ALIAS haxorg_cpp_org_lib)
+
+haxorg_glob_add_sources2(
+    TARGET haxorg_cpp_org_lib
+    LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/src/haxorg_cpp_org_lib/.*"
+    SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
+    RECURSE ON
+)
+
+haxorg_set_target_output(haxorg_cpp_org_lib)
+haxorg_set_target_flags(haxorg_cpp_org_lib)
+
+target_include_directories(
+    haxorg_cpp_org_lib
+    PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src>"
+)
+
+target_link_libraries(
+    haxorg_cpp_org_lib
+    PUBLIC
+        hstd::hstd_cpp_lib
+        hstd::hstd_cpp_text_layout
+        range-v3::range-v3
+        nlohmann_json::nlohmann_json
+        foonathan::lexy
+        immer::immer
+)
+
+target_compile_definitions(
+    haxorg_cpp_org_lib
+    PUBLIC
+        HAXORG_CPP_BUILD_WITH_PROTOBUF=$<BOOL:${HAXORG_WITH_PROTOBUF}>
+        ORG_BUILD_WITH_PERFETTO=$<BOOL:${HAXORG_WITH_PERFETTO}>
+)
+
+if(HAXORG_WITH_PROTOBUF)
+    set(HAXORG_PROTO_PUBLIC_LIBRARIES)
+    set(HAXORG_PROTO_IMPORT_DIRS)
+    if(HAXORG_WITH_PROTOVALIDATE)
+        list(APPEND HAXORG_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
+        list(APPEND HAXORG_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
+    endif()
+
+    haxorg_add_protobuf(
+        TARGET haxorg_cpp_org_lib
+        IMPORT_DIRS
+            ${HAXORG_PROTO_IMPORT_DIRS}
+        PROTO_SOURCES
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProto.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/SemOrgProtoManual.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/OrgApiProto.proto"
+            "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/ImmOrgGraph.proto"
+        PUBLIC_LIBRARIES
+            ${HAXORG_PROTO_PUBLIC_LIBRARIES}
+    )
+endif()
+
+if(HAXORG_WITH_PERFETTO)
+    target_link_libraries(haxorg_cpp_org_lib PUBLIC Perfetto::perfetto)
+endif()
+
+if(BUILD_TESTING)
+    enable_testing()
+    haxorg_add_executable(haxorg_cpp_org_tests)
+
+    haxorg_glob_add_sources2(
+        TARGET haxorg_cpp_org_tests
+        LS_REGEX "${CMAKE_CURRENT_LIST_DIR}/tests/.*"
+        SEARCH_BASE "${CMAKE_CURRENT_LIST_DIR}"
+    )
+
+    target_link_libraries(
+        haxorg_cpp_org_tests
+        PRIVATE
+            haxorg_cpp_org_lib
+            GTest::gtest
+            absl::base
+            absl::log
+            absl::flags
+    )
+
+    add_test(NAME haxorg_cpp_org_tests COMMAND haxorg_cpp_org_tests)
+endif()

@@ -1,0 +1,4 @@
+sources:
+  "15.1.0":
+    url: "https://gitlab.com/graphviz/graphviz/-/archive/15.1.0/graphviz-15.1.0.tar.gz"
+    sha256: "cc673e3eb9013f40761590b2b071c0fb89ad5c5d694e25d4e1238c74df86c697"

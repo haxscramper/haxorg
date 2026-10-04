@@ -1,0 +1,18 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(
+    hstd_cpp_lib
+    CONFIG
+    REQUIRED
+)
+find_dependency(
+    hstd_cpp_text_layout
+    CONFIG
+    REQUIRED
+)
+
+include("${CMAKE_CURRENT_LIST_DIR}/HstdPyTextLayoutTargets.cmake")
+
+check_required_components(HstdPyTextLayout)

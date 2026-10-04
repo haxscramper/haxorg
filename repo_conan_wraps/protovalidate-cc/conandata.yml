@@ -1,0 +1,9 @@
+sources:
+  "1.1.0":
+    url: "https://github.com/bufbuild/protovalidate-cc/releases/download/v1.1.0/protovalidate-cc-1.1.0.tar.gz"
+    sha256: "b74ebeb7d43bdad0fa673507c56082ff2e4273ab93a10161a274325f78a654f2"
+
+schemas:
+  "1.1.0":
+    url: "https://raw.githubusercontent.com/bufbuild/protovalidate/refs/tags/v1.1.0/proto/protovalidate/buf/validate/validate.proto"
+    sha256: "901bd5ad3bbbdcf84850132b8f012235a2d08580c77a7ed98069fae00b2d2074"

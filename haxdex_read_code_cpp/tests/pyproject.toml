@@ -1,0 +1,53 @@
+[project]
+name = "haxdex_read_code_cpp_pytest_package"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "pytest>=8.4.2",
+  "hstd_py_lib",
+  "beartype",
+  "plumbum",
+  "betterproto2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+addopts = "--color=yes"
+markers = [
+  "test_release: Reduced test suite done from the packaged release",
+]
+
+[build-system]
+requires = [
+  "hatchling",
+  "hstd_py_lib",
+  "conan>=2",
+  "grpcio-tools",
+  "betterproto2-compiler",
+]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+cache-keys = [
+  { file = "pyproject.toml" },
+  { file = "../proto/haxdex_read_code_cpp/reflection_defs.proto" },
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/haxdex_read_code_cpp"]
+dev-mode-dirs = ["src"]
+
+[tool.hatch.build.hooks.conan]
+reference = "haxdex_read_code_cpp/0.1.0"
+editable-root = "src"
+
+[[tool.hatch.build.hooks.conan.artifacts]]
+package_type = "application"
+artifact = "haxdex_read_code_cpp"
+destination = "haxdex_read_code_cpp/bin"
+
+[tool.hatch.build.hooks.conan.protobuf]
+sources = ["haxdex_read_code_cpp/reflection_defs.proto"]
+destination = "haxdex_read_code_cpp/proto"
+well-known-sources = ["google/protobuf/struct.proto"]

@@ -1,5 +1,0 @@
-include(default)
-
-[conf]
-tools.build:compiler_executables={"c":"clang","cpp":"clang++"}
-tools.cmake.cmaketoolchain:generator=Ninja

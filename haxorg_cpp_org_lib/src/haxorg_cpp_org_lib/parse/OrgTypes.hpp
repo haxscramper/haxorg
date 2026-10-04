@@ -1,0 +1,57 @@
+#pragma once
+
+#include <haxorg_cpp_org_lib/sem/SemOrgSharedTypes.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Ptrs.hpp>
+#include <hstd_cpp_lib/system/reflection.hpp>
+
+namespace org {
+std::string fieldname_to_code(std::string_view str);
+} // namespace org
+
+namespace org::parse {
+
+
+struct OrgNodeMono {
+    struct None {
+        DESC_FIELDS(None, ());
+    };
+
+    struct Error {
+        struct Box {
+            struct ParseFail {
+                sem::OrgDiagnostics::ParseError err;
+                DESC_FIELDS(ParseFail, (err));
+            };
+
+            struct ParseTokenFail {
+                sem::OrgDiagnostics::ParseTokenError err;
+                DESC_FIELDS(ParseTokenFail, (err));
+            };
+
+            SUB_VARIANTS(Kind, Data, data, getKind, ParseFail, ParseTokenFail);
+            Data data;
+            DESC_FIELDS(Box, (data));
+        };
+
+        hstd::SPtr<Box> box;
+        DESC_FIELDS(Error, (box));
+    };
+
+    SUB_VARIANTS(Kind, Data, data, getKind, None, Error);
+    Data data;
+    DESC_FIELDS(OrgNodeMono, (data));
+};
+
+using OrgSet = hstd::IntSet<OrgNodeKind>;
+
+
+} // namespace org::parse
+
+
+template <>
+struct fmt::formatter<hstd::SPtr<org::parse::OrgNodeMono::Error::Box>> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::SPtr<org::parse::OrgNodeMono::Error::Box> const& obj,
+        format_context&                                        ctx) const;
+};

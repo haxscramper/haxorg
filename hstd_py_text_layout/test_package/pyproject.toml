@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hstd_py_text_layout_test_package"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+# TODO: auto-bump dependency to match the current package version
+dependencies = ["hstd_py_text_layout==0.1.0"]
+
+[tool.uv.sources]
+hstd_py_text_layout = { path = ".." }
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
