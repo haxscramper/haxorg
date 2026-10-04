@@ -1,10 +1,14 @@
 import pytest
+
+# fmt: off
+# isort: off
 from hstd_py_lib.test_utils import (
-    pytest_runtest_makereport as pytest_runtest_makereport,  # noqa
+    failed_test_logs as failed_test_logs, # noqa
+    pytest_runtest_makereport as pytest_runtest_makereport, # noqa
+    stable_test_dir as stable_test_dir, # noqa
 )
-from hstd_py_lib.test_utils import (
-    stable_test_dir as stable_test_dir,  # noqa
-)
+# isort: on
+# fmt: on
 
 
 @pytest.fixture

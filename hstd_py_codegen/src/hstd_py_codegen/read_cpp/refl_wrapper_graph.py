@@ -227,8 +227,6 @@ class TuWrap:
     tu: ConvTu
     original: Path  ## Path of the original main file of the translation unit
     ## TODO move customization point further down the line, no need to keep it directly with collectr
-    mapping: Path  ## Target generated mapping, constructed based during collector
-    ## run.
 
 
 @beartype

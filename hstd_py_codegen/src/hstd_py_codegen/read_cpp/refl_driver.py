@@ -143,6 +143,7 @@ def run_reflection_tool_provider(
         binary_collection_file=str(output_dir.joinpath("reflection.pb")),
         only_annotated=only_annotated,
         convert_failure_log_dir=str(output_dir),
+        build_root=str(output_dir),
     )
 
     conf.cache_collector_runs = False
@@ -177,7 +178,7 @@ def run_reflection_tool_provider(
             full.write_text(content)
 
     mappings = ex.expand_input(conf)
-    commands = ex.read_compile_cmmands(conf)
+    commands = ex.read_compile_commands(Path(conf.build_root))
     wraps: List[TuWrap] = []
     for mapping in mappings:
         assert any([cmd.file == str(mapping.path) for cmd in compile_commands_content]), (

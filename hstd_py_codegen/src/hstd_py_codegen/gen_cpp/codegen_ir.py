@@ -133,7 +133,7 @@ class QualType(BaseModel, extra="forbid"):
     def copy_update(self, **kwargs: Any) -> "QualType":
         current_data = {
             field_name: getattr(self, field_name)
-            for field_name in self.model_fields.keys()
+            for field_name in type(self).model_fields
         }
 
         current_data.update(kwargs)

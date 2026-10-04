@@ -150,51 +150,6 @@ def expand_input(conf: TuOptions) -> List[PathMapping]:
 
 
 @beartype
-def get_compile_commands(conf: TuOptions) -> Path:
-    """
-    Get compile commands expanded with the `compdb` for
-    header files.
-    """
-    if conf.compilation_database:
-        assert Path(conf.compilation_database).exists(), conf.compilation_database
-        database = Path(conf.compilation_database)
-
-    else:
-        assert conf.build_root
-        assert conf.source_root
-        comp = "compile_commands.json"
-
-        build = Path(conf.build_root)
-        source = Path(conf.source_root)
-
-        if not build.joinpath(comp).exists():
-            cmake = local["cmake"]
-            cmake.run(
-                [
-                    *conf.cmake_configure_options,
-                    "-B",
-                    str(conf.build_root),
-                    "-S",
-                    str(conf.source_root),
-                    "-DCMAKE_EXPORT_COMPILE_COMMANDS=TRUE",
-                ]
-            )
-
-        if not source.joinpath(comp).exists():
-            compdb = local["uv"]
-            _, stdout, _ = compdb.run(
-                ["run", "compdb", "-p", str(conf.build_root), "list"]
-            )
-
-            source.joinpath(comp).write_text(stdout)
-
-        database = source.joinpath(comp)
-
-    assert database.exists()
-    return database
-
-
-@beartype
 @dataclass
 class CollectorRunResult:
     "Reflection tool run conversion result"
@@ -211,6 +166,28 @@ class CollectorRunResult:
     "Tool stderr"
     flags: dict = field(default_factory=dict)
     "Extra configuration options for the reflection tool"
+
+
+class CompileCommand(BaseModel):
+    directory: str
+    command: str
+    file: str
+    output: Optional[str] = None
+
+
+@beartype
+def read_compile_commands(build_dir: Path) -> list[CompileCommand]:
+    """
+    Get compile commands expanded with the `compdb` for
+    header files.
+    """
+    comp = build_dir / "compile_commands.json"
+    assert comp.exists()
+
+    compdb = local["uv"]
+    _, stdout, _ = compdb.run(["run", "compdb", "-p", str(build_dir), "list"])
+
+    return [CompileCommand.model_validate(d) for d in json.loads(stdout)]
 
 
 @beartype
@@ -252,14 +229,25 @@ def run_reflection_tool(
 
     if conf.binary_collection_file:
         tmp_output = Path(conf.binary_collection_file)
-        # log("refl.cli").info(
-        #     f"Explicitly provided reflection file {conf.binary_collection_file}")
     else:
         # Create a temporary list of files content will be added to the dumped translation
         # unit.
         tmp_output = tmp.joinpath(md5(str(output).encode("utf-8")).hexdigest() + ".pb")
 
-    database = get_compile_commands(conf)
+    if conf.compilation_database is not None:
+        database = Path(conf.compilation_database)
+    else:
+        assert conf.build_root is not None, (
+            "build_root must be configured when compilation_database is not provided"
+        )
+        commands = read_compile_commands(Path(conf.build_root))
+        database = tmp / "compile_commands.json"
+        database.write_text(
+            json.dumps([command.model_dump(exclude_none=True) for command in commands]),
+            encoding="utf-8",
+        )
+
+    assert database.is_file(), f"Compilation database does not exist: {database}"
 
     opts: Dict[str, Any] = dict(
         reflection=dict(
@@ -304,19 +292,6 @@ def run_reflection_tool(
             res_stderr=res_stderr,
             flags=opts,
         )
-
-
-class CompileCommand(BaseModel):
-    directory: str
-    command: str
-    file: str
-    output: Optional[str] = None
-
-
-@beartype
-def read_compile_cmmands(conf: TuOptions) -> List[CompileCommand]:
-    database = get_compile_commands(conf)
-    return [CompileCommand.model_validate(d) for d in json.loads(database.read_text())]
 
 
 @beartype
@@ -432,7 +407,6 @@ def run_reflection_tool_for_path(
             name=path.stem,
             tu=tu.conv_tu,
             original=path,
-            mapping=relative.with_suffix(".nim"),
         )
 
     else:
