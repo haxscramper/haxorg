@@ -405,6 +405,16 @@ class ConanBuildHook(BuildHookInterface):
 
         command.extend(self._python_configuration())
 
+        if configuration["protobuf"] is not None:
+            # Cached binaries can cause Conan to skip transitive dependency packages.
+            # Protobuf generation still needs their packaged schemas.
+            command.extend(
+                [
+                    "-c",
+                    "tools.graph:skip_binaries=False",
+                ]
+            )
+
         self._run(
             phase=f"deploy Conan package for {reference}",
             command=command,

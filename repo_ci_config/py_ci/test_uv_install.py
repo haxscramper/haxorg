@@ -206,7 +206,15 @@ def validate_package(
 
         run(
             [
-                str(python),
+                "uv",
+                *TEST_UV_INSTALL_FLAGS,
+                "run",
+                "--project",
+                str(workspace_root),
+                "--package",
+                project_name,
+                "--no-sync",
+                "python",
                 str(test_package / "main.py"),
             ],
             cwd=test_package,

@@ -3,7 +3,6 @@ import json
 import os
 import shlex
 import shutil
-import subprocess
 import sys
 import sysconfig
 from dataclasses import dataclass, field
@@ -1194,7 +1193,7 @@ def test_uv_python_test_failure_propagates(
         ),
     )
 
-    with pytest.raises(subprocess.CalledProcessError) as failure:
+    with pytest.raises(plumbum.ProcessExecutionError) as failure:
         sandbox.validate_uv(editable=True)
 
     output = (failure.value.stdout or "") + (failure.value.stderr or "")
