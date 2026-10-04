@@ -13,7 +13,6 @@ from hstd_py_codegen.gen_cpp.codegen_type_order import (
     expand_type_groups,
     topological_sort_entries,
 )
-from hstd_py_codegen.read_cpp import refl_read
 from hstd_py_codegen.read_cpp.refl_read import ConvTu
 from hstd_py_lib.script_logging import (
     pprint_to_file_json,
@@ -102,8 +101,8 @@ class PyhaxorgTypeGroups:
 @beartype
 def get_pyhaxorg_type_groups(
     ast: cpp.ASTBuilder,
-    reflection_path: Path,
-    manual_tu_path: Path,
+    reflection_uv: ConvTu,
+    manual_tu: ConvTu,
 ) -> PyhaxorgTypeGroups:
     """
     Get type groups and method implementations for the haxorg library
@@ -118,8 +117,8 @@ def get_pyhaxorg_type_groups(
         ast, gen_imm.rewrite_to_immutable(org_data.get_types())
     )
 
-    res.conv_tu = refl_read.conv_proto_file(reflection_path)
-    res.manual_tu = refl_read.conv_proto_file(manual_tu_path)
+    res.conv_tu = reflection_uv
+    res.manual_tu = manual_tu
 
     pprint_to_file_json(res.manual_tu, Path("/tmp/manual_tu_haxorg.json"))
 

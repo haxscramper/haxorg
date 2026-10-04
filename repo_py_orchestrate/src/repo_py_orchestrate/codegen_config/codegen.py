@@ -3,6 +3,7 @@ import hstd_py_codegen.lang_build.astbuilder_py as pya
 import yaml
 from beartype import beartype
 from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
+from hstd_py_codegen.read_cpp import refl_read
 from hstd_py_lib.pydantic_utils import to_json_safe
 from hstd_py_text_layout.base.wrap import TextLayout
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
@@ -33,13 +34,14 @@ class CodegenOptions(BaseModel):
 @beartype
 def get_codegen_groups(
     builder: cpp.ASTBuilder,
-    reflection_path: Path,
-    manual_tu_path: Path,
+    reflection_uv: refl_read.ConvTu,
+    manual_tu: refl_read.ConvTu,
 ) -> PyhaxorgTypeGroups:
+
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
         ast=builder,
-        reflection_path=Path(reflection_path),
-        manual_tu_path=manual_tu_path,
+        reflection_uv=reflection_uv,
+        manual_tu=manual_tu,
     )
 
     groups_dump_yaml = Path("/tmp/pyhaxorg_groups.yaml")
@@ -84,6 +86,7 @@ def gen_haxorg_cpp_library_wrappers(
             to_wrap=to_wrap,
             type_map=type_map,
             root=monorepo_root / "haxorg_cpp_c_wrap",
+            ast=builder,
         )
     )
 
@@ -92,6 +95,7 @@ def gen_haxorg_cpp_library_wrappers(
             to_wrap=to_wrap,
             type_map=type_map,
             root=monorepo_root / "haxorg_wasm_lib_wrap",
+            ast=builder,
         )
     )
 
@@ -118,24 +122,13 @@ def gen_haxorg_cpp_library_wrappers(
 
 
 @beartype
-def run_codegen_pyhaxorg(
+def gen_code_from_groups(
+    groups: PyhaxorgTypeGroups,
     monorepo_root: Path,
     builder: cpp.ASTBuilder,
     pyast: pya.ASTBuilder,
-    reflection_path: Path,
     t: TextLayout,
-    manual_tu_path: Path,
-) -> None:
-    """
-    Generate sources for the haxorg library
-    :param is_tmp_codegen: If set, put newly genrated sources in the
-      temporary directory instead of overwriting existing ones. Useful
-      for development.
-    :param reflection_path: Input protobuf file with reflection information.
-    """
-
-    groups = get_codegen_groups(builder, reflection_path, manual_tu_path=manual_tu_path)
-
+):
     sources = gen_haxorg_cpp_library_source(groups, monorepo_root, builder)
 
     gen_description_files(sources, builder, t)
@@ -150,3 +143,32 @@ def run_codegen_pyhaxorg(
 
     for wrap in wrappers:
         gen_description_files(wrap, builder, t)
+
+
+@beartype
+def run_codegen_pyhaxorg(
+    monorepo_root: Path,
+    reflection_path: Path,
+    manual_tu_path: Path,
+) -> None:
+    """
+    Generate sources for the haxorg library
+    :param is_tmp_codegen: If set, put newly genrated sources in the
+      temporary directory instead of overwriting existing ones. Useful
+      for development.
+    :param reflection_path: Input protobuf file with reflection information.
+    """
+
+    t = TextLayout()
+    builder = cpp.ASTBuilder(t)
+    pyast = pya.ASTBuilder(t)
+
+    groups = get_codegen_groups(
+        builder,
+        reflection_uv=refl_read.conv_proto_file(reflection_path),
+        manual_tu=refl_read.conv_proto_file(manual_tu_path),
+    )
+
+    gen_code_from_groups(
+        groups, monorepo_root=monorepo_root, builder=builder, pyast=pyast, t=t
+    )

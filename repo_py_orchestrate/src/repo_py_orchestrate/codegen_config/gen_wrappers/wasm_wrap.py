@@ -8,6 +8,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenFiles,
     GenTu,
     GenTuPass,
+    GenTuUnion,
     GenTypeMap,
     GenUnit,
 )
@@ -16,14 +17,11 @@ from hstd_py_codegen.lang_build import astbuilder_embind as napi
 from hstd_py_codegen.lang_build.astbuilder_embind_config import (
     EmbindAstbuilderConfig,
 )
-from repo_py_orchestrate.codegen_config.codegen_type_groups import (
-    PyhaxorgTypeGroups,
-)
 
 
 @beartype
 def gen_pyhaxorg_napi_wrappers(
-    groups: PyhaxorgTypeGroups,
+    to_wrap: list[GenTuUnion],
     ast: cpp.ASTBuilder,
     type_map: GenTypeMap,
     root: Path,
@@ -37,12 +35,10 @@ def gen_pyhaxorg_napi_wrappers(
 
     res.add_specializations(
         b=ast,
-        specializations=collect_type_specializations(
-            groups.get_entries_for_wrapping(), conf
-        ),
+        specializations=collect_type_specializations(to_wrap, conf),
     )
 
-    for decl in groups.get_entries_for_wrapping():
+    for decl in to_wrap:
         if conf.isAcceptedByBackend(decl):
             res.add_decl(decl)
 
