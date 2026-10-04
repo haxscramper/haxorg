@@ -1,0 +1,44 @@
+[project]
+name = "ex_py_need_binary"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "hstd_py_lib",
+  "betterproto2",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.4.2"]
+
+[build-system]
+requires = [
+  "hatchling>=1.27",
+  "hstd_py_lib",
+  "conan>=2",
+  "grpcio-tools",
+  "betterproto2-compiler",
+]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+hstd_py_lib = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ex_py_need_binary"]
+exclude = ["/src/ex_py_need_binary/proto"]
+
+[tool.hatch.build.hooks.conan]
+reference = "ex_cpp_binary/0.1.0"
+editable-root = "src"
+
+[[tool.hatch.build.hooks.conan.artifacts]]
+artifact = "ex_cpp_binary"
+package_type = "application"
+
+[tool.hatch.build.hooks.conan.protobuf]
+sources = [
+  "ex_cpp_binary/api.proto",
+  "ex_cpp_library/shared.proto",
+]
+destination = "ex_py_need_binary/proto"
+well-known-sources = ["google/protobuf/struct.proto"]

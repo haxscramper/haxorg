@@ -1,9 +1,0 @@
-#include <nanobind/nanobind.h>
-
-#include "value.hpp"
-
-NB_MODULE(@NATIVE@, module) {
-    module.def("value", []() {
-        return ex_fixture::value;
-    });
-}

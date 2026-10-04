@@ -1,8 +1,0 @@
-#include <iostream>
-
-#include "value.hpp"
-
-int main() {
-    std::cout << ex_fixture::value << '\n';
-    return 0;
-}

@@ -1,5 +1,0 @@
-#pragma once
-
-namespace ex_fixture {
-inline constexpr int value = 1;
-}

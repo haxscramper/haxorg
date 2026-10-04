@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package ex_binary;
+
+import "ex_cpp_library/shared.proto";
+import "google/protobuf/struct.proto";
+
+message Record {
+  string payload = 1;
+  ex_shared.SharedResource shared = 2;
+  google.protobuf.Struct metadata = 3;
+}

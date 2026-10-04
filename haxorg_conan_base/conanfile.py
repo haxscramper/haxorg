@@ -239,6 +239,16 @@ class HaxorgPackage(_HaxorgTypingBase):
     def generate(self):
         self.haxorg_validate_structure(self.source_folder)
 
+        # cpp.build.includedirs advertises `generated/proto` to workspace
+        # consumers; CMake rejects imported targets with non-existent
+        # include dirs. haxorg_add_protobuf creates it as a side effect,
+        # but packages without C++ protobuf generation never do.
+        assert self.build_folder
+        (Path(self.build_folder) / "generated" / "proto").mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
         deps = CMakeDeps(self)
         self.haxorg_configure_deps(deps)
         deps.generate()

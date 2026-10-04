@@ -140,7 +140,6 @@ def deploy(
 
     if protobuf_config is not None:
         resource_roots: dict[Path, Path] = {}
-        owner_resource_roots: list[Path] = []
 
         # Protobuf dependency resolution is transitive for all
         # packages.
@@ -171,17 +170,15 @@ def deploy(
                     shutil.copytree(source_root, output / relative_root)
                     resource_roots[source_root] = relative_root
 
-                if resource_dependency.package_folder == dependency.package_folder:
-                    owner_resource_roots.append(source_root)
-
         sources = []
+        source_roots = list(resource_roots)
 
         for relative_source in protobuf_config["sources"]:
-            source = _select_file(owner_resource_roots, relative_source)
+            source = _select_file(source_roots, relative_source)
 
             containing_roots = [
                 directory
-                for directory in owner_resource_roots
+                for directory in source_roots
                 if source.is_relative_to(directory)
             ]
 
