@@ -7,21 +7,25 @@ from typing import Any
 from beartype import beartype
 
 
+@beartype
 def rmdir_quiet(path: Path) -> None:
     if path.exists():
         shutil.rmtree(path)
 
 
+@beartype
 def gettempdir(*relative: str) -> Path:
     return Path(tempfile.gettempdir()).joinpath(*relative)
 
 
+@beartype
 def json_path_serializer(obj: Any) -> str:
     if isinstance(obj, Path):
         return str(obj)
     raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
 
 
+@beartype
 def which_all(name: str) -> list[Path]:
     "Find all paths for the command by name"
     return [
@@ -29,6 +33,11 @@ def which_all(name: str) -> list[Path]:
         for directory in os.get_exec_path()
         if (path := Path(directory) / name).is_file() and os.access(path, os.X_OK)
     ]
+
+
+@beartype
+def latest_file(paths: list[Path]) -> Path:
+    return max([p for p in paths if p.exists()], key=lambda it: it.stat().st_mtime)
 
 
 @beartype

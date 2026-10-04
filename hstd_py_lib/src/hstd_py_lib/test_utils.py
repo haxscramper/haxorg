@@ -8,7 +8,7 @@ import pytest
 
 def get_test_dir(
     request: pytest.FixtureRequest,
-    test_dir_root: Path = Path("/tmp/haxorg/test_out"),
+    test_dir_root: Path = Path("/tmp/haxorg_tests"),
 ) -> Path:
 
     # Get test file path relative to tests directory
