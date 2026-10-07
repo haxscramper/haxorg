@@ -2,9 +2,9 @@ import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 import hstd_py_codegen.lang_build.astbuilder_py as pya
 import yaml
 from beartype import beartype
-from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
+from hstd_py_codegen.gen_cpp.codegen_type_order import topological_sort_entries
 from hstd_py_codegen.read_cpp import refl_read
-from hstd_py_lib.pydantic_utils import to_json_safe
+from hstd_py_lib.script_logging import to_debug_json
 from hstd_py_text_layout.base.wrap import TextLayout
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     PyhaxorgTypeGroups,
@@ -29,45 +29,6 @@ class CodegenOptions(BaseModel):
     reflection_path: str
     codegen_task: Literal["pyhaxorg", "adaptagrams"]
     tmp: bool = False
-
-
-@beartype
-def get_codegen_groups(
-    builder: cpp.ASTBuilder,
-    reflection_uv: refl_read.ConvTu,
-    manual_tu: refl_read.ConvTu,
-) -> PyhaxorgTypeGroups:
-
-    groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(
-        ast=builder,
-        reflection_uv=reflection_uv,
-        manual_tu=manual_tu,
-    )
-
-    groups_dump_yaml = Path("/tmp/pyhaxorg_groups.yaml")
-    with groups_dump_yaml.open("w") as file:
-        yaml.safe_dump(to_json_safe(groups.conv_tu), stream=file)
-        logger.info(f"Wrote debug for type groups to {groups_dump_yaml}")
-
-    groups_dump_yaml = Path("/tmp/pyhaxorg_manual_groups.yaml")
-    with groups_dump_yaml.open("w") as file:
-        yaml.safe_dump(to_json_safe(groups.manual_tu), stream=file)
-        logger.info(f"Wrote debug for manual type groups to {groups_dump_yaml}")
-
-    return groups
-
-
-@beartype
-def gen_haxorg_cpp_library_source(
-    groups: PyhaxorgTypeGroups,
-    monorepo_root: Path,
-    builder: cpp.ASTBuilder,
-) -> GenFiles:
-    return gen_haxorg_source(
-        ast=builder,
-        groups=groups,
-        root=monorepo_root / "haxorg_cpp_org_lib",
-    )
 
 
 @beartype
@@ -122,53 +83,67 @@ def gen_haxorg_cpp_library_wrappers(
 
 
 @beartype
-def gen_code_from_groups(
-    groups: PyhaxorgTypeGroups,
-    monorepo_root: Path,
-    builder: cpp.ASTBuilder,
-    pyast: pya.ASTBuilder,
-    t: TextLayout,
-):
-    sources = gen_haxorg_cpp_library_source(groups, monorepo_root, builder)
+def run_codegen_base(
+    monorepo_root: Path, t: TextLayout
+) -> tuple[list[GenTuUnion], GenFiles]:
+    builder = cpp.ASTBuilder(t)
+    groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(ast=builder)
+    type_map = GenTypeMap.FromTypes(groups.get_all())
 
-    gen_description_files(sources, builder, t)
-
-    wrappers = gen_haxorg_cpp_library_wrappers(
-        to_wrap=groups.get_entries_for_wrapping(),
-        monorepo_root=monorepo_root,
-        type_map=groups.type_map,
-        builder=builder,
-        pyast=pyast,
+    sources = gen_haxorg_source(
+        ast=builder,
+        groups=groups,
+        root=monorepo_root / "haxorg_cpp_org_lib",
+        type_map=type_map,
     )
 
-    for wrap in wrappers:
-        gen_description_files(wrap, builder, t)
+    return groups.get_all(), sources
 
 
 @beartype
-def run_codegen_pyhaxorg(
+def run_codegen_pyhaxorg_wrappers(
+    preset_type: Sequence[GenTuUnion],
     monorepo_root: Path,
-    reflection_path: Path,
-    manual_tu_path: Path,
-) -> None:
-    """
-    Generate sources for the haxorg library
-    :param is_tmp_codegen: If set, put newly genrated sources in the
-      temporary directory instead of overwriting existing ones. Useful
-      for development.
-    :param reflection_path: Input protobuf file with reflection information.
-    """
+    reflection_tu: refl_read.ConvTu,
+    manual_tu: refl_read.ConvTu,
+    t: TextLayout,
+) -> list[GenFiles]:
 
-    t = TextLayout()
     builder = cpp.ASTBuilder(t)
     pyast = pya.ASTBuilder(t)
 
-    groups = get_codegen_groups(
-        builder,
-        reflection_uv=refl_read.conv_proto_file(reflection_path),
-        manual_tu=refl_read.conv_proto_file(manual_tu_path),
+    groups_dump_yaml = Path("/tmp/pyhaxorg_groups.yaml")
+    with groups_dump_yaml.open("w") as file:
+        yaml.safe_dump(to_debug_json(reflection_tu), stream=file)
+        logger.info(f"Wrote debug for type groups to {groups_dump_yaml}")
+
+    groups_dump_yaml = Path("/tmp/pyhaxorg_manual_groups.yaml")
+    with groups_dump_yaml.open("w") as file:
+        yaml.safe_dump(to_debug_json(manual_tu), stream=file)
+        logger.info(f"Wrote debug for manual type groups to {groups_dump_yaml}")
+
+    to_wrap = topological_sort_entries(
+        list(
+            itertools.chain(
+                preset_type,
+                reflection_tu.enums,
+                reflection_tu.structs,
+                reflection_tu.typedefs,
+                manual_tu.enums,
+                manual_tu.structs,
+                manual_tu.typedefs,
+                reflection_tu.functions,
+                manual_tu.functions,
+            )
+        )
     )
 
-    gen_code_from_groups(
-        groups, monorepo_root=monorepo_root, builder=builder, pyast=pyast, t=t
+    type_map = GenTypeMap.FromTypes(to_wrap)
+
+    return gen_haxorg_cpp_library_wrappers(
+        to_wrap=to_wrap,
+        monorepo_root=monorepo_root,
+        type_map=type_map,
+        builder=builder,
+        pyast=pyast,
     )

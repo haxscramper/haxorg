@@ -20,7 +20,6 @@ from beartype.typing import (
 )
 from hstd_py_lib.algorithm import iterate_object_tree
 from hstd_py_text_layout.base.wrap import BlockId
-from loguru import logger
 from pydantic import AliasChoices, BaseModel, Field
 
 DEBUG_TYPE_ORIGIN = False
@@ -1566,9 +1565,6 @@ class GenTypeMap:
 
         if isinstance(typ, GenTuStruct) and typ.IsTemplateRecord:
             flat_key = tuple(typ.Name.withTemplateParams([]).flatQualName())
-            logger.info(
-                f"Registered type {typ} as a template in type map with key {flat_key}"
-            )
             self.template_name_to_index[flat_key].append(new_index)
 
         self.entries.append(typ)

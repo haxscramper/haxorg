@@ -121,29 +121,33 @@ def _get_exporter_methods(
     return methods
 
 
-def gen_exporter_template(groups: PyhaxorgTypeGroups, out_file: Path) -> GenUnit:
+def gen_exporter_template(
+    groups: PyhaxorgTypeGroups,
+    out_file: Path,
+    type_map: GenTypeMap,
+) -> GenUnit:
     return GenUnit(
         header=GenTu(
             out_file,
             [
-                *_get_exporter_methods(
-                    False, groups.shared_types, type_map=groups.type_map
-                ),
-                *_get_exporter_methods(False, groups.expanded, type_map=groups.type_map),
+                *_get_exporter_methods(False, groups.shared_types, type_map=type_map),
+                *_get_exporter_methods(False, groups.expanded, type_map=type_map),
             ],
         ),
     )
 
 
-def gen_exporter_methods(groups: PyhaxorgTypeGroups, out_file: Path) -> GenUnit:
+def gen_exporter_methods(
+    groups: PyhaxorgTypeGroups,
+    out_file: Path,
+    type_map: GenTypeMap,
+) -> GenUnit:
     return GenUnit(
         header=GenTu(
             out_file,
             [
-                *_get_exporter_methods(
-                    True, groups.shared_types, type_map=groups.type_map
-                ),
-                *_get_exporter_methods(True, groups.expanded, type_map=groups.type_map),
+                *_get_exporter_methods(True, groups.shared_types, type_map=type_map),
+                *_get_exporter_methods(True, groups.expanded, type_map=type_map),
             ],
         )
     )

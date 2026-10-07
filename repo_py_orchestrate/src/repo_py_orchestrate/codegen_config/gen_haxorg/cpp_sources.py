@@ -17,7 +17,11 @@ from repo_py_orchestrate.codegen_config.org_codegen_data import *
 
 
 def _gen_sem_org_enums(
-    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, header: Path, source: Path
+    ast: cpp.ASTBuilder,
+    groups: PyhaxorgTypeGroups,
+    header: Path,
+    source: Path,
+    type_map: GenTypeMap,
 ) -> GenUnit:
     return GenUnit(
         header=GenTu(
@@ -31,13 +35,13 @@ def _gen_sem_org_enums(
                 *gen_pyhaxorg_iteration_macros(types=groups.expanded),
                 *gen_pyhaxorg_field_iteration_macros(
                     types=groups.expanded,
-                    type_map=groups.type_map,
+                    type_map=type_map,
                     ast=ast,
                     macro_namespace="SEM",
                 ),
                 *gen_pyhaxorg_field_iteration_macros(
                     types=groups.immutable,
-                    type_map=groups.type_map,
+                    type_map=type_map,
                     ast=ast,
                     macro_namespace="IMM",
                 ),
@@ -77,13 +81,18 @@ def _gen_sem_org_shared_type(
 
 
 def _gen_imm_org_serde(
-    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, template_file: Path
+    ast: cpp.ASTBuilder,
+    groups: PyhaxorgTypeGroups,
+    template_file: Path,
+    type_map: GenTypeMap,
 ) -> GenUnit:
     return GenUnit(
         header=GenTu(
             template_file,
             gen_imm.get_imm_serde(
-                types=groups.expanded, ast=ast, type_map=groups.type_map
+                types=groups.expanded,
+                ast=ast,
+                type_map=type_map,
             ),
         ),
     )
@@ -130,13 +139,17 @@ def _gen_imm_org_adapter(
 
 
 def _gen_sem_org_serde(
-    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, header: Path, source: Path
+    ast: cpp.ASTBuilder,
+    groups: PyhaxorgTypeGroups,
+    header: Path,
+    source: Path,
+    type_map: GenTypeMap,
 ) -> GenUnit:
 
     proto = pb.ProtoBuilder(
         wrapped=groups.get_protobuf_target_entires(),
         ast=ast,
-        type_map=groups.type_map,
+        type_map=type_map,
     )
 
     protobuf_writer_declarations, protobuf_writer_implementation = (
@@ -181,7 +194,10 @@ def _gen_sem_org_serde(
 
 
 def gen_haxorg_source(
-    ast: cpp.ASTBuilder, groups: PyhaxorgTypeGroups, root: Path
+    ast: cpp.ASTBuilder,
+    groups: PyhaxorgTypeGroups,
+    root: Path,
+    type_map: GenTypeMap,
 ) -> GenFiles:
     return GenFiles(
         [
@@ -189,6 +205,7 @@ def gen_haxorg_source(
                 ast,
                 groups,
                 template_file=root / "src/haxorg_cpp_org_lib/imm/ImmOrgSerde.tcc",
+                type_map=type_map,
             ),
             _gen_imm_org_type(
                 ast,
@@ -205,6 +222,7 @@ def gen_haxorg_source(
                 groups,
                 header=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerde.hpp",
                 source=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerde.cpp",
+                type_map=type_map,
             ),
             _gen_sem_org_shared_type(
                 groups,
@@ -215,14 +233,17 @@ def gen_haxorg_source(
                 groups,
                 header=root / "src/haxorg_cpp_org_lib/sem/SemOrgEnums.hpp",
                 source=root / "src/haxorg_cpp_org_lib/sem/SemOrgEnums.cpp",
+                type_map=type_map,
             ),
             gen_exporter_template(
                 groups,
                 out_file=root / "src/haxorg_cpp_org_lib/exporters/Exporter.tcc",
+                type_map=type_map,
             ),
             gen_exporter_methods(
                 groups,
                 out_file=root / "src/haxorg_cpp_org_lib/exporters/ExporterMethods.tcc",
+                type_map=type_map,
             ),
         ]
     )
