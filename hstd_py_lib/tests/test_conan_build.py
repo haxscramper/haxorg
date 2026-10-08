@@ -12,6 +12,7 @@ from pathlib import Path
 import plumbum
 import pytest
 import tomli_w
+from loguru import logger
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 ASSETS = Path(__file__).with_suffix("")
@@ -134,6 +135,53 @@ def fingerprint(path: Path) -> FileFingerprint:
     )
 
 
+BuildEvent = tuple[str, str]
+
+ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+BUILD_ACTION = re.compile(
+    r"\b(?:"
+    r"Building (?:C|CXX) object (?P<object>[^\r\n]+)"
+    r"|"
+    r"Linking (?:C|CXX) "
+    r"(?:static library|shared library|shared module|executable) "
+    r"(?P<link>[^\r\n]+)"
+    r")"
+)
+
+EXPECTED_COMPILATIONS = {
+    "ex_cpp_library": (
+        "building",
+        "CMakeFiles/ex_cpp_library.dir/src/ex_cpp_library/value.cpp",
+    ),
+    "ex_cpp_binary": (
+        "building",
+        "CMakeFiles/ex_cpp_binary.dir/src/ex_cpp_binary/main.cpp",
+    ),
+    "ex_cpp_nanobind": (
+        "building",
+        "CMakeFiles/ex_cpp_nanobind.dir/src/ex_cpp_nanobind/module.cpp",
+    ),
+}
+
+
+def build_events(output: str) -> set[BuildEvent]:
+    output = ANSI_ESCAPE.sub("", output)
+    events = set()
+
+    for match in BUILD_ACTION.finditer(output):
+        object_path = match.group("object")
+
+        if object_path is not None:
+            path = object_path.strip().replace("\\", "/")
+            events.add(("building", path.removesuffix(".o")))
+        else:
+            path = match.group("link").strip().replace("\\", "/")
+            events.add(("linking", Path(path).name))
+
+    return events
+
+
 @dataclass
 class Sandbox:
     directory: Path
@@ -142,6 +190,7 @@ class Sandbox:
     python_packages: tuple[str, ...]
     native_packages: tuple[str, ...]
     members: tuple[str, ...]
+    last_build_output: str = ""
 
     def run(
         self,
@@ -155,10 +204,16 @@ class Sandbox:
         if environment is not None:
             actual_environment.update(environment)
 
-        return plumbum.local[command[0]][command[1:]].run(
+        result = plumbum.local[command[0]][command[1:]].run(
             cwd=str(self.root if cwd is None else cwd),
             env=actual_environment,
         )
+
+        # logger.debug(f"{command}")
+        # logger.debug(f"stdout:\n{result[0]}")
+        # logger.debug(f"stderr:\n{result[1]}")
+
+        return result
 
     def conan_arguments(self, root: Path | None = None) -> list[str]:
         return [
@@ -208,6 +263,7 @@ class Sandbox:
 
         command = [
             "uv",
+            "-vv",
             "sync",
             "--project",
             str(root),
@@ -221,11 +277,13 @@ class Sandbox:
         if not editable:
             command.append("--no-editable")
 
-        self.run(
+        _, stdout, stderr = self.run(
             command,
             cwd=root,
             environment={"UV_PROJECT_ENVIRONMENT": str(environment_path)},
         )
+
+        self.last_build_output = stdout + "\n" + stderr
 
         return environment_path
 
@@ -242,12 +300,14 @@ class Sandbox:
         if editable:
             command.append("--editable")
 
-        self.run(
+        _, stdout, stderr = self.run(
             command,
             environment={
                 "HAXORG_PY_TEST_UV_INSTALL_DIR_OVERRIDE": str(environment_path),
+                "HSTD_PY_TEST_UV_INSTALL_UV_FLAGS": json.dumps(["-vv"]),
             },
         )
+        self.last_build_output = stdout + "\n" + stderr
 
         return environment_path
 
@@ -645,7 +705,7 @@ def make_sandbox(
             "PYTHONNOUSERSITE": "1",
             "HATCH_CONAN_RUN_TESTS": "0",
             "HSTD_PY_PYTEST_EXTRA_ARGS": json.dumps(["-s", "-vv", "--color=no"]),
-            "HSTD_PY_TEST_UV_INSTALL_UV_FLAGS": "[]",
+            "HSTD_PY_TEST_UV_INSTALL_UV_FLAGS": json.dumps(["-vv"]),
             "EX_EXPECTED_VERSION": "1",
             "CC": "clang",
             "CXX": "clang++",
@@ -683,11 +743,16 @@ def test_workspace_refresh(
     )
 
     environment = sandbox.sync(target, editable=editable)
+    events = build_events(sandbox.last_build_output)
+    for e in events:
+        logger.debug(f"initial: {e}")
+
     initial_report = sandbox.probe(environment, target, editable=editable)
     sandbox.assert_workspace_provenance(initial_report)
     initial_outputs = sandbox.workspace_fingerprints()
 
     sandbox.sync(target, editable=editable)
+
     unchanged_report = sandbox.probe(environment, target, editable=editable)
     sandbox.assert_workspace_provenance(unchanged_report)
 
@@ -696,6 +761,7 @@ def test_workspace_refresh(
 
     sandbox.update_sources()
     sandbox.sync(target, editable=editable)
+
     updated_report = sandbox.probe(environment, target, editable=editable)
     sandbox.assert_workspace_provenance(updated_report)
 
@@ -733,17 +799,38 @@ def test_uv_package_validation(
         sandbox.environment["PATH"] = f"{sentinel.parent}:{sandbox.environment['PATH']}"
 
     environment = sandbox.validate_uv(target, editable=editable)
-    report = sandbox.probe(environment, target, editable=editable)
+    initial_report = sandbox.probe(environment, target, editable=editable)
 
     if sandbox.native_packages:
-        sandbox.assert_workspace_provenance(report)
+        assert_workspace_build_events(sandbox, stage="initial")
+        sandbox.assert_workspace_provenance(initial_report)
+
+    initial_outputs = sandbox.workspace_fingerprints()
+
+    # The validator recreates its environment and rebuilds Python packages,
+    # but unchanged workspace C++ must not compile or link again.
+    environment = sandbox.validate_uv(target, editable=editable)
+    unchanged_report = sandbox.probe(environment, target, editable=editable)
+
+    if sandbox.native_packages:
+        assert_workspace_build_events(sandbox, stage="unchanged")
+        sandbox.assert_workspace_provenance(unchanged_report)
+
+    assert unchanged_report == initial_report
+    assert sandbox.workspace_fingerprints() == initial_outputs
 
     sandbox.update_sources()
     environment = sandbox.validate_uv(target, editable=editable)
-    report = sandbox.probe(environment, target, editable=editable)
+    updated_report = sandbox.probe(environment, target, editable=editable)
 
     if sandbox.native_packages:
-        sandbox.assert_workspace_provenance(report)
+        assert_workspace_build_events(sandbox, stage="updated")
+        sandbox.assert_workspace_provenance(updated_report)
+
+    updated_outputs = sandbox.workspace_fingerprints()
+
+    for name, initial in initial_outputs.items():
+        assert updated_outputs[name].sha256 != initial.sha256, name
 
     assert not called.exists()
 

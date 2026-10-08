@@ -192,7 +192,7 @@ run_to_output target *ARGS:
 
 # run target, redirect logs, also trace all subprocess execs
 run_to_output_strace target *ARGS:
-  -strace -f -qq -ttt -s 0 -e trace=execve,execveat -o /tmp/subprocess_trigger.log just {{target}} {{ARGS}} > build/target_result.log 2>&1
+  -strace -f -qq -ttt -s 2097152 -e trace=execve,execveat -o /tmp/subprocess_trigger.log just {{target}} {{ARGS}} > build/target_result.log 2>&1
   echo "execution OK"
 
 run_to_output_strace_command target *ARGS:
