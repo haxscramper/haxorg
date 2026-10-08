@@ -13,6 +13,7 @@ from pathlib import Path
 import plumbum
 import pytest
 import tomli_w
+from beartype import beartype
 from loguru import logger
 
 
@@ -91,21 +92,25 @@ COPY_IGNORES = shutil.ignore_patterns(
 )
 
 
+@beartype
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
+@beartype
 def write_toml(path: Path, data: dict) -> None:
     write(path, tomli_w.dumps(data))
 
 
+@beartype
 def replace_once(path: Path, old: str, new: str) -> None:
     content = path.read_text(encoding="utf-8")
     assert content.count(old) == 1, (path, old)
     write(path, content.replace(old, new, 1))
 
 
+@beartype
 def closure(
     names: set[ExPackage],
     dependencies: dict[ExPackage, tuple[ExPackage, ...]],
@@ -123,26 +128,31 @@ def closure(
         result = expanded
 
 
+@beartype
 def normalized_name(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
+@beartype
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+@beartype
 def one_file(paths: list[Path]) -> Path:
     files = sorted({path.resolve() for path in paths if path.is_file()})
     assert len(files) == 1, f"Expected one file, found {len(files)}: {files}"
     return files[0]
 
 
+@beartype
 @dataclass(frozen=True)
 class FileFingerprint:
     modified_ns: int
     sha256: str
 
 
+@beartype
 def fingerprint(path: Path) -> FileFingerprint:
     return FileFingerprint(
         modified_ns=path.stat().st_mtime_ns,
@@ -150,7 +160,12 @@ def fingerprint(path: Path) -> FileFingerprint:
     )
 
 
-BuildEvent = tuple[str, str]
+class BuildStage(enum.Enum):
+    Build = 0
+    Link = 1
+
+
+BuildEvent = tuple[BuildStage, ExPackage | None, str]
 
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
@@ -164,42 +179,52 @@ BUILD_ACTION = re.compile(
     r")"
 )
 
-EXPECTED_COMPILATIONS = {
-    ExPackage.CppLibrary: (
-        "building",
-        f"CMakeFiles/{ExPackage.CppLibrary.value}.dir/"
-        f"src/{ExPackage.CppLibrary.value}/value.cpp",
-    ),
-    ExPackage.CppBinary: (
-        "building",
-        f"CMakeFiles/{ExPackage.CppBinary.value}.dir/"
-        f"src/{ExPackage.CppBinary.value}/main.cpp",
-    ),
-    ExPackage.CppNanobind: (
-        "building",
-        f"CMakeFiles/{ExPackage.CppNanobind.value}.dir/"
-        f"src/{ExPackage.CppNanobind.value}/module.cpp",
-    ),
-}
 
-
-def build_events(output: str) -> set[BuildEvent]:
+@beartype
+def build_events(output: str, with_external: bool = False) -> set[BuildEvent]:
     output = ANSI_ESCAPE.sub("", output)
     events = set()
+
+    native = "|".join(n.value for n in NATIVE_ORDER)
 
     for match in BUILD_ACTION.finditer(output):
         object_path = match.group("object")
 
         if object_path is not None:
-            path = object_path.strip().replace("\\", "/")
-            events.add(("building", path.removesuffix(".o")))
+            path = object_path.strip().replace("\\", "/").removesuffix(".o")
+            if match := re.match(
+                f"^CMakeFiles/({native}).dir/src/(?:{native})/(.*)$", path
+            ):
+                events.add((BuildStage.Build, ExPackage(match[1]), match[2]))
+            elif with_external:
+                events.add((BuildStage.Build, None, path))
+
         else:
             path = match.group("link").strip().replace("\\", "/")
-            events.add(("linking", Path(path).name))
+            events.add((BuildStage.Link, None, Path(path).name))
 
     return events
 
 
+@beartype
+@dataclass
+class ProbeReport:
+    version: int
+    packages: dict[str, str]
+
+    executable_file: str | None = None
+    nanobind_file: str | None = None
+
+    binary_protobuf_file: str | None = None
+    binary_revision_field: bool | None = None
+    binary_shared_label: str | None = None
+
+    nanobind_protobuf_file: str | None = None
+    nanobind_shared_label: str | None = None
+    nanobind_revision_field: bool | None = None
+
+
+@beartype
 @dataclass
 class Sandbox:
     directory: Path
@@ -227,7 +252,7 @@ class Sandbox:
             env=actual_environment,
         )
 
-        # logger.debug(f"{command}")
+        logger.debug(f"{command}")
         # logger.debug(f"stdout:\n{result[0]}")
         # logger.debug(f"stderr:\n{result[1]}")
 
@@ -336,7 +361,7 @@ class Sandbox:
         *,
         editable: bool,
         root: Path | None = None,
-    ) -> dict:
+    ) -> ProbeReport:
         root = self.root if root is None else root
         cwd = self.directory / "empty"
         cwd.mkdir(exist_ok=True)
@@ -359,11 +384,11 @@ class Sandbox:
             if line.startswith("EX_PROBE=")
         ]
         assert len(reports) == 1, stdout
-        report = reports[0]
+        report = ProbeReport(**reports[0])
 
-        assert report["version"] == int(self.environment["EX_EXPECTED_VERSION"])
+        assert report.version == int(self.environment["EX_EXPECTED_VERSION"])
 
-        for package_name, filename in report["packages"].items():
+        for package_name, filename in report.packages.items():
             name = ExPackage(package_name)
             installed = Path(filename).resolve()
             source = (root / name.value / "src").resolve()
@@ -377,18 +402,18 @@ class Sandbox:
             if not editable:
                 assert installed.is_relative_to(environment_path.resolve())
 
-        artifact_packages = {
-            "executable_file": None,
-            "nanobind_file": ExPackage.PyNeedNanobind,
-            "binary_protobuf_file": ExPackage.PyNeedBinary,
-            "nanobind_protobuf_file": ExPackage.PyNeedNanobind,
-        }
+        artifacts = [
+            (report.executable_file, None),
+            (report.nanobind_file, ExPackage.PyNeedNanobind),
+            (report.binary_protobuf_file, ExPackage.PyNeedBinary),
+            (report.nanobind_protobuf_file, ExPackage.PyNeedNanobind),
+        ]
 
-        for key, package in artifact_packages.items():
-            if key not in report:
+        for filename, package in artifacts:
+            if filename is None:
                 continue
 
-            artifact = Path(report[key]).resolve()
+            artifact = Path(filename).resolve()
             assert artifact.is_file()
 
             if package is None or not editable:
@@ -419,15 +444,15 @@ class Sandbox:
             name: fingerprint(path) for name, path in self.workspace_outputs().items()
         }
 
-    def assert_workspace_provenance(self, report: dict) -> None:
+    def assert_workspace_artifacts_match(self, report: ProbeReport) -> None:
         outputs = self.workspace_outputs()
 
-        for key, native in (
-            ("executable_file", ExPackage.CppBinary),
-            ("nanobind_file", ExPackage.CppNanobind),
+        for filename, native in (
+            (report.executable_file, ExPackage.CppBinary),
+            (report.nanobind_file, ExPackage.CppNanobind),
         ):
-            if key in report:
-                assert digest(Path(report[key])) == digest(outputs[native])
+            if filename is not None:
+                assert digest(Path(filename)) == digest(outputs[native])
 
     def create_native(self) -> None:
         assert not (self.root / "conanws.yml").exists()
@@ -499,17 +524,17 @@ class Sandbox:
         assert folder.is_relative_to(Path(self.environment["CONAN_HOME"]).resolve())
         return folder
 
-    def assert_cache_provenance(self, report: dict, root: Path) -> None:
+    def assert_cached_artifacts_match(self, report: ProbeReport, root: Path) -> None:
         folders = {
             name: self.cached_package_folder(name, root) for name in self.native_packages
         }
 
-        if "executable_file" in report:
-            assert digest(Path(report["executable_file"])) == digest(
+        if report.executable_file is not None:
+            assert digest(Path(report.executable_file)) == digest(
                 folders[ExPackage.CppBinary] / "bin" / ExPackage.CppBinary.value
             )
 
-        if "nanobind_file" in report:
+        if report.nanobind_file is not None:
             extension = one_file(
                 list(
                     (folders[ExPackage.CppNanobind] / "lib").glob(
@@ -517,7 +542,7 @@ class Sandbox:
                     )
                 )
             )
-            assert digest(Path(report["nanobind_file"])) == digest(extension)
+            assert digest(Path(report.nanobind_file)) == digest(extension)
 
         for name, filename in (
             (ExPackage.CppLibrary, "shared.proto"),
@@ -634,6 +659,7 @@ def write_workspace(root: Path, members: tuple[str, ...]) -> None:
     )
 
 
+@beartype
 def make_sandbox(
     directory: Path,
     *,
@@ -768,34 +794,67 @@ def test_workspace_refresh(
     target: ExPackage,
     editable: bool,
 ) -> None:
+    logger.debug("")
     sandbox = make_sandbox(
         stable_test_dir,
         python_target=target,
         conan_workspace=True,
     )
 
+    Ep = ExPackage
+
+    def get_stage(stage: str) -> tuple[list[tuple[ExPackage, str]], list[str]]:
+        res_build = list()
+        res_link = list()
+        events = build_events(sandbox.last_build_output)
+        logger.debug(f"target={target} editable={editable}")
+        for e in events:
+            logger.debug(f"{stage}: {e}")
+            if e[0] == BuildStage.Build and e[1] is not None:
+                res_build.append((e[1], e[2]))
+
+            elif e[0] == BuildStage.Link:
+                res_link.append(e[2])
+
+        return res_build, res_link
+
     environment = sandbox.sync(target, editable=editable)
-    events = build_events(sandbox.last_build_output)
-    for e in events:
-        logger.debug(f"initial: {e}")
+    ev_init, _ = get_stage("initial")
+    match target:
+        case ExPackage.PyNeedBinary:
+            assert (Ep.CppBinary, "main.cpp") in ev_init, ev_init
+            assert (Ep.CppLibrary, "value.cpp") in ev_init, ev_init
 
     initial_report = sandbox.probe(environment, target, editable=editable)
-    sandbox.assert_workspace_provenance(initial_report)
+    sandbox.assert_workspace_artifacts_match(initial_report)
     initial_outputs = sandbox.workspace_fingerprints()
 
     sandbox.sync(target, editable=editable)
+    ev_resync, _ = get_stage("resync")
+
+    # TODO: Why *ALL* packages pass this one? The non-editable trigger
+    # should validate all the dependant packages from scratch, workspace
+    # must not be used.
+    assert len(ev_resync) == 0
 
     unchanged_report = sandbox.probe(environment, target, editable=editable)
-    sandbox.assert_workspace_provenance(unchanged_report)
+    sandbox.assert_workspace_artifacts_match(unchanged_report)
 
     assert unchanged_report == initial_report
     assert sandbox.workspace_fingerprints() == initial_outputs
 
     sandbox.update_sources()
     sandbox.sync(target, editable=editable)
+    ev_edit, ev_edit_link = get_stage("resync")
+    match target:
+        case ExPackage.PyNeedBinary:
+            assert (Ep.CppBinary, "main.cpp") not in ev_edit, ev_edit
+            assert (Ep.CppLibrary, "value.cpp") in ev_edit, ev_edit
+            assert "libex_cpp_library.a" in ev_edit_link, ev_edit_link
+            assert "ex_cpp_binary" in ev_edit_link, ev_edit_link
 
     updated_report = sandbox.probe(environment, target, editable=editable)
-    sandbox.assert_workspace_provenance(updated_report)
+    sandbox.assert_workspace_artifacts_match(updated_report)
 
     updated_outputs = sandbox.workspace_fingerprints()
 
@@ -834,7 +893,7 @@ def test_uv_package_validation(
     initial_report = sandbox.probe(environment, target, editable=editable)
 
     if sandbox.native_packages:
-        sandbox.assert_workspace_provenance(initial_report)
+        sandbox.assert_workspace_artifacts_match(initial_report)
 
     initial_outputs = sandbox.workspace_fingerprints()
 
@@ -844,7 +903,7 @@ def test_uv_package_validation(
     unchanged_report = sandbox.probe(environment, target, editable=editable)
 
     if sandbox.native_packages:
-        sandbox.assert_workspace_provenance(unchanged_report)
+        sandbox.assert_workspace_artifacts_match(unchanged_report)
 
     assert unchanged_report == initial_report
     assert sandbox.workspace_fingerprints() == initial_outputs
@@ -854,7 +913,7 @@ def test_uv_package_validation(
     updated_report = sandbox.probe(environment, target, editable=editable)
 
     if sandbox.native_packages:
-        sandbox.assert_workspace_provenance(updated_report)
+        sandbox.assert_workspace_artifacts_match(updated_report)
 
     updated_outputs = sandbox.workspace_fingerprints()
 
@@ -970,7 +1029,7 @@ def test_editable_removes_stale_extensions(stable_test_dir: Path) -> None:
     assert not stale.exists()
 
     report = sandbox.probe(environment, target, editable=True)
-    sandbox.assert_workspace_provenance(report)
+    sandbox.assert_workspace_artifacts_match(report)
 
 
 def assert_process_failure(
