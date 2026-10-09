@@ -84,7 +84,7 @@ def gen_haxorg_cpp_library_wrappers(
 
 
 @beartype
-def run_codegen_base(
+def gen_haxorg_base_sources(
     monorepo_root: Path, t: TextLayout
 ) -> tuple[list[GenTuUnion], GenFiles]:
     builder = cpp.ASTBuilder(t)

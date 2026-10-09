@@ -8,7 +8,7 @@ from hstd_py_lib.os_utils import latest_file
 from hstd_py_text_layout.base.wrap import TextLayout
 from repo_py_orchestrate.codegen_config import org_codegen_data
 from repo_py_orchestrate.codegen_config.codegen import (
-    run_codegen_base,
+    gen_haxorg_base_sources,
     run_codegen_pyhaxorg_wrappers,
 )
 from repo_py_orchestrate.codegen_config.extract_refl import (
@@ -25,7 +25,7 @@ def test_org_codegen_data_run():
 def test_gen_base_code(stable_test_dir: Path):
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
-    _, sources = run_codegen_base(stable_test_dir, t=t)
+    _, sources = gen_haxorg_base_sources(stable_test_dir, t=t)
     gen_description_files(sources, builder, t)
 
 
@@ -53,7 +53,7 @@ def test_get_type_groups_with_reflection(stable_test_dir: Path) -> None:
 
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
-    base_types, _ = run_codegen_base(stable_test_dir, t=t)
+    base_types, _ = gen_haxorg_base_sources(stable_test_dir, t=t)
 
     wrappers = run_codegen_pyhaxorg_wrappers(
         base_types,
