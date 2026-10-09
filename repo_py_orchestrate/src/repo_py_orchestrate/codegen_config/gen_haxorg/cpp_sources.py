@@ -215,7 +215,7 @@ def gen_haxorg_source(
             _gen_imm_org_adapter(
                 groups,
                 header=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp",
-                source=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapter.cpp",
+                source=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapterGenerated.cpp",
             ),
             _gen_sem_org_serde(
                 ast,

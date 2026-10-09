@@ -202,5 +202,5 @@ run_to_output_strace_command target *ARGS:
 # ./repo_py_orchestrate/remap_conan_error_paths.py build/target_result.log
 
 # generate haxorg sources from fixed python config
-generate_haxorg_sources target_dir:
+generate_haxorg_sources target_dir=HAXORG_ROOT:
   uv run repo_py_orchestrate/src/repo_py_orchestrate/gen_haxorg_lib.py {{target_dir}}
