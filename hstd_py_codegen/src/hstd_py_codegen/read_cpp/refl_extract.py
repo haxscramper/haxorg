@@ -212,9 +212,9 @@ def run_reflection_tool(
     refl = {}
 
     tools = which_all("haxdex_read_code_cpp")
-    logger.info(f"Found {len(tools)} paths for the reflection reader tool:")
+    logger.trace(f"Found {len(tools)} paths for the reflection reader tool:")
     for tool in tools:
-        logger.info(
+        logger.trace(
             f"{tool} mtime {datetime.fromtimestamp(tool.stat().st_mtime).isoformat()}"
         )
 
@@ -226,7 +226,7 @@ def run_reflection_tool(
 
     indexing_tool = tools[0]
 
-    logger.info(f"using {indexing_tool}")
+    logger.trace(f"using {indexing_tool}")
 
     tool = local[str(indexing_tool)]
 

@@ -2,6 +2,7 @@ import os
 
 from hstd_py_lib.script_logging import ExceptionContextNote
 from hstd_py_text_layout.base.wrap import TextLayout, TextOptions
+from loguru import logger
 from repo_py_orchestrate.codegen_config.org_codegen_data import *
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp

@@ -24,10 +24,13 @@ def to_debug_json(
             if override_result:
                 return override_result
 
-        if isinstance(obj, (int, float, str, bool, type(None))):
+        if isinstance(obj, enum.Enum):
+            return str(obj)
+
+        elif isinstance(obj, (int, float, str, bool, type(None))):
             return obj
 
-        elif isinstance(obj, (enum.Enum, enum.IntEnum, enum.StrEnum)):
+        elif isinstance(obj, (enum.IntEnum, enum.StrEnum)):
             return str(obj)
 
         if skip_cyclic_data and id(obj) in visited:

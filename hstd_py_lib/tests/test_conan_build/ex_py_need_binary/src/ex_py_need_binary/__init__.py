@@ -3,6 +3,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+REPLACE_TARGET = "ex_py_need_binary"
+
 
 def verify(expected_version: int) -> dict:
     executable = shutil.which("ex_cpp_binary")

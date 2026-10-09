@@ -13,6 +13,7 @@ from hstd_py_codegen.gen_cpp.codegen_algo import (
     rewrite_any_typedefs,
 )
 from hstd_py_codegen.gen_cpp.codegen_ir import QualType, n_sem
+from hstd_py_codegen.gen_cpp.codegen_type_order import topological_sort_entries
 from hstd_py_codegen.lang_build.astbuilder_c_config import (
     CAstbuilderConfig,
 )
@@ -26,9 +27,6 @@ from hstd_py_codegen.lang_convert.conv_c import (
 )
 from hstd_py_lib.script_logging import pprint_to_file_json
 from loguru import logger
-from repo_py_orchestrate.codegen_config.codegen_type_groups import (
-    topological_sort_entries,
-)
 
 
 @beartype

@@ -36,7 +36,7 @@ class HstdCppTextLayoutConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure(cli_args=["--fresh"])
+        cmake.configure()
         cmake.build()
 
     def package(self):

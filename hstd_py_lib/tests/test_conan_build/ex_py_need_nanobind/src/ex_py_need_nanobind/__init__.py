@@ -1,6 +1,8 @@
 import importlib
 from pathlib import Path
 
+REPLACE_TARGET = "ex_py_need_nanobind"
+
 
 def verify(expected_version: int) -> dict:
     extension = importlib.import_module(f"{__name__}.ex_cpp_nanobind")

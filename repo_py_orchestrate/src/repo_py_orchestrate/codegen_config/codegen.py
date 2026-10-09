@@ -6,6 +6,7 @@ from hstd_py_codegen.gen_cpp.codegen_type_order import topological_sort_entries
 from hstd_py_codegen.read_cpp import refl_read
 from hstd_py_lib.script_logging import to_debug_json
 from hstd_py_text_layout.base.wrap import TextLayout
+from loguru import logger
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     PyhaxorgTypeGroups,
     get_pyhaxorg_type_groups,

@@ -850,6 +850,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "pytest-xdist" },
 ]
 
 [package.metadata]
@@ -860,7 +861,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest" }]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-xdist" },
+]
 
 [[package]]
 name = "repo-py-validate"

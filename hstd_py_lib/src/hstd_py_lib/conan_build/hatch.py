@@ -51,7 +51,6 @@ class ConanBuildHook(BuildHookInterface):
                 fcntl.flock(lock_file, fcntl.LOCK_EX)
                 self._log(f"acquired workspace lock: {lock_path}")
 
-                self._prepare_workspace(workspace_root)
                 deploy_directory = self._deploy_package(
                     reference=reference,
                     cwd=workspace_root,
@@ -320,47 +319,6 @@ class ConanBuildHook(BuildHookInterface):
 
         return Path(workspace["folder"])
 
-    def _prepare_workspace(self, workspace_root: Path) -> None:
-        command = [
-            "conan",
-            "workspace",
-            "super-install",
-            f"--output-folder={workspace_root / 'build' / 'conan_super'}",
-            "-s",
-            "build_type=Release",
-            "--build=missing",
-        ]
-
-        conan_profile = os.environ.get("CONAN_PROFILE")
-
-        if conan_profile:
-            command.extend(["--profile:all", conan_profile])
-
-        command.extend(self._python_configuration())
-
-        self._run(
-            phase="install workspace dependencies",
-            command=command,
-            cwd=workspace_root,
-        )
-
-        build_command = [
-            "conan",
-            "workspace",
-            "build",
-        ]
-
-        if conan_profile:
-            build_command.extend(["--profile:all", conan_profile])
-
-        build_command.extend(self._python_configuration())
-
-        self._run(
-            phase="build workspace packages",
-            command=build_command,
-            cwd=workspace_root,
-        )
-
     def _deploy_package(
         self,
         reference: str,
@@ -392,6 +350,7 @@ class ConanBuildHook(BuildHookInterface):
             f"--deployer={deployer_path}",
             f"--deployer-folder={deploy_directory}",
             "--build=missing",
+            "--build=editable",
             "-s",
             "build_type=Release",
             "-c",

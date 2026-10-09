@@ -819,11 +819,44 @@ def test_workspace_refresh(
         return res_build, res_link
 
     environment = sandbox.sync(target, editable=editable)
-    ev_init, _ = get_stage("initial")
+    ev_init, ev_init_link = get_stage("initial")
+
+    nanobind_extension = f"{Ep.CppNanobind.value}{sysconfig.get_config_var('EXT_SUFFIX')}"
+
     match target:
         case ExPackage.PyNeedBinary:
-            assert (Ep.CppBinary, "main.cpp") in ev_init, ev_init
-            assert (Ep.CppLibrary, "value.cpp") in ev_init, ev_init
+            assert set(ev_init) == {
+                (Ep.CppBinary, "main.cpp"),
+                (Ep.CppLibrary, "value.cpp"),
+            }, ev_init
+            assert set(ev_init_link) == {
+                "libex_cpp_library.a",
+                Ep.CppBinary.value,
+            }, ev_init_link
+
+        case ExPackage.PyNeedNanobind:
+            assert set(ev_init) == {
+                (Ep.CppNanobind, "module.cpp"),
+                (Ep.CppLibrary, "value.cpp"),
+            }, ev_init
+            assert set(ev_init_link) == {
+                "libex_cpp_library.a",
+                "libnanobind-static.a",
+                nanobind_extension,
+            }, ev_init_link
+
+        case ExPackage.PyFinalDownstream:
+            assert set(ev_init) == {
+                (Ep.CppBinary, "main.cpp"),
+                (Ep.CppNanobind, "module.cpp"),
+                (Ep.CppLibrary, "value.cpp"),
+            }, ev_init
+            assert set(ev_init_link) == {
+                "libex_cpp_library.a",
+                "libnanobind-static.a",
+                Ep.CppBinary.value,
+                nanobind_extension,
+            }, ev_init_link
 
     initial_report = sandbox.probe(environment, target, editable=editable)
     sandbox.assert_workspace_artifacts_match(initial_report)
@@ -832,9 +865,6 @@ def test_workspace_refresh(
     sandbox.sync(target, editable=editable)
     ev_resync, _ = get_stage("resync")
 
-    # TODO: Why *ALL* packages pass this one? The non-editable trigger
-    # should validate all the dependant packages from scratch, workspace
-    # must not be used.
     assert len(ev_resync) == 0
 
     unchanged_report = sandbox.probe(environment, target, editable=editable)
@@ -846,12 +876,29 @@ def test_workspace_refresh(
     sandbox.update_sources()
     sandbox.sync(target, editable=editable)
     ev_edit, ev_edit_link = get_stage("resync")
+
     match target:
         case ExPackage.PyNeedBinary:
-            assert (Ep.CppBinary, "main.cpp") not in ev_edit, ev_edit
-            assert (Ep.CppLibrary, "value.cpp") in ev_edit, ev_edit
-            assert "libex_cpp_library.a" in ev_edit_link, ev_edit_link
-            assert "ex_cpp_binary" in ev_edit_link, ev_edit_link
+            assert set(ev_edit) == {(Ep.CppLibrary, "value.cpp")}, ev_edit
+            assert set(ev_edit_link) == {
+                "libex_cpp_library.a",
+                Ep.CppBinary.value,
+            }, ev_edit_link
+
+        case ExPackage.PyNeedNanobind:
+            assert set(ev_edit) == {(Ep.CppLibrary, "value.cpp")}, ev_edit
+            assert set(ev_edit_link) == {
+                "libex_cpp_library.a",
+                nanobind_extension,
+            }, ev_edit_link
+
+        case ExPackage.PyFinalDownstream:
+            assert set(ev_edit) == {(Ep.CppLibrary, "value.cpp")}, ev_edit
+            assert set(ev_edit_link) == {
+                "libex_cpp_library.a",
+                Ep.CppBinary.value,
+                nanobind_extension,
+            }, ev_edit_link
 
     updated_report = sandbox.probe(environment, target, editable=editable)
     sandbox.assert_workspace_artifacts_match(updated_report)
@@ -955,13 +1002,13 @@ def test_cached_package_installation(
     sandbox.create_native()
     environment = sandbox.sync(target, editable=editable)
     report = sandbox.probe(environment, target, editable=editable)
-    sandbox.assert_cache_provenance(report, sandbox.root)
+    sandbox.assert_cached_artifacts_match(report, sandbox.root)
 
     sandbox.update_sources()
     sandbox.create_native()
     sandbox.sync(target, editable=editable)
     report = sandbox.probe(environment, target, editable=editable)
-    sandbox.assert_cache_provenance(report, sandbox.root)
+    sandbox.assert_cached_artifacts_match(report, sandbox.root)
 
 
 @pytest.mark.parametrize("editable", INSTALL_MODES)
@@ -991,7 +1038,7 @@ def test_external_downstream(
         editable=editable,
         root=downstream,
     )
-    sandbox.assert_cache_provenance(report, downstream)
+    sandbox.assert_cached_artifacts_match(report, downstream)
 
     sandbox.update_sources()
     sandbox.create_native()
@@ -1009,7 +1056,7 @@ def test_external_downstream(
         editable=editable,
         root=downstream,
     )
-    sandbox.assert_cache_provenance(report, downstream)
+    sandbox.assert_cached_artifacts_match(report, downstream)
 
 
 def test_editable_removes_stale_extensions(stable_test_dir: Path) -> None:
@@ -1021,7 +1068,8 @@ def test_editable_removes_stale_extensions(stable_test_dir: Path) -> None:
     )
     environment = sandbox.sync(target, editable=True)
     report = sandbox.probe(environment, target, editable=True)
-    extension = Path(report["nanobind_file"])
+    assert report.nanobind_file
+    extension = Path(report.nanobind_file)
     stale = extension.with_name(f"{ExPackage.CppNanobind.value}.obsolete-abi.so")
     shutil.copy2(extension, stale)
 

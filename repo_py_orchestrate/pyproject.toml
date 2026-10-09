@@ -15,6 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
   "pytest",
+  "pytest-xdist",
 ]
 
 [tool.hatch.build.targets.wheel]

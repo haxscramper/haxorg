@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import enum
 import importlib
 import json
 import math
@@ -170,6 +171,9 @@ def to_json_safe(value: Any, wrap_type_mapping: bool = True) -> Any:
                 )
                 for v in value
             ]
+
+        case enum.Enum():
+            return value.value
 
         case _:
             entry = _DUMPERS.get(type(value))

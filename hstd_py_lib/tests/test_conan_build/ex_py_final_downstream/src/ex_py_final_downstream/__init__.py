@@ -4,6 +4,8 @@ from ex_py_need_binary import verify as verify_binary
 from ex_py_need_nanobind import verify as verify_nanobind
 from ex_py_standalone import verify as verify_standalone
 
+REPLACE_TARGET = "ex_py_final_downstream"
+
 
 def verify(expected_version: int) -> dict:
     report = {
