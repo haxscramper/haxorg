@@ -38,8 +38,8 @@ class PyhaxorgTypeGroups:
     "Type groups for wrapping and codegen"
 
     shared_types: List[codegen_ir.GenTuStruct] = field(default_factory=list)
-    expanded: List[codegen_ir.GenTuStruct] = field(default_factory=list)
-    immutable: List[codegen_ir.GenTuStruct] = field(default_factory=list)
+    sem_node_definitions: List[codegen_ir.GenTuStruct] = field(default_factory=list)
+    imm_node_definitions: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     adapter_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
     full_enums: List[codegen_ir.GenTuEnum] = field(default_factory=list)
     imm_id_specializations: List[codegen_ir.GenTuStruct] = field(default_factory=list)
@@ -47,15 +47,15 @@ class PyhaxorgTypeGroups:
     "Types not exposed for codegen, but only for entry wrapping"
 
     def get_protobuf_target_entires(self) -> Sequence[codegen_ir.GenTuUnion]:
-        return self.full_enums + self.shared_types + self.expanded
+        return self.full_enums + self.shared_types + self.sem_node_definitions
 
     def get_all(self) -> list[codegen_ir.GenTuUnion]:
         return list(
             itertools.chain(
                 self.full_enums,
                 self.shared_types,
-                self.expanded,
-                self.immutable,
+                self.sem_node_definitions,
+                self.imm_node_definitions,
                 self.imm_id_specializations,
                 self.adapter_specializations,
                 self.only_wrap_entries,
@@ -71,21 +71,23 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
     """
     res = PyhaxorgTypeGroups()
     res.shared_types = expand_type_groups(ast, org_data.get_shared_sem_types())
-    res.expanded = expand_type_groups(ast, org_data.get_types())
-    adapters = gen_imm.generate_adapter_specializations(ast, res.expanded)
+    res.sem_node_definitions = expand_type_groups(
+        ast, org_data.get_sem_node_definitions()
+    )
+    adapters = gen_imm.generate_adapter_specializations(ast, res.sem_node_definitions)
     res.adapter_specializations = adapters
-    res.immutable = expand_type_groups(
-        ast, gen_imm.rewrite_to_immutable(org_data.get_types())
+    res.imm_node_definitions = expand_type_groups(
+        ast, gen_imm.rewrite_to_immutable(org_data.get_sem_node_definitions())
     )
 
     res.full_enums = (
         org_data.get_shared_sem_enums()
         + org_data.get_enums()
-        + [get_osk_enum(res.expanded)]
+        + [get_osk_enum(res.sem_node_definitions)]
     )
 
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
-    for sem_base in res.expanded:
+    for sem_base in res.sem_node_definitions:
         derived_base: str = sem_base.Name.Name
         Derived = QualType(Name=f"Imm{derived_base}", Spaces=imm_space)
         Base = QualType(Name="ImmAdapterTBase", Spaces=imm_space, Params=[Derived])
@@ -103,7 +105,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
             )
         )
 
-    for org_type in org_data.get_types():
+    for org_type in org_data.get_sem_node_definitions():
         res.imm_id_specializations.append(
             codegen_ir.GenTuStruct(
                 OriginName="imm ID explicit",

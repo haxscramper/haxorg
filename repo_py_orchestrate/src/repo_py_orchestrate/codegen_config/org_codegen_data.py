@@ -3115,7 +3115,7 @@ def get_shared_sem_types() -> Sequence[GenTuStruct]:
     ]
 
 
-def get_types() -> Sequence[GenTuStruct]:
+def get_sem_node_definitions() -> Sequence[GenTuStruct]:
     return [
         d_org("NoNode", GenTuDoc("No node"), Bases=[t_nest(t_org("Org"))]),
         *get_sem_bases(),

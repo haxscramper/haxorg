@@ -19,7 +19,7 @@ from repo_py_orchestrate.codegen_config.extract_refl import (
 def test_org_codegen_data_run():
     org_codegen_data.get_enums()
     org_codegen_data.get_shared_sem_enums()
-    org_codegen_data.get_types()
+    org_codegen_data.get_sem_node_definitions()
 
 
 def test_gen_base_code(stable_test_dir: Path):

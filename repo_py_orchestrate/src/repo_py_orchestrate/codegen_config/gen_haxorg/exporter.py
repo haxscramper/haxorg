@@ -131,7 +131,9 @@ def gen_exporter_template(
             out_file,
             [
                 *_get_exporter_methods(False, groups.shared_types, type_map=type_map),
-                *_get_exporter_methods(False, groups.expanded, type_map=type_map),
+                *_get_exporter_methods(
+                    False, groups.sem_node_definitions, type_map=type_map
+                ),
             ],
         ),
     )
@@ -147,7 +149,9 @@ def gen_exporter_methods(
             out_file,
             [
                 *_get_exporter_methods(True, groups.shared_types, type_map=type_map),
-                *_get_exporter_methods(True, groups.expanded, type_map=type_map),
+                *_get_exporter_methods(
+                    True, groups.sem_node_definitions, type_map=type_map
+                ),
             ],
         )
     )

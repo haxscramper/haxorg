@@ -32,15 +32,15 @@ def _gen_sem_org_enums(
                 GenTuPass("#include <hstd_cpp_lib/system/reflection.hpp>"),
                 GenTuPass("#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>"),
                 *gen_pyhaxorg_shared_iteration_macros(groups.shared_types),
-                *gen_pyhaxorg_iteration_macros(types=groups.expanded),
+                *gen_pyhaxorg_iteration_macros(types=groups.sem_node_definitions),
                 *gen_pyhaxorg_field_iteration_macros(
-                    types=groups.expanded,
+                    types=groups.sem_node_definitions,
                     type_map=type_map,
                     ast=ast,
                     macro_namespace="SEM",
                 ),
                 *gen_pyhaxorg_field_iteration_macros(
-                    types=groups.immutable,
+                    types=groups.imm_node_definitions,
                     type_map=type_map,
                     ast=ast,
                     macro_namespace="IMM",
@@ -90,7 +90,7 @@ def _gen_imm_org_serde(
         header=GenTu(
             template_file,
             gen_imm.get_imm_serde(
-                types=groups.expanded,
+                types=groups.sem_node_definitions,
                 ast=ast,
                 type_map=type_map,
             ),
@@ -107,7 +107,7 @@ def _gen_imm_org_type(
             [
                 GenTuPass("#pragma once"),
                 GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
-                GenTuNamespace(n_imm(), groups.immutable),
+                GenTuNamespace(n_imm(), groups.imm_node_definitions),
             ],
         )
     )
@@ -220,8 +220,8 @@ def gen_haxorg_source(
             _gen_sem_org_serde(
                 ast,
                 groups,
-                header=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerde.hpp",
-                source=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerde.cpp",
+                header=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerdeDeclarations.hpp",
+                source=root / "src/haxorg_cpp_org_lib/serde/SemOrgSerdeDefinitions.cpp",
                 type_map=type_map,
             ),
             _gen_sem_org_shared_type(
