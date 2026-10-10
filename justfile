@@ -181,7 +181,7 @@ conan_clean_all:
   conan remove "*" -c
 
 py_validate target *args:
-  {{HAXORG_ROOT}}/repo_ci_config/py_ci/test_uv_install.py \
+  uv run {{HAXORG_ROOT}}/repo_ci_config/py_ci/test_uv_install.py \
     {{HAXORG_ROOT}}/{{target}} \
     --conan-profile={{CONAN_PROFILE}} \
     {{args}}

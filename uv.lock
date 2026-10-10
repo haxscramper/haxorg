@@ -373,6 +373,7 @@ dev = [
     { name = "coverage" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-xdist" },
 ]
 
 [package.metadata]
@@ -389,6 +390,7 @@ dev = [
     { name = "coverage" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pytest-xdist" },
 ]
 
 [[package]]

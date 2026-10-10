@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,7 @@ from contextlib import ExitStack
 from pathlib import Path
 
 import tomllib
+from hstd_py_lib.debug_utils import bootstrap, config
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -128,32 +130,32 @@ def run_package_tests(
     env: dict[str, str],
 ) -> None:
     command = [
+        "python",
+        "-m",
         "pytest",
         *json.loads(env.get("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
         str(project_path / "tests"),
     ]
 
-    if env.get("HSTD_PY_PYTEST_USE_LLDB") == "1":
-        lldb_command = ["lldb", "--batch"]
-        lldb_script = env.get("HSTD_PY_PYTEST_LLDB_SCRIPT")
+    settings = config.Settings.from_environment(env)
 
-        if lldb_script:
-            lldb_command.extend(["--source", lldb_script])
-        else:
-            lldb_command.extend(
-                [
-                    "-o",
-                    "run",
-                    "-k",
-                    "thread backtrace all",
-                ]
-            )
+    if settings.enabled:
+        script = (
+            settings.script
+            if settings.script is not None
+            else Path(bootstrap.__file__).resolve()
+        )
 
         command = [
-            *lldb_command,
+            "lldb",
+            "--batch",
+            "-o",
+            f"command script import {shlex.quote(str(script))}",
+            "-o",
+            "rich-backtrace-configure",
+            "-o",
+            "run",
             "--",
-            "python",
-            "-m",
             *command,
         ]
 
