@@ -1,7 +1,11 @@
 import logging
 import shlex
+import sys
+import traceback
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
-from typing import Callable
+from functools import wraps
+from typing import ParamSpec, TypeVar
 
 import lldb
 
@@ -10,6 +14,8 @@ from hstd_py_lib.debug_utils.extract import (
     ExtractionContext,
     ExtractorRegistry,
 )
+from hstd_py_lib.debug_utils.extract_std import extract_std_string
+from hstd_py_lib.debug_utils.format_base import register_formatters
 from hstd_py_lib.debug_utils.model import ReportReason, ValueNode
 from hstd_py_lib.debug_utils.output import create_logger, emit_report
 
@@ -30,10 +36,7 @@ runtimes: dict[int, Runtime] = {}
 
 def register_extractor(
     pattern: str,
-    extract: Callable[
-        [lldb.SBValue, ExtractionContext, int],
-        ValueNode,
-    ],
+    extract: Callable[[lldb.SBValue, ExtractionContext, int], ValueNode],
 ) -> None:
     registry.register(pattern, extract)
 
@@ -171,7 +174,9 @@ def trace_command(
             runtime.settings,
             report,
         )
+
     except Exception as error:
+        traceback.print_exc(file=sys.stderr)
         result.SetError(f"rich-backtrace failed: {type(error).__name__}: {error}")
 
 
@@ -190,11 +195,29 @@ def configure_command(
 
         configure(debugger)
     except Exception as error:
+        traceback.print_exc(file=sys.stderr)
         result.SetError(
             f"rich-backtrace-configure failed: {type(error).__name__}: {error}"
         )
 
 
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def print_callback_errors(callback: Callable[P, R]) -> Callable[P, R]:
+    @wraps(callback)
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
+        try:
+            return callback(*args, **kwargs)
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
+            raise
+
+    return wrapped
+
+
+@print_callback_errors
 def breakpoint_callback(
     frame: lldb.SBFrame,
     location: lldb.SBBreakpointLocation,
@@ -244,6 +267,7 @@ class FatalSignalStopHook:
     ) -> None:
         self.debugger = target.GetDebugger()
 
+    @print_callback_errors
     def handle_stop(
         self,
         execution: lldb.SBExecutionContext,
@@ -285,7 +309,18 @@ class FatalSignalStopHook:
         return not runtime.settings.auto_continue
 
 
+@print_callback_errors
 def install(debugger: lldb.SBDebugger) -> None:
+    execute_command(debugger, "command script import lldb.formatters")
+    execute_command(debugger, "command script import lldb.formatters.cpp")
+    register_formatters(debugger)
+
+    register_extractor(
+        r"^(?:const[ \t]+)?std::"
+        r"(?:(?:__cxx11::)?basic_string<char[ \t]*[,>]|string\b)",
+        extract_std_string,
+    )
+
     execute_command(
         debugger,
         f"command script add -f {__name__}.trace_command rich-backtrace",

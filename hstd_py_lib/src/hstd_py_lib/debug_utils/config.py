@@ -8,12 +8,14 @@ from typing import Callable, Mapping
 
 def parse_boolean(value: str) -> bool:
     match value:
-        case "true":
+        case "true" | "1":
             return True
-        case "false":
+        case "false" | "0":
             return False
         case _:
-            raise ValueError(f"Expected 'true' or 'false', received {value!r}")
+            raise ValueError(
+                f"Unexpected bool value, expected true/false/1/0 received {value!r}"
+            )
 
 
 def parse_strings(value: str) -> list[str]:
@@ -39,11 +41,15 @@ def parse_path(value: str) -> Path:
 @dataclass(frozen=True)
 class Settings:
     enabled: bool = field(default=False, metadata={"parse": parse_boolean})
+    formatter_max_string: int = field(default=1024, metadata={"parse": int})
+    formatter_timeout_us: int = field(default=1_000_000, metadata={"parse": int})
+    python_repr: bool = field(default=True, metadata={"parse": parse_boolean})
     script: Path | None = field(default=None, metadata={"parse": parse_path})
     frame_start: int = field(default=0, metadata={"parse": int})
     frame_end: int = field(default=40, metadata={"parse": int})
     max_depth: int = field(default=4, metadata={"parse": int})
     max_nested: int = field(default=64, metadata={"parse": int})
+    binary_file_full_path: bool = field(default=False, metadata={"parse": parse_boolean})
     frame_blacklist: list[str] = field(
         default_factory=list, metadata={"parse": parse_strings}
     )
@@ -117,4 +123,4 @@ class Settings:
                     f"Invalid {variable}={source[variable]!r}: {error}"
                 ) from error
 
-        return cls(**values)
+        return cls(**values)  # type: ignore

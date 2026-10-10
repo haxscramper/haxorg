@@ -1,5 +1,6 @@
 import logging
 import sys
+from dataclasses import fields
 
 from hstd_py_lib.debug_utils.config import Settings
 from hstd_py_lib.debug_utils.model import Report, ValueNode
@@ -79,11 +80,14 @@ def format_value(
     return lines
 
 
-def format_report(report: Report) -> str:
+def format_report(report: Report, settings: Settings) -> str:
     lines = [
         f"=== {report.reason.value} traceback ===",
         f"pid={report.pid}",
     ]
+
+    for field in fields(settings):
+        lines.append(f"{field.name} = {getattr(settings, field.name)}")
 
     for thread in report.threads:
         lines.append(f"thread tid={thread.tid}: {thread.stop_reason}")
@@ -113,5 +117,9 @@ def emit_report(
     settings: Settings,
     report: Report,
 ) -> None:
-    text = report.to_json() if settings.structured_output else format_report(report)
+    text = (
+        report.to_json()
+        if settings.structured_output
+        else format_report(report, settings)
+    )
     logger.info(text)

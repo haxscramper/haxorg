@@ -1,11 +1,12 @@
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
 
 import lldb
 
 from hstd_py_lib.debug_utils.config import Settings
+from hstd_py_lib.debug_utils.format_base import FormatterMeta
 from hstd_py_lib.debug_utils.model import (
     FrameInfo,
     Report,
@@ -18,10 +19,7 @@ from hstd_py_lib.debug_utils.model import (
 @dataclass(frozen=True)
 class ExtractorRegistration:
     pattern: re.Pattern[str]
-    extract: Callable[
-        [lldb.SBValue, "ExtractionContext", int],
-        ValueNode,
-    ]
+    extract: Callable[[lldb.SBValue, "ExtractionContext", int], ValueNode]
 
 
 @dataclass
@@ -72,6 +70,28 @@ class ExtractionContext:
         for registration in self.registry.registrations:
             if registration.pattern.search(type_name):
                 return registration.extract(value, self, depth)
+
+        for provider in FormatterMeta.registry:
+            if not provider.extract_as_leaf:
+                continue
+
+            if re.search(provider.type_regex, type_name):
+                error = value.GetError()
+
+                if error.Fail():
+                    return ValueNode(
+                        name=value.GetName() or "",
+                        type_name=type_name,
+                        value=value.GetValue(),
+                        error=error.GetCString(),
+                    )
+
+                return ValueNode(
+                    name=value.GetName() or "",
+                    type_name=type_name,
+                    value=value.GetValue(),
+                    summary=provider.summary(value, {}),
+                )
 
         return self.extract_default(value, depth)
 
@@ -160,7 +180,15 @@ class ExtractionContext:
         )
 
         module = frame.GetModule()
-        binary_filename = module.GetFileSpec().GetFilename() if module.IsValid() else None
+        if module.IsValid():
+            file_spec = module.GetFileSpec()
+            binary_filename = (
+                file_spec.fullpath
+                if self.settings.binary_file_full_path
+                else file_spec.GetFilename()
+            )
+        else:
+            binary_filename = None
 
         return FrameInfo(
             index=index,
