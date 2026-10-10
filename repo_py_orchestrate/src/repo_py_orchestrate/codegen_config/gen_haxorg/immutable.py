@@ -542,13 +542,8 @@ def get_imm_serde(
                             writer_body.append(get_field_writer_call(field))
                             reader_body.append(get_field_reader_call(field))
 
-                    for base in sub.Bases:
-                        assert sub.Name.Name != base.Name, f"{sub.Name} ->>>> {base}"
-                        base_type = type_map.get_one_type_for_name(base.Name)
-                        if base_type:
-                            assert isinstance(base_type, codegen_ir.GenTuStruct)
-                            assert base_type.Name.Name != sub.Name.Name
-                            field_aux(base_type)
+                    for base_type in type_map.get_non_rec_base_types(sub):
+                        field_aux(base_type)
 
                 # sys.setrecursionlimit(32)
                 field_aux(it)

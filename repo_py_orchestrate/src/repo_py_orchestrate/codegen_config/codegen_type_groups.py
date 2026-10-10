@@ -11,6 +11,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import QualType
 from hstd_py_codegen.gen_cpp.codegen_type_order import (
     expand_type_groups,
 )
+from hstd_py_codegen.read_cpp.refl_read import ConvTu
 
 
 @beartype
@@ -46,6 +47,8 @@ class PyhaxorgTypeGroups:
     only_wrap_entries: List[codegen_ir.GenTuUnion] = field(default_factory=list)
     "Types not exposed for codegen, but only for entry wrapping"
 
+    context_tu: ConvTu = field(default_factory=lambda: ConvTu())
+
     def get_protobuf_target_entires(self) -> Sequence[codegen_ir.GenTuUnion]:
         return self.full_enums + self.shared_types + self.sem_node_definitions
 
@@ -59,6 +62,11 @@ class PyhaxorgTypeGroups:
                 self.imm_id_specializations,
                 self.adapter_specializations,
                 self.only_wrap_entries,
+                # additional context TU
+                self.context_tu.structs,
+                self.context_tu.functions,
+                self.context_tu.enums,
+                self.context_tu.typedefs,
             )
         )
 

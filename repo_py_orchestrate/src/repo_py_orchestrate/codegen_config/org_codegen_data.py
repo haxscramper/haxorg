@@ -5,6 +5,7 @@ from beartype.typing import Any, List, Optional, Union
 
 # Now you should be able to import your C++ library
 from hstd_py_codegen.gen_cpp.codegen_ir import *
+from hstd_py_codegen.read_cpp import refl_read
 
 
 @beartype
@@ -289,6 +290,27 @@ def d_simple_enum(name: QualType, doc: AnyDoc, *args: Any) -> GenTuEnum:
             for arg in args
         ],
     )
+
+
+# reflection run of the code generation must wrap the full
+# set of functions and fields for the org type, but the
+# base code generation only needs some common information
+# such as fields and presence of the base class for `Org`
+# common context is used to generate C++/protobuf sources
+# wrappers are generated using full reflection information
+# so the context TU must be supplied separately for the
+# code generation.
+COMMON_CONTEXT_TU = refl_read.ConvTu(
+    structs=[
+        org_struct(
+            t("Org", [t("org"), t("sem")]),
+            Fields=[
+                opt_field(t("SourceLoc", [t("org"), t("parse")]), "loc"),
+                vec_field(t_id(t("Org", [t("org"), t("sem")])), "subnodes"),
+            ],
+        )
+    ]
+)
 
 
 @beartype

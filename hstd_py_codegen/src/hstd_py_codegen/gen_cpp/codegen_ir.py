@@ -1538,6 +1538,26 @@ class GenTypeMap:
         else:
             return None
 
+    def get_non_rec_base_types(self, sub: GenTuStruct) -> list[GenTuStruct]:
+        result = list()
+        for base in sub.Bases:
+            # QUESTION: does it make sense to get all bases here and fail if the
+            # wrong one is matched? Implementation details are not clear here,
+            # the base class can actually be a templated instantiation that is
+            # not the default template.
+            base_type = self.get_one_type_for_name(base.Name)
+            if base_type:
+                assert isinstance(base_type, GenTuStruct)
+                assert base_type.Name.Name != sub.Name.Name
+                result.append(base_type)
+
+            else:
+                raise RuntimeError(
+                    f"Could not find type base: {sub.Name} uses base {base.Name} which is not in type map"
+                )
+
+        return result
+
     def add_type(self, typ: GenTuUnion) -> None:
         qual_name = None
 

@@ -85,10 +85,13 @@ def gen_haxorg_cpp_library_wrappers(
 
 @beartype
 def gen_haxorg_base_sources(
-    monorepo_root: Path, t: TextLayout
+    monorepo_root: Path,
+    t: TextLayout,
+    context_tu: refl_read.ConvTu = refl_read.ConvTu(),
 ) -> tuple[list[GenTuUnion], GenFiles]:
     builder = cpp.ASTBuilder(t)
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(ast=builder)
+    groups.context_tu = context_tu
     type_map = GenTypeMap.FromTypes(groups.get_all())
 
     sources = gen_haxorg_source(

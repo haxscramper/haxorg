@@ -1,11 +1,14 @@
+import sys
 from pathlib import Path
 
 import click
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
+from hstd_py_lib.script_logging import get_custom_traceback_handler
 from hstd_py_text_layout.base.wrap import TextLayout
 
 from repo_py_orchestrate.codegen_config.codegen import gen_haxorg_base_sources
+from repo_py_orchestrate.codegen_config.org_codegen_data import COMMON_CONTEXT_TU
 
 
 @click.command()
@@ -13,9 +16,16 @@ from repo_py_orchestrate.codegen_config.codegen import gen_haxorg_base_sources
 def main(root_dir: Path):
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
-    _, sources = gen_haxorg_base_sources(root_dir, t=t)
+    _, sources = gen_haxorg_base_sources(
+        root_dir,
+        t=t,
+        context_tu=COMMON_CONTEXT_TU,
+    )
     gen_description_files(sources, builder, t)
 
 
 if __name__ == "__main__":
+    sys.excepthook = get_custom_traceback_handler(
+        show_args=False,
+    )
     main()

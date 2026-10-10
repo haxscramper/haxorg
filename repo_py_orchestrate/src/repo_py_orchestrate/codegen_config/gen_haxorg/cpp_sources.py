@@ -64,16 +64,16 @@ def _gen_sem_org_shared_type(
             header,
             [
                 GenTuPass("#pragma once"),
-                GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
-                GenTuInclude("hstd/stdlib/Vec.hpp", True),
-                GenTuInclude("hstd/stdlib/Variant.hpp", True),
-                GenTuInclude("hstd/stdlib/Time.hpp", True),
-                GenTuInclude("hstd/stdlib/Opt.hpp", True),
-                GenTuInclude("hstd/stdlib/Str.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/sem/SemOrgEnums.hpp", True),
+                GenTuInclude("hstd_cpp_lib/stdlib/containers/Vec.hpp", True),
+                GenTuInclude("hstd_cpp_lib/stdlib/containers/Variant.hpp", True),
+                GenTuInclude("hstd_cpp_lib/stdlib/Time.hpp", True),
+                GenTuInclude("hstd_cpp_lib/stdlib/containers/Opt.hpp", True),
+                GenTuInclude("hstd_cpp_lib/stdlib/Str.hpp", True),
                 GenTuInclude("boost/describe.hpp", True),
-                GenTuInclude("hstd/system/macros.hpp", True),
-                GenTuInclude("haxorg/sem/SemOrgBaseSharedTypes.hpp", True),
-                GenTuInclude("haxorg/sem/SemOrgEnums.hpp", True),
+                GenTuInclude("hstd_cpp_lib/system/macros.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/sem/SemOrgBaseSharedTypes.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/sem/SemOrgEnums.hpp", True),
                 GenTuNamespace(n_sem(), groups.shared_types),
             ],
         )
@@ -106,7 +106,7 @@ def _gen_imm_org_type(
             header,
             [
                 GenTuPass("#pragma once"),
-                GenTuInclude("haxorg/imm/ImmOrgBase.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/imm/ImmOrgBase.hpp", True),
                 GenTuNamespace(n_imm(), groups.imm_node_definitions),
             ],
         )
@@ -123,15 +123,15 @@ def _gen_imm_org_adapter(
                 GenTuPass("#pragma once"),
                 GenTuPass("#define HAXORG_IMM_ORG_ADAPTER_GENERATED_INCLUDED"),
                 GenTuPass('#pragma clang diagnostic ignored "-Wextra-qualification"'),
-                GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/imm/ImmOrg.hpp", True),
                 GenTuNamespace(n_imm(), groups.adapter_specializations),
             ],
         ),
         source=GenTu(
             source,
             [
-                GenTuInclude("haxorg/imm/ImmOrg.hpp", True),
-                GenTuInclude("haxorg/imm/ImmOrgAdapterGenerated.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/imm/ImmOrg.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/imm/ImmOrgAdapterGenerated.hpp", True),
             ]
             + groups.adapter_specializations,
         ),
@@ -160,7 +160,7 @@ def _gen_sem_org_serde(
         header=GenTu(
             header,
             [
-                GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
+                GenTuPass("#if HAXORG_CPP_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
                 GenTuPass("#pragma once"),
                 GenTuPass("#include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>"),
                 GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
@@ -176,7 +176,7 @@ def _gen_sem_org_serde(
         source=GenTu(
             source,
             [
-                GenTuPass("#if ORG_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
+                GenTuPass("#if HAXORG_CPP_BUILD_WITH_PROTOBUF && !ORG_BUILD_EMCC"),
                 GenTuPass("#include <haxorg_cpp_org_lib/serde/SemOrgSerde.hpp>"),
                 GenTuPass(
                     "#include <haxorg_cpp_org_lib/serde/SemOrgSerdeDeclarations.hpp>"
@@ -214,7 +214,7 @@ def gen_haxorg_source(
             ),
             _gen_imm_org_adapter(
                 groups,
-                header=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp",
+                header=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapterGenerated.hpp",
                 source=root / "src/haxorg_cpp_org_lib/imm/ImmOrgAdapterGenerated.cpp",
             ),
             _gen_sem_org_serde(
