@@ -622,3 +622,70 @@ def test_python_nanobind_fatal_signal_preserves_faulthandler(
     assert result.reports[0].reason == ReportReason.SIGNAL
     assert result.reports[0].threads[0].signal_name == "SIGABRT"
     assert "Fatal Python error" in result.stdout + result.stderr
+
+
+def test_pytest_plugin_captures_backtraces_per_test(
+    fixture_build: FixtureBuild,
+    tmp_path: Path,
+) -> None:
+    report_directory = tmp_path / "pytest-backtraces"
+    report_directory.mkdir()
+
+    fixture = fixture_build.fixture_directory / "pytest_capture_fixture.py"
+
+    result = run_lldb(
+        tmp_path,
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "hstd_py_lib.debug_utils.pytest_plugin",
+            "--noconftest",
+            "--color=no",
+            "--tb=short",
+            "-o",
+            "addopts=",
+            "-q",
+            str(fixture),
+        ],
+        environment={
+            "PYTHONPATH": str(fixture_build.extension_directory),
+            "HSTD_PY_LLDB_BREAKPOINT_FUNCTIONS": json.dumps(["trace_fixture::inspect"]),
+            "HSTD_PY_LLDB_PYTEST_BACKTRACE_DIR": str(report_directory),
+            "HSTD_PY_LLDB_STRUCTURED_OUTPUT": "false",
+        },
+    )
+
+    output = result.stdout + result.stderr
+
+    # LLDB's batch status does not represent pytest's exit status.
+    assert result.status == 0, output
+    assert "1 failed, 1 passed" in output
+    assert "test_failing_breakpoint" in output
+
+    report_files = list(report_directory.glob("*.log"))
+    assert len(report_files) == 1, output
+
+    backtraces = report_files[0].read_text(encoding="utf-8")
+    marker = "=== breakpoint traceback ==="
+
+    # Both tests triggered a breakpoint, routed to the inferior's PID file.
+    assert backtraces.count(marker) == 2
+    assert f"pid={report_files[0].stem}" in backtraces
+    assert backtraces.count("count: int = 7") == 2
+
+    # Only the failing test's captured section should be displayed.
+    # This also verifies that the plugin consumes the passing test's logs
+    # rather than carrying them into the following test.
+    assert output.count("Captured LLDB backtrace call") == 1, output
+    assert output.count(marker) == 1, output
+    assert output.count("count: int = 7") == 1, output
+
+    # Nothing was printed immediately or sent to the normal LLDB log file.
+    before_failures, separator, _ = output.partition(
+        "=================================== FAILURES"
+    )
+    assert separator, output
+    assert marker not in before_failures
+    assert result.log_text == ""

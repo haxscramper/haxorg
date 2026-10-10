@@ -27,6 +27,7 @@ class FrameInfo:
     function_name: str
     file_path: str | None
     line: int | None
+    binary_filename: str | None = None
     arguments: list[ValueNode] = field(default_factory=list)
 
 

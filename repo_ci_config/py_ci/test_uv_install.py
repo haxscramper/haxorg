@@ -12,6 +12,7 @@ import sys
 import tempfile
 from contextlib import ExitStack
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import tomllib
 from hstd_py_lib.debug_utils import bootstrap, config
@@ -141,6 +142,14 @@ def run_package_tests(
 
     if settings.enabled:
         logging.info("LLDB not is enabled, running pytest under LLDB")
+
+        command.extend(
+            [
+                "-p",
+                "hstd_py_lib.debug_utils.pytest_plugin",
+            ]
+        )
+
         script = (
             settings.script
             if settings.script is not None
@@ -160,21 +169,27 @@ def run_package_tests(
             *command,
         ]
 
-    run(
-        [
-            "uv",
-            *TEST_UV_INSTALL_FLAGS,
-            "run",
-            "--project",
-            str(workspace_root),
-            "--package",
-            project_name,
-            "--no-sync",
-            *command,
-        ],
-        cwd=workspace_root,
-        env=env,
-    )
+    with TemporaryDirectory(prefix="hstd-pytest-backtraces-") as directory:
+        run_env = dict(env)
+
+        if settings.enabled:
+            run_env["HSTD_PY_LLDB_PYTEST_BACKTRACE_DIR"] = directory
+
+        run(
+            [
+                "uv",
+                *TEST_UV_INSTALL_FLAGS,
+                "run",
+                "--project",
+                str(workspace_root),
+                "--package",
+                project_name,
+                "--no-sync",
+                *command,
+            ],
+            cwd=workspace_root,
+            env=run_env,
+        )
 
 
 def install_test_package(

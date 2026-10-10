@@ -64,6 +64,10 @@ class Settings:
     auto_continue: bool = field(default=True, metadata={"parse": parse_boolean})
     log_file: Path | None = field(default=None, metadata={"parse": parse_path})
     structured_output: bool = field(default=False, metadata={"parse": parse_boolean})
+    pytest_backtrace_dir: Path | None = field(
+        default=None,
+        metadata={"parse": parse_path},
+    )
 
     def __post_init__(self) -> None:
         for name in (

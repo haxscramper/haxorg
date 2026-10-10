@@ -1,6 +1,6 @@
 import logging
 import shlex
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Callable
 
 import lldb
@@ -209,11 +209,29 @@ def breakpoint_callback(
         [frame.GetThread()],
         ReportReason.BREAKPOINT,
     )
-    emit_report(
-        runtime.logger,
-        runtime.settings,
-        report,
-    )
+
+    report_directory = runtime.settings.pytest_backtrace_dir
+    report_logger = runtime.logger
+
+    if report_directory is not None:
+        report_path = report_directory / f"{process.GetProcessID()}.log"
+        report_logger = create_logger(
+            f"{runtime.logger.name}.pytest",
+            replace(runtime.settings, log_file=report_path),
+        )
+
+    try:
+        emit_report(
+            report_logger,
+            runtime.settings,
+            report,
+        )
+    finally:
+        if report_logger is not runtime.logger:
+            for handler in list(report_logger.handlers):
+                report_logger.removeHandler(handler)
+                handler.close()
+
     return not runtime.settings.auto_continue
 
 

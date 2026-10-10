@@ -159,10 +159,14 @@ class ExtractionContext:
             True,
         )
 
+        module = frame.GetModule()
+        binary_filename = module.GetFileSpec().GetFilename() if module.IsValid() else None
+
         return FrameInfo(
             index=index,
             function_name=function_name,
             file_path=file_path,
+            binary_filename=binary_filename,
             line=line,
             arguments=[
                 self.extract(arguments.GetValueAtIndex(position))

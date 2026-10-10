@@ -97,7 +97,9 @@ def format_report(report: Report) -> str:
             if frame.file_path is not None:
                 location = f" @ {frame.file_path}:{frame.line}"
 
-            lines.append(f"frame #{frame.index}: {frame.function_name}{location}")
+            lines.append(
+                f"frame #{frame.index}: {frame.binary_filename} {frame.function_name}{location}"
+            )
 
             for argument in frame.arguments:
                 lines.extend(format_value(argument, 1))
