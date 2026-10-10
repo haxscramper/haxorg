@@ -351,8 +351,6 @@ class ConanBuildHook(BuildHookInterface):
             f"--deployer-folder={deploy_directory}",
             "--build=missing",
             "--build=editable",
-            "-s",
-            "build_type=Release",
             "-c",
             f"user.haxorg:hatch_deployment={configuration_path}",
         ]

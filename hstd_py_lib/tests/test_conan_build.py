@@ -29,7 +29,7 @@ class ExPackage(enum.Enum):
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 ASSETS = Path(__file__).with_suffix("")
-PROFILE = REPOSITORY / "repo_tool_configs/conan/conanprofile.txt"
+PROFILE = REPOSITORY / "repo_tool_configs/conan/conanprofile_debug.txt"
 UV_VALIDATOR = REPOSITORY / "repo_ci_config/py_ci/test_uv_install.py"
 
 PYTHON_DEPENDENCIES: dict[ExPackage, tuple[ExPackage, ...]] = {
@@ -262,8 +262,6 @@ class Sandbox:
         return [
             "--profile:all",
             str(PROFILE),
-            "-s",
-            "build_type=Release",
             "-c",
             f"user.haxorg:python_executable={sys.executable}",
             "-c",

@@ -57,10 +57,10 @@ repo_prepare_git_hooks:
 
 
 HAXORG_ROOT := source_directory()
+
 # custom profile is mandatory for full builds, otherwise onetbb fails
 # to configure hwloc, see profile text for more details.
-CONAN_PROFILE := HAXORG_ROOT / "repo_tool_configs/conan/conanprofile.txt"
-CONAN_BUILD := "Release"
+CONAN_PROFILE := env("CONAN_PROFILE")
 SUPPRESSION_FILE := HAXORG_ROOT / "repo_tool_configs/clang_suppressions.supp"
 CONAN_PYTHON_CONFIG := shell("uv run repo_py_orchestrate/src/repo_py_orchestrate/repo_utils/get_python_config.py") \
     + " -c " + quote("user.haxorg:uv_project=" + HAXORG_ROOT)
@@ -110,7 +110,6 @@ conan_validate_deps dep_name:
   conan remove "{{dep_name}}/*" -c
   conan create {{HAXORG_ROOT}}/repo_conan_wraps/{{dep_name}} \
     --profile:all={{CONAN_PROFILE}} \
-    -s build_type={{CONAN_BUILD}} \
     {{CONAN_PYTHON_CONFIG}} \
     --build=missing
 
@@ -123,7 +122,6 @@ conan_validate target: conan_export_local_deps
     --profile:all={{CONAN_PROFILE}} \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
     -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
-    -s build_type={{CONAN_BUILD}} \
     {{CONAN_PYTHON_CONFIG}} \
     --build=missing \
      -vstatus
@@ -157,7 +155,6 @@ conan_workspace_source:
 conan_workspace_install_monorepo:
   conan workspace super-install \
     --output-folder=build/conan_super \
-    -s build_type=Debug \
     --build=missing \
     {{CONAN_PYTHON_CONFIG}} \
     --profile:all={{CONAN_PROFILE}}
@@ -166,7 +163,6 @@ conan_workspace_install_monorepo:
 conan_workspace_install_per_project:
   mkdir -p build
   conan workspace install \
-    -s build_type=Debug \
     --build=missing \
     {{CONAN_PYTHON_CONFIG}} \
     --profile:all={{CONAN_PROFILE}}

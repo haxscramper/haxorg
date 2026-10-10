@@ -63,6 +63,7 @@ ignore = [
   "FLY002", # do not flag `"\n".join(["literal", "literal"])`
   "UP032", # do not flag `format()`
   "DTZ006",
+  "UP045",
 ]
 
 [tool.ruff.format]
