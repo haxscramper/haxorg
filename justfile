@@ -204,3 +204,6 @@ run_to_output_strace_command target *ARGS:
 # generate haxorg sources from fixed python config
 generate_haxorg_sources target_dir=HAXORG_ROOT:
   uv run repo_py_orchestrate/src/repo_py_orchestrate/gen_haxorg_lib.py {{target_dir}}
+
+generate_haxorg_wrappers target_dir=HAXORG_ROOT:
+  uv run repo_py_orchestrate/src/repo_py_orchestrate/gen_haxorg_wrappers.py {{HAXORG_ROOT}} {{target_dir}}

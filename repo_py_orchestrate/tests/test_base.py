@@ -25,7 +25,11 @@ def test_org_codegen_data_run():
 def test_gen_base_code(stable_test_dir: Path):
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
-    _, sources = gen_haxorg_base_sources(stable_test_dir, t=t)
+    _, sources = gen_haxorg_base_sources(
+        stable_test_dir,
+        t=t,
+        context_tu=org_codegen_data.COMMON_CONTEXT_TU,
+    )
     gen_description_files(sources, builder, t)
 
 

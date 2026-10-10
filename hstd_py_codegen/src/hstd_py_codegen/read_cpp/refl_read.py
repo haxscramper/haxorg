@@ -7,6 +7,7 @@ import re
 from copy import copy
 from dataclasses import dataclass, field, fields
 from pathlib import Path
+from types import UnionType
 
 import betterproto2 as betterproto
 from beartype import beartype
@@ -457,98 +458,104 @@ def dict_to_dataclass(
         return result
 
     def aux_impl(data: Any, cls: type[Any], path: tuple[Any, ...]) -> Any:
-        if data is None:
-            return None
+        match (data, cls):
+            case (None, _):
+                return None
 
-        elif cls == pb_google.Struct:
-            return pb_google.Struct.from_dict(data)
+            case (_, pb_google.Struct):
+                return pb_google.Struct.from_dict(data)
 
-        origin = get_origin(cls)
+        match get_origin(cls):
+            case origin if origin in (Union, UnionType):
+                args = [arg for arg in get_args(cls) if arg is not type(None)]
+                for arg in args:
+                    try:
+                        return aux(data, arg, path)
+                    except Exception:  # noqa
+                        pass
+                return data
 
-        if origin is Union:
-            args = [arg for arg in get_args(cls) if arg is not type(None)]
-            for arg in args:
-                try:
-                    return aux(data, arg, path)
-                except Exception:
-                    pass
-            return data
-
-        if origin is list:
-            (item_type,) = get_args(cls)
-            return [
-                aux(item, item_type, path + (index,)) for index, item in enumerate(data)
-            ]
-
-        if origin is tuple:
-            item_types = get_args(cls)
-            if len(item_types) == 2 and item_types[1] is Ellipsis:
-                return tuple(
-                    aux(item, item_types[0], path + (index,))
+            case origin if origin is list:
+                (item_type,) = get_args(cls)
+                return [
+                    aux(item, item_type, path + (index,))
                     for index, item in enumerate(data)
-                )
-            return tuple(
-                aux(item, item_type, path + (index,))
-                for index, (item, item_type) in enumerate(zip(data, item_types))
-            )
+                ]
 
-        if origin is dict:
-            key_type, value_type = get_args(cls)
-            return {
-                aux(key, key_type, path + (f"<key:{key}>",)): aux(
-                    value, value_type, path + (key,)
-                )
-                for key, value in data.items()
-            }
-
-        if is_dataclass(cls):
-            if not isinstance(data, dict):
-                raise TypeError(
-                    f"At {format_path(path)}: expected dict for {cls.__name__}, got {type(data).__name__}"
+            case origin if origin is tuple:
+                item_types = get_args(cls)
+                if len(item_types) == 2 and item_types[1] is Ellipsis:
+                    return tuple(
+                        aux(item, item_types[0], path + (index,))
+                        for index, item in enumerate(data)
+                    )
+                return tuple(
+                    aux(item, item_type, path + (index,))
+                    for index, (item, item_type) in enumerate(zip(data, item_types))
                 )
 
-            cls_fields = fields(cls)
-            field_names = {field.name for field in cls_fields}
-            unknown_fields = [
-                f for f in set(data) - field_names if (cls, f) not in allow_extra_fields
-            ]
-            if unknown_fields:
-                raise KeyError(
-                    f"At {format_path(path)}: unknown fields for {cls.__module__}.{cls.__name__}: "
-                    f"{sorted(unknown_fields)}, has fields {field_names}"
-                )
+            case origin if origin is dict:
+                key_type, value_type = get_args(cls)
+                return {
+                    aux(key, key_type, path + (f"<key:{key}>",)): aux(
+                        value, value_type, path + (key,)
+                    )
+                    for key, value in data.items()
+                }
 
-            type_hints = get_type_hints(cls)
-            kwargs = {}
-
-            for field in cls_fields:
-                field_path = path + (field.name,)
-                if field.name not in data:
-                    if (
-                        field.default is not MISSING
-                        or field.default_factory is not MISSING
-                    ):
-                        continue
-                    raise KeyError(
-                        f"At {format_path(field_path)}: missing required field"
+            case _ if is_dataclass(cls):
+                if not isinstance(data, dict):
+                    raise TypeError(
+                        f"At {format_path(path)}: expected dict for {cls.__name__}, got {type(data).__name__}"
                     )
 
-                field_type = type_hints[field.name]
-                kwargs[field.name] = aux(data[field.name], field_type, field_path)
+                cls_fields = fields(cls)
+                field_names = {field.name for field in cls_fields}
+                unknown_fields = [
+                    f
+                    for f in set(data) - field_names
+                    if (cls, f) not in allow_extra_fields
+                ]
+                if unknown_fields:
+                    raise KeyError(
+                        f"At {format_path(path)}: unknown fields for {cls.__module__}.{cls.__name__}: "
+                        f"{sorted(unknown_fields)}, has fields {field_names}"
+                    )
 
-            return cls(**kwargs)
+                type_hints = get_type_hints(cls)
+                kwargs = {}
 
-        elif issubclass(cls, (enum.Enum, betterproto.Enum)):
-            return cls[data]
+                for field in cls_fields:
+                    field_path = path + (field.name,)
+                    if field.name not in data:
+                        if (
+                            field.default is not MISSING
+                            or field.default_factory is not MISSING
+                        ):
+                            continue
+                        raise KeyError(
+                            f"At {format_path(field_path)}: missing required field"
+                        )
 
-        return data
+                    field_type = type_hints[field.name]
+                    kwargs[field.name] = aux(data[field.name], field_type, field_path)
+
+                return cls(**kwargs)
+
+            case _ if isinstance(cls, type) and issubclass(
+                cls, (enum.Enum, betterproto.Enum)
+            ):
+                return cls[data]
+
+            case _:
+                return data
 
     def aux(data: Any, cls: type[Any], path: tuple[Any, ...]) -> Any:
         try:
             return aux_impl(data, cls, path)
 
         except Exception as e:
-            e.add_note(f"cls: {cls.__module__}.{cls.__name__}")
+            e.add_note(f"At {format_path(path)}: cls={cls!r}")
             raise e from None
 
     return aux(data, cls, ())
