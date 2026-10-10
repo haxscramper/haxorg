@@ -107,8 +107,8 @@ def gen_pyhaxorg_cpp_py_wrap_source(
             [
                 GenTuPass("#undef slots"),
                 *NB_INCLUDE_LIST,
-                GenTuInclude("haxorg/imm/ImmOrgAdapter.hpp", True),
-                GenTuInclude("haxorg/sem/SemOrg.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp", True),
+                GenTuInclude("haxorg_cpp_org_lib/sem/SemOrg.hpp", True),
                 GenTuInclude("pyhaxorg_manual_impl.hpp", False),
                 GenTuPass(nb_module.build_bind(ast)),
             ],

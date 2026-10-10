@@ -363,6 +363,9 @@ def generate_adapter_specializations(
                 wrapper_has_params=False,
                 wrapper_name=f"{Derived.Name}Adapter",
                 default_constructor=False,
+                backend=codegen_ir.GenTuBackendParams(
+                    target_backends=["c", "wasm"],
+                ),
             ),
             Nested=[
                 codegen_ir.GenTuPass(

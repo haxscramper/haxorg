@@ -6,7 +6,6 @@ from graphlib import CycleError, TopologicalSorter
 from beartype import beartype
 from beartype.typing import Callable, Dict, List, Sequence
 from hstd_py_lib.script_logging import ExceptionContextNote, to_debug_json
-from loguru import logger
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from hstd_py_codegen.gen_cpp import codegen_ir
@@ -28,7 +27,6 @@ def topological_sort_entries(
     for it in entries:
         match it:
             case codegen_ir.GenTuStruct():
-                logger.info(f"{it.declarationQualName()}")
                 qual_hash = it.declarationQualName().qual_hash()
                 if qual_hash in entry_by_hash:
                     existing_entry = entry_by_hash[qual_hash]
