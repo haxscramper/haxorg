@@ -52,7 +52,10 @@ class PyhaxorgTypeGroups:
     def get_protobuf_target_entires(self) -> Sequence[codegen_ir.GenTuUnion]:
         return self.full_enums + self.shared_types + self.sem_node_definitions
 
-    def get_all(self) -> list[codegen_ir.GenTuUnion]:
+    # TODO: Remove `with_context` -- this is a workaround necessary to
+    # support wrapper generation with mixed codegen and reflection context
+    # sources
+    def get_all(self, with_context: bool = True) -> list[codegen_ir.GenTuUnion]:
         return list(
             itertools.chain(
                 self.full_enums,
@@ -63,10 +66,10 @@ class PyhaxorgTypeGroups:
                 self.adapter_specializations,
                 self.only_wrap_entries,
                 # additional context TU
-                self.context_tu.structs,
-                self.context_tu.functions,
-                self.context_tu.enums,
-                self.context_tu.typedefs,
+                self.context_tu.structs if with_context else [],
+                self.context_tu.functions if with_context else [],
+                self.context_tu.enums if with_context else [],
+                self.context_tu.typedefs if with_context else [],
             )
         )
 

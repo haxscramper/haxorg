@@ -88,6 +88,7 @@ def gen_haxorg_base_sources(
     monorepo_root: Path,
     t: TextLayout,
     context_tu: refl_read.ConvTu = refl_read.ConvTu(),
+    with_context: bool = True,
 ) -> tuple[list[GenTuUnion], GenFiles]:
     builder = cpp.ASTBuilder(t)
     groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(ast=builder)
@@ -101,7 +102,7 @@ def gen_haxorg_base_sources(
         type_map=type_map,
     )
 
-    return groups.get_all(), sources
+    return groups.get_all(with_context=with_context), sources
 
 
 @beartype

@@ -8,6 +8,7 @@ from hstd_py_codegen.read_cpp.refl_read import conv_proto_file
 from hstd_py_lib.os_utils import latest_file
 from hstd_py_lib.script_logging import get_custom_traceback_handler
 from hstd_py_text_layout.base.wrap import TextLayout
+from loguru import logger
 
 from repo_py_orchestrate.codegen_config.codegen import (
     gen_haxorg_base_sources,
@@ -20,6 +21,7 @@ from repo_py_orchestrate.codegen_config.extract_refl import extract_reflection
 @click.argument("source_dir", type=Path)
 @click.argument("out_dir", type=Path)
 def main(source_dir: Path, out_dir: Path):
+    logger.info("Collecting reflection for target")
     reflection_uv = extract_reflection(
         compilation_database=latest_file(
             [
@@ -41,16 +43,19 @@ def main(source_dir: Path, out_dir: Path):
 
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
+    logger.info("Building haxorg base sources")
     base_types, _ = gen_haxorg_base_sources(
         source_dir,
         t=t,
         context_tu=reflection_uv,
+        with_context=False,
     )
     manual_tu = conv_proto_file(
         source_dir
         / "repo_py_orchestrate/src/repo_py_orchestrate/codegen_config/codegen_extra_types.json"
     )
 
+    logger.info("Generating wrappers")
     wrappers = run_codegen_pyhaxorg_wrappers(
         base_types,
         out_dir,
@@ -59,6 +64,7 @@ def main(source_dir: Path, out_dir: Path):
         t=t,
     )
 
+    logger.info("Writing wrapper files")
     for wrap in wrappers:
         gen_description_files(wrap, builder, t)
 
