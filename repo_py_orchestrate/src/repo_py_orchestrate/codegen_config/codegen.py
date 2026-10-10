@@ -26,12 +26,6 @@ from repo_py_orchestrate.codegen_config.gen_wrappers.wasm_wrap import (
 from repo_py_orchestrate.codegen_config.org_codegen_data import *
 
 
-class CodegenOptions(BaseModel):
-    reflection_path: str
-    codegen_task: Literal["pyhaxorg", "adaptagrams"]
-    tmp: bool = False
-
-
 @beartype
 def gen_haxorg_cpp_library_wrappers(
     to_wrap: list[GenTuUnion],

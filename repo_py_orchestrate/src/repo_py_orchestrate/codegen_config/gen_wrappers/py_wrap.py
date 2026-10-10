@@ -78,7 +78,7 @@ def init_pyhaxorg_nanobind_module(
     type_map: GenTypeMap,
 ) -> NbModule:
     conf = HaxorgNanobindWrapperConfig(type_map)
-    res = NbModule("pyhaxorg", conf)
+    res = NbModule("haxorg_cpp_py_wrap", conf)
 
     for decl in to_wrap:
         if decl.ReflectionParams.isAcceptedBackend("python"):
