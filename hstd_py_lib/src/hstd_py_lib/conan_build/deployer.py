@@ -19,11 +19,17 @@ def _select_file(
 
     if len(matches) != 1:
         formatted = "\n".join(f"  {path}" for path in sorted(matches))
+        for file in matches:
+            file.unlink()
+
         raise RuntimeError(
             f"Expected exactly one file matching {pattern!r}, "
             f"found {len(matches)}.\n"
             f"Searched directories: {directories}\n"
             f"Matches:\n{formatted}"
+            f"\nRemoved all, re-run the build for unambiguous selection. "
+            "This is a editable/develop solution; if the package produces "
+            "ambiguous matching files, adjust the artifact glob or cmake target."
         )
 
     return next(iter(matches))
