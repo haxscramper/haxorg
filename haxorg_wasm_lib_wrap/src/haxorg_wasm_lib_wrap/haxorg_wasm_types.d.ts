@@ -1,5 +1,5 @@
 /* clang-format off */
-import * as haxorg_wasm from "../haxorg_utility_types";
+import * as haxorg_wasm from "./haxorg_utility_types";
 export interface haxorg_wasm_module_auto {
   CheckboxState: {
     None: CheckboxState,
