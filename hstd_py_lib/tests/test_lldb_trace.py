@@ -689,3 +689,88 @@ def test_pytest_plugin_captures_backtraces_per_test(
     assert separator, output
     assert marker not in before_failures
     assert result.log_text == ""
+
+
+def test_pytest_xdist_workers_capture_their_own_backtraces(
+    fixture_build: FixtureBuild,
+    tmp_path: Path,
+) -> None:
+    report_directory = tmp_path / "pytest-backtraces"
+    report_directory.mkdir()
+
+    fixture = fixture_build.fixture_directory / "pytest_capture_fixture.py"
+
+    result = run_lldb(
+        tmp_path,
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "hstd_py_lib.debug_utils.pytest_plugin",
+            "--noconftest",
+            "--color=no",
+            "--tb=short",
+            "-o",
+            "addopts=",
+            "-n",
+            "2",
+            "--dist=each",
+            "-q",
+            str(fixture),
+        ],
+        environment={
+            "PYTHONPATH": str(fixture_build.extension_directory),
+            "HSTD_PY_LLDB_ENABLED": "true",
+            "HSTD_PY_LLDB_BREAKPOINT_FUNCTIONS": json.dumps(["trace_fixture::inspect"]),
+            "HSTD_PY_LLDB_PYTEST_BACKTRACE_DIR": str(report_directory),
+            "HSTD_PY_LLDB_STRUCTURED_OUTPUT": "false",
+        },
+    )
+
+    output = result.stdout + result.stderr
+    debugger_logs = {
+        path.name: path.read_text(encoding="utf-8")
+        for path in report_directory.glob("*.lldb.log")
+    }
+    diagnostics = (
+        f"{output}\nWorker debugger logs:\n{json.dumps(debugger_logs, indent=2)}"
+    )
+
+    # Each worker executes both fixture tests, exercising report offsets
+    # independently rather than assigning just one test to each worker.
+    assert result.status == 0, diagnostics
+    assert "2 failed, 2 passed" in output, diagnostics
+    assert len(debugger_logs) == 2, diagnostics
+
+    report_files = sorted(
+        path for path in report_directory.glob("*.log") if path.stem.isdecimal()
+    )
+    assert len(report_files) == 2, diagnostics
+
+    marker = "=== breakpoint traceback ==="
+
+    for report_path in report_files:
+        worker_pid = report_path.stem
+        backtraces = report_path.read_text(encoding="utf-8")
+
+        assert f"{worker_pid}.lldb.log" in debugger_logs, diagnostics
+        assert backtraces.count(marker) == 2, backtraces
+        assert backtraces.count(f"pid={worker_pid}\n") == 2, backtraces
+        assert backtraces.count("count: int = 7") == 2, backtraces
+
+        # Only this worker's failing test should display its backtrace.
+        assert output.count(f"pid={worker_pid}\n") == 1, diagnostics
+
+    assert output.count("Captured LLDB backtrace call") == 2, diagnostics
+    assert output.count(marker) == 2, diagnostics
+    assert output.count("count: int = 7") == 2, diagnostics
+
+    # Worker backtraces must not leak into live output or the controller log.
+    before_failures, separator, _ = output.partition(
+        "=================================== FAILURES"
+    )
+    assert separator, diagnostics
+    assert marker not in before_failures, diagnostics
+    assert result.log_text == "", diagnostics
+    assert list(report_directory.glob("*.ready")) == [], diagnostics

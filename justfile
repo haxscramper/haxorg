@@ -60,6 +60,7 @@ HAXORG_ROOT := source_directory()
 # custom profile is mandatory for full builds, otherwise onetbb fails
 # to configure hwloc, see profile text for more details.
 CONAN_PROFILE := HAXORG_ROOT / "repo_tool_configs/conan/conanprofile.txt"
+CONAN_BUILD := "Release"
 SUPPRESSION_FILE := HAXORG_ROOT / "repo_tool_configs/clang_suppressions.supp"
 CONAN_PYTHON_CONFIG := shell("uv run repo_py_orchestrate/src/repo_py_orchestrate/repo_utils/get_python_config.py") \
     + " -c " + quote("user.haxorg:uv_project=" + HAXORG_ROOT)
@@ -109,7 +110,7 @@ conan_validate_deps dep_name:
   conan remove "{{dep_name}}/*" -c
   conan create {{HAXORG_ROOT}}/repo_conan_wraps/{{dep_name}} \
     --profile:all={{CONAN_PROFILE}} \
-    -s build_type=Release \
+    -s build_type={{CONAN_BUILD}} \
     {{CONAN_PYTHON_CONFIG}} \
     --build=missing
 
@@ -120,9 +121,9 @@ conan_validate target: conan_export_local_deps
   conan remove "{{target}}/*" --confirm
   conan create {{HAXORG_ROOT}}/{{target}} \
     --profile:all={{CONAN_PROFILE}} \
-    -s build_type=Release \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
     -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
+    -s build_type={{CONAN_BUILD}} \
     {{CONAN_PYTHON_CONFIG}} \
     --build=missing \
      -vstatus
