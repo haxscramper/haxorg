@@ -140,6 +140,7 @@ def run_package_tests(
     settings = config.Settings.from_environment(env)
 
     if settings.enabled:
+        logging.info("LLDB not is enabled, running pytest under LLDB")
         script = (
             settings.script
             if settings.script is not None

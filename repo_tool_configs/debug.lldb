@@ -1,9 +1,0 @@
-breakpoint set -E C++
-breakpoint set -n __cxa_throw
-breakpoint set -n abort
-breakpoint set -n std::terminate
-breakpoint command add 1
-thread backtrace
-continue
-DONE
-run

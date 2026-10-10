@@ -20,11 +20,11 @@ def parse_strings(value: str) -> list[str]:
     parsed = json.loads(value)
 
     if not isinstance(parsed, list):
-        raise ValueError(f"Expected a JSON array of strings, received {parsed!r}")
+        raise TypeError(f"Expected a JSON array of strings, received {parsed!r}")
 
     for index, item in enumerate(parsed):
         if not isinstance(item, str):
-            raise ValueError(f"Expected a string at index {index}, received {item!r}")
+            raise TypeError(f"Expected a string at index {index}, received {item!r}")
 
     return parsed
 
@@ -38,37 +38,17 @@ def parse_path(value: str) -> Path:
 
 @dataclass(frozen=True)
 class Settings:
-    enabled: bool = field(
-        default=False,
-        metadata={"parse": parse_boolean},
-    )
-    script: Path | None = field(
-        default=None,
-        metadata={"parse": parse_path},
-    )
-    frame_start: int = field(
-        default=0,
-        metadata={"parse": int},
-    )
-    frame_end: int = field(
-        default=40,
-        metadata={"parse": int},
-    )
-    max_depth: int = field(
-        default=4,
-        metadata={"parse": int},
-    )
-    max_nested: int = field(
-        default=64,
-        metadata={"parse": int},
-    )
+    enabled: bool = field(default=False, metadata={"parse": parse_boolean})
+    script: Path | None = field(default=None, metadata={"parse": parse_path})
+    frame_start: int = field(default=0, metadata={"parse": int})
+    frame_end: int = field(default=40, metadata={"parse": int})
+    max_depth: int = field(default=4, metadata={"parse": int})
+    max_nested: int = field(default=64, metadata={"parse": int})
     frame_blacklist: list[str] = field(
-        default_factory=list,
-        metadata={"parse": parse_strings},
+        default_factory=list, metadata={"parse": parse_strings}
     )
     breakpoint_functions: list[str] = field(
-        default_factory=list,
-        metadata={"parse": parse_strings},
+        default_factory=list, metadata={"parse": parse_strings}
     )
     fatal_signals: list[str] = field(
         default_factory=lambda: [
@@ -81,18 +61,9 @@ class Settings:
         ],
         metadata={"parse": parse_strings},
     )
-    auto_continue: bool = field(
-        default=True,
-        metadata={"parse": parse_boolean},
-    )
-    log_file: Path | None = field(
-        default=None,
-        metadata={"parse": parse_path},
-    )
-    structured_output: bool = field(
-        default=False,
-        metadata={"parse": parse_boolean},
-    )
+    auto_continue: bool = field(default=True, metadata={"parse": parse_boolean})
+    log_file: Path | None = field(default=None, metadata={"parse": parse_path})
+    structured_output: bool = field(default=False, metadata={"parse": parse_boolean})
 
     def __post_init__(self) -> None:
         for name in (
