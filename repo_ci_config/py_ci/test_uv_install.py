@@ -175,21 +175,29 @@ def run_package_tests(
         if settings.enabled:
             run_env["HSTD_PY_LLDB_PYTEST_BACKTRACE_DIR"] = directory
 
-        run(
-            [
-                "uv",
-                *TEST_UV_INSTALL_FLAGS,
-                "run",
-                "--project",
-                str(workspace_root),
-                "--package",
-                project_name,
-                "--no-sync",
-                *command,
-            ],
-            cwd=workspace_root,
-            env=run_env,
-        )
+        try:
+            run(
+                [
+                    "uv",
+                    *TEST_UV_INSTALL_FLAGS,
+                    "run",
+                    "--project",
+                    str(workspace_root),
+                    "--package",
+                    project_name,
+                    "--no-sync",
+                    *command,
+                ],
+                cwd=workspace_root,
+                env=run_env,
+            )
+
+        finally:
+            if False:
+                # show all errors from individual workers during execution
+                for log in Path(directory).rglob("*"):
+                    if log.is_file():
+                        logging.error(f"{log}:\n{log.read_text()}")
 
 
 def install_test_package(

@@ -206,6 +206,9 @@ class NbMethod(NbFunction):
     HasExplicitClassParam: bool = False
     "Whether the function arguments will explicitly provide a custom class parameter"
 
+    IsFactoryConstructor: bool = False
+    "Whether the constructor is bound through nanobind::new_"
+
     def __init__(
         self,
         Func: GenTuFunction,
@@ -214,9 +217,11 @@ class NbMethod(NbFunction):
         PyName: Optional[str] = None,
         HasExplicitClassParam: bool = False,
         DefParams: Optional[List[BlockId]] = None,
+        IsFactoryConstructor: bool = False,
     ):
         super().__init__(Func, conf, Body, PyName, DefParams=DefParams)
         self.HasExplicitClassParam = HasExplicitClassParam
+        self.IsFactoryConstructor = IsFactoryConstructor
 
     def build_typedef(  # type: ignore[override]
         self,
@@ -274,6 +279,10 @@ class NbMethod(NbFunction):
                 Args=Args,
             )
 
+            # factory constructor will have body by definition
+            if self.IsFactoryConstructor:
+                call_pass = ast.XCall("nanobind::new_", args=[call_pass])
+
             if self.HasExplicitClassParam and not self.Func.IsConstructor:
                 argument_binder = self.build_argument_binder(self.Func.Args[1:], ast=ast)
             else:
@@ -286,12 +295,10 @@ class NbMethod(NbFunction):
             bind_head = ".def"
 
         if self.Func.IsConstructor:
-            if self.Body:
+            if self.Body and not self.IsFactoryConstructor:
                 function_name = [ast.Literal("__init__")]
-
             else:
                 function_name = []
-
         else:
             function_name = [ast.Literal(self.PyName)]
 
@@ -662,54 +669,88 @@ class NbClass:
         # in the source code, but the default init is not generated
         # here -- provide 'else' fallback, and/or diagnostics for
         # missing reflection description.
-        if self.Struct.IsDescribedRecord:
-            body_impl = []
-            result_type = self.getCxxName()
+        if not self.Struct.IsDescribedRecord:
+            return
+
+        is_shared = self.Struct.ReflectionParams.backend.python.holder_type == "shared"
+        class_type = self.getCxxName()
+        result_type = (
+            QualType(
+                Name="shared_ptr",
+                Spaces=[QualType.ForName("std")],
+                Params=[class_type],
+            )
+            if is_shared
+            else class_type
+        )
+
+        body_impl: List[BlockId] = []
+
+        if is_shared:
             body_impl.append(
-                ast.CallStatic(
-                    QualType(
-                        Name="SerdeDefaultProvider",
-                        Spaces=[QualType(Name="hstd")],
-                        Params=[self.getCxxName()],
-                    ),
-                    opc="construct_at",
-                    Args=[ast.string("result")],
-                    Stmt=True,
+                ast.b.line(
+                    [
+                        ast.Type(result_type),
+                        ast.string(" result;"),
+                    ]
                 )
             )
 
-            body_impl.append(
-                ast.XCall(
-                    "org::bind::python::init_fields_from_kwargs",
-                    args=[ast.string("*result"), ast.string("kwargs")],
-                    Stmt=True,
-                )
+        body_impl.append(
+            ast.CallStatic(
+                QualType(
+                    Name="SerdeDefaultProvider",
+                    Spaces=[QualType.ForName("hstd")],
+                    Params=[result_type],
+                ),
+                opc="construct_at",
+                Args=[ast.string("result")],
+                Stmt=True,
             )
+        )
 
-            self.InitImpls.append(
-                NbMethod(
-                    PyName="",
-                    conf=self.conf,
-                    Func=GenTuFunction(
-                        Name="",
-                        Args=[
-                            GenTuIdent(result_type.asPtr(), "result"),
-                            GenTuIdent(
-                                QualType(
-                                    Name="kwargs",
-                                    Spaces=[QualType.ForName("nanobind")],
-                                    IsConst=True,
-                                    RefKind=codegen_ir.ReferenceKind.LValue,
-                                ),
-                                "kwargs",
-                            ),
-                        ],
-                        IsConstructor=True,
-                    ),
-                    Body=body_impl,
-                    HasExplicitClassParam=True,
-                )
+        body_impl.append(
+            ast.XCall(
+                "org::bind::python::init_fields_from_kwargs",
+                args=[ast.string("*result"), ast.string("kwargs")],
+                Stmt=True,
             )
+        )
+
+        if is_shared:
+            body_impl.append(ast.Return(ast.string("result")))
+
+        args: List[GenTuIdent] = []
+        if not is_shared:
+            args.append(GenTuIdent(class_type.asPtr(), "result"))
+
+        args.append(
+            GenTuIdent(
+                QualType(
+                    Name="kwargs",
+                    Spaces=[QualType.ForName("nanobind")],
+                    IsConst=True,
+                    RefKind=codegen_ir.ReferenceKind.LValue,
+                ),
+                "kwargs",
+            )
+        )
+
+        self.InitImpls.append(
+            NbMethod(
+                PyName="",
+                conf=self.conf,
+                Func=GenTuFunction(
+                    Name="",
+                    ReturnType=result_type if is_shared else QualType(Name="void"),
+                    Args=args,
+                    IsConstructor=True,
+                ),
+                Body=body_impl,
+                HasExplicitClassParam=True,
+                IsFactoryConstructor=is_shared,
+            )
+        )
 
     def InitMagicMethods(self, ast: cpp.ASTBuilder) -> None:
         """
@@ -718,49 +759,48 @@ class NbClass:
         str_type = QualType.ForName("string", Spaces=[QualType.ForName("std")])
         pyobj_type = QualType.ForName("object", Spaces=[QualType.ForName("nanobind")])
 
-        if not self.Struct.IsAbstract:
-            if self.Struct.IsDescribedRecord:
-                self.Methods.append(
-                    NbMethod(
-                        conf=self.conf,
-                        PyName="__repr__",
-                        Func=GenTuFunction(
-                            Name="",
-                            ReturnType=str_type,
+        if not self.Struct.IsAbstract and self.Struct.IsDescribedRecord:
+            self.Methods.append(
+                NbMethod(
+                    conf=self.conf,
+                    PyName="__repr__",
+                    Func=GenTuFunction(
+                        Name="",
+                        ReturnType=str_type,
+                    ),
+                    Body=[
+                        ast.Return(
+                            ast.XCall(
+                                "org::bind::python::py_repr_impl",
+                                args=[ast.string("_self")],
+                            )
                         ),
-                        Body=[
-                            ast.Return(
-                                ast.XCall(
-                                    "org::bind::python::py_repr_impl",
-                                    args=[ast.string("_self")],
-                                )
-                            ),
-                        ],
-                    )
+                    ],
                 )
+            )
 
-                self.Methods.append(
-                    NbMethod(
-                        PyName="__getattr__",
-                        conf=self.conf,
-                        Func=GenTuFunction(
-                            Name="",
-                            ReturnType=pyobj_type,
-                            Args=[GenTuIdent(str_type.asConstRef(), "name")],
+            self.Methods.append(
+                NbMethod(
+                    PyName="__getattr__",
+                    conf=self.conf,
+                    Func=GenTuFunction(
+                        Name="",
+                        ReturnType=pyobj_type,
+                        Args=[GenTuIdent(str_type.asConstRef(), "name")],
+                    ),
+                    Body=[
+                        ast.Return(
+                            ast.XCall(
+                                "org::bind::python::py_getattr_impl",
+                                [
+                                    ast.string("_self"),
+                                    ast.string("name"),
+                                ],
+                            )
                         ),
-                        Body=[
-                            ast.Return(
-                                ast.XCall(
-                                    "org::bind::python::py_getattr_impl",
-                                    [
-                                        ast.string("_self"),
-                                        ast.string("name"),
-                                    ],
-                                )
-                            ),
-                        ],
-                    )
+                    ],
                 )
+            )
 
             # else:
             #     logger.warning(f"Non-abstract type {self.Class} is missing boost reflection annotation")

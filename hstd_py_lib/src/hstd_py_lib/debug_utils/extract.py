@@ -6,7 +6,7 @@ from pathlib import Path
 import lldb
 
 from hstd_py_lib.debug_utils.config import Settings
-from hstd_py_lib.debug_utils.format_base import FormatterMeta
+from hstd_py_lib.debug_utils.format_base import FormatterMemoryError, FormatterMeta
 from hstd_py_lib.debug_utils.model import (
     FrameInfo,
     Report,
@@ -86,12 +86,18 @@ class ExtractionContext:
                         error=error.GetCString(),
                     )
 
-                return ValueNode(
+                node = ValueNode(
                     name=value.GetName() or "",
                     type_name=type_name,
                     value=value.GetValue(),
-                    summary=provider.summary(value, {}),
                 )
+
+                try:
+                    node.summary = provider.summary(value, {})
+                except FormatterMemoryError as error:
+                    node.error = str(error)
+
+                return node
 
         return self.extract_default(value, depth)
 

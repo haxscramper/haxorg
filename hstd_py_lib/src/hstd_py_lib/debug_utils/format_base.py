@@ -24,6 +24,10 @@ class FormatterMeta(type):
         return cls
 
 
+class FormatterMemoryError(RuntimeError):
+    pass
+
+
 class SyntheticProvider(metaclass=FormatterMeta):
     type_regex: ClassVar[str] = ""
     extract_as_leaf: ClassVar[bool] = False
@@ -83,6 +87,8 @@ class SyntheticProvider(metaclass=FormatterMeta):
     ) -> str:
         try:
             return cls(value, internal_dict).summary_text()
+        except FormatterMemoryError:
+            raise
         except Exception:
             traceback.print_exc(file=sys.stderr)
             raise

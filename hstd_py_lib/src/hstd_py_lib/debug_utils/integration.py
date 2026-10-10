@@ -9,6 +9,7 @@ from typing import ParamSpec, TypeVar
 
 import lldb
 
+from hstd_py_lib.debug_utils import format_python_lldb  # noqa: F401
 from hstd_py_lib.debug_utils.config import Settings
 from hstd_py_lib.debug_utils.extract import (
     ExtractionContext,
