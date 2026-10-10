@@ -83,6 +83,147 @@ def validate_structure(project_path: Path) -> None:
         )
 
 
+def sync_environment(
+    workspace_root: Path,
+    project_name: str,
+    *,
+    editable: bool,
+    env: dict[str, str],
+) -> None:
+    command = [
+        "uv",
+        *TEST_UV_INSTALL_FLAGS,
+        "sync",
+        "--project",
+        str(workspace_root),
+        "--package",
+        project_name,
+        "--group",
+        "dev",
+    ]
+
+    if not editable:
+        command.append("--no-editable")
+
+    # Reinstall workspace packages without discarding cached third-party dependencies.
+    with (workspace_root / "pyproject.toml").open("rb") as file:
+        workspace_config = tomllib.load(file)
+
+    for member in workspace_config["tool"]["uv"]["workspace"]["members"]:
+        package_name = re.sub(
+            r"[-_.]+",
+            "-",
+            get_project_name(workspace_root / member),
+        ).lower()
+        command.extend(["--reinstall-package", package_name])
+
+    run(command, cwd=workspace_root, env=env)
+
+
+def run_package_tests(
+    project_path: Path,
+    workspace_root: Path,
+    project_name: str,
+    *,
+    env: dict[str, str],
+) -> None:
+    command = [
+        "pytest",
+        *json.loads(env.get("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
+        str(project_path / "tests"),
+    ]
+
+    if env.get("HSTD_PY_PYTEST_USE_LLDB") == "1":
+        lldb_command = ["lldb", "--batch"]
+        lldb_script = env.get("HSTD_PY_PYTEST_LLDB_SCRIPT")
+
+        if lldb_script:
+            lldb_command.extend(["--source", lldb_script])
+        else:
+            lldb_command.extend(
+                [
+                    "-o",
+                    "run",
+                    "-k",
+                    "thread backtrace all",
+                ]
+            )
+
+        command = [
+            *lldb_command,
+            "--",
+            "python",
+            "-m",
+            *command,
+        ]
+
+    run(
+        [
+            "uv",
+            *TEST_UV_INSTALL_FLAGS,
+            "run",
+            "--project",
+            str(workspace_root),
+            "--package",
+            project_name,
+            "--no-sync",
+            *command,
+        ],
+        cwd=workspace_root,
+        env=env,
+    )
+
+
+def install_test_package(
+    test_package: Path,
+    workspace_root: Path,
+    environment_path: Path,
+    *,
+    env: dict[str, str],
+) -> None:
+    run(
+        [
+            "uv",
+            *TEST_UV_INSTALL_FLAGS,
+            "pip",
+            "install",
+            # Preserve already-synced dependencies. Additional test-package
+            # dependencies must be included in the selected package's dev group.
+            "--no-deps",
+            "--python",
+            str(environment_path / "bin" / "python"),
+            str(test_package),
+        ],
+        cwd=workspace_root,
+        env=env,
+    )
+
+
+def run_test_package(
+    test_package: Path,
+    workspace_root: Path,
+    project_name: str,
+    *,
+    env: dict[str, str],
+) -> None:
+    run(
+        [
+            "uv",
+            *TEST_UV_INSTALL_FLAGS,
+            "run",
+            "--project",
+            str(workspace_root),
+            "--package",
+            project_name,
+            "--no-sync",
+            "python",
+            str(test_package / "main.py"),
+        ],
+        cwd=test_package,
+        env=env,
+    )
+
+
 def validate_package(
     project_path: Path,
     *,
@@ -108,118 +249,22 @@ def validate_package(
                 shutil.rmtree(environment_path)
 
             environment_path.mkdir(parents=True)
-
         else:
             temporary = stack.enter_context(
                 tempfile.TemporaryDirectory(prefix="verify_pkg_")
             )
-
             environment_path = Path(temporary) / ".venv"
 
-        environment = os.environ.copy()
-        environment["UV_PROJECT_ENVIRONMENT"] = str(environment_path)
+        env = os.environ.copy()
+        env["UV_PROJECT_ENVIRONMENT"] = str(environment_path)
 
         if conan_profile is not None:
-            environment["CONAN_PROFILE"] = str(conan_profile)
+            env["CONAN_PROFILE"] = str(conan_profile)
 
-        sync_command = [
-            "uv",
-            *TEST_UV_INSTALL_FLAGS,
-            "sync",
-            "--project",
-            str(workspace_root),
-            "--package",
-            project_name,
-            "--group",
-            "dev",
-        ]
-
-        if not editable:
-            sync_command.append("--no-editable")
-
-        # drop the workspace packages from cache each time to guarantee
-        # a clean run -- `--no-cache` is not useful here, as it will
-        # also trigger re-download of all transitive third-party deps
-        with (workspace_root / "pyproject.toml").open("rb") as file:
-            workspace_config = tomllib.load(file)
-
-        workspace_packages = [
-            re.sub(
-                r"[-_.]+",
-                "-",
-                get_project_name(workspace_root / member),
-            ).lower()
-            for member in workspace_config["tool"]["uv"]["workspace"]["members"]
-        ]
-
-        for package_name in workspace_packages:
-            sync_command.extend(
-                [
-                    "--reinstall-package",
-                    package_name,
-                ]
-            )
-
-        run(
-            sync_command,
-            cwd=workspace_root,
-            env=environment,
-        )
-
-        python = environment_path / "bin" / "python"
-
-        run(
-            [
-                "uv",
-                *TEST_UV_INSTALL_FLAGS,
-                "run",
-                "--project",
-                str(workspace_root),
-                "--package",
-                project_name,
-                "--no-sync",
-                "pytest",
-                *json.loads(os.getenv("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
-                str(project_path / "tests"),
-            ],
-            cwd=workspace_root,
-            env=environment,
-        )
-
-        run(
-            [
-                "uv",
-                *TEST_UV_INSTALL_FLAGS,
-                "pip",
-                "install",
-                # installs the test package without replacing its already-synced dependencies.
-                # Any additional test-package dependencies must be included in the selected
-                # package's dev group so that uv sync installs them first.
-                "--no-deps",
-                "--python",
-                str(python),
-                str(test_package),
-            ],
-            cwd=workspace_root,
-            env=environment,
-        )
-
-        run(
-            [
-                "uv",
-                *TEST_UV_INSTALL_FLAGS,
-                "run",
-                "--project",
-                str(workspace_root),
-                "--package",
-                project_name,
-                "--no-sync",
-                "python",
-                str(test_package / "main.py"),
-            ],
-            cwd=test_package,
-            env=environment,
-        )
+        sync_environment(workspace_root, project_name, editable=editable, env=env)
+        run_package_tests(project_path, workspace_root, project_name, env=env)
+        install_test_package(test_package, workspace_root, environment_path, env=env)
+        run_test_package(test_package, workspace_root, project_name, env=env)
 
 
 def main() -> None:

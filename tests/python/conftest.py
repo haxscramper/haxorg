@@ -10,15 +10,9 @@ import warnings
 from pathlib import Path
 
 import pytest
-from _pytest.config import Config
-from _pytest.main import Session
-from _pytest.nodes import Item
-from _pytest.runner import CallInfo
 from beartype import beartype
-from beartype.typing import Any, Generator, List, Optional
-from conf_test_common import summarize_cookies  # type: ignore
+from beartype.typing import Any, List
 from hstd_py_lib.tracer import TraceCollector
-from loguru import logger
 
 CAT = "conftest"
 
@@ -92,63 +86,6 @@ STDERR: {stderr.decode()}
         print(f"Failed to start the application: {str(e)}")
 
 
-@pytest.fixture(scope="session", autouse=True)
-def trace_session() -> Generator[None, Any, Any]:
-    get_trace_collector().push_complete_event("session", "test-session")
-
-    yield
-
-    get_trace_collector().pop_complete_event()
-    get_trace_collector().export_to_json(Path("/tmp/haxorg_py_tests.json"))
-    coverage_env = os.getenv("HAX_COVERAGE_OUT_DIR")
-    if coverage_env:
-        coverage = Path(coverage_env)
-        summary = summarize_cookies(coverage)
-        respath = coverage.joinpath("test-summary.json")
-        logger.info(
-            f"Finalized session with {len(summary.runs)} cxx coverage-enabled test executions, writing to {respath}"
-        )
-        respath.parent.mkdir(parents=True, exist_ok=True)
-        respath.write_text(summary.model_dump_json(indent=2))
-
-
-@pytest.fixture(scope="module", autouse=True)
-def trace_module(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
-    module_name = request.module.__name__
-    get_trace_collector().push_complete_event(module_name, "test-file")
-    yield
-    get_trace_collector().pop_complete_event()
-
-
-@pytest.fixture(autouse=True)
-def trace_test(request: pytest.FixtureRequest) -> Generator[None, Any, Any]:
-    test_name = request.node.name
-    get_trace_collector().push_complete_event(test_name, "test")
-    yield
-    get_trace_collector().pop_complete_event()
-
-
-def pytest_collection_modifyitems(
-    session: Session,
-    config: Config,
-    items: List[Item],
-) -> None:
-    for item in items:
-        if "unstable" in item.keywords:
-            item.add_marker(pytest.mark.xfail(reason="This test is known to be unstable"))
-
-
-def pytest_runtest_makereport(item: Item, call: CallInfo) -> Optional[pytest.TestReport]:
-    if "unstable" in item.keywords:
-        if call.excinfo is not None and call.excinfo.typename == "Failed":
-            rep = pytest.TestReport.from_item_and_call(item, call)
-            rep.outcome = "xfailed"  # type: ignore
-            rep.wasxfail = "reason: This test is known to be unstable"
-            return rep
-
-    return None
-
-
 class FunctionNameExtractor(ast.NodeVisitor):
     def __init__(self) -> None:
         self.function_names: List[str] = []
@@ -210,10 +147,3 @@ continue
 
     request.addfinalizer(finalizer)
     return {"debug_enabled": True}
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item: Any, call: Any) -> Any:
-    outcome = yield
-    rep = outcome.get_result()
-    setattr(item, f"rep_{rep.when}", rep)
