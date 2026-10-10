@@ -22,31 +22,6 @@
 #include <haxorg_cpp_org_lib/imm/ImmOrgAdapter.hpp>
 #include <haxorg_cpp_org_lib/sem/SemOrg.hpp>
 #include "pyhaxorg_manual_impl.hpp"
-NB_MAKE_OPAQUE(hstd::StrCommon<hstd::Str>)
-NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
-NB_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
-NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
-NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::Report>)
-NB_MAKE_OPAQUE(std::vector<hstd::ext::Report>)
-NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>)
-NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorGroup>>)
-NB_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSubnodeAccessStep>)
-NB_MAKE_OPAQUE(hstd::Vec<int>)
-NB_MAKE_OPAQUE(std::vector<int>)
-NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
-NB_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
-NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
-NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
-NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
-NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
-NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::LispCode>)
 NB_MAKE_OPAQUE(std::vector<org::sem::LispCode>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::Tblfm::Assign>)
@@ -75,6 +50,31 @@ NB_MAKE_OPAQUE(hstd::Vec<org::sem::BlockCodeLine::Part>)
 NB_MAKE_OPAQUE(std::vector<org::sem::BlockCodeLine::Part>)
 NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, hstd::Str>)
 NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, hstd::Str>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::Org>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::Org>>)
+NB_MAKE_OPAQUE(hstd::StrCommon<hstd::Str>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::OrgJson>)
+NB_MAKE_OPAQUE(std::vector<org::sem::OrgJson>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::ext::Report>)
+NB_MAKE_OPAQUE(std::vector<hstd::ext::Report>)
+NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>)
+NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorGroup>>)
+NB_MAKE_OPAQUE(immer::flex_vector<org::imm::ImmSubnodeAccessStep>)
+NB_MAKE_OPAQUE(hstd::Vec<int>)
+NB_MAKE_OPAQUE(std::vector<int>)
+NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
+NB_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
+NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
+NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(std::unordered_map<hstd::Str, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegment>)
+NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegment>)
+NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceAnnotationTag>)
+NB_MAKE_OPAQUE(std::vector<hstd::SequenceAnnotationTag>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::SemId<org::sem::ErrorItem>>)
 NB_MAKE_OPAQUE(std::vector<org::sem::SemId<org::sem::ErrorItem>>)
 NB_MAKE_OPAQUE(hstd::Vec<org::sem::Time::Repeat>)
@@ -148,31 +148,6 @@ NB_MAKE_OPAQUE(hstd::Vec<hstd::SequenceSegmentGroup>)
 NB_MAKE_OPAQUE(std::vector<hstd::SequenceSegmentGroup>)
 NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::PyTypeRegistryGuard type_registry_guard{};
-  org::bind::python::bind_hstdStrCommon<hstd::Str>(m, "StrCommonOfStr", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::sem::OrgJson>(m, "HstdVecOfOrgJson", type_registry_guard);
-  org::bind::python::bind_stdvector<org::sem::OrgJson>(m, "StdVecOfOrgJson", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "HstdVecOfSemIdOfOrg", type_registry_guard);
-  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Org>>(m, "StdVecOfSemIdOfOrg", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::ext::Report>(m, "HstdVecOfReport", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::ext::Report>(m, "StdVecOfReport", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
-  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorGroup>>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
-  org::bind::python::bind_immerflex_vector<org::imm::ImmSubnodeAccessStep>(m, "ImmVecOfImmSubnodeAccessStep", type_registry_guard);
-  org::bind::python::bind_hstdVec<int>(m, "HstdVecOfInt", type_registry_guard);
-  org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
-  org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
-  org::bind::python::bind_stdvector<org::imm::ImmAdapter>(m, "StdVecOfImmAdapter", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "StdMapOfStrAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "HstdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "StdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::SequenceSegment>(m, "HstdVecOfSequenceSegment", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::SequenceSegment>(m, "StdVecOfSequenceSegment", type_registry_guard);
-  org::bind::python::bind_hstdVec<hstd::SequenceAnnotationTag>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
-  org::bind::python::bind_stdvector<hstd::SequenceAnnotationTag>(m, "StdVecOfSequenceAnnotationTag", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::LispCode>(m, "HstdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::LispCode>(m, "StdVecOfLispCode", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::Tblfm::Assign>(m, "HstdVecOfTblfmAssign", type_registry_guard);
@@ -201,6 +176,31 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::bind_stdvector<org::sem::BlockCodeLine::Part>(m, "StdVecOfBlockCodeLinePart", type_registry_guard);
   org::bind::python::bind_hstdUnorderedMap<hstd::Str, hstd::Str>(m, "HstdMapOfStrStr", type_registry_guard);
   org::bind::python::bind_stdunordered_map<hstd::Str, hstd::Str>(m, "StdMapOfStrStr", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Org>>(m, "HstdVecOfSemIdOfOrg", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Org>>(m, "StdVecOfSemIdOfOrg", type_registry_guard);
+  org::bind::python::bind_hstdStrCommon<hstd::Str>(m, "StrCommonOfStr", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::OrgJson>(m, "HstdVecOfOrgJson", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::OrgJson>(m, "StdVecOfOrgJson", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::ext::Report>(m, "HstdVecOfReport", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::ext::Report>(m, "StdVecOfReport", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorGroup>>(m, "HstdVecOfSemIdOfErrorGroup", type_registry_guard);
+  org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorGroup>>(m, "StdVecOfSemIdOfErrorGroup", type_registry_guard);
+  org::bind::python::bind_immerflex_vector<org::imm::ImmSubnodeAccessStep>(m, "ImmVecOfImmSubnodeAccessStep", type_registry_guard);
+  org::bind::python::bind_hstdVec<int>(m, "HstdVecOfInt", type_registry_guard);
+  org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
+  org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
+  org::bind::python::bind_stdvector<org::imm::ImmAdapter>(m, "StdVecOfImmAdapter", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<hstd::Str, org::AstTrackingAlternatives>(m, "StdMapOfStrAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "HstdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingAlternatives>(m, "StdMapOfHashTagFlatAstTrackingAlternatives", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::SequenceSegment>(m, "HstdVecOfSequenceSegment", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::SequenceSegment>(m, "StdVecOfSequenceSegment", type_registry_guard);
+  org::bind::python::bind_hstdVec<hstd::SequenceAnnotationTag>(m, "HstdVecOfSequenceAnnotationTag", type_registry_guard);
+  org::bind::python::bind_stdvector<hstd::SequenceAnnotationTag>(m, "StdVecOfSequenceAnnotationTag", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::ErrorItem>>(m, "HstdVecOfSemIdOfErrorItem", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::ErrorItem>>(m, "StdVecOfSemIdOfErrorItem", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::Time::Repeat>(m, "HstdVecOfTimeRepeat", type_registry_guard);
@@ -220,29 +220,29 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::SubtreeLog>>(m, "StdVecOfSemIdOfSubtreeLog", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::TodoKeyword>(m, "HstdVecOfTodoKeyword", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::TodoKeyword>(m, "StdVecOfTodoKeyword", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmVecOfImmIdTOfImmErrorItem", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>(m, "ImmVecOfImmIdTErrorItemOfImmErrorItem", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>(m, "ImmVecOfImmIdTOfImmOrg", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Str>(m, "ImmBoxOfStr", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::imm::ImmTime::Repeat>(m, "ImmVecOfImmTimeRepeat", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmTime::Repeat>>(m, "ImmBoxOfOptOfImmTimeRepeat", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::imm::ImmSymbol::Param>(m, "ImmVecOfImmSymbolParam", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<hstd::Str>>(m, "ImmBoxOfOptOfStr", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(m, "ImmVecOfImmIdTOfImmErrorSkipToken", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(m, "ImmVecOfImmIdTErrorSkipTokenOfImmErrorSkipToken", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<hstd::Str>(m, "ImmVecOfStr", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBoxOfOptOfImmIdTOfImmStmtList", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>(m, "ImmBoxOfOptOfImmIdTStmtListOfImmStmtList", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::SubtreeCompletion>>(m, "ImmBoxOfOptOfSubtreeCompletion", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfOptOfImmIdTOfImmParagraph", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmVecOfImmIdTOfImmHashTag", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmVecOfImmIdTOfImmSubtreeLog", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>(m, "ImmBoxOfOptOfImmIdTParagraphOfImmParagraph", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(m, "ImmVecOfImmIdTHashTagOfImmHashTag", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(m, "ImmVecOfImmIdTSubtreeLogOfImmSubtreeLog", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::NamedProperty>(m, "ImmVecOfNamedProperty", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>(m, "ImmBoxOfOptOfImmIdTOfImmTime", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>(m, "ImmBoxOfOptOfImmIdTTimeOfImmTime", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<bool>>(m, "ImmBoxOfOptOfBool", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<LinkVisibility>>(m, "ImmBoxOfOptOfLinkVisibility", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<BlockVisibility>>(m, "ImmBoxOfOptOfBlockVisibility", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<int>>(m, "ImmBoxOfOptOfInt", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::ColumnView>>(m, "ImmBoxOfOptOfColumnView", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::TodoKeyword>(m, "ImmVecOfTodoKeyword", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfOptOfImmIdTOfImmRawText", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>>(m, "ImmBoxOfOptOfImmIdTRawTextOfImmRawText", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::SubtreePath>>(m, "ImmBoxOfOptOfSubtreePath", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::BigIdent>>(m, "HstdVecOfSemIdOfBigIdent", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::BigIdent>>(m, "StdVecOfSemIdOfBigIdent", type_registry_guard);
@@ -253,7 +253,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmOrg>>>(m, "ImmBoxOfOptOfImmIdTOfImmOrg", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Cell>>(m, "HstdVecOfSemIdOfCell", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Cell>>(m, "StdVecOfSemIdOfCell", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmVecOfImmIdTOfImmCell", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmCell>>(m, "ImmVecOfImmIdTCellOfImmCell", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::OrgCodeEvalOutput>(m, "HstdVecOfOrgCodeEvalOutput", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::OrgCodeEvalOutput>(m, "StdVecOfOrgCodeEvalOutput", type_registry_guard);
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::BlockCodeEvalResult>>(m, "HstdVecOfSemIdOfBlockCodeEvalResult", type_registry_guard);
@@ -263,9 +263,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::bind_hstdVec<org::sem::SemId<org::sem::Row>>(m, "HstdVecOfSemIdOfRow", type_registry_guard);
   org::bind::python::bind_stdvector<org::sem::SemId<org::sem::Row>>(m, "StdVecOfSemIdOfRow", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::OrgCodeEvalOutput>(m, "ImmVecOfOrgCodeEvalOutput", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmVecOfImmIdTOfImmBlockCodeEvalResult", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(m, "ImmVecOfImmIdTBlockCodeEvalResultOfImmBlockCodeEvalResult", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::BlockCodeLine>(m, "ImmVecOfBlockCodeLine", type_registry_guard);
-  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmVecOfImmIdTOfImmRow", type_registry_guard);
+  org::bind::python::bind_hstdextImmVec<org::imm::ImmIdT<org::imm::ImmRow>>(m, "ImmVecOfImmIdTRowOfImmRow", type_registry_guard);
   org::bind::python::bind_hstdVec<org::AstTrackingGroup>(m, "HstdVecOfAstTrackingGroup", type_registry_guard);
   org::bind::python::bind_stdvector<org::AstTrackingGroup>(m, "StdVecOfAstTrackingGroup", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceAnnotation>(m, "HstdVecOfSequenceAnnotation", type_registry_guard);
@@ -1135,1026 +1135,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          [](org::bind::python::LeafFieldType it) -> int {
          return static_cast<int>(it);
          })
-    ;
-  nanobind::class_<hstd::BackwardsIndex>(m, "BackwardsIndex")
-    .def_rw("value", &hstd::BackwardsIndex::value)
-    ;
-  nanobind::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
-    .def("__init__",
-         [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::UserTimeBreakdown>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("year", &hstd::UserTimeBreakdown::year)
-    .def_rw("month", &hstd::UserTimeBreakdown::month)
-    .def_rw("day", &hstd::UserTimeBreakdown::day)
-    .def_rw("hour", &hstd::UserTimeBreakdown::hour)
-    .def_rw("minute", &hstd::UserTimeBreakdown::minute)
-    .def_rw("second", &hstd::UserTimeBreakdown::second)
-    .def_rw("zone", &hstd::UserTimeBreakdown::zone)
-    .def("__repr__", [](hstd::UserTimeBreakdown const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::UserTimeBreakdown const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<hstd::UserTime>(m, "UserTime")
-    .def("__init__",
-         [](hstd::UserTime* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::UserTime>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("getBreakdown", static_cast<hstd::UserTimeBreakdown(hstd::UserTime::*)() const>(&hstd::UserTime::getBreakdown))
-    .def("format", static_cast<std::string(hstd::UserTime::*)() const>(&hstd::UserTime::format))
-    .def("getTimeDeltaSeconds",
-         static_cast<int64_t(hstd::UserTime::*)(hstd::UserTime const&) const>(&hstd::UserTime::getTimeDeltaSeconds),
-         nanobind::arg("other"))
-    .def("toUnixTimestamp", static_cast<int64_t(hstd::UserTime::*)() const>(&hstd::UserTime::toUnixTimestamp))
-    .def("__repr__", [](hstd::UserTime const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::UserTime const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::parse::SourceFileId>(m, "ParseSourceFileId")
-    .def("__repr__", [](org::parse::SourceFileId const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::SourceFileId const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::parse::SourceManager>(m, "ParseSourceManager")
-    .def("getPath",
-         static_cast<std::string(org::parse::SourceManager::*)(org::parse::SourceFileId const&) const>(&org::parse::SourceManager::getPath),
-         nanobind::arg("id"))
-    .def("getId",
-         static_cast<org::parse::SourceFileId(org::parse::SourceManager::*)(std::string const&) const>(&org::parse::SourceManager::getId),
-         nanobind::arg("path"))
-    .def("getSourceContent",
-         static_cast<std::string const&(org::parse::SourceManager::*)(org::parse::SourceFileId const&) const>(&org::parse::SourceManager::getSourceContent),
-         nanobind::arg("id"))
-    .def("getContentTextForPath",
-         static_cast<std::string const&(org::parse::SourceManager::*)(std::string const&) const>(&org::parse::SourceManager::getContentTextForPath),
-         nanobind::arg("path"))
-    .def("addSource",
-         static_cast<org::parse::SourceFileId(org::parse::SourceManager::*)(std::string const&, std::string const&)>(&org::parse::SourceManager::addSource),
-         nanobind::arg("path"),
-         nanobind::arg("content"))
-    ;
-  nanobind::class_<org::parse::SourceLoc>(m, "ParseSourceLoc")
-    .def("__init__",
-         [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::parse::SourceLoc>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("line", &org::parse::SourceLoc::line)
-    .def_rw("column", &org::parse::SourceLoc::column)
-    .def_rw("file_id", &org::parse::SourceLoc::file_id)
-    .def_rw("pos", &org::parse::SourceLoc::pos)
-    .def("__repr__", [](org::parse::SourceLoc const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::SourceLoc const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::sem::OrgJson>(m, "OrgJson")
-    .def("__init__",
-         [](org::sem::OrgJson* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::sem::OrgJson>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("getKind", static_cast<OrgJsonKind(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getKind))
-    .def("getJsonString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getJsonString))
-    .def("at",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::at),
-         nanobind::arg("idx"))
-    .def("at",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(std::string const&) const>(&org::sem::OrgJson::at),
-         nanobind::arg("name"))
-    .def("getString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getString))
-    .def("getField",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(std::string const&) const>(&org::sem::OrgJson::getField),
-         nanobind::arg("name"))
-    .def("getItem",
-         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::getItem),
-         nanobind::arg("index"))
-    .def("getInt", static_cast<int(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getInt))
-    .def("getBool", static_cast<bool(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getBool))
-    .def("getArray", static_cast<hstd::Vec<org::sem::OrgJson>(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getArray))
-    .def("dump",
-         static_cast<std::string(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::dump),
-         nanobind::arg("indent"))
-    .def("__repr__", [](org::sem::OrgJson const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::sem::OrgJson const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::sem::Org>(m, "Org")
-    .def_rw("loc", &org::sem::Org::loc, R"RAW(\brief Location of the node in the original source file)RAW")
-    .def_rw("subnodes", &org::sem::Org::subnodes, R"RAW(\brief List of subnodes.
-
-Some of the derived nodes don't make the use of subnode list
-(word, punctuation etc), but it was left on the top level of the
-hierarchy for conveinience purposes. It is not expected that 'any'
-node can have subnodes.)RAW")
-    .def("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), R"RAW(\brief Get kind of this sem node)RAW")
-    .def("push_back",
-         static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back),
-         nanobind::arg("sub"))
-    .def("size", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::size))
-    .def("insert",
-         static_cast<void(org::sem::Org::*)(int, org::sem::SemId<org::sem::Org>)>(&org::sem::Org::insert),
-         nanobind::arg("pos"),
-         nanobind::arg("node"))
-    .def("at",
-         static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
-         nanobind::arg("idx"))
-    .def("is_",
-         static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is),
-         nanobind::arg("kind"))
-    .def("__getitem__",
-         static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
-         nanobind::arg("idx"))
-    .def("__iter__",
-         [](org::sem::Org const& node) -> auto {
-         return nanobind::make_iterator(nanobind::type<org::sem::Org>(), "Org__iter__", node.begin(), node.end());
-         },
-         nanobind::keep_alive<0, 1>())
-    ;
-  nanobind::class_<hstd::OperationsTracer>(m, "OperationsTracer")
-    .def("__init__",
-         [](hstd::OperationsTracer* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::OperationsTracer>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("traceToFile", &hstd::OperationsTracer::traceToFile)
-    .def_rw("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
-    .def_rw("traceStructured", &hstd::OperationsTracer::traceStructured)
-    .def_rw("traceColored", &hstd::OperationsTracer::traceColored)
-    .def_rw("traceBuffer", &hstd::OperationsTracer::traceBuffer)
-    .def("setTraceFileStr",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
-         nanobind::arg("outfile"),
-         nanobind::arg("overwrite"),
-         R"RAW(\brief Helper method for reflection)RAW")
-    .def("sendMessage",
-         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&) const>(&hstd::OperationsTracer::sendMessage),
-         nanobind::arg("value"),
-         nanobind::arg("function"),
-         nanobind::arg("line"),
-         nanobind::arg("file"))
-    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::OperationsTracer const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<hstd::ext::ReportSourceCache>(m, "ReportSourceCache")
-    ;
-  nanobind::class_<hstd::ext::Report>(m, "Report")
-    .def("__repr__", [](hstd::ext::Report const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::ext::Report const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::parse::OrgParseFragment>(m, "ParseOrgParseFragment")
-    .def("__init__",
-         [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::parse::OrgParseFragment>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("baseLine", &org::parse::OrgParseFragment::baseLine)
-    .def_rw("baseCol", &org::parse::OrgParseFragment::baseCol)
-    .def_rw("text", &org::parse::OrgParseFragment::text)
-    .def("__repr__", [](org::parse::OrgParseFragment const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::OrgParseFragment const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::parse::OrgParseParameters>(m, "OrgParseParameters")
-    .def("__init__",
-         [](org::parse::OrgParseParameters* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::parse::OrgParseParameters>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("baseTokenTracePath", &org::parse::OrgParseParameters::baseTokenTracePath)
-    .def_rw("tokenTracePath", &org::parse::OrgParseParameters::tokenTracePath)
-    .def_rw("parseTracePath", &org::parse::OrgParseParameters::parseTracePath)
-    .def_rw("semTracePath", &org::parse::OrgParseParameters::semTracePath)
-    .def("__repr__", [](org::parse::OrgParseParameters const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::OrgParseParameters const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::parse::OrgDirectoryParseParameters>(m, "OrgDirectoryParseParameters")
-    .def("__init__",
-         [](org::parse::OrgDirectoryParseParameters* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::parse::OrgDirectoryParseParameters>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](org::parse::OrgDirectoryParseParameters const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::parse::OrgDirectoryParseParameters const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::parse::ParseContext>(m, "ParseContext")
-    .def(nanobind::init<>())
-    .def(nanobind::init<std::shared_ptr<org::parse::SourceManager> const&>())
-    .def("__init__",
-         [](org::parse::ParseContext* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::parse::ParseContext>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def(
-        "getDiagnosticStrings",
-        [](std::shared_ptr<org::parse::ParseContext> self) {
-            return self->getDiagnosticStrings();
-        })
-    .def(
-        "addSource",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& path,
-           std::string const& content) {
-            return self->addSource(path, content);
-        },
-        nanobind::arg("path"),
-        nanobind::arg("content"))
-    .def(
-        "parseFileOpts",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& file,
-           std::shared_ptr<org::parse::OrgParseParameters> const& opts) {
-            return self->parseFileOpts(file, opts);
-        },
-        nanobind::arg("file"),
-        nanobind::arg("opts"))
-    .def(
-        "parseFile",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& file) {
-            return self->parseFile(file);
-        },
-        nanobind::arg("file"))
-    .def(
-        "parseString",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& text,
-           std::string const& file_name) {
-            return self->parseString(text, file_name);
-        },
-        nanobind::arg("text"),
-        nanobind::arg("file_name"))
-    .def(
-        "parseStringOpts",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string text,
-           std::string const& file_name,
-           std::shared_ptr<org::parse::OrgParseParameters> const& opts) {
-            return self->parseStringOpts(std::move(text), file_name, opts);
-        },
-        nanobind::arg("text"),
-        nanobind::arg("file_name"),
-        nanobind::arg("opts"))
-    .def(
-        "parseDirectory",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& path) {
-            return self->parseDirectory(path);
-        },
-        nanobind::arg("path"))
-    .def(
-        "parseDirectoryOpts",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& path,
-           std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& opts) {
-            return self->parseDirectoryOpts(path, opts);
-        },
-        nanobind::arg("path"),
-        nanobind::arg("opts"))
-    .def(
-        "parseFileWithIncludes",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& file,
-           std::shared_ptr<org::parse::OrgDirectoryParseParameters> const& opts) {
-            return self->parseFileWithIncludes(file, opts);
-        },
-        nanobind::arg("file"),
-        nanobind::arg("opts"))
-    .def(
-        "collectDiagnostics",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           org::sem::SemId<org::sem::Org> const& tree,
-           std::shared_ptr<hstd::ext::ReportSourceCache> const& cache) {
-            return self->collectDiagnostics(tree, cache);
-        },
-        nanobind::arg("tree"),
-        nanobind::arg("cache"))
-    .def(
-        "collectErrorNodes",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           org::sem::SemId<org::sem::Org> const& tree) {
-            return self->collectErrorNodes(tree);
-        },
-        nanobind::arg("tree"))
-    .def(
-        "__repr__",
-        [](std::shared_ptr<org::parse::ParseContext> self) {
-            return org::bind::python::py_repr_impl(*self);
-        })
-    .def(
-        "__getattr__",
-        [](std::shared_ptr<org::parse::ParseContext> self,
-           std::string const& name) {
-            return org::bind::python::py_getattr_impl(*self, name);
-        },
-        nanobind::arg("name"));
-  nanobind::class_<org::imm::ImmReflFieldId>(m, "ImmReflFieldId")
-    .def("getName", static_cast<hstd::Str(org::imm::ImmReflFieldId::*)() const>(&org::imm::ImmReflFieldId::getName))
-    ;
-  nanobind::class_<org::imm::ImmId>(m, "ImmId")
-    .def("__init__",
-         [](org::imm::ImmId* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmId>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
-    .def("is_",
-         static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is),
-         nanobind::arg("kind"))
-    .def("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex), R"RAW(\brief Get index of the node in associated kind store. NOTE: The
-node must not be nil)RAW")
-    .def("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
-    .def("__repr__", [](org::imm::ImmId const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmId const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmOrg>(m, "ImmOrg")
-    ;
-  nanobind::class_<org::imm::ImmSubnodeAccessStep>(m, "ImmSubnodeAccessStep")
-    .def("__init__",
-         [](org::imm::ImmSubnodeAccessStep* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmSubnodeAccessStep>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](org::imm::ImmSubnodeAccessStep const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmSubnodeAccessStep const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmTreeAccessPath>(m, "ImmTreeAccessPath")
-    .def("__init__",
-         [](org::imm::ImmTreeAccessPath* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmTreeAccessPath>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("root", &org::imm::ImmTreeAccessPath::root, R"RAW(\brief Root ID node)RAW")
-    .def_rw("path", &org::imm::ImmTreeAccessPath::path, R"RAW(\brief Sequence of jumps from the root of the document down to the
-specified target node. For the path iteration structure see \see
-ImmPathStep documentation.)RAW")
-    .def("empty", static_cast<bool(org::imm::ImmTreeAccessPath::*)() const>(&org::imm::ImmTreeAccessPath::empty), R"RAW(\brief Empty path refers to the root of the document)RAW")
-    .def("__repr__", [](org::imm::ImmTreeAccessPath const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmTreeAccessPath const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmUniqId>(m, "ImmUniqId")
-    .def("__init__",
-         [](org::imm::ImmUniqId* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmUniqId>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](org::imm::ImmUniqId const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmUniqId const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmSemSerdeConfig>(m, "ImmSemSerdeConfig")
-    ;
-  nanobind::class_<org::imm::ImmAstReplaceEpoch>(m, "ImmAstReplaceEpoch")
-    .def("__repr__", [](org::imm::ImmAstReplaceEpoch const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAstReplaceEpoch const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmAstContext>(m, "ImmAstContext")
-    .def("addRoot",
-         static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot),
-         nanobind::arg("data"),
-         R"RAW(\brief Add new root node to the store, create a new AST version
-with a new root, new epoch and new AST context tracking the updated
-state of the tree.)RAW")
-    .def("getEmptyVersion", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)()>(&org::imm::ImmAstContext::getEmptyVersion), R"RAW(\brief Create empty AST version with no edits, no root, and linked
-to the current context.)RAW")
-    .def("get",
-         static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId, org::imm::ImmSemSerdeConfig const&)>(&org::imm::ImmAstContext::get),
-         nanobind::arg("id"),
-         nanobind::arg("config"),
-         R"RAW(\brief Convert immutable AST tree to the sem AST -- the sem AST is
-created anew following the immutable ID structure.)RAW")
-    .def("__repr__", [](org::imm::ImmAstContext const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAstContext const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmAstVersion>(m, "ImmAstVersion")
-    .def("__init__",
-         [](org::imm::ImmAstVersion* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmAstVersion>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
-    .def("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
-    .def("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
-    .def("getEpoch", static_cast<std::shared_ptr<org::imm::ImmAstReplaceEpoch>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getEpoch))
-    .def("__repr__", [](org::imm::ImmAstVersion const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAstVersion const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
-    .def("__init__",
-         [](org::imm::ImmAdapter::TreeReprConf* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::imm::ImmAdapter::TreeReprConf>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth, R"RAW(\brief Do not print nodes that are more than N levels deep from
-the root)RAW")
-    .def_rw("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields, R"RAW(\brief Include auxiliary subnodes in the tree repr -- `.title`
-field and other locations outside of standard `.subnodes`)RAW")
-    .def_rw("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields, R"RAW(\brief Format full immutable node value as a part of tree repr)RAW")
-    .def_rw("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset, R"RAW(\brief Profide extra pretty-printed information for a given
-field subset.)RAW")
-    .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAdapter::TreeReprConf const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmAdapter>(m, "ImmAdapter")
-    .def("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
-    .def("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
-    .def("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
-    .def("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
-    .def("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
-    .def("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
-    .def("treeReprStringOpts",
-         static_cast<std::string(org::imm::ImmAdapter::*)(org::imm::ImmAdapter::TreeReprConf const&) const>(&org::imm::ImmAdapter::treeReprStringOpts),
-         nanobind::arg("conf"))
-    .def("isDirectParentOf",
-         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isDirectParentOf),
-         nanobind::arg("other"))
-    .def("isIndirectParentOf",
-         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isIndirectParentOf),
-         nanobind::arg("other"))
-    .def("isSubnodeOf",
-         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf),
-         nanobind::arg("other"))
-    .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
-    .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
-    .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmSubnodeAccessStep) const>(&org::imm::ImmAdapter::at),
-         nanobind::arg("id"),
-         nanobind::arg("idx"))
-    .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
-         nanobind::arg("field"))
-    .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
-         nanobind::arg("idx"),
-         nanobind::arg("withPath") = true)
-    .def("at",
-         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
-         nanobind::arg("path"),
-         nanobind::arg("withPath") = true)
-    .def("is_",
-         static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
-         nanobind::arg("kind"))
-    .def("sub",
-         static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
-         nanobind::arg("withPath") = true)
-    .def("__repr__", [](org::imm::ImmAdapter const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::imm::ImmAdapter const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
-    ;
-  nanobind::class_<org::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
-    .def("__init__",
-         [](org::OrgYamlExportOpts* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::OrgYamlExportOpts>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("skipNullFields", &org::OrgYamlExportOpts::skipNullFields)
-    .def_rw("skipFalseFields", &org::OrgYamlExportOpts::skipFalseFields)
-    .def_rw("skipZeroFields", &org::OrgYamlExportOpts::skipZeroFields)
-    .def_rw("skipLocation", &org::OrgYamlExportOpts::skipLocation)
-    .def_rw("skipId", &org::OrgYamlExportOpts::skipId)
-    .def("__repr__", [](org::OrgYamlExportOpts const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::OrgYamlExportOpts const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
-    .def("__init__",
-         [](org::OrgTreeExportOpts* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::OrgTreeExportOpts>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("withLineCol", &org::OrgTreeExportOpts::withLineCol)
-    .def_rw("withOriginalId", &org::OrgTreeExportOpts::withOriginalId)
-    .def_rw("withSubnodeIdx", &org::OrgTreeExportOpts::withSubnodeIdx)
-    .def_rw("skipEmptyFields", &org::OrgTreeExportOpts::skipEmptyFields)
-    .def_rw("startLevel", &org::OrgTreeExportOpts::startLevel)
-    .def_rw("withColor", &org::OrgTreeExportOpts::withColor)
-    .def_rw("maxDepth", &org::OrgTreeExportOpts::maxDepth)
-    .def("__repr__", [](org::OrgTreeExportOpts const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::OrgTreeExportOpts const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::AstTrackingPath>(m, "AstTrackingPath")
-    .def("__init__",
-         [](org::AstTrackingPath* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::AstTrackingPath>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("path", &org::AstTrackingPath::path)
-    .def("getParent",
-         static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)(int) const>(&org::AstTrackingPath::getParent),
-         nanobind::arg("offset") = 0)
-    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)() const>(&org::AstTrackingPath::getNode))
-    .def("__repr__", [](org::AstTrackingPath const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingPath const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::AstTrackingAlternatives>(m, "AstTrackingAlternatives")
-    .def("__init__",
-         [](org::AstTrackingAlternatives* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::AstTrackingAlternatives>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("getAllNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getAllNodes), R"RAW(\brief Return final nodes for all tracking alternatives.)RAW")
-    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getNode), R"RAW(\brief Return first node from the alternatives.)RAW")
-    .def("__repr__", [](org::AstTrackingAlternatives const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingAlternatives const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
-    .def("__init__",
-         [](org::AstTrackingGroup::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::AstTrackingGroup::RadioTarget>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("target", &org::AstTrackingGroup::RadioTarget::target)
-    .def_rw("nodes", &org::AstTrackingGroup::RadioTarget::nodes)
-    .def("__repr__", [](org::AstTrackingGroup::RadioTarget const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingGroup::RadioTarget const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
-    .def("__init__",
-         [](org::AstTrackingGroup::Single* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::AstTrackingGroup::Single>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("node", &org::AstTrackingGroup::Single::node)
-    .def("__repr__", [](org::AstTrackingGroup::Single const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingGroup::Single const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::AstTrackingGroup::TrackedHashtag>(m, "AstTrackingGroupTrackedHashtag")
-    .def("__init__",
-         [](org::AstTrackingGroup::TrackedHashtag* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::AstTrackingGroup::TrackedHashtag>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("tag", &org::AstTrackingGroup::TrackedHashtag::tag)
-    .def_rw("targets", &org::AstTrackingGroup::TrackedHashtag::targets)
-    .def("__repr__", [](org::AstTrackingGroup::TrackedHashtag const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingGroup::TrackedHashtag const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::AstTrackingGroup>(m, "AstTrackingGroup")
-    .def("__init__",
-         [](org::AstTrackingGroup* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::AstTrackingGroup>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("getRadioTarget", static_cast<org::AstTrackingGroup::RadioTarget const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getRadioTarget))
-    .def("getTrackedHashtag", static_cast<org::AstTrackingGroup::TrackedHashtag&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getTrackedHashtag))
-    .def("getSingle", static_cast<org::AstTrackingGroup::Single const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getSingle))
-    .def("getRadioTarget", static_cast<org::AstTrackingGroup::RadioTarget&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getRadioTarget))
-    .def("getSingle", static_cast<org::AstTrackingGroup::Single&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getSingle))
-    .def("isSingle", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isSingle))
-    .def("isTrackedHashtag", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isTrackedHashtag))
-    .def("isRadioTarget", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isRadioTarget))
-    .def("__repr__", [](org::AstTrackingGroup const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingGroup const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::AstTrackingMap>(m, "AstTrackingMap")
-    .def("__init__",
-         [](org::AstTrackingMap* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::AstTrackingMap>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("footnotes", &org::AstTrackingMap::footnotes)
-    .def_rw("subtrees", &org::AstTrackingMap::subtrees)
-    .def_rw("names", &org::AstTrackingMap::names)
-    .def_rw("anchorTargets", &org::AstTrackingMap::anchorTargets)
-    .def_rw("radioTargets", &org::AstTrackingMap::radioTargets)
-    .def_rw("hashtagDefinitions", &org::AstTrackingMap::hashtagDefinitions)
-    .def("getIdPath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
-         nanobind::arg("id"))
-    .def("getNamePath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
-         nanobind::arg("id"))
-    .def("getAnchorTarget",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
-         nanobind::arg("id"))
-    .def("getFootnotePath",
-         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
-         nanobind::arg("id"))
-    .def("__repr__", [](org::AstTrackingMap const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::AstTrackingMap const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<hstd::SequenceSegment>(m, "SequenceSegment")
-    .def("__init__",
-         [](hstd::SequenceSegment* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::SequenceSegment>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("kind", &hstd::SequenceSegment::kind, R"RAW(\brief Kind of the segment, does not have to be unique for all
-segments, and different sequence segment groups can have segments
-with identical kinds.)RAW")
-    .def_rw("first", &hstd::SequenceSegment::first, R"RAW(\brief Inclusive left boundary of the segment. Mustnot overlap with
-other segments' boundaries,but can be identical to the `last`,
-to create a point segment (spans 1 element).)RAW")
-    .def_rw("last", &hstd::SequenceSegment::last, R"RAW(\brief Inclusive right boundary for the segment)RAW")
-    .def("__repr__", [](hstd::SequenceSegment const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::SequenceSegment const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<hstd::SequenceSegmentGroup>(m, "SequenceSegmentGroup")
-    .def("__init__",
-         [](hstd::SequenceSegmentGroup* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::SequenceSegmentGroup>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("kind", &hstd::SequenceSegmentGroup::kind, R"RAW(\brief An kind of the segment group, does not have to be unique)RAW")
-    .def_rw("segments", &hstd::SequenceSegmentGroup::segments, R"RAW(\brief List of input segments for grouping)RAW")
-    .def("__repr__", [](hstd::SequenceSegmentGroup const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::SequenceSegmentGroup const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<hstd::SequenceAnnotationTag>(m, "SequenceAnnotationTag")
-    .def("__init__",
-         [](hstd::SequenceAnnotationTag* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::SequenceAnnotationTag>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("groupKind", &hstd::SequenceAnnotationTag::groupKind, R"RAW(\brief ID of the original group this segment came from)RAW")
-    .def_rw("segmentKinds", &hstd::SequenceAnnotationTag::segmentKinds, R"RAW(\brief ID of the segment in this group.
-
-Segment kinds are constructed from all ranges
-that overlap points in the segment.
-In the example below, there are 3 separate slices, `[2,3]`, `[1,4]`
-and finally `[6,7]`. The resulting segmentation will have 4
-different sequence segments from these ranges. The first one is
-`[1,1]`, then `[2,3]`, `[4]`, and `[6,7]`.
-```
-0
-1   |
-2 | |
-3 | |
-4   |
-5
-6   |
-7   |
-```)RAW")
-    .def("__repr__", [](hstd::SequenceAnnotationTag const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::SequenceAnnotationTag const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<hstd::SequenceAnnotation>(m, "SequenceAnnotation")
-    .def("__init__",
-         [](hstd::SequenceAnnotation* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::SequenceAnnotation>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("first", &hstd::SequenceAnnotation::first, R"RAW(\brief Inclusive left boundary for the sequence segment annotation)RAW")
-    .def_rw("last", &hstd::SequenceAnnotation::last, R"RAW(\brief Inclusive right boundary for the sequence segment)RAW")
-    .def_rw("annotations", &hstd::SequenceAnnotation::annotations, R"RAW(\brief Full list of all annotated segments.)RAW")
-    .def("isAnnotatedWith",
-         static_cast<bool(hstd::SequenceAnnotation::*)(int, int) const>(&hstd::SequenceAnnotation::isAnnotatedWith),
-         nanobind::arg("groupKind"),
-         nanobind::arg("segmentKind"),
-         R"RAW(\brief Check if the segment is annotated with a given group kind
-and a segment kind.)RAW")
-    .def("__repr__", [](hstd::SequenceAnnotation const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::SequenceAnnotation const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
-    .def("__init__",
-         [](org::bind::python::PyCodeEvalParameters* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::bind::python::PyCodeEvalParameters>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def_rw("evalBlock", &org::bind::python::PyCodeEvalParameters::evalBlock)
-    .def("setTraceFile",
-         static_cast<void(org::bind::python::PyCodeEvalParameters::*)(std::string const&)>(&org::bind::python::PyCodeEvalParameters::setTraceFile),
-         nanobind::arg("path"))
-    .def("__repr__", [](org::bind::python::PyCodeEvalParameters const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::bind::python::PyCodeEvalParameters const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
-    .def("__init__",
-         [](org::bind::python::ExporterPython* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<org::bind::python::ExporterPython>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("enableBufferTrace", static_cast<void(org::bind::python::ExporterPython::*)()>(&org::bind::python::ExporterPython::enableBufferTrace))
-    .def("getTraceBuffer", static_cast<std::string(org::bind::python::ExporterPython::*)() const>(&org::bind::python::ExporterPython::getTraceBuffer))
-    .def("enableFileTrace",
-         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, bool)>(&org::bind::python::ExporterPython::enableFileTrace),
-         nanobind::arg("path"),
-         nanobind::arg("colored"))
-    .def("setVisitAnyIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdAround),
-         nanobind::arg("cb"))
-    .def("setVisitAnyIdIn",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdIn),
-         nanobind::arg("cb"))
-    .def("setVisitAnyField",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyField),
-         nanobind::arg("cb"))
-    .def("setEvalTopCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalTopCb),
-         nanobind::arg("cb"))
-    .def("setVisitIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setEvalIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setVisitIdInCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setEvalIdIn",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setVisitLeafField",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitLeafField),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setEvalLeafField",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalLeafField),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setVisitOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setEvalOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setSelf",
-         static_cast<void(org::bind::python::ExporterPython::*)(nanobind::object)>(&org::bind::python::ExporterPython::setSelf),
-         nanobind::arg("val"))
-    .def("setNewOrgRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setNewAnyOrgRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyOrgRes),
-         nanobind::arg("cb"))
-    .def("setNewLeafRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewLeafRes),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setNewAnyLeafRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyLeafRes),
-         nanobind::arg("cb"))
-    .def("setPushVisitAnyId",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitAnyId),
-         nanobind::arg("cb"))
-    .def("setPopVisitAnyId",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitAnyId),
-         nanobind::arg("cb"))
-    .def("setPushVisitId",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setPopVisitIdCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("setVisitAnyHookCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyHookCb),
-         nanobind::arg("cb"))
-    .def("setVisitIdHook",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
-         nanobind::arg("kind"),
-         nanobind::arg("cb"))
-    .def("print_trace",
-         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, std::string const&, std::string const&, int)>(&org::bind::python::ExporterPython::print_trace),
-         nanobind::arg("trace"),
-         nanobind::arg("file"),
-         nanobind::arg("function"),
-         nanobind::arg("line"))
-    .def("evalTop",
-         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::evalTop),
-         nanobind::arg("org"))
-    .def("eval",
-         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::eval),
-         nanobind::arg("org"))
-    .def("__repr__", [](org::bind::python::ExporterPython const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](org::bind::python::ExporterPython const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Call>(m, "LispCodeCall")
     .def(nanobind::init<>())
@@ -5474,6 +4454,57 @@ and a segment kind.)RAW")
          },
          nanobind::arg("name"))
     ;
+  nanobind::class_<org::sem::Org>(m, "Org")
+    .def_rw("loc", &org::sem::Org::loc)
+    .def_rw("subnodes", &org::sem::Org::subnodes)
+    .def("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind))
+    .def("push_back",
+         static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back),
+         nanobind::arg("sub"))
+    .def("size", static_cast<int(org::sem::Org::*)() const>(&org::sem::Org::size))
+    .def("insert",
+         static_cast<void(org::sem::Org::*)(int, org::sem::SemId<org::sem::Org>)>(&org::sem::Org::insert),
+         nanobind::arg("pos"),
+         nanobind::arg("node"))
+    .def("at",
+         static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
+         nanobind::arg("idx"))
+    .def("is_",
+         static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is),
+         nanobind::arg("kind"))
+    .def("__getitem__",
+         static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
+         nanobind::arg("idx"))
+    .def("__iter__",
+         [](org::sem::Org const& node) -> auto {
+         return nanobind::make_iterator(nanobind::type<org::sem::Org>(), "Org__iter__", node.begin(), node.end());
+         },
+         nanobind::keep_alive<0, 1>())
+    ;
+  nanobind::class_<org::imm::ImmOrg>(m, "ImmOrg")
+    ;
+  nanobind::class_<org::imm::ImmId>(m, "ImmId")
+    .def("__init__",
+         [](org::imm::ImmId* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmId>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
+    .def("is_",
+         static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is),
+         nanobind::arg("kind"))
+    .def("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex))
+    .def("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
+    .def("__repr__", [](org::imm::ImmId const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmId const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
   nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmNoNode>>(m, "ImmAdapterNoNodeBase")
     ;
   nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmErrorItem>>(m, "ImmAdapterErrorItemBase")
@@ -5649,6 +4680,879 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmSymlink>>(m, "ImmAdapterSymlinkBase")
     ;
   nanobind::class_<org::imm::ImmAdapterTBase<org::imm::ImmCmdInclude>>(m, "ImmAdapterCmdIncludeBase")
+    ;
+  nanobind::class_<hstd::BackwardsIndex>(m, "BackwardsIndex")
+    .def_rw("value", &hstd::BackwardsIndex::value)
+    ;
+  nanobind::class_<hstd::UserTimeBreakdown>(m, "UserTimeBreakdown")
+    .def("__init__",
+         [](hstd::UserTimeBreakdown* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::UserTimeBreakdown>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("year", &hstd::UserTimeBreakdown::year)
+    .def_rw("month", &hstd::UserTimeBreakdown::month)
+    .def_rw("day", &hstd::UserTimeBreakdown::day)
+    .def_rw("hour", &hstd::UserTimeBreakdown::hour)
+    .def_rw("minute", &hstd::UserTimeBreakdown::minute)
+    .def_rw("second", &hstd::UserTimeBreakdown::second)
+    .def_rw("zone", &hstd::UserTimeBreakdown::zone)
+    .def("__repr__", [](hstd::UserTimeBreakdown const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::UserTimeBreakdown const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::UserTime>(m, "UserTime")
+    .def("__init__",
+         [](hstd::UserTime* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::UserTime>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("getBreakdown", static_cast<hstd::UserTimeBreakdown(hstd::UserTime::*)() const>(&hstd::UserTime::getBreakdown))
+    .def("format", static_cast<std::string(hstd::UserTime::*)() const>(&hstd::UserTime::format))
+    .def("getTimeDeltaSeconds",
+         static_cast<int64_t(hstd::UserTime::*)(hstd::UserTime const&) const>(&hstd::UserTime::getTimeDeltaSeconds),
+         nanobind::arg("other"))
+    .def("toUnixTimestamp", static_cast<int64_t(hstd::UserTime::*)() const>(&hstd::UserTime::toUnixTimestamp))
+    .def("__repr__", [](hstd::UserTime const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::UserTime const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::parse::SourceFileId>(m, "ParseSourceFileId")
+    .def("__repr__", [](org::parse::SourceFileId const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::SourceFileId const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::parse::SourceManager>(m, "ParseSourceManager")
+    .def("getPath",
+         static_cast<std::string(org::parse::SourceManager::*)(org::parse::SourceFileId const&) const>(&org::parse::SourceManager::getPath),
+         nanobind::arg("id"))
+    .def("getId",
+         static_cast<org::parse::SourceFileId(org::parse::SourceManager::*)(std::string const&) const>(&org::parse::SourceManager::getId),
+         nanobind::arg("path"))
+    .def("getSourceContent",
+         static_cast<std::string const&(org::parse::SourceManager::*)(org::parse::SourceFileId const&) const>(&org::parse::SourceManager::getSourceContent),
+         nanobind::arg("id"))
+    .def("getContentTextForPath",
+         static_cast<std::string const&(org::parse::SourceManager::*)(std::string const&) const>(&org::parse::SourceManager::getContentTextForPath),
+         nanobind::arg("path"))
+    .def("addSource",
+         static_cast<org::parse::SourceFileId(org::parse::SourceManager::*)(std::string const&, std::string const&)>(&org::parse::SourceManager::addSource),
+         nanobind::arg("path"),
+         nanobind::arg("content"))
+    ;
+  nanobind::class_<org::parse::SourceLoc>(m, "ParseSourceLoc")
+    .def("__init__",
+         [](org::parse::SourceLoc* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::parse::SourceLoc>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("line", &org::parse::SourceLoc::line)
+    .def_rw("column", &org::parse::SourceLoc::column)
+    .def_rw("file_id", &org::parse::SourceLoc::file_id)
+    .def_rw("pos", &org::parse::SourceLoc::pos)
+    .def("__repr__", [](org::parse::SourceLoc const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::SourceLoc const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::sem::OrgJson>(m, "OrgJson")
+    .def("__init__",
+         [](org::sem::OrgJson* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::sem::OrgJson>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("getKind", static_cast<OrgJsonKind(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getKind))
+    .def("getJsonString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getJsonString))
+    .def("at",
+         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::at),
+         nanobind::arg("idx"))
+    .def("at",
+         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(std::string const&) const>(&org::sem::OrgJson::at),
+         nanobind::arg("name"))
+    .def("getString", static_cast<std::string(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getString))
+    .def("getField",
+         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(std::string const&) const>(&org::sem::OrgJson::getField),
+         nanobind::arg("name"))
+    .def("getItem",
+         static_cast<org::sem::OrgJson(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::getItem),
+         nanobind::arg("index"))
+    .def("getInt", static_cast<int(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getInt))
+    .def("getBool", static_cast<bool(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getBool))
+    .def("getArray", static_cast<hstd::Vec<org::sem::OrgJson>(org::sem::OrgJson::*)() const>(&org::sem::OrgJson::getArray))
+    .def("dump",
+         static_cast<std::string(org::sem::OrgJson::*)(int) const>(&org::sem::OrgJson::dump),
+         nanobind::arg("indent"))
+    .def("__repr__", [](org::sem::OrgJson const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::sem::OrgJson const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::OperationsTracer>(m, "OperationsTracer")
+    .def("__init__",
+         [](hstd::OperationsTracer* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::OperationsTracer>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("traceToFile", &hstd::OperationsTracer::traceToFile)
+    .def_rw("traceToBuffer", &hstd::OperationsTracer::traceToBuffer)
+    .def_rw("traceStructured", &hstd::OperationsTracer::traceStructured)
+    .def_rw("traceColored", &hstd::OperationsTracer::traceColored)
+    .def_rw("traceBuffer", &hstd::OperationsTracer::traceBuffer)
+    .def("setTraceFileStr",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, bool)>(&hstd::OperationsTracer::setTraceFileStr),
+         nanobind::arg("outfile"),
+         nanobind::arg("overwrite"))
+    .def("sendMessage",
+         static_cast<void(hstd::OperationsTracer::*)(std::string const&, std::string const&, int, std::string const&) const>(&hstd::OperationsTracer::sendMessage),
+         nanobind::arg("value"),
+         nanobind::arg("function"),
+         nanobind::arg("line"),
+         nanobind::arg("file"))
+    .def("__repr__", [](hstd::OperationsTracer const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::OperationsTracer const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::ext::ReportSourceCache>(m, "ReportSourceCache")
+    ;
+  nanobind::class_<hstd::ext::Report>(m, "Report")
+    .def("__repr__", [](hstd::ext::Report const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::ext::Report const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::parse::OrgParseFragment>(m, "ParseOrgParseFragment")
+    .def("__init__",
+         [](org::parse::OrgParseFragment* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::parse::OrgParseFragment>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("baseLine", &org::parse::OrgParseFragment::baseLine)
+    .def_rw("baseCol", &org::parse::OrgParseFragment::baseCol)
+    .def_rw("text", &org::parse::OrgParseFragment::text)
+    .def("__repr__", [](org::parse::OrgParseFragment const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::OrgParseFragment const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::parse::OrgParseParameters>(m, "OrgParseParameters")
+    .def("__init__",
+         [](org::parse::OrgParseParameters* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::parse::OrgParseParameters>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("baseTokenTracePath", &org::parse::OrgParseParameters::baseTokenTracePath)
+    .def_rw("tokenTracePath", &org::parse::OrgParseParameters::tokenTracePath)
+    .def_rw("parseTracePath", &org::parse::OrgParseParameters::parseTracePath)
+    .def_rw("semTracePath", &org::parse::OrgParseParameters::semTracePath)
+    .def("__repr__", [](org::parse::OrgParseParameters const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::OrgParseParameters const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::parse::OrgDirectoryParseParameters>(m, "OrgDirectoryParseParameters")
+    .def("__init__",
+         [](org::parse::OrgDirectoryParseParameters* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::parse::OrgDirectoryParseParameters>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("__repr__", [](org::parse::OrgDirectoryParseParameters const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::OrgDirectoryParseParameters const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::parse::ParseContext>(m, "ParseContext")
+    .def(nanobind::init<>())
+    .def(nanobind::init<std::shared_ptr<org::parse::SourceManager> const&>())
+    .def("__init__",
+         [](org::parse::ParseContext* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::parse::ParseContext>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("getDiagnosticStrings", static_cast<std::shared_ptr<hstd::ext::ReportSourceCache>(org::parse::ParseContext::*)()>(&org::parse::ParseContext::getDiagnosticStrings))
+    .def("addSource",
+         static_cast<org::parse::SourceFileId(org::parse::ParseContext::*)(std::string const&, std::string const&) const>(&org::parse::ParseContext::addSource),
+         nanobind::arg("path"),
+         nanobind::arg("content"))
+    .def("parseFileOpts",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseFileOpts),
+         nanobind::arg("file"),
+         nanobind::arg("opts"))
+    .def("parseFile",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseFile),
+         nanobind::arg("file"))
+    .def("parseString",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const&, std::string const&)>(&org::parse::ParseContext::parseString),
+         nanobind::arg("text"),
+         nanobind::arg("file_name"))
+    .def("parseStringOpts",
+         static_cast<org::sem::SemId<org::sem::Org>(org::parse::ParseContext::*)(std::string const, std::string const&, std::shared_ptr<org::parse::OrgParseParameters> const&)>(&org::parse::ParseContext::parseStringOpts),
+         nanobind::arg("text"),
+         nanobind::arg("file_name"),
+         nanobind::arg("opts"))
+    .def("parseDirectory",
+         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&)>(&org::parse::ParseContext::parseDirectory),
+         nanobind::arg("path"))
+    .def("parseDirectoryOpts",
+         static_cast<std::optional<org::sem::SemId<org::sem::Org>>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseDirectoryOpts),
+         nanobind::arg("path"),
+         nanobind::arg("opts"))
+    .def("parseFileWithIncludes",
+         static_cast<org::sem::SemId<org::sem::File>(org::parse::ParseContext::*)(std::string const&, std::shared_ptr<org::parse::OrgDirectoryParseParameters> const&)>(&org::parse::ParseContext::parseFileWithIncludes),
+         nanobind::arg("file"),
+         nanobind::arg("opts"))
+    .def("collectDiagnostics",
+         static_cast<hstd::Vec<hstd::ext::Report>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&, std::shared_ptr<hstd::ext::ReportSourceCache> const&)>(&org::parse::ParseContext::collectDiagnostics),
+         nanobind::arg("tree"),
+         nanobind::arg("cache"))
+    .def("collectErrorNodes",
+         static_cast<hstd::Vec<org::sem::SemId<org::sem::ErrorGroup>>(org::parse::ParseContext::*)(org::sem::SemId<org::sem::Org> const&)>(&org::parse::ParseContext::collectErrorNodes),
+         nanobind::arg("tree"))
+    .def("__repr__", [](org::parse::ParseContext const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::parse::ParseContext const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmReflFieldId>(m, "ImmReflFieldId")
+    .def("getName", static_cast<hstd::Str(org::imm::ImmReflFieldId::*)() const>(&org::imm::ImmReflFieldId::getName))
+    ;
+  nanobind::class_<org::imm::ImmSubnodeAccessStep>(m, "ImmSubnodeAccessStep")
+    .def("__init__",
+         [](org::imm::ImmSubnodeAccessStep* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmSubnodeAccessStep>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("__repr__", [](org::imm::ImmSubnodeAccessStep const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmSubnodeAccessStep const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmTreeAccessPath>(m, "ImmTreeAccessPath")
+    .def("__init__",
+         [](org::imm::ImmTreeAccessPath* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmTreeAccessPath>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("root", &org::imm::ImmTreeAccessPath::root)
+    .def_rw("path", &org::imm::ImmTreeAccessPath::path)
+    .def("empty", static_cast<bool(org::imm::ImmTreeAccessPath::*)() const>(&org::imm::ImmTreeAccessPath::empty))
+    .def("__repr__", [](org::imm::ImmTreeAccessPath const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmTreeAccessPath const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmUniqId>(m, "ImmUniqId")
+    .def("__init__",
+         [](org::imm::ImmUniqId* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmUniqId>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("__repr__", [](org::imm::ImmUniqId const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmUniqId const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmSemSerdeConfig>(m, "ImmSemSerdeConfig")
+    ;
+  nanobind::class_<org::imm::ImmAstReplaceEpoch>(m, "ImmAstReplaceEpoch")
+    .def("__repr__", [](org::imm::ImmAstReplaceEpoch const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAstReplaceEpoch const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmAstContext>(m, "ImmAstContext")
+    .def("addRoot",
+         static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)(org::sem::SemId<org::sem::Org>)>(&org::imm::ImmAstContext::addRoot),
+         nanobind::arg("data"))
+    .def("getEmptyVersion", static_cast<org::imm::ImmAstVersion(org::imm::ImmAstContext::*)()>(&org::imm::ImmAstContext::getEmptyVersion))
+    .def("get",
+         static_cast<org::sem::SemId<org::sem::Org>(org::imm::ImmAstContext::*)(org::imm::ImmId, org::imm::ImmSemSerdeConfig const&)>(&org::imm::ImmAstContext::get),
+         nanobind::arg("id"),
+         nanobind::arg("config"))
+    .def("__repr__", [](org::imm::ImmAstContext const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAstContext const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmAstVersion>(m, "ImmAstVersion")
+    .def("__init__",
+         [](org::imm::ImmAstVersion* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmAstVersion>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("getRoot", static_cast<org::imm::ImmId(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRoot))
+    .def("getRootAdapter", static_cast<org::imm::ImmAdapter(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getRootAdapter))
+    .def("getContext", static_cast<std::shared_ptr<org::imm::ImmAstContext>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getContext))
+    .def("getEpoch", static_cast<std::shared_ptr<org::imm::ImmAstReplaceEpoch>(org::imm::ImmAstVersion::*)() const>(&org::imm::ImmAstVersion::getEpoch))
+    .def("__repr__", [](org::imm::ImmAstVersion const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAstVersion const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmAdapter::TreeReprConf>(m, "ImmAdapterTreeReprConf")
+    .def("__init__",
+         [](org::imm::ImmAdapter::TreeReprConf* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::imm::ImmAdapter::TreeReprConf>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("maxDepth", &org::imm::ImmAdapter::TreeReprConf::maxDepth)
+    .def_rw("withAuxFields", &org::imm::ImmAdapter::TreeReprConf::withAuxFields)
+    .def_rw("withReflFields", &org::imm::ImmAdapter::TreeReprConf::withReflFields)
+    .def_rw("withFieldSubset", &org::imm::ImmAdapter::TreeReprConf::withFieldSubset)
+    .def("__repr__", [](org::imm::ImmAdapter::TreeReprConf const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAdapter::TreeReprConf const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmAdapter>(m, "ImmAdapter")
+    .def("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
+    .def("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
+    .def("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
+    .def("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
+    .def("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
+    .def("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
+    .def("treeReprStringOpts",
+         static_cast<std::string(org::imm::ImmAdapter::*)(org::imm::ImmAdapter::TreeReprConf const&) const>(&org::imm::ImmAdapter::treeReprStringOpts),
+         nanobind::arg("conf"))
+    .def("isDirectParentOf",
+         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isDirectParentOf),
+         nanobind::arg("other"))
+    .def("isIndirectParentOf",
+         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isIndirectParentOf),
+         nanobind::arg("other"))
+    .def("isSubnodeOf",
+         static_cast<bool(org::imm::ImmAdapter::*)(org::imm::ImmAdapter const&) const>(&org::imm::ImmAdapter::isSubnodeOf),
+         nanobind::arg("other"))
+    .def("getParent", static_cast<std::optional<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getParent))
+    .def("getSelfIndex", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getSelfIndex))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmId, org::imm::ImmSubnodeAccessStep) const>(&org::imm::ImmAdapter::at),
+         nanobind::arg("id"),
+         nanobind::arg("idx"))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(org::imm::ImmReflFieldId const&) const>(&org::imm::ImmAdapter::at),
+         nanobind::arg("field"))
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(int, bool) const>(&org::imm::ImmAdapter::at),
+         nanobind::arg("idx"),
+         nanobind::arg("withPath") = true)
+    .def("at",
+         static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at),
+         nanobind::arg("path"),
+         nanobind::arg("withPath") = true)
+    .def("is_",
+         static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
+         nanobind::arg("kind"))
+    .def("sub",
+         static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
+         nanobind::arg("withPath") = true)
+    .def("__repr__", [](org::imm::ImmAdapter const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::imm::ImmAdapter const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterVirtualBase")
+    ;
+  nanobind::class_<org::OrgYamlExportOpts>(m, "OrgYamlExportOpts")
+    .def("__init__",
+         [](org::OrgYamlExportOpts* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::OrgYamlExportOpts>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("skipNullFields", &org::OrgYamlExportOpts::skipNullFields)
+    .def_rw("skipFalseFields", &org::OrgYamlExportOpts::skipFalseFields)
+    .def_rw("skipZeroFields", &org::OrgYamlExportOpts::skipZeroFields)
+    .def_rw("skipLocation", &org::OrgYamlExportOpts::skipLocation)
+    .def_rw("skipId", &org::OrgYamlExportOpts::skipId)
+    .def("__repr__", [](org::OrgYamlExportOpts const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::OrgYamlExportOpts const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::OrgTreeExportOpts>(m, "OrgTreeExportOpts")
+    .def("__init__",
+         [](org::OrgTreeExportOpts* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::OrgTreeExportOpts>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("withLineCol", &org::OrgTreeExportOpts::withLineCol)
+    .def_rw("withOriginalId", &org::OrgTreeExportOpts::withOriginalId)
+    .def_rw("withSubnodeIdx", &org::OrgTreeExportOpts::withSubnodeIdx)
+    .def_rw("skipEmptyFields", &org::OrgTreeExportOpts::skipEmptyFields)
+    .def_rw("startLevel", &org::OrgTreeExportOpts::startLevel)
+    .def_rw("withColor", &org::OrgTreeExportOpts::withColor)
+    .def_rw("maxDepth", &org::OrgTreeExportOpts::maxDepth)
+    .def("__repr__", [](org::OrgTreeExportOpts const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::OrgTreeExportOpts const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::AstTrackingPath>(m, "AstTrackingPath")
+    .def("__init__",
+         [](org::AstTrackingPath* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::AstTrackingPath>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("path", &org::AstTrackingPath::path)
+    .def("getParent",
+         static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)(int) const>(&org::AstTrackingPath::getParent),
+         nanobind::arg("offset") = 0)
+    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingPath::*)() const>(&org::AstTrackingPath::getNode))
+    .def("__repr__", [](org::AstTrackingPath const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::AstTrackingPath const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::AstTrackingAlternatives>(m, "AstTrackingAlternatives")
+    .def("__init__",
+         [](org::AstTrackingAlternatives* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::AstTrackingAlternatives>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("getAllNodes", static_cast<hstd::Vec<org::sem::SemId<org::sem::Org>>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getAllNodes))
+    .def("getNode", static_cast<org::sem::SemId<org::sem::Org>(org::AstTrackingAlternatives::*)() const>(&org::AstTrackingAlternatives::getNode))
+    .def("__repr__", [](org::AstTrackingAlternatives const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::AstTrackingAlternatives const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::AstTrackingGroup::RadioTarget>(m, "AstTrackingGroupRadioTarget")
+    .def("__init__",
+         [](org::AstTrackingGroup::RadioTarget* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup::RadioTarget>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("target", &org::AstTrackingGroup::RadioTarget::target)
+    .def_rw("nodes", &org::AstTrackingGroup::RadioTarget::nodes)
+    .def("__repr__", [](org::AstTrackingGroup::RadioTarget const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::AstTrackingGroup::RadioTarget const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::AstTrackingGroup::Single>(m, "AstTrackingGroupSingle")
+    .def("__init__",
+         [](org::AstTrackingGroup::Single* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup::Single>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("node", &org::AstTrackingGroup::Single::node)
+    .def("__repr__", [](org::AstTrackingGroup::Single const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::AstTrackingGroup::Single const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::AstTrackingGroup::TrackedHashtag>(m, "AstTrackingGroupTrackedHashtag")
+    .def("__init__",
+         [](org::AstTrackingGroup::TrackedHashtag* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup::TrackedHashtag>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("tag", &org::AstTrackingGroup::TrackedHashtag::tag)
+    .def_rw("targets", &org::AstTrackingGroup::TrackedHashtag::targets)
+    .def("__repr__", [](org::AstTrackingGroup::TrackedHashtag const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::AstTrackingGroup::TrackedHashtag const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::AstTrackingGroup>(m, "AstTrackingGroup")
+    .def("__init__",
+         [](org::AstTrackingGroup* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::AstTrackingGroup>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("getRadioTarget", static_cast<org::AstTrackingGroup::RadioTarget const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getRadioTarget))
+    .def("getTrackedHashtag", static_cast<org::AstTrackingGroup::TrackedHashtag&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getTrackedHashtag))
+    .def("getSingle", static_cast<org::AstTrackingGroup::Single const&(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::getSingle))
+    .def("getRadioTarget", static_cast<org::AstTrackingGroup::RadioTarget&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getRadioTarget))
+    .def("getSingle", static_cast<org::AstTrackingGroup::Single&(org::AstTrackingGroup::*)()>(&org::AstTrackingGroup::getSingle))
+    .def("isSingle", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isSingle))
+    .def("isTrackedHashtag", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isTrackedHashtag))
+    .def("isRadioTarget", static_cast<bool(org::AstTrackingGroup::*)() const>(&org::AstTrackingGroup::isRadioTarget))
+    .def("__repr__", [](org::AstTrackingGroup const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::AstTrackingGroup const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::AstTrackingMap>(m, "AstTrackingMap")
+    .def("__init__",
+         [](org::AstTrackingMap* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::AstTrackingMap>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("footnotes", &org::AstTrackingMap::footnotes)
+    .def_rw("subtrees", &org::AstTrackingMap::subtrees)
+    .def_rw("names", &org::AstTrackingMap::names)
+    .def_rw("anchorTargets", &org::AstTrackingMap::anchorTargets)
+    .def_rw("radioTargets", &org::AstTrackingMap::radioTargets)
+    .def_rw("hashtagDefinitions", &org::AstTrackingMap::hashtagDefinitions)
+    .def("getIdPath",
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getIdPath),
+         nanobind::arg("id"))
+    .def("getNamePath",
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getNamePath),
+         nanobind::arg("id"))
+    .def("getAnchorTarget",
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getAnchorTarget),
+         nanobind::arg("id"))
+    .def("getFootnotePath",
+         static_cast<std::optional<org::AstTrackingAlternatives>(org::AstTrackingMap::*)(hstd::Str const&) const>(&org::AstTrackingMap::getFootnotePath),
+         nanobind::arg("id"))
+    .def("__repr__", [](org::AstTrackingMap const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::AstTrackingMap const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::SequenceSegment>(m, "SequenceSegment")
+    .def("__init__",
+         [](hstd::SequenceSegment* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::SequenceSegment>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("kind", &hstd::SequenceSegment::kind)
+    .def_rw("first", &hstd::SequenceSegment::first)
+    .def_rw("last", &hstd::SequenceSegment::last)
+    .def("__repr__", [](hstd::SequenceSegment const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::SequenceSegment const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::SequenceSegmentGroup>(m, "SequenceSegmentGroup")
+    .def("__init__",
+         [](hstd::SequenceSegmentGroup* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::SequenceSegmentGroup>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("kind", &hstd::SequenceSegmentGroup::kind)
+    .def_rw("segments", &hstd::SequenceSegmentGroup::segments)
+    .def("__repr__", [](hstd::SequenceSegmentGroup const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::SequenceSegmentGroup const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::SequenceAnnotationTag>(m, "SequenceAnnotationTag")
+    .def("__init__",
+         [](hstd::SequenceAnnotationTag* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::SequenceAnnotationTag>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("groupKind", &hstd::SequenceAnnotationTag::groupKind)
+    .def_rw("segmentKinds", &hstd::SequenceAnnotationTag::segmentKinds)
+    .def("__repr__", [](hstd::SequenceAnnotationTag const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::SequenceAnnotationTag const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<hstd::SequenceAnnotation>(m, "SequenceAnnotation")
+    .def("__init__",
+         [](hstd::SequenceAnnotation* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::SequenceAnnotation>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("first", &hstd::SequenceAnnotation::first)
+    .def_rw("last", &hstd::SequenceAnnotation::last)
+    .def_rw("annotations", &hstd::SequenceAnnotation::annotations)
+    .def("isAnnotatedWith",
+         static_cast<bool(hstd::SequenceAnnotation::*)(int, int) const>(&hstd::SequenceAnnotation::isAnnotatedWith),
+         nanobind::arg("groupKind"),
+         nanobind::arg("segmentKind"))
+    .def("__repr__", [](hstd::SequenceAnnotation const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::SequenceAnnotation const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::bind::python::PyCodeEvalParameters>(m, "PyCodeEvalParameters")
+    .def("__init__",
+         [](org::bind::python::PyCodeEvalParameters* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::bind::python::PyCodeEvalParameters>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def_rw("evalBlock", &org::bind::python::PyCodeEvalParameters::evalBlock)
+    .def("setTraceFile",
+         static_cast<void(org::bind::python::PyCodeEvalParameters::*)(std::string const&)>(&org::bind::python::PyCodeEvalParameters::setTraceFile),
+         nanobind::arg("path"))
+    .def("__repr__", [](org::bind::python::PyCodeEvalParameters const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::bind::python::PyCodeEvalParameters const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
+    ;
+  nanobind::class_<org::bind::python::ExporterPython>(m, "ExporterPython")
+    .def("__init__",
+         [](org::bind::python::ExporterPython* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<org::bind::python::ExporterPython>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("enableBufferTrace", static_cast<void(org::bind::python::ExporterPython::*)()>(&org::bind::python::ExporterPython::enableBufferTrace))
+    .def("getTraceBuffer", static_cast<std::string(org::bind::python::ExporterPython::*)() const>(&org::bind::python::ExporterPython::getTraceBuffer))
+    .def("enableFileTrace",
+         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, bool)>(&org::bind::python::ExporterPython::enableFileTrace),
+         nanobind::arg("path"),
+         nanobind::arg("colored"))
+    .def("setVisitAnyIdAround",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdAround),
+         nanobind::arg("cb"))
+    .def("setVisitAnyIdIn",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyIdIn),
+         nanobind::arg("cb"))
+    .def("setVisitAnyField",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyField),
+         nanobind::arg("cb"))
+    .def("setEvalTopCb",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalTopCb),
+         nanobind::arg("cb"))
+    .def("setVisitIdAround",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setEvalIdAround",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setVisitIdInCb",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setEvalIdIn",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setVisitLeafField",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitLeafField),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setEvalLeafField",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalLeafField),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setVisitOrgField",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setEvalOrgField",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setSelf",
+         static_cast<void(org::bind::python::ExporterPython::*)(nanobind::object)>(&org::bind::python::ExporterPython::setSelf),
+         nanobind::arg("val"))
+    .def("setNewOrgRes",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setNewAnyOrgRes",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyOrgRes),
+         nanobind::arg("cb"))
+    .def("setNewLeafRes",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::LeafFieldType, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewLeafRes),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setNewAnyLeafRes",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewAnyLeafRes),
+         nanobind::arg("cb"))
+    .def("setPushVisitAnyId",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitAnyId),
+         nanobind::arg("cb"))
+    .def("setPopVisitAnyId",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitAnyId),
+         nanobind::arg("cb"))
+    .def("setPushVisitId",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setPopVisitIdCb",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("setVisitAnyHookCb",
+         static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyHookCb),
+         nanobind::arg("cb"))
+    .def("setVisitIdHook",
+         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
+         nanobind::arg("kind"),
+         nanobind::arg("cb"))
+    .def("print_trace",
+         static_cast<void(org::bind::python::ExporterPython::*)(std::string const&, std::string const&, std::string const&, int)>(&org::bind::python::ExporterPython::print_trace),
+         nanobind::arg("trace"),
+         nanobind::arg("file"),
+         nanobind::arg("function"),
+         nanobind::arg("line"))
+    .def("evalTop",
+         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::evalTop),
+         nanobind::arg("org"))
+    .def("eval",
+         static_cast<org::bind::python::ExporterPython::Res(org::bind::python::ExporterPython::*)(org::sem::SemId<org::sem::Org>)>(&org::bind::python::ExporterPython::eval),
+         nanobind::arg("org"))
+    .def("__repr__", [](org::bind::python::ExporterPython const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](org::bind::python::ExporterPython const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NoNode, org::sem::Org>(m, "NoNode")
     .def("__init__",
@@ -6672,198 +6576,6 @@ and a segment kind.)RAW")
          },
          nanobind::arg("name"))
     ;
-  nanobind::class_<hstd::ext::ReportSourceStrCache, hstd::ext::ReportSourceCache>(m, "ReportSourceStrCache")
-    .def("__init__",
-         [](hstd::ext::ReportSourceStrCache* result, nanobind::kwargs const& kwargs) -> void {
-         hstd::SerdeDefaultProvider<hstd::ext::ReportSourceStrCache>::construct_at(result);
-         org::bind::python::init_fields_from_kwargs(*result, kwargs);
-         },
-         nanobind::arg("result"))
-    .def("__repr__", [](hstd::ext::ReportSourceStrCache const& _self) -> std::string {
-                     return org::bind::python::py_repr_impl(_self);
-                     })
-    .def("__getattr__",
-         [](hstd::ext::ReportSourceStrCache const& _self, std::string const& name) -> nanobind::object {
-         return org::bind::python::py_getattr_impl(_self, name);
-         },
-         nanobind::arg("name"))
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNoNode>, org::imm::ImmId>(m, "ImmIdTNoNode")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorItem>, org::imm::ImmId>(m, "ImmIdTErrorItem")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorGroup>, org::imm::ImmId>(m, "ImmIdTErrorGroup")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmt>, org::imm::ImmId>(m, "ImmIdTStmt")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInline>, org::imm::ImmId>(m, "ImmIdTInline")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmtList>, org::imm::ImmId>(m, "ImmIdTStmtList")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEmpty>, org::imm::ImmId>(m, "ImmIdTEmpty")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmd>, org::imm::ImmId>(m, "ImmIdTCmd")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlock>, org::imm::ImmId>(m, "ImmIdTBlock")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLineCommand>, org::imm::ImmId>(m, "ImmIdTLineCommand")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAttached>, org::imm::ImmId>(m, "ImmIdTAttached")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLeaf>, org::imm::ImmId>(m, "ImmIdTLeaf")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCaption>, org::imm::ImmId>(m, "ImmIdTCmdCaption")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCreator>, org::imm::ImmId>(m, "ImmIdTCmdCreator")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAuthor>, org::imm::ImmId>(m, "ImmIdTCmdAuthor")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdEmail>, org::imm::ImmId>(m, "ImmIdTCmdEmail")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdLanguage>, org::imm::ImmId>(m, "ImmIdTCmdLanguage")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>, org::imm::ImmId>(m, "ImmIdTCmdCustomArgs")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>, org::imm::ImmId>(m, "ImmIdTCmdCustomRaw")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomText>, org::imm::ImmId>(m, "ImmIdTCmdCustomText")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCall>, org::imm::ImmId>(m, "ImmIdTCmdCall")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdTblfm>, org::imm::ImmId>(m, "ImmIdTCmdTblfm")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmHashTag>, org::imm::ImmId>(m, "ImmIdTHashTag")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineFootnote>, org::imm::ImmId>(m, "ImmIdTInlineFootnote")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineExport>, org::imm::ImmId>(m, "ImmIdTInlineExport")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTime>, org::imm::ImmId>(m, "ImmIdTTime")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTimeRange>, org::imm::ImmId>(m, "ImmIdTTimeRange")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMacro>, org::imm::ImmId>(m, "ImmIdTMacro")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymbol>, org::imm::ImmId>(m, "ImmIdTSymbol")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEscaped>, org::imm::ImmId>(m, "ImmIdTEscaped")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNewline>, org::imm::ImmId>(m, "ImmIdTNewline")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSpace>, org::imm::ImmId>(m, "ImmIdTSpace")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmWord>, org::imm::ImmId>(m, "ImmIdTWord")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAtMention>, org::imm::ImmId>(m, "ImmIdTAtMention")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRawText>, org::imm::ImmId>(m, "ImmIdTRawText")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPunctuation>, org::imm::ImmId>(m, "ImmIdTPunctuation")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPlaceholder>, org::imm::ImmId>(m, "ImmIdTPlaceholder")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBigIdent>, org::imm::ImmId>(m, "ImmIdTBigIdent")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextTarget>, org::imm::ImmId>(m, "ImmIdTTextTarget")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>, org::imm::ImmId>(m, "ImmIdTErrorSkipToken")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipGroup>, org::imm::ImmId>(m, "ImmIdTErrorSkipGroup")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkup>, org::imm::ImmId>(m, "ImmIdTMarkup")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBold>, org::imm::ImmId>(m, "ImmIdTBold")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmUnderline>, org::imm::ImmId>(m, "ImmIdTUnderline")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMonospace>, org::imm::ImmId>(m, "ImmIdTMonospace")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkQuote>, org::imm::ImmId>(m, "ImmIdTMarkQuote")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmVerbatim>, org::imm::ImmId>(m, "ImmIdTVerbatim")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmItalic>, org::imm::ImmId>(m, "ImmIdTItalic")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStrike>, org::imm::ImmId>(m, "ImmIdTStrike")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPar>, org::imm::ImmId>(m, "ImmIdTPar")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRadioTarget>, org::imm::ImmId>(m, "ImmIdTRadioTarget")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLatex>, org::imm::ImmId>(m, "ImmIdTLatex")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLink>, org::imm::ImmId>(m, "ImmIdTLink")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCenter>, org::imm::ImmId>(m, "ImmIdTBlockCenter")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockQuote>, org::imm::ImmId>(m, "ImmIdTBlockQuote")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockComment>, org::imm::ImmId>(m, "ImmIdTBlockComment")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockVerse>, org::imm::ImmId>(m, "ImmIdTBlockVerse")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmId>(m, "ImmIdTBlockDynamicFallback")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExample>, org::imm::ImmId>(m, "ImmIdTBlockExample")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExport>, org::imm::ImmId>(m, "ImmIdTBlockExport")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>, org::imm::ImmId>(m, "ImmIdTBlockAdmonition")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmId>(m, "ImmIdTBlockCodeEvalResult")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCode>, org::imm::ImmId>(m, "ImmIdTBlockCode")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtreeLog>, org::imm::ImmId>(m, "ImmIdTSubtreeLog")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtree>, org::imm::ImmId>(m, "ImmIdTSubtree")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCell>, org::imm::ImmId>(m, "ImmIdTCell")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRow>, org::imm::ImmId>(m, "ImmIdTRow")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTable>, org::imm::ImmId>(m, "ImmIdTTable")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmParagraph>, org::imm::ImmId>(m, "ImmIdTParagraph")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmColonExample>, org::imm::ImmId>(m, "ImmIdTColonExample")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAttr>, org::imm::ImmId>(m, "ImmIdTCmdAttr")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdExport>, org::imm::ImmId>(m, "ImmIdTCmdExport")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCall>, org::imm::ImmId>(m, "ImmIdTCall")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmList>, org::imm::ImmId>(m, "ImmIdTList")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmListItem>, org::imm::ImmId>(m, "ImmIdTListItem")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentOptions>, org::imm::ImmId>(m, "ImmIdTDocumentOptions")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentFragment>, org::imm::ImmId>(m, "ImmIdTDocumentFragment")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCriticMarkup>, org::imm::ImmId>(m, "ImmIdTCriticMarkup")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocument>, org::imm::ImmId>(m, "ImmIdTDocument")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFileTarget>, org::imm::ImmId>(m, "ImmIdTFileTarget")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextSeparator>, org::imm::ImmId>(m, "ImmIdTTextSeparator")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentGroup>, org::imm::ImmId>(m, "ImmIdTDocumentGroup")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFile>, org::imm::ImmId>(m, "ImmIdTFile")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDirectory>, org::imm::ImmId>(m, "ImmIdTDirectory")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymlink>, org::imm::ImmId>(m, "ImmIdTSymlink")
-    ;
-  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
-    ;
   nanobind::class_<org::imm::ImmTime::Repeat>(m, "ImmTimeRepeat")
     .def("__init__",
          [](org::imm::ImmTime::Repeat* result, nanobind::kwargs const& kwargs) -> void {
@@ -7201,6 +6913,198 @@ and a segment kind.)RAW")
          [](org::imm::ImmCmdInclude::Kind it) -> int {
          return static_cast<int>(it);
          })
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNoNode>, org::imm::ImmId>(m, "ImmIdTNoNode")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorItem>, org::imm::ImmId>(m, "ImmIdTErrorItem")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorGroup>, org::imm::ImmId>(m, "ImmIdTErrorGroup")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmt>, org::imm::ImmId>(m, "ImmIdTStmt")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInline>, org::imm::ImmId>(m, "ImmIdTInline")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStmtList>, org::imm::ImmId>(m, "ImmIdTStmtList")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEmpty>, org::imm::ImmId>(m, "ImmIdTEmpty")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmd>, org::imm::ImmId>(m, "ImmIdTCmd")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlock>, org::imm::ImmId>(m, "ImmIdTBlock")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLineCommand>, org::imm::ImmId>(m, "ImmIdTLineCommand")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAttached>, org::imm::ImmId>(m, "ImmIdTAttached")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLeaf>, org::imm::ImmId>(m, "ImmIdTLeaf")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCaption>, org::imm::ImmId>(m, "ImmIdTCmdCaption")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCreator>, org::imm::ImmId>(m, "ImmIdTCmdCreator")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAuthor>, org::imm::ImmId>(m, "ImmIdTCmdAuthor")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdEmail>, org::imm::ImmId>(m, "ImmIdTCmdEmail")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdLanguage>, org::imm::ImmId>(m, "ImmIdTCmdLanguage")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdColumns>, org::imm::ImmId>(m, "ImmIdTCmdColumns")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdName>, org::imm::ImmId>(m, "ImmIdTCmdName")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomArgs>, org::imm::ImmId>(m, "ImmIdTCmdCustomArgs")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomRaw>, org::imm::ImmId>(m, "ImmIdTCmdCustomRaw")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCustomText>, org::imm::ImmId>(m, "ImmIdTCmdCustomText")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdCall>, org::imm::ImmId>(m, "ImmIdTCmdCall")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdTblfm>, org::imm::ImmId>(m, "ImmIdTCmdTblfm")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmHashTag>, org::imm::ImmId>(m, "ImmIdTHashTag")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineFootnote>, org::imm::ImmId>(m, "ImmIdTInlineFootnote")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmInlineExport>, org::imm::ImmId>(m, "ImmIdTInlineExport")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTime>, org::imm::ImmId>(m, "ImmIdTTime")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTimeRange>, org::imm::ImmId>(m, "ImmIdTTimeRange")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMacro>, org::imm::ImmId>(m, "ImmIdTMacro")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymbol>, org::imm::ImmId>(m, "ImmIdTSymbol")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmEscaped>, org::imm::ImmId>(m, "ImmIdTEscaped")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmNewline>, org::imm::ImmId>(m, "ImmIdTNewline")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSpace>, org::imm::ImmId>(m, "ImmIdTSpace")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmWord>, org::imm::ImmId>(m, "ImmIdTWord")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmAtMention>, org::imm::ImmId>(m, "ImmIdTAtMention")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRawText>, org::imm::ImmId>(m, "ImmIdTRawText")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPunctuation>, org::imm::ImmId>(m, "ImmIdTPunctuation")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPlaceholder>, org::imm::ImmId>(m, "ImmIdTPlaceholder")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBigIdent>, org::imm::ImmId>(m, "ImmIdTBigIdent")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextTarget>, org::imm::ImmId>(m, "ImmIdTTextTarget")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>, org::imm::ImmId>(m, "ImmIdTErrorSkipToken")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmErrorSkipGroup>, org::imm::ImmId>(m, "ImmIdTErrorSkipGroup")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkup>, org::imm::ImmId>(m, "ImmIdTMarkup")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBold>, org::imm::ImmId>(m, "ImmIdTBold")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmUnderline>, org::imm::ImmId>(m, "ImmIdTUnderline")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMonospace>, org::imm::ImmId>(m, "ImmIdTMonospace")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmMarkQuote>, org::imm::ImmId>(m, "ImmIdTMarkQuote")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmVerbatim>, org::imm::ImmId>(m, "ImmIdTVerbatim")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmItalic>, org::imm::ImmId>(m, "ImmIdTItalic")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmStrike>, org::imm::ImmId>(m, "ImmIdTStrike")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmPar>, org::imm::ImmId>(m, "ImmIdTPar")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRadioTarget>, org::imm::ImmId>(m, "ImmIdTRadioTarget")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLatex>, org::imm::ImmId>(m, "ImmIdTLatex")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmLink>, org::imm::ImmId>(m, "ImmIdTLink")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCenter>, org::imm::ImmId>(m, "ImmIdTBlockCenter")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockQuote>, org::imm::ImmId>(m, "ImmIdTBlockQuote")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockComment>, org::imm::ImmId>(m, "ImmIdTBlockComment")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockVerse>, org::imm::ImmId>(m, "ImmIdTBlockVerse")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmId>(m, "ImmIdTBlockDynamicFallback")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExample>, org::imm::ImmId>(m, "ImmIdTBlockExample")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockExport>, org::imm::ImmId>(m, "ImmIdTBlockExport")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockAdmonition>, org::imm::ImmId>(m, "ImmIdTBlockAdmonition")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmId>(m, "ImmIdTBlockCodeEvalResult")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmBlockCode>, org::imm::ImmId>(m, "ImmIdTBlockCode")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtreeLog>, org::imm::ImmId>(m, "ImmIdTSubtreeLog")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSubtree>, org::imm::ImmId>(m, "ImmIdTSubtree")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCell>, org::imm::ImmId>(m, "ImmIdTCell")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmRow>, org::imm::ImmId>(m, "ImmIdTRow")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTable>, org::imm::ImmId>(m, "ImmIdTTable")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmParagraph>, org::imm::ImmId>(m, "ImmIdTParagraph")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmColonExample>, org::imm::ImmId>(m, "ImmIdTColonExample")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdAttr>, org::imm::ImmId>(m, "ImmIdTCmdAttr")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdExport>, org::imm::ImmId>(m, "ImmIdTCmdExport")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCall>, org::imm::ImmId>(m, "ImmIdTCall")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmList>, org::imm::ImmId>(m, "ImmIdTList")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmListItem>, org::imm::ImmId>(m, "ImmIdTListItem")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentOptions>, org::imm::ImmId>(m, "ImmIdTDocumentOptions")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentFragment>, org::imm::ImmId>(m, "ImmIdTDocumentFragment")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCriticMarkup>, org::imm::ImmId>(m, "ImmIdTCriticMarkup")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocument>, org::imm::ImmId>(m, "ImmIdTDocument")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFileTarget>, org::imm::ImmId>(m, "ImmIdTFileTarget")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmTextSeparator>, org::imm::ImmId>(m, "ImmIdTTextSeparator")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDocumentGroup>, org::imm::ImmId>(m, "ImmIdTDocumentGroup")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmFile>, org::imm::ImmId>(m, "ImmIdTFile")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmDirectory>, org::imm::ImmId>(m, "ImmIdTDirectory")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmSymlink>, org::imm::ImmId>(m, "ImmIdTSymlink")
+    ;
+  nanobind::class_<org::imm::ImmIdT<org::imm::ImmCmdInclude>, org::imm::ImmId>(m, "ImmIdTCmdInclude")
+    ;
+  nanobind::class_<hstd::ext::ReportSourceStrCache, hstd::ext::ReportSourceCache>(m, "ReportSourceStrCache")
+    .def("__init__",
+         [](hstd::ext::ReportSourceStrCache* result, nanobind::kwargs const& kwargs) -> void {
+         hstd::SerdeDefaultProvider<hstd::ext::ReportSourceStrCache>::construct_at(result);
+         org::bind::python::init_fields_from_kwargs(*result, kwargs);
+         },
+         nanobind::arg("result"))
+    .def("__repr__", [](hstd::ext::ReportSourceStrCache const& _self) -> std::string {
+                     return org::bind::python::py_repr_impl(_self);
+                     })
+    .def("__getattr__",
+         [](hstd::ext::ReportSourceStrCache const& _self, std::string const& name) -> nanobind::object {
+         return org::bind::python::py_getattr_impl(_self, name);
+         },
+         nanobind::arg("name"))
     ;
   nanobind::class_<org::imm::ImmAdapterOrgAPI, org::imm::ImmAdapterVirtualBase>(m, "ImmAdapterOrgAPI")
     ;
@@ -7923,80 +7827,11 @@ and a segment kind.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterListAPI, org::imm::ImmAdapterStmtAPI>(m, "ImmAdapterListAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmStmt>, org::imm::ImmAdapterStmtAPI>(m, "ImmStmtAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getAttached", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>(org::imm::ImmAdapterT<org::imm::ImmStmt>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmStmt>::getAttached))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSubtree>, org::imm::ImmAdapterSubtreeAPI>(m, "ImmSubtreeAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getLevel", static_cast<int(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLevel))
-    .def("getTreeId", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTreeId))
-    .def("getTodo", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTodo))
-    .def("getCompletion", static_cast<hstd::Opt<org::sem::SubtreeCompletion> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getCompletion))
-    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDescription))
-    .def("getTags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTags))
-    .def("getTitle", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getTitle))
-    .def("getLogbook", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getLogbook))
-    .def("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getProperties))
-    .def("getClosed", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getClosed))
-    .def("getDeadline", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getDeadline))
-    .def("getScheduled", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmTime>>(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getScheduled))
-    .def("getIsComment", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsComment))
-    .def("getIsArchived", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getIsArchived))
-    .def("getPriority", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmSubtree>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtree>::getPriority))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmNoNode>, org::imm::ImmAdapterNoNodeAPI>(m, "ImmNoNodeAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorItem>, org::imm::ImmAdapterErrorItemAPI>(m, "ImmErrorItemAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getDiag", static_cast<org::sem::OrgDiagnostics(org::imm::ImmAdapterT<org::imm::ImmErrorItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorItem>::getDiag))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorGroup>, org::imm::ImmAdapterErrorGroupAPI>(m, "ImmErrorGroupAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getDiagnostics", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>>(org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorGroup>::getDiagnostics))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>, org::imm::ImmAdapterErrorSkipGroupAPI>(m, "ImmErrorSkipGroupAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getSkipped", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>>(org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmErrorSkipGroup>::getSkipped))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmErrorSkipToken>, org::imm::ImmAdapterErrorSkipTokenAPI>(m, "ImmErrorSkipTokenAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmStmtList>, org::imm::ImmAdapterStmtListAPI>(m, "ImmStmtListAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmEmpty>, org::imm::ImmAdapterEmptyAPI>(m, "ImmEmptyAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
   nanobind::class_<org::imm::ImmAdapterHashTagAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterHashTagAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterInlineFootnoteAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterInlineFootnoteAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterSubtreeCompletionAPI, org::imm::ImmAdapterInlineAPI>(m, "ImmAdapterSubtreeCompletionAPI")
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInline>, org::imm::ImmAdapterInlineAPI>(m, "ImmInlineAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTime>, org::imm::ImmAdapterTimeAPI>(m, "ImmTimeAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getIsActive", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmTime>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTime>::getIsActive))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTimeRange>, org::imm::ImmAdapterTimeRangeAPI>(m, "ImmTimeRangeAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getFrom", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getFrom))
-    .def("getTo", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmTimeRange>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTimeRange>::getTo))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMacro>, org::imm::ImmAdapterMacroAPI>(m, "ImmMacroAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getName))
-    .def("getAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmMacro>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmMacro>::getAttrs))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSymbol>, org::imm::ImmAdapterSymbolAPI>(m, "ImmSymbolAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getName))
-    .def("getParameters", static_cast<hstd::ext::ImmVec<org::imm::ImmSymbol::Param>(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getParameters))
-    .def("getPositional", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>>(org::imm::ImmAdapterT<org::imm::ImmSymbol>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymbol>::getPositional))
     ;
   nanobind::class_<org::imm::ImmAdapterEscapedAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterEscapedAPI")
     ;
@@ -8018,10 +7853,6 @@ and a segment kind.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterTextTargetAPI, org::imm::ImmAdapterLeafAPI>(m, "ImmAdapterTextTargetAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLeaf>, org::imm::ImmAdapterLeafAPI>(m, "ImmLeafAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmLeaf>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLeaf>::getText))
-    ;
   nanobind::class_<org::imm::ImmAdapterBoldAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterBoldAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterUnderlineAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterUnderlineAPI")
@@ -8039,104 +7870,6 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmAdapterStrikeAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterStrikeAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterParAPI, org::imm::ImmAdapterMarkupAPI>(m, "ImmAdapterParAPI")
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMarkup>, org::imm::ImmAdapterMarkupAPI>(m, "ImmMarkupAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLatex>, org::imm::ImmAdapterLatexAPI>(m, "ImmLatexAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>, org::imm::ImmAdapterSubtreeLogAPI>(m, "ImmSubtreeLogAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getHead", static_cast<org::sem::SubtreeLogHead(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getHead))
-    .def("getDesc", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmStmtList>>(org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSubtreeLog>::getDesc))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmColonExample>, org::imm::ImmAdapterColonExampleAPI>(m, "ImmColonExampleAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCall>, org::imm::ImmAdapterCallAPI>(m, "ImmCallAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getName))
-    .def("getAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getAttrs))
-    .def("getIsCommand", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCall>::getIsCommand))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmFile>, org::imm::ImmAdapterFileAPI>(m, "ImmFileAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getRelPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getRelPath))
-    .def("getAbsPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmFile>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFile>::getAbsPath))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDirectory>, org::imm::ImmAdapterDirectoryAPI>(m, "ImmDirectoryAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getRelPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmDirectory>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDirectory>::getRelPath))
-    .def("getAbsPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmDirectory>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDirectory>::getAbsPath))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSymlink>, org::imm::ImmAdapterSymlinkAPI>(m, "ImmSymlinkAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getIsDirectory", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getIsDirectory))
-    .def("getAbsPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmSymlink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmSymlink>::getAbsPath))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>, org::imm::ImmAdapterDocumentFragmentAPI>(m, "ImmDocumentFragmentAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getBaseLine", static_cast<int(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseLine))
-    .def("getBaseCol", static_cast<int(org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentFragment>::getBaseCol))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>, org::imm::ImmAdapterCriticMarkupAPI>(m, "ImmCriticMarkupAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getKind", static_cast<org::imm::ImmCriticMarkup::Kind(org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCriticMarkup>::getKind))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmListItem>, org::imm::ImmAdapterListItemAPI>(m, "ImmListItemAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getCheckbox", static_cast<CheckboxState(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getCheckbox))
-    .def("getHeader", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getHeader))
-    .def("getBullet", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmListItem>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmListItem>::getBullet))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>, org::imm::ImmAdapterDocumentOptionsAPI>(m, "ImmDocumentOptionsAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getInitialVisibility", static_cast<InitialSubtreeVisibility(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getInitialVisibility))
-    .def("getProperties", static_cast<hstd::ext::ImmVec<org::sem::NamedProperty>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getProperties))
-    .def("getExportConfig", static_cast<org::sem::DocumentExportConfig(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getExportConfig))
-    .def("getFixedWidthSections", static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getFixedWidthSections))
-    .def("getLinkVisibility", static_cast<hstd::Opt<LinkVisibility> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getLinkVisibility))
-    .def("getBlockVisibility", static_cast<hstd::Opt<BlockVisibility> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getBlockVisibility))
-    .def("getStartupIndented", static_cast<hstd::Opt<bool> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getStartupIndented))
-    .def("getCategory", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getCategory))
-    .def("getSetupfile", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getSetupfile))
-    .def("getMaxSubtreeLevelExport", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getMaxSubtreeLevelExport))
-    .def("getColumns", static_cast<hstd::Opt<org::sem::ColumnView> const&(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getColumns))
-    .def("getTodoKeywords", static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getTodoKeywords))
-    .def("getDoneKeywords", static_cast<hstd::ext::ImmVec<org::sem::TodoKeyword>(org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocumentOptions>::getDoneKeywords))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocument>, org::imm::ImmAdapterDocumentAPI>(m, "ImmDocumentAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getTitle", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getTitle))
-    .def("getAuthor", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getAuthor))
-    .def("getCreator", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getCreator))
-    .def("getFiletags", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getFiletags))
-    .def("getEmail", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmRawText>>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getEmail))
-    .def("getLanguage", static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getLanguage))
-    .def("getOptions", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getOptions))
-    .def("getExportFileName", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmDocument>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmDocument>::getExportFileName))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmFileTarget>, org::imm::ImmAdapterFileTargetAPI>(m, "ImmFileTargetAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getPath))
-    .def("getLine", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getLine))
-    .def("getSearchTarget", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getSearchTarget))
-    .def("getRestrictToHeadlines", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRestrictToHeadlines))
-    .def("getTargetId", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getTargetId))
-    .def("getRegexp", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmFileTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmFileTarget>::getRegexp))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTextSeparator>, org::imm::ImmAdapterTextSeparatorAPI>(m, "ImmTextSeparatorAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdInclude>, org::imm::ImmAdapterCmdIncludeAPI>(m, "ImmCmdIncludeAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getPath", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getPath))
-    .def("getFirstLine", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getFirstLine))
-    .def("getLastLine", static_cast<hstd::Opt<int> const&(org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdInclude>::getLastLine))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmDocumentGroup>, org::imm::ImmAdapterDocumentGroupAPI>(m, "ImmDocumentGroupAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
     ;
   nanobind::class_<org::sem::BlockCenter, org::sem::Block>(m, "BlockCenter")
     .def("__init__",
@@ -8335,103 +8068,6 @@ and a segment kind.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterRowAPI, org::imm::ImmAdapterCmdAPI>(m, "ImmAdapterRowAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmd>, org::imm::ImmAdapterCmdAPI>(m, "ImmCmdAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmd>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmd>::getAttrs))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>, org::imm::ImmAdapterCmdCustomRawAPI>(m, "ImmCmdCustomRawAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getName))
-    .def("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getIsAttached))
-    .def("getText", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomRaw>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>, org::imm::ImmAdapterCmdCustomTextAPI>(m, "ImmCmdCustomTextAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getName))
-    .def("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getIsAttached))
-    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomText>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLink>, org::imm::ImmAdapterLinkAPI>(m, "ImmLinkAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getDescription", static_cast<hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>>(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getDescription))
-    .def("getTarget", static_cast<org::sem::LinkTarget(org::imm::ImmAdapterT<org::imm::ImmLink>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmLink>::getTarget))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockComment>, org::imm::ImmAdapterBlockCommentAPI>(m, "ImmBlockCommentAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmParagraph>, org::imm::ImmAdapterParagraphAPI>(m, "ImmParagraphAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmList>, org::imm::ImmAdapterListAPI>(m, "ImmListAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmHashTag>, org::imm::ImmAdapterHashTagAPI>(m, "ImmHashTagAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<org::sem::HashTagText(org::imm::ImmAdapterT<org::imm::ImmHashTag>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmHashTag>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>, org::imm::ImmAdapterInlineFootnoteAPI>(m, "ImmInlineFootnoteAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getTag", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getTag))
-    .def("getDefinition", static_cast<hstd::Opt<org::imm::ImmAdapter>(org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineFootnote>::getDefinition))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmEscaped>, org::imm::ImmAdapterEscapedAPI>(m, "ImmEscapedAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmNewline>, org::imm::ImmAdapterNewlineAPI>(m, "ImmNewlineAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmSpace>, org::imm::ImmAdapterSpaceAPI>(m, "ImmSpaceAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmWord>, org::imm::ImmAdapterWordAPI>(m, "ImmWordAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmAtMention>, org::imm::ImmAdapterAtMentionAPI>(m, "ImmAtMentionAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRawText>, org::imm::ImmAdapterRawTextAPI>(m, "ImmRawTextAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmPunctuation>, org::imm::ImmAdapterPunctuationAPI>(m, "ImmPunctuationAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmPlaceholder>, org::imm::ImmAdapterPlaceholderAPI>(m, "ImmPlaceholderAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBigIdent>, org::imm::ImmAdapterBigIdentAPI>(m, "ImmBigIdentAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTextTarget>, org::imm::ImmAdapterTextTargetAPI>(m, "ImmTextTargetAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBold>, org::imm::ImmAdapterBoldAPI>(m, "ImmBoldAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmUnderline>, org::imm::ImmAdapterUnderlineAPI>(m, "ImmUnderlineAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMonospace>, org::imm::ImmAdapterMonospaceAPI>(m, "ImmMonospaceAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmMarkQuote>, org::imm::ImmAdapterMarkQuoteAPI>(m, "ImmMarkQuoteAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRadioTarget>, org::imm::ImmAdapterRadioTargetAPI>(m, "ImmRadioTargetAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getWords", static_cast<hstd::ext::ImmVec<hstd::Str>(org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRadioTarget>::getWords))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmVerbatim>, org::imm::ImmAdapterVerbatimAPI>(m, "ImmVerbatimAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmItalic>, org::imm::ImmAdapterItalicAPI>(m, "ImmItalicAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmStrike>, org::imm::ImmAdapterStrikeAPI>(m, "ImmStrikeAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmPar>, org::imm::ImmAdapterParAPI>(m, "ImmParAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
   nanobind::class_<org::sem::CmdCaption, org::sem::Attached>(m, "CmdCaption")
     .def("__init__",
          [](org::sem::CmdCaption* result, nanobind::kwargs const& kwargs) -> void {
@@ -8542,34 +8178,6 @@ and a segment kind.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterAttachedAPI, org::imm::ImmAdapterLineCommandAPI>(m, "ImmAdapterAttachedAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmLineCommand>, org::imm::ImmAdapterLineCommandAPI>(m, "ImmLineCommandAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>, org::imm::ImmAdapterCmdCustomArgsAPI>(m, "ImmCmdCustomArgsAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getName))
-    .def("getIsAttached", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCustomArgs>::getIsAttached))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCreator>, org::imm::ImmAdapterCmdCreatorAPI>(m, "ImmCmdCreatorAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCreator>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>, org::imm::ImmAdapterCmdAuthorAPI>(m, "ImmCmdAuthorAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAuthor>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdEmail>, org::imm::ImmAdapterCmdEmailAPI>(m, "ImmCmdEmailAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdEmail>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>, org::imm::ImmAdapterCmdLanguageAPI>(m, "ImmCmdLanguageAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdLanguage>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>, org::imm::ImmAdapterCmdTblfmAPI>(m, "ImmCmdTblfmAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getExpr", static_cast<org::sem::Tblfm(org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdTblfm>::getExpr))
-    ;
   nanobind::class_<org::imm::ImmAdapterBlockCenterAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockCenterAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterBlockQuoteAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterBlockQuoteAPI")
@@ -8594,18 +8202,6 @@ and a segment kind.)RAW")
     ;
   nanobind::class_<org::imm::ImmAdapterTableAPI, org::imm::ImmAdapterBlockAPI>(m, "ImmAdapterTableAPI")
     ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlock>, org::imm::ImmAdapterBlockAPI>(m, "ImmBlockAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCell>, org::imm::ImmAdapterCellAPI>(m, "ImmCellAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getIsBlock", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmCell>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCell>::getIsBlock))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmRow>, org::imm::ImmAdapterRowAPI>(m, "ImmRowAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getCells", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>>(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getCells))
-    .def("getIsBlock", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmRow>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmRow>::getIsBlock))
-    ;
   nanobind::class_<org::imm::ImmAdapterCmdCaptionAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdCaptionAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterCmdColumnsAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdColumnsAPI")
@@ -8617,85 +8213,6 @@ and a segment kind.)RAW")
   nanobind::class_<org::imm::ImmAdapterCmdResultsAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdResultsAPI")
     ;
   nanobind::class_<org::imm::ImmAdapterCmdAttrAPI, org::imm::ImmAdapterAttachedAPI>(m, "ImmAdapterCmdAttrAPI")
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmAttached>, org::imm::ImmAdapterAttachedAPI>(m, "ImmAttachedAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCenter>, org::imm::ImmAdapterBlockCenterAPI>(m, "ImmBlockCenterAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockQuote>, org::imm::ImmAdapterBlockQuoteAPI>(m, "ImmBlockQuoteAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockVerse>, org::imm::ImmAdapterBlockVerseAPI>(m, "ImmBlockVerseAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExample>, org::imm::ImmAdapterBlockExampleAPI>(m, "ImmBlockExampleAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmInlineExport>, org::imm::ImmAdapterInlineExportAPI>(m, "ImmInlineExportAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getExporter", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmInlineExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getExporter))
-    .def("getContent", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmInlineExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmInlineExport>::getContent))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdExport>, org::imm::ImmAdapterCmdExportAPI>(m, "ImmCmdExportAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getExporter", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getExporter))
-    .def("getContent", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdExport>::getContent))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockExport>, org::imm::ImmAdapterBlockExportAPI>(m, "ImmBlockExportAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getExporter", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmBlockExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getExporter))
-    .def("getContent", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmBlockExport>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockExport>::getContent))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>, org::imm::ImmAdapterBlockDynamicFallbackAPI>(m, "ImmBlockDynamicFallbackAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback>::getName))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition>, org::imm::ImmAdapterBlockAdmonitionAPI>(m, "ImmBlockAdmonitionAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>, org::imm::ImmAdapterBlockCodeEvalResultAPI>(m, "ImmBlockCodeEvalResultAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getRaw", static_cast<hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getRaw))
-    .def("getNode", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult>::getNode))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmBlockCode>, org::imm::ImmAdapterBlockCodeAPI>(m, "ImmBlockCodeAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getLang", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLang))
-    .def("getResult", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getResult))
-    .def("getLines", static_cast<hstd::ext::ImmVec<org::sem::BlockCodeLine>(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getLines))
-    .def("getSwitches", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmBlockCode>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmBlockCode>::getSwitches))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmTable>, org::imm::ImmAdapterTableAPI>(m, "ImmTableAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getRows", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>>(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getRows))
-    .def("getIsBlock", static_cast<bool(org::imm::ImmAdapterT<org::imm::ImmTable>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmTable>::getIsBlock))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCaption>, org::imm::ImmAdapterCmdCaptionAPI>(m, "ImmCmdCaptionAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getText", static_cast<org::imm::ImmAdapter(org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCaption>::getText))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdColumns>, org::imm::ImmAdapterCmdColumnsAPI>(m, "ImmCmdColumnsAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getView", static_cast<org::sem::ColumnView(org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdColumns>::getView))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdName>, org::imm::ImmAdapterCmdNameAPI>(m, "ImmCmdNameAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdName>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdName>::getName))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdCall>, org::imm::ImmAdapterCmdCallAPI>(m, "ImmCmdCallAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getName", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getName))
-    .def("getFileName", static_cast<hstd::Opt<hstd::Str> const&(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getFileName))
-    .def("getInsideHeaderAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getInsideHeaderAttrs))
-    .def("getCallAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getCallAttrs))
-    .def("getEndHeaderAttrs", static_cast<org::sem::AttrGroup(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getEndHeaderAttrs))
-    .def("getResult", static_cast<hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>(org::imm::ImmAdapterT<org::imm::ImmCmdCall>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdCall>::getResult))
-    ;
-  nanobind::class_<org::imm::ImmAdapterT<org::imm::ImmCmdAttr>, org::imm::ImmAdapterCmdAttrAPI>(m, "ImmCmdAttrAdapter")
-    .def(nanobind::init<org::imm::ImmAdapter const&>())
-    .def("getTarget", static_cast<hstd::Str const&(org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::*)() const>(&org::imm::ImmAdapterT<org::imm::ImmCmdAttr>::getTarget))
     ;
   m.def("newSemTimeStatic",
         static_cast<org::sem::SemId<org::sem::Time>(*)(hstd::UserTimeBreakdown const&, bool)>(&org::newSemTimeStatic),
@@ -8773,6 +8290,27 @@ and a segment kind.)RAW")
         nanobind::arg("node"),
         nanobind::arg("conf"),
         nanobind::arg("parse_context"));
+  m.def("eachSubnodeRec",
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRec),
+        nanobind::arg("node"),
+        nanobind::arg("callback"));
+  m.def("eachSubnodeRecSimplePath",
+        static_cast<void(*)(org::sem::SemId<org::sem::Org>, nanobind::callable)>(&org::bind::python::eachSubnodeRecSimplePath),
+        nanobind::arg("node"),
+        nanobind::arg("callback"));
+  m.def("evaluateCodeBlocks",
+        static_cast<org::sem::SemId<org::sem::Org>(*)(org::sem::SemId<org::sem::Org>, org::bind::python::PyCodeEvalParameters const&, std::shared_ptr<org::parse::ParseContext>)>(&org::bind::python::evaluateCodeBlocks),
+        nanobind::arg("node"),
+        nanobind::arg("conf"),
+        nanobind::arg("parse_context"));
+  m.def("setShouldProcessPath",
+        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setShouldProcessPath),
+        nanobind::arg("parameters"),
+        nanobind::arg("callback"));
+  m.def("setGetParsedNode",
+        static_cast<void(*)(org::parse::OrgDirectoryParseParameters*, nanobind::callable)>(&org::bind::python::setGetParsedNode),
+        nanobind::arg("params"),
+        nanobind::arg("callback"));
   nanobind::set_leak_warnings(false);
 }
 /* clang-format on */

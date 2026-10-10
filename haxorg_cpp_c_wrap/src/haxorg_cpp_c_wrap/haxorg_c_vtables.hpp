@@ -4,6 +4,22 @@
 #include <haxorg_cpp_c_wrap/haxorg_c_utils.hpp>
 #include <haxorg_cpp_c_wrap/haxorg_c_vtables_manual.hpp>
 template <>
+struct org::bind::c::VTable<hstd::UnorderedMap<hstd::Str, org::sem::AttrList, std::hash<hstd::Str>>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload keys_const(OrgContext* org_context, haxorg_HstdMap __self);
+  static void destroy(OrgContext* org_context, haxorg_HstdMap* __self);
+  static haxorg_HstdMap_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<hstd::UnorderedMap<hstd::Str, hstd::Str, std::hash<hstd::Str>>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload keys_const(OrgContext* org_context, haxorg_HstdMap __self);
+  static void destroy(OrgContext* org_context, haxorg_HstdMap* __self);
+  static haxorg_HstdMap_vtable const* get_vtable();
+};
+
+template <>
 struct org::bind::c::VTable<hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath, std::hash<org::sem::HashTagFlat>>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload keys_const(OrgContext* org_context, haxorg_HstdMap __self);
@@ -25,70 +41,6 @@ struct org::bind::c::VTable<hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTr
   static haxorg_ptr_payload keys_const(OrgContext* org_context, haxorg_HstdMap __self);
   static void destroy(OrgContext* org_context, haxorg_HstdMap* __self);
   static haxorg_HstdMap_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<hstd::UnorderedMap<hstd::Str, org::sem::AttrList, std::hash<hstd::Str>>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload keys_const(OrgContext* org_context, haxorg_HstdMap __self);
-  static void destroy(OrgContext* org_context, haxorg_HstdMap* __self);
-  static haxorg_HstdMap_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<hstd::UnorderedMap<hstd::Str, hstd::Str, std::hash<hstd::Str>>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload keys_const(OrgContext* org_context, haxorg_HstdMap __self);
-  static void destroy(OrgContext* org_context, haxorg_HstdMap* __self);
-  static haxorg_HstdMap_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<std::optional<int>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<std::optional<std::string>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<std::optional<org::sem::SemId<org::sem::Org>>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<std::optional<org::parse::SourceLoc>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<std::optional<org::imm::ImmAdapter>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
-struct org::bind::c::VTable<std::optional<org::AstTrackingAlternatives>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
 };
 
 template <>
@@ -116,6 +68,14 @@ struct org::bind::c::VTable<std::optional<bool>> {
 };
 
 template <>
+struct org::bind::c::VTable<std::optional<int>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
 struct org::bind::c::VTable<std::optional<double>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
@@ -125,6 +85,14 @@ struct org::bind::c::VTable<std::optional<double>> {
 
 template <>
 struct org::bind::c::VTable<std::optional<hstd::Str>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<std::string>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
   static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
@@ -165,6 +133,38 @@ struct org::bind::c::VTable<std::optional<org::sem::OrgCodeEvalInput::Var>> {
 
 template <>
 struct org::bind::c::VTable<std::optional<org::sem::ColumnView::Summary>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<org::parse::SourceLoc>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<org::sem::SemId<org::sem::Org>>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<org::imm::ImmAdapter>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<org::AstTrackingAlternatives>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
   static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
