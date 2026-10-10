@@ -53,8 +53,7 @@ def gen_pyhaxorg_napi_wrappers(
         [
             GenUnit(
                 header=GenTu(
-                    root
-                    / "haxorg_wasm_lib_wrap/src/haxorg_wasm_lib_wrap/haxorg_wasm.cpp",
+                    root / "src/haxorg_wasm_lib_wrap/haxorg_wasm.cpp",
                     [
                         GenTuPass(res.build_bind(ast=ast, b=cpp_builder)),
                     ],
@@ -62,8 +61,7 @@ def gen_pyhaxorg_napi_wrappers(
             ),
             GenUnit(
                 header=GenTu(
-                    root
-                    / "haxorg_wasm_lib_wrap/src/haxorg_wasm_lib_wrap/haxorg_wasm_types.d.ts",
+                    root / "src/haxorg_wasm_lib_wrap/haxorg_wasm_types.d.ts",
                     [
                         GenTuPass(res.build_typedef(ast=ast)),
                     ],
