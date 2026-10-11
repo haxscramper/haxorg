@@ -60,12 +60,12 @@ struct hshow_opts {
         hshow_flag::trim_prefix_zeros,
     };
 
-    int  indent      = 0;
-    int  max_depth   = 120;
-    int  max_len     = 320;
-    bool quoteIdents = false; /// Add quotes around stings that are valid
-                              /// identifirers
-    hshow_verbosity verbosity = hshow_verbosity::Normal;
+    int             indent      = 0;
+    int             max_depth   = 120;
+    int             max_len     = 320;
+    bool            quoteIdents = false; /// Add quotes around stings that are valid
+                                         /// identifirers
+    hshow_verbosity verbosity   = hshow_verbosity::Normal;
 
 #define __flag_method(a)                                                                 \
     hshow_opts& with_##a(bool set) { return cond(hshow_flag::a, set); }                  \

@@ -306,7 +306,7 @@ struct EvalContext {
             } else if (norm == "scalar" || norm == "verbatim") {
                 input.resultType = I::ResultType::Scalar;
             } else if (norm == "file") {
-                input.resultType = I ::ResultType::SaveFile;
+                input.resultType = I::ResultType::SaveFile;
             } else if (norm == "raw") {
                 input.resultFormat = I::ResultFormat::Raw;
             } else if (norm == "code") {

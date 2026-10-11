@@ -726,7 +726,7 @@ TEST_F(ImmMapApi, SubtreeFullMap) {
         "6d6d6689-d9da-418d-9f91-1c8c4428e5af");
 
 
-    auto conf = org::graph::MapConfig ::shared();
+    auto conf = org::graph::MapConfig::shared();
     getGraph()->setTraceFile(getDebugFile("conf"));
     addNodeRec(file);
 

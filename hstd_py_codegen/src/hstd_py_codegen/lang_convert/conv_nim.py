@@ -3,9 +3,12 @@ import math
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-import hstd_py_codegen.lang_build.astbuilder_nim as nim
 from beartype import beartype
 from beartype.typing import Callable, List, Optional, Set, Tuple, Union
+from hstd_py_lib.files import file_relpath
+from hstd_py_text_layout.base.wrap import BlockId, TextLayout, TextOptions
+
+import hstd_py_codegen.lang_build.astbuilder_nim as nim
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuEnum,
     GenTuEnumField,
@@ -23,8 +26,6 @@ from hstd_py_codegen.read_cpp.refl_wrapper_graph import (
     GenGraph,
     GenTuUnion,
 )
-from hstd_py_lib.files import file_relpath
-from hstd_py_text_layout.base.wrap import BlockId, TextLayout, TextOptions
 
 
 @beartype

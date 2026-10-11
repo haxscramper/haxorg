@@ -266,12 +266,12 @@ Solution::Ptr hPlusSolution(Solution::Ptr& s1, Solution::Ptr& s2, Options const&
         // attributable to its projection beyond the margins.
         float g1        = s1->curGradient();
         float g2        = s2->curGradient();
-        int   overhang0 = s2Margin - opts.leftMargin; // s2Margin =
-                                                      // rightMargin + span
-                                                      // of s1
-        int overhang1 = s2Margin - opts.rightMargin;  // s2Margin =
-                                                      // rightMargin + span
-                                                      // of s1
+        int   overhang0 = s2Margin - opts.leftMargin;  // s2Margin =
+                                                       // rightMargin + span
+                                                       // of s1
+        int   overhang1 = s2Margin - opts.rightMargin; // s2Margin =
+                                                       // rightMargin + span
+                                                       // of s1
         float
             gCur = (g1 + g2 - (0 <= overhang0 ? opts.leftMarginCost : 0) - (0 <= overhang1 ? opts.rightMarginCost : 0));
 

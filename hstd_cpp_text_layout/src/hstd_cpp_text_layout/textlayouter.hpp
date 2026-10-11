@@ -298,7 +298,7 @@ struct Block {
     UnorderedMap<Opt<Solution::Ptr>, Opt<Solution::Ptr>, SolutionHash> layoutCache;
     bool isBreaking = false; /// Whether or not this block should end the
                              /// line
-    int  breakMult = 1;      /// Local line break cost change
+    int  breakMult  = 1;     /// Local line break cost change
     Data data;
 
     hstd::Opt<std::string> debug;
@@ -396,13 +396,13 @@ struct Options {
     /// to wrap on default column limit.
     float leftMarginCost = 0.05; /// cost (per character) beyond margin 0.
     /// Expected value ~0.05
-    float rightMarginCost = 100; /// cost (per character) beyond margin 1.
-                                 /// Should be much higher than c0.
-                                 /// Expected value ~100
-    int   linebreakCost = 5;     /// cost per line-break
-    int   indentSpaces  = 2;     /// spaces per indent
-    float cpack         = 0.001; /// cost (per element) for packing justified
-                                 /// layouts. Expected value ~0.001
+    float rightMarginCost = 100;   /// cost (per character) beyond margin 1.
+                                   /// Should be much higher than c0.
+                                   /// Expected value ~100
+    int   linebreakCost   = 5;     /// cost per line-break
+    int   indentSpaces    = 2;     /// spaces per indent
+    float cpack           = 0.001; /// cost (per element) for packing justified
+                                   /// layouts. Expected value ~0.001
 
 
     using FormatPolicy = std::function<Vec<Vec<BlockId>>(BlockStore&, Vec<Vec<BlockId>>)>;
