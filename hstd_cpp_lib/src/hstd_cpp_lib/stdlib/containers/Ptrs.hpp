@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hstd_cpp_lib/system/aux_utils.hpp>
+#include <hstd_cpp_lib/system/basic_templates.hpp>
 #include <memory>
 
 namespace hstd {
@@ -81,6 +82,31 @@ constexpr auto dynamic_pointer_cast(std::unique_ptr<U, D>&& r) noexcept
         static_assert(false, "unable to create an empty unique_ptr");
     }
 }
+
+
+template <typename T>
+struct SerdeDefaultProvider<std::shared_ptr<T>> {
+    static std::shared_ptr<T> get() {
+        std::allocator<T> allocator;
+        T*                value = allocator.allocate(1);
+
+        try {
+            SerdeDefaultProvider<T>::construct_at(value);
+        } catch (...) {
+            allocator.deallocate(value, 1);
+            throw;
+        }
+
+        return std::shared_ptr<T>(value, [](T* ptr) {
+            std::destroy_at(ptr);
+            std::allocator<T>{}.deallocate(ptr, 1);
+        });
+    }
+
+    static void construct_at(void* ptr) {
+        std::construct_at(static_cast<std::shared_ptr<T>*>(ptr), get());
+    }
+};
 
 
 } // namespace hstd

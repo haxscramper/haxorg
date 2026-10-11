@@ -672,7 +672,11 @@ class NbClass:
         if not self.Struct.IsDescribedRecord:
             return
 
-        is_shared = self.Struct.ReflectionParams.backend.python.holder_type == "shared"
+        # shared pointer types are crated using `new_` binding to properly
+        # set up the shared pointer blocks.
+        is_factory_type = (
+            self.Struct.ReflectionParams.backend.python.holder_type == "shared"
+        )
         class_type = self.getCxxName()
         result_type = (
             QualType(
@@ -680,13 +684,13 @@ class NbClass:
                 Spaces=[QualType.ForName("std")],
                 Params=[class_type],
             )
-            if is_shared
+            if is_factory_type
             else class_type
         )
 
         body_impl: List[BlockId] = []
 
-        if is_shared:
+        if is_factory_type:
             body_impl.append(
                 ast.b.line(
                     [
@@ -704,7 +708,11 @@ class NbClass:
                     Params=[result_type],
                 ),
                 opc="construct_at",
-                Args=[ast.string("result")],
+                Args=[
+                    ast.Addr(ast.string("result"))
+                    if is_factory_type
+                    else ast.string("result")
+                ],
                 Stmt=True,
             )
         )
@@ -717,11 +725,11 @@ class NbClass:
             )
         )
 
-        if is_shared:
+        if is_factory_type:
             body_impl.append(ast.Return(ast.string("result")))
 
         args: List[GenTuIdent] = []
-        if not is_shared:
+        if not is_factory_type:
             args.append(GenTuIdent(class_type.asPtr(), "result"))
 
         args.append(
@@ -742,13 +750,13 @@ class NbClass:
                 conf=self.conf,
                 Func=GenTuFunction(
                     Name="",
-                    ReturnType=result_type if is_shared else QualType(Name="void"),
+                    ReturnType=result_type if is_factory_type else QualType(Name="void"),
                     Args=args,
                     IsConstructor=True,
                 ),
                 Body=body_impl,
                 HasExplicitClassParam=True,
-                IsFactoryConstructor=is_shared,
+                IsFactoryConstructor=is_factory_type,
             )
         )
 

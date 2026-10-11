@@ -4879,7 +4879,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::parse::OrgParseParameters>(m, "OrgParseParameters")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::parse::OrgParseParameters> {
                         std::shared_ptr<org::parse::OrgParseParameters> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::parse::OrgParseParameters>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::parse::OrgParseParameters>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -4899,7 +4899,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::parse::OrgDirectoryParseParameters>(m, "OrgDirectoryParseParameters")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::parse::OrgDirectoryParseParameters> {
                         std::shared_ptr<org::parse::OrgDirectoryParseParameters> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::parse::OrgDirectoryParseParameters>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::parse::OrgDirectoryParseParameters>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -4917,7 +4917,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def(nanobind::init<std::shared_ptr<org::parse::SourceManager> const&>())
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::parse::ParseContext> {
                         std::shared_ptr<org::parse::ParseContext> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::parse::ParseContext>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::parse::ParseContext>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5557,7 +5557,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::NoNode, org::sem::Org>(m, "NoNode")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::NoNode> {
                         std::shared_ptr<org::sem::NoNode> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::NoNode>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::NoNode>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5573,7 +5573,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::ErrorItem, org::sem::Org>(m, "ErrorItem")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::ErrorItem> {
                         std::shared_ptr<org::sem::ErrorItem> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorItem>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorItem>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5590,7 +5590,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::ErrorGroup, org::sem::Org>(m, "ErrorGroup")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::ErrorGroup> {
                         std::shared_ptr<org::sem::ErrorGroup> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorGroup>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorGroup>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5644,7 +5644,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::StmtList, org::sem::Org>(m, "StmtList")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::StmtList> {
                         std::shared_ptr<org::sem::StmtList> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::StmtList>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::StmtList>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5660,7 +5660,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Empty, org::sem::Org>(m, "Empty")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Empty> {
                         std::shared_ptr<org::sem::Empty> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Empty>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Empty>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5812,7 +5812,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Time, org::sem::Org>(m, "Time")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Time> {
                         std::shared_ptr<org::sem::Time> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Time>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Time>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5841,7 +5841,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::TimeRange, org::sem::Org>(m, "TimeRange")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::TimeRange> {
                         std::shared_ptr<org::sem::TimeRange> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::TimeRange>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::TimeRange>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5860,7 +5860,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Macro, org::sem::Org>(m, "Macro")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Macro> {
                         std::shared_ptr<org::sem::Macro> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Macro>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Macro>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5896,7 +5896,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Symbol, org::sem::Org>(m, "Symbol")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Symbol> {
                         std::shared_ptr<org::sem::Symbol> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Symbol>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Symbol>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5915,7 +5915,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::ErrorSkipGroup, org::sem::Org>(m, "ErrorSkipGroup")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::ErrorSkipGroup> {
                         std::shared_ptr<org::sem::ErrorSkipGroup> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorSkipGroup>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorSkipGroup>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5934,7 +5934,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::RadioTarget, org::sem::Org>(m, "RadioTarget")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::RadioTarget> {
                         std::shared_ptr<org::sem::RadioTarget> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::RadioTarget>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::RadioTarget>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5951,7 +5951,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Latex, org::sem::Org>(m, "Latex")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Latex> {
                         std::shared_ptr<org::sem::Latex> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Latex>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Latex>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5967,7 +5967,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::SubtreeLog, org::sem::Org>(m, "SubtreeLog")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::SubtreeLog> {
                         std::shared_ptr<org::sem::SubtreeLog> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::SubtreeLog>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::SubtreeLog>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -5988,7 +5988,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Subtree, org::sem::Org>(m, "Subtree")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Subtree> {
                         std::shared_ptr<org::sem::Subtree> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Subtree>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Subtree>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6047,7 +6047,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::ColonExample, org::sem::Org>(m, "ColonExample")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::ColonExample> {
                         std::shared_ptr<org::sem::ColonExample> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ColonExample>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ColonExample>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6063,7 +6063,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Call, org::sem::Org>(m, "Call")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Call> {
                         std::shared_ptr<org::sem::Call> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Call>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Call>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6082,7 +6082,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::ListItem, org::sem::Org>(m, "ListItem")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::ListItem> {
                         std::shared_ptr<org::sem::ListItem> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ListItem>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ListItem>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6103,7 +6103,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::DocumentOptions, org::sem::Org>(m, "DocumentOptions")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::DocumentOptions> {
                         std::shared_ptr<org::sem::DocumentOptions> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::DocumentOptions>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::DocumentOptions>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6140,7 +6140,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::DocumentFragment, org::sem::Org>(m, "DocumentFragment")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::DocumentFragment> {
                         std::shared_ptr<org::sem::DocumentFragment> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::DocumentFragment>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::DocumentFragment>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6184,7 +6184,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CriticMarkup, org::sem::Org>(m, "CriticMarkup")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CriticMarkup> {
                         std::shared_ptr<org::sem::CriticMarkup> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CriticMarkup>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CriticMarkup>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6201,7 +6201,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Document, org::sem::Org>(m, "Document")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Document> {
                         std::shared_ptr<org::sem::Document> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Document>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Document>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6233,7 +6233,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::FileTarget, org::sem::Org>(m, "FileTarget")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::FileTarget> {
                         std::shared_ptr<org::sem::FileTarget> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::FileTarget>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::FileTarget>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6255,7 +6255,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::TextSeparator, org::sem::Org>(m, "TextSeparator")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::TextSeparator> {
                         std::shared_ptr<org::sem::TextSeparator> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::TextSeparator>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::TextSeparator>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6271,7 +6271,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::DocumentGroup, org::sem::Org>(m, "DocumentGroup")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::DocumentGroup> {
                         std::shared_ptr<org::sem::DocumentGroup> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::DocumentGroup>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::DocumentGroup>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6359,7 +6359,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::File, org::sem::Org>(m, "File")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::File> {
                         std::shared_ptr<org::sem::File> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::File>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::File>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6384,7 +6384,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Directory, org::sem::Org>(m, "Directory")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Directory> {
                         std::shared_ptr<org::sem::Directory> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Directory>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Directory>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6402,7 +6402,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Symlink, org::sem::Org>(m, "Symlink")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Symlink> {
                         std::shared_ptr<org::sem::Symlink> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Symlink>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Symlink>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -6549,7 +6549,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdInclude, org::sem::Org>(m, "CmdInclude")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdInclude> {
                         std::shared_ptr<org::sem::CmdInclude> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdInclude>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdInclude>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7122,7 +7122,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdCustomRaw, org::sem::Stmt>(m, "CmdCustomRaw")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdCustomRaw> {
                         std::shared_ptr<org::sem::CmdCustomRaw> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCustomRaw>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCustomRaw>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7141,7 +7141,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdCustomText, org::sem::Stmt>(m, "CmdCustomText")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdCustomText> {
                         std::shared_ptr<org::sem::CmdCustomText> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCustomText>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCustomText>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7160,7 +7160,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Link, org::sem::Stmt>(m, "Link")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Link> {
                         std::shared_ptr<org::sem::Link> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Link>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Link>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7178,7 +7178,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockComment, org::sem::Stmt>(m, "BlockComment")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockComment> {
                         std::shared_ptr<org::sem::BlockComment> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockComment>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockComment>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7194,7 +7194,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Paragraph, org::sem::Stmt>(m, "Paragraph")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Paragraph> {
                         std::shared_ptr<org::sem::Paragraph> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Paragraph>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Paragraph>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7221,7 +7221,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::List, org::sem::Stmt>(m, "List")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::List> {
                         std::shared_ptr<org::sem::List> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::List>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::List>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7243,7 +7243,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::HashTag, org::sem::Inline>(m, "HashTag")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::HashTag> {
                         std::shared_ptr<org::sem::HashTag> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::HashTag>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::HashTag>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7260,7 +7260,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::InlineFootnote, org::sem::Inline>(m, "InlineFootnote")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::InlineFootnote> {
                         std::shared_ptr<org::sem::InlineFootnote> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::InlineFootnote>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::InlineFootnote>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7278,7 +7278,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::InlineExport, org::sem::Inline>(m, "InlineExport")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::InlineExport> {
                         std::shared_ptr<org::sem::InlineExport> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::InlineExport>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::InlineExport>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7296,7 +7296,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Escaped, org::sem::Leaf>(m, "Escaped")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Escaped> {
                         std::shared_ptr<org::sem::Escaped> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Escaped>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Escaped>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7312,7 +7312,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Newline, org::sem::Leaf>(m, "Newline")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Newline> {
                         std::shared_ptr<org::sem::Newline> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Newline>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Newline>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7328,7 +7328,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Space, org::sem::Leaf>(m, "Space")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Space> {
                         std::shared_ptr<org::sem::Space> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Space>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Space>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7344,7 +7344,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Word, org::sem::Leaf>(m, "Word")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Word> {
                         std::shared_ptr<org::sem::Word> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Word>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Word>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7360,7 +7360,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::AtMention, org::sem::Leaf>(m, "AtMention")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::AtMention> {
                         std::shared_ptr<org::sem::AtMention> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::AtMention>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::AtMention>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7376,7 +7376,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::RawText, org::sem::Leaf>(m, "RawText")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::RawText> {
                         std::shared_ptr<org::sem::RawText> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::RawText>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::RawText>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7392,7 +7392,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Punctuation, org::sem::Leaf>(m, "Punctuation")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Punctuation> {
                         std::shared_ptr<org::sem::Punctuation> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Punctuation>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Punctuation>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7408,7 +7408,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Placeholder, org::sem::Leaf>(m, "Placeholder")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Placeholder> {
                         std::shared_ptr<org::sem::Placeholder> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Placeholder>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Placeholder>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7424,7 +7424,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BigIdent, org::sem::Leaf>(m, "BigIdent")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BigIdent> {
                         std::shared_ptr<org::sem::BigIdent> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BigIdent>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BigIdent>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7440,7 +7440,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::TextTarget, org::sem::Leaf>(m, "TextTarget")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::TextTarget> {
                         std::shared_ptr<org::sem::TextTarget> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::TextTarget>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::TextTarget>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7456,7 +7456,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::ErrorSkipToken, org::sem::Leaf>(m, "ErrorSkipToken")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::ErrorSkipToken> {
                         std::shared_ptr<org::sem::ErrorSkipToken> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorSkipToken>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::ErrorSkipToken>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7472,7 +7472,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Bold, org::sem::Markup>(m, "Bold")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Bold> {
                         std::shared_ptr<org::sem::Bold> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Bold>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Bold>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7488,7 +7488,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Underline, org::sem::Markup>(m, "Underline")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Underline> {
                         std::shared_ptr<org::sem::Underline> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Underline>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Underline>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7504,7 +7504,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Monospace, org::sem::Markup>(m, "Monospace")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Monospace> {
                         std::shared_ptr<org::sem::Monospace> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Monospace>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Monospace>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7520,7 +7520,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::MarkQuote, org::sem::Markup>(m, "MarkQuote")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::MarkQuote> {
                         std::shared_ptr<org::sem::MarkQuote> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::MarkQuote>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::MarkQuote>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7536,7 +7536,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Verbatim, org::sem::Markup>(m, "Verbatim")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Verbatim> {
                         std::shared_ptr<org::sem::Verbatim> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Verbatim>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Verbatim>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7552,7 +7552,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Italic, org::sem::Markup>(m, "Italic")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Italic> {
                         std::shared_ptr<org::sem::Italic> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Italic>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Italic>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7568,7 +7568,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Strike, org::sem::Markup>(m, "Strike")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Strike> {
                         std::shared_ptr<org::sem::Strike> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Strike>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Strike>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7584,7 +7584,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Par, org::sem::Markup>(m, "Par")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Par> {
                         std::shared_ptr<org::sem::Par> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Par>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Par>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7678,7 +7678,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdCreator, org::sem::Cmd>(m, "CmdCreator")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdCreator> {
                         std::shared_ptr<org::sem::CmdCreator> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCreator>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCreator>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7695,7 +7695,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdAuthor, org::sem::Cmd>(m, "CmdAuthor")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdAuthor> {
                         std::shared_ptr<org::sem::CmdAuthor> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdAuthor>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdAuthor>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7712,7 +7712,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdEmail, org::sem::Cmd>(m, "CmdEmail")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdEmail> {
                         std::shared_ptr<org::sem::CmdEmail> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdEmail>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdEmail>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7729,7 +7729,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdLanguage, org::sem::Cmd>(m, "CmdLanguage")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdLanguage> {
                         std::shared_ptr<org::sem::CmdLanguage> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdLanguage>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdLanguage>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7746,7 +7746,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdCustomArgs, org::sem::Cmd>(m, "CmdCustomArgs")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdCustomArgs> {
                         std::shared_ptr<org::sem::CmdCustomArgs> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCustomArgs>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCustomArgs>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7764,7 +7764,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdTblfm, org::sem::Cmd>(m, "CmdTblfm")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdTblfm> {
                         std::shared_ptr<org::sem::CmdTblfm> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdTblfm>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdTblfm>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7781,7 +7781,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Cell, org::sem::Cmd>(m, "Cell")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Cell> {
                         std::shared_ptr<org::sem::Cell> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Cell>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Cell>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7798,7 +7798,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Row, org::sem::Cmd>(m, "Row")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Row> {
                         std::shared_ptr<org::sem::Row> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Row>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Row>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7874,7 +7874,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockCenter, org::sem::Block>(m, "BlockCenter")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockCenter> {
                         std::shared_ptr<org::sem::BlockCenter> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockCenter>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockCenter>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7890,7 +7890,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockQuote, org::sem::Block>(m, "BlockQuote")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockQuote> {
                         std::shared_ptr<org::sem::BlockQuote> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockQuote>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockQuote>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7906,7 +7906,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockVerse, org::sem::Block>(m, "BlockVerse")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockVerse> {
                         std::shared_ptr<org::sem::BlockVerse> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockVerse>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockVerse>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7922,7 +7922,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockDynamicFallback, org::sem::Block>(m, "BlockDynamicFallback")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockDynamicFallback> {
                         std::shared_ptr<org::sem::BlockDynamicFallback> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockDynamicFallback>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockDynamicFallback>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7939,7 +7939,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockExample, org::sem::Block>(m, "BlockExample")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockExample> {
                         std::shared_ptr<org::sem::BlockExample> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockExample>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockExample>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7955,7 +7955,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockExport, org::sem::Block>(m, "BlockExport")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockExport> {
                         std::shared_ptr<org::sem::BlockExport> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockExport>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockExport>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7974,7 +7974,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockAdmonition, org::sem::Block>(m, "BlockAdmonition")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockAdmonition> {
                         std::shared_ptr<org::sem::BlockAdmonition> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockAdmonition>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockAdmonition>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -7990,7 +7990,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockCodeEvalResult, org::sem::Block>(m, "BlockCodeEvalResult")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockCodeEvalResult> {
                         std::shared_ptr<org::sem::BlockCodeEvalResult> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockCodeEvalResult>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockCodeEvalResult>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8008,7 +8008,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::BlockCode, org::sem::Block>(m, "BlockCode")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::BlockCode> {
                         std::shared_ptr<org::sem::BlockCode> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockCode>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::BlockCode>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8031,7 +8031,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Table, org::sem::Block>(m, "Table")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::Table> {
                         std::shared_ptr<org::sem::Table> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Table>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::Table>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8071,7 +8071,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdCaption, org::sem::Attached>(m, "CmdCaption")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdCaption> {
                         std::shared_ptr<org::sem::CmdCaption> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCaption>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCaption>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8088,7 +8088,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdColumns, org::sem::Attached>(m, "CmdColumns")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdColumns> {
                         std::shared_ptr<org::sem::CmdColumns> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdColumns>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdColumns>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8105,7 +8105,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdName, org::sem::Attached>(m, "CmdName")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdName> {
                         std::shared_ptr<org::sem::CmdName> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdName>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdName>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8122,7 +8122,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdCall, org::sem::Attached>(m, "CmdCall")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdCall> {
                         std::shared_ptr<org::sem::CmdCall> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCall>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdCall>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8144,7 +8144,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdAttr, org::sem::Attached>(m, "CmdAttr")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdAttr> {
                         std::shared_ptr<org::sem::CmdAttr> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdAttr>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdAttr>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
@@ -8161,7 +8161,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::CmdExport, org::sem::Attached>(m, "CmdExport")
     .def(nanobind::new_([](nanobind::kwargs const& kwargs) -> std::shared_ptr<org::sem::CmdExport> {
                         std::shared_ptr<org::sem::CmdExport> result;
-                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdExport>>::construct_at(result);
+                        hstd::SerdeDefaultProvider<std::shared_ptr<org::sem::CmdExport>>::construct_at(&result);
                         org::bind::python::init_fields_from_kwargs(*result, kwargs);
                         return result;
                         }))
