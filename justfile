@@ -185,7 +185,7 @@ py_validate target *args:
     {{args}}
 
 format_validation_results:
-  uv run repo_py_orchestrate/src/repo_py_orchestrate/standalone_scripts/parse_validation_logs.py \
+  uv run repo_py_orchestrate/src/repo_py_orchestrate/standalone_scripts/parse_validation/main.py \
     {{HAXORG_ROOT}}/build/logs/ \
     --output={{HAXORG_ROOT}}/build/logs
 
