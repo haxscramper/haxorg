@@ -4,8 +4,13 @@ on:
   workflow_call:
     inputs:
       package:
-        description: Package directory relative to the repository root
+        description: Package name
         required: true
+        type: string
+      package-directory:
+        description: Recipe directory relative to the repository root, defaults to the package name
+        required: false
+        default: ""
         type: string
       incoming-artifact:
         description: Cumulative Conan bundle from the preceding job
@@ -30,7 +35,7 @@ jobs:
 
     env:
       PACKAGE: ${{ inputs.package }}
-      CONAN_HOME: ${{ github.workspace }}/.conan-ci
+      PACKAGE_DIRECTORY: ${{ inputs.package-directory || inputs.package }}
 
     steps:
       - name: Install system tools
@@ -54,6 +59,12 @@ jobs:
 
       - name: Install Conan
         run: |
+          export CONAN_HOME="$RUNNER_TEMP/conan-ci"
+          echo "CONAN_HOME=$CONAN_HOME" >> "$GITHUB_ENV"
+
+          rm -rf "$CONAN_HOME"
+          mkdir -p "$CONAN_HOME"
+
           python3 -m venv "$RUNNER_TEMP/conan-venv"
           "$RUNNER_TEMP/conan-venv/bin/python" -m pip install "conan>=2,<3"
           echo "$RUNNER_TEMP/conan-venv/bin" >> "$GITHUB_PATH"
@@ -61,6 +72,7 @@ jobs:
           clang --version
           cmake --version
           ninja --version
+
 
       - name: Download dependency bundle
         if: inputs.incoming-artifact != ''
@@ -83,7 +95,7 @@ jobs:
       - name: Export base recipe or build and test package
         run: |
           if [[ "$PACKAGE" == "haxorg_conan_base" ]]; then
-            conan export "./$PACKAGE"
+            conan export "./$PACKAGE_DIRECTORY"
           else
             profile="$GITHUB_WORKSPACE/repo_tool_configs/conan/conanprofile_debug.txt"
             compiler_version="$(clang -dumpversion)"
@@ -101,16 +113,22 @@ jobs:
               "-o:a"
               "hstd_cpp_lib/*:with_perfetto=False"
               "-o:a"
-              "hstd_cpp_lib/*:with_protovalidate=False"
+              "hstd_cpp_lib/*:with_protovalidate=True"
               "-o:a"
               "haxorg_cpp_org_lib/*:with_perfetto=False"
               "-o:a"
-              "haxorg_cpp_org_lib/*:with_protovalidate=False"
+              "haxorg_cpp_org_lib/*:with_protovalidate=True"
               "--build=missing"
               "--build=$PACKAGE/*"
             )
 
-            conan create "./$PACKAGE" "${args[@]}"
+            printf 'CONAN_HOME=%s\n' "$CONAN_HOME"
+            (
+              cd "$RUNNER_TEMP"
+              conan config home
+              conan editable list
+              conan create "$GITHUB_WORKSPACE/$PACKAGE_DIRECTORY" "${args[@]}"
+            )
           fi
 
       - name: Save cumulative Conan bundle

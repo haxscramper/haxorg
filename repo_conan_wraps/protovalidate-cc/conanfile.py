@@ -54,6 +54,8 @@ class ProtovalidateCcConan(ConanFile):
         self.tool_requires("protobuf/5.29.6")
 
     def source(self):
+        assert self.source_folder
+        self.output.info(f"source() running: source_folder={self.source_folder}")
         version = str(self.version)
 
         source_data = self.conan_data["sources"][version]
