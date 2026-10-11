@@ -16,3 +16,4 @@ graphviz/*:tools.build:sharedlinkflags=["-Wl,--trace-symbol=sysprof_clock"]
 [options]
 # required for onetbb dependency for the haxdex target
 hwloc/*:shared=True
+boost/*:without_cobalt=True

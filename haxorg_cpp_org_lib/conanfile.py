@@ -81,11 +81,15 @@ class HaxorgCppOrgLibConan(ConanFile):
             self.tool_requires("protobuf/[>=5 <6]")
 
     def haxorg_configure_toolchain(self, toolchain: CMakeToolchain):
-        toolchain.variables["HAXORG_WITH_PROTOBUF"] = bool(self.options.with_protobuf)
-        toolchain.variables["HAXORG_WITH_PROTOVALIDATE"] = bool(
+        toolchain.cache_variables["HAXORG_WITH_PROTOBUF"] = bool(
+            self.options.with_protobuf
+        )
+        toolchain.cache_variables["HAXORG_WITH_PROTOVALIDATE"] = bool(
             self.options.with_protovalidate
         )
-        toolchain.variables["HAXORG_WITH_PERFETTO"] = bool(self.options.with_perfetto)
+        toolchain.cache_variables["HAXORG_WITH_PERFETTO"] = bool(
+            self.options.with_perfetto
+        )
 
     def haxorg_package_info(self):
         self.cpp_info.defines = [

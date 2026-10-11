@@ -1,0 +1,40 @@
+name: Conan package tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conan-base:
+    uses: ./.github/workflows/conan_package_job.yaml
+    with:
+      package: haxorg_conan_base
+
+  hstd:
+    needs: conan-base
+    uses: ./.github/workflows/conan_package_job.yaml
+    with:
+      package: hstd_cpp_lib
+      incoming-artifact: conan-haxorg_conan_base
+
+  text-layout:
+    needs: hstd
+    uses: ./.github/workflows/conan_package_job.yaml
+    with:
+      package: hstd_cpp_text_layout
+      incoming-artifact: conan-hstd_cpp_lib
+
+  haxorg:
+    needs: text-layout
+    uses: ./.github/workflows/conan_package_job.yaml
+    with:
+      package: haxorg_cpp_org_lib
+      incoming-artifact: conan-hstd_cpp_text_layout

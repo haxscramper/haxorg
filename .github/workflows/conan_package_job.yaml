@@ -1,0 +1,136 @@
+name: Build a Conan package
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: Package directory relative to the repository root
+        required: true
+        type: string
+      incoming-artifact:
+        description: Cumulative Conan bundle from the preceding job
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: ${{ inputs.package }}
+    runs-on: ubuntu-latest
+
+    container:
+      image: fedora:latest
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      PACKAGE: ${{ inputs.package }}
+      CONAN_HOME: ${{ github.workspace }}/.conan-ci
+
+    steps:
+      - name: Install system tools
+        run: |
+          dnf install -y \
+            clang \
+            gcc-c++ \
+            cmake \
+            ninja-build \
+            python3 \
+            python3-pip \
+            nodejs \
+            git \
+            tar \
+            gzip \
+            make \
+            pkgconf-pkg-config
+
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install Conan
+        run: |
+          python3 -m venv "$RUNNER_TEMP/conan-venv"
+          "$RUNNER_TEMP/conan-venv/bin/python" -m pip install "conan>=2,<3"
+          echo "$RUNNER_TEMP/conan-venv/bin" >> "$GITHUB_PATH"
+
+          clang --version
+          cmake --version
+          ninja --version
+
+      - name: Download dependency bundle
+        if: inputs.incoming-artifact != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.incoming-artifact }}
+          path: ${{ runner.temp }}/conan-incoming
+
+      - name: Restore dependency bundle
+        if: inputs.incoming-artifact != ''
+        run: |
+          incoming="$RUNNER_TEMP/conan-incoming"
+
+          conan cache restore "$incoming/recipes.tgz"
+
+          if [[ -f "$incoming/packages.tgz" ]]; then
+            conan cache restore "$incoming/packages.tgz"
+          fi
+
+      - name: Export base recipe or build and test package
+        run: |
+          if [[ "$PACKAGE" == "haxorg_conan_base" ]]; then
+            conan export "./$PACKAGE"
+          else
+            profile="$GITHUB_WORKSPACE/repo_tool_configs/conan/conanprofile_debug.txt"
+            compiler_version="$(clang -dumpversion)"
+            compiler_major="${compiler_version%%.*}"
+
+            args=(
+              "-pr:a"
+              "$profile"
+              "-s:a"
+              "compiler.version=$compiler_major"
+              "-c:a"
+              'tools.build:compiler_executables={"c":"clang","cpp":"clang++"}'
+              "-c:a"
+              "tools.build:skip_test=False"
+              "-o:a"
+              "hstd_cpp_lib/*:with_perfetto=False"
+              "-o:a"
+              "hstd_cpp_lib/*:with_protovalidate=False"
+              "-o:a"
+              "haxorg_cpp_org_lib/*:with_perfetto=False"
+              "-o:a"
+              "haxorg_cpp_org_lib/*:with_protovalidate=False"
+              "--build=missing"
+              "--build=$PACKAGE/*"
+            )
+
+            conan create "./$PACKAGE" "${args[@]}"
+          fi
+
+      - name: Save cumulative Conan bundle
+        run: |
+          outgoing="$RUNNER_TEMP/conan-outgoing"
+          mkdir -p "$outgoing"
+
+          # Include recipes without binaries, notably the Python-require base.
+          conan cache save "*" --file="$outgoing/recipes.tgz"
+
+          if [[ "$PACKAGE" != "haxorg_conan_base" ]]; then
+            # Include all available binaries, including third-party dependencies.
+            conan cache save "*:*" --file="$outgoing/packages.tgz"
+          fi
+
+      - name: Upload cumulative Conan bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: conan-${{ inputs.package }}
+          path: ${{ runner.temp }}/conan-outgoing/*.tgz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7

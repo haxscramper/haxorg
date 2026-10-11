@@ -4,6 +4,13 @@ run_github_ci:
 run_github_ci_1:
   act push --container-options "--cpus 24" --reuse -W .github/workflows/readme_run_lib.yaml
 
+run_github_cpp_package_tests:
+  act workflow_dispatch \
+    -W .github/workflows/package_tests.yaml \
+    --artifact-server-path /tmp/haxorg-act-artifacts \
+    --reuse
+
+
 dump_cli_stack:
   lldb -p $(pgrep -f haxorg_cpp_org_cli) -o "thread backtrace all" -o "detach" -o "quit" > /tmp/trace.log
 
@@ -199,15 +206,18 @@ validate_all editable:
 
 run_to_output target *ARGS:
   -just {{target}} {{ARGS}} > build/target_result.log 2>&1
+  just format_validation_results
   echo "execution OK"
 
 # run target, redirect logs, also trace all subprocess execs
 run_to_output_strace target *ARGS:
   -strace -f -qq -ttt -s 2097152 -e trace=execve,execveat -o /tmp/subprocess_trigger.log just {{target}} {{ARGS}} > build/target_result.log 2>&1
+  just format_validation_results
   echo "execution OK"
 
 run_to_output_strace_command target *ARGS:
   -strace -f -qq -ttt -s 2097152 -e trace=execve,execveat -e 'signal=!SIGCHLD' -o /tmp/subprocess_trigger.log {{target}} {{ARGS}} > build/target_result.log 2>&1
+  just format_validation_results
   echo "execution OK"
 
 # ./repo_py_orchestrate/remap_conan_error_paths.py build/target_result.log

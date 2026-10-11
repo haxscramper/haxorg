@@ -75,16 +75,16 @@ class HstdConan(ConanFile):
 
     def haxorg_configure_toolchain(self, toolchain: CMakeToolchain):
         # TODO: remove this option entirely, create a separate package for qt utils
-        toolchain.variables["ORG_BUILD_WITH_QT"] = False
+        toolchain.cache_variables["ORG_BUILD_WITH_QT"] = False
         # TODO: Infer the compilation configuration from the compiler
-        toolchain.variables["ORG_BUILD_EMCC"] = False
-        toolchain.variables["HSTD_CPP_BUILD_WITH_PERFETTO"] = bool(
+        toolchain.cache_variables["ORG_BUILD_EMCC"] = False
+        toolchain.cache_variables["HSTD_CPP_BUILD_WITH_PERFETTO"] = bool(
             self.options.with_perfetto
         )
-        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOBUF"] = bool(
+        toolchain.cache_variables["HSTD_CPP_BUILD_WITH_PROTOBUF"] = bool(
             self.options.with_protobuf
         )
-        toolchain.variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = bool(
+        toolchain.cache_variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = bool(
             self.options.with_protovalidate
         )
 
