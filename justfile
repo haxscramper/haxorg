@@ -114,16 +114,27 @@ conan_validate_deps dep_name:
 
 [working-directory("/tmp")]
 conan_validate target: conan_export_local_deps
+  #!/usr/bin/env bash
+  LOG_DIR="{{HAXORG_ROOT}}/build/logs/{{target}}"
   conan remove "{{target}}/*" --confirm
-  rm -rf {{HAXORG_ROOT}}/build/logs/{{target}}
-  mkdir -p {{HAXORG_ROOT}}/build/logs/{{target}}
+  rm -rf $LOG_DIR
+  mkdir -p $LOG_DIR
+  # pass value to the conan create in case it internally uses
+  # pytest verification for binaries.
+  printf -v HSTD_PY_PYTEST_EXTRA_ARGS '%s' "$(
+      jq -c --arg arg "--report-log=${LOG_DIR}/conan_pytest.jsonl" \
+          '. + [$arg]' <<< "$HSTD_PY_PYTEST_EXTRA_ARGS"
+  )"
+  export HSTD_PY_PYTEST_EXTRA_ARGS
+  export GTEST_OUTPUT="json:$LOG_DIR/gtest_results/"
+  #
   conan create {{HAXORG_ROOT}}/{{target}} \
     --profile:all={{CONAN_PROFILE}} \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
     -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
     {{CONAN_PYTHON_CONFIG}} \
     --build=missing \
-     -vstatus 2>&1 | tee {{HAXORG_ROOT}}/build/logs/{{target}}/conan_create.log
+     -vstatus 2>&1 | tee "${LOG_DIR}/conan_create.log"
 
 conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
 conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
@@ -173,6 +184,11 @@ py_validate target *args:
     --output-dir={{HAXORG_ROOT}}/build/logs/{{target}} \
     {{args}}
 
+format_validation_results:
+  uv run repo_py_orchestrate/src/repo_py_orchestrate/standalone_scripts/parse_validation_logs.py \
+    {{HAXORG_ROOT}}/build/logs/ \
+    --output={{HAXORG_ROOT}}/build/logs
+
 # run individual validation on all packages in the repository
 validate_all:
   #!/usr/bin/env bash
@@ -183,11 +199,14 @@ validate_all:
   just conan_validate hstd_cpp_lib
   just conan_validate haxdex_read_code_cpp
   just conan_validate hstd_cpp_text_layout
+  just conan_validate haxorg_cpp_org_lib
   #
   just py_validate hstd_cpp_text_layout_wrap
   just py_validate haxorg_py_lib --editable
   just py_validate hstd_py_codegen --editable
   just py_validate hstd_py_text_layout --editable
+
+
 
 run_to_output target *ARGS:
   -just {{target}} {{ARGS}} > build/target_result.log 2>&1
