@@ -295,6 +295,7 @@ class HaxorgPackage(_HaxorgTypingBase):
         if self.haxorg_run_tests and can_run(self):
             environment = VirtualRunEnv(self).environment()
             environment.define("CTEST_OUTPUT_ON_FAILURE", "1")
+            environment.define("VERBOSE", "1")
 
             for directory in reversed(self.haxorg_binary_directories):
                 environment.prepend_path("PATH", str(directory))

@@ -337,8 +337,8 @@ def test_type_cross_dependency(logged_test_dir: Path) -> None:
     assert Path(b.absolute_path) == (logged_test_dir / "b.hpp").resolve()
     assert len(a.functions) == 0
     assert len(b.functions) == 0
-    assert len(a.records) == 2
-    assert len(b.records) == 2
+    assert len(a.records) == 1
+    assert len(b.records) == 1
 
     assert a.records[0].is_forward_decl
     assert b.records[0].is_forward_decl

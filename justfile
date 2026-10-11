@@ -113,28 +113,16 @@ conan_validate_deps dep_name:
 # -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
 
 [working-directory("/tmp")]
-conan_validate target: conan_export_local_deps
-  #!/usr/bin/env bash
-  LOG_DIR="{{HAXORG_ROOT}}/build/logs/{{target}}"
-  conan remove "{{target}}/*" --confirm
-  rm -rf $LOG_DIR
-  mkdir -p $LOG_DIR
-  # pass value to the conan create in case it internally uses
-  # pytest verification for binaries.
-  printf -v HSTD_PY_PYTEST_EXTRA_ARGS '%s' "$(
-      jq -c --arg arg "--report-log=${LOG_DIR}/conan_pytest.jsonl" \
-          '. + [$arg]' <<< "$HSTD_PY_PYTEST_EXTRA_ARGS"
-  )"
-  export HSTD_PY_PYTEST_EXTRA_ARGS
-  export GTEST_OUTPUT="json:$LOG_DIR/gtest_results/"
-  #
-  conan create {{HAXORG_ROOT}}/{{target}} \
-    --profile:all={{CONAN_PROFILE}} \
-    -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
-    -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
-    {{CONAN_PYTHON_CONFIG}} \
-    --build=missing \
-     -vstatus 2>&1 | tee "${LOG_DIR}/conan_create.log"
+conan_validate target editable: conan_export_local_deps
+  uv run --project "{{HAXORG_ROOT}}" \
+    "{{HAXORG_ROOT}}/repo_py_orchestrate/src/repo_py_orchestrate/repo_utils/test_conan_install.py" \
+    "{{HAXORG_ROOT}}/{{target}}" \
+    {{editable}} \
+    --profile "{{CONAN_PROFILE}}" \
+    --warning-suppressions "{{SUPPRESSION_FILE}}" \
+    --python-config {{quote(CONAN_PYTHON_CONFIG)}} \
+    --log-dir "{{HAXORG_ROOT}}/build/logs/{{target}}"
+
 
 conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
 conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
@@ -144,10 +132,10 @@ conan_update_all_deps: conan_update_external_deps conan_update_local_deps
 
 # remove all dependencies (local+external), then validate target from scratch
 conan_clean_total_validate target: conan_update_local_deps conan_update_external_deps
-  just conan_validate {{target}}
+  just conan_validate {{target}} --no-editable
 
 conan_clean_local_validate target: conan_update_local_deps
-  just conan_validate {{target}}
+  just conan_validate {{target}} --no-editable
 
 # Conan workspace monolithic install
 conan_workspace_install_monorepo:
@@ -178,7 +166,7 @@ conan_clean_all:
 py_validate target *args:
   rm -rf {{HAXORG_ROOT}}/build/logs/{{target}}
   mkdir -p {{HAXORG_ROOT}}/build/logs/{{target}}
-  uv run {{HAXORG_ROOT}}/repo_ci_config/py_ci/test_uv_install.py \
+  uv run {{HAXORG_ROOT}}/repo_py_orchestrate/src/repo_py_orchestrate/repo_utils/test_uv_install.py \
     {{HAXORG_ROOT}}/{{target}} \
     --conan-profile={{CONAN_PROFILE}} \
     --output-dir={{HAXORG_ROOT}}/build/logs/{{target}} \
@@ -190,21 +178,22 @@ format_validation_results:
     --output={{HAXORG_ROOT}}/build/logs
 
 # run individual validation on all packages in the repository
-validate_all:
+validate_all editable:
   #!/usr/bin/env bash
   # Base hstd package also contains plugins, hooks and deployers
   # for the rest, so if it fails the rest might be too broken.
-  just py_validate hstd_py_lib --editable || exit "$?"
+  just py_validate hstd_py_lib {{editable}} || exit "$?"
   #
-  just conan_validate hstd_cpp_lib
-  just conan_validate haxdex_read_code_cpp
-  just conan_validate hstd_cpp_text_layout
-  just conan_validate haxorg_cpp_org_lib
+  just conan_validate hstd_cpp_lib {{editable}}
+  just conan_validate haxdex_read_code_cpp {{editable}}
+  just conan_validate hstd_cpp_text_layout {{editable}}
+  just conan_validate haxorg_cpp_org_lib {{editable}}
   #
   just py_validate hstd_cpp_text_layout_wrap
-  just py_validate haxorg_py_lib --editable
-  just py_validate hstd_py_codegen --editable
-  just py_validate hstd_py_text_layout --editable
+  just py_validate haxorg_py_lib {{editable}}
+  just py_validate hstd_py_codegen {{editable}}
+  just py_validate hstd_py_text_layout {{editable}}
+  just format_validation_results
 
 
 
