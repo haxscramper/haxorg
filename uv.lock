@@ -490,13 +490,17 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "pytest-xdist" },
 ]
 
 [package.metadata]
 requires-dist = [{ name = "hstd-py-lib", editable = "hstd_py_lib" }]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest" }]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-xdist" },
+]
 
 [[package]]
 name = "idna"

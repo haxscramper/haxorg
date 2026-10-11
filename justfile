@@ -177,7 +177,7 @@ format_validation_results:
     {{HAXORG_ROOT}}/build/logs/ \
     --output={{HAXORG_ROOT}}/build/logs
 
-# run individual validation on all packages in the repository
+# run individual validation on all packages in the repository, --editable/--no-editable
 validate_all editable:
   #!/usr/bin/env bash
   # Base hstd package also contains plugins, hooks and deployers

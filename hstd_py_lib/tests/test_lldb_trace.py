@@ -3,6 +3,7 @@ import shlex
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from textwrap import indent
 
 import pytest
 from beartype import beartype
@@ -123,6 +124,12 @@ def run_lldb(
             retcode=None,
             timeout=90,
         )
+
+        # LLDB gives the inferior a pseudo-terminal for stdout, and the pty's
+        # ONLCR discipline turns every "\n" into "\r\n". Normalize so substring
+        # assertions are not sensitive to the carriage returns.
+        stdout = stdout.replace("\r\n", "\n")
+        stderr = stderr.replace("\r\n", "\n")
 
     log_text = log_file.read_text() if log_file.exists() else ""
 
@@ -462,8 +469,8 @@ def test_structured_round_trip(
         ),
         (
             "HSTD_PY_LLDB_AUTO_CONTINUE",
-            "1",
-            "Expected 'true' or 'false'",
+            "invalid_value",
+            "Unexpected bool value",
         ),
         (
             "HSTD_PY_LLDB_FRAME_BLACKLIST",
@@ -729,19 +736,20 @@ def test_pytest_xdist_workers_capture_their_own_backtraces(
     )
 
     output = result.stdout + result.stderr
-    debugger_logs = {
-        path.name: path.read_text(encoding="utf-8")
-        for path in report_directory.glob("*.lldb.log")
-    }
-    diagnostics = (
-        f"{output}\nWorker debugger logs:\n{json.dumps(debugger_logs, indent=2)}"
+    debugger_logs = "\n".join(
+        [
+            f"{path.name}:\n{indent(path.read_text(), '    ')}"
+            for path in report_directory.glob("*.lldb.log")
+        ]
     )
+
+    diagnostics = f"{output}\nWorker debugger logs:\n{debugger_logs}"
 
     # Each worker executes both fixture tests, exercising report offsets
     # independently rather than assigning just one test to each worker.
     assert result.status == 0, diagnostics
     assert "2 failed, 2 passed" in output, diagnostics
-    assert len(debugger_logs) == 2, diagnostics
+    assert len(list(report_directory.glob("*.lldb.log"))) == 2, diagnostics
 
     report_files = sorted(
         path for path in report_directory.glob("*.log") if path.stem.isdecimal()
