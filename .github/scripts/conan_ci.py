@@ -40,7 +40,7 @@ def run_command(
 
 
 def preserve_previous_snapshot(temporary_directory: str) -> None:
-    temporary = Path(temporary_directory)
+    temporary = Path(os.path.expandvars(temporary_directory))
     snapshot = temporary / "conan-server-snapshot"
     previous = temporary / "conan-server-previous"
 
@@ -268,8 +268,8 @@ def run_package(
     shutdown_timeout: float,
 ) -> None:
     started = time.monotonic()
-    repository = Path(workspace)
-    temporary = Path(temporary_directory)
+    repository = Path(os.path.expandvars(workspace))
+    temporary = Path(os.path.expandvars(temporary_directory))
     recipe = repository / package_directory
     server_home = temporary / "conan-server"
     server_data = server_home / "data"

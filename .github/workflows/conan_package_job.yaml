@@ -106,8 +106,8 @@ jobs:
             {
               "package": ${{ toJSON(inputs.package) }},
               "package_directory": ${{ toJSON(inputs.package-directory || inputs.package) }},
-              "workspace": ${{ toJSON(github.workspace) }},
-              "temporary_directory": ${{ toJSON(runner.temp) }},
+              "workspace": "$GITHUB_WORKSPACE",
+              "temporary_directory": "$RUNNER_TEMP",
               "server_port": 9300,
               "username": "ci",
               "password": "ci",
@@ -115,7 +115,7 @@ jobs:
               "shutdown_timeout": 30.0
             }
         run: |
-          python "$CI_SCRIPT" run_package "$ACTION_PAYLOAD"
+          python "$GITHUB_WORKSPACE/.github/scripts/conan_ci.py" run_package "$ACTION_PAYLOAD"
 
       - name: Save successful server snapshot
         uses: actions/cache/save@v5
