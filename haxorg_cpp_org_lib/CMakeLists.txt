@@ -114,9 +114,6 @@ if(BUILD_TESTING)
         PRIVATE
             haxorg_cpp_org_lib
             GTest::gtest
-            absl::base
-            absl::log
-            absl::flags
     )
 
     add_test(NAME haxorg_cpp_org_tests COMMAND haxorg_cpp_org_tests)

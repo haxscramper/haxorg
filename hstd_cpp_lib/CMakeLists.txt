@@ -181,8 +181,6 @@ if(BUILD_TESTING)
             GTest::gtest
             GTest::gmock
             hstd_cpp_lib
-            absl::flags
-            absl::flags_parse
             immer::immer
     )
     add_test(NAME hstd_cpp_lib_tests COMMAND hstd_cpp_lib_tests)

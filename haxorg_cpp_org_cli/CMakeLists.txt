@@ -40,9 +40,6 @@ target_link_libraries(
     PRIVATE
         haxorg::haxorg_cpp_org_lib
         hstd::hstd_cpp_diagram_lib
-        absl::base
-        absl::log
-        absl::flags
         argparse::argparse
 )
 

@@ -1,17 +1,12 @@
 #pragma once
 
 #include <boost/preprocessor/facilities/overload.hpp>
-#include <google/protobuf/message.h>
 #include <hstd_cpp_lib/logger/logger.hpp>
 #include <hstd_cpp_lib/stdlib/Filesystem.hpp>
 #include <hstd_cpp_lib/stdlib/Str.hpp>
 #include <hstd_cpp_lib/stdlib/algorithms/diff/diffs.hpp>
 #include <hstd_cpp_lib/stdlib/containers/Outcome.hpp>
 
-#include <absl/log/initialize.h>
-#include <absl/log/internal/globals.h>
-#include <absl/log/log_sink_registry.h>
-#include <absl/strings/str_split.h>
 #include <sys/resource.h>
 
 #include <fstream>
@@ -346,25 +341,6 @@ inline ::testing::AssertionResult ThrowsWithTextContainsAll(
     EXPECT_TRUE((ThrowsWithTextContainsAll<exception_type>(                              \
         [&]() { (void)(expr); }, {__VA_ARGS__})))
 
-
-class LinePrinterLogSink : public absl::LogSink {
-  public:
-    LinePrinterLogSink(char const* path) : file(path) {}
-    void Send(absl::LogEntry const& entry) override {
-        for (absl::string_view line :
-             absl::StrSplit(entry.text_message_with_prefix(), absl::ByChar('\n'))) {
-            // Overprint severe entries for emphasis:
-            for (int i = static_cast<int>(absl::LogSeverity::kInfo);
-                 i <= static_cast<int>(entry.log_severity());
-                 i++) {
-                file << line << std::endl;
-            }
-        }
-    }
-
-  private:
-    std::ofstream file;
-};
 
 class QuietTestPrinter : public ::testing::EmptyTestEventListener {
     // Called after a failed assertion or a SUCCESS().
