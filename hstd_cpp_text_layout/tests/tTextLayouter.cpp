@@ -1,12 +1,9 @@
+#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 #include <hstd_cpp_lib/stdlib/Ranges.hpp>
 #include <hstd_cpp_lib/stdlib/Str.hpp>
 #include <hstd_cpp_lib/stdlib/algorithms/strutils.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/Debug.hpp>
 #include <hstd_cpp_text_layout/textlayouter.hpp>
-
-#include <absl/log/log.h>
-
-#include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 
 using namespace hstd;
 using namespace hstd::layout;
