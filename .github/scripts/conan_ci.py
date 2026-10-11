@@ -39,6 +39,30 @@ def run_command(
     )
 
 
+def capture_command(
+    arguments: list[str],
+    directory: Path,
+    environment: dict[str, str],
+) -> str:
+    logger.info(f"Running command in {directory}: {shlex.join(arguments)}")
+    started = time.monotonic()
+
+    result = subprocess.run(
+        arguments,
+        cwd=directory,
+        env=environment,
+        stdout=subprocess.PIPE,
+        text=True,
+        check=True,
+    )
+
+    logger.info(
+        f"Command completed in {time.monotonic() - started:.2f}s: {shlex.join(arguments)}"
+    )
+
+    return result.stdout
+
+
 def preserve_previous_snapshot(temporary_directory: str) -> None:
     temporary = Path(os.path.expandvars(temporary_directory))
     snapshot = temporary / "conan-server-snapshot"
@@ -198,7 +222,7 @@ def build_package(
     environment: dict[str, str],
 ) -> None:
     logger.info(
-        f"Building package={package}, recipe={package_directory}, "
+        f"Preparing package={package}, recipe={package_directory}, "
         f"CONAN_HOME={environment['CONAN_HOME']}"
     )
 
@@ -213,22 +237,19 @@ def build_package(
     profile = workspace / "repo_tool_configs/conan/conanprofile_debug.txt"
     logger.info(f"Using Conan profile {profile}")
 
-    compiler_version = subprocess.check_output(
+    compiler_version = capture_command(
         ["clang", "-dumpversion"],
-        cwd=temporary,
-        env=environment,
-        text=True,
+        temporary,
+        environment,
     ).strip()
     compiler_major = compiler_version.split(".", 1)[0]
+
     logger.info(
         f"Detected Clang version {compiler_version}; "
         f"using Conan compiler.version={compiler_major}"
     )
 
     arguments = [
-        "conan",
-        "create",
-        str(package_directory),
         "-pr:a",
         str(profile),
         "-s:a",
@@ -248,12 +269,73 @@ def build_package(
         "-c:a",
         'protovalidate-cc/*:tools.cmake:configure_args=["--debug-trycompile"]',
         "--build=missing",
-        f"--build={package}/*",
     ]
 
     run_command(["conan", "config", "home"], temporary, environment)
     run_command(["conan", "editable", "list"], temporary, environment)
-    run_command(arguments, temporary, environment)
+
+    exported = json.loads(
+        capture_command(
+            [
+                "conan",
+                "export",
+                str(package_directory),
+                "--format=json",
+            ],
+            temporary,
+            environment,
+        )
+    )
+    reference = exported["reference"]
+
+    logger.info(f"Exported current recipe: package={package}, reference={reference}")
+
+    graph = json.loads(
+        capture_command(
+            [
+                "conan",
+                "graph",
+                "info",
+                f"--requires={reference}",
+                *arguments,
+                "--format=json",
+            ],
+            temporary,
+            environment,
+        )
+    )
+
+    for node_id, node in graph["graph"]["nodes"].items():
+        binary = node.get("binary")
+
+        if binary is None:
+            continue
+
+        logger.info(
+            f"Binary availability: node={node_id}, "
+            f"reference={node.get('ref')}, "
+            f"package_id={node.get('package_id')}, "
+            f"package_revision={node.get('prev')}, "
+            f"status={binary}, "
+            f"remote={json.dumps(node.get('remote'))}, "
+            f"binary_remote={json.dumps(node.get('binary_remote'))}"
+        )
+
+    logger.info(
+        f"Creating and testing {reference}; existing matching binaries "
+        f"will be reused, missing binaries will be built"
+    )
+
+    run_command(
+        [
+            "conan",
+            "create",
+            str(package_directory),
+            *arguments,
+        ],
+        temporary,
+        environment,
+    )
 
 
 def run_package(
@@ -333,20 +415,6 @@ def run_package(
                     username,
                     "--password",
                     password,
-                ],
-                temporary,
-                environment,
-            )
-
-            logger.info(f"Removing previous server versions and revisions of {package}")
-            run_command(
-                [
-                    "conan",
-                    "remove",
-                    f"{package}/*",
-                    "--remote",
-                    "ci",
-                    "--confirm",
                 ],
                 temporary,
                 environment,
