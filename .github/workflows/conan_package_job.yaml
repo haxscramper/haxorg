@@ -52,7 +52,8 @@ jobs:
             tar \
             gzip \
             make \
-            pkgconf-pkg-config
+            pkgconf-pkg-config \
+            patch
 
       - name: Check out repository
         uses: actions/checkout@v5
@@ -118,6 +119,8 @@ jobs:
               "haxorg_cpp_org_lib/*:with_perfetto=False"
               "-o:a"
               "haxorg_cpp_org_lib/*:with_protovalidate=True"
+              "-c:a"
+              'protovalidate-cc/*:tools.cmake:configure_args=["--debug-trycompile"]'
               "--build=missing"
               "--build=$PACKAGE/*"
             )

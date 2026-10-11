@@ -7,7 +7,7 @@ from conan.tools.cmake import (
     CMakeToolchain,
     cmake_layout,
 )
-from conan.tools.files import download, get, mkdir
+from conan.tools.files import download, get, mkdir, replace_in_file
 
 
 class ProtovalidateCcConan(ConanFile):
@@ -48,10 +48,14 @@ class ProtovalidateCcConan(ConanFile):
         # known compatible version for 1.1.0 is 29.2 (5.29.6 is close-ish?)
         self.requires("protobuf/5.29.6", transitive_headers=True, transitive_libs=True)
         self.requires("re2/[>=20230301]", transitive_headers=True, transitive_libs=True)
+        self.requires("abseil/[>=20250127.0 <20260000]")
 
     def build_requirements(self):
         self.tool_requires("openjdk/21.0.2")
         self.tool_requires("protobuf/5.29.6")
+        # `patch` is not available in conan, but required for the build
+        # keeping here for the compat
+        # self.tool_requires("patch/[>=2.7 <3]")
 
     def source(self):
         assert self.source_folder
@@ -65,6 +69,15 @@ class ProtovalidateCcConan(ConanFile):
             sha256=source_data["sha256"],
             strip_root=True,
             destination=os.path.join(self.source_folder, "_source"),
+        )
+
+        # Abseil's configured headers use C++20 comparison types.
+        # The upstream C++17 probe cannot compile against that configuration.
+        replace_in_file(
+            self,
+            os.path.join(self.source_folder, "_source", "cmake", "Deps.cmake"),
+            "    CXX_STANDARD 17\n",
+            "    CXX_STANDARD 20\n",
         )
 
         schema_dir = os.path.join(self.source_folder, "_schema", "buf", "validate")
@@ -100,14 +113,24 @@ class ProtovalidateCcConan(ConanFile):
         toolchain.extra_cxxflags.append("-w")
 
         protobuf = self.dependencies["protobuf"]
-        toolchain.variables["Protobuf_IMPORT_DIRS"] = os.path.join(
+        toolchain.cache_variables["Protobuf_IMPORT_DIRS"] = os.path.join(
             protobuf.package_folder,
             protobuf.cpp_info.includedirs[0],
         )
 
-        toolchain.variables["PROTOVALIDATE_CC_VERSION"] = str(self.version)
-        toolchain.variables["BUILD_SHARED_LIBS"] = False
-        toolchain.variables["CMAKE_POSITION_INDEPENDENT_CODE"] = bool(self.options.fPIC)
+        toolchain.cache_variables["PROTOVALIDATE_CC_VERSION"] = str(self.version)
+        toolchain.cache_variables["BUILD_SHARED_LIBS"] = False
+        toolchain.cache_variables["CMAKE_POSITION_INDEPENDENT_CODE"] = bool(
+            self.options.fPIC
+        )
+
+        # cmake/Deps.cmake:125 (try_compile): in the protovalidate checks for the
+        # sub-project compilation test, but the cmake cache gnerates build that
+        # depends on the build configuration, so
+        # INCLUDE_DIRECTORIES:UNINITIALIZED=$<$<CONFIG:Debug>:/tmp/conan-ci/p/b/absei0589bbf79ba0a/p/include>
+        toolchain.cache_variables["CMAKE_TRY_COMPILE_CONFIGURATION"] = str(
+            self.settings.build_type
+        )
 
         toolchain.generate()
 
