@@ -1,22 +1,9 @@
 name: pre-commit
-
-on:
-  push:
-  pull_request:
+on: [push, pull_request]
 
 jobs:
-  pre-commit:
+  prek:
     runs-on: ubuntu-latest
-    container: fedora:latest
     steps:
-      - run: |
-          dnf install -y clang clang-tools-extra python3-pip git sudo nodejs cmake-format python3-pyyaml cargo
-      - uses: actions/checkout@v4
-      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      - run: curl -LsSf https://astral.sh/uv/install.sh | sh
-      - run: cargo install ast-grep
-      - run: clang-format --version
-      - run: uv sync --dev
-      - run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          uv run --dev pre-commit run --all-files --verbose
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
