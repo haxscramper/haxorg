@@ -8,18 +8,19 @@ on:
         required: true
         type: string
       package-directory:
-        description: Recipe directory relative to the repository root, defaults to the package name
+        description: Recipe directory relative to the repository root
         required: false
         default: ""
         type: string
-      incoming-artifact:
-        description: Cumulative Conan bundle from the preceding job
+      incoming-package:
+        description: Package whose cumulative server snapshot precedes this job
         required: false
         default: ""
         type: string
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   package:
@@ -34,8 +35,9 @@ jobs:
         shell: bash
 
     env:
-      PACKAGE: ${{ inputs.package }}
-      PACKAGE_DIRECTORY: ${{ inputs.package-directory || inputs.package }}
+      CI_SCRIPT: ${{ github.workspace }}/.github/scripts/conan_ci.py
+      CACHE_PREFIX: conan-server-v1-${{ inputs.package }}--
+      CACHE_KEY: conan-server-v1-${{ inputs.package }}--${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
       - name: Install system tools
@@ -56,102 +58,84 @@ jobs:
             patch
 
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
-      - name: Install Conan
+      - name: Install Conan and Conan server
         run: |
-          export CONAN_HOME="$RUNNER_TEMP/conan-ci"
-          echo "CONAN_HOME=$CONAN_HOME" >> "$GITHUB_ENV"
-
-          rm -rf "$CONAN_HOME"
-          mkdir -p "$CONAN_HOME"
-
           python3 -m venv "$RUNNER_TEMP/conan-venv"
-          "$RUNNER_TEMP/conan-venv/bin/python" -m pip install "conan>=2,<3"
+          "$RUNNER_TEMP/conan-venv/bin/python" -m pip install \
+            "conan>=2,<3" \
+            conan-server
+
           echo "$RUNNER_TEMP/conan-venv/bin" >> "$GITHUB_PATH"
 
           clang --version
           cmake --version
           ninja --version
 
-
-      - name: Download dependency bundle
-        if: inputs.incoming-artifact != ''
-        uses: actions/download-artifact@v4
+      - name: Restore previous package snapshot
+        uses: actions/cache/restore@v5
         with:
-          name: ${{ inputs.incoming-artifact }}
-          path: ${{ runner.temp }}/conan-incoming
+          path: ${{ runner.temp }}/conan-server-snapshot
+          key: ${{ env.CACHE_KEY }}
+          restore-keys: |
+            ${{ env.CACHE_PREFIX }}
 
-      - name: Restore dependency bundle
-        if: inputs.incoming-artifact != ''
+      - name: Preserve previous package snapshot
+        env:
+          ACTION_PAYLOAD: >-
+            {
+              "temporary_directory": ${{ toJSON(runner.temp) }}
+            }
         run: |
-          incoming="$RUNNER_TEMP/conan-incoming"
+          python "$CI_SCRIPT" preserve_previous_snapshot "$ACTION_PAYLOAD"
 
-          conan cache restore "$incoming/recipes.tgz"
-
-          if [[ -f "$incoming/packages.tgz" ]]; then
-            conan cache restore "$incoming/packages.tgz"
-          fi
-
-      - name: Export base recipe or build and test package
-        run: |
-          if [[ "$PACKAGE" == "haxorg_conan_base" ]]; then
-            conan export "./$PACKAGE_DIRECTORY"
-          else
-            profile="$GITHUB_WORKSPACE/repo_tool_configs/conan/conanprofile_debug.txt"
-            compiler_version="$(clang -dumpversion)"
-            compiler_major="${compiler_version%%.*}"
-
-            args=(
-              "-pr:a"
-              "$profile"
-              "-s:a"
-              "compiler.version=$compiler_major"
-              "-c:a"
-              'tools.build:compiler_executables={"c":"clang","cpp":"clang++"}'
-              "-c:a"
-              "tools.build:skip_test=False"
-              "-o:a"
-              "hstd_cpp_lib/*:with_perfetto=False"
-              "-o:a"
-              "hstd_cpp_lib/*:with_protovalidate=True"
-              "-o:a"
-              "haxorg_cpp_org_lib/*:with_perfetto=False"
-              "-o:a"
-              "haxorg_cpp_org_lib/*:with_protovalidate=True"
-              "-c:a"
-              'protovalidate-cc/*:tools.cmake:configure_args=["--debug-trycompile"]'
-              "--build=missing"
-              "--build=$PACKAGE/*"
-            )
-
-            printf 'CONAN_HOME=%s\n' "$CONAN_HOME"
-            (
-              cd "$RUNNER_TEMP"
-              conan config home
-              conan editable list
-              conan create "$GITHUB_WORKSPACE/$PACKAGE_DIRECTORY" "${args[@]}"
-            )
-          fi
-
-      - name: Save cumulative Conan bundle
-        run: |
-          outgoing="$RUNNER_TEMP/conan-outgoing"
-          mkdir -p "$outgoing"
-
-          # Include recipes without binaries, notably the Python-require base.
-          conan cache save "*" --file="$outgoing/recipes.tgz"
-
-          if [[ "$PACKAGE" != "haxorg_conan_base" ]]; then
-            # Include all available binaries, including third-party dependencies.
-            conan cache save "*:*" --file="$outgoing/packages.tgz"
-          fi
-
-      - name: Upload cumulative Conan bundle
-        uses: actions/upload-artifact@v4
+      - name: Restore preceding job snapshot
+        if: inputs.incoming-package != ''
+        uses: actions/cache/restore@v5
         with:
-          name: conan-${{ inputs.package }}
-          path: ${{ runner.temp }}/conan-outgoing/*.tgz
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
+          path: ${{ runner.temp }}/conan-server-snapshot
+          key: conan-server-v1-${{ inputs.incoming-package }}--${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            conan-server-v1-${{ inputs.incoming-package }}--${{ github.run_id }}-
+          fail-on-cache-miss: true
+
+      - name: Build, test, upload, and snapshot Conan package
+        env:
+          ACTION_PAYLOAD: >-
+            {
+              "package": ${{ toJSON(inputs.package) }},
+              "package_directory": ${{ toJSON(inputs.package-directory || inputs.package) }},
+              "workspace": ${{ toJSON(github.workspace) }},
+              "temporary_directory": ${{ toJSON(runner.temp) }},
+              "server_port": 9300,
+              "username": "ci",
+              "password": "ci",
+              "startup_timeout": 60.0,
+              "shutdown_timeout": 30.0
+            }
+        run: |
+          python "$CI_SCRIPT" run_package "$ACTION_PAYLOAD"
+
+      - name: Save successful server snapshot
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ runner.temp }}/conan-server-snapshot
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Evict previous package cache entries
+        if: ${{ env.ACT != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTION_PAYLOAD: >-
+            {
+              "repository": ${{ toJSON(github.repository) }},
+              "cache_prefix": ${{ toJSON(env.CACHE_PREFIX) }},
+              "cache_key": ${{ toJSON(env.CACHE_KEY) }},
+              "ref": ${{ toJSON(github.ref) }},
+              "api_url": ${{ toJSON(github.api_url) }},
+              "token_environment": "GH_TOKEN",
+              "request_timeout": 30.0
+            }
+        run: |
+          python "$CI_SCRIPT" evict_previous_caches "$ACTION_PAYLOAD"
