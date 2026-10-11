@@ -64,6 +64,7 @@ ignore = [
   "UP032", # do not flag `format()`
   "DTZ006",
   "UP045",
+  "SIM117", # combine `with`
 ]
 
 [tool.ruff.format]

@@ -1,11 +1,13 @@
+from datetime import timedelta
+
 from beartype import beartype
+from hstd_py_lib.format_utils import format_readable_duration
 
 from .formatting import (
     case_extensions,
     case_output,
     format_case_name,
     format_counts,
-    format_duration,
     format_value,
 )
 from .models import Report
@@ -41,7 +43,7 @@ def render_text(report: Report) -> str:
                     (
                         f"[{case.outcome.value}] "
                         f"{format_case_name(case)} "
-                        f"— {format_duration(case.duration)}"
+                        f"— {format_readable_duration(timedelta(seconds=case.duration))}"
                     ),
                 ]
             )

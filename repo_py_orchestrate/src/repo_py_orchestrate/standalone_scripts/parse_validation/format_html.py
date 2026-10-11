@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 
 import dominate
@@ -5,6 +6,7 @@ from beartype import beartype
 from dominate import tags
 from dominate.dom_tag import dom_tag
 from dominate.util import raw
+from hstd_py_lib.format_utils import format_readable_duration
 from pydantic import JsonValue
 
 from repo_py_orchestrate.standalone_scripts.parse_validation.formatting import (
@@ -12,10 +14,10 @@ from repo_py_orchestrate.standalone_scripts.parse_validation.formatting import (
     case_output,
     format_case_name,
     format_counts,
-    format_duration,
     format_value,
 )
 from repo_py_orchestrate.standalone_scripts.parse_validation.models import (
+    Outcome,
     Report,
     TestCase,
     TestRun,
@@ -33,7 +35,7 @@ def html_payload(title: str, value: JsonValue) -> None:
 
 @beartype
 def html_action(label: str, template_id: str, case_name: str) -> None:
-    with tags.td(cls="action-cell"):
+    with tags.td(cls="action-cell"):  # type: ignore
         tags.button(
             label,
             type="button",
@@ -109,6 +111,20 @@ def render_html(report: Report) -> str:
         for case in run.cases
     ]
 
+    outcome_order = {
+        Outcome.ERROR: 0,
+        Outcome.FAILED: 1,
+        Outcome.XPASSED: 2,
+        Outcome.SKIPPED: 3,
+        Outcome.XFAILED: 4,
+        Outcome.PASSED: 5,
+        Outcome.INCOMPLETE: 6,
+    }
+
+    rows: list[tuple[TestRun, TestCase, str]] = sorted(
+        rows, key=lambda it: outcome_order[it[1].outcome]
+    )
+
     with document.head:
         tags.meta(charset="utf-8")
         tags.meta(
@@ -126,10 +142,10 @@ def render_html(report: Report) -> str:
             cls="muted",
         )
 
-        with tags.div(cls="layout"):
-            with tags.div(cls="table-panel"):
-                with tags.table(id="results"):
-                    with tags.colgroup():
+        with tags.div(cls="layout"):  # type: ignore
+            with tags.div(cls="table-panel"):  # type: ignore
+                with tags.table(id="results"):  # type: ignore
+                    with tags.colgroup():  # type: ignore
                         tags.col(cls="state-column")
                         tags.col(cls="origin-column")
                         tags.col(cls="name-column")
@@ -137,8 +153,8 @@ def render_html(report: Report) -> str:
                         tags.col()
                         tags.col()
 
-                    with tags.thead():
-                        with tags.tr():
+                    with tags.thead():  # type: ignore
+                        with tags.tr():  # type: ignore
                             tags.th("State", scope="col")
                             tags.th("Origin", scope="col")
                             tags.th("Test name", scope="col")
@@ -146,11 +162,11 @@ def render_html(report: Report) -> str:
                             tags.th("Extensions", scope="col")
                             tags.th("Output", scope="col")
 
-                    with tags.tbody():
+                    with tags.tbody():  # type: ignore
                         for index, (run, case, source) in enumerate(rows):
                             name = format_case_name(case)
 
-                            with tags.tr():
+                            with tags.tr():  # type: ignore
                                 tags.td(
                                     case.outcome.value,
                                     cls=f"state {case.outcome.value}",
@@ -162,7 +178,9 @@ def render_html(report: Report) -> str:
                                     title=source,
                                 )
                                 tags.td(
-                                    format_duration(case.duration),
+                                    format_readable_duration(
+                                        timedelta(seconds=case.duration)
+                                    ),
                                     cls="time",
                                 )
 
@@ -180,11 +198,11 @@ def render_html(report: Report) -> str:
                 if not rows:
                     tags.p("No test or collection cases.")
 
-            with tags.aside(
+            with tags.aside(  # type: ignore
                 cls="details-panel",
                 aria_label="Selected test details",
             ):
-                with tags.div(
+                with tags.div(  # type: ignore
                     id="detail-content",
                     aria_live="polite",
                     aria_atomic="true",

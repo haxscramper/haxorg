@@ -36,11 +36,6 @@ def format_counts(counts: Counts) -> str:
 
 
 @beartype
-def format_duration(duration: float) -> str:
-    return f"{int(duration * 1000)} ms"
-
-
-@beartype
 def format_case_name(case: TestCase) -> str:
     if case.kind == CaseKind.COLLECTION:
         return f"[collection] {case.nodeid}"
