@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import selectors
 import shlex
 import shutil
 import subprocess
@@ -34,15 +35,65 @@ def run(
     command: list[str],
     *,
     cwd: Path,
+    stage_name: str,
     env: dict[str, str] | None = None,
+    output_dir: Path | None = None,
 ) -> None:
     logging.info("==> {}".format(" ".join(command)))
-    subprocess.run(
-        command,
-        cwd=cwd,
-        env=env,
-        check=True,
-    )
+
+    if output_dir is None:
+        subprocess.run(
+            command,
+            cwd=cwd,
+            env=env,
+            check=True,
+        )
+        return
+
+    log_path = output_dir / f"{Path(command[0]).name}_{stage_name}.log"
+
+    with (
+        log_path.open("wb") as log_file,
+        subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as process,
+    ):
+        assert process.stdout is not None
+        assert process.stderr is not None
+
+        with selectors.DefaultSelector() as selector:
+            selector.register(
+                process.stdout,
+                selectors.EVENT_READ,
+                sys.stdout.buffer,
+            )
+            selector.register(
+                process.stderr,
+                selectors.EVENT_READ,
+                sys.stderr.buffer,
+            )
+
+            while selector.get_map():
+                for key, _ in selector.select():
+                    chunk = os.read(key.fd, 65536)
+
+                    if not chunk:
+                        selector.unregister(key.fileobj)
+                        continue
+
+                    log_file.write(chunk)
+                    log_file.flush()
+                    key.data.write(chunk)
+                    key.data.flush()
+
+        returncode = process.wait()
+
+    if returncode != 0:
+        raise subprocess.CalledProcessError(returncode, command)
 
 
 def find_workspace_root(project_path: Path) -> Path:
@@ -92,6 +143,7 @@ def sync_environment(
     *,
     editable: bool,
     env: dict[str, str],
+    output_dir: Path | None = None,
 ) -> None:
     command = [
         "uv",
@@ -120,7 +172,13 @@ def sync_environment(
         ).lower()
         command.extend(["--reinstall-package", package_name])
 
-    run(command, cwd=workspace_root, env=env)
+    run(
+        command,
+        cwd=workspace_root,
+        stage_name="sync_environment",
+        env=env,
+        output_dir=output_dir,
+    )
 
 
 def run_package_tests(
@@ -129,6 +187,7 @@ def run_package_tests(
     project_name: str,
     *,
     env: dict[str, str],
+    output_dir: Path | None = None,
 ) -> None:
     command = [
         "python",
@@ -138,10 +197,13 @@ def run_package_tests(
         str(project_path / "tests"),
     ]
 
-    settings = config.Settings.from_environment(env)
+    if output_dir is not None:
+        command.append(f"--report-log={output_dir / 'package_tests.jsonl'}")
 
-    if settings.enabled:
-        logging.info("LLDB not is enabled, running pytest under LLDB")
+    lldb_debug_config = config.Settings.from_environment(env)
+
+    if lldb_debug_config.enabled:
+        logging.info("LLDB is enabled, running pytest under LLDB")
 
         command.extend(
             [
@@ -151,8 +213,8 @@ def run_package_tests(
         )
 
         script = (
-            settings.script
-            if settings.script is not None
+            lldb_debug_config.script
+            if lldb_debug_config.script is not None
             else Path(bootstrap.__file__).resolve()
         )
 
@@ -172,7 +234,7 @@ def run_package_tests(
     with TemporaryDirectory(prefix="hstd-pytest-backtraces-") as directory:
         run_env = dict(env)
 
-        if settings.enabled:
+        if lldb_debug_config.enabled:
             run_env["HSTD_PY_LLDB_PYTEST_BACKTRACE_DIR"] = directory
 
         try:
@@ -189,12 +251,17 @@ def run_package_tests(
                     *command,
                 ],
                 cwd=workspace_root,
+                stage_name="package_tests",
                 env=run_env,
+                output_dir=output_dir,
             )
 
         finally:
-            if False:
-                # show all errors from individual workers during execution
+            if (
+                lldb_debug_config.enabled
+                and os.getenv("HSTD_PY_LLDB_PYTEST_SHOW_WORKER_LOGS") == "1"
+            ):
+                # Show all errors from individual workers during execution.
                 for log in Path(directory).rglob("*"):
                     if log.is_file():
                         logging.error(f"{log}:\n{log.read_text()}")
@@ -206,6 +273,7 @@ def install_test_package(
     environment_path: Path,
     *,
     env: dict[str, str],
+    output_dir: Path | None = None,
 ) -> None:
     run(
         [
@@ -221,7 +289,9 @@ def install_test_package(
             str(test_package),
         ],
         cwd=workspace_root,
+        stage_name="install_test_package",
         env=env,
+        output_dir=output_dir,
     )
 
 
@@ -231,6 +301,7 @@ def run_test_package(
     project_name: str,
     *,
     env: dict[str, str],
+    output_dir: Path | None = None,
 ) -> None:
     run(
         [
@@ -246,7 +317,9 @@ def run_test_package(
             str(test_package / "main.py"),
         ],
         cwd=test_package,
+        stage_name="test_package",
         env=env,
+        output_dir=output_dir,
     )
 
 
@@ -255,6 +328,7 @@ def validate_package(
     *,
     editable: bool,
     conan_profile: Path | None,
+    output_dir: Path | None = None,
 ) -> None:
     project_path = project_path.resolve()
     workspace_root = find_workspace_root(project_path)
@@ -287,10 +361,38 @@ def validate_package(
         if conan_profile is not None:
             env["CONAN_PROFILE"] = str(conan_profile)
 
-        sync_environment(workspace_root, project_name, editable=editable, env=env)
-        run_package_tests(project_path, workspace_root, project_name, env=env)
-        install_test_package(test_package, workspace_root, environment_path, env=env)
-        run_test_package(test_package, workspace_root, project_name, env=env)
+        if output_dir is not None:
+            output_dir = output_dir.resolve()
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+        sync_environment(
+            workspace_root,
+            project_name,
+            editable=editable,
+            env=env,
+            output_dir=output_dir,
+        )
+        run_package_tests(
+            project_path,
+            workspace_root,
+            project_name,
+            env=env,
+            output_dir=output_dir,
+        )
+        install_test_package(
+            test_package,
+            workspace_root,
+            environment_path,
+            env=env,
+            output_dir=output_dir,
+        )
+        run_test_package(
+            test_package,
+            workspace_root,
+            project_name,
+            env=env,
+            output_dir=output_dir,
+        )
 
 
 def main() -> None:
@@ -316,6 +418,11 @@ def main() -> None:
         "--conan-profile",
         type=Path,
     )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        help="Write the pytest JSONL report and subprocess logs to this directory.",
+    )
 
     arguments = parser.parse_args()
 
@@ -326,6 +433,7 @@ def main() -> None:
             conan_profile=(
                 arguments.conan_profile.resolve() if arguments.conan_profile else None
             ),
+            output_dir=arguments.output_dir,
         )
     except (RuntimeError, subprocess.CalledProcessError) as error:
         logging.error(f"{error}")

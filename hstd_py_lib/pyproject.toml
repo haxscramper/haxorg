@@ -40,4 +40,5 @@ include = [
 dev = [
   "pytest",
   "pytest-xdist",
+  "pytest-reportlog",
 ]

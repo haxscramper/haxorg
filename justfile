@@ -1,6 +1,3 @@
-run_uv_install_test:
-  uv run ./scripts/py_ci/py_ci/test_uv_install.py scripts/py_haxorg --test-package tests/vendor/haxorg_py_test_package
-
 run_github_ci:
   act push --container-options "--cpus 24" --reuse
 
@@ -118,13 +115,15 @@ conan_validate_deps dep_name:
 [working-directory("/tmp")]
 conan_validate target: conan_export_local_deps
   conan remove "{{target}}/*" --confirm
+  rm -rf {{HAXORG_ROOT}}/build/logs/{{target}}
+  mkdir -p {{HAXORG_ROOT}}/build/logs/{{target}}
   conan create {{HAXORG_ROOT}}/{{target}} \
     --profile:all={{CONAN_PROFILE}} \
     -c 'user.hstd:warning_suppressions={{SUPPRESSION_FILE}}' \
     -c 'user.hstd:ninja_args=["-k","0","--verbose"]' \
     {{CONAN_PYTHON_CONFIG}} \
     --build=missing \
-     -vstatus
+     -vstatus 2>&1 | tee {{HAXORG_ROOT}}/build/logs/{{target}}/conan_create.log
 
 conan_update_local_deps: conan_remove_local_deps conan_export_local_deps
 conan_update_external_deps: conan_remove_external_deps conan_export_external_deps
@@ -138,18 +137,6 @@ conan_clean_total_validate target: conan_update_local_deps conan_update_external
 
 conan_clean_local_validate target: conan_update_local_deps
   just conan_validate {{target}}
-
-# Conan currently has no `conan workspace source` command.
-# Enumerate the workspace members from `conanws.yml` and invoke `conan source` for each:
-conan_workspace_source:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    yq -r '.packages[].path' conanws.yml |
-        while IFS= read -r package; do
-            conan source "$package"
-        done
-
 
 # Conan workspace monolithic install
 conan_workspace_install_monorepo:
@@ -178,10 +165,29 @@ conan_clean_all:
   conan remove "*" -c
 
 py_validate target *args:
+  rm -rf {{HAXORG_ROOT}}/build/logs/{{target}}
+  mkdir -p {{HAXORG_ROOT}}/build/logs/{{target}}
   uv run {{HAXORG_ROOT}}/repo_ci_config/py_ci/test_uv_install.py \
     {{HAXORG_ROOT}}/{{target}} \
     --conan-profile={{CONAN_PROFILE}} \
+    --output-dir={{HAXORG_ROOT}}/build/logs/{{target}} \
     {{args}}
+
+# run individual validation on all packages in the repository
+validate_all:
+  #!/usr/bin/env bash
+  # Base hstd package also contains plugins, hooks and deployers
+  # for the rest, so if it fails the rest might be too broken.
+  just py_validate hstd_py_lib --editable || exit "$?"
+  #
+  just conan_validate hstd_cpp_lib
+  just conan_validate haxdex_read_code_cpp
+  just conan_validate hstd_cpp_text_layout
+  #
+  just py_validate hstd_cpp_text_layout_wrap
+  just py_validate haxorg_py_lib --editable
+  just py_validate hstd_py_codegen --editable
+  just py_validate hstd_py_text_layout --editable
 
 run_to_output target *ARGS:
   -just {{target}} {{ARGS}} > build/target_result.log 2>&1
