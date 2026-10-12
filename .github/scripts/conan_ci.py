@@ -66,60 +66,6 @@ def capture_command(
     return result.stdout
 
 
-def preserve_previous_snapshot(temporary_directory: str) -> None:
-    temporary = Path(os.path.expandvars(temporary_directory))
-    snapshot = temporary / "conan-server-snapshot"
-    previous = temporary / "conan-server-previous"
-
-    if previous.exists():
-        logger.info(f"Removing previous snapshot staging directory at {previous}")
-        shutil.rmtree(previous)
-
-    if snapshot.exists():
-        logger.info(f"Moving restored snapshot from {snapshot} to {previous}")
-        snapshot.rename(previous)
-    else:
-        logger.info(f"No previous package snapshot was restored at {snapshot}")
-
-
-def prepare_storage(
-    server_data: Path,
-    previous_data: Path,
-    incoming_data: Path,
-) -> None:
-    if server_data.exists():
-        logger.info(f"Removing previous server storage at {server_data}")
-        shutil.rmtree(server_data)
-
-    logger.info(f"Initializing Conan server storage at {server_data}")
-    server_data.mkdir(parents=True)
-
-    if previous_data.exists():
-        logger.info(f"Restoring previous package storage from {previous_data}")
-        shutil.copytree(previous_data, server_data, dirs_exist_ok=True)
-    else:
-        logger.info(f"No previous package storage exists at {previous_data}")
-
-    if incoming_data.exists():
-        logger.info(f"Applying authoritative upstream storage from {incoming_data}")
-
-        for source in sorted(incoming_data.iterdir()):
-            destination = server_data / source.name
-            logger.info(f"Replacing upstream storage entry {destination}")
-
-            if destination.is_dir():
-                shutil.rmtree(destination)
-            elif destination.exists():
-                destination.unlink()
-
-            if source.is_dir():
-                shutil.copytree(source, destination)
-            else:
-                shutil.copy2(source, destination)
-    else:
-        logger.info(f"No upstream storage exists at {incoming_data}")
-
-
 def write_server_configuration(
     server_home: Path,
     server_data: Path,
@@ -425,9 +371,111 @@ def build_package(
     )
 
 
+def restore_package_archives(
+    package: str,
+    python_package: bool,
+    incoming_packages: list[str],
+    temporary: Path,
+    environment: dict[str, str],
+) -> None:
+    cache_root = temporary / "conan-package-cache"
+
+    if not python_package:
+        previous_archive = cache_root / package / "package.tgz"
+
+        if previous_archive.exists():
+            logger.info(f"Restoring previous package archive {previous_archive}")
+            run_command(
+                ["conan", "cache", "restore", str(previous_archive)],
+                temporary,
+                environment,
+            )
+
+    for incoming_package in dict.fromkeys(incoming_packages):
+        archive = cache_root / incoming_package / "package.tgz"
+
+        if not archive.is_file():
+            raise FileNotFoundError(
+                f"Required upstream package archive does not exist: {archive}"
+            )
+
+        logger.info(f"Restoring upstream package archive {archive}")
+        run_command(
+            ["conan", "cache", "restore", str(archive)],
+            temporary,
+            environment,
+        )
+
+
+def save_package_archive(
+    package: str,
+    temporary: Path,
+    environment: dict[str, str],
+) -> None:
+    directory = temporary / "conan-package-cache" / package
+    directory.mkdir(parents=True, exist_ok=True)
+    archive = directory / "package.tgz"
+
+    if archive.exists():
+        archive.unlink()
+
+    # The base package only exports a recipe; other packages include binaries.
+    pattern = f"{package}/*" if package == "haxorg_conan_base" else f"{package}/*:*"
+
+    run_command(
+        [
+            "conan",
+            "cache",
+            "save",
+            pattern,
+            "--file",
+            str(archive),
+        ],
+        temporary,
+        environment,
+    )
+
+    logger.info(
+        f"Saved package={package}, archive={archive}, bytes={archive.stat().st_size}"
+    )
+
+
 def run_python_package(
     package: str,
+    directory: Path,
+    environment: dict[str, str],
+) -> None:
+    run_command(
+        ["uv", "python", "install", environment["UV_PYTHON"]],
+        directory,
+        environment,
+    )
+
+    run_command(
+        ["uv", "build", "-vv", f"--package={package}"],
+        directory,
+        environment,
+    )
+
+    run_command(
+        [
+            "uv",
+            "run",
+            f"--package={package}",
+            "pytest",
+            "--color=no",
+            "-vv",
+        ],
+        directory,
+        environment,
+    )
+
+
+def run_ci_package(
+    package: str,
     package_directory: str,
+    python_package: bool,
+    incoming_packages: list[str],
     workspace: str,
     temporary_directory: str,
     server_port: int,
@@ -442,7 +490,6 @@ def run_python_package(
     directory = repository / package_directory
     server_home = temporary / "conan-server"
     server_data = server_home / "data"
-    snapshot = temporary / "conan-server-snapshot"
     conan_home = temporary / "conan-ci"
     log_path = temporary / "conan-server.log"
 
@@ -451,15 +498,17 @@ def run_python_package(
     environment["PYTHONUNBUFFERED"] = "1"
 
     logger.info(
-        f"Starting python package task: package={package}, "
-        f"directory={directory}, workspace={repository}, temporary={temporary}"
+        f"Starting package task: package={package}, "
+        f"python_package={python_package}, directory={directory}, "
+        f"incoming_packages={incoming_packages}"
     )
 
-    if conan_home.exists():
-        logger.info(f"Removing previous job-local Conan cache at {conan_home}")
-        shutil.rmtree(conan_home)
+    for path in (conan_home, server_home):
+        if path.exists():
+            shutil.rmtree(path)
 
-    conan_home.mkdir()
+    conan_home.mkdir(parents=True)
+    server_data.mkdir(parents=True)
 
     compiler_major = (
         capture_command(
@@ -477,7 +526,14 @@ def run_python_package(
         compiler_major,
     )
 
-    prepare_storage(server_data, temporary / "conan-server-absent", snapshot / "data")
+    restore_package_archives(
+        package,
+        python_package,
+        incoming_packages,
+        temporary,
+        environment,
+    )
+
     write_server_configuration(
         server_home,
         server_data,
@@ -508,137 +564,44 @@ def run_python_package(
             environment,
         )
 
-        environment["UV_PYTHON"] = "3.13"
-        environment["UV_PYTHON_DOWNLOADS"] = "automatic"
-
-        run_command(
-            ["uv", "python", "install", "3.13"],
-            directory,
-            environment,
+        # Populate the server uniformly, including for Python builds that
+        # invoke Conan with a separate client cache.
+        cached_recipes = json.loads(
+            capture_command(
+                ["conan", "list", "*", "--format=json"],
+                temporary,
+                environment,
+            )
         )
 
-        run_command(
-            ["uv", "build", "-vv", f"--package={package}"], directory, environment
-        )
-        run_command(
-            [
-                "uv",
-                "run",
-                f"--package={package}",
-                "pytest",
-                "--color=no",
-                "-vv",
-            ],
-            directory,
-            environment,
-        )
+        if cached_recipes["Local Cache"]:
+            run_command(
+                ["conan", "upload", "*", "--remote", "ci", "--confirm"],
+                temporary,
+                environment,
+            )
 
-    logger.info(
-        f"Python package {package} completed in {time.monotonic() - started:.2f}s"
-    )
+        if python_package:
+            run_python_package(package, directory, environment)
+        else:
+            build_package(
+                package,
+                directory,
+                repository,
+                temporary,
+                environment,
+            )
 
+            run_command(
+                ["conan", "upload", "*", "--remote", "ci", "--confirm"],
+                temporary,
+                environment,
+            )
 
-def run_package(
-    package: str,
-    package_directory: str,
-    workspace: str,
-    temporary_directory: str,
-    server_port: int,
-    username: str,
-    password: str,
-    startup_timeout: float,
-    shutdown_timeout: float,
-) -> None:
-    started = time.monotonic()
-    repository = Path(os.path.expandvars(workspace))
-    temporary = Path(os.path.expandvars(temporary_directory))
-    recipe = repository / package_directory
-    server_home = temporary / "conan-server"
-    server_data = server_home / "data"
-    snapshot = temporary / "conan-server-snapshot"
-    previous = temporary / "conan-server-previous"
-    conan_home = temporary / "conan-ci"
-    log_path = temporary / "conan-server.log"
-    server_url = f"http://127.0.0.1:{server_port}"
+    if not python_package:
+        save_package_archive(package, temporary, environment)
 
-    environment = os.environ.copy()
-    environment["CONAN_HOME"] = str(conan_home)
-    environment["PYTHONUNBUFFERED"] = "1"
-
-    logger.info(
-        f"Starting package task: package={package}, recipe={recipe}, "
-        f"workspace={repository}, temporary={temporary}, server={server_url}"
-    )
-
-    if conan_home.exists():
-        logger.info(f"Removing previous job-local Conan cache at {conan_home}")
-        shutil.rmtree(conan_home)
-
-    conan_home.mkdir()
-
-    prepare_storage(server_data, previous / "data", snapshot / "data")
-    write_server_configuration(
-        server_home,
-        server_data,
-        server_port,
-        username,
-        password,
-    )
-
-    with conan_server_session(
-        temporary,
-        server_home,
-        log_path,
-        server_port,
-        username,
-        password,
-        startup_timeout,
-        shutdown_timeout,
-        environment,
-    ) as server_url:
-        run_command(
-            ["conan", "remote", "add", "ci", server_url, "--index", "0"],
-            temporary,
-            environment,
-        )
-        run_command(
-            ["conan", "remote", "login", "ci", username, "--password", password],
-            temporary,
-            environment,
-        )
-
-        build_package(package, recipe, repository, temporary, environment)
-
-        logger.info(
-            f"Uploading successful recipes and binaries for {package} "
-            f"and its dependencies to {server_url}"
-        )
-        run_command(
-            ["conan", "upload", "*", "--remote", "ci", "--confirm"],
-            temporary,
-            environment,
-        )
-
-    logger.info(f"Preparing successful server snapshot at {snapshot}")
-
-    if snapshot.exists():
-        shutil.rmtree(snapshot)
-
-    snapshot.mkdir()
-    shutil.copytree(server_data, snapshot / "data")
-
-    files = 0
-    size = 0
-
-    for entry in snapshot.rglob("*"):
-        if entry.is_file():
-            files += 1
-            size += entry.stat().st_size
-
-    logger.info(
-        f"Package {package} completed in {time.monotonic() - started:.2f}s; "
-        f"snapshot={snapshot}, files={files}, bytes={size}"
-    )
+    logger.info(f"Package {package} completed in {time.monotonic() - started:.2f}s")
 
 
 def github_request(

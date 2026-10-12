@@ -24,46 +24,80 @@ jobs:
     with:
       package: protovalidate-cc
       package-directory: repo_conan_wraps/protovalidate-cc
-      incoming-package: haxorg_conan_base
+      incoming-packages: '["haxorg_conan_base"]'
 
   hstd:
     needs: protovalidate
     uses: ./.github/workflows/conan_package_job.yaml
     with:
       package: hstd_cpp_lib
-      incoming-package: protovalidate-cc
+      incoming-packages: >-
+        [
+          "haxorg_conan_base",
+          "protovalidate-cc"
+        ]
 
   text-layout:
     needs: hstd
     uses: ./.github/workflows/conan_package_job.yaml
     with:
       package: hstd_cpp_text_layout
-      incoming-package: hstd_cpp_lib
+      incoming-packages: >-
+        [
+          "haxorg_conan_base",
+          "protovalidate-cc",
+          "hstd_cpp_lib"
+        ]
 
   haxorg:
     needs: text-layout
     uses: ./.github/workflows/conan_package_job.yaml
     with:
       package: haxorg_cpp_org_lib
-      incoming-package: hstd_cpp_text_layout
+      incoming-packages: >-
+        [
+          "haxorg_conan_base",
+          "protovalidate-cc",
+          "hstd_cpp_lib",
+          "hstd_cpp_text_layout"
+        ]
 
   haxorg-cpp-py-wrap:
     needs: haxorg
     uses: ./.github/workflows/conan_package_job.yaml
     with:
       package: haxorg_cpp_py_wrap
-      incoming-package: haxorg_cpp_org_lib
+      incoming-packages: >-
+        [
+          "haxorg_conan_base",
+          "protovalidate-cc",
+          "hstd_cpp_lib",
+          "hstd_cpp_text_layout",
+          "haxorg_cpp_org_lib"
+        ]
 
   hstd-py-lib:
-    needs: haxorg-cpp-py-wrap
-    uses: ./.github/workflows/conan_python_job.yaml
+    needs: conan-base
+    uses: ./.github/workflows/conan_package_job.yaml
     with:
       package: hstd_py_lib
-      incoming-package: haxorg_cpp_py_wrap
+      python-package: true
+      incoming-packages: '["haxorg_conan_base"]'
 
   haxorg-py-lib:
-    needs: hstd-py-lib
-    uses: ./.github/workflows/conan_python_job.yaml
+    needs:
+      - hstd-py-lib
+      - haxorg-cpp-py-wrap
+    uses: ./.github/workflows/conan_package_job.yaml
     with:
       package: haxorg_py_lib
-      incoming-package: haxorg_cpp_py_wrap
+      python-package: true
+      incoming-packages: >-
+        [
+          "haxorg_conan_base",
+          "protovalidate-cc",
+          "hstd_cpp_lib",
+          "hstd_cpp_text_layout",
+          "haxorg_cpp_org_lib",
+          "haxorg_cpp_py_wrap"
+        ]

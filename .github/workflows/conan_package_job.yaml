@@ -1,4 +1,4 @@
-name: Build a Conan package
+name: Build or verify a package
 
 on:
   workflow_call:
@@ -8,14 +8,19 @@ on:
         required: true
         type: string
       package-directory:
-        description: Recipe directory relative to the repository root
+        description: Package directory relative to the repository root
         required: false
         default: ""
         type: string
-      incoming-package:
-        description: Package whose cumulative server snapshot precedes this job
+      python-package:
+        description: Build and test a Python package instead of a Conan package
         required: false
-        default: ""
+        default: false
+        type: boolean
+      incoming-packages:
+        description: JSON array of required upstream Conan packages
+        required: false
+        default: "[]"
         type: string
 
 permissions:
@@ -36,12 +41,12 @@ jobs:
 
     env:
       CI_SCRIPT: ${{ github.workspace }}/.github/scripts/conan_ci.py
-      CACHE_PREFIX: conan-server-v2${{ inputs.package }}--
-      CACHE_KEY: conan-server-v2${{ inputs.package }}--${{ github.run_id }}-${{ github.run_attempt }}
+      CACHE_SCRIPT: ${{ github.workspace }}/.github/scripts/conan_cache.cjs
+      CACHE_PREFIX: conan-package-v1${{ inputs.package }}--
+      CACHE_KEY: conan-package-v1${{ inputs.package }}--${{ github.run_id }}-${{ github.run_attempt }}
       UV_PYTHON: "3.13"
       UV_PYTHON_PREFERENCE: only-managed
       UV_PYTHON_DOWNLOADS: automatic
-
 
     steps:
       - name: Install system tools
@@ -55,17 +60,20 @@ jobs:
             python3-pip \
             python3-devel \
             nodejs \
+            npm \
             git \
             tar \
             gzip \
+            zstd \
             make \
+            lldb \
             pkgconf-pkg-config \
             patch
 
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Install uv, managed Python, Conan, and Conan server
+      - name: Install UV, managed Python, Conan, server, and cache client
         run: |
           python3 -m venv "$RUNNER_TEMP/uv-venv"
           "$RUNNER_TEMP/uv-venv/bin/python" -m pip install uv
@@ -79,42 +87,40 @@ jobs:
             "conan>=2,<3" \
             conan-server
 
+          npm install \
+            --prefix "$RUNNER_TEMP/conan-cache-client" \
+            --no-package-lock \
+            --no-save \
+            @actions/cache
+
           echo "$RUNNER_TEMP/uv-venv/bin" >> "$GITHUB_PATH"
           echo "$RUNNER_TEMP/conan-venv/bin" >> "$GITHUB_PATH"
 
-      - name: Restore previous package snapshot
-        uses: actions/cache/restore@v5
-        with:
-          path: ${{ runner.temp }}/conan-server-snapshot
-          key: ${{ env.CACHE_KEY }}
-          restore-keys: |
-            ${{ env.CACHE_PREFIX }}
-
-      - name: Preserve previous package snapshot
+      - name: Restore individual Conan package archives
+        uses: actions/github-script@v8
         env:
           ACTION_PAYLOAD: >-
             {
-              "temporary_directory": ${{ toJSON(runner.temp) }}
+              "operation": "restore",
+              "package": ${{ toJSON(inputs.package) }},
+              "python_package": ${{ toJSON(inputs.python-package) }},
+              "incoming_packages": ${{ inputs.incoming-packages }},
+              "run_id": ${{ toJSON(github.run_id) }},
+              "run_attempt": ${{ toJSON(github.run_attempt) }}
             }
-        run: |
-          python "$CI_SCRIPT" preserve_previous_snapshot "$ACTION_PAYLOAD"
-
-      - name: Restore preceding job snapshot
-        if: inputs.incoming-package != ''
-        uses: actions/cache/restore@v5
         with:
-          path: ${{ runner.temp }}/conan-server-snapshot
-          key: conan-server-v2${{ inputs.incoming-package }}--${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            conan-server-v2${{ inputs.incoming-package }}--${{ github.run_id }}-
-          fail-on-cache-miss: true
+          script: |
+            const run = require(process.env.CACHE_SCRIPT);
+            await run({core});
 
-      - name: Build, test, upload, and snapshot Conan package
+      - name: Build and test package
         env:
           ACTION_PAYLOAD: >-
             {
               "package": ${{ toJSON(inputs.package) }},
               "package_directory": ${{ toJSON(inputs.package-directory || inputs.package) }},
+              "python_package": ${{ toJSON(inputs.python-package) }},
+              "incoming_packages": ${{ inputs.incoming-packages }},
               "workspace": "$GITHUB_WORKSPACE",
               "temporary_directory": "$RUNNER_TEMP",
               "server_port": 9300,
@@ -124,16 +130,26 @@ jobs:
               "shutdown_timeout": 30.0
             }
         run: |
-          python "$GITHUB_WORKSPACE/.github/scripts/conan_ci.py" run_package "$ACTION_PAYLOAD"
+          python "$CI_SCRIPT" run_ci_package "$ACTION_PAYLOAD"
 
-      - name: Save successful server snapshot
-        uses: actions/cache/save@v5
+      - name: Save individual Conan package archive
+        if: ${{ !inputs.python-package }}
+        uses: actions/github-script@v8
+        env:
+          ACTION_PAYLOAD: >-
+            {
+              "operation": "save",
+              "package": ${{ toJSON(inputs.package) }},
+              "run_id": ${{ toJSON(github.run_id) }},
+              "run_attempt": ${{ toJSON(github.run_attempt) }}
+            }
         with:
-          path: ${{ runner.temp }}/conan-server-snapshot
-          key: ${{ env.CACHE_KEY }}
+          script: |
+            const run = require(process.env.CACHE_SCRIPT);
+            await run({core});
 
       - name: Evict previous package cache entries
-        if: ${{ env.ACT != 'true' }}
+        if: ${{ !inputs.python-package && env.ACT != 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
           ACTION_PAYLOAD: >-
