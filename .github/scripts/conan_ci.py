@@ -521,7 +521,14 @@ def run_python_package(
             ["uv", "build", "-vv", f"--package={package}"], directory, environment
         )
         run_command(
-            ["uv", "run", f"--package={package}", "pytest"],
+            [
+                "uv",
+                "run",
+                f"--package={package}",
+                "pytest",
+                "--color=no",
+                "-vv",
+            ],
             directory,
             environment,
         )

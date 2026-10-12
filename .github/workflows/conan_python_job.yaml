@@ -55,6 +55,7 @@ jobs:
             tar \
             gzip \
             make \
+            lldb \
             pkgconf-pkg-config \
             patch
 
