@@ -1,0 +1,106 @@
+name: Verify a mixed Conan/UV package
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        description: Python package name
+        required: true
+        type: string
+      package-directory:
+        description: Package directory relative to the repository root
+        required: false
+        default: ""
+        type: string
+      incoming-package:
+        description: Conan package whose cumulative server snapshot precedes this job
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  python:
+    name: ${{ inputs.package }}
+    runs-on: ubuntu-latest
+
+    container:
+      image: fedora:latest
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      CI_SCRIPT: ${{ github.workspace }}/.github/scripts/conan_ci.py
+      CACHE_KEY: conan-server-v2${{ inputs.incoming-package }}--${{ github.run_id }}-${{ github.run_attempt }}
+      UV_PYTHON: "3.13"
+      UV_PYTHON_PREFERENCE: only-managed
+      UV_PYTHON_DOWNLOADS: automatic
+
+    steps:
+      - name: Install system tools
+        run: |
+          dnf install -y \
+            clang \
+            gcc-c++ \
+            cmake \
+            ninja-build \
+            python3 \
+            python3-pip \
+            nodejs \
+            git \
+            tar \
+            gzip \
+            make \
+            pkgconf-pkg-config \
+            patch
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install uv, managed Python, Conan, and Conan server
+        run: |
+          python3 -m venv "$RUNNER_TEMP/uv-venv"
+          "$RUNNER_TEMP/uv-venv/bin/python" -m pip install uv
+
+          UV="$RUNNER_TEMP/uv-venv/bin/uv"
+
+          "$UV" python install "$UV_PYTHON"
+          "$UV" venv --clear --python "$UV_PYTHON" "$RUNNER_TEMP/conan-venv"
+          "$UV" pip install \
+            --python "$RUNNER_TEMP/conan-venv/bin/python" \
+            "conan>=2,<3" \
+            conan-server
+
+          echo "$RUNNER_TEMP/uv-venv/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/conan-venv/bin" >> "$GITHUB_PATH"
+
+
+      - name: Restore Conan server snapshot
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ runner.temp }}/conan-server-snapshot
+          key: ${{ env.CACHE_KEY }}
+          restore-keys: |
+            conan-server-v2${{ inputs.incoming-package }}--${{ github.run_id }}-
+          fail-on-cache-miss: true
+
+      - name: Verify Python package
+        env:
+          ACTION_PAYLOAD: >-
+            {
+              "package": ${{ toJSON(inputs.package) }},
+              "package_directory": ${{ toJSON(inputs.package-directory || inputs.package) }},
+              "workspace": "$GITHUB_WORKSPACE",
+              "temporary_directory": "$RUNNER_TEMP",
+              "server_port": 9300,
+              "username": "ci",
+              "password": "ci",
+              "startup_timeout": 60.0,
+              "shutdown_timeout": 30.0
+            }
+        run: |
+          python "$CI_SCRIPT" run_python_package "$ACTION_PAYLOAD"

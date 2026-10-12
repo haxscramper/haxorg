@@ -36,8 +36,12 @@ jobs:
 
     env:
       CI_SCRIPT: ${{ github.workspace }}/.github/scripts/conan_ci.py
-      CACHE_PREFIX: conan-server-v1-${{ inputs.package }}--
-      CACHE_KEY: conan-server-v1-${{ inputs.package }}--${{ github.run_id }}-${{ github.run_attempt }}
+      CACHE_PREFIX: conan-server-v2${{ inputs.package }}--
+      CACHE_KEY: conan-server-v2${{ inputs.package }}--${{ github.run_id }}-${{ github.run_attempt }}
+      UV_PYTHON: "3.13"
+      UV_PYTHON_PREFERENCE: only-managed
+      UV_PYTHON_DOWNLOADS: automatic
+
 
     steps:
       - name: Install system tools
@@ -49,6 +53,7 @@ jobs:
             ninja-build \
             python3 \
             python3-pip \
+            python3-devel \
             nodejs \
             git \
             tar \
@@ -60,18 +65,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Install Conan and Conan server
+      - name: Install uv, managed Python, Conan, and Conan server
         run: |
-          python3 -m venv "$RUNNER_TEMP/conan-venv"
-          "$RUNNER_TEMP/conan-venv/bin/python" -m pip install \
+          python3 -m venv "$RUNNER_TEMP/uv-venv"
+          "$RUNNER_TEMP/uv-venv/bin/python" -m pip install uv
+
+          UV="$RUNNER_TEMP/uv-venv/bin/uv"
+
+          "$UV" python install "$UV_PYTHON"
+          "$UV" venv --clear --python "$UV_PYTHON" "$RUNNER_TEMP/conan-venv"
+          "$UV" pip install \
+            --python "$RUNNER_TEMP/conan-venv/bin/python" \
             "conan>=2,<3" \
             conan-server
 
+          echo "$RUNNER_TEMP/uv-venv/bin" >> "$GITHUB_PATH"
           echo "$RUNNER_TEMP/conan-venv/bin" >> "$GITHUB_PATH"
-
-          clang --version
-          cmake --version
-          ninja --version
 
       - name: Restore previous package snapshot
         uses: actions/cache/restore@v5
@@ -95,9 +104,9 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: ${{ runner.temp }}/conan-server-snapshot
-          key: conan-server-v1-${{ inputs.incoming-package }}--${{ github.run_id }}-${{ github.run_attempt }}
+          key: conan-server-v2${{ inputs.incoming-package }}--${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            conan-server-v1-${{ inputs.incoming-package }}--${{ github.run_id }}-
+            conan-server-v2${{ inputs.incoming-package }}--${{ github.run_id }}-
           fail-on-cache-miss: true
 
       - name: Build, test, upload, and snapshot Conan package

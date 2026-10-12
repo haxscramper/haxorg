@@ -2,7 +2,6 @@ name: Conan package tests
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -47,3 +46,24 @@ jobs:
     with:
       package: haxorg_cpp_org_lib
       incoming-package: hstd_cpp_text_layout
+
+  haxorg-cpp-py-wrap:
+    needs: haxorg
+    uses: ./.github/workflows/conan_package_job.yaml
+    with:
+      package: haxorg_cpp_py_wrap
+      incoming-package: haxorg_cpp_org_lib
+
+  hstd-py-lib:
+    needs: haxorg-cpp-py-wrap
+    uses: ./.github/workflows/conan_python_job.yaml
+    with:
+      package: hstd_py_lib
+      incoming-package: haxorg_cpp_py_wrap
+
+  haxorg-py-lib:
+    needs: hstd-py-lib
+    uses: ./.github/workflows/conan_python_job.yaml
+    with:
+      package: haxorg_py_lib
+      incoming-package: haxorg_cpp_py_wrap

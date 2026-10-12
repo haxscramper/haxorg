@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import configparser
+import contextlib
 import http.client
 import json
 import logging
@@ -10,10 +11,12 @@ import shlex
 import shutil
 import subprocess
 import sys
+import sysconfig
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Iterator
 from pathlib import Path
 
 logger = logging.getLogger("conan_ci")
@@ -214,6 +217,80 @@ def stop_server(
     )
 
 
+@contextlib.contextmanager
+def conan_server_session(
+    temporary: Path,
+    server_home: Path,
+    log_path: Path,
+    server_port: int,
+    username: str,
+    password: str,
+    startup_timeout: float,
+    shutdown_timeout: float,
+    environment: dict[str, str],
+) -> Iterator[str]:
+    server_url = f"http://127.0.0.1:{server_port}"
+    command = ["conan_server", "--server_dir", str(server_home)]
+    logger.info(f"Starting server: {shlex.join(command)}; server log={log_path}")
+
+    with log_path.open("w", encoding="utf-8") as stream:
+        process = subprocess.Popen(
+            command,
+            cwd=temporary,
+            env=environment,
+            stdin=subprocess.DEVNULL,
+            stdout=stream,
+            stderr=subprocess.STDOUT,
+        )
+
+        try:
+            wait_for_server(process, server_url, log_path, startup_timeout)
+            yield server_url
+        finally:
+            stop_server(process, log_path, shutdown_timeout)
+
+
+def write_default_profile(
+    conan_home: Path,
+    profile: Path,
+    compiler_major: str,
+) -> None:
+    lines = profile.read_text(encoding="utf-8").splitlines()
+    output: list[str] = []
+    settings = False
+    replaced = False
+    version_line = f"compiler.version={compiler_major}"
+
+    for line in lines:
+        stripped = line.strip()
+        section = stripped.startswith("[") and stripped.endswith("]")
+
+        if section and settings and not replaced:
+            output.append(version_line)
+            replaced = True
+
+        if section:
+            settings = stripped == "[settings]"
+
+        if settings and stripped.startswith("compiler.version="):
+            output.append(version_line)
+            replaced = True
+            continue
+
+        output.append(line)
+
+    if not replaced:
+        if settings:
+            output.append(version_line)
+        else:
+            output.extend(["", "[settings]", version_line])
+
+    destination = conan_home / "profiles" / "default"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text("\n".join(output) + "\n", encoding="utf-8")
+    logger.info(f"Wrote Conan default profile {destination} with {version_line}")
+
+
 def build_package(
     package: str,
     package_directory: Path,
@@ -270,6 +347,16 @@ def build_package(
         'protovalidate-cc/*:tools.cmake:configure_args=["--debug-trycompile"]',
         "--build=missing",
     ]
+
+    if package == "haxorg_cpp_py_wrap":
+        arguments.extend(
+            [
+                "-c:a",
+                f"user.haxorg:python_executable={sys.executable}",
+                "-c:a",
+                f"user.haxorg:python_abi={sysconfig.get_config_var('SOABI')}",
+            ]
+        )
 
     run_command(["conan", "config", "home"], temporary, environment)
     run_command(["conan", "editable", "list"], temporary, environment)
@@ -338,6 +425,112 @@ def build_package(
     )
 
 
+def run_python_package(
+    package: str,
+    package_directory: str,
+    workspace: str,
+    temporary_directory: str,
+    server_port: int,
+    username: str,
+    password: str,
+    startup_timeout: float,
+    shutdown_timeout: float,
+) -> None:
+    started = time.monotonic()
+    repository = Path(os.path.expandvars(workspace))
+    temporary = Path(os.path.expandvars(temporary_directory))
+    directory = repository / package_directory
+    server_home = temporary / "conan-server"
+    server_data = server_home / "data"
+    snapshot = temporary / "conan-server-snapshot"
+    conan_home = temporary / "conan-ci"
+    log_path = temporary / "conan-server.log"
+
+    environment = os.environ.copy()
+    environment["CONAN_HOME"] = str(conan_home)
+    environment["PYTHONUNBUFFERED"] = "1"
+
+    logger.info(
+        f"Starting python package task: package={package}, "
+        f"directory={directory}, workspace={repository}, temporary={temporary}"
+    )
+
+    if conan_home.exists():
+        logger.info(f"Removing previous job-local Conan cache at {conan_home}")
+        shutil.rmtree(conan_home)
+
+    conan_home.mkdir()
+
+    compiler_major = (
+        capture_command(
+            ["clang", "-dumpversion"],
+            temporary,
+            environment,
+        )
+        .strip()
+        .split(".", 1)[0]
+    )
+
+    write_default_profile(
+        conan_home,
+        repository / "repo_tool_configs/conan/conanprofile_debug.txt",
+        compiler_major,
+    )
+
+    prepare_storage(server_data, temporary / "conan-server-absent", snapshot / "data")
+    write_server_configuration(
+        server_home,
+        server_data,
+        server_port,
+        username,
+        password,
+    )
+
+    with conan_server_session(
+        temporary,
+        server_home,
+        log_path,
+        server_port,
+        username,
+        password,
+        startup_timeout,
+        shutdown_timeout,
+        environment,
+    ) as server_url:
+        run_command(
+            ["conan", "remote", "add", "ci", server_url, "--index", "0"],
+            temporary,
+            environment,
+        )
+        run_command(
+            ["conan", "remote", "login", "ci", username, "--password", password],
+            temporary,
+            environment,
+        )
+
+        environment["UV_PYTHON"] = "3.13"
+        environment["UV_PYTHON_DOWNLOADS"] = "automatic"
+
+        run_command(
+            ["uv", "python", "install", "3.13"],
+            directory,
+            environment,
+        )
+
+        run_command(
+            ["uv", "build", "-vv", f"--package={package}"], directory, environment
+        )
+        run_command(
+            ["uv", "run", f"--package={package}", "pytest"],
+            directory,
+            environment,
+        )
+
+    logger.info(
+        f"Python package {package} completed in {time.monotonic() - started:.2f}s"
+    )
+
+
 def run_package(
     package: str,
     package_directory: str,
@@ -385,54 +578,39 @@ def run_package(
         password,
     )
 
-    command = ["conan_server", "--server_dir", str(server_home)]
-    logger.info(f"Starting server: {shlex.join(command)}; server log={log_path}")
-
-    with log_path.open("w", encoding="utf-8") as stream:
-        process = subprocess.Popen(
-            command,
-            cwd=temporary,
-            env=environment,
-            stdin=subprocess.DEVNULL,
-            stdout=stream,
-            stderr=subprocess.STDOUT,
+    with conan_server_session(
+        temporary,
+        server_home,
+        log_path,
+        server_port,
+        username,
+        password,
+        startup_timeout,
+        shutdown_timeout,
+        environment,
+    ) as server_url:
+        run_command(
+            ["conan", "remote", "add", "ci", server_url, "--index", "0"],
+            temporary,
+            environment,
+        )
+        run_command(
+            ["conan", "remote", "login", "ci", username, "--password", password],
+            temporary,
+            environment,
         )
 
-        try:
-            wait_for_server(process, server_url, log_path, startup_timeout)
+        build_package(package, recipe, repository, temporary, environment)
 
-            run_command(
-                ["conan", "remote", "add", "ci", server_url, "--index", "0"],
-                temporary,
-                environment,
-            )
-            run_command(
-                [
-                    "conan",
-                    "remote",
-                    "login",
-                    "ci",
-                    username,
-                    "--password",
-                    password,
-                ],
-                temporary,
-                environment,
-            )
-
-            build_package(package, recipe, repository, temporary, environment)
-
-            logger.info(
-                f"Uploading successful recipes and binaries for {package} "
-                f"and its dependencies to {server_url}"
-            )
-            run_command(
-                ["conan", "upload", "*", "--remote", "ci", "--confirm"],
-                temporary,
-                environment,
-            )
-        finally:
-            stop_server(process, log_path, shutdown_timeout)
+        logger.info(
+            f"Uploading successful recipes and binaries for {package} "
+            f"and its dependencies to {server_url}"
+        )
+        run_command(
+            ["conan", "upload", "*", "--remote", "ci", "--confirm"],
+            temporary,
+            environment,
+        )
 
     logger.info(f"Preparing successful server snapshot at {snapshot}")
 
