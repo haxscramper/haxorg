@@ -9,3 +9,6 @@ jobs:
         run: cargo install ast-grep --locked
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
+        env:
+          # Ubuntu clang format is too old
+          SKIP: clang-format
