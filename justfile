@@ -8,6 +8,7 @@ run_github_cpp_package_tests:
   act workflow_dispatch \
     -W .github/workflows/package_tests.yaml \
     --artifact-server-path /tmp/haxorg-act-artifacts \
+    --bind \
     --reuse
 
 
