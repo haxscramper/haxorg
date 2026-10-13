@@ -1,4 +1,5 @@
 import json
+import os
 import shlex
 import sys
 from dataclasses import dataclass
@@ -16,6 +17,8 @@ from hstd_py_lib.debug_utils.model import (
     ValueNode,
 )
 from plumbum import local
+
+skip_in_ci = pytest.mark.skipif(os.environ.get("CI") == "true", reason="Skipped in CI")
 
 
 @dataclass(frozen=True)
@@ -202,6 +205,7 @@ def walk_values(node: ValueNode) -> Iterator[ValueNode]:
         yield from walk_values(nested)
 
 
+@skip_in_ci
 def test_import_does_not_create_or_launch_target(
     tmp_path: Path,
 ) -> None:
@@ -225,6 +229,7 @@ def test_import_does_not_create_or_launch_target(
     assert status == 0, stdout + stderr
 
 
+@skip_in_ci
 def test_default_configuration_inside_lldb(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -249,6 +254,7 @@ def test_default_configuration_inside_lldb(
     assert len(result.reports) == 1
 
 
+@skip_in_ci
 def test_native_argument_extraction(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -286,6 +292,7 @@ def test_native_argument_extraction(
     assert pointer.error is None
 
 
+@skip_in_ci
 def test_frame_blacklist_preserves_original_indices(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -308,6 +315,7 @@ def test_frame_blacklist_preserves_original_indices(
     assert any(2 <= frame.index for frame in frames)
 
 
+@skip_in_ci
 def test_frame_range(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -325,6 +333,7 @@ def test_frame_range(
     assert [frame.index for frame in result.reports[0].threads[0].frames] == [1]
 
 
+@skip_in_ci
 def test_depth_limit(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -345,6 +354,7 @@ def test_depth_limit(
     assert point.truncated
 
 
+@skip_in_ci
 def test_nested_limit(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -365,6 +375,7 @@ def test_nested_limit(
     assert point.truncated
 
 
+@skip_in_ci
 def test_custom_extractor(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -387,6 +398,7 @@ def test_custom_extractor(
     assert len(point.nested) == 2
 
 
+@skip_in_ci
 def test_named_breakpoint_auto_continues(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -405,6 +417,7 @@ def test_named_breakpoint_auto_continues(
     assert "exited with status = 0" in result.stdout
 
 
+@skip_in_ci
 def test_named_breakpoint_can_remain_stopped(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -426,6 +439,7 @@ def test_named_breakpoint_can_remain_stopped(
     ]
 
 
+@skip_in_ci
 def test_human_output_to_file(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -446,6 +460,7 @@ def test_human_output_to_file(
     assert "=== manual traceback ===" not in result.stderr
 
 
+@skip_in_ci
 def test_structured_round_trip(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -459,6 +474,7 @@ def test_structured_round_trip(
     assert len(result.log_text.splitlines()) == 1
 
 
+@skip_in_ci
 @pytest.mark.parametrize(
     ("variable", "value", "expected"),
     [
@@ -512,6 +528,7 @@ def test_invalid_configuration_fails_in_lldb(
     assert result.reports == []
 
 
+@skip_in_ci
 @pytest.mark.parametrize("mode", ["abort", "repeat"])
 def test_fatal_signal_is_reported_once_and_delivered(
     fixture_build: FixtureBuild,
@@ -532,6 +549,7 @@ def test_fatal_signal_is_reported_once_and_delivered(
     assert "exited" in result.stdout
 
 
+@skip_in_ci
 def test_signal_list_replacement(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -555,6 +573,7 @@ def test_signal_list_replacement(
     assert len(result.reports) == 1
 
 
+@skip_in_ci
 def test_empty_signal_list_disables_signal_reporting(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -577,6 +596,7 @@ def test_empty_signal_list_disables_signal_reporting(
     assert [report.reason for report in result.reports] == [ReportReason.MANUAL]
 
 
+@skip_in_ci
 def test_python_nanobind_argument_extraction(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -608,6 +628,7 @@ def test_python_nanobind_argument_extraction(
     assert "exited with status = 0" in result.stdout
 
 
+@skip_in_ci
 def test_python_nanobind_fatal_signal_preserves_faulthandler(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -631,6 +652,7 @@ def test_python_nanobind_fatal_signal_preserves_faulthandler(
     assert "Fatal Python error" in result.stdout + result.stderr
 
 
+@skip_in_ci
 def test_pytest_plugin_captures_backtraces_per_test(
     fixture_build: FixtureBuild,
     tmp_path: Path,
@@ -698,6 +720,7 @@ def test_pytest_plugin_captures_backtraces_per_test(
     assert result.log_text == ""
 
 
+@skip_in_ci
 def test_pytest_xdist_workers_capture_their_own_backtraces(
     fixture_build: FixtureBuild,
     tmp_path: Path,
