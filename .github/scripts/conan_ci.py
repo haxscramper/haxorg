@@ -22,6 +22,11 @@ from pathlib import Path
 logger = logging.getLogger("conan_ci")
 
 
+def show_all_env():
+    for name, value in os.environ.items():
+        logger.info(f"{name}={value}")
+
+
 def run_command(
     arguments: list[str],
     directory: Path,
@@ -407,6 +412,16 @@ def restore_package_archives(
         )
 
 
+CI_CONAN_PACKAGES = {
+    "haxorg_conan_base",
+    "protovalidate-cc",
+    "hstd_cpp_lib",
+    "hstd_cpp_text_layout",
+    "haxorg_cpp_org_lib",
+    "haxorg_cpp_py_wrap",
+}
+
+
 def save_package_archive(
     package: str,
     temporary: Path,
@@ -419,21 +434,46 @@ def save_package_archive(
     if archive.exists():
         archive.unlink()
 
-    # The base package only exports a recipe; other packages include binaries.
-    pattern = f"{package}/*" if package == "haxorg_conan_base" else f"{package}/*:*"
+    arguments = ["conan", "cache", "save"]
 
-    run_command(
-        [
-            "conan",
-            "cache",
-            "save",
-            pattern,
-            "--file",
-            str(archive),
-        ],
-        temporary,
-        environment,
-    )
+    if package == "haxorg_conan_base":
+        # This package exports only a recipe.
+        arguments.append(f"{package}/*")
+    else:
+        package_list = json.loads(
+            capture_command(
+                [
+                    "conan",
+                    "list",
+                    "*#*:*#*",
+                    "--format=json",
+                ],
+                temporary,
+                environment,
+            )
+        )
+
+        local_cache = package_list["Local Cache"]
+
+        # Preserve this project's package plus every external dependency.
+        # Other project packages arrive through incoming-packages.
+        for reference in list(local_cache):
+            name = reference.split("/", 1)[0]
+
+            if name in CI_CONAN_PACKAGES and name != package:
+                del local_cache[reference]
+
+        list_path = directory / "package-list.json"
+        list_path.write_text(
+            json.dumps(package_list, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+        arguments.extend(["--list", str(list_path)])
+
+    arguments.extend(["--file", str(archive)])
+
+    run_command(arguments, temporary, environment)
 
     logger.info(
         f"Saved package={package}, archive={archive}, bytes={archive.stat().st_size}"
@@ -457,6 +497,7 @@ def run_python_package(
         environment,
     )
 
+    show_all_env()
     run_command(
         [
             "uv",
