@@ -32,6 +32,7 @@ class AdaptagramsConan(ConanFile):
         "CMakeLists.txt",
         "adaptagrams-config.cmake.in",
         "cola_config.h.in",
+        "upstream",
     )
 
     _upstream_url = "https://github.com/mjwybrow/adaptagrams.git"
@@ -70,6 +71,9 @@ class AdaptagramsConan(ConanFile):
         self.output.info(f"Adaptagrams is using folder {upstream} for the source")
 
         try:
+            if not os.path.isdir(upstream):
+                raise ConanException("upstream directory does not exist")
+
             git = Git(self, folder=upstream)
             repository_root = git.run("rev-parse --show-toplevel").strip()
 

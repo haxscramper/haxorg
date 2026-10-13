@@ -4,15 +4,15 @@ project(hstd_cpp_diagram_lib VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-find_package(Protobuf CONFIG REQUIRED)
-find_package(kiwi CONFIG REQUIRED)
-find_package(graphviz CONFIG REQUIRED)
-find_package(Adaptagrams CONFIG REQUIRED)
-find_package(re2 CONFIG REQUIRED)
-find_package(protovalidate_cc CONFIG REQUIRED)
+find_package(Protobuf CONFIG REQUIRED QUIET)
+find_package(kiwi CONFIG REQUIRED QUIET)
+find_package(graphviz CONFIG REQUIRED QUIET)
+find_package(Adaptagrams CONFIG REQUIRED QUIET)
+find_package(re2 CONFIG REQUIRED QUIET)
+find_package(protovalidate_cc CONFIG REQUIRED QUIET)
 
 if(NOT TARGET hstd::hstd_cpp_lib)
-    find_package(hstd_cpp_lib CONFIG REQUIRED)
+    find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
 endif()
 
 if(NOT DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
@@ -24,7 +24,7 @@ if(NOT DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
 endif()
 
 if(BUILD_TESTING)
-    find_package(GTest CONFIG REQUIRED)
+    find_package(GTest CONFIG REQUIRED QUIET)
 
     set_property(
         TARGET
@@ -79,6 +79,7 @@ haxorg_add_protobuf(
         "${CMAKE_CURRENT_SOURCE_DIR}/proto/hstd_cpp_diagram_lib/graph_diagram.proto"
         "${CMAKE_CURRENT_SOURCE_DIR}/proto/hstd_cpp_diagram_lib/graph_diagram_validate.proto"
         "${CMAKE_CURRENT_SOURCE_DIR}/proto/hstd_cpp_diagram_lib/graph_visual.proto"
+    PACKAGE_NAME "hstd_cpp_diagram_lib"
 )
 
 target_include_directories(

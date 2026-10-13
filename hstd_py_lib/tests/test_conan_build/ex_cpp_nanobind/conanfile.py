@@ -19,8 +19,12 @@ class ExampleCppNanobind(ConanFile):
         self.requires("nanobind/[>=2.9.2 <3]")
 
     def haxorg_configure_toolchain(self, toolchain):
-        toolchain.cache_variables["Python_EXECUTABLE"] = self.conf.get(
-            "user.haxorg:python_executable",
-            default=sys.executable,
-            check_type=str,
+        self.set_cmake_var(
+            toolchain,
+            "Python_EXECUTABLE",
+            self.conf.get(
+                "user.haxorg:python_executable",
+                default=sys.executable,
+                check_type=str,
+            ),
         )

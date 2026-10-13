@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(hstd_cpp_lib_package_test LANGUAGES CXX)
 
-find_package(hstd_cpp_lib CONFIG REQUIRED)
+find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
 
 add_executable(hstd_cpp_lib_package_test)
 

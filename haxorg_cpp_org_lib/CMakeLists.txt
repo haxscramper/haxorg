@@ -12,28 +12,34 @@ option(HAXORG_WITH_PROTOBUF "Build protobuf serialization support" ON)
 option(HAXORG_WITH_PROTOVALIDATE "Build protobuf validation support" OFF)
 option(HAXORG_WITH_PERFETTO "Build Perfetto instrumentation support" OFF)
 
-find_package(hstd_cpp_lib CONFIG REQUIRED)
-find_package(hstd_cpp_text_layout CONFIG REQUIRED)
-find_package(range-v3 CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(lexy CONFIG REQUIRED)
-find_package(Immer CONFIG REQUIRED)
+if(NOT TARGET hstd::hstd_cpp_lib)
+    find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
+endif()
+
+if(NOT TARGET hstd::hstd_cpp_text_layout)
+    find_package(hstd_cpp_text_layout CONFIG REQUIRED QUIET)
+endif()
+
+find_package(range-v3 CONFIG REQUIRED QUIET)
+find_package(nlohmann_json CONFIG REQUIRED QUIET)
+find_package(lexy CONFIG REQUIRED QUIET)
+find_package(Immer CONFIG REQUIRED QUIET)
 
 if(HAXORG_WITH_PROTOBUF)
-    find_package(Protobuf CONFIG REQUIRED)
+    find_package(Protobuf CONFIG REQUIRED QUIET)
 endif()
 
 if(HAXORG_WITH_PROTOVALIDATE)
-    find_package(protovalidate_cc CONFIG REQUIRED)
+    find_package(protovalidate_cc CONFIG REQUIRED QUIET)
 endif()
 
 if(HAXORG_WITH_PERFETTO)
-    find_package(Perfetto CONFIG REQUIRED)
+    find_package(Perfetto CONFIG REQUIRED QUIET)
 endif()
 
 if(BUILD_TESTING)
-    find_package(GTest CONFIG REQUIRED)
-    find_package(absl CONFIG REQUIRED)
+    find_package(GTest CONFIG REQUIRED QUIET)
+    find_package(absl CONFIG REQUIRED QUIET)
 endif()
 
 haxorg_add_library(haxorg_cpp_org_lib)
@@ -92,6 +98,7 @@ if(HAXORG_WITH_PROTOBUF)
             "${CMAKE_CURRENT_LIST_DIR}/proto/haxorg_cpp_org_lib/ImmOrgGraph.proto"
         PUBLIC_LIBRARIES
             ${HAXORG_PROTO_PUBLIC_LIBRARIES}
+        PACKAGE_NAME "haxorg_cpp_org_lib"
     )
 endif()
 

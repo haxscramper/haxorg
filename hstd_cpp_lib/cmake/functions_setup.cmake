@@ -309,7 +309,7 @@ function(haxorg_add_protobuf)
     cmake_parse_arguments(
         HAP
         ""
-        "TARGET"
+        "TARGET;PACKAGE_NAME"
         "IMPORT_DIRS;PROTO_SOURCES;PUBLIC_LIBRARIES;PRIVATE_LIBRARIES"
         ${ARGN}
     )
@@ -326,6 +326,10 @@ function(haxorg_add_protobuf)
             FATAL_ERROR
             "haxorg_add_protobuf(): target '${HAP_TARGET}' does not exist"
         )
+    endif()
+
+    if(NOT HAP_PACKAGE_NAME)
+        message(FATAL_ERROR "haxorg_add_protobuf(): PACKAGE_NAME is required")
     endif()
 
     if(NOT HAP_PROTO_SOURCES)
@@ -346,12 +350,12 @@ function(haxorg_add_protobuf)
             NOT HAP_IS_OWN
             OR NOT HAP_SOURCE_DIR
                 STREQUAL
-                "${HAP_OWN_PROTO_ROOT}/${HAXORG_PACKAGE_NAME}"
+                "${HAP_OWN_PROTO_ROOT}/${HAP_PACKAGE_NAME}"
         )
             message(
                 FATAL_ERROR
                 "haxorg_add_protobuf(): '${HAP_SOURCE}' must be located in "
-                "'${HAP_OWN_PROTO_ROOT}/${HAXORG_PACKAGE_NAME}/'"
+                "'${HAP_OWN_PROTO_ROOT}/${HAP_PACKAGE_NAME}/'"
             )
         endif()
     endforeach()

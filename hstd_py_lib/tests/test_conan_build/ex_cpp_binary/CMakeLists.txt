@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-find_package(ex_cpp_library CONFIG REQUIRED)
+find_package(ex_cpp_library CONFIG REQUIRED QUIET)
 
 add_executable(ex_cpp_binary src/ex_cpp_binary/main.cpp)
 target_link_libraries(ex_cpp_binary PRIVATE ex::ex_cpp_library)

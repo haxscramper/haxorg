@@ -50,5 +50,5 @@ class HstdCppDiagramLibConan(ConanFile):
         )
 
     def build_requirements(self):
-        self.tool_requires("protobuf/<host_version>")
+        self.tool_requires("protobuf/[>=5 <6]")
         self.test_requires("gtest/1.15.0")

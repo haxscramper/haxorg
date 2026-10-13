@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.24)
 
 project(protovalidate_cc_test LANGUAGES CXX)
 
-find_package(re2 CONFIG REQUIRED)
-find_package(Protobuf CONFIG REQUIRED)
-find_package(protovalidate_cc CONFIG REQUIRED)
+find_package(re2 CONFIG REQUIRED QUIET)
+find_package(Protobuf CONFIG REQUIRED QUIET)
+find_package(protovalidate_cc CONFIG REQUIRED QUIET)
 
 if(NOT DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
     message(FATAL_ERROR "protovalidate_cc_PROTO_IMPORT_DIR is not defined")

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 project(hstd_cpp_text_layout_test_package LANGUAGES CXX)
 
-find_package(hstd_cpp_text_layout CONFIG REQUIRED)
+find_package(hstd_cpp_text_layout CONFIG REQUIRED QUIET)
 
 add_executable(hstd_cpp_text_layout_test_package test_package.cpp)
 

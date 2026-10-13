@@ -3,7 +3,7 @@ import os
 import re
 import shlex
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import tomllib
 from conan import ConanFile
@@ -236,6 +236,10 @@ class HaxorgPackage(_HaxorgTypingBase):
 
         self.haxorg_configure_layout()
 
+    def set_cmake_var(self, toolchain: CMakeToolchain, key: str, value: Any):
+        toolchain.cache_variables[key] = value
+        toolchain.variables[key] = value
+
     def generate(self):
         self.haxorg_validate_structure(self.source_folder)
 
@@ -254,12 +258,14 @@ class HaxorgPackage(_HaxorgTypingBase):
         deps.generate()
 
         toolchain = CMakeToolchain(self)
-        toolchain.cache_variables["HAXORG_PACKAGE_NAME"] = self.name
-        toolchain.cache_variables["HAXORG_PACKAGE_NAMESPACE"] = self.haxorg_namespace
-        toolchain.cache_variables["HAXORG_DEPS_PROTO_IMPORT_DIRS"] = ";".join(
-            self.haxorg_dependency_proto_dirs()
+        self.set_cmake_var(toolchain, "HAXORG_PACKAGE_NAME", self.name)
+        self.set_cmake_var(toolchain, "HAXORG_PACKAGE_NAMESPACE", self.haxorg_namespace)
+        self.set_cmake_var(
+            toolchain,
+            "HAXORG_DEPS_PROTO_IMPORT_DIRS",
+            ";".join(self.haxorg_dependency_proto_dirs()),
         )
-        toolchain.cache_variables["BUILD_TESTING"] = self.haxorg_run_tests
+        self.set_cmake_var(toolchain, "BUILD_TESTING", self.haxorg_run_tests)
 
         self.output.info(f"HAXORG_PACKAGE_NAME = {self.name}")
         self.output.info(
@@ -274,7 +280,9 @@ class HaxorgPackage(_HaxorgTypingBase):
             "user.haxorg:warning_suppressions", default="", check_type=str
         )
         if warning_suppressions:
-            toolchain.cache_variables["ORG_WARNING_SUPPRESSIONS"] = warning_suppressions
+            self.set_cmake_var(
+                toolchain, "ORG_WARNING_SUPPRESSIONS", warning_suppressions
+            )
 
         self.haxorg_configure_toolchain(toolchain)
         toolchain.generate()

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Protocol, cast
 
 from conan import ConanFile
@@ -75,18 +76,25 @@ class HstdConan(ConanFile):
 
     def haxorg_configure_toolchain(self, toolchain: CMakeToolchain):
         # TODO: remove this option entirely, create a separate package for qt utils
-        toolchain.cache_variables["ORG_BUILD_WITH_QT"] = False
+        self.set_cmake_var(toolchain, "ORG_BUILD_WITH_QT", False)
         # TODO: Infer the compilation configuration from the compiler
-        toolchain.cache_variables["ORG_BUILD_EMCC"] = False
-        toolchain.cache_variables["HSTD_CPP_BUILD_WITH_PERFETTO"] = bool(
-            self.options.with_perfetto
+        self.set_cmake_var(toolchain, "ORG_BUILD_EMCC", False)
+        self.set_cmake_var(
+            toolchain, "HSTD_CPP_BUILD_WITH_PERFETTO", bool(self.options.with_perfetto)
         )
-        toolchain.cache_variables["HSTD_CPP_BUILD_WITH_PROTOBUF"] = bool(
-            self.options.with_protobuf
+        self.set_cmake_var(
+            toolchain, "HSTD_CPP_BUILD_WITH_PROTOBUF", bool(self.options.with_protobuf)
         )
-        toolchain.cache_variables["HSTD_CPP_BUILD_WITH_PROTOVALIDATE"] = bool(
-            self.options.with_protovalidate
+        self.set_cmake_var(
+            toolchain,
+            "HSTD_CPP_BUILD_WITH_PROTOVALIDATE",
+            bool(self.options.with_protovalidate),
         )
+
+        if self.options.with_protobuf:
+            protobuf_tool = self.dependencies.build["protobuf"]
+            protoc = Path(protobuf_tool.package_folder) / "bin" / "protoc"
+            self.set_cmake_var(toolchain, "Protobuf_PROTOC_EXECUTABLE", str(protoc))
 
     def haxorg_package_info(self):
         self.cpp_info.defines = [

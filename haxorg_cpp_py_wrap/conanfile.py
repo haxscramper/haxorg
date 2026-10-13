@@ -53,7 +53,7 @@ class HaxorgCppPyWrapConan(ConanFile):
                 f"{self.name}: user.haxorg:python_executable is required"
             )
 
-        toolchain.cache_variables["Python_EXECUTABLE"] = python_executable
+        self.set_cmake_var(toolchain, "Python_EXECUTABLE", python_executable)
 
     def package_id(self):
         python_abi = self.conf.get(

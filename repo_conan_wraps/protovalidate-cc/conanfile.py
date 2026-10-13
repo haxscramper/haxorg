@@ -100,6 +100,10 @@ class ProtovalidateCcConan(ConanFile):
         self.cpp.package.resdirs = [os.path.join("res", "proto")]
         self.cpp.package.builddirs = [os.path.join("lib", "cmake", "protovalidate_cc")]
 
+    def set_cmake_var(self, toolchain: CMakeToolchain, key: str, value: Any):
+        toolchain.cache_variables[key] = value
+        toolchain.variables[key] = value
+
     def generate(self):
         CMakeDeps(self).generate()
 
@@ -113,23 +117,27 @@ class ProtovalidateCcConan(ConanFile):
         toolchain.extra_cxxflags.append("-w")
 
         protobuf = self.dependencies["protobuf"]
-        toolchain.cache_variables["Protobuf_IMPORT_DIRS"] = os.path.join(
-            protobuf.package_folder,
-            protobuf.cpp_info.includedirs[0],
+        self.set_cmake_var(
+            toolchain,
+            "Protobuf_IMPORT_DIRS",
+            os.path.join(
+                protobuf.package_folder,
+                protobuf.cpp_info.includedirs[0],
+            ),
         )
 
-        toolchain.cache_variables["PROTOVALIDATE_CC_VERSION"] = str(self.version)
-        toolchain.cache_variables["BUILD_SHARED_LIBS"] = False
-        toolchain.cache_variables["CMAKE_POSITION_INDEPENDENT_CODE"] = bool(
-            self.options.fPIC
+        self.set_cmake_var(toolchain, "PROTOVALIDATE_CC_VERSION", str(self.version))
+        self.set_cmake_var(toolchain, "BUILD_SHARED_LIBS", False)
+        self.set_cmake_var(
+            toolchain, "CMAKE_POSITION_INDEPENDENT_CODE", bool(self.options.fPIC)
         )
 
         # cmake/Deps.cmake:125 (try_compile): in the protovalidate checks for the
         # sub-project compilation test, but the cmake cache gnerates build that
         # depends on the build configuration, so
         # INCLUDE_DIRECTORIES:UNINITIALIZED=$<$<CONFIG:Debug>:/tmp/conan-ci/p/b/absei0589bbf79ba0a/p/include>
-        toolchain.cache_variables["CMAKE_TRY_COMPILE_CONFIGURATION"] = str(
-            self.settings.build_type
+        self.set_cmake_var(
+            toolchain, "CMAKE_TRY_COMPILE_CONFIGURATION", str(self.settings.build_type)
         )
 
         toolchain.generate()

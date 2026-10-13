@@ -16,7 +16,7 @@ if(ADAPTAGRAMS_NATIVE_CONFIG_DIR)
         NO_DEFAULT_PATH
     )
 else()
-    find_package(adaptagrams CONFIG REQUIRED)
+    find_package(adaptagrams CONFIG REQUIRED QUIET)
 endif()
 
 foreach(

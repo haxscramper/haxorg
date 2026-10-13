@@ -13,7 +13,7 @@ find_package(
         Development.Module
     REQUIRED
 )
-find_package(nanobind CONFIG REQUIRED)
+find_package(nanobind CONFIG REQUIRED QUIET)
 
 add_executable(hstd_py_lldb_fixture native.cpp)
 set_target_properties(

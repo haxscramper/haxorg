@@ -17,11 +17,11 @@ include(CTest)
 enable_testing()
 
 if(NOT TARGET hstd::hstd_cpp_lib)
-    find_package(hstd_cpp_lib CONFIG REQUIRED)
+    find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
 endif()
 
 if(NOT TARGET haxorg::haxorg_cpp_org_lib)
-    find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
+    find_package(haxorg_cpp_org_lib CONFIG REQUIRED QUIET)
 endif()
 
 haxorg_add_library(haxorg_cpp_c_wrap)

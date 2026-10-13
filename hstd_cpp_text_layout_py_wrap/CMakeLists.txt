@@ -17,11 +17,15 @@ find_package(
     REQUIRED
 )
 
-find_package(nanobind CONFIG REQUIRED)
+find_package(nanobind CONFIG REQUIRED QUIET)
+
 if(NOT TARGET hstd::hstd_cpp_lib)
-    find_package(hstd_cpp_lib CONFIG REQUIRED)
+    find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
 endif()
-find_package(hstd_cpp_text_layout CONFIG REQUIRED)
+
+if(NOT TARGET hstd::hstd_cpp_text_layout)
+    find_package(hstd_cpp_text_layout CONFIG REQUIRED QUIET)
+endif()
 
 nanobind_add_module(
     hstd_cpp_text_layout_py_wrap

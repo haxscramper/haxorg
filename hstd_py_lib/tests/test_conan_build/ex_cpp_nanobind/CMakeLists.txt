@@ -13,8 +13,8 @@ find_package(
         Development.Module
     REQUIRED
 )
-find_package(nanobind CONFIG REQUIRED)
-find_package(ex_cpp_library CONFIG REQUIRED)
+find_package(nanobind CONFIG REQUIRED QUIET)
+find_package(ex_cpp_library CONFIG REQUIRED QUIET)
 
 nanobind_add_module(ex_cpp_nanobind src/ex_cpp_nanobind/module.cpp)
 

@@ -16,14 +16,14 @@ find_package(
     REQUIRED
 )
 
-find_package(nanobind CONFIG REQUIRED)
+find_package(nanobind CONFIG REQUIRED QUIET)
 
 if(NOT TARGET hstd::hstd_cpp_lib)
-    find_package(hstd_cpp_lib CONFIG REQUIRED)
+    find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
 endif()
 
 if(NOT TARGET haxorg::haxorg_cpp_org_lib)
-    find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
+    find_package(haxorg_cpp_org_lib CONFIG REQUIRED QUIET)
 endif()
 
 set(HAXORG_CPP_PY_WRAP_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/haxorg_cpp_py_wrap")

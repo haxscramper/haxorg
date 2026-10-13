@@ -143,6 +143,10 @@ class GraphvizConan(ConanFile):
             strip_root=True,
         )
 
+    def set_cmake_var(self, toolchain: CMakeToolchain, key: str, value: Any):
+        toolchain.cache_variables[key] = value
+        toolchain.variables[key] = value
+
     def generate(self):
         pkg_config = PkgConfigDeps(self)
         pkg_config.generate()
@@ -156,20 +160,20 @@ class GraphvizConan(ConanFile):
         sysprof_capture = "/usr/lib/libsysprof-capture-4.a"
 
         for language in ("C", "CXX"):
-            toolchain.cache_variables[f"CMAKE_{language}_STANDARD_LIBRARIES"] = (
-                sysprof_capture
+            self.set_cmake_var(
+                toolchain, f"CMAKE_{language}_STANDARD_LIBRARIES", sysprof_capture
             )
 
-        toolchain.cache_variables["BUILD_SHARED_LIBS"] = True
-        toolchain.cache_variables["BUILD_TESTING"] = False
+        self.set_cmake_var(toolchain, "BUILD_SHARED_LIBS", True)
+        self.set_cmake_var(toolchain, "BUILD_TESTING", False)
 
         # The dot executable is required to generate Graphviz's plugin registry.
-        toolchain.cache_variables["GRAPHVIZ_CLI"] = True
+        self.set_cmake_var(toolchain, "GRAPHVIZ_CLI", True)
 
-        toolchain.cache_variables["with_cxx_api"] = False
-        toolchain.cache_variables["with_cxx_tests"] = False
-        toolchain.cache_variables["use_win_pre_inst_libs"] = False
-        toolchain.cache_variables["install_win_dependency_dlls"] = False
+        self.set_cmake_var(toolchain, "with_cxx_api", False)
+        self.set_cmake_var(toolchain, "with_cxx_tests", False)
+        self.set_cmake_var(toolchain, "use_win_pre_inst_libs", False)
+        self.set_cmake_var(toolchain, "install_win_dependency_dlls", False)
 
         for feature in self._features_off:
             toolchain.cache_variables[feature] = False
@@ -180,7 +184,7 @@ class GraphvizConan(ConanFile):
 
         if os.path.basename(sys.executable).lower().startswith("python"):
             python_executable = sys.executable.replace("\\", "/")
-            toolchain.cache_variables["Python3_EXECUTABLE"] = python_executable
+            self.set_cmake_var(toolchain, "Python3_EXECUTABLE", python_executable)
 
         toolchain.generate()
 

@@ -8,7 +8,7 @@ find_package(
         Runtime
         Development
 )
-find_package(JNI REQUIRED)
+find_package(JNI REQUIRED QUIET)
 
 # Print Java information for debugging
 message(STATUS "Java version: ${Java_VERSION}")

@@ -9,19 +9,19 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 include(CMakePackageConfigHelpers)
 
 if(NOT TARGET hstd::hstd_cpp_lib)
-    find_package(hstd_cpp_lib CONFIG REQUIRED)
+    find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
 endif()
 
 if(NOT TARGET haxorg::haxorg_cpp_org_lib)
-    find_package(haxorg_cpp_org_lib CONFIG REQUIRED)
+    find_package(haxorg_cpp_org_lib CONFIG REQUIRED QUIET)
 endif()
 
 if(NOT TARGET hstd::hstd_cpp_diagram_lib)
-    find_package(hstd_cpp_diagram_lib CONFIG REQUIRED)
+    find_package(hstd_cpp_diagram_lib CONFIG REQUIRED QUIET)
 endif()
 
-find_package(absl CONFIG REQUIRED)
-find_package(argparse CONFIG REQUIRED)
+find_package(absl CONFIG REQUIRED QUIET)
+find_package(argparse CONFIG REQUIRED QUIET)
 
 add_executable(haxorg_cpp_org_cli)
 

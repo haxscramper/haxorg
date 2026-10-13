@@ -12,21 +12,43 @@ option(HSTD_CPP_BUILD_WITH_PERFETTO "")
 option(ORG_BUILD_EMCC "")
 option(ORG_BUILD_WITH_QT "")
 
-find_package(yaml-cpp CONFIG REQUIRED)
-find_package(range-v3 CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(cctz CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(Boost CONFIG REQUIRED)
-find_package(cpptrace CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED QUIET)
+find_package(range-v3 CONFIG REQUIRED QUIET)
+find_package(nlohmann_json CONFIG REQUIRED QUIET)
+find_package(cctz CONFIG REQUIRED QUIET)
+find_package(fmt CONFIG REQUIRED QUIET)
+find_package(Boost CONFIG REQUIRED QUIET)
+find_package(cpptrace CONFIG REQUIRED QUIET)
 
 if(HSTD_CPP_BUILD_WITH_PROTOBUF)
-    find_package(Protobuf CONFIG REQUIRED)
+    find_package(Protobuf CONFIG REQUIRED QUIET)
+
+    message(STATUS "Protobuf_PROTOC_EXECUTABLE=${Protobuf_PROTOC_EXECUTABLE}")
+
+    get_target_property(HSTD_PROTOC_LOCATION protobuf::protoc IMPORTED_LOCATION)
+    message(STATUS "protobuf::protoc IMPORTED_LOCATION=${HSTD_PROTOC_LOCATION}")
+
+    get_target_property(
+        HSTD_PROTOC_CONFIGURATIONS
+        protobuf::protoc
+        IMPORTED_CONFIGURATIONS
+    )
+    foreach(HSTD_PROTOC_CONFIGURATION IN LISTS HSTD_PROTOC_CONFIGURATIONS)
+        get_target_property(
+            HSTD_PROTOC_LOCATION
+            protobuf::protoc
+            "IMPORTED_LOCATION_${HSTD_PROTOC_CONFIGURATION}"
+        )
+        message(
+            STATUS
+            "protobuf::protoc ${HSTD_PROTOC_CONFIGURATION}=${HSTD_PROTOC_LOCATION}"
+        )
+    endforeach()
 endif()
 
 if(HSTD_CPP_BUILD_WITH_PROTOVALIDATE)
-    find_package(re2 CONFIG REQUIRED)
-    find_package(protovalidate_cc CONFIG REQUIRED)
+    find_package(re2 CONFIG REQUIRED QUIET)
+    find_package(protovalidate_cc CONFIG REQUIRED QUIET)
 
     if(NOT DEFINED protovalidate_cc_PROTO_IMPORT_DIR)
         message(
@@ -38,14 +60,14 @@ if(HSTD_CPP_BUILD_WITH_PROTOVALIDATE)
 endif()
 
 if(HSTD_CPP_BUILD_WITH_PERFETTO)
-    find_package(Perfetto CONFIG REQUIRED)
+    find_package(Perfetto CONFIG REQUIRED QUIET)
 endif()
 
 if(BUILD_TESTING)
-    find_package(GTest CONFIG REQUIRED)
-    find_package(benchmark CONFIG REQUIRED)
-    find_package(absl CONFIG REQUIRED)
-    find_package(immer CONFIG REQUIRED)
+    find_package(GTest CONFIG REQUIRED QUIET)
+    find_package(benchmark CONFIG REQUIRED QUIET)
+    find_package(absl CONFIG REQUIRED QUIET)
+    find_package(immer CONFIG REQUIRED QUIET)
 
     set_property(
         TARGET
@@ -71,7 +93,7 @@ if(BUILD_TESTING)
 endif()
 
 if(ORG_BUILD_WITH_QT)
-    find_package(Qt6 COMPONENTS REQUIRED Core)
+    find_package(Qt6 COMPONENTS REQUIRED Core QUIET)
 
     qt_add_library(hstd_cpp_lib STATIC)
     haxorg_set_target_output(hstd_cpp_lib)
@@ -162,6 +184,7 @@ if(HSTD_CPP_BUILD_WITH_PROTOBUF)
             "${CMAKE_CURRENT_LIST_DIR}/proto/hstd_cpp_lib/hstd_visual.proto"
         PUBLIC_LIBRARIES
             ${HSTD_PROTO_PUBLIC_LIBRARIES}
+        PACKAGE_NAME "hstd_cpp_lib"
     )
 endif()
 
