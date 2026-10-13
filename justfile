@@ -5,10 +5,8 @@ run_github_ci_1:
   act push --container-options "--cpus 24" --reuse -W .github/workflows/readme_run_lib.yaml
 
 run_github_cpp_package_tests:
-  docker build -f .github/docker/conan-ci.Dockerfile -t ghcr.io/haxscramper/conan-ci:latest .
   act workflow_dispatch \
     -W .github/workflows/package_tests.yaml \
-    --pull=false \
     --artifact-server-path /tmp/haxorg-act-artifacts
 
 # --reuse
