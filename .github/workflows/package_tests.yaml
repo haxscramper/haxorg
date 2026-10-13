@@ -13,91 +13,102 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  conan-base:
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: haxorg_conan_base
+  packages:
+    runs-on: ubuntu-latest
 
-  protovalidate:
-    needs: conan-base
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: protovalidate-cc
-      package-directory: repo_conan_wraps/protovalidate-cc
-      incoming-packages: '["haxorg_conan_base"]'
+    container:
+      image: fedora:latest
 
-  hstd:
-    needs: protovalidate
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: hstd_cpp_lib
-      incoming-packages: >-
-        [
-          "haxorg_conan_base",
-          "protovalidate-cc"
-        ]
+    defaults:
+      run:
+        shell: bash
 
-  text-layout:
-    needs: hstd
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: hstd_cpp_text_layout
-      incoming-packages: >-
-        [
-          "haxorg_conan_base",
-          "protovalidate-cc",
-          "hstd_cpp_lib"
-        ]
+    env:
+      UV_PYTHON: "3.13"
+      UV_PYTHON_PREFERENCE: only-managed
+      UV_PYTHON_DOWNLOADS: automatic
 
-  haxorg:
-    needs: text-layout
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: haxorg_cpp_org_lib
-      incoming-packages: >-
-        [
-          "haxorg_conan_base",
-          "protovalidate-cc",
-          "hstd_cpp_lib",
-          "hstd_cpp_text_layout"
-        ]
+    steps:
+      - name: Install system tools
+        run: |
+          dnf install -y \
+            clang \
+            gcc-c++ \
+            cmake \
+            ninja-build \
+            python3 \
+            python3-pip \
+            python3-devel \
+            nodejs \
+            npm \
+            git \
+            tar \
+            gzip \
+            zstd \
+            make \
+            lldb \
+            pkgconf-pkg-config \
+            patch
 
-  haxorg-cpp-py-wrap:
-    needs: haxorg
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: haxorg_cpp_py_wrap
-      incoming-packages: >-
-        [
-          "haxorg_conan_base",
-          "protovalidate-cc",
-          "hstd_cpp_lib",
-          "hstd_cpp_text_layout",
-          "haxorg_cpp_org_lib"
-        ]
+      - name: Check out repository
+        uses: actions/checkout@v6
 
-  hstd-py-lib:
-    needs: conan-base
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: hstd_py_lib
-      python-package: true
-      incoming-packages: '["haxorg_conan_base"]'
+      - name: Install Python environment and cache client
+        run: |
+          python3 -m venv "$RUNNER_TEMP/uv-venv"
+          "$RUNNER_TEMP/uv-venv/bin/python" -m pip install uv
 
-  haxorg-py-lib:
-    needs:
-      - hstd-py-lib
-      - haxorg-cpp-py-wrap
-    uses: ./.github/workflows/conan_package_job.yaml
-    with:
-      package: haxorg_py_lib
-      python-package: true
-      incoming-packages: >-
-        [
-          "haxorg_conan_base",
-          "protovalidate-cc",
-          "hstd_cpp_lib",
-          "hstd_cpp_text_layout",
-          "haxorg_cpp_org_lib",
-          "haxorg_cpp_py_wrap"
-        ]
+          UV="$RUNNER_TEMP/uv-venv/bin/uv"
+
+          "$UV" python install "$UV_PYTHON"
+          "$UV" venv --clear --python "$UV_PYTHON" "$RUNNER_TEMP/conan-venv"
+          "$UV" pip install \
+            --python "$RUNNER_TEMP/conan-venv/bin/python" \
+            "conan>=2,<3" \
+            conan-server
+
+          npm install \
+            --prefix "$RUNNER_TEMP/conan-cache-client" \
+            --no-package-lock \
+            --no-save \
+            @actions/cache
+
+          echo "$RUNNER_TEMP/uv-venv/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/conan-venv/bin" >> "$GITHUB_PATH"
+          echo "NODE_PATH=$RUNNER_TEMP/conan-cache-client/node_modules" >> "$GITHUB_ENV"
+
+      - name: Run package pipeline
+        uses: actions/github-script@v8
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          script: |
+            const {spawnSync} = require("node:child_process");
+
+            // JavaScript actions receive the cache service credentials.
+            // Pass them through to Python and its cache client.
+            const result = spawnSync(
+              `${process.env.RUNNER_TEMP}/conan-venv/bin/python`,
+              [
+                `${process.env.GITHUB_WORKSPACE}/.github/scripts/conan_ci.py`,
+                "run_whole_pipeline",
+                JSON.stringify({
+                  workspace: process.env.GITHUB_WORKSPACE,
+                  temporary_directory: process.env.RUNNER_TEMP,
+                }),
+              ],
+              {
+                env: process.env,
+                stdio: "inherit",
+              },
+            );
+
+            if (result.error) {
+              throw result.error;
+            }
+
+            if (result.status !== 0) {
+              throw new Error(
+                `Package pipeline failed: status=${result.status}, signal=${result.signal}`,
+              );
+            }

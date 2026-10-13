@@ -17,14 +17,60 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 from pathlib import Path
 
 logger = logging.getLogger("conan_ci")
 
+CACHE_VERSION = "conan-package-v3"
 
-def show_all_env():
-    for name, value in os.environ.items():
-        logger.info(f"{name}={value}")
+CI_CONAN_PACKAGES = {
+    "haxorg_conan_base",
+    "protovalidate-cc",
+    "hstd_cpp_lib",
+    "hstd_cpp_text_layout",
+    "haxorg_cpp_org_lib",
+    "haxorg_cpp_py_wrap",
+}
+
+CACHE_CLIENT = """
+import fs from "node:fs";
+import * as cache from "@actions/cache";
+
+async function main() {
+    const payload = JSON.parse(process.env.CONAN_CACHE_PAYLOAD);
+    let result;
+
+    if (payload.operation === "restore") {
+        result = await cache.restoreCache(
+            [payload.directory],
+            payload.key,
+            [payload.prefix],
+        );
+    } else if (payload.operation === "save") {
+        result = await cache.saveCache(
+            [payload.directory],
+            payload.key,
+        );
+
+        if (result < 0) {
+            throw new Error(`Cache save failed for ${payload.key}`);
+        }
+    } else {
+        throw new Error(`Unknown cache operation: ${payload.operation}`);
+    }
+
+    fs.writeFileSync(
+        payload.result_path,
+        JSON.stringify({result: result ?? null}),
+    );
+}
+
+main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});
+"""
 
 
 def run_command(
@@ -32,7 +78,7 @@ def run_command(
     directory: Path,
     environment: dict[str, str],
 ) -> None:
-    logger.info(f"Running command in {directory}: {shlex.join(arguments)}")
+    logger.info("Running command in %s: %s", directory, shlex.join(arguments))
     started = time.monotonic()
 
     subprocess.run(
@@ -43,7 +89,9 @@ def run_command(
     )
 
     logger.info(
-        f"Command completed in {time.monotonic() - started:.2f}s: {shlex.join(arguments)}"
+        "Command completed in %.2fs: %s",
+        time.monotonic() - started,
+        shlex.join(arguments),
     )
 
 
@@ -52,7 +100,7 @@ def capture_command(
     directory: Path,
     environment: dict[str, str],
 ) -> str:
-    logger.info(f"Running command in {directory}: {shlex.join(arguments)}")
+    logger.info("Running command in %s: %s", directory, shlex.join(arguments))
     started = time.monotonic()
 
     result = subprocess.run(
@@ -65,7 +113,9 @@ def capture_command(
     )
 
     logger.info(
-        f"Command completed in {time.monotonic() - started:.2f}s: {shlex.join(arguments)}"
+        "Command completed in %.2fs: %s",
+        time.monotonic() - started,
+        shlex.join(arguments),
     )
 
     return result.stdout
@@ -96,7 +146,6 @@ def write_server_configuration(
     configuration["users"] = {username: password}
 
     configuration_path = server_home / "server.conf"
-    logger.info(f"Writing Conan server configuration to {configuration_path}")
 
     with configuration_path.open("w", encoding="utf-8") as stream:
         configuration.write(stream)
@@ -110,38 +159,29 @@ def wait_for_server(
 ) -> None:
     ping_url = f"{server_url}/v1/ping"
     deadline = time.monotonic() + timeout
-    attempt = 0
 
     while time.monotonic() < deadline:
-        attempt += 1
         return_code = process.poll()
 
         if return_code is not None:
             raise RuntimeError(
-                f"Conan server PID {process.pid} exited with status "
-                f"{return_code} before becoming ready at {ping_url}.\n"
+                f"Conan server exited with status {return_code} before "
+                f"becoming ready at {ping_url}.\n"
                 f"{log_path.read_text(encoding='utf-8')}"
             )
 
-        logger.info(f"Checking server readiness at {ping_url}, attempt {attempt}")
-
         try:
             with urllib.request.urlopen(ping_url, timeout=1.0) as response:
-                logger.info(
-                    f"Conan server PID {process.pid} is ready: HTTP {response.status}"
-                )
+                logger.info("Conan server is ready: HTTP %s", response.status)
                 return
         except urllib.error.URLError as error:
             if not isinstance(error.reason, ConnectionRefusedError):
                 raise
 
-            logger.info(f"Server is not listening yet at {ping_url}")
-
         time.sleep(0.5)
 
     raise TimeoutError(
-        f"Conan server PID {process.pid} did not become ready at "
-        f"{ping_url} within {timeout}s.\n"
+        f"Conan server did not become ready at {ping_url} within {timeout}s.\n"
         f"{log_path.read_text(encoding='utf-8')}"
     )
 
@@ -151,20 +191,15 @@ def stop_server(
     log_path: Path,
     timeout: float,
 ) -> None:
-    return_code = process.poll()
-
-    if return_code is None:
-        logger.info(f"Stopping Conan server PID {process.pid}")
+    if process.poll() is None:
+        logger.info("Stopping Conan server PID %s", process.pid)
         process.terminate()
-        return_code = process.wait(timeout=timeout)
-        logger.info(f"Conan server PID {process.pid} stopped with status {return_code}")
-    else:
-        logger.info(
-            f"Conan server PID {process.pid} already exited with status {return_code}"
-        )
+        process.wait(timeout=timeout)
 
     logger.info(
-        f"Conan server log from {log_path}:\n{log_path.read_text(encoding='utf-8')}"
+        "Conan server log from %s:\n%s",
+        log_path,
+        log_path.read_text(encoding="utf-8"),
     )
 
 
@@ -174,15 +209,14 @@ def conan_server_session(
     server_home: Path,
     log_path: Path,
     server_port: int,
-    username: str,
-    password: str,
     startup_timeout: float,
     shutdown_timeout: float,
     environment: dict[str, str],
 ) -> Iterator[str]:
     server_url = f"http://127.0.0.1:{server_port}"
     command = ["conan_server", "--server_dir", str(server_home)]
-    logger.info(f"Starting server: {shlex.join(command)}; server log={log_path}")
+
+    logger.info("Starting server: %s", shlex.join(command))
 
     with log_path.open("w", encoding="utf-8") as stream:
         process = subprocess.Popen(
@@ -239,7 +273,6 @@ def write_default_profile(
     destination = conan_home / "profiles" / "default"
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text("\n".join(output) + "\n", encoding="utf-8")
-    logger.info(f"Wrote Conan default profile {destination} with {version_line}")
 
 
 def build_package(
@@ -247,13 +280,9 @@ def build_package(
     package_directory: Path,
     workspace: Path,
     temporary: Path,
+    compiler_major: str,
     environment: dict[str, str],
 ) -> None:
-    logger.info(
-        f"Preparing package={package}, recipe={package_directory}, "
-        f"CONAN_HOME={environment['CONAN_HOME']}"
-    )
-
     if package == "haxorg_conan_base":
         run_command(
             ["conan", "export", str(package_directory)],
@@ -263,19 +292,6 @@ def build_package(
         return
 
     profile = workspace / "repo_tool_configs/conan/conanprofile_debug.txt"
-    logger.info(f"Using Conan profile {profile}")
-
-    compiler_version = capture_command(
-        ["clang", "-dumpversion"],
-        temporary,
-        environment,
-    ).strip()
-    compiler_major = compiler_version.split(".", 1)[0]
-
-    logger.info(
-        f"Detected Clang version {compiler_version}; "
-        f"using Conan compiler.version={compiler_major}"
-    )
 
     arguments = [
         "-pr:a",
@@ -309,9 +325,6 @@ def build_package(
             ]
         )
 
-    run_command(["conan", "config", "home"], temporary, environment)
-    run_command(["conan", "editable", "list"], temporary, environment)
-
     exported = json.loads(
         capture_command(
             [
@@ -325,8 +338,6 @@ def build_package(
         )
     )
     reference = exported["reference"]
-
-    logger.info(f"Exported current recipe: package={package}, reference={reference}")
 
     graph = json.loads(
         capture_command(
@@ -344,33 +355,23 @@ def build_package(
     )
 
     for node_id, node in graph["graph"]["nodes"].items():
-        binary = node.get("binary")
-
-        if binary is None:
+        if node.get("binary") is None:
             continue
 
         logger.info(
-            f"Binary availability: node={node_id}, "
-            f"reference={node.get('ref')}, "
-            f"package_id={node.get('package_id')}, "
-            f"package_revision={node.get('prev')}, "
-            f"status={binary}, "
-            f"remote={json.dumps(node.get('remote'))}, "
-            f"binary_remote={json.dumps(node.get('binary_remote'))}"
+            "Binary availability: node=%s, reference=%s, package_id=%s, "
+            "package_revision=%s, status=%s, remote=%s, binary_remote=%s",
+            node_id,
+            node.get("ref"),
+            node.get("package_id"),
+            node.get("prev"),
+            node.get("binary"),
+            node.get("remote"),
+            node.get("binary_remote"),
         )
 
-    logger.info(
-        f"Creating and testing {reference}; existing matching binaries "
-        f"will be reused, missing binaries will be built"
-    )
-
     run_command(
-        [
-            "conan",
-            "create",
-            str(package_directory),
-            *arguments,
-        ],
+        ["conan", "create", str(package_directory), *arguments],
         temporary,
         environment,
     )
@@ -388,13 +389,16 @@ def restore_package_archives(
     if not python_package:
         previous_archive = cache_root / package / "package.tgz"
 
-        if previous_archive.exists():
-            logger.info(f"Restoring previous package archive {previous_archive}")
+        if previous_archive.is_file():
             run_command(
                 ["conan", "cache", "restore", str(previous_archive)],
                 temporary,
                 environment,
             )
+
+            # Only an archive produced by this invocation may subsequently
+            # be published. Do not mistake a restored archive for a new one.
+            previous_archive.unlink()
 
     for incoming_package in dict.fromkeys(incoming_packages):
         archive = cache_root / incoming_package / "package.tgz"
@@ -404,7 +408,6 @@ def restore_package_archives(
                 f"Required upstream package archive does not exist: {archive}"
             )
 
-        logger.info(f"Restoring upstream package archive {archive}")
         run_command(
             ["conan", "cache", "restore", str(archive)],
             temporary,
@@ -412,21 +415,95 @@ def restore_package_archives(
         )
 
 
-CI_CONAN_PACKAGES = {
-    "haxorg_conan_base",
-    "protovalidate-cc",
-    "hstd_cpp_lib",
-    "hstd_cpp_text_layout",
-    "haxorg_cpp_org_lib",
-    "haxorg_cpp_py_wrap",
-}
+def read_package_list(
+    temporary: Path,
+    environment: dict[str, str],
+) -> dict:
+    # Include recipe-only packages, such as haxorg_conan_base, as well as
+    # all completed package revisions available in the client cache.
+    recipes = json.loads(
+        capture_command(
+            ["conan", "list", "*#*", "--format=json"],
+            temporary,
+            environment,
+        )
+    )
+    binaries = json.loads(
+        capture_command(
+            ["conan", "list", "*#*:*#*", "--format=json"],
+            temporary,
+            environment,
+        )
+    )
+
+    local_cache = recipes["Local Cache"]
+
+    for reference, contents in binaries["Local Cache"].items():
+        entry = local_cache.setdefault(reference, {"revisions": {}})
+
+        for revision, revision_contents in contents["revisions"].items():
+            entry["revisions"].setdefault(revision, {}).update(revision_contents)
+
+    return recipes
 
 
-def save_package_archive(
+def upload_package_list(
+    package_list: dict,
+    list_path: Path,
+    temporary: Path,
+    environment: dict[str, str],
+) -> None:
+    if not package_list["Local Cache"]:
+        return
+
+    list_path.write_text(
+        json.dumps(package_list, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    run_command(
+        [
+            "conan",
+            "upload",
+            "--list",
+            str(list_path),
+            "--remote",
+            "ci",
+            "--confirm",
+        ],
+        temporary,
+        environment,
+    )
+
+
+def upload_restored_dependencies(
     package: str,
     temporary: Path,
     environment: dict[str, str],
 ) -> None:
+    package_list = read_package_list(temporary, environment)
+    local_cache = package_list["Local Cache"]
+
+    # Do not upload the package being tested before its tests pass.
+    # Upstream repository packages have already passed their own CI tasks.
+    for reference in list(local_cache):
+        if reference.split("/", 1)[0] == package:
+            del local_cache[reference]
+
+    upload_package_list(
+        package_list,
+        temporary / "conan-restored-upload-list.json",
+        temporary,
+        environment,
+    )
+
+
+def save_package_archive(
+    package: str,
+    include_package: bool,
+    temporary: Path,
+    environment: dict[str, str],
+) -> dict:
     directory = temporary / "conan-package-cache" / package
     directory.mkdir(parents=True, exist_ok=True)
     archive = directory / "package.tgz"
@@ -434,50 +511,55 @@ def save_package_archive(
     if archive.exists():
         archive.unlink()
 
-    arguments = ["conan", "cache", "save"]
+    package_list = read_package_list(temporary, environment)
+    local_cache = package_list["Local Cache"]
 
-    if package == "haxorg_conan_base":
-        # This package exports only a recipe.
-        arguments.append(f"{package}/*")
-    else:
-        package_list = json.loads(
-            capture_command(
-                [
-                    "conan",
-                    "list",
-                    "*#*:*#*",
-                    "--format=json",
-                ],
-                temporary,
-                environment,
-            )
-        )
+    for reference in list(local_cache):
+        name = reference.split("/", 1)[0]
 
-        local_cache = package_list["Local Cache"]
-
-        # Preserve this project's package plus every external dependency.
-        # Other project packages arrive through incoming-packages.
-        for reference in list(local_cache):
-            name = reference.split("/", 1)[0]
-
-            if name in CI_CONAN_PACKAGES and name != package:
+        if name in CI_CONAN_PACKAGES:
+            if name != package or not include_package:
                 del local_cache[reference]
 
-        list_path = directory / "package-list.json"
-        list_path.write_text(
-            json.dumps(package_list, indent=2) + "\n",
-            encoding="utf-8",
+    # On failure this contains only third-party dependencies, never the
+    # failing repository package or any other repository package.
+    if not local_cache:
+        logger.info(
+            "Nothing to archive for package=%s, include_package=%s",
+            package,
+            include_package,
         )
+        return package_list
 
-        arguments.extend(["--list", str(list_path)])
+    list_path = directory / "package-list.json"
+    list_path.write_text(
+        json.dumps(package_list, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
-    arguments.extend(["--file", str(archive)])
-
-    run_command(arguments, temporary, environment)
+    run_command(
+        [
+            "conan",
+            "cache",
+            "save",
+            "--list",
+            str(list_path),
+            "--file",
+            str(archive),
+        ],
+        temporary,
+        environment,
+    )
 
     logger.info(
-        f"Saved package={package}, archive={archive}, bytes={archive.stat().st_size}"
+        "Saved package=%s, include_package=%s, archive=%s, bytes=%s",
+        package,
+        include_package,
+        archive,
+        archive.stat().st_size,
     )
+
+    return package_list
 
 
 def run_python_package(
@@ -486,18 +568,11 @@ def run_python_package(
     environment: dict[str, str],
 ) -> None:
     run_command(
-        ["uv", "python", "install", environment["UV_PYTHON"]],
-        directory,
-        environment,
-    )
-
-    run_command(
         ["uv", "build", "-vv", f"--package={package}"],
         directory,
         environment,
     )
 
-    show_all_env()
     run_command(
         [
             "uv",
@@ -514,21 +589,17 @@ def run_python_package(
 
 def run_ci_package(
     package: str,
-    package_directory: str,
+    package_directory: Path,
     python_package: bool,
     incoming_packages: list[str],
-    workspace: str,
-    temporary_directory: str,
-    server_port: int,
-    username: str,
-    password: str,
-    startup_timeout: float,
-    shutdown_timeout: float,
+    workspace: Path,
+    temporary: Path,
+    compiler_major: str,
+    server_port: int = 9300,
+    startup_timeout: float = 60.0,
+    shutdown_timeout: float = 30.0,
 ) -> None:
     started = time.monotonic()
-    repository = Path(os.path.expandvars(workspace))
-    temporary = Path(os.path.expandvars(temporary_directory))
-    directory = repository / package_directory
     server_home = temporary / "conan-server"
     server_data = server_home / "data"
     conan_home = temporary / "conan-ci"
@@ -539,9 +610,11 @@ def run_ci_package(
     environment["PYTHONUNBUFFERED"] = "1"
 
     logger.info(
-        f"Starting package task: package={package}, "
-        f"python_package={python_package}, directory={directory}, "
-        f"incoming_packages={incoming_packages}"
+        "Starting package=%s, python_package=%s, directory=%s, upstream=%s",
+        package,
+        python_package,
+        package_directory,
+        incoming_packages,
     )
 
     for path in (conan_home, server_home):
@@ -551,19 +624,9 @@ def run_ci_package(
     conan_home.mkdir(parents=True)
     server_data.mkdir(parents=True)
 
-    compiler_major = (
-        capture_command(
-            ["clang", "-dumpversion"],
-            temporary,
-            environment,
-        )
-        .strip()
-        .split(".", 1)[0]
-    )
-
     write_default_profile(
         conan_home,
-        repository / "repo_tool_configs/conan/conanprofile_debug.txt",
+        workspace / "repo_tool_configs/conan/conanprofile_debug.txt",
         compiler_major,
     )
 
@@ -579,8 +642,8 @@ def run_ci_package(
         server_home,
         server_data,
         server_port,
-        username,
-        password,
+        "ci",
+        "ci",
     )
 
     with conan_server_session(
@@ -588,8 +651,6 @@ def run_ci_package(
         server_home,
         log_path,
         server_port,
-        username,
-        password,
         startup_timeout,
         shutdown_timeout,
         environment,
@@ -599,59 +660,77 @@ def run_ci_package(
             temporary,
             environment,
         )
+
         run_command(
-            ["conan", "remote", "login", "ci", username, "--password", password],
+            ["conan", "remote", "login", "ci", "ci", "--password", "ci"],
             temporary,
             environment,
         )
 
-        # Populate the server uniformly, including for Python builds that
-        # invoke Conan with a separate client cache.
-        cached_recipes = json.loads(
-            capture_command(
-                ["conan", "list", "*", "--format=json"],
-                temporary,
-                environment,
-            )
-        )
-
-        if cached_recipes["Local Cache"]:
-            run_command(
-                ["conan", "upload", "*", "--remote", "ci", "--confirm"],
-                temporary,
-                environment,
-            )
+        upload_restored_dependencies(package, temporary, environment)
 
         if python_package:
-            run_python_package(package, directory, environment)
+            run_python_package(package, package_directory, environment)
         else:
-            build_package(
-                package,
-                directory,
-                repository,
-                temporary,
-                environment,
-            )
+            try:
+                build_package(
+                    package,
+                    package_directory,
+                    workspace,
+                    temporary,
+                    compiler_major,
+                    environment,
+                )
+            except Exception:
+                # A failed create may still leave successfully built
+                # third-party dependencies in Conan's client cache.
+                #
+                # Archive those dependencies before propagating the error.
+                # Exclude every repository package, including the failed
+                # package even if Conan packaged it before its tests failed.
+                dependencies = save_package_archive(
+                    package=package,
+                    include_package=False,
+                    temporary=temporary,
+                    environment=environment,
+                )
 
-            run_command(
-                ["conan", "upload", "*", "--remote", "ci", "--confirm"],
-                temporary,
-                environment,
-            )
+                upload_package_list(
+                    dependencies,
+                    temporary / "conan-built-upload-list.json",
+                    temporary,
+                    environment,
+                )
+                raise
+            else:
+                verified_packages = save_package_archive(
+                    package=package,
+                    include_package=True,
+                    temporary=temporary,
+                    environment=environment,
+                )
 
-    if not python_package:
-        save_package_archive(package, temporary, environment)
+                upload_package_list(
+                    verified_packages,
+                    temporary / "conan-built-upload-list.json",
+                    temporary,
+                    environment,
+                )
 
-    logger.info(f"Package {package} completed in {time.monotonic() - started:.2f}s")
+    logger.info(
+        "Package %s completed in %.2fs",
+        package,
+        time.monotonic() - started,
+    )
 
 
 def github_request(
     url: str,
     method: str,
     token: str,
-    timeout: float,
+    timeout: float = 30.0,
 ) -> http.client.HTTPResponse:
-    logger.info(f"GitHub API request: {method} {url}")
+    logger.info("GitHub API request: %s %s", method, url)
 
     request = urllib.request.Request(
         url,
@@ -668,39 +747,36 @@ def github_request(
 
 
 def evict_previous_caches(
-    repository: str,
     cache_prefix: str,
     cache_key: str,
-    ref: str,
-    api_url: str,
-    token_environment: str,
-    request_timeout: float,
 ) -> None:
-    token = os.environ[token_environment]
-    endpoint = f"{api_url.rstrip('/')}/repos/{repository}/actions/caches"
+    repository = os.environ["GITHUB_REPOSITORY"]
+    ref = os.environ["GITHUB_REF"]
+    token = os.environ["GH_TOKEN"]
+    api_url = os.environ["GITHUB_API_URL"].rstrip("/")
+    endpoint = f"{api_url}/repos/{repository}/actions/caches"
+
     caches = []
     page = 1
 
-    logger.info(
-        f"Checking saved cache: repository={repository}, ref={ref}, "
-        f"key={cache_key}, eviction prefix={cache_prefix}"
-    )
-
     while True:
         query = urllib.parse.urlencode(
-            {"key": cache_prefix, "per_page": 100, "page": page}
+            {
+                "key": cache_prefix,
+                "ref": ref,
+                "per_page": 100,
+                "page": page,
+            }
         )
 
         with github_request(
             f"{endpoint}?{query}",
             "GET",
             token,
-            request_timeout,
         ) as response:
             batch = json.load(response)["actions_caches"]
 
         caches.extend(batch)
-        logger.info(f"Retrieved cache page {page}: {len(batch)} entries")
 
         if len(batch) < 100:
             break
@@ -712,43 +788,246 @@ def evict_previous_caches(
     ]
 
     if len(current) != 1:
-        visible = [
-            {"id": cache["id"], "key": cache["key"], "ref": cache["ref"]}
-            for cache in caches
-        ]
         raise RuntimeError(
             f"Expected one saved cache for key={cache_key!r}, ref={ref!r}; "
-            f"found {len(current)}. Previous entries were not deleted. "
-            f"Visible caches: {json.dumps(visible)}"
+            f"found {len(current)}. Previous entries were not deleted."
         )
 
     retained = current[0]
-    logger.info(
-        f"Retaining cache id={retained['id']}, key={retained['key']}, "
-        f"ref={retained['ref']}, bytes={retained['size_in_bytes']}"
-    )
-
-    deleted = 0
 
     for cache in caches:
-        if cache["key"].startswith(cache_prefix) and cache["id"] != retained["id"]:
+        if (
+            cache["ref"] == ref
+            and cache["key"].startswith(cache_prefix)
+            and cache["id"] != retained["id"]
+        ):
             logger.info(
-                f"Evicting cache id={cache['id']}, key={cache['key']}, "
-                f"ref={cache['ref']}, bytes={cache['size_in_bytes']}"
+                "Evicting cache id=%s, key=%s, ref=%s",
+                cache["id"],
+                cache["key"],
+                cache["ref"],
             )
 
             with github_request(
                 f"{endpoint}/{cache['id']}",
                 "DELETE",
                 token,
-                request_timeout,
             ) as response:
-                logger.info(f"Deleted cache id={cache['id']}: HTTP {response.status}")
+                logger.info(
+                    "Deleted cache id=%s: HTTP %s",
+                    cache["id"],
+                    response.status,
+                )
 
-            deleted += 1
+
+@dataclass
+class Pipeline:
+    workspace: Path
+    temporary: Path
+    compiler_major: str
+    completed_conan_packages: list[str] = field(default_factory=list)
+
+    def cache_prefix(self, package: str) -> str:
+        return f"{CACHE_VERSION}-{package}--"
+
+    def cache_key(self, package: str) -> str:
+        run_id = os.environ["GITHUB_RUN_ID"]
+        run_attempt = os.environ["GITHUB_RUN_ATTEMPT"]
+        return f"{self.cache_prefix(package)}{run_id}-{run_attempt}"
+
+    def cache_operation(
+        self,
+        operation: str,
+        package: str,
+    ) -> str | int | None:
+        directory = self.temporary / "conan-package-cache" / package
+        result_path = self.temporary / "conan-cache-result.json"
+
+        if result_path.exists():
+            result_path.unlink()
+
+        environment = os.environ.copy()
+        environment["CONAN_CACHE_PAYLOAD"] = json.dumps(
+            {
+                "operation": operation,
+                "directory": str(directory),
+                "key": self.cache_key(package),
+                "prefix": self.cache_prefix(package),
+                "result_path": str(result_path),
+            }
+        )
+
+        run_command(
+            ["node", "--input-type=module", "-e", CACHE_CLIENT],
+            self.temporary / "conan-cache-client",
+            environment,
+        )
+
+        return json.loads(result_path.read_text(encoding="utf-8"))["result"]
+
+    def restore_cache(self, package: str) -> None:
+        matched_key = self.cache_operation("restore", package)
+
+        if matched_key is None:
+            logger.info("No previous cache for package=%s", package)
+            return
+
+        archive = self.temporary / "conan-package-cache" / package / "package.tgz"
+
+        if not archive.is_file():
+            raise FileNotFoundError(f"Cache {matched_key} did not contain {archive}")
+
+        logger.info(
+            "Restored package=%s from cache=%s",
+            package,
+            matched_key,
+        )
+
+    def publish_cache(self, package: str) -> None:
+        archive = self.temporary / "conan-package-cache" / package / "package.tgz"
+
+        if not archive.is_file():
+            return
+
+        self.cache_operation("save", package)
+
+        # Preserve the original act behavior: restore/save still run,
+        # but eviction through GitHub's repository API does not.
+        if os.environ.get("ACT") != "true":
+            evict_previous_caches(
+                self.cache_prefix(package),
+                self.cache_key(package),
+            )
+
+    def verify(
+        self,
+        package: str,
+        package_directory: str | None = None,
+        python_package: bool = False,
+        incoming_packages: list[str] | None = None,
+    ) -> None:
+        if incoming_packages is None:
+            incoming_packages = self.completed_conan_packages.copy()
+
+        for incoming_package in incoming_packages:
+            if incoming_package not in self.completed_conan_packages:
+                raise RuntimeError(
+                    f"Package {package} requires {incoming_package}, "
+                    "which has not been verified in this pipeline."
+                )
+
+        if not python_package:
+            self.restore_cache(package)
+
+        try:
+            run_ci_package(
+                package=package,
+                package_directory=(self.workspace / (package_directory or package)),
+                python_package=python_package,
+                incoming_packages=incoming_packages,
+                workspace=self.workspace,
+                temporary=self.temporary,
+                compiler_major=self.compiler_major,
+            )
+        finally:
+            # Publish dependency-only archives even when conan create
+            # failed. The original failure still propagates afterward.
+            if not python_package:
+                self.publish_cache(package)
+
+        if not python_package:
+            self.completed_conan_packages.append(package)
+
+
+def run_haxorg_conan_base_ci(pipeline: Pipeline) -> None:
+    pipeline.verify("haxorg_conan_base")
+
+
+def run_protovalidate_cc_ci(pipeline: Pipeline) -> None:
+    pipeline.verify(
+        "protovalidate-cc",
+        package_directory="repo_conan_wraps/protovalidate-cc",
+    )
+
+
+def run_hstd_cpp_lib_ci(pipeline: Pipeline) -> None:
+    pipeline.verify("hstd_cpp_lib")
+
+
+def run_hstd_cpp_text_layout_ci(pipeline: Pipeline) -> None:
+    pipeline.verify("hstd_cpp_text_layout")
+
+
+def run_haxorg_cpp_org_lib_ci(pipeline: Pipeline) -> None:
+    pipeline.verify("haxorg_cpp_org_lib")
+
+
+def run_haxorg_cpp_py_wrap_ci(pipeline: Pipeline) -> None:
+    pipeline.verify("haxorg_cpp_py_wrap")
+
+
+def run_hstd_py_lib_ci(pipeline: Pipeline) -> None:
+    pipeline.verify(
+        "hstd_py_lib",
+        python_package=True,
+        incoming_packages=["haxorg_conan_base"],
+    )
+
+
+def run_haxorg_py_lib_ci(pipeline: Pipeline) -> None:
+    pipeline.verify(
+        "haxorg_py_lib",
+        python_package=True,
+    )
+
+
+def run_whole_pipeline(
+    workspace: str,
+    temporary_directory: str,
+) -> None:
+    started = time.monotonic()
+    repository = Path(os.path.expandvars(workspace)).resolve()
+    temporary = Path(os.path.expandvars(temporary_directory)).resolve()
+    temporary.mkdir(parents=True, exist_ok=True)
+
+    cache_root = temporary / "conan-package-cache"
+
+    if cache_root.exists():
+        shutil.rmtree(cache_root)
+
+    cache_root.mkdir(parents=True)
+
+    compiler_version = capture_command(
+        ["clang", "-dumpversion"],
+        temporary,
+        os.environ.copy(),
+    ).strip()
+    compiler_major = compiler_version.split(".", 1)[0]
 
     logger.info(
-        f"Cache replacement completed: retained={retained['id']}, deleted={deleted}"
+        "Starting whole pipeline: workspace=%s, compiler=%s",
+        repository,
+        compiler_version,
+    )
+
+    pipeline = Pipeline(
+        workspace=repository,
+        temporary=temporary,
+        compiler_major=compiler_major,
+    )
+
+    run_haxorg_conan_base_ci(pipeline)
+    run_protovalidate_cc_ci(pipeline)
+    run_hstd_cpp_lib_ci(pipeline)
+    run_hstd_cpp_text_layout_ci(pipeline)
+    run_haxorg_cpp_org_lib_ci(pipeline)
+    run_haxorg_cpp_py_wrap_ci(pipeline)
+    run_hstd_py_lib_ci(pipeline)
+    run_haxorg_py_lib_ci(pipeline)
+
+    logger.info(
+        "Whole pipeline completed in %.2fs",
+        time.monotonic() - started,
     )
 
 
@@ -760,8 +1039,10 @@ def main() -> None:
     )
 
     name, payload = sys.argv[1:]
-    logger.info(f"Dispatching CI action {name}")
-    globals()[name](**json.loads(payload))
+    actions = {
+        "run_whole_pipeline": run_whole_pipeline,
+    }
+    actions[name](**json.loads(payload))
 
 
 if __name__ == "__main__":
