@@ -5,6 +5,7 @@
 #include <hstd_cpp_lib/stdlib/formatting/Formatter.hpp>
 #include <llvm/Support/MD5.h>
 
+using namespace llvm::itanium_demangle;
 
 NO_COVERAGE llvm::json::Value demangle_to_json(
     Node const*               node,
@@ -269,6 +270,21 @@ NO_COVERAGE llvm::MD5::MD5Result demangle_digest(Node const* node) {
 
     return result.result();
 }
+NO_COVERAGE llvm::json::Array& add_array_field(
+    llvm::json::Object&      obj,
+    std::string const&       field,
+    llvm::json::Value const& value) {
+    if (obj.getArray(field) == nullptr) { obj[field] = llvm::json::Array(); }
+    obj.getArray(field)->push_back(value);
+    return *obj.getArray(field);
+}
+NO_COVERAGE llvm::json::Object& add_obj_field(
+    llvm::json::Object& obj,
+    std::string const&  field) {
+    if (obj.getObject(field) == nullptr) { obj[field] = llvm::json::Object(); }
+    return *obj.getObject(field);
+}
+
 
 static std::vector<std::string> CompiledFileExtensions = {
     ".cpp",

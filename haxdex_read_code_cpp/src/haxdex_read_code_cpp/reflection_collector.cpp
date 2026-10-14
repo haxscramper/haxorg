@@ -1767,23 +1767,3 @@ c::ParsedAttrInfo::AttrHandling ReflAttrInfo::handleDeclAttribute(
     D->addAttr(created);
     return AttributeApplied;
 }
-
-void IncludeCollectorCallback::InclusionDirective(
-    clang::SourceLocation             HashLoc,
-    clang::Token const&               IncludeTok,
-    llvm::StringRef                   FileName,
-    bool                              IsAngled,
-    clang::CharSourceRange            FilenameRange,
-    clang::OptionalFileEntryRef       File,
-    llvm::StringRef                   SearchPath,
-    llvm::StringRef                   RelativePath,
-    clang::Module const*              SuggestedModule,
-    bool                              ModuleImported,
-    clang::SrcMgr::CharacteristicKind FileType) {
-
-    if (File && sourceManager->isInMainFile(HashLoc)) {
-        auto incl = out->add_includes();
-        incl->set_absolutepath(File->getName().str());
-        incl->set_relativepath(FileName.str());
-    }
-}

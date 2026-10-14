@@ -12,9 +12,6 @@
 
 struct BinarySymbolVisitContext {};
 
-
-using namespace llvm::itanium_demangle;
-
 #define NO_COVERAGE __attribute__((no_sanitize("coverage", "address", "thread")))
 
 enum class KindProxy
@@ -144,31 +141,25 @@ class DefaultAllocator {
     }
 
     NO_COVERAGE void* allocateNodeArray(size_t sz) {
-        return Alloc.allocate(sizeof(Node*) * sz);
+        return Alloc.allocate(sizeof(llvm::itanium_demangle::Node*) * sz);
     }
 };
 } // unnamed namespace
 
 using Demangler = llvm::itanium_demangle::ManglingParser<DefaultAllocator>;
 
-NO_COVERAGE llvm::MD5::MD5Result demangle_digest(Node const* node);
+NO_COVERAGE llvm::MD5::MD5Result demangle_digest(
+    llvm::itanium_demangle::Node const* node);
 
 
 NO_COVERAGE llvm::json::Array& add_array_field(
     llvm::json::Object&      obj,
     std::string const&       field,
-    llvm::json::Value const& value) {
-    if (obj.getArray(field) == nullptr) { obj[field] = llvm::json::Array(); }
-    obj.getArray(field)->push_back(value);
-    return *obj.getArray(field);
-}
+    llvm::json::Value const& value);
 
 NO_COVERAGE llvm::json::Object& add_obj_field(
     llvm::json::Object& obj,
-    std::string const&  field) {
-    if (obj.getObject(field) == nullptr) { obj[field] = llvm::json::Object(); }
-    return *obj.getObject(field);
-}
+    std::string const&  field);
 
 
 int findSymbolNamePosition(std::string const& input);
@@ -202,7 +193,10 @@ struct visit_meta {
 };
 
 template <typename Func>
-NO_COVERAGE void visit_node_fields(Node const* node, Func const& sub) {
+NO_COVERAGE void visit_node_fields(
+    llvm::itanium_demangle::Node const* node,
+    Func const&                         sub) {
+    using namespace llvm::itanium_demangle;
     if (node == nullptr) { return; }
 
     using K = llvm::itanium_demangle::Node::Kind;
