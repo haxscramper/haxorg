@@ -3,7 +3,7 @@ from typing import Protocol, cast
 
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
-from conan.tools.cmake import CMakeDeps, CMakeToolchain
+from conan.tools.cmake import CMakeToolchain
 
 
 class RecipeOptions(Protocol):
@@ -70,10 +70,6 @@ class HaxorgCppOrgLibConan(ConanFile):
         if self.options.with_perfetto:
             self.requires("perfetto/[>=52.0 <53]", **transitive)
 
-    def haxorg_configure_deps(self, deps: CMakeDeps):
-        deps.set_property("perfetto", "cmake_file_name", "Perfetto")
-        deps.set_property("perfetto", "cmake_target_name", "Perfetto::perfetto")
-
     def build_requirements(self):
         self.test_requires("gtest/[>=1.17 <2]")
         self.test_requires("abseil/[>=20250127.0 <20260000]")
@@ -89,7 +85,9 @@ class HaxorgCppOrgLibConan(ConanFile):
             toolchain, "HAXORG_WITH_PROTOVALIDATE", bool(self.options.with_protovalidate)
         )
         self.set_cmake_var(
-            toolchain, "HAXORG_WITH_PERFETTO", bool(self.options.with_perfetto)
+            toolchain,
+            "HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO",
+            bool(self.options.with_perfetto),
         )
 
         if self.options.with_protobuf:
@@ -100,5 +98,5 @@ class HaxorgCppOrgLibConan(ConanFile):
     def haxorg_package_info(self):
         self.cpp_info.defines = [
             f"HAXORG_CPP_BUILD_WITH_PROTOBUF={int(bool(self.options.with_protobuf))}",
-            f"ORG_BUILD_WITH_PERFETTO={int(bool(self.options.with_perfetto))}",
+            f"HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO={int(bool(self.options.with_perfetto))}",
         ]

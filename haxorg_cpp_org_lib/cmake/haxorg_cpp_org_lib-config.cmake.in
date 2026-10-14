@@ -49,7 +49,7 @@ if(@HAXORG_WITH_PROTOVALIDATE@)
     )
 endif()
 
-if(@HAXORG_WITH_PERFETTO@)
+if(@HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO@)
     find_dependency(
         Perfetto
         CONFIG

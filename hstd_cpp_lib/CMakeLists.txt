@@ -161,7 +161,7 @@ endif()
 
 # Tracing
 if(HSTD_CPP_BUILD_WITH_PERFETTO)
-    target_link_libraries(hstd_cpp_lib PUBLIC Perfetto::perfetto)
+    target_link_libraries(hstd_cpp_lib PUBLIC perfetto::perfetto)
 endif()
 
 if(HSTD_CPP_BUILD_WITH_PROTOBUF)

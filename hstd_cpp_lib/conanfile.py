@@ -72,7 +72,7 @@ class HstdConan(ConanFile):
 
     def haxorg_configure_deps(self, deps: CMakeDeps):
         deps.set_property("perfetto", "cmake_file_name", "Perfetto")
-        deps.set_property("perfetto", "cmake_target_name", "Perfetto::perfetto")
+        deps.set_property("perfetto", "cmake_target_name", "perfetto::perfetto")
 
     def haxorg_configure_toolchain(self, toolchain: CMakeToolchain):
         # TODO: remove this option entirely, create a separate package for qt utils

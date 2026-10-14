@@ -10,7 +10,11 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 option(HAXORG_WITH_PROTOBUF "Build protobuf serialization support" ON)
 option(HAXORG_WITH_PROTOVALIDATE "Build protobuf validation support" OFF)
-option(HAXORG_WITH_PERFETTO "Build Perfetto instrumentation support" OFF)
+option(
+    HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO
+    "Build Perfetto instrumentation support"
+    OFF
+)
 
 if(NOT TARGET hstd::hstd_cpp_lib)
     find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
@@ -33,7 +37,7 @@ if(HAXORG_WITH_PROTOVALIDATE)
     find_package(protovalidate_cc CONFIG REQUIRED QUIET)
 endif()
 
-if(HAXORG_WITH_PERFETTO)
+if(HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO)
     find_package(Perfetto CONFIG REQUIRED QUIET)
 endif()
 
@@ -76,7 +80,7 @@ target_compile_definitions(
     haxorg_cpp_org_lib
     PUBLIC
         HAXORG_CPP_BUILD_WITH_PROTOBUF=$<BOOL:${HAXORG_WITH_PROTOBUF}>
-        ORG_BUILD_WITH_PERFETTO=$<BOOL:${HAXORG_WITH_PERFETTO}>
+        HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO=$<BOOL:${HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO}>
 )
 
 if(HAXORG_WITH_PROTOBUF)
@@ -106,8 +110,8 @@ if(HAXORG_WITH_PROTOBUF)
     )
 endif()
 
-if(HAXORG_WITH_PERFETTO)
-    target_link_libraries(haxorg_cpp_org_lib PUBLIC Perfetto::perfetto)
+if(HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO)
+    target_link_libraries(haxorg_cpp_org_lib PUBLIC perfetto::perfetto)
 endif()
 
 if(BUILD_TESTING)
