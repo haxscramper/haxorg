@@ -62,6 +62,7 @@ _ALLOWED_SCOPES_CASEFOLD = {k.casefold(): k for k in SCOPES.keys()}
 SUBJECT_MAX = 50
 BODY_LINE_MAX = 75
 
+
 SUBJECT_RE = re.compile(
     r"""^
         (?P<type>[A-Za-z][A-Za-z0-9_-]*)
@@ -72,6 +73,8 @@ SUBJECT_RE = re.compile(
     """,
     re.VERBOSE,
 )
+
+RELATIVE_PATH_LABEL_RE = re.compile(r"^`(?!/)[^`\r\n]+`:$")
 
 
 def save_failed_message(msg_path: Path) -> Path:
@@ -114,8 +117,19 @@ def main() -> int:
         return 2
 
     msg_path = Path(sys.argv[1])
-    raw_lines = msg_path.read_text(encoding="utf-8", errors="replace").splitlines(True)
-    lines = strip_comments(raw_lines)
+    lines = msg_path.read_text(encoding="utf-8", errors="replace").splitlines()
+
+    in_fence = False
+    for idx, line in enumerate(lines, start=1):
+        if is_fence_line(line):
+            in_fence = not in_fence
+            continue
+
+        if not in_fence and line.lstrip().startswith("#"):
+            log.error(f"error: line {idx} starts with '#' outside backticks")
+            log.error(f"line: {line}")
+            save_failed_message(msg_path)
+            return 1
 
     subject_idx = None
     for i, ln in enumerate(lines):
@@ -196,8 +210,8 @@ def main() -> int:
         if not ln.strip():
             continue
 
-        # ignore comment lines
-        if ln.startswith("#"):
+        # Allow standalone backtick-wrapped relative path labels.
+        if RELATIVE_PATH_LABEL_RE.fullmatch(ln):
             continue
 
         if BODY_LINE_MAX < len(ln):

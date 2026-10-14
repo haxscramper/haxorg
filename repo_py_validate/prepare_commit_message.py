@@ -1,14 +1,26 @@
 #!/usr/bin/env python
 
+import importlib.util
 import subprocess
 import sys
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 
-hook_path = Path(__file__).resolve()
-module_path = hook_path.parents[2]
-sys.path.insert(0, str(module_path))
+path = Path(__file__).resolve().parent / "commit-msg"
 
-from repo_py_validate.validate_commit_message import SCOPES, TYPES
+assert path.exists(), path
+
+spec = importlib.util.spec_from_file_location(
+    "other",
+    path,
+    loader=SourceFileLoader("other", str(path)),
+)
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+
+SCOPES: dict[str, str] = module.SCOPES
+TYPES: dict[str, str] = module.TYPES
 
 if 2 < len(sys.argv) and sys.argv[2] == "commit":
     sys.exit(0)
@@ -18,7 +30,7 @@ content = msg_path.read_text() if msg_path.exists() else ""
 
 # Check if our help block is already present in the message
 marker = "# <type>(<scope>): <subject>"
-if marker in content:
+if 2 < len(sys.argv) and sys.argv[2] in {"message", "commit"}:
     sys.exit(0)
 
 
