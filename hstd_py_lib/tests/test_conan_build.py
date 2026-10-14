@@ -348,7 +348,11 @@ class Sandbox:
             command,
             environment={
                 "HAXORG_PY_TEST_UV_INSTALL_DIR_OVERRIDE": str(environment_path),
-                "HSTD_PY_TEST_UV_INSTALL_UV_FLAGS": json.dumps(["-vv"]),
+                "HSTD_PY_TEST_UV_INSTALL_UV_FLAGS": json.dumps(
+                    [
+                        # "-vv",
+                    ]
+                ),
             },
         )
         self.last_build_output = stdout + "\n" + stderr
@@ -706,7 +710,9 @@ def make_sandbox(
             ignore=COPY_IGNORES,
         )
 
-    if native_packages:
+    if native_packages or python_packages:
+        # python packages are added to include pytest plugin into
+        # the validation environment.
         shutil.copytree(
             REPOSITORY / "hstd_py_lib",
             root / "hstd_py_lib",

@@ -193,9 +193,11 @@ def run_package_tests(
         "python",
         "-m",
         "pytest",
-        *json.loads(env.get("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
+        *json.loads(env.get("HSTD_PY_PYTEST_EXTRA_ARGS", '["--color=no"]')),
         str(project_path / "tests"),
     ]
+
+    assert "--color=no" in command, command
 
     if output_dir is not None:
         command.append(f"--report-log={output_dir / 'package_tests.jsonl'}")
@@ -218,6 +220,8 @@ def run_package_tests(
             else Path(bootstrap.__file__).resolve()
         )
 
+        exit_status_script = Path(__file__).resolve().with_name("lldb_exit_status.py")
+
         command = [
             "lldb",
             "--batch",
@@ -227,6 +231,8 @@ def run_package_tests(
             "rich-backtrace-configure",
             "-o",
             "run",
+            "-o",
+            f"command script import {shlex.quote(str(exit_status_script))}",
             "--",
             *command,
         ]
@@ -357,6 +363,7 @@ def validate_package(
 
         env = os.environ.copy()
         env["UV_PROJECT_ENVIRONMENT"] = str(environment_path)
+        env["PYTHON_COLORS"] = "0"
 
         if conan_profile is not None:
             env["CONAN_PROFILE"] = str(conan_profile)

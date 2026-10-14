@@ -98,11 +98,11 @@ function(haxorg_set_target_flags_impl)
         ${ARG_TARGET}
         PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY
-                "${CMAKE_BINARY_DIR}"
+                "${CMAKE_BINARY_DIR}/bin"
             LIBRARY_OUTPUT_DIRECTORY
-                "${CMAKE_BINARY_DIR}"
+                "${CMAKE_BINARY_DIR}/lib"
             ARCHIVE_OUTPUT_DIRECTORY
-                "${CMAKE_BINARY_DIR}"
+                "${CMAKE_BINARY_DIR}/lib"
     )
 
     if(${ORG_INSTRUMENT_TRACE})

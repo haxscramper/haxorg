@@ -26,7 +26,11 @@ include(CTest)
 
 # Required by projects that import hstd_cpp_lib's .proto files.
 set(hstd_cpp_lib_PROTO_IMPORT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hstd_cpp_lib/proto")
-set(HAXORG_DEPS_PROTO_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/hstd_cpp_lib/proto")
+set(HAXORG_DEPS_PROTO_IMPORT_DIRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/hstd_cpp_lib/proto"
+    "${CMAKE_CURRENT_SOURCE_DIR}/hstd_cpp_diagram_lib/proto"
+    "${CMAKE_CURRENT_SOURCE_DIR}/haxorg_cpp_org_lib/proto"
+)
 
 # Diagram and org protobuf sources depend on hstd's protobuf support.
 set(HSTD_CPP_BUILD_WITH_PROTOBUF ON CACHE BOOL "Build hstd protobuf support")

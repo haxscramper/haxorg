@@ -44,9 +44,9 @@ set_target_properties(
         OUTPUT_NAME
             "haxorg_cpp_py_wrap"
         LIBRARY_OUTPUT_DIRECTORY
-            "${CMAKE_CURRENT_BINARY_DIR}/python"
+            "${CMAKE_BINARY_DIR}/python"
         RUNTIME_OUTPUT_DIRECTORY
-            "${CMAKE_CURRENT_BINARY_DIR}/python"
+            "${CMAKE_BINARY_DIR}/python"
 )
 
 target_include_directories(haxorg_cpp_py_wrap PRIVATE "${HAXORG_CPP_PY_WRAP_SOURCE_DIR}")

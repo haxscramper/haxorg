@@ -13,6 +13,3 @@ class ExampleCppBinary(ConanFile):
 
     def requirements(self):
         self.requires("ex_cpp_library/0.1.0")
-
-    def haxorg_configure_layout(self):
-        self.cpp.build.bindirs = ["."]

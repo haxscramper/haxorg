@@ -98,7 +98,9 @@ def main() -> None:
     log_dir.mkdir(parents=True)
 
     environment = os.environ.copy()
-    pytest_arguments = json.loads(environment.get("HSTD_PY_PYTEST_EXTRA_ARGS", "[]"))
+    pytest_arguments = json.loads(
+        environment.get("HSTD_PY_PYTEST_EXTRA_ARGS", '["--color=no"]')
+    )
     pytest_arguments.append(f"--report-log={log_dir / 'conan_pytest.jsonl'}")
     environment["HSTD_PY_PYTEST_EXTRA_ARGS"] = json.dumps(pytest_arguments)
     environment["GTEST_OUTPUT"] = f"json:{log_dir}/gtest_results/"

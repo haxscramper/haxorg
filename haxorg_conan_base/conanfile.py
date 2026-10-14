@@ -67,11 +67,13 @@ class HaxorgPackage(_HaxorgTypingBase):
 
     @property
     def haxorg_has_cpp_tests(self) -> bool:
+        assert self.source_folder
         tests = Path(self.source_folder) / "tests"
         return any(tests.rglob("t*.cpp"))
 
     @property
     def haxorg_has_python_tests(self) -> bool:
+        assert self.source_folder
         return (Path(self.source_folder) / "tests" / "pyproject.toml").is_file()
 
     @property
@@ -223,6 +225,7 @@ class HaxorgPackage(_HaxorgTypingBase):
         self.cpp.source.set_property("cmake_build_modules", build_modules)
 
         self.cpp.build.includedirs = ["generated/proto"]
+        self.cpp.build.bindirs = ["bin"]
         self.cpp.package.resdirs = ["proto"]
         self.cpp.package.set_property("cmake_build_modules", build_modules)
 
@@ -230,13 +233,14 @@ class HaxorgPackage(_HaxorgTypingBase):
             self.cpp.package.includedirs = []
             self.cpp.package.bindirs = ["bin"]
         else:
-            self.cpp.build.libdirs = ["."]
+            self.cpp.build.libdirs = ["lib"]
             self.cpp.package.includedirs = ["include"]
             self.cpp.package.libdirs = ["lib"]
 
         self.haxorg_configure_layout()
 
     def set_cmake_var(self, toolchain: CMakeToolchain, key: str, value: Any):
+        self.output.status(f"{toolchain._conanfile}: Setting '{key}' = {value}")
         toolchain.cache_variables[key] = value
         toolchain.variables[key] = value
 
@@ -333,7 +337,14 @@ class HaxorgPackage(_HaxorgTypingBase):
             copy(self, module, os.path.join(src, "cmake"), os.path.join(pkg, "cmake"))
 
         if self.haxorg_is_application:
-            copy(self, self.name, build, os.path.join(pkg, "bin"), keep_path=False)
+            for binary in self.provided_binaries or (self.name,):
+                copy(
+                    self,
+                    binary,
+                    os.path.join(build, "bin"),
+                    os.path.join(pkg, "bin"),
+                    keep_path=False,
+                )
             return
 
         for pattern in self.haxorg_header_patterns:
@@ -354,7 +365,7 @@ class HaxorgPackage(_HaxorgTypingBase):
             copy(
                 self,
                 f"lib{library_name}.a",
-                build,
+                os.path.join(build, "lib"),
                 os.path.join(pkg, "lib"),
                 keep_path=False,
             )
@@ -431,7 +442,7 @@ class HaxorgPackage(_HaxorgTypingBase):
             "python",
             "-m",
             "pytest",
-            *json.loads(os.getenv("HSTD_PY_PYTEST_EXTRA_ARGS", "[]")),
+            *json.loads(os.getenv("HSTD_PY_PYTEST_EXTRA_ARGS", '["--color=no"]')),
             "-c",
             str(tests / "pyproject.toml"),
             str(tests),
