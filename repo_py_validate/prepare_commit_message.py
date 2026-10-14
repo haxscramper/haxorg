@@ -19,7 +19,6 @@ module = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 
-
 SCOPES: dict[str, str] = module.SCOPES
 TYPES: dict[str, str] = module.TYPES
 

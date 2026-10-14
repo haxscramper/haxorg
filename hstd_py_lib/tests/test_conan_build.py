@@ -30,10 +30,7 @@ class ExPackage(enum.Enum):
 REPOSITORY = Path(__file__).resolve().parents[2]
 ASSETS = Path(__file__).with_suffix("")
 PROFILE = REPOSITORY / "repo_tool_configs/conan/conanprofile_debug.txt"
-UV_VALIDATOR = (
-    REPOSITORY
-    / "repo_py_orchestrate/src/repo_py_orchestrate/repo_utils/test_uv_install.py"
-)
+UV_VALIDATOR = REPOSITORY / "hstd_py_lib/src/hstd_py_lib/project_utils/test_uv_install.py"
 
 PYTHON_DEPENDENCIES: dict[ExPackage, tuple[ExPackage, ...]] = {
     ExPackage.PyStandalone: (),

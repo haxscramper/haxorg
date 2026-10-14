@@ -88,7 +88,18 @@ def save_failed_message(msg_path: Path) -> Path:
 
 
 def strip_comments(lines: list[str]) -> list[str]:
-    return [ln.rstrip("\n") for ln in lines if not ln.lstrip().startswith("#")]
+    result = []
+    in_fence = False
+
+    for line in lines:
+        if is_fence_line(line):
+            in_fence = not in_fence
+        elif not in_fence and line.lstrip().startswith("#"):
+            continue
+
+        result.append(line)
+
+    return result
 
 
 def print_type_table() -> None:
@@ -117,19 +128,9 @@ def main() -> int:
         return 2
 
     msg_path = Path(sys.argv[1])
-    lines = msg_path.read_text(encoding="utf-8", errors="replace").splitlines()
-
-    in_fence = False
-    for idx, line in enumerate(lines, start=1):
-        if is_fence_line(line):
-            in_fence = not in_fence
-            continue
-
-        if not in_fence and line.lstrip().startswith("#"):
-            log.error(f"error: line {idx} starts with '#' outside backticks")
-            log.error(f"line: {line}")
-            save_failed_message(msg_path)
-            return 1
+    lines = strip_comments(
+        msg_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    )
 
     subject_idx = None
     for i, ln in enumerate(lines):

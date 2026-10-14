@@ -123,7 +123,7 @@ conan_validate_deps dep_name:
 [working-directory("/tmp")]
 conan_validate target editable: conan_export_local_deps
   uv run --project "{{HAXORG_ROOT}}" \
-    "{{HAXORG_ROOT}}/repo_py_orchestrate/src/repo_py_orchestrate/repo_utils/test_conan_install.py" \
+    "{{HAXORG_ROOT}}/hstd_py_lib/src/hstd_py_lib/project_utils/test_conan_install.py" \
     "{{HAXORG_ROOT}}/{{target}}" \
     {{editable}} \
     --profile "{{CONAN_PROFILE}}" \
@@ -174,7 +174,7 @@ conan_clean_all:
 py_validate target *args:
   rm -rf {{HAXORG_ROOT}}/build/logs/{{target}}
   mkdir -p {{HAXORG_ROOT}}/build/logs/{{target}}
-  uv run {{HAXORG_ROOT}}/repo_py_orchestrate/src/repo_py_orchestrate/repo_utils/test_uv_install.py \
+  uv run {{HAXORG_ROOT}}/hstd_py_lib/src/hstd_py_lib/project_utils/test_uv_install.py \
     {{HAXORG_ROOT}}/{{target}} \
     --conan-profile={{CONAN_PROFILE}} \
     --output-dir={{HAXORG_ROOT}}/build/logs/{{target}} \
