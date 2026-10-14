@@ -329,6 +329,108 @@ def run_test_package(
     )
 
 
+def run_wheel_test_package(
+    test_package: Path,
+    workspace_root: Path,
+    project_name: str,
+    source_environment_path: Path,
+    *,
+    env: dict[str, str],
+    output_dir: Path | None = None,
+) -> None:
+    with TemporaryDirectory(prefix="hstd-wheel-test-") as directory:
+        temporary_root = Path(directory)
+        wheel_directory = temporary_root / "wheels"
+        environment_path = temporary_root / ".venv"
+
+        run(
+            [
+                "uv",
+                *TEST_UV_INSTALL_FLAGS,
+                "build",
+                "--project",
+                str(workspace_root),
+                "--all-packages",
+                "--wheel",
+                "--out-dir",
+                str(wheel_directory),
+            ],
+            cwd=workspace_root,
+            stage_name="build_wheel",
+            env=env,
+            output_dir=output_dir,
+        )
+
+        wheel_name = re.sub(r"[-_.]+", "_", project_name).lower()
+        wheels = list(wheel_directory.glob(f"{wheel_name}-*.whl"))
+
+        if len(wheels) != 1:
+            raise RuntimeError(
+                f"Expected one wheel for {project_name} in "
+                f"{wheel_directory}, found {len(wheels)}"
+            )
+
+        test_env = dict(env)
+        test_env["UV_PROJECT_ENVIRONMENT"] = str(environment_path)
+        test_env.pop("VIRTUAL_ENV", None)
+        test_env.pop("PYTHONPATH", None)
+        test_env.pop("PYTHONHOME", None)
+
+        run(
+            [
+                "uv",
+                *TEST_UV_INSTALL_FLAGS,
+                "venv",
+                "--python",
+                str(source_environment_path / "bin" / "python"),
+                str(environment_path),
+            ],
+            cwd=workspace_root,
+            stage_name="create_test_environment",
+            env=test_env,
+            output_dir=output_dir,
+        )
+
+        python = environment_path / "bin" / "python"
+
+        run(
+            [
+                "uv",
+                *TEST_UV_INSTALL_FLAGS,
+                "pip",
+                "install",
+                "--python",
+                str(python),
+                "--find-links",
+                str(wheel_directory),
+                str(wheels[0]),
+                str(test_package),
+            ],
+            cwd=workspace_root,
+            stage_name="install_test_package",
+            env=test_env,
+            output_dir=output_dir,
+        )
+
+        test_env["VIRTUAL_ENV"] = str(environment_path)
+
+        run(
+            [
+                "uv",
+                *TEST_UV_INSTALL_FLAGS,
+                "run",
+                "--no-project",
+                "--no-sync",
+                "python",
+                str(test_package / "main.py"),
+            ],
+            cwd=test_package,
+            stage_name="test_package",
+            env=test_env,
+            output_dir=output_dir,
+        )
+
+
 def validate_package(
     project_path: Path,
     *,
@@ -386,20 +488,31 @@ def validate_package(
             env=env,
             output_dir=output_dir,
         )
-        install_test_package(
-            test_package,
-            workspace_root,
-            environment_path,
-            env=env,
-            output_dir=output_dir,
-        )
-        run_test_package(
-            test_package,
-            workspace_root,
-            project_name,
-            env=env,
-            output_dir=output_dir,
-        )
+
+        if editable:
+            install_test_package(
+                test_package,
+                workspace_root,
+                environment_path,
+                env=env,
+                output_dir=output_dir,
+            )
+            run_test_package(
+                test_package,
+                workspace_root,
+                project_name,
+                env=env,
+                output_dir=output_dir,
+            )
+        else:
+            run_wheel_test_package(
+                test_package,
+                workspace_root,
+                project_name,
+                environment_path,
+                env=env,
+                output_dir=output_dir,
+            )
 
 
 def main() -> None:

@@ -1,4 +1,5 @@
 import importlib
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -8,7 +9,7 @@ REPLACE_TARGET = "ex_py_need_binary"
 
 def verify(expected_version: int) -> dict:
     executable = shutil.which("ex_cpp_binary")
-    assert executable is not None
+    assert executable is not None, os.environ["PATH"]
 
     result = subprocess.run(
         [executable],
