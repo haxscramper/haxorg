@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "repo_py_validate_test_package"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["repo_py_validate==0.1.0"]
+
+[tool.uv.sources]
+repo-py-validate = { path = ".." }
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true

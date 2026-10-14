@@ -1,0 +1,17 @@
+#include <boost/outcome/result.hpp>
+#include <hstd_cpp_diagram_lib/graph_diagram.pb.h>
+#include <hstd_cpp_diagram_lib/graph_diagram_validate.pb.h>
+#include <hstd_cpp_lib/geometry/hstd_geometry_test.hpp>
+#include <hstd_cpp_lib/geometry/hstd_geometry_test_ir.hpp>
+#include <hstd_cpp_lib/hstd_geometry_test_ir.pb.h>
+#include <hstd_cpp_lib/stdlib/Filesystem.hpp>
+#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
+
+namespace hstd::ext::graph::diagram {
+hstd::ext::geometry::GeometryElementListResult diagramGeometryElements(
+    graph::diagram::proto::DiaCluster const& root);
+
+hstd::ext::geometry::GeometryValidationErrors runSpec(
+    hstd::ext::graph::diagram::proto::DiagramTest const& test,
+    hstd::Opt<hstd::fs::path> const&                     debug_dir = std::nullopt);
+} // namespace hstd::ext::graph::diagram

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "repo_py_orchestrate_test_package"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["repo-py-orchestrate==0.1.0"]
+
+[tool.uv.sources]
+repo-py-orchestrate = { path = ".." }
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true

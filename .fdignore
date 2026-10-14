@@ -4,10 +4,10 @@ thirdparty
 profdata_merger.sql
 src/wrappers/js/nodehaxorg.cpp
 
-src/wrappers/c/haxorg_c.cpp
-src/wrappers/c/haxorg_c.h
-src/wrappers/c/haxorg_c_vtables.cpp
-src/wrappers/c/haxorg_c_vtables.hpp
+src/haxorg_cpp_c_wrap/haxorg_c.cpp
+src/haxorg_cpp_c_wrap/haxorg_c.h
+src/haxorg_cpp_c_wrap/haxorg_c_vtables.cpp
+src/haxorg_cpp_c_wrap/haxorg_c_vtables.hpp
 src/wrappers/js/haxorg_wasm.cpp
 src/wrappers/js/haxorg_wasm_types.d.ts
 scripts/py_haxorg/py_haxorg/pyhaxorg.pyi
@@ -25,3 +25,4 @@ sem/SemOrgTypes.hpp
 imm/ImmOrgTypes.hpp
 imm/ImmOrgAdapterGenerated.cpp
 imm/ImmOrgAdapterGenerated.hpp
+build

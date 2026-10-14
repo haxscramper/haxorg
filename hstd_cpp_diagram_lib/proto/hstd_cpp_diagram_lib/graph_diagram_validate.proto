@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package hstd.ext.graph.diagram.proto;
+
+import "hstd_cpp_lib/hstd_geometry_test_ir.proto";
+import "hstd_cpp_diagram_lib/graph_diagram.proto";
+
+message DiagramTest {
+  hstd.ext.graph.diagram.proto.DiaCluster diagram = 1;
+  repeated hstd.ext.geometry.proto.GeometryCheck checks = 2;
+}

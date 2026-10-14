@@ -1,15 +1,15 @@
 from contextlib import contextmanager
 from pathlib import Path
 
+import plumbum
+import pytest
 from beartype import beartype
 from beartype.typing import List, Optional
-import plumbum
+from loguru import logger
 from py_repository.code_analysis.gen_coverage_cxx import (
     ProfdataCookie,
     ProfdataFullProfile,
 )
-from py_scriptutils.script_logging import log
-import pytest
 
 CAT = "conftest"
 
@@ -34,7 +34,7 @@ def _get_cookie_list() -> List[ProfdataCookie]:
 
 
 def summarize_cookies(coverage: Path) -> ProfdataFullProfile:
-    log(CAT).info(f"Summarizing full count of summaries is {len(_get_cookie_list())}")
+    logger.info(f"Summarizing full count of summaries is {len(_get_cookie_list())}")
     return ProfdataFullProfile(runs=_get_cookie_list())
 
 
@@ -45,7 +45,7 @@ def WithBinaryCoverageTest(
     parameter_desc: Optional[dict] = None,
     coverage_out_dir: Optional[Path] = None,
 ):
-    "Execute code block "
+    "Execute code block"
     if coverage_out_dir:
         profraw = get_profraw_path(coverage_out_dir, test_name=uniq_name)
         cookie = ProfdataCookie(
@@ -108,7 +108,7 @@ def runtest(
 
         result = run(dict(**env, LLVM_PROFILE_FILE=str(profraw)))
         _get_cookie_list().append(cookie)
-        # log(CAT).info(
+        # logger.info(
         #     f"Test {cookie.test_class}::{cookie.test_name} result {cookie.test_profile}, full count of summaries is {len(_get_cookie_list())}"
         # )
         return result

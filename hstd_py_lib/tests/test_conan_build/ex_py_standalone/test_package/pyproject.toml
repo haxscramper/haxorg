@@ -1,0 +1,12 @@
+[project]
+name = "ex_py_standalone_test_package"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["ex_py_standalone"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ex_py_standalone_test_package"]

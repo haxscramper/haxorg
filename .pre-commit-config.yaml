@@ -1,9 +1,9 @@
 exclude: |
   (?x)^(
-    src/wrappers/c/haxorg_c\.h|
-    src/wrappers/c/haxorg_c\.cpp|
-    src/wrappers/c/haxorg_c_vtables\.hpp|
-    src/wrappers/c/haxorg_c_vtables\.cpp|
+    src/haxorg_cpp_c_wrap/haxorg_c\.h|
+    src/haxorg_cpp_c_wrap/haxorg_c\.cpp|
+    src/haxorg_cpp_c_wrap/haxorg_c_vtables\.hpp|
+    src/haxorg_cpp_c_wrap/haxorg_c_vtables\.cpp|
     src/wrappers/js/haxorg_wasm\.cpp|
     src/wrappers/js/haxorg_wasm_types\.d\.ts|
     src/wrappers/js/haxorg_c\.cpp|
@@ -27,10 +27,22 @@ exclude: |
 repos:
   - repo: local
     hooks:
+      - id: install-commit-message-hooks
+        name: Install commit message hooks
+        language: system
+        stages: [pre-commit]
+        always_run: true
+        pass_filenames: false
+        entry: >-
+          bash -c 'hooks_dir=$(git rev-parse --git-path hooks);
+          install -m 755 repo_py_validate/prepare_commit_message.py "$hooks_dir/prepare-commit-msg";
+          install -m 755 repo_py_validate/validate_commit_message.py "$hooks_dir/commit-msg"'
+  - repo: local
+    hooks:
       - id: pre-commit-sg-rewrite
         name: Remove and unify code styles
         language: system
-        entry: ast-grep scan --color=never -c scripts/py_repository/py_repository/repo_hooks/sgconfig.yaml scripts/cxx_repository/code_forensics.cpp -U
+        entry: ast-grep scan --color=never -c repo_py_validate/sgconfig.yaml -U
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
@@ -45,13 +57,29 @@ repos:
         entry: uv run --dev isort
         language: system
         types: [python]
-  - repo: local
+        stages: [manual]
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.6
     hooks:
-      - id: yapf
-        name: Format python code
-        entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/safe_yapf_format.py
-        language: system
-        types: [python]
+      - id: ruff-check
+        name: ruff fix imports
+        # I: sort and organize imports
+        # F401: remove unused impots
+        # UP035: import Sequence/Mapping from collections.abc instead of the typing
+        #        -- was removed, this option cannot be used for automatic fixes as
+        #        it fails to convert import of `Dict` to `dict` -- bad desing, a
+        #        diagnostic that is auto-fixable is mixed with one that cannot be
+        #        auto-fixed.
+        args:
+          - "--fix"
+          - "--select=I,I001,F401"
+          - "--fixable=I,I001,F401"
+
+      - id: ruff-format
+
+      - id: ruff-check
+        name: ruff validate
+        stages: [manual]
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.24.2
     hooks:
@@ -70,6 +98,7 @@ repos:
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_repo_task_config.py
         language: system
         files: ^scripts/py_repository/py_repository/repo_tasks/.*\.json$
+        stages: [manual]
   - repo: local
     hooks:
       - id: find-debug-calls
@@ -77,13 +106,11 @@ repos:
         entry: uv run --dev ./scripts/py_repository/py_repository/repo_hooks/validate_cxx_code.py
         language: system
         types: [c++]
-  - repo: local
+        stages: [manual]
+  - repo: https://github.com/BlankSpruce/gersemi-pre-commit
+    rev: 0.29.1
     hooks:
-      - id: cmake-format
-        name: cmake-format
-        entry: cmake-format -i
-        language: system
-        files: (CMakeLists\.txt|\.cmake)$
+    - id: gersemi
   - repo: local
     hooks:
       - id: no-undocumented-api
@@ -92,3 +119,8 @@ repos:
         language: system
         pass_filenames: true
         files: \.(py|h|hh|hpp|hxx|c|cc|cpp|cxx)$
+        stages: [manual]
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 3.0.0
+    hooks:
+      - id: forbid-binary
