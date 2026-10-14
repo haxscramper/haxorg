@@ -16,13 +16,9 @@ class LldbTraceFixture(ConanFile):
 
         toolchain = CMakeToolchain(self)
         toolchain.user_presets_path = False
-        self.set_cmake_var(
-            toolchain,
-            "Python_EXECUTABLE",
-            self.conf.get(
-                "user.haxorg:python_executable",
-                default=sys.executable,
-                check_type=str,
-            ),
+        toolchain.cache_variables["Python_EXECUTABLE"] = self.conf.get(
+            "user.haxorg:python_executable",
+            default=sys.executable,
+            check_type=str,
         )
         toolchain.generate()

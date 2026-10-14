@@ -64,6 +64,11 @@ target_link_libraries(
         jni_elk_lib
 )
 
+message(
+    INFO
+    "diagram lib: protovalidate_cc_PROTO_IMPORT_DIR = ${protovalidate_cc_PROTO_IMPORT_DIR}"
+)
+
 haxorg_add_protobuf(
     TARGET hstd_cpp_diagram_lib
     IMPORT_DIRS

@@ -19,6 +19,7 @@ endif()
 find_package(SQLiteCpp CONFIG REQUIRED QUIET)
 find_package(TBB CONFIG REQUIRED QUIET)
 find_package(Protobuf CONFIG REQUIRED QUIET)
+find_package(Perfetto CONFIG REQUIRED QUIET)
 
 # LLVM and Clang remain system/toolchain dependencies.
 find_package(LLVM REQUIRED CONFIG QUIET)

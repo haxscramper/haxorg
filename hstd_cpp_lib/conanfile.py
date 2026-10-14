@@ -40,7 +40,7 @@ class HstdConan(ConanFile):
     default_options = {
         "with_protobuf": True,
         "with_protovalidate": True,
-        "with_perfetto": True,
+        "with_perfetto": False,
     }
 
     def requirements(self):

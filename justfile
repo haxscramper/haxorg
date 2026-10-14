@@ -186,7 +186,7 @@ format_validation_results:
     --output={{HAXORG_ROOT}}/build/logs
 
 # run individual validation on all packages in the repository, --editable/--no-editable
-validate_all editable:
+validate_all editable: conan_export_external_deps
   #!/usr/bin/env bash
   # Base hstd package also contains plugins, hooks and deployers
   # for the rest, so if it fails the rest might be too broken.

@@ -85,6 +85,10 @@ if(HAXORG_WITH_PROTOBUF)
     if(HAXORG_WITH_PROTOVALIDATE)
         list(APPEND HAXORG_PROTO_PUBLIC_LIBRARIES protovalidate_cc::protovalidate_cc)
         list(APPEND HAXORG_PROTO_IMPORT_DIRS "${protovalidate_cc_PROTO_IMPORT_DIR}")
+        message(
+            INFO
+            "cpp org lib: protovalidate_cc_PROTO_IMPORT_DIR = ${protovalidate_cc_PROTO_IMPORT_DIR}"
+        )
     endif()
 
     haxorg_add_protobuf(
