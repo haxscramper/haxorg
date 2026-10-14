@@ -16,12 +16,10 @@ if(NOT TARGET hstd::hstd_cpp_lib)
     find_package(hstd_cpp_lib CONFIG REQUIRED QUIET)
 endif()
 
-find_package(SQLiteCpp CONFIG REQUIRED QUIET)
-find_package(TBB CONFIG REQUIRED QUIET)
-find_package(Protobuf CONFIG REQUIRED QUIET)
-find_package(Perfetto CONFIG REQUIRED QUIET)
+if(NOT TARGET haxdex::haxdex_read_code_cpp_common)
+    find_package(haxdex_read_code_cpp_common CONFIG REQUIRED QUIET)
+endif()
 
-# LLVM and Clang remain system/toolchain dependencies.
 find_package(LLVM REQUIRED CONFIG QUIET)
 find_package(Clang REQUIRED CONFIG QUIET)
 
@@ -49,15 +47,7 @@ target_link_libraries(
     haxdex_read_code_cpp
     PRIVATE
         hstd::hstd_cpp_lib
-        SQLiteCpp
-        TBB::tbb
+        haxdex::haxdex_read_code_cpp_common
         LLVM
         clang-cpp
-)
-
-haxorg_add_protobuf(
-    TARGET haxdex_read_code_cpp
-    PROTO_SOURCES
-        "${CMAKE_CURRENT_LIST_DIR}/proto/haxdex_read_code_cpp/reflection_defs.proto"
-    PACKAGE_NAME "haxdex_read_code_cpp"
 )

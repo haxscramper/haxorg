@@ -18,7 +18,6 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_ostream.h>
 
-#include "branching_include_collector.hpp"
 #include <clang/AST/NestedNameSpecifierBase.h>
 
 namespace c = clang;
@@ -1671,14 +1670,7 @@ ReflASTConsumer::ReflASTConsumer(clang::CompilerInstance& CI, ReflectionCLI cons
     , Visitor(&CI.getASTContext(), out.get(), cli)
     , CI(CI)
     , cli(cli) {
-    auto callback = std::make_unique<IncludeCollectorCallback>(
-        out.get(), &CI.getSourceManager());
     out->set_absolutepath(getMainFileAbsolutePath(CI));
-    CI.getPreprocessor().addPPCallbacks(std::move(callback));
-
-    CI.getPreprocessor().addPPCallbacks(
-        std::make_unique<BranchingIncludeCollectorCallback>(
-            out.get(), &CI.getSourceManager(), &CI.getPreprocessor()));
 }
 
 void ReflASTConsumer::HandleTranslationUnit(c::ASTContext& Context) {

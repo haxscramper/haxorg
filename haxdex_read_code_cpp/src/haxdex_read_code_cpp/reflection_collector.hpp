@@ -13,8 +13,8 @@
 #include <clang/Sema/Sema.h>
 
 // Auto-generated protobuf definition, provided by cmake run
-#include <haxdex_read_code_cpp/reflection_config.hpp>
-#include <haxdex_read_code_cpp/reflection_defs.pb.h>
+#include <haxdex_read_code_cpp_common/reflection_config.hpp>
+#include <haxdex_read_code_cpp_common/reflection_defs.pb.h>
 #include <hstd_cpp_lib/stdlib/serde/Json.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>
@@ -207,27 +207,6 @@ class ReflASTVisitor : public clang::RecursiveASTVisitor<ReflASTVisitor> {
 
   private:
     clang::ASTContext* Ctx;
-};
-
-struct IncludeCollectorCallback : public clang::PPCallbacks {
-    clang::SourceManager* sourceManager;
-    TU*                   out;
-
-    IncludeCollectorCallback(TU* tu, clang::SourceManager* sourceManager)
-        : out(tu), sourceManager(sourceManager) {}
-
-    void InclusionDirective(
-        clang::SourceLocation             HashLoc,
-        clang::Token const&               IncludeTok,
-        llvm::StringRef                   FileName,
-        bool                              IsAngled,
-        clang::CharSourceRange            FilenameRange,
-        clang::OptionalFileEntryRef       File,
-        llvm::StringRef                   SearchPath,
-        llvm::StringRef                   RelativePath,
-        clang::Module const*              SuggestedModule,
-        bool                              ModuleImported,
-        clang::SrcMgr::CharacteristicKind FileType) override;
 };
 
 

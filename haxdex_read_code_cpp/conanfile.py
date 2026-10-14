@@ -18,7 +18,6 @@ class HaxdexCppReflReadConan(ConanFile):
         "CMakeLists.txt",
         "cmake/*",
         "src/*",
-        "proto/*",
         "tests/*",
     )
 
@@ -28,9 +27,8 @@ class HaxdexCppReflReadConan(ConanFile):
             transitive_headers=True,
             transitive_libs=True,
         )
-        self.requires("protobuf/[>=5 <6]")
-        self.requires("sqlitecpp/[>=3.3 <4]")
-        self.requires("onetbb/[>=2022.0 <2024]")
-
-    def build_requirements(self):
-        self.tool_requires("protobuf/[>=5 <6]")
+        self.requires(
+            "haxdex_read_code_cpp_common/0.1.0",
+            transitive_headers=True,
+            transitive_libs=True,
+        )

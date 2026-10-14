@@ -3,11 +3,11 @@
 #undef emit
 #undef slots
 
-#include "reflection_config.hpp"
 #include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/ArgumentsAdjusters.h>
 #include <clang/Tooling/Tooling.h>
+#include <haxdex_read_code_cpp_common/reflection_config.hpp>
 
 class ReflFrontendAction : public clang::ASTFrontendAction {
   protected:
