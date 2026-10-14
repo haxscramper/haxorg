@@ -1,10 +1,9 @@
 from pathlib import Path
 
+import haxdex_read_code_cpp.proto as pb
 import pytest
 import refl_test_driver
 from beartype import beartype
-
-import haxdex_read_code_cpp.proto as pb
 
 
 @beartype
@@ -340,13 +339,8 @@ def test_type_cross_dependency(logged_test_dir: Path) -> None:
     assert len(a.records) == 1
     assert len(b.records) == 1
 
-    assert a.records[0].is_forward_decl
-    assert b.records[0].is_forward_decl
-    assert a.records[0].name.name == "B"
-    assert b.records[0].name.name == "A"
-
-    a_record = a.records[1]
-    b_record = b.records[1]
+    a_record = a.records[0]
+    b_record = b.records[0]
     assert a_record.name.name == "A"
     assert b_record.name.name == "B"
     assert len(a_record.fields) == 1

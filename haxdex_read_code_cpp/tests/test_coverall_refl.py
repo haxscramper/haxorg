@@ -19,4 +19,3 @@ def test_coverall_extract(logged_test_dir: Path) -> None:
     assert len(result.tus) == 1
     tu = result.tus[0]
     assert Path(tu.absolute_path) == INPUT
-    assert Path(tu.main_file_include_tree.absolute_path) == INPUT

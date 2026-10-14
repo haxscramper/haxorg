@@ -35,6 +35,8 @@ package_type = "application"
 [tool.hatch.build.hooks.conan.protobuf]
 sources = [
   "ex_cpp_binary/api.proto",
+  # If transitive dependency has a protobuf API,
+  # each file must be described explicitly.
   "ex_cpp_library/shared.proto",
 ]
 destination = "ex_py_need_binary/proto"

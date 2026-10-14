@@ -31,7 +31,8 @@ build-backend = "hatchling.build"
 package = true
 cache-keys = [
   { file = "pyproject.toml" },
-  { file = "../proto/haxdex_read_code_cpp/reflection_defs.proto" },
+  { file = "../**/*" },
+  { file = "*.py" },
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -48,6 +49,6 @@ artifact = "haxdex_read_code_cpp"
 destination = "haxdex_read_code_cpp/bin"
 
 [tool.hatch.build.hooks.conan.protobuf]
-sources = ["haxdex_read_code_cpp/reflection_defs.proto"]
+sources = ["haxdex_read_code_cpp_common/reflection_defs.proto"]
 destination = "haxdex_read_code_cpp/proto"
 well-known-sources = ["google/protobuf/struct.proto"]
