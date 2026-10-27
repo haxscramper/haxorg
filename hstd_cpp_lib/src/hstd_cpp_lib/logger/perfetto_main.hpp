@@ -1,17 +1,21 @@
-#include "perfetto_aux.hpp"
+#pragma once
+
+
+#ifndef HSTD_CPP_BUILD_WITH_PERFETTO
+#    error HSTD_CPP_BUILD_WITH_PERFETTO must be explicitly defined as 0 or 1 for the hstd::hstd_cpp_lib serde header.
+#endif
+
+#include <fcntl.h>
+#include <filesystem>
+#include <fstream>
+#include <hstd_cpp_lib/logger/perfetto_aux.hpp>
 
 #if HSTD_CPP_BUILD_WITH_PERFETTO
-#    include <chrono>
-#    include <cstdint>
-#    include <filesystem>
-#    include <fstream>
-#    include <memory>
-#    include <system_error>
-
-#    include <fcntl.h>
-#    include <unistd.h>
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
+
+// all of the perfetto methods can only be defined after the `static storage` declares the
+// track event object.
 
 void InitializePerfetto() {
     perfetto::TracingInitArgs args;

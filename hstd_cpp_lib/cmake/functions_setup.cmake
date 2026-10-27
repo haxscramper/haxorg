@@ -28,10 +28,6 @@ function(haxorg_set_target_flags_impl)
             "-sNO_DISABLE_EXCEPTION_CATCHING"
         )
 
-        if(${HSTD_CPP_BUILD_WITH_PERFETTO})
-            list(APPEND EMSCRIPTEN_FLAGS "-s INITIAL_HEAP=600MB")
-        endif()
-
         list(APPEND EMSCRIPTEN_FLAGS "-s EXCEPTION_DEBUG=1")
 
         if(ORG_USE_SANITIZERS)

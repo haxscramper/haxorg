@@ -28,19 +28,12 @@ class HstdConan(ConanFile):
         {
             "with_protobuf": [True, False],
             "with_protovalidate": [True, False],
-            # TODO: This option is very similar to qt -- it might be unnecessary
-            # to actually compile the perfetto utilities into the main package
-            # instead i can define everything using inline functions or
-            # configure the dependent packages to include a special header for the
-            # sources.
-            "with_perfetto": [True, False],
         },
     )
 
     default_options = {
         "with_protobuf": True,
         "with_protovalidate": True,
-        "with_perfetto": False,
     }
 
     def requirements(self):
@@ -53,8 +46,6 @@ class HstdConan(ConanFile):
         self.requires("fmt/[>=11 <17]", transitive_headers=True)
         self.requires("boost/[>=1.86.0 <2]", transitive_headers=True)
         self.requires("cpptrace/[>=0.8.0 <2]", transitive_headers=True)
-        if self.options.with_perfetto:
-            self.requires("perfetto/[>=46 <100]", transitive_headers=True)
 
         if self.options.with_protobuf:
             self.requires("protobuf/[>=5 <6]")

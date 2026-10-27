@@ -8,18 +8,6 @@
 #if HSTD_CPP_BUILD_WITH_PERFETTO
 
 #    include <perfetto.h>
-#    include <filesystem>
-
-std::unique_ptr<perfetto::TracingSession> StartTracing();
-std::unique_ptr<perfetto::TracingSession> StartProcessTracing(
-    std::string const& procesName);
-
-void InitializePerfetto();
-void StopTracing(
-    std::unique_ptr<perfetto::TracingSession> tracing_session,
-    std::filesystem::path const&              out_path);
-
-std::string StopTracing();
 
 #define __perfetto_STRINGIFY_EVEN(...) __perfetto_STRINGIFY_EVEN_EVAL(__perfetto_STRINGIFY_EVEN_IMPL(__VA_ARGS__))
 #define __perfetto_STRINGIFY_EVEN_EVAL(...) __VA_ARGS__

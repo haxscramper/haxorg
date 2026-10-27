@@ -11,7 +11,7 @@
 
 #include <haxdex_read_code_cpp_common/reflection_cli_parse.hpp>
 #include <haxdex_read_code_cpp_common/reflection_perf.hpp>
-#include <hstd_cpp_lib/logger/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/logger/perfetto_main.hpp>
 
 #include <haxdex_read_code_cpp/reflection_collector.hpp>
 #include <haxdex_read_code_cpp/reflection_collector_frontend.hpp>

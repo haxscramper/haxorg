@@ -1,7 +1,7 @@
 #include <haxorg_cpp_org_lib/sem/perfetto_org.hpp>
 #include <hstd_cpp_lib/extra/error_format/gtest_utils.hpp>
 #include <hstd_cpp_lib/logger/logger.hpp>
-#include <hstd_cpp_lib/logger/perfetto_aux_impl_template.hpp>
+#include <hstd_cpp_lib/logger/perfetto_main.hpp>
 
 #include <hstd_cpp_lib/stdlib/algorithms/reflection/reflection_visitor.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>

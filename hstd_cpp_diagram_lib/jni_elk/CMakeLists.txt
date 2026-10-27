@@ -23,7 +23,8 @@ if(Java_VERSION VERSION_LESS "17")
 endif()
 
 # Set JAVA_HOME environment variable for Gradle
-get_filename_component(JAVA_HOME "${Java_JAVA_EXECUTABLE}" DIRECTORY)
+get_filename_component(JAVA_EXECUTABLE_REALPATH "${Java_JAVA_EXECUTABLE}" REALPATH)
+get_filename_component(JAVA_HOME "${JAVA_EXECUTABLE_REALPATH}" DIRECTORY)
 get_filename_component(JAVA_HOME "${JAVA_HOME}" DIRECTORY)
 message(STATUS "Setting JAVA_HOME to: ${JAVA_HOME}")
 
