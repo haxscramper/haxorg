@@ -340,75 +340,73 @@ class ModelToGenTu:
         default: ExplicitDefault | None,
     ) -> str:
         if default is None:
-            if isinstance(typ, OptT):
-                return "std::nullopt"
-
-            if isinstance(typ, NamedT) and self.is_ast(package, typ.qname):
-                return f"{cpp_type_text(self.type(typ, package))}::Nil()"
-
-            if isinstance(typ, ExternalT) and self.is_ast(typ.package, typ.qname):
-                return f"{cpp_type_text(self.type(typ, package))}::Nil()"
-
-            return "{}"
+            match typ:
+                case OptT():
+                    return "std::nullopt"
+                case NamedT() if self.is_ast(package, typ.qname):
+                    return f"{cpp_type_text(self.type(typ, package))}::Nil()"
+                case ExternalT() if self.is_ast(typ.package, typ.qname):
+                    return f"{cpp_type_text(self.type(typ, package))}::Nil()"
+                case _:
+                    return "{}"
 
         value = default.value
 
-        if isinstance(typ, OptT):
-            if value is None:
-                return "std::nullopt"
+        match typ:
+            case OptT():
+                if value is None:
+                    return "std::nullopt"
 
-            inner = self.default_value(
-                typ.elem,
-                package,
-                ExplicitDefault(value=value),
-            )
-            return f"{cpp_type_text(self.type(typ, package))}{{{inner}}}"
-
-        if isinstance(typ, NamedT) and self.is_enum(package, typ.qname):
-            return self.enum_default(typ, package, value)
-
-        if isinstance(typ, ExternalT) and self.is_enum(typ.package, typ.qname):
-            return self.enum_default(typ, package, value)
-
-        if isinstance(typ, PrimT):
-            if typ.prim == PrimKind.BOOL and isinstance(value, bool):
-                return "true" if value else "false"
-
-            if typ.prim == PrimKind.STRING and isinstance(value, str):
-                return json.dumps(value, ensure_ascii=False)
-
-            integer_kinds = {
-                PrimKind.INT8,
-                PrimKind.INT16,
-                PrimKind.INT32,
-                PrimKind.INT64,
-                PrimKind.UINT8,
-                PrimKind.UINT16,
-                PrimKind.UINT32,
-                PrimKind.UINT64,
-            }
-            if typ.prim in integer_kinds and type(value) is int:
-                return str(value)
-
-            if typ.prim in {PrimKind.FLOAT32, PrimKind.FLOAT64}:
-                if type(value) not in {int, float}:
-                    raise TypeError(f"Invalid floating default: {value!r}")
-
-                literal = json.dumps(float(value), allow_nan=False)
-                if typ.prim == PrimKind.FLOAT32:
-                    literal += "f"
-                return literal
-
-        if isinstance(typ, (ListT, ArrayT)) and isinstance(value, list):
-            elements = [
-                self.default_value(
+                inner = self.default_value(
                     typ.elem,
                     package,
-                    ExplicitDefault(value=item),
+                    ExplicitDefault(value=value),
                 )
-                for item in value
-            ]
-            return "{" + ", ".join(elements) + "}"
+                return f"{cpp_type_text(self.type(typ, package))}{{{inner}}}"
+
+            case NamedT() if self.is_enum(package, typ.qname):
+                return self.enum_default(typ, package, value)
+
+            case ExternalT() if self.is_enum(typ.package, typ.qname):
+                return self.enum_default(typ, package, value)
+
+            case PrimT():
+                integer_kinds = {
+                    PrimKind.INT8,
+                    PrimKind.INT16,
+                    PrimKind.INT32,
+                    PrimKind.INT64,
+                    PrimKind.UINT8,
+                    PrimKind.UINT16,
+                    PrimKind.UINT32,
+                    PrimKind.UINT64,
+                }
+                match typ.prim:
+                    case PrimKind.BOOL if isinstance(value, bool):
+                        return "true" if value else "false"
+                    case PrimKind.STRING if isinstance(value, str):
+                        return json.dumps(value, ensure_ascii=False)
+                    case _ if typ.prim in integer_kinds and type(value) is int:
+                        return str(value)
+                    case PrimKind.FLOAT32 | PrimKind.FLOAT64:
+                        if type(value) not in {int, float}:
+                            raise TypeError(f"Invalid floating default: {value!r}")
+
+                        literal = json.dumps(float(value), allow_nan=False)
+                        if typ.prim == PrimKind.FLOAT32:
+                            literal += "f"
+                        return literal
+
+            case ListT() | ArrayT() if isinstance(value, list):
+                elements = [
+                    self.default_value(
+                        typ.elem,
+                        package,
+                        ExplicitDefault(value=item),
+                    )
+                    for item in value
+                ]
+                return "{" + ", ".join(elements) + "}"
 
         raise NotImplementedError(
             f"Unsupported explicit default for {typ!r}: {value!r}",
@@ -441,16 +439,17 @@ class ModelToGenTu:
         )
 
     def argument_const_ref(self, typ: TypeRef, package: str) -> bool:
-        if isinstance(typ, PrimT):
-            return typ.prim in {PrimKind.STRING, PrimKind.PATH}
-
-        if isinstance(typ, NamedT):
-            return not self.is_enum(package, typ.qname)
-
-        if isinstance(typ, ExternalT):
-            return not self.is_enum(typ.package, typ.qname)
-
-        return not isinstance(typ, TypeParamT)
+        match typ:
+            case PrimT():
+                return typ.prim in {PrimKind.STRING, PrimKind.PATH}
+            case NamedT():
+                return not self.is_enum(package, typ.qname)
+            case ExternalT():
+                return not self.is_enum(typ.package, typ.qname)
+            case TypeParamT():
+                return False
+            case _:
+                return True
 
     def method(self, owner: RecordDef, item: MethodDef) -> GenTuFunction:
         if item.type_params:
