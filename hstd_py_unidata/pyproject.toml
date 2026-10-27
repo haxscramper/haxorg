@@ -1,0 +1,44 @@
+[project]
+name = "hstd-unidata"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "beartype",
+    "loguru",
+    "plumbum",
+    "pydantic",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+ignore = [
+  "F405",
+  "F403",
+  "E501",
+  "F841",
+  "F522",
+  "F401",
+  "E712",
+  "C408",
+  "B008",
+  "RUF012",
+  "RUF009",
+  "UP035",
+  "PYI029", # defining `__repr__` in stub
+  "FLY002", # do not flag `"\n".join(["literal", "literal"])`
+  "UP032", # do not flag `format()`
+  "DTZ006",
+  "UP045",
+  "SIM117", # combine `with`
+]

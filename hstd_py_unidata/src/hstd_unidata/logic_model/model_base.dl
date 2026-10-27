@@ -1,0 +1,467 @@
+#pragma once
+#include "logic_model/model_types.dl"
+
+.decl record(qname: QName, kind: RecordKind)
+.decl inherits(sub: QName, sup: QName)
+.decl field(qname: QName, name: FieldName, t: Type)
+.decl variant_case(owner: QName, vfield: FieldName, tag: CaseTag, case_qname: QName)
+.decl variant_kind(owner: QName, vfield: FieldName, kind_enum: QName)
+.decl enum_value(qname: QName, name: EnumName)
+.decl qname_text(qname: QName, text: symbol)
+.decl prim_text(prim: Prim, text: symbol)
+.decl prim_class(prim: Prim, cls: TypeClass)
+.decl class_text(cls: TypeClass, text: symbol)
+.decl numeric_join(left: Prim, right: Prim, result: Prim)
+.decl op_binds_elem(op: OpId)
+.decl op_binary(op: OpId)
+
+.decl expr(e: ExprId, op: OpId)
+.decl expr_arity(e: ExprId, arity: ArgIndex)
+.decl expr_arg(e: ExprId, idx: ArgIndex, arg: ExprId)
+.decl expr_str(e: ExprId, value: symbol)
+.decl expr_int(e: ExprId, value: number)
+.decl expr_type_val(e: ExprId, t: Type)
+.decl expr_flag(e: ExprId, flag: Flag)
+.decl binds(e: ExprId, slot: number, binder: BinderId)
+.decl var_ref(e: ExprId, binder: BinderId)
+.decl this_type(e: ExprId, t: Type)
+.decl root(e: ExprId, expected: Type)
+.decl expr_arg_class(e: ExprId, idx: ArgIndex, cls: TypeClass)
+.decl expr_fixed_result(e: ExprId, t: Type)
+
+.decl derived_from(sub: QName, sup: QName)
+derived_from(Q, Q) :- record(Q, _).
+derived_from(S, P) :- inherits(S, M), derived_from(M, P).
+
+.decl related(left: QName, right: QName)
+related(A, B) :- derived_from(A, B).
+related(A, B) :- derived_from(B, A).
+
+.decl effective_field(qname: QName, name: FieldName, t: Type)
+effective_field(Q, N, T) :- derived_from(Q, B), field(B, N, T).
+
+.decl variant_field(owner: QName, vfield: FieldName, name: FieldName, t: Type)
+variant_field(O, F, N, T) :- variant_case(O, F, _, C), effective_field(C, N, T).
+
+.decl is_enum(qname: QName)
+is_enum(Q) :- record(Q, "enum").
+
+.decl expr_type(e: ExprId, t: Type)
+.decl binder_type(binder: BinderId, t: Type)
+.decl operand(e: ExprId, idx: ArgIndex, t: Type)
+.decl has_class(e: ExprId, cls: TypeClass)
+.decl elem_type(e: ExprId, t: Type)
+.decl coll_elem(e: ExprId, t: Type)
+.decl args_ok_prefix(e: ExprId, arity: ArgIndex)
+
+operand(E, I, T) :- expr_arg(E, I, A), expr_type(A, T).
+
+has_class(E, $CAny()) :- expr_type(E, _).
+has_class(E, C) :- expr_type(E, $TPrim(P)), prim_class(P, C).
+has_class(E, $CList()) :- expr_type(E, $TList(_)).
+has_class(E, $CList()) :- expr_type(E, $TArray(_, _)).
+has_class(E, $CMap()) :- expr_type(E, $TMap(_, _)).
+has_class(E, $COptional()) :- expr_type(E, $TOpt(_)).
+
+elem_type(E, T) :- expr_type(E, $TList(T)).
+elem_type(E, T) :- expr_type(E, $TArray(T, _)).
+coll_elem(E, T) :- expr_arg(E, 0, C), elem_type(C, T).
+
+args_ok_prefix(E, 0) :- expr_fixed_result(E, _).
+args_ok_prefix(E, as(I + 1, ArgIndex)) :-
+    args_ok_prefix(E, I),
+    expr_arg(E, I, A),
+    expr_arg_class(E, I, C),
+    has_class(A, C).
+expr_type(E, T) :- expr_fixed_result(E, T), expr_arity(E, N), args_ok_prefix(E, N).
+
+expr_type(E, T) :- expr(E, "this"), this_type(E, T).
+expr_type(E, T) :- var_ref(E, B), binder_type(B, T).
+expr_type(E, $TPrim($PInt64())) :- expr(E, "const_int").
+expr_type(E, $TPrim($PFloat64())) :- expr(E, "const_float").
+expr_type(E, $TPrim($PString())) :- expr(E, "const_str").
+expr_type(E, $TPrim($PBool())) :- expr(E, "const_bool").
+
+expr_type(E, T) :-
+    expr(E, "get_field"),
+    expr_str(E, N),
+    operand(E, 0, $TNamed(Q)),
+    effective_field(Q, as(N, FieldName), T).
+expr_type(E, T) :-
+    expr(E, "get_field"),
+    expr_str(E, N),
+    operand(E, 0, $TVariant(O, F)),
+    variant_field(O, F, as(N, FieldName), T).
+
+.decl compatible_operands(e: ExprId)
+compatible_operands(E) :- operand(E, 0, T), operand(E, 1, T).
+compatible_operands(E) :-
+    expr_arg(E, 0, A),
+    expr_arg(E, 1, B),
+    has_class(A, $CNumeric()),
+    has_class(B, $CNumeric()).
+
+.decl ordered_operands(e: ExprId)
+ordered_operands(E) :-
+    expr_arg(E, 0, A),
+    expr_arg(E, 1, B),
+    has_class(A, $CNumeric()),
+    has_class(B, $CNumeric()).
+ordered_operands(E) :-
+    expr_arg(E, 0, A),
+    expr_arg(E, 1, B),
+    has_class(A, $CString()),
+    has_class(B, $CString()).
+
+expr_type(E, $TPrim($PBool())) :- expr(E, Op), (Op = "eq" ; Op = "ne"), compatible_operands(E).
+expr_type(E, $TPrim($PBool())) :- expr(E, Op), (Op = "lt" ; Op = "le"), ordered_operands(E).
+
+expr_type(E, $TPrim(R)) :-
+    expr(E, Op),
+    (Op = "add" ; Op = "sub" ; Op = "mul" ; Op = "div"),
+    operand(E, 0, $TPrim(P1)),
+    operand(E, 1, $TPrim(P2)),
+    numeric_join(P1, P2, R).
+expr_type(E, $TPrim($PString())) :-
+    expr(E, "add"),
+    operand(E, 0, $TPrim($PString())),
+    operand(E, 1, $TPrim($PString())).
+
+expr_type(E, T) :-
+    expr(E, "cond"),
+    operand(E, 0, $TPrim($PBool())),
+    operand(E, 1, T),
+    operand(E, 2, T).
+
+binder_type(B, T) :- expr(E, "let"), binds(E, 0, B), operand(E, 0, T).
+expr_type(E, T) :- expr(E, "let"), operand(E, 1, T).
+
+binder_type(B, T) :- expr(E, Op), op_binds_elem(Op), binds(E, 0, B), coll_elem(E, T).
+
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, Op),
+    (Op = "all" ; Op = "exists" ; Op = "exists_one"),
+    coll_elem(E, _),
+    operand(E, 1, $TPrim($PBool())).
+expr_type(E, $TList(T)) :- expr(E, "map"), coll_elem(E, _), operand(E, 1, T).
+expr_type(E, $TList(T)) :-
+    expr(E, Op),
+    (Op = "filter" ; Op = "take_while"),
+    coll_elem(E, T),
+    operand(E, 1, $TPrim($PBool())).
+expr_type(E, $TList(T)) :- expr(E, "filter_map"), coll_elem(E, _), operand(E, 1, $TOpt(T)).
+expr_type(E, $TMap(K, $TList(T))) :- expr(E, "group_by"), coll_elem(E, T), operand(E, 1, K).
+
+binder_type(B, T) :- expr(E, "fold"), binds(E, 0, B), operand(E, 1, T).
+binder_type(B, T) :- expr(E, "fold"), binds(E, 1, B), coll_elem(E, T).
+expr_type(E, T) :- expr(E, "fold"), coll_elem(E, _), operand(E, 1, T), operand(E, 2, T).
+
+expr_type(E, $TList($TDyn(T))) :- expr(E, "walk"), operand(E, 0, T).
+
+expr_type(E, $TPrim($PInt64())) :- expr(E, "sum"), coll_elem(E, $TPrim(P)), prim_class(P, $CInteger()).
+expr_type(E, $TPrim($PFloat64())) :- expr(E, "sum"), coll_elem(E, $TPrim(P)), prim_class(P, $CFloat()).
+expr_type(E, $TPrim(P)) :-
+    expr(E, Op),
+    (Op = "min" ; Op = "max"),
+    coll_elem(E, $TPrim(P)),
+    prim_class(P, $COrdered()).
+
+
+
+expr_type(E, T) :- expr(E, "opt_value"), operand(E, 0, $TOpt(T)).
+
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, "case_is"),
+    expr_str(E, Tag),
+    operand(E, 0, $TVariant(O, F)),
+    variant_case(O, F, as(Tag, CaseTag), _).
+expr_type(E, $TNamed(K)) :- expr(E, "case_which"), operand(E, 0, $TVariant(O, F)), variant_kind(O, F, K).
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, "enum_is"),
+    expr_str(E, N),
+    operand(E, 0, $TNamed(Q)),
+    enum_value(Q, as(N, EnumName)).
+expr_type(E, T) :- expr(E, "nth_get"), expr_int(E, I), operand(E, 0, $TTuple(L)), tuple_nth(L, I, T).
+expr_type(E, $TPrim($PBool())) :-
+    expr(E, "is_derived"),
+    operand(E, 0, $TNamed(Q)),
+    expr_type_val(E, $TNamed(P)),
+    related(Q, P).
+
+.decl type_seen(t: Type)
+type_seen(T) :- expr_type(_, T).
+type_seen(T) :- root(_, T).
+type_seen(T) :- expr_type_val(_, T).
+type_seen(T) :- this_type(_, T).
+type_seen(T) :- reach(_, T).
+type_seen(E) :- type_seen($TList(E)).
+type_seen(E) :- type_seen($TArray(E, _)).
+type_seen(K) :- type_seen($TMap(K, _)).
+type_seen(V) :- type_seen($TMap(_, V)).
+type_seen(E) :- type_seen($TOpt(E)).
+type_seen(R) :- type_seen($TDyn(R)).
+type_seen(T) :- type_seen($TTuple(L)), tlist_elem(L, T).
+
+.decl tlist_seen(l: TypeList)
+tlist_seen(L) :- type_seen($TTuple(L)).
+tlist_seen(T) :- tlist_seen($TCons(_, T)).
+
+.decl tlist_elem(l: TypeList, t: Type)
+tlist_elem(L, H) :- tlist_seen(L), L = $TCons(H, _).
+tlist_elem(L, X) :- tlist_seen(L), L = $TCons(_, T), tlist_elem(T, X).
+
+.decl tuple_nth(l: TypeList, idx: number, t: Type)
+tuple_nth(L, 0, H) :- tlist_seen(L), L = $TCons(H, _).
+tuple_nth(L, I + 1, X) :- tlist_seen(L), L = $TCons(_, T), tuple_nth(T, I, X).
+
+.decl dyn_root(t: Type)
+dyn_root(R) :- expr_type(_, $TDyn(R)).
+
+.decl reach(root: Type, t: Type)
+reach(R, R) :- dyn_root(R).
+reach(R, T) :- reach(R, $TList(T)).
+reach(R, T) :- reach(R, $TArray(T, _)).
+reach(R, K) :- reach(R, $TMap(K, _)).
+reach(R, V) :- reach(R, $TMap(_, V)).
+reach(R, T) :- reach(R, $TOpt(T)).
+reach(R, T) :- reach(R, $TTuple(L)), tlist_elem(L, T).
+reach(R, $TNamed(D)) :- reach(R, $TNamed(Q)), derived_from(D, Q).
+reach(R, T) :- reach(R, $TNamed(Q)), effective_field(Q, _, T).
+reach(R, $TNamed(C)) :- reach(R, $TVariant(O, F)), variant_case(O, F, _, C).
+
+.decl case_subject(e: ExprId, t: Type)
+case_subject(C, T) :- expr(P, "type_cond"), expr_arg(P, I, C), 0 < I, operand(P, 0, T).
+
+.decl dyn_case_reachable(e: ExprId)
+dyn_case_reachable(C) :- case_subject(C, $TDyn(R)), expr_type_val(C, P), reach(R, P).
+dyn_case_reachable(C) :-
+    case_subject(C, $TDyn(R)),
+    expr_type_val(C, $TNamed(P)),
+    reach(R, $TNamed(Q)),
+    derived_from(Q, P).
+
+.decl type_case_compatible(e: ExprId)
+type_case_compatible(C) :- dyn_case_reachable(C).
+type_case_compatible(C) :- case_subject(C, $TNamed(Q)), expr_type_val(C, $TNamed(P)), related(Q, P).
+type_case_compatible(C) :- case_subject(C, T), expr_type_val(C, T).
+
+binder_type(B, T) :- expr(E, "type_case"), binds(E, 0, B), expr_type_val(E, T).
+expr_type(E, T) :- expr(E, "type_case"), type_case_compatible(E), operand(E, 0, T).
+
+.decl type_cond_prefix(e: ExprId, arity: ArgIndex, t: Type)
+type_cond_prefix(E, 2, T) :- expr(E, "type_cond"), operand(E, 0, _), operand(E, 1, T).
+type_cond_prefix(E, as(I + 1, ArgIndex), T) :- type_cond_prefix(E, I, T), operand(E, I, T).
+expr_type(E, $TOpt(T)) :-
+    expr(E, "type_cond"),
+    expr_flag(E, "unhandled_ignore"),
+    expr_arity(E, N),
+    type_cond_prefix(E, N, T).
+expr_type(E, T) :-
+    expr(E, "type_cond"),
+    !expr_flag(E, "unhandled_ignore"),
+    expr_arity(E, N),
+    type_cond_prefix(E, N, T).
+
+.decl type_text(t: Type, text: symbol)
+type_text(T, S) :- type_seen(T), T = $TPrim(P), prim_text(P, S).
+type_text(T, cat("list<", S, ">")) :- type_seen(T), T = $TList(E), type_text(E, S).
+type_text(T, cat("array<", S, ", ", to_string(N), ">")) :- type_seen(T), T = $TArray(E, N), type_text(E, S).
+type_text(T, cat("map<", SK, ", ", SV, ">")) :- type_seen(T), T = $TMap(K, V), type_text(K, SK), type_text(V, SV).
+type_text(T, cat("optional<", S, ">")) :- type_seen(T), T = $TOpt(E), type_text(E, S).
+type_text(T, cat("tuple<", S, ">")) :- type_seen(T), T = $TTuple(L), tlist_text(L, S).
+type_text(T, S) :- type_seen(T), T = $TNamed(Q), qname_text(Q, S).
+type_text(T, cat("@", P, ":", S)) :- type_seen(T), T = $TExternal(P, Q), qname_text(Q, S).
+type_text(T, cat("variant<", S, ".", F, ">")) :- type_seen(T), T = $TVariant(O, F), qname_text(O, S).
+type_text(T, cat("dyn<", S, ">")) :- type_seen(T), T = $TDyn(R), type_text(R, S).
+type_text(T, N) :- type_seen(T), T = $TParam(N).
+
+.decl tlist_text(l: TypeList, text: symbol)
+tlist_text(L, "") :- tlist_seen(L), L = $TNil().
+tlist_text(L, S) :- tlist_seen(L), L = $TCons(H, $TNil()), type_text(H, S).
+tlist_text(L, cat(SH, ", ", ST)) :- tlist_seen(L), L = $TCons(H, T), T != $TNil(), type_text(H, SH), tlist_text(T, ST).
+
+.decl type_key(t: Type, key: symbol)
+type_key(T, S) :- type_seen(T), T = $TNamed(Q), qname_text(Q, S).
+type_key(T, cat(S, "#", F)) :- type_seen(T), T = $TVariant(O, F), qname_text(O, S).
+type_key(T, S) :- type_seen(T), T = $TDyn($TNamed(Q)), qname_text(Q, S).
+
+.decl record_like(t: Type)
+record_like(T) :- type_seen(T), T = $TNamed(Q), record(Q, K), K != "enum".
+record_like(T) :- type_seen(T), T = $TVariant(_, _).
+
+.decl variant_like(t: Type)
+variant_like(T) :- type_seen(T), T = $TVariant(_, _).
+
+.decl enum_like(t: Type)
+enum_like(T) :- type_seen(T), T = $TNamed(Q), is_enum(Q).
+
+.decl tuple_like(t: Type)
+tuple_like(T) :- type_seen(T), T = $TTuple(_).
+
+.decl dyn_like(t: Type)
+dyn_like(T) :- type_seen(T), T = $TDyn(_).
+
+.decl typed(e: ExprId)
+typed(E) :- expr_type(E, _).
+
+.decl untyped(e: ExprId)
+untyped(E) :- expr(E, _), !typed(E).
+
+.decl typed_as(e: ExprId, text: symbol)
+typed_as(E, S) :- expr_type(E, T), type_text(T, S).
+
+.decl operand_text(e: ExprId, idx: ArgIndex, text: symbol)
+operand_text(E, I, S) :- operand(E, I, T), type_text(T, S).
+
+.decl arg_class_ok(e: ExprId, idx: ArgIndex)
+arg_class_ok(E, I) :- expr_arg_class(E, I, C), expr_arg(E, I, A), has_class(A, C).
+
+.decl arg_class_failed(e: ExprId)
+arg_class_failed(E) :- expr_arg_class(E, I, _), expr_arg(E, I, A), typed(A), !arg_class_ok(E, I).
+
+.decl diag(code: DiagCode, e: ExprId, idx: number, detail: symbol, actual: symbol, subject: symbol)
+
+diag("unknown-field", E, 0, N, S, K) :-
+    expr(E, "get_field"),
+    expr_str(E, N),
+    operand(E, 0, T),
+    T = $TNamed(Q),
+    record_like(T),
+    !effective_field(Q, as(N, FieldName), _),
+    type_text(T, S),
+    type_key(T, K).
+diag("unknown-field", E, 0, N, S, K) :-
+    expr(E, "get_field"),
+    expr_str(E, N),
+    operand(E, 0, T),
+    T = $TVariant(O, F),
+    !variant_field(O, F, as(N, FieldName), _),
+    type_text(T, S),
+    type_key(T, K).
+diag("field-on-non-record", E, 0, N, S, "") :-
+    expr(E, "get_field"),
+    expr_str(E, N),
+    operand(E, 0, T),
+    !record_like(T),
+    type_text(T, S).
+diag("ambiguous-case-field", E, 0, N, S, K) :-
+    expr(E, "get_field"),
+    expr_str(E, N),
+    operand(E, 0, T),
+    T = $TVariant(O, F),
+    variant_field(O, F, as(N, FieldName), T1),
+    variant_field(O, F, as(N, FieldName), T2),
+    T1 != T2,
+    type_text(T, S),
+    type_key(T, K).
+diag("invalid-case-tag", E, 0, Tag, S, K) :-
+    expr(E, "case_is"),
+    expr_str(E, Tag),
+    operand(E, 0, T),
+    T = $TVariant(O, F),
+    !variant_case(O, F, as(Tag, CaseTag), _),
+    type_text(T, S),
+    type_key(T, K).
+diag("not-a-variant", E, 0, "", S, "") :-
+    expr(E, Op),
+    (Op = "case_is" ; Op = "case_which"),
+    operand(E, 0, T),
+    !variant_like(T),
+    type_text(T, S).
+diag("invalid-enum-value", E, 0, N, S, K) :-
+    expr(E, "enum_is"),
+    expr_str(E, N),
+    operand(E, 0, T),
+    T = $TNamed(Q),
+    is_enum(Q),
+    !enum_value(Q, as(N, EnumName)),
+    type_text(T, S),
+    type_key(T, K).
+diag("not-an-enum", E, 0, "", S, "") :-
+    expr(E, "enum_is"),
+    operand(E, 0, T),
+    !enum_like(T),
+    type_text(T, S).
+diag("tuple-index", E, 0, to_string(I), S, "") :-
+    expr(E, "nth_get"),
+    expr_int(E, I),
+    operand(E, 0, T),
+    T = $TTuple(L),
+    !tuple_nth(L, I, _),
+    type_text(T, S).
+diag("not-a-tuple", E, 0, "", S, "") :-
+    expr(E, "nth_get"),
+    operand(E, 0, T),
+    !tuple_like(T),
+    type_text(T, S).
+diag("not-a-record", E, 0, "", S, "") :-
+    expr(E, "is_derived"),
+    operand(E, 0, T),
+    !record_like(T),
+    type_text(T, S).
+diag("arg-class", E, I, CT, S, "") :-
+    expr_arg_class(E, I, C),
+    expr_arg(E, I, A),
+    typed(A),
+    !arg_class_ok(E, I),
+    class_text(C, CT),
+    operand_text(E, I, S).
+diag("incompatible-operands", E, 1, SL, SR, "") :-
+    expr(E, Op),
+    op_binary(Op),
+    !typed(E),
+    !arg_class_failed(E),
+    operand_text(E, 0, SL),
+    operand_text(E, 1, SR).
+diag("branch-mismatch", E, 2, S1, S2, "") :-
+    expr(E, Op),
+    (Op = "cond" ; Op = "fold"),
+    operand(E, 1, T1),
+    operand(E, 2, T2),
+    T1 != T2,
+    type_text(T1, S1),
+    type_text(T2, S2).
+diag("branch-mismatch", E, I, S1, S2, "") :-
+    expr(E, "type_cond"),
+    operand(E, 1, T1),
+    operand(E, I, T2),
+    1 < I,
+    T1 != T2,
+    type_text(T1, S1),
+    type_text(T2, S2).
+diag("root-type", E, -1, SX, ST, "") :-
+    root(E, X),
+    expr_type(E, T),
+    T != X,
+    type_text(X, SX),
+    type_text(T, ST).
+diag("unreachable-type-case", E, 0, SP, SR, K) :-
+    expr(E, "type_case"),
+    case_subject(E, ST),
+    ST = $TDyn(_),
+    expr_type_val(E, P),
+    !dyn_case_reachable(E),
+    type_text(P, SP),
+    type_text(ST, SR),
+    type_key(ST, K).
+diag("incompatible-type-case", E, 0, SP, SS, "") :-
+    expr(E, "type_case"),
+    case_subject(E, ST),
+    !dyn_like(ST),
+    !type_case_compatible(E),
+    expr_type_val(E, P),
+    type_text(P, SP),
+    type_text(ST, SS).
+diag("not-derivable", E, 0, SP, SQ, "") :-
+    expr(E, "is_derived"),
+    operand(E, 0, T),
+    T = $TNamed(Q),
+    expr_type_val(E, PT),
+    PT = $TNamed(P),
+    !related(Q, P),
+    type_text(PT, SP),
+    type_text(T, SQ).
+
+.output diag
+.output untyped
+.output typed_as
