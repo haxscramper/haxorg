@@ -403,7 +403,6 @@ class AnnotationResolver:
                     [left, right], scope, module_globals, type_params
                 )
 
-        assert False
         raise AnnotationError(
             f"unsupported annotation syntax '{ast.unparse(node)}, node type: {type(node)}'"
         )

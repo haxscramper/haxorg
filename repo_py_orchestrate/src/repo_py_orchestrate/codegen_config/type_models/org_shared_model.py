@@ -9,6 +9,7 @@ from hstd_py_unidata.model_dsl import (
     get_dsl_model,
 )
 from hstd_py_unidata.model_ir import ModelDef
+from repo_py_orchestrate.codegen_config.codegen_type_groups import OrgTypeGroup
 
 M = get_dsl_model("org.sem.shared")
 H = get_dsl_model("hstd")
@@ -18,6 +19,8 @@ Native = get_dsl_model("org.sem.native")
 
 
 class CheckboxState(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
     None_: int = 0
     Done: int = 1
     Empty: int = 2
@@ -25,17 +28,23 @@ class CheckboxState(M.Enum):
 
 
 class LinkVisibility(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
     LiteralLinks: int = 0
     DescriptiveLinks: int = 1
 
 
 class BlockVisibility(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
     HideBlocks: int = 0
     NoHideBlocks: int = 1
 
 
 class SubtreeTodoSource(M.Enum):
     """Where to take todo completion statistics from"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
     Checkbox: Annotated[
         int,
@@ -46,6 +55,8 @@ class SubtreeTodoSource(M.Enum):
 
 
 class ListFormattingMode(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
     None_: Annotated[int, EnFieldAnnotation(doc="Default, no custom formatting")] = 0
     Table1D1Col: Annotated[
         int, EnFieldAnnotation(doc="one column, each table item is an individual row")
@@ -73,6 +84,8 @@ class ListFormattingMode(M.Enum):
 
 
 class InitialSubtreeVisibility(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
     Overview: int = 0
     Content: int = 1
     ShowAll: int = 2
@@ -84,6 +97,8 @@ class InitialSubtreeVisibility(M.Enum):
 
 
 class LispCode(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class Call(M.Case):
         name: str
         args: List["LispCode"]
@@ -133,6 +148,8 @@ class LispCode(M.Class):
 
 
 class TimeValue(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class FixedTime(M.Case):
         time: H._T["UserTime"]
 
@@ -145,6 +162,8 @@ class TimeValue(M.Class):
 
 
 class Tblfm(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class Expr(M.Class):
         class AxisRef(M.Case):
             class Position(M.Class):
@@ -281,6 +300,7 @@ class AttrValue(M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
                 variants=dict(
                     data=dict(variant_name="DataVariant"),
                 ),
@@ -298,6 +318,8 @@ class AttrValue(M.Class):
 
 
 class HashTagFlat(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     tags: List[str]
 
     @M.Method(backend=dict(cpp=dict(name="operator<")))
@@ -305,6 +327,8 @@ class HashTagFlat(M.Class):
 
 
 class TodoKeyword(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class Transition(M.Enum):
         None_: int = 0
         NoteWithTimestamp: int = 1
@@ -319,6 +343,8 @@ class TodoKeyword(M.Class):
 class HashTagText(M.Class):
     """Single or nested inline hash-tag"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     head: str = M.Field(doc="Main part of the tag")
     subtags: List["HashTagText"] = M.Field(doc="List of nested tags")
 
@@ -332,10 +358,14 @@ class HashTagText(M.Class):
 
 
 class SubtreePath(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     path: List[str]
 
 
 class LinkTarget(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class Raw(M.Case):
         text: str
 
@@ -497,6 +527,7 @@ class SubtreeLogHead(M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
                 variants=dict(
                     log=dict(
                         variant_name="LogEntry",
@@ -512,6 +543,8 @@ class SubtreeLogHead(M.Class):
 class SubtreeCompletion(M.Class):
     """Completion status of the subtree list element"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     done: Int32 = M.Field(doc="Number of completed tasks", default=0)
     full: Int32 = M.Field(doc="Full number of tasks", default=0)
     isPercent: bool = M.Field(
@@ -520,10 +553,14 @@ class SubtreeCompletion(M.Class):
 
 
 class AttrList(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     items: List[AttrValue]
 
 
 class AttrGroup(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     positional: AttrList = M.Field(doc="Positional arguments with no keys")
     named: Dict[str, AttrList] = M.Field(doc="Stored key-value mapping")
 
@@ -565,6 +602,8 @@ class AttrGroup(M.Class):
 
 
 class OrgCodeEvalInput(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class Var(M.Class):
         name: str
         value: Native._T["OrgJson"]
@@ -647,6 +686,8 @@ class OrgCodeEvalInput(M.Class):
 class OrgCodeEvalOutput(M.Class):
     """Single command/subprocess executed to evaluate org babel code entry"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     stdoutText: str
     stderrText: str
     code: Int32 = 0
@@ -662,6 +703,8 @@ class OrgCodeEvalOutput(M.Class):
 
 
 class ColumnView(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class Summary(M.Class):
         class CheckboxAggregate(M.Case):
             class Kind(M.Enum):
@@ -700,6 +743,8 @@ class ColumnView(M.Class):
 
 
 class BlockCodeLine(M.Class):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+
     class Part(M.Class):
         class Raw(M.Case):
             code: str
@@ -838,6 +883,7 @@ class DocumentExportConfig(M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
                 field_defaults=dict(
                     tagExport="TagExport::NotInToc",
                     taskFiltering="TaskFiltering::All",
@@ -894,7 +940,12 @@ class SubtreePeriod(M.Class):
     )
 
     __config__(
-        backend=dict(cpp=dict(field_names=dict(from_="from"))),
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
+                field_names=dict(from_="from"),
+            )
+        ),
     )
 
 
@@ -1048,6 +1099,7 @@ class NamedProperty(M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
                 section_code=[
                     dict(
                         kind="public",
@@ -1139,6 +1191,7 @@ class OrgDiagnostics(M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
                 section_code=[
                     dict(
                         kind="public",

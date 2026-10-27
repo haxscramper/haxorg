@@ -10,6 +10,7 @@ from hstd_py_unidata.model_dsl import (
     get_dsl_model,
 )
 from hstd_py_unidata.model_ir import ModelDef
+from repo_py_orchestrate.codegen_config.codegen_type_groups import OrgTypeGroup
 
 from .org_shared_model import M as Shared
 
@@ -27,6 +28,7 @@ class Org(M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.AST_ROOT,
                 ast_root=True,
                 abstract=True,
             ),
@@ -37,15 +39,21 @@ class Org(M.Class):
 class NoNode(Org, M.Class):
     """No node"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class ErrorItem(Org, M.Class):
     diag: Shared._T["OrgDiagnostics"]
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class ErrorGroup(Org, M.Class):
     """Group of value conversion errors"""
 
     diagnostics: ListType[ErrorItem]
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Stmt(Org, M.Class):
@@ -56,6 +64,7 @@ class Stmt(Org, M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS,
                 abstract=True,
                 section_code=[
                     dict(
@@ -114,15 +123,23 @@ class Stmt(Org, M.Class):
 class Inline(Org, M.Class):
     """Base class for all inline elements"""
 
-    __config__(backend=dict(cpp=dict(abstract=True)))
+    __config__(
+        backend=dict(
+            cpp=dict(abstract=True, org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)
+        )
+    )
 
 
 class StmtList(Org, M.Class):
     """Zero or more statement nodes"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Empty(Org, M.Class):
     """Node without content"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Cmd(Stmt, M.Class):
@@ -132,7 +149,11 @@ class Cmd(Stmt, M.Class):
         doc="Additional parameters aside from 'exporter',"
     )
 
-    __config__(backend=dict(cpp=dict(abstract=True)))
+    __config__(
+        backend=dict(
+            cpp=dict(abstract=True, org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)
+        )
+    )
 
     @M.Method(backend=dict(cpp=dict(is_virtual=True, is_override=True)))
     def getAttrs(
@@ -151,19 +172,31 @@ class Cmd(Stmt, M.Class):
 class Block(Cmd, M.Class):
     """Block command type"""
 
-    __config__(backend=dict(cpp=dict(abstract=True)))
+    __config__(
+        backend=dict(
+            cpp=dict(abstract=True, org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)
+        )
+    )
 
 
 class LineCommand(Cmd, M.Class):
     """Line commands"""
 
-    __config__(backend=dict(cpp=dict(abstract=True)))
+    __config__(
+        backend=dict(
+            cpp=dict(abstract=True, org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)
+        )
+    )
 
 
 class Attached(LineCommand, M.Class):
     """Line command that might get attached to some block element"""
 
-    __config__(backend=dict(cpp=dict(abstract=True)))
+    __config__(
+        backend=dict(
+            cpp=dict(abstract=True, org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)
+        )
+    )
 
 
 class Leaf(Org, M.Class):
@@ -171,7 +204,11 @@ class Leaf(Org, M.Class):
 
     text: str = M.Field(doc="Final leaf value", default="")
 
-    __config__(backend=dict(cpp=dict(abstract=True)))
+    __config__(
+        backend=dict(
+            cpp=dict(abstract=True, org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)
+        )
+    )
 
     @M.Method(backend=dict(cpp=dict(body="return text;")))
     def getText(self) -> str: ...
@@ -182,11 +219,15 @@ class CmdCaption(Attached, M.Class):
 
     text: "Paragraph" = M.Field(doc="Content description")
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CmdCreator(Cmd, M.Class):
     """Creator of the document"""
 
     text: "Paragraph" = M.Field(doc="Creator name text")
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class CmdAuthor(Cmd, M.Class):
@@ -194,13 +235,19 @@ class CmdAuthor(Cmd, M.Class):
 
     text: "Paragraph" = M.Field(doc="Author name text")
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CmdEmail(Cmd, M.Class):
     text: str
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CmdLanguage(Cmd, M.Class):
     text: str
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class CmdColumns(Attached, M.Class):
@@ -208,11 +255,15 @@ class CmdColumns(Attached, M.Class):
 
     view: Shared._T["ColumnView"]
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CmdName(Attached, M.Class):
     """Name identifier for the statement elements."""
 
     name: str
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class CmdCustomArgs(Cmd, M.Class):
@@ -220,6 +271,8 @@ class CmdCustomArgs(Cmd, M.Class):
 
     name: str
     isAttached: bool = False
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class CmdCustomRaw(Stmt, M.Class):
@@ -229,6 +282,8 @@ class CmdCustomRaw(Stmt, M.Class):
     isAttached: bool = False
     text: str
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CmdCustomText(Stmt, M.Class):
     """Custom line command with text paragraph value"""
@@ -236,6 +291,8 @@ class CmdCustomText(Stmt, M.Class):
     name: str
     isAttached: bool = False
     text: "Paragraph"
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class CmdCall(Attached, M.Class):
@@ -254,35 +311,51 @@ class CmdCall(Attached, M.Class):
     )
     result: ListType["BlockCodeEvalResult"] = M.Field(doc="Code evaluation results")
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CmdTblfm(Cmd, M.Class):
     """Tblfm command type"""
 
     expr: Shared._T["Tblfm"]
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class BlockCenter(Block, M.Class):
     """Center nested content in export"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class BlockQuote(Block, M.Class):
     """Quotation block"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class BlockComment(Stmt, M.Class):
     """Comment block"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class BlockVerse(Block, M.Class):
     """Verse quotation block"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class BlockDynamicFallback(Block, M.Class):
     name: str
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class BlockExample(Block, M.Class):
     """Example block"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class BlockExport(Block, M.Class):
@@ -295,9 +368,13 @@ class BlockExport(Block, M.Class):
         """Return value of the :placement attribute if present"""
         ...
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class BlockAdmonition(Block, M.Class):
     """Block of text with admonition tag: 'note',', 'warning','"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class BlockCodeEvalResult(Block, M.Class):
@@ -305,6 +382,8 @@ class BlockCodeEvalResult(Block, M.Class):
 
     raw: ListType[Shared._T["OrgCodeEvalOutput"]]
     node: Org
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class BlockCode(Block, M.Class):
@@ -319,9 +398,13 @@ class BlockCode(Block, M.Class):
 
     def getVariable(self, varname: str) -> Optional[Shared._T["AttrValue"]]: ...
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class HashTag(Inline, M.Class):
     text: Shared._T["HashTagText"]
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class InlineFootnote(Inline, M.Class):
@@ -335,12 +418,16 @@ class InlineFootnote(Inline, M.Class):
         doc="Link to possibly resolved definition", default=None
     )
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class InlineExport(Inline, M.Class):
     """Inline export"""
 
     exporter: str
     content: str
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Time(Org, M.Class):
@@ -394,6 +481,7 @@ class Time(Org, M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS,
                 variants=dict(
                     time=dict(
                         variant_name="TimeVariant",
@@ -426,7 +514,12 @@ class TimeRange(Org, M.Class):
     to: Time = M.Field(doc="Finishing time")
 
     __config__(
-        backend=dict(cpp=dict(field_names=dict(from_="from"))),
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS,
+                field_names=dict(from_="from"),
+            )
+        ),
     )
 
     def getClockedTimeSeconds(self) -> Optional[Int64]: ...
@@ -439,6 +532,8 @@ class Macro(Org, M.Class):
     attrs: Shared._T["AttrGroup"] = M.Field(
         doc="Additional parameters aside from 'exporter',"
     )
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Symbol(Org, M.Class):
@@ -454,49 +549,73 @@ class Symbol(Org, M.Class):
     parameters: ListType[Param] = M.Field(doc="Optional list of parameters")
     positional: ListType[Org] = M.Field(doc="Positional parameters")
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Escaped(Leaf, M.Class):
     """Escaped text"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Newline(Leaf, M.Class):
     r"""\n newline"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Space(Leaf, M.Class):
     """' "space","""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Word(Leaf, M.Class):
     """word"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class AtMention(Leaf, M.Class):
     """`@mention`"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class RawText(Leaf, M.Class):
     pass
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Punctuation(Leaf, M.Class):
     pass
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Placeholder(Leaf, M.Class):
     pass
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class BigIdent(Leaf, M.Class):
     pass
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class TextTarget(Leaf, M.Class):
     """`<<target>>`"""
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class ErrorSkipToken(Leaf, M.Class):
     """Single token skipped during error recovery"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class ErrorSkipGroup(Org, M.Class):
@@ -504,41 +623,63 @@ class ErrorSkipGroup(Org, M.Class):
 
     skipped: ListType[ErrorSkipToken]
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Markup(Org, M.Class):
-    __config__(backend=dict(cpp=dict(abstract=True)))
+    __config__(
+        backend=dict(
+            cpp=dict(abstract=True, org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)
+        )
+    )
 
 
 class Bold(Markup, M.Class):
     pass
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Underline(Markup, M.Class):
     pass
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Monospace(Markup, M.Class):
     pass
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class MarkQuote(Markup, M.Class):
     pass
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Verbatim(Markup, M.Class):
     pass
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Italic(Markup, M.Class):
     pass
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Strike(Markup, M.Class):
     pass
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Par(Markup, M.Class):
     pass
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class RadioTarget(Org, M.Class):
@@ -546,14 +687,20 @@ class RadioTarget(Org, M.Class):
 
     words: ListType[str]
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Latex(Org, M.Class):
     """Latex code body"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Link(Stmt, M.Class):
     description: Optional["Paragraph"] = None
     target: Shared._T["LinkTarget"]
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class SubtreeLog(Org, M.Class):
@@ -573,6 +720,8 @@ class SubtreeLog(Org, M.Class):
         ),
     )
     def setDescription(self, desc: StmtList) -> None: ...
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Subtree(Org, M.Class):
@@ -660,6 +809,8 @@ class Subtree(Org, M.Class):
 
     def getTodoKeyword(self) -> Optional[str]: ...
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Cell(Cmd, M.Class):
     """Table cell"""
@@ -667,6 +818,8 @@ class Cell(Cmd, M.Class):
     isBlock: bool = M.Field(
         doc="Single-line pipe cell or `#+cell:` command", default=False
     )
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Row(Cmd, M.Class):
@@ -677,6 +830,8 @@ class Row(Cmd, M.Class):
         doc="Single-line pipe cell or `#+cell:` command", default=False
     )
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Table(Block, M.Class):
     """Table"""
@@ -685,6 +840,8 @@ class Table(Block, M.Class):
     isBlock: bool = M.Field(
         doc="Single-line pipe cell or `#+cell:` command", default=False
     )
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Paragraph(Stmt, M.Class):
@@ -714,9 +871,13 @@ class Paragraph(Stmt, M.Class):
         """Return content of the paragraph, without prefix idents, hashtags, footnotes etc."""
         ...
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class ColonExample(Org, M.Class):
     """Shortened colon example block"""
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class CmdAttr(Attached, M.Class):
@@ -724,12 +885,16 @@ class CmdAttr(Attached, M.Class):
 
     target: str
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CmdExport(Attached, M.Class):
     """Single line of passthrough code"""
 
     exporter: str
     content: str
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Call(Org, M.Class):
@@ -740,6 +905,8 @@ class Call(Org, M.Class):
         doc="Additional parameters aside from 'exporter'"
     )
     isCommand: bool = False
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class List(Stmt, M.Class):
@@ -754,6 +921,8 @@ class List(Stmt, M.Class):
     def isNumberedList(self) -> bool:
         """List is marked as numbered if any list item has bullet text set"""
         ...
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class ListItem(Org, M.Class):
@@ -770,6 +939,8 @@ class ListItem(Org, M.Class):
     def getCleanHeader(self) -> Optional[str]:
         """Return flat text for the description list header"""
         ...
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class DocumentOptions(Org, M.Class):
@@ -790,6 +961,7 @@ class DocumentOptions(Org, M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS,
                 field_defaults=dict(
                     initialVisibility=(
                         "org::sem::InitialSubtreeVisibility::ShowEverything"
@@ -818,6 +990,8 @@ class DocumentFragment(Org, M.Class):
     baseLine: Int32 = 0
     baseCol: Int32 = 0
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class CriticMarkup(Org, M.Class):
     """https://fletcher.github.io/MultiMarkdown-6/syntax/critic.html"""
@@ -830,6 +1004,8 @@ class CriticMarkup(Org, M.Class):
         Comment: int = 4
 
     kind: Kind
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class Document(Org, M.Class):
@@ -854,6 +1030,8 @@ class Document(Org, M.Class):
         subKind: Optional[str] = None,
     ) -> Optional[Shared._T["NamedProperty"]]: ...
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class FileTarget(Org, M.Class):
     path: str
@@ -863,13 +1041,19 @@ class FileTarget(Org, M.Class):
     targetId: Optional[str] = None
     regexp: Optional[str] = None
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class TextSeparator(Org, M.Class):
     pass
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class DocumentGroup(Org, M.Class):
     pass
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class File(Org, M.Class):
@@ -890,6 +1074,7 @@ class File(Org, M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS,
                 variants=dict(
                     data=dict(kind_getter="getFileKind"),
                 ),
@@ -904,12 +1089,16 @@ class Directory(Org, M.Class):
     )
     absPath: str = M.Field(doc="Absolute resolved path to physical directory")
 
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
+
 
 class Symlink(Org, M.Class):
     isDirectory: bool
     absPath: str = M.Field(
         doc="Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root."
     )
+
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS)))
 
 
 class CmdInclude(Org, M.Class):
@@ -968,6 +1157,7 @@ class CmdInclude(Org, M.Class):
     __config__(
         backend=dict(
             cpp=dict(
+                org_groups=OrgTypeGroup.SEM_NODE_DEFINITIONS,
                 variants=dict(
                     data=dict(kind_getter="getIncludeKind"),
                 ),

@@ -2,25 +2,44 @@ from pathlib import Path
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
+from deepdiff import DeepDiff
 from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
 from hstd_py_codegen.read_cpp.refl_read import ConvTu
 from hstd_py_lib.os_utils import latest_file
+from hstd_py_lib.pydantic_utils import format_json_with_fjson
+from hstd_py_lib.script_logging import to_debug_json
 from hstd_py_text_layout.base.wrap import TextLayout
 from repo_py_orchestrate.codegen_config import org_codegen_data
 from repo_py_orchestrate.codegen_config.codegen import (
     gen_haxorg_base_sources,
     run_codegen_pyhaxorg_wrappers,
 )
+from repo_py_orchestrate.codegen_config.codegen_type_groups import (
+    get_pyhaxorg_type_groups,
+)
 from repo_py_orchestrate.codegen_config.extract_refl import (
     extract_reflection,
 )
 from repo_py_orchestrate.codegen_config.type_models.model_to_gentu import (
-    get_org_gentu_models,
+    get_pyhaxorg_type_groups_via_dsl,
 )
 
 
-def test_org_dsl_codegen_conversion():
-    model = get_org_gentu_models()
+def test_org_dsl_codegen_conversion(stable_test_dir: Path):
+    t = TextLayout()
+    builder = cpp.ASTBuilder(t)
+    v2_model = get_pyhaxorg_type_groups_via_dsl(builder)
+    v1_model = get_pyhaxorg_type_groups(ast=builder)
+
+    diff = DeepDiff(
+        to_debug_json(v1_model),
+        to_debug_json(v2_model),
+        verbose_level=1,
+    )
+
+    stable_test_dir.joinpath("result.json").write_text(
+        format_json_with_fjson(diff.to_dict())
+    )
 
 
 def test_org_codegen_data_run():

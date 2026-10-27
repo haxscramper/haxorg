@@ -34,7 +34,6 @@ from hstd_py_unidata.model_ir import (
 )
 
 
-@beartype
 @dataclass(frozen=True)
 class ScalarValue:
     prim: PrimKind
@@ -42,7 +41,6 @@ class ScalarValue:
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class RecordValue:
     """Record instance, the qname is the concrete type which can derive from the declared slot type."""
@@ -52,14 +50,12 @@ class RecordValue:
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class ListValue:
     items: Tuple[Value, ...]
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class MapValue:
     """Map with unique keys under structural equality, entries keep insertion order."""
@@ -68,21 +64,18 @@ class MapValue:
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class OptValue:
     value: Optional[Value]
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class TupleValue:
     items: Tuple[Value, ...]
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class EnumValue:
     enum: QName
@@ -90,7 +83,6 @@ class EnumValue:
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class VariantValue:
     variant: VariantT
@@ -99,7 +91,6 @@ class VariantValue:
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class ExternalValue:
     """Opaque payload of an external type in its JSON encoding."""
@@ -109,7 +100,6 @@ class ExternalValue:
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class AnyValue:
     """Payload of a field declared with the `any` type, stored without interpretation."""
@@ -118,7 +108,6 @@ class AnyValue:
     path: Optional[ItemPath] = field(default=None, compare=False)
 
 
-@beartype
 @dataclass(frozen=True)
 class PathValue:
     """Occurrence path produced by `path_of`, it is not storable in instance data."""
@@ -141,6 +130,10 @@ type Value = Union[
     PathValue,
 ]
 
+# Resolve annotations only after the Value alias and all its members exist.
+for _value_type in Value.__value__.__args__:
+    beartype(_value_type)
+
 
 @beartype
 class ValueDecodeError(Exception):
@@ -152,7 +145,6 @@ class ValueDecodeError(Exception):
         self.message = message
 
 
-@beartype
 @dataclass(frozen=True)
 class Position:
     """Value occurrence inside a tree together with its declared type."""

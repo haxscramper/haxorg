@@ -2,6 +2,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Sequence
 
+import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
+import repo_py_orchestrate.codegen_config.org_codegen_data as org_data
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuDoc,
     GenTuEntry,
@@ -18,6 +20,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     QualTypeKind,
     ReferenceKind,
 )
+from hstd_py_codegen.gen_cpp.codegen_type_order import expand_type_groups
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     ArrayT,
@@ -42,6 +45,12 @@ from hstd_py_unidata.model_ir import (
     UnresolvedT,
     VariantDef,
     VariantT,
+)
+from repo_py_orchestrate.codegen_config.codegen_type_groups import (
+    OrgTypeGroup,
+    PyhaxorgTypeGroups,
+    get_osk_enum,
+    populate_immutable_type_groups,
 )
 
 DEFAULT_NAMESPACES: dict[str, tuple[str, ...]] = {
@@ -163,10 +172,19 @@ class ModelToGenTu:
 
     def declaration_type(self, package: str, qname: QName) -> QualType:
         namespaces = self.namespace(package)
-        return qualified_type(
+        result = qualified_type(
             (*namespaces, *qname.parts()),
             namespace_count=len(namespaces),
         )
+        outer = qname
+        while outer.scope is not None:
+            outer = outer.scope
+        if self.is_ast(package, outer):
+            if qname.scope is None:
+                result.Meta["isOrgType"] = True
+            else:
+                result.Spaces[len(namespaces)].Meta["isOrgType"] = True
+        return result
 
     def is_ast(self, package: str, qname: QName) -> bool:
         return (package, qname) in self.ast_records
@@ -779,20 +797,52 @@ def model_to_gentu(
     ).convert()
 
 
-@dataclass
-class OrgGenTuModels:
-    shared: list[GenTuEntry]
-    ast: list[GenTuEntry]
-
-
-def get_org_gentu_models() -> OrgGenTuModels:
+def get_pyhaxorg_type_groups_via_dsl(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
     from .org_mode_model import get_model as get_ast_model
     from .org_shared_model import get_model as get_shared_model
 
     shared = get_shared_model()
-    ast = get_ast_model()
+    sem_model = get_ast_model()
+    converters = [
+        ModelToGenTu(shared),
+        ModelToGenTu(sem_model, dependencies=[shared]),
+    ]
+    shared_types: list[GenTuStruct] = []
+    sem_types: list[GenTuStruct] = []
+    enums: list[GenTuEnum] = []
 
-    return OrgGenTuModels(
-        shared=model_to_gentu(shared),
-        ast=model_to_gentu(ast, dependencies=[shared]),
+    for converter in converters:
+        declarations = [
+            item
+            for item in (*converter.model.enums, *converter.model.records)
+            if item.qname.scope is None
+        ]
+        entries = converter.convert()
+        if converter.ast_kind_enum() is not None:
+            entries = entries[1:]
+
+        for declaration, entry in zip(declarations, entries, strict=True):
+            group = cpp_config(declaration).get("org_groups")
+            match (group, entry):
+                case (OrgTypeGroup.SHARED_TYPES, GenTuStruct()):
+                    shared_types.append(entry)
+                case (OrgTypeGroup.SEM_NODE_DEFINITIONS, GenTuStruct()):
+                    sem_types.append(entry)
+                case (OrgTypeGroup.FULL_ENUMS, GenTuEnum()):
+                    enums.append(entry)
+                case (OrgTypeGroup.AST_ROOT, GenTuStruct()):
+                    pass
+                case _:
+                    raise ValueError(
+                        f"Cannot assign {converter.model.package}.{declaration.qname.to_id()} "
+                        f"to an Org type group: got {group!r} for {type(entry).__name__}; "
+                        "expected a group compatible with the declaration kind"
+                    )
+
+    result = PyhaxorgTypeGroups()
+    result.shared_types = expand_type_groups(ast, shared_types)
+    populate_immutable_type_groups(ast, result, sem_types)
+    result.full_enums = (
+        enums + org_data.get_enums() + [get_osk_enum(result.sem_node_definitions)]
     )
+    return result

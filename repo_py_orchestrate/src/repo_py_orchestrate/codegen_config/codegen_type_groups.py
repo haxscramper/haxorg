@@ -1,5 +1,6 @@
 import itertools
 from dataclasses import dataclass, field
+from enum import Enum, auto
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 import repo_py_orchestrate.codegen_config.gen_haxorg.immutable as gen_imm
@@ -12,6 +13,13 @@ from hstd_py_codegen.gen_cpp.codegen_type_order import (
     expand_type_groups,
 )
 from hstd_py_codegen.read_cpp.refl_read import ConvTu
+
+
+class OrgTypeGroup(Enum):
+    SHARED_TYPES = auto()
+    SEM_NODE_DEFINITIONS = auto()
+    AST_ROOT = auto()
+    FULL_ENUMS = auto()
 
 
 @beartype
@@ -75,26 +83,20 @@ class PyhaxorgTypeGroups:
 
 
 @beartype
-def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
+def populate_immutable_type_groups(
+    ast: cpp.ASTBuilder,
+    res: PyhaxorgTypeGroups,
+    sem_types: Sequence[codegen_ir.GenTuStruct],
+) -> None:
     """
-    Get type groups and method implementations for the haxorg library
-    source file generation and wrappers.
+    Expand the immutable type groups in-place.
     """
-    res = PyhaxorgTypeGroups()
-    res.shared_types = expand_type_groups(ast, org_data.get_shared_sem_types())
-    res.sem_node_definitions = expand_type_groups(
-        ast, org_data.get_sem_node_definitions()
+    res.sem_node_definitions = expand_type_groups(ast, sem_types)
+    res.adapter_specializations = gen_imm.generate_adapter_specializations(
+        ast, res.sem_node_definitions
     )
-    adapters = gen_imm.generate_adapter_specializations(ast, res.sem_node_definitions)
-    res.adapter_specializations = adapters
     res.imm_node_definitions = expand_type_groups(
-        ast, gen_imm.rewrite_to_immutable(org_data.get_sem_node_definitions())
-    )
-
-    res.full_enums = (
-        org_data.get_shared_sem_enums()
-        + org_data.get_enums()
-        + [get_osk_enum(res.sem_node_definitions)]
+        ast, gen_imm.rewrite_to_immutable(sem_types)
     )
 
     imm_space = [QualType.ForName("org"), QualType.ForName("imm")]
@@ -116,7 +118,7 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
             )
         )
 
-    for org_type in org_data.get_sem_node_definitions():
+    for org_type in sem_types:
         res.imm_id_specializations.append(
             codegen_ir.GenTuStruct(
                 OriginName="imm ID explicit",
@@ -132,4 +134,16 @@ def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
             )
         )
 
+
+@beartype
+def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
+    """Get type groups for source generation and wrappers."""
+    res = PyhaxorgTypeGroups()
+    res.shared_types = expand_type_groups(ast, org_data.get_shared_sem_types())
+    populate_immutable_type_groups(ast, res, org_data.get_sem_node_definitions())
+    res.full_enums = (
+        org_data.get_shared_sem_enums()
+        + org_data.get_enums()
+        + [get_osk_enum(res.sem_node_definitions)]
+    )
     return res
