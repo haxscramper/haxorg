@@ -193,6 +193,11 @@ validate_all editable: conan_export_external_deps
   # Base hstd package also contains plugins, hooks and deployers
   # for the rest, so if it fails the rest might be too broken.
   just py_validate hstd_py_lib {{editable}} || exit "$?"
+  # unidata is a pure-python package, its logic is used to
+  # generate the data types and some runtime checks for the
+  # subsequent C++ packages, so it must be validated
+  # prior to eveything else.
+  just py_validate hstd_py_unidata {{editable}}
   #
   just conan_validate hstd_cpp_lib {{editable}}
   just conan_validate haxdex_read_code_cpp {{editable}}
@@ -203,6 +208,10 @@ validate_all editable: conan_export_external_deps
   just py_validate haxorg_py_lib {{editable}}
   just py_validate hstd_py_codegen {{editable}}
   just py_validate hstd_py_text_layout {{editable}}
+  # Main repo orchestration can generate code for the previous
+  # packages, but it also relies on the data collection and
+  # generation features, text layout.
+  just py_validate repo_py_orchestrate {{editable}}
   just format_validation_results
 
 
