@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.13.*"
 
 [manifest]
@@ -438,6 +438,7 @@ source = { editable = "hstd_py_lib" }
 dependencies = [
     { name = "beartype" },
     { name = "betterproto2" },
+    { name = "dominate" },
     { name = "glom" },
     { name = "jsonpath-ng" },
     { name = "loguru" },
@@ -461,6 +462,7 @@ dev = [
 requires-dist = [
     { name = "beartype" },
     { name = "betterproto2" },
+    { name = "dominate" },
     { name = "glom" },
     { name = "jsonpath-ng" },
     { name = "loguru" },

@@ -78,14 +78,14 @@ def gen_haxorg_cpp_library_wrappers(
 
 
 @beartype
-def gen_haxorg_base_sources(
+def gen_haxorg_base_sources1(
     monorepo_root: Path,
     t: TextLayout,
+    builder: cpp.ASTBuilder,
+    groups: PyhaxorgTypeGroups,
     context_tu: refl_read.ConvTu = refl_read.ConvTu(),
     with_context: bool = True,
 ) -> tuple[list[GenTuUnion], GenFiles]:
-    builder = cpp.ASTBuilder(t)
-    groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(ast=builder)
     groups.context_tu = context_tu
     type_map = GenTypeMap.FromTypes(groups.get_all())
 
@@ -97,6 +97,26 @@ def gen_haxorg_base_sources(
     )
 
     return groups.get_all(with_context=with_context), sources
+
+
+@beartype
+def gen_haxorg_base_sources(
+    monorepo_root: Path,
+    t: TextLayout,
+    context_tu: refl_read.ConvTu = refl_read.ConvTu(),
+    with_context: bool = True,
+) -> tuple[list[GenTuUnion], GenFiles]:
+    builder = cpp.ASTBuilder(t)
+    groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(ast=builder)
+
+    return gen_haxorg_base_sources1(
+        monorepo_root=monorepo_root,
+        t=t,
+        builder=builder,
+        groups=groups,
+        context_tu=context_tu,
+        with_context=with_context,
+    )
 
 
 @beartype

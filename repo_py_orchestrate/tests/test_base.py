@@ -5,13 +5,14 @@ from beartype import beartype
 from deepdiff import DeepDiff
 from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
 from hstd_py_codegen.read_cpp.refl_read import ConvTu
-from hstd_py_lib.os_utils import latest_file
+from hstd_py_lib.os_utils import ensure_clean_dir, latest_file
 from hstd_py_lib.pydantic_utils import format_json_with_fjson
 from hstd_py_lib.script_logging import to_debug_json
 from hstd_py_text_layout.base.wrap import TextLayout
 from repo_py_orchestrate.codegen_config import org_codegen_data
 from repo_py_orchestrate.codegen_config.codegen import (
     gen_haxorg_base_sources,
+    gen_haxorg_base_sources1,
     run_codegen_pyhaxorg_wrappers,
 )
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
@@ -31,15 +32,28 @@ def test_org_dsl_codegen_conversion(stable_test_dir: Path):
     v2_model = get_pyhaxorg_type_groups_via_dsl(builder)
     v1_model = get_pyhaxorg_type_groups(ast=builder)
 
-    diff = DeepDiff(
-        to_debug_json(v1_model),
-        to_debug_json(v2_model),
-        verbose_level=1,
-    )
+    v1_json = to_debug_json(v1_model)
+    v2_json = to_debug_json(v2_model)
+    diff = DeepDiff(v1_json, v2_json, verbose_level=1)
+
+    stable_test_dir.joinpath("v1_model.json").write_text(format_json_with_fjson(v1_json))
+    stable_test_dir.joinpath("v2_model.json").write_text(format_json_with_fjson(v2_json))
 
     stable_test_dir.joinpath("result.json").write_text(
-        format_json_with_fjson(diff.to_dict())
+        format_json_with_fjson(diff.to_dict()),
     )
+
+    for v, value in [("v1", v1_model), ("v2", v2_model)]:
+        res_dir = stable_test_dir.joinpath(f"files_{v}")
+        ensure_clean_dir(res_dir)
+        _, sources = gen_haxorg_base_sources1(
+            res_dir,
+            builder=builder,
+            groups=value,
+            t=t,
+            context_tu=org_codegen_data.COMMON_CONTEXT_TU,
+        )
+        gen_description_files(sources, builder, t)
 
 
 def test_org_codegen_data_run():

@@ -343,13 +343,11 @@ class ModelToGenTu:
             if isinstance(typ, OptT):
                 return "std::nullopt"
 
-            if isinstance(typ, NamedT):
-                if self.is_ast(package, typ.qname):
-                    return f"{cpp_type_text(self.type(typ, package))}::Nil()"
+            if isinstance(typ, NamedT) and self.is_ast(package, typ.qname):
+                return f"{cpp_type_text(self.type(typ, package))}::Nil()"
 
-            if isinstance(typ, ExternalT):
-                if self.is_ast(typ.package, typ.qname):
-                    return f"{cpp_type_text(self.type(typ, package))}::Nil()"
+            if isinstance(typ, ExternalT) and self.is_ast(typ.package, typ.qname):
+                return f"{cpp_type_text(self.type(typ, package))}::Nil()"
 
             return "{}"
 
@@ -659,14 +657,12 @@ class ModelToGenTu:
         # synthetic variant enums in a particular finalizer implementation.
         children: list[GenTuEntry] = []
         for record in self.model.records:
-            if record.qname.scope == item.qname:
-                if record.qname not in variant_cases:
-                    children.append(self.record(record))
+            if record.qname.scope == item.qname and record.qname not in variant_cases:
+                children.append(self.record(record))
 
         for enum in self.model.enums:
-            if enum.qname.scope == item.qname:
-                if enum.qname not in variant_enums:
-                    children.append(self.enum(enum))
+            if enum.qname.scope == item.qname and enum.qname not in variant_enums:
+                children.append(self.enum(enum))
 
         for variant in item.variants:
             children.append(self.variant(item, variant))

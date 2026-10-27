@@ -19,6 +19,7 @@ dependencies = [
   "glom",
   "betterproto2",
   "tomli_w",
+  "dominate",
 ]
 
 [project.entry-points.hatch]
