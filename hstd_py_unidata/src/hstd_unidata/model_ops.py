@@ -20,9 +20,8 @@ from beartype.typing import (
     Union,
     cast,
 )
-
-from hstd_unidata.model_index import ModelIndex
-from hstd_unidata.model_ir import (
+from hstd_py_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_ir import (
     INTEGER_RANGES,
     ExprNode,
     NamedT,
@@ -33,7 +32,7 @@ from hstd_unidata.model_ir import (
     numeric_join,
     type_text,
 )
-from hstd_unidata.model_value import (
+from hstd_py_unidata.model_value import (
     EnumValue,
     ListValue,
     MapValue,
@@ -1190,7 +1189,7 @@ class TypeOfOp(Operator):
 @beartype
 def default_operators() -> List[Operator]:
     """Core operator set; pass a modified list to `get_dsl_model` to customize the language."""
-    from hstd_unidata.type_impls import type_list, type_map
+    from hstd_py_unidata.type_impls import type_list, type_map
 
     return [
         ThisOp(),

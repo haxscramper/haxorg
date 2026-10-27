@@ -9,10 +9,9 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Optional, Tuple, TypeVar
-
-from hstd_unidata.model_ir import ExprNode, OpId, SourceLoc, TypeRef
-from hstd_unidata.model_ops import parse_format
-from hstd_unidata.model_resolve import AnnotationResolver
+from hstd_py_unidata.model_ir import ExprNode, OpId, SourceLoc, TypeRef
+from hstd_py_unidata.model_ops import parse_format
+from hstd_py_unidata.model_resolve import AnnotationResolver
 
 IMPLEMENTATION_FILES = frozenset(
     path.resolve() for path in Path(__file__).resolve().parent.rglob("*.py")

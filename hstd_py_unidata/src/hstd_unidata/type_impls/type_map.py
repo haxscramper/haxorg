@@ -1,8 +1,7 @@
 from beartype import beartype
 from beartype.typing import List, Optional, Tuple
-
-from hstd_unidata.model_ir import ExprNode, OpId, PrimKind
-from hstd_unidata.model_ops import (
+from hstd_py_unidata.model_ir import ExprNode, OpId, PrimKind
+from hstd_py_unidata.model_ops import (
     INT64_T,
     Env,
     EvalHost,
@@ -12,7 +11,7 @@ from hstd_unidata.model_ops import (
     make_int,
     type_arg_text,
 )
-from hstd_unidata.model_value import (
+from hstd_py_unidata.model_value import (
     ListValue,
     MapValue,
     Value,

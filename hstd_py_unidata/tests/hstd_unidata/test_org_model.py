@@ -4,10 +4,9 @@ import enum
 from pathlib import Path
 
 from beartype.typing import Annotated
-
-from hstd_unidata.model_dsl import __variant__, get_dsl_model
-from hstd_unidata.model_frontend import EnFieldAnnotation
-from hstd_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_dsl import __variant__, get_dsl_model
+from hstd_py_unidata.model_frontend import EnFieldAnnotation
+from hstd_py_unidata.model_index import ModelIndex
 
 M = get_dsl_model("org.sem")
 

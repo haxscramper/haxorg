@@ -4,9 +4,8 @@ from dataclasses import dataclass
 
 from beartype import beartype
 from beartype.typing import Dict, List, NoReturn, Optional
-
-from hstd_unidata.model_index import ModelIndex
-from hstd_unidata.model_ir import (
+from hstd_py_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_ir import (
     CheckContext,
     CheckDef,
     ExprNode,
@@ -19,7 +18,7 @@ from hstd_unidata.model_ir import (
     SourceLoc,
     TypeRef,
 )
-from hstd_unidata.model_ops import (
+from hstd_py_unidata.model_ops import (
     Env,
     EvalError,
     EvalHost,
@@ -27,7 +26,7 @@ from hstd_unidata.model_ops import (
     expect_bool,
     expect_str,
 )
-from hstd_unidata.model_value import (
+from hstd_py_unidata.model_value import (
     EnumValue,
     RecordValue,
     ScalarValue,

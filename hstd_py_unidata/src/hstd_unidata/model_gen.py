@@ -7,11 +7,9 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, List, Optional, Tuple
-from loguru import logger
-
-from hstd_unidata.model_eval import CheckFailure, errors_only, validate
-from hstd_unidata.model_index import ModelIndex
-from hstd_unidata.model_ir import (
+from hstd_py_unidata.model_eval import CheckFailure, errors_only, validate
+from hstd_py_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_ir import (
     FLOAT_PRIMS,
     INTEGER_RANGES,
     ArrayT,
@@ -31,8 +29,8 @@ from hstd_unidata.model_ir import (
     VariantT,
     type_text,
 )
-from hstd_unidata.model_ops import Operator
-from hstd_unidata.model_value import (
+from hstd_py_unidata.model_ops import Operator
+from hstd_py_unidata.model_value import (
     AnyValue,
     EnumValue,
     ListValue,
@@ -49,6 +47,7 @@ from hstd_unidata.model_value import (
     positions,
     replace_at,
 )
+from loguru import logger
 
 
 @beartype

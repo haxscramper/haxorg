@@ -5,11 +5,9 @@ from dataclasses import dataclass
 
 from beartype import beartype
 from beartype.typing import Callable, Dict, Iterator, List, Tuple
-from loguru import logger
-
-from hstd_unidata.model_eval import errors_only, validate
-from hstd_unidata.model_index import ModelIndex
-from hstd_unidata.model_ir import (
+from hstd_py_unidata.model_eval import errors_only, validate
+from hstd_py_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_ir import (
     INTEGER_RANGES,
     ListT,
     MapT,
@@ -18,8 +16,8 @@ from hstd_unidata.model_ir import (
     TypeRef,
     type_text,
 )
-from hstd_unidata.model_ops import Operator
-from hstd_unidata.model_value import (
+from hstd_py_unidata.model_ops import Operator
+from hstd_py_unidata.model_value import (
     EnumValue,
     ListValue,
     MapValue,
@@ -36,6 +34,7 @@ from hstd_unidata.model_value import (
     value_key,
     value_size,
 )
+from loguru import logger
 
 Predicate = Callable[[Value], bool]
 

@@ -1,8 +1,7 @@
 import pytest
 from beartype.typing import Dict, List, Optional
-
-from hstd_unidata.model_dsl import Int8, __variant__, get_dsl_model
-from hstd_unidata.model_value import RecordValue, ValueDecodeError, value_size
+from hstd_py_unidata.model_dsl import Int8, __variant__, get_dsl_model
+from hstd_py_unidata.model_value import RecordValue, ValueDecodeError, value_size
 
 
 def make_model():

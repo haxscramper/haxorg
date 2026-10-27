@@ -8,10 +8,8 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
-from plumbum import local
-
-from hstd_unidata.model_index import ModelIndex
-from hstd_unidata.model_ir import (
+from hstd_py_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_ir import (
     FLOAT_PRIMS,
     INTEGER_RANGES,
     ArrayT,
@@ -36,7 +34,7 @@ from hstd_unidata.model_ir import (
     VariantT,
     numeric_join,
 )
-from hstd_unidata.model_ops import (
+from hstd_py_unidata.model_ops import (
     BOOL_T,
     STRING_T,
     TYPE_CLASS_CONSTRUCTORS,
@@ -44,6 +42,7 @@ from hstd_unidata.model_ops import (
     Operator,
     TypeClass,
 )
+from plumbum import local
 
 RULES_DIR = Path(__file__).parent
 

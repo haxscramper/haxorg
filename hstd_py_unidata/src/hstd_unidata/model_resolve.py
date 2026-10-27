@@ -23,9 +23,7 @@ from beartype.typing import (
     get_args,
     get_origin,
 )
-from loguru import logger
-
-from hstd_unidata.model_frontend import (
+from hstd_py_unidata.model_frontend import (
     NO_DEFAULT,
     DslAttr,
     FixedArrayFactory,
@@ -44,8 +42,8 @@ from hstd_unidata.model_frontend import (
     UInt32,
     UInt64,
 )
-from hstd_unidata.model_index import ModelIndex
-from hstd_unidata.model_ir import (
+from hstd_py_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_ir import (
     ArrayT,
     CheckContext,
     CheckDef,
@@ -80,13 +78,14 @@ from hstd_unidata.model_ir import (
     VariantT,
     type_text,
 )
-from hstd_unidata.model_ops import Operator
-from hstd_unidata.model_value import (
+from hstd_py_unidata.model_ops import Operator
+from hstd_py_unidata.model_value import (
     ValueDecodeError,
     decode_json,
     encode_json,
     record_default,
 )
+from loguru import logger
 
 PRIMITIVE_TYPES: Dict[Any, PrimKind] = {
     int: PrimKind.INT64,

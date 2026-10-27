@@ -6,6 +6,7 @@ members = [
   "repo_py_orchestrate",
   "haxorg_py_lib",
   "hstd_py_text_layout",
+  "hstd_py_unidata",
   "haxdex_read_code_cpp/tests",
 ]
 
@@ -14,6 +15,7 @@ hstd_py_lib = { workspace = true }
 hstd_py_text_layout = { workspace = true }
 hstd_py_codegen = { workspace = true }
 repo_py_orchestrate = { workspace = true }
+hstd_py_unidata = { workspace = true }
 
 [dependency-groups]
 dev = [

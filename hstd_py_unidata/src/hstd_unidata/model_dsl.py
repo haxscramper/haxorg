@@ -21,10 +21,13 @@ from beartype.typing import (
     get_args,
     get_origin,
 )
-
-from hstd_unidata.model_diagnostics import Diagnostic, DslTypeError, build_diagnostics
-from hstd_unidata.model_eval import CheckFailure, validate
-from hstd_unidata.model_expr import (
+from hstd_py_unidata.model_diagnostics import (
+    Diagnostic,
+    DslTypeError,
+    build_diagnostics,
+)
+from hstd_py_unidata.model_eval import CheckFailure, validate
+from hstd_py_unidata.model_expr import (
     Expr,
     current_loc,
     frontend_entry,
@@ -59,7 +62,7 @@ from hstd_unidata.model_expr import (
     type_cond,
     var_expr,
 )
-from hstd_unidata.model_frontend import (
+from hstd_py_unidata.model_frontend import (
     NO_DEFAULT,
     DslAttr,
     EnFieldAnnotation,
@@ -82,14 +85,14 @@ from hstd_unidata.model_frontend import (
     UInt32,
     UInt64,
 )
-from hstd_unidata.model_gen import (
+from hstd_py_unidata.model_gen import (
     GenConfig,
     GeneratorFunc,
     GenOverrides,
     generate_value,
 )
-from hstd_unidata.model_index import ModelIndex
-from hstd_unidata.model_ir import (
+from hstd_py_unidata.model_index import ModelIndex
+from hstd_py_unidata.model_ir import (
     EnumValueDef,
     ModelDef,
     NamedT,
@@ -100,16 +103,16 @@ from hstd_unidata.model_ir import (
     SourceLoc,
     TypeRef,
 )
-from hstd_unidata.model_ops import Operator, default_operators, operator_table
-from hstd_unidata.model_reduce import (
+from hstd_py_unidata.model_ops import Operator, default_operators, operator_table
+from hstd_py_unidata.model_reduce import (
     Predicate,
     ReduceConfig,
     ReductionResult,
     reduce_value,
 )
-from hstd_unidata.model_resolve import AnnotationResolver, ModelFinalizer, NameLookup
-from hstd_unidata.model_souffle import run_type_check
-from hstd_unidata.model_value import Value, decode_json, encode_json
+from hstd_py_unidata.model_resolve import AnnotationResolver, ModelFinalizer, NameLookup
+from hstd_py_unidata.model_souffle import run_type_check
+from hstd_py_unidata.model_value import Value, decode_json, encode_json
 
 DIRECTIVE_NAMES = ("__check__", "__variant__", "__config__")
 

@@ -1,7 +1,6 @@
 from beartype.typing import List
-
-from hstd_unidata.model_ir import ExprNode, OpId, PrimKind
-from hstd_unidata.model_ops import (
+from hstd_py_unidata.model_ir import ExprNode, OpId, PrimKind
+from hstd_py_unidata.model_ops import (
     INT64_T,
     Env,
     EvalHost,
@@ -13,7 +12,7 @@ from hstd_unidata.model_ops import (
     make_int,
     type_arg_text,
 )
-from hstd_unidata.model_value import ListValue, Value, values_equal
+from hstd_py_unidata.model_value import ListValue, Value, values_equal
 
 
 class ListSizeOp(Operator):

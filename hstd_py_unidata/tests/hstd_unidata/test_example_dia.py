@@ -5,9 +5,7 @@ Clusters cannot contain themselves because instance data is a tree, so that cons
 import json
 
 from beartype.typing import Annotated, Dict, List, Optional, cast
-from loguru import logger
-
-from hstd_unidata.model_dsl import (
+from hstd_py_unidata.model_dsl import (
     EnFieldAnnotation,
     Float64,
     GenConfig,
@@ -30,10 +28,10 @@ from hstd_unidata.model_dsl import (
     type_case,
     type_cond,
 )
-from hstd_unidata.model_expr import Expr
-from hstd_unidata.model_gen import GenContext
-from hstd_unidata.model_ir import NamedT
-from hstd_unidata.model_value import (
+from hstd_py_unidata.model_expr import Expr
+from hstd_py_unidata.model_gen import GenContext
+from hstd_py_unidata.model_ir import NamedT
+from hstd_py_unidata.model_value import (
     ListValue,
     OptValue,
     RecordValue,
@@ -41,6 +39,7 @@ from hstd_unidata.model_value import (
     VariantValue,
     walk_values,
 )
+from loguru import logger
 
 M = get_dsl_model("dia.model")
 

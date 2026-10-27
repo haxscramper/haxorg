@@ -2,9 +2,8 @@ import shutil
 
 import pytest
 from beartype.typing import List
-
-from hstd_unidata.model_diagnostics import DiagCode, DslTypeError
-from hstd_unidata.model_dsl import (
+from hstd_py_unidata.model_diagnostics import DiagCode, DslTypeError
+from hstd_py_unidata.model_dsl import (
     Int8,
     __check__,
     __variant__,

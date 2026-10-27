@@ -2,9 +2,7 @@ import json
 from pathlib import Path
 
 from beartype.typing import Annotated, Any, Callable, Dict, List, Optional, Tuple
-from loguru import logger
-
-from hstd_unidata.model_dsl import (
+from hstd_py_unidata.model_dsl import (
     EnFieldAnnotation,
     FixedArray,
     Float32,
@@ -26,9 +24,10 @@ from hstd_unidata.model_dsl import (
     op_not,
     op_or,
 )
-from hstd_unidata.model_gen import GenContext
-from hstd_unidata.model_ir import ExternalT
-from hstd_unidata.model_value import Value
+from hstd_py_unidata.model_gen import GenContext
+from hstd_py_unidata.model_ir import ExternalT
+from hstd_py_unidata.model_value import Value
+from loguru import logger
 
 GvModel = get_dsl_model("graphviz.pkg")
 KwModel = get_dsl_model("kiwi.pkg")
