@@ -51,9 +51,9 @@ struct [[refl]] OrgJson {
 };
 
 namespace detail {
-std::string format_enum_value(OrgSemKind kind);
-std::string format_enum_value(OrgTokenKind kind);
-std::string format_enum_value(OrgNodeKind kind);
+std::string format_enum_value(org::sem::OrgSemKind kind);
+std::string format_enum_value(org::sem::OrgTokenKind kind);
+std::string format_enum_value(org::sem::OrgNodeKind kind);
 } // namespace detail
 
 } // namespace org::sem
@@ -71,25 +71,25 @@ using back_inserter_string_format_context = std::
 
 
 template <>
-struct fmt::formatter<OrgTokenKind> {
+struct fmt::formatter<org::sem::OrgTokenKind> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    auto           format(OrgTokenKind const& value, fmt::format_context& ctx) const {
+    auto format(org::sem::OrgTokenKind const& value, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
     }
 };
 
 template <>
-struct fmt::formatter<OrgSemKind> {
+struct fmt::formatter<org::sem::OrgSemKind> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    auto           format(OrgSemKind const& value, fmt::format_context& ctx) const {
+    auto format(org::sem::OrgSemKind const& value, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
     }
 };
 
 template <>
-struct fmt::formatter<OrgNodeKind> {
+struct fmt::formatter<org::sem::OrgNodeKind> {
     constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
-    auto           format(OrgNodeKind const& value, fmt::format_context& ctx) const {
+    auto format(org::sem::OrgNodeKind const& value, fmt::format_context& ctx) const {
         return ::hstd::fmt_ctx(org::sem::detail::format_enum_value(value), ctx);
     }
 };

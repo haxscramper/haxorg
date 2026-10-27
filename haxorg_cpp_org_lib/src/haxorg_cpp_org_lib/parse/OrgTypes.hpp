@@ -42,7 +42,7 @@ struct OrgNodeMono {
     DESC_FIELDS(OrgNodeMono, (data));
 };
 
-using OrgSet = hstd::IntSet<OrgNodeKind>;
+using OrgSet = hstd::IntSet<org::sem::OrgNodeKind>;
 
 
 } // namespace org::parse

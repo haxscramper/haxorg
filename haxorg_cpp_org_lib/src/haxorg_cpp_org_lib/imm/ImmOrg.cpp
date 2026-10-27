@@ -46,7 +46,7 @@ std::size_t std::hash<ImmReflFieldId>::operator()(
     return result;
 }
 
-ImmId::IdType ImmId::combineMask(OrgSemKind kind) {
+ImmId::IdType ImmId::combineMask(org::sem::OrgSemKind kind) {
     auto res = (u64(kind) << NodeKindOffset) & NodeKindMask;
 
     auto t = ImmId{ImmId::FromMaskedIdx(0, res >> ImmIdMaskOffset)};
@@ -73,7 +73,7 @@ res:     {7:016X} {7:064b})",
     return res >> ImmIdMaskOffset;
 }
 
-ImmId::IdType ImmId::combineFullValue(OrgSemKind kind, NodeIdxT node) {
+ImmId::IdType ImmId::combineFullValue(org::sem::OrgSemKind kind, NodeIdxT node) {
     return (combineMask(kind) << ImmIdMaskOffset)
          | (u64(node) << NodeIdxOffset) & NodeIdxMask;
 }
@@ -97,8 +97,8 @@ std::string ImmId::getReadableId() const {
 
 void ImmId::assertValid() const {
     u64 kind     = static_cast<u64>(getKind());
-    u64 kindLow  = static_cast<u64>(value_domain<OrgSemKind>::low());
-    u64 kindHigh = static_cast<u64>(value_domain<OrgSemKind>::high());
+    u64 kindLow  = static_cast<u64>(value_domain<org::sem::OrgSemKind>::low());
+    u64 kindHigh = static_cast<u64>(value_domain<org::sem::OrgSemKind>::high());
 
     LOGIC_ASSERTION_CHECK_FMT(
         kindLow <= kind && kind <= kindHigh,
@@ -291,7 +291,7 @@ void treeReprRec(ImmAdapter id, ColStream& os, ImmTreeReprContext const& ctx) {
         switch_node_value(id.id, id.ctx.lock(), [&]<typename N>(N const& value) {
             hstd::for_each_field_with_base_value<N>(
                 value, [&](auto const& object_value, auto const& desc) {
-                    hstd::Pair<OrgSemKind, ImmReflFieldId> key{
+                    hstd::Pair<org::sem::OrgSemKind, ImmReflFieldId> key{
                         N::staticKind, ImmReflFieldId::FromTypeField(desc.pointer)};
                     using F = DESC_FIELD_TYPE(desc);
                     if (ctx.conf.withFieldSubset.contains(key)) {
@@ -481,7 +481,7 @@ Opt<ImmAdapter> ImmAdapter::getFirstMatchingParent(
 
 Opt<ImmAdapter> ImmAdapter::getParentSubtree() const {
     return getFirstMatchingParent(
-        [](ImmAdapter const& ad) { return ad->is(OrgSemKind::Subtree); });
+        [](ImmAdapter const& ad) { return ad->is(org::sem::OrgSemKind::Subtree); });
 }
 
 Vec<ImmAdapter> ImmAdapter::getAllSubnodes(
@@ -1109,8 +1109,8 @@ ImmAstVersion ImmAstVersion::getEditVersion(
 void ImmAstReplaceGroup::set(ImmAstReplace const& replace) {
     LOGIC_ASSERTION_CHECK_FMT(replace.original.has_value(), "");
     for (auto const& it : Vec<ImmUniqId>{replace.original.value(), replace.replaced}) {
-        bool check = it.id.is(OrgSemKind::Document) || it.id.is(OrgSemKind::DocumentGroup)
-                  || !it.path.empty();
+        bool check = it.id.is(org::sem::OrgSemKind::Document)
+                  || it.id.is(org::sem::OrgSemKind::DocumentGroup) || !it.path.empty();
         LOGIC_ASSERTION_CHECK_FMT(
             check,
             "Replace group origina/replaced ID must either be a tree root "
@@ -1365,7 +1365,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
                 ++sourceOffset;
                 ++radioOffset;
             }
-        } else if (atSource.is(OrgSemKind::Space)) {
+        } else if (atSource.is(org::sem::OrgSemKind::Space)) {
             // pass, differences in space sizes are
             // ignored for radio node target searching
             ++sourceOffset;
@@ -1404,7 +1404,7 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
     for (int groupingIdx = 0; groupingIdx < sub.size(); ++groupingIdx) {
         ImmAdapter const& it = sub.at(groupingIdx);
         if (auto leaf = it->dyn_cast<ImmLeaf>();
-            leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
+            leaf != nullptr && !leaf->is(org::sem::OrgSemKind::Space)) {
             OP_TRACER_MESSAGE(ctx, "Subnode {} is leaf", groupingIdx);
             Vec<ImmId> const* radioTargets = track.radioTargets.find(leaf->text.get());
             if (radioTargets == nullptr) {
@@ -1419,13 +1419,13 @@ Vec<ImmSubnodeGroup> imm::getSubnodeGroups(
                     auto __scope      = ctx->debug->begin_scope();
                     auto radioAdapter = it.ctx.lock()->adaptUnrooted(radioId);
 
-                    if (radioAdapter.is(OrgSemKind::RadioTarget)) {
+                    if (radioAdapter.is(org::sem::OrgSemKind::RadioTarget)) {
                         auto radio   = radioAdapter.as<ImmRadioTarget>();
                         searchResult = tryRadioTargetSearch(
                             radio->words, sub, groupingIdx, radio.id, ctx);
 
                         if (searchResult.target) { goto radio_search_exit; }
-                    } else if (radioAdapter.is(OrgSemKind::Subtree)) {
+                    } else if (radioAdapter.is(org::sem::OrgSemKind::Subtree)) {
                         auto subtree = radioAdapter.as<ImmSubtree>();
                         for (auto const& id :
                              org::getSubtreeProperties<sem::NamedProperty::RadioId>(

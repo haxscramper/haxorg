@@ -54,7 +54,7 @@ TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
 
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     auto store = imm::ImmAstContext::init_start_context();
-    for (auto const& k : sliceT<OrgSemKind>()) {
+    for (auto const& k : sliceT<org::sem::OrgSemKind>()) {
         if (k != OrgSemKind::NoNode) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
                 N                            tmp{};
@@ -601,24 +601,24 @@ First
 *** Nested subtree
 )");
 
-    imm::OrgDocumentSelector      selector;
-    UnorderedMap<OrgSemKind, int> counts;
+    imm::OrgDocumentSelector                selector;
+    UnorderedMap<org::sem::OrgSemKind, int> counts;
 
     selector.searchPredicate(
         [&](imm::ImmAdapter const& node) -> imm::OrgSelectorResult {
             ++counts[node->getKind()];
             return imm::OrgSelectorResult{
-                .isMatching     = node->is(OrgSemKind::Subtree),
-                .tryNestedNodes = !node->is(OrgSemKind::Subtree),
+                .isMatching     = node->is(org::sem::OrgSemKind::Subtree),
+                .tryNestedNodes = !node->is(org::sem::OrgSemKind::Subtree),
             };
         },
         false);
 
     selector.getMatches(node.getRootAdapter());
 
-    EXPECT_EQ(counts.at(OrgSemKind::Subtree), 2);
-    EXPECT_EQ(counts.at(OrgSemKind::Document), 1);
-    EXPECT_EQ(counts.get(OrgSemKind::Word), std::nullopt);
+    EXPECT_EQ(counts.at(org::sem::OrgSemKind::Subtree), 2);
+    EXPECT_EQ(counts.at(org::sem::OrgSemKind::Document), 1);
+    EXPECT_EQ(counts.get(org::sem::OrgSemKind::Word), std::nullopt);
 }
 
 TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {

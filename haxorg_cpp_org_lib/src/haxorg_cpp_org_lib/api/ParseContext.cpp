@@ -225,7 +225,8 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
 
                 tokenizer.convert(baseTokens);
 
-                org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens.at(i)};
+                org::parse::Lexer<org::sem::OrgTokenKind, org::parse::OrgFill> lex{
+                    &tokens.at(i)};
                 if (opts->onTokenizerDone) {
                     __perf_trace("api", "user post-tokenize callback");
                     opts->onTokenizerDone(tokens.at(i), i);
@@ -313,7 +314,7 @@ sem::SemId<sem::Org> ParseContext::parseStringOpts(
             }
 
 
-            org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex{&tokens};
+            org::parse::Lexer<org::sem::OrgTokenKind, org::parse::OrgFill> lex{&tokens};
 
             org::parse::OrgNodeGroup nodes{&tokens};
             org::parse::OrgParser    parser{&nodes, file_id, source.get()};
@@ -502,7 +503,8 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Src: {
-                LOGIC_ASSERTION_CHECK_FMT(incl.at(0)->is(OrgSemKind::BlockCode), "");
+                LOGIC_ASSERTION_CHECK_FMT(
+                    incl.at(0)->is(org::sem::OrgSemKind::BlockCode), "");
 
                 auto code   = incl.as<sem::BlockCode>();
                 auto source = readFile(full.value());
@@ -516,7 +518,8 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Example: {
-                LOGIC_ASSERTION_CHECK_FMT(incl.at(0)->is(OrgSemKind::BlockExample), "");
+                LOGIC_ASSERTION_CHECK_FMT(
+                    incl.at(0)->is(org::sem::OrgSemKind::BlockExample), "");
 
                 auto code   = incl.as<sem::BlockExample>();
                 auto source = readFile(full.value());
@@ -528,7 +531,8 @@ void postProcessInclude(
                 break;
             }
             case sem::CmdInclude::Kind::Export: {
-                LOGIC_ASSERTION_CHECK_FMT(incl.at(0)->is(OrgSemKind::BlockExport), "");
+                LOGIC_ASSERTION_CHECK_FMT(
+                    incl.at(0)->is(org::sem::OrgSemKind::BlockExport), "");
 
                 auto code     = incl.as<sem::BlockExport>();
                 code->content = readFile(full.value());

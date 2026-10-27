@@ -281,6 +281,16 @@
     __IMPL(CmdCustomText, (CmdCustomText)) \
     __IMPL(CmdCall, (CmdCall)) \
     __IMPL(CmdTblfm, (CmdTblfm)) \
+    __IMPL(BlockCenter, (BlockCenter)) \
+    __IMPL(BlockQuote, (BlockQuote)) \
+    __IMPL(BlockComment, (BlockComment)) \
+    __IMPL(BlockVerse, (BlockVerse)) \
+    __IMPL(BlockDynamicFallback, (BlockDynamicFallback)) \
+    __IMPL(BlockExample, (BlockExample)) \
+    __IMPL(BlockExport, (BlockExport)) \
+    __IMPL(BlockAdmonition, (BlockAdmonition)) \
+    __IMPL(BlockCodeEvalResult, (BlockCodeEvalResult)) \
+    __IMPL(BlockCode, (BlockCode)) \
     __IMPL(HashTag, (HashTag)) \
     __IMPL(InlineFootnote, (InlineFootnote)) \
     __IMPL(InlineExport, (InlineExport)) \
@@ -316,16 +326,6 @@
     __IMPL(RadioTarget, (RadioTarget)) \
     __IMPL(Latex, (Latex)) \
     __IMPL(Link, (Link)) \
-    __IMPL(BlockCenter, (BlockCenter)) \
-    __IMPL(BlockQuote, (BlockQuote)) \
-    __IMPL(BlockComment, (BlockComment)) \
-    __IMPL(BlockVerse, (BlockVerse)) \
-    __IMPL(BlockDynamicFallback, (BlockDynamicFallback)) \
-    __IMPL(BlockExample, (BlockExample)) \
-    __IMPL(BlockExport, (BlockExport)) \
-    __IMPL(BlockAdmonition, (BlockAdmonition)) \
-    __IMPL(BlockCodeEvalResult, (BlockCodeEvalResult)) \
-    __IMPL(BlockCode, (BlockCode)) \
     __IMPL(SubtreeLog, (SubtreeLog)) \
     __IMPL(Subtree, (Subtree)) \
     __IMPL(Cell, (Cell)) \
@@ -376,6 +376,16 @@
     __IMPL(CmdCustomText) \
     __IMPL(CmdCall) \
     __IMPL(CmdTblfm) \
+    __IMPL(BlockCenter) \
+    __IMPL(BlockQuote) \
+    __IMPL(BlockComment) \
+    __IMPL(BlockVerse) \
+    __IMPL(BlockDynamicFallback) \
+    __IMPL(BlockExample) \
+    __IMPL(BlockExport) \
+    __IMPL(BlockAdmonition) \
+    __IMPL(BlockCodeEvalResult) \
+    __IMPL(BlockCode) \
     __IMPL(HashTag) \
     __IMPL(InlineFootnote) \
     __IMPL(InlineExport) \
@@ -406,16 +416,6 @@
     __IMPL(RadioTarget) \
     __IMPL(Latex) \
     __IMPL(Link) \
-    __IMPL(BlockCenter) \
-    __IMPL(BlockQuote) \
-    __IMPL(BlockComment) \
-    __IMPL(BlockVerse) \
-    __IMPL(BlockDynamicFallback) \
-    __IMPL(BlockExample) \
-    __IMPL(BlockExport) \
-    __IMPL(BlockAdmonition) \
-    __IMPL(BlockCodeEvalResult) \
-    __IMPL(BlockCode) \
     __IMPL(SubtreeLog) \
     __IMPL(Subtree) \
     __IMPL(Cell) \
@@ -457,6 +457,16 @@
     __IMPL(CmdCustomText, Stmt) \
     __IMPL(CmdCall, Attached) \
     __IMPL(CmdTblfm, Cmd) \
+    __IMPL(BlockCenter, Block) \
+    __IMPL(BlockQuote, Block) \
+    __IMPL(BlockComment, Stmt) \
+    __IMPL(BlockVerse, Block) \
+    __IMPL(BlockDynamicFallback, Block) \
+    __IMPL(BlockExample, Block) \
+    __IMPL(BlockExport, Block) \
+    __IMPL(BlockAdmonition, Block) \
+    __IMPL(BlockCodeEvalResult, Block) \
+    __IMPL(BlockCode, Block) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
     __IMPL(InlineExport, Inline) \
@@ -487,16 +497,6 @@
     __IMPL(RadioTarget, Org) \
     __IMPL(Latex, Org) \
     __IMPL(Link, Stmt) \
-    __IMPL(BlockCenter, Block) \
-    __IMPL(BlockQuote, Block) \
-    __IMPL(BlockComment, Stmt) \
-    __IMPL(BlockVerse, Block) \
-    __IMPL(BlockDynamicFallback, Block) \
-    __IMPL(BlockExample, Block) \
-    __IMPL(BlockExport, Block) \
-    __IMPL(BlockAdmonition, Block) \
-    __IMPL(BlockCodeEvalResult, Block) \
-    __IMPL(BlockCode, Block) \
     __IMPL(SubtreeLog, Org) \
     __IMPL(Subtree, Org) \
     __IMPL(Cell, Cmd) \
@@ -545,6 +545,16 @@
     __IMPL(CmdCustomText, Stmt) \
     __IMPL(CmdCall, Attached) \
     __IMPL(CmdTblfm, Cmd) \
+    __IMPL(BlockCenter, Block) \
+    __IMPL(BlockQuote, Block) \
+    __IMPL(BlockComment, Stmt) \
+    __IMPL(BlockVerse, Block) \
+    __IMPL(BlockDynamicFallback, Block) \
+    __IMPL(BlockExample, Block) \
+    __IMPL(BlockExport, Block) \
+    __IMPL(BlockAdmonition, Block) \
+    __IMPL(BlockCodeEvalResult, Block) \
+    __IMPL(BlockCode, Block) \
     __IMPL(HashTag, Inline) \
     __IMPL(InlineFootnote, Inline) \
     __IMPL(InlineExport, Inline) \
@@ -576,16 +586,6 @@
     __IMPL(RadioTarget, Org) \
     __IMPL(Latex, Org) \
     __IMPL(Link, Stmt) \
-    __IMPL(BlockCenter, Block) \
-    __IMPL(BlockQuote, Block) \
-    __IMPL(BlockComment, Stmt) \
-    __IMPL(BlockVerse, Block) \
-    __IMPL(BlockDynamicFallback, Block) \
-    __IMPL(BlockExample, Block) \
-    __IMPL(BlockExport, Block) \
-    __IMPL(BlockAdmonition, Block) \
-    __IMPL(BlockCodeEvalResult, Block) \
-    __IMPL(BlockCode, Block) \
     __IMPL(SubtreeLog, Org) \
     __IMPL(Subtree, Org) \
     __IMPL(Cell, Cmd) \
@@ -783,6 +783,74 @@
     __IMPL_BASE((org::sem::Cmd)) \
     __IMPL_FIELD((org::sem::Tblfm), expr, Expr, (org::sem::CmdTblfm), CmdTblfm) \
 
+#define EACH_SEM_ORG_BlockCenter_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockCenter_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockQuote_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockQuote_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockComment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockComment_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Stmt)) \
+
+#define EACH_SEM_ORG_BlockVerse_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockVerse_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockDynamicFallback_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), name, Name, (org::sem::BlockDynamicFallback), BlockDynamicFallback) \
+
+#define EACH_SEM_ORG_BlockDynamicFallback_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Str), name, Name, (org::sem::BlockDynamicFallback), BlockDynamicFallback) \
+
+#define EACH_SEM_ORG_BlockExample_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockExample_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockExport_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter, (org::sem::BlockExport), BlockExport) \
+    __IMPL_FIELD((hstd::Str), content, Content, (org::sem::BlockExport), BlockExport) \
+
+#define EACH_SEM_ORG_BlockExport_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Str), exporter, Exporter, (org::sem::BlockExport), BlockExport) \
+    __IMPL_FIELD((hstd::Str), content, Content, (org::sem::BlockExport), BlockExport) \
+
+#define EACH_SEM_ORG_BlockAdmonition_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_SEM_ORG_BlockAdmonition_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+
+#define EACH_SEM_ORG_BlockCodeEvalResult_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Vec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Org>), node, Node, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
+
+#define EACH_SEM_ORG_BlockCodeEvalResult_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Vec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
+    __IMPL_FIELD((org::sem::SemId<org::sem::Org>), node, Node, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
+
+#define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang, (org::sem::BlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::BlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines, (org::sem::BlockCode), BlockCode) \
+    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::sem::BlockCode), BlockCode) \
+
+#define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::sem::Block)) \
+    __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang, (org::sem::BlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::BlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines, (org::sem::BlockCode), BlockCode) \
+    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::sem::BlockCode), BlockCode) \
+
 #define EACH_SEM_ORG_HashTag_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::HashTagText), text, Text, (org::sem::HashTag), HashTag) \
 
@@ -974,74 +1042,6 @@
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), description, Description, (org::sem::Link), Link) \
     __IMPL_FIELD((org::sem::LinkTarget), target, Target, (org::sem::Link), Link) \
 
-#define EACH_SEM_ORG_BlockCenter_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_SEM_ORG_BlockCenter_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-
-#define EACH_SEM_ORG_BlockQuote_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_SEM_ORG_BlockQuote_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-
-#define EACH_SEM_ORG_BlockComment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_SEM_ORG_BlockComment_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Stmt)) \
-
-#define EACH_SEM_ORG_BlockVerse_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_SEM_ORG_BlockVerse_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-
-#define EACH_SEM_ORG_BlockDynamicFallback_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Str), name, Name, (org::sem::BlockDynamicFallback), BlockDynamicFallback) \
-
-#define EACH_SEM_ORG_BlockDynamicFallback_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-    __IMPL_FIELD((hstd::Str), name, Name, (org::sem::BlockDynamicFallback), BlockDynamicFallback) \
-
-#define EACH_SEM_ORG_BlockExample_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_SEM_ORG_BlockExample_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-
-#define EACH_SEM_ORG_BlockExport_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Str), exporter, Exporter, (org::sem::BlockExport), BlockExport) \
-    __IMPL_FIELD((hstd::Str), content, Content, (org::sem::BlockExport), BlockExport) \
-
-#define EACH_SEM_ORG_BlockExport_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-    __IMPL_FIELD((hstd::Str), exporter, Exporter, (org::sem::BlockExport), BlockExport) \
-    __IMPL_FIELD((hstd::Str), content, Content, (org::sem::BlockExport), BlockExport) \
-
-#define EACH_SEM_ORG_BlockAdmonition_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_SEM_ORG_BlockAdmonition_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-
-#define EACH_SEM_ORG_BlockCodeEvalResult_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Vec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
-    __IMPL_FIELD((org::sem::SemId<org::sem::Org>), node, Node, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
-
-#define EACH_SEM_ORG_BlockCodeEvalResult_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-    __IMPL_FIELD((hstd::Vec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
-    __IMPL_FIELD((org::sem::SemId<org::sem::Org>), node, Node, (org::sem::BlockCodeEvalResult), BlockCodeEvalResult) \
-
-#define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::sem::BlockCode), BlockCode) \
-
-#define EACH_SEM_ORG_BlockCode_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::sem::Block)) \
-    __IMPL_FIELD((hstd::Opt<hstd::Str>), lang, Lang, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::Vec<org::sem::SemId<org::sem::BlockCodeEvalResult>>), result, Result, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::Vec<org::sem::BlockCodeLine>), lines, Lines, (org::sem::BlockCode), BlockCode) \
-    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::sem::BlockCode), BlockCode) \
-
 #define EACH_SEM_ORG_SubtreeLog_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::SubtreeLogHead), head, Head, (org::sem::SubtreeLog), SubtreeLog) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::StmtList>>), desc, Desc, (org::sem::SubtreeLog), SubtreeLog) \
@@ -1154,23 +1154,23 @@
     __IMPL_BASE((org::sem::Stmt)) \
 
 #define EACH_SEM_ORG_ListItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
+    __IMPL_FIELD((org::sem::CheckboxState), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), header, Header, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), bullet, Bullet, (org::sem::ListItem), ListItem) \
 
 #define EACH_SEM_ORG_ListItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
+    __IMPL_FIELD((org::sem::CheckboxState), checkbox, Checkbox, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<org::sem::SemId<org::sem::Paragraph>>), header, Header, (org::sem::ListItem), ListItem) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), bullet, Bullet, (org::sem::ListItem), ListItem) \
 
 #define EACH_SEM_ORG_DocumentOptions_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<org::sem::LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<org::sem::BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1181,12 +1181,12 @@
 
 #define EACH_SEM_ORG_DocumentOptions_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::sem::Org)) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Vec<org::sem::NamedProperty>), properties, Properties, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), fixedWidthSections, FixedWidthSections, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::Opt<BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<org::sem::LinkVisibility>), linkVisibility, LinkVisibility, (org::sem::DocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::Opt<org::sem::BlockVisibility>), blockVisibility, BlockVisibility, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<bool>), startupIndented, StartupIndented, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), category, Category, (org::sem::DocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::Opt<hstd::Str>), setupfile, Setupfile, (org::sem::DocumentOptions), DocumentOptions) \
@@ -1475,6 +1475,74 @@
     __IMPL_BASE((org::imm::ImmCmd)) \
     __IMPL_FIELD((org::sem::Tblfm), expr, Expr, (org::imm::ImmCmdTblfm), CmdTblfm) \
 
+#define EACH_IMM_ORG_ImmBlockCenter_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmBlockCenter_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+
+#define EACH_IMM_ORG_ImmBlockQuote_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmBlockQuote_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+
+#define EACH_IMM_ORG_ImmBlockComment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmBlockComment_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmStmt)) \
+
+#define EACH_IMM_ORG_ImmBlockVerse_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmBlockVerse_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+
+#define EACH_IMM_ORG_ImmBlockDynamicFallback_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmBlockDynamicFallback), BlockDynamicFallback) \
+
+#define EACH_IMM_ORG_ImmBlockDynamicFallback_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmBlockDynamicFallback), BlockDynamicFallback) \
+
+#define EACH_IMM_ORG_ImmBlockExample_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmBlockExample_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+
+#define EACH_IMM_ORG_ImmBlockExport_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), exporter, Exporter, (org::imm::ImmBlockExport), BlockExport) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), content, Content, (org::imm::ImmBlockExport), BlockExport) \
+
+#define EACH_IMM_ORG_ImmBlockExport_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), exporter, Exporter, (org::imm::ImmBlockExport), BlockExport) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), content, Content, (org::imm::ImmBlockExport), BlockExport) \
+
+#define EACH_IMM_ORG_ImmBlockAdmonition_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+
+#define EACH_IMM_ORG_ImmBlockAdmonition_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+
+#define EACH_IMM_ORG_ImmBlockCodeEvalResult_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
+    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmOrg>), node, Node, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
+
+#define EACH_IMM_ORG_ImmBlockCodeEvalResult_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
+    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmOrg>), node, Node, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
+
+#define EACH_IMM_ORG_ImmBlockCode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), lang, Lang, (org::imm::ImmBlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmBlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::BlockCodeLine>), lines, Lines, (org::imm::ImmBlockCode), BlockCode) \
+    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::imm::ImmBlockCode), BlockCode) \
+
+#define EACH_IMM_ORG_ImmBlockCode_FIELD_WITH_BASES(__IMPL_BASE) \
+    __IMPL_BASE((org::imm::ImmBlock)) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), lang, Lang, (org::imm::ImmBlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmBlockCode), BlockCode) \
+    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::BlockCodeLine>), lines, Lines, (org::imm::ImmBlockCode), BlockCode) \
+    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::imm::ImmBlockCode), BlockCode) \
+
 #define EACH_IMM_ORG_ImmHashTag_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::HashTagText), text, Text, (org::imm::ImmHashTag), HashTag) \
 
@@ -1666,74 +1734,6 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), description, Description, (org::imm::ImmLink), Link) \
     __IMPL_FIELD((org::sem::LinkTarget), target, Target, (org::imm::ImmLink), Link) \
 
-#define EACH_IMM_ORG_ImmBlockCenter_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_IMM_ORG_ImmBlockCenter_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-
-#define EACH_IMM_ORG_ImmBlockQuote_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_IMM_ORG_ImmBlockQuote_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-
-#define EACH_IMM_ORG_ImmBlockComment_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_IMM_ORG_ImmBlockComment_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmStmt)) \
-
-#define EACH_IMM_ORG_ImmBlockVerse_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_IMM_ORG_ImmBlockVerse_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-
-#define EACH_IMM_ORG_ImmBlockDynamicFallback_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmBlockDynamicFallback), BlockDynamicFallback) \
-
-#define EACH_IMM_ORG_ImmBlockDynamicFallback_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), name, Name, (org::imm::ImmBlockDynamicFallback), BlockDynamicFallback) \
-
-#define EACH_IMM_ORG_ImmBlockExample_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_IMM_ORG_ImmBlockExample_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-
-#define EACH_IMM_ORG_ImmBlockExport_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), exporter, Exporter, (org::imm::ImmBlockExport), BlockExport) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), content, Content, (org::imm::ImmBlockExport), BlockExport) \
-
-#define EACH_IMM_ORG_ImmBlockExport_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), exporter, Exporter, (org::imm::ImmBlockExport), BlockExport) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Str>), content, Content, (org::imm::ImmBlockExport), BlockExport) \
-
-#define EACH_IMM_ORG_ImmBlockAdmonition_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-
-#define EACH_IMM_ORG_ImmBlockAdmonition_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-
-#define EACH_IMM_ORG_ImmBlockCodeEvalResult_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
-    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmOrg>), node, Node, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
-
-#define EACH_IMM_ORG_ImmBlockCodeEvalResult_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput>), raw, Raw, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
-    __IMPL_FIELD((org::imm::ImmIdT<org::imm::ImmOrg>), node, Node, (org::imm::ImmBlockCodeEvalResult), BlockCodeEvalResult) \
-
-#define EACH_IMM_ORG_ImmBlockCode_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), lang, Lang, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::BlockCodeLine>), lines, Lines, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::imm::ImmBlockCode), BlockCode) \
-
-#define EACH_IMM_ORG_ImmBlockCode_FIELD_WITH_BASES(__IMPL_BASE) \
-    __IMPL_BASE((org::imm::ImmBlock)) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), lang, Lang, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>>), result, Result, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((hstd::ext::ImmVec<org::sem::BlockCodeLine>), lines, Lines, (org::imm::ImmBlockCode), BlockCode) \
-    __IMPL_FIELD((org::sem::AttrGroup), switches, Switches, (org::imm::ImmBlockCode), BlockCode) \
-
 #define EACH_IMM_ORG_ImmSubtreeLog_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
     __IMPL_FIELD((org::sem::SubtreeLogHead), head, Head, (org::imm::ImmSubtreeLog), SubtreeLog) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>>), desc, Desc, (org::imm::ImmSubtreeLog), SubtreeLog) \
@@ -1846,23 +1846,23 @@
     __IMPL_BASE((org::imm::ImmStmt)) \
 
 #define EACH_IMM_ORG_ImmListItem_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
+    __IMPL_FIELD((org::sem::CheckboxState), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), header, Header, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), bullet, Bullet, (org::imm::ImmListItem), ListItem) \
 
 #define EACH_IMM_ORG_ImmListItem_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((CheckboxState), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
+    __IMPL_FIELD((org::sem::CheckboxState), checkbox, Checkbox, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>>), header, Header, (org::imm::ImmListItem), ListItem) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), bullet, Bullet, (org::imm::ImmListItem), ListItem) \
 
 #define EACH_IMM_ORG_ImmDocumentOptions_FIELD_WITH_BASE_FIELDS(__IMPL_FIELD) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -1873,12 +1873,12 @@
 
 #define EACH_IMM_ORG_ImmDocumentOptions_FIELD_WITH_BASES(__IMPL_BASE) \
     __IMPL_BASE((org::imm::ImmOrg)) \
-    __IMPL_FIELD((InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((org::sem::InitialSubtreeVisibility), initialVisibility, InitialVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmVec<org::sem::NamedProperty>), properties, Properties, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((org::sem::DocumentExportConfig), exportConfig, ExportConfig, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), fixedWidthSections, FixedWidthSections, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
-    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::LinkVisibility>>), linkVisibility, LinkVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
+    __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<org::sem::BlockVisibility>>), blockVisibility, BlockVisibility, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<bool>>), startupIndented, StartupIndented, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), category, Category, (org::imm::ImmDocumentOptions), DocumentOptions) \
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<hstd::Str>>), setupfile, Setupfile, (org::imm::ImmDocumentOptions), DocumentOptions) \
@@ -1993,23 +1993,24 @@
     __IMPL_FIELD((hstd::ext::ImmBox<hstd::Opt<int>>), lastLine, LastLine, (org::imm::ImmCmdInclude), CmdInclude) \
     __IMPL_FIELD((org::imm::ImmCmdInclude::Data), data, Data, (org::imm::ImmCmdInclude), CmdInclude) \
 
+namespace org::sem {
 enum class CheckboxState : short int { None, Done, Empty, Partial, };
-BOOST_DESCRIBE_ENUM_BEGIN(CheckboxState)
-  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, None)
-  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Done)
-  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Empty)
-  BOOST_DESCRIBE_ENUM_ENTRY(CheckboxState, Partial)
-BOOST_DESCRIBE_ENUM_END(CheckboxState)
+BOOST_DESCRIBE_ENUM_BEGIN(org::sem::CheckboxState)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::CheckboxState, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::CheckboxState, Done)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::CheckboxState, Empty)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::CheckboxState, Partial)
+BOOST_DESCRIBE_ENUM_END(org::sem::CheckboxState)
 enum class LinkVisibility : short int { LiteralLinks, DescriptiveLinks, };
-BOOST_DESCRIBE_ENUM_BEGIN(LinkVisibility)
-  BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, LiteralLinks)
-  BOOST_DESCRIBE_ENUM_ENTRY(LinkVisibility, DescriptiveLinks)
-BOOST_DESCRIBE_ENUM_END(LinkVisibility)
+BOOST_DESCRIBE_ENUM_BEGIN(org::sem::LinkVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::LinkVisibility, LiteralLinks)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::LinkVisibility, DescriptiveLinks)
+BOOST_DESCRIBE_ENUM_END(org::sem::LinkVisibility)
 enum class BlockVisibility : short int { HideBlocks, NoHideBlocks, };
-BOOST_DESCRIBE_ENUM_BEGIN(BlockVisibility)
-  BOOST_DESCRIBE_ENUM_ENTRY(BlockVisibility, HideBlocks)
-  BOOST_DESCRIBE_ENUM_ENTRY(BlockVisibility, NoHideBlocks)
-BOOST_DESCRIBE_ENUM_END(BlockVisibility)
+BOOST_DESCRIBE_ENUM_BEGIN(org::sem::BlockVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::BlockVisibility, HideBlocks)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::BlockVisibility, NoHideBlocks)
+BOOST_DESCRIBE_ENUM_END(org::sem::BlockVisibility)
 /// \brief Where to take todo completion statistics from
 enum class SubtreeTodoSource : short int {
   /// \brief Only count checkbox subnodes as a progress completion
@@ -2019,11 +2020,11 @@ enum class SubtreeTodoSource : short int {
   /// \brief Use both subtrees and todo keywords
   Both,
 };
-BOOST_DESCRIBE_ENUM_BEGIN(SubtreeTodoSource)
-  BOOST_DESCRIBE_ENUM_ENTRY(SubtreeTodoSource, Checkbox)
-  BOOST_DESCRIBE_ENUM_ENTRY(SubtreeTodoSource, Todo)
-  BOOST_DESCRIBE_ENUM_ENTRY(SubtreeTodoSource, Both)
-BOOST_DESCRIBE_ENUM_END(SubtreeTodoSource)
+BOOST_DESCRIBE_ENUM_BEGIN(org::sem::SubtreeTodoSource)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::SubtreeTodoSource, Checkbox)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::SubtreeTodoSource, Todo)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::SubtreeTodoSource, Both)
+BOOST_DESCRIBE_ENUM_END(org::sem::SubtreeTodoSource)
 enum class ListFormattingMode : short int {
   /// \brief Default, no custom formatting
   None,
@@ -2036,24 +2037,24 @@ enum class ListFormattingMode : short int {
   /// \brief for tables with arbitrary column count, each top-level list item is an individual row, then each item in the nested list is a cell on this row.
   Table2DRowFirst,
 };
-BOOST_DESCRIBE_ENUM_BEGIN(ListFormattingMode)
-  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, None)
-  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table1D1Col)
-  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table1D2Col)
-  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table2DColFirst)
-  BOOST_DESCRIBE_ENUM_ENTRY(ListFormattingMode, Table2DRowFirst)
-BOOST_DESCRIBE_ENUM_END(ListFormattingMode)
+BOOST_DESCRIBE_ENUM_BEGIN(org::sem::ListFormattingMode)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::ListFormattingMode, None)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::ListFormattingMode, Table1D1Col)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::ListFormattingMode, Table1D2Col)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::ListFormattingMode, Table2DColFirst)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::ListFormattingMode, Table2DRowFirst)
+BOOST_DESCRIBE_ENUM_END(org::sem::ListFormattingMode)
 enum class InitialSubtreeVisibility : short int { Overview, Content, ShowAll, Show2Levels, Show3Levels, Show4Levels, Show5Levels, ShowEverything, };
-BOOST_DESCRIBE_ENUM_BEGIN(InitialSubtreeVisibility)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Overview)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Content)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, ShowAll)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show2Levels)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show3Levels)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show4Levels)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, Show5Levels)
-  BOOST_DESCRIBE_ENUM_ENTRY(InitialSubtreeVisibility, ShowEverything)
-BOOST_DESCRIBE_ENUM_END(InitialSubtreeVisibility)
+BOOST_DESCRIBE_ENUM_BEGIN(org::sem::InitialSubtreeVisibility)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, Overview)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, Content)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, ShowAll)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, Show2Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, Show3Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, Show4Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, Show5Levels)
+  BOOST_DESCRIBE_ENUM_ENTRY(org::sem::InitialSubtreeVisibility, ShowEverything)
+BOOST_DESCRIBE_ENUM_END(org::sem::InitialSubtreeVisibility)
 enum class OrgSpecName : short int { Unnamed, Result, Year, Day, Clock, Repeater, Warn, Zone, Link, Tags, Tag, State, Protocol, Desc, Times, Drawer, Args, Name, Definition, Body, HeaderArgs, File, Kind, Lang, Prefix, Text, Todo, Importance, Title, Completion, Head, Subnodes, Properties, Logbook, Description, Logs, Newstate, Oldstate, Time, From, EndArgs, Flags, Value, Assoc, Main, Hash, Bullet, Counter, Checkbox, Header, To, Diff, Property, Subname, Values, Cells, Rows, Lines, Chunks, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSpecName)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSpecName, Unnamed)
@@ -2988,7 +2989,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgJsonKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Int)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgJsonKind, Float)
 BOOST_DESCRIBE_ENUM_END(OrgJsonKind)
-enum class OrgSemKind : short int { NoNode, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
+enum class OrgSemKind : short int { NoNode, ErrorItem, ErrorGroup, StmtList, Empty, CmdCaption, CmdCreator, CmdAuthor, CmdEmail, CmdLanguage, CmdColumns, CmdName, CmdCustomArgs, CmdCustomRaw, CmdCustomText, CmdCall, CmdTblfm, BlockCenter, BlockQuote, BlockComment, BlockVerse, BlockDynamicFallback, BlockExample, BlockExport, BlockAdmonition, BlockCodeEvalResult, BlockCode, HashTag, InlineFootnote, InlineExport, Time, TimeRange, Macro, Symbol, Escaped, Newline, Space, Word, AtMention, RawText, Punctuation, Placeholder, BigIdent, TextTarget, ErrorSkipToken, ErrorSkipGroup, Bold, Underline, Monospace, MarkQuote, Verbatim, Italic, Strike, Par, RadioTarget, Latex, Link, SubtreeLog, Subtree, Cell, Row, Table, Paragraph, ColonExample, CmdAttr, CmdExport, Call, List, ListItem, DocumentOptions, DocumentFragment, CriticMarkup, Document, FileTarget, TextSeparator, DocumentGroup, File, Directory, Symlink, CmdInclude, };
 BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, NoNode)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, ErrorItem)
@@ -3007,6 +3008,16 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCustomText)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdCall)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdTblfm)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCenter)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockQuote)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockComment)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockVerse)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockDynamicFallback)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockExample)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockExport)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockAdmonition)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCodeEvalResult)
+  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCode)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, HashTag)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, InlineFootnote)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, InlineExport)
@@ -3037,16 +3048,6 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, RadioTarget)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Latex)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Link)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCenter)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockQuote)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockComment)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockVerse)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockDynamicFallback)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockExample)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockExport)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockAdmonition)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCodeEvalResult)
-  BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, BlockCode)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, SubtreeLog)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Subtree)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Cell)
@@ -3071,4 +3072,5 @@ BOOST_DESCRIBE_ENUM_BEGIN(OrgSemKind)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, Symlink)
   BOOST_DESCRIBE_ENUM_ENTRY(OrgSemKind, CmdInclude)
 BOOST_DESCRIBE_ENUM_END(OrgSemKind)
+}
 /* clang-format on */

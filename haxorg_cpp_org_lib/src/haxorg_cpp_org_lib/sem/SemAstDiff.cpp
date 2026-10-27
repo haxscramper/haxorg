@@ -85,8 +85,8 @@ SemSet LeafKinds{
 diff::ComparisonOptions SemNodeDiff::getOptions() {
     return diff::ComparisonOptions{
         .isMatchingAllowed = [](diff::Node const& Src, diff::Node const& Dst) -> bool {
-            auto SrcKind = static_cast<OrgSemKind>(Src.getNodeKind().value);
-            auto DstKind = static_cast<OrgSemKind>(Dst.getNodeKind().value);
+            auto SrcKind = static_cast<org::sem::OrgSemKind>(Src.getNodeKind().value);
+            auto DstKind = static_cast<org::sem::OrgSemKind>(Dst.getNodeKind().value);
             if (SrcKind == DstKind) {
                 return true;
             } else {
@@ -99,7 +99,9 @@ diff::ComparisonOptions SemNodeDiff::getOptions() {
             if (LeafKinds.contains(S->getKind()) && LeafKinds.contains(D->getKind())) {
                 return Src.getStore<SemNodeStore>()->getNodeValue(Src.ASTNode)
                     == Dst.getStore<SemNodeStore>()->getNodeValue(Dst.ASTNode);
-            } else if (S->is(OrgSemKind::BlockCode) && D->is(OrgSemKind::BlockCode)) {
+            } else if (
+                S->is(org::sem::OrgSemKind::BlockCode)
+                && D->is(org::sem::OrgSemKind::BlockCode)) {
                 auto SrcCode = S->dyn_cast<sem::BlockCode>();
                 auto DstCode = D->dyn_cast<sem::BlockCode>();
                 // TODO
@@ -226,8 +228,8 @@ diff::ComparisonOptions ImmNodeDiff::getOptions() {
     return diff::ComparisonOptions{
         .isMatchingAllowed = [this](
                                  diff::Node const& Src, diff::Node const& Dst) -> bool {
-            auto SrcKind = static_cast<OrgSemKind>(Src.getNodeKind().value);
-            auto DstKind = static_cast<OrgSemKind>(Dst.getNodeKind().value);
+            auto SrcKind = static_cast<org::sem::OrgSemKind>(Src.getNodeKind().value);
+            auto DstKind = static_cast<org::sem::OrgSemKind>(Dst.getNodeKind().value);
             return true;
         },
         .areValuesEqual = [this](diff::Node const& Src, diff::Node const& Dst) -> bool {

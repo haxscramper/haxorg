@@ -83,7 +83,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
     ImmAdapter const&  node,
     SubtreeMove        move,
     ImmAstEditContext& ctx) {
-    LOGIC_ASSERTION_CHECK_FMT(node.is(OrgSemKind::Subtree), "");
+    LOGIC_ASSERTION_CHECK_FMT(node.is(org::sem::OrgSemKind::Subtree), "");
     ImmAstReplaceGroup edits;
 
     if (move == SubtreeMove::EnsureLevels || move == SubtreeMove::ForceLevels) {
@@ -111,7 +111,7 @@ ImmAstReplaceGroup org::imm::demoteSubtree(
         auto parent   = node.getParent();
         auto adjacent = node.getAdjacentNode(-1);
 
-        if (parent && adjacent && adjacent->is(OrgSemKind::Subtree)) {
+        if (parent && adjacent && adjacent->is(org::sem::OrgSemKind::Subtree)) {
             auto adjacentTree = adjacent.value().as<org::imm::ImmSubtree>();
             auto replacedTree = ctx->adapt(update.replaced).as<org::imm::ImmSubtree>();
             if (adjacentTree->level < replacedTree->level) {
@@ -278,7 +278,7 @@ Opt<ImmAstReplace> org::imm::moveSubnodeStructural(
         int targetOffset    = offset;
         int offsetDirection = 0 < offset ? 1 : -1;
         for (auto adj = node.getAdjacentNode(targetOffset);
-             adj.has_value() && adj->is(OrgSemKind::Space);
+             adj.has_value() && adj->is(org::sem::OrgSemKind::Space);
              adj = node.getAdjacentNode(targetOffset)) {
             targetOffset += offsetDirection;
         }
@@ -529,7 +529,7 @@ void OrgDocumentSelector::searchSubtreeId(
     path.push_back(
         OrgSelectorCondition{
             .check = [id, maxLevel](ImmAdapter const& node) -> OrgSelectorResult {
-                if (node->is(OrgSemKind::Subtree)) {
+                if (node->is(org::sem::OrgSemKind::Subtree)) {
                     auto const& tree = node.as<imm::ImmSubtree>();
                     if (maxLevel) {
                         return OrgSelectorResult{
@@ -555,9 +555,9 @@ void OrgDocumentSelector::searchSubtreeId(
 }
 
 void OrgDocumentSelector::searchAnyKind(
-    IntSet<OrgSemKind> const& kinds,
-    bool                      isTarget,
-    Opt<OrgSelectorLink>      link) {
+    IntSet<org::sem::OrgSemKind> const& kinds,
+    bool                                isTarget,
+    Opt<OrgSelectorLink>                link) {
     path.push_back(
         OrgSelectorCondition{
             .check = [kinds](ImmAdapter const& node) -> OrgSelectorResult {

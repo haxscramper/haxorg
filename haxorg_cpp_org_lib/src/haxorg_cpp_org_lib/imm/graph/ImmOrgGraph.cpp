@@ -52,7 +52,7 @@ bool org::graph::hasGraphAnnotations(org::imm::ImmAdapterT<ImmSubtree> const& pa
 
 bool org::graph::hasGraphAnnotations(org::imm::ImmAdapterT<ImmParagraph> const& par) {
     for (auto const& node : par.sub(false)) {
-        if (node.is(OrgSemKind::RadioTarget)) {
+        if (node.is(org::sem::OrgSemKind::RadioTarget)) {
             return true;
         } else if (
             auto link = node.asOpt<ImmLink>();
@@ -373,11 +373,11 @@ struct resolve_state {
                 if (group.isRadioTarget()) {
                     OP_TRACER_MESSAGE(g, "Got radio target group");
                     auto groupTarget = group.getRadioTarget().target;
-                    if (groupTarget.is(OrgSemKind::Subtree)) {
+                    if (groupTarget.is(org::sem::OrgSemKind::Subtree)) {
                         for (auto const& subtree : state->ast->getPathsFor(groupTarget)) {
                             found_radio_target_node(state->ast->adapt(subtree));
                         }
-                    } else if (groupTarget.is(OrgSemKind::RadioTarget)) {
+                    } else if (groupTarget.is(org::sem::OrgSemKind::RadioTarget)) {
                         for (ImmAdapter const& radio :
                              state->ast->getParentPathsFor(groupTarget)) {
                             found_radio_target_node(radio);
@@ -572,7 +572,7 @@ gv::Record org::graph::MapGraph::GvConfig::getNodeLabel(
         });
 
     auto file = node.getFirstMatchingParent(
-        [](ImmAdapter const& a) { return a.is(OrgSemKind::File); });
+        [](ImmAdapter const& a) { return a.is(org::sem::OrgSemKind::File); });
 
     if (node->loc || file) {
         rec.setEscaped(
@@ -682,8 +682,8 @@ hgraph::VertexID add_single_node(
         } else if (
             state->graph->getCastVertex<MapNode>(parent.value())
                 ->getAdapter()
-                .is(OrgSemKind::Subtree)
-            && node.is(OrgSemKind::Subtree)) {
+                .is(org::sem::OrgSemKind::Subtree)
+            && node.is(org::sem::OrgSemKind::Subtree)) {
             edge->kind = MapEdge::EdgeKind::NestedSubtree;
         } else {
             edge->kind = MapEdge::EdgeKind::NestedStatementElement;

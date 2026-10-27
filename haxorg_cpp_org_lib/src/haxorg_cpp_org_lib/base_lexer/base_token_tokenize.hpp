@@ -5,7 +5,7 @@
 #include <hstd_cpp_lib/logger/TraceBase.hpp>
 
 namespace org::parse {
-using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
+using OrgTokenGroup = TokenGroup<org::sem::OrgTokenKind, OrgFill>;
 
 struct LexerParams : hstd::OperationsTracer {
     bool validateTokens = false;

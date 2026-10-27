@@ -175,7 +175,7 @@ struct RecombineState {
         lex.skip(kind);
     }
 
-    OrgTokenId add_as(OrgTokenKind __to, int line = __builtin_LINE()) {
+    OrgTokenId add_as(org::sem::OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill(lex)});
         x_report(
             Push,
@@ -184,7 +184,9 @@ struct RecombineState {
         return res;
     }
 
-    void pop(Opt<OrgTokenKind> expected = std::nullopt, int line = __builtin_LINE()) {
+    void pop(
+        Opt<org::sem::OrgTokenKind> expected = std::nullopt,
+        int                         line     = __builtin_LINE()) {
         auto res = d->out->add(lex.tok());
         x_report(
             Push,
@@ -207,9 +209,9 @@ struct RecombineState {
     }
 
     void pop_as(
-        OrgTokenKind      __to,
-        Opt<OrgTokenKind> expected = std::nullopt,
-        int               line     = __builtin_LINE()) {
+        OrgTokenKind                __to,
+        Opt<org::sem::OrgTokenKind> expected = std::nullopt,
+        int                         line     = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill(lex)});
         x_report(
             Push,
@@ -225,7 +227,7 @@ struct RecombineState {
     OrgFill loc_fill(std::string_view text = "") { return OrgFill{text, lex.tok()->loc}; }
 
 
-    OrgTokenId add_fake(OrgTokenKind __to, int line = __builtin_LINE()) {
+    OrgTokenId add_fake(org::sem::OrgTokenKind __to, int line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to});
         x_report(
             Push,
@@ -234,7 +236,10 @@ struct RecombineState {
         return res;
     }
 
-    OrgTokenId add_fake(OrgTokenKind __to, OrgFill fill, int line = __builtin_LINE()) {
+    OrgTokenId add_fake(
+        org::sem::OrgTokenKind __to,
+        OrgFill                fill,
+        int                    line = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill});
         x_report(
             Push,
@@ -244,7 +249,7 @@ struct RecombineState {
     }
 
 
-    IntSet<OrgTokenKind> EmptyToken{
+    IntSet<org::sem::OrgTokenKind> EmptyToken{
         otk::Whitespace,
         otk::EndOfFile,
         otk::Newline,
@@ -322,7 +327,7 @@ struct RecombineState {
         }
     }
 
-    const IntSet<OrgTokenKind> tree_tags{
+    const IntSet<org::sem::OrgTokenKind> tree_tags{
         otk::Colon,
         otk::Word,
         otk::DoubleHash,
@@ -389,7 +394,7 @@ struct RecombineState {
         }
     }
 
-    IntSet<OrgTokenKind> HashTagTokens{
+    IntSet<org::sem::OrgTokenKind> HashTagTokens{
         otk::DoubleHash,
         otk::BraceBegin,
         otk::BraceEnd,
@@ -611,7 +616,7 @@ struct LineToken {
     BOOST_DESCRIBE_CLASS(LineToken, (), (kind, tokens, indent), (), ());
 
 
-    Opt<Kind> whichBlockLineKind(OrgTokenKind kind) {
+    Opt<Kind> whichBlockLineKind(org::sem::OrgTokenKind kind) {
         if (OrgTokenCmdBlockLine.contains(kind)) {
             return Kind::Line;
         } else if (OrgTokenCmdBlockOpen.contains(kind)) {
@@ -1320,8 +1325,8 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
         __perf_trace("tokens", "rec convert groups");
         visitor.rec_convert_groups(root);
     }
-    Lexer<OrgTokenKind, OrgFill> relex{&visitor.regroup};
-    RecombineState               recombine_state{this, relex};
+    Lexer<org::sem::OrgTokenKind, OrgFill> relex{&visitor.regroup};
+    RecombineState                         recombine_state{this, relex};
     {
         __perf_trace("tokens", "recombine");
         recombine_state.recombine_impl();
@@ -1335,13 +1340,13 @@ void OrgTokenizer::recombine(OrgLexer& lex) {
 }
 
 void OrgTokenizer::convert(OrgTokenGroup& input) {
-    Lexer<OrgTokenKind, OrgFill> lex(&input);
+    Lexer<org::sem::OrgTokenKind, OrgFill> lex(&input);
     return convert(lex);
 }
 
 void OrgTokenizer::convert(OrgLexer& lex) {
     __perf_trace("tokens", "Org tokenizer convert");
-    lex.pos = TokenId<OrgTokenKind, OrgFill>::FromValue(1);
+    lex.pos = TokenId<org::sem::OrgTokenKind, OrgFill>::FromValue(1);
     recombine(lex);
 }
 

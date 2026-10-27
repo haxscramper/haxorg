@@ -470,9 +470,11 @@ class Time(Org, M.Class):
         repeat: ListType["Time.Repeat"]
         warn: Optional["Time.Repeat"] = None
         time: H._T["UserTime"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Dynamic(M.Case):
         expr: Shared._T["LispCode"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     isActive: bool = M.Field(doc="<active> vs [inactive]", default=False)
 

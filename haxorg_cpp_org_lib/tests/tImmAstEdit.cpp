@@ -170,7 +170,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_WithParentChange) {
         Vec<int> p0    = {0};
 
 
-        EXPECT_TRUE(r.at(p0000).is(OrgSemKind::Subtree));
+        EXPECT_TRUE(r.at(p0000).is(org::sem::OrgSemKind::Subtree));
         EXPECT_EQ(r.at(p0000).as<imm::ImmSubtree>()->level, 4);
         EXPECT_EQ(r.at(p0000).getParent().value().id, r.at(p000).id);
         EXPECT_EQ(r.at(p000).at(0).id, r.at(p0000).id);

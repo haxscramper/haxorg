@@ -45,7 +45,7 @@ def _gen_sem_org_enums(
                     ast=ast,
                     macro_namespace="IMM",
                 ),
-                *groups.full_enums,
+                GenTuNamespace(n_sem(), groups.full_enums),
             ],
         ),
         source=GenTu(

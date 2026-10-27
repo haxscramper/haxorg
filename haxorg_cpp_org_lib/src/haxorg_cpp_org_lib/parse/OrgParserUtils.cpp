@@ -74,7 +74,10 @@ std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
     return tmp;
 }
 
-void OrgParser::start_no_guard(OrgNodeKind kind, int line, char const* function) {
+void OrgParser::start_no_guard(
+    org::sem::OrgNodeKind kind,
+    int                   line,
+    char const*           function) {
     auto res = group->startTree(kind);
     if (canTrace()) {
         report(Builder(OrgParser::ReportKind::StartNode, nullptr, line, function)
@@ -182,8 +185,9 @@ void OrgParser::fail(
 }
 
 
-OrgId OrgParser::fake(OrgNodeKind kind, int line, char const* function) {
-    auto res = group->token(kind, group->tokens->add(OrgToken(OrgTokenKind::Unknown)));
+OrgId OrgParser::fake(org::sem::OrgNodeKind kind, int line, char const* function) {
+    auto res = group->token(
+        kind, group->tokens->add(OrgToken(org::sem::OrgTokenKind::Unknown)));
     if (canTrace()) {
         report(Builder(OrgParser::ReportKind::AddToken, nullptr, line, function)
                    .with_node(res)
@@ -210,7 +214,11 @@ OrgId OrgParser::token(OrgNode const& node, int line, char const* function) {
     return res;
 }
 
-OrgId OrgParser::token(OrgNodeKind kind, OrgTokenId tok, int line, char const* function) {
+OrgId OrgParser::token(
+    org::sem::OrgNodeKind kind,
+    OrgTokenId            tok,
+    int                   line,
+    char const*           function) {
     auto res = group->token(kind, tok);
 
     if (canTrace()) {

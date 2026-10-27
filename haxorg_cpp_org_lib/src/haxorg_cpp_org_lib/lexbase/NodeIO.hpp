@@ -154,7 +154,7 @@ struct convert<org::parse::OrgToken> {
     }
     static bool decode(Node const& in, org::parse::OrgToken& out) {
         if (in["str"]) { out->setText(in["str"].as<hstd::Str>()); }
-        if (in["kind"]) { out.kind = in["kind"].as<OrgTokenKind>(); }
+        if (in["kind"]) { out.kind = in["kind"].as<org::sem::OrgTokenKind>(); }
         return true;
     }
 };

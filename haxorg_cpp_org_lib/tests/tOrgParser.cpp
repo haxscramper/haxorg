@@ -97,7 +97,7 @@ TEST(OrgParseSem, ParagraphBody) {
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 1);
-        EXPECT_TRUE(body.at(0)->is(OrgSemKind::Word));
+        EXPECT_TRUE(body.at(0)->is(org::sem::OrgSemKind::Word));
     }
 
     {
@@ -111,7 +111,7 @@ TEST(OrgParseSem, ParagraphBody) {
         auto par  = immConv(parseOne<sem::Paragraph>("NOTE: content"));
         auto body = par.node.getBody();
         EXPECT_EQ(body.size(), 1);
-        EXPECT_TRUE(body.at(0)->is(OrgSemKind::Word));
+        EXPECT_TRUE(body.at(0)->is(org::sem::OrgSemKind::Word));
     }
 
     {
@@ -120,7 +120,7 @@ TEST(OrgParseSem, ParagraphBody) {
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 1);
-        EXPECT_TRUE(body.at(0)->is(OrgSemKind::Word));
+        EXPECT_TRUE(body.at(0)->is(org::sem::OrgSemKind::Word));
     }
 
     {
@@ -129,8 +129,8 @@ TEST(OrgParseSem, ParagraphBody) {
         EXPECT_FALSE(par.isNil());
         auto body = par->getBody();
         EXPECT_EQ(body.size(), 3);
-        EXPECT_TRUE(body.at(0)->is(OrgSemKind::InlineFootnote));
-        EXPECT_TRUE(body.at(2)->is(OrgSemKind::Word));
+        EXPECT_TRUE(body.at(0)->is(org::sem::OrgSemKind::InlineFootnote));
+        EXPECT_TRUE(body.at(2)->is(org::sem::OrgSemKind::Word));
     }
 }
 

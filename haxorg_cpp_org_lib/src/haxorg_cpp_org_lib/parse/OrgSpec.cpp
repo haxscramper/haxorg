@@ -5,7 +5,7 @@ using namespace org::parse;
 
 using otk        = OrgTokenKind;
 using OrgPattern = org::parse::AstPattern<OrgAdapter, OrgNodeKind, OrgSpecName>;
-using SpecPair   = Pair<OrgNodeKind, OrgPattern>;
+using SpecPair   = Pair<org::sem::OrgNodeKind, OrgPattern>;
 using Field      = org::parse::AstPatternRange<OrgAdapter, OrgNodeKind, OrgSpecName>;
 using Range      = org::parse::AstRange<OrgSpecName>;
 
@@ -43,7 +43,7 @@ Field fieldN(Idx idx, N name, OrgPattern const& pattern, Str doc = "") {
 }
 
 std::unique_ptr<OrgSpec> getOrgSpec() {
-    const IntSet<OrgNodeKind> anyTime{
+    const IntSet<org::sem::OrgNodeKind> anyTime{
         onk::StaticActiveTime,
         onk::StaticInactiveTime,
         onk::DynamicActiveTime,

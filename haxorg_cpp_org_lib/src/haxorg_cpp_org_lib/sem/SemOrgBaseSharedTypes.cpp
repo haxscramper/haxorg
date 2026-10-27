@@ -1,16 +1,16 @@
 #include <haxorg_cpp_org_lib/sem/SemOrgBaseSharedTypes.hpp>
 #include <hstd_cpp_lib/stdlib/serde/JsonUse.hpp>
 
-std::string org::sem::detail::format_enum_value(OrgTokenKind p) {
-    return hstd::enum_serde<OrgTokenKind>::to_string(p);
+std::string org::sem::detail::format_enum_value(org::sem::OrgTokenKind p) {
+    return hstd::enum_serde<org::sem::OrgTokenKind>::to_string(p);
 }
 
-std::string org::sem::detail::format_enum_value(OrgSemKind p) {
-    return hstd::enum_serde<OrgSemKind>::to_string(p);
+std::string org::sem::detail::format_enum_value(org::sem::OrgSemKind p) {
+    return hstd::enum_serde<org::sem::OrgSemKind>::to_string(p);
 }
 
-std::string org::sem::detail::format_enum_value(OrgNodeKind p) {
-    return hstd::enum_serde<OrgNodeKind>::to_string(p);
+std::string org::sem::detail::format_enum_value(org::sem::OrgNodeKind p) {
+    return hstd::enum_serde<org::sem::OrgNodeKind>::to_string(p);
 }
 
 

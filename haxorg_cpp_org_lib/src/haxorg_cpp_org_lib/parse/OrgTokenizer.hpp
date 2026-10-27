@@ -28,7 +28,7 @@ struct ImplementError : public std::runtime_error {
 /// argument.
 struct OrgTokenizer
     : public hstd::OperationsTracer
-    , public Tokenizer<OrgTokenKind, OrgFill> {
+    , public Tokenizer<org::sem::OrgTokenKind, OrgFill> {
     // TODO at the moment the assumption is that adding conditional checks
     // all over the place in each lexer function would hinder the
     // performance quite a bit. Since indent/dedent relies on the RAII
@@ -37,7 +37,7 @@ struct OrgTokenizer
     // is large enough to justify all the hacks with explicit
     // initialization, but for the time being I don't want to get into this
     // and try and check what is really going on.
-    using Base = Tokenizer<OrgTokenKind, OrgToken>;
+    using Base = Tokenizer<org::sem::OrgTokenKind, OrgToken>;
 
 
   public:
@@ -73,7 +73,7 @@ struct OrgTokenizer
     OrgTokenId push(OrgToken tok) { return out->add(tok); }
 
     OrgTokenizer(OrgTokenGroup* out, org::parse::SourceManager const* mgr)
-        : Tokenizer<OrgTokenKind, OrgFill>(out), mgr{mgr} {}
+        : Tokenizer<org::sem::OrgTokenKind, OrgFill>(out), mgr{mgr} {}
 
     /// Rewrite stream of base lexer tokens to the org token stream, adding
     /// boundaries for the paragraph elements, closing unterminated

@@ -506,7 +506,7 @@ RadioTargetSearchResult tryRadioTargetSearch(
                 ++sourceOffset;
                 ++radioOffset;
             }
-        } else if (atSource->is(OrgSemKind::Space)) {
+        } else if (atSource->is(org::sem::OrgSemKind::Space)) {
             ++sourceOffset;
         } else {
             return result;
@@ -528,7 +528,7 @@ Vec<AstTrackingGroup> org::getSubnodeGroups(
     for (int idx = 0; idx < sub.size(); ++idx) {
         auto const& it = sub.at(idx);
         if (auto leaf = it->dyn_cast<sem::Leaf>();
-            leaf != nullptr && !leaf->is(OrgSemKind::Space)) {
+            leaf != nullptr && !leaf->is(org::sem::OrgSemKind::Space)) {
             auto radioTargets = map.radioTargets.find(leaf->text);
             if (radioTargets == map.radioTargets.end()) {
                 res.push_back(G{G::Single{it}});

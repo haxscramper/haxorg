@@ -854,7 +854,8 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecBaseLex(
         Str                   buffer;
         RunResult::LexCompare result = compareTokens(
             p.baseTokens,
-            fromFlatTokens<OrgTokenKind, OrgFill>(spec.base_tokens.value(), buffer),
+            fromFlatTokens<org::sem::OrgTokenKind, OrgFill>(
+                spec.base_tokens.value(), buffer),
             spec.conf.tokenMatch,
             [](OrgToken const& lhs, OrgToken const& rhs) -> bool {
                 if (lhs.kind != rhs.kind) {
@@ -909,7 +910,7 @@ CorpusRunner::RunResult::LexCompare CorpusRunner::runSpecLex(
         Str                   buffer;
         RunResult::LexCompare result = compareTokens(
             p.tokens,
-            fromFlatTokens<OrgTokenKind, OrgFill>(spec.tokens.value(), buffer),
+            fromFlatTokens<org::sem::OrgTokenKind, OrgFill>(spec.tokens.value(), buffer),
             spec.conf.tokenMatch,
             [](OrgToken const& lhs, OrgToken const& rhs) -> bool {
                 if (lhs.kind != rhs.kind) {
@@ -995,12 +996,16 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         OrgTokenGroup tokens;
 
         if (spec.tokens.has_value()) {
-            tokens = fromFlatTokens<OrgTokenKind, OrgFill>(spec.tokens.value(), buffer);
+            tokens = fromFlatTokens<org::sem::OrgTokenKind, OrgFill>(
+                spec.tokens.value(), buffer);
         }
 
         if (spec.subnodes.has_value()) {
-            nodes = fromFlatNodes<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>(
-                spec.subnodes.value());
+            nodes = fromFlatNodes<
+                org::sem::OrgNodeKind,
+                OrgTokenKind,
+                OrgFill,
+                OrgNodeMono>(spec.subnodes.value());
         }
 
         nodes.tokens = &tokens;

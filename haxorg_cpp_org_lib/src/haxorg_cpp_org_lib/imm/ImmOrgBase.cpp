@@ -51,7 +51,7 @@ OrgSemKind org::imm::ImmId::getKind(IdType id) {
 
 OrgSemKind org::imm::ImmId::getKind() const { return ImmId::getKind(value); }
 
-bool org::imm::ImmId::is(OrgSemKind kind) const { return getKind() == kind; }
+bool org::imm::ImmId::is(org::sem::OrgSemKind kind) const { return getKind() == kind; }
 
 bool org::imm::ImmId::operator!=(Id other) const noexcept {
     return getValue() != other.getValue();
@@ -98,7 +98,7 @@ int org::imm::ImmOrg::indexOf(org::imm::ImmId subnode) const {
 
 bool org::imm::ImmOrg::is(SemSet const& kind) const { return kind.contains(getKind()); }
 
-bool org::imm::ImmOrg::is(OrgSemKind kind) const { return getKind() == kind; }
+bool org::imm::ImmOrg::is(org::sem::OrgSemKind kind) const { return getKind() == kind; }
 
 
 template <typename T>

@@ -211,7 +211,7 @@ struct EvalContext {
     CallParams getTargetBlock(imm::ImmAdapter const& adapter) {
         EVAL_SCOPE();
         CallParams res;
-        if (adapter.is(OrgSemKind::BlockCode)) {
+        if (adapter.is(org::sem::OrgSemKind::BlockCode)) {
             res.block = adapter.as<imm::ImmBlockCode>();
         } else {
             auto command = adapter.as<imm::ImmCmdCall>();
@@ -220,7 +220,7 @@ struct EvalContext {
             res.callsiteVars       = command->callAttrs;
             res.callsiteHeaderArgs = command->insideHeaderAttrs;
             if (auto opt_block = getTrack()->names.get(command->name)) {
-                if (!opt_block->is(OrgSemKind::BlockCode)) {
+                if (!opt_block->is(org::sem::OrgSemKind::BlockCode)) {
                     EVAL_TRACE(
                         hstd::fmt(
                             "Name '{}' does not refer to a code block", command->name));
@@ -437,7 +437,7 @@ struct EvalContext {
                         return code;
                     };
 
-                    if (target.is(OrgSemKind::BlockCode)) {
+                    if (target.is(org::sem::OrgSemKind::BlockCode)) {
                         return ctx.store().updateNode<imm::ImmBlockCode>(
                             target, ctx, [&](imm::ImmBlockCode code) {
                                 return assign_result(code);
@@ -462,8 +462,8 @@ struct EvalContext {
         auto collect_code_blocks = [](imm::ImmAdapter const& ad) -> Vec<imm::ImmUniqId> {
             Vec<imm::ImmUniqId> res;
             org::eachSubnodeRec(ad, true, [&](imm::ImmAdapter const& adapter) {
-                if (adapter.is(OrgSemKind::BlockCode)
-                    || adapter.is(OrgSemKind::CmdCall)) {
+                if (adapter.is(org::sem::OrgSemKind::BlockCode)
+                    || adapter.is(org::sem::OrgSemKind::CmdCall)) {
                     res.push_back(adapter.uniq());
                 }
             });

@@ -35,7 +35,7 @@
 
 namespace {
 
-hstd::IntSet<OrgNodeKind> ErrorKinds{
+hstd::IntSet<org::sem::OrgNodeKind> ErrorKinds{
     OrgNodeKind::ErrorInfoToken,
     OrgNodeKind::ErrorSkipToken,
     OrgNodeKind::ErrorSkipGroup};
@@ -169,11 +169,13 @@ org::sem::TimeValue getTimeValue(org::sem::SemId<org::sem::Time> const& t) {
 
 void remove_empty_text(SemId<Org> node) {
     auto& s = node->subnodes;
-    if (s.at(0)->is(OrgSemKind::Paragraph) && s.at(0).size() == 0) { s.erase(s.begin()); }
+    if (s.at(0)->is(org::sem::OrgSemKind::Paragraph) && s.at(0).size() == 0) {
+        s.erase(s.begin());
+    }
 
     while (0 < s.size()
-           && ((s.back()->is(OrgSemKind::Paragraph) && s.back().size() == 0)
-               || (s.back()->is(OrgSemKind::Newline)))) {
+           && ((s.back()->is(org::sem::OrgSemKind::Paragraph) && s.back().size() == 0)
+               || (s.back()->is(org::sem::OrgSemKind::Newline)))) {
         s.pop_back();
     }
 }
@@ -688,7 +690,7 @@ Opt<SemId<ErrorGroup>> OrgConverter::convertPropertyList(SemId<Subtree>& tree, I
         }
         for (int i = 0; i < par.size(); ++i) {
             auto sub = par.at(i);
-            if (sub->is(OrgSemKind::Space)) {
+            if (sub->is(org::sem::OrgSemKind::Space)) {
                 continue;
             } else if (auto tag = sub.asOpt<sem::HashTag>()) {
                 if (def.hashtag.head.empty()) {

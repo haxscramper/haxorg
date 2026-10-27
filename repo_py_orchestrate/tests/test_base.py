@@ -9,6 +9,7 @@ from hstd_py_lib.os_utils import ensure_clean_dir, latest_file
 from hstd_py_lib.pydantic_utils import format_json_with_fjson
 from hstd_py_lib.script_logging import to_debug_json
 from hstd_py_text_layout.base.wrap import TextLayout
+from loguru import logger
 from repo_py_orchestrate.codegen_config import org_codegen_data
 from repo_py_orchestrate.codegen_config.codegen import (
     gen_haxorg_base_sources,
@@ -44,6 +45,7 @@ def test_org_dsl_codegen_conversion(stable_test_dir: Path):
     )
 
     for v, value in [("v1", v1_model), ("v2", v2_model)]:
+        logger.info(f"Generating sources {v}")
         res_dir = stable_test_dir.joinpath(f"files_{v}")
         ensure_clean_dir(res_dir)
         _, sources = gen_haxorg_base_sources1(

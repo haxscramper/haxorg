@@ -20,6 +20,16 @@
         __MAP(kCmdcustomtext, cmdcustomtext, CmdCustomText)  \
         __MAP(kCmdcall, cmdcall, CmdCall)  \
         __MAP(kCmdtblfm, cmdtblfm, CmdTblfm)  \
+        __MAP(kBlockcenter, blockcenter, BlockCenter)  \
+        __MAP(kBlockquote, blockquote, BlockQuote)  \
+        __MAP(kBlockcomment, blockcomment, BlockComment)  \
+        __MAP(kBlockverse, blockverse, BlockVerse)  \
+        __MAP(kBlockdynamicfallback, blockdynamicfallback, BlockDynamicFallback)  \
+        __MAP(kBlockexample, blockexample, BlockExample)  \
+        __MAP(kBlockexport, blockexport, BlockExport)  \
+        __MAP(kBlockadmonition, blockadmonition, BlockAdmonition)  \
+        __MAP(kBlockcodeevalresult, blockcodeevalresult, BlockCodeEvalResult)  \
+        __MAP(kBlockcode, blockcode, BlockCode)  \
         __MAP(kHashtag, hashtag, HashTag)  \
         __MAP(kInlinefootnote, inlinefootnote, InlineFootnote)  \
         __MAP(kInlineexport, inlineexport, InlineExport)  \
@@ -50,16 +60,6 @@
         __MAP(kRadiotarget, radiotarget, RadioTarget)  \
         __MAP(kLatex, latex, Latex)  \
         __MAP(kLink, link, Link)  \
-        __MAP(kBlockcenter, blockcenter, BlockCenter)  \
-        __MAP(kBlockquote, blockquote, BlockQuote)  \
-        __MAP(kBlockcomment, blockcomment, BlockComment)  \
-        __MAP(kBlockverse, blockverse, BlockVerse)  \
-        __MAP(kBlockdynamicfallback, blockdynamicfallback, BlockDynamicFallback)  \
-        __MAP(kBlockexample, blockexample, BlockExample)  \
-        __MAP(kBlockexport, blockexport, BlockExport)  \
-        __MAP(kBlockadmonition, blockadmonition, BlockAdmonition)  \
-        __MAP(kBlockcodeevalresult, blockcodeevalresult, BlockCodeEvalResult)  \
-        __MAP(kBlockcode, blockcode, BlockCode)  \
         __MAP(kSubtreelog, subtreelog, SubtreeLog)  \
         __MAP(kSubtree, subtree, Subtree)  \
         __MAP(kCell, cell, Cell)  \
@@ -988,6 +988,76 @@ struct hstd::serde::proto_serde<::orgproto::CmdTblfm, org::sem::CmdTblfm> {
 
 
 template <>
+struct hstd::serde::proto_serde<::orgproto::BlockCenter, org::sem::BlockCenter> {
+  static void write(::orgproto::BlockCenter* out, org::sem::BlockCenter const& in);
+  static void read(::orgproto::BlockCenter const& out, proto_write_accessor<org::sem::BlockCenter> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockQuote, org::sem::BlockQuote> {
+  static void write(::orgproto::BlockQuote* out, org::sem::BlockQuote const& in);
+  static void read(::orgproto::BlockQuote const& out, proto_write_accessor<org::sem::BlockQuote> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockComment, org::sem::BlockComment> {
+  static void write(::orgproto::BlockComment* out, org::sem::BlockComment const& in);
+  static void read(::orgproto::BlockComment const& out, proto_write_accessor<org::sem::BlockComment> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockVerse, org::sem::BlockVerse> {
+  static void write(::orgproto::BlockVerse* out, org::sem::BlockVerse const& in);
+  static void read(::orgproto::BlockVerse const& out, proto_write_accessor<org::sem::BlockVerse> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockDynamicFallback, org::sem::BlockDynamicFallback> {
+  static void write(::orgproto::BlockDynamicFallback* out, org::sem::BlockDynamicFallback const& in);
+  static void read(::orgproto::BlockDynamicFallback const& out, proto_write_accessor<org::sem::BlockDynamicFallback> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockExample, org::sem::BlockExample> {
+  static void write(::orgproto::BlockExample* out, org::sem::BlockExample const& in);
+  static void read(::orgproto::BlockExample const& out, proto_write_accessor<org::sem::BlockExample> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockExport, org::sem::BlockExport> {
+  static void write(::orgproto::BlockExport* out, org::sem::BlockExport const& in);
+  static void read(::orgproto::BlockExport const& out, proto_write_accessor<org::sem::BlockExport> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockAdmonition, org::sem::BlockAdmonition> {
+  static void write(::orgproto::BlockAdmonition* out, org::sem::BlockAdmonition const& in);
+  static void read(::orgproto::BlockAdmonition const& out, proto_write_accessor<org::sem::BlockAdmonition> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult> {
+  static void write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in);
+  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in);
+};
+
+
+template <>
+struct hstd::serde::proto_serde<::orgproto::BlockCode, org::sem::BlockCode> {
+  static void write(::orgproto::BlockCode* out, org::sem::BlockCode const& in);
+  static void read(::orgproto::BlockCode const& out, proto_write_accessor<org::sem::BlockCode> in);
+};
+
+
+template <>
 struct hstd::serde::proto_serde<::orgproto::HashTag, org::sem::HashTag> {
   static void write(::orgproto::HashTag* out, org::sem::HashTag const& in);
   static void read(::orgproto::HashTag const& out, proto_write_accessor<org::sem::HashTag> in);
@@ -1222,76 +1292,6 @@ template <>
 struct hstd::serde::proto_serde<::orgproto::Link, org::sem::Link> {
   static void write(::orgproto::Link* out, org::sem::Link const& in);
   static void read(::orgproto::Link const& out, proto_write_accessor<org::sem::Link> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockCenter, org::sem::BlockCenter> {
-  static void write(::orgproto::BlockCenter* out, org::sem::BlockCenter const& in);
-  static void read(::orgproto::BlockCenter const& out, proto_write_accessor<org::sem::BlockCenter> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockQuote, org::sem::BlockQuote> {
-  static void write(::orgproto::BlockQuote* out, org::sem::BlockQuote const& in);
-  static void read(::orgproto::BlockQuote const& out, proto_write_accessor<org::sem::BlockQuote> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockComment, org::sem::BlockComment> {
-  static void write(::orgproto::BlockComment* out, org::sem::BlockComment const& in);
-  static void read(::orgproto::BlockComment const& out, proto_write_accessor<org::sem::BlockComment> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockVerse, org::sem::BlockVerse> {
-  static void write(::orgproto::BlockVerse* out, org::sem::BlockVerse const& in);
-  static void read(::orgproto::BlockVerse const& out, proto_write_accessor<org::sem::BlockVerse> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockDynamicFallback, org::sem::BlockDynamicFallback> {
-  static void write(::orgproto::BlockDynamicFallback* out, org::sem::BlockDynamicFallback const& in);
-  static void read(::orgproto::BlockDynamicFallback const& out, proto_write_accessor<org::sem::BlockDynamicFallback> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockExample, org::sem::BlockExample> {
-  static void write(::orgproto::BlockExample* out, org::sem::BlockExample const& in);
-  static void read(::orgproto::BlockExample const& out, proto_write_accessor<org::sem::BlockExample> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockExport, org::sem::BlockExport> {
-  static void write(::orgproto::BlockExport* out, org::sem::BlockExport const& in);
-  static void read(::orgproto::BlockExport const& out, proto_write_accessor<org::sem::BlockExport> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockAdmonition, org::sem::BlockAdmonition> {
-  static void write(::orgproto::BlockAdmonition* out, org::sem::BlockAdmonition const& in);
-  static void read(::orgproto::BlockAdmonition const& out, proto_write_accessor<org::sem::BlockAdmonition> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockCodeEvalResult, org::sem::BlockCodeEvalResult> {
-  static void write(::orgproto::BlockCodeEvalResult* out, org::sem::BlockCodeEvalResult const& in);
-  static void read(::orgproto::BlockCodeEvalResult const& out, proto_write_accessor<org::sem::BlockCodeEvalResult> in);
-};
-
-
-template <>
-struct hstd::serde::proto_serde<::orgproto::BlockCode, org::sem::BlockCode> {
-  static void write(::orgproto::BlockCode* out, org::sem::BlockCode const& in);
-  static void read(::orgproto::BlockCode const& out, proto_write_accessor<org::sem::BlockCode> in);
 };
 
 

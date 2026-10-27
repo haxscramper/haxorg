@@ -14,7 +14,7 @@
 #include <hstd_cpp_lib/system/reflection.hpp>
 
 
-using SemSet = hstd::IntSet<OrgSemKind>;
+using SemSet = hstd::IntSet<org::sem::OrgSemKind>;
 
 namespace org::sem {
 
@@ -282,8 +282,8 @@ struct [[refl(R"({
         }
     }
 
-    [[refl]] bool is(OrgSemKind kind) const { return getKind() == kind; }
-    bool          is(hstd::IntSet<OrgSemKind> const& kinds) const {
+    [[refl]] bool is(org::sem::OrgSemKind kind) const { return getKind() == kind; }
+    bool          is(hstd::IntSet<org::sem::OrgSemKind> const& kinds) const {
         return kinds.contains(getKind());
     }
 

@@ -109,13 +109,15 @@ TEST(TestFiles, AllNodeCoverage) {
     foundNodes.incl(wipNotParseable);
 
     SemSet expectedNodes;
-    for (auto const& value : sliceT<OrgSemKind>()) { expectedNodes.incl(value); }
+    for (auto const& value : sliceT<org::sem::OrgSemKind>()) {
+        expectedNodes.incl(value);
+    }
 
     if (expectedNodes.size() != foundNodes.size()) {
-        Vec<OrgSemKind> diff;
+        Vec<org::sem::OrgSemKind> diff;
         for (auto const& v : expectedNodes - foundNodes) { diff.push_back(v); }
         std::string missing = join(
-            ", ", map(diff, [](OrgSemKind value) { return fmt1(value); }));
+            ", ", map(diff, [](org::sem::OrgSemKind value) { return fmt1(value); }));
         FAIL() << "'all.org' test file missing node coverage for " << diff.size()
                << " nodes: '" << missing << "'";
     }

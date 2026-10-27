@@ -97,39 +97,56 @@ class InitialSubtreeVisibility(M.Enum):
 
 
 class LispCode(M.Class):
-    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+    __config__(
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
+            )
+        )
+    )
 
     class Call(M.Case):
         name: str
         args: List["LispCode"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Quoted(M.Case):
         items: List["LispCode"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class List(M.Case):
         items: List["LispCode"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Vector(M.Case):
         items: List["LispCode"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class KeyValue(M.Case):
         name: str
         value: List["LispCode"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Number(M.Case):
         value: Int32 = 0
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Text(M.Case):
         value: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Ident(M.Case):
         name: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Boolean(M.Case):
         value: bool = False
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Real(M.Case):
         value: Float32
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     __variant__(
         Call,
@@ -162,16 +179,25 @@ class TimeValue(M.Class):
 
 
 class Tblfm(M.Class):
-    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+    __config__(
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
+            )
+        )
+    )
 
     class Expr(M.Class):
         class AxisRef(M.Case):
             class Position(M.Class):
                 class Index(M.Case):
                     index: Int32
+                    __config__(backend=dict(cpp=dict(default_constructor=True)))
 
                 class Name(M.Case):
                     name: str
+                    __config__(backend=dict(cpp=dict(default_constructor=True)))
 
                 __variant__(Index, Name, field="data", kind="Kind")
 

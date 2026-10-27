@@ -51,7 +51,7 @@ EACH_SHARED_ORG_RECORD(_declare_hash)
 
 
 template <typename Func>
-void switch_node_nullptr(OrgSemKind kind, Func const& cb) {
+void switch_node_nullptr(org::sem::OrgSemKind kind, Func const& cb) {
     switch (kind) {
 #define _case(__Kind)                                                                    \
     case OrgSemKind::__Kind: {                                                           \
@@ -544,7 +544,7 @@ struct ImmAstStore {
     void format(hstd::ColStream& os, std::string const& prefix = "") const;
 
     hstd::generator<org::imm::ImmId> all_ids() const {
-        for (auto const& kind : hstd::sliceT<OrgSemKind>()) {
+        for (auto const& kind : hstd::sliceT<org::sem::OrgSemKind>()) {
             int size = 0;
             switch_node_nullptr(
                 kind, [&]<typename N>(N*) { size = getStore<N>()->size(); });
@@ -969,7 +969,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         [[refl]] bool withReflFields = false;
         /// \brief Profide extra pretty-printed information for a given
         /// field subset.
-        [[refl]] hstd::UnorderedSet<hstd::Pair<OrgSemKind, ImmReflFieldId>>
+        [[refl]] hstd::UnorderedSet<hstd::Pair<org::sem::OrgSemKind, ImmReflFieldId>>
             withFieldSubset;
 
         template <typename F, typename T>
@@ -1125,7 +1125,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
         return res;
     }
 
-    [[refl]] bool is(OrgSemKind kind) const { return get()->is(kind); }
+    [[refl]] bool is(org::sem::OrgSemKind kind) const { return get()->is(kind); }
 
     [[refl]] hstd::Vec<ImmAdapter> sub(bool withPath = true) const;
 

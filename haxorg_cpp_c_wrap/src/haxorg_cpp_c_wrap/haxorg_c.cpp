@@ -50,7 +50,7 @@ haxorg_Org haxorg_SemIdOfOrg_get_const(OrgContext* org_context, haxorg_SemIdOfOr
 
 haxorg_SemIdOfOrg haxorg_SemIdOfOrg_asOrg_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::asOrg), org_context, __this); }
 
-haxorg_OrgSemKind haxorg_SemIdOfOrg_getNodeKind_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<OrgSemKind(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::getNodeKind), org_context, __this); }
+haxorg_OrgSemKind haxorg_SemIdOfOrg_getNodeKind_const(OrgContext* org_context, haxorg_SemIdOfOrg __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<org::sem::OrgSemKind(org::sem::SemId<org::sem::Org>::*)() const>(&org::sem::SemId<org::sem::Org>::getNodeKind), org_context, __this); }
 
 haxorg_SemIdOfOrg haxorg_SemIdOfOrg_atIndex(OrgContext* org_context, haxorg_SemIdOfOrg __this, int idx) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::SemId<org::sem::Org>::*)(int)>(&org::sem::SemId<org::sem::Org>::at), org_context, __this, idx); }
 
@@ -1838,7 +1838,7 @@ haxorg_StdOptional haxorg_Org_get_loc(OrgContext* org_context, haxorg_Org __this
 
 haxorg_HstdVecOfSemIdOfOrg haxorg_Org_get_subnodes(OrgContext* org_context, haxorg_Org __this) { return org::bind::c::get_cpp_field<haxorg_HstdVecOfSemIdOfOrg, org::sem::Org, hstd::Vec<org::sem::SemId<org::sem::Org>>, haxorg_Org>(org_context, __this, &org::sem::Org::subnodes); }
 
-haxorg_OrgSemKind haxorg_Org_getKind_const(OrgContext* org_context, haxorg_Org __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), org_context, __this); }
+haxorg_OrgSemKind haxorg_Org_getKind_const(OrgContext* org_context, haxorg_Org __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<org::sem::OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind), org_context, __this); }
 
 void haxorg_Org_push_back(OrgContext* org_context, haxorg_Org __this, haxorg_SemIdOfOrg sub) { return org::bind::c::execute_cpp<void>(static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back), org_context, __this, sub); }
 
@@ -1848,15 +1848,15 @@ void haxorg_Org_insert(OrgContext* org_context, haxorg_Org __this, int pos, haxo
 
 haxorg_SemIdOfOrg haxorg_Org_at_const(OrgContext* org_context, haxorg_Org __this, int idx) { return org::bind::c::execute_cpp<haxorg_SemIdOfOrg>(static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at), org_context, __this, idx); }
 
-bool haxorg_Org_is_const(OrgContext* org_context, haxorg_Org __this, haxorg_OrgSemKind kind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is), org_context, __this, kind); }
+bool haxorg_Org_is_const(OrgContext* org_context, haxorg_Org __this, haxorg_OrgSemKind kind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::sem::Org::*)(org::sem::OrgSemKind) const>(&org::sem::Org::is), org_context, __this, kind); }
 
 void haxorg_destroy_Org(OrgContext* org_context, haxorg_Org* obj) { org::bind::c::execute_destroy<org::sem::Org>(org_context, obj); }
 
 void haxorg_destroy_ImmOrg(OrgContext* org_context, haxorg_ImmOrg* obj) { org::bind::c::execute_destroy<org::imm::ImmOrg>(org_context, obj); }
 
-haxorg_OrgSemKind haxorg_ImmId_getKind_const(OrgContext* org_context, haxorg_ImmId __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind), org_context, __this); }
+haxorg_OrgSemKind haxorg_ImmId_getKind_const(OrgContext* org_context, haxorg_ImmId __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<org::sem::OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind), org_context, __this); }
 
-bool haxorg_ImmId_is_const(OrgContext* org_context, haxorg_ImmId __this, haxorg_OrgSemKind kind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is), org_context, __this, kind); }
+bool haxorg_ImmId_is_const(OrgContext* org_context, haxorg_ImmId __this, haxorg_OrgSemKind kind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmId::*)(org::sem::OrgSemKind) const>(&org::imm::ImmId::is), org_context, __this, kind); }
 
 haxorg_ImmIdNodeIdxT haxorg_ImmId_getNodeIndex_const(OrgContext* org_context, haxorg_ImmId __this) { return org::bind::c::execute_cpp<haxorg_ImmIdNodeIdxT>(static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex), org_context, __this); }
 
@@ -2062,7 +2062,7 @@ bool haxorg_ImmAdapter_isNil_const(OrgContext* org_context, haxorg_ImmAdapter __
 
 bool haxorg_ImmAdapter_isRoot_const(OrgContext* org_context, haxorg_ImmAdapter __this) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot), org_context, __this); }
 
-haxorg_OrgSemKind haxorg_ImmAdapter_getKind_const(OrgContext* org_context, haxorg_ImmAdapter __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind), org_context, __this); }
+haxorg_OrgSemKind haxorg_ImmAdapter_getKind_const(OrgContext* org_context, haxorg_ImmAdapter __this) { return org::bind::c::execute_cpp<haxorg_OrgSemKind>(static_cast<org::sem::OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind), org_context, __this); }
 
 haxorg_ImmUniqId haxorg_ImmAdapter_uniq_const(OrgContext* org_context, haxorg_ImmAdapter __this) { return org::bind::c::execute_cpp<haxorg_ImmUniqId>(static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq), org_context, __this); }
 
@@ -2088,7 +2088,7 @@ haxorg_ImmAdapter haxorg_ImmAdapter_atIndex_const(OrgContext* org_context, haxor
 
 haxorg_ImmAdapter haxorg_ImmAdapter_atPath_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_HstdVecOfInt path, bool withPath) { return org::bind::c::execute_cpp<haxorg_ImmAdapter>(static_cast<org::imm::ImmAdapter(org::imm::ImmAdapter::*)(hstd::Vec<int> const&, bool) const>(&org::imm::ImmAdapter::at), org_context, __this, path, withPath); }
 
-bool haxorg_ImmAdapter_is_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_OrgSemKind kind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is), org_context, __this, kind); }
+bool haxorg_ImmAdapter_is_const(OrgContext* org_context, haxorg_ImmAdapter __this, haxorg_OrgSemKind kind) { return org::bind::c::execute_cpp<bool>(static_cast<bool(org::imm::ImmAdapter::*)(org::sem::OrgSemKind) const>(&org::imm::ImmAdapter::is), org_context, __this, kind); }
 
 haxorg_HstdVecOfImmAdapter haxorg_ImmAdapter_sub_const(OrgContext* org_context, haxorg_ImmAdapter __this, bool withPath) { return org::bind::c::execute_cpp<haxorg_HstdVecOfImmAdapter>(static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub), org_context, __this, withPath); }
 
@@ -2098,7 +2098,7 @@ bool haxorg_ImmAdapterTreeReprConf_get_withAuxFields(OrgContext* org_context, ha
 
 bool haxorg_ImmAdapterTreeReprConf_get_withReflFields(OrgContext* org_context, haxorg_ImmAdapterTreeReprConf __this) { return org::bind::c::get_cpp_field<bool, org::imm::ImmAdapter::TreeReprConf, bool, haxorg_ImmAdapterTreeReprConf>(org_context, __this, &org::imm::ImmAdapter::TreeReprConf::withReflFields); }
 
-haxorg_HstdUnorderedSet haxorg_ImmAdapterTreeReprConf_get_withFieldSubset(OrgContext* org_context, haxorg_ImmAdapterTreeReprConf __this) { return org::bind::c::get_cpp_field<haxorg_HstdUnorderedSet, org::imm::ImmAdapter::TreeReprConf, hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>, haxorg_ImmAdapterTreeReprConf>(org_context, __this, &org::imm::ImmAdapter::TreeReprConf::withFieldSubset); }
+haxorg_HstdUnorderedSet haxorg_ImmAdapterTreeReprConf_get_withFieldSubset(OrgContext* org_context, haxorg_ImmAdapterTreeReprConf __this) { return org::bind::c::get_cpp_field<haxorg_HstdUnorderedSet, org::imm::ImmAdapter::TreeReprConf, hstd::UnorderedSet<std::pair<org::sem::OrgSemKind, org::imm::ImmReflFieldId>>, haxorg_ImmAdapterTreeReprConf>(org_context, __this, &org::imm::ImmAdapter::TreeReprConf::withFieldSubset); }
 
 void haxorg_destroy_ImmAdapterTreeReprConf(OrgContext* org_context, haxorg_ImmAdapterTreeReprConf* obj) { org::bind::c::execute_destroy<org::imm::ImmAdapter::TreeReprConf>(org_context, obj); }
 

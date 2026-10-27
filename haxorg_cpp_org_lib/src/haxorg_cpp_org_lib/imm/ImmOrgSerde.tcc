@@ -500,6 +500,302 @@ struct ImmSemSerde<org::sem::CmdTblfm, org::imm::ImmCmdTblfm> : public ImmSemSer
 };
 
 template <>
+struct ImmSemSerde<org::sem::BlockCenter, org::imm::ImmBlockCenter> : public ImmSemSerdeBase {
+  org::imm::ImmBlockCenter to_immer(org::sem::BlockCenter const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockCenter result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCenter>::get();
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockCenter from_immer(org::imm::ImmBlockCenter const& value, ImmAstContext const& ctx) {
+    org::sem::BlockCenter result = hstd::SerdeDefaultProvider<org::sem::BlockCenter>::get();
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockQuote, org::imm::ImmBlockQuote> : public ImmSemSerdeBase {
+  org::imm::ImmBlockQuote to_immer(org::sem::BlockQuote const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockQuote result = hstd::SerdeDefaultProvider<org::imm::ImmBlockQuote>::get();
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockQuote from_immer(org::imm::ImmBlockQuote const& value, ImmAstContext const& ctx) {
+    org::sem::BlockQuote result = hstd::SerdeDefaultProvider<org::sem::BlockQuote>::get();
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockComment, org::imm::ImmBlockComment> : public ImmSemSerdeBase {
+  org::imm::ImmBlockComment to_immer(org::sem::BlockComment const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockComment result = hstd::SerdeDefaultProvider<org::imm::ImmBlockComment>::get();
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockComment from_immer(org::imm::ImmBlockComment const& value, ImmAstContext const& ctx) {
+    org::sem::BlockComment result = hstd::SerdeDefaultProvider<org::sem::BlockComment>::get();
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockVerse, org::imm::ImmBlockVerse> : public ImmSemSerdeBase {
+  org::imm::ImmBlockVerse to_immer(org::sem::BlockVerse const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockVerse result = hstd::SerdeDefaultProvider<org::imm::ImmBlockVerse>::get();
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockVerse from_immer(org::imm::ImmBlockVerse const& value, ImmAstContext const& ctx) {
+    org::sem::BlockVerse result = hstd::SerdeDefaultProvider<org::sem::BlockVerse>::get();
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockDynamicFallback, org::imm::ImmBlockDynamicFallback> : public ImmSemSerdeBase {
+  org::imm::ImmBlockDynamicFallback to_immer(org::sem::BlockDynamicFallback const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockDynamicFallback result = hstd::SerdeDefaultProvider<org::imm::ImmBlockDynamicFallback>::get();
+    assign_immer_field(result.name, value.name, ctx, config);
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockDynamicFallback from_immer(org::imm::ImmBlockDynamicFallback const& value, ImmAstContext const& ctx) {
+    org::sem::BlockDynamicFallback result = hstd::SerdeDefaultProvider<org::sem::BlockDynamicFallback>::get();
+    assign_sem_field(result.name, value.name, ctx, config);
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockExample, org::imm::ImmBlockExample> : public ImmSemSerdeBase {
+  org::imm::ImmBlockExample to_immer(org::sem::BlockExample const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockExample result = hstd::SerdeDefaultProvider<org::imm::ImmBlockExample>::get();
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockExample from_immer(org::imm::ImmBlockExample const& value, ImmAstContext const& ctx) {
+    org::sem::BlockExample result = hstd::SerdeDefaultProvider<org::sem::BlockExample>::get();
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockExport, org::imm::ImmBlockExport> : public ImmSemSerdeBase {
+  org::imm::ImmBlockExport to_immer(org::sem::BlockExport const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockExport result = hstd::SerdeDefaultProvider<org::imm::ImmBlockExport>::get();
+    assign_immer_field(result.exporter, value.exporter, ctx, config);
+    assign_immer_field(result.content, value.content, ctx, config);
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockExport from_immer(org::imm::ImmBlockExport const& value, ImmAstContext const& ctx) {
+    org::sem::BlockExport result = hstd::SerdeDefaultProvider<org::sem::BlockExport>::get();
+    assign_sem_field(result.exporter, value.exporter, ctx, config);
+    assign_sem_field(result.content, value.content, ctx, config);
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockAdmonition, org::imm::ImmBlockAdmonition> : public ImmSemSerdeBase {
+  org::imm::ImmBlockAdmonition to_immer(org::sem::BlockAdmonition const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockAdmonition result = hstd::SerdeDefaultProvider<org::imm::ImmBlockAdmonition>::get();
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockAdmonition from_immer(org::imm::ImmBlockAdmonition const& value, ImmAstContext const& ctx) {
+    org::sem::BlockAdmonition result = hstd::SerdeDefaultProvider<org::sem::BlockAdmonition>::get();
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockCodeEvalResult, org::imm::ImmBlockCodeEvalResult> : public ImmSemSerdeBase {
+  org::imm::ImmBlockCodeEvalResult to_immer(org::sem::BlockCodeEvalResult const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockCodeEvalResult result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCodeEvalResult>::get();
+    assign_immer_field(result.raw, value.raw, ctx, config);
+    assign_immer_field(result.node, value.node, ctx, config);
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockCodeEvalResult from_immer(org::imm::ImmBlockCodeEvalResult const& value, ImmAstContext const& ctx) {
+    org::sem::BlockCodeEvalResult result = hstd::SerdeDefaultProvider<org::sem::BlockCodeEvalResult>::get();
+    assign_sem_field(result.raw, value.raw, ctx, config);
+    assign_sem_field(result.node, value.node, ctx, config);
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
+struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> : public ImmSemSerdeBase {
+  org::imm::ImmBlockCode to_immer(org::sem::BlockCode const& value, ImmAstEditContext& ctx) {
+    org::imm::ImmBlockCode result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCode>::get();
+    assign_immer_field(result.lang, value.lang, ctx, config);
+    assign_immer_field(result.result, value.result, ctx, config);
+    assign_immer_field(result.lines, value.lines, ctx, config);
+    assign_immer_field(result.switches, value.switches, ctx, config);
+    assign_immer_field(result.attrs, value.attrs, ctx, config);
+    assign_immer_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_immer_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+  org::sem::BlockCode from_immer(org::imm::ImmBlockCode const& value, ImmAstContext const& ctx) {
+    org::sem::BlockCode result = hstd::SerdeDefaultProvider<org::sem::BlockCode>::get();
+    assign_sem_field(result.lang, value.lang, ctx, config);
+    assign_sem_field(result.result, value.result, ctx, config);
+    assign_sem_field(result.lines, value.lines, ctx, config);
+    assign_sem_field(result.switches, value.switches, ctx, config);
+    assign_sem_field(result.attrs, value.attrs, ctx, config);
+    assign_sem_field(result.attached, value.attached, ctx, config);
+    if (addLocations()) {
+      assign_sem_field(result.loc, value.loc, ctx, config);
+    }
+    if (addSubnodes(value)) {
+      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
+    }
+    return result;
+  }
+};
+
+template <>
 struct ImmSemSerde<org::sem::HashTag, org::imm::ImmHashTag> : public ImmSemSerdeBase {
   org::imm::ImmHashTag to_immer(org::sem::HashTag const& value, ImmAstEditContext& ctx) {
     org::imm::ImmHashTag result = hstd::SerdeDefaultProvider<org::imm::ImmHashTag>::get();
@@ -1334,302 +1630,6 @@ struct ImmSemSerde<org::sem::Link, org::imm::ImmLink> : public ImmSemSerdeBase {
     org::sem::Link result = hstd::SerdeDefaultProvider<org::sem::Link>::get();
     assign_sem_field(result.description, value.description, ctx, config);
     assign_sem_field(result.target, value.target, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockCenter, org::imm::ImmBlockCenter> : public ImmSemSerdeBase {
-  org::imm::ImmBlockCenter to_immer(org::sem::BlockCenter const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockCenter result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCenter>::get();
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockCenter from_immer(org::imm::ImmBlockCenter const& value, ImmAstContext const& ctx) {
-    org::sem::BlockCenter result = hstd::SerdeDefaultProvider<org::sem::BlockCenter>::get();
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockQuote, org::imm::ImmBlockQuote> : public ImmSemSerdeBase {
-  org::imm::ImmBlockQuote to_immer(org::sem::BlockQuote const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockQuote result = hstd::SerdeDefaultProvider<org::imm::ImmBlockQuote>::get();
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockQuote from_immer(org::imm::ImmBlockQuote const& value, ImmAstContext const& ctx) {
-    org::sem::BlockQuote result = hstd::SerdeDefaultProvider<org::sem::BlockQuote>::get();
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockComment, org::imm::ImmBlockComment> : public ImmSemSerdeBase {
-  org::imm::ImmBlockComment to_immer(org::sem::BlockComment const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockComment result = hstd::SerdeDefaultProvider<org::imm::ImmBlockComment>::get();
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockComment from_immer(org::imm::ImmBlockComment const& value, ImmAstContext const& ctx) {
-    org::sem::BlockComment result = hstd::SerdeDefaultProvider<org::sem::BlockComment>::get();
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockVerse, org::imm::ImmBlockVerse> : public ImmSemSerdeBase {
-  org::imm::ImmBlockVerse to_immer(org::sem::BlockVerse const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockVerse result = hstd::SerdeDefaultProvider<org::imm::ImmBlockVerse>::get();
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockVerse from_immer(org::imm::ImmBlockVerse const& value, ImmAstContext const& ctx) {
-    org::sem::BlockVerse result = hstd::SerdeDefaultProvider<org::sem::BlockVerse>::get();
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockDynamicFallback, org::imm::ImmBlockDynamicFallback> : public ImmSemSerdeBase {
-  org::imm::ImmBlockDynamicFallback to_immer(org::sem::BlockDynamicFallback const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockDynamicFallback result = hstd::SerdeDefaultProvider<org::imm::ImmBlockDynamicFallback>::get();
-    assign_immer_field(result.name, value.name, ctx, config);
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockDynamicFallback from_immer(org::imm::ImmBlockDynamicFallback const& value, ImmAstContext const& ctx) {
-    org::sem::BlockDynamicFallback result = hstd::SerdeDefaultProvider<org::sem::BlockDynamicFallback>::get();
-    assign_sem_field(result.name, value.name, ctx, config);
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockExample, org::imm::ImmBlockExample> : public ImmSemSerdeBase {
-  org::imm::ImmBlockExample to_immer(org::sem::BlockExample const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockExample result = hstd::SerdeDefaultProvider<org::imm::ImmBlockExample>::get();
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockExample from_immer(org::imm::ImmBlockExample const& value, ImmAstContext const& ctx) {
-    org::sem::BlockExample result = hstd::SerdeDefaultProvider<org::sem::BlockExample>::get();
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockExport, org::imm::ImmBlockExport> : public ImmSemSerdeBase {
-  org::imm::ImmBlockExport to_immer(org::sem::BlockExport const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockExport result = hstd::SerdeDefaultProvider<org::imm::ImmBlockExport>::get();
-    assign_immer_field(result.exporter, value.exporter, ctx, config);
-    assign_immer_field(result.content, value.content, ctx, config);
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockExport from_immer(org::imm::ImmBlockExport const& value, ImmAstContext const& ctx) {
-    org::sem::BlockExport result = hstd::SerdeDefaultProvider<org::sem::BlockExport>::get();
-    assign_sem_field(result.exporter, value.exporter, ctx, config);
-    assign_sem_field(result.content, value.content, ctx, config);
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockAdmonition, org::imm::ImmBlockAdmonition> : public ImmSemSerdeBase {
-  org::imm::ImmBlockAdmonition to_immer(org::sem::BlockAdmonition const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockAdmonition result = hstd::SerdeDefaultProvider<org::imm::ImmBlockAdmonition>::get();
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockAdmonition from_immer(org::imm::ImmBlockAdmonition const& value, ImmAstContext const& ctx) {
-    org::sem::BlockAdmonition result = hstd::SerdeDefaultProvider<org::sem::BlockAdmonition>::get();
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockCodeEvalResult, org::imm::ImmBlockCodeEvalResult> : public ImmSemSerdeBase {
-  org::imm::ImmBlockCodeEvalResult to_immer(org::sem::BlockCodeEvalResult const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockCodeEvalResult result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCodeEvalResult>::get();
-    assign_immer_field(result.raw, value.raw, ctx, config);
-    assign_immer_field(result.node, value.node, ctx, config);
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockCodeEvalResult from_immer(org::imm::ImmBlockCodeEvalResult const& value, ImmAstContext const& ctx) {
-    org::sem::BlockCodeEvalResult result = hstd::SerdeDefaultProvider<org::sem::BlockCodeEvalResult>::get();
-    assign_sem_field(result.raw, value.raw, ctx, config);
-    assign_sem_field(result.node, value.node, ctx, config);
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
-    assign_sem_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_sem_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_sem_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-};
-
-template <>
-struct ImmSemSerde<org::sem::BlockCode, org::imm::ImmBlockCode> : public ImmSemSerdeBase {
-  org::imm::ImmBlockCode to_immer(org::sem::BlockCode const& value, ImmAstEditContext& ctx) {
-    org::imm::ImmBlockCode result = hstd::SerdeDefaultProvider<org::imm::ImmBlockCode>::get();
-    assign_immer_field(result.lang, value.lang, ctx, config);
-    assign_immer_field(result.result, value.result, ctx, config);
-    assign_immer_field(result.lines, value.lines, ctx, config);
-    assign_immer_field(result.switches, value.switches, ctx, config);
-    assign_immer_field(result.attrs, value.attrs, ctx, config);
-    assign_immer_field(result.attached, value.attached, ctx, config);
-    if (addLocations()) {
-      assign_immer_field(result.loc, value.loc, ctx, config);
-    }
-    if (addSubnodes(value)) {
-      assign_immer_field(result.subnodes, value.subnodes, ctx, config);
-    }
-    return result;
-  }
-  org::sem::BlockCode from_immer(org::imm::ImmBlockCode const& value, ImmAstContext const& ctx) {
-    org::sem::BlockCode result = hstd::SerdeDefaultProvider<org::sem::BlockCode>::get();
-    assign_sem_field(result.lang, value.lang, ctx, config);
-    assign_sem_field(result.result, value.result, ctx, config);
-    assign_sem_field(result.lines, value.lines, ctx, config);
-    assign_sem_field(result.switches, value.switches, ctx, config);
-    assign_sem_field(result.attrs, value.attrs, ctx, config);
     assign_sem_field(result.attached, value.attached, ctx, config);
     if (addLocations()) {
       assign_sem_field(result.loc, value.loc, ctx, config);

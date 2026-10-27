@@ -49,7 +49,7 @@ void writeTreeRepr(
 void writeTreeRepr(sem::SemId<sem::Org> node, fs::path const& full);
 
 
-GTEST_ADL_PRINT_TYPE(OrgSemKind);
+GTEST_ADL_PRINT_TYPE(org::sem::OrgSemKind);
 GTEST_ADL_PRINT_TYPE(imm::ImmId);
 
 

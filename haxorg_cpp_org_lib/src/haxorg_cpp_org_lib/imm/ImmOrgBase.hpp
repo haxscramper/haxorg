@@ -219,11 +219,11 @@ struct [[refl]] ImmId : ImmIdBase {
 
     static NodeIdxT getNodeIdx(IdType id);
 
-    static OrgSemKind getKind(IdType id);
+    static org::sem::OrgSemKind getKind(IdType id);
 
-    static IdType combineMask(OrgSemKind kind);
+    static IdType combineMask(org::sem::OrgSemKind kind);
 
-    static IdType combineFullValue(OrgSemKind kind, NodeIdxT node);
+    static IdType combineFullValue(org::sem::OrgSemKind kind, NodeIdxT node);
 
     static ImmId Nil() {
         auto res = ImmId::FromValue(0);
@@ -234,11 +234,11 @@ struct [[refl]] ImmId : ImmIdBase {
     static ImmId FromValue(hstd::u64 value);
     ImmId(ImmIdBase const& base) : ImmIdBase{base} {};
 
-    ImmId(OrgSemKind kind, NodeIdxT nodeIndex)
+    ImmId(org::sem::OrgSemKind kind, NodeIdxT nodeIndex)
         : ImmIdBase{combineFullValue(kind, nodeIndex)} {}
 
-    [[refl]] OrgSemKind getKind() const;
-    [[refl]] bool       is(OrgSemKind kind) const;
+    [[refl]] org::sem::OrgSemKind getKind() const;
+    [[refl]] bool                 is(org::sem::OrgSemKind kind) const;
 
     /// \brief Get index of the node in associated kind store. NOTE: The
     /// node must not be nil
@@ -286,7 +286,7 @@ struct ImmIdT : public ImmId {
 struct [[refl]] ImmOrg {
     hstd::ext::ImmVec<ImmId>         subnodes;
     hstd::Opt<org::parse::SourceLoc> loc             = std::nullopt;
-    virtual OrgSemKind               getKind() const = 0;
+    virtual org::sem::OrgSemKind     getKind() const = 0;
     virtual ~ImmOrg()                                = default;
 
     ImmId                              at(int pos) const;
@@ -296,7 +296,7 @@ struct [[refl]] ImmOrg {
     int                                indexOf(org::imm::ImmId subnode) const;
 
     bool is(SemSet const& kind) const;
-    bool is(OrgSemKind kind) const;
+    bool is(org::sem::OrgSemKind kind) const;
 
     template <typename T>
     T const* dyn_cast() const;

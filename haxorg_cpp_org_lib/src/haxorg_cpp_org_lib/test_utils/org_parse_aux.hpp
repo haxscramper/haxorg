@@ -25,7 +25,7 @@ struct MockFull {
     sem::SemId<sem::Org>                      node;
     std::shared_ptr<org::parse::ParseContext> parseContext;
 
-    org::parse::Lexer<OrgTokenKind, org::parse::OrgFill> lex;
+    org::parse::Lexer<org::sem::OrgTokenKind, org::parse::OrgFill> lex;
 
     MockFull(
         std::string const& currentFile,

@@ -576,7 +576,10 @@ void ImmAstStore::format(ColStream& os, std::string const& prefix) const {
 #define _kind(__Kind)                                                                    \
     if (!store##__Kind.empty()) {                                                        \
         os << hstd::fmt(                                                                 \
-            "\n{0}[{1:-<16}] {2:016X}\n", prefix, #__Kind, u64(OrgSemKind::__Kind));     \
+            "\n{0}[{1:-<16}] {2:016X}\n",                                                \
+            prefix,                                                                      \
+            #__Kind,                                                                     \
+            u64(org::sem::OrgSemKind::__Kind));                                          \
         store##__Kind.format(os, prefix + "  ");                                         \
     }
 

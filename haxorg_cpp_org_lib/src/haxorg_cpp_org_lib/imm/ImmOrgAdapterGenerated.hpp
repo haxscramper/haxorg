@@ -224,6 +224,95 @@ struct org::imm::ImmAdapterT<org::imm::ImmCmdTblfm> : public org::imm::ImmAdapte
 };
 
 template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockCenter> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockCenter>, public org::imm::ImmAdapterBlockCenterAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCenter)
+  using api_type = org::imm::ImmAdapterBlockCenterAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCenterAPI), (), (), ());
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockQuote> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockQuote>, public org::imm::ImmAdapterBlockQuoteAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockQuote)
+  using api_type = org::imm::ImmAdapterBlockQuoteAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockQuoteAPI), (), (), ());
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockComment> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockComment>, public org::imm::ImmAdapterBlockCommentAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockComment)
+  using api_type = org::imm::ImmAdapterBlockCommentAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCommentAPI), (), (), ());
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockVerse> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockVerse>, public org::imm::ImmAdapterBlockVerseAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockVerse)
+  using api_type = org::imm::ImmAdapterBlockVerseAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockVerseAPI), (), (), ());
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockDynamicFallback>, public org::imm::ImmAdapterBlockDynamicFallbackAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockDynamicFallback)
+  using api_type = org::imm::ImmAdapterBlockDynamicFallbackAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockDynamicFallbackAPI), (), (), ());
+  hstd::Str const& getName() const;
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockExample> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockExample>, public org::imm::ImmAdapterBlockExampleAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockExample)
+  using api_type = org::imm::ImmAdapterBlockExampleAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockExampleAPI), (), (), ());
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockExport> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockExport>, public org::imm::ImmAdapterBlockExportAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockExport)
+  using api_type = org::imm::ImmAdapterBlockExportAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockExportAPI), (), (), ());
+  hstd::Str const& getExporter() const;
+  hstd::Str const& getContent() const;
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockAdmonition>, public org::imm::ImmAdapterBlockAdmonitionAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockAdmonition)
+  using api_type = org::imm::ImmAdapterBlockAdmonitionAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockAdmonitionAPI), (), (), ());
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockCodeEvalResult>, public org::imm::ImmAdapterBlockCodeEvalResultAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCodeEvalResult)
+  using api_type = org::imm::ImmAdapterBlockCodeEvalResultAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeEvalResultAPI), (), (), ());
+  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> getRaw() const;
+  org::imm::ImmAdapter getNode() const;
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
+struct org::imm::ImmAdapterT<org::imm::ImmBlockCode> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>, public org::imm::ImmAdapterBlockCodeAPI {
+  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCode)
+  using api_type = org::imm::ImmAdapterBlockCodeAPI;
+  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeAPI), (), (), ());
+  hstd::Opt<hstd::Str> const& getLang() const;
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> getResult() const;
+  hstd::ext::ImmVec<org::sem::BlockCodeLine> getLines() const;
+  org::sem::AttrGroup getSwitches() const;
+  ImmAdapterT(org::imm::ImmAdapter const& other);
+};
+
+template <>
 struct org::imm::ImmAdapterT<org::imm::ImmHashTag> : public org::imm::ImmAdapterTBase<org::imm::ImmHashTag>, public org::imm::ImmAdapterHashTagAPI {
   USE_IMM_ADAPTER_BASE(org::imm::ImmHashTag)
   using api_type = org::imm::ImmAdapterHashTagAPI;
@@ -490,95 +579,6 @@ struct org::imm::ImmAdapterT<org::imm::ImmLink> : public org::imm::ImmAdapterTBa
 };
 
 template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockCenter> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockCenter>, public org::imm::ImmAdapterBlockCenterAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCenter)
-  using api_type = org::imm::ImmAdapterBlockCenterAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCenterAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockQuote> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockQuote>, public org::imm::ImmAdapterBlockQuoteAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockQuote)
-  using api_type = org::imm::ImmAdapterBlockQuoteAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockQuoteAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockComment> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockComment>, public org::imm::ImmAdapterBlockCommentAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockComment)
-  using api_type = org::imm::ImmAdapterBlockCommentAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCommentAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockVerse> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockVerse>, public org::imm::ImmAdapterBlockVerseAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockVerse)
-  using api_type = org::imm::ImmAdapterBlockVerseAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockVerseAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockDynamicFallback> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockDynamicFallback>, public org::imm::ImmAdapterBlockDynamicFallbackAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockDynamicFallback)
-  using api_type = org::imm::ImmAdapterBlockDynamicFallbackAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockDynamicFallbackAPI), (), (), ());
-  hstd::Str const& getName() const;
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockExample> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockExample>, public org::imm::ImmAdapterBlockExampleAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockExample)
-  using api_type = org::imm::ImmAdapterBlockExampleAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockExampleAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockExport> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockExport>, public org::imm::ImmAdapterBlockExportAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockExport)
-  using api_type = org::imm::ImmAdapterBlockExportAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockExportAPI), (), (), ());
-  hstd::Str const& getExporter() const;
-  hstd::Str const& getContent() const;
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockAdmonition> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockAdmonition>, public org::imm::ImmAdapterBlockAdmonitionAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockAdmonition)
-  using api_type = org::imm::ImmAdapterBlockAdmonitionAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockAdmonitionAPI), (), (), ());
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockCodeEvalResult> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockCodeEvalResult>, public org::imm::ImmAdapterBlockCodeEvalResultAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCodeEvalResult)
-  using api_type = org::imm::ImmAdapterBlockCodeEvalResultAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeEvalResultAPI), (), (), ());
-  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> getRaw() const;
-  org::imm::ImmAdapter getNode() const;
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
-struct org::imm::ImmAdapterT<org::imm::ImmBlockCode> : public org::imm::ImmAdapterTBase<org::imm::ImmBlockCode>, public org::imm::ImmAdapterBlockCodeAPI {
-  USE_IMM_ADAPTER_BASE(org::imm::ImmBlockCode)
-  using api_type = org::imm::ImmAdapterBlockCodeAPI;
-  BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterBlockCodeAPI), (), (), ());
-  hstd::Opt<hstd::Str> const& getLang() const;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> getResult() const;
-  hstd::ext::ImmVec<org::sem::BlockCodeLine> getLines() const;
-  org::sem::AttrGroup getSwitches() const;
-  ImmAdapterT(org::imm::ImmAdapter const& other);
-};
-
-template <>
 struct org::imm::ImmAdapterT<org::imm::ImmSubtreeLog> : public org::imm::ImmAdapterTBase<org::imm::ImmSubtreeLog>, public org::imm::ImmAdapterSubtreeLogAPI {
   USE_IMM_ADAPTER_BASE(org::imm::ImmSubtreeLog)
   using api_type = org::imm::ImmAdapterSubtreeLogAPI;
@@ -699,7 +699,7 @@ struct org::imm::ImmAdapterT<org::imm::ImmListItem> : public org::imm::ImmAdapte
   USE_IMM_ADAPTER_BASE(org::imm::ImmListItem)
   using api_type = org::imm::ImmAdapterListItemAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterListItemAPI), (), (), ());
-  CheckboxState getCheckbox() const;
+  org::sem::CheckboxState getCheckbox() const;
   hstd::Opt<org::imm::ImmAdapterT<org::imm::ImmParagraph>> getHeader() const;
   hstd::Opt<hstd::Str> const& getBullet() const;
   ImmAdapterT(org::imm::ImmAdapter const& other);
@@ -710,12 +710,12 @@ struct org::imm::ImmAdapterT<org::imm::ImmDocumentOptions> : public org::imm::Im
   USE_IMM_ADAPTER_BASE(org::imm::ImmDocumentOptions)
   using api_type = org::imm::ImmAdapterDocumentOptionsAPI;
   BOOST_DESCRIBE_CLASS(ImmAdapterT, (ImmAdapterTBase, ImmAdapterDocumentOptionsAPI), (), (), ());
-  InitialSubtreeVisibility getInitialVisibility() const;
+  org::sem::InitialSubtreeVisibility getInitialVisibility() const;
   hstd::ext::ImmVec<org::sem::NamedProperty> getProperties() const;
   org::sem::DocumentExportConfig getExportConfig() const;
   hstd::Opt<bool> const& getFixedWidthSections() const;
-  hstd::Opt<LinkVisibility> const& getLinkVisibility() const;
-  hstd::Opt<BlockVisibility> const& getBlockVisibility() const;
+  hstd::Opt<org::sem::LinkVisibility> const& getLinkVisibility() const;
+  hstd::Opt<org::sem::BlockVisibility> const& getBlockVisibility() const;
   hstd::Opt<bool> const& getStartupIndented() const;
   hstd::Opt<hstd::Str> const& getCategory() const;
   hstd::Opt<hstd::Str> const& getSetupfile() const;

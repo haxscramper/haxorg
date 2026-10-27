@@ -64,7 +64,7 @@ NB_MAKE_OPAQUE(hstd::Vec<int>)
 NB_MAKE_OPAQUE(std::vector<int>)
 NB_MAKE_OPAQUE(hstd::Vec<org::imm::ImmAdapter>)
 NB_MAKE_OPAQUE(std::vector<org::imm::ImmAdapter>)
-NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>)
+NB_MAKE_OPAQUE(hstd::UnorderedSet<std::pair<org::sem::OrgSemKind, org::imm::ImmReflFieldId>>)
 NB_MAKE_OPAQUE(hstd::UnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>)
 NB_MAKE_OPAQUE(std::unordered_map<org::sem::HashTagFlat, org::AstTrackingPath>)
 NB_MAKE_OPAQUE(hstd::UnorderedMap<hstd::Str, org::AstTrackingAlternatives>)
@@ -190,7 +190,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::bind_stdvector<int>(m, "StdVecOfInt", type_registry_guard);
   org::bind::python::bind_hstdVec<org::imm::ImmAdapter>(m, "HstdVecOfImmAdapter", type_registry_guard);
   org::bind::python::bind_stdvector<org::imm::ImmAdapter>(m, "StdVecOfImmAdapter", type_registry_guard);
-  org::bind::python::bind_hstdUnorderedSet<std::pair<OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
+  org::bind::python::bind_hstdUnorderedSet<std::pair<org::sem::OrgSemKind, org::imm::ImmReflFieldId>>(m, "HstdSetOfStdPairOfOrgSemKindImmReflFieldId", type_registry_guard);
   org::bind::python::bind_hstdUnorderedMap<org::sem::HashTagFlat, org::AstTrackingPath>(m, "HstdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   org::bind::python::bind_stdunordered_map<org::sem::HashTagFlat, org::AstTrackingPath>(m, "StdMapOfHashTagFlatAstTrackingPath", type_registry_guard);
   org::bind::python::bind_hstdUnorderedMap<hstd::Str, org::AstTrackingAlternatives>(m, "HstdMapOfStrAstTrackingAlternatives", type_registry_guard);
@@ -502,8 +502,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<OrgNodeKind>(m, "OrgNodeKind", type_registry_guard);
-  nanobind::enum_<OrgNodeKind>(m, "OrgNodeKind")
+  bind_enum_iterator<org::sem::OrgNodeKind>(m, "OrgNodeKind", type_registry_guard);
+  nanobind::enum_<org::sem::OrgNodeKind>(m, "OrgNodeKind")
     .value("None", OrgNodeKind::None, R"RAW(Default valye for node - invalid state)RAW")
     .value("Document", OrgNodeKind::Document, R"RAW(Toplevel part of the ast, not created by parser, and only used in `semorg` stage)RAW")
     .value("Empty", OrgNodeKind::Empty, R"RAW(Empty node - valid state that does not contain any value)RAW")
@@ -652,27 +652,27 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .value("SubtreeStars", OrgNodeKind::SubtreeStars)
     .value("SubtreeCompletion", OrgNodeKind::SubtreeCompletion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
     .value("SubtreeImportance", OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
-    .def("__iter__", [](OrgNodeKind const& _self) -> org::bind::python::PyEnumIterator<OrgNodeKind> {
-                     return org::bind::python::PyEnumIterator<OrgNodeKind>();
+    .def("__iter__", [](org::sem::OrgNodeKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgNodeKind> {
+                     return org::bind::python::PyEnumIterator<org::sem::OrgNodeKind>();
                      })
-    .def("__int__", [](OrgNodeKind const& _self) -> int {
+    .def("__int__", [](org::sem::OrgNodeKind const& _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](OrgNodeKind const& _self) -> int {
+    .def("__index__", [](org::sem::OrgNodeKind const& _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
+         [](org::sem::OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgNodeKind it) -> int {
+         [](org::sem::OrgNodeKind it) -> int {
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<OrgTokenKind>(m, "OrgTokenKind", type_registry_guard);
-  nanobind::enum_<OrgTokenKind>(m, "OrgTokenKind")
+  bind_enum_iterator<org::sem::OrgTokenKind>(m, "OrgTokenKind", type_registry_guard);
+  nanobind::enum_<org::sem::OrgTokenKind>(m, "OrgTokenKind")
     .value("Ampersand", OrgTokenKind::Ampersand)
     .value("AngleBegin", OrgTokenKind::AngleBegin)
     .value("AngleEnd", OrgTokenKind::AngleEnd)
@@ -911,22 +911,22 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .value("VerbatimUnknown", OrgTokenKind::VerbatimUnknown)
     .value("Whitespace", OrgTokenKind::Whitespace)
     .value("Word", OrgTokenKind::Word)
-    .def("__iter__", [](OrgTokenKind const& _self) -> org::bind::python::PyEnumIterator<OrgTokenKind> {
-                     return org::bind::python::PyEnumIterator<OrgTokenKind>();
+    .def("__iter__", [](org::sem::OrgTokenKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgTokenKind> {
+                     return org::bind::python::PyEnumIterator<org::sem::OrgTokenKind>();
                      })
-    .def("__int__", [](OrgTokenKind const& _self) -> int {
+    .def("__int__", [](org::sem::OrgTokenKind const& _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](OrgTokenKind const& _self) -> int {
+    .def("__index__", [](org::sem::OrgTokenKind const& _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
+         [](org::sem::OrgTokenKind lhs, OrgTokenKind rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgTokenKind it) -> int {
+         [](org::sem::OrgTokenKind it) -> int {
          return static_cast<int>(it);
          })
     ;
@@ -958,8 +958,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<OrgSemKind>(m, "OrgSemKind", type_registry_guard);
-  nanobind::enum_<OrgSemKind>(m, "OrgSemKind")
+  bind_enum_iterator<org::sem::OrgSemKind>(m, "OrgSemKind", type_registry_guard);
+  nanobind::enum_<org::sem::OrgSemKind>(m, "OrgSemKind")
     .value("NoNode", OrgSemKind::NoNode)
     .value("ErrorItem", OrgSemKind::ErrorItem)
     .value("ErrorGroup", OrgSemKind::ErrorGroup)
@@ -1040,22 +1040,22 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .value("Directory", OrgSemKind::Directory)
     .value("Symlink", OrgSemKind::Symlink)
     .value("CmdInclude", OrgSemKind::CmdInclude)
-    .def("__iter__", [](OrgSemKind const& _self) -> org::bind::python::PyEnumIterator<OrgSemKind> {
-                     return org::bind::python::PyEnumIterator<OrgSemKind>();
+    .def("__iter__", [](org::sem::OrgSemKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgSemKind> {
+                     return org::bind::python::PyEnumIterator<org::sem::OrgSemKind>();
                      })
-    .def("__int__", [](OrgSemKind const& _self) -> int {
+    .def("__int__", [](org::sem::OrgSemKind const& _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](OrgSemKind const& _self) -> int {
+    .def("__index__", [](org::sem::OrgSemKind const& _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](OrgSemKind lhs, OrgSemKind rhs) -> bool {
+         [](org::sem::OrgSemKind lhs, OrgSemKind rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](OrgSemKind it) -> int {
+         [](org::sem::OrgSemKind it) -> int {
          return static_cast<int>(it);
          })
     ;
@@ -4457,7 +4457,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   nanobind::class_<org::sem::Org>(m, "Org")
     .def_rw("loc", &org::sem::Org::loc)
     .def_rw("subnodes", &org::sem::Org::subnodes)
-    .def("getKind", static_cast<OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind))
+    .def("getKind", static_cast<org::sem::OrgSemKind(org::sem::Org::*)() const>(&org::sem::Org::getKind))
     .def("push_back",
          static_cast<void(org::sem::Org::*)(org::sem::SemId<org::sem::Org>)>(&org::sem::Org::push_back),
          nanobind::arg("sub"))
@@ -4470,7 +4470,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
          nanobind::arg("idx"))
     .def("is_",
-         static_cast<bool(org::sem::Org::*)(OrgSemKind) const>(&org::sem::Org::is),
+         static_cast<bool(org::sem::Org::*)(org::sem::OrgSemKind) const>(&org::sem::Org::is),
          nanobind::arg("kind"))
     .def("__getitem__",
          static_cast<org::sem::SemId<org::sem::Org>(org::sem::Org::*)(int) const>(&org::sem::Org::at),
@@ -4490,9 +4490,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
-    .def("getKind", static_cast<OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
+    .def("getKind", static_cast<org::sem::OrgSemKind(org::imm::ImmId::*)() const>(&org::imm::ImmId::getKind))
     .def("is_",
-         static_cast<bool(org::imm::ImmId::*)(OrgSemKind) const>(&org::imm::ImmId::is),
+         static_cast<bool(org::imm::ImmId::*)(org::sem::OrgSemKind) const>(&org::imm::ImmId::is),
          nanobind::arg("kind"))
     .def("getNodeIndex", static_cast<org::imm::ImmId::NodeIdxT(org::imm::ImmId::*)() const>(&org::imm::ImmId::getNodeIndex))
     .def("getReadableId", static_cast<std::string(org::imm::ImmId::*)() const>(&org::imm::ImmId::getReadableId))
@@ -5097,7 +5097,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def("size", static_cast<int(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::size))
     .def("isNil", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isNil))
     .def("isRoot", static_cast<bool(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::isRoot))
-    .def("getKind", static_cast<OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
+    .def("getKind", static_cast<org::sem::OrgSemKind(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::getKind))
     .def("uniq", static_cast<org::imm::ImmUniqId(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::uniq))
     .def("treeReprString", static_cast<std::string(org::imm::ImmAdapter::*)() const>(&org::imm::ImmAdapter::treeReprString))
     .def("treeReprStringOpts",
@@ -5130,7 +5130,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("path"),
          nanobind::arg("withPath") = true)
     .def("is_",
-         static_cast<bool(org::imm::ImmAdapter::*)(OrgSemKind) const>(&org::imm::ImmAdapter::is),
+         static_cast<bool(org::imm::ImmAdapter::*)(org::sem::OrgSemKind) const>(&org::imm::ImmAdapter::is),
          nanobind::arg("kind"))
     .def("sub",
          static_cast<hstd::Vec<org::imm::ImmAdapter>(org::imm::ImmAdapter::*)(bool) const>(&org::imm::ImmAdapter::sub),
@@ -5464,19 +5464,19 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalTopCb),
          nanobind::arg("cb"))
     .def("setVisitIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdAround),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalIdAround",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdAround),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitIdInCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdInCb),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalIdIn",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalIdIn),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitLeafField",
@@ -5488,18 +5488,18 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitOrgField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setEvalOrgField",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setEvalOrgField),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setSelf",
          static_cast<void(org::bind::python::ExporterPython::*)(nanobind::object)>(&org::bind::python::ExporterPython::setSelf),
          nanobind::arg("val"))
     .def("setNewOrgRes",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setNewOrgRes),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setNewAnyOrgRes",
@@ -5519,18 +5519,18 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitAnyId),
          nanobind::arg("cb"))
     .def("setPushVisitId",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPushVisitId),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setPopVisitIdCb",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setPopVisitIdCb),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("setVisitAnyHookCb",
          static_cast<void(org::bind::python::ExporterPython::*)(org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitAnyHookCb),
          nanobind::arg("cb"))
     .def("setVisitIdHook",
-         static_cast<void(org::bind::python::ExporterPython::*)(OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
+         static_cast<void(org::bind::python::ExporterPython::*)(org::sem::OrgSemKind, org::bind::python::ExporterPython::PyFunc)>(&org::bind::python::ExporterPython::setVisitIdHook),
          nanobind::arg("kind"),
          nanobind::arg("cb"))
     .def("print_trace",

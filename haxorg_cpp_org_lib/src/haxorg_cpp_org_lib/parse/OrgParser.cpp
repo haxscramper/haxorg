@@ -21,7 +21,7 @@ using onk = OrgNodeKind;
 using namespace org::parse;
 using namespace hstd;
 
-using TokSet = IntSet<OrgTokenKind>;
+using TokSet = IntSet<org::sem::OrgTokenKind>;
 
 namespace {
 
@@ -108,7 +108,7 @@ void OrgParser::newline(OrgLexer& lex, int line, char const* function) {
     }
 }
 
-SubLexer<OrgTokenKind, OrgFill> subToEol(
+SubLexer<org::sem::OrgTokenKind, OrgFill> subToEol(
     OrgLexer& lex,
     OrgTokSet Terminator = ParagraphTerminator) {
     SubLexer sub{lex};
@@ -219,7 +219,7 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
     auto attrGuard = start(onk::AttrValue);
 
     if (lex.at(
-            IntSet<OrgTokenKind>{
+            IntSet<org::sem::OrgTokenKind>{
                 otk::CmdColonIdent,
                 otk::CmdRawArg,
                 otk::ParBegin,
@@ -234,7 +234,7 @@ OrgParser::ParseResult OrgParser::parseAttrValue(OrgLexer& lex) {
             empty();
         }
 
-        IntSet<OrgTokenKind> eqTokens{
+        IntSet<org::sem::OrgTokenKind> eqTokens{
             otk::Equals, otk::VerbatimBegin, otk::VerbatimEnd, otk::VerbatimUnknown};
 
         if (lex.at(otk::CmdRawArg) && lex.ahead({otk::Whitespace}, eqTokens, +1)) {
@@ -320,8 +320,8 @@ OrgParser::ParseResult OrgParser::parseLispExpr(OrgLexer& lex) {
     auto lispGuard = start(onk::LispExpr);
 
     if (isAtLispCollectionStart(lex)) {
-        auto parse_collection = [&](OrgNodeKind  start_node,
-                                    OrgTokenKind begin_token,
+        auto parse_collection = [&](org::sem::OrgNodeKind start_node,
+                                    OrgTokenKind          begin_token,
                                     OrgTokenKind end_token) -> OrgParser::ParseResult {
             auto stmtGuard = start(start_node);
 
@@ -1707,7 +1707,7 @@ OrgParser::ParseResult OrgParser::parseSrc(OrgLexer& lex) {
     // eval_result
     if (lex.ahead(
             Newline + OrgTokSet{otk::Whitespace},
-            Vec<OrgTokenKind>{
+            Vec<org::sem::OrgTokenKind>{
                 otk::CmdPrefix,
                 otk::CmdResults,
             })) {
@@ -1765,7 +1765,7 @@ OrgParser::ParseResult OrgParser::parseListItem(OrgLexer& lex) {
     // tag, 3
     {
         // Search ahead for the description list tag
-        Lexer<OrgTokenKind, OrgFill> tmp{lex.in};
+        Lexer<org::sem::OrgTokenKind, OrgFill> tmp{lex.in};
         tmp.pos                  = lex.pos;
         auto const colon_pattern = Vec<otk>{
             otk::Whitespace,
@@ -1985,7 +1985,7 @@ OrgParser::ParseResult OrgParser::parseSubtreeTitle(OrgLexer& lex) {
 
 
     auto is_at_subtree_tags = [](OrgLexer& lex) {
-        const IntSet<OrgTokenKind> tree_tags{
+        const IntSet<org::sem::OrgTokenKind> tree_tags{
             otk::Colon,
             otk::Word,
             otk::DoubleHash,
@@ -2669,7 +2669,7 @@ bool OrgParser::at(OrgLexer const& lex, OrgExpectable const& item) {
     } else if (item.index() == 1 && lex.at(std::get<1>(item))) {
         return true;
     } else if (item.index() == 2) {
-        auto const& tokens = std::get<Vec<OrgTokenKind>>(item);
+        auto const& tokens = std::get<Vec<org::sem::OrgTokenKind>>(item);
         for (int i = 0; i < tokens.size(); ++i) {
             if (!lex.at(tokens.at(i), i)) { return false; }
         }

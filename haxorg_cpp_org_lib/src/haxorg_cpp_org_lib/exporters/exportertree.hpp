@@ -34,7 +34,7 @@ class ExporterTree : public Exporter<ExporterTree, int> {
             return skipNodes.contains(org->getKind());
         }
 
-        TreeReprConf& withSkippedSubnodesOf(OrgSemKind kind) {
+        TreeReprConf& withSkippedSubnodesOf(org::sem::OrgSemKind kind) {
             skipSubnodesOf.incl(kind);
             return *this;
         }

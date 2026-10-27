@@ -20,10 +20,10 @@ hstd::fmt_iter fmt::formatter<org::parse::OrgFill>::format(
     return ctx.out();
 }
 
-using otk = OrgTokenKind;
+using otk = org::sem::OrgTokenKind;
 
 
-hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockClose{
+hstd::IntSet<org::sem::OrgTokenKind> const org::parse::OrgTokenCmdBlockClose{
     otk::CmdSrcEnd,
     otk::CmdCenterEnd,
     otk::CmdExampleEnd,
@@ -39,7 +39,7 @@ hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockClose{
     otk::CmdCustomTextBlockEnd,
 };
 
-hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockOpen{
+hstd::IntSet<org::sem::OrgTokenKind> const org::parse::OrgTokenCmdBlockOpen{
     otk::CmdCenterBegin,
     otk::CmdExportBegin,
     otk::CmdExampleBegin,
@@ -55,7 +55,7 @@ hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockOpen{
     otk::CmdCustomTextBlockBegin,
 };
 
-hstd::IntSet<OrgTokenKind> const org::parse::OrgTokenCmdBlockLine{
+hstd::IntSet<org::sem::OrgTokenKind> const org::parse::OrgTokenCmdBlockLine{
     otk::CmdTitle,         otk::CmdHeader,
     otk::CmdName,          otk::CmdInclude,
     otk::CmdResults,       otk::CmdCaption,

@@ -136,9 +136,9 @@ struct OrgDocumentSelector : hstd::OperationsTracer {
         hstd::Opt<OrgSelectorLink> link     = std::nullopt);
 
     void searchAnyKind(
-        hstd::IntSet<OrgSemKind> const& kinds,
-        bool                            isTarget,
-        hstd::Opt<OrgSelectorLink>      link = std::nullopt);
+        hstd::IntSet<org::sem::OrgSemKind> const& kinds,
+        bool                                      isTarget,
+        hstd::Opt<OrgSelectorLink>                link = std::nullopt);
 
     void searchPredicate(
         org::imm::OrgSelectorCondition::Predicate const& predicate,

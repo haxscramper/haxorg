@@ -238,7 +238,7 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
 
     using PyFunc     = nanobind::callable;
     using Res        = nanobind::object;
-    using SemCbMap   = hstd::UnorderedMap<OrgSemKind, PyFunc>;
+    using SemCbMap   = hstd::UnorderedMap<org::sem::OrgSemKind, PyFunc>;
     using FieldCbMap = hstd::UnorderedMap<LeafFieldType, PyFunc>;
 
     std::string describe(PyFunc const& func) const;
@@ -302,20 +302,24 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
     [[refl]] void     setEvalTopCb(PyFunc cb) { evalTopCb = cb; }
 
     SemCbMap      visitIdAroundCb;
-    [[refl]] void setVisitIdAround(OrgSemKind kind, PyFunc cb) {
+    [[refl]] void setVisitIdAround(org::sem::OrgSemKind kind, PyFunc cb) {
         visitIdAroundCb[kind] = cb;
     }
 
     SemCbMap      evalIdAroundCb;
-    [[refl]] void setEvalIdAround(OrgSemKind kind, PyFunc cb) {
+    [[refl]] void setEvalIdAround(org::sem::OrgSemKind kind, PyFunc cb) {
         evalIdAroundCb[kind] = cb;
     }
 
     SemCbMap      visitIdInCb;
-    [[refl]] void setVisitIdInCb(OrgSemKind kind, PyFunc cb) { visitIdInCb[kind] = cb; }
+    [[refl]] void setVisitIdInCb(org::sem::OrgSemKind kind, PyFunc cb) {
+        visitIdInCb[kind] = cb;
+    }
 
     SemCbMap      evalIdInCb;
-    [[refl]] void setEvalIdIn(OrgSemKind kind, PyFunc cb) { evalIdInCb[kind] = cb; }
+    [[refl]] void setEvalIdIn(org::sem::OrgSemKind kind, PyFunc cb) {
+        evalIdInCb[kind] = cb;
+    }
 
     FieldCbMap    visitLeafFieldCb;
     [[refl]] void setVisitLeafField(org::bind::python::LeafFieldType kind, PyFunc cb) {
@@ -328,12 +332,12 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
     }
 
     SemCbMap      visitOrgFieldCb;
-    [[refl]] void setVisitOrgField(OrgSemKind kind, PyFunc cb) {
+    [[refl]] void setVisitOrgField(org::sem::OrgSemKind kind, PyFunc cb) {
         visitOrgFieldCb[kind] = cb;
     }
 
     SemCbMap      evalOrgFieldCb;
-    [[refl]] void setEvalOrgField(OrgSemKind kind, PyFunc cb) {
+    [[refl]] void setEvalOrgField(org::sem::OrgSemKind kind, PyFunc cb) {
         evalOrgFieldCb[kind] = cb;
     }
 
@@ -342,7 +346,9 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
 
 
     SemCbMap      newOrgResCb;
-    [[refl]] void setNewOrgRes(OrgSemKind kind, PyFunc cb) { newOrgResCb[kind] = cb; }
+    [[refl]] void setNewOrgRes(org::sem::OrgSemKind kind, PyFunc cb) {
+        newOrgResCb[kind] = cb;
+    }
 
     hstd::Opt<PyFunc> newAnyOrgResCb;
     [[refl]] void     setNewAnyOrgRes(PyFunc cb) { newAnyOrgResCb = cb; }
@@ -362,16 +368,22 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
     [[refl]] void     setPopVisitAnyId(PyFunc cb) { popVisitAnyIdCb = cb; }
 
     SemCbMap      pushVisitIdCb;
-    [[refl]] void setPushVisitId(OrgSemKind kind, PyFunc cb) { pushVisitIdCb[kind] = cb; }
+    [[refl]] void setPushVisitId(org::sem::OrgSemKind kind, PyFunc cb) {
+        pushVisitIdCb[kind] = cb;
+    }
 
     SemCbMap      popVisitIdCb;
-    [[refl]] void setPopVisitIdCb(OrgSemKind kind, PyFunc cb) { popVisitIdCb[kind] = cb; }
+    [[refl]] void setPopVisitIdCb(org::sem::OrgSemKind kind, PyFunc cb) {
+        popVisitIdCb[kind] = cb;
+    }
 
     hstd::Opt<PyFunc> visitAnyHookCb;
     [[refl]] void     setVisitAnyHookCb(PyFunc cb) { visitAnyHookCb = cb; }
 
     SemCbMap      visitIdHookCb;
-    [[refl]] void setVisitIdHook(OrgSemKind kind, PyFunc cb) { visitIdHookCb[kind] = cb; }
+    [[refl]] void setVisitIdHook(org::sem::OrgSemKind kind, PyFunc cb) {
+        visitIdHookCb[kind] = cb;
+    }
 
     [[refl]] void print_trace(
         std::string const& trace,

@@ -62,15 +62,15 @@ DEFAULT_NAMESPACES: dict[str, tuple[str, ...]] = {
     "hstd": ("hstd",),
 }
 
+AST_KIND_NAME = "org::sem::OrgSemKind"
+
 
 @dataclass
 class CppModelConfig:
     namespaces: dict[str, tuple[str, ...]] = field(
         default_factory=lambda: dict(DEFAULT_NAMESPACES),
     )
-    default_constructor: bool = True
     default_shared_equality: bool = True
-    ast_kind_name: str = "OrgSemKind"
 
 
 def cpp_config(declaration: RecordDef | EnumDef | MethodDef) -> dict[str, Any]:
@@ -567,7 +567,7 @@ class ModelToGenTu:
 
     def add_ast_members(self, item: RecordDef, result: GenTuStruct) -> None:
         options = cpp_config(item)
-        kind_type = named_cpp_type(self.config.ast_kind_name)
+        kind_type = named_cpp_type(AST_KIND_NAME)
 
         result.Name.Meta["isOrgType"] = True
         setattr(result, "isOrgType", True)
@@ -616,7 +616,7 @@ class ModelToGenTu:
         if result.IsAbstract:
             return
 
-        kind_name = f"{self.config.ast_kind_name}::{item.qname.name}"
+        kind_name = f"{AST_KIND_NAME}::{item.qname.name}"
         result.Fields.insert(
             0,
             GenTuField(
@@ -691,13 +691,8 @@ class ModelToGenTu:
             IsDescribedRecord=True,
         )
 
-        default_constructor = options.get(
-            "default_constructor",
-            self.config.default_constructor,
-        )
-        if default_constructor and not any(
-            method.IsConstructor and not method.Args for method in result.Methods
-        ):
+        default_constructor = options.get("default_constructor", False)
+        if default_constructor:
             result.Methods.append(
                 GenTuFunction(
                     Name=item.qname.name,
@@ -751,7 +746,7 @@ class ModelToGenTu:
             )
 
         return GenTuEnum(
-            Name=named_cpp_type(self.config.ast_kind_name),
+            Name=named_cpp_type(AST_KIND_NAME),
             Doc=GenTuDoc("Concrete semantic AST node kinds"),
             Fields=[
                 GenTuEnumField(

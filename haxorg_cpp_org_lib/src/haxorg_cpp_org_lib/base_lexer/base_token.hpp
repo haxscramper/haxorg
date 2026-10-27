@@ -42,8 +42,8 @@ struct OrgFill {
     DESC_FIELDS(OrgFill, (text, loc));
 };
 
-using OrgToken   = Token<OrgTokenKind, OrgFill>;
-using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
+using OrgToken   = Token<org::sem::OrgTokenKind, OrgFill>;
+using OrgTokenId = TokenId<org::sem::OrgTokenKind, OrgFill>;
 
 std::string format_token_location(
     org::parse::SourceManager const* mgr,
@@ -52,15 +52,15 @@ std::string format_token_location(
 std::string format_token(org::parse::SourceManager const* mgr, OrgToken const& token);
 
 
-extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockClose;
-extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockOpen;
-extern hstd::IntSet<OrgTokenKind> const OrgTokenCmdBlockLine;
+extern hstd::IntSet<org::sem::OrgTokenKind> const OrgTokenCmdBlockClose;
+extern hstd::IntSet<org::sem::OrgTokenKind> const OrgTokenCmdBlockOpen;
+extern hstd::IntSet<org::sem::OrgTokenKind> const OrgTokenCmdBlockLine;
 
-inline hstd::IntSet<OrgTokenKind> const OrgTokenLineEnd{
-    OrgTokenKind::Newline,
-    OrgTokenKind::MediumNewline,
-    OrgTokenKind::LongNewline,
-    OrgTokenKind::EndOfFile,
+inline hstd::IntSet<org::sem::OrgTokenKind> const OrgTokenLineEnd{
+    org::sem::OrgTokenKind::Newline,
+    org::sem::OrgTokenKind::MediumNewline,
+    org::sem::OrgTokenKind::LongNewline,
+    org::sem::OrgTokenKind::EndOfFile,
 };
 
 } // namespace org::parse

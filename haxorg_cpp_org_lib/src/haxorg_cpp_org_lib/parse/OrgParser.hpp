@@ -18,7 +18,7 @@ namespace org::parse {
 
 template <typename K, typename V>
 struct LexerCommon;
-using OrgLexer = LexerCommon<OrgTokenKind, OrgFill>;
+using OrgLexer = LexerCommon<org::sem::OrgTokenKind, OrgFill>;
 
 struct parse_error : hstd::CRTP_hexception<parse_error> {};
 
@@ -26,7 +26,8 @@ using ParseCb = std::function<OrgId(OrgLexer&)>;
 
 struct OrgParser : public hstd::OperationsTracer {
   public:
-    using OrgExpectable = hstd::Variant<OrgTokenKind, OrgTokSet, hstd::Vec<OrgTokenKind>>;
+    using OrgExpectable = hstd::
+        Variant<org::sem::OrgTokenKind, OrgTokSet, hstd::Vec<org::sem::OrgTokenKind>>;
 
     std::string getLocMsg(OrgLexer const& lex);
     parse_error fatalError(
@@ -197,7 +198,7 @@ struct OrgParser : public hstd::OperationsTracer {
         return token(getEmpty(), line, function);
     }
 
-    OrgNode getEmpty() { return OrgNode::Mono(OrgNodeKind::Empty); }
+    OrgNode getEmpty() { return OrgNode::Mono(org::sem::OrgNodeKind::Empty); }
 
     bool at(OrgLexer const& lex, OrgParser::OrgExpectable const& item);
 

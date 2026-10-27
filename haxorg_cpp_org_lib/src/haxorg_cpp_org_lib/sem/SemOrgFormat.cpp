@@ -1751,7 +1751,7 @@ auto Formatter::toString(SemId<Paragraph> id, Context const& ctx) -> Res {
         add(result, line_out);
     }
 
-    if (id.size() == 1 && id.at(0)->is(OrgSemKind::Link)) {
+    if (id.size() == 1 && id.at(0)->is(org::sem::OrgSemKind::Link)) {
         return stackAttached(result, id.at(0).as<sem::Stmt>(), ctx);
     } else {
         return stackAttached(result, id.as<sem::Stmt>(), ctx);

@@ -10,10 +10,10 @@
 namespace org::parse {
 
 
-using OrgToken = Token<OrgTokenKind, OrgFill>;
+using OrgToken = Token<org::sem::OrgTokenKind, OrgFill>;
 
 template <>
-struct TokenUtils<OrgTokenKind, OrgFill> {
+struct TokenUtils<org::sem::OrgTokenKind, OrgFill> {
     static hstd::Opt<SourceLoc> getLocation(OrgToken const& tok) {
         if (tok.value.loc) {
             return tok.value.loc.value();
@@ -25,24 +25,36 @@ struct TokenUtils<OrgTokenKind, OrgFill> {
     static std::string_view getText(OrgToken const& tok) { return tok.value.text(); }
 };
 
-using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
-using OrgTokenStore = TokenStore<OrgTokenKind, OrgFill>;
-using OrgTokenGroup = TokenGroup<OrgTokenKind, OrgFill>;
-using OrgLexer      = LexerCommon<OrgTokenKind, OrgFill>;
-using OrgTokSet     = hstd::IntSet<OrgTokenKind>;
+using OrgLexer      = LexerCommon<org::sem::OrgTokenKind, OrgFill>;
+using OrgTokenStore = TokenStore<org::sem::OrgTokenKind, OrgFill>;
+using OrgTokenGroup = TokenGroup<org::sem::OrgTokenKind, OrgFill>;
+using OrgLexer      = LexerCommon<org::sem::OrgTokenKind, OrgFill>;
+using OrgTokSet     = hstd::IntSet<org::sem::OrgTokenKind>;
 
-using OrgNodeGroup = NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
+using OrgNodeGroup = NodeGroup<
+    org::sem::OrgNodeKind,
+    org::sem::OrgTokenKind,
+    OrgFill,
+    OrgNodeMono>;
 
 
-using OrgAdapter = NodeAdapter<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
+using OrgAdapter = NodeAdapter<
+    org::sem::OrgNodeKind,
+    org::sem::OrgTokenKind,
+    OrgFill,
+    OrgNodeMono>;
 
-extern template class NodeGroup<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
+extern template class NodeGroup<
+    org::sem::OrgNodeKind,
+    org::sem::OrgTokenKind,
+    OrgFill,
+    OrgNodeMono>;
 
 
-using OrgTokenId = TokenId<OrgTokenKind, OrgFill>;
+using OrgTokenId = TokenId<org::sem::OrgTokenKind, OrgFill>;
 
-using OrgNode = Node<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
-using OrgId   = NodeId<OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
+using OrgNode = Node<org::sem::OrgNodeKind, org::sem::OrgTokenKind, OrgFill, OrgNodeMono>;
+using OrgId = NodeId<org::sem::OrgNodeKind, org::sem::OrgTokenKind, OrgFill, OrgNodeMono>;
 
 
 } // namespace org::parse
