@@ -85,7 +85,7 @@ def main() -> None:
         default=False,
     )
     parser.add_argument("--profile", required=True)
-    parser.add_argument("--warning-suppressions", required=True)
+    parser.add_argument("--warning-suppressions", required=False)
     parser.add_argument("--python-config", required=True)
     parser.add_argument("--log-dir", required=True, type=Path)
     args = parser.parse_args()
@@ -107,14 +107,25 @@ def main() -> None:
 
     conan_arguments = [
         f"--profile:all={args.profile}",
-        "-c",
-        f"user.hstd:warning_suppressions={args.warning_suppressions}",
-        "-c",
-        'user.hstd:ninja_args=["-k","0","--verbose"]',
-        *shlex.split(args.python_config),
-        "--build=missing",
-        "-vstatus",
     ]
+
+    if args.warning_suppressions:
+        conan_arguments.extend(
+            [
+                "-c",
+                f"user.hstd:warning_suppressions={args.warning_suppressions}",
+            ]
+        )
+
+    conan_arguments.extend(
+        [
+            "-c",
+            'user.hstd:ninja_args=["-k","0","--verbose"]',
+            *shlex.split(args.python_config),
+            "--build=missing",
+            "-vstatus",
+        ]
+    )
 
     log_name = "conan_editable.log" if args.editable else "conan_create.log"
 

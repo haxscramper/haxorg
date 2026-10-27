@@ -50,7 +50,7 @@ class HstdConan(ConanFile):
         self.requires("range-v3/[>=0.12.0 <0.13]", transitive_headers=True)
         self.requires("nlohmann_json/[>=3.11.3 <4]", transitive_headers=True)
         self.requires("cctz/[>=2.4.0 <3]", transitive_headers=True)
-        self.requires("fmt/[>=11 <13]", transitive_headers=True)
+        self.requires("fmt/[>=11 <17]", transitive_headers=True)
         self.requires("boost/[>=1.86.0 <2]", transitive_headers=True)
         self.requires("cpptrace/[>=0.8.0 <2]", transitive_headers=True)
         if self.options.with_perfetto:
