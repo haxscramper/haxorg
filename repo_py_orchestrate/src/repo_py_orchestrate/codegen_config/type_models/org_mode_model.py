@@ -1,6 +1,7 @@
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 from hstd_py_unidata.model_dsl import (
+    EnFieldAnnotation,
     Int32,
     Int64,
     __config__,
@@ -33,7 +34,7 @@ class Org(M.Class):
 
 
 class NoNode(Org, M.Class):
-    pass
+    """No node"""
 
 
 class ErrorItem(Org, M.Class):
@@ -41,11 +42,13 @@ class ErrorItem(Org, M.Class):
 
 
 class ErrorGroup(Org, M.Class):
+    """Group of value conversion errors"""
+
     diagnostics: List[ErrorItem]
 
 
 class Stmt(Org, M.Class):
-    """Base class for document-level entries."""
+    """Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)"""
 
     attached: List[Org]
 
@@ -67,7 +70,9 @@ class Stmt(Org, M.Class):
         ),
     )
 
-    def getAttached(self, kind: Optional[str] = None) -> List[Org]: ...
+    def getAttached(self, kind: Optional[str] = None) -> List[Org]:
+        """Return attached nodes of a specific kinds or all attached (if kind is nullopt)"""
+        ...
 
     def getCaption(self) -> List[Org]: ...
 
@@ -77,10 +82,14 @@ class Stmt(Org, M.Class):
     def getAttrs(
         self,
         kind: Optional[str] = None,
-    ) -> List[Shared._T["AttrValue"]]: ...
+    ) -> List[Shared._T["AttrValue"]]:
+        """Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties."""
+        ...
 
     @M.Method(backend=dict(cpp=dict(is_virtual=True)))
-    def getFirstAttr(self, kind: str) -> Optional[Shared._T["AttrValue"]]: ...
+    def getFirstAttr(self, kind: str) -> Optional[Shared._T["AttrValue"]]:
+        """Get the first parameter for the statement. In case there is a longer list of values matching a given kind, different node kinds can implement different priorities."""
+        ...
 
     def getFirstAttrString(self, kind: str) -> Optional[str]: ...
 
@@ -102,19 +111,25 @@ class Stmt(Org, M.Class):
 
 
 class Inline(Org, M.Class):
+    """Base class for all inline elements"""
+
     __config__(backend=dict(cpp=dict(abstract=True)))
 
 
 class StmtList(Org, M.Class):
-    pass
+    """Zero or more statement nodes"""
 
 
 class Empty(Org, M.Class):
-    pass
+    """Node without content"""
 
 
 class Cmd(Stmt, M.Class):
-    attrs: Shared._T["AttrGroup"]
+    """Base class for block or line commands"""
+
+    attrs: Shared._T["AttrGroup"] = M.Field(
+        doc="Additional parameters aside from 'exporter',"
+    )
 
     __config__(backend=dict(cpp=dict(abstract=True)))
 
@@ -122,26 +137,38 @@ class Cmd(Stmt, M.Class):
     def getAttrs(
         self,
         key: Optional[str] = None,
-    ) -> List[Shared._T["AttrValue"]]: ...
+    ) -> List[Shared._T["AttrValue"]]:
+        """Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any."""
+        ...
 
     @M.Method(backend=dict(cpp=dict(is_virtual=True, is_override=True)))
-    def getFirstAttr(self, kind: str) -> Optional[Shared._T["AttrValue"]]: ...
+    def getFirstAttr(self, kind: str) -> Optional[Shared._T["AttrValue"]]:
+        """Override of the base statement argument get, prioritizing the explicit command parameters"""
+        ...
 
 
 class Block(Cmd, M.Class):
+    """Block command type"""
+
     __config__(backend=dict(cpp=dict(abstract=True)))
 
 
 class LineCommand(Cmd, M.Class):
+    """Line commands"""
+
     __config__(backend=dict(cpp=dict(abstract=True)))
 
 
 class Attached(LineCommand, M.Class):
+    """Line command that might get attached to some block element"""
+
     __config__(backend=dict(cpp=dict(abstract=True)))
 
 
 class Leaf(Org, M.Class):
-    text: str = ""
+    """Final node"""
+
+    text: str = M.Field(doc="Final leaf value", default="")
 
     __config__(backend=dict(cpp=dict(abstract=True)))
 
@@ -150,15 +177,21 @@ class Leaf(Org, M.Class):
 
 
 class CmdCaption(Attached, M.Class):
-    text: "Paragraph"
+    """Caption annotation for any subsequent node"""
+
+    text: "Paragraph" = M.Field(doc="Content description")
 
 
 class CmdCreator(Cmd, M.Class):
-    text: "Paragraph"
+    """Creator of the document"""
+
+    text: "Paragraph" = M.Field(doc="Creator name text")
 
 
 class CmdAuthor(Cmd, M.Class):
-    text: "Paragraph"
+    """Author of the document"""
+
+    text: "Paragraph" = M.Field(doc="Author name text")
 
 
 class CmdEmail(Cmd, M.Class):
@@ -170,57 +203,77 @@ class CmdLanguage(Cmd, M.Class):
 
 
 class CmdColumns(Attached, M.Class):
+    """Caption annotation for any subsequent node"""
+
     view: Shared._T["ColumnView"]
 
 
 class CmdName(Attached, M.Class):
+    """Name identifier for the statement elements."""
+
     name: str
 
 
 class CmdCustomArgs(Cmd, M.Class):
+    """Custom line command with list of parsed arguments"""
+
     name: str
     isAttached: bool = False
 
 
 class CmdCustomRaw(Stmt, M.Class):
+    """Custom command with raw unparsed string value"""
+
     name: str
     isAttached: bool = False
     text: str
 
 
 class CmdCustomText(Stmt, M.Class):
+    """Custom line command with text paragraph value"""
+
     name: str
     isAttached: bool = False
     text: "Paragraph"
 
 
 class CmdCall(Attached, M.Class):
-    name: str
-    fileName: Optional[str] = None
-    insideHeaderAttrs: Shared._T["AttrGroup"]
-    callAttrs: Shared._T["AttrGroup"]
-    endHeaderAttrs: Shared._T["AttrGroup"]
-    result: List["BlockCodeEvalResult"]
+    name: str = M.Field(doc="Code block call name")
+    fileName: Optional[str] = M.Field(
+        doc="Which file code block should come from", default=None
+    )
+    insideHeaderAttrs: Shared._T["AttrGroup"] = M.Field(
+        doc="Additional parameters aside from 'exporter',"
+    )
+    callAttrs: Shared._T["AttrGroup"] = M.Field(
+        doc="Additional parameters aside from 'exporter',"
+    )
+    endHeaderAttrs: Shared._T["AttrGroup"] = M.Field(
+        doc="Additional parameters aside from 'exporter',"
+    )
+    result: List["BlockCodeEvalResult"] = M.Field(doc="Code evaluation results")
 
 
 class CmdTblfm(Cmd, M.Class):
+    """Tblfm command type"""
+
     expr: Shared._T["Tblfm"]
 
 
 class BlockCenter(Block, M.Class):
-    pass
+    """Center nested content in export"""
 
 
 class BlockQuote(Block, M.Class):
-    pass
+    """Quotation block"""
 
 
 class BlockComment(Stmt, M.Class):
-    pass
+    """Comment block"""
 
 
 class BlockVerse(Block, M.Class):
-    pass
+    """Verse quotation block"""
 
 
 class BlockDynamicFallback(Block, M.Class):
@@ -228,30 +281,40 @@ class BlockDynamicFallback(Block, M.Class):
 
 
 class BlockExample(Block, M.Class):
-    pass
+    """Example block"""
 
 
 class BlockExport(Block, M.Class):
+    """Direct export passthrough"""
+
     exporter: str
     content: str
 
-    def getPlacement(self) -> Optional[str]: ...
+    def getPlacement(self) -> Optional[str]:
+        """Return value of the :placement attribute if present"""
+        ...
 
 
 class BlockAdmonition(Block, M.Class):
-    pass
+    """Block of text with admonition tag: 'note',', 'warning','"""
 
 
 class BlockCodeEvalResult(Block, M.Class):
+    """Parsed results of code block evaluation"""
+
     raw: List[Shared._T["OrgCodeEvalOutput"]]
     node: Org
 
 
 class BlockCode(Block, M.Class):
-    lang: Optional[str] = None
-    result: List[BlockCodeEvalResult]
-    lines: List[Shared._T["BlockCodeLine"]]
-    switches: Shared._T["AttrGroup"]
+    """Base class for all code blocks"""
+
+    lang: Optional[str] = M.Field(doc="Code block language name", default=None)
+    result: List[BlockCodeEvalResult] = M.Field(doc="Code evaluation results")
+    lines: List[Shared._T["BlockCodeLine"]] = M.Field(doc="Collected code lines")
+    switches: Shared._T["AttrGroup"] = M.Field(
+        doc="Dash-based switches for code block execution"
+    )
 
     def getVariable(self, varname: str) -> Optional[Shared._T["AttrValue"]]: ...
 
@@ -261,24 +324,49 @@ class HashTag(Inline, M.Class):
 
 
 class InlineFootnote(Inline, M.Class):
-    tag: str = ""
-    definition: Optional[Org] = None
+    r"""Inline footnote definition
+
+    \note in-text link to the footnotes are implemented using `Link` nodes
+    """
+
+    tag: str = M.Field(doc="Footnote text target name", default="")
+    definition: Optional[Org] = M.Field(
+        doc="Link to possibly resolved definition", default=None
+    )
 
 
 class InlineExport(Inline, M.Class):
+    """Inline export"""
+
     exporter: str
     content: str
 
 
 class Time(Org, M.Class):
+    """Single static or dynamic timestamp (active or inactive)"""
+
     class Repeat(M.Class):
+        """Repetition information for static time"""
+
         class Mode(M.Enum):
-            None_: int = 0
-            Exact: int = 1
-            FirstMatch: int = 2
-            SameDay: int = 3
+            """Timestamp repetition mode"""
+
+            None_: Annotated[
+                int, EnFieldAnnotation(doc="Do not repeat task on completion")
+            ] = 0
+            Exact: Annotated[int, EnFieldAnnotation(doc="?")] = 1
+            FirstMatch: Annotated[
+                int,
+                EnFieldAnnotation(doc="Repeat on the first matching day in the future"),
+            ] = 2
+            SameDay: Annotated[
+                int,
+                EnFieldAnnotation(doc="Repeat task on the same day next week/month/year"),
+            ] = 3
 
         class Period(M.Enum):
+            """Repetition period. Temporary placeholder for now, until I figure out what would be the proper way to represent whatever org can do ... which is to be determined as well"""
+
             Year: int = 0
             Month: int = 1
             Week: int = 2
@@ -286,9 +374,9 @@ class Time(Org, M.Class):
             Hour: int = 4
             Minute: int = 5
 
-        mode: Mode
-        period: Period
-        count: Int32
+        mode: Mode = M.Field(doc="mode")
+        period: Period = M.Field(doc="period")
+        count: Int32 = M.Field(doc="count")
 
     class Static(M.Case):
         repeat: List["Time.Repeat"]
@@ -298,7 +386,7 @@ class Time(Org, M.Class):
     class Dynamic(M.Case):
         expr: Shared._T["LispCode"]
 
-    isActive: bool = False
+    isActive: bool = M.Field(doc="<active> vs [inactive]", default=False)
 
     __variant__(Static, Dynamic, field="time", kind="TimeKind")
 
@@ -331,8 +419,10 @@ class Time(Org, M.Class):
 
 
 class TimeRange(Org, M.Class):
-    from_: Time
-    to: Time
+    """Range of time delimited by two points"""
+
+    from_: Time = M.Field(doc="Starting time")
+    to: Time = M.Field(doc="Finishing time")
 
     __config__(
         backend=dict(cpp=dict(field_names=dict(from_="from"))),
@@ -342,38 +432,46 @@ class TimeRange(Org, M.Class):
 
 
 class Macro(Org, M.Class):
-    name: str = ""
-    attrs: Shared._T["AttrGroup"]
+    """Inline macro invocation"""
+
+    name: str = M.Field(doc="Macro name", default="")
+    attrs: Shared._T["AttrGroup"] = M.Field(
+        doc="Additional parameters aside from 'exporter',"
+    )
 
 
 class Symbol(Org, M.Class):
-    class Param(M.Class):
-        key: Optional[str] = None
-        value: str
+    """Text symbol or symbol command"""
 
-    name: str
-    parameters: List[Param]
-    positional: List[Org]
+    class Param(M.Class):
+        """Symbol parameters"""
+
+        key: Optional[str] = M.Field(doc="Key -- for non-positional", default=None)
+        value: str = M.Field(doc="Uninterpreted value")
+
+    name: str = M.Field(doc="Name of the symbol")
+    parameters: List[Param] = M.Field(doc="Optional list of parameters")
+    positional: List[Org] = M.Field(doc="Positional parameters")
 
 
 class Escaped(Leaf, M.Class):
-    pass
+    """Escaped text"""
 
 
 class Newline(Leaf, M.Class):
-    pass
+    r"""\n newline"""
 
 
 class Space(Leaf, M.Class):
-    pass
+    """' "space","""
 
 
 class Word(Leaf, M.Class):
-    pass
+    """word"""
 
 
 class AtMention(Leaf, M.Class):
-    pass
+    """`@mention`"""
 
 
 class RawText(Leaf, M.Class):
@@ -393,14 +491,16 @@ class BigIdent(Leaf, M.Class):
 
 
 class TextTarget(Leaf, M.Class):
-    pass
+    """`<<target>>`"""
 
 
 class ErrorSkipToken(Leaf, M.Class):
-    pass
+    """Single token skipped during error recovery"""
 
 
 class ErrorSkipGroup(Org, M.Class):
+    """Group of tokens skipped in search of the next synchronization point during parse fail recovery"""
+
     skipped: List[ErrorSkipToken]
 
 
@@ -441,11 +541,13 @@ class Par(Markup, M.Class):
 
 
 class RadioTarget(Org, M.Class):
+    """`<<<target>>>`"""
+
     words: List[str]
 
 
 class Latex(Org, M.Class):
-    pass
+    """Latex code body"""
 
 
 class Link(Stmt, M.Class):
@@ -454,8 +556,12 @@ class Link(Stmt, M.Class):
 
 
 class SubtreeLog(Org, M.Class):
+    """Single subtree log entry"""
+
     head: Shared._T["SubtreeLogHead"]
-    desc: Optional[StmtList] = None
+    desc: Optional[StmtList] = M.Field(
+        doc="Optional description of the log entry", default=None
+    )
 
     @M.Method(
         backend=dict(
@@ -469,20 +575,30 @@ class SubtreeLog(Org, M.Class):
 
 
 class Subtree(Org, M.Class):
-    level: Int32 = 0
-    treeId: Optional[str] = None
-    todo: Optional[str] = None
-    completion: Optional[Shared._T["SubtreeCompletion"]] = None
+    """Subtree"""
+
+    level: Int32 = M.Field(doc="Subtree level", default=0)
+    treeId: Optional[str] = M.Field(doc=":ID: property", default=None)
+    todo: Optional[str] = M.Field(doc="Todo state of the tree", default=None)
+    completion: Optional[Shared._T["SubtreeCompletion"]] = M.Field(
+        doc="Task completion state", default=None
+    )
     description: Optional["Paragraph"] = None
-    tags: List[HashTag]
-    title: "Paragraph"
-    logbook: List[SubtreeLog]
-    properties: List[Shared._T["NamedProperty"]]
-    closed: Optional[Time] = None
-    deadline: Optional[Time] = None
-    scheduled: Optional[Time] = None
-    isComment: bool = False
-    isArchived: bool = False
+    tags: List[HashTag] = M.Field(doc="Trailing tags")
+    title: "Paragraph" = M.Field(doc="Main title")
+    logbook: List[SubtreeLog] = M.Field(doc="Associated subtree log")
+    properties: List[Shared._T["NamedProperty"]] = M.Field(doc="Immediate properties")
+    closed: Optional[Time] = M.Field(
+        doc="When subtree was marked as closed", default=None
+    )
+    deadline: Optional[Time] = M.Field(doc="When is the deadline", default=None)
+    scheduled: Optional[Time] = M.Field(doc="When the event is scheduled", default=None)
+    isComment: bool = M.Field(
+        doc="Subtree is annotated with the COMMENT keyword", default=False
+    )
+    isArchived: bool = M.Field(
+        doc="Subtree is tagged with `:ARCHIVE:` tag", default=False
+    )
     priority: Optional[str] = None
 
     @M.Method(
@@ -515,10 +631,14 @@ class Subtree(Org, M.Class):
     ) -> Optional[Shared._T["NamedProperty"]]: ...
 
     @M.Method(backend=dict(cpp=dict(is_const=False)))
-    def removeProperty(self, kind: str, subkind: Optional[str] = None) -> None: ...
+    def removeProperty(self, kind: str, subkind: Optional[str] = None) -> None:
+        """Remove all instances of the property with matching kind/subkind from the property list"""
+        ...
 
     @M.Method(backend=dict(cpp=dict(is_const=False)))
-    def setProperty(self, value: Shared._T["NamedProperty"]) -> None: ...
+    def setProperty(self, value: Shared._T["NamedProperty"]) -> None:
+        """Create or override existing property value in the subtree property list"""
+        ...
 
     @M.Method(backend=dict(cpp=dict(is_const=False)))
     def setPropertyStrValue(
@@ -526,28 +646,49 @@ class Subtree(Org, M.Class):
         value: str,
         kind: str,
         subkind: Optional[str] = None,
-    ) -> None: ...
+    ) -> None:
+        """Assign a raw string literal to a property.
 
-    def getCleanTitle(self) -> str: ...
+        This function will not do the conversion or parsing of the assigned value, so if it is a 'created' or some other property with a typed value, it will still remain as string until the file is written and then parsed back from scratch.
+        """
+        ...
+
+    def getCleanTitle(self) -> str:
+        """Get subtree title as a flat string, without markup nodes, but with all left strings"""
+        ...
 
     def getTodoKeyword(self) -> Optional[str]: ...
 
 
 class Cell(Cmd, M.Class):
-    isBlock: bool = False
+    """Table cell"""
+
+    isBlock: bool = M.Field(
+        doc="Single-line pipe cell or `#+cell:` command", default=False
+    )
 
 
 class Row(Cmd, M.Class):
-    cells: List[Cell]
-    isBlock: bool = False
+    """Table row"""
+
+    cells: List[Cell] = M.Field(doc="List of cells on the row")
+    isBlock: bool = M.Field(
+        doc="Single-line pipe cell or `#+cell:` command", default=False
+    )
 
 
 class Table(Block, M.Class):
-    rows: List[Row]
-    isBlock: bool = False
+    """Table"""
+
+    rows: List[Row] = M.Field(doc="List of rows for the table")
+    isBlock: bool = M.Field(
+        doc="Single-line pipe cell or `#+cell:` command", default=False
+    )
 
 
 class Paragraph(Stmt, M.Class):
+    """Top-level or inline paragraph"""
+
     def isFootnoteDefinition(self) -> bool: ...
 
     def getFootnoteName(self) -> Optional[str]: ...
@@ -568,25 +709,35 @@ class Paragraph(Stmt, M.Class):
 
     def getLeadHashtags(self) -> List[HashTag]: ...
 
-    def getBody(self) -> List[Org]: ...
+    def getBody(self) -> List[Org]:
+        """Return content of the paragraph, without prefix idents, hashtags, footnotes etc."""
+        ...
 
 
 class ColonExample(Org, M.Class):
-    pass
+    """Shortened colon example block"""
 
 
 class CmdAttr(Attached, M.Class):
+    """Caption annotation for any subsequent node"""
+
     target: str
 
 
 class CmdExport(Attached, M.Class):
+    """Single line of passthrough code"""
+
     exporter: str
     content: str
 
 
 class Call(Org, M.Class):
-    name: str
-    attrs: Shared._T["AttrGroup"]
+    """Inline, statement or block call"""
+
+    name: str = M.Field(doc="Call target name")
+    attrs: Shared._T["AttrGroup"] = M.Field(
+        doc="Additional parameters aside from 'exporter'"
+    )
     isCommand: bool = False
 
 
@@ -595,19 +746,29 @@ class List(Stmt, M.Class):
 
     def getListFormattingMode(self) -> Shared._T["ListFormattingMode"]: ...
 
-    def isDescriptionList(self) -> bool: ...
+    def isDescriptionList(self) -> bool:
+        """List is marked as description if any list item has a header"""
+        ...
 
-    def isNumberedList(self) -> bool: ...
+    def isNumberedList(self) -> bool:
+        """List is marked as numbered if any list item has bullet text set"""
+        ...
 
 
 class ListItem(Org, M.Class):
     checkbox: Shared._T["CheckboxState"]
-    header: Optional[Paragraph] = None
-    bullet: Optional[str] = None
+    header: Optional[Paragraph] = M.Field(
+        doc="Description list item header", default=None
+    )
+    bullet: Optional[str] = M.Field(
+        doc="Full text of the numbered list item, e.g. `a)`, `a.`", default=None
+    )
 
     def isDescriptionItem(self) -> bool: ...
 
-    def getCleanHeader(self) -> Optional[str]: ...
+    def getCleanHeader(self) -> Optional[str]:
+        """Return flat text for the description list header"""
+        ...
 
 
 class DocumentOptions(Org, M.Class):
@@ -651,11 +812,15 @@ class DocumentOptions(Org, M.Class):
 
 
 class DocumentFragment(Org, M.Class):
+    """Part of the document embedded in a larger file (e.g. in comments)"""
+
     baseLine: Int32 = 0
     baseCol: Int32 = 0
 
 
 class CriticMarkup(Org, M.Class):
+    """https://fletcher.github.io/MultiMarkdown-6/syntax/critic.html"""
+
     class Kind(M.Enum):
         Deletion: int = 0
         Addition: int = 1
@@ -716,8 +881,8 @@ class File(Org, M.Class):
     class Source(M.Case):
         pass
 
-    relPath: str
-    absPath: str
+    relPath: str = M.Field(doc="Relative path from the root directory")
+    absPath: str = M.Field(doc="Absolute resolved path to physical file")
 
     __variant__(Document, Attachment, Source, field="data", kind="Kind")
 
@@ -733,13 +898,17 @@ class File(Org, M.Class):
 
 
 class Directory(Org, M.Class):
-    relPath: str
-    absPath: str
+    relPath: str = M.Field(
+        doc="Relative path from the root directory, empty if this is the root directory"
+    )
+    absPath: str = M.Field(doc="Absolute resolved path to physical directory")
 
 
 class Symlink(Org, M.Class):
     isDirectory: bool
-    absPath: str
+    absPath: str = M.Field(
+        doc="Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root."
+    )
 
 
 class CmdInclude(Org, M.Class):
@@ -750,23 +919,40 @@ class CmdInclude(Org, M.Class):
         pass
 
     class Export(IncludeBase, M.Case):
-        language: str
+        language: str = M.Field(doc="Source code language for export")
 
     class Custom(IncludeBase, M.Case):
-        blockName: str
+        """Second positional argument in the include command can have any arbitrary value -- default src/export/example have additional properties, but user can provide anything else there."""
+
+        blockName: str = M.Field(doc="Block name not covered by the default values")
 
     class Src(IncludeBase, M.Case):
-        language: str
+        language: str = M.Field(doc="Source code language for code block")
 
     class OrgDocument(IncludeBase, M.Case):
-        onlyContent: Optional[bool] = None
-        subtreePath: Optional[Shared._T["SubtreePath"]] = None
-        minLevel: Optional[Int32] = None
-        customIdTarget: Optional[str] = None
+        onlyContent: Optional[bool] = M.Field(
+            doc="omits any planning lines or property drawers", default=None
+        )
+        subtreePath: Optional[Shared._T["SubtreePath"]] = M.Field(
+            doc="Include first subtree matching path with `file.org::* tree`",
+            default=None,
+        )
+        minLevel: Optional[Int32] = M.Field(
+            doc="The minimum level of headlines to include. Headlines with a level smaller than this value will be demoted to this level.",
+            default=None,
+        )
+        customIdTarget: Optional[str] = M.Field(
+            doc="Include target subtree content with `file.org::#custom`", default=None
+        )
 
-    path: str
-    firstLine: Optional[Int32] = None
-    lastLine: Optional[Int32] = None
+    path: str = M.Field(doc="Path to include")
+    firstLine: Optional[Int32] = M.Field(
+        doc="0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text",
+        default=None,
+    )
+    lastLine: Optional[Int32] = M.Field(
+        doc="0-based index of the last line to include", default=None
+    )
 
     __variant__(
         Example,
