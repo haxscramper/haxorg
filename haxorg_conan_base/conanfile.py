@@ -298,7 +298,9 @@ class HaxorgPackage(_HaxorgTypingBase):
         cmake.configure()
         cmake.build(
             build_tool_args=self.conf.get(
-                "user.haxorg:ninja_args", default=[], check_type=list
+                "user.haxorg:ninja_args",
+                default=[],
+                check_type=list,
             )
         )
 

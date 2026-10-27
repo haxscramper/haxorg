@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, List, Optional, Tuple
+from loguru import logger
+
 from hstd_py_unidata.model_eval import CheckFailure, errors_only, validate
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
@@ -47,7 +49,6 @@ from hstd_py_unidata.model_value import (
     positions,
     replace_at,
 )
-from loguru import logger
 
 
 @beartype
@@ -330,9 +331,7 @@ class ValueGenerator:
         if nested and self.rng.random() < 0.5:
             return self.rng.choice(nested)
         segments = failure.path.segments
-        prefixes = [
-            ItemPath(segments=segments[:i]) for i in range(len(segments), -1, -1)
-        ]
+        prefixes = [ItemPath(segments=segments[:i]) for i in range(len(segments), -1, -1)]
         prefixes = [p for p in prefixes if p in by_path]
         escalation = min(len(prefixes) - 1, attempt // 10)
         return prefixes[self.rng.randint(0, escalation)]

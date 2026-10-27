@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from beartype import beartype
 from beartype.typing import Dict, List, NoReturn, Optional
+
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     CheckContext,
@@ -68,9 +69,7 @@ class Evaluator(EvalHost):
         self, node: ExprNode, message: str, value: Optional[Value] = None
     ) -> NoReturn:
         path = (
-            value.path.render()
-            if value is not None and value.path is not None
-            else None
+            value.path.render() if value is not None and value.path is not None else None
         )
         raise EvalError(node, message, path)
 

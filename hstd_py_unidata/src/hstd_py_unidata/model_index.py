@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Tuple
+
 from hstd_py_unidata.model_ir import (
     ArrayT,
     CheckDef,
@@ -127,9 +128,7 @@ class ModelIndex:
         for v in self.record(vt.owner).variants:
             if v.field == vt.field:
                 return v
-        declared = (
-            ", ".join(v.field for v in self.record(vt.owner).variants) or "(none)"
-        )
+        declared = ", ".join(v.field for v in self.record(vt.owner).variants) or "(none)"
         raise KeyError(
             f"Record '{vt.owner.to_id()}' has no variant stored in field '{vt.field}'; declared variant fields: {declared}"
         )
@@ -189,9 +188,7 @@ class ModelIndex:
                 case DynT():
                     pending.append(cur.root)
                 case VariantT():
-                    pending.extend(
-                        NamedT(qname=c.case) for c in self.variant(cur).cases
-                    )
+                    pending.extend(NamedT(qname=c.case) for c in self.variant(cur).cases)
                 case NamedT() if not self.is_enum(cur.qname):
                     for desc in self.descendants(cur.qname):
                         pending.append(NamedT(qname=desc))

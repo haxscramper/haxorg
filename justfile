@@ -67,7 +67,7 @@ HAXORG_ROOT := source_directory()
 # to configure hwloc, see profile text for more details.
 CONAN_PROFILE := env("CONAN_PROFILE")
 SUPPRESSION_FILE := HAXORG_ROOT / "repo_tool_configs/clang_suppressions.supp"
-CONAN_PYTHON_CONFIG := shell("uv run hstd_pu_lib/src/hstd_pu_lib/project_utils/get_python_config.py") \
+CONAN_PYTHON_CONFIG := shell("uv run hstd_py_lib/src/hstd_py_lib/project_utils/get_python_config.py") \
     + " -c " + quote("user.haxorg:uv_project=" + HAXORG_ROOT)
 
 conan_info_package_path package:

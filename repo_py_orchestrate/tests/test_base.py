@@ -14,6 +14,13 @@ from repo_py_orchestrate.codegen_config.codegen import (
 from repo_py_orchestrate.codegen_config.extract_refl import (
     extract_reflection,
 )
+from repo_py_orchestrate.codegen_config.type_models.model_to_gentu import (
+    get_org_gentu_models,
+)
+
+
+def test_org_dsl_codegen_conversion():
+    model = get_org_gentu_models()
 
 
 def test_org_codegen_data_run():

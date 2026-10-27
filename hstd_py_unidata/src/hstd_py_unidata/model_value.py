@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
+
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     FLOAT_PRIMS,
@@ -332,9 +333,7 @@ def make_map(index: ModelIndex, entries: List[Tuple[Value, Value]]) -> MapValue:
 
 
 @beartype
-def default_value(
-    index: ModelIndex, t: TypeRef, stack: Tuple[QName, ...] = ()
-) -> Value:
+def default_value(index: ModelIndex, t: TypeRef, stack: Tuple[QName, ...] = ()) -> Value:
     """Trivial default: zero, empty string, false, empty collection, no value, first enum value or case."""
     match t:
         case PrimT():
@@ -542,16 +541,12 @@ def decode_map(index: ModelIndex, t: MapT, data: Any, path: ItemPath) -> MapValu
                 f"duplicate map key {json.dumps(kd, default=str)}, first given as {json.dumps(seen[kk], default=str)}",
             )
         seen[kk] = kd
-        entries.append(
-            (key, decode_json(index, t.value, vd, path.key(key_text(key), i)))
-        )
+        entries.append((key, decode_json(index, t.value, vd, path.key(key_text(key), i))))
     return MapValue(entries=tuple(entries))
 
 
 @beartype
-def decode_enum(
-    index: ModelIndex, qname: QName, data: Any, path: ItemPath
-) -> EnumValue:
+def decode_enum(index: ModelIndex, qname: QName, data: Any, path: ItemPath) -> EnumValue:
     values = index.enum_values(qname)
     for ev in values:
         if (isinstance(data, str) and data == ev.name) or (
@@ -596,9 +591,7 @@ def decode_record(
     values: Dict[str, Value] = {}
     for f in fields:
         if f.name in data:
-            values[f.name] = decode_json(
-                index, f.type, data[f.name], path.field(f.name)
-            )
+            values[f.name] = decode_json(index, f.type, data[f.name], path.field(f.name))
         else:
             values[f.name] = defaults.fields[f.name]
     return RecordValue(qname=concrete, fields=values)
@@ -873,16 +866,12 @@ def locate(value: Value, path: ItemPath = ItemPath()) -> Value:
             )
         case ListValue():
             return ListValue(
-                items=tuple(
-                    locate(v, path.index(i)) for i, v in enumerate(value.items)
-                ),
+                items=tuple(locate(v, path.index(i)) for i, v in enumerate(value.items)),
                 path=path,
             )
         case TupleValue():
             return TupleValue(
-                items=tuple(
-                    locate(v, path.index(i)) for i, v in enumerate(value.items)
-                ),
+                items=tuple(locate(v, path.index(i)) for i, v in enumerate(value.items)),
                 path=path,
             )
         case MapValue():

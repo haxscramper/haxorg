@@ -20,6 +20,7 @@ from beartype.typing import (
     Union,
     cast,
 )
+
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     INTEGER_RANGES,
@@ -500,9 +501,7 @@ class EqOp(CompareOp):
     op_id = OpId.EQ
     symbol = "=="
 
-    def compare(
-        self, host: EvalHost, node: ExprNode, left: Value, right: Value
-    ) -> bool:
+    def compare(self, host: EvalHost, node: ExprNode, left: Value, right: Value) -> bool:
         return values_equal(host.index, left, right)
 
 
@@ -510,9 +509,7 @@ class NeOp(CompareOp):
     op_id = OpId.NE
     symbol = "!="
 
-    def compare(
-        self, host: EvalHost, node: ExprNode, left: Value, right: Value
-    ) -> bool:
+    def compare(self, host: EvalHost, node: ExprNode, left: Value, right: Value) -> bool:
         return not values_equal(host.index, left, right)
 
 
@@ -529,9 +526,7 @@ class LtOp(CompareOp):
     op_id = OpId.LT
     symbol = "<"
 
-    def compare(
-        self, host: EvalHost, node: ExprNode, left: Value, right: Value
-    ) -> bool:
+    def compare(self, host: EvalHost, node: ExprNode, left: Value, right: Value) -> bool:
         lv, rv = ordered_operands(host, node, left, right)
         assert isinstance(lv, (int, float))
         assert isinstance(rv, (int, float))
@@ -542,9 +537,7 @@ class LeOp(CompareOp):
     op_id = OpId.LE
     symbol = "<="
 
-    def compare(
-        self, host: EvalHost, node: ExprNode, left: Value, right: Value
-    ) -> bool:
+    def compare(self, host: EvalHost, node: ExprNode, left: Value, right: Value) -> bool:
         lv, rv = ordered_operands(host, node, left, right)
         assert isinstance(lv, (int, float))
         assert isinstance(rv, (int, float))
@@ -765,9 +758,7 @@ class ExistsOneOp(CollectionOp):
 
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
         count = sum(
-            1
-            for _, r in self.body_values(host, node, env)
-            if expect_bool(host, node, r)
+            1 for _, r in self.body_values(host, node, env) if expect_bool(host, node, r)
         )
         return make_bool(count == 1)
 
@@ -950,9 +941,7 @@ class StrMatchesOp(Operator):
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
         assert node.str_val is not None
         return make_bool(
-            re.search(
-                node.str_val, expect_str(host, node, host.eval(node.args[0], env))
-            )
+            re.search(node.str_val, expect_str(host, node, host.eval(node.args[0], env)))
             is not None
         )
 
@@ -983,9 +972,7 @@ class StrFormatOp(Operator):
                     f"format directive %{spec.conv} requires a number, got {concrete_type_text(value)}",
                     value,
                 )
-        return ScalarValue(
-            prim=PrimKind.STRING, value=apply_format(node.str_val, values)
-        )
+        return ScalarValue(prim=PrimKind.STRING, value=apply_format(node.str_val, values))
 
 
 class OptHasValueOp(Operator):
@@ -1039,9 +1026,7 @@ class CaseIsOp(Operator):
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
         value = host.eval(node.args[0], env)
         if not isinstance(value, VariantValue):
-            host.fail(
-                node, f"expected a variant, got {concrete_type_text(value)}", value
-            )
+            host.fail(node, f"expected a variant, got {concrete_type_text(value)}", value)
         return make_bool(value.tag == node.str_val)
 
 
@@ -1055,12 +1040,8 @@ class CaseWhichOp(Operator):
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
         value = host.eval(node.args[0], env)
         if not isinstance(value, VariantValue):
-            host.fail(
-                node, f"expected a variant, got {concrete_type_text(value)}", value
-            )
-        return EnumValue(
-            enum=host.index.variant(value.variant).kind_enum, name=value.tag
-        )
+            host.fail(node, f"expected a variant, got {concrete_type_text(value)}", value)
+        return EnumValue(enum=host.index.variant(value.variant).kind_enum, name=value.tag)
 
 
 class EnumIsOp(Operator):
@@ -1151,7 +1132,9 @@ class TypeCaseOp(Operator):
     scoped_args = frozenset({0})
 
     def render(self, node: ExprNode, args: List[str]) -> str:
-        return f"type_case({type_arg_text(node)}, {json.dumps(node.binders[0])}, {args[0]})"
+        return (
+            f"type_case({type_arg_text(node)}, {json.dumps(node.binders[0])}, {args[0]})"
+        )
 
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
         host.fail(node, "type_case can only be evaluated as an argument of type_cond")

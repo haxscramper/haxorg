@@ -129,9 +129,7 @@ class MapKeysOp(Operator):
         return ListValue(
             items=tuple(
                 k
-                for k, _ in _expect_map(
-                    host, node, host.eval(node.args[0], env)
-                ).entries
+                for k, _ in _expect_map(host, node, host.eval(node.args[0], env)).entries
             )
         )
 
@@ -148,9 +146,7 @@ class MapValuesOp(Operator):
         return ListValue(
             items=tuple(
                 v
-                for _, v in _expect_map(
-                    host, node, host.eval(node.args[0], env)
-                ).entries
+                for _, v in _expect_map(host, node, host.eval(node.args[0], env)).entries
             )
         )
 

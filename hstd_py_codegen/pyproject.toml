@@ -44,6 +44,6 @@ package_type = "application"
 exclude = ["/src/hstd_py_codegen/proto"]
 
 [tool.hatch.build.hooks.conan.protobuf]
-sources = ["haxdex_read_code_cpp/reflection_defs.proto"]
+sources = ["haxdex_read_code_cpp_common/reflection_defs.proto"]
 destination = "hstd_py_codegen/proto"
 well-known-sources = ["google/protobuf/struct.proto"]

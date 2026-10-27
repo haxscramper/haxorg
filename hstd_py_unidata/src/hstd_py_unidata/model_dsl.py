@@ -21,6 +21,7 @@ from beartype.typing import (
     get_args,
     get_origin,
 )
+
 from hstd_py_unidata.model_diagnostics import (
     Diagnostic,
     DslTypeError,
@@ -351,9 +352,7 @@ class DslMeta(type):
         ns[DslAttr.KIND.value] = kind
         cls = super().__new__(mcls, name, bases, ns)
         module = sys.modules.get(str(ns.get("__module__", "")))
-        module_globals: Dict[str, Any] = (
-            dict(vars(module)) if module is not None else {}
-        )
+        module_globals: Dict[str, Any] = dict(vars(module)) if module is not None else {}
         try:
             first_line = inspect.getsourcelines(cls)[1]
             loc = SourceLoc(
@@ -469,9 +468,7 @@ class DslMeta(type):
                     is_static=is_static,
                     loc=member.loc,
                 )
-            case types.FunctionType() if name == "__init__" or not name.startswith(
-                "__"
-            ):
+            case types.FunctionType() if name == "__init__" or not name.startswith("__"):
                 return RawMethod(
                     name=name, func=member, backend={}, is_static=is_static, loc=loc
                 )

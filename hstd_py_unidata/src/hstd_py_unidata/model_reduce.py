@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 from beartype import beartype
 from beartype.typing import Callable, Dict, Iterator, List, Tuple
+from loguru import logger
+
 from hstd_py_unidata.model_eval import errors_only, validate
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
@@ -34,7 +36,6 @@ from hstd_py_unidata.model_value import (
     value_key,
     value_size,
 )
-from loguru import logger
 
 Predicate = Callable[[Value], bool]
 
@@ -91,9 +92,7 @@ def shrink_scalar(value: ScalarValue) -> List[ScalarValue]:
                     result.append(ScalarValue(prim=value.prim, value=c))
         case float():
             v = value.value
-            candidates = (
-                [0.0, float(math.trunc(v)), v / 2] if math.isfinite(v) else [0.0]
-            )
+            candidates = [0.0, float(math.trunc(v)), v / 2] if math.isfinite(v) else [0.0]
             for c in candidates:
                 if abs(c) < abs(v) or not math.isfinite(v):
                     result.append(ScalarValue(prim=value.prim, value=c))
@@ -134,9 +133,7 @@ class Reducer:
         return [
             f.render()
             for f in errors_only(
-                validate(
-                    self.index, self.table, self.root, value, crash_as_failure=True
-                )
+                validate(self.index, self.table, self.root, value, crash_as_failure=True)
             )
         ]
 
@@ -185,9 +182,7 @@ class Reducer:
                 case _:
                     pass
 
-    def hoist(
-        self, root: Value, pos: Position, found: List[Position]
-    ) -> Iterator[Value]:
+    def hoist(self, root: Value, pos: Position, found: List[Position]) -> Iterator[Value]:
         """Replaces a record or list by a nested value that fits the same slot."""
         if pos.is_case_record:
             return

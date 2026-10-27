@@ -312,8 +312,8 @@ def conv_proto_record(
 
         result.Methods.append(func)
 
-    for record in record.nested_rec:
-        result.Nested.append(conv_proto_record(record, original))
+    for nested_record in record.nested_rec:
+        result.Nested.append(conv_proto_record(nested_record, original))
 
     for _enum in record.nested_enum:
         result.Nested.append(conv_proto_enum(_enum, original))
@@ -383,16 +383,6 @@ def conv_proto_typedef(
         Original=original,
         OriginName="refl",
         ReflectionParams=conv_proto_reflection_params(rec.reflection_params),
-    )
-
-
-@beartype
-def conv_proto_include(
-    rec: pb.Include, original: Optional[Path]
-) -> codegen_ir.GenTuInclude:
-    return codegen_ir.GenTuInclude(
-        what=rec.relative_path,
-        absolutePath=rec.absolute_path,
     )
 
 
@@ -565,5 +555,4 @@ def conv_proto_file(path: Path, original: Optional[Path] = None) -> ConvTu:
         enums=[conv_proto_enum(rec, original) for rec in unit.enums],
         typedefs=[conv_proto_typedef(rec, original) for rec in unit.typedefs],
         functions=[conv_proto_function(rec, original) for rec in unit.functions],
-        includes=[conv_proto_include(rec, original) for rec in unit.includes],
     )

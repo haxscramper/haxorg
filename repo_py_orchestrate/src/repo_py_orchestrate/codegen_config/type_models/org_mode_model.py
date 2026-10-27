@@ -1,4 +1,5 @@
-from typing import Annotated, List, Optional
+from typing import Annotated, Optional
+from typing import List as ListType
 
 from hstd_py_unidata.model_dsl import (
     EnFieldAnnotation,
@@ -21,7 +22,7 @@ class Org(M.Class):
     """Root semantic AST node."""
 
     loc: Optional[P._T["SourceLoc"]] = None
-    subnodes: List["Org"]
+    subnodes: ListType["Org"]
 
     __config__(
         backend=dict(
@@ -44,13 +45,13 @@ class ErrorItem(Org, M.Class):
 class ErrorGroup(Org, M.Class):
     """Group of value conversion errors"""
 
-    diagnostics: List[ErrorItem]
+    diagnostics: ListType[ErrorItem]
 
 
 class Stmt(Org, M.Class):
     """Base class for all document-level entries. Note that some node kinds might also have inline entries (examples include links, source code blocks, call blocks)"""
 
-    attached: List[Org]
+    attached: ListType[Org]
 
     __config__(
         backend=dict(
@@ -70,19 +71,19 @@ class Stmt(Org, M.Class):
         ),
     )
 
-    def getAttached(self, kind: Optional[str] = None) -> List[Org]:
+    def getAttached(self, kind: Optional[str] = None) -> ListType[Org]:
         """Return attached nodes of a specific kinds or all attached (if kind is nullopt)"""
         ...
 
-    def getCaption(self) -> List[Org]: ...
+    def getCaption(self) -> ListType[Org]: ...
 
-    def getName(self) -> List[str]: ...
+    def getName(self) -> ListType[str]: ...
 
     @M.Method(backend=dict(cpp=dict(is_virtual=True)))
     def getAttrs(
         self,
         kind: Optional[str] = None,
-    ) -> List[Shared._T["AttrValue"]]:
+    ) -> ListType[Shared._T["AttrValue"]]:
         """Get all named arguments for the command, across all attached properties. If kind is nullopt returns all attached arguments for all properties."""
         ...
 
@@ -137,7 +138,7 @@ class Cmd(Stmt, M.Class):
     def getAttrs(
         self,
         key: Optional[str] = None,
-    ) -> List[Shared._T["AttrValue"]]:
+    ) -> ListType[Shared._T["AttrValue"]]:
         """Return all parameters with keys matching name. This is an override implementation that accounts for the explicit command parameters if any."""
         ...
 
@@ -251,7 +252,7 @@ class CmdCall(Attached, M.Class):
     endHeaderAttrs: Shared._T["AttrGroup"] = M.Field(
         doc="Additional parameters aside from 'exporter',"
     )
-    result: List["BlockCodeEvalResult"] = M.Field(doc="Code evaluation results")
+    result: ListType["BlockCodeEvalResult"] = M.Field(doc="Code evaluation results")
 
 
 class CmdTblfm(Cmd, M.Class):
@@ -302,7 +303,7 @@ class BlockAdmonition(Block, M.Class):
 class BlockCodeEvalResult(Block, M.Class):
     """Parsed results of code block evaluation"""
 
-    raw: List[Shared._T["OrgCodeEvalOutput"]]
+    raw: ListType[Shared._T["OrgCodeEvalOutput"]]
     node: Org
 
 
@@ -310,8 +311,8 @@ class BlockCode(Block, M.Class):
     """Base class for all code blocks"""
 
     lang: Optional[str] = M.Field(doc="Code block language name", default=None)
-    result: List[BlockCodeEvalResult] = M.Field(doc="Code evaluation results")
-    lines: List[Shared._T["BlockCodeLine"]] = M.Field(doc="Collected code lines")
+    result: ListType[BlockCodeEvalResult] = M.Field(doc="Code evaluation results")
+    lines: ListType[Shared._T["BlockCodeLine"]] = M.Field(doc="Collected code lines")
     switches: Shared._T["AttrGroup"] = M.Field(
         doc="Dash-based switches for code block execution"
     )
@@ -379,7 +380,7 @@ class Time(Org, M.Class):
         count: Int32 = M.Field(doc="count")
 
     class Static(M.Case):
-        repeat: List["Time.Repeat"]
+        repeat: ListType["Time.Repeat"]
         warn: Optional["Time.Repeat"] = None
         time: H._T["UserTime"]
 
@@ -450,8 +451,8 @@ class Symbol(Org, M.Class):
         value: str = M.Field(doc="Uninterpreted value")
 
     name: str = M.Field(doc="Name of the symbol")
-    parameters: List[Param] = M.Field(doc="Optional list of parameters")
-    positional: List[Org] = M.Field(doc="Positional parameters")
+    parameters: ListType[Param] = M.Field(doc="Optional list of parameters")
+    positional: ListType[Org] = M.Field(doc="Positional parameters")
 
 
 class Escaped(Leaf, M.Class):
@@ -501,7 +502,7 @@ class ErrorSkipToken(Leaf, M.Class):
 class ErrorSkipGroup(Org, M.Class):
     """Group of tokens skipped in search of the next synchronization point during parse fail recovery"""
 
-    skipped: List[ErrorSkipToken]
+    skipped: ListType[ErrorSkipToken]
 
 
 class Markup(Org, M.Class):
@@ -543,7 +544,7 @@ class Par(Markup, M.Class):
 class RadioTarget(Org, M.Class):
     """`<<<target>>>`"""
 
-    words: List[str]
+    words: ListType[str]
 
 
 class Latex(Org, M.Class):
@@ -584,10 +585,10 @@ class Subtree(Org, M.Class):
         doc="Task completion state", default=None
     )
     description: Optional["Paragraph"] = None
-    tags: List[HashTag] = M.Field(doc="Trailing tags")
+    tags: ListType[HashTag] = M.Field(doc="Trailing tags")
     title: "Paragraph" = M.Field(doc="Main title")
-    logbook: List[SubtreeLog] = M.Field(doc="Associated subtree log")
-    properties: List[Shared._T["NamedProperty"]] = M.Field(doc="Immediate properties")
+    logbook: ListType[SubtreeLog] = M.Field(doc="Associated subtree log")
+    properties: ListType[Shared._T["NamedProperty"]] = M.Field(doc="Immediate properties")
     closed: Optional[Time] = M.Field(
         doc="When subtree was marked as closed", default=None
     )
@@ -615,14 +616,14 @@ class Subtree(Org, M.Class):
     )
     def getTimePeriods(
         self,
-        kinds: List[Shared._T["SubtreePeriod.Kind"]],
-    ) -> List[Shared._T["SubtreePeriod"]]: ...
+        kinds: ListType[Shared._T["SubtreePeriod.Kind"]],
+    ) -> ListType[Shared._T["SubtreePeriod"]]: ...
 
     def getProperties(
         self,
         kind: str,
         subkind: Optional[str] = None,
-    ) -> List[Shared._T["NamedProperty"]]: ...
+    ) -> ListType[Shared._T["NamedProperty"]]: ...
 
     def getProperty(
         self,
@@ -671,7 +672,7 @@ class Cell(Cmd, M.Class):
 class Row(Cmd, M.Class):
     """Table row"""
 
-    cells: List[Cell] = M.Field(doc="List of cells on the row")
+    cells: ListType[Cell] = M.Field(doc="List of cells on the row")
     isBlock: bool = M.Field(
         doc="Single-line pipe cell or `#+cell:` command", default=False
     )
@@ -680,7 +681,7 @@ class Row(Cmd, M.Class):
 class Table(Block, M.Class):
     """Table"""
 
-    rows: List[Row] = M.Field(doc="List of rows for the table")
+    rows: ListType[Row] = M.Field(doc="List of rows for the table")
     isBlock: bool = M.Field(
         doc="Single-line pipe cell or `#+cell:` command", default=False
     )
@@ -695,21 +696,21 @@ class Paragraph(Stmt, M.Class):
 
     def hasAdmonition(self) -> bool: ...
 
-    def getAdmonitions(self) -> List[str]: ...
+    def getAdmonitions(self) -> ListType[str]: ...
 
-    def getAdmonitionNodes(self) -> List[BigIdent]: ...
+    def getAdmonitionNodes(self) -> ListType[BigIdent]: ...
 
     def hasTimestamp(self) -> bool: ...
 
-    def getTimestamps(self) -> List[H._T["UserTime"]]: ...
+    def getTimestamps(self) -> ListType[H._T["UserTime"]]: ...
 
-    def getTimestampNodes(self) -> List[Time]: ...
+    def getTimestampNodes(self) -> ListType[Time]: ...
 
     def hasLeadHashtags(self) -> bool: ...
 
-    def getLeadHashtags(self) -> List[HashTag]: ...
+    def getLeadHashtags(self) -> ListType[HashTag]: ...
 
-    def getBody(self) -> List[Org]:
+    def getBody(self) -> ListType[Org]:
         """Return content of the paragraph, without prefix idents, hashtags, footnotes etc."""
         ...
 
@@ -742,7 +743,7 @@ class Call(Org, M.Class):
 
 
 class List(Stmt, M.Class):
-    def getListAttrs(self, key: str) -> List[Shared._T["AttrValue"]]: ...
+    def getListAttrs(self, key: str) -> ListType[Shared._T["AttrValue"]]: ...
 
     def getListFormattingMode(self) -> Shared._T["ListFormattingMode"]: ...
 
@@ -773,7 +774,7 @@ class ListItem(Org, M.Class):
 
 class DocumentOptions(Org, M.Class):
     initialVisibility: Shared._T["InitialSubtreeVisibility"]
-    properties: List[Shared._T["NamedProperty"]]
+    properties: ListType[Shared._T["NamedProperty"]]
     exportConfig: Shared._T["DocumentExportConfig"]
     fixedWidthSections: Optional[bool] = None
     linkVisibility: Optional[Shared._T["LinkVisibility"]] = None
@@ -783,8 +784,8 @@ class DocumentOptions(Org, M.Class):
     setupfile: Optional[str] = None
     maxSubtreeLevelExport: Optional[Int32] = None
     columns: Optional[Shared._T["ColumnView"]] = None
-    todoKeywords: List[Shared._T["TodoKeyword"]]
-    doneKeywords: List[Shared._T["TodoKeyword"]]
+    todoKeywords: ListType[Shared._T["TodoKeyword"]]
+    doneKeywords: ListType[Shared._T["TodoKeyword"]]
 
     __config__(
         backend=dict(
@@ -802,7 +803,7 @@ class DocumentOptions(Org, M.Class):
         self,
         kind: str,
         subKind: Optional[str] = None,
-    ) -> List[Shared._T["NamedProperty"]]: ...
+    ) -> ListType[Shared._T["NamedProperty"]]: ...
 
     def getProperty(
         self,
@@ -835,9 +836,9 @@ class Document(Org, M.Class):
     title: Optional[Paragraph] = None
     author: Optional[Paragraph] = None
     creator: Optional[Paragraph] = None
-    filetags: List[HashTag]
+    filetags: ListType[HashTag]
     email: Optional[RawText] = None
-    language: List[str]
+    language: ListType[str]
     options: DocumentOptions
     exportFileName: Optional[str] = None
 
@@ -845,7 +846,7 @@ class Document(Org, M.Class):
         self,
         kind: str,
         subKind: Optional[str] = None,
-    ) -> List[Shared._T["NamedProperty"]]: ...
+    ) -> ListType[Shared._T["NamedProperty"]]: ...
 
     def getProperty(
         self,
@@ -912,7 +913,7 @@ class Symlink(Org, M.Class):
 
 
 class CmdInclude(Org, M.Class):
-    class IncludeBase(M.Class):
+    class IncludeBase(M.Case):
         pass
 
     class Example(IncludeBase, M.Case):

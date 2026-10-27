@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Dict, List, Sequence, Set, Tuple
+
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import NamedT, OpId, QName, SourceLoc, VariantT, type_text
 from hstd_py_unidata.model_ops import Operator, render_expr
@@ -109,9 +110,7 @@ class DiagnosticBuilder:
                 continue
             if any(n in self.output.untyped for n in self.nested.get(expr, [])):
                 continue
-            result.append(
-                self.make(expr, DiagCode.UNTYPED, self.describe_untyped(expr))
-            )
+            result.append(self.make(expr, DiagCode.UNTYPED, self.describe_untyped(expr)))
         return result
 
     def make(self, expr: int, code: DiagCode, message: str) -> Diagnostic:

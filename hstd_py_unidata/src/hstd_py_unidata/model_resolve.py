@@ -23,6 +23,7 @@ from beartype.typing import (
     get_args,
     get_origin,
 )
+
 from hstd_py_unidata.model_frontend import (
     NO_DEFAULT,
     DslAttr,
@@ -85,7 +86,6 @@ from hstd_py_unidata.model_value import (
     encode_json,
     record_default,
 )
-from loguru import logger
 
 PRIMITIVE_TYPES: Dict[Any, PrimKind] = {
     int: PrimKind.INT64,
@@ -217,9 +217,7 @@ class AnnotationResolver:
         for part in t.qname.parts():
             found = self.lookup.member(scope, part)
             if found is None:
-                known = (
-                    ", ".join(sorted(self.lookup.members.get(scope, {}))) or "(none)"
-                )
+                known = ", ".join(sorted(self.lookup.members.get(scope, {}))) or "(none)"
                 where = scope.to_id() if scope else "the model root"
                 raise AnnotationError(
                     f"'{t.qname.to_id()}' does not name a declaration of model '{t.package}': '{part}' is not declared in {where}, declarations there: {known}"
@@ -256,9 +254,7 @@ class AnnotationResolver:
                     return UnresolvedT(text=ann)
                 return self.resolve_text(ann, scope, globals_map, type_params)
             case ForwardRef():
-                return self.resolve(
-                    ann.__forward_arg__, scope, globals_map, type_params
-                )
+                return self.resolve(ann.__forward_arg__, scope, globals_map, type_params)
             case FixedArrayMeta():
                 return ArrayT(
                     elem=self.resolve(ann.elem_type, scope, globals_map, type_params),
@@ -343,7 +339,6 @@ class AnnotationResolver:
         type_params: Sequence[str],
     ) -> Any:
         assert self.lookup is not None
-        logger.info(f"{ast.unparse(node)}, {type(node)}")
         match node:
             case ast.Name():
                 if node.id in type_params:
@@ -385,9 +380,7 @@ class AnnotationResolver:
             case ast.Subscript():
                 base = self.eval_ast(node.value, scope, module_globals, type_params)
                 elts = (
-                    node.slice.elts
-                    if isinstance(node.slice, ast.Tuple)
-                    else [node.slice]
+                    node.slice.elts if isinstance(node.slice, ast.Tuple) else [node.slice]
                 )
                 args = [
                     self.eval_ast(e, scope, module_globals, type_params) for e in elts
@@ -573,9 +566,7 @@ class ModelFinalizer:
         variant_fields: Dict[QName, List[FieldDef]] = {}
         for raw in self.raws:
             if raw.kind != RecordKind.ENUM:
-                self.resolve_variants(
-                    raw, variant_records, variant_defs, variant_fields
-                )
+                self.resolve_variants(raw, variant_records, variant_defs, variant_fields)
         records: List[RecordDef] = []
         enums: List[EnumDef] = []
         for raw in self.raws:
@@ -860,12 +851,8 @@ class ModelFinalizer:
                 f"type of field '{rf.name}' in '{raw.qname.to_id()}' cannot be resolved: {err}",
             )
             return None
-        default = (
-            None if rf.default is NO_DEFAULT else ExplicitDefault(value=rf.default)
-        )
-        return FieldDef(
-            name=rf.name, type=ftype, doc=rf.doc, default=default, loc=rf.loc
-        )
+        default = None if rf.default is NO_DEFAULT else ExplicitDefault(value=rf.default)
+        return FieldDef(name=rf.name, type=ftype, doc=rf.doc, default=default, loc=rf.loc)
 
     def resolve_method(self, raw: RawRecord, rm: RawMethod) -> Optional[MethodDef]:
         func = rm.func
@@ -958,9 +945,7 @@ class ModelFinalizer:
         type_val = node.type_val
         if type_val is not None:
             try:
-                type_val = self.resolver.resolve(
-                    type_val, raw.qname, raw.module_globals
-                )
+                type_val = self.resolver.resolve(type_val, raw.qname, raw.module_globals)
             except AnnotationError as err:
                 self.issue(
                     node.loc,

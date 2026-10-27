@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Dict, List, Optional, Tuple
+from pydantic import BaseModel
+
 from hstd_py_unidata.model_ir import (
     EnumValueDef,
     ExprNode,
@@ -14,7 +16,6 @@ from hstd_py_unidata.model_ir import (
     Severity,
     SourceLoc,
 )
-from pydantic import BaseModel
 
 
 class DslAttr(enum.StrEnum):

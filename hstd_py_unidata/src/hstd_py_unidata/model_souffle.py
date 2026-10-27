@@ -8,6 +8,8 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
+from plumbum import local
+
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     FLOAT_PRIMS,
@@ -42,7 +44,6 @@ from hstd_py_unidata.model_ops import (
     Operator,
     TypeClass,
 )
-from plumbum import local
 
 RULES_DIR = Path(__file__).parent
 
@@ -286,9 +287,7 @@ class Lowering:
         for v in rec.variants:
             self.emit("variant_kind", q, sym(v.field), qname_term(v.kind_enum))
             for c in v.cases:
-                self.emit(
-                    "variant_case", q, sym(v.field), sym(c.tag), qname_term(c.case)
-                )
+                self.emit("variant_case", q, sym(v.field), sym(c.tag), qname_term(c.case))
 
     def lower_check(self, rec: RecordDef, check: CheckDef) -> None:
         match check.context:

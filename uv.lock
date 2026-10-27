@@ -9,6 +9,7 @@ members = [
     "hstd-py-codegen",
     "hstd-py-lib",
     "hstd-py-text-layout",
+    "hstd-py-unidata",
     "repo-py-orchestrate",
     "repo-py-validate",
 ]
@@ -503,6 +504,33 @@ dev = [
 ]
 
 [[package]]
+name = "hstd-py-unidata"
+version = "0.1.0"
+source = { editable = "hstd_py_unidata" }
+dependencies = [
+    { name = "beartype" },
+    { name = "loguru" },
+    { name = "plumbum" },
+    { name = "pydantic" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "beartype" },
+    { name = "loguru" },
+    { name = "plumbum" },
+    { name = "pydantic" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest" }]
+
+[[package]]
 name = "idna"
 version = "3.20"
 source = { registry = "https://pypi.org/simple" }
@@ -884,6 +912,7 @@ dependencies = [
     { name = "deepdiff" },
     { name = "hstd-py-codegen" },
     { name = "hstd-py-lib" },
+    { name = "hstd-py-unidata" },
 ]
 
 [package.dev-dependencies]
@@ -898,6 +927,7 @@ requires-dist = [
     { name = "deepdiff" },
     { name = "hstd-py-codegen", editable = "hstd_py_codegen" },
     { name = "hstd-py-lib", editable = "hstd_py_lib" },
+    { name = "hstd-py-unidata", editable = "hstd_py_unidata" },
 ]
 
 [package.metadata.requires-dev]

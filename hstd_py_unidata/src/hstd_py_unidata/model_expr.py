@@ -9,6 +9,7 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Any, Callable, Optional, Tuple, TypeVar
+
 from hstd_py_unidata.model_ir import ExprNode, OpId, SourceLoc, TypeRef
 from hstd_py_unidata.model_ops import parse_format
 from hstd_py_unidata.model_resolve import AnnotationResolver
@@ -163,9 +164,7 @@ class StrOps:
         try:
             re.compile(pattern)
         except re.error as err:
-            raise ValueError(
-                f"Regular expression {pattern!r} is invalid: {err}"
-            ) from err
+            raise ValueError(f"Regular expression {pattern!r} is invalid: {err}") from err
         return make_node(OpId.STR_MATCHES, (self.target.node,), str_val=pattern)
 
 
@@ -574,9 +573,7 @@ def op_max(collection: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_empty_list(elem_type: Any) -> Expr:
-    return make_node(
-        OpId.LIST_EMPTY, type_val=UNRESOLVED_TYPES.resolve(list[elem_type])
-    )
+    return make_node(OpId.LIST_EMPTY, type_val=UNRESOLVED_TYPES.resolve(list[elem_type]))
 
 
 @frontend_entry
