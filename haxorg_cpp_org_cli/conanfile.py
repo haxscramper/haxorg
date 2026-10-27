@@ -13,7 +13,7 @@ class HaxorgCppOrgCliConan(ConanFile):
     haxorg_use_cmake_install = True
 
     def requirements(self):
-        self.requires("hstd_cpp_lib/0.1.0", options={"with_perfetto": True})
+        self.requires("hstd_cpp_lib/0.1.0")
         self.requires("hstd_cpp_diagram_lib/0.1.0")
         self.requires(
             "haxorg_cpp_org_lib/0.1.0",

@@ -23,6 +23,7 @@ endif()
 find_package(LLVM REQUIRED CONFIG QUIET)
 find_package(Clang REQUIRED CONFIG QUIET)
 find_package(TBB CONFIG REQUIRED QUIET)
+find_package(Perfetto CONFIG REQUIRED QUIET)
 
 haxorg_add_executable(haxdex_read_code_cpp)
 add_executable(haxdex::haxdex_read_code_cpp ALIAS haxdex_read_code_cpp)
@@ -52,4 +53,5 @@ target_link_libraries(
         LLVM
         clang-cpp
         TBB::tbb
+        perfetto::perfetto
 )

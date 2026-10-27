@@ -41,7 +41,6 @@ class HaxorgCppOrgLibConan(ConanFile):
             raise ConanInvalidConfiguration("with_protovalidate requires with_protobuf")
 
     def configure(self):
-        self.options["hstd_cpp_lib/*"].with_perfetto = bool(self.options.with_perfetto)
         self.options["hstd_cpp_lib/*"].with_protovalidate = bool(
             self.options.with_protovalidate
         )
@@ -68,7 +67,7 @@ class HaxorgCppOrgLibConan(ConanFile):
             self.requires("protovalidate-cc/1.1.0", **transitive)
 
         if self.options.with_perfetto:
-            self.requires("perfetto/[>=52.0 <53]", **transitive)
+            self.requires("perfetto/[>=52.0 <100]", **transitive)
 
     def build_requirements(self):
         self.test_requires("gtest/[>=1.17 <2]")

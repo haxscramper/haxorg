@@ -8,7 +8,6 @@ from conan.tools.cmake import CMakeDeps, CMakeToolchain
 class RecipeOptions(Protocol):
     with_protobuf: bool
     with_protovalidate: bool
-    with_perfetto: bool
 
 
 class HstdConan(ConanFile):
@@ -71,9 +70,6 @@ class HstdConan(ConanFile):
         # TODO: Infer the compilation configuration from the compiler
         self.set_cmake_var(toolchain, "ORG_BUILD_EMCC", False)
         self.set_cmake_var(
-            toolchain, "HSTD_CPP_BUILD_WITH_PERFETTO", bool(self.options.with_perfetto)
-        )
-        self.set_cmake_var(
             toolchain, "HSTD_CPP_BUILD_WITH_PROTOBUF", bool(self.options.with_protobuf)
         )
         self.set_cmake_var(
@@ -91,5 +87,4 @@ class HstdConan(ConanFile):
         self.cpp_info.defines = [
             f"HSTD_CPP_BUILD_WITH_PROTOBUF={int(bool(self.options.with_protobuf))}",
             f"HSTD_CPP_BUILD_WITH_PROTOVALIDATE={int(bool(self.options.with_protovalidate))}",
-            f"HSTD_CPP_BUILD_WITH_PERFETTO={int(bool(self.options.with_perfetto))}",
         ]

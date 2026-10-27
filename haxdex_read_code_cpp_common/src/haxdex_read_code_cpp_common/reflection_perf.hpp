@@ -1,6 +1,6 @@
 #pragma once
 
-
+#define HSTD_CPP_BUILD_WITH_PERFETTO 1
 #include <hstd_cpp_lib/logger/perfetto_aux.hpp>
 
 PERFETTO_DEFINE_CATEGORIES(

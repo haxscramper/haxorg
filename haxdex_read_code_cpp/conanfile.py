@@ -12,7 +12,6 @@ class HaxdexCppReflReadConan(ConanFile):
 
     default_options = {
         "hwloc/*:shared": True,
-        "hstd_cpp_lib/*:with_perfetto": True,
     }
 
     exports_sources = (
@@ -23,6 +22,7 @@ class HaxdexCppReflReadConan(ConanFile):
     )
 
     def requirements(self):
+        self.requires("perfetto/[>=46 <100]")
         self.requires(
             "hstd_cpp_lib/0.1.0",
             transitive_headers=True,

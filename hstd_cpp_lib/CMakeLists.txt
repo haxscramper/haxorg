@@ -8,7 +8,6 @@ include(cmake/functions_aux.cmake)
 
 option(HSTD_CPP_BUILD_WITH_PROTOBUF "")
 option(HSTD_CPP_BUILD_WITH_PROTOVALIDATE "")
-option(HSTD_CPP_BUILD_WITH_PERFETTO "")
 option(ORG_BUILD_EMCC "")
 option(ORG_BUILD_WITH_QT "")
 
@@ -57,10 +56,6 @@ if(HSTD_CPP_BUILD_WITH_PROTOVALIDATE)
             "protovalidate_cc_PROTO_IMPORT_DIR"
         )
     endif()
-endif()
-
-if(HSTD_CPP_BUILD_WITH_PERFETTO)
-    find_package(Perfetto CONFIG REQUIRED QUIET)
 endif()
 
 if(BUILD_TESTING)
@@ -119,7 +114,6 @@ add_library(hstd::hstd_cpp_lib ALIAS hstd_cpp_lib)
 haxorg_add_bool_compile_definitions(
     hstd_cpp_lib
     HSTD_CPP_BUILD_WITH_PROTOBUF
-    HSTD_CPP_BUILD_WITH_PERFETTO
     HSTD_CPP_BUILD_WITH_PROTOVALIDATE
     ORG_BUILD_WITH_QT
     ORG_BUILD_EMCC
@@ -160,10 +154,6 @@ if(NOT ORG_BUILD_EMCC)
 endif()
 
 # Tracing
-if(HSTD_CPP_BUILD_WITH_PERFETTO)
-    target_link_libraries(hstd_cpp_lib PUBLIC perfetto::perfetto)
-endif()
-
 if(HSTD_CPP_BUILD_WITH_PROTOBUF)
     set(HSTD_PROTO_PUBLIC_LIBRARIES)
     set(HSTD_PROTO_IMPORT_DIRS)

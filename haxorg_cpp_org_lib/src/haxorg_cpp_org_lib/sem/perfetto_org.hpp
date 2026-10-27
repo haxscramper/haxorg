@@ -1,5 +1,8 @@
 #pragma once
 
+#define HSTD_CPP_BUILD_WITH_PERFETTO HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO
+
+
 #include <hstd_cpp_lib/logger/perfetto_aux.hpp>
 
 #if HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO
