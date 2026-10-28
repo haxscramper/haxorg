@@ -865,46 +865,56 @@ class LispCode(M.Class):
     )
 
     class Call(M.Case):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         name: str
         args: List["LispCode"]
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class Quoted(M.Case):
-        items: List["LispCode"]
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        items: List["LispCode"]
 
     class List(M.Case):
-        items: List["LispCode"]
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        items: List["LispCode"]
 
     class Vector(M.Case):
-        items: List["LispCode"]
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        items: List["LispCode"]
 
     class KeyValue(M.Case):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         name: str
         value: List["LispCode"]
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class Number(M.Case):
-        value: Int32 = 0
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        value: Int32 = 0
 
     class Text(M.Case):
-        value: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        value: str
 
     class Ident(M.Case):
-        name: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        name: str
 
     class Boolean(M.Case):
-        value: bool = False
         __config__(backend=dict(cpp=_CXX_BACKEND))
 
+        value: bool = False
+
     class Real(M.Case):
-        value: Float32
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        value: Float32
 
     __variant__(
         Call,
@@ -926,12 +936,14 @@ class TimeValue(M.Class):
     __config__(backend=dict(cpp=_CXX_SHARED))
 
     class FixedTime(M.Case):
-        time: H._T["UserTime"]
         __config__(backend=dict(cpp=_CXX_BACKEND))
 
+        time: H._T["UserTime"]
+
     class DynamicTime(M.Case):
-        time: LispCode
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        time: LispCode
 
     isActive: bool = False
 
@@ -942,48 +954,60 @@ class Tblfm(M.Class):
     __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Expr(M.Class):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         class AxisRef(M.Case):
+            __config__(backend=dict(cpp=_CXX_BACKEND))
+
             class Position(M.Class):
+                __config__(backend=dict(cpp=_CXX_BACKEND))
+
                 class Index(M.Case):
-                    index: Int32
                     __config__(backend=dict(cpp=_CXX_BACKEND))
+
+                    index: Int32
 
                 class Name(M.Case):
-                    name: str
                     __config__(backend=dict(cpp=_CXX_BACKEND))
 
+                    name: str
+
                 __variant__(Index, Name, field="data", kind="Kind")
-                __config__(backend=dict(cpp=_CXX_BACKEND))
 
             col: Position
             row: Optional[Position] = None
-            __config__(backend=dict(cpp=_CXX_BACKEND))
 
         class AxisName(M.Case):
-            name: str
             __config__(backend=dict(cpp=_CXX_BACKEND))
+
+            name: str
 
         class IntLiteral(M.Case):
-            value: Int32
             __config__(backend=dict(cpp=_CXX_BACKEND))
+
+            value: Int32
 
         class FloatLiteral(M.Case):
-            value: Float32
             __config__(backend=dict(cpp=_CXX_BACKEND))
+
+            value: Float32
 
         class RangeRef(M.Case):
+            __config__(backend=dict(cpp=_CXX_BACKEND))
+
             first: Optional["Tblfm.Expr.AxisRef"] = None
             last: Optional["Tblfm.Expr.AxisRef"] = None
-            __config__(backend=dict(cpp=_CXX_BACKEND))
 
         class Call(M.Case):
-            name: str
-            args: List["Tblfm.Expr"]
             __config__(backend=dict(cpp=_CXX_BACKEND))
 
+            name: str
+            args: List["Tblfm.Expr"]
+
         class Elisp(M.Case):
-            value: str
             __config__(backend=dict(cpp=_CXX_BACKEND))
+
+            value: str
 
         __variant__(
             AxisRef,
@@ -997,9 +1021,9 @@ class Tblfm(M.Class):
             kind="Kind",
         )
 
+    class Assign(M.Class):
         __config__(backend=dict(cpp=_CXX_BACKEND))
 
-    class Assign(M.Class):
         class Flag(M.Enum):
             """Flags for table format expression cell formulas"""
 
@@ -1055,29 +1079,42 @@ class Tblfm(M.Class):
         target: "Tblfm.Expr.AxisRef"
         expr: List["Tblfm.Expr"]
         flags: List[Flag]
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     exprs: List[Assign]
 
 
 class AttrValue(M.Class):
+    __config__(
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
+                variants=dict(data=dict(variant_name="DataVariant")),
+                **_CXX_BACKEND,
+            ),
+        ),
+    )
+
     class DimensionSpan(M.Class):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         first: Int32 = 0
         last: Optional[Int32] = None
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class TextValue(M.Case):
-        value: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        value: str
 
     class FileReference(M.Case):
-        file: str
-        reference: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
 
+        file: str
+        reference: str
+
     class LispValue(M.Case):
-        code: LispCode
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        code: LispCode
 
     name: Optional[str] = None
     varname: Optional[str] = None
@@ -1093,16 +1130,6 @@ class AttrValue(M.Class):
         LispValue,
         field="data",
         kind="Kind",
-    )
-
-    __config__(
-        backend=dict(
-            cpp=dict(
-                org_groups=OrgTypeGroup.SHARED_TYPES,
-                variants=dict(data=dict(variant_name="DataVariant")),
-                **_CXX_BACKEND,
-            ),
-        ),
     )
 
     def getBool(self) -> Optional[bool]: ...
@@ -1164,46 +1191,56 @@ class LinkTarget(M.Class):
     __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Raw(M.Case):
-        text: str
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        text: str
 
     class Id(M.Case):
-        text: str
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        text: str
 
     class CustomId(M.Case):
-        text: str
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        text: str
 
     class SubtreeTitle(M.Case):
+        __config__(backend=dict(cpp=_CXX_SHARED))
+
         title: SubtreePath
         level: Int32
-        __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Person(M.Case):
-        name: str
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        name: str
 
     class UserProtocol(M.Case):
+        __config__(backend=dict(cpp=_CXX_SHARED))
+
         protocol: str
         target: str
-        __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Internal(M.Case):
-        target: str
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        target: str
 
     class Footnote(M.Case):
-        target: str
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        target: str
 
     class File(M.Case):
-        file: str
         __config__(backend=dict(cpp=_CXX_SHARED))
 
-    class Attachment(M.Case):
         file: str
+
+    class Attachment(M.Case):
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        file: str
 
     __variant__(
         Raw,
@@ -1222,8 +1259,25 @@ class LinkTarget(M.Class):
 
 
 class SubtreeLogHead(M.Class):
+    __config__(
+        backend=dict(
+            cpp=dict(
+                **_CXX_SHARED,
+                variants=dict(
+                    log=dict(
+                        variant_name="LogEntry",
+                        kind_getter="getLogKind",
+                        default="Note{}",
+                    ),
+                ),
+            ),
+        ),
+    )
+
     class Priority(M.Case):
         """Priority added"""
+
+        __config__(backend=dict(cpp=_CXX_SHARED))
 
         class Action(M.Enum):
             """Priority change action"""
@@ -1244,76 +1298,77 @@ class SubtreeLogHead(M.Class):
         newPriority: Optional[str] = M.Field(doc="New priority for change and addition")
         on: H._T["UserTime"] = M.Field(doc="When priority was changed")
         action: Action = M.Field(doc="Which action taken")
-        __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Note(M.Case):
         """Timestamped note"""
 
-        on: H._T["UserTime"] = M.Field(doc="Where log was taken")
         __config__(backend=dict(cpp=_CXX_SHARED))
+
+        on: H._T["UserTime"] = M.Field(doc="Where log was taken")
 
     class Refile(M.Case):
         """Refiling action"""
-
-        on: H._T["UserTime"] = M.Field(doc="When the refiling happened")
-        from_: LinkTarget = M.Field(doc="Link to the original subtree")
 
         __config__(
             backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
         )
 
+        on: H._T["UserTime"] = M.Field(doc="When the refiling happened")
+        from_: LinkTarget = M.Field(doc="Link to the original subtree")
+
     class Clock(M.Case):
         """Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`"""
+
+        __config__(
+            backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
+        )
 
         from_: H._T["UserTime"] = M.Field(doc="Clock start time")
         to: Optional[H._T["UserTime"]] = M.Field(
             doc="Optional end of the clock", default=None
         )
 
+    class State(M.Case):
+        """Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`"""
+
         __config__(
             backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
         )
-
-    class State(M.Case):
-        """Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`"""
 
         from_: str
         to: str
         on: H._T["UserTime"]
 
+    class Deadline(M.Case):
+        """Change of the subtree deadline"""
+
         __config__(
             backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
         )
-
-    class Deadline(M.Case):
-        """Change of the subtree deadline"""
 
         from_: Optional[H._T["UserTime"]] = None
         to: H._T["UserTime"]
         on: H._T["UserTime"]
-
-        __config__(
-            backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
-        )
 
     class Schedule(M.Case):
         """Change of the subtree Schedule"""
 
-        from_: Optional[H._T["UserTime"]] = None
-        to: H._T["UserTime"]
-        on: H._T["UserTime"]
-
         __config__(
             backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
         )
 
+        from_: Optional[H._T["UserTime"]] = None
+        to: H._T["UserTime"]
+        on: H._T["UserTime"]
+
     class Tag(M.Case):
         """Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`"""
+
+        __config__(backend=dict(cpp=_CXX_SHARED))
 
         on: H._T["UserTime"] = M.Field(doc="When the log was assigned")
         tag: HashTagText = M.Field(doc="Tag in question")
         added: bool = M.Field(doc="Added/removed?", default=False)
-        __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Unknown(M.Case):
         """Unknown subtree log entry kind"""
@@ -1332,21 +1387,6 @@ class SubtreeLogHead(M.Class):
         Unknown,
         field="log",
         kind="Kind",
-    )
-
-    __config__(
-        backend=dict(
-            cpp=dict(
-                **_CXX_SHARED,
-                variants=dict(
-                    log=dict(
-                        variant_name="LogEntry",
-                        kind_getter="getLogKind",
-                        default="Note{}",
-                    ),
-                ),
-            ),
-        ),
     )
 
 
@@ -1421,6 +1461,8 @@ class OrgCodeEvalInput(M.Class):
     __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Var(M.Class):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         name: str
         value: Native._T["OrgJson"]
 
@@ -1590,7 +1632,28 @@ class BlockCodeLine(M.Class):
 
 
 class DocumentExportConfig(M.Class):
+    __config__(
+        backend=dict(
+            cpp=dict(
+                **_CXX_SHARED,
+                field_defaults=dict(
+                    tagExport="TagExport::NotInToc",
+                    taskFiltering="TaskFiltering::All",
+                    archivedTrees="ArchivedTrees::Headline",
+                ),
+                variants=dict(
+                    tocExport=dict(
+                        variant_name="TocExport",
+                        kind_getter="getTocExportKind",
+                    ),
+                ),
+            ),
+        ),
+    )
+
     class TaskExport(M.Class):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         taskWhitelist: List[str]
 
     class TagExport(M.Enum):
@@ -1715,28 +1778,18 @@ class DocumentExportConfig(M.Class):
 
     __variant__(DoExport, ExportFixed, field="tocExport", kind="TocExportKind")
 
-    __config__(
-        backend=dict(
-            cpp=dict(
-                **_CXX_SHARED,
-                field_defaults=dict(
-                    tagExport="TagExport::NotInToc",
-                    taskFiltering="TaskFiltering::All",
-                    archivedTrees="ArchivedTrees::Headline",
-                ),
-                variants=dict(
-                    tocExport=dict(
-                        variant_name="TocExport",
-                        kind_getter="getTocExportKind",
-                    ),
-                ),
-            ),
-        ),
-    )
-
 
 class SubtreePeriod(M.Class):
     """Type of the subtree associated time periods"""
+
+    __config__(
+        backend=dict(
+            cpp=dict(
+                field_names=dict(from_="from"),
+                **_CXX_SHARED,
+            )
+        ),
+    )
 
     class Kind(M.Enum):
         """Period kind"""
@@ -1778,82 +1831,102 @@ class SubtreePeriod(M.Class):
         doc="Optional end of the clock", default=None
     )
 
-    __config__(
-        backend=dict(
-            cpp=dict(
-                field_names=dict(from_="from"),
-                **_CXX_SHARED,
-            )
-        ),
-    )
-
 
 class NamedProperty(M.Class):
     """Single subtree property"""
 
+    __config__(
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
+                section_code=[
+                    dict(
+                        kind="public",
+                        text="NamedProperty(Data const& data) : data(data) {}",
+                    ),
+                ],
+            ),
+        ),
+    )
+
     class Nonblocking(M.Case):
-        isBlocking: bool
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        isBlocking: bool
 
     class ArchiveTime(M.Case):
-        time: H._T["UserTime"]
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        time: H._T["UserTime"]
 
     class ArchiveFile(M.Case):
-        file: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        file: str
 
     class ArchiveOlpath(M.Case):
-        path: SubtreePath
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        path: SubtreePath
 
     class ArchiveTarget(M.Case):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         path: SubtreePath
         pattern: str
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class ArchiveCategory(M.Case):
-        category: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
 
+        category: str
+
     class ArchiveTodo(M.Case):
-        todo: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        todo: str
 
     class Trigger(M.Case):
         pass
 
     class ExportLatexClass(M.Case):
-        latexClass: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        latexClass: str
 
     class CookieData(M.Case):
         """`:COOKIE_DATA:` for the subtree completion calculation"""
 
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         isRecursive: bool
         source: SubtreeTodoSource
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class ExportLatexClassOptions(M.Case):
-        options: List[str]
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        options: List[str]
 
     class ExportLatexHeader(M.Case):
-        header: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        header: str
 
     class ExportLatexCompiler(M.Case):
-        compiler: str
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        compiler: str
 
     class Ordered(M.Case):
-        isOrdered: bool
         __config__(backend=dict(cpp=_CXX_BACKEND))
 
+        isOrdered: bool
+
     class Effort(M.Case):
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         hours: Int32 = 0
         minutes: Int32 = 0
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class Visibility(M.Case):
         class Level(M.Enum):
@@ -1865,67 +1938,77 @@ class NamedProperty(M.Class):
         level: Level
 
     class ExportOptions(M.Case):
-        backend: str
-        values: Dict[str, str]
         __config__(backend=dict(cpp=_CXX_BACKEND))
 
+        backend: str
+        values: Dict[str, str]
+
     class Blocker(M.Case):
-        blockers: List[str]
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        blockers: List[str]
 
     class Unnumbered(M.Case):
         pass
 
     class Created(M.Case):
-        time: TimeValue
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        time: TimeValue
 
     class RadioId(M.Case):
         """Radio target ID"""
 
-        words: List[str]
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        words: List[str]
 
     class HashtagDef(M.Case):
         """Definition of a hashtag entry"""
 
-        hashtag: HashTagText
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        hashtag: HashTagText
 
     class CustomArgs(M.Case):
         """Custom property with unparsed arguments"""
 
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         name: str = M.Field(doc="Original name of the property")
         sub: Optional[str] = M.Field(doc="Property target specialization", default=None)
         attrs: AttrGroup = M.Field(doc="Property parameters")
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class CustomRaw(M.Case):
         """Custom property with unparsed arguments"""
 
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         name: str = M.Field(doc="Original name of the property")
         value: str = M.Field(doc="Property value")
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class CustomId(M.Case):
         """Custom property with unparsed arguments"""
 
-        value: str = M.Field(doc="Property value")
         __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        value: str = M.Field(doc="Property value")
 
     class CustomSubtreeJson(M.Case):
         """Free-form JSON"""
 
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         name: str
         value: Native._T["OrgJson"]
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     class CustomSubtreeFlags(M.Case):
         """Free-form flags"""
 
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
         name: str
         value: AttrGroup
-        __config__(backend=dict(cpp=_CXX_BACKEND))
 
     __variant__(
         Nonblocking,
@@ -1959,21 +2042,6 @@ class NamedProperty(M.Class):
         kind="Kind",
     )
 
-    __config__(
-        backend=dict(
-            cpp=dict(
-                org_groups=OrgTypeGroup.SHARED_TYPES,
-                default_constructor=True,
-                section_code=[
-                    dict(
-                        kind="public",
-                        text="NamedProperty(Data const& data) : data(data) {}",
-                    ),
-                ],
-            ),
-        ),
-    )
-
     def isMatching(self, kind: str, subKind: Optional[str] = None) -> bool:
         """Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc."""
         ...
@@ -1990,73 +2058,6 @@ class NamedProperty(M.Class):
 class OrgDiagnostics(M.Class):
     """Structure to store all diagnostics data collected by the parser, sem, eval etc."""
 
-    class ParseTokenError(M.Case):
-        """Parser errors for situations when failure can be attributed to specific token"""
-
-        brief: str
-        detail: str
-        parserFunction: str
-        parserLine: Int32
-        tokenKind: M._T["OrgTokenKind"]
-        tokenText: str
-        loc: Optional[P._T["SourceLoc"]] = None
-        errName: str
-        errCode: str
-        __config__(backend=dict(cpp=_CXX_BACKEND))
-
-    class ParseError(M.Case):
-        """General parser errors"""
-
-        brief: str
-        detail: str
-        parserFunction: str
-        parserLine: Int32
-        errName: str
-        errCode: str
-        loc: Optional[P._T["SourceLoc"]] = None
-        __config__(backend=dict(cpp=_CXX_BACKEND))
-
-    class IncludeError(M.Case):
-        """Cannot convert parsed tree into"""
-
-        brief: str
-        targetPath: str
-        workingFile: str
-        __config__(backend=dict(cpp=_CXX_BACKEND))
-
-    class ConvertError(M.Case):
-        """Cannot convert parsed tree into"""
-
-        brief: str
-        detail: str
-        convertFunction: str
-        convertLine: Int32
-        convertFile: str
-        errName: str
-        errCode: str
-        loc: Optional[P._T["SourceLoc"]] = None
-        __config__(backend=dict(cpp=_CXX_BACKEND))
-
-    class InternalError(M.Case):
-        """Internal implementation error: should not be visible to the end-user."""
-
-        message: str
-        function: str
-        line: Int32
-        file: str
-        loc: Optional[P._T["SourceLoc"]] = None
-        __config__(backend=dict(cpp=_CXX_BACKEND))
-
-    __variant__(
-        ParseTokenError,
-        ParseError,
-        IncludeError,
-        ConvertError,
-        InternalError,
-        field="data",
-        kind="Kind",
-    )
-
     __config__(
         backend=dict(
             cpp=dict(
@@ -2070,6 +2071,78 @@ class OrgDiagnostics(M.Class):
                 ],
             ),
         ),
+    )
+
+    class ParseTokenError(M.Case):
+        """Parser errors for situations when failure can be attributed to specific token"""
+
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        brief: str
+        detail: str
+        parserFunction: str
+        parserLine: Int32
+        tokenKind: M._T["OrgTokenKind"]
+        tokenText: str
+        loc: Optional[P._T["SourceLoc"]] = None
+        errName: str
+        errCode: str
+
+    class ParseError(M.Case):
+        """General parser errors"""
+
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        brief: str
+        detail: str
+        parserFunction: str
+        parserLine: Int32
+        errName: str
+        errCode: str
+        loc: Optional[P._T["SourceLoc"]] = None
+
+    class IncludeError(M.Case):
+        """Cannot convert parsed tree into"""
+
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        brief: str
+        targetPath: str
+        workingFile: str
+
+    class ConvertError(M.Case):
+        """Cannot convert parsed tree into"""
+
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        brief: str
+        detail: str
+        convertFunction: str
+        convertLine: Int32
+        convertFile: str
+        errName: str
+        errCode: str
+        loc: Optional[P._T["SourceLoc"]] = None
+
+    class InternalError(M.Case):
+        """Internal implementation error: should not be visible to the end-user."""
+
+        __config__(backend=dict(cpp=_CXX_BACKEND))
+
+        message: str
+        function: str
+        line: Int32
+        file: str
+        loc: Optional[P._T["SourceLoc"]] = None
+
+    __variant__(
+        ParseTokenError,
+        ParseError,
+        IncludeError,
+        ConvertError,
+        InternalError,
+        field="data",
+        kind="Kind",
     )
 
 

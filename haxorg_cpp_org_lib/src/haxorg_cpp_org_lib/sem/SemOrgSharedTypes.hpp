@@ -774,6 +774,8 @@ struct OrgCodeEvalInput {
     BOOST_DESCRIBE_CLASS(Var, (), (), (), (name, value));
     hstd::Str name;
     org::sem::OrgJson value;
+    Var() {  }
+    bool operator==(org::sem::OrgCodeEvalInput::Var const& other) const;
   };
 
   /// \brief What context to use for results
@@ -970,6 +972,8 @@ struct DocumentExportConfig {
   struct TaskExport {
     BOOST_DESCRIBE_CLASS(TaskExport, (), (), (), (taskWhitelist));
     hstd::Vec<hstd::Str> taskWhitelist;
+    TaskExport() {  }
+    bool operator==(org::sem::DocumentExportConfig::TaskExport const& other) const;
   };
 
   enum class TagExport : short int {
