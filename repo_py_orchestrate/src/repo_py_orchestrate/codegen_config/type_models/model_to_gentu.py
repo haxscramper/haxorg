@@ -174,7 +174,11 @@ class ModelToGenTu:
                         self.ast_records.add((package, record.qname))
 
     def namespace(self, package: str) -> tuple[str, ...]:
-        return self.config.namespaces[package]
+        if package in self.config.namespaces:
+            return self.config.namespaces[package]
+
+        else:
+            return tuple(package.split("."))
 
     def declaration_type(self, package: str, qname: QName) -> QualType:
         namespaces = self.namespace(package)

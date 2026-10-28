@@ -99,26 +99,6 @@ def gen_haxorg_base_sources1(
 
 
 @beartype
-def gen_haxorg_base_sources(
-    monorepo_root: Path,
-    t: TextLayout,
-    context_tu: refl_read.ConvTu = refl_read.ConvTu(),
-    with_context: bool = True,
-) -> tuple[list[GenTuUnion], GenFiles]:
-    builder = cpp.ASTBuilder(t)
-    groups: PyhaxorgTypeGroups = get_pyhaxorg_type_groups(ast=builder)
-
-    return gen_haxorg_base_sources1(
-        monorepo_root=monorepo_root,
-        t=t,
-        builder=builder,
-        groups=groups,
-        context_tu=context_tu,
-        with_context=with_context,
-    )
-
-
-@beartype
 def run_codegen_pyhaxorg_wrappers(
     preset_type: Sequence[GenTuUnion],
     monorepo_root: Path,

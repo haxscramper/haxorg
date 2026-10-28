@@ -130,8 +130,42 @@ def main() -> None:
     log_name = "conan_editable.log" if args.editable else "conan_create.log"
 
     with (log_dir / log_name).open("w") as log:
+        reference = get_reference(target, environment)
+
+        # Reset the editable state of the package in the conan
+        # so the `conan test` would not pull the package from
+        # the cache during testing.
+        result = subprocess.run(
+            ["conan", "editable", "list", "--format=json"],
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=log,
+            text=True,
+            check=True,
+        )
+        editables = json.loads(result.stdout)
+
+        if reference in editables:
+            run(
+                ["conan", "editable", "remove", reference],
+                environment=environment,
+                log=log,
+            )
+
         if args.editable:
-            reference = get_reference(target, environment)
+            name, version = reference.split("/", 1)
+            run(
+                [
+                    "conan",
+                    "editable",
+                    "add",
+                    str(target),
+                    f"--name={name}",
+                    f"--version={version}",
+                ],
+                environment=environment,
+                log=log,
+            )
 
             run(
                 ["conan", "build", str(target), *conan_arguments],
