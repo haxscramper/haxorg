@@ -92,14 +92,6 @@ struct org::bind::c::VTable<std::optional<hstd::Str>> {
 };
 
 template <>
-struct org::bind::c::VTable<std::optional<std::string>> {
-  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
-  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
-  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
-  static haxorg_StdOptional_vtable const* get_vtable();
-};
-
-template <>
 struct org::bind::c::VTable<std::optional<hstd::UserTime>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
@@ -141,6 +133,14 @@ struct org::bind::c::VTable<std::optional<org::sem::ColumnView::Summary>> {
 
 template <>
 struct org::bind::c::VTable<std::optional<org::parse::SourceLoc>> {
+  BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
+  static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
+  static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
+  static haxorg_StdOptional_vtable const* get_vtable();
+};
+
+template <>
+struct org::bind::c::VTable<std::optional<std::string>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
   static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
@@ -244,7 +244,7 @@ struct org::bind::c::VTable<std::optional<org::sem::SemId<org::sem::Time>>> {
 };
 
 template <>
-struct org::bind::c::VTable<std::optional<LinkVisibility>> {
+struct org::bind::c::VTable<std::optional<org::sem::LinkVisibility>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
   static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);
@@ -252,7 +252,7 @@ struct org::bind::c::VTable<std::optional<LinkVisibility>> {
 };
 
 template <>
-struct org::bind::c::VTable<std::optional<BlockVisibility>> {
+struct org::bind::c::VTable<std::optional<org::sem::BlockVisibility>> {
   BOOST_DESCRIBE_CLASS(VTable, (), (), (), ());
   static haxorg_ptr_payload value(OrgContext* org_context, haxorg_StdOptional __self);
   static void destroy(OrgContext* org_context, haxorg_StdOptional* __self);

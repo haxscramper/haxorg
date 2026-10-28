@@ -3,7 +3,6 @@ from dataclasses import dataclass, field, replace
 from beartype import beartype
 from beartype.typing import List, Optional, cast
 from hstd_py_text_layout.base.wrap import BlockId
-from loguru import logger
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from hstd_py_codegen.gen_cpp import codegen_ir
@@ -459,7 +458,6 @@ def _gen_vtable_specialization(
     )
 
     vtable_type = vtable_struct.declarationQualName()
-    logger.info(f"vtable_type = {vtable_type}")
     get_vtable_method = codegen_ir.GenTuFunction(
         Name="get_vtable",
         IsStatic=True,

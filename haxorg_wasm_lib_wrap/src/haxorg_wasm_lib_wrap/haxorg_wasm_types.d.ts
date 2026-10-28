@@ -1,48 +1,6 @@
 /* clang-format off */
 import * as haxorg_wasm from "./haxorg_utility_types";
 export interface haxorg_wasm_module_auto {
-  CheckboxState: {
-    None: CheckboxState,
-    Done: CheckboxState,
-    Empty: CheckboxState,
-    Partial: CheckboxState,
-  }
-  format_CheckboxState(value: CheckboxState): string;
-  LinkVisibility: {
-    LiteralLinks: LinkVisibility,
-    DescriptiveLinks: LinkVisibility,
-  }
-  format_LinkVisibility(value: LinkVisibility): string;
-  BlockVisibility: {
-    HideBlocks: BlockVisibility,
-    NoHideBlocks: BlockVisibility,
-  }
-  format_BlockVisibility(value: BlockVisibility): string;
-  SubtreeTodoSource: {
-    Checkbox: SubtreeTodoSource,
-    Todo: SubtreeTodoSource,
-    Both: SubtreeTodoSource,
-  }
-  format_SubtreeTodoSource(value: SubtreeTodoSource): string;
-  ListFormattingMode: {
-    None: ListFormattingMode,
-    Table1D1Col: ListFormattingMode,
-    Table1D2Col: ListFormattingMode,
-    Table2DColFirst: ListFormattingMode,
-    Table2DRowFirst: ListFormattingMode,
-  }
-  format_ListFormattingMode(value: ListFormattingMode): string;
-  InitialSubtreeVisibility: {
-    Overview: InitialSubtreeVisibility,
-    Content: InitialSubtreeVisibility,
-    ShowAll: InitialSubtreeVisibility,
-    Show2Levels: InitialSubtreeVisibility,
-    Show3Levels: InitialSubtreeVisibility,
-    Show4Levels: InitialSubtreeVisibility,
-    Show5Levels: InitialSubtreeVisibility,
-    ShowEverything: InitialSubtreeVisibility,
-  }
-  format_InitialSubtreeVisibility(value: InitialSubtreeVisibility): string;
   OrgSpecName: {
     Unnamed: OrgSpecName,
     Result: OrgSpecName,
@@ -490,6 +448,48 @@ export interface haxorg_wasm_module_auto {
     Float: OrgJsonKind,
   }
   format_OrgJsonKind(value: OrgJsonKind): string;
+  CheckboxState: {
+    None: CheckboxState,
+    Done: CheckboxState,
+    Empty: CheckboxState,
+    Partial: CheckboxState,
+  }
+  format_CheckboxState(value: CheckboxState): string;
+  LinkVisibility: {
+    LiteralLinks: LinkVisibility,
+    DescriptiveLinks: LinkVisibility,
+  }
+  format_LinkVisibility(value: LinkVisibility): string;
+  BlockVisibility: {
+    HideBlocks: BlockVisibility,
+    NoHideBlocks: BlockVisibility,
+  }
+  format_BlockVisibility(value: BlockVisibility): string;
+  SubtreeTodoSource: {
+    Checkbox: SubtreeTodoSource,
+    Todo: SubtreeTodoSource,
+    Both: SubtreeTodoSource,
+  }
+  format_SubtreeTodoSource(value: SubtreeTodoSource): string;
+  ListFormattingMode: {
+    None: ListFormattingMode,
+    Table1D1Col: ListFormattingMode,
+    Table1D2Col: ListFormattingMode,
+    Table2DColFirst: ListFormattingMode,
+    Table2DRowFirst: ListFormattingMode,
+  }
+  format_ListFormattingMode(value: ListFormattingMode): string;
+  InitialSubtreeVisibility: {
+    Overview: InitialSubtreeVisibility,
+    Content: InitialSubtreeVisibility,
+    ShowAll: InitialSubtreeVisibility,
+    Show2Levels: InitialSubtreeVisibility,
+    Show3Levels: InitialSubtreeVisibility,
+    Show4Levels: InitialSubtreeVisibility,
+    Show5Levels: InitialSubtreeVisibility,
+    ShowEverything: InitialSubtreeVisibility,
+  }
+  format_InitialSubtreeVisibility(value: InitialSubtreeVisibility): string;
   OrgSemKind: {
     NoNode: OrgSemKind,
     ErrorItem: OrgSemKind,
@@ -508,6 +508,16 @@ export interface haxorg_wasm_module_auto {
     CmdCustomText: OrgSemKind,
     CmdCall: OrgSemKind,
     CmdTblfm: OrgSemKind,
+    BlockCenter: OrgSemKind,
+    BlockQuote: OrgSemKind,
+    BlockComment: OrgSemKind,
+    BlockVerse: OrgSemKind,
+    BlockDynamicFallback: OrgSemKind,
+    BlockExample: OrgSemKind,
+    BlockExport: OrgSemKind,
+    BlockAdmonition: OrgSemKind,
+    BlockCodeEvalResult: OrgSemKind,
+    BlockCode: OrgSemKind,
     HashTag: OrgSemKind,
     InlineFootnote: OrgSemKind,
     InlineExport: OrgSemKind,
@@ -538,16 +548,6 @@ export interface haxorg_wasm_module_auto {
     RadioTarget: OrgSemKind,
     Latex: OrgSemKind,
     Link: OrgSemKind,
-    BlockCenter: OrgSemKind,
-    BlockQuote: OrgSemKind,
-    BlockComment: OrgSemKind,
-    BlockVerse: OrgSemKind,
-    BlockDynamicFallback: OrgSemKind,
-    BlockExample: OrgSemKind,
-    BlockExport: OrgSemKind,
-    BlockAdmonition: OrgSemKind,
-    BlockCodeEvalResult: OrgSemKind,
-    BlockCode: OrgSemKind,
     SubtreeLog: OrgSemKind,
     Subtree: OrgSemKind,
     Cell: OrgSemKind,
@@ -1144,6 +1144,16 @@ export interface haxorg_wasm_module_auto {
   ImmIdTCmdCustomText: ImmIdTCmdCustomTextConstructor;
   ImmIdTCmdCall: ImmIdTCmdCallConstructor;
   ImmIdTCmdTblfm: ImmIdTCmdTblfmConstructor;
+  ImmIdTBlockCenter: ImmIdTBlockCenterConstructor;
+  ImmIdTBlockQuote: ImmIdTBlockQuoteConstructor;
+  ImmIdTBlockComment: ImmIdTBlockCommentConstructor;
+  ImmIdTBlockVerse: ImmIdTBlockVerseConstructor;
+  ImmIdTBlockDynamicFallback: ImmIdTBlockDynamicFallbackConstructor;
+  ImmIdTBlockExample: ImmIdTBlockExampleConstructor;
+  ImmIdTBlockExport: ImmIdTBlockExportConstructor;
+  ImmIdTBlockAdmonition: ImmIdTBlockAdmonitionConstructor;
+  ImmIdTBlockCodeEvalResult: ImmIdTBlockCodeEvalResultConstructor;
+  ImmIdTBlockCode: ImmIdTBlockCodeConstructor;
   ImmIdTHashTag: ImmIdTHashTagConstructor;
   ImmIdTInlineFootnote: ImmIdTInlineFootnoteConstructor;
   ImmIdTInlineExport: ImmIdTInlineExportConstructor;
@@ -1175,16 +1185,6 @@ export interface haxorg_wasm_module_auto {
   ImmIdTRadioTarget: ImmIdTRadioTargetConstructor;
   ImmIdTLatex: ImmIdTLatexConstructor;
   ImmIdTLink: ImmIdTLinkConstructor;
-  ImmIdTBlockCenter: ImmIdTBlockCenterConstructor;
-  ImmIdTBlockQuote: ImmIdTBlockQuoteConstructor;
-  ImmIdTBlockComment: ImmIdTBlockCommentConstructor;
-  ImmIdTBlockVerse: ImmIdTBlockVerseConstructor;
-  ImmIdTBlockDynamicFallback: ImmIdTBlockDynamicFallbackConstructor;
-  ImmIdTBlockExample: ImmIdTBlockExampleConstructor;
-  ImmIdTBlockExport: ImmIdTBlockExportConstructor;
-  ImmIdTBlockAdmonition: ImmIdTBlockAdmonitionConstructor;
-  ImmIdTBlockCodeEvalResult: ImmIdTBlockCodeEvalResultConstructor;
-  ImmIdTBlockCode: ImmIdTBlockCodeConstructor;
   ImmIdTSubtreeLog: ImmIdTSubtreeLogConstructor;
   ImmIdTSubtree: ImmIdTSubtreeConstructor;
   ImmIdTCell: ImmIdTCellConstructor;
@@ -1213,8 +1213,8 @@ export interface haxorg_wasm_module_auto {
   Cmd: CmdConstructor;
   CmdCustomRaw: CmdCustomRawConstructor;
   CmdCustomText: CmdCustomTextConstructor;
-  Link: LinkConstructor;
   BlockComment: BlockCommentConstructor;
+  Link: LinkConstructor;
   Paragraph: ParagraphConstructor;
   List: ListConstructor;
   HashTag: HashTagConstructor;
@@ -1242,8 +1242,8 @@ export interface haxorg_wasm_module_auto {
   ImmCmd: ImmCmdConstructor;
   ImmCmdCustomRaw: ImmCmdCustomRawConstructor;
   ImmCmdCustomText: ImmCmdCustomTextConstructor;
-  ImmLink: ImmLinkConstructor;
   ImmBlockComment: ImmBlockCommentConstructor;
+  ImmLink: ImmLinkConstructor;
   ImmParagraph: ImmParagraphConstructor;
   ImmList: ImmListConstructor;
   ImmHashTag: ImmHashTagConstructor;
@@ -1520,484 +1520,484 @@ export interface haxorg_wasm_module_auto {
   annotateSequence(groups: haxorg_wasm.HstdVec<SequenceSegmentGroup>, first: number, last: number): haxorg_wasm.HstdVec<SequenceAnnotation>;
 }
 type haxorg_wasm_module = haxorg_wasm_module_auto & haxorg_wasm.haxorg_wasm_manual;
-export enum CheckboxState {
-  None,
-  Done,
-  Empty,
-  Partial,
-}
-export enum LinkVisibility {
-  LiteralLinks,
-  DescriptiveLinks,
-}
-export enum BlockVisibility {
-  HideBlocks,
-  NoHideBlocks,
-}
-export enum SubtreeTodoSource {
-  Checkbox,
-  Todo,
-  Both,
-}
-export enum ListFormattingMode {
-  None,
-  Table1D1Col,
-  Table1D2Col,
-  Table2DColFirst,
-  Table2DRowFirst,
-}
-export enum InitialSubtreeVisibility {
-  Overview,
-  Content,
-  ShowAll,
-  Show2Levels,
-  Show3Levels,
-  Show4Levels,
-  Show5Levels,
-  ShowEverything,
-}
 export enum OrgSpecName {
   Unnamed,
-  Result,
-  Year,
-  Day,
-  Clock,
-  Repeater,
-  Warn,
-  Zone,
-  Link,
-  Tags,
-  Tag,
-  State,
-  Protocol,
-  Desc,
-  Times,
-  Drawer,
-  Args,
-  Name,
-  Definition,
-  Body,
-  HeaderArgs,
-  File,
-  Kind,
-  Lang,
-  Prefix,
-  Text,
-  Todo,
-  Importance,
-  Title,
-  Completion,
-  Head,
-  Subnodes,
-  Properties,
-  Logbook,
-  Description,
-  Logs,
-  Newstate,
-  Oldstate,
-  Time,
-  From,
-  EndArgs,
-  Flags,
-  Value,
-  Assoc,
-  Main,
-  Hash,
-  Bullet,
-  Counter,
-  Checkbox,
-  Header,
-  To,
-  Diff,
-  Property,
-  Subname,
-  Values,
-  Cells,
-  Rows,
-  Lines,
-  Chunks,
+  Result = 1,
+  Year = 2,
+  Day = 3,
+  Clock = 4,
+  Repeater = 5,
+  Warn = 6,
+  Zone = 7,
+  Link = 8,
+  Tags = 9,
+  Tag = 10,
+  State = 11,
+  Protocol = 12,
+  Desc = 13,
+  Times = 14,
+  Drawer = 15,
+  Args = 16,
+  Name = 17,
+  Definition = 18,
+  Body = 19,
+  HeaderArgs = 20,
+  File = 21,
+  Kind = 22,
+  Lang = 23,
+  Prefix = 24,
+  Text = 25,
+  Todo = 26,
+  Importance = 27,
+  Title = 28,
+  Completion = 29,
+  Head = 30,
+  Subnodes = 31,
+  Properties = 32,
+  Logbook = 33,
+  Description = 34,
+  Logs = 35,
+  Newstate = 36,
+  Oldstate = 37,
+  Time = 38,
+  From = 39,
+  EndArgs = 40,
+  Flags = 41,
+  Value = 42,
+  Assoc = 43,
+  Main = 44,
+  Hash = 45,
+  Bullet = 46,
+  Counter = 47,
+  Checkbox = 48,
+  Header = 49,
+  To = 50,
+  Diff = 51,
+  Property = 52,
+  Subname = 53,
+  Values = 54,
+  Cells = 55,
+  Rows = 56,
+  Lines = 57,
+  Chunks = 58,
 }
 export enum OrgNodeKind {
   None,
-  Document,
-  Empty,
-  InlineStmtList,
-  StmtList,
-  Checkbox,
-  List,
-  Bullet,
-  ListItem,
-  ListTag,
-  Counter,
-  File,
-  ColonExample,
-  TextSeparator,
-  Paragraph,
-  TableRow,
-  TableCell,
-  Table,
-  InlineFootnote,
-  Footnote,
-  Cmd,
-  Attrs,
-  AttrValue,
-  LispExpr,
-  LispList,
-  LispVector,
-  LispQuoted,
-  CmdTitle,
-  CmdAuthor,
-  CmdCreator,
-  CmdInclude,
-  CmdLanguage,
-  CmdEmail,
-  CmdAttr,
-  CmdStartup,
-  CmdName,
-  CmdCustomTextCommand,
-  CmdCustomArgsCommand,
-  CmdCustomRawCommand,
-  CmdResults,
-  CmdHeader,
-  CmdOptions,
-  CmdTblfm,
-  CmdCaption,
-  CmdResult,
-  CmdCallCode,
-  CmdFlag,
-  CmdLatexClass,
-  CmdLatexHeader,
-  CmdLatexCompiler,
-  CmdLatexClassOptions,
-  CmdHtmlHead,
-  CmdColumns,
-  CmdPropertyArgs,
-  CmdPropertyText,
-  CmdPropertyRaw,
-  CmdFiletags,
-  CmdKeywords,
-  BlockVerbatimMultiline,
-  CodeLine,
-  CodeText,
-  CodeTangle,
-  CodeCallout,
-  BlockCode,
-  BlockQuote,
-  BlockComment,
-  BlockCenter,
-  BlockVerse,
-  BlockExample,
-  BlockExport,
-  BlockDetails,
-  BlockSummary,
-  BlockDynamicFallback,
-  BlockCustomText,
-  BlockCustomRaw,
-  BigIdent,
-  Bold,
-  ErrorInfoToken,
-  ErrorSkipGroup,
-  ErrorSkipToken,
-  Italic,
-  Verbatim,
-  Backtick,
-  Underline,
-  Strike,
-  Quote,
-  Angle,
-  Monospace,
-  Par,
-  CriticMarkStructure,
-  InlineMath,
-  DisplayMath,
-  Space,
-  Punctuation,
-  Colon,
-  Word,
-  Escaped,
-  Newline,
-  RawLink,
-  Link,
-  Macro,
-  Symbol,
-  StaticActiveTime,
-  StaticInactiveTime,
-  DynamicActiveTime,
-  DiaryTime,
-  DynamicInactiveTime,
-  TimeRange,
-  SimpleTime,
-  HashTag,
-  MetaSymbol,
-  AtMention,
-  Placeholder,
-  RadioTarget,
-  Target,
-  SrcInlineCode,
-  InlineCallCode,
-  InlineExport,
-  InlineComment,
-  RawText,
-  SubtreeDescription,
-  SubtreeUrgency,
-  DrawerLogbook,
-  Drawer,
-  DrawerPropertyList,
-  DrawerProperty,
-  Subtree,
-  SubtreeTimes,
-  SubtreeStars,
-  SubtreeCompletion,
-  SubtreeImportance,
+  Document = 1,
+  Empty = 2,
+  InlineStmtList = 3,
+  StmtList = 4,
+  Checkbox = 5,
+  List = 6,
+  Bullet = 7,
+  ListItem = 8,
+  ListTag = 9,
+  Counter = 10,
+  File = 11,
+  ColonExample = 12,
+  TextSeparator = 13,
+  Paragraph = 14,
+  TableRow = 15,
+  TableCell = 16,
+  Table = 17,
+  InlineFootnote = 18,
+  Footnote = 19,
+  Cmd = 20,
+  Attrs = 21,
+  AttrValue = 22,
+  LispExpr = 23,
+  LispList = 24,
+  LispVector = 25,
+  LispQuoted = 26,
+  CmdTitle = 27,
+  CmdAuthor = 28,
+  CmdCreator = 29,
+  CmdInclude = 29,
+  CmdLanguage = 30,
+  CmdEmail = 31,
+  CmdAttr = 32,
+  CmdStartup = 33,
+  CmdName = 34,
+  CmdCustomTextCommand = 35,
+  CmdCustomArgsCommand = 36,
+  CmdCustomRawCommand = 37,
+  CmdResults = 38,
+  CmdHeader = 39,
+  CmdOptions = 40,
+  CmdTblfm = 41,
+  CmdCaption = 42,
+  CmdResult = 43,
+  CmdCallCode = 44,
+  CmdFlag = 45,
+  CmdLatexClass = 46,
+  CmdLatexHeader = 47,
+  CmdLatexCompiler = 48,
+  CmdLatexClassOptions = 49,
+  CmdHtmlHead = 50,
+  CmdColumns = 51,
+  CmdPropertyArgs = 52,
+  CmdPropertyText = 53,
+  CmdPropertyRaw = 54,
+  CmdFiletags = 55,
+  CmdKeywords = 56,
+  BlockVerbatimMultiline = 57,
+  CodeLine = 58,
+  CodeText = 59,
+  CodeTangle = 60,
+  CodeCallout = 61,
+  BlockCode = 62,
+  BlockQuote = 63,
+  BlockComment = 64,
+  BlockCenter = 65,
+  BlockVerse = 66,
+  BlockExample = 68,
+  BlockExport = 67,
+  BlockDetails = 68,
+  BlockSummary = 69,
+  BlockDynamicFallback = 70,
+  BlockCustomText = 71,
+  BlockCustomRaw = 72,
+  BigIdent = 73,
+  Bold = 74,
+  ErrorInfoToken = 75,
+  ErrorSkipGroup = 76,
+  ErrorSkipToken = 77,
+  Italic = 78,
+  Verbatim = 79,
+  Backtick = 80,
+  Underline = 81,
+  Strike = 82,
+  Quote = 83,
+  Angle = 84,
+  Monospace = 85,
+  Par = 86,
+  CriticMarkStructure = 87,
+  InlineMath = 88,
+  DisplayMath = 89,
+  Space = 90,
+  Punctuation = 91,
+  Colon = 92,
+  Word = 93,
+  Escaped = 94,
+  Newline = 95,
+  RawLink = 96,
+  Link = 97,
+  Macro = 98,
+  Symbol = 99,
+  StaticActiveTime = 100,
+  StaticInactiveTime = 101,
+  DynamicActiveTime = 102,
+  DiaryTime = 103,
+  DynamicInactiveTime = 104,
+  TimeRange = 105,
+  SimpleTime = 106,
+  HashTag = 107,
+  MetaSymbol = 108,
+  AtMention = 109,
+  Placeholder = 110,
+  RadioTarget = 111,
+  Target = 112,
+  SrcInlineCode = 113,
+  InlineCallCode = 114,
+  InlineExport = 115,
+  InlineComment = 116,
+  RawText = 117,
+  SubtreeDescription = 120,
+  SubtreeUrgency = 118,
+  DrawerLogbook = 119,
+  Drawer = 120,
+  DrawerPropertyList = 121,
+  DrawerProperty = 122,
+  Subtree = 123,
+  SubtreeTimes = 124,
+  SubtreeStars = 125,
+  SubtreeCompletion = 126,
+  SubtreeImportance = 127,
 }
 export enum OrgTokenKind {
   Ampersand,
-  AngleBegin,
-  AngleEnd,
-  AnyPunct,
-  Asterisk,
-  At,
-  Backtick,
-  BigIdent,
-  BoldBegin,
-  BoldEnd,
-  BoldUnknown,
-  BraceBegin,
-  BraceEnd,
-  Checkbox,
-  Circumflex,
-  CmdAdmonitionEnd,
-  CmdAttr,
-  CmdAuthor,
-  CmdBindRaw,
-  CmdCall,
-  CmdCaption,
-  CmdCategoryRaw,
-  CmdCell,
-  CmdCellBegin,
-  CmdCellEnd,
-  CmdCenterBegin,
-  CmdCenterEnd,
-  CmdColonIdent,
-  CmdColumns,
-  CmdCommentBegin,
-  CmdCommentEnd,
-  CmdConstants,
-  CmdContentBegin,
-  CmdContentEnd,
-  CmdCreator,
-  CmdCustomRaw,
-  CmdDateRaw,
-  CmdDescription,
-  CmdDrawersRaw,
-  CmdDynamicBlockBegin,
-  CmdDynamicBlockEnd,
-  CmdCustomTextBlockBegin,
-  CmdCustomTextBlockEnd,
-  CmdCustomRawBlockBegin,
-  CmdCustomRawBlockLine,
-  CmdCustomRawBlockEnd,
-  CmdEmailRaw,
-  CmdExampleBegin,
-  CmdExampleEnd,
-  CmdExampleLine,
-  CmdExcludeTagsRaw,
-  CmdExportBegin,
-  CmdExportEnd,
-  CmdExportLine,
-  CmdFiletags,
-  CmdFlag,
-  CmdHeader,
-  CmdHtmlHeadRaw,
-  CmdInclude,
-  CmdLanguage,
-  CmdLatexClass,
-  CmdLatexClassOptions,
-  CmdLatexCompiler,
-  CmdLatexHeader,
-  CmdLatexHeaderExtraRaw,
-  CmdLinkRaw,
-  CmdMacroRaw,
-  CmdName,
-  CmdOptions,
-  CmdPrefix,
-  CmdPrioritiesRaw,
-  CmdPropertyArgs,
-  CmdPropertyRaw,
-  CmdPropertyText,
-  CmdQuoteBegin,
-  CmdQuoteEnd,
-  CmdRawArg,
-  CmdResults,
-  CmdRow,
-  CmdRowBegin,
-  CmdRowEnd,
-  CmdSelectTagsRaw,
-  CmdSeqTodoRaw,
-  CmdKeywordsRaw,
-  CmdSetupfileRaw,
-  CmdSrcBegin,
-  CmdSrcEnd,
-  CmdStartup,
-  CmdTableBegin,
-  CmdTableEnd,
-  CmdTagsRaw,
-  CmdTblfm,
-  CmdTitle,
-  CmdVerseBegin,
-  CmdVerseEnd,
-  Colon,
-  ColonArgumentsProperty,
-  ColonEnd,
-  ColonExampleLine,
-  ColonLiteralProperty,
-  ColonLogbook,
-  ColonProperties,
-  ColonPropertyText,
-  Comma,
-  Comment,
-  CriticAddBegin,
-  CriticAddEnd,
-  CriticCommentBegin,
-  CriticCommentEnd,
-  CriticDeleteBegin,
-  CriticDeleteEnd,
-  CriticHighlightBegin,
-  CriticHighlightEnd,
-  CriticReplaceBegin,
-  CriticReplaceEnd,
-  CriticReplaceMiddle,
-  CurlyBegin,
-  CurlyEnd,
-  Date,
-  Dedent,
-  Dollar,
-  DoubleAngleBegin,
-  DoubleAngleEnd,
-  DoubleColon,
-  DoubleDash,
-  DoubleHash,
-  DoubleQuote,
-  DoubleSlash,
-  ActiveDynamicTimeContent,
-  InactiveDynamicTimeContent,
-  AgendaDiaryTimeContent,
-  EndOfFile,
-  Equals,
-  Escaped,
-  Exclamation,
-  FootnoteInlineBegin,
-  FootnoteLinked,
-  ForwardSlash,
-  HashIdent,
-  HashTagBegin,
-  Indent,
-  InlineExportBackend,
-  InlineExportContent,
-  ItalicBegin,
-  ItalicEnd,
-  ItalicUnknown,
-  LatexInlineRaw,
-  LatexParBegin,
-  LatexParEnd,
-  LatexBraceBegin,
-  LatexBraceEnd,
-  LatexDollar1Begin,
-  LatexDollar1End,
-  LatexDollar2Begin,
-  LatexDollar2End,
-  LeadingMinus,
-  LeadingNumber,
-  LeadingPipe,
-  LeadingPlus,
-  LeadingSpace,
-  LeadingCharacter,
-  LineCommand,
-  LinkBegin,
-  LinkDescriptionBegin,
-  LinkDescriptionEnd,
-  LinkEnd,
-  LinkFull,
-  LinkProtocol,
-  LinkProtocolAttachment,
-  LinkProtocolCustomId,
-  LinkProtocolFile,
-  LinkProtocolHttp,
-  LinkProtocolId,
-  LinkProtocolInternal,
-  LinkProtocolTitle,
-  LinkSplit,
-  LinkTarget,
-  LinkTargetBegin,
-  LinkTargetEnd,
-  LinkTargetFile,
-  ListBegin,
-  ListEnd,
-  ListItemBegin,
-  ListItemEnd,
-  LongNewline,
-  MediumNewline,
-  Minus,
-  MiscUnicode,
-  MonospaceBegin,
-  MonospaceEnd,
-  MonospaceUnknown,
-  Newline,
-  Number,
-  ParBegin,
-  ParEnd,
-  Percent,
-  Pipe,
-  Placeholder,
-  Plus,
-  Punctuation,
-  RawText,
-  SameIndent,
-  Semicolon,
-  SingleQuote,
-  SrcContent,
-  StmtListBegin,
-  StmtListEnd,
-  StrikeBegin,
-  StrikeEnd,
-  StrikeUnknown,
-  SubtreeCompletion,
-  SubtreePriority,
-  SubtreeStars,
-  Symbol,
-  TableSeparator,
-  TextSeparator,
-  TextSrcBegin,
-  Tilda,
-  Time,
-  TimeArrow,
-  TimeRepeaterDuration,
-  TimeRepeaterSpec,
-  TimeWarnPeriod,
-  TrailingPipe,
-  TreeClock,
-  TreeTime,
-  TripleAngleBegin,
-  TripleAngleEnd,
-  Underline,
-  UnderlineBegin,
-  UnderlineEnd,
-  UnderlineUnknown,
-  Unknown,
-  VerbatimBegin,
-  VerbatimEnd,
-  VerbatimUnknown,
-  Whitespace,
-  Word,
+  AngleBegin = 1,
+  AngleEnd = 2,
+  AnyPunct = 3,
+  Asterisk = 4,
+  At = 5,
+  Backtick = 6,
+  BigIdent = 7,
+  BoldBegin = 8,
+  BoldEnd = 9,
+  BoldUnknown = 10,
+  BraceBegin = 11,
+  BraceEnd = 12,
+  Checkbox = 13,
+  Circumflex = 14,
+  CmdAdmonitionEnd = 15,
+  CmdAttr = 16,
+  CmdAuthor = 17,
+  CmdBindRaw = 18,
+  CmdCall = 19,
+  CmdCaption = 20,
+  CmdCategoryRaw = 21,
+  CmdCell = 22,
+  CmdCellBegin = 23,
+  CmdCellEnd = 24,
+  CmdCenterBegin = 25,
+  CmdCenterEnd = 26,
+  CmdColonIdent = 27,
+  CmdColumns = 28,
+  CmdCommentBegin = 29,
+  CmdCommentEnd = 30,
+  CmdConstants = 31,
+  CmdContentBegin = 32,
+  CmdContentEnd = 33,
+  CmdCreator = 34,
+  CmdCustomRaw = 35,
+  CmdDateRaw = 36,
+  CmdDescription = 37,
+  CmdDrawersRaw = 38,
+  CmdDynamicBlockBegin = 39,
+  CmdDynamicBlockEnd = 40,
+  CmdCustomTextBlockBegin = 41,
+  CmdCustomTextBlockEnd = 42,
+  CmdCustomRawBlockBegin = 43,
+  CmdCustomRawBlockLine = 44,
+  CmdCustomRawBlockEnd = 45,
+  CmdEmailRaw = 46,
+  CmdExampleBegin = 47,
+  CmdExampleEnd = 48,
+  CmdExampleLine = 49,
+  CmdExcludeTagsRaw = 50,
+  CmdExportBegin = 51,
+  CmdExportEnd = 52,
+  CmdExportLine = 53,
+  CmdFiletags = 54,
+  CmdFlag = 55,
+  CmdHeader = 56,
+  CmdHtmlHeadRaw = 57,
+  CmdInclude = 58,
+  CmdLanguage = 59,
+  CmdLatexClass = 60,
+  CmdLatexClassOptions = 61,
+  CmdLatexCompiler = 62,
+  CmdLatexHeader = 63,
+  CmdLatexHeaderExtraRaw = 64,
+  CmdLinkRaw = 65,
+  CmdMacroRaw = 66,
+  CmdName = 67,
+  CmdOptions = 68,
+  CmdPrefix = 69,
+  CmdPrioritiesRaw = 70,
+  CmdPropertyArgs = 71,
+  CmdPropertyRaw = 72,
+  CmdPropertyText = 73,
+  CmdQuoteBegin = 74,
+  CmdQuoteEnd = 75,
+  CmdRawArg = 76,
+  CmdResults = 77,
+  CmdRow = 78,
+  CmdRowBegin = 79,
+  CmdRowEnd = 80,
+  CmdSelectTagsRaw = 81,
+  CmdSeqTodoRaw = 82,
+  CmdKeywordsRaw = 83,
+  CmdSetupfileRaw = 84,
+  CmdSrcBegin = 85,
+  CmdSrcEnd = 86,
+  CmdStartup = 87,
+  CmdTableBegin = 88,
+  CmdTableEnd = 89,
+  CmdTagsRaw = 90,
+  CmdTblfm = 91,
+  CmdTitle = 92,
+  CmdVerseBegin = 93,
+  CmdVerseEnd = 94,
+  Colon = 95,
+  ColonArgumentsProperty = 96,
+  ColonEnd = 97,
+  ColonExampleLine = 98,
+  ColonLiteralProperty = 99,
+  ColonLogbook = 100,
+  ColonProperties = 101,
+  ColonPropertyText = 102,
+  Comma = 103,
+  Comment = 104,
+  CriticAddBegin = 105,
+  CriticAddEnd = 106,
+  CriticCommentBegin = 107,
+  CriticCommentEnd = 108,
+  CriticDeleteBegin = 109,
+  CriticDeleteEnd = 110,
+  CriticHighlightBegin = 111,
+  CriticHighlightEnd = 112,
+  CriticReplaceBegin = 113,
+  CriticReplaceEnd = 114,
+  CriticReplaceMiddle = 115,
+  CurlyBegin = 116,
+  CurlyEnd = 117,
+  Date = 118,
+  Dedent = 119,
+  Dollar = 120,
+  DoubleAngleBegin = 121,
+  DoubleAngleEnd = 122,
+  DoubleColon = 123,
+  DoubleDash = 124,
+  DoubleHash = 125,
+  DoubleQuote = 126,
+  DoubleSlash = 127,
+  ActiveDynamicTimeContent = 128,
+  InactiveDynamicTimeContent = 129,
+  AgendaDiaryTimeContent = 130,
+  EndOfFile = 131,
+  Equals = 132,
+  Escaped = 133,
+  Exclamation = 134,
+  FootnoteInlineBegin = 135,
+  FootnoteLinked = 136,
+  ForwardSlash = 137,
+  HashIdent = 138,
+  HashTagBegin = 139,
+  Indent = 140,
+  InlineExportBackend = 141,
+  InlineExportContent = 142,
+  ItalicBegin = 143,
+  ItalicEnd = 144,
+  ItalicUnknown = 145,
+  LatexInlineRaw = 146,
+  LatexParBegin = 147,
+  LatexParEnd = 148,
+  LatexBraceBegin = 149,
+  LatexBraceEnd = 150,
+  LatexDollar1Begin = 151,
+  LatexDollar1End = 152,
+  LatexDollar2Begin = 153,
+  LatexDollar2End = 154,
+  LeadingMinus = 155,
+  LeadingNumber = 156,
+  LeadingPipe = 157,
+  LeadingPlus = 158,
+  LeadingSpace = 159,
+  LeadingCharacter = 160,
+  LineCommand = 161,
+  LinkBegin = 162,
+  LinkDescriptionBegin = 163,
+  LinkDescriptionEnd = 164,
+  LinkEnd = 165,
+  LinkFull = 166,
+  LinkProtocol = 167,
+  LinkProtocolAttachment = 168,
+  LinkProtocolCustomId = 169,
+  LinkProtocolFile = 170,
+  LinkProtocolHttp = 171,
+  LinkProtocolId = 172,
+  LinkProtocolInternal = 173,
+  LinkProtocolTitle = 174,
+  LinkSplit = 175,
+  LinkTarget = 176,
+  LinkTargetBegin = 177,
+  LinkTargetEnd = 178,
+  LinkTargetFile = 179,
+  ListBegin = 180,
+  ListEnd = 181,
+  ListItemBegin = 182,
+  ListItemEnd = 183,
+  LongNewline = 184,
+  MediumNewline = 185,
+  Minus = 186,
+  MiscUnicode = 187,
+  MonospaceBegin = 188,
+  MonospaceEnd = 189,
+  MonospaceUnknown = 190,
+  Newline = 191,
+  Number = 192,
+  ParBegin = 193,
+  ParEnd = 194,
+  Percent = 195,
+  Pipe = 196,
+  Placeholder = 197,
+  Plus = 198,
+  Punctuation = 199,
+  RawText = 200,
+  SameIndent = 201,
+  Semicolon = 202,
+  SingleQuote = 203,
+  SrcContent = 204,
+  StmtListBegin = 205,
+  StmtListEnd = 206,
+  StrikeBegin = 207,
+  StrikeEnd = 208,
+  StrikeUnknown = 209,
+  SubtreeCompletion = 210,
+  SubtreePriority = 211,
+  SubtreeStars = 212,
+  Symbol = 213,
+  TableSeparator = 214,
+  TextSeparator = 215,
+  TextSrcBegin = 216,
+  Tilda = 217,
+  Time = 218,
+  TimeArrow = 219,
+  TimeRepeaterDuration = 220,
+  TimeRepeaterSpec = 221,
+  TimeWarnPeriod = 222,
+  TrailingPipe = 223,
+  TreeClock = 224,
+  TreeTime = 225,
+  TripleAngleBegin = 226,
+  TripleAngleEnd = 227,
+  Underline = 228,
+  UnderlineBegin = 229,
+  UnderlineEnd = 230,
+  UnderlineUnknown = 231,
+  Unknown = 232,
+  VerbatimBegin = 233,
+  VerbatimEnd = 234,
+  VerbatimUnknown = 235,
+  Whitespace = 236,
+  Word = 237,
 }
 export enum OrgJsonKind {
   Null,
-  Object,
-  Array,
-  String,
-  Boolean,
-  Int,
-  Float,
+  Object = 1,
+  Array = 2,
+  String = 3,
+  Boolean = 4,
+  Int = 5,
+  Float = 6,
+}
+export enum CheckboxState {
+  None,
+  Done = 1,
+  Empty = 2,
+  Partial = 3,
+}
+export enum LinkVisibility {
+  LiteralLinks,
+  DescriptiveLinks = 1,
+}
+export enum BlockVisibility {
+  HideBlocks,
+  NoHideBlocks = 1,
+}
+export enum SubtreeTodoSource {
+  Checkbox,
+  Todo = 1,
+  Both = 2,
+}
+export enum ListFormattingMode {
+  None,
+  Table1D1Col = 1,
+  Table1D2Col = 2,
+  Table2DColFirst = 3,
+  Table2DRowFirst = 4,
+}
+export enum InitialSubtreeVisibility {
+  Overview,
+  Content = 1,
+  ShowAll = 2,
+  Show2Levels = 3,
+  Show3Levels = 4,
+  Show4Levels = 5,
+  Show5Levels = 6,
+  ShowEverything = 7,
 }
 export enum OrgSemKind {
   NoNode,
@@ -2017,6 +2017,16 @@ export enum OrgSemKind {
   CmdCustomText,
   CmdCall,
   CmdTblfm,
+  BlockCenter,
+  BlockQuote,
+  BlockComment,
+  BlockVerse,
+  BlockDynamicFallback,
+  BlockExample,
+  BlockExport,
+  BlockAdmonition,
+  BlockCodeEvalResult,
+  BlockCode,
   HashTag,
   InlineFootnote,
   InlineExport,
@@ -2047,16 +2057,6 @@ export enum OrgSemKind {
   RadioTarget,
   Latex,
   Link,
-  BlockCenter,
-  BlockQuote,
-  BlockComment,
-  BlockVerse,
-  BlockDynamicFallback,
-  BlockExample,
-  BlockExport,
-  BlockAdmonition,
-  BlockCodeEvalResult,
-  BlockCode,
   SubtreeLog,
   Subtree,
   Cell,
@@ -2093,7 +2093,6 @@ export enum GraphMapLinkKind {
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   LispCode(): void;
-  __eq__(other: LispCode): boolean;
   isCall(): boolean;
   getCallConst(): LispCodeCall;
   getCallMut(): LispCodeCall;
@@ -2134,63 +2133,53 @@ export interface LispCode {
 export interface LispCodeCallConstructor { new(): LispCodeCall; }
 export interface LispCodeCall {
   Call(): void;
-  __eq__(other: LispCodeCall): boolean;
   name: Str
   args: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeQuotedConstructor { new(): LispCodeQuoted; }
 export interface LispCodeQuoted {
   Quoted(): void;
-  __eq__(other: LispCodeQuoted): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeListConstructor { new(): LispCodeList; }
 export interface LispCodeList {
   List(): void;
-  __eq__(other: LispCodeList): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeVectorConstructor { new(): LispCodeVector; }
 export interface LispCodeVector {
   Vector(): void;
-  __eq__(other: LispCodeVector): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeKeyValueConstructor { new(): LispCodeKeyValue; }
 export interface LispCodeKeyValue {
   KeyValue(): void;
-  __eq__(other: LispCodeKeyValue): boolean;
   name: Str
   value: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeNumberConstructor { new(): LispCodeNumber; }
 export interface LispCodeNumber {
   Number(): void;
-  __eq__(other: LispCodeNumber): boolean;
   value: number
 }
 export interface LispCodeTextConstructor { new(): LispCodeText; }
 export interface LispCodeText {
   Text(): void;
-  __eq__(other: LispCodeText): boolean;
   value: Str
 }
 export interface LispCodeIdentConstructor { new(): LispCodeIdent; }
 export interface LispCodeIdent {
   Ident(): void;
-  __eq__(other: LispCodeIdent): boolean;
   name: Str
 }
 export interface LispCodeBooleanConstructor { new(): LispCodeBoolean; }
 export interface LispCodeBoolean {
   Boolean(): void;
-  __eq__(other: LispCodeBoolean): boolean;
   value: boolean
 }
 export interface LispCodeRealConstructor { new(): LispCodeReal; }
 export interface LispCodeReal {
   Real(): void;
-  __eq__(other: LispCodeReal): boolean;
   value: number
 }
 export type LispCodeData = haxorg_wasm.StdVariant<LispCodeCall, LispCodeQuoted, LispCodeList, LispCodeVector, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal>;
@@ -2209,7 +2198,6 @@ export enum LispCodeKind {
 export interface TimeValueConstructor { new(): TimeValue; }
 export interface TimeValue {
   TimeValue(): void;
-  __eq__(other: TimeValue): boolean;
   isFixedTime(): boolean;
   getFixedTimeConst(): TimeValueFixedTime;
   getFixedTimeMut(): TimeValueFixedTime;
@@ -2227,13 +2215,11 @@ export interface TimeValue {
 export interface TimeValueFixedTimeConstructor { new(): TimeValueFixedTime; }
 export interface TimeValueFixedTime {
   FixedTime(): void;
-  __eq__(other: TimeValueFixedTime): boolean;
   time: UserTime
 }
 export interface TimeValueDynamicTimeConstructor { new(): TimeValueDynamicTime; }
 export interface TimeValueDynamicTime {
   DynamicTime(): void;
-  __eq__(other: TimeValueDynamicTime): boolean;
   time: LispCode
 }
 export type TimeValueData = haxorg_wasm.StdVariant<TimeValueFixedTime, TimeValueDynamicTime>;
@@ -2243,12 +2229,11 @@ export enum TimeValueKind {
 }
 export interface TblfmConstructor { new(): Tblfm; }
 export interface Tblfm {
-  __eq__(other: Tblfm): boolean;
+  Tblfm(): void;
   exprs: haxorg_wasm.HstdVec<TblfmAssign>
 }
 export interface TblfmExprConstructor { new(): TblfmExpr; }
 export interface TblfmExpr {
-  __eq__(other: TblfmExpr): boolean;
   isAxisRef(): boolean;
   getAxisRefConst(): TblfmExprAxisRef;
   getAxisRefMut(): TblfmExprAxisRef;
@@ -2279,14 +2264,11 @@ export interface TblfmExpr {
 }
 export interface TblfmExprAxisRefConstructor { new(): TblfmExprAxisRef; }
 export interface TblfmExprAxisRef {
-  __eq__(other: TblfmExprAxisRef): boolean;
   col: TblfmExprAxisRefPosition
   row: haxorg_wasm.Optional<TblfmExprAxisRefPosition>
 }
 export interface TblfmExprAxisRefPositionConstructor { new(): TblfmExprAxisRefPosition; }
 export interface TblfmExprAxisRefPosition {
-  Position(): void;
-  __eq__(other: TblfmExprAxisRefPosition): boolean;
   isIndex(): boolean;
   getIndexConst(): TblfmExprAxisRefPositionIndex;
   getIndexMut(): TblfmExprAxisRefPositionIndex;
@@ -2303,13 +2285,11 @@ export interface TblfmExprAxisRefPosition {
 export interface TblfmExprAxisRefPositionIndexConstructor { new(): TblfmExprAxisRefPositionIndex; }
 export interface TblfmExprAxisRefPositionIndex {
   Index(): void;
-  __eq__(other: TblfmExprAxisRefPositionIndex): boolean;
   index: number
 }
 export interface TblfmExprAxisRefPositionNameConstructor { new(): TblfmExprAxisRefPositionName; }
 export interface TblfmExprAxisRefPositionName {
   Name(): void;
-  __eq__(other: TblfmExprAxisRefPositionName): boolean;
   name: Str
 }
 export type TblfmExprAxisRefPositionData = haxorg_wasm.StdVariant<TblfmExprAxisRefPositionIndex, TblfmExprAxisRefPositionName>;
@@ -2318,37 +2298,23 @@ export enum TblfmExprAxisRefPositionKind {
   Name,
 }
 export interface TblfmExprAxisNameConstructor { new(): TblfmExprAxisName; }
-export interface TblfmExprAxisName {
-  __eq__(other: TblfmExprAxisName): boolean;
-  name: Str
-}
+export interface TblfmExprAxisName { name: Str }
 export interface TblfmExprIntLiteralConstructor { new(): TblfmExprIntLiteral; }
-export interface TblfmExprIntLiteral {
-  __eq__(other: TblfmExprIntLiteral): boolean;
-  value: number
-}
+export interface TblfmExprIntLiteral { value: number }
 export interface TblfmExprFloatLiteralConstructor { new(): TblfmExprFloatLiteral; }
-export interface TblfmExprFloatLiteral {
-  __eq__(other: TblfmExprFloatLiteral): boolean;
-  value: number
-}
+export interface TblfmExprFloatLiteral { value: number }
 export interface TblfmExprRangeRefConstructor { new(): TblfmExprRangeRef; }
 export interface TblfmExprRangeRef {
-  __eq__(other: TblfmExprRangeRef): boolean;
   first: haxorg_wasm.Optional<TblfmExprAxisRef>
   last: haxorg_wasm.Optional<TblfmExprAxisRef>
 }
 export interface TblfmExprCallConstructor { new(): TblfmExprCall; }
 export interface TblfmExprCall {
-  __eq__(other: TblfmExprCall): boolean;
   name: Str
   args: haxorg_wasm.HstdVec<TblfmExpr>
 }
 export interface TblfmExprElispConstructor { new(): TblfmExprElisp; }
-export interface TblfmExprElisp {
-  __eq__(other: TblfmExprElisp): boolean;
-  value: Str
-}
+export interface TblfmExprElisp { value: Str }
 export type TblfmExprData = haxorg_wasm.StdVariant<TblfmExprAxisRef, TblfmExprAxisName, TblfmExprIntLiteral, TblfmExprFloatLiteral, TblfmExprRangeRef, TblfmExprCall, TblfmExprElisp>;
 export enum TblfmExprKind {
   AxisRef,
@@ -2361,27 +2327,26 @@ export enum TblfmExprKind {
 }
 export interface TblfmAssignConstructor { new(): TblfmAssign; }
 export interface TblfmAssign {
-  __eq__(other: TblfmAssign): boolean;
   target: TblfmExprAxisRef
   expr: haxorg_wasm.HstdVec<TblfmExpr>
   flags: haxorg_wasm.HstdVec<TblfmAssignFlag>
 }
 export enum TblfmAssignFlag {
   CellLeftAlign,
-  CellRightAlign,
-  CellCenterAlign,
-  CellNumber,
-  CellExponential,
-  CellFloating,
-  CellUnformat,
-  CellText,
-  CellBool,
-  CellDecimal,
-  CellPercentage,
-  CellHours,
-  CellZero,
-  CellMarkInvalid,
-  CellQuote,
+  CellRightAlign = 1,
+  CellCenterAlign = 2,
+  CellNumber = 3,
+  CellExponential = 4,
+  CellFloating = 5,
+  CellUnformat = 6,
+  CellText = 7,
+  CellBool = 8,
+  CellDecimal = 9,
+  CellPercentage = 10,
+  CellHours = 10,
+  CellZero = 11,
+  CellMarkInvalid = 12,
+  CellQuote = 13,
 }
 export interface AttrValueConstructor { new(): AttrValue; }
 export interface AttrValue {
@@ -2389,8 +2354,6 @@ export interface AttrValue {
   getInt(): haxorg_wasm.Optional<number>;
   getString(): Str;
   getDouble(): haxorg_wasm.Optional<number>;
-  AttrValue(): void;
-  __eq__(other: AttrValue): boolean;
   isTextValue(): boolean;
   getTextValueConst(): AttrValueTextValue;
   getTextValueMut(): AttrValueTextValue;
@@ -2413,30 +2376,18 @@ export interface AttrValue {
 }
 export interface AttrValueDimensionSpanConstructor { new(): AttrValueDimensionSpan; }
 export interface AttrValueDimensionSpan {
-  DimensionSpan(): void;
-  __eq__(other: AttrValueDimensionSpan): boolean;
   first: number
   last: haxorg_wasm.Optional<number>
 }
 export interface AttrValueTextValueConstructor { new(): AttrValueTextValue; }
-export interface AttrValueTextValue {
-  TextValue(): void;
-  __eq__(other: AttrValueTextValue): boolean;
-  value: Str
-}
+export interface AttrValueTextValue { value: Str }
 export interface AttrValueFileReferenceConstructor { new(): AttrValueFileReference; }
 export interface AttrValueFileReference {
-  FileReference(): void;
-  __eq__(other: AttrValueFileReference): boolean;
   file: Str
   reference: Str
 }
 export interface AttrValueLispValueConstructor { new(): AttrValueLispValue; }
-export interface AttrValueLispValue {
-  LispValue(): void;
-  __eq__(other: AttrValueLispValue): boolean;
-  code: LispCode
-}
+export interface AttrValueLispValue { code: LispCode }
 export type AttrValueDataVariant = haxorg_wasm.StdVariant<AttrValueTextValue, AttrValueFileReference, AttrValueLispValue>;
 export enum AttrValueKind {
   TextValue,
@@ -2445,13 +2396,11 @@ export enum AttrValueKind {
 }
 export interface HashTagFlatConstructor { new(): HashTagFlat; }
 export interface HashTagFlat {
-  __eq__(other: HashTagFlat): boolean;
   __lt__(other: HashTagFlat): boolean;
   tags: haxorg_wasm.HstdVec<Str>
 }
 export interface TodoKeywordConstructor { new(): TodoKeyword; }
 export interface TodoKeyword {
-  __eq__(other: TodoKeyword): boolean;
   name: Str
   shortcut: haxorg_wasm.Optional<Str>
   onEnter: TodoKeywordTransition
@@ -2459,25 +2408,22 @@ export interface TodoKeyword {
 }
 export enum TodoKeywordTransition {
   None,
-  NoteWithTimestamp,
-  Timestamp,
+  NoteWithTimestamp = 1,
+  Timestamp = 2,
 }
 export interface HashTagTextConstructor { new(): HashTagText; }
 export interface HashTagText {
-  __eq__(other: HashTagText): boolean;
   prefixMatch(prefix: haxorg_wasm.HstdVec<Str>): boolean;
   getFlatHashes(withIntermediate: boolean): haxorg_wasm.HstdVec<HashTagFlat>;
   head: Str
   subtags: haxorg_wasm.HstdVec<HashTagText>
 }
 export interface SubtreePathConstructor { new(): SubtreePath; }
-export interface SubtreePath {
-  __eq__(other: SubtreePath): boolean;
-  path: haxorg_wasm.HstdVec<Str>
-}
+export interface SubtreePath { path: haxorg_wasm.HstdVec<Str> }
 export interface LinkTargetConstructor { new(): LinkTarget; }
 export interface LinkTarget {
-  __eq__(other: LinkTarget): boolean;
+  LinkTarget(data: LinkTargetData): void;
+  LinkTarget(): void;
   isRaw(): boolean;
   getRawConst(): LinkTargetRaw;
   getRawMut(): LinkTargetRaw;
@@ -2516,57 +2462,31 @@ export interface LinkTarget {
   data: LinkTargetData
 }
 export interface LinkTargetRawConstructor { new(): LinkTargetRaw; }
-export interface LinkTargetRaw {
-  __eq__(other: LinkTargetRaw): boolean;
-  text: Str
-}
+export interface LinkTargetRaw { text: Str }
 export interface LinkTargetIdConstructor { new(): LinkTargetId; }
-export interface LinkTargetId {
-  __eq__(other: LinkTargetId): boolean;
-  text: Str
-}
+export interface LinkTargetId { text: Str }
 export interface LinkTargetCustomIdConstructor { new(): LinkTargetCustomId; }
-export interface LinkTargetCustomId {
-  __eq__(other: LinkTargetCustomId): boolean;
-  text: Str
-}
+export interface LinkTargetCustomId { text: Str }
 export interface LinkTargetSubtreeTitleConstructor { new(): LinkTargetSubtreeTitle; }
 export interface LinkTargetSubtreeTitle {
-  __eq__(other: LinkTargetSubtreeTitle): boolean;
   title: SubtreePath
   level: number
 }
 export interface LinkTargetPersonConstructor { new(): LinkTargetPerson; }
-export interface LinkTargetPerson {
-  __eq__(other: LinkTargetPerson): boolean;
-  name: Str
-}
+export interface LinkTargetPerson { name: Str }
 export interface LinkTargetUserProtocolConstructor { new(): LinkTargetUserProtocol; }
 export interface LinkTargetUserProtocol {
-  __eq__(other: LinkTargetUserProtocol): boolean;
   protocol: Str
   target: Str
 }
 export interface LinkTargetInternalConstructor { new(): LinkTargetInternal; }
-export interface LinkTargetInternal {
-  __eq__(other: LinkTargetInternal): boolean;
-  target: Str
-}
+export interface LinkTargetInternal { target: Str }
 export interface LinkTargetFootnoteConstructor { new(): LinkTargetFootnote; }
-export interface LinkTargetFootnote {
-  __eq__(other: LinkTargetFootnote): boolean;
-  target: Str
-}
+export interface LinkTargetFootnote { target: Str }
 export interface LinkTargetFileConstructor { new(): LinkTargetFile; }
-export interface LinkTargetFile {
-  __eq__(other: LinkTargetFile): boolean;
-  file: Str
-}
+export interface LinkTargetFile { file: Str }
 export interface LinkTargetAttachmentConstructor { new(): LinkTargetAttachment; }
-export interface LinkTargetAttachment {
-  __eq__(other: LinkTargetAttachment): boolean;
-  file: Str
-}
+export interface LinkTargetAttachment { file: Str }
 export type LinkTargetData = haxorg_wasm.StdVariant<LinkTargetRaw, LinkTargetId, LinkTargetCustomId, LinkTargetSubtreeTitle, LinkTargetPerson, LinkTargetUserProtocol, LinkTargetInternal, LinkTargetFootnote, LinkTargetFile, LinkTargetAttachment>;
 export enum LinkTargetKind {
   Raw,
@@ -2582,7 +2502,6 @@ export enum LinkTargetKind {
 }
 export interface SubtreeLogHeadConstructor { new(): SubtreeLogHead; }
 export interface SubtreeLogHead {
-  __eq__(other: SubtreeLogHead): boolean;
   isPriority(): boolean;
   getPriorityConst(): SubtreeLogHeadPriority;
   getPriorityMut(): SubtreeLogHeadPriority;
@@ -2619,64 +2538,54 @@ export interface SubtreeLogHead {
 }
 export interface SubtreeLogHeadPriorityConstructor { new(): SubtreeLogHeadPriority; }
 export interface SubtreeLogHeadPriority {
-  __eq__(other: SubtreeLogHeadPriority): boolean;
-  oldPriority: haxorg_wasm.Optional<string>
-  newPriority: haxorg_wasm.Optional<string>
+  oldPriority: haxorg_wasm.Optional<Str>
+  newPriority: haxorg_wasm.Optional<Str>
   on: UserTime
   action: SubtreeLogHeadPriorityAction
 }
 export enum SubtreeLogHeadPriorityAction {
   Added,
-  Removed,
-  Changed,
+  Removed = 1,
+  Changed = 2,
 }
 export interface SubtreeLogHeadNoteConstructor { new(): SubtreeLogHeadNote; }
-export interface SubtreeLogHeadNote {
-  __eq__(other: SubtreeLogHeadNote): boolean;
-  on: UserTime
-}
+export interface SubtreeLogHeadNote { on: UserTime }
 export interface SubtreeLogHeadRefileConstructor { new(): SubtreeLogHeadRefile; }
 export interface SubtreeLogHeadRefile {
-  __eq__(other: SubtreeLogHeadRefile): boolean;
   on: UserTime
   from: LinkTarget
 }
 export interface SubtreeLogHeadClockConstructor { new(): SubtreeLogHeadClock; }
 export interface SubtreeLogHeadClock {
-  __eq__(other: SubtreeLogHeadClock): boolean;
   from: UserTime
   to: haxorg_wasm.Optional<UserTime>
 }
 export interface SubtreeLogHeadStateConstructor { new(): SubtreeLogHeadState; }
 export interface SubtreeLogHeadState {
-  __eq__(other: SubtreeLogHeadState): boolean;
   from: Str
   to: Str
   on: UserTime
 }
 export interface SubtreeLogHeadDeadlineConstructor { new(): SubtreeLogHeadDeadline; }
 export interface SubtreeLogHeadDeadline {
-  __eq__(other: SubtreeLogHeadDeadline): boolean;
   from: haxorg_wasm.Optional<UserTime>
   to: UserTime
   on: UserTime
 }
 export interface SubtreeLogHeadScheduleConstructor { new(): SubtreeLogHeadSchedule; }
 export interface SubtreeLogHeadSchedule {
-  __eq__(other: SubtreeLogHeadSchedule): boolean;
   from: haxorg_wasm.Optional<UserTime>
   to: UserTime
   on: UserTime
 }
 export interface SubtreeLogHeadTagConstructor { new(): SubtreeLogHeadTag; }
 export interface SubtreeLogHeadTag {
-  __eq__(other: SubtreeLogHeadTag): boolean;
   on: UserTime
   tag: HashTagText
   added: boolean
 }
 export interface SubtreeLogHeadUnknownConstructor { new(): SubtreeLogHeadUnknown; }
-export interface SubtreeLogHeadUnknown { __eq__(other: SubtreeLogHeadUnknown): boolean; }
+export interface SubtreeLogHeadUnknown {  }
 export type SubtreeLogHeadLogEntry = haxorg_wasm.StdVariant<SubtreeLogHeadPriority, SubtreeLogHeadNote, SubtreeLogHeadRefile, SubtreeLogHeadClock, SubtreeLogHeadState, SubtreeLogHeadDeadline, SubtreeLogHeadSchedule, SubtreeLogHeadTag, SubtreeLogHeadUnknown>;
 export enum SubtreeLogHeadKind {
   Priority,
@@ -2691,16 +2600,12 @@ export enum SubtreeLogHeadKind {
 }
 export interface SubtreeCompletionConstructor { new(): SubtreeCompletion; }
 export interface SubtreeCompletion {
-  __eq__(other: SubtreeCompletion): boolean;
   done: number
   full: number
   isPercent: boolean
 }
 export interface AttrListConstructor { new(): AttrList; }
-export interface AttrList {
-  __eq__(other: AttrList): boolean;
-  items: haxorg_wasm.HstdVec<AttrValue>
-}
+export interface AttrList { items: haxorg_wasm.HstdVec<AttrValue> }
 export interface AttrGroupConstructor { new(): AttrGroup; }
 export interface AttrGroup {
   getFlatArgs(): haxorg_wasm.HstdVec<AttrValue>;
@@ -2715,19 +2620,17 @@ export interface AttrGroup {
   getPositional(index: number): haxorg_wasm.Optional<AttrValue>;
   atNamed(index: Str): AttrList;
   getNamed(index: Str): haxorg_wasm.Optional<AttrList>;
-  atFirstNamed(index: Str): AttrValue;
-  getFirstNamed(index: Str): haxorg_wasm.Optional<AttrValue>;
   atVarNamed(index: Str): AttrList;
   getVarNamed(index: Str): haxorg_wasm.Optional<AttrList>;
   atFirstVarNamed(index: Str): AttrValue;
   getFirstVarNamed(index: Str): haxorg_wasm.Optional<AttrValue>;
-  __eq__(other: AttrGroup): boolean;
+  atFirstNamed(index: Str): AttrValue;
+  getFirstNamed(index: Str): haxorg_wasm.Optional<AttrValue>;
   positional: AttrList
   named: haxorg_wasm.HstdMap<Str, AttrList>
 }
 export interface OrgCodeEvalInputConstructor { new(): OrgCodeEvalInput; }
 export interface OrgCodeEvalInput {
-  __eq__(other: OrgCodeEvalInput): boolean;
   getVariable(name: Str): haxorg_wasm.Optional<OrgCodeEvalInputVar>;
   blockAttrs: AttrGroup
   tangledCode: Str
@@ -2740,37 +2643,34 @@ export interface OrgCodeEvalInput {
 }
 export interface OrgCodeEvalInputVarConstructor { new(): OrgCodeEvalInputVar; }
 export interface OrgCodeEvalInputVar {
-  Var(): void;
-  __eq__(other: OrgCodeEvalInputVar): boolean;
   name: Str
   value: OrgJson
 }
 export enum OrgCodeEvalInputResultType {
   None,
-  Table,
-  List,
-  Scalar,
-  SaveFile,
+  Table = 1,
+  List = 2,
+  Scalar = 3,
+  SaveFile = 4,
 }
 export enum OrgCodeEvalInputResultFormat {
   None,
-  Raw,
-  Code,
-  Drawer,
-  ExportType,
-  Link,
+  Raw = 1,
+  Code = 2,
+  Drawer = 3,
+  ExportType = 4,
+  Link = 5,
 }
 export enum OrgCodeEvalInputResultHandling {
   None,
-  Replace,
-  Silent,
-  Discard,
-  Append,
-  Prepend,
+  Replace = 1,
+  Silent = 2,
+  Discard = 3,
+  Append = 4,
+  Prepend = 5,
 }
 export interface OrgCodeEvalOutputConstructor { new(): OrgCodeEvalOutput; }
 export interface OrgCodeEvalOutput {
-  __eq__(other: OrgCodeEvalOutput): boolean;
   stdoutText: Str
   stderrText: Str
   code: number
@@ -2780,13 +2680,9 @@ export interface OrgCodeEvalOutput {
   appliedHeaderArg: AttrGroup
 }
 export interface ColumnViewConstructor { new(): ColumnView; }
-export interface ColumnView {
-  __eq__(other: ColumnView): boolean;
-  columns: haxorg_wasm.HstdVec<ColumnViewColumn>
-}
+export interface ColumnView { columns: haxorg_wasm.HstdVec<ColumnViewColumn> }
 export interface ColumnViewSummaryConstructor { new(): ColumnViewSummary; }
 export interface ColumnViewSummary {
-  __eq__(other: ColumnViewSummary): boolean;
   isCheckboxAggregate(): boolean;
   getCheckboxAggregateConst(): ColumnViewSummaryCheckboxAggregate;
   getCheckboxAggregateMut(): ColumnViewSummaryCheckboxAggregate;
@@ -2801,28 +2697,24 @@ export interface ColumnViewSummary {
   data: ColumnViewSummaryData
 }
 export interface ColumnViewSummaryCheckboxAggregateConstructor { new(): ColumnViewSummaryCheckboxAggregate; }
-export interface ColumnViewSummaryCheckboxAggregate {
-  __eq__(other: ColumnViewSummaryCheckboxAggregate): boolean;
-  kind: ColumnViewSummaryCheckboxAggregateKind
-}
+export interface ColumnViewSummaryCheckboxAggregate { kind: ColumnViewSummaryCheckboxAggregateKind }
 export enum ColumnViewSummaryCheckboxAggregateKind {
   IfAllNested,
-  AggregateFractionRec,
-  AggregatePercentRec,
+  AggregateFractionRec = 1,
+  AggregatePercentRec = 2,
 }
 export interface ColumnViewSummaryMathAggregateConstructor { new(): ColumnViewSummaryMathAggregate; }
 export interface ColumnViewSummaryMathAggregate {
-  __eq__(other: ColumnViewSummaryMathAggregate): boolean;
   kind: ColumnViewSummaryMathAggregateKind
   formatDigits: haxorg_wasm.Optional<number>
   formatPrecision: haxorg_wasm.Optional<number>
 }
 export enum ColumnViewSummaryMathAggregateKind {
   Min,
-  Max,
-  Mean,
-  Sum,
-  LowHighEst,
+  Max = 1,
+  Mean = 2,
+  Sum = 3,
+  LowHighEst = 4,
 }
 export type ColumnViewSummaryData = haxorg_wasm.StdVariant<ColumnViewSummaryCheckboxAggregate, ColumnViewSummaryMathAggregate>;
 export enum ColumnViewSummaryKind {
@@ -2831,20 +2723,15 @@ export enum ColumnViewSummaryKind {
 }
 export interface ColumnViewColumnConstructor { new(): ColumnViewColumn; }
 export interface ColumnViewColumn {
-  __eq__(other: ColumnViewColumn): boolean;
   summary: haxorg_wasm.Optional<ColumnViewSummary>
   width: haxorg_wasm.Optional<number>
   property: haxorg_wasm.Optional<Str>
   propertyTitle: haxorg_wasm.Optional<Str>
 }
 export interface BlockCodeLineConstructor { new(): BlockCodeLine; }
-export interface BlockCodeLine {
-  __eq__(other: BlockCodeLine): boolean;
-  parts: haxorg_wasm.HstdVec<BlockCodeLinePart>
-}
+export interface BlockCodeLine { parts: haxorg_wasm.HstdVec<BlockCodeLinePart> }
 export interface BlockCodeLinePartConstructor { new(): BlockCodeLinePart; }
 export interface BlockCodeLinePart {
-  __eq__(other: BlockCodeLinePart): boolean;
   isRaw(): boolean;
   getRawConst(): BlockCodeLinePartRaw;
   getRawMut(): BlockCodeLinePartRaw;
@@ -2862,20 +2749,11 @@ export interface BlockCodeLinePart {
   data: BlockCodeLinePartData
 }
 export interface BlockCodeLinePartRawConstructor { new(): BlockCodeLinePartRaw; }
-export interface BlockCodeLinePartRaw {
-  __eq__(other: BlockCodeLinePartRaw): boolean;
-  code: Str
-}
+export interface BlockCodeLinePartRaw { code: Str }
 export interface BlockCodeLinePartCalloutConstructor { new(): BlockCodeLinePartCallout; }
-export interface BlockCodeLinePartCallout {
-  __eq__(other: BlockCodeLinePartCallout): boolean;
-  name: Str
-}
+export interface BlockCodeLinePartCallout { name: Str }
 export interface BlockCodeLinePartTangleConstructor { new(): BlockCodeLinePartTangle; }
-export interface BlockCodeLinePartTangle {
-  __eq__(other: BlockCodeLinePartTangle): boolean;
-  target: Str
-}
+export interface BlockCodeLinePartTangle { target: Str }
 export type BlockCodeLinePartData = haxorg_wasm.StdVariant<BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle>;
 export enum BlockCodeLinePartKind {
   Raw,
@@ -2884,7 +2762,7 @@ export enum BlockCodeLinePartKind {
 }
 export interface DocumentExportConfigConstructor { new(): DocumentExportConfig; }
 export interface DocumentExportConfig {
-  __eq__(other: DocumentExportConfig): boolean;
+  DocumentExportConfig(): void;
   isDoExport(): boolean;
   getDoExportConst(): DocumentExportConfigDoExport;
   getDoExportMut(): DocumentExportConfigDoExport;
@@ -2931,42 +2809,33 @@ export interface DocumentExportConfig {
   tocExport: DocumentExportConfigTocExport
 }
 export interface DocumentExportConfigTaskExportConstructor { new(): DocumentExportConfigTaskExport; }
-export interface DocumentExportConfigTaskExport {
-  __eq__(other: DocumentExportConfigTaskExport): boolean;
-  taskWhitelist: haxorg_wasm.HstdVec<Str>
-}
+export interface DocumentExportConfigTaskExport { taskWhitelist: haxorg_wasm.HstdVec<Str> }
 export enum DocumentExportConfigTagExport {
   None,
-  All,
-  NotInToc,
+  All = 1,
+  NotInToc = 2,
 }
 export enum DocumentExportConfigTaskFiltering {
   Whitelist,
-  Done,
-  None,
-  All,
+  Done = 1,
+  None = 2,
+  All = 3,
 }
 export enum DocumentExportConfigBrokenLinks {
   None,
-  Mark,
-  Raise,
-  Ignore,
+  Mark = 1,
+  Raise = 2,
+  Ignore = 3,
 }
 export enum DocumentExportConfigArchivedTrees {
   Skip,
-  Headline,
-  All,
+  Headline = 1,
+  All = 2,
 }
 export interface DocumentExportConfigDoExportConstructor { new(): DocumentExportConfigDoExport; }
-export interface DocumentExportConfigDoExport {
-  __eq__(other: DocumentExportConfigDoExport): boolean;
-  exportToc: boolean
-}
+export interface DocumentExportConfigDoExport { exportToc: boolean }
 export interface DocumentExportConfigExportFixedConstructor { new(): DocumentExportConfigExportFixed; }
-export interface DocumentExportConfigExportFixed {
-  __eq__(other: DocumentExportConfigExportFixed): boolean;
-  exportLevels: number
-}
+export interface DocumentExportConfigExportFixed { exportLevels: number }
 export type DocumentExportConfigTocExport = haxorg_wasm.StdVariant<DocumentExportConfigDoExport, DocumentExportConfigExportFixed>;
 export enum DocumentExportConfigTocExportKind {
   DoExport,
@@ -2974,26 +2843,25 @@ export enum DocumentExportConfigTocExportKind {
 }
 export interface SubtreePeriodConstructor { new(): SubtreePeriod; }
 export interface SubtreePeriod {
-  __eq__(other: SubtreePeriod): boolean;
   kind: SubtreePeriodKind
   from: UserTime
   to: haxorg_wasm.Optional<UserTime>
 }
 export enum SubtreePeriodKind {
   Clocked,
-  Closed,
-  Scheduled,
-  Titled,
-  Deadline,
-  Created,
-  Repeated,
+  Closed = 1,
+  Scheduled = 2,
+  Titled = 3,
+  Deadline = 4,
+  Created = 5,
+  Repeated = 6,
 }
 export interface NamedPropertyConstructor { new(): NamedProperty; }
 export interface NamedProperty {
   isMatching(kind: Str, subKind: haxorg_wasm.Optional<Str>): boolean;
   getName(): Str;
   getSubKind(): haxorg_wasm.Optional<Str>;
-  __eq__(other: NamedProperty): boolean;
+  NamedProperty(): void;
   isNonblocking(): boolean;
   getNonblockingConst(): NamedPropertyNonblocking;
   getNonblockingMut(): NamedPropertyNonblocking;
@@ -3084,145 +2952,142 @@ export interface NamedProperty {
 }
 export interface NamedPropertyNonblockingConstructor { new(): NamedPropertyNonblocking; }
 export interface NamedPropertyNonblocking {
-  __eq__(other: NamedPropertyNonblocking): boolean;
+  Nonblocking(): void;
   isBlocking: boolean
 }
 export interface NamedPropertyArchiveTimeConstructor { new(): NamedPropertyArchiveTime; }
 export interface NamedPropertyArchiveTime {
-  __eq__(other: NamedPropertyArchiveTime): boolean;
+  ArchiveTime(): void;
   time: UserTime
 }
 export interface NamedPropertyArchiveFileConstructor { new(): NamedPropertyArchiveFile; }
 export interface NamedPropertyArchiveFile {
-  __eq__(other: NamedPropertyArchiveFile): boolean;
+  ArchiveFile(): void;
   file: Str
 }
 export interface NamedPropertyArchiveOlpathConstructor { new(): NamedPropertyArchiveOlpath; }
 export interface NamedPropertyArchiveOlpath {
-  __eq__(other: NamedPropertyArchiveOlpath): boolean;
+  ArchiveOlpath(): void;
   path: SubtreePath
 }
 export interface NamedPropertyArchiveTargetConstructor { new(): NamedPropertyArchiveTarget; }
 export interface NamedPropertyArchiveTarget {
-  __eq__(other: NamedPropertyArchiveTarget): boolean;
+  ArchiveTarget(): void;
   path: SubtreePath
   pattern: Str
 }
 export interface NamedPropertyArchiveCategoryConstructor { new(): NamedPropertyArchiveCategory; }
 export interface NamedPropertyArchiveCategory {
-  __eq__(other: NamedPropertyArchiveCategory): boolean;
+  ArchiveCategory(): void;
   category: Str
 }
 export interface NamedPropertyArchiveTodoConstructor { new(): NamedPropertyArchiveTodo; }
 export interface NamedPropertyArchiveTodo {
-  __eq__(other: NamedPropertyArchiveTodo): boolean;
+  ArchiveTodo(): void;
   todo: Str
 }
 export interface NamedPropertyTriggerConstructor { new(): NamedPropertyTrigger; }
-export interface NamedPropertyTrigger { __eq__(other: NamedPropertyTrigger): boolean; }
+export interface NamedPropertyTrigger {  }
 export interface NamedPropertyExportLatexClassConstructor { new(): NamedPropertyExportLatexClass; }
 export interface NamedPropertyExportLatexClass {
-  __eq__(other: NamedPropertyExportLatexClass): boolean;
+  ExportLatexClass(): void;
   latexClass: Str
 }
 export interface NamedPropertyCookieDataConstructor { new(): NamedPropertyCookieData; }
 export interface NamedPropertyCookieData {
-  __eq__(other: NamedPropertyCookieData): boolean;
+  CookieData(): void;
   isRecursive: boolean
   source: SubtreeTodoSource
 }
 export interface NamedPropertyExportLatexClassOptionsConstructor { new(): NamedPropertyExportLatexClassOptions; }
 export interface NamedPropertyExportLatexClassOptions {
-  __eq__(other: NamedPropertyExportLatexClassOptions): boolean;
+  ExportLatexClassOptions(): void;
   options: haxorg_wasm.HstdVec<Str>
 }
 export interface NamedPropertyExportLatexHeaderConstructor { new(): NamedPropertyExportLatexHeader; }
 export interface NamedPropertyExportLatexHeader {
-  __eq__(other: NamedPropertyExportLatexHeader): boolean;
+  ExportLatexHeader(): void;
   header: Str
 }
 export interface NamedPropertyExportLatexCompilerConstructor { new(): NamedPropertyExportLatexCompiler; }
 export interface NamedPropertyExportLatexCompiler {
-  __eq__(other: NamedPropertyExportLatexCompiler): boolean;
+  ExportLatexCompiler(): void;
   compiler: Str
 }
 export interface NamedPropertyOrderedConstructor { new(): NamedPropertyOrdered; }
 export interface NamedPropertyOrdered {
-  __eq__(other: NamedPropertyOrdered): boolean;
+  Ordered(): void;
   isOrdered: boolean
 }
 export interface NamedPropertyEffortConstructor { new(): NamedPropertyEffort; }
 export interface NamedPropertyEffort {
-  __eq__(other: NamedPropertyEffort): boolean;
+  Effort(): void;
   hours: number
   minutes: number
 }
 export interface NamedPropertyVisibilityConstructor { new(): NamedPropertyVisibility; }
-export interface NamedPropertyVisibility {
-  __eq__(other: NamedPropertyVisibility): boolean;
-  level: NamedPropertyVisibilityLevel
-}
+export interface NamedPropertyVisibility { level: NamedPropertyVisibilityLevel }
 export enum NamedPropertyVisibilityLevel {
   Folded,
-  Children,
-  Content,
-  All,
+  Children = 1,
+  Content = 2,
+  All = 3,
 }
 export interface NamedPropertyExportOptionsConstructor { new(): NamedPropertyExportOptions; }
 export interface NamedPropertyExportOptions {
-  __eq__(other: NamedPropertyExportOptions): boolean;
+  ExportOptions(): void;
   backend: Str
   values: haxorg_wasm.HstdMap<Str, Str>
 }
 export interface NamedPropertyBlockerConstructor { new(): NamedPropertyBlocker; }
 export interface NamedPropertyBlocker {
-  __eq__(other: NamedPropertyBlocker): boolean;
+  Blocker(): void;
   blockers: haxorg_wasm.HstdVec<Str>
 }
 export interface NamedPropertyUnnumberedConstructor { new(): NamedPropertyUnnumbered; }
-export interface NamedPropertyUnnumbered { __eq__(other: NamedPropertyUnnumbered): boolean; }
+export interface NamedPropertyUnnumbered {  }
 export interface NamedPropertyCreatedConstructor { new(): NamedPropertyCreated; }
 export interface NamedPropertyCreated {
-  __eq__(other: NamedPropertyCreated): boolean;
+  Created(): void;
   time: TimeValue
 }
 export interface NamedPropertyRadioIdConstructor { new(): NamedPropertyRadioId; }
 export interface NamedPropertyRadioId {
-  __eq__(other: NamedPropertyRadioId): boolean;
+  RadioId(): void;
   words: haxorg_wasm.HstdVec<Str>
 }
 export interface NamedPropertyHashtagDefConstructor { new(): NamedPropertyHashtagDef; }
 export interface NamedPropertyHashtagDef {
-  __eq__(other: NamedPropertyHashtagDef): boolean;
+  HashtagDef(): void;
   hashtag: HashTagText
 }
 export interface NamedPropertyCustomArgsConstructor { new(): NamedPropertyCustomArgs; }
 export interface NamedPropertyCustomArgs {
-  __eq__(other: NamedPropertyCustomArgs): boolean;
+  CustomArgs(): void;
   name: Str
   sub: haxorg_wasm.Optional<Str>
   attrs: AttrGroup
 }
 export interface NamedPropertyCustomRawConstructor { new(): NamedPropertyCustomRaw; }
 export interface NamedPropertyCustomRaw {
-  __eq__(other: NamedPropertyCustomRaw): boolean;
+  CustomRaw(): void;
   name: Str
   value: Str
 }
 export interface NamedPropertyCustomIdConstructor { new(): NamedPropertyCustomId; }
 export interface NamedPropertyCustomId {
-  __eq__(other: NamedPropertyCustomId): boolean;
+  CustomId(): void;
   value: Str
 }
 export interface NamedPropertyCustomSubtreeJsonConstructor { new(): NamedPropertyCustomSubtreeJson; }
 export interface NamedPropertyCustomSubtreeJson {
-  __eq__(other: NamedPropertyCustomSubtreeJson): boolean;
+  CustomSubtreeJson(): void;
   name: Str
   value: OrgJson
 }
 export interface NamedPropertyCustomSubtreeFlagsConstructor { new(): NamedPropertyCustomSubtreeFlags; }
 export interface NamedPropertyCustomSubtreeFlags {
-  __eq__(other: NamedPropertyCustomSubtreeFlags): boolean;
+  CustomSubtreeFlags(): void;
   name: Str
   value: AttrGroup
 }
@@ -3258,7 +3123,7 @@ export enum NamedPropertyKind {
 }
 export interface OrgDiagnosticsConstructor { new(): OrgDiagnostics; }
 export interface OrgDiagnostics {
-  __eq__(other: OrgDiagnostics): boolean;
+  OrgDiagnostics(): void;
   isParseTokenError(): boolean;
   getParseTokenErrorConst(): OrgDiagnosticsParseTokenError;
   getParseTokenErrorMut(): OrgDiagnosticsParseTokenError;
@@ -3283,7 +3148,7 @@ export interface OrgDiagnostics {
 }
 export interface OrgDiagnosticsParseTokenErrorConstructor { new(): OrgDiagnosticsParseTokenError; }
 export interface OrgDiagnosticsParseTokenError {
-  __eq__(other: OrgDiagnosticsParseTokenError): boolean;
+  ParseTokenError(): void;
   brief: Str
   detail: Str
   parserFunction: Str
@@ -3296,7 +3161,7 @@ export interface OrgDiagnosticsParseTokenError {
 }
 export interface OrgDiagnosticsParseErrorConstructor { new(): OrgDiagnosticsParseError; }
 export interface OrgDiagnosticsParseError {
-  __eq__(other: OrgDiagnosticsParseError): boolean;
+  ParseError(): void;
   brief: Str
   detail: Str
   parserFunction: Str
@@ -3307,14 +3172,14 @@ export interface OrgDiagnosticsParseError {
 }
 export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
 export interface OrgDiagnosticsIncludeError {
-  __eq__(other: OrgDiagnosticsIncludeError): boolean;
+  IncludeError(): void;
   brief: Str
   targetPath: Str
   workingFile: Str
 }
 export interface OrgDiagnosticsConvertErrorConstructor { new(): OrgDiagnosticsConvertError; }
 export interface OrgDiagnosticsConvertError {
-  __eq__(other: OrgDiagnosticsConvertError): boolean;
+  ConvertError(): void;
   brief: Str
   detail: Str
   convertFunction: Str
@@ -3326,7 +3191,7 @@ export interface OrgDiagnosticsConvertError {
 }
 export interface OrgDiagnosticsInternalErrorConstructor { new(): OrgDiagnosticsInternalError; }
 export interface OrgDiagnosticsInternalError {
-  __eq__(other: OrgDiagnosticsInternalError): boolean;
+  InternalError(): void;
   message: Str
   function: Str
   line: number
@@ -3677,17 +3542,17 @@ export interface TimeRepeat {
 }
 export enum TimeRepeatMode {
   None,
-  Exact,
-  FirstMatch,
-  SameDay,
+  Exact = 1,
+  FirstMatch = 2,
+  SameDay = 3,
 }
 export enum TimeRepeatPeriod {
   Year,
-  Month,
-  Week,
-  Day,
-  Hour,
-  Minute,
+  Month = 1,
+  Week = 2,
+  Day = 3,
+  Hour = 4,
+  Minute = 5,
 }
 export interface TimeStaticConstructor { new(): TimeStatic; }
 export interface TimeStatic {
@@ -3829,10 +3694,10 @@ export interface CriticMarkup {
 }
 export enum CriticMarkupKind {
   Deletion,
-  Addition,
-  Substitution,
-  Highlighting,
-  Comment,
+  Addition = 1,
+  Substitution = 2,
+  Highlighting = 3,
+  Comment = 4,
 }
 export interface DocumentConstructor { new(): Document; }
 export interface Document {
@@ -4366,6 +4231,26 @@ export interface ImmIdTCmdCallConstructor { new(): ImmIdTCmdCall; }
 export interface ImmIdTCmdCall {  }
 export interface ImmIdTCmdTblfmConstructor { new(): ImmIdTCmdTblfm; }
 export interface ImmIdTCmdTblfm {  }
+export interface ImmIdTBlockCenterConstructor { new(): ImmIdTBlockCenter; }
+export interface ImmIdTBlockCenter {  }
+export interface ImmIdTBlockQuoteConstructor { new(): ImmIdTBlockQuote; }
+export interface ImmIdTBlockQuote {  }
+export interface ImmIdTBlockCommentConstructor { new(): ImmIdTBlockComment; }
+export interface ImmIdTBlockComment {  }
+export interface ImmIdTBlockVerseConstructor { new(): ImmIdTBlockVerse; }
+export interface ImmIdTBlockVerse {  }
+export interface ImmIdTBlockDynamicFallbackConstructor { new(): ImmIdTBlockDynamicFallback; }
+export interface ImmIdTBlockDynamicFallback {  }
+export interface ImmIdTBlockExampleConstructor { new(): ImmIdTBlockExample; }
+export interface ImmIdTBlockExample {  }
+export interface ImmIdTBlockExportConstructor { new(): ImmIdTBlockExport; }
+export interface ImmIdTBlockExport {  }
+export interface ImmIdTBlockAdmonitionConstructor { new(): ImmIdTBlockAdmonition; }
+export interface ImmIdTBlockAdmonition {  }
+export interface ImmIdTBlockCodeEvalResultConstructor { new(): ImmIdTBlockCodeEvalResult; }
+export interface ImmIdTBlockCodeEvalResult {  }
+export interface ImmIdTBlockCodeConstructor { new(): ImmIdTBlockCode; }
+export interface ImmIdTBlockCode {  }
 export interface ImmIdTHashTagConstructor { new(): ImmIdTHashTag; }
 export interface ImmIdTHashTag {  }
 export interface ImmIdTInlineFootnoteConstructor { new(): ImmIdTInlineFootnote; }
@@ -4428,26 +4313,6 @@ export interface ImmIdTLatexConstructor { new(): ImmIdTLatex; }
 export interface ImmIdTLatex {  }
 export interface ImmIdTLinkConstructor { new(): ImmIdTLink; }
 export interface ImmIdTLink {  }
-export interface ImmIdTBlockCenterConstructor { new(): ImmIdTBlockCenter; }
-export interface ImmIdTBlockCenter {  }
-export interface ImmIdTBlockQuoteConstructor { new(): ImmIdTBlockQuote; }
-export interface ImmIdTBlockQuote {  }
-export interface ImmIdTBlockCommentConstructor { new(): ImmIdTBlockComment; }
-export interface ImmIdTBlockComment {  }
-export interface ImmIdTBlockVerseConstructor { new(): ImmIdTBlockVerse; }
-export interface ImmIdTBlockVerse {  }
-export interface ImmIdTBlockDynamicFallbackConstructor { new(): ImmIdTBlockDynamicFallback; }
-export interface ImmIdTBlockDynamicFallback {  }
-export interface ImmIdTBlockExampleConstructor { new(): ImmIdTBlockExample; }
-export interface ImmIdTBlockExample {  }
-export interface ImmIdTBlockExportConstructor { new(): ImmIdTBlockExport; }
-export interface ImmIdTBlockExport {  }
-export interface ImmIdTBlockAdmonitionConstructor { new(): ImmIdTBlockAdmonition; }
-export interface ImmIdTBlockAdmonition {  }
-export interface ImmIdTBlockCodeEvalResultConstructor { new(): ImmIdTBlockCodeEvalResult; }
-export interface ImmIdTBlockCodeEvalResult {  }
-export interface ImmIdTBlockCodeConstructor { new(): ImmIdTBlockCode; }
-export interface ImmIdTBlockCode {  }
 export interface ImmIdTSubtreeLogConstructor { new(): ImmIdTSubtreeLog; }
 export interface ImmIdTSubtreeLog {  }
 export interface ImmIdTSubtreeConstructor { new(): ImmIdTSubtree; }
@@ -4518,14 +4383,14 @@ export interface CmdCustomText {
   isAttached: boolean
   text: Paragraph
 }
+export interface BlockCommentConstructor { new(): BlockComment; }
+export interface BlockComment { getKind(): OrgSemKind; }
 export interface LinkConstructor { new(): Link; }
 export interface Link {
   getKind(): OrgSemKind;
   description: haxorg_wasm.Optional<Paragraph>
   target: LinkTarget
 }
-export interface BlockCommentConstructor { new(): BlockComment; }
-export interface BlockComment { getKind(): OrgSemKind; }
 export interface ParagraphConstructor { new(): Paragraph; }
 export interface Paragraph {
   getKind(): OrgSemKind;
@@ -4625,17 +4490,17 @@ export interface ImmCmdCustomText {
   isAttached: boolean
   text: ImmIdTParagraph<ImmParagraph>
 }
+export interface ImmBlockCommentConstructor { new(): ImmBlockComment; }
+export interface ImmBlockComment {
+  getKind(): OrgSemKind;
+  __eq__(other: ImmBlockComment): boolean;
+}
 export interface ImmLinkConstructor { new(): ImmLink; }
 export interface ImmLink {
   getKind(): OrgSemKind;
   __eq__(other: ImmLink): boolean;
   description: ImmBoxOfOptOfImmIdTParagraphOfImmParagraph<haxorg_wasm.Optional<ImmIdTParagraph<ImmParagraph>>>
   target: LinkTarget
-}
-export interface ImmBlockCommentConstructor { new(): ImmBlockComment; }
-export interface ImmBlockComment {
-  getKind(): OrgSemKind;
-  __eq__(other: ImmBlockComment): boolean;
 }
 export interface ImmParagraphConstructor { new(): ImmParagraph; }
 export interface ImmParagraph {

@@ -9,7 +9,6 @@ from hstd_py_text_layout.base.wrap import TextLayout
 from loguru import logger
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     PyhaxorgTypeGroups,
-    get_pyhaxorg_type_groups,
 )
 from repo_py_orchestrate.codegen_config.gen_haxorg.cpp_sources import gen_haxorg_source
 from repo_py_orchestrate.codegen_config.gen_wrappers.c_wrap import (

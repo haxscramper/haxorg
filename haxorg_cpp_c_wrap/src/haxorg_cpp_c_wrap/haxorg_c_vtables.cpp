@@ -135,18 +135,6 @@ haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<hstd::Str>>:
                                                 .destroy = &VtableType::destroy,};
   return &vtable;
 }
-haxorg_ptr_payload org::bind::c::VTable<std::optional<std::string>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
-  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<std::string> const& __self) -> std::string const& { return __self.value(); }, org_context, __self);
-}
-void org::bind::c::VTable<std::optional<std::string>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
-  org::bind::c::execute_destroy<std::optional<std::string>, haxorg_StdOptional>(org_context, __self);
-}
-haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<std::string>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<std::optional<std::string>>;
-  static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
-                                                .destroy = &VtableType::destroy,};
-  return &vtable;
-}
 haxorg_ptr_payload org::bind::c::VTable<std::optional<hstd::UserTime>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
   return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<hstd::UserTime> const& __self) -> hstd::UserTime const& { return __self.value(); }, org_context, __self);
 }
@@ -215,6 +203,18 @@ void org::bind::c::VTable<std::optional<org::parse::SourceLoc>>::destroy(OrgCont
 }
 haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<org::parse::SourceLoc>>::get_vtable() {
   using VtableType = org::bind::c::VTable<std::optional<org::parse::SourceLoc>>;
+  static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
+                                                .destroy = &VtableType::destroy,};
+  return &vtable;
+}
+haxorg_ptr_payload org::bind::c::VTable<std::optional<std::string>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
+  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<std::string> const& __self) -> std::string const& { return __self.value(); }, org_context, __self);
+}
+void org::bind::c::VTable<std::optional<std::string>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
+  org::bind::c::execute_destroy<std::optional<std::string>, haxorg_StdOptional>(org_context, __self);
+}
+haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<std::string>>::get_vtable() {
+  using VtableType = org::bind::c::VTable<std::optional<std::string>>;
   static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
                                                 .destroy = &VtableType::destroy,};
   return &vtable;
@@ -363,14 +363,14 @@ haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<org::sem::Se
                                                 .destroy = &VtableType::destroy,};
   return &vtable;
 }
-haxorg_ptr_payload org::bind::c::VTable<std::optional<LinkVisibility>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
-  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<LinkVisibility> const& __self) -> LinkVisibility const& { return __self.value(); }, org_context, __self);
+haxorg_ptr_payload org::bind::c::VTable<std::optional<org::sem::LinkVisibility>>::value(OrgContext* org_context, haxorg_StdOptional __self) {
+  return org::bind::c::execute_cpp<haxorg_ptr_payload>(+[](std::optional<org::sem::LinkVisibility> const& __self) -> org::sem::LinkVisibility const& { return __self.value(); }, org_context, __self);
 }
-void org::bind::c::VTable<std::optional<LinkVisibility>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
-  org::bind::c::execute_destroy<std::optional<LinkVisibility>, haxorg_StdOptional>(org_context, __self);
+void org::bind::c::VTable<std::optional<org::sem::LinkVisibility>>::destroy(OrgContext* org_context, haxorg_StdOptional* __self) {
+  org::bind::c::execute_destroy<std::optional<org::sem::LinkVisibility>, haxorg_StdOptional>(org_context, __self);
 }
-haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<LinkVisibility>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<std::optional<LinkVisibility>>;
+haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<org::sem::LinkVisibility>>::get_vtable() {
+  using VtableType = org::bind::c::VTable<std::optional<org::sem::LinkVisibility>>;
   static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
                                                 .destroy = &VtableType::destroy,};
   return &vtable;
@@ -382,7 +382,7 @@ void org::bind::c::VTable<std::optional<org::sem::BlockVisibility>>::destroy(Org
   org::bind::c::execute_destroy<std::optional<org::sem::BlockVisibility>, haxorg_StdOptional>(org_context, __self);
 }
 haxorg_StdOptional_vtable const* org::bind::c::VTable<std::optional<org::sem::BlockVisibility>>::get_vtable() {
-  using VtableType = org::bind::c::VTable<std::optional<BlockVisibility>>;
+  using VtableType = org::bind::c::VTable<std::optional<org::sem::BlockVisibility>>;
   static haxorg_StdOptional_vtable const vtable{.value = &VtableType::value,
                                                 .destroy = &VtableType::destroy,};
   return &vtable;

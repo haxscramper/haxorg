@@ -193,6 +193,7 @@ struct Tblfm {
         using variant_data_type = org::sem::Tblfm::Expr::AxisRef::Position::Data;
         BOOST_DESCRIBE_CLASS(Position, (), (), (), (data));
         org::sem::Tblfm::Expr::AxisRef::Position::Data data;
+        Position() {  }
         bool operator==(org::sem::Tblfm::Expr::AxisRef::Position const& other) const;
         bool isIndex() const { return getKind() == Kind::Index; }
         org::sem::Tblfm::Expr::AxisRef::Position::Index const& getIndex() const { return hstd::variant_get<0>(data); }
@@ -210,24 +211,28 @@ struct Tblfm {
       BOOST_DESCRIBE_CLASS(AxisRef, (), (), (), (col, row));
       org::sem::Tblfm::Expr::AxisRef::Position col;
       hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position> row = std::nullopt;
+      AxisRef() {  }
       bool operator==(org::sem::Tblfm::Expr::AxisRef const& other) const;
     };
 
     struct AxisName {
       BOOST_DESCRIBE_CLASS(AxisName, (), (), (), (name));
       hstd::Str name;
+      AxisName() {  }
       bool operator==(org::sem::Tblfm::Expr::AxisName const& other) const;
     };
 
     struct IntLiteral {
       BOOST_DESCRIBE_CLASS(IntLiteral, (), (), (), (value));
       int value;
+      IntLiteral() {  }
       bool operator==(org::sem::Tblfm::Expr::IntLiteral const& other) const;
     };
 
     struct FloatLiteral {
       BOOST_DESCRIBE_CLASS(FloatLiteral, (), (), (), (value));
       float value;
+      FloatLiteral() {  }
       bool operator==(org::sem::Tblfm::Expr::FloatLiteral const& other) const;
     };
 
@@ -235,6 +240,7 @@ struct Tblfm {
       BOOST_DESCRIBE_CLASS(RangeRef, (), (), (), (first, last));
       hstd::Opt<org::sem::Tblfm::Expr::AxisRef> first = std::nullopt;
       hstd::Opt<org::sem::Tblfm::Expr::AxisRef> last = std::nullopt;
+      RangeRef() {  }
       bool operator==(org::sem::Tblfm::Expr::RangeRef const& other) const;
     };
 
@@ -242,12 +248,14 @@ struct Tblfm {
       BOOST_DESCRIBE_CLASS(Call, (), (), (), (name, args));
       hstd::Str name;
       hstd::Vec<org::sem::Tblfm::Expr> args;
+      Call() {  }
       bool operator==(org::sem::Tblfm::Expr::Call const& other) const;
     };
 
     struct Elisp {
       BOOST_DESCRIBE_CLASS(Elisp, (), (), (), (value));
       hstd::Str value;
+      Elisp() {  }
       bool operator==(org::sem::Tblfm::Expr::Elisp const& other) const;
     };
 
@@ -258,6 +266,7 @@ struct Tblfm {
     using variant_data_type = org::sem::Tblfm::Expr::Data;
     BOOST_DESCRIBE_CLASS(Expr, (), (), (), (data));
     org::sem::Tblfm::Expr::Data data;
+    Expr() {  }
     bool operator==(org::sem::Tblfm::Expr const& other) const;
     bool isAxisRef() const { return getKind() == Kind::AxisRef; }
     org::sem::Tblfm::Expr::AxisRef const& getAxisRef() const { return hstd::variant_get<0>(data); }
@@ -326,6 +335,7 @@ struct Tblfm {
     org::sem::Tblfm::Expr::AxisRef target;
     hstd::Vec<org::sem::Tblfm::Expr> expr;
     hstd::Vec<org::sem::Tblfm::Assign::Flag> flags;
+    Assign() {  }
     bool operator==(org::sem::Tblfm::Assign const& other) const;
   };
 
@@ -340,12 +350,14 @@ struct AttrValue {
     BOOST_DESCRIBE_CLASS(DimensionSpan, (), (), (), (first, last));
     int first = 0;
     hstd::Opt<int> last = std::nullopt;
+    DimensionSpan() {  }
     bool operator==(org::sem::AttrValue::DimensionSpan const& other) const;
   };
 
   struct TextValue {
     BOOST_DESCRIBE_CLASS(TextValue, (), (), (), (value));
     hstd::Str value;
+    TextValue() {  }
     bool operator==(org::sem::AttrValue::TextValue const& other) const;
   };
 
@@ -353,12 +365,14 @@ struct AttrValue {
     BOOST_DESCRIBE_CLASS(FileReference, (), (), (), (file, reference));
     hstd::Str file;
     hstd::Str reference;
+    FileReference() {  }
     bool operator==(org::sem::AttrValue::FileReference const& other) const;
   };
 
   struct LispValue {
     BOOST_DESCRIBE_CLASS(LispValue, (), (), (), (code));
     org::sem::LispCode code;
+    LispValue() {  }
     bool operator==(org::sem::AttrValue::LispValue const& other) const;
   };
 
@@ -378,6 +392,7 @@ struct AttrValue {
   hstd::Opt<int> getInt() const;
   hstd::Str getString() const;
   hstd::Opt<double> getDouble() const;
+  AttrValue() {  }
   bool operator==(org::sem::AttrValue const& other) const;
   bool isTextValue() const { return getKind() == Kind::TextValue; }
   org::sem::AttrValue::TextValue const& getTextValue() const { return hstd::variant_get<0>(data); }
@@ -399,6 +414,7 @@ struct HashTagFlat {
   BOOST_DESCRIBE_CLASS(HashTagFlat, (), (), (), (tags));
   hstd::Vec<hstd::Str> tags;
   bool operator<(org::sem::HashTagFlat const& other) const;
+  HashTagFlat() {  }
   bool operator==(org::sem::HashTagFlat const& other) const;
 };
 
@@ -410,6 +426,7 @@ struct TodoKeyword {
   hstd::Opt<hstd::Str> shortcut = std::nullopt;
   org::sem::TodoKeyword::Transition onEnter;
   org::sem::TodoKeyword::Transition onLeave;
+  TodoKeyword() {  }
   bool operator==(org::sem::TodoKeyword const& other) const;
 };
 
@@ -424,12 +441,14 @@ struct HashTagText {
   bool prefixMatch(hstd::Vec<hstd::Str> const& prefix) const;
   /// \brief Get flat list of expanded hashtags
   hstd::Vec<org::sem::HashTagFlat> getFlatHashes(bool withIntermediate = true) const;
+  HashTagText() {  }
   bool operator==(org::sem::HashTagText const& other) const;
 };
 
 struct SubtreePath {
   BOOST_DESCRIBE_CLASS(SubtreePath, (), (), (), (path));
   hstd::Vec<hstd::Str> path;
+  SubtreePath() {  }
   bool operator==(org::sem::SubtreePath const& other) const;
 };
 
@@ -437,18 +456,21 @@ struct LinkTarget {
   struct Raw {
     BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text));
     hstd::Str text;
+    Raw() {  }
     bool operator==(org::sem::LinkTarget::Raw const& other) const;
   };
 
   struct Id {
     BOOST_DESCRIBE_CLASS(Id, (), (), (), (text));
     hstd::Str text;
+    Id() {  }
     bool operator==(org::sem::LinkTarget::Id const& other) const;
   };
 
   struct CustomId {
     BOOST_DESCRIBE_CLASS(CustomId, (), (), (), (text));
     hstd::Str text;
+    CustomId() {  }
     bool operator==(org::sem::LinkTarget::CustomId const& other) const;
   };
 
@@ -456,12 +478,14 @@ struct LinkTarget {
     BOOST_DESCRIBE_CLASS(SubtreeTitle, (), (), (), (title, level));
     org::sem::SubtreePath title;
     int level;
+    SubtreeTitle() {  }
     bool operator==(org::sem::LinkTarget::SubtreeTitle const& other) const;
   };
 
   struct Person {
     BOOST_DESCRIBE_CLASS(Person, (), (), (), (name));
     hstd::Str name;
+    Person() {  }
     bool operator==(org::sem::LinkTarget::Person const& other) const;
   };
 
@@ -469,30 +493,35 @@ struct LinkTarget {
     BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target));
     hstd::Str protocol;
     hstd::Str target;
+    UserProtocol() {  }
     bool operator==(org::sem::LinkTarget::UserProtocol const& other) const;
   };
 
   struct Internal {
     BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target));
     hstd::Str target;
+    Internal() {  }
     bool operator==(org::sem::LinkTarget::Internal const& other) const;
   };
 
   struct Footnote {
     BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target));
     hstd::Str target;
+    Footnote() {  }
     bool operator==(org::sem::LinkTarget::Footnote const& other) const;
   };
 
   struct File {
     BOOST_DESCRIBE_CLASS(File, (), (), (), (file));
     hstd::Str file;
+    File() {  }
     bool operator==(org::sem::LinkTarget::File const& other) const;
   };
 
   struct Attachment {
     BOOST_DESCRIBE_CLASS(Attachment, (), (), (), (file));
     hstd::Str file;
+    Attachment() {  }
     bool operator==(org::sem::LinkTarget::Attachment const& other) const;
   };
 
@@ -503,7 +532,6 @@ struct LinkTarget {
   using variant_data_type = org::sem::LinkTarget::Data;
   BOOST_DESCRIBE_CLASS(LinkTarget, (), (), (), (data));
   org::sem::LinkTarget::Data data;
-  LinkTarget(org::sem::LinkTarget::Data const& data) : data{data} {  }
   LinkTarget() {  }
   bool operator==(org::sem::LinkTarget const& other) const;
   bool isRaw() const { return getKind() == Kind::Raw; }
@@ -565,6 +593,7 @@ struct SubtreeLogHead {
     hstd::UserTime on;
     /// \brief Which action taken
     org::sem::SubtreeLogHead::Priority::Action action;
+    Priority() {  }
     bool operator==(org::sem::SubtreeLogHead::Priority const& other) const;
   };
 
@@ -573,6 +602,7 @@ struct SubtreeLogHead {
     BOOST_DESCRIBE_CLASS(Note, (), (), (), (on));
     /// \brief Where log was taken
     hstd::UserTime on;
+    Note() {  }
     bool operator==(org::sem::SubtreeLogHead::Note const& other) const;
   };
 
@@ -583,6 +613,7 @@ struct SubtreeLogHead {
     hstd::UserTime on;
     /// \brief Link to the original subtree
     org::sem::LinkTarget from;
+    Refile() {  }
     bool operator==(org::sem::SubtreeLogHead::Refile const& other) const;
   };
 
@@ -593,6 +624,7 @@ struct SubtreeLogHead {
     hstd::UserTime from;
     /// \brief Optional end of the clock
     hstd::Opt<hstd::UserTime> to = std::nullopt;
+    Clock() {  }
     bool operator==(org::sem::SubtreeLogHead::Clock const& other) const;
   };
 
@@ -602,6 +634,7 @@ struct SubtreeLogHead {
     hstd::Str from;
     hstd::Str to;
     hstd::UserTime on;
+    State() {  }
     bool operator==(org::sem::SubtreeLogHead::State const& other) const;
   };
 
@@ -611,6 +644,7 @@ struct SubtreeLogHead {
     hstd::Opt<hstd::UserTime> from = std::nullopt;
     hstd::UserTime to;
     hstd::UserTime on;
+    Deadline() {  }
     bool operator==(org::sem::SubtreeLogHead::Deadline const& other) const;
   };
 
@@ -620,6 +654,7 @@ struct SubtreeLogHead {
     hstd::Opt<hstd::UserTime> from = std::nullopt;
     hstd::UserTime to;
     hstd::UserTime on;
+    Schedule() {  }
     bool operator==(org::sem::SubtreeLogHead::Schedule const& other) const;
   };
 
@@ -632,12 +667,14 @@ struct SubtreeLogHead {
     org::sem::HashTagText tag;
     /// \brief Added/removed?
     bool added = false;
+    Tag() {  }
     bool operator==(org::sem::SubtreeLogHead::Tag const& other) const;
   };
 
   /// \brief Unknown subtree log entry kind
   struct Unknown {
     BOOST_DESCRIBE_CLASS(Unknown, (), (), (), ());
+    Unknown() {  }
     bool operator==(org::sem::SubtreeLogHead::Unknown const& other) const;
   };
 
@@ -648,6 +685,7 @@ struct SubtreeLogHead {
   using variant_data_type = org::sem::SubtreeLogHead::LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLogHead, (), (), (), (log));
   org::sem::SubtreeLogHead::LogEntry log = Note{};
+  SubtreeLogHead() {  }
   bool operator==(org::sem::SubtreeLogHead const& other) const;
   bool isPriority() const { return getLogKind() == Kind::Priority; }
   org::sem::SubtreeLogHead::Priority const& getPriority() const { return hstd::variant_get<0>(log); }
@@ -692,12 +730,14 @@ struct SubtreeCompletion {
   int full = 0;
   /// \brief Use fraction or percent to display completion
   bool isPercent = false;
+  SubtreeCompletion() {  }
   bool operator==(org::sem::SubtreeCompletion const& other) const;
 };
 
 struct AttrList {
   BOOST_DESCRIBE_CLASS(AttrList, (), (), (), (items));
   hstd::Vec<org::sem::AttrValue> items;
+  AttrList() {  }
   bool operator==(org::sem::AttrList const& other) const;
 };
 
@@ -725,6 +765,7 @@ struct AttrGroup {
   hstd::Opt<org::sem::AttrValue> getFirstVarNamed(hstd::Str const& index) const;
   org::sem::AttrValue const& atFirstNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrValue> getFirstNamed(hstd::Str const& index) const;
+  AttrGroup() {  }
   bool operator==(org::sem::AttrGroup const& other) const;
 };
 
@@ -733,7 +774,6 @@ struct OrgCodeEvalInput {
     BOOST_DESCRIBE_CLASS(Var, (), (), (), (name, value));
     hstd::Str name;
     org::sem::OrgJson value;
-    bool operator==(org::sem::OrgCodeEvalInput::Var const& other) const;
   };
 
   /// \brief What context to use for results
@@ -783,6 +823,7 @@ struct OrgCodeEvalInput {
   hstd::Str language;
   hstd::Vec<org::sem::OrgCodeEvalInput::Var> argList;
   hstd::Opt<org::sem::OrgCodeEvalInput::Var> getVariable(hstd::Str const& name) const;
+  OrgCodeEvalInput() {  }
   bool operator==(org::sem::OrgCodeEvalInput const& other) const;
 };
 
@@ -806,6 +847,7 @@ struct OrgCodeEvalOutput {
   hstd::Str cwd;
   /// \brief Final set of header arguments applied during evaluation
   org::sem::AttrGroup appliedHeaderArg;
+  OrgCodeEvalOutput() {  }
   bool operator==(org::sem::OrgCodeEvalOutput const& other) const;
 };
 
@@ -816,6 +858,7 @@ struct ColumnView {
       BOOST_DESCRIBE_NESTED_ENUM(Kind, IfAllNested, AggregateFractionRec, AggregatePercentRec)
       BOOST_DESCRIBE_CLASS(CheckboxAggregate, (), (), (), (kind));
       org::sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
+      CheckboxAggregate() {  }
       bool operator==(org::sem::ColumnView::Summary::CheckboxAggregate const& other) const;
     };
 
@@ -826,6 +869,7 @@ struct ColumnView {
       org::sem::ColumnView::Summary::MathAggregate::Kind kind;
       hstd::Opt<int> formatDigits = std::nullopt;
       hstd::Opt<int> formatPrecision = std::nullopt;
+      MathAggregate() {  }
       bool operator==(org::sem::ColumnView::Summary::MathAggregate const& other) const;
     };
 
@@ -836,6 +880,7 @@ struct ColumnView {
     using variant_data_type = org::sem::ColumnView::Summary::Data;
     BOOST_DESCRIBE_CLASS(Summary, (), (), (), (data));
     org::sem::ColumnView::Summary::Data data;
+    Summary() {  }
     bool operator==(org::sem::ColumnView::Summary const& other) const;
     bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
     org::sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return hstd::variant_get<0>(data); }
@@ -856,11 +901,13 @@ struct ColumnView {
     hstd::Opt<int> width = std::nullopt;
     hstd::Opt<hstd::Str> property = std::nullopt;
     hstd::Opt<hstd::Str> propertyTitle = std::nullopt;
+    Column() {  }
     bool operator==(org::sem::ColumnView::Column const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(ColumnView, (), (), (), (columns));
   hstd::Vec<org::sem::ColumnView::Column> columns;
+  ColumnView() {  }
   bool operator==(org::sem::ColumnView const& other) const;
 };
 
@@ -869,18 +916,21 @@ struct BlockCodeLine {
     struct Raw {
       BOOST_DESCRIBE_CLASS(Raw, (), (), (), (code));
       hstd::Str code;
+      Raw() {  }
       bool operator==(org::sem::BlockCodeLine::Part::Raw const& other) const;
     };
 
     struct Callout {
       BOOST_DESCRIBE_CLASS(Callout, (), (), (), (name));
       hstd::Str name;
+      Callout() {  }
       bool operator==(org::sem::BlockCodeLine::Part::Callout const& other) const;
     };
 
     struct Tangle {
       BOOST_DESCRIBE_CLASS(Tangle, (), (), (), (target));
       hstd::Str target;
+      Tangle() {  }
       bool operator==(org::sem::BlockCodeLine::Part::Tangle const& other) const;
     };
 
@@ -891,6 +941,7 @@ struct BlockCodeLine {
     using variant_data_type = org::sem::BlockCodeLine::Part::Data;
     BOOST_DESCRIBE_CLASS(Part, (), (), (), (data));
     org::sem::BlockCodeLine::Part::Data data;
+    Part() {  }
     bool operator==(org::sem::BlockCodeLine::Part const& other) const;
     bool isRaw() const { return getKind() == Kind::Raw; }
     org::sem::BlockCodeLine::Part::Raw const& getRaw() const { return hstd::variant_get<0>(data); }
@@ -911,6 +962,7 @@ struct BlockCodeLine {
   BOOST_DESCRIBE_CLASS(BlockCodeLine, (), (), (), (parts));
   /// \brief parts of the single line
   hstd::Vec<org::sem::BlockCodeLine::Part> parts;
+  BlockCodeLine() {  }
   bool operator==(org::sem::BlockCodeLine const& other) const;
 };
 
@@ -918,7 +970,6 @@ struct DocumentExportConfig {
   struct TaskExport {
     BOOST_DESCRIBE_CLASS(TaskExport, (), (), (), (taskWhitelist));
     hstd::Vec<hstd::Str> taskWhitelist;
-    bool operator==(org::sem::DocumentExportConfig::TaskExport const& other) const;
   };
 
   enum class TagExport : short int {
@@ -954,13 +1005,11 @@ struct DocumentExportConfig {
   struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc));
     bool exportToc;
-    bool operator==(org::sem::DocumentExportConfig::DoExport const& other) const;
   };
 
   struct ExportFixed {
     BOOST_DESCRIBE_CLASS(ExportFixed, (), (), (), (exportLevels));
     int exportLevels;
-    bool operator==(org::sem::DocumentExportConfig::ExportFixed const& other) const;
   };
 
   using TocExport = std::variant<org::sem::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::ExportFixed>;
@@ -1104,6 +1153,7 @@ struct SubtreePeriod {
   hstd::UserTime from;
   /// \brief Optional end of the clock
   hstd::Opt<hstd::UserTime> to = std::nullopt;
+  SubtreePeriod() {  }
   bool operator==(org::sem::SubtreePeriod const& other) const;
 };
 
@@ -1161,7 +1211,6 @@ struct NamedProperty {
 
   struct Trigger {
     BOOST_DESCRIBE_CLASS(Trigger, (), (), (), ());
-    bool operator==(org::sem::NamedProperty::Trigger const& other) const;
   };
 
   struct ExportLatexClass {
@@ -1221,7 +1270,6 @@ struct NamedProperty {
     BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
     BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level));
     org::sem::NamedProperty::Visibility::Level level;
-    bool operator==(org::sem::NamedProperty::Visibility const& other) const;
   };
 
   struct ExportOptions {
@@ -1241,7 +1289,6 @@ struct NamedProperty {
 
   struct Unnumbered {
     BOOST_DESCRIBE_CLASS(Unnumbered, (), (), (), ());
-    bool operator==(org::sem::NamedProperty::Unnumbered const& other) const;
   };
 
   struct Created {
@@ -1333,7 +1380,6 @@ struct NamedProperty {
   /// \brief Get non-normalized sub-kind for the property.
   hstd::Opt<hstd::Str> getSubKind() const;
   NamedProperty() {  }
-  bool operator==(org::sem::NamedProperty const& other) const;
   bool isNonblocking() const { return getKind() == Kind::Nonblocking; }
   org::sem::NamedProperty::Nonblocking const& getNonblocking() const { return hstd::variant_get<0>(data); }
   org::sem::NamedProperty::Nonblocking& getNonblocking() { return hstd::variant_get<0>(data); }
@@ -1521,7 +1567,6 @@ struct OrgDiagnostics {
   BOOST_DESCRIBE_CLASS(OrgDiagnostics, (), (), (), (data));
   org::sem::OrgDiagnostics::Data data;
   OrgDiagnostics() {  }
-  bool operator==(org::sem::OrgDiagnostics const& other) const;
   bool isParseTokenError() const { return getKind() == Kind::ParseTokenError; }
   org::sem::OrgDiagnostics::ParseTokenError const& getParseTokenError() const { return hstd::variant_get<0>(data); }
   org::sem::OrgDiagnostics::ParseTokenError& getParseTokenError() { return hstd::variant_get<0>(data); }

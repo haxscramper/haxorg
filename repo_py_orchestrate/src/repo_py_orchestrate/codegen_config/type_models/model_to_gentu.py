@@ -4,6 +4,7 @@ from typing import Any, Sequence
 
 import glom
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
+from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuDoc,
     GenTuEntry,
@@ -51,7 +52,7 @@ from loguru import logger
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     OrgTypeGroup,
     PyhaxorgTypeGroups,
-    get_osk_enum,
+    get_concrete_types,
     populate_immutable_type_groups,
 )
 
@@ -72,7 +73,6 @@ class CppModelConfig:
     namespaces: dict[str, tuple[str, ...]] = field(
         default_factory=lambda: dict(DEFAULT_NAMESPACES),
     )
-    default_shared_equality: bool = True
 
 
 def cpp_config(declaration: RecordDef | EnumDef | MethodDef) -> dict[str, Any]:
@@ -801,10 +801,7 @@ class ModelToGenTu:
                 ),
             )
 
-        default_equality = options.get(
-            "default_eq",
-            self.config.default_shared_equality and not is_ast,
-        )
+        default_equality = options.get("default_eq", False)
         if default_equality and not any(
             method.Name == "operator==" for method in result.Methods
         ):
@@ -936,5 +933,15 @@ def get_pyhaxorg_type_groups_via_dsl(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
     result = PyhaxorgTypeGroups()
     result.shared_types = expand_type_groups(ast, shared_types)
     populate_immutable_type_groups(ast, result, sem_types)
-    result.full_enums = enums + [get_osk_enum(result.sem_node_definitions)]
+
+    osk_enum = codegen_ir.GenTuEnum(
+        named_cpp_type(AST_KIND_NAME),
+        codegen_ir.GenTuDoc(""),
+        Fields=[
+            codegen_ir.GenTuEnumField(struct.Name.Name, codegen_ir.GenTuDoc(""))
+            for struct in get_concrete_types(result.sem_node_definitions)
+        ],
+    )
+
+    result.full_enums = enums + [osk_enum]
     return result

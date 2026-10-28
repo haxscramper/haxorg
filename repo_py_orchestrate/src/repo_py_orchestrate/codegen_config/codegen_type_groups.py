@@ -4,7 +4,6 @@ from enum import Enum, auto
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 import repo_py_orchestrate.codegen_config.gen_haxorg.immutable as gen_imm
-import repo_py_orchestrate.codegen_config.org_codegen_data as org_data
 from beartype import beartype
 from beartype.typing import List, Sequence
 from hstd_py_codegen.gen_cpp import codegen_ir
@@ -27,18 +26,6 @@ def get_concrete_types(
     expanded: List[codegen_ir.GenTuStruct],
 ) -> Sequence[codegen_ir.GenTuStruct]:
     return [struct for struct in expanded if not struct.IsAbstract]
-
-
-@beartype
-def get_osk_enum(expanded: List[codegen_ir.GenTuStruct]) -> codegen_ir.GenTuEnum:
-    return codegen_ir.GenTuEnum(
-        QualType.ForName(org_data.t_osk().Name),
-        codegen_ir.GenTuDoc(""),
-        Fields=[
-            codegen_ir.GenTuEnumField(struct.Name.Name, codegen_ir.GenTuDoc(""))
-            for struct in get_concrete_types(expanded)
-        ],
-    )
 
 
 @beartype
@@ -133,17 +120,3 @@ def populate_immutable_type_groups(
                 Bases=[QualType.ForName("ImmId", Spaces=imm_space)],
             )
         )
-
-
-@beartype
-def get_pyhaxorg_type_groups(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
-    """Get type groups for source generation and wrappers."""
-    res = PyhaxorgTypeGroups()
-    res.shared_types = expand_type_groups(ast, org_data.get_shared_sem_types())
-    populate_immutable_type_groups(ast, res, org_data.get_sem_node_definitions())
-    res.full_enums = (
-        org_data.get_shared_sem_enums()
-        + org_data.get_enums()
-        + [get_osk_enum(res.sem_node_definitions)]
-    )
-    return res
