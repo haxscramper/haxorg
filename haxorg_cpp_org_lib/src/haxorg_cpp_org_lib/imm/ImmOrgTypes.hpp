@@ -17,7 +17,7 @@ struct ImmErrorItem : public org::imm::ImmOrg {
   virtual ~ImmErrorItem() = default;
   BOOST_DESCRIBE_CLASS(ImmErrorItem, (ImmOrg), (), (), (staticKind, diag));
   static org::sem::OrgSemKind const staticKind;
-  org::sem::OrgDiagnostics diag = {};
+  org::sem::OrgDiagnostics diag;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::ErrorItem; }
   bool operator==(org::imm::ImmErrorItem const& other) const;
 };
@@ -28,7 +28,7 @@ struct ImmErrorGroup : public org::imm::ImmOrg {
   virtual ~ImmErrorGroup() = default;
   BOOST_DESCRIBE_CLASS(ImmErrorGroup, (ImmOrg), (), (), (staticKind, diagnostics));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> diagnostics = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorItem>> diagnostics;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::ErrorGroup; }
   bool operator==(org::imm::ImmErrorGroup const& other) const;
 };
@@ -38,7 +38,7 @@ struct ImmStmt : public org::imm::ImmOrg {
   using ImmOrg::ImmOrg;
   virtual ~ImmStmt() = default;
   BOOST_DESCRIBE_CLASS(ImmStmt, (ImmOrg), (), (), (attached));
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> attached = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> attached;
   bool operator==(org::imm::ImmStmt const& other) const;
 };
 
@@ -76,7 +76,7 @@ struct ImmCmd : public org::imm::ImmStmt {
   virtual ~ImmCmd() = default;
   BOOST_DESCRIBE_CLASS(ImmCmd, (ImmStmt), (), (), (attrs));
   /// \brief Additional parameters aside from 'exporter',
-  org::sem::AttrGroup attrs = {};
+  org::sem::AttrGroup attrs;
   bool operator==(org::imm::ImmCmd const& other) const;
 };
 
@@ -155,7 +155,7 @@ struct ImmCmdEmail : public org::imm::ImmCmd {
   virtual ~ImmCmdEmail() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdEmail, (ImmCmd), (), (), (staticKind, text));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> text = {};
+  hstd::ext::ImmBox<hstd::Str> text;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdEmail; }
   bool operator==(org::imm::ImmCmdEmail const& other) const;
 };
@@ -165,7 +165,7 @@ struct ImmCmdLanguage : public org::imm::ImmCmd {
   virtual ~ImmCmdLanguage() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdLanguage, (ImmCmd), (), (), (staticKind, text));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> text = {};
+  hstd::ext::ImmBox<hstd::Str> text;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdLanguage; }
   bool operator==(org::imm::ImmCmdLanguage const& other) const;
 };
@@ -176,7 +176,7 @@ struct ImmCmdColumns : public org::imm::ImmAttached {
   virtual ~ImmCmdColumns() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdColumns, (ImmAttached), (), (), (staticKind, view));
   static org::sem::OrgSemKind const staticKind;
-  org::sem::ColumnView view = {};
+  org::sem::ColumnView view;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdColumns; }
   bool operator==(org::imm::ImmCmdColumns const& other) const;
 };
@@ -187,7 +187,7 @@ struct ImmCmdName : public org::imm::ImmAttached {
   virtual ~ImmCmdName() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdName, (ImmAttached), (), (), (staticKind, name));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdName; }
   bool operator==(org::imm::ImmCmdName const& other) const;
 };
@@ -198,7 +198,7 @@ struct ImmCmdCustomArgs : public org::imm::ImmCmd {
   virtual ~ImmCmdCustomArgs() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCustomArgs, (ImmCmd), (), (), (staticKind, name, isAttached));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   bool isAttached = false;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdCustomArgs; }
   bool operator==(org::imm::ImmCmdCustomArgs const& other) const;
@@ -210,9 +210,9 @@ struct ImmCmdCustomRaw : public org::imm::ImmStmt {
   virtual ~ImmCmdCustomRaw() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCustomRaw, (ImmStmt), (), (), (staticKind, name, isAttached, text));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   bool isAttached = false;
-  hstd::ext::ImmBox<hstd::Str> text = {};
+  hstd::ext::ImmBox<hstd::Str> text;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdCustomRaw; }
   bool operator==(org::imm::ImmCmdCustomRaw const& other) const;
 };
@@ -223,7 +223,7 @@ struct ImmCmdCustomText : public org::imm::ImmStmt {
   virtual ~ImmCmdCustomText() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdCustomText, (ImmStmt), (), (), (staticKind, name, isAttached, text));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   bool isAttached = false;
   org::imm::ImmIdT<org::imm::ImmParagraph> text = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdCustomText; }
@@ -242,17 +242,17 @@ struct ImmCmdCall : public org::imm::ImmAttached {
                                                            result));
   static org::sem::OrgSemKind const staticKind;
   /// \brief Code block call name
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   /// \brief Which file code block should come from
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> fileName = std::nullopt;
   /// \brief Additional parameters aside from 'exporter',
-  org::sem::AttrGroup insideHeaderAttrs = {};
+  org::sem::AttrGroup insideHeaderAttrs;
   /// \brief Additional parameters aside from 'exporter',
-  org::sem::AttrGroup callAttrs = {};
+  org::sem::AttrGroup callAttrs;
   /// \brief Additional parameters aside from 'exporter',
-  org::sem::AttrGroup endHeaderAttrs = {};
+  org::sem::AttrGroup endHeaderAttrs;
   /// \brief Code evaluation results
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdCall; }
   bool operator==(org::imm::ImmCmdCall const& other) const;
 };
@@ -263,7 +263,7 @@ struct ImmCmdTblfm : public org::imm::ImmCmd {
   virtual ~ImmCmdTblfm() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdTblfm, (ImmCmd), (), (), (staticKind, expr));
   static org::sem::OrgSemKind const staticKind;
-  org::sem::Tblfm expr = {};
+  org::sem::Tblfm expr;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdTblfm; }
   bool operator==(org::imm::ImmCmdTblfm const& other) const;
 };
@@ -313,7 +313,7 @@ struct ImmBlockDynamicFallback : public org::imm::ImmBlock {
   virtual ~ImmBlockDynamicFallback() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockDynamicFallback, (ImmBlock), (), (), (staticKind, name));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::BlockDynamicFallback; }
   bool operator==(org::imm::ImmBlockDynamicFallback const& other) const;
 };
@@ -334,8 +334,8 @@ struct ImmBlockExport : public org::imm::ImmBlock {
   virtual ~ImmBlockExport() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockExport, (ImmBlock), (), (), (staticKind, exporter, content));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> exporter = {};
-  hstd::ext::ImmBox<hstd::Str> content = {};
+  hstd::ext::ImmBox<hstd::Str> exporter;
+  hstd::ext::ImmBox<hstd::Str> content;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::BlockExport; }
   bool operator==(org::imm::ImmBlockExport const& other) const;
 };
@@ -356,7 +356,7 @@ struct ImmBlockCodeEvalResult : public org::imm::ImmBlock {
   virtual ~ImmBlockCodeEvalResult() = default;
   BOOST_DESCRIBE_CLASS(ImmBlockCodeEvalResult, (ImmBlock), (), (), (staticKind, raw, node));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> raw = {};
+  hstd::ext::ImmVec<org::sem::OrgCodeEvalOutput> raw;
   org::imm::ImmIdT<org::imm::ImmOrg> node = org::imm::ImmIdT<org::imm::ImmOrg>::Nil();
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::BlockCodeEvalResult; }
   bool operator==(org::imm::ImmBlockCodeEvalResult const& other) const;
@@ -371,11 +371,11 @@ struct ImmBlockCode : public org::imm::ImmBlock {
   /// \brief Code block language name
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> lang = std::nullopt;
   /// \brief Code evaluation results
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmBlockCodeEvalResult>> result;
   /// \brief Collected code lines
-  hstd::ext::ImmVec<org::sem::BlockCodeLine> lines = {};
+  hstd::ext::ImmVec<org::sem::BlockCodeLine> lines;
   /// \brief Dash-based switches for code block execution
-  org::sem::AttrGroup switches = {};
+  org::sem::AttrGroup switches;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::BlockCode; }
   bool operator==(org::imm::ImmBlockCode const& other) const;
 };
@@ -385,7 +385,7 @@ struct ImmHashTag : public org::imm::ImmInline {
   virtual ~ImmHashTag() = default;
   BOOST_DESCRIBE_CLASS(ImmHashTag, (ImmInline), (), (), (staticKind, text));
   static org::sem::OrgSemKind const staticKind;
-  org::sem::HashTagText text = {};
+  org::sem::HashTagText text;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::HashTag; }
   bool operator==(org::imm::ImmHashTag const& other) const;
 };
@@ -411,8 +411,8 @@ struct ImmInlineExport : public org::imm::ImmInline {
   virtual ~ImmInlineExport() = default;
   BOOST_DESCRIBE_CLASS(ImmInlineExport, (ImmInline), (), (), (staticKind, exporter, content));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> exporter = {};
-  hstd::ext::ImmBox<hstd::Str> content = {};
+  hstd::ext::ImmBox<hstd::Str> exporter;
+  hstd::ext::ImmBox<hstd::Str> content;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::InlineExport; }
   bool operator==(org::imm::ImmInlineExport const& other) const;
 };
@@ -427,26 +427,26 @@ struct ImmTime : public org::imm::ImmOrg {
     using Period = org::sem::Time::Repeat::Period;
     BOOST_DESCRIBE_CLASS(Repeat, (), (), (), (mode, period, count));
     /// \brief mode
-    org::imm::ImmTime::Repeat::Mode mode = {};
+    org::imm::ImmTime::Repeat::Mode mode;
     /// \brief period
-    org::imm::ImmTime::Repeat::Period period = {};
+    org::imm::ImmTime::Repeat::Period period;
     /// \brief count
-    int count = {};
+    int count;
     bool operator==(org::imm::ImmTime::Repeat const& other) const;
   };
 
   struct Static {
     BOOST_DESCRIBE_CLASS(Static, (), (), (), (repeat, warn, time));
-    hstd::ext::ImmVec<org::imm::ImmTime::Repeat> repeat = {};
+    hstd::ext::ImmVec<org::imm::ImmTime::Repeat> repeat;
     hstd::ext::ImmBox<hstd::Opt<org::imm::ImmTime::Repeat>> warn = std::nullopt;
-    hstd::UserTime time = {};
+    hstd::UserTime time;
     Static() {  }
     bool operator==(org::imm::ImmTime::Static const& other) const;
   };
 
   struct Dynamic {
     BOOST_DESCRIBE_CLASS(Dynamic, (), (), (), (expr));
-    org::sem::LispCode expr = {};
+    org::sem::LispCode expr;
     Dynamic() {  }
     bool operator==(org::imm::ImmTime::Dynamic const& other) const;
   };
@@ -499,7 +499,7 @@ struct ImmMacro : public org::imm::ImmOrg {
   /// \brief Macro name
   hstd::ext::ImmBox<hstd::Str> name = "";
   /// \brief Additional parameters aside from 'exporter',
-  org::sem::AttrGroup attrs = {};
+  org::sem::AttrGroup attrs;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Macro; }
   bool operator==(org::imm::ImmMacro const& other) const;
 };
@@ -514,18 +514,18 @@ struct ImmSymbol : public org::imm::ImmOrg {
     /// \brief Key -- for non-positional
     hstd::ext::ImmBox<hstd::Opt<hstd::Str>> key = std::nullopt;
     /// \brief Uninterpreted value
-    hstd::ext::ImmBox<hstd::Str> value = {};
+    hstd::ext::ImmBox<hstd::Str> value;
     bool operator==(org::imm::ImmSymbol::Param const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(ImmSymbol, (ImmOrg), (), (), (staticKind, name, parameters, positional));
   static org::sem::OrgSemKind const staticKind;
   /// \brief Name of the symbol
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   /// \brief Optional list of parameters
-  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> parameters = {};
+  hstd::ext::ImmVec<org::imm::ImmSymbol::Param> parameters;
   /// \brief Positional parameters
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> positional = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmOrg>> positional;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Symbol; }
   bool operator==(org::imm::ImmSymbol const& other) const;
 };
@@ -642,7 +642,7 @@ struct ImmErrorSkipGroup : public org::imm::ImmOrg {
   virtual ~ImmErrorSkipGroup() = default;
   BOOST_DESCRIBE_CLASS(ImmErrorSkipGroup, (ImmOrg), (), (), (staticKind, skipped));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> skipped = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmErrorSkipToken>> skipped;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::ErrorSkipGroup; }
   bool operator==(org::imm::ImmErrorSkipGroup const& other) const;
 };
@@ -732,7 +732,7 @@ struct ImmRadioTarget : public org::imm::ImmOrg {
   virtual ~ImmRadioTarget() = default;
   BOOST_DESCRIBE_CLASS(ImmRadioTarget, (ImmOrg), (), (), (staticKind, words));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmVec<hstd::Str> words = {};
+  hstd::ext::ImmVec<hstd::Str> words;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::RadioTarget; }
   bool operator==(org::imm::ImmRadioTarget const& other) const;
 };
@@ -753,7 +753,7 @@ struct ImmLink : public org::imm::ImmStmt {
   BOOST_DESCRIBE_CLASS(ImmLink, (ImmStmt), (), (), (staticKind, description, target));
   static org::sem::OrgSemKind const staticKind;
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> description = std::nullopt;
-  org::sem::LinkTarget target = {};
+  org::sem::LinkTarget target;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Link; }
   bool operator==(org::imm::ImmLink const& other) const;
 };
@@ -764,7 +764,7 @@ struct ImmSubtreeLog : public org::imm::ImmOrg {
   virtual ~ImmSubtreeLog() = default;
   BOOST_DESCRIBE_CLASS(ImmSubtreeLog, (ImmOrg), (), (), (staticKind, head, desc));
   static org::sem::OrgSemKind const staticKind;
-  org::sem::SubtreeLogHead head = {};
+  org::sem::SubtreeLogHead head;
   /// \brief Optional description of the log entry
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmStmtList>>> desc = std::nullopt;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::SubtreeLog; }
@@ -802,13 +802,13 @@ struct ImmSubtree : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<org::sem::SubtreeCompletion>> completion = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> description = std::nullopt;
   /// \brief Trailing tags
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> tags = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> tags;
   /// \brief Main title
   org::imm::ImmIdT<org::imm::ImmParagraph> title = org::imm::ImmIdT<org::imm::ImmParagraph>::Nil();
   /// \brief Associated subtree log
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> logbook = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>> logbook;
   /// \brief Immediate properties
-  hstd::ext::ImmVec<org::sem::NamedProperty> properties = {};
+  hstd::ext::ImmVec<org::sem::NamedProperty> properties;
   /// \brief When subtree was marked as closed
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>> closed = std::nullopt;
   /// \brief When is the deadline
@@ -843,7 +843,7 @@ struct ImmRow : public org::imm::ImmCmd {
   BOOST_DESCRIBE_CLASS(ImmRow, (ImmCmd), (), (), (staticKind, cells, isBlock));
   static org::sem::OrgSemKind const staticKind;
   /// \brief List of cells on the row
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> cells = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmCell>> cells;
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Row; }
@@ -857,7 +857,7 @@ struct ImmTable : public org::imm::ImmBlock {
   BOOST_DESCRIBE_CLASS(ImmTable, (ImmBlock), (), (), (staticKind, rows, isBlock));
   static org::sem::OrgSemKind const staticKind;
   /// \brief List of rows for the table
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> rows = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmRow>> rows;
   /// \brief Single-line pipe cell or `#+cell:` command
   bool isBlock = false;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Table; }
@@ -890,7 +890,7 @@ struct ImmCmdAttr : public org::imm::ImmAttached {
   virtual ~ImmCmdAttr() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdAttr, (ImmAttached), (), (), (staticKind, target));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> target = {};
+  hstd::ext::ImmBox<hstd::Str> target;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdAttr; }
   bool operator==(org::imm::ImmCmdAttr const& other) const;
 };
@@ -901,8 +901,8 @@ struct ImmCmdExport : public org::imm::ImmAttached {
   virtual ~ImmCmdExport() = default;
   BOOST_DESCRIBE_CLASS(ImmCmdExport, (ImmAttached), (), (), (staticKind, exporter, content));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> exporter = {};
-  hstd::ext::ImmBox<hstd::Str> content = {};
+  hstd::ext::ImmBox<hstd::Str> exporter;
+  hstd::ext::ImmBox<hstd::Str> content;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CmdExport; }
   bool operator==(org::imm::ImmCmdExport const& other) const;
 };
@@ -914,9 +914,9 @@ struct ImmCall : public org::imm::ImmOrg {
   BOOST_DESCRIBE_CLASS(ImmCall, (ImmOrg), (), (), (staticKind, name, attrs, isCommand));
   static org::sem::OrgSemKind const staticKind;
   /// \brief Call target name
-  hstd::ext::ImmBox<hstd::Str> name = {};
+  hstd::ext::ImmBox<hstd::Str> name;
   /// \brief Additional parameters aside from 'exporter'
-  org::sem::AttrGroup attrs = {};
+  org::sem::AttrGroup attrs;
   bool isCommand = false;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Call; }
   bool operator==(org::imm::ImmCall const& other) const;
@@ -936,7 +936,7 @@ struct ImmListItem : public org::imm::ImmOrg {
   virtual ~ImmListItem() = default;
   BOOST_DESCRIBE_CLASS(ImmListItem, (ImmOrg), (), (), (staticKind, checkbox, header, bullet));
   static org::sem::OrgSemKind const staticKind;
-  org::sem::CheckboxState checkbox = {};
+  org::sem::CheckboxState checkbox;
   /// \brief Description list item header
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> header = std::nullopt;
   /// \brief Full text of the numbered list item, e.g. `a)`, `a.`
@@ -964,8 +964,8 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
                                                               doneKeywords));
   static org::sem::OrgSemKind const staticKind;
   org::sem::InitialSubtreeVisibility initialVisibility = org::sem::InitialSubtreeVisibility::ShowEverything;
-  hstd::ext::ImmVec<org::sem::NamedProperty> properties = {};
-  org::sem::DocumentExportConfig exportConfig = {};
+  hstd::ext::ImmVec<org::sem::NamedProperty> properties;
+  org::sem::DocumentExportConfig exportConfig;
   hstd::ext::ImmBox<hstd::Opt<bool>> fixedWidthSections = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::sem::LinkVisibility>> linkVisibility = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::sem::BlockVisibility>> blockVisibility = std::nullopt;
@@ -974,8 +974,8 @@ struct ImmDocumentOptions : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> setupfile = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<int>> maxSubtreeLevelExport = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>> columns = std::nullopt;
-  hstd::ext::ImmVec<org::sem::TodoKeyword> todoKeywords = {};
-  hstd::ext::ImmVec<org::sem::TodoKeyword> doneKeywords = {};
+  hstd::ext::ImmVec<org::sem::TodoKeyword> todoKeywords;
+  hstd::ext::ImmVec<org::sem::TodoKeyword> doneKeywords;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::DocumentOptions; }
   bool operator==(org::imm::ImmDocumentOptions const& other) const;
 };
@@ -999,7 +999,7 @@ struct ImmCriticMarkup : public org::imm::ImmOrg {
   using Kind = org::sem::CriticMarkup::Kind;
   BOOST_DESCRIBE_CLASS(ImmCriticMarkup, (ImmOrg), (), (), (staticKind, kind));
   static org::sem::OrgSemKind const staticKind;
-  org::imm::ImmCriticMarkup::Kind kind = {};
+  org::imm::ImmCriticMarkup::Kind kind;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::CriticMarkup; }
   bool operator==(org::imm::ImmCriticMarkup const& other) const;
 };
@@ -1020,9 +1020,9 @@ struct ImmDocument : public org::imm::ImmOrg {
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> title = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> author = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmParagraph>>> creator = std::nullopt;
-  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> filetags = {};
+  hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmHashTag>> filetags;
   hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmRawText>>> email = std::nullopt;
-  hstd::ext::ImmVec<hstd::Str> language = {};
+  hstd::ext::ImmVec<hstd::Str> language;
   org::imm::ImmIdT<org::imm::ImmDocumentOptions> options = org::imm::ImmIdT<org::imm::ImmDocumentOptions>::Nil();
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> exportFileName = std::nullopt;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Document; }
@@ -1040,7 +1040,7 @@ struct ImmFileTarget : public org::imm::ImmOrg {
                                                          targetId,
                                                          regexp));
   static org::sem::OrgSemKind const staticKind;
-  hstd::ext::ImmBox<hstd::Str> path = {};
+  hstd::ext::ImmBox<hstd::Str> path;
   hstd::ext::ImmBox<hstd::Opt<int>> line = std::nullopt;
   hstd::ext::ImmBox<hstd::Opt<hstd::Str>> searchTarget = std::nullopt;
   bool restrictToHeadlines = false;
@@ -1094,9 +1094,9 @@ struct ImmFile : public org::imm::ImmOrg {
   BOOST_DESCRIBE_CLASS(ImmFile, (ImmOrg), (), (), (staticKind, relPath, absPath, data));
   static org::sem::OrgSemKind const staticKind;
   /// \brief Relative path from the root directory
-  hstd::ext::ImmBox<hstd::Str> relPath = {};
+  hstd::ext::ImmBox<hstd::Str> relPath;
   /// \brief Absolute resolved path to physical file
-  hstd::ext::ImmBox<hstd::Str> absPath = {};
+  hstd::ext::ImmBox<hstd::Str> absPath;
   org::imm::ImmFile::Data data;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::File; }
   bool operator==(org::imm::ImmFile const& other) const;
@@ -1122,9 +1122,9 @@ struct ImmDirectory : public org::imm::ImmOrg {
   BOOST_DESCRIBE_CLASS(ImmDirectory, (ImmOrg), (), (), (staticKind, relPath, absPath));
   static org::sem::OrgSemKind const staticKind;
   /// \brief Relative path from the root directory, empty if this is the root directory
-  hstd::ext::ImmBox<hstd::Str> relPath = {};
+  hstd::ext::ImmBox<hstd::Str> relPath;
   /// \brief Absolute resolved path to physical directory
-  hstd::ext::ImmBox<hstd::Str> absPath = {};
+  hstd::ext::ImmBox<hstd::Str> absPath;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Directory; }
   bool operator==(org::imm::ImmDirectory const& other) const;
 };
@@ -1134,9 +1134,9 @@ struct ImmSymlink : public org::imm::ImmOrg {
   virtual ~ImmSymlink() = default;
   BOOST_DESCRIBE_CLASS(ImmSymlink, (ImmOrg), (), (), (staticKind, isDirectory, absPath));
   static org::sem::OrgSemKind const staticKind;
-  bool isDirectory = {};
+  bool isDirectory;
   /// \brief Absolute path to the symlinked target directory. All relative paths under symlink node use its absolute path as a root.
-  hstd::ext::ImmBox<hstd::Str> absPath = {};
+  hstd::ext::ImmBox<hstd::Str> absPath;
   virtual org::sem::OrgSemKind getKind() const override { return org::sem::OrgSemKind::Symlink; }
   bool operator==(org::imm::ImmSymlink const& other) const;
 };
@@ -1157,7 +1157,7 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   struct Export : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Export, (IncludeBase), (), (), (language));
     /// \brief Source code language for export
-    hstd::ext::ImmBox<hstd::Str> language = {};
+    hstd::ext::ImmBox<hstd::Str> language;
     bool operator==(org::imm::ImmCmdInclude::Export const& other) const;
   };
 
@@ -1165,14 +1165,14 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   struct Custom : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Custom, (IncludeBase), (), (), (blockName));
     /// \brief Block name not covered by the default values
-    hstd::ext::ImmBox<hstd::Str> blockName = {};
+    hstd::ext::ImmBox<hstd::Str> blockName;
     bool operator==(org::imm::ImmCmdInclude::Custom const& other) const;
   };
 
   struct Src : public org::imm::ImmCmdInclude::IncludeBase {
     BOOST_DESCRIBE_CLASS(Src, (IncludeBase), (), (), (language));
     /// \brief Source code language for code block
-    hstd::ext::ImmBox<hstd::Str> language = {};
+    hstd::ext::ImmBox<hstd::Str> language;
     bool operator==(org::imm::ImmCmdInclude::Src const& other) const;
   };
 
@@ -1197,7 +1197,7 @@ struct ImmCmdInclude : public org::imm::ImmOrg {
   BOOST_DESCRIBE_CLASS(ImmCmdInclude, (ImmOrg), (), (), (staticKind, path, firstLine, lastLine, data));
   static org::sem::OrgSemKind const staticKind;
   /// \brief Path to include
-  hstd::ext::ImmBox<hstd::Str> path = {};
+  hstd::ext::ImmBox<hstd::Str> path;
   /// \brief 0-based index of the first line to include. NOTE: Org-mode syntax uses 1-based half-open range in the text
   hstd::ext::ImmBox<hstd::Opt<int>> firstLine = std::nullopt;
   /// \brief 0-based index of the last line to include

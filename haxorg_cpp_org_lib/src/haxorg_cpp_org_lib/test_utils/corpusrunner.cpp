@@ -1003,7 +1003,7 @@ CorpusRunner::RunResult::NodeCompare CorpusRunner::runSpecParse(
         if (spec.subnodes.has_value()) {
             nodes = fromFlatNodes<
                 org::sem::OrgNodeKind,
-                OrgTokenKind,
+                org::sem::OrgTokenKind,
                 OrgFill,
                 OrgNodeMono>(spec.subnodes.value());
         }

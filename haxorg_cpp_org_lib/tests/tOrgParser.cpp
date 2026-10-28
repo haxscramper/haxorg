@@ -194,7 +194,7 @@ TEST(OrgParseSem, SubtreeProperties) {
         auto p = org::getSubtreeProperties<NP::CookieData>(t);
         EXPECT_EQ(p.size(), 1);
         EXPECT_EQ(p.at(0).isRecursive, true);
-        EXPECT_EQ(p.at(0).source, SubtreeTodoSource::Todo);
+        EXPECT_EQ(p.at(0).source, org::sem::SubtreeTodoSource::Todo);
     }
     {
         auto tree = parseOne<sem::Subtree>(
@@ -636,7 +636,7 @@ TEST(OrgParseSem, SubtreeLogParsing) {
         EXPECT_EQ(n.on.getBreakdown().second, 03);
         EXPECT_TRUE(l.at(0)->desc.has_value());
         Vec<Str> desc = org::getDfsLeafText(
-            l.at(0)->desc.value().asOrg(), {OrgSemKind::Word});
+            l.at(0)->desc.value().asOrg(), {org::sem::OrgSemKind::Word});
         EXPECT_EQ(desc.at(0), "Increasing");
         EXPECT_NE(desc.indexOf("tasks"), -1);
     }

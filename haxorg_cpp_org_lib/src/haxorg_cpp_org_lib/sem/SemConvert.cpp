@@ -1267,15 +1267,15 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         return Str{lstrip(get_text(one(a, N::Link)), CharSet{':'})};
     };
     if (a.kind() == onk::RawLink) {
-        link->target = LinkTarget{LinkTarget::Raw{.text = get_text(a)}};
+        link->target = LinkTarget{LinkTarget::Raw{/*text=*/get_text(a)}};
 
     } else if (a.kind() == onk::Footnote) {
         link->target = LinkTarget{
-            LinkTarget::Footnote{.target = get_text(one(a, N::Definition))}};
+            LinkTarget::Footnote{/*target=*/get_text(one(a, N::Definition))}};
     } else if (one(a, N::Protocol).kind() == onk::Empty) {
         Str target = getTarget();
         if (target.starts_with(".") || target.starts_with("/")) {
-            link->target = LinkTarget{LinkTarget::File{.file = Str{target}}};
+            link->target = LinkTarget{LinkTarget::File{/*file=*/Str{target}}};
         } else if (target.starts_with("*")) {
             int level = 0;
             for (auto const& c : target) {
@@ -1286,13 +1286,13 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
                 }
             }
             link->target = LinkTarget{LinkTarget::SubtreeTitle{
-                .level = level,
-                .title = hstd::own_view(split(lstrip(target, CharSet{'*', ' '}), "/"))
-                       | str_view_to_str,
+                /*title=*/hstd::own_view(split(lstrip(target, CharSet{'*', ' '}), "/"))
+                    | str_view_to_str,
+                /*level=*/level,
             }};
 
         } else {
-            link->target = LinkTarget{LinkTarget::Internal{.target = Str{target}}};
+            link->target = LinkTarget{LinkTarget::Internal{/*target=*/Str{target}}};
         }
 
     } else {
@@ -1303,10 +1303,10 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
         }
         if (protocol == "http" || protocol == "https") {
             link->target = LinkTarget{
-                LinkTarget::Raw{.text = protocol + ":"_ss + getTarget()}};
+                LinkTarget::Raw{/*text=*/protocol + ":"_ss + getTarget()}};
         } else if (protocol == "id") {
             link->target = LinkTarget{
-                LinkTarget::Id{.text = Str{strip(getTarget(), {' '}, {' '})}}};
+                LinkTarget::Id{/*text=*/Str{strip(getTarget(), {' '}, {' '})}}};
 
         } else if (protocol == "person") {
             link->target = LinkTarget{LinkTarget::Person{}};
@@ -1315,15 +1315,15 @@ OrgConverter::ConvResult<Link> OrgConverter::convertLink(__args) {
             }
 
         } else if (protocol == "file") {
-            link->target = LinkTarget{LinkTarget::File{.file = Str{getTarget()}}};
+            link->target = LinkTarget{LinkTarget::File{/*file=*/Str{getTarget()}}};
 
         } else if (protocol == "attachment") {
-            link->target = LinkTarget{LinkTarget::Attachment{.file = Str{getTarget()}}};
+            link->target = LinkTarget{LinkTarget::Attachment{/*file=*/Str{getTarget()}}};
         } else if (protocol_raw == "#") {
-            link->target = LinkTarget{LinkTarget::CustomId{.text = Str{getTarget()}}};
+            link->target = LinkTarget{LinkTarget::CustomId{/*text=*/Str{getTarget()}}};
 
         } else {
-            link->target = LinkTarget{LinkTarget::UserProtocol{.protocol = protocol}};
+            link->target = LinkTarget{LinkTarget::UserProtocol{/*protocol=*/protocol}};
         }
     }
 
@@ -2886,11 +2886,14 @@ void OrgConverter::convertDocumentOptions(
                 }
             } else if (org_streq(head, "toc")) {
                 if (org_streq(tail, "t")) {
-                    opts->exportConfig.tocExport = DocumentExportConfig::DoExport{true};
+                    opts->exportConfig
+                        .tocExport = org::sem::DocumentExportConfig::DoExport{true};
                 } else if (org_streq(tail, "nil")) {
-                    opts->exportConfig.tocExport = DocumentExportConfig::DoExport{false};
+                    opts->exportConfig
+                        .tocExport = org::sem::DocumentExportConfig::DoExport{false};
                 } else if ('0' <= tail[0] && tail[0] <= '9') {
-                    opts->exportConfig.tocExport = DocumentExportConfig::ExportFixed{
+                    opts->exportConfig
+                        .tocExport = org::sem::DocumentExportConfig::ExportFixed{
                         tail.toInt()};
                 }
             } else if (org_streq(head, "inline")) {

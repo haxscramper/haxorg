@@ -942,7 +942,7 @@ Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Paragraph_dro
 
 // clang-format on
 
-ListFormattingMode sem::List::getListFormattingMode() const {
+org::sem::ListFormattingMode sem::List::getListFormattingMode() const {
     auto formatting = getFirstAttr("list-format");
     if (formatting.has_value()) {
         auto mode = string_to_enum_insensitive<org::sem::ListFormattingMode>(

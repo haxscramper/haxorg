@@ -793,7 +793,7 @@ struct DocBlock {
 };
 
 DocBlock fromAst(imm::ImmAdapter const& id) {
-    SemSet Skip{OrgSemKind::Newline};
+    SemSet Skip{org::sem::OrgSemKind::Newline};
 
     DocBlock result;
     switch (id->getKind()) {

@@ -21,6 +21,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     ReferenceKind,
 )
 from hstd_py_codegen.gen_cpp.codegen_type_order import expand_type_groups
+from hstd_py_text_layout.base.wrap import TextLayout
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     ArrayT,
@@ -138,11 +139,13 @@ class ModelToGenTu:
         self,
         model: ModelDef,
         *,
+        ast: cpp.ASTBuilder,
         dependencies: Sequence[ModelDef] = (),
         config: CppModelConfig | None = None,
     ) -> None:
         self.model = model
         self.config = config if config is not None else CppModelConfig()
+        self.ast = ast
 
         models = [*dependencies, model]
         self.models: dict[str, ModelDef] = {}
@@ -338,17 +341,9 @@ class ModelToGenTu:
         typ: TypeRef,
         package: str,
         default: ExplicitDefault | None,
-    ) -> str:
+    ) -> str | None:
         if default is None:
-            match typ:
-                case OptT():
-                    return "std::nullopt"
-                case NamedT() if self.is_ast(package, typ.qname):
-                    return f"{cpp_type_text(self.type(typ, package))}::Nil()"
-                case ExternalT() if self.is_ast(typ.package, typ.qname):
-                    return f"{cpp_type_text(self.type(typ, package))}::Nil()"
-                case _:
-                    return "{}"
+            return None
 
         value = default.value
 
@@ -654,17 +649,17 @@ class ModelToGenTu:
 
         # Use QName.scope rather than relying on RecordDef.nested containing
         # synthetic variant enums in a particular finalizer implementation.
-        children: list[GenTuEntry] = []
+        nested: list[GenTuEntry] = []
         for record in self.model.records:
             if record.qname.scope == item.qname and record.qname not in variant_cases:
-                children.append(self.record(record))
+                nested.append(self.record(record))
 
         for enum in self.model.enums:
             if enum.qname.scope == item.qname and enum.qname not in variant_enums:
-                children.append(self.enum(enum))
+                nested.append(self.enum(enum))
 
         for variant in item.variants:
-            children.append(self.variant(item, variant))
+            nested.append(self.variant(item, variant))
 
         # Section code follows generated variants, so constructors can refer
         # to generated aliases such as NamedProperty::Data.
@@ -674,7 +669,7 @@ class ModelToGenTu:
                 raise NotImplementedError(
                     "GenTuPass section lowering currently supports public code only",
                 )
-            children.append(GenTuPass(section["text"]))
+            nested.append(GenTuPass(section["text"]))
 
         result = GenTuStruct(
             Name=self.declaration_type(package, item.qname),
@@ -686,13 +681,96 @@ class ModelToGenTu:
             ],
             Methods=[self.method(item, method) for method in item.methods],
             Bases=[self.declaration_type(package, base) for base in item.bases],
-            Nested=children,
+            Nested=nested,
             IsAbstract=options.get("abstract", False),
             IsDescribedRecord=True,
         )
 
         default_constructor = options.get("default_constructor", False)
-        if default_constructor:
+
+        # If the class is nested and uses `{}` for the default values it
+        # might trigger a trait evaluation ordering issue, where the
+        # compiler evaluates the class as non-default-constructible and
+        # the does not re-run the eval afterwards.
+
+        # Example:
+
+        # ```c++
+        # class Parent {
+        #     class Nested {
+        #         hstd::Str value = {}; // default constructor is declared
+        #     };
+
+        #     class Nested2 {
+        #         hstd::Str value = {};
+        #     };
+
+        #     // instantiating the variant will trigger the `is_default_constructible`
+        #     // check for the types, but it will evaluate to false at this stage
+        #     using Data = std::variant<Nested, Nested2>;
+        # }
+        # ```
+
+        # There is no user-declared constructor, so the compiler
+        # implicitly declares one. Determining its properties can
+        # require examining the default member initializer.
+
+        # Default member initializers have special deferred-processing
+        # rules: they can refer to members declared later in the
+        # enclosing class. In this nested-class situation, the trait
+        # check occurs before the compiler has finished the enclosing
+        # definition and because of that the code fails.
+
+        # To have default-constructible class:
+
+        # - do not use any default initializer values for any fields,
+        # in this case the class is a properly default-initialized
+        # and can be used as an aggregate
+        # - annotate with `default_field_pass_constructor` or
+        # `default_constructor` to explicitly declare default no-arg
+        # constructor.
+
+        if options.get("default_field_pass_constructor", False):
+            # Create two constructors, one with zero arguments and
+            # everything defaulted, and another with 1+ arguments,
+            # presence of the explicitly zero-argument constructor
+            # allows for the nested types to evaluate the type check
+            # `is_default_constructible` trait even if the parent
+            # class has not been finished yet.
+            result.Methods.append(
+                GenTuFunction(
+                    Name=item.qname.name,
+                    IsConstructor=True,
+                    ParentClass=result.Name,
+                    Args=[
+                        GenTuIdent(
+                            Type=const_ref(self.type(f.type, package)),
+                            Name=f.name,
+                            Value=self.default_value(f.type, package, f.default)
+                            if 0 < idx
+                            else None,
+                        )
+                        for idx, f in enumerate(item.fields)
+                    ],
+                    InitList=[
+                        self.ast.XConstructObj(
+                            self.ast.string(f.name), [self.ast.string(f.name)]
+                        )
+                        for f in item.fields
+                    ],
+                )
+            )
+
+            result.Methods.append(
+                GenTuFunction(
+                    Name=item.qname.name,
+                    IsConstructor=True,
+                    Body="",
+                    ParentClass=result.Name,
+                ),
+            )
+
+        elif default_constructor:
             result.Methods.append(
                 GenTuFunction(
                     Name=item.qname.name,
@@ -780,10 +858,13 @@ def model_to_gentu(
     dependencies: Sequence[ModelDef] = (),
     config: CppModelConfig | None = None,
 ) -> list[GenTuEntry]:
+    t = TextLayout()
+    builder = cpp.ASTBuilder(t)
     return ModelToGenTu(
         model,
         dependencies=dependencies,
         config=config,
+        ast=builder,
     ).convert()
 
 
@@ -794,8 +875,8 @@ def get_pyhaxorg_type_groups_via_dsl(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
     shared = get_shared_model()
     sem_model = get_ast_model()
     converters = [
-        ModelToGenTu(shared),
-        ModelToGenTu(sem_model, dependencies=[shared]),
+        ModelToGenTu(shared, ast=ast),
+        ModelToGenTu(sem_model, dependencies=[shared], ast=ast),
     ]
     shared_types: list[GenTuStruct] = []
     sem_types: list[GenTuStruct] = []

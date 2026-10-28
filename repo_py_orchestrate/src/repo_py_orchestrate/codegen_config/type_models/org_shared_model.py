@@ -403,52 +403,42 @@ class LinkTarget(M.Class):
         backend=dict(
             cpp=dict(
                 org_groups=OrgTypeGroup.SHARED_TYPES,
-                default_constructor=True,
+                default_field_pass_constructor=True,
             )
         )
     )
 
     class Raw(M.Case):
         text: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Id(M.Case):
         text: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CustomId(M.Case):
         text: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class SubtreeTitle(M.Case):
         title: SubtreePath
         level: Int32
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Person(M.Case):
         name: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class UserProtocol(M.Case):
         protocol: str
         target: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Internal(M.Case):
         target: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Footnote(M.Case):
         target: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class File(M.Case):
         file: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Attachment(M.Case):
         file: str
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     __variant__(
         Raw,
@@ -484,11 +474,9 @@ class SubtreeLogHead(M.Class):
             ] = 2
 
         oldPriority: Optional[str] = M.Field(
-            doc="Previous priority for change and removal", default=None
+            doc="Previous priority for change and removal"
         )
-        newPriority: Optional[str] = M.Field(
-            doc="New priority for change and addition", default=None
-        )
+        newPriority: Optional[str] = M.Field(doc="New priority for change and addition")
         on: H._T["UserTime"] = M.Field(doc="When priority was changed")
         action: Action = M.Field(doc="Which action taken")
 
@@ -1014,53 +1002,67 @@ class NamedProperty(M.Class):
 
     class Nonblocking(M.Case):
         isBlocking: bool
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ArchiveTime(M.Case):
         time: H._T["UserTime"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ArchiveFile(M.Case):
         file: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ArchiveOlpath(M.Case):
         path: SubtreePath
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ArchiveTarget(M.Case):
         path: SubtreePath
         pattern: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ArchiveCategory(M.Case):
         category: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ArchiveTodo(M.Case):
         todo: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Trigger(M.Case):
         pass
 
     class ExportLatexClass(M.Case):
         latexClass: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CookieData(M.Case):
         """`:COOKIE_DATA:` for the subtree completion calculation"""
 
         isRecursive: bool
         source: SubtreeTodoSource
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ExportLatexClassOptions(M.Case):
         options: List[str]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ExportLatexHeader(M.Case):
         header: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ExportLatexCompiler(M.Case):
         compiler: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Ordered(M.Case):
         isOrdered: bool
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Effort(M.Case):
         hours: Int32 = 0
         minutes: Int32 = 0
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Visibility(M.Case):
         class Level(M.Enum):
@@ -1074,25 +1076,30 @@ class NamedProperty(M.Class):
     class ExportOptions(M.Case):
         backend: str
         values: Dict[str, str]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Blocker(M.Case):
         blockers: List[str]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Unnumbered(M.Case):
         pass
 
     class Created(M.Case):
         time: TimeValue
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class RadioId(M.Case):
         """Radio target ID"""
 
         words: List[str]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class HashtagDef(M.Case):
         """Definition of a hashtag entry"""
 
         hashtag: HashTagText
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CustomArgs(M.Case):
         """Custom property with unparsed arguments"""
@@ -1100,29 +1107,34 @@ class NamedProperty(M.Class):
         name: str = M.Field(doc="Original name of the property")
         sub: Optional[str] = M.Field(doc="Property target specialization", default=None)
         attrs: AttrGroup = M.Field(doc="Property parameters")
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CustomRaw(M.Case):
         """Custom property with unparsed arguments"""
 
         name: str = M.Field(doc="Original name of the property")
         value: str = M.Field(doc="Property value")
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CustomId(M.Case):
         """Custom property with unparsed arguments"""
 
         value: str = M.Field(doc="Property value")
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CustomSubtreeJson(M.Case):
         """Free-form JSON"""
 
         name: str
         value: Native._T["OrgJson"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CustomSubtreeFlags(M.Case):
         """Free-form flags"""
 
         name: str
         value: AttrGroup
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     __variant__(
         Nonblocking,
@@ -1160,6 +1172,7 @@ class NamedProperty(M.Class):
         backend=dict(
             cpp=dict(
                 org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
                 section_code=[
                     dict(
                         kind="public",
