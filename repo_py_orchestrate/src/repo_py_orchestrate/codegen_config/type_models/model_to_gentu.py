@@ -59,7 +59,7 @@ DEFAULT_NAMESPACES: dict[str, tuple[str, ...]] = {
     "org.sem.model": ("org", "sem"),
     "org.sem.native": ("org", "sem"),
     "org.parse": ("org", "parse"),
-    "org.syntax": (),
+    "org.syntax": ("org", "sem"),
     "hstd": ("hstd",),
 }
 

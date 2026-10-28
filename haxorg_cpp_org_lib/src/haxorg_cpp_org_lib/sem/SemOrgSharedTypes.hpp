@@ -558,9 +558,9 @@ struct SubtreeLogHead {
     BOOST_DESCRIBE_NESTED_ENUM(Action, Added, Removed, Changed)
     BOOST_DESCRIBE_CLASS(Priority, (), (), (), (oldPriority, newPriority, on, action));
     /// \brief Previous priority for change and removal
-    hstd::Opt<hstd::Str> oldPriority = std::nullopt;
+    hstd::Opt<hstd::Str> oldPriority;
     /// \brief New priority for change and addition
-    hstd::Opt<hstd::Str> newPriority = std::nullopt;
+    hstd::Opt<hstd::Str> newPriority;
     /// \brief When priority was changed
     hstd::UserTime on;
     /// \brief Which action taken
@@ -918,7 +918,6 @@ struct DocumentExportConfig {
   struct TaskExport {
     BOOST_DESCRIBE_CLASS(TaskExport, (), (), (), (taskWhitelist));
     hstd::Vec<hstd::Str> taskWhitelist;
-    TaskExport() {  }
     bool operator==(org::sem::DocumentExportConfig::TaskExport const& other) const;
   };
 
@@ -955,14 +954,12 @@ struct DocumentExportConfig {
   struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc));
     bool exportToc;
-    DoExport() {  }
     bool operator==(org::sem::DocumentExportConfig::DoExport const& other) const;
   };
 
   struct ExportFixed {
     BOOST_DESCRIBE_CLASS(ExportFixed, (), (), (), (exportLevels));
     int exportLevels;
-    ExportFixed() {  }
     bool operator==(org::sem::DocumentExportConfig::ExportFixed const& other) const;
   };
 

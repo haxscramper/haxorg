@@ -13,6 +13,7 @@ from beartype.typing import (
 )
 from hstd_py_lib.algorithm import drop_none, iterate_object_tree
 from hstd_py_text_layout.base.wrap import BlockId
+from loguru import logger
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from hstd_py_codegen.gen_cpp import codegen_ir
@@ -435,6 +436,7 @@ class ProtoBuilder:
                 proto_ptr, self.sanitize_ident_for_protobuf(field.Name)
             )
             if self.is_enum_type(field_type):
+                logger.info(f"static cast field {field.Name} {field_type}")
                 read_expr = self.ast.XCall(
                     "static_cast",
                     args=[read_expr],

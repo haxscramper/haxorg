@@ -807,7 +807,6 @@ class BlockCodeLine(M.Class):
 class DocumentExportConfig(M.Class):
     class TaskExport(M.Class):
         taskWhitelist: List[str]
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class TagExport(M.Enum):
         None_: int = 0
@@ -848,11 +847,9 @@ class DocumentExportConfig(M.Class):
 
     class DoExport(M.Case):
         exportToc: bool
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ExportFixed(M.Case):
         exportLevels: Int32
-        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     inlinetasks: Optional[bool] = M.Field(
         doc="Toggle inclusion of inlinetasks", default=None
