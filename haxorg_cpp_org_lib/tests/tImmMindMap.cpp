@@ -178,7 +178,7 @@ Paragraph [[id:subtree-id]]
                 ->unresolved.size(),
             1);
 
-        EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(par->getKind(), org::sem::OrgSemKind::Paragraph);
         EXPECT_EQ(getGraph()->getVertexCount(), 1);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
         ASSERT_EQ(getState()->unresolved.size(), 1);
@@ -243,12 +243,12 @@ TEST_F(ImmMapApi, TrivialDescriptionList) {
     auto list        = n.at({2, 0});
     auto par         = n.at({2, 0, 0, 0});
 
-    EXPECT_EQ(n.getKind(), OrgSemKind::Document);
-    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(tree_source.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ2(item.getKind(), OrgSemKind::ListItem);
-    EXPECT_EQ2(list.getKind(), OrgSemKind::List);
-    EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(n.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ(tree_target.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(tree_source.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ2(item.getKind(), org::sem::OrgSemKind::ListItem);
+    EXPECT_EQ2(list.getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ2(par.getKind(), org::sem::OrgSemKind::Paragraph);
 
     EXPECT_NE(g->get(tree_target), nullptr);
     EXPECT_NE(g->get(tree_source), nullptr);
@@ -330,15 +330,15 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsSameLink) {
     auto par1 = list1.at({0, 0});
     auto par2 = list2.at({0, 0});
 
-    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc.getKind(), org::sem::OrgSemKind::Document);
 
-    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(tree_other1.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(tree_other2.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
-    EXPECT_EQ(list2.getKind(), OrgSemKind::List);
-    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(tree_target.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other1.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other2.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ(list2.getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), org::sem::OrgSemKind::Paragraph);
 
     EXPECT_NE(g->get(tree_target), nullptr);
     EXPECT_NE(g->get(tree_other1), nullptr);
@@ -392,15 +392,15 @@ TEST_F(ImmMapApi, MultipleIncomingTargetsDuplicate) {
     auto par1 = list1.at({0, 0});
     auto par2 = list2.at({0, 0});
 
-    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc.getKind(), org::sem::OrgSemKind::Document);
 
-    EXPECT_EQ(tree_target.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(tree_other1.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(tree_other2.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
-    EXPECT_EQ(list2.getKind(), OrgSemKind::List);
-    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(tree_target.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other1.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(tree_other2.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ(list2.getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), org::sem::OrgSemKind::Paragraph);
 
     EXPECT_NE(g->get(tree_target), nullptr);
     EXPECT_NE(g->get(tree_other1), nullptr);
@@ -441,13 +441,13 @@ TEST_F(ImmMapApi, NestedNonAttachedLinks) {
     auto par1 = list1.at({0, 0});
     auto par2 = list1.at({1, 0});
 
-    EXPECT_EQ(doc.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc.getKind(), org::sem::OrgSemKind::Document);
 
-    EXPECT_EQ(tree_one.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(tree_two.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(list1.getKind(), OrgSemKind::List);
-    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(tree_one.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(tree_two.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(list1.getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ(par1.getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), org::sem::OrgSemKind::Paragraph);
 
     EXPECT_NE(g->get(tree_one), nullptr);
     EXPECT_NE(g->get(tree_two), nullptr);
@@ -495,13 +495,13 @@ TEST_F(ImmMapApi, SubtreeBacklinks) {
 
     auto g = getGraph();
 
-    EXPECT_EQ(doc1.getKind(), OrgSemKind::Document);
-    EXPECT_EQ(doc2.getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc1.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ(doc2.getKind(), org::sem::OrgSemKind::Document);
 
-    EXPECT_EQ(tree1.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(tree2.getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(item1.getKind(), OrgSemKind::ListItem);
-    EXPECT_EQ(item2.getKind(), OrgSemKind::ListItem);
+    EXPECT_EQ(tree1.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(tree2.getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(item1.getKind(), org::sem::OrgSemKind::ListItem);
+    EXPECT_EQ(item2.getKind(), org::sem::OrgSemKind::ListItem);
 
     EXPECT_NE(g->get(doc1), nullptr);
     EXPECT_NE(g->get(doc2), nullptr);
@@ -531,7 +531,7 @@ radio user paragraph
         auto __scope = getGraph()->begin_scope("add first node");
         auto par     = getLastRootAdapter().at(1);
         auto v       = getState()->addNode(par, conf);
-        EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(par->getKind(), org::sem::OrgSemKind::Paragraph);
         EXPECT_EQ(getGraph()->getVertexCount(), 1);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
         ASSERT_EQ(getState()->unresolved.size(), 0);
@@ -564,7 +564,7 @@ radio user paragraph
         auto __scope = getGraph()->begin_scope("add first node");
         auto par     = getLastRootAdapter().at(1);
         auto v       = getState()->addNode(par, conf);
-        EXPECT_EQ(par->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(par->getKind(), org::sem::OrgSemKind::Paragraph);
         EXPECT_EQ(getGraph()->getVertexCount(), 1);
         EXPECT_EQ(getGraph()->getSummedEdgeCount(), 0);
         // radio link tracking is finalized by the time the immutable AST
@@ -704,7 +704,7 @@ Multiline [[id:6d6d6689-d9da-418d-9f91-1c8c4428e5af][Extra entries]]
     return join(""_str_view, text);
 }
 
-using osk = OrgSemKind;
+using osk = org::sem::OrgSemKind;
 
 TEST_F(ImmMapApi, SubtreeFullMap) {
     init_with(getFullMindMapText());
@@ -797,7 +797,7 @@ DocBlock fromAst(imm::ImmAdapter const& id) {
 
     DocBlock result;
     switch (id->getKind()) {
-        case OrgSemKind::Document: {
+        case org::sem::OrgSemKind::Document: {
             for (auto const& sub : id.sub()) {
                 if (!Skip.contains(sub->getKind())) {
                     result.nested.push_back(fromAst(sub));
@@ -805,7 +805,7 @@ DocBlock fromAst(imm::ImmAdapter const& id) {
             }
             break;
         }
-        case OrgSemKind::Subtree: {
+        case org::sem::OrgSemKind::Subtree: {
             result.items.push_back(DocItem{.id = id});
             for (auto const& sub : id.sub()) {
                 if (!Skip.contains(sub->getKind())) {
@@ -844,8 +844,8 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     imm::ImmAdapter comment   = root.at({1, 3});
     imm::ImmAdapter par_above = root.at({1, 1});
-    EXPECT_EQ(comment->getKind(), OrgSemKind::BlockComment);
-    EXPECT_EQ(par_above->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(comment->getKind(), org::sem::OrgSemKind::BlockComment);
+    EXPECT_EQ(par_above->getKind(), org::sem::OrgSemKind::Paragraph);
 
     writeRepresentation();
 
@@ -892,25 +892,25 @@ TEST_F(ImmMapApi, SubtreeBlockMap) {
 
     auto BlockComment_1 = root.at(1).at(3);
 
-    EXPECT_EQ(List_1->getKind(), OrgSemKind::List);
-    EXPECT_EQ(List_2->getKind(), OrgSemKind::List);
-    EXPECT_EQ(Paragraph_10->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_11->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_12->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_14->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_16->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_17->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_19->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_20->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_3->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_5->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_6->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_7->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_8->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Paragraph_9->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(Subtree_1->getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(Subtree_2->getKind(), OrgSemKind::Subtree);
-    EXPECT_EQ(BlockComment_1->getKind(), OrgSemKind::BlockComment);
+    EXPECT_EQ(List_1->getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ(List_2->getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ(Paragraph_10->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_11->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_12->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_14->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_16->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_17->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_19->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_20->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_3->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_5->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_6->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_7->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_8->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Paragraph_9->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(Subtree_1->getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(Subtree_2->getKind(), org::sem::OrgSemKind::Subtree);
+    EXPECT_EQ(BlockComment_1->getKind(), org::sem::OrgSemKind::BlockComment);
 
     auto g = getGraph();
 

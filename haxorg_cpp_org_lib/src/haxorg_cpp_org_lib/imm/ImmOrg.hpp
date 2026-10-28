@@ -54,7 +54,7 @@ template <typename Func>
 void switch_node_nullptr(org::sem::OrgSemKind kind, Func const& cb) {
     switch (kind) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         cb((org::imm::Imm##__Kind*)nullptr);                                             \
         break;                                                                           \
     }
@@ -798,10 +798,10 @@ hstd::Vec<ImmId> allSubnodes(ImmId const& value, org::imm::ImmAstContext::Ptr co
 
 template <typename Func>
 void switch_node_kind(org::imm::ImmId id, Func const& cb) {
-    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::NoNode, "");
+    LOGIC_ASSERTION_CHECK(id.getKind() != org::sem::OrgSemKind::NoNode, "");
     switch (id.getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         cb(id.as<org::imm::Imm##__Kind>());                                              \
         break;                                                                           \
     }
@@ -819,7 +819,7 @@ void switch_node_value(
     org::imm::ImmId           id,
     ImmAstContext::Ptr const& ctx,
     Func const&               cb) {
-    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::NoNode, "");
+    LOGIC_ASSERTION_CHECK(id.getKind() != org::sem::OrgSemKind::NoNode, "");
     switch_node_kind(
         id, [&]<typename K>(org::imm::ImmIdT<K> id) { cb(ctx->value<K>(id)); });
 }
@@ -829,7 +829,7 @@ void switch_node_fields(
     org::imm::ImmId           id,
     ImmAstContext::Ptr const& ctx,
     Func const&               cb) {
-    LOGIC_ASSERTION_CHECK(id.getKind() != OrgSemKind::NoNode, "");
+    LOGIC_ASSERTION_CHECK(id.getKind() != org::sem::OrgSemKind::NoNode, "");
     switch_node_value(id, ctx, [&]<typename T>(T const& node) {
         hstd::for_each_field_value_with_bases(node, cb);
     });
@@ -914,7 +914,7 @@ struct [[refl(R"({"default-constructor": false})")]] ImmAdapter {
     /// for the node and then use the expression in the test itself.
     hstd::Str selfSelect() const;
 
-    [[refl]] OrgSemKind getKind() const { return id.getKind(); }
+    [[refl]] org::sem::OrgSemKind getKind() const { return id.getKind(); }
 
     org::imm::ImmAccessStep const& lastPath() const {
         return path.path.back().path.last();

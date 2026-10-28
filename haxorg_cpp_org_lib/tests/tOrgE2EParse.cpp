@@ -12,7 +12,7 @@ Str getSelfTest(org::imm::ImmAdapter const& it) {
     return hstd::fmt(
         R"(
 auto {0} = {1};
-EXPECT_EQ({0}->getKind(), OrgSemKind::{2});
+EXPECT_EQ({0}->getKind(), org::sem::OrgSemKind::{2});
 )",
         it.id,
         it.selfSelect(),
@@ -83,7 +83,7 @@ TEST(TestFiles, AllNodeCoverage) {
     sem::OrgConverter converter{};
     sem::SemId node = converter.convertDocument(OrgAdapter(&p.nodes, OrgId(0))).value();
 
-    using osk = OrgSemKind;
+    using osk = org::sem::OrgSemKind;
     SemSet wipNotParseable{
         osk::CmdInclude,
         osk::DocumentGroup,

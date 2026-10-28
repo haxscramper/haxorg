@@ -22,7 +22,7 @@ const O& org::sem::SemId<O>::operator*() const {
 }
 
 template <typename O>
-OrgSemKind org::sem::SemId<O>::getNodeKind() const {
+org::sem::OrgSemKind org::sem::SemId<O>::getNodeKind() const {
     return get()->getKind();
 }
 

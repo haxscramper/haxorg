@@ -10,7 +10,7 @@ using namespace org::sem;
 using namespace hstd;
 
 
-using onk = OrgNodeKind;
+using onk = org::sem::OrgNodeKind;
 using otk = OrgTokenKind;
 using Err = OrgConverter::Errors;
 

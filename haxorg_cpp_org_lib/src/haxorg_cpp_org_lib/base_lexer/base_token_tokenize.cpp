@@ -376,11 +376,11 @@ struct Cursor {
     }
 
     void range_token(
-        OrgTokenKind kind,
-        Recall       start,
-        Recall       end,
-        int          line     = __builtin_LINE(),
-        char const*  function = __builtin_FUNCTION()) {
+        org::sem::OrgTokenKind kind,
+        Recall                 start,
+        Recall                 end,
+        int                    line     = __builtin_LINE(),
+        char const*            function = __builtin_FUNCTION()) {
 
         OrgToken tok;
         tok->loc = org::parse::SourceLoc{
@@ -410,10 +410,10 @@ struct Cursor {
 
     template <typename Func, typename... Args>
     void token_cb(
-        OrgTokenKind kind,
-        int          line,
-        char const*  function,
-        Func const&  adv,
+        org::sem::OrgTokenKind kind,
+        int                    line,
+        char const*            function,
+        Func const&            adv,
         Args&&... args) {
         OrgToken tok;
         tok->loc = org::parse::SourceLoc{
@@ -446,28 +446,28 @@ struct Cursor {
 
     template <typename Func, typename Arg1>
     void token1(
-        OrgTokenKind kind,
-        Func const&  cb,
-        Arg1 const&  arg,
-        int          line     = __builtin_LINE(),
-        char const*  function = __builtin_FUNCTION()) {
+        org::sem::OrgTokenKind kind,
+        Func const&            cb,
+        Arg1 const&            arg,
+        int                    line     = __builtin_LINE(),
+        char const*            function = __builtin_FUNCTION()) {
         token_cb(kind, line, function, cb, arg);
     }
 
     template <typename Func>
     void token0(
-        OrgTokenKind kind,
-        Func const&  cb,
-        int          line     = __builtin_LINE(),
-        char const*  function = __builtin_FUNCTION()) {
+        org::sem::OrgTokenKind kind,
+        Func const&            cb,
+        int                    line     = __builtin_LINE(),
+        char const*            function = __builtin_FUNCTION()) {
         token_cb(kind, line, function, cb);
     }
 
     void token_adv(
-        OrgTokenKind kind,
-        int          count,
-        int          line     = __builtin_LINE(),
-        char const*  function = __builtin_FUNCTION()) {
+        org::sem::OrgTokenKind kind,
+        int                    count,
+        int                    line     = __builtin_LINE(),
+        char const*            function = __builtin_FUNCTION()) {
         token_cb(kind, line, function, [&](Cursor& c) {
             for (int i = 0; i < count; ++i) { c.next(); }
         });
@@ -515,7 +515,7 @@ struct Cursor {
     }
 };
 
-using otk = OrgTokenKind;
+using otk = org::sem::OrgTokenKind;
 
 void advance_count(Cursor& c, int count) {
     for (int i = 0; i < count; ++i) { c.next(); }
@@ -628,8 +628,8 @@ enum class CommandType
 };
 
 struct CommandSpec {
-    OrgTokenKind token;
-    CommandType  type;
+    org::sem::OrgTokenKind token;
+    CommandType            type;
 };
 
 UnorderedMap<std::string, CommandSpec> CmdSpec{
@@ -1245,7 +1245,7 @@ std::optional<int> is_at_table_separator(Cursor& c, int skip) {
 }
 
 
-void lex_latex_inline(Cursor& c, std::string const& close, OrgTokenKind end) {
+void lex_latex_inline(Cursor& c, std::string const& close, org::sem::OrgTokenKind end) {
     int offset = 0;
     while (c.has_pos(offset) && !c.is_at('\n', offset)) {
         if (c.is_at(close, offset)

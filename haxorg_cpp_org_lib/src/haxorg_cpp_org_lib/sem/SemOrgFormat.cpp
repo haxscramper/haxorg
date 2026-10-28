@@ -41,7 +41,7 @@ auto Formatter::toString(SemId<Org> id, Context const& ctx) -> Res {
     } else {
         switch (id->getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: return toString(id.as<__Kind>(), ctx);
+    case org::sem::OrgSemKind::__Kind: return toString(id.as<__Kind>(), ctx);
             EACH_SEM_ORG_KIND(_case)
 #undef _case
         }
@@ -1744,7 +1744,7 @@ auto Formatter::toString(SemId<Paragraph> id, Context const& ctx) -> Res {
     Context ctx2   = ctx;
     ctx2.isInline  = true;
     for (auto const& line : id->subnodes | rv::split_when([](sem::SemId<sem::Org> id) {
-                                return id->getKind() == OrgSemKind::Newline;
+                                return id->getKind() == org::sem::OrgSemKind::Newline;
                             })) {
         Res line_out = b.line();
         for (auto const& item : line) { add(line_out, toString(item, ctx2)); }

@@ -31,7 +31,7 @@ void org::algo::Exporter<V, R>::visitDispatch(R& res, sem::SemId<sem::Org> arg) 
     auto kind = arg->getKind();
     switch (kind) {
 #define __case(__Kind)                                                                   \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         In<sem::__Kind> tmp = arg.as<sem::__Kind>();                                     \
         _this()->pushVisit(res, tmp);                                                    \
         _this()->visitDispatchHook(res, arg);                                            \

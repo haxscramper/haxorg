@@ -3,14 +3,16 @@
 using namespace hstd;
 using namespace org::parse;
 
-using otk        = OrgTokenKind;
-using OrgPattern = org::parse::AstPattern<OrgAdapter, OrgNodeKind, OrgSpecName>;
-using SpecPair   = Pair<org::sem::OrgNodeKind, OrgPattern>;
-using Field      = org::parse::AstPatternRange<OrgAdapter, OrgNodeKind, OrgSpecName>;
-using Range      = org::parse::AstRange<OrgSpecName>;
+using otk        = org::sem::OrgTokenKind;
+using OrgPattern = org::parse::
+    AstPattern<OrgAdapter, org::sem::OrgNodeKind, org::sem::OrgSpecName>;
+using SpecPair = Pair<org::sem::OrgNodeKind, OrgPattern>;
+using Field    = org::parse::
+    AstPatternRange<OrgAdapter, org::sem::OrgNodeKind, org::sem::OrgSpecName>;
+using Range = org::parse::AstRange<org::sem::OrgSpecName>;
 
-using N   = OrgSpecName;
-using onk = OrgNodeKind;
+using N   = org::sem::OrgSpecName;
+using onk = org::sem::OrgNodeKind;
 
 Field idxField(int idx, N name, OrgPattern const& pattern) {
     return Field(Range(idx, name), pattern);
@@ -18,7 +20,7 @@ Field idxField(int idx, N name, OrgPattern const& pattern) {
 
 
 template <typename Idx>
-Field field1(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
+Field field1(Idx idx, N name, org::sem::OrgNodeKind const& pattern, Str doc = "") {
     return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
 
@@ -28,7 +30,7 @@ Field field1(Idx idx, N name, OrgSet const& pattern = OrgSet{}, Str doc = "") {
 }
 
 template <typename Idx>
-Field fieldN(Idx idx, N name, OrgNodeKind const& pattern, Str doc = "") {
+Field fieldN(Idx idx, N name, org::sem::OrgNodeKind const& pattern, Str doc = "") {
     return Field(Range(idx, name).doc(doc), OrgPattern(pattern));
 }
 

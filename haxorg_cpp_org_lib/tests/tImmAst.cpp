@@ -55,7 +55,7 @@ TEST_F(ImmOrgApi, ImmutableMindMapFromDirectory) {
 TEST_F(ImmOrgApi, ImmAstFieldIteration) {
     auto store = imm::ImmAstContext::init_start_context();
     for (auto const& k : sliceT<org::sem::OrgSemKind>()) {
-        if (k != OrgSemKind::NoNode) {
+        if (k != org::sem::OrgSemKind::NoNode) {
             switch_node_nullptr(k, [&]<typename N>(N*) {
                 N                            tmp{};
                 ReflRecursiveVisitContext    ctx;
@@ -89,7 +89,7 @@ TEST_F(ImmOrgApi, ItearteParentNodes) {
 
     writeTreeRepr(r, getDebugFile("repr.txt"));
 
-    EXPECT_EQ(space_id->getKind(), OrgSemKind::Space);
+    EXPECT_EQ(space_id->getKind(), org::sem::OrgSemKind::Space);
     {
         imm::ImmParentIdVec parents = v1.context->getParentIds(space_id.id);
         EXPECT_EQ(parents.size(), 1);
@@ -135,11 +135,11 @@ Other paragraph mentions radiotarget
     writeTreeRepr(root, getDebugFile("repr.txt"));
 
     imm::ImmAdapter par1 = root.at(1);
-    EXPECT_EQ(par1.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par1.getKind(), org::sem::OrgSemKind::Paragraph);
     imm::ImmAdapter radio = par1.at(0);
-    EXPECT_EQ(radio.getKind(), OrgSemKind::RadioTarget);
+    EXPECT_EQ(radio.getKind(), org::sem::OrgSemKind::RadioTarget);
     imm::ImmAdapter par2 = root.at(3);
-    EXPECT_EQ(par2.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par2.getKind(), org::sem::OrgSemKind::Paragraph);
     Vec<imm::ImmSubnodeGroup> grouped = imm::getSubnodeGroups(init.context, par2);
     EXPECT_EQ(grouped.size(), 7);
     EXPECT_TRUE(grouped.at(0).isSingle());
@@ -165,9 +165,9 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
     imm::ImmAdapter root = init.getRootAdapter();
     writeTreeRepr(root, getDebugFile("repr.txt"));
     imm::ImmAdapter t1 = root.at(1);
-    EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(t1.getKind(), org::sem::OrgSemKind::Subtree);
     imm::ImmAdapter par = t1.at(0);
-    EXPECT_EQ2(par.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(par.getKind(), org::sem::OrgSemKind::Paragraph);
 
     auto group = imm::getSubnodeGroups(init.context, par);
 
@@ -212,9 +212,9 @@ also known as a human-readable alias
     imm::ImmAdapter root = init.getRootAdapter();
     writeTreeRepr(root, getDebugFile("repr.txt"));
     imm::ImmAdapter t1 = root.at(1);
-    EXPECT_EQ(t1.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(t1.getKind(), org::sem::OrgSemKind::Subtree);
     imm::ImmAdapter t2 = root.at(2);
-    EXPECT_EQ(t2.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(t2.getKind(), org::sem::OrgSemKind::Subtree);
 
     imm::ImmAdapterT<imm::ImmSubtree> treeAdapter = t1.as<imm::ImmSubtree>();
 
@@ -230,9 +230,9 @@ also known as a human-readable alias
     imm::ImmAdapter par_alias2 = t2.at(2);
     imm::ImmAdapter par_human  = t2.at(4);
 
-    EXPECT_EQ(par_alias1.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(par_alias2.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(par_human.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par_alias1.getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(par_alias2.getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(par_human.getKind(), org::sem::OrgSemKind::Paragraph);
 
     auto group_alias1 = imm::getSubnodeGroups(init.context, par_alias1);
     EXPECT_EQ(group_alias1.size(), 7);
@@ -276,14 +276,14 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     auto const& par1_id = ctx->adapt(c.at(1).original.value());
     auto const& par2_id = ctx->adapt(c.at(1).replaced);
 
-    EXPECT_EQ(doc1_id->getKind(), OrgSemKind::Document);
-    EXPECT_EQ(doc2_id->getKind(), OrgSemKind::Document);
+    EXPECT_EQ(doc1_id->getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ(doc2_id->getKind(), org::sem::OrgSemKind::Document);
 
     EXPECT_EQ(doc1_id.id.getNodeIndex(), 1);
     EXPECT_EQ(doc2_id.id.getNodeIndex(), 2);
 
-    EXPECT_EQ(par1_id->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(par2_id->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ(par1_id->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(par2_id->getKind(), org::sem::OrgSemKind::Paragraph);
 
     EXPECT_EQ(par1_id.id.getNodeIndex(), 1);
     EXPECT_EQ(par2_id.id.getNodeIndex(), 2);
@@ -323,9 +323,9 @@ TEST_F(ImmOrgApi, ReplaceSubnodeAtPath) {
     }
 
 
-    EXPECT_EQ(word0_id->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(word2_id->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(word4_id->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(word0_id->getKind(), org::sem::OrgSemKind::Word);
+    EXPECT_EQ(word2_id->getKind(), org::sem::OrgSemKind::Word);
+    EXPECT_EQ(word4_id->getKind(), org::sem::OrgSemKind::Word);
 
     EXPECT_EQ(word0_id.value<imm::ImmWord>().text, "word0");
     EXPECT_EQ(word2_id.value<imm::ImmWord>().text, "word2");
@@ -475,19 +475,19 @@ struct ImmOrgDocumentSelector : public ImmOrgApiTestBase {};
 TEST_F(ImmOrgDocumentSelector, GetMatchingNodeByKind) {
     auto                     node = getInitialVersion("bold");
     imm::OrgDocumentSelector selector;
-    selector.searchAnyKind({OrgSemKind::Word}, true);
+    selector.searchAnyKind({org::sem::OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 1);
-    EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(words.at(0)->getKind(), org::sem::OrgSemKind::Word);
     EXPECT_EQ(words.at(0).as<imm::ImmWord>()->text, "bold");
 }
 
 TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
     auto                     node = getInitialVersion("word *bold*");
     imm::OrgDocumentSelector selector;
-    selector.searchAnyKind({OrgSemKind::Word}, true);
+    selector.searchAnyKind({org::sem::OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
 
@@ -499,13 +499,14 @@ TEST_F(ImmOrgDocumentSelector, GetMultipleMatchingNodesByKind) {
 TEST_F(ImmOrgDocumentSelector, GetDirectlyNestedNode) {
     auto                     node = getInitialVersion("word *bold*");
     imm::OrgDocumentSelector selector;
-    selector.searchAnyKind({OrgSemKind::Bold}, false, selector.linkDirectSubnode());
-    selector.searchAnyKind({OrgSemKind::Word}, true);
+    selector.searchAnyKind(
+        {org::sem::OrgSemKind::Bold}, false, selector.linkDirectSubnode());
+    selector.searchAnyKind({org::sem::OrgSemKind::Word}, true);
 
     auto words = selector.getMatches(node.getRootAdapter());
 
     EXPECT_EQ(words.size(), 1);
-    EXPECT_EQ(words.at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(words.at(0)->getKind(), org::sem::OrgSemKind::Word);
     EXPECT_EQ(words.at(0).as<imm::ImmWord>()->text, "bold");
 }
 
@@ -527,7 +528,7 @@ Paragraph under subtitle 2
 
         auto title1 = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(title1.size(), 1);
-        EXPECT_EQ(title1.at(0)->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(title1.at(0)->getKind(), org::sem::OrgSemKind::Subtree);
     }
 
     if (true) {
@@ -535,7 +536,7 @@ Paragraph under subtitle 2
         selector.setTraceFile(getDebugFile("title_search_2"));
         selector.searchSubtreePlaintextTitle(
             {"Subtitle2"}, false, selector.linkIndirectSubnode());
-        selector.searchAnyKind({OrgSemKind::Word}, true);
+        selector.searchAnyKind({org::sem::OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(words.size(), 5);
@@ -560,7 +561,7 @@ Paragraph under subtitle 2
             false,
             selector.linkField(
                 imm::ImmReflFieldId::FromTypeField(&imm::ImmOrg::subnodes)));
-        selector.searchAnyKind({OrgSemKind::Word}, true);
+        selector.searchAnyKind({org::sem::OrgSemKind::Word}, true);
 
         auto words = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(words.size(), 4);
@@ -633,9 +634,10 @@ TEST_F(ImmOrgDocumentSelector, NonLeafSubtrees) {
 )");
 
     imm::OrgDocumentSelector selector;
-    selector.searchAnyKind({OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
+    selector.searchAnyKind(
+        {org::sem::OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
 
-    selector.searchAnyKind({OrgSemKind::Subtree}, false);
+    selector.searchAnyKind({org::sem::OrgSemKind::Subtree}, false);
 
     Vec<imm::ImmAdapter> subtrees = selector.getMatches(doc.getRootAdapter());
 
@@ -663,11 +665,11 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
     {
         imm::OrgDocumentSelector selector;
         selector.searchAnyKind(
-            {OrgSemKind::Subtree},
+            {org::sem::OrgSemKind::Subtree},
             true,
             selector.linkField(
                 imm::ImmReflFieldId::FromTypeField(&imm::ImmSubtree::title)));
-        selector.searchAnyKind({OrgSemKind::Time}, false);
+        selector.searchAnyKind({org::sem::OrgSemKind::Time}, false);
         auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 1);
     }
@@ -675,8 +677,8 @@ TEST_F(ImmOrgDocumentSelector, SubtreesWithDateInTitleAndBody) {
     {
         imm::OrgDocumentSelector selector;
         selector.searchAnyKind(
-            {OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
-        selector.searchAnyKind({OrgSemKind::Time}, false);
+            {org::sem::OrgSemKind::Subtree}, true, selector.linkIndirectSubnode());
+        selector.searchAnyKind({org::sem::OrgSemKind::Time}, false);
         auto subtrees = selector.getMatches(doc.getRootAdapter());
         EXPECT_EQ(subtrees.size(), 2);
     }

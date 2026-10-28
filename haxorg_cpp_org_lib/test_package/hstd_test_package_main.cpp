@@ -4,7 +4,7 @@ int main() {
     auto ctx  = org::parse::ParseContext::shared();
     auto node = ctx->parseString("*bold*", "<test>");
     LOGIC_ASSERTION_CHECK_FMT(
-        node->getKind() == OrgSemKind::Document,
+        node->getKind() == org::sem::OrgSemKind::Document,
         "Expected string to parse as document, got {}",
         node->getKind());
 }

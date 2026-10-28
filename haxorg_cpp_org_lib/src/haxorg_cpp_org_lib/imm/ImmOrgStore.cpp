@@ -482,11 +482,11 @@ ImmId ImmAstStore::add(sem::SemId<sem::Org> data, ImmAstEditContext& ctx) {
 
 #if HAXORG_CPP_ORG_LIB_BUILD_WITH_PERFETTO
     static SemSet AddTrackingKinds{
-        OrgSemKind::Subtree,
-        OrgSemKind::Document,
-        OrgSemKind::Symlink,
-        OrgSemKind::Directory,
-        OrgSemKind::File,
+        org::sem::OrgSemKind::Subtree,
+        org::sem::OrgSemKind::Document,
+        org::sem::OrgSemKind::Symlink,
+        org::sem::OrgSemKind::Directory,
+        org::sem::OrgSemKind::File,
     };
 
     TRACE_COUNTER("imm", "added_nodes", ++counters.added_node_count);
@@ -668,13 +668,13 @@ struct ImmSemSerde;
 
 namespace {
 static const SemSet StructuralSubnodes{
-    OrgSemKind::Subtree,
-    OrgSemKind::File,
-    OrgSemKind::Directory,
-    OrgSemKind::Symlink,
-    OrgSemKind::StmtList,
-    OrgSemKind::List,
-    OrgSemKind::ListItem,
+    org::sem::OrgSemKind::Subtree,
+    org::sem::OrgSemKind::File,
+    org::sem::OrgSemKind::Directory,
+    org::sem::OrgSemKind::Symlink,
+    org::sem::OrgSemKind::StmtList,
+    org::sem::OrgSemKind::List,
+    org::sem::OrgSemKind::ListItem,
 };
 }
 

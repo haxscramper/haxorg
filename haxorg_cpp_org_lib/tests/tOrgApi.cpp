@@ -54,8 +54,8 @@ Mention #hashtag1 and #nested##alias1 with #nested##alias2
 
     auto doc2_par1 = doc2.at(1);
     auto doc2_par3 = doc2.at(5);
-    EXPECT_EQ2(doc2_par1->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ2(doc2_par1->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(doc2_par1->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ2(doc2_par1->getKind(), org::sem::OrgSemKind::Paragraph);
     writeFile(getDebugFile("repr.txt"), dbgString(doc2_par1));
 
     {
@@ -111,16 +111,16 @@ content
     EXPECT_EQ2(buf.at(0).resultFormat, sem::OrgCodeEvalInput::ResultFormat::Raw);
     EXPECT_EQ2(buf.at(0).resultType, sem::OrgCodeEvalInput::ResultType::Scalar);
 
-    EXPECT_EQ2(ev->getKind(), OrgSemKind::Document);
-    EXPECT_EQ2(ev.at(0)->getKind(), OrgSemKind::BlockCode);
+    EXPECT_EQ2(ev->getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ2(ev.at(0)->getKind(), org::sem::OrgSemKind::BlockCode);
     auto bc = ev.at(0).as<sem::BlockCode>();
     EXPECT_EQ2(bc->result.size(), 1);
-    EXPECT_EQ2(bc->result.at(0)->getKind(), OrgSemKind::BlockCodeEvalResult);
+    EXPECT_EQ2(bc->result.at(0)->getKind(), org::sem::OrgSemKind::BlockCodeEvalResult);
     auto res = bc->result.at(0).as<sem::BlockCodeEvalResult>();
-    EXPECT_EQ2(res->node->getKind(), OrgSemKind::StmtList);
-    EXPECT_EQ2(res->node.at(0)->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ2(res->node.at(0).at(0)->getKind(), OrgSemKind::Bold);
-    EXPECT_EQ2(res->node.at(0).at(0).at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ2(res->node->getKind(), org::sem::OrgSemKind::StmtList);
+    EXPECT_EQ2(res->node.at(0)->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ2(res->node.at(0).at(0)->getKind(), org::sem::OrgSemKind::Bold);
+    EXPECT_EQ2(res->node.at(0).at(0).at(0)->getKind(), org::sem::OrgSemKind::Word);
     auto w = res->node.at(0).at(0).at(0).as<sem::Word>();
     EXPECT_EQ2(w->text, "bold");
 }

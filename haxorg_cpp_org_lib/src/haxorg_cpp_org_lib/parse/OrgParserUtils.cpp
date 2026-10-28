@@ -59,9 +59,9 @@ struct Builder : OperationsMsgBulder<Builder, OrgParser::Report> {
 
 
 std::unique_ptr<org::parse::OrgParser::NodeGuard> OrgParser::start(
-    OrgNodeKind kind,
-    int         line,
-    char const* function) {
+    org::sem::OrgNodeKind kind,
+    int                   line,
+    char const*           function) {
     int const startingDepth = treeDepth();
     auto      res           = group->startTree(kind);
     if (canTrace()) {
@@ -236,7 +236,7 @@ OrgId OrgParser::error_token(
     char const*               function) {
     OrgNodeMono mono;
     mono.data     = err;
-    OrgNode error = OrgNode{OrgNodeKind::ErrorInfoToken, mono};
+    OrgNode error = OrgNode{org::sem::OrgNodeKind::ErrorInfoToken, mono};
     return token(error);
 }
 

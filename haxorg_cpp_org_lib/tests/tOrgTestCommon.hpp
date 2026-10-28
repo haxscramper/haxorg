@@ -389,7 +389,7 @@ struct reporting_comparator<sem::SemId<sem::Org>> {
         } else {
             switch (lhs->getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind:                                                             \
+    case org::sem::OrgSemKind::__Kind:                                                   \
         reporting_comparator<sem::SemId<sem::__Kind>>::compare(                          \
             lhs.as<sem::__Kind>(), rhs.as<sem::__Kind>(), out, context);                 \
         break;

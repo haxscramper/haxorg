@@ -9,10 +9,10 @@ using namespace hstd;
 int SemNodeStore::getSubnodeCount(Id const& id) {
     auto n = get(id);
     switch (n->getKind()) {
-        case OrgSemKind::Table: {
+        case org::sem::OrgSemKind::Table: {
             return n->dyn_cast<sem::Table>()->rows.size();
         }
-        case OrgSemKind::Row: {
+        case org::sem::OrgSemKind::Row: {
             return n->dyn_cast<sem::Row>()->cells.size();
         }
         default: {
@@ -24,10 +24,10 @@ int SemNodeStore::getSubnodeCount(Id const& id) {
 hstd::ext::diff::NodeStore::Id SemNodeStore::getSubnodeAt(Id const& node, int index) {
     auto n = get(node);
     switch (n->getKind()) {
-        case OrgSemKind::Row: {
+        case org::sem::OrgSemKind::Row: {
             return NodeStore::Id::FromPtr(n->dyn_cast<sem::Row>()->cells.at(index).get());
         }
-        case OrgSemKind::Table: {
+        case org::sem::OrgSemKind::Table: {
             return NodeStore::Id::FromPtr(
                 n->dyn_cast<sem::Table>()->rows.at(index).get());
         }
@@ -73,12 +73,12 @@ void SemNodeDiff::setDiffTrees(
 
 namespace {
 SemSet LeafKinds{
-    OrgSemKind::Word,
-    OrgSemKind::BigIdent,
-    OrgSemKind::Punctuation,
-    OrgSemKind::Escaped,
-    OrgSemKind::Newline,
-    OrgSemKind::Empty,
+    org::sem::OrgSemKind::Word,
+    org::sem::OrgSemKind::BigIdent,
+    org::sem::OrgSemKind::Punctuation,
+    org::sem::OrgSemKind::Escaped,
+    org::sem::OrgSemKind::Newline,
+    org::sem::OrgSemKind::Empty,
 };
 }
 

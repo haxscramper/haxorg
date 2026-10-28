@@ -15,8 +15,8 @@
 #pragma clang diagnostic error "-Wunused-result"
 
 
-using otk = OrgTokenKind;
-using onk = OrgNodeKind;
+using otk = org::sem::OrgTokenKind;
+using onk = org::sem::OrgNodeKind;
 
 using namespace org::parse;
 using namespace hstd;
@@ -320,9 +320,10 @@ OrgParser::ParseResult OrgParser::parseLispExpr(OrgLexer& lex) {
     auto lispGuard = start(onk::LispExpr);
 
     if (isAtLispCollectionStart(lex)) {
-        auto parse_collection = [&](org::sem::OrgNodeKind start_node,
-                                    OrgTokenKind          begin_token,
-                                    OrgTokenKind end_token) -> OrgParser::ParseResult {
+        auto parse_collection =
+            [&](org::sem::OrgNodeKind  start_node,
+                org::sem::OrgTokenKind begin_token,
+                org::sem::OrgTokenKind end_token) -> OrgParser::ParseResult {
             auto stmtGuard = start(start_node);
 
             TRY_SKIP(lex, begin_token);
@@ -1479,7 +1480,7 @@ OrgParser::ParseResult OrgParser::parseTextWrapCommand(OrgLexer& lex) {
         }
     }();
 
-    OrgTokenKind endTok = [&]() {
+    org::sem::OrgTokenKind endTok = [&]() {
         switch (lex.kind()) {
             case otk::CmdVerseBegin: return otk::CmdVerseEnd;
             case otk::CmdCenterBegin: return otk::CmdCenterEnd;

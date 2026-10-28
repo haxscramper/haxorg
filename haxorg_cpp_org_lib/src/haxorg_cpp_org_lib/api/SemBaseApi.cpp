@@ -27,7 +27,7 @@
 using namespace org::sem;
 using namespace org;
 using namespace hstd;
-using osk = OrgSemKind;
+using osk = org::sem::OrgSemKind;
 
 
 std::string org::exportToJsonString(sem::SemId<sem::Org> const& node) {
@@ -196,7 +196,7 @@ void eachSubnodeRecImpl(
     bool                          originalBase) {
 
 #define __case(__Kind)                                                                   \
-    case OrgSemKind::__Kind:                                                             \
+    case org::sem::OrgSemKind::__Kind:                                                   \
         return recVisitOrgNodesImpl(visitor, org.as<__Kind>(), originalBase);
 
     switch (org->getKind()) { EACH_SEM_ORG_KIND(__case) }
@@ -285,7 +285,7 @@ Vec<SemId<Org>> getDirectSubnodes(
     Opt<Str> const& targetField = std::nullopt) {
     switch (node->getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         return getDirectSubnodes<sem::__Kind>(node.as<sem::__Kind>(), targetField);      \
     }
 

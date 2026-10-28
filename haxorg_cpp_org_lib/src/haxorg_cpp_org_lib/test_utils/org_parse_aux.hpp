@@ -9,8 +9,8 @@
 
 namespace org::test {
 
-using onk = OrgNodeKind;
-using otk = OrgTokenKind;
+using onk = org::sem::OrgNodeKind;
+using otk = org::sem::OrgTokenKind;
 
 
 struct MockFull {
@@ -54,7 +54,7 @@ struct MockFull {
 
     org::parse::OrgToken& t(int idx) { return tokens.at(org::parse::OrgTokenId(idx)); }
 
-    OrgNodeKind k(int idx) { return n(idx).kind; }
+    org::sem::OrgNodeKind k(int idx) { return n(idx).kind; }
 
     void tokenizeBase(
         std::string const&             content,

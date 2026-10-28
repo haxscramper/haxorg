@@ -165,13 +165,22 @@ class LispCode(M.Class):
 
 
 class TimeValue(M.Class):
-    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+    __config__(
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
+            )
+        )
+    )
 
     class FixedTime(M.Case):
         time: H._T["UserTime"]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class DynamicTime(M.Case):
         time: LispCode
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     isActive: bool = False
 
@@ -390,39 +399,56 @@ class SubtreePath(M.Class):
 
 
 class LinkTarget(M.Class):
-    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
+    __config__(
+        backend=dict(
+            cpp=dict(
+                org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
+            )
+        )
+    )
 
     class Raw(M.Case):
         text: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Id(M.Case):
         text: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class CustomId(M.Case):
         text: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class SubtreeTitle(M.Case):
         title: SubtreePath
         level: Int32
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Person(M.Case):
         name: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class UserProtocol(M.Case):
         protocol: str
         target: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Internal(M.Case):
         target: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Footnote(M.Case):
         target: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class File(M.Case):
         file: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class Attachment(M.Case):
         file: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     __variant__(
         Raw,
@@ -626,6 +652,10 @@ class AttrGroup(M.Class):
 
     def getFirstVarNamed(self, index: str) -> Optional[AttrValue]: ...
 
+    def atFirstNamed(self, index: str) -> AttrValue: ...
+
+    def getFirstNamed(self, index: str) -> Optional[AttrValue]: ...
+
 
 class OrgCodeEvalInput(M.Class):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
@@ -789,6 +819,7 @@ class BlockCodeLine(M.Class):
 class DocumentExportConfig(M.Class):
     class TaskExport(M.Class):
         taskWhitelist: List[str]
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class TagExport(M.Enum):
         None_: int = 0
@@ -829,9 +860,11 @@ class DocumentExportConfig(M.Class):
 
     class DoExport(M.Case):
         exportToc: bool
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ExportFixed(M.Case):
         exportLevels: Int32
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     inlinetasks: Optional[bool] = M.Field(
         doc="Toggle inclusion of inlinetasks", default=None
@@ -910,6 +943,7 @@ class DocumentExportConfig(M.Class):
         backend=dict(
             cpp=dict(
                 org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
                 field_defaults=dict(
                     tagExport="TagExport::NotInToc",
                     taskFiltering="TaskFiltering::All",
@@ -1164,6 +1198,7 @@ class OrgDiagnostics(M.Class):
         loc: Optional[P._T["SourceLoc"]] = None
         errName: str
         errCode: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ParseError(M.Case):
         """General parser errors"""
@@ -1175,6 +1210,7 @@ class OrgDiagnostics(M.Class):
         errName: str
         errCode: str
         loc: Optional[P._T["SourceLoc"]] = None
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class IncludeError(M.Case):
         """Cannot convert parsed tree into"""
@@ -1182,6 +1218,7 @@ class OrgDiagnostics(M.Class):
         brief: str
         targetPath: str
         workingFile: str
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class ConvertError(M.Case):
         """Cannot convert parsed tree into"""
@@ -1194,6 +1231,7 @@ class OrgDiagnostics(M.Class):
         errName: str
         errCode: str
         loc: Optional[P._T["SourceLoc"]] = None
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     class InternalError(M.Case):
         """Internal implementation error: should not be visible to the end-user."""
@@ -1203,6 +1241,7 @@ class OrgDiagnostics(M.Class):
         line: Int32
         file: str
         loc: Optional[P._T["SourceLoc"]] = None
+        __config__(backend=dict(cpp=dict(default_constructor=True)))
 
     __variant__(
         ParseTokenError,
@@ -1218,6 +1257,7 @@ class OrgDiagnostics(M.Class):
         backend=dict(
             cpp=dict(
                 org_groups=OrgTypeGroup.SHARED_TYPES,
+                default_constructor=True,
                 section_code=[
                     dict(
                         kind="public",

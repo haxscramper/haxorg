@@ -63,8 +63,8 @@ TEST(OrgSemAstDiff, OrgChangedWord) {
     auto changes = builder.diff->getAllChanges();
     EXPECT_EQ(changes.size(), 1);
     auto ch0 = changes.at(0);
-    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), org::sem::OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), org::sem::OrgSemKind::Word);
 
     EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
     EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
@@ -81,8 +81,8 @@ TEST(OrgSemAstDiff, OrgChangeNestedWord) {
 
     EXPECT_EQ(changes.size(), 1);
     auto ch0 = changes.at(0);
-    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), org::sem::OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), org::sem::OrgSemKind::Word);
 
     EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
     EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
@@ -118,8 +118,8 @@ word2
 
     EXPECT_EQ(changes.size(), 1);
     auto ch0 = changes.at(0);
-    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), OrgSemKind::Word);
-    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(builder.getSrc(ch0.src)->getKind(), org::sem::OrgSemKind::Word);
+    EXPECT_EQ(builder.getDst(ch0.dst)->getKind(), org::sem::OrgSemKind::Word);
 
     EXPECT_EQ(builder.getSrcT<sem::Word>(ch0.src)->text, "word1");
     EXPECT_EQ(builder.getDstT<sem::Word>(ch0.dst)->text, "word2");
@@ -236,8 +236,8 @@ TEST_F(OrgImmAstDiff, SimpleInsertWords) {
     b.debug();
 
     EXPECT_EQ(b.edits.size(), 5);
-    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), OrgSemKind::Document);
-    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), org::sem::OrgSemKind::Paragraph);
     EXPECT_EQ2(b.getKeepNode<org::imm::ImmWord>(2)->text.get(), "word"_ss);
     EXPECT_EQ2(b.getInsertNode<org::imm::ImmSpace>(3)->text.get(), " "_ss);
     EXPECT_EQ2(b.getInsertNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
@@ -249,8 +249,8 @@ TEST_F(OrgImmAstDiff, SimpleDeleteWords) {
     b.debug();
 
     EXPECT_EQ(b.edits.size(), 5);
-    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), OrgSemKind::Document);
-    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), org::sem::OrgSemKind::Paragraph);
     EXPECT_EQ2(b.getKeepNode<org::imm::ImmWord>(2)->text.get(), "word"_ss);
     EXPECT_EQ2(b.getDeleteNode<org::imm::ImmSpace>(3)->text.get(), " "_ss);
     EXPECT_EQ2(b.getDeleteNode<org::imm::ImmWord>(4)->text.get(), "two"_ss);
@@ -274,21 +274,21 @@ TEST_F(OrgImmAstDiff, UpdateSubtreeProperty) {
     b.debug();
 
     EXPECT_EQ(b.edits.size(), 2);
-    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), OrgSemKind::Document);
-    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), org::sem::OrgSemKind::Subtree);
 }
 
 TEST_F(OrgImmAstDiff, ChangeNodeKind) {
     ImmDiffBuilder b{R"(/italic/)", R"(*italic*)", true};
     b.debug();
     EXPECT_EQ(b.edits.size(), 4);
-    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), OrgSemKind::Document);
-    EXPECT_EQ2(b.getReplace(0).dst.id.getKind(), OrgSemKind::Document);
-    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ2(b.getReplace(1).dst.id.getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ2(b.getReplace(2).src.id.getKind(), OrgSemKind::Italic);
-    EXPECT_EQ2(b.getReplace(2).dst.id.getKind(), OrgSemKind::Bold);
-    EXPECT_EQ2(b.getKeep(3).id.id.getKind(), OrgSemKind::Word);
+    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ2(b.getReplace(0).dst.id.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ2(b.getReplace(1).dst.id.getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ2(b.getReplace(2).src.id.getKind(), org::sem::OrgSemKind::Italic);
+    EXPECT_EQ2(b.getReplace(2).dst.id.getKind(), org::sem::OrgSemKind::Bold);
+    EXPECT_EQ2(b.getKeep(3).id.id.getKind(), org::sem::OrgSemKind::Word);
     EXPECT_EQ2(b.getKeepNode<org::imm::ImmWord>(3)->text.get(), "italic"_ss);
 }
 
@@ -305,10 +305,10 @@ TEST_F(OrgImmAstDiff, ListItemMove) {
         false};
     b.debug();
     EXPECT_EQ(b.edits.size(), 2);
-    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), OrgSemKind::Document);
-    EXPECT_EQ2(b.getReplace(0).dst.id.getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(b.getReplace(0).src.id.getKind(), org::sem::OrgSemKind::Document);
+    EXPECT_EQ2(b.getReplace(0).dst.id.getKind(), org::sem::OrgSemKind::Document);
     EXPECT_EQ2(b.getReplace(0).src, b.src().uniq());
     EXPECT_EQ2(b.getReplace(0).dst, b.dst().uniq());
-    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), OrgSemKind::List);
-    EXPECT_EQ2(b.getReplace(1).dst.id.getKind(), OrgSemKind::List);
+    EXPECT_EQ2(b.getReplace(1).src.id.getKind(), org::sem::OrgSemKind::List);
+    EXPECT_EQ2(b.getReplace(1).dst.id.getKind(), org::sem::OrgSemKind::List);
 }

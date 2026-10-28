@@ -10,7 +10,11 @@
 #include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
 
 namespace org::parse {
-template class NodeGroup<org::sem::OrgNodeKind, OrgTokenKind, OrgFill, OrgNodeMono>;
+template class NodeGroup<
+    org::sem::OrgNodeKind,
+    org::sem::OrgTokenKind,
+    OrgFill,
+    OrgNodeMono>;
 
 
 } // namespace org::parse

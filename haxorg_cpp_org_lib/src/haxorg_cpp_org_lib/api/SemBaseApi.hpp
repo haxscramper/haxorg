@@ -251,7 +251,7 @@ template <typename Func>
 void switch_node_id(org::sem::SemId<org::sem::Org> id, Func const& cb) {
     switch (id->getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         cb(id.as<org::sem::__Kind>());                                                   \
         break;                                                                           \
     }

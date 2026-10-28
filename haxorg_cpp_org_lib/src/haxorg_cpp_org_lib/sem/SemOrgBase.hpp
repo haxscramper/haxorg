@@ -74,14 +74,14 @@ struct [[refl]] SemId {
     /// \name Get pointer to the associated sem org node from ID
     ///
     /// {@
-    [[refl]] O*              get();
-    [[refl]] O const*        get() const;
-    O*                       operator->();
-    O const*                 operator->() const;
-    O&                       operator*();
-    O const&                 operator*() const;
-    [[refl]] SemId<sem::Org> asOrg() const;
-    [[refl]] OrgSemKind      getNodeKind() const;
+    [[refl]] O*                   get();
+    [[refl]] O const*             get() const;
+    O*                            operator->();
+    O const*                      operator->() const;
+    O&                            operator*();
+    O const&                      operator*() const;
+    [[refl]] SemId<sem::Org>      asOrg() const;
+    [[refl]] org::sem::OrgSemKind getNodeKind() const;
 
     [[refl(R"({"unique-name": "atIndex"})")]] SemId<sem::Org>          at(int idx);
     [[refl(R"({"unique-name": "atIndexBackwards"})")]] SemId<sem::Org> at(
@@ -204,7 +204,7 @@ struct [[refl(R"({
     virtual ~Org() = default;
 
     /// \brief Get kind of this sem node
-    [[refl]] virtual OrgSemKind getKind() const = 0;
+    [[refl]] virtual org::sem::OrgSemKind getKind() const = 0;
     /// \brief Location of the node in the original source file
     [[refl]] hstd::Opt<parse::SourceLoc> loc = std::nullopt;
     /// \brief List of subnodes.
@@ -258,7 +258,7 @@ struct [[refl(R"({
     void visit(Func const& cb) {
         switch (getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         cb(dyn_cast<sem::__Kind>());                                                     \
         break;                                                                           \
     }
@@ -272,7 +272,7 @@ struct [[refl(R"({
     void visit(Func const& cb) const {
         switch (getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         cb(dyn_cast<sem::__Kind>());                                                     \
         break;                                                                           \
     }

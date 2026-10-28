@@ -60,8 +60,8 @@ std::string format_enum_value(org::sem::OrgNodeKind kind);
 
 // Explicitly instantiating the formatters for large enums can save up to
 // several minutes of the build time. Token kind takes 17s to instantiate
-// and used at least 15 times, OrgSemKind and OrgNodeKind both take around
-// 800-900ms and are instantiated in about 20 translation units.
+// and used at least 15 times, org::sem::OrgSemKind and org::sem::OrgNodeKind both take
+// around 800-900ms and are instantiated in about 20 translation units.
 
 
 namespace hstd {

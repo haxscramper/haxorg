@@ -527,7 +527,8 @@ class DslModel:
         default: Any = NO_DEFAULT,
         check: Optional[Expr] = None,
         message: Optional[str] = None,
-    ) -> FieldSpec:
+        # Use `Any` to make type checkers work
+    ) -> Any:
         return FieldSpec(
             doc=doc, default=default, check=check, message=message, loc=current_loc()
         )

@@ -118,7 +118,7 @@ void ExporterPython::visitDispatch(Res& res, sem::SemId<sem::Org> arg) {
     auto kind = arg->getKind();
     switch (kind) {
 #define __case(__Kind)                                                                   \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         In<sem::__Kind> tmp = arg.as<sem::__Kind>();                                     \
         _this()->pushVisit(res, tmp);                                                    \
         _this()->visitDispatchHook(res, tmp);                                            \
@@ -161,7 +161,7 @@ void ExporterPython::popVisitImpl(Res& res, sem::OrgArg id) {
 void ExporterPython::visitField(Res& res, char const* name, sem::SemId<sem::Org> value) {
     switch (value->getKind()) {
 #define __case(__Kind)                                                                   \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         In<sem::__Kind> tmp = value.as<sem::__Kind>();                                   \
         visitOrgField(res, name, tmp);                                                   \
         break;                                                                           \

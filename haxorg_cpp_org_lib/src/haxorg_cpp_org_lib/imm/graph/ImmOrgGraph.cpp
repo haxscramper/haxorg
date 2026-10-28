@@ -26,7 +26,7 @@ using namespace org::graph;
 using namespace hstd;
 using namespace org::imm;
 using namespace hstd::ext;
-using osk = OrgSemKind;
+using osk = org::sem::OrgSemKind;
 using slk = org::sem::LinkTarget::Kind;
 
 
@@ -266,7 +266,7 @@ SPtr<MapNodeProp> org::graph::MapConfig::getInitialNodeProp(
     };
 
     if (SemSet{
-            OrgSemKind::Paragraph,
+            org::sem::OrgSemKind::Paragraph,
         }
             .contains(node->getKind())) {
         auto __tmp = state->graph->begin_scope("registering nested outgoing links");
@@ -707,18 +707,18 @@ void add_node_rec_aux(
         state->graph->fmt_message("recursive add {}", node), std::nullopt, "addNodeRec");
 
     switch (node->getKind()) {
-        case OrgSemKind::File:
-        case OrgSemKind::Directory:
-        case OrgSemKind::Symlink:
-        case OrgSemKind::Document:
-        case OrgSemKind::CmdInclude:
-        case OrgSemKind::Subtree:
-        case OrgSemKind::List: {
+        case org::sem::OrgSemKind::File:
+        case org::sem::OrgSemKind::Directory:
+        case org::sem::OrgSemKind::Symlink:
+        case org::sem::OrgSemKind::Document:
+        case org::sem::OrgSemKind::CmdInclude:
+        case org::sem::OrgSemKind::Subtree:
+        case org::sem::OrgSemKind::List: {
             auto added = add_single_node(state, node, parent, conf);
             for (auto const& it : node) { add_node_rec_aux(state, it, added, conf); }
             break;
         }
-        case OrgSemKind::ListItem: {
+        case org::sem::OrgSemKind::ListItem: {
             auto item  = node.as<ImmListItem>();
             auto added = add_single_node(state, node, parent, conf);
             if (item.isDescriptionItem()) {
@@ -732,7 +732,7 @@ void add_node_rec_aux(
             for (auto const& it : node) { add_node_rec_aux(state, it, added, conf); }
             break;
         }
-        case OrgSemKind::Paragraph: {
+        case org::sem::OrgSemKind::Paragraph: {
             std::ignore = add_single_node(state, node, parent, conf);
             break;
         }

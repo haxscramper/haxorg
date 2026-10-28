@@ -14,8 +14,8 @@ std::string org::sem::detail::format_enum_value(org::sem::OrgNodeKind p) {
 }
 
 
-OrgJsonKind org::sem::OrgJson::getKind() const {
-    using K = OrgJsonKind;
+org::sem::OrgJsonKind org::sem::OrgJson::getKind() const {
+    using K = org::sem::OrgJsonKind;
     switch (getRef().type()) {
         case json::value_t::null: return K::Null;
         case json::value_t::object: return K::Object;

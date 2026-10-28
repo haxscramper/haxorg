@@ -10,7 +10,8 @@ using namespace hstd;
 using namespace org::sem;
 
 #define _define_static(__Kind)                                                           \
-    const OrgSemKind org::sem::__Kind::staticKind = OrgSemKind::__Kind;
+    const org::sem::OrgSemKind                                                           \
+        org::sem::__Kind::staticKind = org::sem::OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
 
@@ -20,7 +21,7 @@ EACH_SEM_ORG_KIND(_define_static)
 using boost::mp11::mp_for_each;
 using namespace boost::describe;
 
-using osk      = OrgSemKind;
+using osk      = org::sem::OrgSemKind;
 using Property = NamedProperty;
 
 template <>

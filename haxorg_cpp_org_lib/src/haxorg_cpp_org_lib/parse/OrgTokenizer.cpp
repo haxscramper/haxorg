@@ -60,7 +60,7 @@ std::string report_location(OrgLexer const& lex) {
 
 struct tokenizer_error : CRTP_hexception<tokenizer_error> {};
 
-using otk = OrgTokenKind;
+using otk = org::sem::OrgTokenKind;
 
 template <typename T>
 bool opt_equal(Opt<T> const& opt, T const& value) {
@@ -170,7 +170,7 @@ struct RecombineState {
 
     StrView tok_str(int offset = 0) const { return lex.tok(offset)->text(); }
 
-    void skip(OrgLexer& lex, OrgTokenKind kind, int line = __builtin_LINE()) {
+    void skip(OrgLexer& lex, org::sem::OrgTokenKind kind, int line = __builtin_LINE()) {
         x_report(Print, .with_line(line).with_msg(hstd::fmt("skip {}", lex.tok())));
         lex.skip(kind);
     }
@@ -209,7 +209,7 @@ struct RecombineState {
     }
 
     void pop_as(
-        OrgTokenKind                __to,
+        org::sem::OrgTokenKind      __to,
         Opt<org::sem::OrgTokenKind> expected = std::nullopt,
         int                         line     = __builtin_LINE()) {
         auto res = d->out->add(OrgToken{__to, fill(lex)});
@@ -427,8 +427,8 @@ struct RecombineState {
                     Vec<OrgToken> buf;
                     buf.push_back(lex.tok());
                     lex.pop();
-                    while (lex.tok().kind == OrgTokenKind::Whitespace
-                           || lex.tok().kind == OrgTokenKind::CmdRawArg) {
+                    while (lex.tok().kind == org::sem::OrgTokenKind::Whitespace
+                           || lex.tok().kind == org::sem::OrgTokenKind::CmdRawArg) {
                         buf.push_back(lex.tok());
                         lex.pop();
                         if (buf.back().value.text().ends_with('"')) { break; }
@@ -962,10 +962,10 @@ struct GroupVisitorState {
     }
 
     void add_fake(
-        OrgTokenKind kind,
-        CVec<int>    indentStack,
-        int          line     = __builtin_LINE(),
-        char const*  function = __builtin_FUNCTION()) {
+        org::sem::OrgTokenKind kind,
+        CVec<int>              indentStack,
+        int                    line     = __builtin_LINE(),
+        char const*            function = __builtin_FUNCTION()) {
         auto idx = regroup.add(OrgToken{kind});
         if (d->canTrace()) {
             d->print(

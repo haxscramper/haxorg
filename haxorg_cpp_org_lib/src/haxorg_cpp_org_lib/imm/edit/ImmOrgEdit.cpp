@@ -482,7 +482,11 @@ Vec<ImmAdapter> OrgDocumentSelector::getMatches(ImmAdapter const& node) const {
 Vec<Str> org::imm::flatWords(ImmAdapter const& node) {
     Vec<Str> result;
     if (auto it = node->dyn_cast<org::imm::ImmLeaf>(); it != nullptr) {
-        if (it->is(SemSet{OrgSemKind::RawText, OrgSemKind::Word, OrgSemKind::BigIdent})) {
+        if (it->is(
+                SemSet{
+                    org::sem::OrgSemKind::RawText,
+                    org::sem::OrgSemKind::Word,
+                    org::sem::OrgSemKind::BigIdent})) {
             result.push_back(it->text);
         }
     } else {

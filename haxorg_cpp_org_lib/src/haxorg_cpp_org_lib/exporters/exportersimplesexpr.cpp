@@ -14,23 +14,23 @@ void org::algo::ExporterSimpleSExpr::visit(Res& res, sem::SemId<sem::Org> org) {
         res = string("<nil>");
     } else {
         switch (org->getKind()) {
-#define __case(__Kind) case OrgSemKind::__Kind:
+#define __case(__Kind) case org::sem::OrgSemKind::__Kind:
             EACH_SEM_ORG_LEAF_KIND(__case) {
                 res = string(escape_for_write(org.getAs<sem::Leaf>()->text));
                 break;
             }
 #undef __case
             default: {
-                Res inner = SemSet{OrgSemKind::Subtree, OrgSemKind::ListItem}.contains(
-                                org->getKind())
+                Res inner = SemSet{org::sem::OrgSemKind::Subtree, org::sem::OrgSemKind::ListItem}
+                                    .contains(org->getKind())
                               ? b.stack()
                               : b.line();
 
                 if (SemSet{
-                        OrgSemKind::Paragraph,
-                        OrgSemKind::MarkQuote,
-                        OrgSemKind::Bold,
-                        OrgSemKind::Par,
+                        org::sem::OrgSemKind::Paragraph,
+                        org::sem::OrgSemKind::MarkQuote,
+                        org::sem::OrgSemKind::Bold,
+                        org::sem::OrgSemKind::Par,
                     }
                         .contains(org->getKind())) {
                     res = b.line({string(fmt::format("{}", org->getKind()))});

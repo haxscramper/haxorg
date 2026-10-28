@@ -45,11 +45,11 @@ org::imm::ImmId::NodeIdxT org::imm::ImmId::getNodeIdx(IdType id) {
     return NodeIdxT((id & NodeIdxMask) >> NodeIdxOffset);
 }
 
-OrgSemKind org::imm::ImmId::getKind(IdType id) {
-    return OrgSemKind((id & NodeKindMask) >> NodeKindOffset);
+org::sem::OrgSemKind org::imm::ImmId::getKind(IdType id) {
+    return org::sem::OrgSemKind((id & NodeKindMask) >> NodeKindOffset);
 }
 
-OrgSemKind org::imm::ImmId::getKind() const { return ImmId::getKind(value); }
+org::sem::OrgSemKind org::imm::ImmId::getKind() const { return ImmId::getKind(value); }
 
 bool org::imm::ImmId::is(org::sem::OrgSemKind kind) const { return getKind() == kind; }
 

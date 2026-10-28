@@ -107,10 +107,12 @@ template <sem::IsOrg T>
 Vec<sem::SemId<sem::Org>> getSubnodes(T const* t, bool withPath) { return t->subnodes; }
 // clang-format on
 
-bool is_kind(imm::ImmAdapter const& ad, OrgSemKind kind) { return ad.getKind() == kind; }
+bool is_kind(imm::ImmAdapter const& ad, org::sem::OrgSemKind kind) {
+    return ad.getKind() == kind;
+}
 
 template <sem::IsOrg T>
-bool is_kind(sem::SemId<T> const& ad, OrgSemKind kind) {
+bool is_kind(sem::SemId<T> const& ad, org::sem::OrgSemKind kind) {
     return ad->getKind() == kind;
 }
 
@@ -305,7 +307,7 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
     // directly.
 
     for (const auto& it : getSubnodes(toHandle(h->title, handle), withPath)) {
-        if (it->getKind() == OrgSemKind::Time) {
+        if (it->getKind() == org::sem::OrgSemKind::Time) {
             SubtreePeriod period{};
             // Specifying `sem::Time` in the cast, but returned type also
             // depends on the type of the adapter -- if this is an immer
@@ -313,7 +315,7 @@ Vec<sem::SubtreePeriod> Subtree_getTimePeriodsImpl(
             period.from = org_cast<sem::Time>(it)->getStatic().time;
             period.kind = SubtreePeriod::Kind::Titled;
             res.push_back(period);
-        } else if (it->getKind() == OrgSemKind::TimeRange) {
+        } else if (it->getKind() == org::sem::OrgSemKind::TimeRange) {
             SubtreePeriod period{};
             period.from = toHandle(org_cast<sem::TimeRange>(it)->from, handle)
                               ->getStatic()
@@ -426,7 +428,7 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, Opt<Str> const& kind) {
     Vec<sem::AttrValue> result;
 
     for (auto const& sub : h->attached) {
-        if (toHandle(sub, handle)->getKind() == OrgSemKind::CmdAttr) {
+        if (toHandle(sub, handle)->getKind() == org::sem::OrgSemKind::CmdAttr) {
             result.append( //
                 Attrs_getAttrs(
                     org_cast<sem::CmdAttr>(toHandle(sub, handle))->attrs, kind));
@@ -438,7 +440,7 @@ Vec<sem::AttrValue> Stmt_getAttrs(Handle handle, Opt<Str> const& kind) {
 
 template <typename Handle>
 Opt<Str> Org_getString(Handle const& id) {
-    if (id->getKind() == OrgSemKind::Time) {
+    if (id->getKind() == org::sem::OrgSemKind::Time) {
         return "["_ss
              + Str{to_api(toHandle(org_cast<sem::Time>(id), id))
                        .getStaticTime()
@@ -457,7 +459,7 @@ Opt<Str> Org_getString(Handle const& id) {
 
 Vec<imm::ImmAdapter> Org_getLeadNodes(
     imm::ImmAdapter const& it,
-    OrgSemKind             kind,
+    org::sem::OrgSemKind   kind,
     SemSet const&          skip) {
     Vec<imm::ImmAdapter> result;
     for (auto const& sub : it.sub()) {
@@ -474,9 +476,9 @@ Vec<imm::ImmAdapter> Org_getLeadNodes(
 }
 
 Vec<sem::SemId<sem::Org>> Org_getLeadNodes(
-    sem::Org const* it,
-    OrgSemKind      kind,
-    SemSet const&   skip) {
+    sem::Org const*      it,
+    org::sem::OrgSemKind kind,
+    SemSet const&        skip) {
     Vec<sem::SemId<sem::Org>> result;
     for (auto const& sub : *it) {
         if (sub->getKind() == kind) {
@@ -499,18 +501,18 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
     for (int i = 0; i < subnodes.size(); ++i) {
         auto const& sub = subnodes.at(i);
         if (lead) {
-            if (sub->getKind() == OrgSemKind::BigIdent) {
+            if (sub->getKind() == org::sem::OrgSemKind::BigIdent) {
                 if (auto next = subnodes.get(i + 1); next) {
                     SemIdOrImmId<Handle> colon = next.value().get();
-                    if (sub->getKind() == OrgSemKind::BigIdent
-                        && colon->getKind() == OrgSemKind::Punctuation
+                    if (sub->getKind() == org::sem::OrgSemKind::BigIdent
+                        && colon->getKind() == org::sem::OrgSemKind::Punctuation
                         && to_api(toHandle(org_cast<sem::Punctuation>(colon), handle))
                                    .getText()
                                == ":") {
                         ++i;
                     }
                 }
-            } else if (sub->getKind() == OrgSemKind::Link) {
+            } else if (sub->getKind() == org::sem::OrgSemKind::Link) {
                 bool isFootnote = false;
                 if constexpr (IsSemOrgInstance<Handle>) {
                     isFootnote = sub.template as<sem::Link>()->target.isFootnote();
@@ -521,11 +523,11 @@ Vec<Select> Paragraph_dropAdmonitionNodes(Handle handle, bool withPath) {
                 if (!isFootnote) { lead = false; }
 
             } else if (!SemSet{
-                           OrgSemKind::HashTag,
-                           OrgSemKind::BigIdent,
-                           OrgSemKind::Time,
-                           OrgSemKind::RadioTarget,
-                           OrgSemKind::Space,
+                           org::sem::OrgSemKind::HashTag,
+                           org::sem::OrgSemKind::BigIdent,
+                           org::sem::OrgSemKind::Time,
+                           org::sem::OrgSemKind::RadioTarget,
+                           org::sem::OrgSemKind::Space,
                        }
                             .contains(sub->getKind())) {
                 lead = false;
@@ -601,7 +603,7 @@ auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
         auto sub_h = toHandle(sub, handle);
         if (kind) {
             auto k = normalize(*kind);
-            if (is_kind(sub_h, OrgSemKind::CmdAttr)) {
+            if (is_kind(sub_h, org::sem::OrgSemKind::CmdAttr)) {
                 auto attr = org_cast<sem::CmdAttr>(sub_h);
                 if ((k.starts_with("attr")
                      && normalize(hstd::ext::get_str_view(attr->target)) == k)
@@ -609,10 +611,12 @@ auto Stmt_getAttached(Handle handle, Opt<Str> const& kind) {
                     result.push_back(sub_h);
                 }
             } else if (
-                is_kind(sub_h, OrgSemKind::CmdCaption) && normalize(k) == "caption") {
+                is_kind(sub_h, org::sem::OrgSemKind::CmdCaption)
+                && normalize(k) == "caption") {
 
                 result.push_back(sub_h);
-            } else if (is_kind(sub_h, OrgSemKind::CmdName) && normalize(k) == "name") {
+            } else if (
+                is_kind(sub_h, org::sem::OrgSemKind::CmdName) && normalize(k) == "name") {
                 result.push_back(sub_h);
             }
         } else {
@@ -728,7 +732,7 @@ template <typename Handle>
 bool List_isDescriptionList(Handle handle) {
     auto h = getConstHandle(handle);
     for (const auto& sub : getSubnodes(handle, false)) {
-        if (is_kind(sub, OrgSemKind::ListItem)) {
+        if (is_kind(sub, org::sem::OrgSemKind::ListItem)) {
             if (ListItem_isDescriptionItem(org_cast<sem::ListItem>(sub))) { return true; }
         }
     }
@@ -739,7 +743,7 @@ template <typename Handle>
 bool List_isNumberedList(Handle handle) {
     auto h = getConstHandle(handle);
     for (const auto& sub : getSubnodes(handle, false)) {
-        if (is_kind(sub, OrgSemKind::ListItem)) {
+        if (is_kind(sub, org::sem::OrgSemKind::ListItem)) {
             auto sub_as = org_cast<sem::ListItem>(sub);
             if constexpr (IsSemOrgInstance<Handle>) {
                 if (sub_as->bullet.has_value()) { return true; }
@@ -865,23 +869,23 @@ bool imm::ImmAdapterListItemAPI::isDescriptionItem() const { return ListItem_isD
 Opt<Str> imm::ImmAdapterListItemAPI::getCleanHeader() const { return isDescriptionItem() ? std::make_optional(org::getCleanText(getHeader().value())) : std::nullopt; }
 
 SemSet LeadParagraphNodes{
-    OrgSemKind::HashTag,
-    OrgSemKind::BigIdent,
-    OrgSemKind::Time,
-    OrgSemKind::RadioTarget,
-    OrgSemKind::Space,
+    org::sem::OrgSemKind::HashTag,
+    org::sem::OrgSemKind::BigIdent,
+    org::sem::OrgSemKind::Time,
+    org::sem::OrgSemKind::RadioTarget,
+    org::sem::OrgSemKind::Space,
 };
 
 
 bool imm::ImmAdapterParagraphAPI::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
 bool imm::ImmAdapterParagraphAPI::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
 Vec<Str> imm::ImmAdapterParagraphAPI::getAdmonitions() const { return own_view(getAdmonitionNodes()) | rv::transform([](imm::ImmAdapterT<imm::ImmBigIdent> const &id) { return id->text.get(); }) | rs::to<Vec>(); }
-Vec<imm::ImmAdapterT<imm::ImmBigIdent>> imm::ImmAdapterParagraphAPI::getAdmonitionNodes() const { return mapNodes<imm::ImmBigIdent>(Org_getLeadNodes(*getThis(), OrgSemKind::BigIdent, LeadParagraphNodes)); }
+Vec<imm::ImmAdapterT<imm::ImmBigIdent>> imm::ImmAdapterParagraphAPI::getAdmonitionNodes() const { return mapNodes<imm::ImmBigIdent>(Org_getLeadNodes(*getThis(), org::sem::OrgSemKind::BigIdent, LeadParagraphNodes)); }
 bool imm::ImmAdapterParagraphAPI::hasTimestamp() const { return !getTimestampNodes().empty(); }
 Vec<UserTime> imm::ImmAdapterParagraphAPI::getTimestamps() const { return own_view(getTimestampNodes()) | rv::transform([](imm::ImmAdapterT<imm::ImmTime> const &id) { return id->getStatic().time; }) | rs::to<Vec>(); }
-Vec<imm::ImmAdapterT<imm::ImmTime>> imm::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<imm::ImmTime>(Org_getLeadNodes(*getThis(), OrgSemKind::Time, LeadParagraphNodes)); }
+Vec<imm::ImmAdapterT<imm::ImmTime>> imm::ImmAdapterParagraphAPI::getTimestampNodes() const { return mapNodes<imm::ImmTime>(Org_getLeadNodes(*getThis(), org::sem::OrgSemKind::Time, LeadParagraphNodes)); }
 bool imm::ImmAdapterParagraphAPI::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
-Vec<imm::ImmAdapterT<imm::ImmHashTag>> imm::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<imm::ImmHashTag>(Org_getLeadNodes(*getThis(), OrgSemKind::HashTag, LeadParagraphNodes)); }
+Vec<imm::ImmAdapterT<imm::ImmHashTag>> imm::ImmAdapterParagraphAPI::getLeadHashtags() const { return mapNodes<imm::ImmHashTag>(Org_getLeadNodes(*getThis(), org::sem::OrgSemKind::HashTag, LeadParagraphNodes)); }
 Vec<imm::ImmAdapter> imm::ImmAdapterParagraphAPI::getBody(bool withPath) const { return Paragraph_dropAdmonitionNodes(*getThis(), withPath); }
 
 // sem type API implementation
@@ -924,12 +928,12 @@ Opt<Str> sem::ListItem::getCleanHeader() const { return isDescriptionItem() ? st
 bool sem::Paragraph::isFootnoteDefinition() const { return getFootnoteName().has_value(); }
 bool sem::Paragraph::hasAdmonition() const { return !getAdmonitionNodes().empty(); }
 Vec<Str> sem::Paragraph::getAdmonitions() const { return own_view(getAdmonitionNodes()) | rv::transform([](sem::SemId<sem::BigIdent> const &id) { return id->text; }) | rs::to<Vec>(); }
-Vec<sem::SemId<sem::BigIdent>> sem::Paragraph::getAdmonitionNodes() const { return mapNodes<sem::BigIdent>(Org_getLeadNodes(this, OrgSemKind::BigIdent, LeadParagraphNodes)); }
+Vec<sem::SemId<sem::BigIdent>> sem::Paragraph::getAdmonitionNodes() const { return mapNodes<sem::BigIdent>(Org_getLeadNodes(this, org::sem::OrgSemKind::BigIdent, LeadParagraphNodes)); }
 bool sem::Paragraph::hasTimestamp() const { return !getTimestampNodes().empty(); }
 Vec<UserTime> sem::Paragraph::getTimestamps() const { return own_view(getTimestampNodes()) | rv::transform([](sem::SemId<sem::Time> const &id) { return id->getStatic().time; }) | rs::to<Vec>(); }
-Vec<sem::SemId<sem::Time>> sem::Paragraph::getTimestampNodes() const { return mapNodes<sem::Time>(Org_getLeadNodes(this, OrgSemKind::Time, LeadParagraphNodes)); }
+Vec<sem::SemId<sem::Time>> sem::Paragraph::getTimestampNodes() const { return mapNodes<sem::Time>(Org_getLeadNodes(this, org::sem::OrgSemKind::Time, LeadParagraphNodes)); }
 bool sem::Paragraph::hasLeadHashtags() const { return !getLeadHashtags().empty(); }
-Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return mapNodes<sem::HashTag>(Org_getLeadNodes(this, OrgSemKind::HashTag, LeadParagraphNodes)); }
+Vec<sem::SemId<sem::HashTag>> sem::Paragraph::getLeadHashtags() const { return mapNodes<sem::HashTag>(Org_getLeadNodes(this, org::sem::OrgSemKind::HashTag, LeadParagraphNodes)); }
 Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Paragraph_dropAdmonitionNodes(this, false); }
 
 
@@ -941,11 +945,11 @@ Vec<sem::SemId<sem::Org>> sem::Paragraph::getBody() const { return Paragraph_dro
 ListFormattingMode sem::List::getListFormattingMode() const {
     auto formatting = getFirstAttr("list-format");
     if (formatting.has_value()) {
-        auto mode = string_to_enum_insensitive<ListFormattingMode>(
+        auto mode = string_to_enum_insensitive<org::sem::ListFormattingMode>(
             formatting.value().getString());
-        return mode.value_or(ListFormattingMode::None);
+        return mode.value_or(org::sem::ListFormattingMode::None);
     } else {
-        return ListFormattingMode::None;
+        return org::sem::ListFormattingMode::None;
     }
 }
 

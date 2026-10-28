@@ -31,11 +31,11 @@ TEST(OrgParseSem, LinkAttachedGet1) {
 )",
         getDebugFile("parse/init"));
 
-    EXPECT_EQ2(doc->getKind(), OrgSemKind::Document);
+    EXPECT_EQ2(doc->getKind(), org::sem::OrgSemKind::Document);
     auto par = doc->subnodes.at(0);
-    EXPECT_EQ2(par->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(par->getKind(), org::sem::OrgSemKind::Paragraph);
     auto link = par->subnodes.at(0);
-    EXPECT_EQ2(link->getKind(), OrgSemKind::Link);
+    EXPECT_EQ2(link->getKind(), org::sem::OrgSemKind::Link);
 
     auto link1 = link.getAs<sem::Link>();
     ASSERT_TRUE(link1 != nullptr);
@@ -143,8 +143,8 @@ body of the random
 
     EXPECT_EQ(block->name, "randomcontent");
     auto body = block.at(0);
-    EXPECT_EQ(body->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ(body.at(0)->getKind(), OrgSemKind::Word);
+    EXPECT_EQ(body->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ(body.at(0)->getKind(), org::sem::OrgSemKind::Word);
     EXPECT_EQ(body.at(0).as<sem::Word>()->text, "body");
 }
 
@@ -161,10 +161,10 @@ content
         // dbgString(caption);
         EXPECT_EQ(caption.size(), 1);
         auto cap0 = caption.at(0);
-        EXPECT_EQ(cap0->getKind(), OrgSemKind::Paragraph);
+        EXPECT_EQ(cap0->getKind(), org::sem::OrgSemKind::Paragraph);
         EXPECT_EQ(cap0.size(), 3);
-        EXPECT_EQ(cap0.at(0)->getKind(), OrgSemKind::Word);
-        EXPECT_EQ(cap0.at(2)->getKind(), OrgSemKind::Bold);
+        EXPECT_EQ(cap0.at(0)->getKind(), org::sem::OrgSemKind::Word);
+        EXPECT_EQ(cap0.at(2)->getKind(), org::sem::OrgSemKind::Bold);
     }
 
     {
@@ -656,14 +656,14 @@ TEST(OrgParseSem, SubtreeLogParsing) {
         auto const& l    = t->logbook;
         auto const& d    = l.at(0)->desc.value();
         auto const& nest = d->at(0);
-        EXPECT_EQ(nest->getKind(), OrgSemKind::List);
+        EXPECT_EQ(nest->getKind(), org::sem::OrgSemKind::List);
         EXPECT_EQ(nest.size(), 2);
         auto const& it1 = nest->at(1);
-        EXPECT_EQ(it1->getKind(), OrgSemKind::ListItem);
-        EXPECT_EQ(it1->at(0)->getKind(), OrgSemKind::Paragraph);
-        EXPECT_EQ(it1->at(1)->getKind(), OrgSemKind::List);
-        EXPECT_EQ(it1->at(1)->at(0)->getKind(), OrgSemKind::ListItem);
-        EXPECT_EQ(it1->at(1)->at(1)->getKind(), OrgSemKind::ListItem);
+        EXPECT_EQ(it1->getKind(), org::sem::OrgSemKind::ListItem);
+        EXPECT_EQ(it1->at(0)->getKind(), org::sem::OrgSemKind::Paragraph);
+        EXPECT_EQ(it1->at(1)->getKind(), org::sem::OrgSemKind::List);
+        EXPECT_EQ(it1->at(1)->at(0)->getKind(), org::sem::OrgSemKind::ListItem);
+        EXPECT_EQ(it1->at(1)->at(1)->getKind(), org::sem::OrgSemKind::ListItem);
         EXPECT_EQ(org::getCleanText(it1->at(1)->at(0)), "More nesting1"_ss);
         EXPECT_EQ(org::getCleanText(it1->at(1)->at(1)), "More nesting2"_ss);
     }
@@ -1035,11 +1035,11 @@ TEST(OrgParseSem, DISABLED_TextParsing) {
         auto par = parseOne<sem::Paragraph>(
             R"(@@html:<b>@@bold text@@html:</b>@@)", getDebugFile("export/inline"));
         EXPECT_EQ(par.size(), 5);
-        EXPECT_EQ(par.at(0)->getKind(), OrgSemKind::InlineExport);
-        EXPECT_EQ(par.at(1)->getKind(), OrgSemKind::Word);
-        EXPECT_EQ(par.at(2)->getKind(), OrgSemKind::Space);
-        EXPECT_EQ(par.at(3)->getKind(), OrgSemKind::Word);
-        EXPECT_EQ(par.at(4)->getKind(), OrgSemKind::InlineExport);
+        EXPECT_EQ(par.at(0)->getKind(), org::sem::OrgSemKind::InlineExport);
+        EXPECT_EQ(par.at(1)->getKind(), org::sem::OrgSemKind::Word);
+        EXPECT_EQ(par.at(2)->getKind(), org::sem::OrgSemKind::Space);
+        EXPECT_EQ(par.at(3)->getKind(), org::sem::OrgSemKind::Word);
+        EXPECT_EQ(par.at(4)->getKind(), org::sem::OrgSemKind::InlineExport);
 
         auto ex0 = par.at(0).as<sem::InlineExport>();
         EXPECT_EQ(ex0->exporter, "html"_ss);
@@ -1223,7 +1223,7 @@ TEST(OrgParseSem, SubtreeTitle) {
         auto conv = immConv(t);
         auto i    = conv.node;
         EXPECT_EQ(t->getCleanTitle(), "Subtree"_ss);
-        EXPECT_EQ(i->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(i->getKind(), org::sem::OrgSemKind::Subtree);
         EXPECT_EQ(i.getCleanTitle(), "Subtree"_ss);
     }
 
@@ -1289,29 +1289,29 @@ other
         return result;
     };
 
-    EXPECT_EQ2(get({1})->getKind(), OrgSemKind::Paragraph);
-    EXPECT_EQ2(get({1, 2})->getKind(), OrgSemKind::Italic);
-    EXPECT_EQ2(get({3, 0})->getKind(), OrgSemKind::Italic);
-    EXPECT_EQ2(get({5, 0})->getKind(), OrgSemKind::Italic);
-    EXPECT_EQ2(get({5, 0, 0})->getKind(), OrgSemKind::Bold);
-    EXPECT_EQ2(get({7, 0})->getKind(), OrgSemKind::Bold);
-    EXPECT_EQ2(get({9, 0})->getKind(), OrgSemKind::Bold);
-    EXPECT_EQ2(get({11, 0})->getKind(), OrgSemKind::Bold);
-    EXPECT_EQ2(get({11, 0, 0})->getKind(), OrgSemKind::Italic);
-    EXPECT_EQ2(get({13, 0})->getKind(), OrgSemKind::Underline);
-    EXPECT_EQ2(get({15, 0})->getKind(), OrgSemKind::Underline);
-    EXPECT_EQ2(get({17, 0})->getKind(), OrgSemKind::Underline);
-    EXPECT_EQ2(get({17, 0, 0})->getKind(), OrgSemKind::Bold);
-    EXPECT_EQ2(get({19, 0})->getKind(), OrgSemKind::Monospace);
-    EXPECT_EQ2(get({19, 0, 0})->getKind(), OrgSemKind::RawText);
-    EXPECT_EQ2(get({21, 0})->getKind(), OrgSemKind::Verbatim);
-    EXPECT_EQ2(get({21, 0, 0})->getKind(), OrgSemKind::RawText);
-    EXPECT_EQ2(get({23, 0})->getKind(), OrgSemKind::Strike);
-    EXPECT_EQ2(get({25, 0})->getKind(), OrgSemKind::Strike);
-    EXPECT_EQ2(get({27, 0})->getKind(), OrgSemKind::AtMention);
-    EXPECT_EQ2(get({29, 0})->getKind(), OrgSemKind::Word);
+    EXPECT_EQ2(get({1})->getKind(), org::sem::OrgSemKind::Paragraph);
+    EXPECT_EQ2(get({1, 2})->getKind(), org::sem::OrgSemKind::Italic);
+    EXPECT_EQ2(get({3, 0})->getKind(), org::sem::OrgSemKind::Italic);
+    EXPECT_EQ2(get({5, 0})->getKind(), org::sem::OrgSemKind::Italic);
+    EXPECT_EQ2(get({5, 0, 0})->getKind(), org::sem::OrgSemKind::Bold);
+    EXPECT_EQ2(get({7, 0})->getKind(), org::sem::OrgSemKind::Bold);
+    EXPECT_EQ2(get({9, 0})->getKind(), org::sem::OrgSemKind::Bold);
+    EXPECT_EQ2(get({11, 0})->getKind(), org::sem::OrgSemKind::Bold);
+    EXPECT_EQ2(get({11, 0, 0})->getKind(), org::sem::OrgSemKind::Italic);
+    EXPECT_EQ2(get({13, 0})->getKind(), org::sem::OrgSemKind::Underline);
+    EXPECT_EQ2(get({15, 0})->getKind(), org::sem::OrgSemKind::Underline);
+    EXPECT_EQ2(get({17, 0})->getKind(), org::sem::OrgSemKind::Underline);
+    EXPECT_EQ2(get({17, 0, 0})->getKind(), org::sem::OrgSemKind::Bold);
+    EXPECT_EQ2(get({19, 0})->getKind(), org::sem::OrgSemKind::Monospace);
+    EXPECT_EQ2(get({19, 0, 0})->getKind(), org::sem::OrgSemKind::RawText);
+    EXPECT_EQ2(get({21, 0})->getKind(), org::sem::OrgSemKind::Verbatim);
+    EXPECT_EQ2(get({21, 0, 0})->getKind(), org::sem::OrgSemKind::RawText);
+    EXPECT_EQ2(get({23, 0})->getKind(), org::sem::OrgSemKind::Strike);
+    EXPECT_EQ2(get({25, 0})->getKind(), org::sem::OrgSemKind::Strike);
+    EXPECT_EQ2(get({27, 0})->getKind(), org::sem::OrgSemKind::AtMention);
+    EXPECT_EQ2(get({29, 0})->getKind(), org::sem::OrgSemKind::Word);
     EXPECT_EQ2(get({29}).size(), 1);
-    EXPECT_EQ2(get({31, 0})->getKind(), OrgSemKind::BigIdent);
+    EXPECT_EQ2(get({31, 0})->getKind(), org::sem::OrgSemKind::BigIdent);
     EXPECT_EQ2(get({31}).size(), 1);
 }
 
@@ -1684,7 +1684,7 @@ print("hello")
 : hello)");
         EXPECT_EQ2(c->result.size(), 1);
         auto result = c->result[0].get();
-        EXPECT_EQ2(result->node->getKind(), OrgSemKind::ColonExample);
+        EXPECT_EQ2(result->node->getKind(), org::sem::OrgSemKind::ColonExample);
     }
 
     {
@@ -1699,7 +1699,7 @@ plt.savefig('plot.png')
 [[file:plot.png]])");
         EXPECT_EQ2(c->result.size(), 1);
         auto result = c->result[0].get();
-        EXPECT_EQ2(result->node->getKind(), OrgSemKind::Link);
+        EXPECT_EQ2(result->node->getKind(), org::sem::OrgSemKind::Link);
     }
 
     {
@@ -1713,7 +1713,7 @@ print(data)
 | 3 | 4 |)");
         EXPECT_EQ2(c->result.size(), 1);
         auto result = c->result[0].get();
-        EXPECT_EQ2(result->node->getKind(), OrgSemKind::Table);
+        EXPECT_EQ2(result->node->getKind(), org::sem::OrgSemKind::Table);
     }
 
     {
@@ -1729,7 +1729,7 @@ line2
 #+end_example)");
         EXPECT_EQ2(c->result.size(), 1);
         auto result = c->result[0].get();
-        EXPECT_EQ2(result->node->getKind(), OrgSemKind::BlockExample);
+        EXPECT_EQ2(result->node->getKind(), org::sem::OrgSemKind::BlockExample);
     }
 
     {
@@ -1745,7 +1745,7 @@ def hello():
 #+end_src)");
         EXPECT_EQ2(c->result.size(), 1);
         auto result = c->result[0].get();
-        EXPECT_EQ2(result->node->getKind(), OrgSemKind::BlockCode);
+        EXPECT_EQ2(result->node->getKind(), org::sem::OrgSemKind::BlockCode);
     }
 
     {
@@ -1897,9 +1897,9 @@ Include curved bends in hyperedge polygons if the size of the edge allows this.
     EXPECT_TRUE(log.at(1)->head.isState());
     EXPECT_TRUE(log.at(2)->head.isState());
 
-    EXPECT_EQ2(s.at(0)->getKind(), OrgSemKind::BlockDynamicFallback);
+    EXPECT_EQ2(s.at(0)->getKind(), org::sem::OrgSemKind::BlockDynamicFallback);
     auto body = s.at(0).as<sem::BlockDynamicFallback>();
     EXPECT_EQ2(body->name, "description");
     EXPECT_EQ2(body.size(), 1);
-    EXPECT_EQ2(body.at(0)->getKind(), OrgSemKind::Paragraph);
+    EXPECT_EQ2(body.at(0)->getKind(), org::sem::OrgSemKind::Paragraph);
 }

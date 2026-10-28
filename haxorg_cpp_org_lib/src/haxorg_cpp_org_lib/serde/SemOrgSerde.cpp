@@ -26,7 +26,7 @@ void proto_serde<orgproto::AnyNode, org::sem::SemId<org::sem::Org>>::write(
     sem::SemId<sem::Org> const& in) {
 
 #    define _case(_fieldEnum, _field, __Kind)                                            \
-        case OrgSemKind::__Kind: {                                                       \
+        case org::sem::OrgSemKind::__Kind: {                                             \
             proto_serde<orgproto::__Kind, sem::__Kind>::write(                           \
                 out->mutable_##_field(), *in.getAs<sem::__Kind>());                      \
             break;                                                                       \

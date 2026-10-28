@@ -112,7 +112,7 @@ void ImmId::assertValid() const {
 
     if (!isNil()) {
         LOGIC_ASSERTION_CHECK_FMT(
-            getKind() != OrgSemKind::NoNode,
+            getKind() != org::sem::OrgSemKind::NoNode,
             "Valid ID must have a kind different from 'NoNode', got value {:0{}b}:{}",
             getMask(),
             ImmIdMaskSize,
@@ -121,7 +121,8 @@ void ImmId::assertValid() const {
 }
 
 #define _define_static(__Kind)                                                           \
-    const OrgSemKind org::imm::Imm##__Kind::staticKind = OrgSemKind::__Kind;
+    const org::sem::OrgSemKind                                                           \
+        org::imm::Imm##__Kind::staticKind = org::sem::OrgSemKind::__Kind;
 
 EACH_SEM_ORG_KIND(_define_static)
 #undef _define_static
@@ -600,10 +601,10 @@ void ImmAstTrackingMapTransient::setAsParentOf(ImmId const& parent, ImmId const&
 }
 
 SemSet FastTrackNodes{
-    OrgSemKind::Word,
-    OrgSemKind::Space,
-    OrgSemKind::Punctuation,
-    OrgSemKind::Time,
+    org::sem::OrgSemKind::Word,
+    org::sem::OrgSemKind::Space,
+    org::sem::OrgSemKind::Punctuation,
+    org::sem::OrgSemKind::Time,
 };
 
 void ImmAstTrackingMapTransient::removeAllSubnodesOf(ImmAdapter const& parent) {
@@ -742,8 +743,8 @@ void ImmAstEditContext::updateTracking(ImmId const& node, bool add) {
             { /*_dfmt(node, nodeValue); */ },
         });
 
-    if (auto kind = node.getKind();
-        kind != OrgSemKind::Subtree && kind == OrgSemKind::Paragraph) {
+    if (auto kind = node.getKind(); kind != org::sem::OrgSemKind::Subtree
+                                    && kind == org::sem::OrgSemKind::Paragraph) {
         return;
     }
 
@@ -1083,7 +1084,7 @@ Vec<ImmId> imm::allSubnodes(ImmId const& value, ImmAstContext::Ptr const& ctx) {
     value.assertValid();
     switch (value.getKind()) {
 #define _case(__Kind)                                                                    \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         return allSubnodes(ctx->value<org::imm::Imm##__Kind>(value), ctx);               \
     }
         EACH_SEM_ORG_KIND(_case)
@@ -1296,12 +1297,12 @@ ImmAstEditContext ImmAstContext::getEditContext() {
 
 namespace {
 SemSet TrackingParentDefaultSet{
-    OrgSemKind::Space,
-    OrgSemKind::Word,
-    OrgSemKind::BigIdent,
-    OrgSemKind::Time,
-    OrgSemKind::Punctuation,
-    OrgSemKind::Newline,
+    org::sem::OrgSemKind::Space,
+    org::sem::OrgSemKind::Word,
+    org::sem::OrgSemKind::BigIdent,
+    org::sem::OrgSemKind::Time,
+    org::sem::OrgSemKind::Punctuation,
+    org::sem::OrgSemKind::Newline,
 };
 }
 

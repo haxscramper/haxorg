@@ -35,7 +35,7 @@ struct OrgConverter : public hstd::OperationsTracer {
         struct None : Base {};
 
         struct UnhandledKind : Base {
-            OrgNodeKind kind;
+            org::sem::OrgNodeKind kind;
             UnhandledKind(org::sem::OrgNodeKind kind) : kind(kind) {}
             const char* what() const noexcept override {
                 return hstd::strdup(

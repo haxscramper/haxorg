@@ -4,7 +4,7 @@
 
 using namespace org::imm;
 using namespace hstd;
-using osk = OrgSemKind;
+using osk = org::sem::OrgSemKind;
 
 bool org::imm::isDescriptionItem(ImmAdapter const& node) {
     return node.as<ImmListItem>()->header->has_value();

@@ -53,7 +53,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
             imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root  = v1.getRootAdapter();
             auto s3010 = root.at(path);
-            EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+            EXPECT_EQ(s3010->getKind(), org::sem::OrgSemKind::Subtree);
             EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 3);
             return demoteSubtree(s3010, imm::SubtreeMove::ForceLevels, ctx);
         });
@@ -74,7 +74,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     {
         auto r     = v1.getRootAdapter();
         auto s3010 = r.at(path);
-        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s3010->getKind(), org::sem::OrgSemKind::Subtree);
         EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 3);
         auto levels = getDfsSubtreeLevels(r);
         EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 3}));
@@ -83,7 +83,7 @@ TEST_F(ImmOrgApiEdit, LeafSubtreeDemote) {
     {
         auto r     = v2.getRootAdapter();
         auto s3010 = r.at(path);
-        EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+        EXPECT_EQ(s3010->getKind(), org::sem::OrgSemKind::Subtree);
         EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 4);
         auto levels = getDfsSubtreeLevels(r);
         EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 2, 4}));
@@ -101,7 +101,7 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
             imm::ImmAstEditContext& ctx) -> imm::ImmAstReplaceGroup {
             auto root = v1.getRootAdapter();
             auto s201 = root.at(Vec{0, 1});
-            EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
+            EXPECT_EQ(s201->getKind(), org::sem::OrgSemKind::Subtree);
             EXPECT_EQ(s201->as<imm::ImmSubtree>()->level, 2);
             return demoteSubtree(s201, imm::SubtreeMove::ForceLevels, ctx);
         });
@@ -111,10 +111,10 @@ TEST_F(ImmOrgApiEdit, RecursiveSubtreeDemote_OneNested) {
     auto r = v2.getRootAdapter();
     writeTreeRepr(r, getDebugFile("repr_v2.txt"));
     auto s201 = r.at(Vec{0, 0, 2});
-    EXPECT_EQ(s201->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(s201->getKind(), org::sem::OrgSemKind::Subtree);
     EXPECT_EQ(s201->as<imm::ImmSubtree>()->level, 3);
     auto s3010 = r.at({0, 0, 2, 0});
-    EXPECT_EQ(s3010->getKind(), OrgSemKind::Subtree);
+    EXPECT_EQ(s3010->getKind(), org::sem::OrgSemKind::Subtree);
     EXPECT_EQ(s3010->as<imm::ImmSubtree>()->level, 4);
     auto levels = getDfsSubtreeLevels(r);
     EXPECT_EQ(levels, (Vec<int>{1, 2, 3, 3, 3, 4}));

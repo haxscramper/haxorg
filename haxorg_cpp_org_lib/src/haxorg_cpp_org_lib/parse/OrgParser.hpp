@@ -210,10 +210,10 @@ struct OrgParser : public hstd::OperationsTracer {
         char const*    function = __builtin_FUNCTION());
 
     OrgId token(
-        OrgNodeKind kind,
-        OrgTokenId  tok,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        org::sem::OrgNodeKind kind,
+        OrgTokenId            tok,
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
 
     struct NodeGuard {
         int         startingDepth;
@@ -254,14 +254,14 @@ struct OrgParser : public hstd::OperationsTracer {
         char const* function = __builtin_FUNCTION());
 
     [[nodiscard]] std::unique_ptr<NodeGuard> start(
-        OrgNodeKind kind,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        org::sem::OrgNodeKind kind,
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
 
     void start_no_guard(
-        OrgNodeKind kind,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        org::sem::OrgNodeKind kind,
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
 
     OrgId end_impl(
         std::string const& desc     = "",
@@ -319,9 +319,9 @@ struct OrgParser : public hstd::OperationsTracer {
 
 
     OrgId fake(
-        OrgNodeKind kind,
-        int         line     = __builtin_LINE(),
-        char const* function = __builtin_FUNCTION());
+        org::sem::OrgNodeKind kind,
+        int                   line     = __builtin_LINE(),
+        char const*           function = __builtin_FUNCTION());
 
     void fail(
         OrgLexer const& lex,

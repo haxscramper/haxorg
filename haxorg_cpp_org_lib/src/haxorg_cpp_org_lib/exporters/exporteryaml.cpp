@@ -7,7 +7,7 @@ namespace org::algo {
 template class Exporter<ExporterYaml, yaml>;
 
 
-using osm = OrgSemKind;
+using osm = org::sem::OrgSemKind;
 
 yaml ExporterYaml::newRes(sem::SemId<sem::Org> org) {
     yaml res;

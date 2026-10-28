@@ -36,12 +36,12 @@
 namespace {
 
 hstd::IntSet<org::sem::OrgNodeKind> ErrorKinds{
-    OrgNodeKind::ErrorInfoToken,
-    OrgNodeKind::ErrorSkipToken,
-    OrgNodeKind::ErrorSkipGroup};
+    org::sem::OrgNodeKind::ErrorInfoToken,
+    org::sem::OrgNodeKind::ErrorSkipToken,
+    org::sem::OrgNodeKind::ErrorSkipGroup};
 
 bool IsErrorInfoToken(org::parse::OrgAdapter const& a) {
-    return a.getKind() == OrgNodeKind::ErrorInfoToken;
+    return a.getKind() == org::sem::OrgNodeKind::ErrorInfoToken;
 }
 
 auto str_view_to_str = hstd::rv::transform(
@@ -67,7 +67,7 @@ using namespace org::algo;
 using namespace org;
 using namespace hstd;
 
-using onk      = OrgNodeKind;
+using onk      = org::sem::OrgNodeKind;
 using otk      = OrgTokenKind;
 using Err      = OrgConverter::Errors;
 using Property = org::sem::NamedProperty;
@@ -223,7 +223,7 @@ Opt<E> parseOrgEnum(std::string const& name) {
 #define __args In a
 
 using N   = OrgSpecName;
-using osk = OrgSemKind;
+using osk = org::sem::OrgSemKind;
 
 OrgConverter::ConvResult<Table> OrgConverter::convertTable(__args) {
     __perf_trace("convert", "convertTable");
@@ -1887,7 +1887,7 @@ OrgConverter::ConvResult<ErrorItem> OrgConverter::convertErrorItem(__args) {
 OrgConverter::ConvResult<RadioTarget> OrgConverter::convertRadioTarget(__args) {
     auto result = Sem<RadioTarget>(a);
     for (auto const& sub : a) {
-        if (sub.getKind() != OrgNodeKind::Space) {
+        if (sub.getKind() != org::sem::OrgNodeKind::Space) {
             result->words.push_back(get_text(sub));
         }
     }

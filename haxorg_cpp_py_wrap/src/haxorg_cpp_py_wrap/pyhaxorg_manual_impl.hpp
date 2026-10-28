@@ -421,8 +421,8 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
 
     template <org::sem::IsOrg T>
     void visitOrgNodeAround(Res& res, org::sem::SemId<T> node) {
-        OrgSemKind kind = T::staticKind;
-        auto       ev   = trace(VK::VisitValue).with_node(node);
+        org::sem::OrgSemKind kind = T::staticKind;
+        auto                 ev   = trace(VK::VisitValue).with_node(node);
         if (visitAnyNodeAround) {
             trace_instant(ev.with_loc().with_msg(describe_use(
                 "has generic around visitor callback", *visitAnyNodeAround)));
@@ -445,8 +445,8 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
 
     template <org::sem::IsOrg T>
     void visitOrgNodeIn(Res& res, org::sem::SemId<T> node) {
-        OrgSemKind kind = T::staticKind;
-        auto       ev   = trace(VK::VisitSpecificKind).with_node(node);
+        org::sem::OrgSemKind kind = T::staticKind;
+        auto                 ev   = trace(VK::VisitSpecificKind).with_node(node);
         if (visitAnyNodeIn) {
             auto __scope = trace_scope(ev.with_loc().with_msg(
                 describe_use("has generic visitor callback", *visitAnyNodeIn)));
@@ -465,7 +465,7 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
                 ev.with_loc().with_msg("deferring to default visitor"));
             switch (kind) {
 #define __case(__Kind)                                                                   \
-    case OrgSemKind::__Kind: {                                                           \
+    case org::sem::OrgSemKind::__Kind: {                                                 \
         _this()->visit##__Kind(res, node.template as<org::sem::__Kind>());               \
         break;                                                                           \
     }
@@ -479,8 +479,8 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
 
     template <org::sem::IsOrg T>
     void visitOrgField(Res& res, char const* name, org::sem::SemId<T> const& value) {
-        OrgSemKind kind = T::staticKind;
-        auto       ev   = trace(VK::VisitField).with_node(value.asOrg()).with_field(name);
+        org::sem::OrgSemKind kind = T::staticKind;
+        auto ev = trace(VK::VisitField).with_node(value.asOrg()).with_field(name);
 
         if (visitAnyField) {
             auto __scope = trace_scope(
@@ -593,8 +593,8 @@ struct [[refl(R"({"backend": {"target-backends": ["python"]}})")]] ExporterPytho
     void visit(Res& res, org::sem::Tblfm const&) {}
     void visit(Res& res, org::sem::Tblfm::Assign::Flag const&) {}
     void visit(Res& res, int const&) {}
-    void visit(Res& res, LinkVisibility const&) {}
-    void visit(Res& res, BlockVisibility const&) {}
+    void visit(Res& res, org::sem::LinkVisibility const&) {}
+    void visit(Res& res, org::sem::BlockVisibility const&) {}
 
     template <org::sem::IsOrg T>
     void visitField(Res& res, char const* name, org::sem::SemId<T> value) {

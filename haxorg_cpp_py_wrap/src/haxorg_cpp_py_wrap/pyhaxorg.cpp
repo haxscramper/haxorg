@@ -111,8 +111,8 @@ NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::imm::ImmIdT<org::imm::ImmSubtreeLog>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::NamedProperty>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<bool>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<LinkVisibility>>)
-NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<BlockVisibility>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::LinkVisibility>>)
+NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::BlockVisibility>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<int>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmBox<hstd::Opt<org::sem::ColumnView>>)
 NB_MAKE_OPAQUE(hstd::ext::ImmVec<org::sem::TodoKeyword>)
@@ -237,8 +237,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::bind_hstdextImmVec<org::sem::NamedProperty>(m, "ImmVecOfNamedProperty", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::imm::ImmIdT<org::imm::ImmTime>>>(m, "ImmBoxOfOptOfImmIdTTimeOfImmTime", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<bool>>(m, "ImmBoxOfOptOfBool", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<LinkVisibility>>(m, "ImmBoxOfOptOfLinkVisibility", type_registry_guard);
-  org::bind::python::bind_hstdextImmBox<hstd::Opt<BlockVisibility>>(m, "ImmBoxOfOptOfBlockVisibility", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::LinkVisibility>>(m, "ImmBoxOfOptOfLinkVisibility", type_registry_guard);
+  org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::BlockVisibility>>(m, "ImmBoxOfOptOfBlockVisibility", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<int>>(m, "ImmBoxOfOptOfInt", type_registry_guard);
   org::bind::python::bind_hstdextImmBox<hstd::Opt<org::sem::ColumnView>>(m, "ImmBoxOfOptOfColumnView", type_registry_guard);
   org::bind::python::bind_hstdextImmVec<org::sem::TodoKeyword>(m, "ImmVecOfTodoKeyword", type_registry_guard);
@@ -272,74 +272,74 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
   org::bind::python::bind_stdvector<hstd::SequenceAnnotation>(m, "StdVecOfSequenceAnnotation", type_registry_guard);
   org::bind::python::bind_hstdVec<hstd::SequenceSegmentGroup>(m, "HstdVecOfSequenceSegmentGroup", type_registry_guard);
   org::bind::python::bind_stdvector<hstd::SequenceSegmentGroup>(m, "StdVecOfSequenceSegmentGroup", type_registry_guard);
-  bind_enum_iterator<CheckboxState>(m, "CheckboxState", type_registry_guard);
-  nanobind::enum_<CheckboxState>(m, "CheckboxState")
-    .value("None", CheckboxState::None)
-    .value("Done", CheckboxState::Done)
-    .value("Empty", CheckboxState::Empty)
-    .value("Partial", CheckboxState::Partial)
-    .def("__iter__", [](CheckboxState const& _self) -> org::bind::python::PyEnumIterator<CheckboxState> {
-                     return org::bind::python::PyEnumIterator<CheckboxState>();
+  bind_enum_iterator<org::sem::CheckboxState>(m, "CheckboxState", type_registry_guard);
+  nanobind::enum_<org::sem::CheckboxState>(m, "CheckboxState")
+    .value("None", org::sem::CheckboxState::None)
+    .value("Done", org::sem::CheckboxState::Done)
+    .value("Empty", org::sem::CheckboxState::Empty)
+    .value("Partial", org::sem::CheckboxState::Partial)
+    .def("__iter__", [](org::sem::CheckboxState const& _self) -> org::bind::python::PyEnumIterator<org::sem::CheckboxState> {
+                     return org::bind::python::PyEnumIterator<org::sem::CheckboxState>();
                      })
-    .def("__int__", [](CheckboxState const& _self) -> int {
+    .def("__int__", [](org::sem::CheckboxState const& _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](CheckboxState const& _self) -> int {
+    .def("__index__", [](org::sem::CheckboxState const& _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](CheckboxState lhs, CheckboxState rhs) -> bool {
+         [](org::sem::CheckboxState lhs, org::sem::CheckboxState rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](CheckboxState it) -> int {
+         [](org::sem::CheckboxState it) -> int {
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<LinkVisibility>(m, "LinkVisibility", type_registry_guard);
-  nanobind::enum_<LinkVisibility>(m, "LinkVisibility")
-    .value("LiteralLinks", LinkVisibility::LiteralLinks)
-    .value("DescriptiveLinks", LinkVisibility::DescriptiveLinks)
-    .def("__iter__", [](LinkVisibility const& _self) -> org::bind::python::PyEnumIterator<LinkVisibility> {
-                     return org::bind::python::PyEnumIterator<LinkVisibility>();
+  bind_enum_iterator<org::sem::LinkVisibility>(m, "LinkVisibility", type_registry_guard);
+  nanobind::enum_<org::sem::LinkVisibility>(m, "LinkVisibility")
+    .value("LiteralLinks", org::sem::LinkVisibility::LiteralLinks)
+    .value("DescriptiveLinks", org::sem::LinkVisibility::DescriptiveLinks)
+    .def("__iter__", [](org::sem::LinkVisibility const& _self) -> org::bind::python::PyEnumIterator<org::sem::LinkVisibility> {
+                     return org::bind::python::PyEnumIterator<org::sem::LinkVisibility>();
                      })
-    .def("__int__", [](LinkVisibility const& _self) -> int {
+    .def("__int__", [](org::sem::LinkVisibility const& _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](LinkVisibility const& _self) -> int {
+    .def("__index__", [](org::sem::LinkVisibility const& _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](LinkVisibility lhs, LinkVisibility rhs) -> bool {
+         [](org::sem::LinkVisibility lhs, org::sem::LinkVisibility rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](LinkVisibility it) -> int {
+         [](org::sem::LinkVisibility it) -> int {
          return static_cast<int>(it);
          })
     ;
-  bind_enum_iterator<BlockVisibility>(m, "BlockVisibility", type_registry_guard);
-  nanobind::enum_<BlockVisibility>(m, "BlockVisibility")
-    .value("HideBlocks", BlockVisibility::HideBlocks)
-    .value("NoHideBlocks", BlockVisibility::NoHideBlocks)
-    .def("__iter__", [](BlockVisibility const& _self) -> org::bind::python::PyEnumIterator<BlockVisibility> {
+  bind_enum_iterator<org::sem::BlockVisibility>(m, "BlockVisibility", type_registry_guard);
+  nanobind::enum_<org::sem::BlockVisibility>(m, "BlockVisibility")
+    .value("HideBlocks", org::sem::BlockVisibility::HideBlocks)
+    .value("NoHideBlocks", org::sem::BlockVisibility::NoHideBlocks)
+    .def("__iter__", [](org::sem::BlockVisibility const& _self) -> org::bind::python::PyEnumIterator<BlockVisibility> {
                      return org::bind::python::PyEnumIterator<BlockVisibility>();
                      })
-    .def("__int__", [](BlockVisibility const& _self) -> int {
+    .def("__int__", [](org::sem::BlockVisibility const& _self) -> int {
                     return static_cast<int>(_self);
                     })
-    .def("__index__", [](BlockVisibility const& _self) -> int {
+    .def("__index__", [](org::sem::BlockVisibility const& _self) -> int {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](BlockVisibility lhs, BlockVisibility rhs) -> bool {
+         [](org::sem::BlockVisibility lhs, org::sem::BlockVisibility rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
     .def("__hash__",
-         [](BlockVisibility it) -> int {
+         [](org::sem::BlockVisibility it) -> int {
          return static_cast<int>(it);
          })
     ;
@@ -504,83 +504,83 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     ;
   bind_enum_iterator<org::sem::OrgNodeKind>(m, "OrgNodeKind", type_registry_guard);
   nanobind::enum_<org::sem::OrgNodeKind>(m, "OrgNodeKind")
-    .value("None", OrgNodeKind::None, R"RAW(Default valye for node - invalid state)RAW")
-    .value("Document", OrgNodeKind::Document, R"RAW(Toplevel part of the ast, not created by parser, and only used in `semorg` stage)RAW")
-    .value("Empty", OrgNodeKind::Empty, R"RAW(Empty node - valid state that does not contain any value)RAW")
-    .value("InlineStmtList", OrgNodeKind::InlineStmtList)
-    .value("StmtList", OrgNodeKind::StmtList, R"RAW(List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.)RAW")
-    .value("Checkbox", OrgNodeKind::Checkbox, R"RAW(Single checkbox item like `[X]` or `[-]`)RAW")
-    .value("List", OrgNodeKind::List)
-    .value("Bullet", OrgNodeKind::Bullet, R"RAW(List item prefix)RAW")
-    .value("ListItem", OrgNodeKind::ListItem)
-    .value("ListTag", OrgNodeKind::ListTag, R"RAW(Auxilliary wrapper for the paragraph placed at the start of the description list.)RAW")
-    .value("Counter", OrgNodeKind::Counter)
-    .value("File", OrgNodeKind::File)
-    .value("ColonExample", OrgNodeKind::ColonExample, R"RAW(Colon example block)RAW")
-    .value("TextSeparator", OrgNodeKind::TextSeparator, R"RAW(Long horizontal line `----`)RAW")
-    .value("Paragraph", OrgNodeKind::Paragraph, R"RAW(Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph)RAW")
-    .value("TableRow", OrgNodeKind::TableRow, R"RAW(Horizontal table row)RAW")
-    .value("TableCell", OrgNodeKind::TableCell, R"RAW(Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.)RAW")
-    .value("Table", OrgNodeKind::Table, R"RAW(Org-mode table)RAW")
-    .value("InlineFootnote", OrgNodeKind::InlineFootnote, R"RAW(Inline footnote with text placed directly in the node body.)RAW")
-    .value("Footnote", OrgNodeKind::Footnote, R"RAW(Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.)RAW")
-    .value("Cmd", OrgNodeKind::Cmd, R"RAW(Undefined single-line command -- most likely custom user-provided oe)RAW")
-    .value("Attrs", OrgNodeKind::Attrs, R"RAW(Arguments for the command block)RAW")
-    .value("AttrValue", OrgNodeKind::AttrValue, R"RAW(:key name=value syntax)RAW")
-    .value("LispExpr", OrgNodeKind::LispExpr, R"RAW(S-expression as an attribute value value)RAW")
-    .value("LispList", OrgNodeKind::LispList, R"RAW(`(a b c)` without quoting)RAW")
-    .value("LispVector", OrgNodeKind::LispVector, R"RAW([1 2 3 4]` without quoting)RAW")
-    .value("LispQuoted", OrgNodeKind::LispQuoted, R"RAW(Extra wrapping node for quoted elements)RAW")
-    .value("CmdTitle", OrgNodeKind::CmdTitle, R"RAW(`#+title:` - full document title)RAW")
-    .value("CmdAuthor", OrgNodeKind::CmdAuthor, R"RAW(`#+author:` Document author)RAW")
-    .value("CmdCreator", OrgNodeKind::CmdCreator, R"RAW(`#+creator:` Document creator)RAW")
-    .value("CmdInclude", OrgNodeKind::CmdInclude, R"RAW(`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.)RAW")
-    .value("CmdLanguage", OrgNodeKind::CmdLanguage, R"RAW(`#+language:`)RAW")
-    .value("CmdEmail", OrgNodeKind::CmdEmail, R"RAW(`#+email:`)RAW")
-    .value("CmdAttr", OrgNodeKind::CmdAttr, R"RAW(`#+attr_html:`, `#+attr_image` etc.)RAW")
-    .value("CmdStartup", OrgNodeKind::CmdStartup, R"RAW(`#+startup:`)RAW")
-    .value("CmdName", OrgNodeKind::CmdName, R"RAW(`#+name:` - name of the associated entry)RAW")
-    .value("CmdCustomTextCommand", OrgNodeKind::CmdCustomTextCommand, R"RAW(Line command with parsed text value)RAW")
-    .value("CmdCustomArgsCommand", OrgNodeKind::CmdCustomArgsCommand, R"RAW(Line command with parsed argument list)RAW")
-    .value("CmdCustomRawCommand", OrgNodeKind::CmdCustomRawCommand, R"RAW(Line command with raw text argument)RAW")
-    .value("CmdResults", OrgNodeKind::CmdResults, R"RAW(`#+results:` - source code block evaluation results)RAW")
-    .value("CmdHeader", OrgNodeKind::CmdHeader, R"RAW(`#+header:` - extended list of parameters passed to associated block)RAW")
-    .value("CmdOptions", OrgNodeKind::CmdOptions, R"RAW(`#+options:` - document-wide formatting options)RAW")
-    .value("CmdTblfm", OrgNodeKind::CmdTblfm)
-    .value("CmdCaption", OrgNodeKind::CmdCaption, R"RAW(`#+caption:` command)RAW")
-    .value("CmdResult", OrgNodeKind::CmdResult, R"RAW(Command evaluation result)RAW")
-    .value("CmdCallCode", OrgNodeKind::CmdCallCode, R"RAW(Call to named source code block.)RAW")
-    .value("CmdFlag", OrgNodeKind::CmdFlag, R"RAW(Flag for source code block. For example `-n`, which is used to to make source code block export with lines)RAW")
-    .value("CmdLatexClass", OrgNodeKind::CmdLatexClass)
-    .value("CmdLatexHeader", OrgNodeKind::CmdLatexHeader)
-    .value("CmdLatexCompiler", OrgNodeKind::CmdLatexCompiler)
-    .value("CmdLatexClassOptions", OrgNodeKind::CmdLatexClassOptions)
-    .value("CmdHtmlHead", OrgNodeKind::CmdHtmlHead)
-    .value("CmdColumns", OrgNodeKind::CmdColumns, R"RAW(`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.)RAW")
-    .value("CmdPropertyArgs", OrgNodeKind::CmdPropertyArgs, R"RAW(`#+property:` command)RAW")
-    .value("CmdPropertyText", OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
-    .value("CmdPropertyRaw", OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
-    .value("CmdFiletags", OrgNodeKind::CmdFiletags, R"RAW(`#+filetags:` line command)RAW")
-    .value("CmdKeywords", OrgNodeKind::CmdKeywords)
-    .value("BlockVerbatimMultiline", OrgNodeKind::BlockVerbatimMultiline, R"RAW(Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.)RAW")
-    .value("CodeLine", OrgNodeKind::CodeLine, R"RAW(Single line of source code)RAW")
-    .value("CodeText", OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")
-    .value("CodeTangle", OrgNodeKind::CodeTangle, R"RAW(Single tangle target in the code block)RAW")
-    .value("CodeCallout", OrgNodeKind::CodeCallout, R"RAW(`(refs:` callout in the source code)RAW")
-    .value("BlockCode", OrgNodeKind::BlockCode)
-    .value("BlockQuote", OrgNodeKind::BlockQuote, R"RAW(`#+begin_quote:` block in code)RAW")
-    .value("BlockComment", OrgNodeKind::BlockComment, R"RAW(`#+begin_comment:` block in code)RAW")
-    .value("BlockCenter", OrgNodeKind::BlockCenter)
-    .value("BlockVerse", OrgNodeKind::BlockVerse)
-    .value("BlockExample", OrgNodeKind::BlockExample, R"RAW(Verbatim example text block)RAW")
-    .value("BlockExport", OrgNodeKind::BlockExport)
-    .value("BlockDetails", OrgNodeKind::BlockDetails, R"RAW(`#+begin_details`  section)RAW")
-    .value("BlockSummary", OrgNodeKind::BlockSummary, R"RAW(`#+begin_summary` section)RAW")
-    .value("BlockDynamicFallback", OrgNodeKind::BlockDynamicFallback, R"RAW(#+begin: <name> section)RAW")
-    .value("BlockCustomText", OrgNodeKind::BlockCustomText, R"RAW(#+begin_<any> section for text blocks)RAW")
-    .value("BlockCustomRaw", OrgNodeKind::BlockCustomRaw, R"RAW(#+begin_<any> section for raw content blocks)RAW")
-    .value("BigIdent", OrgNodeKind::BigIdent, R"RAW(full-uppsercase identifier such as `MUST` or `TODO`)RAW")
-    .value("Bold", OrgNodeKind::Bold, R"RAW(Region of text with formatting, which contains standalone words -
+    .value("None", org::sem::OrgNodeKind::None, R"RAW(Default valye for node - invalid state)RAW")
+    .value("Document", org::sem::OrgNodeKind::Document, R"RAW(Toplevel part of the ast, not created by parser, and only used in `semorg` stage)RAW")
+    .value("Empty", org::sem::OrgNodeKind::Empty, R"RAW(Empty node - valid state that does not contain any value)RAW")
+    .value("InlineStmtList", org::sem::OrgNodeKind::InlineStmtList)
+    .value("StmtList", org::sem::OrgNodeKind::StmtList, R"RAW(List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together.)RAW")
+    .value("Checkbox", org::sem::OrgNodeKind::Checkbox, R"RAW(Single checkbox item like `[X]` or `[-]`)RAW")
+    .value("List", org::sem::OrgNodeKind::List)
+    .value("Bullet", org::sem::OrgNodeKind::Bullet, R"RAW(List item prefix)RAW")
+    .value("ListItem", org::sem::OrgNodeKind::ListItem)
+    .value("ListTag", org::sem::OrgNodeKind::ListTag, R"RAW(Auxilliary wrapper for the paragraph placed at the start of the description list.)RAW")
+    .value("Counter", org::sem::OrgNodeKind::Counter)
+    .value("File", org::sem::OrgNodeKind::File)
+    .value("ColonExample", org::sem::OrgNodeKind::ColonExample, R"RAW(Colon example block)RAW")
+    .value("TextSeparator", org::sem::OrgNodeKind::TextSeparator, R"RAW(Long horizontal line `----`)RAW")
+    .value("Paragraph", org::sem::OrgNodeKind::Paragraph, R"RAW(Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph)RAW")
+    .value("TableRow", org::sem::OrgNodeKind::TableRow, R"RAW(Horizontal table row)RAW")
+    .value("TableCell", org::sem::OrgNodeKind::TableCell, R"RAW(Single cell in row. Might contain anyting, including other tables, simple text paragraph etc.)RAW")
+    .value("Table", org::sem::OrgNodeKind::Table, R"RAW(Org-mode table)RAW")
+    .value("InlineFootnote", org::sem::OrgNodeKind::InlineFootnote, R"RAW(Inline footnote with text placed directly in the node body.)RAW")
+    .value("Footnote", org::sem::OrgNodeKind::Footnote, R"RAW(Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node.)RAW")
+    .value("Cmd", org::sem::OrgNodeKind::Cmd, R"RAW(Undefined single-line command -- most likely custom user-provided oe)RAW")
+    .value("Attrs", org::sem::OrgNodeKind::Attrs, R"RAW(Arguments for the command block)RAW")
+    .value("AttrValue", org::sem::OrgNodeKind::AttrValue, R"RAW(:key name=value syntax)RAW")
+    .value("LispExpr", org::sem::OrgNodeKind::LispExpr, R"RAW(S-expression as an attribute value value)RAW")
+    .value("LispList", org::sem::OrgNodeKind::LispList, R"RAW(`(a b c)` without quoting)RAW")
+    .value("LispVector", org::sem::OrgNodeKind::LispVector, R"RAW([1 2 3 4]` without quoting)RAW")
+    .value("LispQuoted", org::sem::OrgNodeKind::LispQuoted, R"RAW(Extra wrapping node for quoted elements)RAW")
+    .value("CmdTitle", org::sem::OrgNodeKind::CmdTitle, R"RAW(`#+title:` - full document title)RAW")
+    .value("CmdAuthor", org::sem::OrgNodeKind::CmdAuthor, R"RAW(`#+author:` Document author)RAW")
+    .value("CmdCreator", org::sem::OrgNodeKind::CmdCreator, R"RAW(`#+creator:` Document creator)RAW")
+    .value("CmdInclude", org::sem::OrgNodeKind::CmdInclude, R"RAW(`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk.)RAW")
+    .value("CmdLanguage", org::sem::OrgNodeKind::CmdLanguage, R"RAW(`#+language:`)RAW")
+    .value("CmdEmail", org::sem::OrgNodeKind::CmdEmail, R"RAW(`#+email:`)RAW")
+    .value("CmdAttr", org::sem::OrgNodeKind::CmdAttr, R"RAW(`#+attr_html:`, `#+attr_image` etc.)RAW")
+    .value("CmdStartup", org::sem::OrgNodeKind::CmdStartup, R"RAW(`#+startup:`)RAW")
+    .value("CmdName", org::sem::OrgNodeKind::CmdName, R"RAW(`#+name:` - name of the associated entry)RAW")
+    .value("CmdCustomTextCommand", org::sem::OrgNodeKind::CmdCustomTextCommand, R"RAW(Line command with parsed text value)RAW")
+    .value("CmdCustomArgsCommand", org::sem::OrgNodeKind::CmdCustomArgsCommand, R"RAW(Line command with parsed argument list)RAW")
+    .value("CmdCustomRawCommand", org::sem::OrgNodeKind::CmdCustomRawCommand, R"RAW(Line command with raw text argument)RAW")
+    .value("CmdResults", org::sem::OrgNodeKind::CmdResults, R"RAW(`#+results:` - source code block evaluation results)RAW")
+    .value("CmdHeader", org::sem::OrgNodeKind::CmdHeader, R"RAW(`#+header:` - extended list of parameters passed to associated block)RAW")
+    .value("CmdOptions", org::sem::OrgNodeKind::CmdOptions, R"RAW(`#+options:` - document-wide formatting options)RAW")
+    .value("CmdTblfm", org::sem::OrgNodeKind::CmdTblfm)
+    .value("CmdCaption", org::sem::OrgNodeKind::CmdCaption, R"RAW(`#+caption:` command)RAW")
+    .value("CmdResult", org::sem::OrgNodeKind::CmdResult, R"RAW(Command evaluation result)RAW")
+    .value("CmdCallCode", org::sem::OrgNodeKind::CmdCallCode, R"RAW(Call to named source code block.)RAW")
+    .value("CmdFlag", org::sem::OrgNodeKind::CmdFlag, R"RAW(Flag for source code block. For example `-n`, which is used to to make source code block export with lines)RAW")
+    .value("CmdLatexClass", org::sem::OrgNodeKind::CmdLatexClass)
+    .value("CmdLatexHeader", org::sem::OrgNodeKind::CmdLatexHeader)
+    .value("CmdLatexCompiler", org::sem::OrgNodeKind::CmdLatexCompiler)
+    .value("CmdLatexClassOptions", org::sem::OrgNodeKind::CmdLatexClassOptions)
+    .value("CmdHtmlHead", org::sem::OrgNodeKind::CmdHtmlHead)
+    .value("CmdColumns", org::sem::OrgNodeKind::CmdColumns, R"RAW(`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis.)RAW")
+    .value("CmdPropertyArgs", org::sem::OrgNodeKind::CmdPropertyArgs, R"RAW(`#+property:` command)RAW")
+    .value("CmdPropertyText", org::sem::OrgNodeKind::CmdPropertyText, R"RAW(`#+property:` command)RAW")
+    .value("CmdPropertyRaw", org::sem::OrgNodeKind::CmdPropertyRaw, R"RAW(`#+property:` command)RAW")
+    .value("CmdFiletags", org::sem::OrgNodeKind::CmdFiletags, R"RAW(`#+filetags:` line command)RAW")
+    .value("CmdKeywords", org::sem::OrgNodeKind::CmdKeywords)
+    .value("BlockVerbatimMultiline", org::sem::OrgNodeKind::BlockVerbatimMultiline, R"RAW(Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks.)RAW")
+    .value("CodeLine", org::sem::OrgNodeKind::CodeLine, R"RAW(Single line of source code)RAW")
+    .value("CodeText", org::sem::OrgNodeKind::CodeText, R"RAW(Block of source code text)RAW")
+    .value("CodeTangle", org::sem::OrgNodeKind::CodeTangle, R"RAW(Single tangle target in the code block)RAW")
+    .value("CodeCallout", org::sem::OrgNodeKind::CodeCallout, R"RAW(`(refs:` callout in the source code)RAW")
+    .value("BlockCode", org::sem::OrgNodeKind::BlockCode)
+    .value("BlockQuote", org::sem::OrgNodeKind::BlockQuote, R"RAW(`#+begin_quote:` block in code)RAW")
+    .value("BlockComment", org::sem::OrgNodeKind::BlockComment, R"RAW(`#+begin_comment:` block in code)RAW")
+    .value("BlockCenter", org::sem::OrgNodeKind::BlockCenter)
+    .value("BlockVerse", org::sem::OrgNodeKind::BlockVerse)
+    .value("BlockExample", org::sem::OrgNodeKind::BlockExample, R"RAW(Verbatim example text block)RAW")
+    .value("BlockExport", org::sem::OrgNodeKind::BlockExport)
+    .value("BlockDetails", org::sem::OrgNodeKind::BlockDetails, R"RAW(`#+begin_details`  section)RAW")
+    .value("BlockSummary", org::sem::OrgNodeKind::BlockSummary, R"RAW(`#+begin_summary` section)RAW")
+    .value("BlockDynamicFallback", org::sem::OrgNodeKind::BlockDynamicFallback, R"RAW(#+begin: <name> section)RAW")
+    .value("BlockCustomText", org::sem::OrgNodeKind::BlockCustomText, R"RAW(#+begin_<any> section for text blocks)RAW")
+    .value("BlockCustomRaw", org::sem::OrgNodeKind::BlockCustomRaw, R"RAW(#+begin_<any> section for raw content blocks)RAW")
+    .value("BigIdent", org::sem::OrgNodeKind::BigIdent, R"RAW(full-uppsercase identifier such as `MUST` or `TODO`)RAW")
+    .value("Bold", org::sem::OrgNodeKind::Bold, R"RAW(Region of text with formatting, which contains standalone words -
      can itself contain subnodes, which allows to represent nested
      formatting regions, such as `*bold /italic/*` text. Particular type
      of identifier is stored in string form in `str` field for `OrgNode`
@@ -590,68 +590,68 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
      NOTE: when structured sentences are enabled, regular punctuation
      elements like `some text (notes)` are also represented as `Word,
      Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.)RAW")
-    .value("ErrorInfoToken", OrgNodeKind::ErrorInfoToken, R"RAW(Error leaf node inserted into the parse tree on failure)RAW")
-    .value("ErrorSkipGroup", OrgNodeKind::ErrorSkipGroup, R"RAW(Parent node for one or more tokens skipped during error recovery)RAW")
-    .value("ErrorSkipToken", OrgNodeKind::ErrorSkipToken, R"RAW(Single token node skipped while the parser searched for recovery point)RAW")
-    .value("Italic", OrgNodeKind::Italic)
-    .value("Verbatim", OrgNodeKind::Verbatim)
-    .value("Backtick", OrgNodeKind::Backtick)
-    .value("Underline", OrgNodeKind::Underline)
-    .value("Strike", OrgNodeKind::Strike)
-    .value("Quote", OrgNodeKind::Quote)
-    .value("Angle", OrgNodeKind::Angle)
-    .value("Monospace", OrgNodeKind::Monospace)
-    .value("Par", OrgNodeKind::Par)
-    .value("CriticMarkStructure", OrgNodeKind::CriticMarkStructure)
-    .value("InlineMath", OrgNodeKind::InlineMath, R"RAW(Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.)RAW")
-    .value("DisplayMath", OrgNodeKind::DisplayMath, R"RAW(Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.)RAW")
-    .value("Space", OrgNodeKind::Space, R"RAW(Space or tab character in regular text)RAW")
-    .value("Punctuation", OrgNodeKind::Punctuation)
-    .value("Colon", OrgNodeKind::Colon)
-    .value("Word", OrgNodeKind::Word, R"RAW(Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.)RAW")
-    .value("Escaped", OrgNodeKind::Escaped, R"RAW(Escaped formatting character in the text)RAW")
-    .value("Newline", OrgNodeKind::Newline)
-    .value("RawLink", OrgNodeKind::RawLink, R"RAW(Raw unwrapped link that was pasted in text)RAW")
-    .value("Link", OrgNodeKind::Link, R"RAW(External or internal link. Consists of one or two elements - target
+    .value("ErrorInfoToken", org::sem::OrgNodeKind::ErrorInfoToken, R"RAW(Error leaf node inserted into the parse tree on failure)RAW")
+    .value("ErrorSkipGroup", org::sem::OrgNodeKind::ErrorSkipGroup, R"RAW(Parent node for one or more tokens skipped during error recovery)RAW")
+    .value("ErrorSkipToken", org::sem::OrgNodeKind::ErrorSkipToken, R"RAW(Single token node skipped while the parser searched for recovery point)RAW")
+    .value("Italic", org::sem::OrgNodeKind::Italic)
+    .value("Verbatim", org::sem::OrgNodeKind::Verbatim)
+    .value("Backtick", org::sem::OrgNodeKind::Backtick)
+    .value("Underline", org::sem::OrgNodeKind::Underline)
+    .value("Strike", org::sem::OrgNodeKind::Strike)
+    .value("Quote", org::sem::OrgNodeKind::Quote)
+    .value("Angle", org::sem::OrgNodeKind::Angle)
+    .value("Monospace", org::sem::OrgNodeKind::Monospace)
+    .value("Par", org::sem::OrgNodeKind::Par)
+    .value("CriticMarkStructure", org::sem::OrgNodeKind::CriticMarkStructure)
+    .value("InlineMath", org::sem::OrgNodeKind::InlineMath, R"RAW(Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\(paren-wrapped\)` inline text.)RAW")
+    .value("DisplayMath", org::sem::OrgNodeKind::DisplayMath, R"RAW(Inline display latex math from `$$double-dollar$$` or `\[bracket-wrapped\]` code.)RAW")
+    .value("Space", org::sem::OrgNodeKind::Space, R"RAW(Space or tab character in regular text)RAW")
+    .value("Punctuation", org::sem::OrgNodeKind::Punctuation)
+    .value("Colon", org::sem::OrgNodeKind::Colon)
+    .value("Word", org::sem::OrgNodeKind::Word, R"RAW(Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text.)RAW")
+    .value("Escaped", org::sem::OrgNodeKind::Escaped, R"RAW(Escaped formatting character in the text)RAW")
+    .value("Newline", org::sem::OrgNodeKind::Newline)
+    .value("RawLink", org::sem::OrgNodeKind::RawLink, R"RAW(Raw unwrapped link that was pasted in text)RAW")
+    .value("Link", org::sem::OrgNodeKind::Link, R"RAW(External or internal link. Consists of one or two elements - target
      (url, file location etc.) and description (`orgParagraph` of text).
      Description might be empty, and represented as empty node in this
      case. For external links particular formatting of the address is
      not handled by parser and instead contains raw string from input
      text.)RAW")
-    .value("Macro", OrgNodeKind::Macro, R"RAW(Org-mode macro replacement - during export each macro is expanded
+    .value("Macro", org::sem::OrgNodeKind::Macro, R"RAW(Org-mode macro replacement - during export each macro is expanded
      and evaluated according to it's environment. Body of the macro is
      not parsed fully during org-mode evaluation, but is checked for
      correct parenthesis balance (as macro might contain elisp code))RAW")
-    .value("Symbol", OrgNodeKind::Symbol, R"RAW(Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.)RAW")
-    .value("StaticActiveTime", OrgNodeKind::StaticActiveTime)
-    .value("StaticInactiveTime", OrgNodeKind::StaticInactiveTime)
-    .value("DynamicActiveTime", OrgNodeKind::DynamicActiveTime)
-    .value("DiaryTime", OrgNodeKind::DiaryTime)
-    .value("DynamicInactiveTime", OrgNodeKind::DynamicInactiveTime, R"RAW(Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later)RAW")
-    .value("TimeRange", OrgNodeKind::TimeRange, R"RAW(Date and time range format - two `orgDateTime` entries)RAW")
-    .value("SimpleTime", OrgNodeKind::SimpleTime, R"RAW(Result of the time range evaluation or trailing annotation a subtree)RAW")
-    .value("HashTag", OrgNodeKind::HashTag)
-    .value("MetaSymbol", OrgNodeKind::MetaSymbol, R"RAW(`\sym{}` with explicit arguments)RAW")
-    .value("AtMention", OrgNodeKind::AtMention, R"RAW(`@user`)RAW")
-    .value("Placeholder", OrgNodeKind::Placeholder, R"RAW(Placeholder entry in text, usually writte like `<text to replace>`)RAW")
-    .value("RadioTarget", OrgNodeKind::RadioTarget, R"RAW(`<<<RADIO>>>`)RAW")
-    .value("Target", OrgNodeKind::Target, R"RAW(`<<TARGET>>`)RAW")
-    .value("SrcInlineCode", OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
-    .value("InlineCallCode", OrgNodeKind::InlineCallCode, R"RAW(Call to named source code block.)RAW")
-    .value("InlineExport", OrgNodeKind::InlineExport, R"RAW(Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively)RAW")
-    .value("InlineComment", OrgNodeKind::InlineComment)
-    .value("RawText", OrgNodeKind::RawText, R"RAW(Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers )RAW")
-    .value("SubtreeDescription", OrgNodeKind::SubtreeDescription, R"RAW(`:description:` entry)RAW")
-    .value("SubtreeUrgency", OrgNodeKind::SubtreeUrgency)
-    .value("DrawerLogbook", OrgNodeKind::DrawerLogbook, R"RAW(`:logbook:` entry storing note information)RAW")
-    .value("Drawer", OrgNodeKind::Drawer, R"RAW(Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`)RAW")
-    .value("DrawerPropertyList", OrgNodeKind::DrawerPropertyList)
-    .value("DrawerProperty", OrgNodeKind::DrawerProperty, R"RAW(`:property:` drawer)RAW")
-    .value("Subtree", OrgNodeKind::Subtree, R"RAW(Section subtree)RAW")
-    .value("SubtreeTimes", OrgNodeKind::SubtreeTimes, R"RAW(Time? associated with subtree entry)RAW")
-    .value("SubtreeStars", OrgNodeKind::SubtreeStars)
-    .value("SubtreeCompletion", OrgNodeKind::SubtreeCompletion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
-    .value("SubtreeImportance", OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
+    .value("Symbol", org::sem::OrgNodeKind::Symbol, R"RAW(Special symbol that should be exported differently to various backends - greek letters (`lpha`), mathematical notations and so on.)RAW")
+    .value("StaticActiveTime", org::sem::OrgNodeKind::StaticActiveTime)
+    .value("StaticInactiveTime", org::sem::OrgNodeKind::StaticInactiveTime)
+    .value("DynamicActiveTime", org::sem::OrgNodeKind::DynamicActiveTime)
+    .value("DiaryTime", org::sem::OrgNodeKind::DiaryTime)
+    .value("DynamicInactiveTime", org::sem::OrgNodeKind::DynamicInactiveTime, R"RAW(Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later)RAW")
+    .value("TimeRange", org::sem::OrgNodeKind::TimeRange, R"RAW(Date and time range format - two `orgDateTime` entries)RAW")
+    .value("SimpleTime", org::sem::OrgNodeKind::SimpleTime, R"RAW(Result of the time range evaluation or trailing annotation a subtree)RAW")
+    .value("HashTag", org::sem::OrgNodeKind::HashTag)
+    .value("MetaSymbol", org::sem::OrgNodeKind::MetaSymbol, R"RAW(`\sym{}` with explicit arguments)RAW")
+    .value("AtMention", org::sem::OrgNodeKind::AtMention, R"RAW(`@user`)RAW")
+    .value("Placeholder", org::sem::OrgNodeKind::Placeholder, R"RAW(Placeholder entry in text, usually writte like `<text to replace>`)RAW")
+    .value("RadioTarget", org::sem::OrgNodeKind::RadioTarget, R"RAW(`<<<RADIO>>>`)RAW")
+    .value("Target", org::sem::OrgNodeKind::Target, R"RAW(`<<TARGET>>`)RAW")
+    .value("SrcInlineCode", org::sem::OrgNodeKind::SrcInlineCode, R"RAW(inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc.)RAW")
+    .value("InlineCallCode", org::sem::OrgNodeKind::InlineCallCode, R"RAW(Call to named source code block.)RAW")
+    .value("InlineExport", org::sem::OrgNodeKind::InlineExport, R"RAW(Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively)RAW")
+    .value("InlineComment", org::sem::OrgNodeKind::InlineComment)
+    .value("RawText", org::sem::OrgNodeKind::RawText, R"RAW(Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers )RAW")
+    .value("SubtreeDescription", org::sem::OrgNodeKind::SubtreeDescription, R"RAW(`:description:` entry)RAW")
+    .value("SubtreeUrgency", org::sem::OrgNodeKind::SubtreeUrgency)
+    .value("DrawerLogbook", org::sem::OrgNodeKind::DrawerLogbook, R"RAW(`:logbook:` entry storing note information)RAW")
+    .value("Drawer", org::sem::OrgNodeKind::Drawer, R"RAW(Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`)RAW")
+    .value("DrawerPropertyList", org::sem::OrgNodeKind::DrawerPropertyList)
+    .value("DrawerProperty", org::sem::OrgNodeKind::DrawerProperty, R"RAW(`:property:` drawer)RAW")
+    .value("Subtree", org::sem::OrgNodeKind::Subtree, R"RAW(Section subtree)RAW")
+    .value("SubtreeTimes", org::sem::OrgNodeKind::SubtreeTimes, R"RAW(Time? associated with subtree entry)RAW")
+    .value("SubtreeStars", org::sem::OrgNodeKind::SubtreeStars)
+    .value("SubtreeCompletion", org::sem::OrgNodeKind::SubtreeCompletion, R"RAW(Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio.)RAW")
+    .value("SubtreeImportance", org::sem::OrgNodeKind::SubtreeImportance, R"RAW(Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`.)RAW")
     .def("__iter__", [](org::sem::OrgNodeKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgNodeKind> {
                      return org::bind::python::PyEnumIterator<org::sem::OrgNodeKind>();
                      })
@@ -662,7 +662,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::sem::OrgNodeKind lhs, OrgNodeKind rhs) -> bool {
+         [](org::sem::OrgNodeKind lhs, org::sem::OrgNodeKind rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
@@ -960,86 +960,86 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     ;
   bind_enum_iterator<org::sem::OrgSemKind>(m, "OrgSemKind", type_registry_guard);
   nanobind::enum_<org::sem::OrgSemKind>(m, "OrgSemKind")
-    .value("NoNode", OrgSemKind::NoNode)
-    .value("ErrorItem", OrgSemKind::ErrorItem)
-    .value("ErrorGroup", OrgSemKind::ErrorGroup)
-    .value("StmtList", OrgSemKind::StmtList)
-    .value("Empty", OrgSemKind::Empty)
-    .value("CmdCaption", OrgSemKind::CmdCaption)
-    .value("CmdCreator", OrgSemKind::CmdCreator)
-    .value("CmdAuthor", OrgSemKind::CmdAuthor)
-    .value("CmdEmail", OrgSemKind::CmdEmail)
-    .value("CmdLanguage", OrgSemKind::CmdLanguage)
-    .value("CmdColumns", OrgSemKind::CmdColumns)
-    .value("CmdName", OrgSemKind::CmdName)
-    .value("CmdCustomArgs", OrgSemKind::CmdCustomArgs)
-    .value("CmdCustomRaw", OrgSemKind::CmdCustomRaw)
-    .value("CmdCustomText", OrgSemKind::CmdCustomText)
-    .value("CmdCall", OrgSemKind::CmdCall)
-    .value("CmdTblfm", OrgSemKind::CmdTblfm)
-    .value("HashTag", OrgSemKind::HashTag)
-    .value("InlineFootnote", OrgSemKind::InlineFootnote)
-    .value("InlineExport", OrgSemKind::InlineExport)
-    .value("Time", OrgSemKind::Time)
-    .value("TimeRange", OrgSemKind::TimeRange)
-    .value("Macro", OrgSemKind::Macro)
-    .value("Symbol", OrgSemKind::Symbol)
-    .value("Escaped", OrgSemKind::Escaped)
-    .value("Newline", OrgSemKind::Newline)
-    .value("Space", OrgSemKind::Space)
-    .value("Word", OrgSemKind::Word)
-    .value("AtMention", OrgSemKind::AtMention)
-    .value("RawText", OrgSemKind::RawText)
-    .value("Punctuation", OrgSemKind::Punctuation)
-    .value("Placeholder", OrgSemKind::Placeholder)
-    .value("BigIdent", OrgSemKind::BigIdent)
-    .value("TextTarget", OrgSemKind::TextTarget)
-    .value("ErrorSkipToken", OrgSemKind::ErrorSkipToken)
-    .value("ErrorSkipGroup", OrgSemKind::ErrorSkipGroup)
-    .value("Bold", OrgSemKind::Bold)
-    .value("Underline", OrgSemKind::Underline)
-    .value("Monospace", OrgSemKind::Monospace)
-    .value("MarkQuote", OrgSemKind::MarkQuote)
-    .value("Verbatim", OrgSemKind::Verbatim)
-    .value("Italic", OrgSemKind::Italic)
-    .value("Strike", OrgSemKind::Strike)
-    .value("Par", OrgSemKind::Par)
-    .value("RadioTarget", OrgSemKind::RadioTarget)
-    .value("Latex", OrgSemKind::Latex)
-    .value("Link", OrgSemKind::Link)
-    .value("BlockCenter", OrgSemKind::BlockCenter)
-    .value("BlockQuote", OrgSemKind::BlockQuote)
-    .value("BlockComment", OrgSemKind::BlockComment)
-    .value("BlockVerse", OrgSemKind::BlockVerse)
-    .value("BlockDynamicFallback", OrgSemKind::BlockDynamicFallback)
-    .value("BlockExample", OrgSemKind::BlockExample)
-    .value("BlockExport", OrgSemKind::BlockExport)
-    .value("BlockAdmonition", OrgSemKind::BlockAdmonition)
-    .value("BlockCodeEvalResult", OrgSemKind::BlockCodeEvalResult)
-    .value("BlockCode", OrgSemKind::BlockCode)
-    .value("SubtreeLog", OrgSemKind::SubtreeLog)
-    .value("Subtree", OrgSemKind::Subtree)
-    .value("Cell", OrgSemKind::Cell)
-    .value("Row", OrgSemKind::Row)
-    .value("Table", OrgSemKind::Table)
-    .value("Paragraph", OrgSemKind::Paragraph)
-    .value("ColonExample", OrgSemKind::ColonExample)
-    .value("CmdAttr", OrgSemKind::CmdAttr)
-    .value("CmdExport", OrgSemKind::CmdExport)
-    .value("Call", OrgSemKind::Call)
-    .value("List", OrgSemKind::List)
-    .value("ListItem", OrgSemKind::ListItem)
-    .value("DocumentOptions", OrgSemKind::DocumentOptions)
-    .value("DocumentFragment", OrgSemKind::DocumentFragment)
-    .value("CriticMarkup", OrgSemKind::CriticMarkup)
-    .value("Document", OrgSemKind::Document)
-    .value("FileTarget", OrgSemKind::FileTarget)
-    .value("TextSeparator", OrgSemKind::TextSeparator)
-    .value("DocumentGroup", OrgSemKind::DocumentGroup)
-    .value("File", OrgSemKind::File)
-    .value("Directory", OrgSemKind::Directory)
-    .value("Symlink", OrgSemKind::Symlink)
-    .value("CmdInclude", OrgSemKind::CmdInclude)
+    .value("NoNode", org::sem::OrgSemKind::NoNode)
+    .value("ErrorItem", org::sem::OrgSemKind::ErrorItem)
+    .value("ErrorGroup", org::sem::OrgSemKind::ErrorGroup)
+    .value("StmtList", org::sem::OrgSemKind::StmtList)
+    .value("Empty", org::sem::OrgSemKind::Empty)
+    .value("CmdCaption", org::sem::OrgSemKind::CmdCaption)
+    .value("CmdCreator", org::sem::OrgSemKind::CmdCreator)
+    .value("CmdAuthor", org::sem::OrgSemKind::CmdAuthor)
+    .value("CmdEmail", org::sem::OrgSemKind::CmdEmail)
+    .value("CmdLanguage", org::sem::OrgSemKind::CmdLanguage)
+    .value("CmdColumns", org::sem::OrgSemKind::CmdColumns)
+    .value("CmdName", org::sem::OrgSemKind::CmdName)
+    .value("CmdCustomArgs", org::sem::OrgSemKind::CmdCustomArgs)
+    .value("CmdCustomRaw", org::sem::OrgSemKind::CmdCustomRaw)
+    .value("CmdCustomText", org::sem::OrgSemKind::CmdCustomText)
+    .value("CmdCall", org::sem::OrgSemKind::CmdCall)
+    .value("CmdTblfm", org::sem::OrgSemKind::CmdTblfm)
+    .value("HashTag", org::sem::OrgSemKind::HashTag)
+    .value("InlineFootnote", org::sem::OrgSemKind::InlineFootnote)
+    .value("InlineExport", org::sem::OrgSemKind::InlineExport)
+    .value("Time", org::sem::OrgSemKind::Time)
+    .value("TimeRange", org::sem::OrgSemKind::TimeRange)
+    .value("Macro", org::sem::OrgSemKind::Macro)
+    .value("Symbol", org::sem::OrgSemKind::Symbol)
+    .value("Escaped", org::sem::OrgSemKind::Escaped)
+    .value("Newline", org::sem::OrgSemKind::Newline)
+    .value("Space", org::sem::OrgSemKind::Space)
+    .value("Word", org::sem::OrgSemKind::Word)
+    .value("AtMention", org::sem::OrgSemKind::AtMention)
+    .value("RawText", org::sem::OrgSemKind::RawText)
+    .value("Punctuation", org::sem::OrgSemKind::Punctuation)
+    .value("Placeholder", org::sem::OrgSemKind::Placeholder)
+    .value("BigIdent", org::sem::OrgSemKind::BigIdent)
+    .value("TextTarget", org::sem::OrgSemKind::TextTarget)
+    .value("ErrorSkipToken", org::sem::OrgSemKind::ErrorSkipToken)
+    .value("ErrorSkipGroup", org::sem::OrgSemKind::ErrorSkipGroup)
+    .value("Bold", org::sem::OrgSemKind::Bold)
+    .value("Underline", org::sem::OrgSemKind::Underline)
+    .value("Monospace", org::sem::OrgSemKind::Monospace)
+    .value("MarkQuote", org::sem::OrgSemKind::MarkQuote)
+    .value("Verbatim", org::sem::OrgSemKind::Verbatim)
+    .value("Italic", org::sem::OrgSemKind::Italic)
+    .value("Strike", org::sem::OrgSemKind::Strike)
+    .value("Par", org::sem::OrgSemKind::Par)
+    .value("RadioTarget", org::sem::OrgSemKind::RadioTarget)
+    .value("Latex", org::sem::OrgSemKind::Latex)
+    .value("Link", org::sem::OrgSemKind::Link)
+    .value("BlockCenter", org::sem::OrgSemKind::BlockCenter)
+    .value("BlockQuote", org::sem::OrgSemKind::BlockQuote)
+    .value("BlockComment", org::sem::OrgSemKind::BlockComment)
+    .value("BlockVerse", org::sem::OrgSemKind::BlockVerse)
+    .value("BlockDynamicFallback", org::sem::OrgSemKind::BlockDynamicFallback)
+    .value("BlockExample", org::sem::OrgSemKind::BlockExample)
+    .value("BlockExport", org::sem::OrgSemKind::BlockExport)
+    .value("BlockAdmonition", org::sem::OrgSemKind::BlockAdmonition)
+    .value("BlockCodeEvalResult", org::sem::OrgSemKind::BlockCodeEvalResult)
+    .value("BlockCode", org::sem::OrgSemKind::BlockCode)
+    .value("SubtreeLog", org::sem::OrgSemKind::SubtreeLog)
+    .value("Subtree", org::sem::OrgSemKind::Subtree)
+    .value("Cell", org::sem::OrgSemKind::Cell)
+    .value("Row", org::sem::OrgSemKind::Row)
+    .value("Table", org::sem::OrgSemKind::Table)
+    .value("Paragraph", org::sem::OrgSemKind::Paragraph)
+    .value("ColonExample", org::sem::OrgSemKind::ColonExample)
+    .value("CmdAttr", org::sem::OrgSemKind::CmdAttr)
+    .value("CmdExport", org::sem::OrgSemKind::CmdExport)
+    .value("Call", org::sem::OrgSemKind::Call)
+    .value("List", org::sem::OrgSemKind::List)
+    .value("ListItem", org::sem::OrgSemKind::ListItem)
+    .value("DocumentOptions", org::sem::OrgSemKind::DocumentOptions)
+    .value("DocumentFragment", org::sem::OrgSemKind::DocumentFragment)
+    .value("CriticMarkup", org::sem::OrgSemKind::CriticMarkup)
+    .value("Document", org::sem::OrgSemKind::Document)
+    .value("FileTarget", org::sem::OrgSemKind::FileTarget)
+    .value("TextSeparator", org::sem::OrgSemKind::TextSeparator)
+    .value("DocumentGroup", org::sem::OrgSemKind::DocumentGroup)
+    .value("File", org::sem::OrgSemKind::File)
+    .value("Directory", org::sem::OrgSemKind::Directory)
+    .value("Symlink", org::sem::OrgSemKind::Symlink)
+    .value("CmdInclude", org::sem::OrgSemKind::CmdInclude)
     .def("__iter__", [](org::sem::OrgSemKind const& _self) -> org::bind::python::PyEnumIterator<org::sem::OrgSemKind> {
                      return org::bind::python::PyEnumIterator<org::sem::OrgSemKind>();
                      })
@@ -1050,7 +1050,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
                       return static_cast<int>(_self);
                       })
     .def("__eq__",
-         [](org::sem::OrgSemKind lhs, OrgSemKind rhs) -> bool {
+         [](org::sem::OrgSemKind lhs, org::sem::OrgSemKind rhs) -> bool {
          return lhs == rhs;
          },
          nanobind::arg("rhs"))
