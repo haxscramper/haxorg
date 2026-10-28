@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Sequence
 
+import glom
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuDoc,
@@ -46,6 +47,7 @@ from hstd_py_unidata.model_ir import (
     VariantDef,
     VariantT,
 )
+from loguru import logger
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
     OrgTypeGroup,
     PyhaxorgTypeGroups,
@@ -224,6 +226,14 @@ class ModelToGenTu:
         return self.declaration_type(package, owner.nested(name))
 
     def type(self, typ: TypeRef, package: str) -> QualType:
+        def wrap_annotation(result: QualType) -> QualType:
+            if glom.glom(typ, "annotation.backend.cpp.is_ref", default=None):
+                logger.info("Got ref annotation")
+                return const_ref(result)
+
+            else:
+                return result
+
         match typ:
             case PrimT():
                 primitive_types = {
@@ -247,60 +257,72 @@ class ModelToGenTu:
                         "PrimKind.ANY requires an explicit C++ type mapping",
                     )
 
-                return named_cpp_type(primitive_types[typ.prim])
+                return wrap_annotation(named_cpp_type(primitive_types[typ.prim]))
 
             case NamedT():
-                return self.reference_type(package, typ.qname)
+                return wrap_annotation(self.reference_type(package, typ.qname))
 
             case ExternalT():
-                return self.reference_type(typ.package, typ.qname)
+                return wrap_annotation(self.reference_type(typ.package, typ.qname))
 
             case ListT():
-                return named_cpp_type(
-                    "hstd::Vec",
-                    [self.type(typ.elem, package)],
+                return wrap_annotation(
+                    named_cpp_type(
+                        "hstd::Vec",
+                        [self.type(typ.elem, package)],
+                    )
                 )
 
             case ArrayT():
-                return named_cpp_type(
-                    "std::array",
-                    [
-                        self.type(typ.elem, package),
-                        QualType(
-                            Kind=QualTypeKind.TypeExpr,
-                            Expr=str(typ.size),
-                        ),
-                    ],
+                return wrap_annotation(
+                    named_cpp_type(
+                        "std::array",
+                        [
+                            self.type(typ.elem, package),
+                            QualType(
+                                Kind=QualTypeKind.TypeExpr,
+                                Expr=str(typ.size),
+                            ),
+                        ],
+                    )
                 )
 
             case MapT():
-                return named_cpp_type(
-                    "hstd::UnorderedMap",
-                    [
-                        self.type(typ.key, package),
-                        self.type(typ.value, package),
-                    ],
+                return wrap_annotation(
+                    named_cpp_type(
+                        "hstd::UnorderedMap",
+                        [
+                            self.type(typ.key, package),
+                            self.type(typ.value, package),
+                        ],
+                    )
                 )
 
             case OptT():
-                return named_cpp_type(
-                    "hstd::Opt",
-                    [self.type(typ.elem, package)],
+                return wrap_annotation(
+                    named_cpp_type(
+                        "hstd::Opt",
+                        [self.type(typ.elem, package)],
+                    )
                 )
 
             case TupleT():
-                return named_cpp_type(
-                    "std::tuple",
-                    [self.type(elem, package) for elem in typ.elems],
+                return wrap_annotation(
+                    named_cpp_type(
+                        "std::tuple",
+                        [self.type(elem, package) for elem in typ.elems],
+                    )
                 )
 
             case VariantT():
-                return self.variant_type(package, typ.owner, typ.field)
+                return wrap_annotation(self.variant_type(package, typ.owner, typ.field))
 
             case TypeParamT():
-                return QualType(
-                    Name=typ.name,
-                    IsTemplateTypeParam=True,
+                return wrap_annotation(
+                    QualType(
+                        Name=typ.name,
+                        IsTemplateTypeParam=True,
+                    )
                 )
 
             case DynT():
@@ -691,37 +713,37 @@ class ModelToGenTu:
         # might trigger a trait evaluation ordering issue, where the
         # compiler evaluates the class as non-default-constructible and
         # the does not re-run the eval afterwards.
-
+        #
         # Example:
-
+        #
         # ```c++
         # class Parent {
         #     class Nested {
         #         hstd::Str value = {}; // default constructor is declared
         #     };
-
+        #
         #     class Nested2 {
         #         hstd::Str value = {};
         #     };
-
+        #
         #     // instantiating the variant will trigger the `is_default_constructible`
         #     // check for the types, but it will evaluate to false at this stage
         #     using Data = std::variant<Nested, Nested2>;
         # }
         # ```
-
+        #
         # There is no user-declared constructor, so the compiler
         # implicitly declares one. Determining its properties can
         # require examining the default member initializer.
-
+        #
         # Default member initializers have special deferred-processing
         # rules: they can refer to members declared later in the
         # enclosing class. In this nested-class situation, the trait
         # check occurs before the compiler has finished the enclosing
         # definition and because of that the code fails.
-
+        #
         # To have default-constructible class:
-
+        #
         # - do not use any default initializer values for any fields,
         # in this case the class is a properly default-initialized
         # and can be used as an aggregate

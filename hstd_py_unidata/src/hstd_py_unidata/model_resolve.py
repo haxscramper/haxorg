@@ -71,6 +71,7 @@ from hstd_py_unidata.model_ir import (
     RecordKind,
     SourceLoc,
     TupleT,
+    TypeAnnotation,
     TypeParamT,
     TypeRef,
     UnresolvedT,
@@ -268,14 +269,21 @@ class AnnotationResolver:
                 return TypeParamT(name=ann.__name__)
         if ann is types.NoneType:
             return PrimT(prim=PrimKind.NONE)
+
         if isinstance(ann, collections.abc.Hashable) and ann in PRIMITIVE_TYPES:
             return PrimT(prim=PRIMITIVE_TYPES[ann])
+
         if isinstance(ann, type) and hasattr(ann, DslAttr.QNAME.value):
             return NamedT(qname=getattr(ann, DslAttr.QNAME.value))
+
         origin = get_origin(ann)
         args = get_args(ann)
         if origin is Annotated:
-            return self.resolve(args[0], scope, globals_map, type_params)
+            result = self.resolve(args[0], scope, globals_map, type_params)
+            if 1 < len(args) and isinstance(args[1], TypeAnnotation):
+                result = result.model_copy(update={"annotation": args[1]})
+
+            return result
 
         if origin is list or origin is List:
             return ListT(elem=self.resolve(args[0], scope, globals_map, type_params))

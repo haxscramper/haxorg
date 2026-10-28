@@ -723,7 +723,7 @@ struct AttrGroup {
   hstd::Opt<org::sem::AttrList> getVarNamed(hstd::Str const& index) const;
   org::sem::AttrValue atFirstVarNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrValue> getFirstVarNamed(hstd::Str const& index) const;
-  org::sem::AttrValue atFirstNamed(hstd::Str const& index) const;
+  org::sem::AttrValue const& atFirstNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrValue> getFirstNamed(hstd::Str const& index) const;
   bool operator==(org::sem::AttrGroup const& other) const;
 };

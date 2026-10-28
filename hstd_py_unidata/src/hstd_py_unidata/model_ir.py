@@ -1,10 +1,18 @@
 from __future__ import annotations
 
 import enum
+from typing import Annotated, Any
 
 from beartype import beartype
-from beartype.typing import Annotated, Any, Dict, Literal, Optional, Tuple, Union
-from pydantic import BaseModel, ConfigDict, Field
+from beartype.typing import Dict, Literal, Optional, Tuple, Union
+from frozendict import deepfreeze, frozendict
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, ValidateAs
+
+FrozenBackend = Annotated[
+    frozendict[str, Any],
+    ValidateAs(dict[str, Any], deepfreeze),
+    PlainSerializer(dict, return_type=dict[str, Any]),
+]
 
 
 class FrozenModel(BaseModel):
@@ -98,45 +106,56 @@ def numeric_join(left: PrimKind, right: PrimKind) -> PrimKind:
 
 
 @beartype
-class PrimT(FrozenModel):
+class TypeAnnotation(FrozenModel):
+    "Backend-specific annotations for the type usage"
+
+    backend: FrozenBackend = Field(default_factory=frozendict)
+
+
+class BaseType(FrozenModel):
+    annotation: TypeAnnotation = Field(default_factory=lambda: TypeAnnotation())
+
+
+@beartype
+class PrimT(BaseType):
     kind: Literal["prim"] = "prim"  # noqa
     prim: PrimKind
 
 
 @beartype
-class ListT(FrozenModel):
+class ListT(BaseType):
     kind: Literal["list"] = "list"  # noqa
     elem: TypeRef
 
 
 @beartype
-class ArrayT(FrozenModel):
+class ArrayT(BaseType):
     kind: Literal["array"] = "array"  # noqa
     elem: TypeRef
     size: int
 
 
 @beartype
-class MapT(FrozenModel):
+class MapT(BaseType):
     kind: Literal["map"] = "map"  # noqa
     key: TypeRef
     value: TypeRef
 
 
 @beartype
-class OptT(FrozenModel):
+class OptT(BaseType):
     kind: Literal["optional"] = "optional"  # noqa
     elem: TypeRef
 
 
 @beartype
-class TupleT(FrozenModel):
+class TupleT(BaseType):
     kind: Literal["tuple"] = "tuple"  # noqa
     elems: Tuple[TypeRef, ...]
 
 
 @beartype
-class NamedT(FrozenModel):
+class NamedT(BaseType):
     """Reference to a record or enum declared in the model."""
 
     kind: Literal["named"] = "named"  # noqa
@@ -144,7 +163,7 @@ class NamedT(FrozenModel):
 
 
 @beartype
-class ExternalT(FrozenModel):
+class ExternalT(BaseType):
     """Opaque type provided by another package, the model never inspects its content."""
 
     kind: Literal["external"] = "external"  # noqa
@@ -153,7 +172,7 @@ class ExternalT(FrozenModel):
 
 
 @beartype
-class VariantT(FrozenModel):
+class VariantT(BaseType):
     """Variant created by `__variant__` on the owner record and stored in the named field."""
 
     kind: Literal["variant"] = "variant"  # noqa
@@ -162,7 +181,7 @@ class VariantT(FrozenModel):
 
 
 @beartype
-class DynT(FrozenModel):
+class DynT(BaseType):
     """Any value reachable from a value of the root type, produced by recursive traversal."""
 
     kind: Literal["dyn"] = "dyn"  # noqa
@@ -170,13 +189,13 @@ class DynT(FrozenModel):
 
 
 @beartype
-class TypeParamT(FrozenModel):
+class TypeParamT(BaseType):
     kind: Literal["param"] = "param"  # noqa
     name: str
 
 
 @beartype
-class UnresolvedT(FrozenModel):
+class UnresolvedT(BaseType):
     """Annotation text that is resolved against the lexical scope during model finalization."""
 
     kind: Literal["unresolved"] = "unresolved"  # noqa

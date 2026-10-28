@@ -314,6 +314,15 @@ wheels = [
 ]
 
 [[package]]
+name = "frozendict"
+version = "2.4.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/b2/2a3d1374b7780999d3184e171e25439a8358c47b481f68be883c14086b4c/frozendict-2.4.7.tar.gz", hash = "sha256:e478fb2a1391a56c8a6e10cc97c4a9002b410ecd1ac28c18d780661762e271bd", size = 317082, upload-time = "2025-11-11T22:40:14.251Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/38/74/f94141b38a51a553efef7f510fc213894161ae49b88bffd037f8d2a7cb2f/frozendict-2.4.7-py3-none-any.whl", hash = "sha256:972af65924ea25cf5b4d9326d549e69a9a4918d8a76a9d3a7cd174d98b237550", size = 16264, upload-time = "2025-11-11T22:40:12.836Z" },
+]
+
+[[package]]
 name = "glom"
 version = "25.12.0"
 source = { registry = "https://pypi.org/simple" }
@@ -511,6 +520,7 @@ version = "0.1.0"
 source = { editable = "hstd_py_unidata" }
 dependencies = [
     { name = "beartype" },
+    { name = "frozendict" },
     { name = "loguru" },
     { name = "plumbum" },
     { name = "pydantic" },
@@ -524,6 +534,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beartype" },
+    { name = "frozendict" },
     { name = "loguru" },
     { name = "plumbum" },
     { name = "pydantic" },
@@ -912,6 +923,7 @@ version = "0.1.0"
 source = { editable = "repo_py_orchestrate" }
 dependencies = [
     { name = "deepdiff" },
+    { name = "glom" },
     { name = "hstd-py-codegen" },
     { name = "hstd-py-lib" },
     { name = "hstd-py-unidata" },
@@ -927,6 +939,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "deepdiff" },
+    { name = "glom" },
     { name = "hstd-py-codegen", editable = "hstd_py_codegen" },
     { name = "hstd-py-lib", editable = "hstd_py_lib" },
     { name = "hstd-py-unidata", editable = "hstd_py_unidata" },

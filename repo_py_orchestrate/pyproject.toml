@@ -11,6 +11,7 @@ dependencies = [
   "hstd_py_codegen",
   "hstd_py_unidata",
   "deepdiff",
+  "glom",
 ]
 
 [dependency-groups]

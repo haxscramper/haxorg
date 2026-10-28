@@ -9,7 +9,7 @@ from hstd_py_unidata.model_dsl import (
     __variant__,
     get_dsl_model,
 )
-from hstd_py_unidata.model_ir import ModelDef
+from hstd_py_unidata.model_ir import ModelDef, TypeAnnotation
 from repo_py_orchestrate.codegen_config.codegen_type_groups import OrgTypeGroup
 
 M = get_dsl_model("org.sem.shared")
@@ -1382,7 +1382,9 @@ class AttrGroup(M.Class):
 
     def getFirstVarNamed(self, index: str) -> Optional[AttrValue]: ...
 
-    def atFirstNamed(self, index: str) -> AttrValue: ...
+    def atFirstNamed(
+        self, index: str
+    ) -> Annotated[AttrValue, TypeAnnotation(backend=dict(cpp=dict(is_ref=True)))]: ...
 
     def getFirstNamed(self, index: str) -> Optional[AttrValue]: ...
 

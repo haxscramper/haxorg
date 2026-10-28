@@ -7,6 +7,7 @@ dependencies = [
     "loguru",
     "plumbum",
     "pydantic",
+    "frozendict",
 ]
 
 [dependency-groups]
