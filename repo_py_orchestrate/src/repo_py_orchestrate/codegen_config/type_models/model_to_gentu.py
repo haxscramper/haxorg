@@ -6,6 +6,7 @@ import glom
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import (
+    GenTuBackendParams,
     GenTuDoc,
     GenTuEntry,
     GenTuEnum,
@@ -14,6 +15,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuFunction,
     GenTuIdent,
     GenTuPass,
+    GenTuReflParams,
     GenTuStruct,
     GenTuTypeApiTraits,
     GenTuTypeGroup,
@@ -778,6 +780,10 @@ class ModelToGenTu:
                     Name=item.qname.name,
                     IsConstructor=True,
                     ParentClass=result.Name,
+                    ReflectionParams=GenTuReflParams(
+                        unique_name=f"init_{item.qname.name}_field_pass",
+                        backend=GenTuBackendParams(target_backends=["python"]),
+                    ),
                     Args=[
                         GenTuIdent(
                             Type=const_ref(f.Type),
@@ -808,6 +814,9 @@ class ModelToGenTu:
                     IsConstructor=True,
                     Body="",
                     ParentClass=result.Name,
+                    ReflectionParams=GenTuReflParams(
+                        unique_name=f"init_{item.qname.name}_default"
+                    ),
                 ),
             )
 

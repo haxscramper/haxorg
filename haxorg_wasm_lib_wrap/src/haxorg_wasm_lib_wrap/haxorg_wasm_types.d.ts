@@ -2093,6 +2093,7 @@ export enum GraphMapLinkKind {
 export interface LispCodeConstructor { new(): LispCode; }
 export interface LispCode {
   LispCode(): void;
+  __eq__(other: LispCode): boolean;
   isCall(): boolean;
   getCallConst(): LispCodeCall;
   getCallMut(): LispCodeCall;
@@ -2132,54 +2133,74 @@ export interface LispCode {
 }
 export interface LispCodeCallConstructor { new(): LispCodeCall; }
 export interface LispCodeCall {
-  Call(): void;
+  init_Call_field_pass(name: Str, args: haxorg_wasm.HstdVec<LispCode>): void;
+  init_Call_default(): void;
+  __eq__(other: LispCodeCall): boolean;
   name: Str
   args: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeQuotedConstructor { new(): LispCodeQuoted; }
 export interface LispCodeQuoted {
-  Quoted(): void;
+  init_Quoted_field_pass(items: haxorg_wasm.HstdVec<LispCode>): void;
+  init_Quoted_default(): void;
+  __eq__(other: LispCodeQuoted): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeListConstructor { new(): LispCodeList; }
 export interface LispCodeList {
-  List(): void;
+  init_List_field_pass(items: haxorg_wasm.HstdVec<LispCode>): void;
+  init_List_default(): void;
+  __eq__(other: LispCodeList): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeVectorConstructor { new(): LispCodeVector; }
 export interface LispCodeVector {
-  Vector(): void;
+  init_Vector_field_pass(items: haxorg_wasm.HstdVec<LispCode>): void;
+  init_Vector_default(): void;
+  __eq__(other: LispCodeVector): boolean;
   items: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeKeyValueConstructor { new(): LispCodeKeyValue; }
 export interface LispCodeKeyValue {
-  KeyValue(): void;
+  init_KeyValue_field_pass(name: Str, value: haxorg_wasm.HstdVec<LispCode>): void;
+  init_KeyValue_default(): void;
+  __eq__(other: LispCodeKeyValue): boolean;
   name: Str
   value: haxorg_wasm.HstdVec<LispCode>
 }
 export interface LispCodeNumberConstructor { new(): LispCodeNumber; }
 export interface LispCodeNumber {
-  Number(): void;
+  init_Number_field_pass(value: number): void;
+  init_Number_default(): void;
+  __eq__(other: LispCodeNumber): boolean;
   value: number
 }
 export interface LispCodeTextConstructor { new(): LispCodeText; }
 export interface LispCodeText {
-  Text(): void;
+  init_Text_field_pass(value: Str): void;
+  init_Text_default(): void;
+  __eq__(other: LispCodeText): boolean;
   value: Str
 }
 export interface LispCodeIdentConstructor { new(): LispCodeIdent; }
 export interface LispCodeIdent {
-  Ident(): void;
+  init_Ident_field_pass(name: Str): void;
+  init_Ident_default(): void;
+  __eq__(other: LispCodeIdent): boolean;
   name: Str
 }
 export interface LispCodeBooleanConstructor { new(): LispCodeBoolean; }
 export interface LispCodeBoolean {
-  Boolean(): void;
+  init_Boolean_field_pass(value: boolean): void;
+  init_Boolean_default(): void;
+  __eq__(other: LispCodeBoolean): boolean;
   value: boolean
 }
 export interface LispCodeRealConstructor { new(): LispCodeReal; }
 export interface LispCodeReal {
-  Real(): void;
+  init_Real_field_pass(value: number): void;
+  init_Real_default(): void;
+  __eq__(other: LispCodeReal): boolean;
   value: number
 }
 export type LispCodeData = haxorg_wasm.StdVariant<LispCodeCall, LispCodeQuoted, LispCodeList, LispCodeVector, LispCodeKeyValue, LispCodeNumber, LispCodeText, LispCodeIdent, LispCodeBoolean, LispCodeReal>;
@@ -2197,7 +2218,7 @@ export enum LispCodeKind {
 }
 export interface TimeValueConstructor { new(): TimeValue; }
 export interface TimeValue {
-  TimeValue(): void;
+  __eq__(other: TimeValue): boolean;
   isFixedTime(): boolean;
   getFixedTimeConst(): TimeValueFixedTime;
   getFixedTimeMut(): TimeValueFixedTime;
@@ -2214,12 +2235,16 @@ export interface TimeValue {
 }
 export interface TimeValueFixedTimeConstructor { new(): TimeValueFixedTime; }
 export interface TimeValueFixedTime {
-  FixedTime(): void;
+  init_FixedTime_field_pass(time: UserTime): void;
+  init_FixedTime_default(): void;
+  __eq__(other: TimeValueFixedTime): boolean;
   time: UserTime
 }
 export interface TimeValueDynamicTimeConstructor { new(): TimeValueDynamicTime; }
 export interface TimeValueDynamicTime {
-  DynamicTime(): void;
+  init_DynamicTime_field_pass(time: LispCode): void;
+  init_DynamicTime_default(): void;
+  __eq__(other: TimeValueDynamicTime): boolean;
   time: LispCode
 }
 export type TimeValueData = haxorg_wasm.StdVariant<TimeValueFixedTime, TimeValueDynamicTime>;
@@ -2229,11 +2254,14 @@ export enum TimeValueKind {
 }
 export interface TblfmConstructor { new(): Tblfm; }
 export interface Tblfm {
-  Tblfm(): void;
+  __eq__(other: Tblfm): boolean;
   exprs: haxorg_wasm.HstdVec<TblfmAssign>
 }
 export interface TblfmExprConstructor { new(): TblfmExpr; }
 export interface TblfmExpr {
+  init_Expr_field_pass(data: TblfmExprData): void;
+  init_Expr_default(): void;
+  __eq__(other: TblfmExpr): boolean;
   isAxisRef(): boolean;
   getAxisRefConst(): TblfmExprAxisRef;
   getAxisRefMut(): TblfmExprAxisRef;
@@ -2264,11 +2292,17 @@ export interface TblfmExpr {
 }
 export interface TblfmExprAxisRefConstructor { new(): TblfmExprAxisRef; }
 export interface TblfmExprAxisRef {
+  init_AxisRef_field_pass(col: TblfmExprAxisRefPosition, row: haxorg_wasm.Optional<TblfmExprAxisRefPosition>): void;
+  init_AxisRef_default(): void;
+  __eq__(other: TblfmExprAxisRef): boolean;
   col: TblfmExprAxisRefPosition
   row: haxorg_wasm.Optional<TblfmExprAxisRefPosition>
 }
 export interface TblfmExprAxisRefPositionConstructor { new(): TblfmExprAxisRefPosition; }
 export interface TblfmExprAxisRefPosition {
+  init_Position_field_pass(data: TblfmExprAxisRefPositionData): void;
+  init_Position_default(): void;
+  __eq__(other: TblfmExprAxisRefPosition): boolean;
   isIndex(): boolean;
   getIndexConst(): TblfmExprAxisRefPositionIndex;
   getIndexMut(): TblfmExprAxisRefPositionIndex;
@@ -2284,12 +2318,16 @@ export interface TblfmExprAxisRefPosition {
 }
 export interface TblfmExprAxisRefPositionIndexConstructor { new(): TblfmExprAxisRefPositionIndex; }
 export interface TblfmExprAxisRefPositionIndex {
-  Index(): void;
+  init_Index_field_pass(index: number): void;
+  init_Index_default(): void;
+  __eq__(other: TblfmExprAxisRefPositionIndex): boolean;
   index: number
 }
 export interface TblfmExprAxisRefPositionNameConstructor { new(): TblfmExprAxisRefPositionName; }
 export interface TblfmExprAxisRefPositionName {
-  Name(): void;
+  init_Name_field_pass(name: Str): void;
+  init_Name_default(): void;
+  __eq__(other: TblfmExprAxisRefPositionName): boolean;
   name: Str
 }
 export type TblfmExprAxisRefPositionData = haxorg_wasm.StdVariant<TblfmExprAxisRefPositionIndex, TblfmExprAxisRefPositionName>;
@@ -2298,23 +2336,49 @@ export enum TblfmExprAxisRefPositionKind {
   Name,
 }
 export interface TblfmExprAxisNameConstructor { new(): TblfmExprAxisName; }
-export interface TblfmExprAxisName { name: Str }
+export interface TblfmExprAxisName {
+  init_AxisName_field_pass(name: Str): void;
+  init_AxisName_default(): void;
+  __eq__(other: TblfmExprAxisName): boolean;
+  name: Str
+}
 export interface TblfmExprIntLiteralConstructor { new(): TblfmExprIntLiteral; }
-export interface TblfmExprIntLiteral { value: number }
+export interface TblfmExprIntLiteral {
+  init_IntLiteral_field_pass(value: number): void;
+  init_IntLiteral_default(): void;
+  __eq__(other: TblfmExprIntLiteral): boolean;
+  value: number
+}
 export interface TblfmExprFloatLiteralConstructor { new(): TblfmExprFloatLiteral; }
-export interface TblfmExprFloatLiteral { value: number }
+export interface TblfmExprFloatLiteral {
+  init_FloatLiteral_field_pass(value: number): void;
+  init_FloatLiteral_default(): void;
+  __eq__(other: TblfmExprFloatLiteral): boolean;
+  value: number
+}
 export interface TblfmExprRangeRefConstructor { new(): TblfmExprRangeRef; }
 export interface TblfmExprRangeRef {
+  init_RangeRef_field_pass(first: haxorg_wasm.Optional<TblfmExprAxisRef>, last: haxorg_wasm.Optional<TblfmExprAxisRef>): void;
+  init_RangeRef_default(): void;
+  __eq__(other: TblfmExprRangeRef): boolean;
   first: haxorg_wasm.Optional<TblfmExprAxisRef>
   last: haxorg_wasm.Optional<TblfmExprAxisRef>
 }
 export interface TblfmExprCallConstructor { new(): TblfmExprCall; }
 export interface TblfmExprCall {
+  init_Call_field_pass(name: Str, args: haxorg_wasm.HstdVec<TblfmExpr>): void;
+  init_Call_default(): void;
+  __eq__(other: TblfmExprCall): boolean;
   name: Str
   args: haxorg_wasm.HstdVec<TblfmExpr>
 }
 export interface TblfmExprElispConstructor { new(): TblfmExprElisp; }
-export interface TblfmExprElisp { value: Str }
+export interface TblfmExprElisp {
+  init_Elisp_field_pass(value: Str): void;
+  init_Elisp_default(): void;
+  __eq__(other: TblfmExprElisp): boolean;
+  value: Str
+}
 export type TblfmExprData = haxorg_wasm.StdVariant<TblfmExprAxisRef, TblfmExprAxisName, TblfmExprIntLiteral, TblfmExprFloatLiteral, TblfmExprRangeRef, TblfmExprCall, TblfmExprElisp>;
 export enum TblfmExprKind {
   AxisRef,
@@ -2327,6 +2391,9 @@ export enum TblfmExprKind {
 }
 export interface TblfmAssignConstructor { new(): TblfmAssign; }
 export interface TblfmAssign {
+  init_Assign_field_pass(target: TblfmExprAxisRef, expr: haxorg_wasm.HstdVec<TblfmExpr>, flags: haxorg_wasm.HstdVec<TblfmAssignFlag>): void;
+  init_Assign_default(): void;
+  __eq__(other: TblfmAssign): boolean;
   target: TblfmExprAxisRef
   expr: haxorg_wasm.HstdVec<TblfmExpr>
   flags: haxorg_wasm.HstdVec<TblfmAssignFlag>
@@ -2354,6 +2421,7 @@ export interface AttrValue {
   getInt(): haxorg_wasm.Optional<number>;
   getString(): Str;
   getDouble(): haxorg_wasm.Optional<number>;
+  __eq__(other: AttrValue): boolean;
   isTextValue(): boolean;
   getTextValueConst(): AttrValueTextValue;
   getTextValueMut(): AttrValueTextValue;
@@ -2376,18 +2444,26 @@ export interface AttrValue {
 }
 export interface AttrValueDimensionSpanConstructor { new(): AttrValueDimensionSpan; }
 export interface AttrValueDimensionSpan {
+  __eq__(other: AttrValueDimensionSpan): boolean;
   first: number
   last: haxorg_wasm.Optional<number>
 }
 export interface AttrValueTextValueConstructor { new(): AttrValueTextValue; }
-export interface AttrValueTextValue { value: Str }
+export interface AttrValueTextValue {
+  __eq__(other: AttrValueTextValue): boolean;
+  value: Str
+}
 export interface AttrValueFileReferenceConstructor { new(): AttrValueFileReference; }
 export interface AttrValueFileReference {
+  __eq__(other: AttrValueFileReference): boolean;
   file: Str
   reference: Str
 }
 export interface AttrValueLispValueConstructor { new(): AttrValueLispValue; }
-export interface AttrValueLispValue { code: LispCode }
+export interface AttrValueLispValue {
+  __eq__(other: AttrValueLispValue): boolean;
+  code: LispCode
+}
 export type AttrValueDataVariant = haxorg_wasm.StdVariant<AttrValueTextValue, AttrValueFileReference, AttrValueLispValue>;
 export enum AttrValueKind {
   TextValue,
@@ -2397,10 +2473,12 @@ export enum AttrValueKind {
 export interface HashTagFlatConstructor { new(): HashTagFlat; }
 export interface HashTagFlat {
   __lt__(other: HashTagFlat): boolean;
+  __eq__(other: HashTagFlat): boolean;
   tags: haxorg_wasm.HstdVec<Str>
 }
 export interface TodoKeywordConstructor { new(): TodoKeyword; }
 export interface TodoKeyword {
+  __eq__(other: TodoKeyword): boolean;
   name: Str
   shortcut: haxorg_wasm.Optional<Str>
   onEnter: TodoKeywordTransition
@@ -2415,15 +2493,18 @@ export interface HashTagTextConstructor { new(): HashTagText; }
 export interface HashTagText {
   prefixMatch(prefix: haxorg_wasm.HstdVec<Str>): boolean;
   getFlatHashes(withIntermediate: boolean): haxorg_wasm.HstdVec<HashTagFlat>;
+  __eq__(other: HashTagText): boolean;
   head: Str
   subtags: haxorg_wasm.HstdVec<HashTagText>
 }
 export interface SubtreePathConstructor { new(): SubtreePath; }
-export interface SubtreePath { path: haxorg_wasm.HstdVec<Str> }
+export interface SubtreePath {
+  __eq__(other: SubtreePath): boolean;
+  path: haxorg_wasm.HstdVec<Str>
+}
 export interface LinkTargetConstructor { new(): LinkTarget; }
 export interface LinkTarget {
-  LinkTarget(data: LinkTargetData): void;
-  LinkTarget(): void;
+  __eq__(other: LinkTarget): boolean;
   isRaw(): boolean;
   getRawConst(): LinkTargetRaw;
   getRawMut(): LinkTargetRaw;
@@ -2462,31 +2543,57 @@ export interface LinkTarget {
   data: LinkTargetData
 }
 export interface LinkTargetRawConstructor { new(): LinkTargetRaw; }
-export interface LinkTargetRaw { text: Str }
+export interface LinkTargetRaw {
+  __eq__(other: LinkTargetRaw): boolean;
+  text: Str
+}
 export interface LinkTargetIdConstructor { new(): LinkTargetId; }
-export interface LinkTargetId { text: Str }
+export interface LinkTargetId {
+  __eq__(other: LinkTargetId): boolean;
+  text: Str
+}
 export interface LinkTargetCustomIdConstructor { new(): LinkTargetCustomId; }
-export interface LinkTargetCustomId { text: Str }
+export interface LinkTargetCustomId {
+  __eq__(other: LinkTargetCustomId): boolean;
+  text: Str
+}
 export interface LinkTargetSubtreeTitleConstructor { new(): LinkTargetSubtreeTitle; }
 export interface LinkTargetSubtreeTitle {
+  __eq__(other: LinkTargetSubtreeTitle): boolean;
   title: SubtreePath
   level: number
 }
 export interface LinkTargetPersonConstructor { new(): LinkTargetPerson; }
-export interface LinkTargetPerson { name: Str }
+export interface LinkTargetPerson {
+  __eq__(other: LinkTargetPerson): boolean;
+  name: Str
+}
 export interface LinkTargetUserProtocolConstructor { new(): LinkTargetUserProtocol; }
 export interface LinkTargetUserProtocol {
+  __eq__(other: LinkTargetUserProtocol): boolean;
   protocol: Str
   target: Str
 }
 export interface LinkTargetInternalConstructor { new(): LinkTargetInternal; }
-export interface LinkTargetInternal { target: Str }
+export interface LinkTargetInternal {
+  __eq__(other: LinkTargetInternal): boolean;
+  target: Str
+}
 export interface LinkTargetFootnoteConstructor { new(): LinkTargetFootnote; }
-export interface LinkTargetFootnote { target: Str }
+export interface LinkTargetFootnote {
+  __eq__(other: LinkTargetFootnote): boolean;
+  target: Str
+}
 export interface LinkTargetFileConstructor { new(): LinkTargetFile; }
-export interface LinkTargetFile { file: Str }
+export interface LinkTargetFile {
+  __eq__(other: LinkTargetFile): boolean;
+  file: Str
+}
 export interface LinkTargetAttachmentConstructor { new(): LinkTargetAttachment; }
-export interface LinkTargetAttachment { file: Str }
+export interface LinkTargetAttachment {
+  __eq__(other: LinkTargetAttachment): boolean;
+  file: Str
+}
 export type LinkTargetData = haxorg_wasm.StdVariant<LinkTargetRaw, LinkTargetId, LinkTargetCustomId, LinkTargetSubtreeTitle, LinkTargetPerson, LinkTargetUserProtocol, LinkTargetInternal, LinkTargetFootnote, LinkTargetFile, LinkTargetAttachment>;
 export enum LinkTargetKind {
   Raw,
@@ -2502,6 +2609,9 @@ export enum LinkTargetKind {
 }
 export interface SubtreeLogHeadConstructor { new(): SubtreeLogHead; }
 export interface SubtreeLogHead {
+  init_SubtreeLogHead_field_pass(log: SubtreeLogHeadLogEntry): void;
+  init_SubtreeLogHead_default(): void;
+  __eq__(other: SubtreeLogHead): boolean;
   isPriority(): boolean;
   getPriorityConst(): SubtreeLogHeadPriority;
   getPriorityMut(): SubtreeLogHeadPriority;
@@ -2538,6 +2648,7 @@ export interface SubtreeLogHead {
 }
 export interface SubtreeLogHeadPriorityConstructor { new(): SubtreeLogHeadPriority; }
 export interface SubtreeLogHeadPriority {
+  __eq__(other: SubtreeLogHeadPriority): boolean;
   oldPriority: haxorg_wasm.Optional<Str>
   newPriority: haxorg_wasm.Optional<Str>
   on: UserTime
@@ -2549,43 +2660,52 @@ export enum SubtreeLogHeadPriorityAction {
   Changed = 2,
 }
 export interface SubtreeLogHeadNoteConstructor { new(): SubtreeLogHeadNote; }
-export interface SubtreeLogHeadNote { on: UserTime }
+export interface SubtreeLogHeadNote {
+  __eq__(other: SubtreeLogHeadNote): boolean;
+  on: UserTime
+}
 export interface SubtreeLogHeadRefileConstructor { new(): SubtreeLogHeadRefile; }
 export interface SubtreeLogHeadRefile {
+  __eq__(other: SubtreeLogHeadRefile): boolean;
   on: UserTime
   from: LinkTarget
 }
 export interface SubtreeLogHeadClockConstructor { new(): SubtreeLogHeadClock; }
 export interface SubtreeLogHeadClock {
+  __eq__(other: SubtreeLogHeadClock): boolean;
   from: UserTime
   to: haxorg_wasm.Optional<UserTime>
 }
 export interface SubtreeLogHeadStateConstructor { new(): SubtreeLogHeadState; }
 export interface SubtreeLogHeadState {
+  __eq__(other: SubtreeLogHeadState): boolean;
   from: Str
   to: Str
   on: UserTime
 }
 export interface SubtreeLogHeadDeadlineConstructor { new(): SubtreeLogHeadDeadline; }
 export interface SubtreeLogHeadDeadline {
+  __eq__(other: SubtreeLogHeadDeadline): boolean;
   from: haxorg_wasm.Optional<UserTime>
   to: UserTime
   on: UserTime
 }
 export interface SubtreeLogHeadScheduleConstructor { new(): SubtreeLogHeadSchedule; }
 export interface SubtreeLogHeadSchedule {
+  __eq__(other: SubtreeLogHeadSchedule): boolean;
   from: haxorg_wasm.Optional<UserTime>
   to: UserTime
   on: UserTime
 }
 export interface SubtreeLogHeadTagConstructor { new(): SubtreeLogHeadTag; }
 export interface SubtreeLogHeadTag {
+  __eq__(other: SubtreeLogHeadTag): boolean;
   on: UserTime
   tag: HashTagText
   added: boolean
 }
 export interface SubtreeLogHeadUnknownConstructor { new(): SubtreeLogHeadUnknown; }
-export interface SubtreeLogHeadUnknown {  }
+export interface SubtreeLogHeadUnknown { __eq__(other: SubtreeLogHeadUnknown): boolean; }
 export type SubtreeLogHeadLogEntry = haxorg_wasm.StdVariant<SubtreeLogHeadPriority, SubtreeLogHeadNote, SubtreeLogHeadRefile, SubtreeLogHeadClock, SubtreeLogHeadState, SubtreeLogHeadDeadline, SubtreeLogHeadSchedule, SubtreeLogHeadTag, SubtreeLogHeadUnknown>;
 export enum SubtreeLogHeadKind {
   Priority,
@@ -2600,12 +2720,16 @@ export enum SubtreeLogHeadKind {
 }
 export interface SubtreeCompletionConstructor { new(): SubtreeCompletion; }
 export interface SubtreeCompletion {
+  __eq__(other: SubtreeCompletion): boolean;
   done: number
   full: number
   isPercent: boolean
 }
 export interface AttrListConstructor { new(): AttrList; }
-export interface AttrList { items: haxorg_wasm.HstdVec<AttrValue> }
+export interface AttrList {
+  __eq__(other: AttrList): boolean;
+  items: haxorg_wasm.HstdVec<AttrValue>
+}
 export interface AttrGroupConstructor { new(): AttrGroup; }
 export interface AttrGroup {
   getFlatArgs(): haxorg_wasm.HstdVec<AttrValue>;
@@ -2626,12 +2750,14 @@ export interface AttrGroup {
   getFirstVarNamed(index: Str): haxorg_wasm.Optional<AttrValue>;
   atFirstNamed(index: Str): AttrValue;
   getFirstNamed(index: Str): haxorg_wasm.Optional<AttrValue>;
+  __eq__(other: AttrGroup): boolean;
   positional: AttrList
   named: haxorg_wasm.HstdMap<Str, AttrList>
 }
 export interface OrgCodeEvalInputConstructor { new(): OrgCodeEvalInput; }
 export interface OrgCodeEvalInput {
   getVariable(name: Str): haxorg_wasm.Optional<OrgCodeEvalInputVar>;
+  __eq__(other: OrgCodeEvalInput): boolean;
   blockAttrs: AttrGroup
   tangledCode: Str
   exportType: haxorg_wasm.Optional<Str>
@@ -2643,6 +2769,9 @@ export interface OrgCodeEvalInput {
 }
 export interface OrgCodeEvalInputVarConstructor { new(): OrgCodeEvalInputVar; }
 export interface OrgCodeEvalInputVar {
+  init_Var_field_pass(name: Str, value: OrgJson): void;
+  init_Var_default(): void;
+  __eq__(other: OrgCodeEvalInputVar): boolean;
   name: Str
   value: OrgJson
 }
@@ -2671,6 +2800,7 @@ export enum OrgCodeEvalInputResultHandling {
 }
 export interface OrgCodeEvalOutputConstructor { new(): OrgCodeEvalOutput; }
 export interface OrgCodeEvalOutput {
+  __eq__(other: OrgCodeEvalOutput): boolean;
   stdoutText: Str
   stderrText: Str
   code: number
@@ -2680,9 +2810,13 @@ export interface OrgCodeEvalOutput {
   appliedHeaderArg: AttrGroup
 }
 export interface ColumnViewConstructor { new(): ColumnView; }
-export interface ColumnView { columns: haxorg_wasm.HstdVec<ColumnViewColumn> }
+export interface ColumnView {
+  __eq__(other: ColumnView): boolean;
+  columns: haxorg_wasm.HstdVec<ColumnViewColumn>
+}
 export interface ColumnViewSummaryConstructor { new(): ColumnViewSummary; }
 export interface ColumnViewSummary {
+  __eq__(other: ColumnViewSummary): boolean;
   isCheckboxAggregate(): boolean;
   getCheckboxAggregateConst(): ColumnViewSummaryCheckboxAggregate;
   getCheckboxAggregateMut(): ColumnViewSummaryCheckboxAggregate;
@@ -2697,7 +2831,10 @@ export interface ColumnViewSummary {
   data: ColumnViewSummaryData
 }
 export interface ColumnViewSummaryCheckboxAggregateConstructor { new(): ColumnViewSummaryCheckboxAggregate; }
-export interface ColumnViewSummaryCheckboxAggregate { kind: ColumnViewSummaryCheckboxAggregateKind }
+export interface ColumnViewSummaryCheckboxAggregate {
+  __eq__(other: ColumnViewSummaryCheckboxAggregate): boolean;
+  kind: ColumnViewSummaryCheckboxAggregateKind
+}
 export enum ColumnViewSummaryCheckboxAggregateKind {
   IfAllNested,
   AggregateFractionRec = 1,
@@ -2705,6 +2842,7 @@ export enum ColumnViewSummaryCheckboxAggregateKind {
 }
 export interface ColumnViewSummaryMathAggregateConstructor { new(): ColumnViewSummaryMathAggregate; }
 export interface ColumnViewSummaryMathAggregate {
+  __eq__(other: ColumnViewSummaryMathAggregate): boolean;
   kind: ColumnViewSummaryMathAggregateKind
   formatDigits: haxorg_wasm.Optional<number>
   formatPrecision: haxorg_wasm.Optional<number>
@@ -2723,15 +2861,20 @@ export enum ColumnViewSummaryKind {
 }
 export interface ColumnViewColumnConstructor { new(): ColumnViewColumn; }
 export interface ColumnViewColumn {
+  __eq__(other: ColumnViewColumn): boolean;
   summary: haxorg_wasm.Optional<ColumnViewSummary>
   width: haxorg_wasm.Optional<number>
   property: haxorg_wasm.Optional<Str>
   propertyTitle: haxorg_wasm.Optional<Str>
 }
 export interface BlockCodeLineConstructor { new(): BlockCodeLine; }
-export interface BlockCodeLine { parts: haxorg_wasm.HstdVec<BlockCodeLinePart> }
+export interface BlockCodeLine {
+  __eq__(other: BlockCodeLine): boolean;
+  parts: haxorg_wasm.HstdVec<BlockCodeLinePart>
+}
 export interface BlockCodeLinePartConstructor { new(): BlockCodeLinePart; }
 export interface BlockCodeLinePart {
+  __eq__(other: BlockCodeLinePart): boolean;
   isRaw(): boolean;
   getRawConst(): BlockCodeLinePartRaw;
   getRawMut(): BlockCodeLinePartRaw;
@@ -2749,11 +2892,20 @@ export interface BlockCodeLinePart {
   data: BlockCodeLinePartData
 }
 export interface BlockCodeLinePartRawConstructor { new(): BlockCodeLinePartRaw; }
-export interface BlockCodeLinePartRaw { code: Str }
+export interface BlockCodeLinePartRaw {
+  __eq__(other: BlockCodeLinePartRaw): boolean;
+  code: Str
+}
 export interface BlockCodeLinePartCalloutConstructor { new(): BlockCodeLinePartCallout; }
-export interface BlockCodeLinePartCallout { name: Str }
+export interface BlockCodeLinePartCallout {
+  __eq__(other: BlockCodeLinePartCallout): boolean;
+  name: Str
+}
 export interface BlockCodeLinePartTangleConstructor { new(): BlockCodeLinePartTangle; }
-export interface BlockCodeLinePartTangle { target: Str }
+export interface BlockCodeLinePartTangle {
+  __eq__(other: BlockCodeLinePartTangle): boolean;
+  target: Str
+}
 export type BlockCodeLinePartData = haxorg_wasm.StdVariant<BlockCodeLinePartRaw, BlockCodeLinePartCallout, BlockCodeLinePartTangle>;
 export enum BlockCodeLinePartKind {
   Raw,
@@ -2762,7 +2914,9 @@ export enum BlockCodeLinePartKind {
 }
 export interface DocumentExportConfigConstructor { new(): DocumentExportConfig; }
 export interface DocumentExportConfig {
-  DocumentExportConfig(): void;
+  init_DocumentExportConfig_field_pass(inlinetasks: haxorg_wasm.Optional<boolean>, footnotes: haxorg_wasm.Optional<boolean>, clock: haxorg_wasm.Optional<boolean>, author: haxorg_wasm.Optional<boolean>, emphasis: haxorg_wasm.Optional<boolean>, specialStrings: haxorg_wasm.Optional<boolean>, propertyDrawers: haxorg_wasm.Optional<boolean>, statisticsCookies: haxorg_wasm.Optional<boolean>, todoText: haxorg_wasm.Optional<boolean>, smartQuotes: haxorg_wasm.Optional<boolean>, fixedWidth: haxorg_wasm.Optional<boolean>, timestamps: haxorg_wasm.Optional<boolean>, preserveBreaks: haxorg_wasm.Optional<boolean>, subSuperscripts: haxorg_wasm.Optional<boolean>, expandLinks: haxorg_wasm.Optional<boolean>, creator: haxorg_wasm.Optional<boolean>, drawers: haxorg_wasm.Optional<boolean>, date: haxorg_wasm.Optional<boolean>, entities: haxorg_wasm.Optional<boolean>, email: haxorg_wasm.Optional<boolean>, sectionNumbers: haxorg_wasm.Optional<boolean>, planning: haxorg_wasm.Optional<boolean>, priority: haxorg_wasm.Optional<boolean>, latex: haxorg_wasm.Optional<boolean>, timestamp: haxorg_wasm.Optional<boolean>, title: haxorg_wasm.Optional<boolean>, tables: haxorg_wasm.Optional<boolean>, headlineLevels: haxorg_wasm.Optional<number>, brokenLinks: DocumentExportConfigBrokenLinks, tagExport: DocumentExportConfigTagExport, taskFiltering: DocumentExportConfigTaskFiltering, archivedTrees: DocumentExportConfigArchivedTrees, tocExport: DocumentExportConfigTocExport): void;
+  init_DocumentExportConfig_default(): void;
+  __eq__(other: DocumentExportConfig): boolean;
   isDoExport(): boolean;
   getDoExportConst(): DocumentExportConfigDoExport;
   getDoExportMut(): DocumentExportConfigDoExport;
@@ -2809,7 +2963,12 @@ export interface DocumentExportConfig {
   tocExport: DocumentExportConfigTocExport
 }
 export interface DocumentExportConfigTaskExportConstructor { new(): DocumentExportConfigTaskExport; }
-export interface DocumentExportConfigTaskExport { taskWhitelist: haxorg_wasm.HstdVec<Str> }
+export interface DocumentExportConfigTaskExport {
+  init_TaskExport_field_pass(taskWhitelist: haxorg_wasm.HstdVec<Str>): void;
+  init_TaskExport_default(): void;
+  __eq__(other: DocumentExportConfigTaskExport): boolean;
+  taskWhitelist: haxorg_wasm.HstdVec<Str>
+}
 export enum DocumentExportConfigTagExport {
   None,
   All = 1,
@@ -2833,9 +2992,15 @@ export enum DocumentExportConfigArchivedTrees {
   All = 2,
 }
 export interface DocumentExportConfigDoExportConstructor { new(): DocumentExportConfigDoExport; }
-export interface DocumentExportConfigDoExport { exportToc: boolean }
+export interface DocumentExportConfigDoExport {
+  __eq__(other: DocumentExportConfigDoExport): boolean;
+  exportToc: boolean
+}
 export interface DocumentExportConfigExportFixedConstructor { new(): DocumentExportConfigExportFixed; }
-export interface DocumentExportConfigExportFixed { exportLevels: number }
+export interface DocumentExportConfigExportFixed {
+  __eq__(other: DocumentExportConfigExportFixed): boolean;
+  exportLevels: number
+}
 export type DocumentExportConfigTocExport = haxorg_wasm.StdVariant<DocumentExportConfigDoExport, DocumentExportConfigExportFixed>;
 export enum DocumentExportConfigTocExportKind {
   DoExport,
@@ -2843,6 +3008,9 @@ export enum DocumentExportConfigTocExportKind {
 }
 export interface SubtreePeriodConstructor { new(): SubtreePeriod; }
 export interface SubtreePeriod {
+  init_SubtreePeriod_field_pass(kind: SubtreePeriodKind, from: UserTime, to: haxorg_wasm.Optional<UserTime>): void;
+  init_SubtreePeriod_default(): void;
+  __eq__(other: SubtreePeriod): boolean;
   kind: SubtreePeriodKind
   from: UserTime
   to: haxorg_wasm.Optional<UserTime>
@@ -2861,7 +3029,9 @@ export interface NamedProperty {
   isMatching(kind: Str, subKind: haxorg_wasm.Optional<Str>): boolean;
   getName(): Str;
   getSubKind(): haxorg_wasm.Optional<Str>;
-  NamedProperty(): void;
+  init_NamedProperty_field_pass(data: NamedPropertyData): void;
+  init_NamedProperty_default(): void;
+  __eq__(other: NamedProperty): boolean;
   isNonblocking(): boolean;
   getNonblockingConst(): NamedPropertyNonblocking;
   getNonblockingMut(): NamedPropertyNonblocking;
@@ -2952,81 +3122,98 @@ export interface NamedProperty {
 }
 export interface NamedPropertyNonblockingConstructor { new(): NamedPropertyNonblocking; }
 export interface NamedPropertyNonblocking {
-  Nonblocking(): void;
+  init_Nonblocking_field_pass(isBlocking: boolean): void;
+  init_Nonblocking_default(): void;
+  __eq__(other: NamedPropertyNonblocking): boolean;
   isBlocking: boolean
 }
 export interface NamedPropertyArchiveTimeConstructor { new(): NamedPropertyArchiveTime; }
 export interface NamedPropertyArchiveTime {
-  ArchiveTime(): void;
+  init_ArchiveTime_field_pass(time: UserTime): void;
+  init_ArchiveTime_default(): void;
+  __eq__(other: NamedPropertyArchiveTime): boolean;
   time: UserTime
 }
 export interface NamedPropertyArchiveFileConstructor { new(): NamedPropertyArchiveFile; }
 export interface NamedPropertyArchiveFile {
-  ArchiveFile(): void;
+  __eq__(other: NamedPropertyArchiveFile): boolean;
   file: Str
 }
 export interface NamedPropertyArchiveOlpathConstructor { new(): NamedPropertyArchiveOlpath; }
 export interface NamedPropertyArchiveOlpath {
-  ArchiveOlpath(): void;
+  __eq__(other: NamedPropertyArchiveOlpath): boolean;
   path: SubtreePath
 }
 export interface NamedPropertyArchiveTargetConstructor { new(): NamedPropertyArchiveTarget; }
 export interface NamedPropertyArchiveTarget {
-  ArchiveTarget(): void;
+  __eq__(other: NamedPropertyArchiveTarget): boolean;
   path: SubtreePath
   pattern: Str
 }
 export interface NamedPropertyArchiveCategoryConstructor { new(): NamedPropertyArchiveCategory; }
 export interface NamedPropertyArchiveCategory {
-  ArchiveCategory(): void;
+  __eq__(other: NamedPropertyArchiveCategory): boolean;
   category: Str
 }
 export interface NamedPropertyArchiveTodoConstructor { new(): NamedPropertyArchiveTodo; }
 export interface NamedPropertyArchiveTodo {
-  ArchiveTodo(): void;
+  __eq__(other: NamedPropertyArchiveTodo): boolean;
   todo: Str
 }
 export interface NamedPropertyTriggerConstructor { new(): NamedPropertyTrigger; }
-export interface NamedPropertyTrigger {  }
+export interface NamedPropertyTrigger { __eq__(other: NamedPropertyTrigger): boolean; }
 export interface NamedPropertyExportLatexClassConstructor { new(): NamedPropertyExportLatexClass; }
 export interface NamedPropertyExportLatexClass {
-  ExportLatexClass(): void;
+  __eq__(other: NamedPropertyExportLatexClass): boolean;
   latexClass: Str
 }
 export interface NamedPropertyCookieDataConstructor { new(): NamedPropertyCookieData; }
 export interface NamedPropertyCookieData {
-  CookieData(): void;
+  __eq__(other: NamedPropertyCookieData): boolean;
   isRecursive: boolean
   source: SubtreeTodoSource
 }
 export interface NamedPropertyExportLatexClassOptionsConstructor { new(): NamedPropertyExportLatexClassOptions; }
 export interface NamedPropertyExportLatexClassOptions {
-  ExportLatexClassOptions(): void;
+  init_ExportLatexClassOptions_field_pass(options: haxorg_wasm.HstdVec<Str>): void;
+  init_ExportLatexClassOptions_default(): void;
+  __eq__(other: NamedPropertyExportLatexClassOptions): boolean;
   options: haxorg_wasm.HstdVec<Str>
 }
 export interface NamedPropertyExportLatexHeaderConstructor { new(): NamedPropertyExportLatexHeader; }
 export interface NamedPropertyExportLatexHeader {
-  ExportLatexHeader(): void;
+  init_ExportLatexHeader_field_pass(header: Str): void;
+  init_ExportLatexHeader_default(): void;
+  __eq__(other: NamedPropertyExportLatexHeader): boolean;
   header: Str
 }
 export interface NamedPropertyExportLatexCompilerConstructor { new(): NamedPropertyExportLatexCompiler; }
 export interface NamedPropertyExportLatexCompiler {
-  ExportLatexCompiler(): void;
+  init_ExportLatexCompiler_field_pass(compiler: Str): void;
+  init_ExportLatexCompiler_default(): void;
+  __eq__(other: NamedPropertyExportLatexCompiler): boolean;
   compiler: Str
 }
 export interface NamedPropertyOrderedConstructor { new(): NamedPropertyOrdered; }
 export interface NamedPropertyOrdered {
-  Ordered(): void;
+  init_Ordered_field_pass(isOrdered: boolean): void;
+  init_Ordered_default(): void;
+  __eq__(other: NamedPropertyOrdered): boolean;
   isOrdered: boolean
 }
 export interface NamedPropertyEffortConstructor { new(): NamedPropertyEffort; }
 export interface NamedPropertyEffort {
-  Effort(): void;
+  init_Effort_field_pass(hours: number, minutes: number): void;
+  init_Effort_default(): void;
+  __eq__(other: NamedPropertyEffort): boolean;
   hours: number
   minutes: number
 }
 export interface NamedPropertyVisibilityConstructor { new(): NamedPropertyVisibility; }
-export interface NamedPropertyVisibility { level: NamedPropertyVisibilityLevel }
+export interface NamedPropertyVisibility {
+  __eq__(other: NamedPropertyVisibility): boolean;
+  level: NamedPropertyVisibilityLevel
+}
 export enum NamedPropertyVisibilityLevel {
   Folded,
   Children = 1,
@@ -3035,59 +3222,79 @@ export enum NamedPropertyVisibilityLevel {
 }
 export interface NamedPropertyExportOptionsConstructor { new(): NamedPropertyExportOptions; }
 export interface NamedPropertyExportOptions {
-  ExportOptions(): void;
+  init_ExportOptions_field_pass(backend: Str, values: haxorg_wasm.HstdMap<Str, Str>): void;
+  init_ExportOptions_default(): void;
+  __eq__(other: NamedPropertyExportOptions): boolean;
   backend: Str
   values: haxorg_wasm.HstdMap<Str, Str>
 }
 export interface NamedPropertyBlockerConstructor { new(): NamedPropertyBlocker; }
 export interface NamedPropertyBlocker {
-  Blocker(): void;
+  init_Blocker_field_pass(blockers: haxorg_wasm.HstdVec<Str>): void;
+  init_Blocker_default(): void;
+  __eq__(other: NamedPropertyBlocker): boolean;
   blockers: haxorg_wasm.HstdVec<Str>
 }
 export interface NamedPropertyUnnumberedConstructor { new(): NamedPropertyUnnumbered; }
-export interface NamedPropertyUnnumbered {  }
+export interface NamedPropertyUnnumbered { __eq__(other: NamedPropertyUnnumbered): boolean; }
 export interface NamedPropertyCreatedConstructor { new(): NamedPropertyCreated; }
 export interface NamedPropertyCreated {
-  Created(): void;
+  init_Created_field_pass(time: TimeValue): void;
+  init_Created_default(): void;
+  __eq__(other: NamedPropertyCreated): boolean;
   time: TimeValue
 }
 export interface NamedPropertyRadioIdConstructor { new(): NamedPropertyRadioId; }
 export interface NamedPropertyRadioId {
-  RadioId(): void;
+  init_RadioId_field_pass(words: haxorg_wasm.HstdVec<Str>): void;
+  init_RadioId_default(): void;
+  __eq__(other: NamedPropertyRadioId): boolean;
   words: haxorg_wasm.HstdVec<Str>
 }
 export interface NamedPropertyHashtagDefConstructor { new(): NamedPropertyHashtagDef; }
 export interface NamedPropertyHashtagDef {
-  HashtagDef(): void;
+  init_HashtagDef_field_pass(hashtag: HashTagText): void;
+  init_HashtagDef_default(): void;
+  __eq__(other: NamedPropertyHashtagDef): boolean;
   hashtag: HashTagText
 }
 export interface NamedPropertyCustomArgsConstructor { new(): NamedPropertyCustomArgs; }
 export interface NamedPropertyCustomArgs {
-  CustomArgs(): void;
+  init_CustomArgs_field_pass(name: Str, sub: haxorg_wasm.Optional<Str>, attrs: AttrGroup): void;
+  init_CustomArgs_default(): void;
+  __eq__(other: NamedPropertyCustomArgs): boolean;
   name: Str
   sub: haxorg_wasm.Optional<Str>
   attrs: AttrGroup
 }
 export interface NamedPropertyCustomRawConstructor { new(): NamedPropertyCustomRaw; }
 export interface NamedPropertyCustomRaw {
-  CustomRaw(): void;
+  init_CustomRaw_field_pass(name: Str, value: Str): void;
+  init_CustomRaw_default(): void;
+  __eq__(other: NamedPropertyCustomRaw): boolean;
   name: Str
   value: Str
 }
 export interface NamedPropertyCustomIdConstructor { new(): NamedPropertyCustomId; }
 export interface NamedPropertyCustomId {
-  CustomId(): void;
+  init_CustomId_field_pass(value: Str): void;
+  init_CustomId_default(): void;
+  __eq__(other: NamedPropertyCustomId): boolean;
   value: Str
 }
 export interface NamedPropertyCustomSubtreeJsonConstructor { new(): NamedPropertyCustomSubtreeJson; }
 export interface NamedPropertyCustomSubtreeJson {
-  CustomSubtreeJson(): void;
+  init_CustomSubtreeJson_field_pass(name: Str, value: OrgJson): void;
+  init_CustomSubtreeJson_default(): void;
+  __eq__(other: NamedPropertyCustomSubtreeJson): boolean;
   name: Str
   value: OrgJson
 }
 export interface NamedPropertyCustomSubtreeFlagsConstructor { new(): NamedPropertyCustomSubtreeFlags; }
 export interface NamedPropertyCustomSubtreeFlags {
-  CustomSubtreeFlags(): void;
+  init_CustomSubtreeFlags_field_pass(name: Str, value: AttrGroup): void;
+  init_CustomSubtreeFlags_default(): void;
+  __eq__(other: NamedPropertyCustomSubtreeFlags): boolean;
   name: Str
   value: AttrGroup
 }
@@ -3123,7 +3330,9 @@ export enum NamedPropertyKind {
 }
 export interface OrgDiagnosticsConstructor { new(): OrgDiagnostics; }
 export interface OrgDiagnostics {
-  OrgDiagnostics(): void;
+  init_OrgDiagnostics_field_pass(data: OrgDiagnosticsData): void;
+  init_OrgDiagnostics_default(): void;
+  __eq__(other: OrgDiagnostics): boolean;
   isParseTokenError(): boolean;
   getParseTokenErrorConst(): OrgDiagnosticsParseTokenError;
   getParseTokenErrorMut(): OrgDiagnosticsParseTokenError;
@@ -3148,7 +3357,9 @@ export interface OrgDiagnostics {
 }
 export interface OrgDiagnosticsParseTokenErrorConstructor { new(): OrgDiagnosticsParseTokenError; }
 export interface OrgDiagnosticsParseTokenError {
-  ParseTokenError(): void;
+  init_ParseTokenError_field_pass(brief: Str, detail: Str, parserFunction: Str, parserLine: number, tokenKind: OrgTokenKind, tokenText: Str, loc: haxorg_wasm.Optional<ParseSourceLoc>, errName: Str, errCode: Str): void;
+  init_ParseTokenError_default(): void;
+  __eq__(other: OrgDiagnosticsParseTokenError): boolean;
   brief: Str
   detail: Str
   parserFunction: Str
@@ -3161,7 +3372,9 @@ export interface OrgDiagnosticsParseTokenError {
 }
 export interface OrgDiagnosticsParseErrorConstructor { new(): OrgDiagnosticsParseError; }
 export interface OrgDiagnosticsParseError {
-  ParseError(): void;
+  init_ParseError_field_pass(brief: Str, detail: Str, parserFunction: Str, parserLine: number, errName: Str, errCode: Str, loc: haxorg_wasm.Optional<ParseSourceLoc>): void;
+  init_ParseError_default(): void;
+  __eq__(other: OrgDiagnosticsParseError): boolean;
   brief: Str
   detail: Str
   parserFunction: Str
@@ -3172,14 +3385,18 @@ export interface OrgDiagnosticsParseError {
 }
 export interface OrgDiagnosticsIncludeErrorConstructor { new(): OrgDiagnosticsIncludeError; }
 export interface OrgDiagnosticsIncludeError {
-  IncludeError(): void;
+  init_IncludeError_field_pass(brief: Str, targetPath: Str, workingFile: Str): void;
+  init_IncludeError_default(): void;
+  __eq__(other: OrgDiagnosticsIncludeError): boolean;
   brief: Str
   targetPath: Str
   workingFile: Str
 }
 export interface OrgDiagnosticsConvertErrorConstructor { new(): OrgDiagnosticsConvertError; }
 export interface OrgDiagnosticsConvertError {
-  ConvertError(): void;
+  init_ConvertError_field_pass(brief: Str, detail: Str, convertFunction: Str, convertLine: number, convertFile: Str, errName: Str, errCode: Str, loc: haxorg_wasm.Optional<ParseSourceLoc>): void;
+  init_ConvertError_default(): void;
+  __eq__(other: OrgDiagnosticsConvertError): boolean;
   brief: Str
   detail: Str
   convertFunction: Str
@@ -3191,7 +3408,9 @@ export interface OrgDiagnosticsConvertError {
 }
 export interface OrgDiagnosticsInternalErrorConstructor { new(): OrgDiagnosticsInternalError; }
 export interface OrgDiagnosticsInternalError {
-  InternalError(): void;
+  init_InternalError_field_pass(message: Str, function_: Str, line: number, file: Str, loc: haxorg_wasm.Optional<ParseSourceLoc>): void;
+  init_InternalError_default(): void;
+  __eq__(other: OrgDiagnosticsInternalError): boolean;
   message: Str
   function: Str
   line: number

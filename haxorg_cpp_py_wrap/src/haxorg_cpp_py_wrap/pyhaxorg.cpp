@@ -1137,6 +1137,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::LispCode::Call>(m, "LispCodeCall")
+    .def(nanobind::init<hstd::Str const&, hstd::Vec<org::sem::LispCode> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Call* result, nanobind::kwargs const& kwargs) -> void {
@@ -1146,6 +1147,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("name", &org::sem::LispCode::Call::name)
     .def_rw("args", &org::sem::LispCode::Call::args)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Call::*)(org::sem::LispCode::Call const&) const>(&org::sem::LispCode::Call::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Call const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1156,6 +1160,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Quoted>(m, "LispCodeQuoted")
+    .def(nanobind::init<hstd::Vec<org::sem::LispCode> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Quoted* result, nanobind::kwargs const& kwargs) -> void {
@@ -1164,6 +1169,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("items", &org::sem::LispCode::Quoted::items)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Quoted::*)(org::sem::LispCode::Quoted const&) const>(&org::sem::LispCode::Quoted::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Quoted const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1174,6 +1182,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::List>(m, "LispCodeList")
+    .def(nanobind::init<hstd::Vec<org::sem::LispCode> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::List* result, nanobind::kwargs const& kwargs) -> void {
@@ -1182,6 +1191,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("items", &org::sem::LispCode::List::items)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::List::*)(org::sem::LispCode::List const&) const>(&org::sem::LispCode::List::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::List const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1192,6 +1204,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Vector>(m, "LispCodeVector")
+    .def(nanobind::init<hstd::Vec<org::sem::LispCode> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Vector* result, nanobind::kwargs const& kwargs) -> void {
@@ -1200,6 +1213,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("items", &org::sem::LispCode::Vector::items)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Vector::*)(org::sem::LispCode::Vector const&) const>(&org::sem::LispCode::Vector::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Vector const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1210,6 +1226,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::KeyValue>(m, "LispCodeKeyValue")
+    .def(nanobind::init<hstd::Str const&, hstd::Vec<org::sem::LispCode> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::KeyValue* result, nanobind::kwargs const& kwargs) -> void {
@@ -1219,6 +1236,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("name", &org::sem::LispCode::KeyValue::name)
     .def_rw("value", &org::sem::LispCode::KeyValue::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::KeyValue::*)(org::sem::LispCode::KeyValue const&) const>(&org::sem::LispCode::KeyValue::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::KeyValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1229,6 +1249,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Number>(m, "LispCodeNumber")
+    .def(nanobind::init<int const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Number* result, nanobind::kwargs const& kwargs) -> void {
@@ -1237,6 +1258,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::LispCode::Number::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Number::*)(org::sem::LispCode::Number const&) const>(&org::sem::LispCode::Number::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Number const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1247,6 +1271,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Text>(m, "LispCodeText")
+    .def(nanobind::init<hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Text* result, nanobind::kwargs const& kwargs) -> void {
@@ -1255,6 +1280,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::LispCode::Text::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Text::*)(org::sem::LispCode::Text const&) const>(&org::sem::LispCode::Text::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Text const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1265,6 +1293,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Ident>(m, "LispCodeIdent")
+    .def(nanobind::init<hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Ident* result, nanobind::kwargs const& kwargs) -> void {
@@ -1273,6 +1302,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("name", &org::sem::LispCode::Ident::name)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Ident::*)(org::sem::LispCode::Ident const&) const>(&org::sem::LispCode::Ident::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Ident const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1283,6 +1315,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Boolean>(m, "LispCodeBoolean")
+    .def(nanobind::init<bool const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Boolean* result, nanobind::kwargs const& kwargs) -> void {
@@ -1291,6 +1324,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::LispCode::Boolean::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Boolean::*)(org::sem::LispCode::Boolean const&) const>(&org::sem::LispCode::Boolean::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Boolean const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1301,6 +1337,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::LispCode::Real>(m, "LispCodeReal")
+    .def(nanobind::init<float const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LispCode::Real* result, nanobind::kwargs const& kwargs) -> void {
@@ -1309,6 +1346,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::LispCode::Real::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::Real::*)(org::sem::LispCode::Real const&) const>(&org::sem::LispCode::Real::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LispCode::Real const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1357,6 +1397,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::LispCode::*)(org::sem::LispCode const&) const>(&org::sem::LispCode::operator==),
+         nanobind::arg("other"))
     .def("isCall", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isCall))
     .def("getCall", static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCall))
     .def("isQuoted", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isQuoted))
@@ -1388,6 +1431,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::TimeValue::FixedTime>(m, "TimeValueFixedTime")
+    .def(nanobind::init<hstd::UserTime const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::TimeValue::FixedTime* result, nanobind::kwargs const& kwargs) -> void {
@@ -1396,6 +1440,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("time", &org::sem::TimeValue::FixedTime::time)
+    .def("__eq__",
+         static_cast<bool(org::sem::TimeValue::FixedTime::*)(org::sem::TimeValue::FixedTime const&) const>(&org::sem::TimeValue::FixedTime::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::TimeValue::FixedTime const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1406,6 +1453,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::TimeValue::DynamicTime>(m, "TimeValueDynamicTime")
+    .def(nanobind::init<org::sem::LispCode const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::TimeValue::DynamicTime* result, nanobind::kwargs const& kwargs) -> void {
@@ -1414,6 +1462,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("time", &org::sem::TimeValue::DynamicTime::time)
+    .def("__eq__",
+         static_cast<bool(org::sem::TimeValue::DynamicTime::*)(org::sem::TimeValue::DynamicTime const&) const>(&org::sem::TimeValue::DynamicTime::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::TimeValue::DynamicTime const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1447,7 +1498,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::TimeValue>(m, "TimeValue")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::TimeValue* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::TimeValue>::construct_at(result);
@@ -1455,6 +1505,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("isActive", &org::sem::TimeValue::isActive)
+    .def("__eq__",
+         static_cast<bool(org::sem::TimeValue::*)(org::sem::TimeValue const&) const>(&org::sem::TimeValue::operator==),
+         nanobind::arg("other"))
     .def("isFixedTime", static_cast<bool(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::isFixedTime))
     .def("getFixedTime", static_cast<org::sem::TimeValue::FixedTime&(org::sem::TimeValue::*)()>(&org::sem::TimeValue::getFixedTime))
     .def("isDynamicTime", static_cast<bool(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::isDynamicTime))
@@ -1470,6 +1523,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position::Index>(m, "TblfmExprAxisRefPositionIndex")
+    .def(nanobind::init<int const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position::Index* result, nanobind::kwargs const& kwargs) -> void {
@@ -1478,6 +1532,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("index", &org::sem::Tblfm::Expr::AxisRef::Position::Index::index)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Index::*)(org::sem::Tblfm::Expr::AxisRef::Position::Index const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Index::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef::Position::Index const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1488,6 +1545,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position::Name>(m, "TblfmExprAxisRefPositionName")
+    .def(nanobind::init<hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position::Name* result, nanobind::kwargs const& kwargs) -> void {
@@ -1496,6 +1554,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("name", &org::sem::Tblfm::Expr::AxisRef::Position::Name::name)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Name::*)(org::sem::Tblfm::Expr::AxisRef::Position::Name const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Name::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef::Position::Name const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1529,12 +1590,17 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef::Position>(m, "TblfmExprAxisRefPosition")
+    .def(nanobind::init<org::sem::Tblfm::Expr::AxisRef::Position::Data const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef::Position* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisRef::Position>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)(org::sem::Tblfm::Expr::AxisRef::Position const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::operator==),
+         nanobind::arg("other"))
     .def("isIndex", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)() const>(&org::sem::Tblfm::Expr::AxisRef::Position::isIndex))
     .def("getIndex", static_cast<org::sem::Tblfm::Expr::AxisRef::Position::Index&(org::sem::Tblfm::Expr::AxisRef::Position::*)()>(&org::sem::Tblfm::Expr::AxisRef::Position::getIndex))
     .def("isName", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)() const>(&org::sem::Tblfm::Expr::AxisRef::Position::isName))
@@ -1550,6 +1616,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisRef>(m, "TblfmExprAxisRef")
+    .def(nanobind::init<org::sem::Tblfm::Expr::AxisRef::Position const&, hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position> const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisRef* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisRef>::construct_at(result);
@@ -1558,6 +1626,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("col", &org::sem::Tblfm::Expr::AxisRef::col)
     .def_rw("row", &org::sem::Tblfm::Expr::AxisRef::row)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::AxisRef::*)(org::sem::Tblfm::Expr::AxisRef const&) const>(&org::sem::Tblfm::Expr::AxisRef::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisRef const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1568,6 +1639,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::AxisName>(m, "TblfmExprAxisName")
+    .def(nanobind::init<hstd::Str const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::AxisName* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::AxisName>::construct_at(result);
@@ -1575,6 +1648,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("name", &org::sem::Tblfm::Expr::AxisName::name)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::AxisName::*)(org::sem::Tblfm::Expr::AxisName const&) const>(&org::sem::Tblfm::Expr::AxisName::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::AxisName const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1585,6 +1661,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::IntLiteral>(m, "TblfmExprIntLiteral")
+    .def(nanobind::init<int const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::IntLiteral* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::IntLiteral>::construct_at(result);
@@ -1592,6 +1670,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::Tblfm::Expr::IntLiteral::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::IntLiteral::*)(org::sem::Tblfm::Expr::IntLiteral const&) const>(&org::sem::Tblfm::Expr::IntLiteral::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::IntLiteral const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1602,6 +1683,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::FloatLiteral>(m, "TblfmExprFloatLiteral")
+    .def(nanobind::init<float const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::FloatLiteral* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::FloatLiteral>::construct_at(result);
@@ -1609,6 +1692,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::Tblfm::Expr::FloatLiteral::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::FloatLiteral::*)(org::sem::Tblfm::Expr::FloatLiteral const&) const>(&org::sem::Tblfm::Expr::FloatLiteral::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::FloatLiteral const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1619,6 +1705,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::RangeRef>(m, "TblfmExprRangeRef")
+    .def(nanobind::init<hstd::Opt<org::sem::Tblfm::Expr::AxisRef> const&, hstd::Opt<org::sem::Tblfm::Expr::AxisRef> const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::RangeRef* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::RangeRef>::construct_at(result);
@@ -1627,6 +1715,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("first", &org::sem::Tblfm::Expr::RangeRef::first)
     .def_rw("last", &org::sem::Tblfm::Expr::RangeRef::last)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::RangeRef::*)(org::sem::Tblfm::Expr::RangeRef const&) const>(&org::sem::Tblfm::Expr::RangeRef::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::RangeRef const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1637,6 +1728,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::Call>(m, "TblfmExprCall")
+    .def(nanobind::init<hstd::Str const&, hstd::Vec<org::sem::Tblfm::Expr> const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::Call* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::Call>::construct_at(result);
@@ -1645,6 +1738,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("name", &org::sem::Tblfm::Expr::Call::name)
     .def_rw("args", &org::sem::Tblfm::Expr::Call::args)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::Call::*)(org::sem::Tblfm::Expr::Call const&) const>(&org::sem::Tblfm::Expr::Call::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::Call const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1655,6 +1751,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm::Expr::Elisp>(m, "TblfmExprElisp")
+    .def(nanobind::init<hstd::Str const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr::Elisp* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr::Elisp>::construct_at(result);
@@ -1662,6 +1760,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::Tblfm::Expr::Elisp::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::Elisp::*)(org::sem::Tblfm::Expr::Elisp const&) const>(&org::sem::Tblfm::Expr::Elisp::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Expr::Elisp const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1700,12 +1801,17 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::Tblfm::Expr>(m, "TblfmExpr")
+    .def(nanobind::init<org::sem::Tblfm::Expr::Data const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Expr* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Expr>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Expr::*)(org::sem::Tblfm::Expr const&) const>(&org::sem::Tblfm::Expr::operator==),
+         nanobind::arg("other"))
     .def("isAxisRef", static_cast<bool(org::sem::Tblfm::Expr::*)() const>(&org::sem::Tblfm::Expr::isAxisRef))
     .def("getAxisRef", static_cast<org::sem::Tblfm::Expr::AxisRef&(org::sem::Tblfm::Expr::*)()>(&org::sem::Tblfm::Expr::getAxisRef))
     .def("isAxisName", static_cast<bool(org::sem::Tblfm::Expr::*)() const>(&org::sem::Tblfm::Expr::isAxisName))
@@ -1767,6 +1873,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::Tblfm::Assign>(m, "TblfmAssign")
+    .def(nanobind::init<org::sem::Tblfm::Expr::AxisRef const&, hstd::Vec<org::sem::Tblfm::Expr> const&, hstd::Vec<org::sem::Tblfm::Assign::Flag> const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm::Assign* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm::Assign>::construct_at(result);
@@ -1776,6 +1884,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("target", &org::sem::Tblfm::Assign::target)
     .def_rw("expr", &org::sem::Tblfm::Assign::expr)
     .def_rw("flags", &org::sem::Tblfm::Assign::flags)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::Assign::*)(org::sem::Tblfm::Assign const&) const>(&org::sem::Tblfm::Assign::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm::Assign const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1786,7 +1897,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::Tblfm>(m, "Tblfm")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::Tblfm* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::Tblfm>::construct_at(result);
@@ -1794,6 +1904,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("exprs", &org::sem::Tblfm::exprs)
+    .def("__eq__",
+         static_cast<bool(org::sem::Tblfm::*)(org::sem::Tblfm const&) const>(&org::sem::Tblfm::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::Tblfm const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1812,6 +1925,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("first", &org::sem::AttrValue::DimensionSpan::first)
     .def_rw("last", &org::sem::AttrValue::DimensionSpan::last)
+    .def("__eq__",
+         static_cast<bool(org::sem::AttrValue::DimensionSpan::*)(org::sem::AttrValue::DimensionSpan const&) const>(&org::sem::AttrValue::DimensionSpan::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::DimensionSpan const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1829,6 +1945,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::AttrValue::TextValue::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::AttrValue::TextValue::*)(org::sem::AttrValue::TextValue const&) const>(&org::sem::AttrValue::TextValue::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::TextValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1847,6 +1966,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("file", &org::sem::AttrValue::FileReference::file)
     .def_rw("reference", &org::sem::AttrValue::FileReference::reference)
+    .def("__eq__",
+         static_cast<bool(org::sem::AttrValue::FileReference::*)(org::sem::AttrValue::FileReference const&) const>(&org::sem::AttrValue::FileReference::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::FileReference const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1864,6 +1986,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("code", &org::sem::AttrValue::LispValue::code)
+    .def("__eq__",
+         static_cast<bool(org::sem::AttrValue::LispValue::*)(org::sem::AttrValue::LispValue const&) const>(&org::sem::AttrValue::LispValue::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::AttrValue::LispValue const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -1912,6 +2037,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def("getInt", static_cast<hstd::Opt<int>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getInt))
     .def("getString", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getString))
     .def("getDouble", static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble))
+    .def("__eq__",
+         static_cast<bool(org::sem::AttrValue::*)(org::sem::AttrValue const&) const>(&org::sem::AttrValue::operator==),
+         nanobind::arg("other"))
     .def("isTextValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isTextValue))
     .def("getTextValue", static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValue))
     .def("isFileReference", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isFileReference))
@@ -1938,6 +2066,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("tags", &org::sem::HashTagFlat::tags)
     .def("__lt__",
          static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator<),
+         nanobind::arg("other"))
+    .def("__eq__",
+         static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator==),
          nanobind::arg("other"))
     .def("__repr__", [](org::sem::HashTagFlat const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
@@ -1983,6 +2114,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("shortcut", &org::sem::TodoKeyword::shortcut)
     .def_rw("onEnter", &org::sem::TodoKeyword::onEnter)
     .def_rw("onLeave", &org::sem::TodoKeyword::onLeave)
+    .def("__eq__",
+         static_cast<bool(org::sem::TodoKeyword::*)(org::sem::TodoKeyword const&) const>(&org::sem::TodoKeyword::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::TodoKeyword const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2009,6 +2143,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          static_cast<hstd::Vec<org::sem::HashTagFlat>(org::sem::HashTagText::*)(bool) const>(&org::sem::HashTagText::getFlatHashes),
          nanobind::arg("withIntermediate") = true,
          R"RAW(Get flat list of expanded hashtags)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::HashTagText::*)(org::sem::HashTagText const&) const>(&org::sem::HashTagText::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::HashTagText const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2026,6 +2163,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("path", &org::sem::SubtreePath::path)
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreePath::*)(org::sem::SubtreePath const&) const>(&org::sem::SubtreePath::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreePath const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2043,6 +2183,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("text", &org::sem::LinkTarget::Raw::text)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::Raw::*)(org::sem::LinkTarget::Raw const&) const>(&org::sem::LinkTarget::Raw::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Raw const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2060,6 +2203,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("text", &org::sem::LinkTarget::Id::text)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::Id::*)(org::sem::LinkTarget::Id const&) const>(&org::sem::LinkTarget::Id::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Id const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2077,6 +2223,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("text", &org::sem::LinkTarget::CustomId::text)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::CustomId::*)(org::sem::LinkTarget::CustomId const&) const>(&org::sem::LinkTarget::CustomId::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::CustomId const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2095,6 +2244,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("title", &org::sem::LinkTarget::SubtreeTitle::title)
     .def_rw("level", &org::sem::LinkTarget::SubtreeTitle::level)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::SubtreeTitle::*)(org::sem::LinkTarget::SubtreeTitle const&) const>(&org::sem::LinkTarget::SubtreeTitle::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::SubtreeTitle const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2112,6 +2264,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("name", &org::sem::LinkTarget::Person::name)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::Person::*)(org::sem::LinkTarget::Person const&) const>(&org::sem::LinkTarget::Person::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Person const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2130,6 +2285,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("protocol", &org::sem::LinkTarget::UserProtocol::protocol)
     .def_rw("target", &org::sem::LinkTarget::UserProtocol::target)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::UserProtocol::*)(org::sem::LinkTarget::UserProtocol const&) const>(&org::sem::LinkTarget::UserProtocol::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::UserProtocol const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2147,6 +2305,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("target", &org::sem::LinkTarget::Internal::target)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::Internal::*)(org::sem::LinkTarget::Internal const&) const>(&org::sem::LinkTarget::Internal::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Internal const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2164,6 +2325,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("target", &org::sem::LinkTarget::Footnote::target)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::Footnote::*)(org::sem::LinkTarget::Footnote const&) const>(&org::sem::LinkTarget::Footnote::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Footnote const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2181,6 +2345,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("file", &org::sem::LinkTarget::File::file)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::File::*)(org::sem::LinkTarget::File const&) const>(&org::sem::LinkTarget::File::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::File const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2198,6 +2365,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("file", &org::sem::LinkTarget::Attachment::file)
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::Attachment::*)(org::sem::LinkTarget::Attachment const&) const>(&org::sem::LinkTarget::Attachment::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::LinkTarget::Attachment const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2239,14 +2409,15 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::LinkTarget>(m, "LinkTarget")
-    .def(nanobind::init<org::sem::LinkTarget::Data const&>())
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::LinkTarget* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::LinkTarget>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::LinkTarget::*)(org::sem::LinkTarget const&) const>(&org::sem::LinkTarget::operator==),
+         nanobind::arg("other"))
     .def("isRaw", static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isRaw))
     .def("getRaw", static_cast<org::sem::LinkTarget::Raw&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getRaw))
     .def("isId", static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isId))
@@ -2312,6 +2483,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("newPriority", &org::sem::SubtreeLogHead::Priority::newPriority, R"RAW(New priority for change and addition)RAW")
     .def_rw("on", &org::sem::SubtreeLogHead::Priority::on, R"RAW(When priority was changed)RAW")
     .def_rw("action", &org::sem::SubtreeLogHead::Priority::action, R"RAW(Which action taken)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Priority::*)(org::sem::SubtreeLogHead::Priority const&) const>(&org::sem::SubtreeLogHead::Priority::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Priority const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2329,6 +2503,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("on", &org::sem::SubtreeLogHead::Note::on, R"RAW(Where log was taken)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Note::*)(org::sem::SubtreeLogHead::Note const&) const>(&org::sem::SubtreeLogHead::Note::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Note const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2347,6 +2524,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("on", &org::sem::SubtreeLogHead::Refile::on, R"RAW(When the refiling happened)RAW")
     .def_rw("from_", &org::sem::SubtreeLogHead::Refile::from, R"RAW(Link to the original subtree)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Refile::*)(org::sem::SubtreeLogHead::Refile const&) const>(&org::sem::SubtreeLogHead::Refile::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Refile const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2365,6 +2545,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("from_", &org::sem::SubtreeLogHead::Clock::from, R"RAW(Clock start time)RAW")
     .def_rw("to", &org::sem::SubtreeLogHead::Clock::to, R"RAW(Optional end of the clock)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Clock::*)(org::sem::SubtreeLogHead::Clock const&) const>(&org::sem::SubtreeLogHead::Clock::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Clock const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2384,6 +2567,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("from_", &org::sem::SubtreeLogHead::State::from)
     .def_rw("to", &org::sem::SubtreeLogHead::State::to)
     .def_rw("on", &org::sem::SubtreeLogHead::State::on)
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::State::*)(org::sem::SubtreeLogHead::State const&) const>(&org::sem::SubtreeLogHead::State::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::State const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2403,6 +2589,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("from_", &org::sem::SubtreeLogHead::Deadline::from)
     .def_rw("to", &org::sem::SubtreeLogHead::Deadline::to)
     .def_rw("on", &org::sem::SubtreeLogHead::Deadline::on)
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Deadline::*)(org::sem::SubtreeLogHead::Deadline const&) const>(&org::sem::SubtreeLogHead::Deadline::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Deadline const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2422,6 +2611,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("from_", &org::sem::SubtreeLogHead::Schedule::from)
     .def_rw("to", &org::sem::SubtreeLogHead::Schedule::to)
     .def_rw("on", &org::sem::SubtreeLogHead::Schedule::on)
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Schedule::*)(org::sem::SubtreeLogHead::Schedule const&) const>(&org::sem::SubtreeLogHead::Schedule::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Schedule const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2441,6 +2633,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("on", &org::sem::SubtreeLogHead::Tag::on, R"RAW(When the log was assigned)RAW")
     .def_rw("tag", &org::sem::SubtreeLogHead::Tag::tag, R"RAW(Tag in question)RAW")
     .def_rw("added", &org::sem::SubtreeLogHead::Tag::added, R"RAW(Added/removed?)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Tag::*)(org::sem::SubtreeLogHead::Tag const&) const>(&org::sem::SubtreeLogHead::Tag::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Tag const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2457,6 +2652,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::Unknown::*)(org::sem::SubtreeLogHead::Unknown const&) const>(&org::sem::SubtreeLogHead::Unknown::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeLogHead::Unknown const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2497,12 +2695,17 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::SubtreeLogHead>(m, "SubtreeLogHead")
+    .def(nanobind::init<org::sem::SubtreeLogHead::LogEntry const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::SubtreeLogHead* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::SubtreeLogHead>::construct_at(result);
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead const&) const>(&org::sem::SubtreeLogHead::operator==),
+         nanobind::arg("other"))
     .def("isPriority", static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isPriority))
     .def("getPriority", static_cast<org::sem::SubtreeLogHead::Priority&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getPriority))
     .def("isNote", static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isNote))
@@ -2541,6 +2744,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("done", &org::sem::SubtreeCompletion::done, R"RAW(Number of completed tasks)RAW")
     .def_rw("full", &org::sem::SubtreeCompletion::full, R"RAW(Full number of tasks)RAW")
     .def_rw("isPercent", &org::sem::SubtreeCompletion::isPercent, R"RAW(Use fraction or percent to display completion)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreeCompletion::*)(org::sem::SubtreeCompletion const&) const>(&org::sem::SubtreeCompletion::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreeCompletion const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2558,6 +2764,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("items", &org::sem::AttrList::items)
+    .def("__eq__",
+         static_cast<bool(org::sem::AttrList::*)(org::sem::AttrList const&) const>(&org::sem::AttrList::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::AttrList const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2621,6 +2830,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def("getFirstNamed",
          static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstNamed),
          nanobind::arg("index"))
+    .def("__eq__",
+         static_cast<bool(org::sem::AttrGroup::*)(org::sem::AttrGroup const&) const>(&org::sem::AttrGroup::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::AttrGroup const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2631,6 +2843,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::OrgCodeEvalInput::Var>(m, "OrgCodeEvalInputVar")
+    .def(nanobind::init<hstd::Str const&, org::sem::OrgJson const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgCodeEvalInput::Var* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::OrgCodeEvalInput::Var>::construct_at(result);
@@ -2639,6 +2853,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("name", &org::sem::OrgCodeEvalInput::Var::name)
     .def_rw("value", &org::sem::OrgCodeEvalInput::Var::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgCodeEvalInput::Var::*)(org::sem::OrgCodeEvalInput::Var const&) const>(&org::sem::OrgCodeEvalInput::Var::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput::Var const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2746,6 +2963,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def("getVariable",
          static_cast<hstd::Opt<org::sem::OrgCodeEvalInput::Var>(org::sem::OrgCodeEvalInput::*)(hstd::Str const&) const>(&org::sem::OrgCodeEvalInput::getVariable),
          nanobind::arg("name"))
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalInput const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2769,6 +2989,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("args", &org::sem::OrgCodeEvalOutput::args, R"RAW(Command line arguments provided for execution)RAW")
     .def_rw("cwd", &org::sem::OrgCodeEvalOutput::cwd, R"RAW(Working directory where command was executed)RAW")
     .def_rw("appliedHeaderArg", &org::sem::OrgCodeEvalOutput::appliedHeaderArg, R"RAW(Final set of header arguments applied during evaluation)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgCodeEvalOutput::*)(org::sem::OrgCodeEvalOutput const&) const>(&org::sem::OrgCodeEvalOutput::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgCodeEvalOutput const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2810,6 +3033,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("kind", &org::sem::ColumnView::Summary::CheckboxAggregate::kind)
+    .def("__eq__",
+         static_cast<bool(org::sem::ColumnView::Summary::CheckboxAggregate::*)(org::sem::ColumnView::Summary::CheckboxAggregate const&) const>(&org::sem::ColumnView::Summary::CheckboxAggregate::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Summary::CheckboxAggregate const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2855,6 +3081,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("kind", &org::sem::ColumnView::Summary::MathAggregate::kind)
     .def_rw("formatDigits", &org::sem::ColumnView::Summary::MathAggregate::formatDigits)
     .def_rw("formatPrecision", &org::sem::ColumnView::Summary::MathAggregate::formatPrecision)
+    .def("__eq__",
+         static_cast<bool(org::sem::ColumnView::Summary::MathAggregate::*)(org::sem::ColumnView::Summary::MathAggregate const&) const>(&org::sem::ColumnView::Summary::MathAggregate::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Summary::MathAggregate const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2894,6 +3123,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::ColumnView::Summary::*)(org::sem::ColumnView::Summary const&) const>(&org::sem::ColumnView::Summary::operator==),
+         nanobind::arg("other"))
     .def("isCheckboxAggregate", static_cast<bool(org::sem::ColumnView::Summary::*)() const>(&org::sem::ColumnView::Summary::isCheckboxAggregate))
     .def("getCheckboxAggregate", static_cast<org::sem::ColumnView::Summary::CheckboxAggregate&(org::sem::ColumnView::Summary::*)()>(&org::sem::ColumnView::Summary::getCheckboxAggregate))
     .def("isMathAggregate", static_cast<bool(org::sem::ColumnView::Summary::*)() const>(&org::sem::ColumnView::Summary::isMathAggregate))
@@ -2919,6 +3151,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("width", &org::sem::ColumnView::Column::width)
     .def_rw("property", &org::sem::ColumnView::Column::property)
     .def_rw("propertyTitle", &org::sem::ColumnView::Column::propertyTitle)
+    .def("__eq__",
+         static_cast<bool(org::sem::ColumnView::Column::*)(org::sem::ColumnView::Column const&) const>(&org::sem::ColumnView::Column::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::ColumnView::Column const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2936,6 +3171,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("columns", &org::sem::ColumnView::columns)
+    .def("__eq__",
+         static_cast<bool(org::sem::ColumnView::*)(org::sem::ColumnView const&) const>(&org::sem::ColumnView::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::ColumnView const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2953,6 +3191,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("code", &org::sem::BlockCodeLine::Part::Raw::code)
+    .def("__eq__",
+         static_cast<bool(org::sem::BlockCodeLine::Part::Raw::*)(org::sem::BlockCodeLine::Part::Raw const&) const>(&org::sem::BlockCodeLine::Part::Raw::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Raw const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2970,6 +3211,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("name", &org::sem::BlockCodeLine::Part::Callout::name)
+    .def("__eq__",
+         static_cast<bool(org::sem::BlockCodeLine::Part::Callout::*)(org::sem::BlockCodeLine::Part::Callout const&) const>(&org::sem::BlockCodeLine::Part::Callout::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Callout const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -2987,6 +3231,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("target", &org::sem::BlockCodeLine::Part::Tangle::target)
+    .def("__eq__",
+         static_cast<bool(org::sem::BlockCodeLine::Part::Tangle::*)(org::sem::BlockCodeLine::Part::Tangle const&) const>(&org::sem::BlockCodeLine::Part::Tangle::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine::Part::Tangle const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3027,6 +3274,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::BlockCodeLine::Part::*)(org::sem::BlockCodeLine::Part const&) const>(&org::sem::BlockCodeLine::Part::operator==),
+         nanobind::arg("other"))
     .def("isRaw", static_cast<bool(org::sem::BlockCodeLine::Part::*)() const>(&org::sem::BlockCodeLine::Part::isRaw))
     .def("getRaw", static_cast<org::sem::BlockCodeLine::Part::Raw&(org::sem::BlockCodeLine::Part::*)()>(&org::sem::BlockCodeLine::Part::getRaw))
     .def("isCallout", static_cast<bool(org::sem::BlockCodeLine::Part::*)() const>(&org::sem::BlockCodeLine::Part::isCallout))
@@ -3051,6 +3301,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("parts", &org::sem::BlockCodeLine::parts, R"RAW(parts of the single line)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::BlockCodeLine::*)(org::sem::BlockCodeLine const&) const>(&org::sem::BlockCodeLine::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::BlockCodeLine const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3061,6 +3314,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::DocumentExportConfig::TaskExport>(m, "DocumentExportConfigTaskExport")
+    .def(nanobind::init<hstd::Vec<hstd::Str> const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::DocumentExportConfig::TaskExport* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::DocumentExportConfig::TaskExport>::construct_at(result);
@@ -3068,6 +3323,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("taskWhitelist", &org::sem::DocumentExportConfig::TaskExport::taskWhitelist)
+    .def("__eq__",
+         static_cast<bool(org::sem::DocumentExportConfig::TaskExport::*)(org::sem::DocumentExportConfig::TaskExport const&) const>(&org::sem::DocumentExportConfig::TaskExport::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::TaskExport const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3183,6 +3441,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("exportToc", &org::sem::DocumentExportConfig::DoExport::exportToc)
+    .def("__eq__",
+         static_cast<bool(org::sem::DocumentExportConfig::DoExport::*)(org::sem::DocumentExportConfig::DoExport const&) const>(&org::sem::DocumentExportConfig::DoExport::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::DoExport const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3200,6 +3461,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("exportLevels", &org::sem::DocumentExportConfig::ExportFixed::exportLevels)
+    .def("__eq__",
+         static_cast<bool(org::sem::DocumentExportConfig::ExportFixed::*)(org::sem::DocumentExportConfig::ExportFixed const&) const>(&org::sem::DocumentExportConfig::ExportFixed::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::DocumentExportConfig::ExportFixed const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3233,6 +3497,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::DocumentExportConfig>(m, "DocumentExportConfig")
+    .def(nanobind::init<hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<bool> const&, hstd::Opt<int> const&, org::sem::DocumentExportConfig::BrokenLinks const&, org::sem::DocumentExportConfig::TagExport const&, org::sem::DocumentExportConfig::TaskFiltering const&, org::sem::DocumentExportConfig::ArchivedTrees const&, org::sem::DocumentExportConfig::TocExport const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::DocumentExportConfig* result, nanobind::kwargs const& kwargs) -> void {
@@ -3272,6 +3537,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("tagExport", &org::sem::DocumentExportConfig::tagExport)
     .def_rw("taskFiltering", &org::sem::DocumentExportConfig::taskFiltering)
     .def_rw("archivedTrees", &org::sem::DocumentExportConfig::archivedTrees)
+    .def("__eq__",
+         static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==),
+         nanobind::arg("other"))
     .def("isDoExport", static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isDoExport))
     .def("getDoExport", static_cast<org::sem::DocumentExportConfig::DoExport&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getDoExport))
     .def("isExportFixed", static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isExportFixed))
@@ -3315,6 +3583,8 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::SubtreePeriod>(m, "SubtreePeriod")
+    .def(nanobind::init<org::sem::SubtreePeriod::Kind const&, hstd::UserTime const&, hstd::Opt<hstd::UserTime> const&>())
+    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::SubtreePeriod* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::SubtreePeriod>::construct_at(result);
@@ -3324,6 +3594,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("kind", &org::sem::SubtreePeriod::kind, R"RAW(Time period kind -- not associated with point/range distinction)RAW")
     .def_rw("from_", &org::sem::SubtreePeriod::from, R"RAW(Clock start time)RAW")
     .def_rw("to", &org::sem::SubtreePeriod::to, R"RAW(Optional end of the clock)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::SubtreePeriod::*)(org::sem::SubtreePeriod const&) const>(&org::sem::SubtreePeriod::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::SubtreePeriod const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3334,6 +3607,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::Nonblocking>(m, "NamedPropertyNonblocking")
+    .def(nanobind::init<bool const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::Nonblocking* result, nanobind::kwargs const& kwargs) -> void {
@@ -3342,6 +3616,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("isBlocking", &org::sem::NamedProperty::Nonblocking::isBlocking)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Nonblocking::*)(org::sem::NamedProperty::Nonblocking const&) const>(&org::sem::NamedProperty::Nonblocking::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Nonblocking const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3352,6 +3629,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveTime>(m, "NamedPropertyArchiveTime")
+    .def(nanobind::init<hstd::UserTime const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveTime* result, nanobind::kwargs const& kwargs) -> void {
@@ -3360,6 +3638,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("time", &org::sem::NamedProperty::ArchiveTime::time)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ArchiveTime::*)(org::sem::NamedProperty::ArchiveTime const&) const>(&org::sem::NamedProperty::ArchiveTime::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTime const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3370,7 +3651,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveFile>(m, "NamedPropertyArchiveFile")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveFile* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveFile>::construct_at(result);
@@ -3378,6 +3658,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("file", &org::sem::NamedProperty::ArchiveFile::file)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ArchiveFile::*)(org::sem::NamedProperty::ArchiveFile const&) const>(&org::sem::NamedProperty::ArchiveFile::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveFile const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3388,7 +3671,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveOlpath>(m, "NamedPropertyArchiveOlpath")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveOlpath* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveOlpath>::construct_at(result);
@@ -3396,6 +3678,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("path", &org::sem::NamedProperty::ArchiveOlpath::path)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ArchiveOlpath::*)(org::sem::NamedProperty::ArchiveOlpath const&) const>(&org::sem::NamedProperty::ArchiveOlpath::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveOlpath const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3406,7 +3691,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveTarget>(m, "NamedPropertyArchiveTarget")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveTarget* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveTarget>::construct_at(result);
@@ -3415,6 +3699,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("path", &org::sem::NamedProperty::ArchiveTarget::path)
     .def_rw("pattern", &org::sem::NamedProperty::ArchiveTarget::pattern)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ArchiveTarget::*)(org::sem::NamedProperty::ArchiveTarget const&) const>(&org::sem::NamedProperty::ArchiveTarget::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTarget const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3425,7 +3712,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveCategory>(m, "NamedPropertyArchiveCategory")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveCategory* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveCategory>::construct_at(result);
@@ -3433,6 +3719,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("category", &org::sem::NamedProperty::ArchiveCategory::category)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ArchiveCategory::*)(org::sem::NamedProperty::ArchiveCategory const&) const>(&org::sem::NamedProperty::ArchiveCategory::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveCategory const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3443,7 +3732,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ArchiveTodo>(m, "NamedPropertyArchiveTodo")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ArchiveTodo* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::NamedProperty::ArchiveTodo>::construct_at(result);
@@ -3451,6 +3739,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("todo", &org::sem::NamedProperty::ArchiveTodo::todo)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ArchiveTodo::*)(org::sem::NamedProperty::ArchiveTodo const&) const>(&org::sem::NamedProperty::ArchiveTodo::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ArchiveTodo const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3467,6 +3758,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Trigger::*)(org::sem::NamedProperty::Trigger const&) const>(&org::sem::NamedProperty::Trigger::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Trigger const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3477,7 +3771,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexClass>(m, "NamedPropertyExportLatexClass")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexClass* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::NamedProperty::ExportLatexClass>::construct_at(result);
@@ -3485,6 +3778,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("latexClass", &org::sem::NamedProperty::ExportLatexClass::latexClass)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ExportLatexClass::*)(org::sem::NamedProperty::ExportLatexClass const&) const>(&org::sem::NamedProperty::ExportLatexClass::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexClass const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3495,7 +3791,6 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::CookieData>(m, "NamedPropertyCookieData")
-    .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::CookieData* result, nanobind::kwargs const& kwargs) -> void {
          hstd::SerdeDefaultProvider<org::sem::NamedProperty::CookieData>::construct_at(result);
@@ -3504,6 +3799,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("isRecursive", &org::sem::NamedProperty::CookieData::isRecursive)
     .def_rw("source", &org::sem::NamedProperty::CookieData::source)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::CookieData::*)(org::sem::NamedProperty::CookieData const&) const>(&org::sem::NamedProperty::CookieData::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CookieData const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3514,6 +3812,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexClassOptions>(m, "NamedPropertyExportLatexClassOptions")
+    .def(nanobind::init<hstd::Vec<hstd::Str> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexClassOptions* result, nanobind::kwargs const& kwargs) -> void {
@@ -3522,6 +3821,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("options", &org::sem::NamedProperty::ExportLatexClassOptions::options)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ExportLatexClassOptions::*)(org::sem::NamedProperty::ExportLatexClassOptions const&) const>(&org::sem::NamedProperty::ExportLatexClassOptions::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexClassOptions const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3532,6 +3834,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexHeader>(m, "NamedPropertyExportLatexHeader")
+    .def(nanobind::init<hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexHeader* result, nanobind::kwargs const& kwargs) -> void {
@@ -3540,6 +3843,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("header", &org::sem::NamedProperty::ExportLatexHeader::header)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ExportLatexHeader::*)(org::sem::NamedProperty::ExportLatexHeader const&) const>(&org::sem::NamedProperty::ExportLatexHeader::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexHeader const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3550,6 +3856,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ExportLatexCompiler>(m, "NamedPropertyExportLatexCompiler")
+    .def(nanobind::init<hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ExportLatexCompiler* result, nanobind::kwargs const& kwargs) -> void {
@@ -3558,6 +3865,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("compiler", &org::sem::NamedProperty::ExportLatexCompiler::compiler)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ExportLatexCompiler::*)(org::sem::NamedProperty::ExportLatexCompiler const&) const>(&org::sem::NamedProperty::ExportLatexCompiler::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportLatexCompiler const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3568,6 +3878,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::Ordered>(m, "NamedPropertyOrdered")
+    .def(nanobind::init<bool const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::Ordered* result, nanobind::kwargs const& kwargs) -> void {
@@ -3576,6 +3887,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("isOrdered", &org::sem::NamedProperty::Ordered::isOrdered)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Ordered::*)(org::sem::NamedProperty::Ordered const&) const>(&org::sem::NamedProperty::Ordered::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Ordered const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3586,6 +3900,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::Effort>(m, "NamedPropertyEffort")
+    .def(nanobind::init<int const&, int const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::Effort* result, nanobind::kwargs const& kwargs) -> void {
@@ -3595,6 +3910,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("hours", &org::sem::NamedProperty::Effort::hours)
     .def_rw("minutes", &org::sem::NamedProperty::Effort::minutes)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Effort::*)(org::sem::NamedProperty::Effort const&) const>(&org::sem::NamedProperty::Effort::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Effort const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3637,6 +3955,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("level", &org::sem::NamedProperty::Visibility::level)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Visibility::*)(org::sem::NamedProperty::Visibility const&) const>(&org::sem::NamedProperty::Visibility::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Visibility const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3647,6 +3968,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::ExportOptions>(m, "NamedPropertyExportOptions")
+    .def(nanobind::init<hstd::Str const&, hstd::UnorderedMap<hstd::Str, hstd::Str> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::ExportOptions* result, nanobind::kwargs const& kwargs) -> void {
@@ -3656,6 +3978,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("backend", &org::sem::NamedProperty::ExportOptions::backend)
     .def_rw("values", &org::sem::NamedProperty::ExportOptions::values)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::ExportOptions::*)(org::sem::NamedProperty::ExportOptions const&) const>(&org::sem::NamedProperty::ExportOptions::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::ExportOptions const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3666,6 +3991,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::Blocker>(m, "NamedPropertyBlocker")
+    .def(nanobind::init<hstd::Vec<hstd::Str> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::Blocker* result, nanobind::kwargs const& kwargs) -> void {
@@ -3674,6 +4000,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("blockers", &org::sem::NamedProperty::Blocker::blockers)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Blocker::*)(org::sem::NamedProperty::Blocker const&) const>(&org::sem::NamedProperty::Blocker::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Blocker const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3690,6 +4019,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Unnumbered::*)(org::sem::NamedProperty::Unnumbered const&) const>(&org::sem::NamedProperty::Unnumbered::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Unnumbered const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3700,6 +4032,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::Created>(m, "NamedPropertyCreated")
+    .def(nanobind::init<org::sem::TimeValue const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::Created* result, nanobind::kwargs const& kwargs) -> void {
@@ -3708,6 +4041,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("time", &org::sem::NamedProperty::Created::time)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::Created::*)(org::sem::NamedProperty::Created const&) const>(&org::sem::NamedProperty::Created::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::Created const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3718,6 +4054,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::RadioId>(m, "NamedPropertyRadioId")
+    .def(nanobind::init<hstd::Vec<hstd::Str> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::RadioId* result, nanobind::kwargs const& kwargs) -> void {
@@ -3726,6 +4063,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("words", &org::sem::NamedProperty::RadioId::words)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::RadioId::*)(org::sem::NamedProperty::RadioId const&) const>(&org::sem::NamedProperty::RadioId::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::RadioId const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3736,6 +4076,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::HashtagDef>(m, "NamedPropertyHashtagDef")
+    .def(nanobind::init<org::sem::HashTagText const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::HashtagDef* result, nanobind::kwargs const& kwargs) -> void {
@@ -3744,6 +4085,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("hashtag", &org::sem::NamedProperty::HashtagDef::hashtag)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::HashtagDef::*)(org::sem::NamedProperty::HashtagDef const&) const>(&org::sem::NamedProperty::HashtagDef::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::HashtagDef const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3754,6 +4098,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::CustomArgs>(m, "NamedPropertyCustomArgs")
+    .def(nanobind::init<hstd::Str const&, hstd::Opt<hstd::Str> const&, org::sem::AttrGroup const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::CustomArgs* result, nanobind::kwargs const& kwargs) -> void {
@@ -3764,6 +4109,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("name", &org::sem::NamedProperty::CustomArgs::name, R"RAW(Original name of the property)RAW")
     .def_rw("sub", &org::sem::NamedProperty::CustomArgs::sub, R"RAW(Property target specialization)RAW")
     .def_rw("attrs", &org::sem::NamedProperty::CustomArgs::attrs, R"RAW(Property parameters)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::CustomArgs::*)(org::sem::NamedProperty::CustomArgs const&) const>(&org::sem::NamedProperty::CustomArgs::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomArgs const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3774,6 +4122,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::CustomRaw>(m, "NamedPropertyCustomRaw")
+    .def(nanobind::init<hstd::Str const&, hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::CustomRaw* result, nanobind::kwargs const& kwargs) -> void {
@@ -3783,6 +4132,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("name", &org::sem::NamedProperty::CustomRaw::name, R"RAW(Original name of the property)RAW")
     .def_rw("value", &org::sem::NamedProperty::CustomRaw::value, R"RAW(Property value)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::CustomRaw::*)(org::sem::NamedProperty::CustomRaw const&) const>(&org::sem::NamedProperty::CustomRaw::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomRaw const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3793,6 +4145,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::CustomId>(m, "NamedPropertyCustomId")
+    .def(nanobind::init<hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::CustomId* result, nanobind::kwargs const& kwargs) -> void {
@@ -3801,6 +4154,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          },
          nanobind::arg("result"))
     .def_rw("value", &org::sem::NamedProperty::CustomId::value, R"RAW(Property value)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::CustomId::*)(org::sem::NamedProperty::CustomId const&) const>(&org::sem::NamedProperty::CustomId::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomId const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3811,6 +4167,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::CustomSubtreeJson>(m, "NamedPropertyCustomSubtreeJson")
+    .def(nanobind::init<hstd::Str const&, org::sem::OrgJson const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::CustomSubtreeJson* result, nanobind::kwargs const& kwargs) -> void {
@@ -3820,6 +4177,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("name", &org::sem::NamedProperty::CustomSubtreeJson::name)
     .def_rw("value", &org::sem::NamedProperty::CustomSubtreeJson::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::CustomSubtreeJson::*)(org::sem::NamedProperty::CustomSubtreeJson const&) const>(&org::sem::NamedProperty::CustomSubtreeJson::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomSubtreeJson const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3830,6 +4190,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::NamedProperty::CustomSubtreeFlags>(m, "NamedPropertyCustomSubtreeFlags")
+    .def(nanobind::init<hstd::Str const&, org::sem::AttrGroup const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty::CustomSubtreeFlags* result, nanobind::kwargs const& kwargs) -> void {
@@ -3839,6 +4200,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("result"))
     .def_rw("name", &org::sem::NamedProperty::CustomSubtreeFlags::name)
     .def_rw("value", &org::sem::NamedProperty::CustomSubtreeFlags::value)
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::CustomSubtreeFlags::*)(org::sem::NamedProperty::CustomSubtreeFlags const&) const>(&org::sem::NamedProperty::CustomSubtreeFlags::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::NamedProperty::CustomSubtreeFlags const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -3897,6 +4261,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::NamedProperty>(m, "NamedProperty")
+    .def(nanobind::init<org::sem::NamedProperty::Data const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::NamedProperty* result, nanobind::kwargs const& kwargs) -> void {
@@ -3911,6 +4276,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          R"RAW(Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.)RAW")
     .def("getName", static_cast<hstd::Str(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getName), R"RAW(Get non-normalized name of the property (for built-in and user))RAW")
     .def("getSubKind", static_cast<hstd::Opt<hstd::Str>(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getSubKind), R"RAW(Get non-normalized sub-kind for the property.)RAW")
+    .def("__eq__",
+         static_cast<bool(org::sem::NamedProperty::*)(org::sem::NamedProperty const&) const>(&org::sem::NamedProperty::operator==),
+         nanobind::arg("other"))
     .def("isNonblocking", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isNonblocking))
     .def("getNonblocking", static_cast<org::sem::NamedProperty::Nonblocking&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getNonblocking))
     .def("isArchiveTime", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isArchiveTime))
@@ -3976,6 +4344,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::OrgDiagnostics::ParseTokenError>(m, "OrgDiagnosticsParseTokenError")
+    .def(nanobind::init<hstd::Str const&, hstd::Str const&, hstd::Str const&, int const&, org::sem::OrgTokenKind const&, hstd::Str const&, hstd::Opt<org::parse::SourceLoc> const&, hstd::Str const&, hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgDiagnostics::ParseTokenError* result, nanobind::kwargs const& kwargs) -> void {
@@ -3992,6 +4361,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("loc", &org::sem::OrgDiagnostics::ParseTokenError::loc)
     .def_rw("errName", &org::sem::OrgDiagnostics::ParseTokenError::errName)
     .def_rw("errCode", &org::sem::OrgDiagnostics::ParseTokenError::errCode)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::ParseTokenError::*)(org::sem::OrgDiagnostics::ParseTokenError const&) const>(&org::sem::OrgDiagnostics::ParseTokenError::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgDiagnostics::ParseTokenError const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -4002,6 +4374,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::OrgDiagnostics::ParseError>(m, "OrgDiagnosticsParseError")
+    .def(nanobind::init<hstd::Str const&, hstd::Str const&, hstd::Str const&, int const&, hstd::Str const&, hstd::Str const&, hstd::Opt<org::parse::SourceLoc> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgDiagnostics::ParseError* result, nanobind::kwargs const& kwargs) -> void {
@@ -4016,6 +4389,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("errName", &org::sem::OrgDiagnostics::ParseError::errName)
     .def_rw("errCode", &org::sem::OrgDiagnostics::ParseError::errCode)
     .def_rw("loc", &org::sem::OrgDiagnostics::ParseError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgDiagnostics::ParseError const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -4026,6 +4402,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::OrgDiagnostics::IncludeError>(m, "OrgDiagnosticsIncludeError")
+    .def(nanobind::init<hstd::Str const&, hstd::Str const&, hstd::Str const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgDiagnostics::IncludeError* result, nanobind::kwargs const& kwargs) -> void {
@@ -4036,6 +4413,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("brief", &org::sem::OrgDiagnostics::IncludeError::brief)
     .def_rw("targetPath", &org::sem::OrgDiagnostics::IncludeError::targetPath)
     .def_rw("workingFile", &org::sem::OrgDiagnostics::IncludeError::workingFile)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::IncludeError::*)(org::sem::OrgDiagnostics::IncludeError const&) const>(&org::sem::OrgDiagnostics::IncludeError::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgDiagnostics::IncludeError const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -4046,6 +4426,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::OrgDiagnostics::ConvertError>(m, "OrgDiagnosticsConvertError")
+    .def(nanobind::init<hstd::Str const&, hstd::Str const&, hstd::Str const&, int const&, hstd::Str const&, hstd::Str const&, hstd::Str const&, hstd::Opt<org::parse::SourceLoc> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgDiagnostics::ConvertError* result, nanobind::kwargs const& kwargs) -> void {
@@ -4061,6 +4442,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("errName", &org::sem::OrgDiagnostics::ConvertError::errName)
     .def_rw("errCode", &org::sem::OrgDiagnostics::ConvertError::errCode)
     .def_rw("loc", &org::sem::OrgDiagnostics::ConvertError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::ConvertError::*)(org::sem::OrgDiagnostics::ConvertError const&) const>(&org::sem::OrgDiagnostics::ConvertError::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgDiagnostics::ConvertError const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -4071,6 +4455,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          nanobind::arg("name"))
     ;
   nanobind::class_<org::sem::OrgDiagnostics::InternalError>(m, "OrgDiagnosticsInternalError")
+    .def(nanobind::init<hstd::Str const&, hstd::Str const&, int const&, hstd::Str const&, hstd::Opt<org::parse::SourceLoc> const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgDiagnostics::InternalError* result, nanobind::kwargs const& kwargs) -> void {
@@ -4083,6 +4468,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
     .def_rw("line", &org::sem::OrgDiagnostics::InternalError::line)
     .def_rw("file", &org::sem::OrgDiagnostics::InternalError::file)
     .def_rw("loc", &org::sem::OrgDiagnostics::InternalError::loc)
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::InternalError::*)(org::sem::OrgDiagnostics::InternalError const&) const>(&org::sem::OrgDiagnostics::InternalError::operator==),
+         nanobind::arg("other"))
     .def("__repr__", [](org::sem::OrgDiagnostics::InternalError const& _self) -> std::string {
                      return org::bind::python::py_repr_impl(_self);
                      })
@@ -4119,6 +4507,7 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          })
     ;
   nanobind::class_<org::sem::OrgDiagnostics>(m, "OrgDiagnostics")
+    .def(nanobind::init<org::sem::OrgDiagnostics::Data const&>())
     .def(nanobind::init<>())
     .def("__init__",
          [](org::sem::OrgDiagnostics* result, nanobind::kwargs const& kwargs) -> void {
@@ -4126,6 +4515,9 @@ NB_MODULE(haxorg_cpp_py_wrap, m) {
          org::bind::python::init_fields_from_kwargs(*result, kwargs);
          },
          nanobind::arg("result"))
+    .def("__eq__",
+         static_cast<bool(org::sem::OrgDiagnostics::*)(org::sem::OrgDiagnostics const&) const>(&org::sem::OrgDiagnostics::operator==),
+         nanobind::arg("other"))
     .def("isParseTokenError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseTokenError))
     .def("getParseTokenError", static_cast<org::sem::OrgDiagnostics::ParseTokenError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseTokenError))
     .def("isParseError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseError))

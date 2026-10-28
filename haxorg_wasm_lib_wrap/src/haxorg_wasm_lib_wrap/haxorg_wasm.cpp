@@ -10,12 +10,12 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdvariant_bind<org::sem::TimeValue::FixedTime, org::sem::TimeValue::DynamicTime>(g, "StdVariantOfTimeValueFixedTimeTimeValueDynamicTime");
   org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign>(g, "HstdVecOfTblfmAssign");
   org::bind::js::stdvector_bind<org::sem::Tblfm::Assign>(g, "StdVecOfTblfmAssign");
+  org::bind::js::stdvariant_bind<org::sem::Tblfm::Expr::AxisRef, org::sem::Tblfm::Expr::AxisName, org::sem::Tblfm::Expr::IntLiteral, org::sem::Tblfm::Expr::FloatLiteral, org::sem::Tblfm::Expr::RangeRef, org::sem::Tblfm::Expr::Call, org::sem::Tblfm::Expr::Elisp>(g, "StdVariantOfTblfmExprAxisRefTblfmExprAxisNameTblfmExprIntLiteralTblfmExprFloatLiteralTblfmExprRangeRefTblfmExprCallTblfmExprElisp");
   org::bind::js::hstdOpt_bind<org::sem::Tblfm::Expr::AxisRef::Position>(g, "OptOfTblfmExprAxisRefPosition");
   org::bind::js::stdvariant_bind<org::sem::Tblfm::Expr::AxisRef::Position::Index, org::sem::Tblfm::Expr::AxisRef::Position::Name>(g, "StdVariantOfTblfmExprAxisRefPositionIndexTblfmExprAxisRefPositionName");
   org::bind::js::hstdOpt_bind<org::sem::Tblfm::Expr::AxisRef>(g, "OptOfTblfmExprAxisRef");
   org::bind::js::hstdVec_bind<org::sem::Tblfm::Expr>(g, "HstdVecOfTblfmExpr");
   org::bind::js::stdvector_bind<org::sem::Tblfm::Expr>(g, "StdVecOfTblfmExpr");
-  org::bind::js::stdvariant_bind<org::sem::Tblfm::Expr::AxisRef, org::sem::Tblfm::Expr::AxisName, org::sem::Tblfm::Expr::IntLiteral, org::sem::Tblfm::Expr::FloatLiteral, org::sem::Tblfm::Expr::RangeRef, org::sem::Tblfm::Expr::Call, org::sem::Tblfm::Expr::Elisp>(g, "StdVariantOfTblfmExprAxisRefTblfmExprAxisNameTblfmExprIntLiteralTblfmExprFloatLiteralTblfmExprRangeRefTblfmExprCallTblfmExprElisp");
   org::bind::js::hstdVec_bind<org::sem::Tblfm::Assign::Flag>(g, "HstdVecOfTblfmAssignFlag");
   org::bind::js::stdvector_bind<org::sem::Tblfm::Assign::Flag>(g, "StdVecOfTblfmAssignFlag");
   org::bind::js::hstdOpt_bind<bool>(g, "OptOfBool");
@@ -32,8 +32,8 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::hstdVec_bind<org::sem::HashTagText>(g, "HstdVecOfHashTagText");
   org::bind::js::stdvector_bind<org::sem::HashTagText>(g, "StdVecOfHashTagText");
   org::bind::js::stdvariant_bind<org::sem::LinkTarget::Raw, org::sem::LinkTarget::Id, org::sem::LinkTarget::CustomId, org::sem::LinkTarget::SubtreeTitle, org::sem::LinkTarget::Person, org::sem::LinkTarget::UserProtocol, org::sem::LinkTarget::Internal, org::sem::LinkTarget::Footnote, org::sem::LinkTarget::File, org::sem::LinkTarget::Attachment>(g, "StdVariantOfLinkTargetRawLinkTargetIdLinkTargetCustomIdLinkTargetSubtreeTitleLinkTargetPersonLinkTargetUserProtocolLinkTargetInternalLinkTargetFootnoteLinkTargetFileLinkTargetAttachment");
-  org::bind::js::hstdOpt_bind<hstd::UserTime>(g, "OptOfUserTime");
   org::bind::js::stdvariant_bind<org::sem::SubtreeLogHead::Priority, org::sem::SubtreeLogHead::Note, org::sem::SubtreeLogHead::Refile, org::sem::SubtreeLogHead::Clock, org::sem::SubtreeLogHead::State, org::sem::SubtreeLogHead::Deadline, org::sem::SubtreeLogHead::Schedule, org::sem::SubtreeLogHead::Tag, org::sem::SubtreeLogHead::Unknown>(g, "StdVariantOfSubtreeLogHeadPrioritySubtreeLogHeadNoteSubtreeLogHeadRefileSubtreeLogHeadClockSubtreeLogHeadStateSubtreeLogHeadDeadlineSubtreeLogHeadScheduleSubtreeLogHeadTagSubtreeLogHeadUnknown");
+  org::bind::js::hstdOpt_bind<hstd::UserTime>(g, "OptOfUserTime");
   org::bind::js::hstdVec_bind<org::sem::AttrValue>(g, "HstdVecOfAttrValue");
   org::bind::js::stdvector_bind<org::sem::AttrValue>(g, "StdVecOfAttrValue");
   org::bind::js::hstdOpt_bind<org::sem::AttrValue>(g, "OptOfAttrValue");
@@ -51,11 +51,11 @@ void subdivide_0(org::bind::js::type_registration_guard& g) {
   org::bind::js::stdvector_bind<org::sem::BlockCodeLine::Part>(g, "StdVecOfBlockCodeLinePart");
   org::bind::js::stdvariant_bind<org::sem::BlockCodeLine::Part::Raw, org::sem::BlockCodeLine::Part::Callout, org::sem::BlockCodeLine::Part::Tangle>(g, "StdVariantOfBlockCodeLinePartRawBlockCodeLinePartCalloutBlockCodeLinePartTangle");
   org::bind::js::stdvariant_bind<org::sem::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::ExportFixed>(g, "StdVariantOfDocumentExportConfigDoExportDocumentExportConfigExportFixed");
+  org::bind::js::stdvariant_bind<org::sem::NamedProperty::Nonblocking, org::sem::NamedProperty::ArchiveTime, org::sem::NamedProperty::ArchiveFile, org::sem::NamedProperty::ArchiveOlpath, org::sem::NamedProperty::ArchiveTarget, org::sem::NamedProperty::ArchiveCategory, org::sem::NamedProperty::ArchiveTodo, org::sem::NamedProperty::Trigger, org::sem::NamedProperty::ExportLatexClass, org::sem::NamedProperty::CookieData, org::sem::NamedProperty::ExportLatexClassOptions, org::sem::NamedProperty::ExportLatexHeader, org::sem::NamedProperty::ExportLatexCompiler, org::sem::NamedProperty::Ordered, org::sem::NamedProperty::Effort, org::sem::NamedProperty::Visibility, org::sem::NamedProperty::ExportOptions, org::sem::NamedProperty::Blocker, org::sem::NamedProperty::Unnumbered, org::sem::NamedProperty::Created, org::sem::NamedProperty::RadioId, org::sem::NamedProperty::HashtagDef, org::sem::NamedProperty::CustomArgs, org::sem::NamedProperty::CustomRaw, org::sem::NamedProperty::CustomId, org::sem::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeFlags>(g, "StdVariantOfNamedPropertyNonblockingNamedPropertyArchiveTimeNamedPropertyArchiveFileNamedPropertyArchiveOlpathNamedPropertyArchiveTargetNamedPropertyArchiveCategoryNamedPropertyArchiveTodoNamedPropertyTriggerNamedPropertyExportLatexClassNamedPropertyCookieDataNamedPropertyExportLatexClassOptionsNamedPropertyExportLatexHeaderNamedPropertyExportLatexCompilerNamedPropertyOrderedNamedPropertyEffortNamedPropertyVisibilityNamedPropertyExportOptionsNamedPropertyBlockerNamedPropertyUnnumberedNamedPropertyCreatedNamedPropertyRadioIdNamedPropertyHashtagDefNamedPropertyCustomArgsNamedPropertyCustomRawNamedPropertyCustomIdNamedPropertyCustomSubtreeJsonNamedPropertyCustomSubtreeFlags");
   org::bind::js::hstdUnorderedMap_bind<hstd::Str, hstd::Str>(g, "HstdMapOfStrStr");
   org::bind::js::stdunordered_map_bind<hstd::Str, hstd::Str>(g, "StdMapOfStrStr");
-  org::bind::js::stdvariant_bind<org::sem::NamedProperty::Nonblocking, org::sem::NamedProperty::ArchiveTime, org::sem::NamedProperty::ArchiveFile, org::sem::NamedProperty::ArchiveOlpath, org::sem::NamedProperty::ArchiveTarget, org::sem::NamedProperty::ArchiveCategory, org::sem::NamedProperty::ArchiveTodo, org::sem::NamedProperty::Trigger, org::sem::NamedProperty::ExportLatexClass, org::sem::NamedProperty::CookieData, org::sem::NamedProperty::ExportLatexClassOptions, org::sem::NamedProperty::ExportLatexHeader, org::sem::NamedProperty::ExportLatexCompiler, org::sem::NamedProperty::Ordered, org::sem::NamedProperty::Effort, org::sem::NamedProperty::Visibility, org::sem::NamedProperty::ExportOptions, org::sem::NamedProperty::Blocker, org::sem::NamedProperty::Unnumbered, org::sem::NamedProperty::Created, org::sem::NamedProperty::RadioId, org::sem::NamedProperty::HashtagDef, org::sem::NamedProperty::CustomArgs, org::sem::NamedProperty::CustomRaw, org::sem::NamedProperty::CustomId, org::sem::NamedProperty::CustomSubtreeJson, org::sem::NamedProperty::CustomSubtreeFlags>(g, "StdVariantOfNamedPropertyNonblockingNamedPropertyArchiveTimeNamedPropertyArchiveFileNamedPropertyArchiveOlpathNamedPropertyArchiveTargetNamedPropertyArchiveCategoryNamedPropertyArchiveTodoNamedPropertyTriggerNamedPropertyExportLatexClassNamedPropertyCookieDataNamedPropertyExportLatexClassOptionsNamedPropertyExportLatexHeaderNamedPropertyExportLatexCompilerNamedPropertyOrderedNamedPropertyEffortNamedPropertyVisibilityNamedPropertyExportOptionsNamedPropertyBlockerNamedPropertyUnnumberedNamedPropertyCreatedNamedPropertyRadioIdNamedPropertyHashtagDefNamedPropertyCustomArgsNamedPropertyCustomRawNamedPropertyCustomIdNamedPropertyCustomSubtreeJsonNamedPropertyCustomSubtreeFlags");
-  org::bind::js::hstdOpt_bind<org::parse::SourceLoc>(g, "OptOfParseSourceLoc");
   org::bind::js::stdvariant_bind<org::sem::OrgDiagnostics::ParseTokenError, org::sem::OrgDiagnostics::ParseError, org::sem::OrgDiagnostics::IncludeError, org::sem::OrgDiagnostics::ConvertError, org::sem::OrgDiagnostics::InternalError>(g, "StdVariantOfOrgDiagnosticsParseTokenErrorOrgDiagnosticsParseErrorOrgDiagnosticsIncludeErrorOrgDiagnosticsConvertErrorOrgDiagnosticsInternalError");
+  org::bind::js::hstdOpt_bind<org::parse::SourceLoc>(g, "OptOfParseSourceLoc");
   org::bind::js::stdoptional_bind<org::parse::SourceLoc>(g, "StdOptionalOfParseSourceLoc");
   org::bind::js::hstdVec_bind<org::sem::SemId<org::sem::Org>>(g, "HstdVecOfSemIdOfOrg");
   org::bind::js::stdvector_bind<org::sem::SemId<org::sem::Org>>(g, "StdVecOfSemIdOfOrg");
@@ -209,6 +209,7 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::graph::MapLink::Kind>("GraphMapLinkKind");
   emscripten::class_<org::sem::LispCode>("LispCode")
     .property("data", &org::sem::LispCode::data)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::*)(org::sem::LispCode const&) const>(&org::sem::LispCode::operator==))
     .function("isCall", static_cast<bool(org::sem::LispCode::*)() const>(&org::sem::LispCode::isCall))
     .function("getCallConst", static_cast<org::sem::LispCode::Call const&(org::sem::LispCode::*)() const>(&org::sem::LispCode::getCall))
     .function("getCallMut", static_cast<org::sem::LispCode::Call&(org::sem::LispCode::*)()>(&org::sem::LispCode::getCall))
@@ -246,6 +247,7 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::LispCode::Call>("LispCodeCall")
     .property("name", &org::sem::LispCode::Call::name)
     .property("args", &org::sem::LispCode::Call::args)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Call::*)(org::sem::LispCode::Call const&) const>(&org::sem::LispCode::Call::operator==))
     .constructor<>()
     ;
 }
@@ -253,45 +255,55 @@ void subdivide_1(org::bind::js::type_registration_guard& g) {
 void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::LispCode::Quoted>("LispCodeQuoted")
     .property("items", &org::sem::LispCode::Quoted::items)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Quoted::*)(org::sem::LispCode::Quoted const&) const>(&org::sem::LispCode::Quoted::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::List>("LispCodeList")
     .property("items", &org::sem::LispCode::List::items)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::List::*)(org::sem::LispCode::List const&) const>(&org::sem::LispCode::List::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::Vector>("LispCodeVector")
     .property("items", &org::sem::LispCode::Vector::items)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Vector::*)(org::sem::LispCode::Vector const&) const>(&org::sem::LispCode::Vector::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::KeyValue>("LispCodeKeyValue")
     .property("name", &org::sem::LispCode::KeyValue::name)
     .property("value", &org::sem::LispCode::KeyValue::value)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::KeyValue::*)(org::sem::LispCode::KeyValue const&) const>(&org::sem::LispCode::KeyValue::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::Number>("LispCodeNumber")
     .property("value", &org::sem::LispCode::Number::value)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Number::*)(org::sem::LispCode::Number const&) const>(&org::sem::LispCode::Number::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::Text>("LispCodeText")
     .property("value", &org::sem::LispCode::Text::value)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Text::*)(org::sem::LispCode::Text const&) const>(&org::sem::LispCode::Text::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::Ident>("LispCodeIdent")
     .property("name", &org::sem::LispCode::Ident::name)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Ident::*)(org::sem::LispCode::Ident const&) const>(&org::sem::LispCode::Ident::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::Boolean>("LispCodeBoolean")
     .property("value", &org::sem::LispCode::Boolean::value)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Boolean::*)(org::sem::LispCode::Boolean const&) const>(&org::sem::LispCode::Boolean::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LispCode::Real>("LispCodeReal")
     .property("value", &org::sem::LispCode::Real::value)
+    .function("__eq__", static_cast<bool(org::sem::LispCode::Real::*)(org::sem::LispCode::Real const&) const>(&org::sem::LispCode::Real::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::LispCode::Kind>("LispCodeKind");
   emscripten::class_<org::sem::TimeValue>("TimeValue")
     .property("isActive", &org::sem::TimeValue::isActive)
     .property("data", &org::sem::TimeValue::data)
+    .function("__eq__", static_cast<bool(org::sem::TimeValue::*)(org::sem::TimeValue const&) const>(&org::sem::TimeValue::operator==))
     .function("isFixedTime", static_cast<bool(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::isFixedTime))
     .function("getFixedTimeConst", static_cast<org::sem::TimeValue::FixedTime const&(org::sem::TimeValue::*)() const>(&org::sem::TimeValue::getFixedTime))
     .function("getFixedTimeMut", static_cast<org::sem::TimeValue::FixedTime&(org::sem::TimeValue::*)()>(&org::sem::TimeValue::getFixedTime))
@@ -304,19 +316,23 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::sem::TimeValue::FixedTime>("TimeValueFixedTime")
     .property("time", &org::sem::TimeValue::FixedTime::time)
+    .function("__eq__", static_cast<bool(org::sem::TimeValue::FixedTime::*)(org::sem::TimeValue::FixedTime const&) const>(&org::sem::TimeValue::FixedTime::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::TimeValue::DynamicTime>("TimeValueDynamicTime")
     .property("time", &org::sem::TimeValue::DynamicTime::time)
+    .function("__eq__", static_cast<bool(org::sem::TimeValue::DynamicTime::*)(org::sem::TimeValue::DynamicTime const&) const>(&org::sem::TimeValue::DynamicTime::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::TimeValue::Kind>("TimeValueKind");
   emscripten::class_<org::sem::Tblfm>("Tblfm")
     .property("exprs", &org::sem::Tblfm::exprs)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::*)(org::sem::Tblfm const&) const>(&org::sem::Tblfm::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr>("TblfmExpr")
     .property("data", &org::sem::Tblfm::Expr::data)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::*)(org::sem::Tblfm::Expr const&) const>(&org::sem::Tblfm::Expr::operator==))
     .function("isAxisRef", static_cast<bool(org::sem::Tblfm::Expr::*)() const>(&org::sem::Tblfm::Expr::isAxisRef))
     .function("getAxisRefConst", static_cast<org::sem::Tblfm::Expr::AxisRef const&(org::sem::Tblfm::Expr::*)() const>(&org::sem::Tblfm::Expr::getAxisRef))
     .function("getAxisRefMut", static_cast<org::sem::Tblfm::Expr::AxisRef&(org::sem::Tblfm::Expr::*)()>(&org::sem::Tblfm::Expr::getAxisRef))
@@ -345,10 +361,12 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::Tblfm::Expr::AxisRef>("TblfmExprAxisRef")
     .property("col", &org::sem::Tblfm::Expr::AxisRef::col)
     .property("row", &org::sem::Tblfm::Expr::AxisRef::row)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::*)(org::sem::Tblfm::Expr::AxisRef const&) const>(&org::sem::Tblfm::Expr::AxisRef::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr::AxisRef::Position>("TblfmExprAxisRefPosition")
     .property("data", &org::sem::Tblfm::Expr::AxisRef::Position::data)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)(org::sem::Tblfm::Expr::AxisRef::Position const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::operator==))
     .function("isIndex", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::*)() const>(&org::sem::Tblfm::Expr::AxisRef::Position::isIndex))
     .function("getIndexConst", static_cast<org::sem::Tblfm::Expr::AxisRef::Position::Index const&(org::sem::Tblfm::Expr::AxisRef::Position::*)() const>(&org::sem::Tblfm::Expr::AxisRef::Position::getIndex))
     .function("getIndexMut", static_cast<org::sem::Tblfm::Expr::AxisRef::Position::Index&(org::sem::Tblfm::Expr::AxisRef::Position::*)()>(&org::sem::Tblfm::Expr::AxisRef::Position::getIndex))
@@ -361,37 +379,45 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::sem::Tblfm::Expr::AxisRef::Position::Index>("TblfmExprAxisRefPositionIndex")
     .property("index", &org::sem::Tblfm::Expr::AxisRef::Position::Index::index)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Index::*)(org::sem::Tblfm::Expr::AxisRef::Position::Index const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Index::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr::AxisRef::Position::Name>("TblfmExprAxisRefPositionName")
     .property("name", &org::sem::Tblfm::Expr::AxisRef::Position::Name::name)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::AxisRef::Position::Name::*)(org::sem::Tblfm::Expr::AxisRef::Position::Name const&) const>(&org::sem::Tblfm::Expr::AxisRef::Position::Name::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::Tblfm::Expr::AxisRef::Position::Kind>("TblfmExprAxisRefPositionKind");
   emscripten::class_<org::sem::Tblfm::Expr::AxisName>("TblfmExprAxisName")
     .property("name", &org::sem::Tblfm::Expr::AxisName::name)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::AxisName::*)(org::sem::Tblfm::Expr::AxisName const&) const>(&org::sem::Tblfm::Expr::AxisName::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr::IntLiteral>("TblfmExprIntLiteral")
     .property("value", &org::sem::Tblfm::Expr::IntLiteral::value)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::IntLiteral::*)(org::sem::Tblfm::Expr::IntLiteral const&) const>(&org::sem::Tblfm::Expr::IntLiteral::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr::FloatLiteral>("TblfmExprFloatLiteral")
     .property("value", &org::sem::Tblfm::Expr::FloatLiteral::value)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::FloatLiteral::*)(org::sem::Tblfm::Expr::FloatLiteral const&) const>(&org::sem::Tblfm::Expr::FloatLiteral::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr::RangeRef>("TblfmExprRangeRef")
     .property("first", &org::sem::Tblfm::Expr::RangeRef::first)
     .property("last", &org::sem::Tblfm::Expr::RangeRef::last)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::RangeRef::*)(org::sem::Tblfm::Expr::RangeRef const&) const>(&org::sem::Tblfm::Expr::RangeRef::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr::Call>("TblfmExprCall")
     .property("name", &org::sem::Tblfm::Expr::Call::name)
     .property("args", &org::sem::Tblfm::Expr::Call::args)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::Call::*)(org::sem::Tblfm::Expr::Call const&) const>(&org::sem::Tblfm::Expr::Call::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::Tblfm::Expr::Elisp>("TblfmExprElisp")
     .property("value", &org::sem::Tblfm::Expr::Elisp::value)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Expr::Elisp::*)(org::sem::Tblfm::Expr::Elisp const&) const>(&org::sem::Tblfm::Expr::Elisp::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::Tblfm::Expr::Kind>("TblfmExprKind");
@@ -399,6 +425,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("target", &org::sem::Tblfm::Assign::target)
     .property("expr", &org::sem::Tblfm::Assign::expr)
     .property("flags", &org::sem::Tblfm::Assign::flags)
+    .function("__eq__", static_cast<bool(org::sem::Tblfm::Assign::*)(org::sem::Tblfm::Assign const&) const>(&org::sem::Tblfm::Assign::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::Tblfm::Assign::Flag>("TblfmAssignFlag");
@@ -412,6 +439,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("getInt", static_cast<hstd::Opt<int>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getInt))
     .function("getString", static_cast<hstd::Str(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getString))
     .function("getDouble", static_cast<hstd::Opt<double>(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getDouble))
+    .function("__eq__", static_cast<bool(org::sem::AttrValue::*)(org::sem::AttrValue const&) const>(&org::sem::AttrValue::operator==))
     .function("isTextValue", static_cast<bool(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::isTextValue))
     .function("getTextValueConst", static_cast<org::sem::AttrValue::TextValue const&(org::sem::AttrValue::*)() const>(&org::sem::AttrValue::getTextValue))
     .function("getTextValueMut", static_cast<org::sem::AttrValue::TextValue&(org::sem::AttrValue::*)()>(&org::sem::AttrValue::getTextValue))
@@ -428,25 +456,30 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::AttrValue::DimensionSpan>("AttrValueDimensionSpan")
     .property("first", &org::sem::AttrValue::DimensionSpan::first)
     .property("last", &org::sem::AttrValue::DimensionSpan::last)
+    .function("__eq__", static_cast<bool(org::sem::AttrValue::DimensionSpan::*)(org::sem::AttrValue::DimensionSpan const&) const>(&org::sem::AttrValue::DimensionSpan::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::AttrValue::TextValue>("AttrValueTextValue")
     .property("value", &org::sem::AttrValue::TextValue::value)
+    .function("__eq__", static_cast<bool(org::sem::AttrValue::TextValue::*)(org::sem::AttrValue::TextValue const&) const>(&org::sem::AttrValue::TextValue::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::AttrValue::FileReference>("AttrValueFileReference")
     .property("file", &org::sem::AttrValue::FileReference::file)
     .property("reference", &org::sem::AttrValue::FileReference::reference)
+    .function("__eq__", static_cast<bool(org::sem::AttrValue::FileReference::*)(org::sem::AttrValue::FileReference const&) const>(&org::sem::AttrValue::FileReference::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::AttrValue::LispValue>("AttrValueLispValue")
     .property("code", &org::sem::AttrValue::LispValue::code)
+    .function("__eq__", static_cast<bool(org::sem::AttrValue::LispValue::*)(org::sem::AttrValue::LispValue const&) const>(&org::sem::AttrValue::LispValue::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::AttrValue::Kind>("AttrValueKind");
   emscripten::class_<org::sem::HashTagFlat>("HashTagFlat")
     .property("tags", &org::sem::HashTagFlat::tags)
     .function("__lt__", static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator<))
+    .function("__eq__", static_cast<bool(org::sem::HashTagFlat::*)(org::sem::HashTagFlat const&) const>(&org::sem::HashTagFlat::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::TodoKeyword>("TodoKeyword")
@@ -454,6 +487,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("shortcut", &org::sem::TodoKeyword::shortcut)
     .property("onEnter", &org::sem::TodoKeyword::onEnter)
     .property("onLeave", &org::sem::TodoKeyword::onLeave)
+    .function("__eq__", static_cast<bool(org::sem::TodoKeyword::*)(org::sem::TodoKeyword const&) const>(&org::sem::TodoKeyword::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::TodoKeyword::Transition>("TodoKeywordTransition");
@@ -462,14 +496,17 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("subtags", &org::sem::HashTagText::subtags)
     .function("prefixMatch", static_cast<bool(org::sem::HashTagText::*)(hstd::Vec<hstd::Str> const&) const>(&org::sem::HashTagText::prefixMatch))
     .function("getFlatHashes", static_cast<hstd::Vec<org::sem::HashTagFlat>(org::sem::HashTagText::*)(bool) const>(&org::sem::HashTagText::getFlatHashes))
+    .function("__eq__", static_cast<bool(org::sem::HashTagText::*)(org::sem::HashTagText const&) const>(&org::sem::HashTagText::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreePath>("SubtreePath")
     .property("path", &org::sem::SubtreePath::path)
+    .function("__eq__", static_cast<bool(org::sem::SubtreePath::*)(org::sem::SubtreePath const&) const>(&org::sem::SubtreePath::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget>("LinkTarget")
     .property("data", &org::sem::LinkTarget::data)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::*)(org::sem::LinkTarget const&) const>(&org::sem::LinkTarget::operator==))
     .function("isRaw", static_cast<bool(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::isRaw))
     .function("getRawConst", static_cast<org::sem::LinkTarget::Raw const&(org::sem::LinkTarget::*)() const>(&org::sem::LinkTarget::getRaw))
     .function("getRawMut", static_cast<org::sem::LinkTarget::Raw&(org::sem::LinkTarget::*)()>(&org::sem::LinkTarget::getRaw))
@@ -506,49 +543,60 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::sem::LinkTarget::Raw>("LinkTargetRaw")
     .property("text", &org::sem::LinkTarget::Raw::text)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::Raw::*)(org::sem::LinkTarget::Raw const&) const>(&org::sem::LinkTarget::Raw::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::Id>("LinkTargetId")
     .property("text", &org::sem::LinkTarget::Id::text)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::Id::*)(org::sem::LinkTarget::Id const&) const>(&org::sem::LinkTarget::Id::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::CustomId>("LinkTargetCustomId")
     .property("text", &org::sem::LinkTarget::CustomId::text)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::CustomId::*)(org::sem::LinkTarget::CustomId const&) const>(&org::sem::LinkTarget::CustomId::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::SubtreeTitle>("LinkTargetSubtreeTitle")
     .property("title", &org::sem::LinkTarget::SubtreeTitle::title)
     .property("level", &org::sem::LinkTarget::SubtreeTitle::level)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::SubtreeTitle::*)(org::sem::LinkTarget::SubtreeTitle const&) const>(&org::sem::LinkTarget::SubtreeTitle::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::Person>("LinkTargetPerson")
     .property("name", &org::sem::LinkTarget::Person::name)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::Person::*)(org::sem::LinkTarget::Person const&) const>(&org::sem::LinkTarget::Person::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::UserProtocol>("LinkTargetUserProtocol")
     .property("protocol", &org::sem::LinkTarget::UserProtocol::protocol)
     .property("target", &org::sem::LinkTarget::UserProtocol::target)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::UserProtocol::*)(org::sem::LinkTarget::UserProtocol const&) const>(&org::sem::LinkTarget::UserProtocol::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::Internal>("LinkTargetInternal")
     .property("target", &org::sem::LinkTarget::Internal::target)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::Internal::*)(org::sem::LinkTarget::Internal const&) const>(&org::sem::LinkTarget::Internal::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::Footnote>("LinkTargetFootnote")
     .property("target", &org::sem::LinkTarget::Footnote::target)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::Footnote::*)(org::sem::LinkTarget::Footnote const&) const>(&org::sem::LinkTarget::Footnote::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::File>("LinkTargetFile")
     .property("file", &org::sem::LinkTarget::File::file)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::File::*)(org::sem::LinkTarget::File const&) const>(&org::sem::LinkTarget::File::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::LinkTarget::Attachment>("LinkTargetAttachment")
     .property("file", &org::sem::LinkTarget::Attachment::file)
+    .function("__eq__", static_cast<bool(org::sem::LinkTarget::Attachment::*)(org::sem::LinkTarget::Attachment const&) const>(&org::sem::LinkTarget::Attachment::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::LinkTarget::Kind>("LinkTargetKind");
   emscripten::class_<org::sem::SubtreeLogHead>("SubtreeLogHead")
     .property("log", &org::sem::SubtreeLogHead::log)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::*)(org::sem::SubtreeLogHead const&) const>(&org::sem::SubtreeLogHead::operator==))
     .function("isPriority", static_cast<bool(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::isPriority))
     .function("getPriorityConst", static_cast<org::sem::SubtreeLogHead::Priority const&(org::sem::SubtreeLogHead::*)() const>(&org::sem::SubtreeLogHead::getPriority))
     .function("getPriorityMut", static_cast<org::sem::SubtreeLogHead::Priority&(org::sem::SubtreeLogHead::*)()>(&org::sem::SubtreeLogHead::getPriority))
@@ -585,48 +633,57 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("newPriority", &org::sem::SubtreeLogHead::Priority::newPriority)
     .property("on", &org::sem::SubtreeLogHead::Priority::on)
     .property("action", &org::sem::SubtreeLogHead::Priority::action)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Priority::*)(org::sem::SubtreeLogHead::Priority const&) const>(&org::sem::SubtreeLogHead::Priority::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::SubtreeLogHead::Priority::Action>("SubtreeLogHeadPriorityAction");
   emscripten::class_<org::sem::SubtreeLogHead::Note>("SubtreeLogHeadNote")
     .property("on", &org::sem::SubtreeLogHead::Note::on)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Note::*)(org::sem::SubtreeLogHead::Note const&) const>(&org::sem::SubtreeLogHead::Note::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreeLogHead::Refile>("SubtreeLogHeadRefile")
     .property("on", &org::sem::SubtreeLogHead::Refile::on)
     .property("from", &org::sem::SubtreeLogHead::Refile::from)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Refile::*)(org::sem::SubtreeLogHead::Refile const&) const>(&org::sem::SubtreeLogHead::Refile::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreeLogHead::Clock>("SubtreeLogHeadClock")
     .property("from", &org::sem::SubtreeLogHead::Clock::from)
     .property("to", &org::sem::SubtreeLogHead::Clock::to)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Clock::*)(org::sem::SubtreeLogHead::Clock const&) const>(&org::sem::SubtreeLogHead::Clock::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreeLogHead::State>("SubtreeLogHeadState")
     .property("from", &org::sem::SubtreeLogHead::State::from)
     .property("to", &org::sem::SubtreeLogHead::State::to)
     .property("on", &org::sem::SubtreeLogHead::State::on)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::State::*)(org::sem::SubtreeLogHead::State const&) const>(&org::sem::SubtreeLogHead::State::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreeLogHead::Deadline>("SubtreeLogHeadDeadline")
     .property("from", &org::sem::SubtreeLogHead::Deadline::from)
     .property("to", &org::sem::SubtreeLogHead::Deadline::to)
     .property("on", &org::sem::SubtreeLogHead::Deadline::on)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Deadline::*)(org::sem::SubtreeLogHead::Deadline const&) const>(&org::sem::SubtreeLogHead::Deadline::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreeLogHead::Schedule>("SubtreeLogHeadSchedule")
     .property("from", &org::sem::SubtreeLogHead::Schedule::from)
     .property("to", &org::sem::SubtreeLogHead::Schedule::to)
     .property("on", &org::sem::SubtreeLogHead::Schedule::on)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Schedule::*)(org::sem::SubtreeLogHead::Schedule const&) const>(&org::sem::SubtreeLogHead::Schedule::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreeLogHead::Tag>("SubtreeLogHeadTag")
     .property("on", &org::sem::SubtreeLogHead::Tag::on)
     .property("tag", &org::sem::SubtreeLogHead::Tag::tag)
     .property("added", &org::sem::SubtreeLogHead::Tag::added)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Tag::*)(org::sem::SubtreeLogHead::Tag const&) const>(&org::sem::SubtreeLogHead::Tag::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::SubtreeLogHead::Unknown>("SubtreeLogHeadUnknown")
+    .function("__eq__", static_cast<bool(org::sem::SubtreeLogHead::Unknown::*)(org::sem::SubtreeLogHead::Unknown const&) const>(&org::sem::SubtreeLogHead::Unknown::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::SubtreeLogHead::Kind>("SubtreeLogHeadKind");
@@ -634,10 +691,12 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("done", &org::sem::SubtreeCompletion::done)
     .property("full", &org::sem::SubtreeCompletion::full)
     .property("isPercent", &org::sem::SubtreeCompletion::isPercent)
+    .function("__eq__", static_cast<bool(org::sem::SubtreeCompletion::*)(org::sem::SubtreeCompletion const&) const>(&org::sem::SubtreeCompletion::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::AttrList>("AttrList")
     .property("items", &org::sem::AttrList::items)
+    .function("__eq__", static_cast<bool(org::sem::AttrList::*)(org::sem::AttrList const&) const>(&org::sem::AttrList::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::AttrGroup>("AttrGroup")
@@ -661,6 +720,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("getFirstVarNamed", static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstVarNamed))
     .function("atFirstNamed", static_cast<org::sem::AttrValue const&(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::atFirstNamed))
     .function("getFirstNamed", static_cast<hstd::Opt<org::sem::AttrValue>(org::sem::AttrGroup::*)(hstd::Str const&) const>(&org::sem::AttrGroup::getFirstNamed))
+    .function("__eq__", static_cast<bool(org::sem::AttrGroup::*)(org::sem::AttrGroup const&) const>(&org::sem::AttrGroup::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::OrgCodeEvalInput>("OrgCodeEvalInput")
@@ -673,11 +733,13 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("language", &org::sem::OrgCodeEvalInput::language)
     .property("argList", &org::sem::OrgCodeEvalInput::argList)
     .function("getVariable", static_cast<hstd::Opt<org::sem::OrgCodeEvalInput::Var>(org::sem::OrgCodeEvalInput::*)(hstd::Str const&) const>(&org::sem::OrgCodeEvalInput::getVariable))
+    .function("__eq__", static_cast<bool(org::sem::OrgCodeEvalInput::*)(org::sem::OrgCodeEvalInput const&) const>(&org::sem::OrgCodeEvalInput::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::OrgCodeEvalInput::Var>("OrgCodeEvalInputVar")
     .property("name", &org::sem::OrgCodeEvalInput::Var::name)
     .property("value", &org::sem::OrgCodeEvalInput::Var::value)
+    .function("__eq__", static_cast<bool(org::sem::OrgCodeEvalInput::Var::*)(org::sem::OrgCodeEvalInput::Var const&) const>(&org::sem::OrgCodeEvalInput::Var::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::OrgCodeEvalInput::ResultType>("OrgCodeEvalInputResultType");
@@ -691,14 +753,17 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("args", &org::sem::OrgCodeEvalOutput::args)
     .property("cwd", &org::sem::OrgCodeEvalOutput::cwd)
     .property("appliedHeaderArg", &org::sem::OrgCodeEvalOutput::appliedHeaderArg)
+    .function("__eq__", static_cast<bool(org::sem::OrgCodeEvalOutput::*)(org::sem::OrgCodeEvalOutput const&) const>(&org::sem::OrgCodeEvalOutput::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::ColumnView>("ColumnView")
     .property("columns", &org::sem::ColumnView::columns)
+    .function("__eq__", static_cast<bool(org::sem::ColumnView::*)(org::sem::ColumnView const&) const>(&org::sem::ColumnView::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::ColumnView::Summary>("ColumnViewSummary")
     .property("data", &org::sem::ColumnView::Summary::data)
+    .function("__eq__", static_cast<bool(org::sem::ColumnView::Summary::*)(org::sem::ColumnView::Summary const&) const>(&org::sem::ColumnView::Summary::operator==))
     .function("isCheckboxAggregate", static_cast<bool(org::sem::ColumnView::Summary::*)() const>(&org::sem::ColumnView::Summary::isCheckboxAggregate))
     .function("getCheckboxAggregateConst", static_cast<org::sem::ColumnView::Summary::CheckboxAggregate const&(org::sem::ColumnView::Summary::*)() const>(&org::sem::ColumnView::Summary::getCheckboxAggregate))
     .function("getCheckboxAggregateMut", static_cast<org::sem::ColumnView::Summary::CheckboxAggregate&(org::sem::ColumnView::Summary::*)()>(&org::sem::ColumnView::Summary::getCheckboxAggregate))
@@ -711,6 +776,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::sem::ColumnView::Summary::CheckboxAggregate>("ColumnViewSummaryCheckboxAggregate")
     .property("kind", &org::sem::ColumnView::Summary::CheckboxAggregate::kind)
+    .function("__eq__", static_cast<bool(org::sem::ColumnView::Summary::CheckboxAggregate::*)(org::sem::ColumnView::Summary::CheckboxAggregate const&) const>(&org::sem::ColumnView::Summary::CheckboxAggregate::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::ColumnView::Summary::CheckboxAggregate::Kind>("ColumnViewSummaryCheckboxAggregateKind");
@@ -718,6 +784,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("kind", &org::sem::ColumnView::Summary::MathAggregate::kind)
     .property("formatDigits", &org::sem::ColumnView::Summary::MathAggregate::formatDigits)
     .property("formatPrecision", &org::sem::ColumnView::Summary::MathAggregate::formatPrecision)
+    .function("__eq__", static_cast<bool(org::sem::ColumnView::Summary::MathAggregate::*)(org::sem::ColumnView::Summary::MathAggregate const&) const>(&org::sem::ColumnView::Summary::MathAggregate::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::ColumnView::Summary::MathAggregate::Kind>("ColumnViewSummaryMathAggregateKind");
@@ -727,14 +794,17 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("width", &org::sem::ColumnView::Column::width)
     .property("property", &org::sem::ColumnView::Column::property)
     .property("propertyTitle", &org::sem::ColumnView::Column::propertyTitle)
+    .function("__eq__", static_cast<bool(org::sem::ColumnView::Column::*)(org::sem::ColumnView::Column const&) const>(&org::sem::ColumnView::Column::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::BlockCodeLine>("BlockCodeLine")
     .property("parts", &org::sem::BlockCodeLine::parts)
+    .function("__eq__", static_cast<bool(org::sem::BlockCodeLine::*)(org::sem::BlockCodeLine const&) const>(&org::sem::BlockCodeLine::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::BlockCodeLine::Part>("BlockCodeLinePart")
     .property("data", &org::sem::BlockCodeLine::Part::data)
+    .function("__eq__", static_cast<bool(org::sem::BlockCodeLine::Part::*)(org::sem::BlockCodeLine::Part const&) const>(&org::sem::BlockCodeLine::Part::operator==))
     .function("isRaw", static_cast<bool(org::sem::BlockCodeLine::Part::*)() const>(&org::sem::BlockCodeLine::Part::isRaw))
     .function("getRawConst", static_cast<org::sem::BlockCodeLine::Part::Raw const&(org::sem::BlockCodeLine::Part::*)() const>(&org::sem::BlockCodeLine::Part::getRaw))
     .function("getRawMut", static_cast<org::sem::BlockCodeLine::Part::Raw&(org::sem::BlockCodeLine::Part::*)()>(&org::sem::BlockCodeLine::Part::getRaw))
@@ -750,14 +820,17 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::sem::BlockCodeLine::Part::Raw>("BlockCodeLinePartRaw")
     .property("code", &org::sem::BlockCodeLine::Part::Raw::code)
+    .function("__eq__", static_cast<bool(org::sem::BlockCodeLine::Part::Raw::*)(org::sem::BlockCodeLine::Part::Raw const&) const>(&org::sem::BlockCodeLine::Part::Raw::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::BlockCodeLine::Part::Callout>("BlockCodeLinePartCallout")
     .property("name", &org::sem::BlockCodeLine::Part::Callout::name)
+    .function("__eq__", static_cast<bool(org::sem::BlockCodeLine::Part::Callout::*)(org::sem::BlockCodeLine::Part::Callout const&) const>(&org::sem::BlockCodeLine::Part::Callout::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::BlockCodeLine::Part::Tangle>("BlockCodeLinePartTangle")
     .property("target", &org::sem::BlockCodeLine::Part::Tangle::target)
+    .function("__eq__", static_cast<bool(org::sem::BlockCodeLine::Part::Tangle::*)(org::sem::BlockCodeLine::Part::Tangle const&) const>(&org::sem::BlockCodeLine::Part::Tangle::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::BlockCodeLine::Part::Kind>("BlockCodeLinePartKind");
@@ -795,6 +868,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("taskFiltering", &org::sem::DocumentExportConfig::taskFiltering)
     .property("archivedTrees", &org::sem::DocumentExportConfig::archivedTrees)
     .property("tocExport", &org::sem::DocumentExportConfig::tocExport)
+    .function("__eq__", static_cast<bool(org::sem::DocumentExportConfig::*)(org::sem::DocumentExportConfig const&) const>(&org::sem::DocumentExportConfig::operator==))
     .function("isDoExport", static_cast<bool(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::isDoExport))
     .function("getDoExportConst", static_cast<org::sem::DocumentExportConfig::DoExport const&(org::sem::DocumentExportConfig::*)() const>(&org::sem::DocumentExportConfig::getDoExport))
     .function("getDoExportMut", static_cast<org::sem::DocumentExportConfig::DoExport&(org::sem::DocumentExportConfig::*)()>(&org::sem::DocumentExportConfig::getDoExport))
@@ -807,6 +881,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::sem::DocumentExportConfig::TaskExport>("DocumentExportConfigTaskExport")
     .property("taskWhitelist", &org::sem::DocumentExportConfig::TaskExport::taskWhitelist)
+    .function("__eq__", static_cast<bool(org::sem::DocumentExportConfig::TaskExport::*)(org::sem::DocumentExportConfig::TaskExport const&) const>(&org::sem::DocumentExportConfig::TaskExport::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::DocumentExportConfig::TagExport>("DocumentExportConfigTagExport");
@@ -815,10 +890,12 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
   org::bind::js::bind_enum<org::sem::DocumentExportConfig::ArchivedTrees>("DocumentExportConfigArchivedTrees");
   emscripten::class_<org::sem::DocumentExportConfig::DoExport>("DocumentExportConfigDoExport")
     .property("exportToc", &org::sem::DocumentExportConfig::DoExport::exportToc)
+    .function("__eq__", static_cast<bool(org::sem::DocumentExportConfig::DoExport::*)(org::sem::DocumentExportConfig::DoExport const&) const>(&org::sem::DocumentExportConfig::DoExport::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::DocumentExportConfig::ExportFixed>("DocumentExportConfigExportFixed")
     .property("exportLevels", &org::sem::DocumentExportConfig::ExportFixed::exportLevels)
+    .function("__eq__", static_cast<bool(org::sem::DocumentExportConfig::ExportFixed::*)(org::sem::DocumentExportConfig::ExportFixed const&) const>(&org::sem::DocumentExportConfig::ExportFixed::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::DocumentExportConfig::TocExportKind>("DocumentExportConfigTocExportKind");
@@ -826,6 +903,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .property("kind", &org::sem::SubtreePeriod::kind)
     .property("from", &org::sem::SubtreePeriod::from)
     .property("to", &org::sem::SubtreePeriod::to)
+    .function("__eq__", static_cast<bool(org::sem::SubtreePeriod::*)(org::sem::SubtreePeriod const&) const>(&org::sem::SubtreePeriod::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::SubtreePeriod::Kind>("SubtreePeriodKind");
@@ -834,6 +912,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     .function("isMatching", static_cast<bool(org::sem::NamedProperty::*)(hstd::Str const&, hstd::Opt<hstd::Str> const&) const>(&org::sem::NamedProperty::isMatching))
     .function("getName", static_cast<hstd::Str(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getName))
     .function("getSubKind", static_cast<hstd::Opt<hstd::Str>(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getSubKind))
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::*)(org::sem::NamedProperty const&) const>(&org::sem::NamedProperty::operator==))
     .function("isNonblocking", static_cast<bool(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::isNonblocking))
     .function("getNonblockingConst", static_cast<org::sem::NamedProperty::Nonblocking const&(org::sem::NamedProperty::*)() const>(&org::sem::NamedProperty::getNonblocking))
     .function("getNonblockingMut", static_cast<org::sem::NamedProperty::Nonblocking&(org::sem::NamedProperty::*)()>(&org::sem::NamedProperty::getNonblocking))
@@ -921,6 +1000,7 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
     ;
   emscripten::class_<org::sem::NamedProperty::Nonblocking>("NamedPropertyNonblocking")
     .property("isBlocking", &org::sem::NamedProperty::Nonblocking::isBlocking)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Nonblocking::*)(org::sem::NamedProperty::Nonblocking const&) const>(&org::sem::NamedProperty::Nonblocking::operator==))
     .constructor<>()
     ;
 }
@@ -928,119 +1008,146 @@ void subdivide_2(org::bind::js::type_registration_guard& g) {
 void subdivide_3(org::bind::js::type_registration_guard& g) {
   emscripten::class_<org::sem::NamedProperty::ArchiveTime>("NamedPropertyArchiveTime")
     .property("time", &org::sem::NamedProperty::ArchiveTime::time)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ArchiveTime::*)(org::sem::NamedProperty::ArchiveTime const&) const>(&org::sem::NamedProperty::ArchiveTime::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ArchiveFile>("NamedPropertyArchiveFile")
     .property("file", &org::sem::NamedProperty::ArchiveFile::file)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ArchiveFile::*)(org::sem::NamedProperty::ArchiveFile const&) const>(&org::sem::NamedProperty::ArchiveFile::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ArchiveOlpath>("NamedPropertyArchiveOlpath")
     .property("path", &org::sem::NamedProperty::ArchiveOlpath::path)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ArchiveOlpath::*)(org::sem::NamedProperty::ArchiveOlpath const&) const>(&org::sem::NamedProperty::ArchiveOlpath::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ArchiveTarget>("NamedPropertyArchiveTarget")
     .property("path", &org::sem::NamedProperty::ArchiveTarget::path)
     .property("pattern", &org::sem::NamedProperty::ArchiveTarget::pattern)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ArchiveTarget::*)(org::sem::NamedProperty::ArchiveTarget const&) const>(&org::sem::NamedProperty::ArchiveTarget::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ArchiveCategory>("NamedPropertyArchiveCategory")
     .property("category", &org::sem::NamedProperty::ArchiveCategory::category)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ArchiveCategory::*)(org::sem::NamedProperty::ArchiveCategory const&) const>(&org::sem::NamedProperty::ArchiveCategory::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ArchiveTodo>("NamedPropertyArchiveTodo")
     .property("todo", &org::sem::NamedProperty::ArchiveTodo::todo)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ArchiveTodo::*)(org::sem::NamedProperty::ArchiveTodo const&) const>(&org::sem::NamedProperty::ArchiveTodo::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::Trigger>("NamedPropertyTrigger")
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Trigger::*)(org::sem::NamedProperty::Trigger const&) const>(&org::sem::NamedProperty::Trigger::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ExportLatexClass>("NamedPropertyExportLatexClass")
     .property("latexClass", &org::sem::NamedProperty::ExportLatexClass::latexClass)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ExportLatexClass::*)(org::sem::NamedProperty::ExportLatexClass const&) const>(&org::sem::NamedProperty::ExportLatexClass::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::CookieData>("NamedPropertyCookieData")
     .property("isRecursive", &org::sem::NamedProperty::CookieData::isRecursive)
     .property("source", &org::sem::NamedProperty::CookieData::source)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::CookieData::*)(org::sem::NamedProperty::CookieData const&) const>(&org::sem::NamedProperty::CookieData::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ExportLatexClassOptions>("NamedPropertyExportLatexClassOptions")
     .property("options", &org::sem::NamedProperty::ExportLatexClassOptions::options)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ExportLatexClassOptions::*)(org::sem::NamedProperty::ExportLatexClassOptions const&) const>(&org::sem::NamedProperty::ExportLatexClassOptions::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ExportLatexHeader>("NamedPropertyExportLatexHeader")
     .property("header", &org::sem::NamedProperty::ExportLatexHeader::header)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ExportLatexHeader::*)(org::sem::NamedProperty::ExportLatexHeader const&) const>(&org::sem::NamedProperty::ExportLatexHeader::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::ExportLatexCompiler>("NamedPropertyExportLatexCompiler")
     .property("compiler", &org::sem::NamedProperty::ExportLatexCompiler::compiler)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ExportLatexCompiler::*)(org::sem::NamedProperty::ExportLatexCompiler const&) const>(&org::sem::NamedProperty::ExportLatexCompiler::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::Ordered>("NamedPropertyOrdered")
     .property("isOrdered", &org::sem::NamedProperty::Ordered::isOrdered)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Ordered::*)(org::sem::NamedProperty::Ordered const&) const>(&org::sem::NamedProperty::Ordered::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::Effort>("NamedPropertyEffort")
     .property("hours", &org::sem::NamedProperty::Effort::hours)
     .property("minutes", &org::sem::NamedProperty::Effort::minutes)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Effort::*)(org::sem::NamedProperty::Effort const&) const>(&org::sem::NamedProperty::Effort::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::Visibility>("NamedPropertyVisibility")
     .property("level", &org::sem::NamedProperty::Visibility::level)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Visibility::*)(org::sem::NamedProperty::Visibility const&) const>(&org::sem::NamedProperty::Visibility::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::NamedProperty::Visibility::Level>("NamedPropertyVisibilityLevel");
   emscripten::class_<org::sem::NamedProperty::ExportOptions>("NamedPropertyExportOptions")
     .property("backend", &org::sem::NamedProperty::ExportOptions::backend)
     .property("values", &org::sem::NamedProperty::ExportOptions::values)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::ExportOptions::*)(org::sem::NamedProperty::ExportOptions const&) const>(&org::sem::NamedProperty::ExportOptions::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::Blocker>("NamedPropertyBlocker")
     .property("blockers", &org::sem::NamedProperty::Blocker::blockers)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Blocker::*)(org::sem::NamedProperty::Blocker const&) const>(&org::sem::NamedProperty::Blocker::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::Unnumbered>("NamedPropertyUnnumbered")
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Unnumbered::*)(org::sem::NamedProperty::Unnumbered const&) const>(&org::sem::NamedProperty::Unnumbered::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::Created>("NamedPropertyCreated")
     .property("time", &org::sem::NamedProperty::Created::time)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::Created::*)(org::sem::NamedProperty::Created const&) const>(&org::sem::NamedProperty::Created::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::RadioId>("NamedPropertyRadioId")
     .property("words", &org::sem::NamedProperty::RadioId::words)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::RadioId::*)(org::sem::NamedProperty::RadioId const&) const>(&org::sem::NamedProperty::RadioId::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::HashtagDef>("NamedPropertyHashtagDef")
     .property("hashtag", &org::sem::NamedProperty::HashtagDef::hashtag)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::HashtagDef::*)(org::sem::NamedProperty::HashtagDef const&) const>(&org::sem::NamedProperty::HashtagDef::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::CustomArgs>("NamedPropertyCustomArgs")
     .property("name", &org::sem::NamedProperty::CustomArgs::name)
     .property("sub", &org::sem::NamedProperty::CustomArgs::sub)
     .property("attrs", &org::sem::NamedProperty::CustomArgs::attrs)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::CustomArgs::*)(org::sem::NamedProperty::CustomArgs const&) const>(&org::sem::NamedProperty::CustomArgs::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::CustomRaw>("NamedPropertyCustomRaw")
     .property("name", &org::sem::NamedProperty::CustomRaw::name)
     .property("value", &org::sem::NamedProperty::CustomRaw::value)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::CustomRaw::*)(org::sem::NamedProperty::CustomRaw const&) const>(&org::sem::NamedProperty::CustomRaw::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::CustomId>("NamedPropertyCustomId")
     .property("value", &org::sem::NamedProperty::CustomId::value)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::CustomId::*)(org::sem::NamedProperty::CustomId const&) const>(&org::sem::NamedProperty::CustomId::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::CustomSubtreeJson>("NamedPropertyCustomSubtreeJson")
     .property("name", &org::sem::NamedProperty::CustomSubtreeJson::name)
     .property("value", &org::sem::NamedProperty::CustomSubtreeJson::value)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::CustomSubtreeJson::*)(org::sem::NamedProperty::CustomSubtreeJson const&) const>(&org::sem::NamedProperty::CustomSubtreeJson::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::NamedProperty::CustomSubtreeFlags>("NamedPropertyCustomSubtreeFlags")
     .property("name", &org::sem::NamedProperty::CustomSubtreeFlags::name)
     .property("value", &org::sem::NamedProperty::CustomSubtreeFlags::value)
+    .function("__eq__", static_cast<bool(org::sem::NamedProperty::CustomSubtreeFlags::*)(org::sem::NamedProperty::CustomSubtreeFlags const&) const>(&org::sem::NamedProperty::CustomSubtreeFlags::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::NamedProperty::Kind>("NamedPropertyKind");
   emscripten::class_<org::sem::OrgDiagnostics>("OrgDiagnostics")
     .property("data", &org::sem::OrgDiagnostics::data)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::*)(org::sem::OrgDiagnostics const&) const>(&org::sem::OrgDiagnostics::operator==))
     .function("isParseTokenError", static_cast<bool(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::isParseTokenError))
     .function("getParseTokenErrorConst", static_cast<org::sem::OrgDiagnostics::ParseTokenError const&(org::sem::OrgDiagnostics::*)() const>(&org::sem::OrgDiagnostics::getParseTokenError))
     .function("getParseTokenErrorMut", static_cast<org::sem::OrgDiagnostics::ParseTokenError&(org::sem::OrgDiagnostics::*)()>(&org::sem::OrgDiagnostics::getParseTokenError))
@@ -1070,6 +1177,7 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("loc", &org::sem::OrgDiagnostics::ParseTokenError::loc)
     .property("errName", &org::sem::OrgDiagnostics::ParseTokenError::errName)
     .property("errCode", &org::sem::OrgDiagnostics::ParseTokenError::errCode)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ParseTokenError::*)(org::sem::OrgDiagnostics::ParseTokenError const&) const>(&org::sem::OrgDiagnostics::ParseTokenError::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::OrgDiagnostics::ParseError>("OrgDiagnosticsParseError")
@@ -1080,12 +1188,14 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("errName", &org::sem::OrgDiagnostics::ParseError::errName)
     .property("errCode", &org::sem::OrgDiagnostics::ParseError::errCode)
     .property("loc", &org::sem::OrgDiagnostics::ParseError::loc)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ParseError::*)(org::sem::OrgDiagnostics::ParseError const&) const>(&org::sem::OrgDiagnostics::ParseError::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::OrgDiagnostics::IncludeError>("OrgDiagnosticsIncludeError")
     .property("brief", &org::sem::OrgDiagnostics::IncludeError::brief)
     .property("targetPath", &org::sem::OrgDiagnostics::IncludeError::targetPath)
     .property("workingFile", &org::sem::OrgDiagnostics::IncludeError::workingFile)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::IncludeError::*)(org::sem::OrgDiagnostics::IncludeError const&) const>(&org::sem::OrgDiagnostics::IncludeError::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::OrgDiagnostics::ConvertError>("OrgDiagnosticsConvertError")
@@ -1097,6 +1207,7 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("errName", &org::sem::OrgDiagnostics::ConvertError::errName)
     .property("errCode", &org::sem::OrgDiagnostics::ConvertError::errCode)
     .property("loc", &org::sem::OrgDiagnostics::ConvertError::loc)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::ConvertError::*)(org::sem::OrgDiagnostics::ConvertError const&) const>(&org::sem::OrgDiagnostics::ConvertError::operator==))
     .constructor<>()
     ;
   emscripten::class_<org::sem::OrgDiagnostics::InternalError>("OrgDiagnosticsInternalError")
@@ -1105,6 +1216,7 @@ void subdivide_3(org::bind::js::type_registration_guard& g) {
     .property("line", &org::sem::OrgDiagnostics::InternalError::line)
     .property("file", &org::sem::OrgDiagnostics::InternalError::file)
     .property("loc", &org::sem::OrgDiagnostics::InternalError::loc)
+    .function("__eq__", static_cast<bool(org::sem::OrgDiagnostics::InternalError::*)(org::sem::OrgDiagnostics::InternalError const&) const>(&org::sem::OrgDiagnostics::InternalError::operator==))
     .constructor<>()
     ;
   org::bind::js::bind_enum<org::sem::OrgDiagnostics::Kind>("OrgDiagnosticsKind");
