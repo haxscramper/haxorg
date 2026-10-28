@@ -16,6 +16,7 @@ struct LispCode {
     BOOST_DESCRIBE_CLASS(Call, (), (), (), (name, args));
     hstd::Str name;
     hstd::Vec<org::sem::LispCode> args;
+    Call(hstd::Str const& name, hstd::Vec<org::sem::LispCode> const& args = {}) : name{name}, args{args} {  }
     Call() {  }
     bool operator==(org::sem::LispCode::Call const& other) const;
   };
@@ -23,6 +24,7 @@ struct LispCode {
   struct Quoted {
     BOOST_DESCRIBE_CLASS(Quoted, (), (), (), (items));
     hstd::Vec<org::sem::LispCode> items;
+    Quoted(hstd::Vec<org::sem::LispCode> const& items) : items{items} {  }
     Quoted() {  }
     bool operator==(org::sem::LispCode::Quoted const& other) const;
   };
@@ -30,6 +32,7 @@ struct LispCode {
   struct List {
     BOOST_DESCRIBE_CLASS(List, (), (), (), (items));
     hstd::Vec<org::sem::LispCode> items;
+    List(hstd::Vec<org::sem::LispCode> const& items) : items{items} {  }
     List() {  }
     bool operator==(org::sem::LispCode::List const& other) const;
   };
@@ -37,6 +40,7 @@ struct LispCode {
   struct Vector {
     BOOST_DESCRIBE_CLASS(Vector, (), (), (), (items));
     hstd::Vec<org::sem::LispCode> items;
+    Vector(hstd::Vec<org::sem::LispCode> const& items) : items{items} {  }
     Vector() {  }
     bool operator==(org::sem::LispCode::Vector const& other) const;
   };
@@ -45,6 +49,7 @@ struct LispCode {
     BOOST_DESCRIBE_CLASS(KeyValue, (), (), (), (name, value));
     hstd::Str name;
     hstd::Vec<org::sem::LispCode> value;
+    KeyValue(hstd::Str const& name, hstd::Vec<org::sem::LispCode> const& value = {}) : name{name}, value{value} {  }
     KeyValue() {  }
     bool operator==(org::sem::LispCode::KeyValue const& other) const;
   };
@@ -52,6 +57,7 @@ struct LispCode {
   struct Number {
     BOOST_DESCRIBE_CLASS(Number, (), (), (), (value));
     int value = 0;
+    Number(int const& value) : value{value} {  }
     Number() {  }
     bool operator==(org::sem::LispCode::Number const& other) const;
   };
@@ -59,6 +65,7 @@ struct LispCode {
   struct Text {
     BOOST_DESCRIBE_CLASS(Text, (), (), (), (value));
     hstd::Str value;
+    Text(hstd::Str const& value) : value{value} {  }
     Text() {  }
     bool operator==(org::sem::LispCode::Text const& other) const;
   };
@@ -66,6 +73,7 @@ struct LispCode {
   struct Ident {
     BOOST_DESCRIBE_CLASS(Ident, (), (), (), (name));
     hstd::Str name;
+    Ident(hstd::Str const& name) : name{name} {  }
     Ident() {  }
     bool operator==(org::sem::LispCode::Ident const& other) const;
   };
@@ -73,6 +81,7 @@ struct LispCode {
   struct Boolean {
     BOOST_DESCRIBE_CLASS(Boolean, (), (), (), (value));
     bool value = false;
+    Boolean(bool const& value) : value{value} {  }
     Boolean() {  }
     bool operator==(org::sem::LispCode::Boolean const& other) const;
   };
@@ -80,6 +89,7 @@ struct LispCode {
   struct Real {
     BOOST_DESCRIBE_CLASS(Real, (), (), (), (value));
     float value;
+    Real(float const& value) : value{value} {  }
     Real() {  }
     bool operator==(org::sem::LispCode::Real const& other) const;
   };
@@ -134,6 +144,7 @@ struct TimeValue {
   struct FixedTime {
     BOOST_DESCRIBE_CLASS(FixedTime, (), (), (), (time));
     hstd::UserTime time;
+    FixedTime(hstd::UserTime const& time) : time{time} {  }
     FixedTime() {  }
     bool operator==(org::sem::TimeValue::FixedTime const& other) const;
   };
@@ -141,6 +152,7 @@ struct TimeValue {
   struct DynamicTime {
     BOOST_DESCRIBE_CLASS(DynamicTime, (), (), (), (time));
     org::sem::LispCode time;
+    DynamicTime(org::sem::LispCode const& time) : time{time} {  }
     DynamicTime() {  }
     bool operator==(org::sem::TimeValue::DynamicTime const& other) const;
   };
@@ -153,7 +165,6 @@ struct TimeValue {
   BOOST_DESCRIBE_CLASS(TimeValue, (), (), (), (isActive, data));
   bool isActive = false;
   org::sem::TimeValue::Data data;
-  TimeValue() {  }
   bool operator==(org::sem::TimeValue const& other) const;
   bool isFixedTime() const { return getKind() == Kind::FixedTime; }
   org::sem::TimeValue::FixedTime const& getFixedTime() const { return hstd::variant_get<0>(data); }
@@ -175,6 +186,7 @@ struct Tblfm {
         struct Index {
           BOOST_DESCRIBE_CLASS(Index, (), (), (), (index));
           int index;
+          Index(int const& index) : index{index} {  }
           Index() {  }
           bool operator==(org::sem::Tblfm::Expr::AxisRef::Position::Index const& other) const;
         };
@@ -182,6 +194,7 @@ struct Tblfm {
         struct Name {
           BOOST_DESCRIBE_CLASS(Name, (), (), (), (name));
           hstd::Str name;
+          Name(hstd::Str const& name) : name{name} {  }
           Name() {  }
           bool operator==(org::sem::Tblfm::Expr::AxisRef::Position::Name const& other) const;
         };
@@ -193,6 +206,7 @@ struct Tblfm {
         using variant_data_type = org::sem::Tblfm::Expr::AxisRef::Position::Data;
         BOOST_DESCRIBE_CLASS(Position, (), (), (), (data));
         org::sem::Tblfm::Expr::AxisRef::Position::Data data;
+        Position(org::sem::Tblfm::Expr::AxisRef::Position::Data const& data) : data{data} {  }
         Position() {  }
         bool operator==(org::sem::Tblfm::Expr::AxisRef::Position const& other) const;
         bool isIndex() const { return getKind() == Kind::Index; }
@@ -211,6 +225,7 @@ struct Tblfm {
       BOOST_DESCRIBE_CLASS(AxisRef, (), (), (), (col, row));
       org::sem::Tblfm::Expr::AxisRef::Position col;
       hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position> row = std::nullopt;
+      AxisRef(org::sem::Tblfm::Expr::AxisRef::Position const& col, hstd::Opt<org::sem::Tblfm::Expr::AxisRef::Position> const& row = std::nullopt) : col{col}, row{row} {  }
       AxisRef() {  }
       bool operator==(org::sem::Tblfm::Expr::AxisRef const& other) const;
     };
@@ -218,6 +233,7 @@ struct Tblfm {
     struct AxisName {
       BOOST_DESCRIBE_CLASS(AxisName, (), (), (), (name));
       hstd::Str name;
+      AxisName(hstd::Str const& name) : name{name} {  }
       AxisName() {  }
       bool operator==(org::sem::Tblfm::Expr::AxisName const& other) const;
     };
@@ -225,6 +241,7 @@ struct Tblfm {
     struct IntLiteral {
       BOOST_DESCRIBE_CLASS(IntLiteral, (), (), (), (value));
       int value;
+      IntLiteral(int const& value) : value{value} {  }
       IntLiteral() {  }
       bool operator==(org::sem::Tblfm::Expr::IntLiteral const& other) const;
     };
@@ -232,6 +249,7 @@ struct Tblfm {
     struct FloatLiteral {
       BOOST_DESCRIBE_CLASS(FloatLiteral, (), (), (), (value));
       float value;
+      FloatLiteral(float const& value) : value{value} {  }
       FloatLiteral() {  }
       bool operator==(org::sem::Tblfm::Expr::FloatLiteral const& other) const;
     };
@@ -240,6 +258,7 @@ struct Tblfm {
       BOOST_DESCRIBE_CLASS(RangeRef, (), (), (), (first, last));
       hstd::Opt<org::sem::Tblfm::Expr::AxisRef> first = std::nullopt;
       hstd::Opt<org::sem::Tblfm::Expr::AxisRef> last = std::nullopt;
+      RangeRef(hstd::Opt<org::sem::Tblfm::Expr::AxisRef> const& first, hstd::Opt<org::sem::Tblfm::Expr::AxisRef> const& last = std::nullopt) : first{first}, last{last} {  }
       RangeRef() {  }
       bool operator==(org::sem::Tblfm::Expr::RangeRef const& other) const;
     };
@@ -248,6 +267,7 @@ struct Tblfm {
       BOOST_DESCRIBE_CLASS(Call, (), (), (), (name, args));
       hstd::Str name;
       hstd::Vec<org::sem::Tblfm::Expr> args;
+      Call(hstd::Str const& name, hstd::Vec<org::sem::Tblfm::Expr> const& args = {}) : name{name}, args{args} {  }
       Call() {  }
       bool operator==(org::sem::Tblfm::Expr::Call const& other) const;
     };
@@ -255,6 +275,7 @@ struct Tblfm {
     struct Elisp {
       BOOST_DESCRIBE_CLASS(Elisp, (), (), (), (value));
       hstd::Str value;
+      Elisp(hstd::Str const& value) : value{value} {  }
       Elisp() {  }
       bool operator==(org::sem::Tblfm::Expr::Elisp const& other) const;
     };
@@ -266,6 +287,7 @@ struct Tblfm {
     using variant_data_type = org::sem::Tblfm::Expr::Data;
     BOOST_DESCRIBE_CLASS(Expr, (), (), (), (data));
     org::sem::Tblfm::Expr::Data data;
+    Expr(org::sem::Tblfm::Expr::Data const& data) : data{data} {  }
     Expr() {  }
     bool operator==(org::sem::Tblfm::Expr const& other) const;
     bool isAxisRef() const { return getKind() == Kind::AxisRef; }
@@ -335,13 +357,13 @@ struct Tblfm {
     org::sem::Tblfm::Expr::AxisRef target;
     hstd::Vec<org::sem::Tblfm::Expr> expr;
     hstd::Vec<org::sem::Tblfm::Assign::Flag> flags;
+    Assign(org::sem::Tblfm::Expr::AxisRef const& target, hstd::Vec<org::sem::Tblfm::Expr> const& expr = {}, hstd::Vec<org::sem::Tblfm::Assign::Flag> const& flags = {}) : target{target}, expr{expr}, flags{flags} {  }
     Assign() {  }
     bool operator==(org::sem::Tblfm::Assign const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(Tblfm, (), (), (), (exprs));
   hstd::Vec<org::sem::Tblfm::Assign> exprs;
-  Tblfm() {  }
   bool operator==(org::sem::Tblfm const& other) const;
 };
 
@@ -350,14 +372,12 @@ struct AttrValue {
     BOOST_DESCRIBE_CLASS(DimensionSpan, (), (), (), (first, last));
     int first = 0;
     hstd::Opt<int> last = std::nullopt;
-    DimensionSpan() {  }
     bool operator==(org::sem::AttrValue::DimensionSpan const& other) const;
   };
 
   struct TextValue {
     BOOST_DESCRIBE_CLASS(TextValue, (), (), (), (value));
     hstd::Str value;
-    TextValue() {  }
     bool operator==(org::sem::AttrValue::TextValue const& other) const;
   };
 
@@ -365,14 +385,12 @@ struct AttrValue {
     BOOST_DESCRIBE_CLASS(FileReference, (), (), (), (file, reference));
     hstd::Str file;
     hstd::Str reference;
-    FileReference() {  }
     bool operator==(org::sem::AttrValue::FileReference const& other) const;
   };
 
   struct LispValue {
     BOOST_DESCRIBE_CLASS(LispValue, (), (), (), (code));
     org::sem::LispCode code;
-    LispValue() {  }
     bool operator==(org::sem::AttrValue::LispValue const& other) const;
   };
 
@@ -392,7 +410,6 @@ struct AttrValue {
   hstd::Opt<int> getInt() const;
   hstd::Str getString() const;
   hstd::Opt<double> getDouble() const;
-  AttrValue() {  }
   bool operator==(org::sem::AttrValue const& other) const;
   bool isTextValue() const { return getKind() == Kind::TextValue; }
   org::sem::AttrValue::TextValue const& getTextValue() const { return hstd::variant_get<0>(data); }
@@ -414,7 +431,6 @@ struct HashTagFlat {
   BOOST_DESCRIBE_CLASS(HashTagFlat, (), (), (), (tags));
   hstd::Vec<hstd::Str> tags;
   bool operator<(org::sem::HashTagFlat const& other) const;
-  HashTagFlat() {  }
   bool operator==(org::sem::HashTagFlat const& other) const;
 };
 
@@ -426,7 +442,6 @@ struct TodoKeyword {
   hstd::Opt<hstd::Str> shortcut = std::nullopt;
   org::sem::TodoKeyword::Transition onEnter;
   org::sem::TodoKeyword::Transition onLeave;
-  TodoKeyword() {  }
   bool operator==(org::sem::TodoKeyword const& other) const;
 };
 
@@ -441,14 +456,12 @@ struct HashTagText {
   bool prefixMatch(hstd::Vec<hstd::Str> const& prefix) const;
   /// \brief Get flat list of expanded hashtags
   hstd::Vec<org::sem::HashTagFlat> getFlatHashes(bool withIntermediate = true) const;
-  HashTagText() {  }
   bool operator==(org::sem::HashTagText const& other) const;
 };
 
 struct SubtreePath {
   BOOST_DESCRIBE_CLASS(SubtreePath, (), (), (), (path));
   hstd::Vec<hstd::Str> path;
-  SubtreePath() {  }
   bool operator==(org::sem::SubtreePath const& other) const;
 };
 
@@ -456,21 +469,18 @@ struct LinkTarget {
   struct Raw {
     BOOST_DESCRIBE_CLASS(Raw, (), (), (), (text));
     hstd::Str text;
-    Raw() {  }
     bool operator==(org::sem::LinkTarget::Raw const& other) const;
   };
 
   struct Id {
     BOOST_DESCRIBE_CLASS(Id, (), (), (), (text));
     hstd::Str text;
-    Id() {  }
     bool operator==(org::sem::LinkTarget::Id const& other) const;
   };
 
   struct CustomId {
     BOOST_DESCRIBE_CLASS(CustomId, (), (), (), (text));
     hstd::Str text;
-    CustomId() {  }
     bool operator==(org::sem::LinkTarget::CustomId const& other) const;
   };
 
@@ -478,14 +488,12 @@ struct LinkTarget {
     BOOST_DESCRIBE_CLASS(SubtreeTitle, (), (), (), (title, level));
     org::sem::SubtreePath title;
     int level;
-    SubtreeTitle() {  }
     bool operator==(org::sem::LinkTarget::SubtreeTitle const& other) const;
   };
 
   struct Person {
     BOOST_DESCRIBE_CLASS(Person, (), (), (), (name));
     hstd::Str name;
-    Person() {  }
     bool operator==(org::sem::LinkTarget::Person const& other) const;
   };
 
@@ -493,35 +501,30 @@ struct LinkTarget {
     BOOST_DESCRIBE_CLASS(UserProtocol, (), (), (), (protocol, target));
     hstd::Str protocol;
     hstd::Str target;
-    UserProtocol() {  }
     bool operator==(org::sem::LinkTarget::UserProtocol const& other) const;
   };
 
   struct Internal {
     BOOST_DESCRIBE_CLASS(Internal, (), (), (), (target));
     hstd::Str target;
-    Internal() {  }
     bool operator==(org::sem::LinkTarget::Internal const& other) const;
   };
 
   struct Footnote {
     BOOST_DESCRIBE_CLASS(Footnote, (), (), (), (target));
     hstd::Str target;
-    Footnote() {  }
     bool operator==(org::sem::LinkTarget::Footnote const& other) const;
   };
 
   struct File {
     BOOST_DESCRIBE_CLASS(File, (), (), (), (file));
     hstd::Str file;
-    File() {  }
     bool operator==(org::sem::LinkTarget::File const& other) const;
   };
 
   struct Attachment {
     BOOST_DESCRIBE_CLASS(Attachment, (), (), (), (file));
     hstd::Str file;
-    Attachment() {  }
     bool operator==(org::sem::LinkTarget::Attachment const& other) const;
   };
 
@@ -532,7 +535,6 @@ struct LinkTarget {
   using variant_data_type = org::sem::LinkTarget::Data;
   BOOST_DESCRIBE_CLASS(LinkTarget, (), (), (), (data));
   org::sem::LinkTarget::Data data;
-  LinkTarget() {  }
   bool operator==(org::sem::LinkTarget const& other) const;
   bool isRaw() const { return getKind() == Kind::Raw; }
   org::sem::LinkTarget::Raw const& getRaw() const { return hstd::variant_get<0>(data); }
@@ -593,7 +595,6 @@ struct SubtreeLogHead {
     hstd::UserTime on;
     /// \brief Which action taken
     org::sem::SubtreeLogHead::Priority::Action action;
-    Priority() {  }
     bool operator==(org::sem::SubtreeLogHead::Priority const& other) const;
   };
 
@@ -602,7 +603,6 @@ struct SubtreeLogHead {
     BOOST_DESCRIBE_CLASS(Note, (), (), (), (on));
     /// \brief Where log was taken
     hstd::UserTime on;
-    Note() {  }
     bool operator==(org::sem::SubtreeLogHead::Note const& other) const;
   };
 
@@ -613,7 +613,6 @@ struct SubtreeLogHead {
     hstd::UserTime on;
     /// \brief Link to the original subtree
     org::sem::LinkTarget from;
-    Refile() {  }
     bool operator==(org::sem::SubtreeLogHead::Refile const& other) const;
   };
 
@@ -624,7 +623,6 @@ struct SubtreeLogHead {
     hstd::UserTime from;
     /// \brief Optional end of the clock
     hstd::Opt<hstd::UserTime> to = std::nullopt;
-    Clock() {  }
     bool operator==(org::sem::SubtreeLogHead::Clock const& other) const;
   };
 
@@ -634,7 +632,6 @@ struct SubtreeLogHead {
     hstd::Str from;
     hstd::Str to;
     hstd::UserTime on;
-    State() {  }
     bool operator==(org::sem::SubtreeLogHead::State const& other) const;
   };
 
@@ -644,7 +641,6 @@ struct SubtreeLogHead {
     hstd::Opt<hstd::UserTime> from = std::nullopt;
     hstd::UserTime to;
     hstd::UserTime on;
-    Deadline() {  }
     bool operator==(org::sem::SubtreeLogHead::Deadline const& other) const;
   };
 
@@ -654,7 +650,6 @@ struct SubtreeLogHead {
     hstd::Opt<hstd::UserTime> from = std::nullopt;
     hstd::UserTime to;
     hstd::UserTime on;
-    Schedule() {  }
     bool operator==(org::sem::SubtreeLogHead::Schedule const& other) const;
   };
 
@@ -667,14 +662,12 @@ struct SubtreeLogHead {
     org::sem::HashTagText tag;
     /// \brief Added/removed?
     bool added = false;
-    Tag() {  }
     bool operator==(org::sem::SubtreeLogHead::Tag const& other) const;
   };
 
   /// \brief Unknown subtree log entry kind
   struct Unknown {
     BOOST_DESCRIBE_CLASS(Unknown, (), (), (), ());
-    Unknown() {  }
     bool operator==(org::sem::SubtreeLogHead::Unknown const& other) const;
   };
 
@@ -685,6 +678,7 @@ struct SubtreeLogHead {
   using variant_data_type = org::sem::SubtreeLogHead::LogEntry;
   BOOST_DESCRIBE_CLASS(SubtreeLogHead, (), (), (), (log));
   org::sem::SubtreeLogHead::LogEntry log = Note{};
+  SubtreeLogHead(org::sem::SubtreeLogHead::LogEntry const& log) : log{log} {  }
   SubtreeLogHead() {  }
   bool operator==(org::sem::SubtreeLogHead const& other) const;
   bool isPriority() const { return getLogKind() == Kind::Priority; }
@@ -730,14 +724,12 @@ struct SubtreeCompletion {
   int full = 0;
   /// \brief Use fraction or percent to display completion
   bool isPercent = false;
-  SubtreeCompletion() {  }
   bool operator==(org::sem::SubtreeCompletion const& other) const;
 };
 
 struct AttrList {
   BOOST_DESCRIBE_CLASS(AttrList, (), (), (), (items));
   hstd::Vec<org::sem::AttrValue> items;
-  AttrList() {  }
   bool operator==(org::sem::AttrList const& other) const;
 };
 
@@ -765,7 +757,6 @@ struct AttrGroup {
   hstd::Opt<org::sem::AttrValue> getFirstVarNamed(hstd::Str const& index) const;
   org::sem::AttrValue const& atFirstNamed(hstd::Str const& index) const;
   hstd::Opt<org::sem::AttrValue> getFirstNamed(hstd::Str const& index) const;
-  AttrGroup() {  }
   bool operator==(org::sem::AttrGroup const& other) const;
 };
 
@@ -774,6 +765,7 @@ struct OrgCodeEvalInput {
     BOOST_DESCRIBE_CLASS(Var, (), (), (), (name, value));
     hstd::Str name;
     org::sem::OrgJson value;
+    Var(hstd::Str const& name, org::sem::OrgJson const& value = {}) : name{name}, value{value} {  }
     Var() {  }
     bool operator==(org::sem::OrgCodeEvalInput::Var const& other) const;
   };
@@ -825,7 +817,6 @@ struct OrgCodeEvalInput {
   hstd::Str language;
   hstd::Vec<org::sem::OrgCodeEvalInput::Var> argList;
   hstd::Opt<org::sem::OrgCodeEvalInput::Var> getVariable(hstd::Str const& name) const;
-  OrgCodeEvalInput() {  }
   bool operator==(org::sem::OrgCodeEvalInput const& other) const;
 };
 
@@ -849,7 +840,6 @@ struct OrgCodeEvalOutput {
   hstd::Str cwd;
   /// \brief Final set of header arguments applied during evaluation
   org::sem::AttrGroup appliedHeaderArg;
-  OrgCodeEvalOutput() {  }
   bool operator==(org::sem::OrgCodeEvalOutput const& other) const;
 };
 
@@ -860,7 +850,6 @@ struct ColumnView {
       BOOST_DESCRIBE_NESTED_ENUM(Kind, IfAllNested, AggregateFractionRec, AggregatePercentRec)
       BOOST_DESCRIBE_CLASS(CheckboxAggregate, (), (), (), (kind));
       org::sem::ColumnView::Summary::CheckboxAggregate::Kind kind;
-      CheckboxAggregate() {  }
       bool operator==(org::sem::ColumnView::Summary::CheckboxAggregate const& other) const;
     };
 
@@ -871,7 +860,6 @@ struct ColumnView {
       org::sem::ColumnView::Summary::MathAggregate::Kind kind;
       hstd::Opt<int> formatDigits = std::nullopt;
       hstd::Opt<int> formatPrecision = std::nullopt;
-      MathAggregate() {  }
       bool operator==(org::sem::ColumnView::Summary::MathAggregate const& other) const;
     };
 
@@ -882,7 +870,6 @@ struct ColumnView {
     using variant_data_type = org::sem::ColumnView::Summary::Data;
     BOOST_DESCRIBE_CLASS(Summary, (), (), (), (data));
     org::sem::ColumnView::Summary::Data data;
-    Summary() {  }
     bool operator==(org::sem::ColumnView::Summary const& other) const;
     bool isCheckboxAggregate() const { return getKind() == Kind::CheckboxAggregate; }
     org::sem::ColumnView::Summary::CheckboxAggregate const& getCheckboxAggregate() const { return hstd::variant_get<0>(data); }
@@ -903,13 +890,11 @@ struct ColumnView {
     hstd::Opt<int> width = std::nullopt;
     hstd::Opt<hstd::Str> property = std::nullopt;
     hstd::Opt<hstd::Str> propertyTitle = std::nullopt;
-    Column() {  }
     bool operator==(org::sem::ColumnView::Column const& other) const;
   };
 
   BOOST_DESCRIBE_CLASS(ColumnView, (), (), (), (columns));
   hstd::Vec<org::sem::ColumnView::Column> columns;
-  ColumnView() {  }
   bool operator==(org::sem::ColumnView const& other) const;
 };
 
@@ -918,21 +903,18 @@ struct BlockCodeLine {
     struct Raw {
       BOOST_DESCRIBE_CLASS(Raw, (), (), (), (code));
       hstd::Str code;
-      Raw() {  }
       bool operator==(org::sem::BlockCodeLine::Part::Raw const& other) const;
     };
 
     struct Callout {
       BOOST_DESCRIBE_CLASS(Callout, (), (), (), (name));
       hstd::Str name;
-      Callout() {  }
       bool operator==(org::sem::BlockCodeLine::Part::Callout const& other) const;
     };
 
     struct Tangle {
       BOOST_DESCRIBE_CLASS(Tangle, (), (), (), (target));
       hstd::Str target;
-      Tangle() {  }
       bool operator==(org::sem::BlockCodeLine::Part::Tangle const& other) const;
     };
 
@@ -943,7 +925,6 @@ struct BlockCodeLine {
     using variant_data_type = org::sem::BlockCodeLine::Part::Data;
     BOOST_DESCRIBE_CLASS(Part, (), (), (), (data));
     org::sem::BlockCodeLine::Part::Data data;
-    Part() {  }
     bool operator==(org::sem::BlockCodeLine::Part const& other) const;
     bool isRaw() const { return getKind() == Kind::Raw; }
     org::sem::BlockCodeLine::Part::Raw const& getRaw() const { return hstd::variant_get<0>(data); }
@@ -964,7 +945,6 @@ struct BlockCodeLine {
   BOOST_DESCRIBE_CLASS(BlockCodeLine, (), (), (), (parts));
   /// \brief parts of the single line
   hstd::Vec<org::sem::BlockCodeLine::Part> parts;
-  BlockCodeLine() {  }
   bool operator==(org::sem::BlockCodeLine const& other) const;
 };
 
@@ -972,6 +952,7 @@ struct DocumentExportConfig {
   struct TaskExport {
     BOOST_DESCRIBE_CLASS(TaskExport, (), (), (), (taskWhitelist));
     hstd::Vec<hstd::Str> taskWhitelist;
+    TaskExport(hstd::Vec<hstd::Str> const& taskWhitelist) : taskWhitelist{taskWhitelist} {  }
     TaskExport() {  }
     bool operator==(org::sem::DocumentExportConfig::TaskExport const& other) const;
   };
@@ -1009,11 +990,13 @@ struct DocumentExportConfig {
   struct DoExport {
     BOOST_DESCRIBE_CLASS(DoExport, (), (), (), (exportToc));
     bool exportToc;
+    bool operator==(org::sem::DocumentExportConfig::DoExport const& other) const;
   };
 
   struct ExportFixed {
     BOOST_DESCRIBE_CLASS(ExportFixed, (), (), (), (exportLevels));
     int exportLevels;
+    bool operator==(org::sem::DocumentExportConfig::ExportFixed const& other) const;
   };
 
   using TocExport = std::variant<org::sem::DocumentExportConfig::DoExport, org::sem::DocumentExportConfig::ExportFixed>;
@@ -1115,6 +1098,7 @@ struct DocumentExportConfig {
   org::sem::DocumentExportConfig::TaskFiltering taskFiltering = TaskFiltering::All;
   org::sem::DocumentExportConfig::ArchivedTrees archivedTrees = ArchivedTrees::Headline;
   org::sem::DocumentExportConfig::TocExport tocExport;
+  DocumentExportConfig(hstd::Opt<bool> const& inlinetasks, hstd::Opt<bool> const& footnotes = std::nullopt, hstd::Opt<bool> const& clock = std::nullopt, hstd::Opt<bool> const& author = std::nullopt, hstd::Opt<bool> const& emphasis = std::nullopt, hstd::Opt<bool> const& specialStrings = std::nullopt, hstd::Opt<bool> const& propertyDrawers = std::nullopt, hstd::Opt<bool> const& statisticsCookies = std::nullopt, hstd::Opt<bool> const& todoText = std::nullopt, hstd::Opt<bool> const& smartQuotes = std::nullopt, hstd::Opt<bool> const& fixedWidth = std::nullopt, hstd::Opt<bool> const& timestamps = std::nullopt, hstd::Opt<bool> const& preserveBreaks = std::nullopt, hstd::Opt<bool> const& subSuperscripts = std::nullopt, hstd::Opt<bool> const& expandLinks = std::nullopt, hstd::Opt<bool> const& creator = std::nullopt, hstd::Opt<bool> const& drawers = std::nullopt, hstd::Opt<bool> const& date = std::nullopt, hstd::Opt<bool> const& entities = std::nullopt, hstd::Opt<bool> const& email = std::nullopt, hstd::Opt<bool> const& sectionNumbers = std::nullopt, hstd::Opt<bool> const& planning = std::nullopt, hstd::Opt<bool> const& priority = std::nullopt, hstd::Opt<bool> const& latex = std::nullopt, hstd::Opt<bool> const& timestamp = std::nullopt, hstd::Opt<bool> const& title = std::nullopt, hstd::Opt<bool> const& tables = std::nullopt, hstd::Opt<int> const& headlineLevels = std::nullopt, org::sem::DocumentExportConfig::BrokenLinks const& brokenLinks = {}, org::sem::DocumentExportConfig::TagExport const& tagExport = {}, org::sem::DocumentExportConfig::TaskFiltering const& taskFiltering = {}, org::sem::DocumentExportConfig::ArchivedTrees const& archivedTrees = {}, org::sem::DocumentExportConfig::TocExport const& tocExport = {}) : inlinetasks{inlinetasks}, footnotes{footnotes}, clock{clock}, author{author}, emphasis{emphasis}, specialStrings{specialStrings}, propertyDrawers{propertyDrawers}, statisticsCookies{statisticsCookies}, todoText{todoText}, smartQuotes{smartQuotes}, fixedWidth{fixedWidth}, timestamps{timestamps}, preserveBreaks{preserveBreaks}, subSuperscripts{subSuperscripts}, expandLinks{expandLinks}, creator{creator}, drawers{drawers}, date{date}, entities{entities}, email{email}, sectionNumbers{sectionNumbers}, planning{planning}, priority{priority}, latex{latex}, timestamp{timestamp}, title{title}, tables{tables}, headlineLevels{headlineLevels}, brokenLinks{brokenLinks}, tagExport{tagExport}, taskFiltering{taskFiltering}, archivedTrees{archivedTrees}, tocExport{tocExport} {  }
   DocumentExportConfig() {  }
   bool operator==(org::sem::DocumentExportConfig const& other) const;
   bool isDoExport() const { return getTocExportKind() == TocExportKind::DoExport; }
@@ -1157,6 +1141,7 @@ struct SubtreePeriod {
   hstd::UserTime from;
   /// \brief Optional end of the clock
   hstd::Opt<hstd::UserTime> to = std::nullopt;
+  SubtreePeriod(org::sem::SubtreePeriod::Kind const& kind, hstd::UserTime const& from = {}, hstd::Opt<hstd::UserTime> const& to = std::nullopt) : kind{kind}, from{from}, to{to} {  }
   SubtreePeriod() {  }
   bool operator==(org::sem::SubtreePeriod const& other) const;
 };
@@ -1166,6 +1151,7 @@ struct NamedProperty {
   struct Nonblocking {
     BOOST_DESCRIBE_CLASS(Nonblocking, (), (), (), (isBlocking));
     bool isBlocking;
+    Nonblocking(bool const& isBlocking) : isBlocking{isBlocking} {  }
     Nonblocking() {  }
     bool operator==(org::sem::NamedProperty::Nonblocking const& other) const;
   };
@@ -1173,6 +1159,7 @@ struct NamedProperty {
   struct ArchiveTime {
     BOOST_DESCRIBE_CLASS(ArchiveTime, (), (), (), (time));
     hstd::UserTime time;
+    ArchiveTime(hstd::UserTime const& time) : time{time} {  }
     ArchiveTime() {  }
     bool operator==(org::sem::NamedProperty::ArchiveTime const& other) const;
   };
@@ -1180,14 +1167,12 @@ struct NamedProperty {
   struct ArchiveFile {
     BOOST_DESCRIBE_CLASS(ArchiveFile, (), (), (), (file));
     hstd::Str file;
-    ArchiveFile() {  }
     bool operator==(org::sem::NamedProperty::ArchiveFile const& other) const;
   };
 
   struct ArchiveOlpath {
     BOOST_DESCRIBE_CLASS(ArchiveOlpath, (), (), (), (path));
     org::sem::SubtreePath path;
-    ArchiveOlpath() {  }
     bool operator==(org::sem::NamedProperty::ArchiveOlpath const& other) const;
   };
 
@@ -1195,32 +1180,29 @@ struct NamedProperty {
     BOOST_DESCRIBE_CLASS(ArchiveTarget, (), (), (), (path, pattern));
     org::sem::SubtreePath path;
     hstd::Str pattern;
-    ArchiveTarget() {  }
     bool operator==(org::sem::NamedProperty::ArchiveTarget const& other) const;
   };
 
   struct ArchiveCategory {
     BOOST_DESCRIBE_CLASS(ArchiveCategory, (), (), (), (category));
     hstd::Str category;
-    ArchiveCategory() {  }
     bool operator==(org::sem::NamedProperty::ArchiveCategory const& other) const;
   };
 
   struct ArchiveTodo {
     BOOST_DESCRIBE_CLASS(ArchiveTodo, (), (), (), (todo));
     hstd::Str todo;
-    ArchiveTodo() {  }
     bool operator==(org::sem::NamedProperty::ArchiveTodo const& other) const;
   };
 
   struct Trigger {
     BOOST_DESCRIBE_CLASS(Trigger, (), (), (), ());
+    bool operator==(org::sem::NamedProperty::Trigger const& other) const;
   };
 
   struct ExportLatexClass {
     BOOST_DESCRIBE_CLASS(ExportLatexClass, (), (), (), (latexClass));
     hstd::Str latexClass;
-    ExportLatexClass() {  }
     bool operator==(org::sem::NamedProperty::ExportLatexClass const& other) const;
   };
 
@@ -1229,13 +1211,13 @@ struct NamedProperty {
     BOOST_DESCRIBE_CLASS(CookieData, (), (), (), (isRecursive, source));
     bool isRecursive;
     org::sem::SubtreeTodoSource source;
-    CookieData() {  }
     bool operator==(org::sem::NamedProperty::CookieData const& other) const;
   };
 
   struct ExportLatexClassOptions {
     BOOST_DESCRIBE_CLASS(ExportLatexClassOptions, (), (), (), (options));
     hstd::Vec<hstd::Str> options;
+    ExportLatexClassOptions(hstd::Vec<hstd::Str> const& options) : options{options} {  }
     ExportLatexClassOptions() {  }
     bool operator==(org::sem::NamedProperty::ExportLatexClassOptions const& other) const;
   };
@@ -1243,6 +1225,7 @@ struct NamedProperty {
   struct ExportLatexHeader {
     BOOST_DESCRIBE_CLASS(ExportLatexHeader, (), (), (), (header));
     hstd::Str header;
+    ExportLatexHeader(hstd::Str const& header) : header{header} {  }
     ExportLatexHeader() {  }
     bool operator==(org::sem::NamedProperty::ExportLatexHeader const& other) const;
   };
@@ -1250,6 +1233,7 @@ struct NamedProperty {
   struct ExportLatexCompiler {
     BOOST_DESCRIBE_CLASS(ExportLatexCompiler, (), (), (), (compiler));
     hstd::Str compiler;
+    ExportLatexCompiler(hstd::Str const& compiler) : compiler{compiler} {  }
     ExportLatexCompiler() {  }
     bool operator==(org::sem::NamedProperty::ExportLatexCompiler const& other) const;
   };
@@ -1257,6 +1241,7 @@ struct NamedProperty {
   struct Ordered {
     BOOST_DESCRIBE_CLASS(Ordered, (), (), (), (isOrdered));
     bool isOrdered;
+    Ordered(bool const& isOrdered) : isOrdered{isOrdered} {  }
     Ordered() {  }
     bool operator==(org::sem::NamedProperty::Ordered const& other) const;
   };
@@ -1265,6 +1250,7 @@ struct NamedProperty {
     BOOST_DESCRIBE_CLASS(Effort, (), (), (), (hours, minutes));
     int hours = 0;
     int minutes = 0;
+    Effort(int const& hours, int const& minutes = 0) : hours{hours}, minutes{minutes} {  }
     Effort() {  }
     bool operator==(org::sem::NamedProperty::Effort const& other) const;
   };
@@ -1274,12 +1260,14 @@ struct NamedProperty {
     BOOST_DESCRIBE_NESTED_ENUM(Level, Folded, Children, Content, All)
     BOOST_DESCRIBE_CLASS(Visibility, (), (), (), (level));
     org::sem::NamedProperty::Visibility::Level level;
+    bool operator==(org::sem::NamedProperty::Visibility const& other) const;
   };
 
   struct ExportOptions {
     BOOST_DESCRIBE_CLASS(ExportOptions, (), (), (), (backend, values));
     hstd::Str backend;
     hstd::UnorderedMap<hstd::Str, hstd::Str> values;
+    ExportOptions(hstd::Str const& backend, hstd::UnorderedMap<hstd::Str, hstd::Str> const& values = {}) : backend{backend}, values{values} {  }
     ExportOptions() {  }
     bool operator==(org::sem::NamedProperty::ExportOptions const& other) const;
   };
@@ -1287,17 +1275,20 @@ struct NamedProperty {
   struct Blocker {
     BOOST_DESCRIBE_CLASS(Blocker, (), (), (), (blockers));
     hstd::Vec<hstd::Str> blockers;
+    Blocker(hstd::Vec<hstd::Str> const& blockers) : blockers{blockers} {  }
     Blocker() {  }
     bool operator==(org::sem::NamedProperty::Blocker const& other) const;
   };
 
   struct Unnumbered {
     BOOST_DESCRIBE_CLASS(Unnumbered, (), (), (), ());
+    bool operator==(org::sem::NamedProperty::Unnumbered const& other) const;
   };
 
   struct Created {
     BOOST_DESCRIBE_CLASS(Created, (), (), (), (time));
     org::sem::TimeValue time;
+    Created(org::sem::TimeValue const& time) : time{time} {  }
     Created() {  }
     bool operator==(org::sem::NamedProperty::Created const& other) const;
   };
@@ -1306,6 +1297,7 @@ struct NamedProperty {
   struct RadioId {
     BOOST_DESCRIBE_CLASS(RadioId, (), (), (), (words));
     hstd::Vec<hstd::Str> words;
+    RadioId(hstd::Vec<hstd::Str> const& words) : words{words} {  }
     RadioId() {  }
     bool operator==(org::sem::NamedProperty::RadioId const& other) const;
   };
@@ -1314,6 +1306,7 @@ struct NamedProperty {
   struct HashtagDef {
     BOOST_DESCRIBE_CLASS(HashtagDef, (), (), (), (hashtag));
     org::sem::HashTagText hashtag;
+    HashtagDef(org::sem::HashTagText const& hashtag) : hashtag{hashtag} {  }
     HashtagDef() {  }
     bool operator==(org::sem::NamedProperty::HashtagDef const& other) const;
   };
@@ -1327,6 +1320,7 @@ struct NamedProperty {
     hstd::Opt<hstd::Str> sub = std::nullopt;
     /// \brief Property parameters
     org::sem::AttrGroup attrs;
+    CustomArgs(hstd::Str const& name, hstd::Opt<hstd::Str> const& sub = std::nullopt, org::sem::AttrGroup const& attrs = {}) : name{name}, sub{sub}, attrs{attrs} {  }
     CustomArgs() {  }
     bool operator==(org::sem::NamedProperty::CustomArgs const& other) const;
   };
@@ -1338,6 +1332,7 @@ struct NamedProperty {
     hstd::Str name;
     /// \brief Property value
     hstd::Str value;
+    CustomRaw(hstd::Str const& name, hstd::Str const& value = {}) : name{name}, value{value} {  }
     CustomRaw() {  }
     bool operator==(org::sem::NamedProperty::CustomRaw const& other) const;
   };
@@ -1347,6 +1342,7 @@ struct NamedProperty {
     BOOST_DESCRIBE_CLASS(CustomId, (), (), (), (value));
     /// \brief Property value
     hstd::Str value;
+    CustomId(hstd::Str const& value) : value{value} {  }
     CustomId() {  }
     bool operator==(org::sem::NamedProperty::CustomId const& other) const;
   };
@@ -1356,6 +1352,7 @@ struct NamedProperty {
     BOOST_DESCRIBE_CLASS(CustomSubtreeJson, (), (), (), (name, value));
     hstd::Str name;
     org::sem::OrgJson value;
+    CustomSubtreeJson(hstd::Str const& name, org::sem::OrgJson const& value = {}) : name{name}, value{value} {  }
     CustomSubtreeJson() {  }
     bool operator==(org::sem::NamedProperty::CustomSubtreeJson const& other) const;
   };
@@ -1365,6 +1362,7 @@ struct NamedProperty {
     BOOST_DESCRIBE_CLASS(CustomSubtreeFlags, (), (), (), (name, value));
     hstd::Str name;
     org::sem::AttrGroup value;
+    CustomSubtreeFlags(hstd::Str const& name, org::sem::AttrGroup const& value = {}) : name{name}, value{value} {  }
     CustomSubtreeFlags() {  }
     bool operator==(org::sem::NamedProperty::CustomSubtreeFlags const& other) const;
   };
@@ -1374,7 +1372,6 @@ struct NamedProperty {
   BOOST_DESCRIBE_NESTED_ENUM(Kind, Nonblocking, ArchiveTime, ArchiveFile, ArchiveOlpath, ArchiveTarget, ArchiveCategory, ArchiveTodo, Trigger, ExportLatexClass, CookieData, ExportLatexClassOptions, ExportLatexHeader, ExportLatexCompiler, Ordered, Effort, Visibility, ExportOptions, Blocker, Unnumbered, Created, RadioId, HashtagDef, CustomArgs, CustomRaw, CustomId, CustomSubtreeJson, CustomSubtreeFlags)
   using variant_enum_type = org::sem::NamedProperty::Kind;
   using variant_data_type = org::sem::NamedProperty::Data;
-  NamedProperty(Data const& data) : data(data) {}
   BOOST_DESCRIBE_CLASS(NamedProperty, (), (), (), (data));
   org::sem::NamedProperty::Data data;
   /// \brief Check if property matches specified kind and optional subkind. Built-in property checking is also done with this function -- 'created' etc.
@@ -1383,7 +1380,9 @@ struct NamedProperty {
   hstd::Str getName() const;
   /// \brief Get non-normalized sub-kind for the property.
   hstd::Opt<hstd::Str> getSubKind() const;
+  NamedProperty(org::sem::NamedProperty::Data const& data) : data{data} {  }
   NamedProperty() {  }
+  bool operator==(org::sem::NamedProperty const& other) const;
   bool isNonblocking() const { return getKind() == Kind::Nonblocking; }
   org::sem::NamedProperty::Nonblocking const& getNonblocking() const { return hstd::variant_get<0>(data); }
   org::sem::NamedProperty::Nonblocking& getNonblocking() { return hstd::variant_get<0>(data); }
@@ -1494,6 +1493,7 @@ struct OrgDiagnostics {
     hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
     hstd::Str errName;
     hstd::Str errCode;
+    ParseTokenError(hstd::Str const& brief, hstd::Str const& detail = {}, hstd::Str const& parserFunction = {}, int const& parserLine = {}, org::sem::OrgTokenKind const& tokenKind = {}, hstd::Str const& tokenText = {}, hstd::Opt<org::parse::SourceLoc> const& loc = std::nullopt, hstd::Str const& errName = {}, hstd::Str const& errCode = {}) : brief{brief}, detail{detail}, parserFunction{parserFunction}, parserLine{parserLine}, tokenKind{tokenKind}, tokenText{tokenText}, loc{loc}, errName{errName}, errCode{errCode} {  }
     ParseTokenError() {  }
     bool operator==(org::sem::OrgDiagnostics::ParseTokenError const& other) const;
   };
@@ -1514,6 +1514,7 @@ struct OrgDiagnostics {
     hstd::Str errName;
     hstd::Str errCode;
     hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
+    ParseError(hstd::Str const& brief, hstd::Str const& detail = {}, hstd::Str const& parserFunction = {}, int const& parserLine = {}, hstd::Str const& errName = {}, hstd::Str const& errCode = {}, hstd::Opt<org::parse::SourceLoc> const& loc = std::nullopt) : brief{brief}, detail{detail}, parserFunction{parserFunction}, parserLine{parserLine}, errName{errName}, errCode{errCode}, loc{loc} {  }
     ParseError() {  }
     bool operator==(org::sem::OrgDiagnostics::ParseError const& other) const;
   };
@@ -1524,6 +1525,7 @@ struct OrgDiagnostics {
     hstd::Str brief;
     hstd::Str targetPath;
     hstd::Str workingFile;
+    IncludeError(hstd::Str const& brief, hstd::Str const& targetPath = {}, hstd::Str const& workingFile = {}) : brief{brief}, targetPath{targetPath}, workingFile{workingFile} {  }
     IncludeError() {  }
     bool operator==(org::sem::OrgDiagnostics::IncludeError const& other) const;
   };
@@ -1546,6 +1548,7 @@ struct OrgDiagnostics {
     hstd::Str errName;
     hstd::Str errCode;
     hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
+    ConvertError(hstd::Str const& brief, hstd::Str const& detail = {}, hstd::Str const& convertFunction = {}, int const& convertLine = {}, hstd::Str const& convertFile = {}, hstd::Str const& errName = {}, hstd::Str const& errCode = {}, hstd::Opt<org::parse::SourceLoc> const& loc = std::nullopt) : brief{brief}, detail{detail}, convertFunction{convertFunction}, convertLine{convertLine}, convertFile{convertFile}, errName{errName}, errCode{errCode}, loc{loc} {  }
     ConvertError() {  }
     bool operator==(org::sem::OrgDiagnostics::ConvertError const& other) const;
   };
@@ -1558,6 +1561,7 @@ struct OrgDiagnostics {
     int line;
     hstd::Str file;
     hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
+    InternalError(hstd::Str const& message, hstd::Str const& function = {}, int const& line = {}, hstd::Str const& file = {}, hstd::Opt<org::parse::SourceLoc> const& loc = std::nullopt) : message{message}, function{function}, line{line}, file{file}, loc{loc} {  }
     InternalError() {  }
     bool operator==(org::sem::OrgDiagnostics::InternalError const& other) const;
   };
@@ -1567,10 +1571,11 @@ struct OrgDiagnostics {
   BOOST_DESCRIBE_NESTED_ENUM(Kind, ParseTokenError, ParseError, IncludeError, ConvertError, InternalError)
   using variant_enum_type = org::sem::OrgDiagnostics::Kind;
   using variant_data_type = org::sem::OrgDiagnostics::Data;
-  OrgDiagnostics(Data const& data) : data(data) {}
   BOOST_DESCRIBE_CLASS(OrgDiagnostics, (), (), (), (data));
   org::sem::OrgDiagnostics::Data data;
+  OrgDiagnostics(org::sem::OrgDiagnostics::Data const& data) : data{data} {  }
   OrgDiagnostics() {  }
+  bool operator==(org::sem::OrgDiagnostics const& other) const;
   bool isParseTokenError() const { return getKind() == Kind::ParseTokenError; }
   org::sem::OrgDiagnostics::ParseTokenError const& getParseTokenError() const { return hstd::variant_get<0>(data); }
   org::sem::OrgDiagnostics::ParseTokenError& getParseTokenError() { return hstd::variant_get<0>(data); }

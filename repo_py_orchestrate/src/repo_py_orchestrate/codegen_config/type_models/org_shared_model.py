@@ -835,7 +835,7 @@ class InitialSubtreeVisibility(M.Enum):
 
 
 _CXX_BACKEND = dict(
-    default_constructor=True,
+    default_field_pass_constructor=True,
     default_eq=True,
 )
 
@@ -933,7 +933,7 @@ class LispCode(M.Class):
 
 
 class TimeValue(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     class FixedTime(M.Case):
         __config__(backend=dict(cpp=_CXX_BACKEND))
@@ -951,7 +951,7 @@ class TimeValue(M.Class):
 
 
 class Tblfm(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     class Expr(M.Class):
         __config__(backend=dict(cpp=_CXX_BACKEND))
@@ -1087,32 +1087,31 @@ class AttrValue(M.Class):
     __config__(
         backend=dict(
             cpp=dict(
-                org_groups=OrgTypeGroup.SHARED_TYPES,
                 variants=dict(data=dict(variant_name="DataVariant")),
-                **_CXX_BACKEND,
+                **_CXX_SHARED_AGGREGATE,
             ),
         ),
     )
 
     class DimensionSpan(M.Class):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         first: Int32 = 0
         last: Optional[Int32] = None
 
     class TextValue(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         value: str
 
     class FileReference(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         file: str
         reference: str
 
     class LispValue(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         code: LispCode
 
@@ -1142,7 +1141,7 @@ class AttrValue(M.Class):
 
 
 class HashTagFlat(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     tags: List[str]
 
@@ -1151,7 +1150,7 @@ class HashTagFlat(M.Class):
 
 
 class TodoKeyword(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     class Transition(M.Enum):
         None_: int = enum.auto()
@@ -1167,7 +1166,7 @@ class TodoKeyword(M.Class):
 class HashTagText(M.Class):
     """Single or nested inline hash-tag"""
 
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     head: str = M.Field(doc="Main part of the tag")
     subtags: List["HashTagText"] = M.Field(doc="List of nested tags")
@@ -1182,63 +1181,63 @@ class HashTagText(M.Class):
 
 
 class SubtreePath(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     path: List[str]
 
 
 class LinkTarget(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     class Raw(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         text: str
 
     class Id(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         text: str
 
     class CustomId(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         text: str
 
     class SubtreeTitle(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         title: SubtreePath
         level: Int32
 
     class Person(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         name: str
 
     class UserProtocol(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         protocol: str
         target: str
 
     class Internal(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         target: str
 
     class Footnote(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         target: str
 
     class File(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         file: str
 
     class Attachment(M.Case):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         file: str
 
@@ -1277,7 +1276,7 @@ class SubtreeLogHead(M.Class):
     class Priority(M.Case):
         """Priority added"""
 
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         class Action(M.Enum):
             """Priority change action"""
@@ -1302,7 +1301,7 @@ class SubtreeLogHead(M.Class):
     class Note(M.Case):
         """Timestamped note"""
 
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         on: H._T["UserTime"] = M.Field(doc="Where log was taken")
 
@@ -1310,7 +1309,9 @@ class SubtreeLogHead(M.Class):
         """Refiling action"""
 
         __config__(
-            backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
+            backend=dict(
+                cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED_AGGREGATE)
+            ),
         )
 
         on: H._T["UserTime"] = M.Field(doc="When the refiling happened")
@@ -1320,7 +1321,9 @@ class SubtreeLogHead(M.Class):
         """Clock entry `CLOCK: [2023-04-30 Sun 13:29:04]--[2023-04-30 Sun 14:51:16] => 1:22`"""
 
         __config__(
-            backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
+            backend=dict(
+                cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED_AGGREGATE)
+            ),
         )
 
         from_: H._T["UserTime"] = M.Field(doc="Clock start time")
@@ -1332,7 +1335,9 @@ class SubtreeLogHead(M.Class):
         """Change of the subtree state -- `- State "WIP" from "TODO" [2023-04-30 Sun 13:29:04]`"""
 
         __config__(
-            backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
+            backend=dict(
+                cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED_AGGREGATE)
+            ),
         )
 
         from_: str
@@ -1343,7 +1348,9 @@ class SubtreeLogHead(M.Class):
         """Change of the subtree deadline"""
 
         __config__(
-            backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
+            backend=dict(
+                cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED_AGGREGATE)
+            ),
         )
 
         from_: Optional[H._T["UserTime"]] = None
@@ -1354,7 +1361,9 @@ class SubtreeLogHead(M.Class):
         """Change of the subtree Schedule"""
 
         __config__(
-            backend=dict(cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED)),
+            backend=dict(
+                cpp=dict(field_names=dict(from_="from"), **_CXX_SHARED_AGGREGATE)
+            ),
         )
 
         from_: Optional[H._T["UserTime"]] = None
@@ -1364,7 +1373,7 @@ class SubtreeLogHead(M.Class):
     class Tag(M.Case):
         """Assign tag to the subtree `- Tag "project##haxorg" Added on [2023-04-30 Sun 13:29:06]`"""
 
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         on: H._T["UserTime"] = M.Field(doc="When the log was assigned")
         tag: HashTagText = M.Field(doc="Tag in question")
@@ -1373,7 +1382,7 @@ class SubtreeLogHead(M.Class):
     class Unknown(M.Case):
         """Unknown subtree log entry kind"""
 
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     __variant__(
         Priority,
@@ -1393,7 +1402,7 @@ class SubtreeLogHead(M.Class):
 class SubtreeCompletion(M.Class):
     """Completion status of the subtree list element"""
 
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     done: Int32 = M.Field(doc="Number of completed tasks", default=0)
     full: Int32 = M.Field(doc="Full number of tasks", default=0)
@@ -1403,13 +1412,13 @@ class SubtreeCompletion(M.Class):
 
 
 class AttrList(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     items: List[AttrValue]
 
 
 class AttrGroup(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     positional: AttrList = M.Field(doc="Positional arguments with no keys")
     named: Dict[str, AttrList] = M.Field(doc="Stored key-value mapping")
@@ -1458,7 +1467,7 @@ class AttrGroup(M.Class):
 
 
 class OrgCodeEvalInput(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     class Var(M.Class):
         __config__(backend=dict(cpp=_CXX_BACKEND))
@@ -1544,7 +1553,7 @@ class OrgCodeEvalInput(M.Class):
 class OrgCodeEvalOutput(M.Class):
     """Single command/subprocess executed to evaluate org babel code entry"""
 
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     stdoutText: str
     stderrText: str
@@ -1561,13 +1570,13 @@ class OrgCodeEvalOutput(M.Class):
 
 
 class ColumnView(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     class Summary(M.Class):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         class CheckboxAggregate(M.Case):
-            __config__(backend=dict(cpp=_CXX_SHARED))
+            __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
             class Kind(M.Enum):
                 IfAllNested: int = enum.auto()
@@ -1577,7 +1586,7 @@ class ColumnView(M.Class):
             kind: Kind
 
         class MathAggregate(M.Case):
-            __config__(backend=dict(cpp=_CXX_SHARED))
+            __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
             class Kind(M.Enum):
                 Min: int = enum.auto()
@@ -1598,7 +1607,7 @@ class ColumnView(M.Class):
         )
 
     class Column(M.Class):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         summary: Optional["ColumnView.Summary"] = None
         width: Optional[Int32] = None
@@ -1609,21 +1618,21 @@ class ColumnView(M.Class):
 
 
 class BlockCodeLine(M.Class):
-    __config__(backend=dict(cpp=_CXX_SHARED))
+    __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
     class Part(M.Class):
-        __config__(backend=dict(cpp=_CXX_SHARED))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         class Raw(M.Case):
-            __config__(backend=dict(cpp=_CXX_SHARED))
+            __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
             code: str
 
         class Callout(M.Case):
-            __config__(backend=dict(cpp=_CXX_SHARED))
+            __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
             name: str
 
         class Tangle(M.Case):
-            __config__(backend=dict(cpp=_CXX_SHARED))
+            __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
             target: str
 
         __variant__(Raw, Callout, Tangle, field="data", kind="Kind")
@@ -1700,9 +1709,11 @@ class DocumentExportConfig(M.Class):
         ] = enum.auto()
 
     class DoExport(M.Case):
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
         exportToc: bool
 
     class ExportFixed(M.Case):
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
         exportLevels: Int32
 
     inlinetasks: Optional[bool] = M.Field(
@@ -1835,20 +1846,7 @@ class SubtreePeriod(M.Class):
 class NamedProperty(M.Class):
     """Single subtree property"""
 
-    __config__(
-        backend=dict(
-            cpp=dict(
-                org_groups=OrgTypeGroup.SHARED_TYPES,
-                default_constructor=True,
-                section_code=[
-                    dict(
-                        kind="public",
-                        text="NamedProperty(Data const& data) : data(data) {}",
-                    ),
-                ],
-            ),
-        ),
-    )
+    __config__(backend=dict(cpp=_CXX_SHARED))
 
     class Nonblocking(M.Case):
         __config__(backend=dict(cpp=_CXX_BACKEND))
@@ -1861,43 +1859,44 @@ class NamedProperty(M.Class):
         time: H._T["UserTime"]
 
     class ArchiveFile(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         file: str
 
     class ArchiveOlpath(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         path: SubtreePath
 
     class ArchiveTarget(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         path: SubtreePath
         pattern: str
 
     class ArchiveCategory(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         category: str
 
     class ArchiveTodo(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         todo: str
 
     class Trigger(M.Case):
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
         pass
 
     class ExportLatexClass(M.Case):
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         latexClass: str
 
     class CookieData(M.Case):
         """`:COOKIE_DATA:` for the subtree completion calculation"""
 
-        __config__(backend=dict(cpp=_CXX_BACKEND))
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
 
         isRecursive: bool
         source: SubtreeTodoSource
@@ -1929,6 +1928,8 @@ class NamedProperty(M.Class):
         minutes: Int32 = 0
 
     class Visibility(M.Case):
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
+
         class Level(M.Enum):
             Folded: int = enum.auto()
             Children: int = enum.auto()
@@ -1949,6 +1950,7 @@ class NamedProperty(M.Class):
         blockers: List[str]
 
     class Unnumbered(M.Case):
+        __config__(backend=dict(cpp=_CXX_SHARED_AGGREGATE))
         pass
 
     class Created(M.Case):
@@ -2059,18 +2061,7 @@ class OrgDiagnostics(M.Class):
     """Structure to store all diagnostics data collected by the parser, sem, eval etc."""
 
     __config__(
-        backend=dict(
-            cpp=dict(
-                org_groups=OrgTypeGroup.SHARED_TYPES,
-                default_constructor=True,
-                section_code=[
-                    dict(
-                        kind="public",
-                        text="OrgDiagnostics(Data const& data) : data(data) {}",
-                    ),
-                ],
-            ),
-        ),
+        backend=dict(cpp=_CXX_SHARED),
     )
 
     class ParseTokenError(M.Case):

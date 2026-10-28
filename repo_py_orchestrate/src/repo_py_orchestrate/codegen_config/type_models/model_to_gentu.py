@@ -362,9 +362,23 @@ class ModelToGenTu:
         typ: TypeRef,
         package: str,
         default: ExplicitDefault | None,
+        infer_default: bool = False,
     ) -> str | None:
+
         if default is None:
-            return None
+            if infer_default:
+                match typ:
+                    case OptT():
+                        return "std::nullopt"
+                    case NamedT() if self.is_ast(package, typ.qname):
+                        return f"{cpp_type_text(self.type(typ, package))}::Nil()"
+                    case ExternalT() if self.is_ast(typ.package, typ.qname):
+                        return f"{cpp_type_text(self.type(typ, package))}::Nil()"
+                    case _:
+                        return "{}"
+
+            else:
+                return None
 
         value = default.value
 
@@ -758,6 +772,7 @@ class ModelToGenTu:
             # allows for the nested types to evaluate the type check
             # `is_default_constructible` trait even if the parent
             # class has not been finished yet.
+            fields = [self.field(item, f) for f in item.fields]
             result.Methods.append(
                 GenTuFunction(
                     Name=item.qname.name,
@@ -765,19 +780,24 @@ class ModelToGenTu:
                     ParentClass=result.Name,
                     Args=[
                         GenTuIdent(
-                            Type=const_ref(self.type(f.type, package)),
-                            Name=f.name,
-                            Value=self.default_value(f.type, package, f.default)
+                            Type=const_ref(f.Type),
+                            Name=f.Name,
+                            Value=self.default_value(
+                                f_orig.type,
+                                package,
+                                f_orig.default,
+                                infer_default=True,
+                            )
                             if 0 < idx
                             else None,
                         )
-                        for idx, f in enumerate(item.fields)
+                        for idx, (f, f_orig) in enumerate(zip(fields, item.fields))
                     ],
                     InitList=[
                         self.ast.XConstructObj(
-                            self.ast.string(f.name), [self.ast.string(f.name)]
+                            self.ast.string(f.Name), [self.ast.string(f.Name)]
                         )
-                        for f in item.fields
+                        for f in fields
                     ],
                 )
             )
