@@ -14,8 +14,705 @@ from repo_py_orchestrate.codegen_config.codegen_type_groups import OrgTypeGroup
 M = get_dsl_model("org.sem.shared")
 H = get_dsl_model("hstd")
 P = get_dsl_model("org.parse")
-Syntax = get_dsl_model("org.syntax")
 Native = get_dsl_model("org.sem.native")
+
+
+class OrgSpecName(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
+    Unnamed: int = 0
+    Result: int = 1
+    Year: int = 2
+    Day: int = 3
+    Clock: int = 4
+    Repeater: int = 5
+    Warn: int = 6
+    Zone: int = 7
+    Link: int = 8
+    Tags: int = 9
+    Tag: int = 10
+    State: int = 11
+    Protocol: int = 12
+    Desc: int = 13
+    Times: int = 14
+    Drawer: int = 15
+    Args: int = 16
+    Name: int = 17
+    Definition: int = 18
+    Body: int = 19
+    HeaderArgs: int = 20
+    File: int = 21
+    Kind: int = 22
+    Lang: int = 23
+    Prefix: int = 24
+    Text: int = 25
+    Todo: int = 26
+    Importance: int = 27
+    Title: int = 28
+    Completion: int = 29
+    Head: int = 30
+    Subnodes: int = 31
+    Properties: int = 32
+    Logbook: int = 33
+    Description: int = 34
+    Logs: int = 35
+    Newstate: int = 36
+    Oldstate: int = 37
+    Time: int = 38
+    From: int = 39
+    EndArgs: int = 40
+    Flags: int = 41
+    Value: int = 42
+    Assoc: int = 43
+    Main: int = 44
+    Hash: int = 45
+    Bullet: int = 46
+    Counter: int = 47
+    Checkbox: int = 48
+    Header: int = 49
+    To: int = 50
+    Diff: int = 51
+    Property: int = 52
+    Subname: int = 53
+    Values: int = 54
+    Cells: int = 55
+    Rows: int = 56
+    Lines: int = 57
+    Chunks: int = 58
+
+
+class OrgNodeKind(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
+    None_: Annotated[
+        int, EnFieldAnnotation(doc="Default valye for node - invalid state")
+    ] = 0
+    Document: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Toplevel part of the ast, not created by parser, and only used in `semorg` stage"
+        ),
+    ] = 1
+    Empty: Annotated[
+        int,
+        EnFieldAnnotation(doc="Empty node - valid state that does not contain any value"),
+    ] = 2
+    InlineStmtList: int = 3
+    StmtList: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together."
+        ),
+    ] = 4
+    Checkbox: Annotated[
+        int, EnFieldAnnotation(doc="Single checkbox item like `[X]` or `[-]`")
+    ] = 5
+    List: int = 6
+    Bullet: Annotated[int, EnFieldAnnotation(doc="List item prefix")] = 7
+    ListItem: int = 8
+    ListTag: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Auxilliary wrapper for the paragraph placed at the start of the description list."
+        ),
+    ] = 9
+    Counter: int = 10
+    File: int = 11
+    ColonExample: Annotated[int, EnFieldAnnotation(doc="Colon example block")] = 12
+    TextSeparator: Annotated[
+        int, EnFieldAnnotation(doc="Long horizontal line `----`")
+    ] = 13
+    Paragraph: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph"
+        ),
+    ] = 14
+    TableRow: Annotated[int, EnFieldAnnotation(doc="Horizontal table row")] = 15
+    TableCell: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Single cell in row. Might contain anyting, including other tables, simple text paragraph etc."
+        ),
+    ] = 16
+    Table: Annotated[int, EnFieldAnnotation(doc="Org-mode table")] = 17
+    InlineFootnote: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Inline footnote with text placed directly in the node body."
+        ),
+    ] = 18
+    Footnote: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node."
+        ),
+    ] = 19
+    Cmd: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Undefined single-line command -- most likely custom user-provided oe"
+        ),
+    ] = 20
+    Attrs: Annotated[int, EnFieldAnnotation(doc="Arguments for the command block")] = 21
+    AttrValue: Annotated[int, EnFieldAnnotation(doc=":key name=value syntax")] = 22
+    LispExpr: Annotated[
+        int, EnFieldAnnotation(doc="S-expression as an attribute value value")
+    ] = 23
+    LispList: Annotated[int, EnFieldAnnotation(doc="`(a b c)` without quoting")] = 24
+    LispVector: Annotated[int, EnFieldAnnotation(doc="[1 2 3 4]` without quoting")] = 25
+    LispQuoted: Annotated[
+        int, EnFieldAnnotation(doc="Extra wrapping node for quoted elements")
+    ] = 26
+    CmdTitle: Annotated[
+        int, EnFieldAnnotation(doc="`#+title:` - full document title")
+    ] = 27
+    CmdAuthor: Annotated[int, EnFieldAnnotation(doc="`#+author:` Document author")] = 28
+    CmdCreator: Annotated[int, EnFieldAnnotation(doc="`#+creator:` Document creator")] = (
+        29
+    )
+    CmdInclude: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk."
+        ),
+    ] = 30
+    CmdLanguage: Annotated[int, EnFieldAnnotation(doc="`#+language:`")] = 31
+    CmdEmail: Annotated[int, EnFieldAnnotation(doc="`#+email:`")] = 32
+    CmdAttr: Annotated[
+        int, EnFieldAnnotation(doc="`#+attr_html:`, `#+attr_image` etc.")
+    ] = 33
+    CmdStartup: Annotated[int, EnFieldAnnotation(doc="`#+startup:`")] = 34
+    CmdName: Annotated[
+        int, EnFieldAnnotation(doc="`#+name:` - name of the associated entry")
+    ] = 35
+    CmdCustomTextCommand: Annotated[
+        int, EnFieldAnnotation(doc="Line command with parsed text value")
+    ] = 36
+    CmdCustomArgsCommand: Annotated[
+        int, EnFieldAnnotation(doc="Line command with parsed argument list")
+    ] = 37
+    CmdCustomRawCommand: Annotated[
+        int, EnFieldAnnotation(doc="Line command with raw text argument")
+    ] = 38
+    CmdResults: Annotated[
+        int, EnFieldAnnotation(doc="`#+results:` - source code block evaluation results")
+    ] = 39
+    CmdHeader: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="`#+header:` - extended list of parameters passed to associated block"
+        ),
+    ] = 40
+    CmdOptions: Annotated[
+        int, EnFieldAnnotation(doc="`#+options:` - document-wide formatting options")
+    ] = 41
+    CmdTblfm: int = 42
+    CmdCaption: Annotated[int, EnFieldAnnotation(doc="`#+caption:` command")] = 43
+    CmdResult: Annotated[int, EnFieldAnnotation(doc="Command evaluation result")] = 44
+    CmdCallCode: Annotated[
+        int, EnFieldAnnotation(doc="Call to named source code block.")
+    ] = 45
+    CmdFlag: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Flag for source code block. For example `-n`, which is used to to make source code block export with lines"
+        ),
+    ] = 46
+    CmdLatexClass: int = 47
+    CmdLatexHeader: int = 48
+    CmdLatexCompiler: int = 49
+    CmdLatexClassOptions: int = 50
+    CmdHtmlHead: int = 51
+    CmdColumns: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis."
+        ),
+    ] = 52
+    CmdPropertyArgs: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = 53
+    CmdPropertyText: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = 54
+    CmdPropertyRaw: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = 55
+    CmdFiletags: Annotated[int, EnFieldAnnotation(doc="`#+filetags:` line command")] = 56
+    CmdKeywords: int = 57
+    BlockVerbatimMultiline: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks."
+        ),
+    ] = 58
+    CodeLine: Annotated[int, EnFieldAnnotation(doc="Single line of source code")] = 59
+    CodeText: Annotated[int, EnFieldAnnotation(doc="Block of source code text")] = 60
+    CodeTangle: Annotated[
+        int, EnFieldAnnotation(doc="Single tangle target in the code block")
+    ] = 61
+    CodeCallout: Annotated[
+        int, EnFieldAnnotation(doc="`(refs:` callout in the source code")
+    ] = 62
+    BlockCode: int = 63
+    BlockQuote: Annotated[
+        int, EnFieldAnnotation(doc="`#+begin_quote:` block in code")
+    ] = 64
+    BlockComment: Annotated[
+        int, EnFieldAnnotation(doc="`#+begin_comment:` block in code")
+    ] = 65
+    BlockCenter: int = 66
+    BlockVerse: int = 67
+    BlockExample: Annotated[int, EnFieldAnnotation(doc="Verbatim example text block")] = (
+        68
+    )
+    BlockExport: int = 69
+    BlockDetails: Annotated[int, EnFieldAnnotation(doc="`#+begin_details`  section")] = 70
+    BlockSummary: Annotated[int, EnFieldAnnotation(doc="`#+begin_summary` section")] = 71
+    BlockDynamicFallback: Annotated[
+        int, EnFieldAnnotation(doc="#+begin: <name> section")
+    ] = 72
+    BlockCustomText: Annotated[
+        int, EnFieldAnnotation(doc="#+begin_<any> section for text blocks")
+    ] = 73
+    BlockCustomRaw: Annotated[
+        int, EnFieldAnnotation(doc="#+begin_<any> section for raw content blocks")
+    ] = 74
+    BigIdent: Annotated[
+        int, EnFieldAnnotation(doc="full-uppsercase identifier such as `MUST` or `TODO`")
+    ] = 75
+    Bold: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc='Region of text with formatting, which contains standalone words -\n     can itself contain subnodes, which allows to represent nested\n     formatting regions, such as `*bold /italic/*` text. Particular type\n     of identifier is stored in string form in `str` field for `OrgNode`\n     -- bold is represented as `"*"`, italic as `/` and so on. In case\n     of explicit open/close pairs only opening one is stored.\n\n     NOTE: when structured sentences are enabled, regular punctuation\n     elements like `some text (notes)` are also represented as `Word,\n     Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.'
+        ),
+    ] = 76
+    ErrorInfoToken: Annotated[
+        int,
+        EnFieldAnnotation(doc="Error leaf node inserted into the parse tree on failure"),
+    ] = 77
+    ErrorSkipGroup: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Parent node for one or more tokens skipped during error recovery"
+        ),
+    ] = 78
+    ErrorSkipToken: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Single token node skipped while the parser searched for recovery point"
+        ),
+    ] = 79
+    Italic: int = 80
+    Verbatim: int = 81
+    Backtick: int = 82
+    Underline: int = 83
+    Strike: int = 84
+    Quote: int = 85
+    Angle: int = 86
+    Monospace: int = 87
+    Par: int = 88
+    CriticMarkStructure: int = 89
+    InlineMath: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text."
+        ),
+    ] = 90
+    DisplayMath: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Inline display latex math from `$$double-dollar$$` or `\\[bracket-wrapped\\]` code."
+        ),
+    ] = 91
+    Space: Annotated[
+        int, EnFieldAnnotation(doc="Space or tab character in regular text")
+    ] = 92
+    Punctuation: int = 93
+    Colon: int = 94
+    Word: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text."
+        ),
+    ] = 95
+    Escaped: Annotated[
+        int, EnFieldAnnotation(doc="Escaped formatting character in the text")
+    ] = 96
+    Newline: int = 97
+    RawLink: Annotated[
+        int, EnFieldAnnotation(doc="Raw unwrapped link that was pasted in text")
+    ] = 98
+    Link: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="External or internal link. Consists of one or two elements - target\n     (url, file location etc.) and description (`orgParagraph` of text).\n     Description might be empty, and represented as empty node in this\n     case. For external links particular formatting of the address is\n     not handled by parser and instead contains raw string from input\n     text."
+        ),
+    ] = 99
+    Macro: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Org-mode macro replacement - during export each macro is expanded\n     and evaluated according to it's environment. Body of the macro is\n     not parsed fully during org-mode evaluation, but is checked for\n     correct parenthesis balance (as macro might contain elisp code)"
+        ),
+    ] = 100
+    Symbol: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Special symbol that should be exported differently to various backends - greek letters (`\alpha`), mathematical notations and so on."
+        ),
+    ] = 101
+    StaticActiveTime: int = 102
+    StaticInactiveTime: int = 103
+    DynamicActiveTime: int = 104
+    DiaryTime: int = 105
+    DynamicInactiveTime: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later"
+        ),
+    ] = 106
+    TimeRange: Annotated[
+        int,
+        EnFieldAnnotation(doc="Date and time range format - two `orgDateTime` entries"),
+    ] = 107
+    SimpleTime: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Result of the time range evaluation or trailing annotation a subtree"
+        ),
+    ] = 108
+    HashTag: int = 109
+    MetaSymbol: Annotated[
+        int, EnFieldAnnotation(doc="`\\sym{}` with explicit arguments")
+    ] = 110
+    AtMention: Annotated[int, EnFieldAnnotation(doc="`@user`")] = 111
+    Placeholder: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Placeholder entry in text, usually writte like `<text to replace>`"
+        ),
+    ] = 112
+    RadioTarget: Annotated[int, EnFieldAnnotation(doc="`<<<RADIO>>>`")] = 113
+    Target: Annotated[int, EnFieldAnnotation(doc="`<<TARGET>>`")] = 114
+    SrcInlineCode: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc."
+        ),
+    ] = 115
+    InlineCallCode: Annotated[
+        int, EnFieldAnnotation(doc="Call to named source code block.")
+    ] = 116
+    InlineExport: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively"
+        ),
+    ] = 117
+    InlineComment: int = 118
+    RawText: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers "
+        ),
+    ] = 119
+    SubtreeDescription: Annotated[int, EnFieldAnnotation(doc="`:description:` entry")] = (
+        120
+    )
+    SubtreeUrgency: int = 121
+    DrawerLogbook: Annotated[
+        int, EnFieldAnnotation(doc="`:logbook:` entry storing note information")
+    ] = 122
+    Drawer: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`"
+        ),
+    ] = 123
+    DrawerPropertyList: int = 124
+    DrawerProperty: Annotated[int, EnFieldAnnotation(doc="`:property:` drawer")] = 125
+    Subtree: Annotated[int, EnFieldAnnotation(doc="Section subtree")] = 126
+    SubtreeTimes: Annotated[
+        int, EnFieldAnnotation(doc="Time? associated with subtree entry")
+    ] = 127
+    SubtreeStars: int = 128
+    SubtreeCompletion: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio."
+        ),
+    ] = 129
+    SubtreeImportance: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`."
+        ),
+    ] = 130
+
+
+class OrgTokenKind(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
+    Ampersand: int = 0
+    AngleBegin: int = 1
+    AngleEnd: int = 2
+    AnyPunct: int = 3
+    Asterisk: int = 4
+    At: int = 5
+    Backtick: int = 6
+    BigIdent: int = 7
+    BoldBegin: int = 8
+    BoldEnd: int = 9
+    BoldUnknown: int = 10
+    BraceBegin: int = 11
+    BraceEnd: int = 12
+    Checkbox: int = 13
+    Circumflex: int = 14
+    CmdAdmonitionEnd: int = 15
+    CmdAttr: int = 16
+    CmdAuthor: int = 17
+    CmdBindRaw: int = 18
+    CmdCall: int = 19
+    CmdCaption: int = 20
+    CmdCategoryRaw: int = 21
+    CmdCell: int = 22
+    CmdCellBegin: int = 23
+    CmdCellEnd: int = 24
+    CmdCenterBegin: int = 25
+    CmdCenterEnd: int = 26
+    CmdColonIdent: int = 27
+    CmdColumns: int = 28
+    CmdCommentBegin: int = 29
+    CmdCommentEnd: int = 30
+    CmdConstants: int = 31
+    CmdContentBegin: int = 32
+    CmdContentEnd: int = 33
+    CmdCreator: int = 34
+    CmdCustomRaw: int = 35
+    CmdDateRaw: int = 36
+    CmdDescription: int = 37
+    CmdDrawersRaw: int = 38
+    CmdDynamicBlockBegin: Annotated[
+        int, EnFieldAnnotation(doc="`#+begin:` with the unspecified name")
+    ] = 39
+    CmdDynamicBlockEnd: Annotated[
+        int, EnFieldAnnotation(doc="`#+end:` matching with `#+begin:`")
+    ] = 40
+    CmdCustomTextBlockBegin: Annotated[
+        int, EnFieldAnnotation(doc="`#+begin_` with the text content inside")
+    ] = 41
+    CmdCustomTextBlockEnd: int = 42
+    CmdCustomRawBlockBegin: Annotated[
+        int, EnFieldAnnotation(doc="`#+begin_` block with the raw string")
+    ] = 43
+    CmdCustomRawBlockLine: int = 44
+    CmdCustomRawBlockEnd: int = 45
+    CmdEmailRaw: int = 46
+    CmdExampleBegin: int = 47
+    CmdExampleEnd: int = 48
+    CmdExampleLine: int = 49
+    CmdExcludeTagsRaw: int = 50
+    CmdExportBegin: int = 51
+    CmdExportEnd: int = 52
+    CmdExportLine: int = 53
+    CmdFiletags: int = 54
+    CmdFlag: int = 55
+    CmdHeader: int = 56
+    CmdHtmlHeadRaw: int = 57
+    CmdInclude: int = 58
+    CmdLanguage: int = 59
+    CmdLatexClass: int = 60
+    CmdLatexClassOptions: int = 61
+    CmdLatexCompiler: int = 62
+    CmdLatexHeader: int = 63
+    CmdLatexHeaderExtraRaw: int = 64
+    CmdLinkRaw: int = 65
+    CmdMacroRaw: int = 66
+    CmdName: int = 67
+    CmdOptions: int = 68
+    CmdPrefix: int = 69
+    CmdPrioritiesRaw: int = 70
+    CmdPropertyArgs: int = 71
+    CmdPropertyRaw: int = 72
+    CmdPropertyText: int = 73
+    CmdQuoteBegin: int = 74
+    CmdQuoteEnd: int = 75
+    CmdRawArg: int = 76
+    CmdResults: int = 77
+    CmdRow: int = 78
+    CmdRowBegin: int = 79
+    CmdRowEnd: int = 80
+    CmdSelectTagsRaw: int = 81
+    CmdSeqTodoRaw: int = 82
+    CmdKeywordsRaw: int = 83
+    CmdSetupfileRaw: int = 84
+    CmdSrcBegin: int = 85
+    CmdSrcEnd: int = 86
+    CmdStartup: int = 87
+    CmdTableBegin: int = 88
+    CmdTableEnd: int = 89
+    CmdTagsRaw: int = 90
+    CmdTblfm: int = 91
+    CmdTitle: int = 92
+    CmdVerseBegin: int = 93
+    CmdVerseEnd: int = 94
+    Colon: int = 95
+    ColonArgumentsProperty: int = 96
+    ColonEnd: int = 97
+    ColonExampleLine: int = 98
+    ColonLiteralProperty: int = 99
+    ColonLogbook: int = 100
+    ColonProperties: int = 101
+    ColonPropertyText: int = 102
+    Comma: int = 103
+    Comment: int = 104
+    CriticAddBegin: int = 105
+    CriticAddEnd: int = 106
+    CriticCommentBegin: int = 107
+    CriticCommentEnd: int = 108
+    CriticDeleteBegin: int = 109
+    CriticDeleteEnd: int = 110
+    CriticHighlightBegin: int = 111
+    CriticHighlightEnd: int = 112
+    CriticReplaceBegin: int = 113
+    CriticReplaceEnd: int = 114
+    CriticReplaceMiddle: int = 115
+    CurlyBegin: int = 116
+    CurlyEnd: int = 117
+    Date: int = 118
+    Dedent: int = 119
+    Dollar: int = 120
+    DoubleAngleBegin: int = 121
+    DoubleAngleEnd: int = 122
+    DoubleColon: int = 123
+    DoubleDash: int = 124
+    DoubleHash: int = 125
+    DoubleQuote: int = 126
+    DoubleSlash: int = 127
+    ActiveDynamicTimeContent: int = 128
+    InactiveDynamicTimeContent: int = 129
+    AgendaDiaryTimeContent: Annotated[
+        int,
+        EnFieldAnnotation(
+            doc="`%%(` at the start of the line in the subtree, denoting the start of the dynamic agenda."
+        ),
+    ] = 130
+    EndOfFile: int = 131
+    Equals: int = 132
+    Escaped: int = 133
+    Exclamation: int = 134
+    FootnoteInlineBegin: Annotated[
+        int, EnFieldAnnotation(doc="`[fn::` with the inline definition")
+    ] = 135
+    FootnoteLinked: int = 136
+    ForwardSlash: int = 137
+    HashIdent: int = 138
+    HashTagBegin: int = 139
+    Indent: int = 140
+    InlineExportBackend: int = 141
+    InlineExportContent: int = 142
+    ItalicBegin: int = 143
+    ItalicEnd: int = 144
+    ItalicUnknown: int = 145
+    LatexInlineRaw: int = 146
+    LatexParBegin: int = 147
+    LatexParEnd: int = 148
+    LatexBraceBegin: int = 149
+    LatexBraceEnd: int = 150
+    LatexDollar1Begin: int = 151
+    LatexDollar1End: int = 152
+    LatexDollar2Begin: int = 153
+    LatexDollar2End: int = 154
+    LeadingMinus: int = 155
+    LeadingNumber: int = 156
+    LeadingPipe: int = 157
+    LeadingPlus: int = 158
+    LeadingSpace: int = 159
+    LeadingCharacter: Annotated[int, EnFieldAnnotation(doc="a)")] = 160
+    LineCommand: int = 161
+    LinkBegin: int = 162
+    LinkDescriptionBegin: int = 163
+    LinkDescriptionEnd: int = 164
+    LinkEnd: int = 165
+    LinkFull: int = 166
+    LinkProtocol: int = 167
+    LinkProtocolAttachment: int = 168
+    LinkProtocolCustomId: int = 169
+    LinkProtocolFile: int = 170
+    LinkProtocolHttp: int = 171
+    LinkProtocolId: int = 172
+    LinkProtocolInternal: int = 173
+    LinkProtocolTitle: int = 174
+    LinkSplit: int = 175
+    LinkTarget: int = 176
+    LinkTargetBegin: int = 177
+    LinkTargetEnd: int = 178
+    LinkTargetFile: int = 179
+    ListBegin: int = 180
+    ListEnd: int = 181
+    ListItemBegin: int = 182
+    ListItemEnd: int = 183
+    LongNewline: int = 184
+    MediumNewline: int = 185
+    Minus: int = 186
+    MiscUnicode: int = 187
+    MonospaceBegin: int = 188
+    MonospaceEnd: int = 189
+    MonospaceUnknown: int = 190
+    Newline: int = 191
+    Number: int = 192
+    ParBegin: int = 193
+    ParEnd: int = 194
+    Percent: int = 195
+    Pipe: int = 196
+    Placeholder: int = 197
+    Plus: int = 198
+    Punctuation: int = 199
+    RawText: int = 200
+    SameIndent: int = 201
+    Semicolon: int = 202
+    SingleQuote: int = 203
+    SrcContent: int = 204
+    StmtListBegin: int = 205
+    StmtListEnd: int = 206
+    StrikeBegin: int = 207
+    StrikeEnd: int = 208
+    StrikeUnknown: int = 209
+    SubtreeCompletion: int = 210
+    SubtreePriority: int = 211
+    SubtreeStars: int = 212
+    Symbol: int = 213
+    TableSeparator: int = 214
+    TextSeparator: int = 215
+    TextSrcBegin: int = 216
+    Tilda: int = 217
+    Time: int = 218
+    TimeArrow: int = 219
+    TimeRepeaterDuration: int = 220
+    TimeRepeaterSpec: int = 221
+    TimeWarnPeriod: int = 222
+    TrailingPipe: int = 223
+    TreeClock: int = 224
+    TreeTime: int = 225
+    TripleAngleBegin: int = 226
+    TripleAngleEnd: int = 227
+    Underline: int = 228
+    UnderlineBegin: int = 229
+    UnderlineEnd: int = 230
+    UnderlineUnknown: int = 231
+    Unknown: int = 232
+    VerbatimBegin: int = 233
+    VerbatimEnd: int = 234
+    VerbatimUnknown: int = 235
+    Whitespace: int = 236
+    Word: int = 237
+
+
+class OrgJsonKind(M.Enum):
+    __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
+
+    Null: int = 0
+    Object: int = 1
+    Array: int = 2
+    String: int = 3
+    Boolean: int = 4
+    Int: int = 5
+    Float: int = 6
 
 
 class CheckboxState(M.Enum):
@@ -1203,7 +1900,7 @@ class OrgDiagnostics(M.Class):
         detail: str
         parserFunction: str
         parserLine: Int32
-        tokenKind: Syntax._T["OrgTokenKind"]
+        tokenKind: M._T["OrgTokenKind"]
         tokenText: str
         loc: Optional[P._T["SourceLoc"]] = None
         errName: str

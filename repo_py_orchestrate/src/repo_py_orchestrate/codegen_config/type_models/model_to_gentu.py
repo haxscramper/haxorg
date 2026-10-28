@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from typing import Any, Sequence
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
-import repo_py_orchestrate.codegen_config.org_codegen_data as org_data
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuDoc,
     GenTuEntry,
@@ -913,7 +912,5 @@ def get_pyhaxorg_type_groups_via_dsl(ast: cpp.ASTBuilder) -> PyhaxorgTypeGroups:
     result = PyhaxorgTypeGroups()
     result.shared_types = expand_type_groups(ast, shared_types)
     populate_immutable_type_groups(ast, result, sem_types)
-    result.full_enums = (
-        enums + org_data.get_enums() + [get_osk_enum(result.sem_node_definitions)]
-    )
+    result.full_enums = enums + [get_osk_enum(result.sem_node_definitions)]
     return result

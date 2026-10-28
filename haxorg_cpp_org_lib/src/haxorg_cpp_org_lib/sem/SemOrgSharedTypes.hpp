@@ -1439,7 +1439,7 @@ struct OrgDiagnostics {
     hstd::Str detail;
     hstd::Str parserFunction;
     int parserLine;
-    OrgTokenKind tokenKind;
+    org::sem::OrgTokenKind tokenKind;
     hstd::Str tokenText;
     hstd::Opt<org::parse::SourceLoc> loc = std::nullopt;
     hstd::Str errName;

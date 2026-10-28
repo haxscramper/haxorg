@@ -1870,7 +1870,7 @@ void hstd::serde::proto_serde<::orgproto::OrgDiagnostics::ParseTokenError, org::
   proto_serde<std::string, hstd::Str>::read(out.detail(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::detail));
   proto_serde<std::string, hstd::Str>::read(out.parserfunction(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserFunction));
   in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::parserLine).get() = out.parserline();
-  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenKind).get() = static_cast<OrgTokenKind>(out.tokenkind());
+  in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenKind).get() = static_cast<org::sem::OrgTokenKind>(out.tokenkind());
   proto_serde<std::string, hstd::Str>::read(out.tokentext(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::tokenText));
   if (out.has_loc()) {
     proto_serde<hstd::Opt<orgproto::org_parse::SourceLoc>, hstd::Opt<org::parse::SourceLoc>>::read(out.loc(), in.for_field(&org::sem::OrgDiagnostics::ParseTokenError::loc));
