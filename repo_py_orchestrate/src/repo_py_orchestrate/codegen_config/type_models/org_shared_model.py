@@ -1,3 +1,4 @@
+import enum
 from typing import Annotated, Dict, List, Optional
 
 from hstd_py_unidata.model_dsl import (
@@ -20,65 +21,65 @@ Native = get_dsl_model("org.sem.native")
 class OrgSpecName(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    Unnamed: int = 0
-    Result: int = 1
-    Year: int = 2
-    Day: int = 3
-    Clock: int = 4
-    Repeater: int = 5
-    Warn: int = 6
-    Zone: int = 7
-    Link: int = 8
-    Tags: int = 9
-    Tag: int = 10
-    State: int = 11
-    Protocol: int = 12
-    Desc: int = 13
-    Times: int = 14
-    Drawer: int = 15
-    Args: int = 16
-    Name: int = 17
-    Definition: int = 18
-    Body: int = 19
-    HeaderArgs: int = 20
-    File: int = 21
-    Kind: int = 22
-    Lang: int = 23
-    Prefix: int = 24
-    Text: int = 25
-    Todo: int = 26
-    Importance: int = 27
-    Title: int = 28
-    Completion: int = 29
-    Head: int = 30
-    Subnodes: int = 31
-    Properties: int = 32
-    Logbook: int = 33
-    Description: int = 34
-    Logs: int = 35
-    Newstate: int = 36
-    Oldstate: int = 37
-    Time: int = 38
-    From: int = 39
-    EndArgs: int = 40
-    Flags: int = 41
-    Value: int = 42
-    Assoc: int = 43
-    Main: int = 44
-    Hash: int = 45
-    Bullet: int = 46
-    Counter: int = 47
-    Checkbox: int = 48
-    Header: int = 49
-    To: int = 50
-    Diff: int = 51
-    Property: int = 52
-    Subname: int = 53
-    Values: int = 54
-    Cells: int = 55
-    Rows: int = 56
-    Lines: int = 57
-    Chunks: int = 58
+    Unnamed: int = enum.auto()
+    Result: int = enum.auto()
+    Year: int = enum.auto()
+    Day: int = enum.auto()
+    Clock: int = enum.auto()
+    Repeater: int = enum.auto()
+    Warn: int = enum.auto()
+    Zone: int = enum.auto()
+    Link: int = enum.auto()
+    Tags: int = enum.auto()
+    Tag: int = enum.auto()
+    State: int = enum.auto()
+    Protocol: int = enum.auto()
+    Desc: int = enum.auto()
+    Times: int = enum.auto()
+    Drawer: int = enum.auto()
+    Args: int = enum.auto()
+    Name: int = enum.auto()
+    Definition: int = enum.auto()
+    Body: int = enum.auto()
+    HeaderArgs: int = enum.auto()
+    File: int = enum.auto()
+    Kind: int = enum.auto()
+    Lang: int = enum.auto()
+    Prefix: int = enum.auto()
+    Text: int = enum.auto()
+    Todo: int = enum.auto()
+    Importance: int = enum.auto()
+    Title: int = enum.auto()
+    Completion: int = enum.auto()
+    Head: int = enum.auto()
+    Subnodes: int = enum.auto()
+    Properties: int = enum.auto()
+    Logbook: int = enum.auto()
+    Description: int = enum.auto()
+    Logs: int = enum.auto()
+    Newstate: int = enum.auto()
+    Oldstate: int = enum.auto()
+    Time: int = enum.auto()
+    From: int = enum.auto()
+    EndArgs: int = enum.auto()
+    Flags: int = enum.auto()
+    Value: int = enum.auto()
+    Assoc: int = enum.auto()
+    Main: int = enum.auto()
+    Hash: int = enum.auto()
+    Bullet: int = enum.auto()
+    Counter: int = enum.auto()
+    Checkbox: int = enum.auto()
+    Header: int = enum.auto()
+    To: int = enum.auto()
+    Diff: int = enum.auto()
+    Property: int = enum.auto()
+    Subname: int = enum.auto()
+    Values: int = enum.auto()
+    Cells: int = enum.auto()
+    Rows: int = enum.auto()
+    Lines: int = enum.auto()
+    Chunks: int = enum.auto()
 
 
 class OrgNodeKind(M.Enum):
@@ -86,88 +87,100 @@ class OrgNodeKind(M.Enum):
 
     None_: Annotated[
         int, EnFieldAnnotation(doc="Default valye for node - invalid state")
-    ] = 0
+    ] = enum.auto()
     Document: Annotated[
         int,
         EnFieldAnnotation(
             doc="Toplevel part of the ast, not created by parser, and only used in `semorg` stage"
         ),
-    ] = 1
+    ] = enum.auto()
     Empty: Annotated[
         int,
         EnFieldAnnotation(doc="Empty node - valid state that does not contain any value"),
-    ] = 2
-    InlineStmtList: int = 3
+    ] = enum.auto()
+    InlineStmtList: int = enum.auto()
     StmtList: Annotated[
         int,
         EnFieldAnnotation(
             doc="List of statements, possibly recursive. Used as toplevel part of the document, in recursive parsing of subtrees, or as regular list, in cases where multiple subnodes have to be grouped together."
         ),
-    ] = 4
+    ] = enum.auto()
     Checkbox: Annotated[
         int, EnFieldAnnotation(doc="Single checkbox item like `[X]` or `[-]`")
-    ] = 5
-    List: int = 6
-    Bullet: Annotated[int, EnFieldAnnotation(doc="List item prefix")] = 7
-    ListItem: int = 8
+    ] = enum.auto()
+    List: int = enum.auto()
+    Bullet: Annotated[int, EnFieldAnnotation(doc="List item prefix")] = enum.auto()
+    ListItem: int = enum.auto()
     ListTag: Annotated[
         int,
         EnFieldAnnotation(
             doc="Auxilliary wrapper for the paragraph placed at the start of the description list."
         ),
-    ] = 9
-    Counter: int = 10
-    File: int = 11
-    ColonExample: Annotated[int, EnFieldAnnotation(doc="Colon example block")] = 12
+    ] = enum.auto()
+    Counter: int = enum.auto()
+    File: int = enum.auto()
+    ColonExample: Annotated[int, EnFieldAnnotation(doc="Colon example block")] = (
+        enum.auto()
+    )
     TextSeparator: Annotated[
         int, EnFieldAnnotation(doc="Long horizontal line `----`")
-    ] = 13
+    ] = enum.auto()
     Paragraph: Annotated[
         int,
         EnFieldAnnotation(
             doc="Single 'paragraph' of text. Used as generic container for any place in AST where unordered sentence might be encountered (e.g. caption, link description) - not limited to actual paragraph"
         ),
-    ] = 14
-    TableRow: Annotated[int, EnFieldAnnotation(doc="Horizontal table row")] = 15
+    ] = enum.auto()
+    TableRow: Annotated[int, EnFieldAnnotation(doc="Horizontal table row")] = enum.auto()
     TableCell: Annotated[
         int,
         EnFieldAnnotation(
             doc="Single cell in row. Might contain anyting, including other tables, simple text paragraph etc."
         ),
-    ] = 16
-    Table: Annotated[int, EnFieldAnnotation(doc="Org-mode table")] = 17
+    ] = enum.auto()
+    Table: Annotated[int, EnFieldAnnotation(doc="Org-mode table")] = enum.auto()
     InlineFootnote: Annotated[
         int,
         EnFieldAnnotation(
             doc="Inline footnote with text placed directly in the node body."
         ),
-    ] = 18
+    ] = enum.auto()
     Footnote: Annotated[
         int,
         EnFieldAnnotation(
             doc="Footnote entry. Just as regular links - internal content is not parsed, and instead just cut out verbatim into target AST node."
         ),
-    ] = 19
+    ] = enum.auto()
     Cmd: Annotated[
         int,
         EnFieldAnnotation(
             doc="Undefined single-line command -- most likely custom user-provided oe"
         ),
-    ] = 20
-    Attrs: Annotated[int, EnFieldAnnotation(doc="Arguments for the command block")] = 21
-    AttrValue: Annotated[int, EnFieldAnnotation(doc=":key name=value syntax")] = 22
+    ] = enum.auto()
+    Attrs: Annotated[int, EnFieldAnnotation(doc="Arguments for the command block")] = (
+        enum.auto()
+    )
+    AttrValue: Annotated[int, EnFieldAnnotation(doc=":key name=value syntax")] = (
+        enum.auto()
+    )
     LispExpr: Annotated[
         int, EnFieldAnnotation(doc="S-expression as an attribute value value")
-    ] = 23
-    LispList: Annotated[int, EnFieldAnnotation(doc="`(a b c)` without quoting")] = 24
-    LispVector: Annotated[int, EnFieldAnnotation(doc="[1 2 3 4]` without quoting")] = 25
+    ] = enum.auto()
+    LispList: Annotated[int, EnFieldAnnotation(doc="`(a b c)` without quoting")] = (
+        enum.auto()
+    )
+    LispVector: Annotated[int, EnFieldAnnotation(doc="[1 2 3 4]` without quoting")] = (
+        enum.auto()
+    )
     LispQuoted: Annotated[
         int, EnFieldAnnotation(doc="Extra wrapping node for quoted elements")
-    ] = 26
+    ] = enum.auto()
     CmdTitle: Annotated[
         int, EnFieldAnnotation(doc="`#+title:` - full document title")
-    ] = 27
-    CmdAuthor: Annotated[int, EnFieldAnnotation(doc="`#+author:` Document author")] = 28
+    ] = enum.auto()
+    CmdAuthor: Annotated[int, EnFieldAnnotation(doc="`#+author:` Document author")] = (
+        enum.auto()
+    )
     CmdCreator: Annotated[int, EnFieldAnnotation(doc="`#+creator:` Document creator")] = (
         29
     )
@@ -176,566 +189,588 @@ class OrgNodeKind(M.Enum):
         EnFieldAnnotation(
             doc="`#+include:` - include other org-mode document (or subsection of it), source code or backend-specific chunk."
         ),
-    ] = 30
-    CmdLanguage: Annotated[int, EnFieldAnnotation(doc="`#+language:`")] = 31
-    CmdEmail: Annotated[int, EnFieldAnnotation(doc="`#+email:`")] = 32
+    ] = enum.auto()
+    CmdLanguage: Annotated[int, EnFieldAnnotation(doc="`#+language:`")] = enum.auto()
+    CmdEmail: Annotated[int, EnFieldAnnotation(doc="`#+email:`")] = enum.auto()
     CmdAttr: Annotated[
         int, EnFieldAnnotation(doc="`#+attr_html:`, `#+attr_image` etc.")
-    ] = 33
-    CmdStartup: Annotated[int, EnFieldAnnotation(doc="`#+startup:`")] = 34
+    ] = enum.auto()
+    CmdStartup: Annotated[int, EnFieldAnnotation(doc="`#+startup:`")] = enum.auto()
     CmdName: Annotated[
         int, EnFieldAnnotation(doc="`#+name:` - name of the associated entry")
-    ] = 35
+    ] = enum.auto()
     CmdCustomTextCommand: Annotated[
         int, EnFieldAnnotation(doc="Line command with parsed text value")
-    ] = 36
+    ] = enum.auto()
     CmdCustomArgsCommand: Annotated[
         int, EnFieldAnnotation(doc="Line command with parsed argument list")
-    ] = 37
+    ] = enum.auto()
     CmdCustomRawCommand: Annotated[
         int, EnFieldAnnotation(doc="Line command with raw text argument")
-    ] = 38
+    ] = enum.auto()
     CmdResults: Annotated[
         int, EnFieldAnnotation(doc="`#+results:` - source code block evaluation results")
-    ] = 39
+    ] = enum.auto()
     CmdHeader: Annotated[
         int,
         EnFieldAnnotation(
             doc="`#+header:` - extended list of parameters passed to associated block"
         ),
-    ] = 40
+    ] = enum.auto()
     CmdOptions: Annotated[
         int, EnFieldAnnotation(doc="`#+options:` - document-wide formatting options")
-    ] = 41
-    CmdTblfm: int = 42
-    CmdCaption: Annotated[int, EnFieldAnnotation(doc="`#+caption:` command")] = 43
-    CmdResult: Annotated[int, EnFieldAnnotation(doc="Command evaluation result")] = 44
+    ] = enum.auto()
+    CmdTblfm: int = enum.auto()
+    CmdCaption: Annotated[int, EnFieldAnnotation(doc="`#+caption:` command")] = (
+        enum.auto()
+    )
+    CmdResult: Annotated[int, EnFieldAnnotation(doc="Command evaluation result")] = (
+        enum.auto()
+    )
     CmdCallCode: Annotated[
         int, EnFieldAnnotation(doc="Call to named source code block.")
-    ] = 45
+    ] = enum.auto()
     CmdFlag: Annotated[
         int,
         EnFieldAnnotation(
             doc="Flag for source code block. For example `-n`, which is used to to make source code block export with lines"
         ),
-    ] = 46
-    CmdLatexClass: int = 47
-    CmdLatexHeader: int = 48
-    CmdLatexCompiler: int = 49
-    CmdLatexClassOptions: int = 50
-    CmdHtmlHead: int = 51
+    ] = enum.auto()
+    CmdLatexClass: int = enum.auto()
+    CmdLatexHeader: int = enum.auto()
+    CmdLatexCompiler: int = enum.auto()
+    CmdLatexClassOptions: int = enum.auto()
+    CmdHtmlHead: int = enum.auto()
     CmdColumns: Annotated[
         int,
         EnFieldAnnotation(
             doc="`#+columns:` line command for specifying formatting of the org-mode clock table visualization on per-file basis."
         ),
-    ] = 52
-    CmdPropertyArgs: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = 53
-    CmdPropertyText: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = 54
-    CmdPropertyRaw: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = 55
-    CmdFiletags: Annotated[int, EnFieldAnnotation(doc="`#+filetags:` line command")] = 56
-    CmdKeywords: int = 57
+    ] = enum.auto()
+    CmdPropertyArgs: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = (
+        enum.auto()
+    )
+    CmdPropertyText: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = (
+        enum.auto()
+    )
+    CmdPropertyRaw: Annotated[int, EnFieldAnnotation(doc="`#+property:` command")] = (
+        enum.auto()
+    )
+    CmdFiletags: Annotated[int, EnFieldAnnotation(doc="`#+filetags:` line command")] = (
+        enum.auto()
+    )
+    CmdKeywords: int = enum.auto()
     BlockVerbatimMultiline: Annotated[
         int,
         EnFieldAnnotation(
             doc="Verbatim mulitiline block that *might* be a part of `orgMultilineCommand` (in case of `#+begin-src`), but not necessarily. Can also be a part of =quote= and =example= multiline blocks."
         ),
-    ] = 58
-    CodeLine: Annotated[int, EnFieldAnnotation(doc="Single line of source code")] = 59
-    CodeText: Annotated[int, EnFieldAnnotation(doc="Block of source code text")] = 60
+    ] = enum.auto()
+    CodeLine: Annotated[int, EnFieldAnnotation(doc="Single line of source code")] = (
+        enum.auto()
+    )
+    CodeText: Annotated[int, EnFieldAnnotation(doc="Block of source code text")] = (
+        enum.auto()
+    )
     CodeTangle: Annotated[
         int, EnFieldAnnotation(doc="Single tangle target in the code block")
-    ] = 61
+    ] = enum.auto()
     CodeCallout: Annotated[
         int, EnFieldAnnotation(doc="`(refs:` callout in the source code")
-    ] = 62
-    BlockCode: int = 63
+    ] = enum.auto()
+    BlockCode: int = enum.auto()
     BlockQuote: Annotated[
         int, EnFieldAnnotation(doc="`#+begin_quote:` block in code")
-    ] = 64
+    ] = enum.auto()
     BlockComment: Annotated[
         int, EnFieldAnnotation(doc="`#+begin_comment:` block in code")
-    ] = 65
-    BlockCenter: int = 66
-    BlockVerse: int = 67
+    ] = enum.auto()
+    BlockCenter: int = enum.auto()
+    BlockVerse: int = enum.auto()
     BlockExample: Annotated[int, EnFieldAnnotation(doc="Verbatim example text block")] = (
         68
     )
-    BlockExport: int = 69
-    BlockDetails: Annotated[int, EnFieldAnnotation(doc="`#+begin_details`  section")] = 70
-    BlockSummary: Annotated[int, EnFieldAnnotation(doc="`#+begin_summary` section")] = 71
+    BlockExport: int = enum.auto()
+    BlockDetails: Annotated[int, EnFieldAnnotation(doc="`#+begin_details`  section")] = (
+        enum.auto()
+    )
+    BlockSummary: Annotated[int, EnFieldAnnotation(doc="`#+begin_summary` section")] = (
+        enum.auto()
+    )
     BlockDynamicFallback: Annotated[
         int, EnFieldAnnotation(doc="#+begin: <name> section")
-    ] = 72
+    ] = enum.auto()
     BlockCustomText: Annotated[
         int, EnFieldAnnotation(doc="#+begin_<any> section for text blocks")
-    ] = 73
+    ] = enum.auto()
     BlockCustomRaw: Annotated[
         int, EnFieldAnnotation(doc="#+begin_<any> section for raw content blocks")
-    ] = 74
+    ] = enum.auto()
     BigIdent: Annotated[
         int, EnFieldAnnotation(doc="full-uppsercase identifier such as `MUST` or `TODO`")
-    ] = 75
+    ] = enum.auto()
     Bold: Annotated[
         int,
         EnFieldAnnotation(
             doc='Region of text with formatting, which contains standalone words -\n     can itself contain subnodes, which allows to represent nested\n     formatting regions, such as `*bold /italic/*` text. Particular type\n     of identifier is stored in string form in `str` field for `OrgNode`\n     -- bold is represented as `"*"`, italic as `/` and so on. In case\n     of explicit open/close pairs only opening one is stored.\n\n     NOTE: when structured sentences are enabled, regular punctuation\n     elements like `some text (notes)` are also represented as `Word,\n     Word, Markup(str: "(", [Word])` - e.g. structure is not fully flat.'
         ),
-    ] = 76
+    ] = enum.auto()
     ErrorInfoToken: Annotated[
         int,
         EnFieldAnnotation(doc="Error leaf node inserted into the parse tree on failure"),
-    ] = 77
+    ] = enum.auto()
     ErrorSkipGroup: Annotated[
         int,
         EnFieldAnnotation(
             doc="Parent node for one or more tokens skipped during error recovery"
         ),
-    ] = 78
+    ] = enum.auto()
     ErrorSkipToken: Annotated[
         int,
         EnFieldAnnotation(
             doc="Single token node skipped while the parser searched for recovery point"
         ),
-    ] = 79
-    Italic: int = 80
-    Verbatim: int = 81
-    Backtick: int = 82
-    Underline: int = 83
-    Strike: int = 84
-    Quote: int = 85
-    Angle: int = 86
-    Monospace: int = 87
-    Par: int = 88
-    CriticMarkStructure: int = 89
+    ] = enum.auto()
+    Italic: int = enum.auto()
+    Verbatim: int = enum.auto()
+    Backtick: int = enum.auto()
+    Underline: int = enum.auto()
+    Strike: int = enum.auto()
+    Quote: int = enum.auto()
+    Angle: int = enum.auto()
+    Monospace: int = enum.auto()
+    Par: int = enum.auto()
+    CriticMarkStructure: int = enum.auto()
     InlineMath: Annotated[
         int,
         EnFieldAnnotation(
             doc="Inline latex math. Contains latex math body - either from `$dollar-wrapped$` or `\\(paren-wrapped\\)` inline text."
         ),
-    ] = 90
+    ] = enum.auto()
     DisplayMath: Annotated[
         int,
         EnFieldAnnotation(
             doc="Inline display latex math from `$$double-dollar$$` or `\\[bracket-wrapped\\]` code."
         ),
-    ] = 91
+    ] = enum.auto()
     Space: Annotated[
         int, EnFieldAnnotation(doc="Space or tab character in regular text")
-    ] = 92
-    Punctuation: int = 93
-    Colon: int = 94
+    ] = enum.auto()
+    Punctuation: int = enum.auto()
+    Colon: int = enum.auto()
     Word: Annotated[
         int,
         EnFieldAnnotation(
             doc="Regular word - technically not different from `orgIdent`, but defined separately to disiguish between places where special syntax is required and free-form text."
         ),
-    ] = 95
+    ] = enum.auto()
     Escaped: Annotated[
         int, EnFieldAnnotation(doc="Escaped formatting character in the text")
-    ] = 96
-    Newline: int = 97
+    ] = enum.auto()
+    Newline: int = enum.auto()
     RawLink: Annotated[
         int, EnFieldAnnotation(doc="Raw unwrapped link that was pasted in text")
-    ] = 98
+    ] = enum.auto()
     Link: Annotated[
         int,
         EnFieldAnnotation(
             doc="External or internal link. Consists of one or two elements - target\n     (url, file location etc.) and description (`orgParagraph` of text).\n     Description might be empty, and represented as empty node in this\n     case. For external links particular formatting of the address is\n     not handled by parser and instead contains raw string from input\n     text."
         ),
-    ] = 99
+    ] = enum.auto()
     Macro: Annotated[
         int,
         EnFieldAnnotation(
             doc="Org-mode macro replacement - during export each macro is expanded\n     and evaluated according to it's environment. Body of the macro is\n     not parsed fully during org-mode evaluation, but is checked for\n     correct parenthesis balance (as macro might contain elisp code)"
         ),
-    ] = 100
+    ] = enum.auto()
     Symbol: Annotated[
         int,
         EnFieldAnnotation(
             doc="Special symbol that should be exported differently to various backends - greek letters (`\alpha`), mathematical notations and so on."
         ),
-    ] = 101
-    StaticActiveTime: int = 102
-    StaticInactiveTime: int = 103
-    DynamicActiveTime: int = 104
-    DiaryTime: int = 105
+    ] = enum.auto()
+    StaticActiveTime: int = enum.auto()
+    StaticInactiveTime: int = enum.auto()
+    DynamicActiveTime: int = enum.auto()
+    DiaryTime: int = enum.auto()
     DynamicInactiveTime: Annotated[
         int,
         EnFieldAnnotation(
             doc="Single date and time entry (active or inactive),, possibly with repeater interval. Is not parsed directly, and instead contains `orgRawText` that can be parsed later"
         ),
-    ] = 106
+    ] = enum.auto()
     TimeRange: Annotated[
         int,
         EnFieldAnnotation(doc="Date and time range format - two `orgDateTime` entries"),
-    ] = 107
+    ] = enum.auto()
     SimpleTime: Annotated[
         int,
         EnFieldAnnotation(
             doc="Result of the time range evaluation or trailing annotation a subtree"
         ),
-    ] = 108
-    HashTag: int = 109
+    ] = enum.auto()
+    HashTag: int = enum.auto()
     MetaSymbol: Annotated[
         int, EnFieldAnnotation(doc="`\\sym{}` with explicit arguments")
-    ] = 110
-    AtMention: Annotated[int, EnFieldAnnotation(doc="`@user`")] = 111
+    ] = enum.auto()
+    AtMention: Annotated[int, EnFieldAnnotation(doc="`@user`")] = enum.auto()
     Placeholder: Annotated[
         int,
         EnFieldAnnotation(
             doc="Placeholder entry in text, usually writte like `<text to replace>`"
         ),
-    ] = 112
-    RadioTarget: Annotated[int, EnFieldAnnotation(doc="`<<<RADIO>>>`")] = 113
-    Target: Annotated[int, EnFieldAnnotation(doc="`<<TARGET>>`")] = 114
+    ] = enum.auto()
+    RadioTarget: Annotated[int, EnFieldAnnotation(doc="`<<<RADIO>>>`")] = enum.auto()
+    Target: Annotated[int, EnFieldAnnotation(doc="`<<TARGET>>`")] = enum.auto()
     SrcInlineCode: Annotated[
         int,
         EnFieldAnnotation(
             doc="inline piece of code (such as `src_nim`),. Latter is different from regular monospaced text inside of `~~` pair as it contains additional internal structure, optional parameter for code evaluation etc."
         ),
-    ] = 115
+    ] = enum.auto()
     InlineCallCode: Annotated[
         int, EnFieldAnnotation(doc="Call to named source code block.")
-    ] = 116
+    ] = enum.auto()
     InlineExport: Annotated[
         int,
         EnFieldAnnotation(
             doc="Passthrough block. Inline, multiline, or single-line. Syntax is `@@<backend-name>:<any-body>@@`. Has line and block syntax respectively"
         ),
-    ] = 117
-    InlineComment: int = 118
+    ] = enum.auto()
+    InlineComment: int = enum.auto()
     RawText: Annotated[
         int,
         EnFieldAnnotation(
             doc="Raw string of text from input buffer. Things like particular syntax details of every single command, link formats are not handled in parser, deferring formatting to future processing layers "
         ),
-    ] = 119
+    ] = enum.auto()
     SubtreeDescription: Annotated[int, EnFieldAnnotation(doc="`:description:` entry")] = (
         120
     )
-    SubtreeUrgency: int = 121
+    SubtreeUrgency: int = enum.auto()
     DrawerLogbook: Annotated[
         int, EnFieldAnnotation(doc="`:logbook:` entry storing note information")
-    ] = 122
+    ] = enum.auto()
     Drawer: Annotated[
         int,
         EnFieldAnnotation(
             doc="Single enclosed drawer like `:properties: ... :end:` or `:logbook: ... :end:`"
         ),
-    ] = 123
-    DrawerPropertyList: int = 124
-    DrawerProperty: Annotated[int, EnFieldAnnotation(doc="`:property:` drawer")] = 125
-    Subtree: Annotated[int, EnFieldAnnotation(doc="Section subtree")] = 126
+    ] = enum.auto()
+    DrawerPropertyList: int = enum.auto()
+    DrawerProperty: Annotated[int, EnFieldAnnotation(doc="`:property:` drawer")] = (
+        enum.auto()
+    )
+    Subtree: Annotated[int, EnFieldAnnotation(doc="Section subtree")] = enum.auto()
     SubtreeTimes: Annotated[
         int, EnFieldAnnotation(doc="Time? associated with subtree entry")
-    ] = 127
-    SubtreeStars: int = 128
+    ] = enum.auto()
+    SubtreeStars: int = enum.auto()
     SubtreeCompletion: Annotated[
         int,
         EnFieldAnnotation(
             doc="Task compleation cookie, indicated either in percents of completion, or as `<done>/<todo>` ratio."
         ),
-    ] = 129
+    ] = enum.auto()
     SubtreeImportance: Annotated[
         int,
         EnFieldAnnotation(
             doc="Subtree importance level, such as `[#A]` or `[#B]`. Default org-mode only allows single character for contents inside of `[]`, but this parser makes it possible to use any regular identifier, such as `[#urgent]`."
         ),
-    ] = 130
+    ] = enum.auto()
 
 
 class OrgTokenKind(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    Ampersand: int = 0
-    AngleBegin: int = 1
-    AngleEnd: int = 2
-    AnyPunct: int = 3
-    Asterisk: int = 4
-    At: int = 5
-    Backtick: int = 6
-    BigIdent: int = 7
-    BoldBegin: int = 8
-    BoldEnd: int = 9
-    BoldUnknown: int = 10
-    BraceBegin: int = 11
-    BraceEnd: int = 12
-    Checkbox: int = 13
-    Circumflex: int = 14
-    CmdAdmonitionEnd: int = 15
-    CmdAttr: int = 16
-    CmdAuthor: int = 17
-    CmdBindRaw: int = 18
-    CmdCall: int = 19
-    CmdCaption: int = 20
-    CmdCategoryRaw: int = 21
-    CmdCell: int = 22
-    CmdCellBegin: int = 23
-    CmdCellEnd: int = 24
-    CmdCenterBegin: int = 25
-    CmdCenterEnd: int = 26
-    CmdColonIdent: int = 27
-    CmdColumns: int = 28
-    CmdCommentBegin: int = 29
-    CmdCommentEnd: int = 30
-    CmdConstants: int = 31
-    CmdContentBegin: int = 32
-    CmdContentEnd: int = 33
-    CmdCreator: int = 34
-    CmdCustomRaw: int = 35
-    CmdDateRaw: int = 36
-    CmdDescription: int = 37
-    CmdDrawersRaw: int = 38
+    Ampersand: int = enum.auto()
+    AngleBegin: int = enum.auto()
+    AngleEnd: int = enum.auto()
+    AnyPunct: int = enum.auto()
+    Asterisk: int = enum.auto()
+    At: int = enum.auto()
+    Backtick: int = enum.auto()
+    BigIdent: int = enum.auto()
+    BoldBegin: int = enum.auto()
+    BoldEnd: int = enum.auto()
+    BoldUnknown: int = enum.auto()
+    BraceBegin: int = enum.auto()
+    BraceEnd: int = enum.auto()
+    Checkbox: int = enum.auto()
+    Circumflex: int = enum.auto()
+    CmdAdmonitionEnd: int = enum.auto()
+    CmdAttr: int = enum.auto()
+    CmdAuthor: int = enum.auto()
+    CmdBindRaw: int = enum.auto()
+    CmdCall: int = enum.auto()
+    CmdCaption: int = enum.auto()
+    CmdCategoryRaw: int = enum.auto()
+    CmdCell: int = enum.auto()
+    CmdCellBegin: int = enum.auto()
+    CmdCellEnd: int = enum.auto()
+    CmdCenterBegin: int = enum.auto()
+    CmdCenterEnd: int = enum.auto()
+    CmdColonIdent: int = enum.auto()
+    CmdColumns: int = enum.auto()
+    CmdCommentBegin: int = enum.auto()
+    CmdCommentEnd: int = enum.auto()
+    CmdConstants: int = enum.auto()
+    CmdContentBegin: int = enum.auto()
+    CmdContentEnd: int = enum.auto()
+    CmdCreator: int = enum.auto()
+    CmdCustomRaw: int = enum.auto()
+    CmdDateRaw: int = enum.auto()
+    CmdDescription: int = enum.auto()
+    CmdDrawersRaw: int = enum.auto()
     CmdDynamicBlockBegin: Annotated[
         int, EnFieldAnnotation(doc="`#+begin:` with the unspecified name")
-    ] = 39
+    ] = enum.auto()
     CmdDynamicBlockEnd: Annotated[
         int, EnFieldAnnotation(doc="`#+end:` matching with `#+begin:`")
-    ] = 40
+    ] = enum.auto()
     CmdCustomTextBlockBegin: Annotated[
         int, EnFieldAnnotation(doc="`#+begin_` with the text content inside")
-    ] = 41
-    CmdCustomTextBlockEnd: int = 42
+    ] = enum.auto()
+    CmdCustomTextBlockEnd: int = enum.auto()
     CmdCustomRawBlockBegin: Annotated[
         int, EnFieldAnnotation(doc="`#+begin_` block with the raw string")
-    ] = 43
-    CmdCustomRawBlockLine: int = 44
-    CmdCustomRawBlockEnd: int = 45
-    CmdEmailRaw: int = 46
-    CmdExampleBegin: int = 47
-    CmdExampleEnd: int = 48
-    CmdExampleLine: int = 49
-    CmdExcludeTagsRaw: int = 50
-    CmdExportBegin: int = 51
-    CmdExportEnd: int = 52
-    CmdExportLine: int = 53
-    CmdFiletags: int = 54
-    CmdFlag: int = 55
-    CmdHeader: int = 56
-    CmdHtmlHeadRaw: int = 57
-    CmdInclude: int = 58
-    CmdLanguage: int = 59
-    CmdLatexClass: int = 60
-    CmdLatexClassOptions: int = 61
-    CmdLatexCompiler: int = 62
-    CmdLatexHeader: int = 63
-    CmdLatexHeaderExtraRaw: int = 64
-    CmdLinkRaw: int = 65
-    CmdMacroRaw: int = 66
-    CmdName: int = 67
-    CmdOptions: int = 68
-    CmdPrefix: int = 69
-    CmdPrioritiesRaw: int = 70
-    CmdPropertyArgs: int = 71
-    CmdPropertyRaw: int = 72
-    CmdPropertyText: int = 73
-    CmdQuoteBegin: int = 74
-    CmdQuoteEnd: int = 75
-    CmdRawArg: int = 76
-    CmdResults: int = 77
-    CmdRow: int = 78
-    CmdRowBegin: int = 79
-    CmdRowEnd: int = 80
-    CmdSelectTagsRaw: int = 81
-    CmdSeqTodoRaw: int = 82
-    CmdKeywordsRaw: int = 83
-    CmdSetupfileRaw: int = 84
-    CmdSrcBegin: int = 85
-    CmdSrcEnd: int = 86
-    CmdStartup: int = 87
-    CmdTableBegin: int = 88
-    CmdTableEnd: int = 89
-    CmdTagsRaw: int = 90
-    CmdTblfm: int = 91
-    CmdTitle: int = 92
-    CmdVerseBegin: int = 93
-    CmdVerseEnd: int = 94
-    Colon: int = 95
-    ColonArgumentsProperty: int = 96
-    ColonEnd: int = 97
-    ColonExampleLine: int = 98
-    ColonLiteralProperty: int = 99
-    ColonLogbook: int = 100
-    ColonProperties: int = 101
-    ColonPropertyText: int = 102
-    Comma: int = 103
-    Comment: int = 104
-    CriticAddBegin: int = 105
-    CriticAddEnd: int = 106
-    CriticCommentBegin: int = 107
-    CriticCommentEnd: int = 108
-    CriticDeleteBegin: int = 109
-    CriticDeleteEnd: int = 110
-    CriticHighlightBegin: int = 111
-    CriticHighlightEnd: int = 112
-    CriticReplaceBegin: int = 113
-    CriticReplaceEnd: int = 114
-    CriticReplaceMiddle: int = 115
-    CurlyBegin: int = 116
-    CurlyEnd: int = 117
-    Date: int = 118
-    Dedent: int = 119
-    Dollar: int = 120
-    DoubleAngleBegin: int = 121
-    DoubleAngleEnd: int = 122
-    DoubleColon: int = 123
-    DoubleDash: int = 124
-    DoubleHash: int = 125
-    DoubleQuote: int = 126
-    DoubleSlash: int = 127
-    ActiveDynamicTimeContent: int = 128
-    InactiveDynamicTimeContent: int = 129
+    ] = enum.auto()
+    CmdCustomRawBlockLine: int = enum.auto()
+    CmdCustomRawBlockEnd: int = enum.auto()
+    CmdEmailRaw: int = enum.auto()
+    CmdExampleBegin: int = enum.auto()
+    CmdExampleEnd: int = enum.auto()
+    CmdExampleLine: int = enum.auto()
+    CmdExcludeTagsRaw: int = enum.auto()
+    CmdExportBegin: int = enum.auto()
+    CmdExportEnd: int = enum.auto()
+    CmdExportLine: int = enum.auto()
+    CmdFiletags: int = enum.auto()
+    CmdFlag: int = enum.auto()
+    CmdHeader: int = enum.auto()
+    CmdHtmlHeadRaw: int = enum.auto()
+    CmdInclude: int = enum.auto()
+    CmdLanguage: int = enum.auto()
+    CmdLatexClass: int = enum.auto()
+    CmdLatexClassOptions: int = enum.auto()
+    CmdLatexCompiler: int = enum.auto()
+    CmdLatexHeader: int = enum.auto()
+    CmdLatexHeaderExtraRaw: int = enum.auto()
+    CmdLinkRaw: int = enum.auto()
+    CmdMacroRaw: int = enum.auto()
+    CmdName: int = enum.auto()
+    CmdOptions: int = enum.auto()
+    CmdPrefix: int = enum.auto()
+    CmdPrioritiesRaw: int = enum.auto()
+    CmdPropertyArgs: int = enum.auto()
+    CmdPropertyRaw: int = enum.auto()
+    CmdPropertyText: int = enum.auto()
+    CmdQuoteBegin: int = enum.auto()
+    CmdQuoteEnd: int = enum.auto()
+    CmdRawArg: int = enum.auto()
+    CmdResults: int = enum.auto()
+    CmdRow: int = enum.auto()
+    CmdRowBegin: int = enum.auto()
+    CmdRowEnd: int = enum.auto()
+    CmdSelectTagsRaw: int = enum.auto()
+    CmdSeqTodoRaw: int = enum.auto()
+    CmdKeywordsRaw: int = enum.auto()
+    CmdSetupfileRaw: int = enum.auto()
+    CmdSrcBegin: int = enum.auto()
+    CmdSrcEnd: int = enum.auto()
+    CmdStartup: int = enum.auto()
+    CmdTableBegin: int = enum.auto()
+    CmdTableEnd: int = enum.auto()
+    CmdTagsRaw: int = enum.auto()
+    CmdTblfm: int = enum.auto()
+    CmdTitle: int = enum.auto()
+    CmdVerseBegin: int = enum.auto()
+    CmdVerseEnd: int = enum.auto()
+    Colon: int = enum.auto()
+    ColonArgumentsProperty: int = enum.auto()
+    ColonEnd: int = enum.auto()
+    ColonExampleLine: int = enum.auto()
+    ColonLiteralProperty: int = enum.auto()
+    ColonLogbook: int = enum.auto()
+    ColonProperties: int = enum.auto()
+    ColonPropertyText: int = enum.auto()
+    Comma: int = enum.auto()
+    Comment: int = enum.auto()
+    CriticAddBegin: int = enum.auto()
+    CriticAddEnd: int = enum.auto()
+    CriticCommentBegin: int = enum.auto()
+    CriticCommentEnd: int = enum.auto()
+    CriticDeleteBegin: int = enum.auto()
+    CriticDeleteEnd: int = enum.auto()
+    CriticHighlightBegin: int = enum.auto()
+    CriticHighlightEnd: int = enum.auto()
+    CriticReplaceBegin: int = enum.auto()
+    CriticReplaceEnd: int = enum.auto()
+    CriticReplaceMiddle: int = enum.auto()
+    CurlyBegin: int = enum.auto()
+    CurlyEnd: int = enum.auto()
+    Date: int = enum.auto()
+    Dedent: int = enum.auto()
+    Dollar: int = enum.auto()
+    DoubleAngleBegin: int = enum.auto()
+    DoubleAngleEnd: int = enum.auto()
+    DoubleColon: int = enum.auto()
+    DoubleDash: int = enum.auto()
+    DoubleHash: int = enum.auto()
+    DoubleQuote: int = enum.auto()
+    DoubleSlash: int = enum.auto()
+    ActiveDynamicTimeContent: int = enum.auto()
+    InactiveDynamicTimeContent: int = enum.auto()
     AgendaDiaryTimeContent: Annotated[
         int,
         EnFieldAnnotation(
             doc="`%%(` at the start of the line in the subtree, denoting the start of the dynamic agenda."
         ),
-    ] = 130
-    EndOfFile: int = 131
-    Equals: int = 132
-    Escaped: int = 133
-    Exclamation: int = 134
+    ] = enum.auto()
+    EndOfFile: int = enum.auto()
+    Equals: int = enum.auto()
+    Escaped: int = enum.auto()
+    Exclamation: int = enum.auto()
     FootnoteInlineBegin: Annotated[
         int, EnFieldAnnotation(doc="`[fn::` with the inline definition")
-    ] = 135
-    FootnoteLinked: int = 136
-    ForwardSlash: int = 137
-    HashIdent: int = 138
-    HashTagBegin: int = 139
-    Indent: int = 140
-    InlineExportBackend: int = 141
-    InlineExportContent: int = 142
-    ItalicBegin: int = 143
-    ItalicEnd: int = 144
-    ItalicUnknown: int = 145
-    LatexInlineRaw: int = 146
-    LatexParBegin: int = 147
-    LatexParEnd: int = 148
-    LatexBraceBegin: int = 149
-    LatexBraceEnd: int = 150
-    LatexDollar1Begin: int = 151
-    LatexDollar1End: int = 152
-    LatexDollar2Begin: int = 153
-    LatexDollar2End: int = 154
-    LeadingMinus: int = 155
-    LeadingNumber: int = 156
-    LeadingPipe: int = 157
-    LeadingPlus: int = 158
-    LeadingSpace: int = 159
-    LeadingCharacter: Annotated[int, EnFieldAnnotation(doc="a)")] = 160
-    LineCommand: int = 161
-    LinkBegin: int = 162
-    LinkDescriptionBegin: int = 163
-    LinkDescriptionEnd: int = 164
-    LinkEnd: int = 165
-    LinkFull: int = 166
-    LinkProtocol: int = 167
-    LinkProtocolAttachment: int = 168
-    LinkProtocolCustomId: int = 169
-    LinkProtocolFile: int = 170
-    LinkProtocolHttp: int = 171
-    LinkProtocolId: int = 172
-    LinkProtocolInternal: int = 173
-    LinkProtocolTitle: int = 174
-    LinkSplit: int = 175
-    LinkTarget: int = 176
-    LinkTargetBegin: int = 177
-    LinkTargetEnd: int = 178
-    LinkTargetFile: int = 179
-    ListBegin: int = 180
-    ListEnd: int = 181
-    ListItemBegin: int = 182
-    ListItemEnd: int = 183
-    LongNewline: int = 184
-    MediumNewline: int = 185
-    Minus: int = 186
-    MiscUnicode: int = 187
-    MonospaceBegin: int = 188
-    MonospaceEnd: int = 189
-    MonospaceUnknown: int = 190
-    Newline: int = 191
-    Number: int = 192
-    ParBegin: int = 193
-    ParEnd: int = 194
-    Percent: int = 195
-    Pipe: int = 196
-    Placeholder: int = 197
-    Plus: int = 198
-    Punctuation: int = 199
-    RawText: int = 200
-    SameIndent: int = 201
-    Semicolon: int = 202
-    SingleQuote: int = 203
-    SrcContent: int = 204
-    StmtListBegin: int = 205
-    StmtListEnd: int = 206
-    StrikeBegin: int = 207
-    StrikeEnd: int = 208
-    StrikeUnknown: int = 209
-    SubtreeCompletion: int = 210
-    SubtreePriority: int = 211
-    SubtreeStars: int = 212
-    Symbol: int = 213
-    TableSeparator: int = 214
-    TextSeparator: int = 215
-    TextSrcBegin: int = 216
-    Tilda: int = 217
-    Time: int = 218
-    TimeArrow: int = 219
-    TimeRepeaterDuration: int = 220
-    TimeRepeaterSpec: int = 221
-    TimeWarnPeriod: int = 222
-    TrailingPipe: int = 223
-    TreeClock: int = 224
-    TreeTime: int = 225
-    TripleAngleBegin: int = 226
-    TripleAngleEnd: int = 227
-    Underline: int = 228
-    UnderlineBegin: int = 229
-    UnderlineEnd: int = 230
-    UnderlineUnknown: int = 231
-    Unknown: int = 232
-    VerbatimBegin: int = 233
-    VerbatimEnd: int = 234
-    VerbatimUnknown: int = 235
-    Whitespace: int = 236
-    Word: int = 237
+    ] = enum.auto()
+    FootnoteLinked: int = enum.auto()
+    ForwardSlash: int = enum.auto()
+    HashIdent: int = enum.auto()
+    HashTagBegin: int = enum.auto()
+    Indent: int = enum.auto()
+    InlineExportBackend: int = enum.auto()
+    InlineExportContent: int = enum.auto()
+    ItalicBegin: int = enum.auto()
+    ItalicEnd: int = enum.auto()
+    ItalicUnknown: int = enum.auto()
+    LatexInlineRaw: int = enum.auto()
+    LatexParBegin: int = enum.auto()
+    LatexParEnd: int = enum.auto()
+    LatexBraceBegin: int = enum.auto()
+    LatexBraceEnd: int = enum.auto()
+    LatexDollar1Begin: int = enum.auto()
+    LatexDollar1End: int = enum.auto()
+    LatexDollar2Begin: int = enum.auto()
+    LatexDollar2End: int = enum.auto()
+    LeadingMinus: int = enum.auto()
+    LeadingNumber: int = enum.auto()
+    LeadingPipe: int = enum.auto()
+    LeadingPlus: int = enum.auto()
+    LeadingSpace: int = enum.auto()
+    LeadingCharacter: Annotated[int, EnFieldAnnotation(doc="a)")] = enum.auto()
+    LineCommand: int = enum.auto()
+    LinkBegin: int = enum.auto()
+    LinkDescriptionBegin: int = enum.auto()
+    LinkDescriptionEnd: int = enum.auto()
+    LinkEnd: int = enum.auto()
+    LinkFull: int = enum.auto()
+    LinkProtocol: int = enum.auto()
+    LinkProtocolAttachment: int = enum.auto()
+    LinkProtocolCustomId: int = enum.auto()
+    LinkProtocolFile: int = enum.auto()
+    LinkProtocolHttp: int = enum.auto()
+    LinkProtocolId: int = enum.auto()
+    LinkProtocolInternal: int = enum.auto()
+    LinkProtocolTitle: int = enum.auto()
+    LinkSplit: int = enum.auto()
+    LinkTarget: int = enum.auto()
+    LinkTargetBegin: int = enum.auto()
+    LinkTargetEnd: int = enum.auto()
+    LinkTargetFile: int = enum.auto()
+    ListBegin: int = enum.auto()
+    ListEnd: int = enum.auto()
+    ListItemBegin: int = enum.auto()
+    ListItemEnd: int = enum.auto()
+    LongNewline: int = enum.auto()
+    MediumNewline: int = enum.auto()
+    Minus: int = enum.auto()
+    MiscUnicode: int = enum.auto()
+    MonospaceBegin: int = enum.auto()
+    MonospaceEnd: int = enum.auto()
+    MonospaceUnknown: int = enum.auto()
+    Newline: int = enum.auto()
+    Number: int = enum.auto()
+    ParBegin: int = enum.auto()
+    ParEnd: int = enum.auto()
+    Percent: int = enum.auto()
+    Pipe: int = enum.auto()
+    Placeholder: int = enum.auto()
+    Plus: int = enum.auto()
+    Punctuation: int = enum.auto()
+    RawText: int = enum.auto()
+    SameIndent: int = enum.auto()
+    Semicolon: int = enum.auto()
+    SingleQuote: int = enum.auto()
+    SrcContent: int = enum.auto()
+    StmtListBegin: int = enum.auto()
+    StmtListEnd: int = enum.auto()
+    StrikeBegin: int = enum.auto()
+    StrikeEnd: int = enum.auto()
+    StrikeUnknown: int = enum.auto()
+    SubtreeCompletion: int = enum.auto()
+    SubtreePriority: int = enum.auto()
+    SubtreeStars: int = enum.auto()
+    Symbol: int = enum.auto()
+    TableSeparator: int = enum.auto()
+    TextSeparator: int = enum.auto()
+    TextSrcBegin: int = enum.auto()
+    Tilda: int = enum.auto()
+    Time: int = enum.auto()
+    TimeArrow: int = enum.auto()
+    TimeRepeaterDuration: int = enum.auto()
+    TimeRepeaterSpec: int = enum.auto()
+    TimeWarnPeriod: int = enum.auto()
+    TrailingPipe: int = enum.auto()
+    TreeClock: int = enum.auto()
+    TreeTime: int = enum.auto()
+    TripleAngleBegin: int = enum.auto()
+    TripleAngleEnd: int = enum.auto()
+    Underline: int = enum.auto()
+    UnderlineBegin: int = enum.auto()
+    UnderlineEnd: int = enum.auto()
+    UnderlineUnknown: int = enum.auto()
+    Unknown: int = enum.auto()
+    VerbatimBegin: int = enum.auto()
+    VerbatimEnd: int = enum.auto()
+    VerbatimUnknown: int = enum.auto()
+    Whitespace: int = enum.auto()
+    Word: int = enum.auto()
 
 
 class OrgJsonKind(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    Null: int = 0
-    Object: int = 1
-    Array: int = 2
-    String: int = 3
-    Boolean: int = 4
-    Int: int = 5
-    Float: int = 6
+    Null: int = enum.auto()
+    Object: int = enum.auto()
+    Array: int = enum.auto()
+    String: int = enum.auto()
+    Boolean: int = enum.auto()
+    Int: int = enum.auto()
+    Float: int = enum.auto()
 
 
 class CheckboxState(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    None_: int = 0
-    Done: int = 1
-    Empty: int = 2
-    Partial: int = 3
+    None_: int = enum.auto()
+    Done: int = enum.auto()
+    Empty: int = enum.auto()
+    Partial: int = enum.auto()
 
 
 class LinkVisibility(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    LiteralLinks: int = 0
-    DescriptiveLinks: int = 1
+    LiteralLinks: int = enum.auto()
+    DescriptiveLinks: int = enum.auto()
 
 
 class BlockVisibility(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    HideBlocks: int = 0
-    NoHideBlocks: int = 1
+    HideBlocks: int = enum.auto()
+    NoHideBlocks: int = enum.auto()
 
 
 class SubtreeTodoSource(M.Enum):
@@ -746,51 +781,57 @@ class SubtreeTodoSource(M.Enum):
     Checkbox: Annotated[
         int,
         EnFieldAnnotation(doc="Only count checkbox subnodes as a progress completion"),
-    ] = 0
-    Todo: Annotated[int, EnFieldAnnotation(doc="Use subtrees with todo keywords")] = 1
-    Both: Annotated[int, EnFieldAnnotation(doc="Use both subtrees and todo keywords")] = 2
+    ] = enum.auto()
+    Todo: Annotated[int, EnFieldAnnotation(doc="Use subtrees with todo keywords")] = (
+        enum.auto()
+    )
+    Both: Annotated[int, EnFieldAnnotation(doc="Use both subtrees and todo keywords")] = (
+        enum.auto()
+    )
 
 
 class ListFormattingMode(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    None_: Annotated[int, EnFieldAnnotation(doc="Default, no custom formatting")] = 0
+    None_: Annotated[int, EnFieldAnnotation(doc="Default, no custom formatting")] = (
+        enum.auto()
+    )
     Table1D1Col: Annotated[
         int, EnFieldAnnotation(doc="one column, each table item is an individual row")
-    ] = 1
+    ] = enum.auto()
     Table1D2Col: Annotated[
         int,
         EnFieldAnnotation(
             doc="for description lists, treat header row as an individual column"
         ),
-    ] = 2
+    ] = enum.auto()
     Table2DColFirst: Annotated[
         int,
         EnFieldAnnotation(
             doc="for tables tables with arbitrary column count, treat the first level of items as "
             "column names, treat all nested elements in these columns as row values"
         ),
-    ] = 3
+    ] = enum.auto()
     Table2DRowFirst: Annotated[
         int,
         EnFieldAnnotation(
             doc="for tables with arbitrary column count, each top-level list item is an individual "
             "row, then each item in the nested list is a cell on this row."
         ),
-    ] = 4
+    ] = enum.auto()
 
 
 class InitialSubtreeVisibility(M.Enum):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.FULL_ENUMS)))
 
-    Overview: int = 0
-    Content: int = 1
-    ShowAll: int = 2
-    Show2Levels: int = 3
-    Show3Levels: int = 4
-    Show4Levels: int = 5
-    Show5Levels: int = 6
-    ShowEverything: int = 7
+    Overview: int = enum.auto()
+    Content: int = enum.auto()
+    ShowAll: int = enum.auto()
+    Show2Levels: int = enum.auto()
+    Show3Levels: int = enum.auto()
+    Show4Levels: int = enum.auto()
+    Show5Levels: int = enum.auto()
+    ShowEverything: int = enum.auto()
 
 
 class LispCode(M.Class):
@@ -948,48 +989,52 @@ class Tblfm(M.Class):
 
             CellLeftAlign: Annotated[
                 int, EnFieldAnnotation(doc="Left-align the result")
-            ] = 0
+            ] = enum.auto()
             CellRightAlign: Annotated[
                 int, EnFieldAnnotation(doc="Right-align the result")
-            ] = 1
+            ] = enum.auto()
             CellCenterAlign: Annotated[
                 int, EnFieldAnnotation(doc="Center-align the result")
-            ] = 2
+            ] = enum.auto()
             CellNumber: Annotated[
                 int, EnFieldAnnotation(doc="Convert result to number/currency format")
-            ] = 3
+            ] = enum.auto()
             CellExponential: Annotated[
                 int, EnFieldAnnotation(doc="Use exponential notation for numbers")
-            ] = 4
+            ] = enum.auto()
             CellFloating: Annotated[
                 int, EnFieldAnnotation(doc="Use floating point format")
-            ] = 5
+            ] = enum.auto()
             CellUnformat: Annotated[
                 int, EnFieldAnnotation(doc="Unformat values before calculating")
-            ] = 6
-            CellText: Annotated[int, EnFieldAnnotation(doc="Convert result to text")] = 7
+            ] = enum.auto()
+            CellText: Annotated[int, EnFieldAnnotation(doc="Convert result to text")] = (
+                enum.auto()
+            )
             CellBool: Annotated[
                 int, EnFieldAnnotation(doc="Display boolean values as t/nil")
-            ] = 8
+            ] = enum.auto()
             CellDecimal: Annotated[
                 int,
                 EnFieldAnnotation(
                     doc="Fixed format with specified decimal places (e.g., ;D2)"
                 ),
-            ] = 9
+            ] = enum.auto()
             CellPercentage: Annotated[int, EnFieldAnnotation(doc="Percentage format")] = (
                 10
             )
             CellHours: Annotated[
                 int, EnFieldAnnotation(doc="Convert to hours/minutes (HH:MM)")
-            ] = 11
+            ] = enum.auto()
             CellZero: Annotated[
                 int, EnFieldAnnotation(doc="Display zero as empty cell")
-            ] = 12
+            ] = enum.auto()
             CellMarkInvalid: Annotated[
                 int, EnFieldAnnotation(doc="Mark field as invalid if conversion fails")
-            ] = 13
-            CellQuote: Annotated[int, EnFieldAnnotation(doc="Quote field contents")] = 14
+            ] = enum.auto()
+            CellQuote: Annotated[int, EnFieldAnnotation(doc="Quote field contents")] = (
+                enum.auto()
+            )
 
         target: "Tblfm.Expr.AxisRef"
         expr: List["Tblfm.Expr"]
@@ -1062,9 +1107,9 @@ class TodoKeyword(M.Class):
     __config__(backend=dict(cpp=dict(org_groups=OrgTypeGroup.SHARED_TYPES)))
 
     class Transition(M.Enum):
-        None_: int = 0
-        NoteWithTimestamp: int = 1
-        Timestamp: int = 2
+        None_: int = enum.auto()
+        NoteWithTimestamp: int = enum.auto()
+        Timestamp: int = enum.auto()
 
     name: str
     shortcut: Optional[str] = None
@@ -1162,13 +1207,13 @@ class SubtreeLogHead(M.Class):
 
             Added: Annotated[
                 int, EnFieldAnnotation(doc="`Priority B added on [timestamp]`")
-            ] = 0
+            ] = enum.auto()
             Removed: Annotated[
                 int, EnFieldAnnotation(doc="`Priority C removed on [timestamp]`")
-            ] = 1
+            ] = enum.auto()
             Changed: Annotated[
                 int, EnFieldAnnotation(doc="`Priority B changed from C on [timestamp]`")
-            ] = 2
+            ] = enum.auto()
 
         oldPriority: Optional[str] = M.Field(
             doc="Previous priority for change and removal"
@@ -1352,65 +1397,65 @@ class OrgCodeEvalInput(M.Class):
     class ResultType(M.Enum):
         """What context to use for results"""
 
-        None_: int = 0
+        None_: int = enum.auto()
         Table: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Interpret the results as an Org table. If the result is a single value, create a table with one row and one column."
             ),
-        ] = 1
+        ] = enum.auto()
         List: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Interpret the results as an Org list. If the result is a single value, create a list of one element."
             ),
-        ] = 2
+        ] = enum.auto()
         Scalar: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Interpret literally and insert as quoted text. Do not create a table."
             ),
-        ] = 3
+        ] = enum.auto()
         SaveFile: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Interpret as a filename. Save the results of execution of the code block to that file, then insert a link to it."
             ),
-        ] = 4
+        ] = enum.auto()
 
     class ResultFormat(M.Enum):
         """How to interpret output from the script"""
 
-        None_: int = 0
+        None_: int = enum.auto()
         Raw: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Interpreted as raw Org mode. Inserted directly into the buffer."
             ),
-        ] = 1
+        ] = enum.auto()
         Code: Annotated[
             int, EnFieldAnnotation(doc="Result enclosed in a code block.")
-        ] = 2
+        ] = enum.auto()
         Drawer: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Results are added directly to the Org file as with ‘raw’, but are wrapped in a ‘RESULTS’ drawer or results macro (for inline code blocks), for later scripting and automated processing."
             ),
-        ] = 3
+        ] = enum.auto()
         ExportType: Annotated[
             int, EnFieldAnnotation(doc="Results enclosed in a ‘BEGIN_EXPORT’ block.")
-        ] = 4
-        Link: int = 5
+        ] = enum.auto()
+        Link: int = enum.auto()
 
     class ResultHandling(M.Enum):
         """What to do with the final evaluation results"""
 
-        None_: int = 0
-        Replace: int = 1
-        Silent: int = 2
-        Discard: int = 3
-        Append: int = 4
-        Prepend: int = 5
+        None_: int = enum.auto()
+        Replace: int = enum.auto()
+        Silent: int = enum.auto()
+        Discard: int = enum.auto()
+        Append: int = enum.auto()
+        Prepend: int = enum.auto()
 
     blockAttrs: AttrGroup
     tangledCode: str
@@ -1449,19 +1494,19 @@ class ColumnView(M.Class):
     class Summary(M.Class):
         class CheckboxAggregate(M.Case):
             class Kind(M.Enum):
-                IfAllNested: int = 0
-                AggregateFractionRec: int = 1
-                AggregatePercentRec: int = 2
+                IfAllNested: int = enum.auto()
+                AggregateFractionRec: int = enum.auto()
+                AggregatePercentRec: int = enum.auto()
 
             kind: Kind
 
         class MathAggregate(M.Case):
             class Kind(M.Enum):
-                Min: int = 0
-                Max: int = 1
-                Mean: int = 2
-                Sum: int = 3
-                LowHighEst: int = 4
+                Min: int = enum.auto()
+                Max: int = enum.auto()
+                Mean: int = enum.auto()
+                Sum: int = enum.auto()
+                LowHighEst: int = enum.auto()
 
             kind: Kind
             formatDigits: Optional[Int32] = None
@@ -1506,41 +1551,47 @@ class DocumentExportConfig(M.Class):
         taskWhitelist: List[str]
 
     class TagExport(M.Enum):
-        None_: int = 0
-        All: int = 1
+        None_: int = enum.auto()
+        All: int = enum.auto()
         NotInToc: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Export tags in subtree titles but not in the table of content"
             ),
-        ] = 2
+        ] = enum.auto()
 
     class TaskFiltering(M.Enum):
         Whitelist: Annotated[
             int, EnFieldAnnotation(doc="Include tasks from the whitelist")
-        ] = 0
-        Done: Annotated[int, EnFieldAnnotation(doc="Include tasks marked as done")] = 1
+        ] = enum.auto()
+        Done: Annotated[int, EnFieldAnnotation(doc="Include tasks marked as done")] = (
+            enum.auto()
+        )
         None_: Annotated[
             int, EnFieldAnnotation(doc="Exclude all task subtrees from export")
-        ] = 2
-        All: Annotated[int, EnFieldAnnotation(doc="Add all task subtrees to export")] = 3
+        ] = enum.auto()
+        All: Annotated[int, EnFieldAnnotation(doc="Add all task subtrees to export")] = (
+            enum.auto()
+        )
 
     class BrokenLinks(M.Enum):
-        None_: int = 0
-        Mark: int = 1
-        Raise: int = 2
-        Ignore: int = 3
+        None_: int = enum.auto()
+        Mark: int = enum.auto()
+        Raise: int = enum.auto()
+        Ignore: int = enum.auto()
 
     class ArchivedTrees(M.Enum):
         """Configure how archived trees are exported"""
 
-        Skip: Annotated[int, EnFieldAnnotation(doc="Skip archived trees entirely")] = 0
+        Skip: Annotated[int, EnFieldAnnotation(doc="Skip archived trees entirely")] = (
+            enum.auto()
+        )
         Headline: Annotated[
             int, EnFieldAnnotation(doc="Export only headlines of archived trees")
-        ] = 1
+        ] = enum.auto()
         All: Annotated[
             int, EnFieldAnnotation(doc="Export archived trees with full content")
-        ] = 2
+        ] = enum.auto()
 
     class DoExport(M.Case):
         exportToc: bool
@@ -1650,28 +1701,32 @@ class SubtreePeriod(M.Class):
 
         Clocked: Annotated[
             int, EnFieldAnnotation(doc="Time period of the task execution.")
-        ] = 0
-        Closed: Annotated[int, EnFieldAnnotation(doc="Task marked as closed")] = 1
+        ] = enum.auto()
+        Closed: Annotated[int, EnFieldAnnotation(doc="Task marked as closed")] = (
+            enum.auto()
+        )
         Scheduled: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Date of task execution start plus it's estimated effort duration. If the latter one is missing then only a single time point is returned"
             ),
-        ] = 2
+        ] = enum.auto()
         Titled: Annotated[
             int,
             EnFieldAnnotation(
                 doc="Single point or time range used in title. Single point can also be a simple time, such as `12:20`"
             ),
-        ] = 3
+        ] = enum.auto()
         Deadline: Annotated[
             int,
             EnFieldAnnotation(doc="Date of task completion. Must be a single time point"),
-        ] = 4
-        Created: Annotated[int, EnFieldAnnotation(doc="When the subtree was created")] = 5
+        ] = enum.auto()
+        Created: Annotated[int, EnFieldAnnotation(doc="When the subtree was created")] = (
+            enum.auto()
+        )
         Repeated: Annotated[
             int, EnFieldAnnotation(doc="Last repeat time of the recurring tasks")
-        ] = 6
+        ] = enum.auto()
 
     kind: Kind = M.Field(
         doc="Time period kind -- not associated with point/range distinction"
@@ -1760,10 +1815,10 @@ class NamedProperty(M.Class):
 
     class Visibility(M.Case):
         class Level(M.Enum):
-            Folded: int = 0
-            Children: int = 1
-            Content: int = 2
-            All: int = 3
+            Folded: int = enum.auto()
+            Children: int = enum.auto()
+            Content: int = enum.auto()
+            All: int = enum.auto()
 
         level: Level
 
