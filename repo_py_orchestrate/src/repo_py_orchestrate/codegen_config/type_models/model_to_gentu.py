@@ -844,8 +844,10 @@ class ModelToGenTu:
                 "OrgSemKind requires unique short names for concrete AST records",
             )
 
+        org_sem_kind = named_cpp_type(AST_KIND_NAME)
+        logger.info(f"Created org sem type {org_sem_kind}")
         return GenTuEnum(
-            Name=named_cpp_type(AST_KIND_NAME),
+            Name=org_sem_kind,
             Doc=GenTuDoc("Concrete semantic AST node kinds"),
             Fields=[
                 GenTuEnumField(

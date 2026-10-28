@@ -1560,6 +1560,8 @@ class GenTypeMap:
 
     def add_type(self, typ: GenTuUnion) -> None:
         qual_name = None
+        if "OrgSemKind" in str(typ) and not "org::sem::" in str(typ):
+            raise RuntimeError("Org sem kind is missing namespace")
 
         match typ:
             case GenTuStruct():

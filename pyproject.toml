@@ -67,6 +67,7 @@ ignore = [
   "DTZ006",
   "UP045",
   "SIM117", # combine `with`
+  "UP006", # List -> list
 ]
 
 [tool.ruff.format]

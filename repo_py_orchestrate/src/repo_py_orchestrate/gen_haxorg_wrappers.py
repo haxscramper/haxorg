@@ -11,10 +11,13 @@ from hstd_py_text_layout.base.wrap import TextLayout
 from loguru import logger
 
 from repo_py_orchestrate.codegen_config.codegen import (
-    gen_haxorg_base_sources,
+    gen_haxorg_base_sources1,
     run_codegen_pyhaxorg_wrappers,
 )
 from repo_py_orchestrate.codegen_config.extract_refl import extract_reflection
+from repo_py_orchestrate.codegen_config.type_models.model_to_gentu import (
+    get_pyhaxorg_type_groups_via_dsl,
+)
 
 
 @click.command()
@@ -44,9 +47,14 @@ def main(source_dir: Path, out_dir: Path):
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
     logger.info("Building haxorg base sources")
-    base_types, _ = gen_haxorg_base_sources(
+
+    model = get_pyhaxorg_type_groups_via_dsl(builder)
+
+    base_types, _ = gen_haxorg_base_sources1(
         source_dir,
         t=t,
+        builder=builder,
+        groups=model,
         context_tu=reflection_uv,
         with_context=False,
     )
