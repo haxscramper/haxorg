@@ -54,6 +54,10 @@ SCOPES: dict[str, str] = {
     "sem": "Semantic analysis phase",
     "test": "Test suites, corpus, CI tests",
     "imm": "Immutable AST edits",
+    # everything related to the `hstd_py_unidata` package, plus
+    # all codegen commits that were done to reflect the latest
+    # update to the unidata DSL logic and verification code generation.
+    "unidata": "Data model DSL, generation, processing, testing",
 }
 
 _ALLOWED_TYPES_CASEFOLD = {k.casefold(): k for k in TYPES.keys()}

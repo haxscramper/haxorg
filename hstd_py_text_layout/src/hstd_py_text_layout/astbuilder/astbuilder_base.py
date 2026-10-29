@@ -149,16 +149,27 @@ class AstbuilderBase:
     def indent(self, indent: int, *args: BlockId) -> BlockId:
         return self.b.indent(indent, self.b.stack(args))
 
+    def init_list(self, elements: List[BlockId], isLine: bool = True) -> BlockId:
+        return self.brace([self.csv(elements, isLine=isLine)])
+
     def brace(
-        self, elements: List[BlockId], left: str = "{", right: str = "}"
+        self,
+        elements: List[BlockId],
+        left: str = "{",
+        right: str = "}",
+        IsLine: bool = False,
     ) -> BlockId:
-        return self.b.stack(
-            [
-                self.string(left),
-                self.b.stack(elements),
-                self.string(right),
-            ]
-        )
+        body = [
+            self.string(left),
+            self.b.stack(elements),
+            self.string(right),
+        ]
+
+        if IsLine:
+            return self.b.line(body)
+
+        else:
+            return self.b.stack(body)
 
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
         return self.b.line([self.string(left), arg, self.string(right)])

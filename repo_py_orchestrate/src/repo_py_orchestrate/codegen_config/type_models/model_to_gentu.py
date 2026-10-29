@@ -4,7 +4,8 @@ from typing import Any, Sequence
 
 import glom
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
-from beartype.typing import List, Tuple, cast
+from beartype import beartype
+from beartype.typing import List, Optional, Tuple, cast
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuBackendParams,
@@ -74,14 +75,32 @@ DEFAULT_NAMESPACES: dict[str, tuple[str, ...]] = {
 
 AST_KIND_NAME = "org::sem::OrgSemKind"
 
-UNIDATA_SPACE = [
-    QualType(Name="hstd", IsNamespace=True),
-    QualType(Name="ext", IsNamespace=True),
-    QualType(Name="unidata", IsNamespace=True),
-]
+CPP_SPACE_T = QualType(
+    Name="unidata",
+    IsNamespace=True,
+    Spaces=[
+        QualType(Name="hstd", IsNamespace=True),
+        QualType(Name="ext", IsNamespace=True),
+    ],
+)
 
-UNIDATA_RESULT_T = QualType(Name="VerifyResult", Spaces=UNIDATA_SPACE)
-UNIDATA_CONTEXT_T = QualType(Name="VerifyContext", Spaces=UNIDATA_SPACE)
+CPP_RESULT_T = QualType(Name="VerifyResult", Spaces=[CPP_SPACE_T])
+CPP_CONTEXT_T = QualType(Name="VerifyContext", Spaces=[CPP_SPACE_T])
+CPP_CB_T = QualType(Name="VerifyCb", Spaces=[CPP_SPACE_T])
+CPP_CB_LIST_T = QualType(Name="VerifyCbList", Spaces=[CPP_SPACE_T])
+CPP_KEY_T = QualType(Name="VerifyKey", Spaces=[CPP_SPACE_T])
+CPP_VERIFY_COLLECTION_T = QualType(Name="VerifyCheckCollection", Spaces=[CPP_SPACE_T])
+
+
+@beartype
+@dataclass
+class CheckFunction:
+    class_type_name: str
+    "Class type ID (fully qualified name as a string) for the check"
+    impl: List[GenTuFunction]
+    "Static method for the class to perform the check"
+    class_field: Optional[str] = None
+    "Which field this check applies to -- if empty, apply check to class"
 
 
 @dataclass
@@ -466,47 +485,55 @@ class ModelToGenTu:
     def normalize(text: str) -> str:
         return "".join(char if char.isalnum() else "_" for char in text)
 
-    def gen_expression_eval(self, expr: ExprNode) -> BlockId:
+    def gen_expression_eval(self, expr: ExprNode, this_expr: BlockId) -> BlockId:
         match expr.op:
             case OpId.LT:
                 return self.ast.XCall(
                     "<",
                     args=[
-                        self.gen_expression_eval(expr.args[0]),
-                        self.gen_expression_eval(expr.args[1]),
+                        self.gen_expression_eval(expr.args[0], this_expr),
+                        self.gen_expression_eval(expr.args[1], this_expr),
                     ],
                 )
 
             case OpId.STR_SIZE:
-                return self.ast.XCall(
+                return self.ast.CallStatic(
+                    CPP_SPACE_T,
                     "eval_str_size",
-                    args=[self.gen_expression_eval(a) for a in expr.args],
+                    Args=[self.gen_expression_eval(a, this_expr) for a in expr.args],
                 )
 
             case OpId.CONST_INT:
                 assert expr.int_val is not None
                 return self.ast.Literal(expr.int_val)
 
+            case OpId.CONST_STR:
+                assert expr.str_val is not None
+                return self.ast.StringLiteral(expr.str_val)
+
+            case OpId.THIS:
+                return this_expr
+
             case _:
                 raise ValueError(
                     f"Unhandled op ID kind: {expr.op}: {pprint_to_string(expr)}"
                 )
 
-    def gen_check_eval(self, check: CheckDef) -> BlockId:
+    def gen_check_eval(self, check: CheckDef, this_expr: BlockId) -> BlockId:
         return self.ast.IfStmt(
             cpp.IfStmtParams(
                 Branches=[
                     cpp.IfStmtParams.Branch(
-                        Cond=self.gen_expression_eval(check.cond),
-                        Then=self.ast.Return(self.ast.CallStatic(UNIDATA_RESULT_T, "Ok")),
+                        Cond=self.gen_expression_eval(check.cond, this_expr),
+                        Then=self.ast.Return(self.ast.CallStatic(CPP_RESULT_T, "Ok")),
                     ),
                     cpp.IfStmtParams.Branch(
                         Then=self.ast.Return(
                             self.ast.CallStatic(
-                                UNIDATA_RESULT_T,
+                                CPP_RESULT_T,
                                 "Error",
                                 Args=[
-                                    self.gen_expression_eval(check.message),
+                                    self.gen_expression_eval(check.message, this_expr),
                                 ],
                             )
                         )
@@ -524,16 +551,39 @@ class ModelToGenTu:
     ) -> GenTuFunction:
         "Generate a single static function used to perform the runtime check on the field state"
 
+        this_expr = self.ast.Addr(
+            self.ast.Arrow(self.ast.string("this_obj"), self.ast.string(field.name))
+        )
+
         return GenTuFunction(
             Name=f"__check_{field.name}_{self.normalize(check.id)}",
-            ReturnType=UNIDATA_RESULT_T,
+            ReturnType=CPP_RESULT_T,
             Args=[
-                GenTuIdent(Type=UNIDATA_CONTEXT_T, Name="ctx"),
+                GenTuIdent(Type=CPP_CONTEXT_T.asConstPtr(), Name="ctx"),
                 GenTuIdent(Type=QualType(Name="void").asConstPtr(), Name="value"),
             ],
             IsStatic=True,
             ParentClass=parentClass,
-            Body=self.gen_check_eval(check),
+            Body=self.ast.stack(
+                [
+                    self.ast.VarDecl(
+                        cpp.ParmVarParams(
+                            type=QualType(Name="auto").asConstPtr(),
+                            name="this_obj",
+                            defArg=self.ast.XCall(
+                                "static_cast",
+                                args=[self.ast.string("value")],
+                                Params=[
+                                    self.declaration_type(
+                                        self.model.package, owner.qname
+                                    ).asConstPtr()
+                                ],
+                            ),
+                        )
+                    ),
+                    self.gen_check_eval(check, this_expr=this_expr),
+                ]
+            ),
         )
 
     def field(
@@ -541,17 +591,18 @@ class ModelToGenTu:
         owner: RecordDef,
         item: FieldDef,
         parentClass: QualType,
-    ) -> Tuple[GenTuField, List[GenTuFunction]]:
+    ) -> Tuple[GenTuField, Optional[CheckFunction]]:
         options = cpp_config(owner)
         field_options = options.get("fields", {}).get(item.name, {})
         names = options.get("field_names", {})
         defaults = options.get("field_defaults", {})
-        check_functions: List[GenTuFunction] = []
+        check_functions: Optional[CheckFunction] = None
 
         if item.checks:
             logger.info(f"Have checks for the field {item.name}")
+            impl_cb = list()
             for ch in item.checks:
-                check_functions.append(
+                impl_cb.append(
                     self.gen_field_check(
                         owner,
                         item,
@@ -559,6 +610,12 @@ class ModelToGenTu:
                         parentClass=parentClass,
                     )
                 )
+
+            check_functions = CheckFunction(
+                class_type_name=owner.qname.to_id(),
+                impl=impl_cb,
+                class_field=item.name,
+            )
 
         field_type = self.type(item.type, self.model.package)
         if "type" in field_options:
@@ -823,10 +880,10 @@ class ModelToGenTu:
         DeclClass = self.declaration_type(package, item.qname)
 
         fields: List[GenTuField]
-        check_functions: List[GenTuFunction]
+        check_functions: List[CheckFunction]
         fields, check_functions = glom.glom(
             cast(
-                List[Tuple[GenTuField, List[GenTuFunction]]],
+                List[Tuple[GenTuField, List[CheckFunction]]],
                 [
                     self.field(item, member, parentClass=DeclClass)
                     for member in item.fields
@@ -838,18 +895,78 @@ class ModelToGenTu:
                 init=lambda: ([], []),
                 op=lambda acc, item: (
                     acc[0].append(item[0]),
-                    acc[1].extend(item[1]),
+                    acc[1].append(item[1]),
                     acc,
                 )[-1],
             ),
         )
+
+        impl_functions: List[GenTuFunction] = list()
+
+        if 0 < len(check_functions):
+            assign_stack = list()
+
+            for check in check_functions:
+                for impl in check.impl:
+                    impl_functions.append(impl)
+
+                assign_stack.append(
+                    self.ast.init_list(
+                        [
+                            self.ast.XConstructObj(
+                                CPP_KEY_T,
+                                [
+                                    self.ast.StringLiteral(check.class_type_name),
+                                    self.ast.StringLiteral(check.class_field)
+                                    if check.class_field
+                                    else self.ast.string("std::nullopt"),
+                                ],
+                            ),
+                            self.ast.XConstructObj(
+                                CPP_CB_LIST_T,
+                                Args=[
+                                    self.ast.XConstructObj(
+                                        CPP_CB_T,
+                                        Args=[self.ast.Addr(self.ast.string(impl.Name))],
+                                    )
+                                    for impl in check.impl
+                                ],
+                            ),
+                        ]
+                    )
+                )
+
+            impl_functions.append(
+                GenTuFunction(
+                    Name="get_unidata_checks",
+                    ParentClass=DeclClass,
+                    IsStatic=True,
+                    ReturnType=CPP_VERIFY_COLLECTION_T.asConstPtr(),
+                    Body=self.ast.stack(
+                        [
+                            self.ast.VarDecl(
+                                cpp.ParmVarParams(
+                                    type=CPP_VERIFY_COLLECTION_T,
+                                    name="checks",
+                                    storage=cpp.StorageClass.Static,
+                                    defArg=self.ast.init_list(
+                                        [self.ast.init_list(assign_stack)]
+                                    ),
+                                    IsLine=False,
+                                )
+                            ),
+                            self.ast.Return(self.ast.Addr(self.ast.string("checks"))),
+                        ]
+                    ),
+                )
+            )
 
         result = GenTuStruct(
             Name=DeclClass,
             Doc=GenTuDoc(item.doc),
             Fields=fields,
             Methods=[self.method(item, method) for method in item.methods]
-            + check_functions,
+            + impl_functions,
             Bases=[self.declaration_type(package, base) for base in item.bases],
             Nested=nested,
             IsAbstract=options.get("abstract", False),

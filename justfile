@@ -245,6 +245,6 @@ generate_haxorg_wrappers target_dir=HAXORG_ROOT:
 test_dsl_generate:
   #!/usr/bin/env bash
   set -e
-  uv run repo_py_orchestrate/src/repo_py_orchestrate/gen_hstd_test.py {{HAXORG_ROOT}}
+  uv run repo_py_orchestrate/src/repo_py_orchestrate/gen_hstd_unidata_test.py {{HAXORG_ROOT}}
   export GTEST_FILTER="UnidataDSL.*"
   just conan_validate hstd_cpp_lib --editable

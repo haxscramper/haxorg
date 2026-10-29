@@ -34,6 +34,7 @@ class ParmVarParams:
     storage: StorageClass = StorageClass.None_
     defArg: Optional[BlockId] = None
     defWithAssign: bool = True
+    IsLine: bool = True
 
 
 @beartype
@@ -732,24 +733,32 @@ class ASTBuilder(base.AstbuilderBase):
             assert p.type.Func
             decl.extend(
                 [
-                    self.Type(p.type.Func.ReturnType),
-                    self.string(" (*"),
-                    self.string(p.name),
-                    self.string(")"),
-                    self.string("("),
-                    self.csv([self.Type(a) for a in p.type.Func.Args]),
-                    self.string(")"),
-                    self.string("const " if p.IsConst else ""),
+                    self.line(
+                        [
+                            self.Type(p.type.Func.ReturnType),
+                            self.string(" (*"),
+                            self.string(p.name),
+                            self.string(")"),
+                            self.string("("),
+                            self.csv([self.Type(a) for a in p.type.Func.Args]),
+                            self.string(")"),
+                            self.string("const " if p.IsConst else ""),
+                        ]
+                    )
                 ]
             )
 
         else:
             decl.extend(
                 [
-                    self.Type(p.type),
-                    self.string(" "),
-                    self.string("const " if p.IsConst else ""),
-                    self.string(p.name),
+                    self.line(
+                        [
+                            self.Type(p.type),
+                            self.string(" "),
+                            self.string("const " if p.IsConst else ""),
+                            self.string(p.name),
+                        ]
+                    )
                 ]
             )
 
@@ -761,7 +770,11 @@ class ASTBuilder(base.AstbuilderBase):
 
         decl.append(self.string(";"))
 
-        return self.line(decl)
+        if p.IsLine:
+            return self.line(decl)
+
+        else:
+            return self.stack(decl)
 
     def block(
         self,

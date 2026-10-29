@@ -3,7 +3,14 @@ from pathlib import Path
 
 import click
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
-from hstd_py_codegen.gen_cpp.codegen_ir import GenFiles, GenTu, GenTuPass, GenUnit
+from hstd_py_codegen.gen_cpp.codegen_ir import (
+    GenFiles,
+    GenTu,
+    GenTuNamespace,
+    GenTuPass,
+    GenUnit,
+    QualType,
+)
 from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
 from hstd_py_lib.script_logging import get_custom_traceback_handler
 from hstd_py_text_layout.base.wrap import TextLayout
@@ -36,7 +43,10 @@ def main(root_dir: Path):
                         GenTuPass(
                             "#include <hstd_cpp_lib/proto_serde/hstd_unidata_validate.hpp>"
                         ),
-                        *types,
+                        GenTuNamespace(
+                            QualType(Name="hstd::unidata_dsl::test"),
+                            types,
+                        ),
                     ],
                 ),
                 source=GenTu(
