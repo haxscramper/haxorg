@@ -140,6 +140,9 @@ class DiagnosticBuilder:
             notes.append(
                 f"{len(cascade)} enclosing expression(s) could not be typed as a consequence: {', '.join(cascade)}"
             )
+
+        notes.append(f"expression ID: {expr}")
+
         return Diagnostic(
             code=code,
             message=message,

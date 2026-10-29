@@ -342,6 +342,8 @@ class ExprNode(FrozenModel):
     "Instance of the type value, e.g. for `type_case` node"
     typed_as: Optional[TypeRef] = None
     "Inferred type of this expression occurrence."
+    expr_id: Optional[int] = None
+    "Expression ID used in the type checking"
     loc: SourceLoc
 
 
@@ -561,7 +563,13 @@ for model_cls in (
 def expr_tree_repr(expr: ExprNode) -> IndentedTree:
     @beartype
     def label(node: ExprNode) -> Text:
-        parts = [str(node.op)]
+        parts = []
+
+        if node.expr_id is not None:
+            parts.append(f"{node.op}:{node.expr_id!r}")
+
+        else:
+            parts.append(f"{node.op}")
 
         if node.typed_as is not None:
             parts.append(f"typed_as={type_text(node.typed_as)!r}")

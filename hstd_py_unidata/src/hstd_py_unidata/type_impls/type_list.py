@@ -1,4 +1,5 @@
 from beartype.typing import List
+
 from hstd_py_unidata.model_ir import ExprNode, OpId, PrimKind
 from hstd_py_unidata.model_ops import (
     INT64_T,

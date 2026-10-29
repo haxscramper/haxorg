@@ -522,6 +522,32 @@ def read_inferred_types(
     return result
 
 
+def _run_for_diagnostics(
+    tmp: Path,
+    source: Path,
+    index: ModelIndex,
+    program: LoweredProgram,
+):
+    local["souffle"]["-w", "-I", str(RULES_DIR), "-D", str(tmp), str(source)]()
+
+    diags = [
+        DiagRow(
+            code=r[0],
+            expr=int(r[1]),
+            arg=int(r[2]),
+            detail=r[3],
+            actual=r[4],
+            subject=r[5],
+        )
+        for r in read_rows(tmp / "diag.csv", 6)
+    ]
+    untyped = {int(r[0]) for r in read_rows(tmp / "untyped.csv", 1)}
+    typed_as = {int(r[0]): r[1] for r in read_rows(tmp / "typed_as.csv", 2)}
+    inferred_types = read_inferred_types(tmp, index, program)
+
+    return diags, untyped, typed_as, inferred_types
+
+
 @beartype
 def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckOutput:
     """Lowers the model to Souffle facts, runs the type checker and parses the structured results."""
@@ -530,21 +556,10 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
         tmp = Path(tmpdir)
         source = tmp / "program.dl"
         source.write_text(render_program(program))
-        local["souffle"]["-w", "-I", str(RULES_DIR), "-D", str(tmp), str(source)]()
-        diags = [
-            DiagRow(
-                code=r[0],
-                expr=int(r[1]),
-                arg=int(r[2]),
-                detail=r[3],
-                actual=r[4],
-                subject=r[5],
-            )
-            for r in read_rows(tmp / "diag.csv", 6)
-        ]
-        untyped = {int(r[0]) for r in read_rows(tmp / "untyped.csv", 1)}
-        typed_as = {int(r[0]): r[1] for r in read_rows(tmp / "typed_as.csv", 2)}
-        inferred_types = read_inferred_types(tmp, index, program)
+
+        diags, untyped, typed_as, inferred_types = _run_for_diagnostics(
+            tmp, source, index, program
+        )
 
     for d in diags:
         if d.expr not in program.occurrences:
@@ -574,6 +589,7 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
                     nodes[slots[slot]] for slot in range(len(occurrence.node.args))
                 ),
                 "typed_as": inferred_types.get(eid),
+                "expr_id": eid,
             }
         )
 

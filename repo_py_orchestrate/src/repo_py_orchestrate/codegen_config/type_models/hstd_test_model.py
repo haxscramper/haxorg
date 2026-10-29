@@ -460,17 +460,23 @@ class OperationChecks(M.Class):
                 M.This["optional"]._Opt.value() == 3,
             ),
         ),
-        ("CaseIs", M.This["choice"]._Case.is_case("First")),
+        # FIXME: `.data` can be considered an internal implementation detail here
+        # not really clear whether it should be exposed (for multi-variant objects
+        # that effectively act as a `Variant*Variant` tuple)
+        # or it should instead be hidden. Right now using `["choice"]` with
+        # `.is_case` directly fails with typing error because the
+        # OperationChecks.choice has a type of `Choice`
+        ("CaseIs", M.This["choice"]["data"]._Case.is_case("First")),
         (
             "CaseWhich",
-            M.This["choice"]._Case.which_case()._Enum.is_val("First"),
+            M.This["choice"]["data"]._Case.which_case()._Enum.is_val("First"),
         ),
         (
             "CaseField",
             op_cond(
                 (
-                    M.This["choice"]._Case.is_case("First"),
-                    M.This["choice"]["value"],
+                    M.This["choice"]["data"]._Case.is_case("First"),
+                    M.This["choice"]["data"]["value"],
                 ),
                 default=-1,
             )

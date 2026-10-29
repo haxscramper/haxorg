@@ -1,6 +1,4 @@
-import json
-from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Sequence
 
 import glom
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
@@ -21,34 +19,23 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuTypeApiTraits,
     GenTuTypeGroup,
     QualType,
-    QualTypeKind,
 )
 from hstd_py_codegen.gen_cpp.codegen_type_order import expand_type_groups
 from hstd_py_text_layout.base.wrap import TextLayout
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
-    ArrayT,
-    DynT,
     EnumDef,
-    ExplicitDefault,
     ExternalT,
     FieldDef,
-    ListT,
-    MapT,
     MethodDef,
     ModelDef,
     NamedT,
-    OptT,
     PrimKind,
     PrimT,
-    QName,
     RecordDef,
-    TupleT,
     TypeParamT,
     TypeRef,
-    UnresolvedT,
     VariantDef,
-    VariantT,
 )
 from loguru import logger
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
@@ -64,6 +51,10 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
     CPP_KEY_T,
     CPP_VERIFY_COLLECTION_T,
     CheckFunction,
+    TypeTranslation,
+    cpp_config,
+    cpp_type_text,
+    enum_member_name,
     named_cpp_type,
 )
 
@@ -79,33 +70,6 @@ DEFAULT_NAMESPACES: dict[str, tuple[str, ...]] = {
 AST_KIND_NAME = "org::sem::OrgSemKind"
 
 
-@dataclass
-class CppModelConfig:
-    namespaces: dict[str, tuple[str, ...]] = field(
-        default_factory=lambda: dict(DEFAULT_NAMESPACES),
-    )
-
-
-def cpp_config(declaration: RecordDef | EnumDef | MethodDef) -> dict[str, Any]:
-    return dict(declaration.backend.get("cpp", {}))
-
-
-def cpp_type_text(typ: QualType) -> str:
-    prefix = "::".join([space.Name for space in typ.Spaces] + [typ.Name])
-    if typ.Params:
-        params = ", ".join(cpp_type_text(param) for param in typ.Params)
-        prefix += f"<{params}>"
-
-    return prefix
-
-
-def enum_member_name(name: str) -> str:
-    if name == "None_":
-        return "None"
-
-    return name
-
-
 class ModelToGenTu:
     def __init__(
         self,
@@ -113,12 +77,9 @@ class ModelToGenTu:
         *,
         ast: cpp.ASTBuilder,
         dependencies: Sequence[ModelDef] = (),
-        config: CppModelConfig | None = None,
     ) -> None:
         self.model = model
-        self.config = config if config is not None else CppModelConfig()
         self.ast = ast
-
         models = [*dependencies, model]
         self.models: dict[str, ModelDef] = {}
         for item in models:
@@ -129,303 +90,15 @@ class ModelToGenTu:
         self.indexes = {
             package: ModelIndex(item) for package, item in self.models.items()
         }
-        self.ast_records: set[tuple[str, QName]] = set()
 
-        for package, index in self.indexes.items():
-            roots = [
-                record.qname
-                for record in index.model.records
-                if cpp_config(record).get("ast_root", False)
-            ]
-            for root in roots:
-                for record in index.model.records:
-                    if index.derived_from(record.qname, root):
-                        self.ast_records.add((package, record.qname))
+        self.type_map = TypeTranslation(DEFAULT_NAMESPACES, self.indexes)
 
         self.check_gen = CheckGen(
             ast=self.ast,
             model=self.model,
             indexes=self.indexes,
+            type_map=self.type_map,
         )
-
-    def namespace(self, package: str) -> tuple[str, ...]:
-        if package in self.config.namespaces:
-            return self.config.namespaces[package]
-
-        else:
-            return tuple(package.split("."))
-
-    def declaration_type(self, package: str, qname: QName) -> QualType:
-        namespaces = self.namespace(package)
-        result = qualified_type(
-            (*namespaces, *qname.parts()),
-            namespace_count=len(namespaces),
-        )
-        outer = qname
-        while outer.scope is not None:
-            outer = outer.scope
-        if self.is_ast(package, outer):
-            if qname.scope is None:
-                result.Meta["isOrgType"] = True
-            else:
-                result.Spaces[len(namespaces)].Meta["isOrgType"] = True
-        return result
-
-    def is_ast(self, package: str, qname: QName) -> bool:
-        return (package, qname) in self.ast_records
-
-    def is_enum(self, package: str, qname: QName) -> bool:
-        index = self.indexes.get(package)
-        return index is not None and index.is_enum(qname)
-
-    def reference_type(self, package: str, qname: QName) -> QualType:
-        result = self.declaration_type(package, qname)
-        if self.is_ast(package, qname):
-            return named_cpp_type("org::sem::SemId", [result])
-
-        return result
-
-    def variant_config(
-        self,
-        package: str,
-        owner: QName,
-        field_name: str,
-    ) -> dict[str, Any]:
-        record = self.indexes[package].record(owner)
-        return dict(
-            cpp_config(record).get("variants", {}).get(field_name, {}),
-        )
-
-    def variant_type(
-        self,
-        package: str,
-        owner: QName,
-        field_name: str,
-    ) -> QualType:
-        options = self.variant_config(package, owner, field_name)
-        name = options.get("variant_name", "Data")
-        return self.declaration_type(package, owner.nested(name))
-
-    def type(self, typ: TypeRef, package: str) -> QualType:
-        def wrap_annotation(result: QualType) -> QualType:
-            if glom.glom(typ, "annotation.backend.cpp.is_ref", default=None):
-                logger.info("Got ref annotation")
-                return result.asConstRef()
-
-            else:
-                return result
-
-        match typ:
-            case PrimT():
-                primitive_types = {
-                    PrimKind.INT8: "int8_t",
-                    PrimKind.INT16: "int16_t",
-                    PrimKind.INT32: "int",
-                    PrimKind.INT64: "int64_t",
-                    PrimKind.UINT8: "uint8_t",
-                    PrimKind.UINT16: "uint16_t",
-                    PrimKind.UINT32: "uint32_t",
-                    PrimKind.UINT64: "uint64_t",
-                    PrimKind.FLOAT32: "float",
-                    PrimKind.FLOAT64: "double",
-                    PrimKind.STRING: "hstd::Str",
-                    PrimKind.BOOL: "bool",
-                    PrimKind.NONE: "void",
-                    PrimKind.PATH: "std::filesystem::path",
-                }
-                if typ.prim == PrimKind.ANY:
-                    raise NotImplementedError(
-                        "PrimKind.ANY requires an explicit C++ type mapping",
-                    )
-
-                return wrap_annotation(named_cpp_type(primitive_types[typ.prim]))
-
-            case NamedT():
-                return wrap_annotation(self.reference_type(package, typ.qname))
-
-            case ExternalT():
-                return wrap_annotation(self.reference_type(typ.package, typ.qname))
-
-            case ListT():
-                return wrap_annotation(
-                    named_cpp_type(
-                        "hstd::Vec",
-                        [self.type(typ.elem, package)],
-                    )
-                )
-
-            case ArrayT():
-                return wrap_annotation(
-                    named_cpp_type(
-                        "std::array",
-                        [
-                            self.type(typ.elem, package),
-                            QualType(
-                                Kind=QualTypeKind.TypeExpr,
-                                Expr=str(typ.size),
-                            ),
-                        ],
-                    )
-                )
-
-            case MapT():
-                return wrap_annotation(
-                    named_cpp_type(
-                        "hstd::UnorderedMap",
-                        [
-                            self.type(typ.key, package),
-                            self.type(typ.value, package),
-                        ],
-                    )
-                )
-
-            case OptT():
-                return wrap_annotation(
-                    named_cpp_type(
-                        "hstd::Opt",
-                        [self.type(typ.elem, package)],
-                    )
-                )
-
-            case TupleT():
-                return wrap_annotation(
-                    named_cpp_type(
-                        "std::tuple",
-                        [self.type(elem, package) for elem in typ.elems],
-                    )
-                )
-
-            case VariantT():
-                return wrap_annotation(self.variant_type(package, typ.owner, typ.field))
-
-            case TypeParamT():
-                return wrap_annotation(
-                    QualType(
-                        Name=typ.name,
-                        IsTemplateTypeParam=True,
-                    )
-                )
-
-            case DynT():
-                raise NotImplementedError(
-                    "DynT has no fixed C++ storage representation",
-                )
-
-            case UnresolvedT():
-                raise ValueError(
-                    f"Unresolved type in finalized model: {typ.text}",
-                )
-
-        raise TypeError(f"Unsupported model type: {typ!r}")
-
-    def enum_default(
-        self,
-        typ: NamedT | ExternalT,
-        package: str,
-        value: Any,
-    ) -> str:
-        enum_package = typ.package if isinstance(typ, ExternalT) else package
-        enum_def = self.indexes[enum_package].enums[typ.qname]
-        cpp_name = cpp_type_text(
-            self.declaration_type(enum_package, typ.qname),
-        )
-
-        for member in enum_def.enum_values:
-            if value == member.name or value == member.value:
-                return f"{cpp_name}::{enum_member_name(member.name)}"
-
-        raise ValueError(
-            f"Invalid default {value!r} for enum {typ.qname.to_id()}",
-        )
-
-    def default_value(
-        self,
-        typ: TypeRef,
-        package: str,
-        default: ExplicitDefault | None,
-        infer_default: bool = False,
-    ) -> str | None:
-
-        if default is None:
-            if infer_default:
-                match typ:
-                    case OptT():
-                        return "std::nullopt"
-                    case NamedT() if self.is_ast(package, typ.qname):
-                        return f"{cpp_type_text(self.type(typ, package))}::Nil()"
-                    case ExternalT() if self.is_ast(typ.package, typ.qname):
-                        return f"{cpp_type_text(self.type(typ, package))}::Nil()"
-                    case _:
-                        return "{}"
-
-            else:
-                return None
-
-        value = default.value
-
-        match typ:
-            case OptT():
-                if value is None:
-                    return "std::nullopt"
-
-                inner = self.default_value(
-                    typ.elem,
-                    package,
-                    ExplicitDefault(value=value),
-                )
-                return f"{cpp_type_text(self.type(typ, package))}{{{inner}}}"
-
-            case NamedT() if self.is_enum(package, typ.qname):
-                return self.enum_default(typ, package, value)
-
-            case ExternalT() if self.is_enum(typ.package, typ.qname):
-                return self.enum_default(typ, package, value)
-
-            case PrimT():
-                integer_kinds = {
-                    PrimKind.INT8,
-                    PrimKind.INT16,
-                    PrimKind.INT32,
-                    PrimKind.INT64,
-                    PrimKind.UINT8,
-                    PrimKind.UINT16,
-                    PrimKind.UINT32,
-                    PrimKind.UINT64,
-                }
-                match typ.prim:
-                    case PrimKind.BOOL if isinstance(value, bool):
-                        return "true" if value else "false"
-                    case PrimKind.STRING if isinstance(value, str):
-                        return json.dumps(value, ensure_ascii=False)
-                    case _ if typ.prim in integer_kinds and type(value) is int:
-                        return str(value)
-                    case PrimKind.FLOAT32 | PrimKind.FLOAT64:
-                        if type(value) not in {int, float}:
-                            raise TypeError(f"Invalid floating default: {value!r}")
-
-                        literal = json.dumps(float(value), allow_nan=False)
-                        if typ.prim == PrimKind.FLOAT32:
-                            literal += "f"
-                        return literal
-
-            case ListT() | ArrayT() if isinstance(value, list):
-                elements = [
-                    self.default_value(
-                        typ.elem,
-                        package,
-                        ExplicitDefault(value=item),
-                    )
-                    for item in value
-                ]
-                return "{" + ", ".join(elements) + "}"
-
-        raise NotImplementedError(
-            f"Unsupported explicit default for {typ!r}: {value!r}",
-        )
-
-    @staticmethod
-    def normalize(text: str) -> str:
-        return "".join(char if char.isalnum() else "_" for char in text)
 
     def field(
         self,
@@ -562,7 +235,7 @@ class ModelToGenTu:
             IsPureVirtual=options.get("is_pure_virtual", False),
             IsOverride=options.get("is_override", False),
             IsExposedForWrap=options.get("exposed", True),
-            ParentClass=self.declaration_type(
+            ParentClass=self.type_map.declaration_type(
                 self.model.package,
                 owner.qname,
             ),
@@ -571,7 +244,7 @@ class ModelToGenTu:
     def enum(self, item: EnumDef) -> GenTuEnum:
         names = cpp_config(item).get("value_names", {})
         return GenTuEnum(
-            Name=self.declaration_type(self.model.package, item.qname),
+            Name=self.type_map.declaration_type(self.model.package, item.qname),
             Doc=GenTuDoc(item.doc),
             Fields=[
                 GenTuEnumField(
@@ -584,7 +257,7 @@ class ModelToGenTu:
         )
 
     def variant(self, owner: RecordDef, item: VariantDef) -> GenTuTypeGroup:
-        options = self.variant_config(
+        options = self.type_map.variant_config(
             self.model.package,
             owner.qname,
             item.field,
@@ -593,11 +266,11 @@ class ModelToGenTu:
 
         return GenTuTypeGroup(
             types=[self.record(index.record(case.case)) for case in item.cases],
-            enumName=self.declaration_type(
+            enumName=self.type_map.declaration_type(
                 self.model.package,
                 item.kind_enum,
             ),
-            variantName=self.variant_type(
+            variantName=self.type_map.variant_type(
                 self.model.package,
                 owner.qname,
                 item.field,
@@ -688,7 +361,7 @@ class ModelToGenTu:
         package = self.model.package
         index = self.indexes[package]
         options = cpp_config(item)
-        is_ast = self.is_ast(package, item.qname)
+        is_ast = self.type_map.is_ast(package, item.qname)
 
         variant_cases = {case.case for variant in item.variants for case in variant.cases}
         variant_enums = {variant.kind_enum for variant in item.variants}
@@ -718,7 +391,7 @@ class ModelToGenTu:
                 )
             nested.append(GenTuPass(section["text"]))
 
-        DeclClass = self.declaration_type(package, item.qname)
+        DeclClass = self.type_map.declaration_type(package, item.qname)
 
         fields: List[GenTuField]
         check_functions: List[CheckFunction]
@@ -835,7 +508,7 @@ class ModelToGenTu:
             Fields=fields,
             Methods=[self.method(item, method) for method in item.methods]
             + impl_functions,
-            Bases=[self.declaration_type(package, base) for base in item.bases],
+            Bases=[self.type_map.declaration_type(package, base) for base in item.bases],
             Nested=nested,
             IsAbstract=options.get("abstract", False),
             IsDescribedRecord=True,
@@ -976,7 +649,7 @@ class ModelToGenTu:
         concrete = [
             item
             for item in self.model.records
-            if self.is_ast(self.model.package, item.qname)
+            if self.type_map.is_ast(self.model.package, item.qname)
             and not cpp_config(item).get("abstract", False)
         ]
         if not concrete:
@@ -1020,17 +693,13 @@ class ModelToGenTu:
 
 
 def model_to_gentu(
-    model: ModelDef,
-    *,
-    dependencies: Sequence[ModelDef] = (),
-    config: CppModelConfig | None = None,
+    model: ModelDef, *, dependencies: Sequence[ModelDef] = ()
 ) -> list[GenTuEntry]:
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
     return ModelToGenTu(
         model,
         dependencies=dependencies,
-        config=config,
         ast=builder,
     ).convert()
 

@@ -4,6 +4,7 @@ from typing import Sequence
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Tuple
+from haxorg_py_lib.pyhaxorg_utils import normalize
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuFunction,
     GenTuIdent,
@@ -32,10 +33,16 @@ from hstd_py_unidata.model_ir import (
     TypeRef,
     VariantT,
     expr_tree_repr,
+    type_text,
 )
 from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import (
+    CPP_CONTEXT_T,
+    CPP_RESULT_T,
     CPP_SPACE_T,
     ExpressionEvaluation,
+    TypeTranslation,
+    cpp_config,
+    enum_member_name,
     named_cpp_type,
 )
 
@@ -48,22 +55,24 @@ class CheckGen:
         ast: cpp.ASTBuilder,
         model: ModelDef,
         indexes: Dict[str, ModelIndex],
+        type_map: TypeTranslation,
     ):
         self.ast = ast
         self.model = model
         self.indexes = indexes
+        self.type_map = type_map
 
-    def expression_name(self, stem: str = "expr") -> str:
+    def _expression_name(self, stem: str = "expr") -> str:
         result = f"{stem}{self.expression_counter}"
         self.expression_counter += 1
         return result
 
-    def expression_local(
+    def _expression_local(
         self,
         value: BlockId,
         statements: Sequence[BlockId] = (),
     ) -> ExpressionEvaluation:
-        name = self.expression_name()
+        name = self._expression_name()
 
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
@@ -79,7 +88,7 @@ class CheckGen:
             value=self.ast.string(name),
         )
 
-    def expression_call(
+    def _expression_call(
         self,
         name: str,
         args: Sequence[BlockId] = (),
@@ -143,7 +152,7 @@ class CheckGen:
                 )
 
             case _:
-                return self.type(typ, package)
+                return self.type_map.type(typ, package)
 
     def _expression_result_type(self, expr: ExprNode) -> QualType:
         if expr.typed_as is None:
@@ -152,13 +161,14 @@ class CheckGen:
                 "the finalized expression has no inferred type"
             )
 
-        return self._expression_native_type(expr.typed_as)
+        else:
+            return self._expression_native_type(expr.typed_as)
 
     def _expression_slot(
         self,
         typ: QualType,
     ) -> Tuple[BlockId, BlockId]:
-        name = self.expression_name("result")
+        name = self._expression_name("result")
         value = self.ast.string(name)
 
         declaration = self.ast.VarDecl(
@@ -172,7 +182,7 @@ class CheckGen:
 
         return value, declaration
 
-    def expression_args(
+    def _expression_args(
         self,
         args: Sequence[ExprNode],
         this_expr: BlockId,
@@ -182,13 +192,13 @@ class CheckGen:
         values: List[BlockId] = []
 
         for arg in args:
-            lowered = self.gen_expression_eval(arg, this_expr, bindings)
+            lowered = self._gen_expression_eval(arg, this_expr, bindings)
             statements.extend(lowered.statements)
             values.append(lowered.value)
 
         return statements, values
 
-    def expression_callback(
+    def _expression_callback(
         self,
         body: ExprNode,
         binders: Sequence[str],
@@ -199,7 +209,7 @@ class CheckGen:
         parameters: List[cpp.ParmVarParams] = []
 
         for binder in binders:
-            name = self.expression_name("item")
+            name = self._expression_name("item")
             parameters.append(
                 cpp.ParmVarParams(
                     type=QualType(Name="auto").asConstRef(),
@@ -208,7 +218,7 @@ class CheckGen:
             )
             local_bindings[binder] = self.ast.string(name)
 
-        lowered = self.gen_expression_eval(
+        lowered = self._gen_expression_eval(
             body,
             this_expr,
             local_bindings,
@@ -227,7 +237,7 @@ class CheckGen:
             )
         )
 
-    def expression_enum_value(
+    def _expression_enum_value(
         self,
         typ: TypeRef,
         name: str,
@@ -272,11 +282,11 @@ class CheckGen:
         )
 
         return self.ast.Scoped(
-            self.declaration_type(package, qname),
+            self.type_map.declaration_type(package, qname),
             self.ast.string(cpp_name),
         )
 
-    def expression_record_field(
+    def _expression_record_field(
         self,
         package: str,
         record: RecordDef,
@@ -289,7 +299,7 @@ class CheckGen:
         index = self.indexes[package]
 
         for base in record.bases:
-            found = self.expression_record_field(
+            found = self._expression_record_field(
                 package,
                 index.record(base),
                 name,
@@ -299,7 +309,7 @@ class CheckGen:
 
         return None
 
-    def expression_field_access(
+    def _expression_field_access(
         self,
         expr: ExprNode,
         source: BlockId,
@@ -327,7 +337,7 @@ class CheckGen:
 
             if not index.is_enum(qname):
                 record = index.record(qname)
-                found = self.expression_record_field(
+                found = self._expression_record_field(
                     package,
                     record,
                     expr.str_val,
@@ -355,13 +365,13 @@ class CheckGen:
                         self.ast.string(cpp_name),
                     )
 
-        return self.expression_call(
+        return self._expression_call(
             "eval_get_field",
             args=[source, self.ast.StringLiteral(expr.str_val)],
             params=[self._expression_result_type(expr)],
         )
 
-    def expression_case_test(
+    def _expression_case_test(
         self,
         expr: ExprNode,
         source: BlockId,
@@ -396,7 +406,7 @@ class CheckGen:
                     "std::holds_alternative",
                     args=[source],
                     Params=[
-                        self.declaration_type(package, case.case),
+                        self.type_map.declaration_type(package, case.case),
                     ],
                 )
 
@@ -412,7 +422,7 @@ class CheckGen:
                     f"unsupported subject type {source_type!r}"
                 )
 
-    def expression_case_kind(
+    def _expression_case_kind(
         self,
         expr: ExprNode,
         source: BlockId,
@@ -459,7 +469,7 @@ class CheckGen:
                     f"unsupported subject type {source_type!r}"
                 )
 
-    def expression_runtime_call(
+    def _expression_runtime_call(
         self,
         method: str,
         args: Sequence[BlockId],
@@ -472,7 +482,7 @@ class CheckGen:
             Params=list(params) if params else None,
         )
 
-    def gen_expression_eval(
+    def _gen_expression_eval(
         self,
         expr: ExprNode,
         this_expr: BlockId,
@@ -498,7 +508,7 @@ class CheckGen:
 
             case OpId.CONST_INT:
                 assert expr.int_val is not None
-                return self.expression_local(
+                return self._expression_local(
                     self.ast.XCall(
                         "static_cast",
                         args=[self.ast.Literal(expr.int_val)],
@@ -508,7 +518,7 @@ class CheckGen:
 
             case OpId.CONST_FLOAT:
                 assert expr.float_val is not None
-                return self.expression_local(
+                return self._expression_local(
                     self.ast.XCall(
                         "static_cast",
                         args=[
@@ -520,13 +530,13 @@ class CheckGen:
 
             case OpId.CONST_BOOL:
                 assert expr.bool_val is not None
-                return self.expression_local(
+                return self._expression_local(
                     self.ast.string("true" if expr.bool_val else "false")
                 )
 
             case OpId.CONST_STR:
                 assert expr.str_val is not None
-                return self.expression_local(
+                return self._expression_local(
                     self.ast.XConstructObj(
                         self._expression_result_type(expr),
                         Args=[self.ast.StringLiteral(expr.str_val)],
@@ -534,7 +544,7 @@ class CheckGen:
                 )
 
             case OpId.AND | OpId.OR:
-                name = self.expression_name("condition")
+                name = self._expression_name("condition")
                 result = self.ast.string(name)
                 is_and = expr.op == OpId.AND
 
@@ -550,7 +560,7 @@ class CheckGen:
                 ]
 
                 for arg in expr.args:
-                    lowered = self.gen_expression_eval(
+                    lowered = self._gen_expression_eval(
                         arg,
                         this_expr,
                         bindings,
@@ -589,29 +599,29 @@ class CheckGen:
                 return ExpressionEvaluation(statements, result)
 
             case OpId.NOT:
-                arg = self.gen_expression_eval(
+                arg = self._gen_expression_eval(
                     expr.args[0],
                     this_expr,
                     bindings,
                 )
 
-                return self.expression_local(
+                return self._expression_local(
                     self.ast.XCall("!", args=[self.ast.pars(arg.value)]),
                     arg.statements,
                 )
 
             case OpId.COND:
-                condition = self.gen_expression_eval(
+                condition = self._gen_expression_eval(
                     expr.args[0],
                     this_expr,
                     bindings,
                 )
-                then_value = self.gen_expression_eval(
+                then_value = self._gen_expression_eval(
                     expr.args[1],
                     this_expr,
                     bindings,
                 )
-                else_value = self.gen_expression_eval(
+                else_value = self._gen_expression_eval(
                     expr.args[2],
                     this_expr,
                     bindings,
@@ -665,7 +675,7 @@ class CheckGen:
                 )
 
             case OpId.LET:
-                value = self.gen_expression_eval(
+                value = self._gen_expression_eval(
                     expr.args[0],
                     this_expr,
                     bindings,
@@ -674,7 +684,7 @@ class CheckGen:
                 local_bindings = dict(bindings)
                 local_bindings[expr.binders[0]] = value.value
 
-                body = self.gen_expression_eval(
+                body = self._gen_expression_eval(
                     expr.args[1],
                     this_expr,
                     local_bindings,
@@ -686,7 +696,7 @@ class CheckGen:
                 )
 
             case OpId.TYPE_COND:
-                subject = self.gen_expression_eval(
+                subject = self._gen_expression_eval(
                     expr.args[0],
                     this_expr,
                     bindings,
@@ -716,14 +726,14 @@ class CheckGen:
                             f"a target type, got {case.op.value}"
                         )
 
-                    candidate_name = self.expression_name("candidate")
+                    candidate_name = self._expression_name("candidate")
                     candidate = self.ast.string(candidate_name)
 
                     candidate_declaration = self.ast.VarDecl(
                         cpp.ParmVarParams(
                             type=QualType(Name="auto").asConstPtr(),
                             name=candidate_name,
-                            defArg=self.expression_runtime_call(
+                            defArg=self._expression_runtime_call(
                                 "try_as",
                                 args=[subject.value],
                                 params=[self._expression_native_type(case.type_val)],
@@ -737,7 +747,7 @@ class CheckGen:
                         self.ast.XCall("*", args=[candidate])
                     )
 
-                    body = self.gen_expression_eval(
+                    body = self._gen_expression_eval(
                         case.args[0],
                         this_expr,
                         local_bindings,
@@ -850,20 +860,20 @@ class CheckGen:
                 | OpId.TAKE_WHILE
                 | OpId.GROUP_BY
             ):
-                collection = self.gen_expression_eval(
+                collection = self._gen_expression_eval(
                     expr.args[0],
                     this_expr,
                     bindings,
                 )
 
-                callback = self.expression_callback(
+                callback = self._expression_callback(
                     expr.args[1],
                     expr.binders,
                     this_expr,
                     bindings,
                 )
 
-                callback_name = self.expression_name("callback")
+                callback_name = self._expression_name("callback")
                 callback_value = self.ast.string(callback_name)
 
                 declaration = self.ast.VarDecl(
@@ -892,8 +902,8 @@ class CheckGen:
                     else [self._expression_result_type(expr)]
                 )
 
-                return self.expression_local(
-                    self.expression_call(
+                return self._expression_local(
+                    self._expression_call(
                         function,
                         args=[collection.value, callback_value],
                         params=params,
@@ -902,14 +912,14 @@ class CheckGen:
                 )
 
             case OpId.FOLD:
-                statements, args = self.expression_args(
+                statements, args = self._expression_args(
                     expr.args[:2],
                     this_expr,
                     bindings,
                 )
 
-                callback_name = self.expression_name("callback")
-                callback = self.expression_callback(
+                callback_name = self._expression_name("callback")
+                callback = self._expression_callback(
                     expr.args[2],
                     expr.binders,
                     this_expr,
@@ -927,8 +937,8 @@ class CheckGen:
                     )
                 )
 
-                return self.expression_local(
-                    self.expression_call(
+                return self._expression_local(
+                    self._expression_call(
                         "eval_fold",
                         args=[
                             *args,
@@ -940,7 +950,7 @@ class CheckGen:
                 )
 
             case OpId.LIST_EMPTY | OpId.MAP_EMPTY:
-                return self.expression_local(
+                return self._expression_local(
                     self.ast.XConstructObj(
                         self._expression_result_type(expr),
                         Args=[],
@@ -948,7 +958,7 @@ class CheckGen:
                 )
 
             case _:
-                statements, args = self.expression_args(
+                statements, args = self._expression_args(
                     expr.args,
                     this_expr,
                     bindings,
@@ -956,7 +966,7 @@ class CheckGen:
 
         match expr.op:
             case OpId.EQ | OpId.NE:
-                value = self.expression_call(
+                value = self._expression_call(
                     "eval_equal",
                     args=args,
                 )
@@ -996,10 +1006,10 @@ class CheckGen:
                 )
 
             case OpId.GET_FIELD:
-                value = self.expression_field_access(expr, args[0])
+                value = self._expression_field_access(expr, args[0])
 
             case OpId.STR_SIZE:
-                value = self.expression_call(
+                value = self._expression_call(
                     "eval_str_size",
                     args=[self.ast.Addr(args[0])],
                 )
@@ -1013,7 +1023,7 @@ class CheckGen:
 
             case OpId.STR_MATCHES:
                 assert expr.str_val is not None
-                value = self.expression_call(
+                value = self._expression_call(
                     "eval_str_matches",
                     args=[
                         args[0],
@@ -1023,7 +1033,7 @@ class CheckGen:
 
             case OpId.STR_FORMAT:
                 assert expr.str_val is not None
-                value = self.expression_call(
+                value = self._expression_call(
                     "eval_str_format",
                     args=[
                         self.ast.StringLiteral(expr.str_val),
@@ -1032,7 +1042,7 @@ class CheckGen:
                 )
 
             case OpId.LIST_CONTAINS:
-                value = self.expression_call(
+                value = self._expression_call(
                     "eval_list_contains",
                     args=args,
                 )
@@ -1072,7 +1082,7 @@ class CheckGen:
                     OpId.MAX: "eval_max",
                 }[expr.op]
 
-                value = self.expression_call(
+                value = self._expression_call(
                     function,
                     args=args,
                     params=[self._expression_result_type(expr)],
@@ -1085,10 +1095,10 @@ class CheckGen:
                 value = self.ast.XCallRef(args[0], "value")
 
             case OpId.CASE_IS:
-                value = self.expression_case_test(expr, args[0])
+                value = self._expression_case_test(expr, args[0])
 
             case OpId.CASE_WHICH:
-                value = self.expression_case_kind(expr, args[0])
+                value = self._expression_case_kind(expr, args[0])
 
             case OpId.ENUM_IS:
                 assert expr.str_val is not None
@@ -1105,7 +1115,7 @@ class CheckGen:
                         "==",
                         args=[
                             args[0],
-                            self.expression_enum_value(source_type, expr.str_val),
+                            self._expression_enum_value(source_type, expr.str_val),
                         ],
                     )
                 )
@@ -1124,7 +1134,7 @@ class CheckGen:
                 )
 
             case OpId.WALK:
-                value = self.expression_call(
+                value = self._expression_call(
                     "eval_walk",
                     args=[
                         self.ast.string("expression_runtime"),
@@ -1143,7 +1153,7 @@ class CheckGen:
                     self.ast.XCall(
                         "!=",
                         args=[
-                            self.expression_runtime_call(
+                            self._expression_runtime_call(
                                 "try_as",
                                 args=[args[0]],
                                 params=[self._expression_native_type(expr.type_val)],
@@ -1154,13 +1164,13 @@ class CheckGen:
                 )
 
             case OpId.PATH_OF:
-                value = self.expression_runtime_call(
+                value = self._expression_runtime_call(
                     "path_of",
                     args=[args[0]],
                 )
 
             case OpId.TYPE_OF:
-                value = self.expression_runtime_call(
+                value = self._expression_runtime_call(
                     "type_of",
                     args=[args[0]],
                 )
@@ -1172,9 +1182,9 @@ class CheckGen:
                     f"{render_rich(expr_tree_repr(expr))}"
                 )
 
-        return self.expression_local(value, statements)
+        return self._expression_local(value, statements)
 
-    def expression_needs_runtime(self, expr: ExprNode) -> bool:
+    def _expression_needs_runtime(self, expr: ExprNode) -> bool:
         match expr.op:
             case (
                 OpId.WALK | OpId.TYPE_COND | OpId.IS_DERIVED | OpId.PATH_OF | OpId.TYPE_OF
@@ -1182,9 +1192,9 @@ class CheckGen:
                 return True
 
             case _:
-                return any(self.expression_needs_runtime(arg) for arg in expr.args)
+                return any(self._expression_needs_runtime(arg) for arg in expr.args)
 
-    def gen_expression_runtime(self) -> List[BlockId]:
+    def _gen_expression_runtime(self) -> List[BlockId]:
         runtime = self.ast.string("expression_runtime")
 
         statements = [
@@ -1215,7 +1225,7 @@ class CheckGen:
                         "register_type",
                         args=[self.ast.StringLiteral(declaration.qname.to_id())],
                         Params=[
-                            self.declaration_type(
+                            self.type_map.declaration_type(
                                 package,
                                 declaration.qname,
                             )
@@ -1237,11 +1247,11 @@ class CheckGen:
                                 runtime,
                                 "register_base",
                                 Params=[
-                                    self.declaration_type(
+                                    self.type_map.declaration_type(
                                         package,
                                         record.qname,
                                     ),
-                                    self.declaration_type(
+                                    self.type_map.declaration_type(
                                         package,
                                         base.qname,
                                     ),
@@ -1263,26 +1273,26 @@ class CheckGen:
 
         return statements
 
-    def gen_check_eval(self, check: CheckDef, this_expr: BlockId) -> BlockId:
+    def _gen_check_eval(self, check: CheckDef, this_expr: BlockId) -> BlockId:
         self.expression_counter = 0
 
         statements: List[BlockId] = []
 
-        if self.expression_needs_runtime(check.cond) or self.expression_needs_runtime(
+        if self._expression_needs_runtime(check.cond) or self._expression_needs_runtime(
             check.message
         ):
-            statements.extend(self.gen_expression_runtime())
+            statements.extend(self._gen_expression_runtime())
 
-        root = self.expression_local(
+        root = self._expression_local(
             self.ast.pars(self.ast.XCall("*", args=[self.ast.pars(this_expr)]))
         )
         statements.extend(root.statements)
 
-        condition = self.gen_expression_eval(
+        condition = self._gen_expression_eval(
             check.cond,
             root.value,
         )
-        message = self.gen_expression_eval(
+        message = self._gen_expression_eval(
             check.message,
             root.value,
         )
@@ -1348,7 +1358,7 @@ class CheckGen:
                                 "static_cast",
                                 args=[self.ast.string("value")],
                                 Params=[
-                                    self.declaration_type(
+                                    self.type_map.declaration_type(
                                         self.model.package,
                                         owner.qname,
                                     ).asConstPtr()
@@ -1356,7 +1366,7 @@ class CheckGen:
                             ),
                         )
                     ),
-                    self.gen_check_eval(
+                    self._gen_check_eval(
                         check,
                         this_expr=self.ast.string("this_obj"),
                     ),
@@ -1390,7 +1400,7 @@ class CheckGen:
         )
 
         return GenTuFunction(
-            Name=f"__check_{field.name}_{self.normalize(check.id)}",
+            Name=f"__check_{field.name}_{normalize(check.id)}",
             ReturnType=CPP_RESULT_T,
             Args=[
                 GenTuIdent(Type=CPP_CONTEXT_T.asConstPtr(), Name="ctx"),
@@ -1408,14 +1418,14 @@ class CheckGen:
                                 "static_cast",
                                 args=[self.ast.string("value")],
                                 Params=[
-                                    self.declaration_type(
+                                    self.type_map.declaration_type(
                                         self.model.package, owner.qname
                                     ).asConstPtr()
                                 ],
                             ),
                         )
                     ),
-                    self.gen_check_eval(check, this_expr=this_expr),
+                    self._gen_check_eval(check, this_expr=this_expr),
                 ]
             ),
         )

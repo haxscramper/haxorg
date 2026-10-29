@@ -167,7 +167,7 @@ FORMAT_CLASSES: Dict[str, TypeClass] = {
     "d": TypeClass.INTEGER,
     "x": TypeClass.INTEGER,
     "o": TypeClass.INTEGER,
-    "b": TypeClass.INTEGER,
+    "b": TypeClass.BOOL,
     "f": TypeClass.NUMERIC,
     "e": TypeClass.NUMERIC,
 }
