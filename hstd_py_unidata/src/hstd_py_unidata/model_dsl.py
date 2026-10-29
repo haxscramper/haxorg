@@ -22,6 +22,7 @@ from beartype.typing import (
     get_args,
     get_origin,
 )
+from hstd_py_lib.external_packages.rich_utils import render_rich
 
 from hstd_py_unidata.model_diagnostics import (
     Diagnostic,
@@ -104,6 +105,7 @@ from hstd_py_unidata.model_ir import (
     Severity,
     SourceLoc,
     TypeRef,
+    model_tree_repr,
 )
 from hstd_py_unidata.model_ops import Operator, default_operators, operator_table
 from hstd_py_unidata.model_reduce import (
@@ -591,11 +593,15 @@ class DslModel:
     def type_check(self) -> TypeDiagResult:
         """Raises `DslTypeError` with one diagnostic per root cause when any check expression is ill-typed."""
         diagnostics = self.type_check_diagnostics()
+
+        Path("/tmp/debug.dl").write_text(render_program(diagnostics.type_check.program))
+
         if diagnostics.diagnostics:
-            Path("/tmp/debug.dl").write_text(
-                render_program(diagnostics.type_check.program)
-            )
             raise DslTypeError(self.package, diagnostics.diagnostics)
+
+        Path("/tmp/type_check.txt").write_text(
+            render_rich(model_tree_repr(diagnostics.type_check.model))
+        )
 
         return diagnostics
 

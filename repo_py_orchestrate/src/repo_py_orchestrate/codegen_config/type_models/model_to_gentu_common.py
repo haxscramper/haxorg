@@ -21,6 +21,7 @@ from hstd_py_unidata.model_ir import (
     ListT,
     MapT,
     MethodDef,
+    ModelDef,
     NamedT,
     OptT,
     PrimKind,
@@ -140,9 +141,11 @@ class TypeTranslation:
         self,
         namespaces: dict[str, tuple[str, ...]],
         indexes: Dict[str, ModelIndex],
+        models: dict[str, ModelDef],
     ) -> None:
         self.namespaces = namespaces
         self.indexes = indexes
+        self.models = models
 
         self.ast_records: set[tuple[str, QName]] = set()
 

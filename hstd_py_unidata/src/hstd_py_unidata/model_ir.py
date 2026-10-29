@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+from pathlib import Path
 from typing import Annotated, Any
 
 from beartype import beartype
@@ -32,8 +33,12 @@ class SourceLoc(FrozenModel):
     line: int
     function: str
 
-    def render(self) -> str:
-        return f"{self.file}:{self.line}"
+    def render(self, absolte: bool = False) -> str:
+        if absolte:
+            return f"{self.file}:{self.line}"
+
+        else:
+            return f"{Path(self.file).name}:{self.line}"
 
 
 @beartype

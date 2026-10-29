@@ -8,6 +8,8 @@ from pathlib import Path
 
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Set, Union
+from hstd_py_lib.external_packages.rich_utils import render_rich
+from loguru import logger
 from plumbum import local
 
 from hstd_py_unidata.model_index import ModelIndex
@@ -15,7 +17,6 @@ from hstd_py_unidata.model_ir import (
     FLOAT_PRIMS,
     INTEGER_RANGES,
     ArrayT,
-    CheckContext,
     CheckDef,
     DynT,
     ExprNode,
@@ -35,6 +36,7 @@ from hstd_py_unidata.model_ir import (
     TypeRef,
     UnresolvedT,
     VariantT,
+    expr_tree_repr,
     numeric_join,
 )
 from hstd_py_unidata.model_ops import (
@@ -245,7 +247,12 @@ class Lowering:
             self.emit("qname_text", qname_term(q), sym(q.to_id()))
         for rec in self.index.model.records:
             for check in rec.checks:
-                self.lower_check(rec, check)
+                self.lower_check(rec, check, NamedT(qname=rec.qname))
+
+            for field_def in rec.fields:
+                for check in field_def.checks:
+                    self.lower_check(rec, check, field_def.type)
+
         return self.program
 
     def lower_builtin_facts(self) -> None:
@@ -296,15 +303,12 @@ class Lowering:
             for c in v.cases:
                 self.emit("variant_case", q, sym(v.field), sym(c.tag), qname_term(c.case))
 
-    def lower_check(self, rec: RecordDef, check: CheckDef) -> None:
-        match check.context:
-            case CheckContext.RECORD:
-                this_t: TypeRef = NamedT(qname=rec.qname)
-            case CheckContext.FIELD:
-                assert check.field is not None
-                fdef = self.index.field(rec.qname, check.field)
-                assert fdef is not None
-                this_t = fdef.type
+    def lower_check(
+        self,
+        rec: RecordDef,
+        check: CheckDef,
+        this_t: TypeRef,
+    ) -> None:
         for part, node, expected in (
             (CheckPart.COND, check.cond, BOOL_T),
             (CheckPart.MESSAGE, check.message, STRING_T),
@@ -593,23 +597,54 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
             }
         )
 
+    def warn_untyped(expr: ExprNode) -> None:
+        if expr.typed_as is None:
+            logger.warning(
+                f"Expression has no inferred type:\n{render_rich(expr_tree_repr(expr))}"
+            )
+
+        for arg in expr.args:
+            warn_untyped(arg)
+
     checks: Dict[QName, Dict[str, CheckDef]] = {}
     records: List[RecordDef] = []
 
+    def rewrite_check(record: QName, check: CheckDef) -> CheckDef:
+        parts = roots[record][check.id]
+        updated = check.model_copy(
+            update={
+                "cond": nodes[parts[CheckPart.COND]],
+                "message": nodes[parts[CheckPart.MESSAGE]],
+            }
+        )
+
+        warn_untyped(updated.cond)
+        warn_untyped(updated.message)
+        checks.setdefault(record, {})[check.id] = updated
+        return updated
+
     for record in index.model.records:
-        record_checks: List[CheckDef] = []
-        for check in record.checks:
-            parts = roots[record.qname][check.id]
-            updated = check.model_copy(
+        logger.info(f"processing record {record.qname}")
+        records.append(
+            record.model_copy(
                 update={
-                    "cond": nodes[parts[CheckPart.COND]],
-                    "message": nodes[parts[CheckPart.MESSAGE]],
+                    "checks": tuple(
+                        rewrite_check(record.qname, check) for check in record.checks
+                    ),
+                    "fields": tuple(
+                        field_def.model_copy(
+                            update={
+                                "checks": [
+                                    rewrite_check(record.qname, check)
+                                    for check in field_def.checks
+                                ]
+                            }
+                        )
+                        for field_def in record.fields
+                    ),
                 }
             )
-            checks.setdefault(record.qname, {})[check.id] = updated
-            record_checks.append(updated)
-
-        records.append(record.model_copy(update={"checks": tuple(record_checks)}))
+        )
 
     model = index.model.model_copy(update={"records": tuple(records)})
     occurrences: Dict[int, Occurrence] = {}

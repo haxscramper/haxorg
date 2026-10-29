@@ -76,10 +76,7 @@ class CheckGen:
 
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=QualType(Name="auto").asConstRef(),
-                name=name,
-                defArg=value,
-                IsLine=False,
+                type=QualType(Name="auto").asConstRef(), name=name, defArg=value
             )
         )
 
@@ -158,7 +155,8 @@ class CheckGen:
         if expr.typed_as is None:
             raise ValueError(
                 f"Cannot lower '{expr.op.value}' at {expr.loc.render()}: "
-                "the finalized expression has no inferred type"
+                "the finalized expression has no inferred type. Expr tree:\n"
+                f"{render_rich(expr_tree_repr(expr))}"
             )
 
         else:
@@ -176,7 +174,6 @@ class CheckGen:
                 type=named_cpp_type("std::optional", [typ]),
                 name=name,
                 defArg=self.ast.string("std::nullopt"),
-                IsLine=False,
             )
         )
 
@@ -354,7 +351,7 @@ class CheckGen:
                         .get(member.name, member.name)
                     )
 
-                    if self.is_ast(package, qname):
+                    if self.type_map.is_ast(package, qname):
                         return self.ast.Arrow(
                             source,
                             self.ast.string(cpp_name),
@@ -554,7 +551,6 @@ class CheckGen:
                             type=QualType(Name="bool"),
                             name=name,
                             defArg=self.ast.string("true" if is_and else "false"),
-                            IsLine=False,
                         )
                     )
                 ]
@@ -738,7 +734,6 @@ class CheckGen:
                                 args=[subject.value],
                                 params=[self._expression_native_type(case.type_val)],
                             ),
-                            IsLine=False,
                         )
                     )
 
@@ -881,7 +876,6 @@ class CheckGen:
                         type=QualType(Name="auto"),
                         name=callback_name,
                         defArg=callback,
-                        IsLine=False,
                     )
                 )
 
@@ -932,7 +926,6 @@ class CheckGen:
                             type=QualType(Name="auto"),
                             name=callback_name,
                             defArg=callback,
-                            IsLine=False,
                         )
                     )
                 )
@@ -1212,12 +1205,11 @@ class CheckGen:
                         ),
                         Args=[self.ast.string("ctx")],
                     ),
-                    IsLine=False,
                 )
             )
         ]
 
-        for package, model in self.models.items():
+        for package, model in self.type_map.models.items():
             for declaration in (*model.records, *model.enums):
                 statements.append(
                     self.ast.XCallRef(
@@ -1340,7 +1332,7 @@ class CheckGen:
         parentClass: QualType,
     ) -> GenTuFunction:
         return GenTuFunction(
-            Name=f"__check_record_{self.normalize(check.id)}",
+            Name=f"__check_record_{normalize(check.id)}",
             ReturnType=CPP_RESULT_T,
             Args=[
                 GenTuIdent(Type=CPP_CONTEXT_T.asConstPtr(), Name="ctx"),

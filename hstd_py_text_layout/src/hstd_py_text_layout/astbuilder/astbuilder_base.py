@@ -150,7 +150,7 @@ class AstbuilderBase:
         return self.b.indent(indent, self.b.stack(args))
 
     def init_list(self, elements: List[BlockId], isLine: bool = True) -> BlockId:
-        return self.brace([self.csv(elements, isLine=isLine)])
+        return self.brace([self.csv(elements, isLine=isLine)], IsLine=isLine)
 
     def brace(
         self,
@@ -191,9 +191,12 @@ class AstbuilderBase:
         isTrailing: bool = False,
         sep: str = ", ",
     ) -> BlockId:
-        if 0 < len(items):
+        filter_list = [
+            self.string(Base) if isinstance(Base, str) else Base for Base in items
+        ]
+        if 0 < len(filter_list):
             return self.b.join(
-                [self.string(Base) if isinstance(Base, str) else Base for Base in items],
+                filter_list,
                 self.string(sep),
                 isLine,
                 isTrailing,

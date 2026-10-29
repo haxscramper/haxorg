@@ -1104,6 +1104,10 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Capture(self, p: LambdaCapture) -> BlockId:
         result = self.b.line([])
+
+        if p.ByRef:
+            self.b.add_at(result, self.string("&"))
+
         if p.Name:
             self.b.add_at(result, self.string(p.Name))
 
@@ -1113,7 +1117,10 @@ class ASTBuilder(base.AstbuilderBase):
         head = self.b.line(
             [
                 self.string("+[" if p.IsPtrCast else "["),
-                self.csv([self.Capture(cap) for cap in p.CaptureList]),
+                # Avoid list of empty lines here
+                self.csv([self.Capture(cap) for cap in p.CaptureList])
+                if p.CaptureList
+                else self.string(""),
                 self.string("]"),
                 self.Arguments(p),
             ]

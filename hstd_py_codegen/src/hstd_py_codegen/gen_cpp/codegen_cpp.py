@@ -157,7 +157,9 @@ class GenConverter:
                 )
 
             for nested in record.Nested:
-                assert not isinstance(nested, codegen_ir.GenTuTypeGroup)
+                assert not isinstance(nested, codegen_ir.GenTuTypeGroup), (
+                    "Nested type group expansion was not completed"
+                )
 
             fields = [self.ast.string(field.Name) for field in record.Fields]
             methods = [

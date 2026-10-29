@@ -26,3 +26,5 @@ imm/ImmOrgTypes.hpp
 imm/ImmOrgAdapterGenerated.cpp
 imm/ImmOrgAdapterGenerated.hpp
 build
+hstd_cpp_lib/tests/tUnidataDSL.cpp
+hstd_cpp_lib/tests/tUnidataDSL.hpp

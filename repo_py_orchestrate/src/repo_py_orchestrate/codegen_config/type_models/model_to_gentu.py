@@ -91,7 +91,11 @@ class ModelToGenTu:
             package: ModelIndex(item) for package, item in self.models.items()
         }
 
-        self.type_map = TypeTranslation(DEFAULT_NAMESPACES, self.indexes)
+        self.type_map = TypeTranslation(
+            namespaces=DEFAULT_NAMESPACES,
+            indexes=self.indexes,
+            models=self.models,
+        )
 
         self.check_gen = CheckGen(
             ast=self.ast,
@@ -131,14 +135,14 @@ class ModelToGenTu:
                 class_field=item.name,
             )
 
-        field_type = self.type(item.type, self.model.package)
+        field_type = self.type_map.type(item.type, self.model.package)
         if "type" in field_options:
             field_type = named_cpp_type(field_options["type"])
 
         if item.name in defaults:
             value = defaults[item.name]
         else:
-            value = self.default_value(
+            value = self.type_map.default_value(
                 item.type,
                 self.model.package,
                 item.default,
@@ -158,9 +162,9 @@ class ModelToGenTu:
             case PrimT():
                 return typ.prim in {PrimKind.STRING, PrimKind.PATH}
             case NamedT():
-                return not self.is_enum(package, typ.qname)
+                return not self.type_map.is_enum(package, typ.qname)
             case ExternalT():
-                return not self.is_enum(typ.package, typ.qname)
+                return not self.type_map.is_enum(typ.package, typ.qname)
             case TypeParamT():
                 return False
             case _:
@@ -182,7 +186,7 @@ class ModelToGenTu:
                 )
 
             arg_options = options.get("args", {}).get(arg.name, {})
-            arg_type = self.type(arg.type, self.model.package)
+            arg_type = self.type_map.type(arg.type, self.model.package)
 
             if "type" in arg_options:
                 # A container override preserves its model element parameters.
@@ -203,7 +207,7 @@ class ModelToGenTu:
                     Type=arg_type,
                     Name=arg_options.get("name", arg.name),
                     Value=(
-                        self.default_value(
+                        self.type_map.default_value(
                             arg.type,
                             self.model.package,
                             arg.default,
@@ -214,7 +218,7 @@ class ModelToGenTu:
                 ),
             )
 
-        result_type = self.type(item.return_type, self.model.package)
+        result_type = self.type_map.type(item.return_type, self.model.package)
         if options.get("return_const_ref", False):
             result_type = result_type.asConstRef()
 
@@ -491,7 +495,7 @@ class ModelToGenTu:
                                     name="checks",
                                     storage=cpp.StorageClass.Static,
                                     defArg=self.ast.init_list(
-                                        [self.ast.init_list(assign_stack)]
+                                        [self.ast.init_list(assign_stack, isLine=False)]
                                     ),
                                     IsLine=False,
                                 )
@@ -579,7 +583,7 @@ class ModelToGenTu:
                         GenTuIdent(
                             Type=f.Type.asConstRef(),
                             Name=f.Name,
-                            Value=self.default_value(
+                            Value=self.type_map.default_value(
                                 f_orig.type,
                                 package,
                                 f_orig.default,

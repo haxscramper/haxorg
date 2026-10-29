@@ -24,8 +24,7 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu import ModelT
 def main(root_dir: Path):
     t = TextLayout()
     builder = cpp.ASTBuilder(t)
-    HstdModel.type_check()
-    model = HstdModel.finalize()
+    model = HstdModel.get_typed()
     converter = ModelToGenTu(model, ast=builder)
     types = converter.convert()
 
