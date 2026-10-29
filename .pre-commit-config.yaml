@@ -1,28 +1,28 @@
 exclude: |
   (?x)^(
-    src/haxorg_cpp_c_wrap/haxorg_c\.h|
-    src/haxorg_cpp_c_wrap/haxorg_c\.cpp|
-    src/haxorg_cpp_c_wrap/haxorg_c_vtables\.hpp|
-    src/haxorg_cpp_c_wrap/haxorg_c_vtables\.cpp|
-    src/wrappers/js/haxorg_wasm\.cpp|
-    src/wrappers/js/haxorg_wasm_types\.d\.ts|
-    src/wrappers/js/haxorg_c\.cpp|
-    src/wrappers/js/haxorg_c\.h|
-    scripts/py_haxorg/py_haxorg/pyhaxorg\.pyi|
-    src/py_libs/pyhaxorg/pyhaxorg\.cpp|
-    src/haxorg/serde/SemOrgProto\.proto|
-    src/haxorg/serde/SemOrgSerdeDeclarations\.hpp|
-    src/haxorg/serde/SemOrgSerdeDefinitions\.cpp|
-    src/haxorg/exporters/Exporter\.tcc|
-    src/haxorg/imm/ImmOrgSerde\.tcc|
-    src/haxorg/imm/ImmOrgAdapterGenerated\.hpp|
-    src/haxorg/imm/ImmOrgAdapterGenerated\.cpp|
-    src/haxorg/exporters/ExporterMethods\.tcc|
-    src/haxorg/sem/SemOrgEnums\.hpp|
-    src/haxorg/sem/SemOrgEnums\.cpp|
-    src/haxorg/sem/SemOrgSharedTypes\.hpp|
-    src/haxorg/sem/SemOrgTypes\.hpp|
-    src/haxorg/imm/ImmOrgTypes\.hpp
+    haxorg_cpp_c_wrap/src/haxorg_cpp_c_wrap/haxorg_c\.h|
+    haxorg_cpp_c_wrap/src/haxorg_cpp_c_wrap/haxorg_c\.cpp|
+    haxorg_cpp_c_wrap/src/haxorg_cpp_c_wrap/haxorg_c_vtables\.hpp|
+    haxorg_cpp_c_wrap/src/haxorg_cpp_c_wrap/haxorg_c_vtables\.cpp|
+    haxorg_wasm_lib_wrap/src/haxorg_wasm_lib_wrap/haxorg_wasm\.cpp|
+    haxorg_wasm_lib_wrap/src/haxorg_wasm_lib_wrap/haxorg_wasm_types\.d\.ts|
+    haxorg_py_lib/src/haxorg_py_lib/pyhaxorg\.pyi|
+    haxrg_cpp_py_wrap/src/haxrg_cpp_py_wrap/pyhaxorg\.cpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/serde/SemOrgProto\.proto|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/serde/SemOrgSerdeDeclarations\.hpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/serde/SemOrgSerdeDefinitions\.cpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/exporters/Exporter\.tcc|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/imm/ImmOrgSerde\.tcc|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/imm/ImmOrgAdapterGenerated\.hpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/imm/ImmOrgAdapterGenerated\.cpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/exporters/ExporterMethods\.tcc|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/sem/SemOrgEnums\.hpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/sem/SemOrgEnums\.cpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/sem/SemOrgSharedTypes\.hpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/sem/SemOrgTypes\.hpp|
+    haxorg_cpp_org_lib/src/haxorg_cpp_org_lib/imm/ImmOrgTypes\.hpp|
+    hstd_cpp_lib/tests/tUnidataDSLModel\.cpp|
+    hstd_cpp_lib/tests/tUnidataDSLModel\.hpp
   )$
 repos:
   - repo: local
