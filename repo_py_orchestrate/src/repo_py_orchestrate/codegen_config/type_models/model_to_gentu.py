@@ -26,7 +26,7 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     ReferenceKind,
 )
 from hstd_py_codegen.gen_cpp.codegen_type_order import expand_type_groups
-from hstd_py_lib.script_logging import pprint_to_string
+from hstd_py_lib.external_packages.rich_utils import render_rich
 from hstd_py_text_layout.base.wrap import BlockId, TextLayout
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
@@ -55,6 +55,7 @@ from hstd_py_unidata.model_ir import (
     UnresolvedT,
     VariantDef,
     VariantT,
+    expr_tree_repr,
 )
 from loguru import logger
 from repo_py_orchestrate.codegen_config.codegen_type_groups import (
@@ -516,7 +517,7 @@ class ModelToGenTu:
 
             case _:
                 raise ValueError(
-                    f"Unhandled op ID kind: {expr.op}: {pprint_to_string(expr)}"
+                    f"Unhandled op ID kind: {expr.op}: {render_rich(expr_tree_repr(expr))}"
                 )
 
     def gen_check_eval(self, check: CheckDef, this_expr: BlockId) -> BlockId:
@@ -883,7 +884,7 @@ class ModelToGenTu:
         check_functions: List[CheckFunction]
         fields, check_functions = glom.glom(
             cast(
-                List[Tuple[GenTuField, List[CheckFunction]]],
+                List[Tuple[GenTuField, List[Optional[CheckFunction]]]],
                 [
                     self.field(item, member, parentClass=DeclClass)
                     for member in item.fields
@@ -895,7 +896,7 @@ class ModelToGenTu:
                 init=lambda: ([], []),
                 op=lambda acc, item: (
                     acc[0].append(item[0]),
-                    acc[1].append(item[1]),
+                    acc[1].append(item[1]) if item[1] else None,
                     acc,
                 )[-1],
             ),

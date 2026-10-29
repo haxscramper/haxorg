@@ -78,7 +78,6 @@ struct VerifyResultCollection {
     }
 };
 
-inline int eval_str_size(std::string const* str) { return static_cast<int>(str->size()); }
 
 template <typename T>
 concept IsUnidataClass = requires(T& value) {
@@ -106,7 +105,7 @@ hstd::Vec<VerifyResult> verify_one_with_bases(VerifyContext const& ctx, T const&
             VerifyKey field_key{class_id, field.name};
             if (check_map.contains(field_key)) {
                 for (VerifyCb const& check : check_map.at(field_key)) {
-                    result.push_back(check(&ctx, (void const*)&(data.*field.pointer)));
+                    result.push_back(check(&ctx, (void const*)&data));
                 }
             }
         });
@@ -168,4 +167,9 @@ VerifyResultCollection verify_all(T const& data) {
 
     return result;
 }
+
+
+inline int eval_str_size(std::string const* str) { return static_cast<int>(str->size()); }
+
+
 }; // namespace hstd::ext::unidata
