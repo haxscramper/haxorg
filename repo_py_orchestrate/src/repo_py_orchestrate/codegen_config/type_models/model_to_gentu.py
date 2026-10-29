@@ -901,6 +901,17 @@ class ModelToGenTu:
             ),
         )
 
+        fields.append(
+            GenTuField(
+                Name="unidata_id",
+                Type=QualType.ForName("std::string"),
+                Value=self.ast.StringLiteral(item.qname.to_id()),
+                IsStatic=True,
+                IsConst=True,
+                IsConstexpr=True,
+            )
+        )
+
         impl_functions: List[GenTuFunction] = list()
 
         if 0 < len(check_functions):

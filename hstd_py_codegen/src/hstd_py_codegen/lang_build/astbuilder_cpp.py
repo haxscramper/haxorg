@@ -31,6 +31,7 @@ class ParmVarParams:
     type: "QualType"
     name: str
     IsConst: bool = False
+    IsConstexpr: bool = False
     storage: StorageClass = StorageClass.None_
     defArg: Optional[BlockId] = None
     defWithAssign: bool = True
@@ -723,58 +724,54 @@ class ASTBuilder(base.AstbuilderBase):
         return self.brace(p.Stmts)
 
     def VarDecl(self, p: ParmVarParams) -> BlockId:
-        decl = []
+        head = []
 
         match p.storage:
             case StorageClass.Static:
-                decl.append(self.string("static "))
+                head.append(self.string("static "))
+
+        if p.IsConstexpr:
+            head.append(self.string("constexpr "))
 
         if p.type.Kind == codegen_ir.QualTypeKind.FunctionPtr:
             assert p.type.Func
-            decl.extend(
+            head.extend(
                 [
-                    self.line(
-                        [
-                            self.Type(p.type.Func.ReturnType),
-                            self.string(" (*"),
-                            self.string(p.name),
-                            self.string(")"),
-                            self.string("("),
-                            self.csv([self.Type(a) for a in p.type.Func.Args]),
-                            self.string(")"),
-                            self.string("const " if p.IsConst else ""),
-                        ]
-                    )
+                    self.Type(p.type.Func.ReturnType),
+                    self.string(" (*"),
+                    self.string(p.name),
+                    self.string(")"),
+                    self.string("("),
+                    self.csv([self.Type(a) for a in p.type.Func.Args]),
+                    self.string(")"),
+                    self.string("const " if p.IsConst else ""),
                 ]
             )
 
         else:
-            decl.extend(
+            head.extend(
                 [
-                    self.line(
-                        [
-                            self.Type(p.type),
-                            self.string(" "),
-                            self.string("const " if p.IsConst else ""),
-                            self.string(p.name),
-                        ]
-                    )
+                    self.Type(p.type),
+                    self.string(" "),
+                    self.string("const " if p.IsConst else ""),
+                    self.string(p.name),
                 ]
             )
+
+        decl = self.line(head)
+        default = list()
 
         if p.defArg:
             if p.defWithAssign:
-                decl.append(self.string(" = "))
+                default.append(self.string(" = "))
 
-            decl.append(p.defArg)
-
-        decl.append(self.string(";"))
+            default.append(p.defArg)
 
         if p.IsLine:
-            return self.line(decl)
+            return self.line([decl, *default, self.string(";")])
 
         else:
-            return self.stack(decl)
+            return self.stack(decl, self.line([*default, self.string(";")]))
 
     def block(
         self,
@@ -877,7 +874,10 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Field(self, field: RecordField) -> BlockId:
         field_body = self.b.line(
-            [self.string("static " if field.isStatic else ""), self.VarDecl(field.params)]
+            [
+                self.string("static " if field.isStatic else ""),
+                self.VarDecl(field.params),
+            ]
         )
 
         return self.WithAccess(self.WithDoc(field_body, field.doc), field.access)

@@ -133,6 +133,7 @@ class GenConverter:
                             type=member.Type if member.Type else QualType.ForName("void"),
                             name=member.Name,
                             IsConst=member.IsConst,
+                            IsConstexpr=member.IsConstexpr,
                             defArg=(
                                 self.ast.string(member.Value)
                                 if isinstance(member.Value, str)

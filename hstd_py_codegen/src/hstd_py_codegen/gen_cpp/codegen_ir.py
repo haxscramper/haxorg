@@ -1236,6 +1236,7 @@ class GenTuField:
     Decl: Optional[Union["GenTuStruct", "GenTuEnum"]] = None
     Value: Optional[Union[str, BlockId]] = None
     IsConst: bool = False
+    IsConstexpr: bool = False
     IsStatic: bool = False
     IsTypeDecl: bool = False
     IsExposedForWrap: bool = True

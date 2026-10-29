@@ -9,17 +9,14 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::TrivialText::__check_t
   }
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::TrivialText::get_unidata_checks() {
-  static
-  hstd::ext::unidata::VerifyCheckCollection checks
-   =
-  {
-  {
-  {
-  hstd::ext::unidata::VerifyKey{"TrivialText", "text"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_text_text_check}}
-  }
-  }
-  }
-  ;
+  static hstd::ext::unidata::VerifyCheckCollection checks
+   = {
+     {
+     {
+     hstd::ext::unidata::VerifyKey{"TrivialText", "text"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_text_text_check}}
+     }
+     }
+     };
   return &checks;
 }
 /* clang-format on */
