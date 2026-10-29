@@ -2,6 +2,7 @@ from beartype import beartype
 from beartype.typing import Any
 from rich.console import Console
 from rich.pretty import pprint
+from rich.tree import Tree
 
 
 @beartype
@@ -36,3 +37,8 @@ def render_rich_pprint(
 @beartype
 def render_debug(value: Any, color: bool = False, width: int = 200) -> str:
     return render_rich_pprint(value, width=width, color=color)
+
+
+class IndentedTree(Tree):
+    TREE_GUIDES = [("    ", "    ", "    ", "    ")] * 3
+    ASCII_GUIDES = ("    ", "    ", "    ", "    ")

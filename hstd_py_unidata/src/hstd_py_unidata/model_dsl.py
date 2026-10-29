@@ -112,7 +112,7 @@ from hstd_py_unidata.model_reduce import (
     reduce_value,
 )
 from hstd_py_unidata.model_resolve import AnnotationResolver, ModelFinalizer, NameLookup
-from hstd_py_unidata.model_souffle import run_type_check
+from hstd_py_unidata.model_souffle import TypeCheckOutput, run_type_check
 from hstd_py_unidata.model_value import Value, decode_json, encode_json
 
 DIRECTIVE_NAMES = ("__check__", "__variant__", "__config__")
@@ -477,6 +477,13 @@ class DslMeta(type):
 
 
 @beartype
+@dataclass
+class TypeDiagResult:
+    diagnostics: List[Diagnostic]
+    type_check: TypeCheckOutput
+
+
+@beartype
 class DslModel:
     """Declarations of one model package with type checking, validation, generation and reduction."""
 
@@ -518,6 +525,10 @@ class DslModel:
         return this_expr()
 
     def Iter(self, name: str) -> Expr:
+        """
+        Access to the bound iteration variable in expression. Operations like `type_case`, `op_map` etc.
+        have an argument to the specify the variable -- `Iter("<varname>")` is used to access the value.
+        """
         return var_expr(name)
 
     @frontend_entry
@@ -545,12 +556,17 @@ class DslModel:
         return wrap
 
     def finalize(self) -> ModelDef:
+        """
+        Verify structural elements of the model and return untyped model
+        definition. To get the typed definition use `type_check()` method.
+        """
         if self.cached_model is None:
             self.cached_model = ModelFinalizer(
                 self.package,
                 self.raws,
                 self.table,
             ).finalize()
+
             self.cached_index = ModelIndex(self.cached_model)
         return self.cached_model
 
@@ -560,16 +576,28 @@ class DslModel:
         assert self.cached_index is not None
         return self.cached_index
 
-    def type_check_diagnostics(self) -> List[Diagnostic]:
-        return build_diagnostics(
-            self.index, self.table, run_type_check(self.index, self.table)
+    def type_check_diagnostics(self) -> TypeDiagResult:
+        output = run_type_check(self.index, self.table)
+        return TypeDiagResult(
+            diagnostics=build_diagnostics(self.index, self.table, output),
+            type_check=output,
         )
 
-    def type_check(self) -> None:
+    def type_check(self) -> TypeDiagResult:
         """Raises `DslTypeError` with one diagnostic per root cause when any check expression is ill-typed."""
         diagnostics = self.type_check_diagnostics()
-        if diagnostics:
-            raise DslTypeError(self.package, diagnostics)
+        if diagnostics.diagnostics:
+            raise DslTypeError(self.package, diagnostics.diagnostics)
+
+        return diagnostics
+
+    def get_typed(self) -> ModelDef:
+        """
+        Run type check for the model and return a fully resolved type-checked model.
+        This method is the main entry point to access the result of the model DSL
+        definition.
+        """
+        return self.type_check().type_check.model
 
     def to_dict(self) -> Dict[str, Any]:
         return self.finalize().model_dump(mode="json")

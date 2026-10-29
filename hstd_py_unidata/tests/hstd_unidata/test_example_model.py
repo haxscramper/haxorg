@@ -2,6 +2,9 @@ import json
 from pathlib import Path
 
 from beartype.typing import Annotated, Any, Callable, Dict, List, Optional, Tuple
+from hstd_py_lib.external_packages.rich_utils import render_rich
+from hstd_py_lib.pydantic_utils import format_json_with_fjson
+from hstd_py_lib.script_logging import to_debug_json
 from hstd_py_unidata.model_dsl import (
     EnFieldAnnotation,
     FixedArray,
@@ -25,7 +28,7 @@ from hstd_py_unidata.model_dsl import (
     op_or,
 )
 from hstd_py_unidata.model_gen import GenContext
-from hstd_py_unidata.model_ir import ExternalT
+from hstd_py_unidata.model_ir import ExternalT, model_tree_repr
 from hstd_py_unidata.model_value import Value
 from loguru import logger
 
@@ -75,9 +78,7 @@ class ColumnView(M.Class):
                 AggregateFractionRec: Annotated[
                     int, EnFieldAnnotation(doc="Fraction")
                 ] = 1
-                AggregatePercentRec: Annotated[
-                    int, EnFieldAnnotation(doc="Percent")
-                ] = 2
+                AggregatePercentRec: Annotated[int, EnFieldAnnotation(doc="Percent")] = 2
 
             kind: Kind
 
@@ -87,9 +88,7 @@ class ColumnView(M.Class):
                 Max: Annotated[int, EnFieldAnnotation(doc="Maximum")] = 1
                 Mean: Annotated[int, EnFieldAnnotation(doc="Mean")] = 2
                 Sum: Annotated[int, EnFieldAnnotation(doc="Sum")] = 3
-                LowHighEst: Annotated[
-                    int, EnFieldAnnotation(doc="Low-High estimate")
-                ] = 4
+                LowHighEst: Annotated[int, EnFieldAnnotation(doc="Low-High estimate")] = 4
 
             kind: Kind
             formatDigits: Optional[Int32] = None
@@ -223,7 +222,20 @@ def external_generators() -> Dict[ExternalT, Callable[[GenContext], Value]]:
 
 
 def test_example_model_main():
-    M.type_check()
+    diag = M.get_typed()
+
+    Path("/tmp/type_check.json").write_text(
+        format_json_with_fjson(
+            to_debug_json(
+                diag,
+                skip_cyclic_data=False,
+                skip_none_valued_items=True,
+            )
+        )
+    )
+
+    Path("/tmp/type_check.txt").write_text(render_rich(model_tree_repr(diag)))
+
     logger.info("Souffle type check passed")
     for cls in (ScalarShowcase, ColumnView, LayoutPayload, Text):
         value = M.generate(cls, GenConfig(seed=7), type_overrides=external_generators())

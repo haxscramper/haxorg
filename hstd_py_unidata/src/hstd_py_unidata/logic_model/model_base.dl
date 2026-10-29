@@ -304,6 +304,8 @@ dyn_like(T) :- type_seen(T), T = $TDyn(_).
 .decl typed(e: ExprId)
 typed(E) :- expr_type(E, _).
 
+#include "logic_model/model_inferred_types.dl"
+
 .decl untyped(e: ExprId)
 untyped(E) :- expr(E, _), !typed(E).
 

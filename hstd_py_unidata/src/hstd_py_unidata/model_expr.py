@@ -471,30 +471,39 @@ def collection_op(op: OpId, collection: Any, name: str, body: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_all(collection: Any, name: str, body: Any) -> Expr:
+    """
+    Check if all elements in the provided collection match the predicate
+    Second argument describes the new binding variable for each individual
+    item in the collection to iterate.
+    """
     return collection_op(OpId.ALL, collection, name, body)
 
 
 @frontend_entry
 @beartype
 def op_exists(collection: Any, name: str, body: Any) -> Expr:
+    "Check if any element in the collection matches the predicate"
     return collection_op(OpId.EXISTS, collection, name, body)
 
 
 @frontend_entry
 @beartype
 def op_exists_one(collection: Any, name: str, body: Any) -> Expr:
+    "Check if exactly one element in the collection matches the predicate"
     return collection_op(OpId.EXISTS_ONE, collection, name, body)
 
 
 @frontend_entry
 @beartype
 def op_map(collection: Any, name: str, body: Any) -> Expr:
+    "Convert every element in the input collection to the new list of items."
     return collection_op(OpId.MAP, collection, name, body)
 
 
 @frontend_entry
 @beartype
 def op_filter(collection: Any, name: str, body: Any) -> Expr:
+    "Return items matching the predicate in collection"
     return collection_op(OpId.FILTER, collection, name, body)
 
 
@@ -533,19 +542,29 @@ def op_fold(collection: Any, init: Any, acc: str, item: str, body: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_walk(root: Any) -> Expr:
-    """Recursive descent over every value contained in the root, including the root itself."""
+    """
+    Recursive descent over every value contained in the root, including the root itself.
+
+    Return the evaluation result as a flat list of all values in the model, the consumer
+    is expected to use `type_cond` to evaluate the outputs.
+    """
     return make_node(OpId.WALK, (to_node(root),))
 
 
 @frontend_entry
 @beartype
 def op_all_rec(root: Any, name: str, body: Any) -> Expr:
+    """
+    Recursively iterate over all the items in the model structure and return expression
+    eval from the result.
+    """
     return collection_op(OpId.ALL, op_walk(root), name, body)
 
 
 @frontend_entry
 @beartype
 def op_concat(first: Any, *rest: Any) -> Expr:
+    "Concatenate one or more list collections"
     result = to_node(first)
     for item in rest:
         result = make_node(OpId.LIST_CONCAT, (result, to_node(item))).node
@@ -555,6 +574,7 @@ def op_concat(first: Any, *rest: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_sum(collection: Any) -> Expr:
+    "Add all collection elements together"
     return make_node(OpId.SUM, (to_node(collection),))
 
 
@@ -573,12 +593,14 @@ def op_max(collection: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_empty_list(elem_type: Any) -> Expr:
+    "Create empty list value"
     return make_node(OpId.LIST_EMPTY, type_val=UNRESOLVED_TYPES.resolve(list[elem_type]))
 
 
 @frontend_entry
 @beartype
 def op_empty_map(key_type: Any, value_type: Any) -> Expr:
+    "Create empty map value"
     return make_node(
         OpId.MAP_EMPTY, type_val=UNRESOLVED_TYPES.resolve(dict[key_type, value_type])
     )
@@ -599,6 +621,9 @@ def op_format(fmt: str, *args: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_path_of(value: Any) -> Expr:
+    """
+    Return the path of the provided expression in the root object.
+    """
     return make_node(OpId.PATH_OF, (to_node(value),))
 
 
@@ -612,7 +637,13 @@ def op_typeof(value: Any) -> Expr:
 @frontend_entry
 @beartype
 def type_case(match_type: Any, name: str, body: Any) -> Expr:
-    """Branch of `type_cond`, the binder receives the subject narrowed to the matched type."""
+    """
+    Branch of `type_cond`, the binder receives the subject narrowed to the matched type.
+
+    The first argument provided is a type expression that is going to be matched
+    against the input, then the new bound variable and then the expression to evaluate
+    in case the binding is successful.
+    """
     check_binder_name(name, "type_case")
     return make_node(
         OpId.TYPE_CASE, (to_node(body),), binders=(name,), type_val=type_arg(match_type)
@@ -622,7 +653,12 @@ def type_case(match_type: Any, name: str, body: Any) -> Expr:
 @frontend_entry
 @beartype
 def type_cond(subject: Any, *cases: Expr, unhandled_ignore: bool = False) -> Expr:
-    """First matching branch wins; with `unhandled_ignore` the result is optional and unmatched values give none."""
+    """
+    `cond`, but for the type matching. Evaluate multiple `type_case` branches and evaluate
+    the final result.
+
+    First matching branch wins; with `unhandled_ignore` the result is optional and unmatched values give none.
+    """
     if len(cases) == 0:
         raise ValueError("type_cond requires at least one type_case(...) branch")
     for case in cases:

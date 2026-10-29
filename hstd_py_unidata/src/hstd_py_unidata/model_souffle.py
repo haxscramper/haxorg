@@ -3,7 +3,7 @@ from __future__ import annotations
 import csv
 import enum
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from beartype import beartype
@@ -22,6 +22,7 @@ from hstd_py_unidata.model_ir import (
     ExternalT,
     ListT,
     MapT,
+    ModelDef,
     NamedT,
     OpId,
     OptT,
@@ -118,6 +119,8 @@ class DiagRow:
 @beartype
 @dataclass(frozen=True)
 class TypeCheckOutput:
+    model: ModelDef
+    "Type-checked rewrite of the original model definition, fills every `typed_as` expression"
     program: LoweredProgram
     diags: List[DiagRow]
     untyped: Set[int]
@@ -389,6 +392,129 @@ def render_program(program: LoweredProgram) -> str:
 
 
 @beartype
+def read_inferred_types(
+    directory: Path,
+    index: ModelIndex,
+    program: LoweredProgram,
+) -> Dict[int, TypeRef]:
+    """Reconstruct inferred types from structural Soufflé relations."""
+    qnames = dict(index.by_id)
+    external: Set[QName] = set()
+
+    for record in index.model.records:
+        for field_def in record.fields:
+            collect_external_qnames(field_def.type, external)
+
+    for occurrence in program.occurrences.values():
+        if occurrence.node.type_val is not None:
+            collect_external_qnames(occurrence.node.type_val, external)
+
+    for qname in external:
+        qnames[qname.to_id()] = qname
+
+    shapes = {
+        row[0]: row[1:] for row in read_rows(directory / "inferred_type_shape.csv", 5)
+    }
+    edges: Dict[str, Dict[int, str]] = {}
+    for key, slot, nested in read_rows(directory / "inferred_type_edge.csv", 3):
+        edges.setdefault(key, {})[int(slot)] = nested
+
+    cache: Dict[str, TypeRef] = {}
+
+    def resolve_qname(text: str) -> QName:
+        if text not in qnames:
+            raise SouffleProtocolError(
+                f"Cannot reconstruct inferred type QName {text!r}: "
+                "it is neither a model declaration nor a referenced external type"
+            )
+        return qnames[text]
+
+    def build(key: str) -> TypeRef:
+        if key in cache:
+            return cache[key]
+        if key not in shapes:
+            raise SouffleProtocolError(
+                f"Cannot reconstruct inferred type {key!r}: "
+                "Soufflé did not export its structural description"
+            )
+
+        kind, name, detail, size = shapes[key]
+        slots = edges.get(key, {})
+
+        def argument(slot: int) -> TypeRef:
+            if slot not in slots:
+                raise SouffleProtocolError(
+                    f"Cannot reconstruct inferred type {key!r} ({kind}): "
+                    f"Soufflé did not export required type argument {slot}"
+                )
+            return build(slots[slot])
+
+        result: TypeRef
+        match kind:
+            case "prim":
+                result = PrimT(prim=PrimKind(name))
+            case "list":
+                result = ListT(elem=argument(0))
+            case "array":
+                result = ArrayT(elem=argument(0), size=int(size))
+            case "map":
+                result = MapT(key=argument(0), value=argument(1))
+            case "optional":
+                result = OptT(elem=argument(0))
+            case "tuple":
+                expected = list(range(len(slots)))
+                actual = sorted(slots)
+                if actual != expected:
+                    raise SouffleProtocolError(
+                        f"Cannot reconstruct tuple type {key!r}: "
+                        f"expected argument slots {expected}, got {actual}"
+                    )
+                result = TupleT(elems=tuple(argument(slot) for slot in expected))
+            case "named":
+                result = NamedT(qname=resolve_qname(name))
+            case "external":
+                result = ExternalT(
+                    package=detail,
+                    qname=resolve_qname(name),
+                )
+            case "variant":
+                result = VariantT(
+                    owner=resolve_qname(name),
+                    field=detail,
+                )
+            case "dyn":
+                result = DynT(root=argument(0))
+            case "param":
+                result = TypeParamT(name=name)
+            case _:
+                raise SouffleProtocolError(
+                    f"Cannot reconstruct inferred type {key!r}: "
+                    f"unsupported structural kind {kind!r}"
+                )
+
+        cache[key] = result
+        return result
+
+    result: Dict[int, TypeRef] = {}
+    for expression, key in read_rows(directory / "inferred_type.csv", 2):
+        eid = int(expression)
+        if eid not in program.occurrences:
+            raise SouffleProtocolError(
+                f"Inferred type {key!r} refers to expression {eid}, "
+                "which was never lowered"
+            )
+        if eid in result:
+            raise SouffleProtocolError(
+                f"Expression {eid} has multiple inferred types: "
+                f"{result[eid]!r} and {build(key)!r}; "
+                "ExprNode.typed_as requires a single type"
+            )
+        result[eid] = build(key)
+
+    return result
+
+
+@beartype
 def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckOutput:
     """Lowers the model to Soufflé facts, runs the type checker and parses the structured results."""
     program = Lowering(index, table).lower()
@@ -410,13 +536,77 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
         ]
         untyped = {int(r[0]) for r in read_rows(tmp / "untyped.csv", 1)}
         typed_as = {int(r[0]): r[1] for r in read_rows(tmp / "typed_as.csv", 2)}
+        inferred_types = read_inferred_types(tmp, index, program)
+
     for d in diags:
         if d.expr not in program.occurrences:
             raise SouffleProtocolError(
                 f"Diagnostic {d} refers to expression {d.expr} that was never lowered"
             )
+
+    arguments: Dict[int, Dict[int, int]] = {}
+    roots: Dict[QName, Dict[str, Dict[CheckPart, int]]] = {}
+
+    for eid, occurrence in program.occurrences.items():
+        if occurrence.parent is None:
+            roots.setdefault(occurrence.root.record, {}).setdefault(
+                occurrence.root.check.id, {}
+            )[occurrence.root.part] = eid
+        else:
+            arguments.setdefault(occurrence.parent, {})[occurrence.arg_index] = eid
+
+    nodes: Dict[int, ExprNode] = {}
+
+    for eid in sorted(program.occurrences, reverse=True):
+        occurrence = program.occurrences[eid]
+        slots = arguments.get(eid, {})
+        nodes[eid] = occurrence.node.model_copy(
+            update={
+                "args": tuple(
+                    nodes[slots[slot]] for slot in range(len(occurrence.node.args))
+                ),
+                "typed_as": inferred_types.get(eid),
+            }
+        )
+
+    checks: Dict[QName, Dict[str, CheckDef]] = {}
+    records: List[RecordDef] = []
+
+    for record in index.model.records:
+        record_checks: List[CheckDef] = []
+        for check in record.checks:
+            parts = roots[record.qname][check.id]
+            updated = check.model_copy(
+                update={
+                    "cond": nodes[parts[CheckPart.COND]],
+                    "message": nodes[parts[CheckPart.MESSAGE]],
+                }
+            )
+            checks.setdefault(record.qname, {})[check.id] = updated
+            record_checks.append(updated)
+
+        records.append(record.model_copy(update={"checks": tuple(record_checks)}))
+
+    model = index.model.model_copy(update={"records": tuple(records)})
+    occurrences: Dict[int, Occurrence] = {}
+
+    for eid, occurrence in program.occurrences.items():
+        root = occurrence.root
+        occurrences[eid] = replace(
+            occurrence,
+            node=nodes[eid],
+            root=replace(
+                root,
+                check=checks[root.record][root.check.id],
+            ),
+        )
+
     return TypeCheckOutput(
-        program=program,
+        model=model,
+        program=LoweredProgram(
+            facts=list(program.facts),
+            occurrences=occurrences,
+        ),
         diags=diags,
         untyped=untyped,
         typed_as=typed_as,

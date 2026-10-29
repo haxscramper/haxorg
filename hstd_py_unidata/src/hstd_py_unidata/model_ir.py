@@ -6,7 +6,10 @@ from typing import Annotated, Any
 from beartype import beartype
 from beartype.typing import Dict, List, Literal, Optional, Tuple, Union
 from frozendict import deepfreeze, frozendict
+from hstd_py_lib.external_packages.rich_utils import IndentedTree
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, ValidateAs
+from rich.text import Text
+from rich.tree import Tree
 
 FrozenBackend = Annotated[
     frozendict[str, Any],
@@ -257,12 +260,17 @@ class OpId(enum.StrEnum):
     """Closed set of core expression operators."""
 
     THIS = "this"
+    # Access to the bound variable, var name is stored in the
+    # `str_val` of the expression.
     VAR = "var"
     CONST_INT = "const_int"
     CONST_FLOAT = "const_float"
     CONST_STR = "const_str"
     CONST_BOOL = "const_bool"
     GET_FIELD = "get_field"
+    # unary/binary operators for the comparison expressions
+    # or logical boolean operations, operand arguments are
+    # stored in the `.args`
     EQ = "eq"
     NE = "ne"
     LT = "lt"
@@ -325,11 +333,15 @@ class ExprNode(FrozenModel):
     op: OpId
     args: Tuple[ExprNode, ...] = ()
     binders: Tuple[str, ...] = ()
+    "Binder variables added in the expression, e.g. `op_map(?, <binder-name>)`"
     str_val: Optional[str] = None
     int_val: Optional[int] = None
     float_val: Optional[float] = None
     bool_val: Optional[bool] = None
     type_val: Optional[TypeRef] = None
+    "Instance of the type value, e.g. for `type_case` node"
+    typed_as: Optional[TypeRef] = None
+    "Inferred type of this expression occurrence."
     loc: SourceLoc
 
 
@@ -543,3 +555,175 @@ for model_cls in (
     ItemPath,
 ):
     model_cls.model_rebuild()
+
+
+@beartype
+def expr_tree_repr(expr: ExprNode) -> IndentedTree:
+    @beartype
+    def label(node: ExprNode) -> Text:
+        parts = [str(node.op)]
+
+        if node.typed_as is not None:
+            parts.append(f"typed_as={type_text(node.typed_as)!r}")
+
+        if node.type_val is not None:
+            parts.append(f"type_val={type_text(node.type_val)!r}")
+
+        for name, value in (
+            ("str_val", node.str_val),
+            ("int_val", node.int_val),
+            ("float_val", node.float_val),
+            ("bool_val", node.bool_val),
+        ):
+            if value is not None:
+                parts.append(f"{name}={value!r}")
+
+        if node.binders:
+            parts.append(f"binders={node.binders!r}")
+
+        return Text(" ".join(parts))
+
+    @beartype
+    def populate(node: ExprNode, tree: Tree) -> None:
+        for nested in node.args:
+            populate(nested, tree.add(label(nested)))
+
+    tree = IndentedTree(label(expr))
+    populate(expr, tree)
+    return tree
+
+
+@beartype
+def add_tree_text(tree: Tree, text: str) -> Tree:
+    return tree.add(Text(text))
+
+
+@beartype
+def add_tree_doc(tree: Tree, doc: str) -> None:
+    if doc:
+        add_tree_text(tree, f"doc={doc!r}")
+
+
+@beartype
+def add_check_tree(tree: Tree, check: CheckDef) -> None:
+    parts = [
+        f"check {check.id!r}",
+        f"level={check.level}",
+        f"context={check.context}",
+    ]
+    if check.field is not None:
+        parts.append(f"field={check.field!r}")
+
+    branch = add_tree_text(tree, " ".join(parts))
+    add_tree_text(branch, "cond").add(expr_tree_repr(check.cond))
+    add_tree_text(branch, "message").add(expr_tree_repr(check.message))
+
+
+@beartype
+def enum_tree_repr(value: EnumDef) -> IndentedTree:
+    tree = IndentedTree(Text(f"{value.kind} {value.qname}"))
+    add_tree_doc(tree, value.doc)
+
+    for item in value.enum_values:
+        branch = add_tree_text(
+            tree,
+            f"value {item.name} = {item.value}",
+        )
+        add_tree_doc(branch, item.doc)
+
+    if value.backend:
+        add_tree_text(tree, f"backend={value.backend!r}")
+
+    return tree
+
+
+@beartype
+def record_tree_repr(value: RecordDef) -> IndentedTree:
+    tree = IndentedTree(Text(f"{value.kind} {value.qname}"))
+    add_tree_doc(tree, value.doc)
+
+    for base in value.bases:
+        add_tree_text(tree, f"base {base}")
+
+    for nested in value.nested:
+        add_tree_text(tree, f"nested {nested}")
+
+    if value.hash_fields is not None:
+        add_tree_text(tree, f"hash_fields={value.hash_fields!r}")
+
+    if value.eq_fields is not None:
+        add_tree_text(tree, f"eq_fields={value.eq_fields!r}")
+
+    for field in value.fields:
+        parts = [
+            f"field {field.name}",
+            f"type={type_text(field.type)!r}",
+        ]
+        if field.default is not None:
+            parts.append(f"default={field.default.value!r}")
+
+        branch = add_tree_text(tree, " ".join(parts))
+        add_tree_doc(branch, field.doc)
+
+        for check in field.checks:
+            add_check_tree(branch, check)
+
+    for variant in value.variants:
+        branch = add_tree_text(
+            tree,
+            f"variant {variant.field} kind_enum={variant.kind_enum}",
+        )
+        for case in variant.cases:
+            add_tree_text(branch, f"case {case.tag!r} record={case.case}")
+
+    for method in value.methods:
+        parts = [
+            f"method {method.name}",
+            f"return_type={type_text(method.return_type)!r}",
+        ]
+        if method.type_params:
+            parts.append(f"type_params={method.type_params!r}")
+        if method.is_static:
+            parts.append("static")
+        if method.is_constructor:
+            parts.append("constructor")
+
+        branch = add_tree_text(tree, " ".join(parts))
+        add_tree_doc(branch, method.doc)
+
+        for arg in method.args:
+            arg_parts = [
+                f"arg {arg.name}",
+                f"type={type_text(arg.type)!r}",
+            ]
+            if arg.default is not None:
+                arg_parts.append(f"default={arg.default.value!r}")
+            if arg.is_vararg:
+                arg_parts.append("vararg")
+            if arg.is_kwarg:
+                arg_parts.append("kwarg")
+            add_tree_text(branch, " ".join(arg_parts))
+
+        if method.backend:
+            add_tree_text(branch, f"backend={method.backend!r}")
+
+    for check in value.checks:
+        add_check_tree(tree, check)
+
+    if value.backend:
+        add_tree_text(tree, f"backend={value.backend!r}")
+
+    return tree
+
+
+@beartype
+def model_tree_repr(value: ModelDef) -> IndentedTree:
+    tree = IndentedTree(Text(f"model {value.package!r}"))
+
+    for enum_def in value.enums:
+        tree.add(enum_tree_repr(enum_def))
+
+    for record in value.records:
+        tree.add(record_tree_repr(record))
+
+    return tree

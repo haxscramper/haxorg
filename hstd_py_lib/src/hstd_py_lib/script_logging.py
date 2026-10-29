@@ -15,6 +15,7 @@ def to_debug_json(
     skip_cyclic_data: bool = True,
     override_callback: Optional[Callable] = None,
     with_stable_formatting: bool = True,
+    skip_none_valued_items: bool = False,
 ) -> Any:
     visited: Set[Any] = set()
 
@@ -58,6 +59,10 @@ def to_debug_json(
 
         else:
 
+            def maybe_set_result(name: str, value: Any):
+                if not skip_none_valued_items or value is not None:
+                    result[name] = value
+
             def include_attr(name: str) -> bool:
                 has_double = name.startswith("__")
                 has_single = name.startswith("_")
@@ -82,7 +87,7 @@ def to_debug_json(
                 result = {}
                 for key, value in obj.__dict__.items():
                     if include_attr(key):
-                        result[key] = aux(value)
+                        maybe_set_result(key, aux(value))
 
                 return result
 
@@ -91,14 +96,19 @@ def to_debug_json(
                 for slot_name in obj.__slots__:
                     if include_attr(slot_name):
                         value = getattr(obj, slot_name)
-                        result[slot_name] = aux(value)
+                        maybe_set_result(slot_name, aux(value))
 
                 return result
 
             elif hasattr(obj, "keys") and hasattr(obj, "__getitem__"):
                 keys = obj.keys()
+
                 if all(isinstance(it, str) for it in keys):
-                    return {key: aux(obj[key]) for key in keys}
+                    result = dict()
+                    for key in keys:
+                        maybe_set_result(key, aux(obj[key]))
+
+                    return result
 
                 else:
                     return [[aux(key), aux(obj[key])] for key in keys]

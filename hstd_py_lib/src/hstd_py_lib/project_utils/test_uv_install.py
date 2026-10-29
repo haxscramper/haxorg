@@ -31,6 +31,7 @@ TEST_UV_INSTALL_FLAGS = json.loads(os.getenv("HSTD_PY_TEST_UV_INSTALL_UV_FLAGS",
 DRIVER_FLAGS = json.loads(os.getenv("HSTD_PY_TEST_UV_INSTALL_DRIVER_FLAGS", "[]"))
 
 _VERBOSE = "--verbose" in DRIVER_FLAGS
+_VERBOSE_PYTEST = "--verbose-pytest" in DRIVER_FLAGS
 
 
 def run(
@@ -40,6 +41,7 @@ def run(
     stage_name: str,
     env: dict[str, str] | None = None,
     output_dir: Path | None = None,
+    verbose: bool = _VERBOSE,
 ) -> None:
     logging.info("==> {}".format(" ".join(command)))
 
@@ -65,13 +67,13 @@ def run(
             log_file.write(chunk)
             log_file.flush()
 
-            if _VERBOSE:
+            if verbose:
                 sys.stdout.buffer.write(chunk)
                 sys.stdout.buffer.flush()
 
         returncode = process.wait()
 
-        if returncode != 0 and not _VERBOSE:
+        if returncode != 0 and not verbose:
             log_file.seek(0)
 
             while chunk := log_file.read(65536):
@@ -247,6 +249,7 @@ def run_package_tests(
                 stage_name="package_tests",
                 env=run_env,
                 output_dir=output_dir,
+                verbose=_VERBOSE_PYTEST,
             )
 
         finally:
