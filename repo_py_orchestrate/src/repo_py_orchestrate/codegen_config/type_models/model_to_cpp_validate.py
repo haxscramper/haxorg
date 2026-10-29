@@ -92,31 +92,7 @@ class CheckGen:
             Params=list(params) if params else None,
         )
 
-    def expression_code(self, *parts: str | BlockId) -> BlockId:
-        blocks = [
-            self.ast.string(part) if isinstance(part, str) else part for part in parts
-        ]
-
-        if not blocks:
-            return self.ast.string("")
-
-        result = blocks[0]
-        for block in blocks[1:]:
-            result = self.ast.Trail(result, block, space="")
-
-        return result
-
-    def expression_assign(self, target: BlockId, value: BlockId) -> BlockId:
-        return self.expression_code(target, " = ", value, ";")
-
-    def expression_cast(self, typ: QualType, value: BlockId) -> BlockId:
-        return self.ast.XCall(
-            "static_cast",
-            args=[value],
-            Params=[typ],
-        )
-
-    def expression_native_type(
+    def _expression_native_type(
         self,
         typ: TypeRef,
         package: Optional[str] = None,
@@ -130,14 +106,14 @@ class CheckGen:
             case ListT():
                 return named_cpp_type(
                     "hstd::Vec",
-                    [self.expression_native_type(typ.elem, package)],
+                    [self._expression_native_type(typ.elem, package)],
                 )
 
             case ArrayT():
                 return named_cpp_type(
                     "std::array",
                     [
-                        self.expression_native_type(typ.elem, package),
+                        self._expression_native_type(typ.elem, package),
                         QualType(
                             Kind=QualTypeKind.TypeExpr,
                             Expr=str(typ.size),
@@ -149,36 +125,36 @@ class CheckGen:
                 return named_cpp_type(
                     "hstd::UnorderedMap",
                     [
-                        self.expression_native_type(typ.key, package),
-                        self.expression_native_type(typ.value, package),
+                        self._expression_native_type(typ.key, package),
+                        self._expression_native_type(typ.value, package),
                     ],
                 )
 
             case OptT():
                 return named_cpp_type(
                     "hstd::Opt",
-                    [self.expression_native_type(typ.elem, package)],
+                    [self._expression_native_type(typ.elem, package)],
                 )
 
             case TupleT():
                 return named_cpp_type(
                     "std::tuple",
-                    [self.expression_native_type(elem, package) for elem in typ.elems],
+                    [self._expression_native_type(elem, package) for elem in typ.elems],
                 )
 
             case _:
                 return self.type(typ, package)
 
-    def expression_result_type(self, expr: ExprNode) -> QualType:
+    def _expression_result_type(self, expr: ExprNode) -> QualType:
         if expr.typed_as is None:
             raise ValueError(
                 f"Cannot lower '{expr.op.value}' at {expr.loc.render()}: "
                 "the finalized expression has no inferred type"
             )
 
-        return self.expression_native_type(expr.typed_as)
+        return self._expression_native_type(expr.typed_as)
 
-    def expression_slot(
+    def _expression_slot(
         self,
         typ: QualType,
     ) -> Tuple[BlockId, BlockId]:
@@ -195,21 +171,6 @@ class CheckGen:
         )
 
         return value, declaration
-
-    def expression_emplace(
-        self,
-        slot: BlockId,
-        value: BlockId,
-    ) -> BlockId:
-        return self.ast.XCallRef(
-            slot,
-            "emplace",
-            args=[value],
-            Stmt=True,
-        )
-
-    def expression_slot_value(self, slot: BlockId) -> BlockId:
-        return self.ast.XCallRef(slot, "value")
 
     def expression_args(
         self,
@@ -397,7 +358,7 @@ class CheckGen:
         return self.expression_call(
             "eval_get_field",
             args=[source, self.ast.StringLiteral(expr.str_val)],
-            params=[self.expression_result_type(expr)],
+            params=[self._expression_result_type(expr)],
         )
 
     def expression_case_test(
@@ -460,9 +421,10 @@ class CheckGen:
 
         match source_type:
             case VariantT():
-                return self.expression_cast(
-                    self.expression_result_type(expr),
-                    self.ast.XCallRef(source, "index"),
+                return self.ast.XCall(
+                    "static_cast",
+                    args=[self.ast.XCallRef(source, "index")],
+                    Params=[self._expression_result_type(expr)],
                 )
 
             case NamedT() | ExternalT():
@@ -537,18 +499,22 @@ class CheckGen:
             case OpId.CONST_INT:
                 assert expr.int_val is not None
                 return self.expression_local(
-                    self.expression_cast(
-                        self.expression_result_type(expr),
-                        self.ast.Literal(expr.int_val),
+                    self.ast.XCall(
+                        "static_cast",
+                        args=[self.ast.Literal(expr.int_val)],
+                        Params=[self._expression_result_type(expr)],
                     )
                 )
 
             case OpId.CONST_FLOAT:
                 assert expr.float_val is not None
                 return self.expression_local(
-                    self.expression_cast(
-                        self.expression_result_type(expr),
-                        self.ast.string(json.dumps(expr.float_val, allow_nan=False)),
+                    self.ast.XCall(
+                        "static_cast",
+                        args=[
+                            self.ast.string(json.dumps(expr.float_val, allow_nan=False))
+                        ],
+                        Params=[self._expression_result_type(expr)],
                     )
                 )
 
@@ -562,7 +528,7 @@ class CheckGen:
                 assert expr.str_val is not None
                 return self.expression_local(
                     self.ast.XConstructObj(
-                        self.expression_result_type(expr),
+                        self._expression_result_type(expr),
                         Args=[self.ast.StringLiteral(expr.str_val)],
                     )
                 )
@@ -591,7 +557,9 @@ class CheckGen:
                     )
 
                     condition = (
-                        result if is_and else self.expression_code("!(", result, ")")
+                        result
+                        if is_and
+                        else self.ast.XCall("!", args=[self.ast.pars(result)])
                     )
 
                     statements.append(
@@ -603,9 +571,12 @@ class CheckGen:
                                         Then=self.ast.stack(
                                             [
                                                 *lowered.statements,
-                                                self.expression_assign(
-                                                    result,
-                                                    lowered.value,
+                                                self.ast.Trail(
+                                                    self.ast.XCall(
+                                                        "=", args=[result, lowered.value]
+                                                    ),
+                                                    self.ast.string(";"),
+                                                    space="",
                                                 ),
                                             ]
                                         ),
@@ -625,7 +596,7 @@ class CheckGen:
                 )
 
                 return self.expression_local(
-                    self.expression_code("!(", arg.value, ")"),
+                    self.ast.XCall("!", args=[self.ast.pars(arg.value)]),
                     arg.statements,
                 )
 
@@ -646,8 +617,8 @@ class CheckGen:
                     bindings,
                 )
 
-                slot, declaration = self.expression_slot(
-                    self.expression_result_type(expr)
+                slot, declaration = self._expression_slot(
+                    self._expression_result_type(expr)
                 )
 
                 branch = self.ast.IfStmt(
@@ -658,9 +629,11 @@ class CheckGen:
                                 Then=self.ast.stack(
                                     [
                                         *then_value.statements,
-                                        self.expression_emplace(
+                                        self.ast.XCallRef(
                                             slot,
-                                            then_value.value,
+                                            "emplace",
+                                            args=[then_value.value],
+                                            Stmt=True,
                                         ),
                                     ]
                                 ),
@@ -669,9 +642,11 @@ class CheckGen:
                                 Then=self.ast.stack(
                                     [
                                         *else_value.statements,
-                                        self.expression_emplace(
+                                        self.ast.XCallRef(
                                             slot,
-                                            else_value.value,
+                                            "emplace",
+                                            args=[else_value.value],
+                                            Stmt=True,
                                         ),
                                     ]
                                 )
@@ -686,7 +661,7 @@ class CheckGen:
                         declaration,
                         branch,
                     ],
-                    self.expression_slot_value(slot),
+                    self.ast.XCallRef(slot, "value"),
                 )
 
             case OpId.LET:
@@ -726,11 +701,11 @@ class CheckGen:
                             f"must have an optional result, got {expr.typed_as!r}"
                         )
 
-                    value_type = self.expression_native_type(expr.typed_as.elem)
+                    value_type = self._expression_native_type(expr.typed_as.elem)
                 else:
-                    value_type = self.expression_result_type(expr)
+                    value_type = self._expression_result_type(expr)
 
-                slot, declaration = self.expression_slot(value_type)
+                slot, declaration = self._expression_slot(value_type)
                 statements = [*subject.statements, declaration]
 
                 for case in expr.args[1:]:
@@ -751,17 +726,15 @@ class CheckGen:
                             defArg=self.expression_runtime_call(
                                 "try_as",
                                 args=[subject.value],
-                                params=[self.expression_native_type(case.type_val)],
+                                params=[self._expression_native_type(case.type_val)],
                             ),
                             IsLine=False,
                         )
                     )
 
                     local_bindings = dict(bindings)
-                    local_bindings[case.binders[0]] = self.expression_code(
-                        "(*",
-                        candidate,
-                        ")",
+                    local_bindings[case.binders[0]] = self.ast.pars(
+                        self.ast.XCall("*", args=[candidate])
                     )
 
                     body = self.gen_expression_eval(
@@ -774,16 +747,18 @@ class CheckGen:
                         cpp.IfStmtParams(
                             Branches=[
                                 cpp.IfStmtParams.Branch(
-                                    Cond=self.expression_code(
-                                        candidate,
-                                        " != nullptr",
+                                    Cond=self.ast.XCall(
+                                        "!=",
+                                        args=[candidate, self.ast.string("nullptr")],
                                     ),
                                     Then=self.ast.stack(
                                         [
                                             *body.statements,
-                                            self.expression_emplace(
+                                            self.ast.XCallRef(
                                                 slot,
-                                                body.value,
+                                                "emplace",
+                                                args=[body.value],
+                                                Stmt=True,
                                             ),
                                         ]
                                     ),
@@ -797,13 +772,13 @@ class CheckGen:
                             cpp.IfStmtParams(
                                 Branches=[
                                     cpp.IfStmtParams.Branch(
-                                        Cond=self.expression_code(
-                                            "!(",
-                                            self.ast.XCallRef(
-                                                slot,
-                                                "has_value",
-                                            ),
-                                            ")",
+                                        Cond=self.ast.XCall(
+                                            "!",
+                                            args=[
+                                                self.ast.pars(
+                                                    self.ast.XCallRef(slot, "has_value")
+                                                )
+                                            ],
                                         ),
                                         Then=self.ast.stack(
                                             [
@@ -834,18 +809,19 @@ class CheckGen:
                             cpp.IfStmtParams(
                                 Branches=[
                                     cpp.IfStmtParams.Branch(
-                                        Cond=self.expression_code(
-                                            "!(",
-                                            self.ast.XCallRef(
-                                                slot,
-                                                "has_value",
-                                            ),
-                                            ")",
+                                        Cond=self.ast.XCall(
+                                            "!",
+                                            args=[
+                                                self.ast.pars(
+                                                    self.ast.XCallRef(slot, "has_value")
+                                                )
+                                            ],
                                         ),
-                                        Then=self.expression_code(
-                                            "throw std::runtime_error{",
-                                            self.ast.StringLiteral(message),
-                                            "};",
+                                        Then=self.ast.Throw(
+                                            self.ast.XConstructObj(
+                                                self.ast.string("std::runtime_error"),
+                                                Args=[self.ast.StringLiteral(message)],
+                                            )
                                         ),
                                     )
                                 ]
@@ -855,7 +831,7 @@ class CheckGen:
 
                 return ExpressionEvaluation(
                     statements,
-                    slot if ignore_unhandled else self.expression_slot_value(slot),
+                    slot if ignore_unhandled else self.ast.XCallRef(slot, "value"),
                 )
 
             case OpId.TYPE_CASE:
@@ -913,7 +889,7 @@ class CheckGen:
                 params = (
                     []
                     if expr.op in {OpId.ALL, OpId.EXISTS, OpId.EXISTS_ONE}
-                    else [self.expression_result_type(expr)]
+                    else [self._expression_result_type(expr)]
                 )
 
                 return self.expression_local(
@@ -958,7 +934,7 @@ class CheckGen:
                             *args,
                             self.ast.string(callback_name),
                         ],
-                        params=[self.expression_result_type(expr)],
+                        params=[self._expression_result_type(expr)],
                     ),
                     statements,
                 )
@@ -966,7 +942,7 @@ class CheckGen:
             case OpId.LIST_EMPTY | OpId.MAP_EMPTY:
                 return self.expression_local(
                     self.ast.XConstructObj(
-                        self.expression_result_type(expr),
+                        self._expression_result_type(expr),
                         Args=[],
                     )
                 )
@@ -986,17 +962,11 @@ class CheckGen:
                 )
 
                 if expr.op == OpId.NE:
-                    value = self.expression_code("!(", value, ")")
+                    value = self.ast.XCall("!", args=[self.ast.pars(value)])
 
             case OpId.LT | OpId.LE:
                 operator = "<" if expr.op == OpId.LT else "<="
-                value = self.expression_code(
-                    "(",
-                    args[0],
-                    f" {operator} ",
-                    args[1],
-                    ")",
-                )
+                value = self.ast.pars(self.ast.XCall(operator, args=args))
 
             case OpId.ADD | OpId.SUB | OpId.MUL | OpId.DIV:
                 operator = {
@@ -1006,24 +976,23 @@ class CheckGen:
                     OpId.DIV: "/",
                 }[expr.op]
 
-                result_type = self.expression_result_type(expr)
+                result_type = self._expression_result_type(expr)
 
                 left = args[0]
                 right = args[1]
 
                 if expr.op == OpId.DIV:
-                    left = self.expression_cast(result_type, left)
-                    right = self.expression_cast(result_type, right)
+                    left = self.ast.XCall(
+                        "static_cast", args=[left], Params=[result_type]
+                    )
+                    right = self.ast.XCall(
+                        "static_cast", args=[right], Params=[result_type]
+                    )
 
-                value = self.expression_cast(
-                    result_type,
-                    self.expression_code(
-                        "(",
-                        left,
-                        f" {operator} ",
-                        right,
-                        ")",
-                    ),
+                value = self.ast.XCall(
+                    "static_cast",
+                    args=[self.ast.pars(self.ast.XCall(operator, args=[left, right]))],
+                    Params=[result_type],
                 )
 
             case OpId.GET_FIELD:
@@ -1036,9 +1005,10 @@ class CheckGen:
                 )
 
             case OpId.LIST_SIZE | OpId.MAP_SIZE:
-                value = self.expression_cast(
-                    self.expression_result_type(expr),
-                    self.ast.XCallRef(args[0], "size"),
+                value = self.ast.XCall(
+                    "static_cast",
+                    args=[self.ast.XCallRef(args[0], "size")],
+                    Params=[self._expression_result_type(expr)],
                 )
 
             case OpId.STR_MATCHES:
@@ -1105,7 +1075,7 @@ class CheckGen:
                 value = self.expression_call(
                     function,
                     args=args,
-                    params=[self.expression_result_type(expr)],
+                    params=[self._expression_result_type(expr)],
                 )
 
             case OpId.OPT_HAS_VALUE:
@@ -1130,15 +1100,14 @@ class CheckGen:
                         "has no inferred subject type"
                     )
 
-                value = self.expression_code(
-                    "(",
-                    args[0],
-                    " == ",
-                    self.expression_enum_value(
-                        source_type,
-                        expr.str_val,
-                    ),
-                    ")",
+                value = self.ast.pars(
+                    self.ast.XCall(
+                        "==",
+                        args=[
+                            args[0],
+                            self.expression_enum_value(source_type, expr.str_val),
+                        ],
+                    )
                 )
 
             case OpId.NTH_GET:
@@ -1161,7 +1130,7 @@ class CheckGen:
                         self.ast.string("expression_runtime"),
                         args[0],
                     ],
-                    params=[self.expression_result_type(expr)],
+                    params=[self._expression_result_type(expr)],
                 )
 
             case OpId.IS_DERIVED:
@@ -1170,14 +1139,18 @@ class CheckGen:
                         f"Derived-type test at {expr.loc.render()} has no target type"
                     )
 
-                value = self.expression_code(
-                    "(",
-                    self.expression_runtime_call(
-                        "try_as",
-                        args=[args[0]],
-                        params=[self.expression_native_type(expr.type_val)],
-                    ),
-                    " != nullptr)",
+                value = self.ast.pars(
+                    self.ast.XCall(
+                        "!=",
+                        args=[
+                            self.expression_runtime_call(
+                                "try_as",
+                                args=[args[0]],
+                                params=[self._expression_native_type(expr.type_val)],
+                            ),
+                            self.ast.string("nullptr"),
+                        ],
+                    )
                 )
 
             case OpId.PATH_OF:
@@ -1282,11 +1255,7 @@ class CheckGen:
                 runtime,
                 "index",
                 args=[
-                    self.expression_code(
-                        "(*",
-                        self.ast.string("this_obj"),
-                        ")",
-                    )
+                    self.ast.pars(self.ast.XCall("*", args=[self.ast.string("this_obj")]))
                 ],
                 Stmt=True,
             )
@@ -1304,7 +1273,9 @@ class CheckGen:
         ):
             statements.extend(self.gen_expression_runtime())
 
-        root = self.expression_local(self.expression_code("(*(", this_expr, "))"))
+        root = self.expression_local(
+            self.ast.pars(self.ast.XCall("*", args=[self.ast.pars(this_expr)]))
+        )
         statements.extend(root.statements)
 
         condition = self.gen_expression_eval(
