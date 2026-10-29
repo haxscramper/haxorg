@@ -242,7 +242,9 @@ class GenConverter:
                 definitions = [
                     self.ast.MethodDef(
                         self.convertMethod(
-                            m, Class=record.declarationQualName(), inline_methods=True
+                            m,
+                            Class=record.declarationQualName(),
+                            inline_methods=True,
                         )
                     )
                     for m in record.Methods

@@ -4,6 +4,7 @@ from typing import Any, Sequence
 
 import glom
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
+from beartype.typing import List, Tuple, cast
 from hstd_py_codegen.gen_cpp import codegen_ir
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuBackendParams,
@@ -24,13 +25,16 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     ReferenceKind,
 )
 from hstd_py_codegen.gen_cpp.codegen_type_order import expand_type_groups
-from hstd_py_text_layout.base.wrap import TextLayout
+from hstd_py_lib.script_logging import pprint_to_string
+from hstd_py_text_layout.base.wrap import BlockId, TextLayout
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     ArrayT,
+    CheckDef,
     DynT,
     EnumDef,
     ExplicitDefault,
+    ExprNode,
     ExternalT,
     FieldDef,
     ListT,
@@ -38,6 +42,7 @@ from hstd_py_unidata.model_ir import (
     MethodDef,
     ModelDef,
     NamedT,
+    OpId,
     OptT,
     PrimKind,
     PrimT,
@@ -68,6 +73,15 @@ DEFAULT_NAMESPACES: dict[str, tuple[str, ...]] = {
 }
 
 AST_KIND_NAME = "org::sem::OrgSemKind"
+
+UNIDATA_SPACE = [
+    QualType(Name="hstd", IsNamespace=True),
+    QualType(Name="ext", IsNamespace=True),
+    QualType(Name="unidata", IsNamespace=True),
+]
+
+UNIDATA_RESULT_T = QualType(Name="VerifyResult", Spaces=UNIDATA_SPACE)
+UNIDATA_CONTEXT_T = QualType(Name="VerifyContext", Spaces=UNIDATA_SPACE)
 
 
 @dataclass
@@ -448,11 +462,103 @@ class ModelToGenTu:
             f"Unsupported explicit default for {typ!r}: {value!r}",
         )
 
-    def field(self, owner: RecordDef, item: FieldDef) -> GenTuField:
+    @staticmethod
+    def normalize(text: str) -> str:
+        return "".join(char if char.isalnum() else "_" for char in text)
+
+    def gen_expression_eval(self, expr: ExprNode) -> BlockId:
+        match expr.op:
+            case OpId.LT:
+                return self.ast.XCall(
+                    "<",
+                    args=[
+                        self.gen_expression_eval(expr.args[0]),
+                        self.gen_expression_eval(expr.args[1]),
+                    ],
+                )
+
+            case OpId.STR_SIZE:
+                return self.ast.XCall(
+                    "eval_str_size",
+                    args=[self.gen_expression_eval(a) for a in expr.args],
+                )
+
+            case OpId.CONST_INT:
+                assert expr.int_val is not None
+                return self.ast.Literal(expr.int_val)
+
+            case _:
+                raise ValueError(
+                    f"Unhandled op ID kind: {expr.op}: {pprint_to_string(expr)}"
+                )
+
+    def gen_check_eval(self, check: CheckDef) -> BlockId:
+        return self.ast.IfStmt(
+            cpp.IfStmtParams(
+                Branches=[
+                    cpp.IfStmtParams.Branch(
+                        Cond=self.gen_expression_eval(check.cond),
+                        Then=self.ast.Return(self.ast.CallStatic(UNIDATA_RESULT_T, "Ok")),
+                    ),
+                    cpp.IfStmtParams.Branch(
+                        Then=self.ast.Return(
+                            self.ast.CallStatic(
+                                UNIDATA_RESULT_T,
+                                "Error",
+                                Args=[
+                                    self.gen_expression_eval(check.message),
+                                ],
+                            )
+                        )
+                    ),
+                ]
+            )
+        )
+
+    def gen_field_check(
+        self,
+        owner: RecordDef,
+        field: FieldDef,
+        check: CheckDef,
+        parentClass: QualType,
+    ) -> GenTuFunction:
+        "Generate a single static function used to perform the runtime check on the field state"
+
+        return GenTuFunction(
+            Name=f"__check_{field.name}_{self.normalize(check.id)}",
+            ReturnType=UNIDATA_RESULT_T,
+            Args=[
+                GenTuIdent(Type=UNIDATA_CONTEXT_T, Name="ctx"),
+                GenTuIdent(Type=QualType(Name="void").asConstPtr(), Name="value"),
+            ],
+            IsStatic=True,
+            ParentClass=parentClass,
+            Body=self.gen_check_eval(check),
+        )
+
+    def field(
+        self,
+        owner: RecordDef,
+        item: FieldDef,
+        parentClass: QualType,
+    ) -> Tuple[GenTuField, List[GenTuFunction]]:
         options = cpp_config(owner)
         field_options = options.get("fields", {}).get(item.name, {})
         names = options.get("field_names", {})
         defaults = options.get("field_defaults", {})
+        check_functions: List[GenTuFunction] = []
+
+        if item.checks:
+            logger.info(f"Have checks for the field {item.name}")
+            for ch in item.checks:
+                check_functions.append(
+                    self.gen_field_check(
+                        owner,
+                        item,
+                        ch,
+                        parentClass=parentClass,
+                    )
+                )
 
         field_type = self.type(item.type, self.model.package)
         if "type" in field_options:
@@ -467,12 +573,14 @@ class ModelToGenTu:
                 item.default,
             )
 
-        return GenTuField(
+        field = GenTuField(
             Type=field_type,
             Name=names.get(item.name, item.name),
             Doc=GenTuDoc(item.doc),
             Value=value,
         )
+
+        return (field, check_functions)
 
     def argument_const_ref(self, typ: TypeRef, package: str) -> bool:
         match typ:
@@ -712,15 +820,36 @@ class ModelToGenTu:
                 )
             nested.append(GenTuPass(section["text"]))
 
+        DeclClass = self.declaration_type(package, item.qname)
+
+        fields: List[GenTuField]
+        check_functions: List[GenTuFunction]
+        fields, check_functions = glom.glom(
+            cast(
+                List[Tuple[GenTuField, List[GenTuFunction]]],
+                [
+                    self.field(item, member, parentClass=DeclClass)
+                    for member in item.fields
+                    if member.name not in variant_fields
+                ],
+            ),
+            glom.Fold(
+                glom.T,
+                init=lambda: ([], []),
+                op=lambda acc, item: (
+                    acc[0].append(item[0]),
+                    acc[1].extend(item[1]),
+                    acc,
+                )[-1],
+            ),
+        )
+
         result = GenTuStruct(
-            Name=self.declaration_type(package, item.qname),
+            Name=DeclClass,
             Doc=GenTuDoc(item.doc),
-            Fields=[
-                self.field(item, member)
-                for member in item.fields
-                if member.name not in variant_fields
-            ],
-            Methods=[self.method(item, method) for method in item.methods],
+            Fields=fields,
+            Methods=[self.method(item, method) for method in item.methods]
+            + check_functions,
             Bases=[self.declaration_type(package, base) for base in item.bases],
             Nested=nested,
             IsAbstract=options.get("abstract", False),
@@ -778,7 +907,7 @@ class ModelToGenTu:
             # allows for the nested types to evaluate the type check
             # `is_default_constructible` trait even if the parent
             # class has not been finished yet.
-            fields = [self.field(item, f) for f in item.fields]
+            fields = [self.field(item, f, parentClass=DeclClass)[0] for f in item.fields]
             result.Methods.append(
                 GenTuFunction(
                     Name=item.qname.name,

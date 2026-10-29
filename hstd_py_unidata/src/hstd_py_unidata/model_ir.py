@@ -423,12 +423,16 @@ class CheckDef(FrozenModel):
     """Validation check with a boolean condition and a string message evaluated only on failure."""
 
     id: str
+    "Globally unique ID for the check"
     level: Severity = Severity.ERROR
     context: CheckContext = CheckContext.RECORD
     field: Optional[str] = None
     cond: ExprNode
+    "Bool-valued expressiont to validate if the check holds or not"
     message: ExprNode
+    "String-valued expression that will be used to generate an error message"
     loc: SourceLoc
+    "Location where the check was originally defined in the DSL code"
 
 
 @beartype

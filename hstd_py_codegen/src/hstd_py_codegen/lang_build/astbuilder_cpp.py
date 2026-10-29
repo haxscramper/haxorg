@@ -888,6 +888,9 @@ class ASTBuilder(base.AstbuilderBase):
             ]
         )
 
+        # FIXME: If the body is empty, the line/stack is called with `None` argument.
+        # right now the logic for handling the MethodDecl vs MethodDef relies entirely
+        # on the `.isHeader` configuration.
         if m.IsLine:
             body = self.b.line([head, self.b.line(m.Params.Body), self.string("}")])
 

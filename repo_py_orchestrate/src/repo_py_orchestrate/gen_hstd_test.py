@@ -3,7 +3,7 @@ from pathlib import Path
 
 import click
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
-from hstd_py_codegen.gen_cpp.codegen_ir import GenFiles, GenTu, GenUnit
+from hstd_py_codegen.gen_cpp.codegen_ir import GenFiles, GenTu, GenTuPass, GenUnit
 from hstd_py_codegen.gen_cpp.codegen_write import gen_description_files
 from hstd_py_lib.script_logging import get_custom_traceback_handler
 from hstd_py_text_layout.base.wrap import TextLayout
@@ -26,11 +26,25 @@ def main(root_dir: Path):
             GenUnit(
                 header=GenTu(
                     root_dir / "hstd_cpp_lib/tests/tUnidataDSLModel.hpp",
-                    types,
+                    [
+                        GenTuPass("#pragma once"),
+                        GenTuPass("#include <hstd_cpp_lib/system/basic_templates.hpp>"),
+                        GenTuPass("#include <hstd_cpp_lib/system/reflection.hpp>"),
+                        GenTuPass("#include <hstd_cpp_lib/stdlib/containers/Opt.hpp>"),
+                        GenTuPass("#include <hstd_cpp_lib/stdlib/containers/Vec.hpp>"),
+                        GenTuPass("#include <hstd_cpp_lib/stdlib/containers/Map.hpp>"),
+                        GenTuPass(
+                            "#include <hstd_cpp_lib/proto_serde/hstd_unidata_validate.hpp>"
+                        ),
+                        *types,
+                    ],
                 ),
                 source=GenTu(
                     root_dir / "hstd_cpp_lib/tests/tUnidataDSLModel.cpp",
-                    types,
+                    [
+                        GenTuPass('#include "tUnidataDSLModel.hpp"'),
+                        *types,
+                    ],
                 ),
             )
         ]

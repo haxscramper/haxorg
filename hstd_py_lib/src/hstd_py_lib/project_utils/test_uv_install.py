@@ -5,7 +5,6 @@ import json
 import logging
 import os
 import re
-import selectors
 import shlex
 import shutil
 import subprocess
@@ -29,6 +28,9 @@ CONAN_PROJECTS = {
 }
 
 TEST_UV_INSTALL_FLAGS = json.loads(os.getenv("HSTD_PY_TEST_UV_INSTALL_UV_FLAGS", "[]"))
+DRIVER_FLAGS = json.loads(os.getenv("HSTD_PY_TEST_UV_INSTALL_DRIVER_FLAGS", "[]"))
+
+_VERBOSE = "--verbose" in DRIVER_FLAGS
 
 
 def run(
@@ -41,56 +43,41 @@ def run(
 ) -> None:
     logging.info("==> {}".format(" ".join(command)))
 
-    if output_dir is None:
-        subprocess.run(
-            command,
-            cwd=cwd,
-            env=env,
-            check=True,
-        )
-        return
-
-    log_path = output_dir / f"{Path(command[0]).name}_{stage_name}.log"
+    log_file_context = (
+        tempfile.TemporaryFile(mode="w+b")
+        if output_dir is None
+        else (output_dir / f"{Path(command[0]).name}_{stage_name}.log").open("w+b")
+    )
 
     with (
-        log_path.open("wb") as log_file,
+        log_file_context as log_file,
         subprocess.Popen(
             command,
             cwd=cwd,
             env=env,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
         ) as process,
     ):
         assert process.stdout is not None
-        assert process.stderr is not None
 
-        with selectors.DefaultSelector() as selector:
-            selector.register(
-                process.stdout,
-                selectors.EVENT_READ,
-                sys.stdout.buffer,
-            )
-            selector.register(
-                process.stderr,
-                selectors.EVENT_READ,
-                sys.stderr.buffer,
-            )
+        while chunk := os.read(process.stdout.fileno(), 65536):
+            log_file.write(chunk)
+            log_file.flush()
 
-            while selector.get_map():
-                for key, _ in selector.select():
-                    chunk = os.read(key.fd, 65536)
-
-                    if not chunk:
-                        selector.unregister(key.fileobj)
-                        continue
-
-                    log_file.write(chunk)
-                    log_file.flush()
-                    key.data.write(chunk)
-                    key.data.flush()
+            if _VERBOSE:
+                sys.stdout.buffer.write(chunk)
+                sys.stdout.buffer.flush()
 
         returncode = process.wait()
+
+        if returncode != 0 and not _VERBOSE:
+            log_file.seek(0)
+
+            while chunk := log_file.read(65536):
+                sys.stdout.buffer.write(chunk)
+
+            sys.stdout.buffer.flush()
 
     if returncode != 0:
         raise subprocess.CalledProcessError(returncode, command)
