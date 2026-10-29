@@ -23,6 +23,10 @@ TYPES: dict[str, str] = {
     "wip": "Intermediate commit",
     "clean": "Simplification of the code",
     "perf": "Performance improvements",
+    # Checkpoint commits that have introduced the LLM-authored feature; I'm going
+    # to further integrate it into the repository in the subsequent commits, for
+    # now this is a checkpoint to pin the specific state.
+    "llm": "Commits where significant part of the code was written by LLM",
 }
 
 SCOPES: dict[str, str] = {

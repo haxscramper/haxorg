@@ -139,7 +139,7 @@ class RawField:
     doc: str
     default: Any
     check: Optional[ExprNode]
-    message: Optional[str]
+    message: Optional[ExprNode]
     loc: SourceLoc
 
 

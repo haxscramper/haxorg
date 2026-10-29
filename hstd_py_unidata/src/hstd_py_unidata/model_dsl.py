@@ -176,7 +176,7 @@ class FieldSpec:
     doc: str
     default: Any
     check: Optional[Expr]
-    message: Optional[str]
+    message: Optional[Expr]
     loc: SourceLoc
 
 
@@ -419,7 +419,7 @@ class DslMeta(type):
                             doc=value.doc,
                             default=value.default,
                             check=None if value.check is None else value.check.node,
-                            message=value.message,
+                            message=value.message.node,
                             loc=value.loc,
                         )
                     )
@@ -537,11 +537,15 @@ class DslModel:
         doc: str = "",
         default: Any = NO_DEFAULT,
         check: Optional[Expr] = None,
-        message: Optional[str] = None,
+        message: Optional[Expr | str] = None,
         # Use `Any` to make type checkers work
     ) -> Any:
         return FieldSpec(
-            doc=doc, default=default, check=check, message=message, loc=current_loc()
+            doc=doc,
+            default=default,
+            check=check,
+            message=message if isinstance(message, Expr) else Expr(to_node(message)),
+            loc=current_loc(),
         )
 
     @frontend_entry

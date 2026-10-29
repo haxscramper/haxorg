@@ -743,6 +743,8 @@ class ModelFinalizer:
     def resolve_record(
         self, raw: RawRecord, variants: List[VariantDef], extra_fields: List[FieldDef]
     ) -> RecordDef:
+        from hstd_py_unidata.model_expr import to_node
+
         fields: List[FieldDef] = []
         checks: List[CheckDef] = []
         for rf in raw.fields:
@@ -751,9 +753,8 @@ class ModelFinalizer:
                 continue
             if rf.check is not None:
                 cond = self.resolve_expr(raw, rf.check, ())
-                text = (
-                    rf.message
-                    or f"check of field '{rf.name}' in '{raw.qname.to_id()}' failed"
+                text = rf.message or to_node(
+                    f"check of field '{rf.name}' in '{raw.qname.to_id()}' failed"
                 )
                 fdef.checks.append(
                     CheckDef(
@@ -761,7 +762,7 @@ class ModelFinalizer:
                         context=CheckContext.FIELD,
                         field=rf.name,
                         cond=cond,
-                        message=ExprNode(op=OpId.CONST_STR, str_val=text, loc=rf.loc),
+                        message=text,
                         loc=rf.loc,
                     )
                 )
