@@ -13,6 +13,7 @@ pango/*:compiler.libcxx=libstdc++11
 
 
 [conf]
+tools.env.virtualenv:powershell=
 tools.build:compiler_executables={"c":"clang","cpp":"clang++"}
 tools.cmake.cmaketoolchain:generator=Ninja
 glib/*:tools.build:exelinkflags=["-L./glib","-L./gobject","-L./gmodule","-L./gio"]

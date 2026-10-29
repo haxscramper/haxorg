@@ -8,11 +8,14 @@ dependencies = [
     "plumbum",
     "pydantic",
     "frozendict",
+    "hstd_py_lib",
 ]
 
 [dependency-groups]
 dev = [
     "pytest",
+    "pytest-xdist",
+    "pytest-reportlog",
 ]
 
 [build-system]

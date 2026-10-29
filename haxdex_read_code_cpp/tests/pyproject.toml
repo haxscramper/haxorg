@@ -21,7 +21,7 @@ markers = [
 requires = [
   "hatchling",
   "hstd_py_lib",
-  "conan>=2",
+  "conan==2.34.0",
   "grpcio-tools",
   "betterproto2-compiler",
 ]

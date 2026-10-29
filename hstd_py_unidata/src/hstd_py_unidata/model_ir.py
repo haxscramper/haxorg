@@ -4,7 +4,7 @@ import enum
 from typing import Annotated, Any
 
 from beartype import beartype
-from beartype.typing import Dict, Literal, Optional, Tuple, Union
+from beartype.typing import Dict, List, Literal, Optional, Tuple, Union
 from frozendict import deepfreeze, frozendict
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, ValidateAs
 
@@ -365,6 +365,7 @@ class FieldDef(FrozenModel):
     doc: str = ""
     default: Optional[ExplicitDefault] = None
     loc: SourceLoc
+    checks: List[CheckDef] = Field(default_factory=list)
 
 
 @beartype

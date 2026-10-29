@@ -16,7 +16,7 @@ members = [
 
 [manifest.dependency-groups]
 dev = [
-    { name = "conan" },
+    { name = "conan", specifier = "==2.34.0" },
     { name = "mypy", specifier = ">=1.18.2" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "ruff", specifier = ">=0.13.2" },
@@ -209,7 +209,7 @@ wheels = [
 
 [[package]]
 name = "conan"
-version = "2.33.0"
+version = "2.34.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama" },
@@ -217,15 +217,14 @@ dependencies = [
     { name = "fasteners" },
     { name = "jinja2" },
     { name = "patch-ng" },
-    { name = "python-dateutil" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "truststore" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9f/7c/f7cb78bc0a292bb041b8b1e44130afcf8ae798913722a189ecf29783c271/conan-2.33.0.tar.gz", hash = "sha256:2e0f890b736d42049f40ef5b96225bac5866cd71a504ca3eca620b25d8333a72", size = 608134, upload-time = "2026-09-29T15:14:47.79Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/63/d5/d7d5bd89e5870923be85940bf63885fc0b80d2c347ea236325003488a8e1/conan-2.34.0.tar.gz", hash = "sha256:9c65681300550638be20a25908673b8683533e8fc2dbbdac38ea0d9642a8124d", size = 612999, upload-time = "2026-10-28T11:55:47.006Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/bb/9a9024f0328171fc0aeb5b2711ffda50abd40c3545091a756ff8b378049d/conan-2.33.0-py3-none-any.whl", hash = "sha256:42da05f6cd12e0404d38463b2fa1f6ae3f809700fbbf8b704d0c597f0175ae87", size = 748195, upload-time = "2026-09-29T15:14:46.367Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/12/c1e94f9c47eda7276a4d6c21e757e46a8c77f64e96f652f7f7849a973cf3/conan-2.34.0-py3-none-any.whl", hash = "sha256:4e268bb9ad38614141c7274a769c7226122e3660e4d5eb545a0c7f7170b53272", size = 750722, upload-time = "2026-10-28T11:55:45.076Z" },
 ]
 
 [[package]]
@@ -521,6 +520,7 @@ source = { editable = "hstd_py_unidata" }
 dependencies = [
     { name = "beartype" },
     { name = "frozendict" },
+    { name = "hstd-py-lib" },
     { name = "loguru" },
     { name = "plumbum" },
     { name = "pydantic" },
@@ -529,19 +529,26 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "pytest-reportlog" },
+    { name = "pytest-xdist" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "beartype" },
     { name = "frozendict" },
+    { name = "hstd-py-lib", editable = "hstd_py_lib" },
     { name = "loguru" },
     { name = "plumbum" },
     { name = "pydantic" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest" }]
+dev = [
+    { name = "pytest" },
+    { name = "pytest-reportlog" },
+    { name = "pytest-xdist" },
+]
 
 [[package]]
 name = "idna"

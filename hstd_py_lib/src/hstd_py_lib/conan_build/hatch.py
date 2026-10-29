@@ -372,6 +372,14 @@ class ConanBuildHook(BuildHookInterface):
                 ]
             )
 
+        self._log(f"Conan executable: {shutil.which('conan')}")
+
+        self._run(
+            phase="identify Conan version",
+            command=["conan", "--version"],
+            cwd=cwd,
+        )
+
         self._run(
             phase=f"deploy Conan package for {reference}",
             command=command,

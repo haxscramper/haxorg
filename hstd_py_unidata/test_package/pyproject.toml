@@ -1,0 +1,12 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hstd_unidata_test_package"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = ["hstd_py_unidata==0.1.0"]
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true

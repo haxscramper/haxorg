@@ -749,14 +749,13 @@ class ModelFinalizer:
             fdef = self.resolve_field(raw, rf)
             if fdef is None:
                 continue
-            fields.append(fdef)
             if rf.check is not None:
                 cond = self.resolve_expr(raw, rf.check, ())
                 text = (
                     rf.message
                     or f"check of field '{rf.name}' in '{raw.qname.to_id()}' failed"
                 )
-                checks.append(
+                fdef.checks.append(
                     CheckDef(
                         id=f"{rf.name}-check",
                         context=CheckContext.FIELD,
@@ -766,6 +765,9 @@ class ModelFinalizer:
                         loc=rf.loc,
                     )
                 )
+
+            fields.append(fdef)
+
         fields.extend(extra_fields)
         seen_ids: Dict[str, SourceLoc] = {c.id: c.loc for c in checks}
         for idx, rc in enumerate(raw.checks):
