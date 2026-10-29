@@ -3,18 +3,29 @@ from __future__ import annotations
 import enum
 import linecache
 from dataclasses import dataclass, field
+from textwrap import indent
 
+import rich.tree
 from beartype import beartype
 from beartype.typing import Dict, List, Sequence, Set, Tuple
+from hstd_py_lib.external_packages.rich_utils import render_rich
 
 from hstd_py_unidata.model_index import ModelIndex
-from hstd_py_unidata.model_ir import NamedT, OpId, QName, SourceLoc, VariantT, type_text
+from hstd_py_unidata.model_ir import (
+    NamedT,
+    OpId,
+    QName,
+    SourceLoc,
+    VariantT,
+    expr_tree_repr,
+    type_text,
+)
 from hstd_py_unidata.model_ops import Operator, render_expr
 from hstd_py_unidata.model_souffle import DiagRow, Occurrence, TypeCheckOutput
 
 
 class DiagCode(enum.StrEnum):
-    """Diagnostic classification shared with the `diag` relation of the Soufflé rules."""
+    """Diagnostic classification shared with the `diag` relation of the Souffle rules."""
 
     UNKNOWN_FIELD = "unknown-field"
     FIELD_ON_NON_RECORD = "field-on-non-record"
@@ -50,6 +61,7 @@ class Diagnostic:
     check_loc: SourceLoc
     expr_text: str
     position: str
+    expr_tree: rich.tree.Tree
     notes: List[str] = field(default_factory=list)
 
     def render(self) -> str:
@@ -57,7 +69,10 @@ class Diagnostic:
             f"{self.loc.render()}: error[{self.code.value}]: {self.message}",
             f"    in the {self.part} of check '{self.check_id}' on '{self.record.to_id()}' declared at {self.check_loc.render()}",
             f"    expression: {self.expr_text}",
+            "    typed:",
+            *indent(render_rich(self.expr_tree, color=False), "      ").split("\n"),
         ]
+
         if self.position:
             lines.append(f"    position: {self.position}")
         source = linecache.getline(self.loc.file, self.loc.line).rstrip()
@@ -135,6 +150,7 @@ class DiagnosticBuilder:
             check_loc=o.root.check.loc,
             expr_text=render_expr(self.table, o.node),
             position=self.position(expr),
+            expr_tree=expr_tree_repr(self.occ[expr].node),
             notes=notes,
         )
 

@@ -226,7 +226,7 @@ type TypeRef = Annotated[
 
 @beartype
 def type_text(t: TypeRef) -> str:
-    """Human-readable type rendering, identical to the `type_text` relation in Soufflé."""
+    """Human-readable type rendering, identical to the `type_text` relation in Souffle."""
     match t:
         case PrimT():
             return t.prim.value

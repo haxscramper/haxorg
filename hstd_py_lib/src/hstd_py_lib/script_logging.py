@@ -1,4 +1,5 @@
 import enum
+import sys
 import traceback
 from dataclasses import dataclass
 from pathlib import Path
@@ -247,6 +248,7 @@ def get_custom_traceback_handler(
     show_args=True,
     show_argument_type_annotated=False,
     show_argument_type_runtime=False,
+    use_python_syntax: bool = sys.stdout.isatty(),
 ) -> Any:
     """
     Return custom traceback handler callback function
@@ -256,6 +258,7 @@ def get_custom_traceback_handler(
     :param show_args: Show argument values in the function frames
     :param show_argument_type_annotated: Show annotated/expected types for function arguments
     :param show_argument_type_runtime: Show actual runtime types of the arguments
+    :param use_python_syntax: use python traceback syntax or the `<file>:<line>` syntax
     :return: Callback to assign to `sys.excepthook`
     """
 
@@ -321,7 +324,12 @@ def get_custom_traceback_handler(
                     )
 
         for frame_info in frames_info:
-            header = f'File "{frame_info.filename}", line {frame_info.line_no}, in {frame_info.func_name}'
+            if use_python_syntax:
+                header = f'File "{frame_info.filename}", line {frame_info.line_no}, in {frame_info.func_name}'
+
+            else:
+                header = f"File:line {frame_info.filename}:{frame_info.line_no}, in {frame_info.func_name}"
+
             print(f"{header} : {frame_info.code_line}")
 
             if show_args:

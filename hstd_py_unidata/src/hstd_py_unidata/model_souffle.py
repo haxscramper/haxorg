@@ -106,7 +106,11 @@ class LoweredProgram:
 @beartype
 @dataclass(frozen=True)
 class DiagRow:
-    """Structured diagnostic produced by the Soufflé type checker."""
+    """
+    Structured diagnostic produced by the Souffle type checker.
+
+    Created from the CSV generated in the `model_diag.dl` output
+    """
 
     code: str
     expr: int
@@ -129,7 +133,7 @@ class TypeCheckOutput:
 
 @beartype
 class SouffleProtocolError(Exception):
-    """Soufflé produced output that does not follow the expected relation layout."""
+    """Souffle produced output that does not follow the expected relation layout."""
 
 
 @beartype
@@ -173,7 +177,7 @@ def type_term(t: TypeRef) -> str:
             return f"$TParam({sym(t.name)})"
         case UnresolvedT():
             raise ValueError(
-                f"Type '{t.text}' was not resolved before lowering to Soufflé"
+                f"Type '{t.text}' was not resolved before lowering to Souffle"
             )
         case _:
             raise TypeError(f"Unhandled type reference {t!r}")
@@ -211,7 +215,7 @@ def collect_external_qnames(t: TypeRef, result: Set[QName]) -> None:
 
 @beartype
 class Lowering:
-    """Translates the finalized model and its check expressions into Soufflé facts."""
+    """Translates the finalized model and its check expressions into Souffle facts."""
 
     def __init__(self, index: ModelIndex, table: Dict[OpId, Operator]) -> None:
         self.index = index
@@ -318,6 +322,10 @@ class Lowering:
         this_t: TypeRef,
         scope: Dict[str, int],
     ) -> int:
+        """
+        Recursively iterate over all sub-expressions creating the facts about the whole model.
+        """
+        # `DiagRow.expr` field is created here
         eid = self.next_expr
         self.next_expr += 1
         op = self.table[node.op]
@@ -370,7 +378,7 @@ class Lowering:
 def read_rows(path: Path, width: int) -> List[List[str]]:
     if not path.exists():
         raise SouffleProtocolError(
-            f"Soufflé did not produce the output relation file {path}"
+            f"Souffle did not produce the output relation file {path}"
         )
     rows: List[List[str]] = []
     with path.open("r", newline="") as fobj:
@@ -387,7 +395,7 @@ def read_rows(path: Path, width: int) -> List[List[str]]:
 
 @beartype
 def render_program(program: LoweredProgram) -> str:
-    """Complete Soufflé program: the shared rules followed by the model-specific facts."""
+    """Complete Souffle program: the shared rules followed by the model-specific facts."""
     return '#include "logic_model/model_dsl.dl"\n' + "\n".join(program.facts) + "\n"
 
 
@@ -397,7 +405,7 @@ def read_inferred_types(
     index: ModelIndex,
     program: LoweredProgram,
 ) -> Dict[int, TypeRef]:
-    """Reconstruct inferred types from structural Soufflé relations."""
+    """Reconstruct inferred types from structural Souffle relations."""
     qnames = dict(index.by_id)
     external: Set[QName] = set()
 
@@ -435,7 +443,7 @@ def read_inferred_types(
         if key not in shapes:
             raise SouffleProtocolError(
                 f"Cannot reconstruct inferred type {key!r}: "
-                "Soufflé did not export its structural description"
+                "Souffle did not export its structural description"
             )
 
         kind, name, detail, size = shapes[key]
@@ -445,7 +453,7 @@ def read_inferred_types(
             if slot not in slots:
                 raise SouffleProtocolError(
                     f"Cannot reconstruct inferred type {key!r} ({kind}): "
-                    f"Soufflé did not export required type argument {slot}"
+                    f"Souffle did not export required type argument {slot}"
                 )
             return build(slots[slot])
 
@@ -516,7 +524,7 @@ def read_inferred_types(
 
 @beartype
 def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckOutput:
-    """Lowers the model to Soufflé facts, runs the type checker and parses the structured results."""
+    """Lowers the model to Souffle facts, runs the type checker and parses the structured results."""
     program = Lowering(index, table).lower()
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
