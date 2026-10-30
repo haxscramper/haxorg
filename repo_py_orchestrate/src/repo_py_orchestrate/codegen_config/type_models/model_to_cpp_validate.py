@@ -42,6 +42,7 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
     TypeTranslation,
     cpp_config,
     enum_member_name,
+    format_expr_repr,
     named_cpp_type,
     normalize_ident,
 )
@@ -71,17 +72,33 @@ class CheckGen:
         self,
         value: BlockId,
         statements: Sequence[BlockId] = (),
+        *,
+        expr: Optional[ExprNode] = None,
     ) -> ExpressionEvaluation:
         name = self._expression_name()
 
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=QualType(Name="auto").asConstRef(), name=name, defArg=value
+                type=QualType(Name="auto").asConstRef(),
+                name=name,
+                defArg=value,
             )
         )
 
+        result_statements = list(statements)
+
+        if expr is not None:
+            result_statements.append(
+                self.ast.Comment(
+                    format_expr_repr(expr).splitlines(),
+                    Inline=False,
+                )
+            )
+
+        result_statements.append(declaration)
+
         return ExpressionEvaluation(
-            statements=[*statements, declaration],
+            statements=result_statements,
             value=self.ast.string(name),
         )
 
@@ -509,7 +526,8 @@ class CheckGen:
                         "static_cast",
                         args=[self.ast.Literal(expr.int_val)],
                         Params=[self._expression_result_type(expr)],
-                    )
+                    ),
+                    expr=expr,
                 )
 
             case OpId.CONST_FLOAT:
@@ -521,13 +539,15 @@ class CheckGen:
                             self.ast.string(json.dumps(expr.float_val, allow_nan=False))
                         ],
                         Params=[self._expression_result_type(expr)],
-                    )
+                    ),
+                    expr=expr,
                 )
 
             case OpId.CONST_BOOL:
                 assert expr.bool_val is not None
                 return self._expression_local(
-                    self.ast.string("true" if expr.bool_val else "false")
+                    self.ast.string("true" if expr.bool_val else "false"),
+                    expr=expr,
                 )
 
             case OpId.CONST_STR:
@@ -536,7 +556,8 @@ class CheckGen:
                     self.ast.XConstructObj(
                         self._expression_result_type(expr),
                         Args=[self.ast.StringLiteral(expr.str_val)],
-                    )
+                    ),
+                    expr=expr,
                 )
 
             case OpId.AND | OpId.OR:
@@ -552,6 +573,7 @@ class CheckGen:
                 return self._expression_local(
                     self.ast.XCall("!", args=[self.ast.pars(arg.value)]),
                     arg.statements,
+                    expr=expr,
                 )
 
             case OpId.COND:
@@ -597,7 +619,8 @@ class CheckGen:
                     self.ast.XConstructObj(
                         self._expression_result_type(expr),
                         Args=[],
-                    )
+                    ),
+                    expr=expr,
                 )
 
             case _:
@@ -786,7 +809,7 @@ class CheckGen:
                     f"{render_rich(expr_tree_repr(expr))}"
                 )
 
-        return self._expression_local(value, statements)
+        return self._expression_local(value, statements, expr=expr)
 
     def _gen_expression_eval_logic(
         self,
@@ -1149,6 +1172,7 @@ class CheckGen:
                 params=params,
             ),
             [*collection.statements, declaration],
+            expr=expr,
         )
 
     def _gen_expression_eval_fold(
@@ -1191,6 +1215,7 @@ class CheckGen:
                 params=[self._expression_result_type(expr)],
             ),
             statements,
+            expr=expr,
         )
 
     def _gen_expression_arithmetic(

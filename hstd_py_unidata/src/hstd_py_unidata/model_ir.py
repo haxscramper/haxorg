@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import ast
 import enum
+import subprocess
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -740,3 +742,171 @@ def model_tree_repr(value: ModelDef) -> IndentedTree:
         tree.add(record_tree_repr(record))
 
     return tree
+
+
+@beartype
+def type_ast_repr(t: TypeRef) -> ast.expr:
+    def generic(name: str, *params: ast.expr) -> ast.Subscript:
+        return ast.Subscript(
+            value=ast.Name(id=name, ctx=ast.Load()),
+            slice=(
+                params[0]
+                if len(params) == 1
+                else ast.Tuple(elts=list(params), ctx=ast.Load())
+            ),
+            ctx=ast.Load(),
+        )
+
+    def qname_to_ast(qname: QName) -> ast.expr:
+        if qname.scope is None:
+            return ast.Name(id=qname.name, ctx=ast.Load())
+
+        return ast.Attribute(
+            value=qname_to_ast(qname.scope),
+            attr=qname.name,
+            ctx=ast.Load(),
+        )
+
+    match t:
+        case PrimT():
+            return ast.parse(t.prim.value, mode="eval").body
+        case ListT():
+            return generic("list", type_ast_repr(t.elem))
+        case ArrayT():
+            return generic("array", type_ast_repr(t.elem), ast.Constant(value=t.size))
+        case MapT():
+            return generic("map", type_ast_repr(t.key), type_ast_repr(t.value))
+        case OptT():
+            return generic("optional", type_ast_repr(t.elem))
+        case TupleT():
+            return generic("tuple", *(type_ast_repr(elem) for elem in t.elems))
+        case NamedT():
+            return qname_to_ast(t.qname)
+        case ExternalT():
+            return generic(
+                "ExternalT",
+                ast.Constant(value=t.package),
+                qname_to_ast(t.qname),
+            )
+        case VariantT():
+            return generic(
+                "variant",
+                ast.Attribute(
+                    value=qname_to_ast(t.owner),
+                    attr=t.field,
+                    ctx=ast.Load(),
+                ),
+            )
+        case DynT():
+            return generic("dyn", type_ast_repr(t.root))
+        case TypeParamT():
+            return ast.Name(id=t.name, ctx=ast.Load())
+        case UnresolvedT():
+            return generic("unresolved", ast.Constant(value=t.text))
+        case _:
+            raise TypeError(f"Unhandled type reference {t!r}")
+
+
+@beartype
+def expr_call_repr(expr: ExprNode, width: int = 90) -> str:
+    def build(node: ExprNode) -> ast.expr:
+        op = str(node.op)
+
+        binary_ops = {
+            "add": ast.Add,
+            "sub": ast.Sub,
+            "mul": ast.Mult,
+            "div": ast.Div,
+        }
+        comparison_ops = {
+            "eq": ast.Eq,
+            "ne": ast.NotEq,
+            "lt": ast.Lt,
+            "le": ast.LtE,
+        }
+        boolean_ops = {
+            "and": ast.And,
+            "or": ast.Or,
+        }
+
+        if op == "not":
+            (operand,) = node.args
+            return ast.UnaryOp(op=ast.Not(), operand=build(operand))
+
+        if op in binary_ops:
+            left, right = node.args
+            return ast.BinOp(
+                left=build(left),
+                op=binary_ops[op](),
+                right=build(right),
+            )
+
+        if op in comparison_ops:
+            left, right = node.args
+            return ast.Compare(
+                left=build(left),
+                ops=[comparison_ops[op]()],
+                comparators=[build(right)],
+            )
+
+        if op in boolean_ops:
+            left, right = node.args
+            return ast.BoolOp(
+                op=boolean_ops[op](),
+                values=[build(left), build(right)],
+            )
+
+        operation: ast.expr = ast.Name(id=op, ctx=ast.Load())
+
+        if node.typed_as is not None:
+            operation = ast.Subscript(
+                value=operation,
+                slice=type_ast_repr(node.typed_as),
+                ctx=ast.Load(),
+            )
+
+        args: list[ast.expr] = []
+        if node.binders:
+            args.append(
+                ast.Tuple(
+                    elts=[ast.Constant(value=name) for name in node.binders],
+                    ctx=ast.Load(),
+                )
+            )
+
+        args.extend(build(child) for child in node.args)
+
+        keywords: list[ast.keyword] = []
+        if node.type_val is not None:
+            keywords.append(
+                ast.keyword(arg="type_val", value=type_ast_repr(node.type_val))
+            )
+
+        for name, value in (
+            ("str_val", node.str_val),
+            ("int_val", node.int_val),
+            ("float_val", node.float_val),
+            ("bool_val", node.bool_val),
+        ):
+            if value is not None:
+                keywords.append(ast.keyword(arg=name, value=ast.Constant(value=value)))
+
+        return ast.Call(func=operation, args=args, keywords=keywords)
+
+    source = ast.unparse(build(expr)) + "\n"
+    result = subprocess.run(
+        [
+            "ruff",
+            "format",
+            "--line-length",
+            str(width),
+            "--stdin-filename",
+            "expression.py",
+            "-",
+        ],
+        input=source,
+        text=True,
+        stdout=subprocess.PIPE,
+        check=True,
+    )
+    return result.stdout.rstrip("\n")

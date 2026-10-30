@@ -17,6 +17,7 @@ from hstd_py_unidata.model_ir import (
     DynT,
     EnumDef,
     ExplicitDefault,
+    ExprNode,
     ExternalT,
     ListT,
     MapT,
@@ -33,6 +34,7 @@ from hstd_py_unidata.model_ir import (
     TypeRef,
     UnresolvedT,
     VariantT,
+    expr_call_repr,
 )
 from loguru import logger
 
@@ -441,3 +443,7 @@ class TypeTranslation:
         raise NotImplementedError(
             f"Unsupported explicit default for {typ!r}: {value!r}",
         )
+
+
+def format_expr_repr(expr: ExprNode) -> str:
+    return expr_call_repr(expr, width=90)

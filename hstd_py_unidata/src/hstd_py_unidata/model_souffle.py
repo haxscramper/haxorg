@@ -624,7 +624,6 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
         return updated
 
     for record in index.model.records:
-        logger.info(f"processing record {record.qname}")
         records.append(
             record.model_copy(
                 update={
