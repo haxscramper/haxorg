@@ -344,10 +344,7 @@ class CheckGen:
                     owner, member = found
                     cpp_name = (
                         cpp_config(owner)
-                        .get(
-                            "field_names",
-                            {},
-                        )
+                        .get("field_names", {})
                         .get(member.name, member.name)
                     )
 
@@ -543,58 +540,7 @@ class CheckGen:
                 )
 
             case OpId.AND | OpId.OR:
-                name = self._expression_name("condition")
-                result = self.ast.string(name)
-                is_and = expr.op == OpId.AND
-
-                statements = [
-                    self.ast.VarDecl(
-                        cpp.ParmVarParams(
-                            type=QualType(Name="bool"),
-                            name=name,
-                            defArg=self.ast.string("true" if is_and else "false"),
-                        )
-                    )
-                ]
-
-                for arg in expr.args:
-                    lowered = self._gen_expression_eval(
-                        arg,
-                        this_expr,
-                        bindings,
-                    )
-
-                    condition = (
-                        result
-                        if is_and
-                        else self.ast.XCall("!", args=[self.ast.pars(result)])
-                    )
-
-                    statements.append(
-                        self.ast.IfStmt(
-                            cpp.IfStmtParams(
-                                Branches=[
-                                    cpp.IfStmtParams.Branch(
-                                        Cond=condition,
-                                        Then=self.ast.stack(
-                                            [
-                                                *lowered.statements,
-                                                self.ast.Trail(
-                                                    self.ast.XCall(
-                                                        "=", args=[result, lowered.value]
-                                                    ),
-                                                    self.ast.string(";"),
-                                                    space="",
-                                                ),
-                                            ]
-                                        ),
-                                    )
-                                ]
-                            )
-                        )
-                    )
-
-                return ExpressionEvaluation(statements, result)
+                return self._gen_expression_eval_logic(expr, this_expr, bindings)
 
             case OpId.NOT:
                 arg = self._gen_expression_eval(
@@ -609,236 +555,16 @@ class CheckGen:
                 )
 
             case OpId.COND:
-                condition = self._gen_expression_eval(
-                    expr.args[0],
-                    this_expr,
-                    bindings,
-                )
-                then_value = self._gen_expression_eval(
-                    expr.args[1],
-                    this_expr,
-                    bindings,
-                )
-                else_value = self._gen_expression_eval(
-                    expr.args[2],
-                    this_expr,
-                    bindings,
-                )
-
-                slot, declaration = self._expression_slot(
-                    self._expression_result_type(expr)
-                )
-
-                branch = self.ast.IfStmt(
-                    cpp.IfStmtParams(
-                        Branches=[
-                            cpp.IfStmtParams.Branch(
-                                Cond=condition.value,
-                                Then=self.ast.stack(
-                                    [
-                                        *then_value.statements,
-                                        self.ast.XCallRef(
-                                            slot,
-                                            "emplace",
-                                            args=[then_value.value],
-                                            Stmt=True,
-                                        ),
-                                    ]
-                                ),
-                            ),
-                            cpp.IfStmtParams.Branch(
-                                Then=self.ast.stack(
-                                    [
-                                        *else_value.statements,
-                                        self.ast.XCallRef(
-                                            slot,
-                                            "emplace",
-                                            args=[else_value.value],
-                                            Stmt=True,
-                                        ),
-                                    ]
-                                )
-                            ),
-                        ]
-                    )
-                )
-
-                return ExpressionEvaluation(
-                    [
-                        *condition.statements,
-                        declaration,
-                        branch,
-                    ],
-                    self.ast.XCallRef(slot, "value"),
-                )
+                return self._gen_expression_eval_cond(expr, this_expr, bindings)
 
             case OpId.LET:
-                value = self._gen_expression_eval(
-                    expr.args[0],
-                    this_expr,
-                    bindings,
-                )
-
-                local_bindings = dict(bindings)
-                local_bindings[expr.binders[0]] = value.value
-
-                body = self._gen_expression_eval(
-                    expr.args[1],
-                    this_expr,
-                    local_bindings,
-                )
-
-                return ExpressionEvaluation(
-                    [*value.statements, *body.statements],
-                    body.value,
-                )
+                return self._gen_expression_eval_let(expr, this_expr, bindings)
 
             case OpId.TYPE_COND:
-                subject = self._gen_expression_eval(
-                    expr.args[0],
+                return self._gen_expression_eval_type_cond(
+                    expr,
                     this_expr,
                     bindings,
-                )
-
-                ignore_unhandled = bool(expr.bool_val)
-
-                if ignore_unhandled:
-                    if not isinstance(expr.typed_as, OptT):
-                        raise TypeError(
-                            f"Optional type dispatch at {expr.loc.render()} "
-                            f"must have an optional result, got {expr.typed_as!r}"
-                        )
-
-                    value_type = self._expression_native_type(expr.typed_as.elem)
-                else:
-                    value_type = self._expression_result_type(expr)
-
-                slot, declaration = self._expression_slot(value_type)
-                statements = [*subject.statements, declaration]
-
-                for case in expr.args[1:]:
-                    if case.op != OpId.TYPE_CASE or case.type_val is None:
-                        raise ValueError(
-                            f"Invalid type-dispatch branch at "
-                            f"{case.loc.render()}: expected TYPE_CASE with "
-                            f"a target type, got {case.op.value}"
-                        )
-
-                    candidate_name = self._expression_name("candidate")
-                    candidate = self.ast.string(candidate_name)
-
-                    candidate_declaration = self.ast.VarDecl(
-                        cpp.ParmVarParams(
-                            type=QualType(Name="auto").asConstPtr(),
-                            name=candidate_name,
-                            defArg=self._expression_runtime_call(
-                                "try_as",
-                                args=[subject.value],
-                                params=[self._expression_native_type(case.type_val)],
-                            ),
-                        )
-                    )
-
-                    local_bindings = dict(bindings)
-                    local_bindings[case.binders[0]] = self.ast.pars(
-                        self.ast.XCall("*", args=[candidate])
-                    )
-
-                    body = self._gen_expression_eval(
-                        case.args[0],
-                        this_expr,
-                        local_bindings,
-                    )
-
-                    match_branch = self.ast.IfStmt(
-                        cpp.IfStmtParams(
-                            Branches=[
-                                cpp.IfStmtParams.Branch(
-                                    Cond=self.ast.XCall(
-                                        "!=",
-                                        args=[candidate, self.ast.string("nullptr")],
-                                    ),
-                                    Then=self.ast.stack(
-                                        [
-                                            *body.statements,
-                                            self.ast.XCallRef(
-                                                slot,
-                                                "emplace",
-                                                args=[body.value],
-                                                Stmt=True,
-                                            ),
-                                        ]
-                                    ),
-                                )
-                            ]
-                        )
-                    )
-
-                    statements.append(
-                        self.ast.IfStmt(
-                            cpp.IfStmtParams(
-                                Branches=[
-                                    cpp.IfStmtParams.Branch(
-                                        Cond=self.ast.XCall(
-                                            "!",
-                                            args=[
-                                                self.ast.pars(
-                                                    self.ast.XCallRef(slot, "has_value")
-                                                )
-                                            ],
-                                        ),
-                                        Then=self.ast.stack(
-                                            [
-                                                candidate_declaration,
-                                                match_branch,
-                                            ]
-                                        ),
-                                    )
-                                ]
-                            )
-                        )
-                    )
-
-                if not ignore_unhandled:
-                    expected = ", ".join(
-                        type_text(case.type_val)
-                        for case in expr.args[1:]
-                        if case.type_val is not None
-                    )
-
-                    message = (
-                        f"No type case matched at {expr.loc.render()}; "
-                        f"expected one of: {expected}"
-                    )
-
-                    statements.append(
-                        self.ast.IfStmt(
-                            cpp.IfStmtParams(
-                                Branches=[
-                                    cpp.IfStmtParams.Branch(
-                                        Cond=self.ast.XCall(
-                                            "!",
-                                            args=[
-                                                self.ast.pars(
-                                                    self.ast.XCallRef(slot, "has_value")
-                                                )
-                                            ],
-                                        ),
-                                        Then=self.ast.Throw(
-                                            self.ast.XConstructObj(
-                                                self.ast.string("std::runtime_error"),
-                                                Args=[self.ast.StringLiteral(message)],
-                                            )
-                                        ),
-                                    )
-                                ]
-                            )
-                        )
-                    )
-
-                return ExpressionEvaluation(
-                    statements,
-                    slot if ignore_unhandled else self.ast.XCallRef(slot, "value"),
                 )
 
             case OpId.TYPE_CASE:
@@ -857,96 +583,14 @@ class CheckGen:
                 | OpId.TAKE_WHILE
                 | OpId.GROUP_BY
             ):
-                collection = self._gen_expression_eval(
-                    expr.args[0],
+                return self._gen_expression_eval_collection(
+                    expr,
                     this_expr,
                     bindings,
-                )
-
-                callback = self._expression_callback(
-                    expr.args[1],
-                    expr.binders,
-                    this_expr,
-                    bindings,
-                )
-
-                callback_name = self._expression_name("callback")
-                callback_value = self.ast.string(callback_name)
-
-                declaration = self.ast.VarDecl(
-                    cpp.ParmVarParams(
-                        type=QualType(Name="auto"),
-                        name=callback_name,
-                        defArg=callback,
-                    )
-                )
-
-                function = {
-                    OpId.ALL: "eval_all",
-                    OpId.EXISTS: "eval_exists",
-                    OpId.EXISTS_ONE: "eval_exists_one",
-                    OpId.MAP: "eval_map",
-                    OpId.FILTER: "eval_filter",
-                    OpId.FILTER_MAP: "eval_filter_map",
-                    OpId.TAKE_WHILE: "eval_take_while",
-                    OpId.GROUP_BY: "eval_group_by",
-                }[expr.op]
-
-                match expr.op:
-                    case OpId.ALL | OpId.EXISTS | OpId.EXISTS_ONE:
-                        params = []
-
-                    case OpId.MAP | OpId.FILTER:
-                        params = [self._expression_result_type(expr).par0()]
-
-                    case _:
-                        params = [self._expression_result_type(expr)]
-
-                return self._expression_local(
-                    self._expression_call(
-                        function,
-                        args=[collection.value, callback_value],
-                        params=params,
-                    ),
-                    [*collection.statements, declaration],
                 )
 
             case OpId.FOLD:
-                statements, args = self._expression_args(
-                    expr.args[:2],
-                    this_expr,
-                    bindings,
-                )
-
-                callback_name = self._expression_name("callback")
-                callback = self._expression_callback(
-                    expr.args[2],
-                    expr.binders,
-                    this_expr,
-                    bindings,
-                )
-
-                statements.append(
-                    self.ast.VarDecl(
-                        cpp.ParmVarParams(
-                            type=QualType(Name="auto"),
-                            name=callback_name,
-                            defArg=callback,
-                        )
-                    )
-                )
-
-                return self._expression_local(
-                    self._expression_call(
-                        "eval_fold",
-                        args=[
-                            *args,
-                            self.ast.string(callback_name),
-                        ],
-                        params=[self._expression_result_type(expr)],
-                    ),
-                    statements,
-                )
+                return self._gen_expression_eval_fold(expr, this_expr, bindings)
 
             case OpId.LIST_EMPTY | OpId.MAP_EMPTY:
                 return self._expression_local(
@@ -978,31 +622,7 @@ class CheckGen:
                 value = self.ast.pars(self.ast.XCall(operator, args=args))
 
             case OpId.ADD | OpId.SUB | OpId.MUL | OpId.DIV:
-                operator = {
-                    OpId.ADD: "+",
-                    OpId.SUB: "-",
-                    OpId.MUL: "*",
-                    OpId.DIV: "/",
-                }[expr.op]
-
-                result_type = self._expression_result_type(expr)
-
-                left = args[0]
-                right = args[1]
-
-                if expr.op == OpId.DIV:
-                    left = self.ast.XCall(
-                        "static_cast", args=[left], Params=[result_type]
-                    )
-                    right = self.ast.XCall(
-                        "static_cast", args=[right], Params=[result_type]
-                    )
-
-                value = self.ast.XCall(
-                    "static_cast",
-                    args=[self.ast.pars(self.ast.XCall(operator, args=[left, right]))],
-                    Params=[result_type],
-                )
+                value = self._gen_expression_arithmetic(expr, args)
 
             case OpId.GET_FIELD:
                 value = self._expression_field_access(expr, args[0])
@@ -1103,24 +723,7 @@ class CheckGen:
                 value = self._expression_case_kind(expr, args[0])
 
             case OpId.ENUM_IS:
-                assert expr.str_val is not None
-                source_type = expr.args[0].typed_as
-
-                if source_type is None:
-                    raise ValueError(
-                        f"Enum comparison at {expr.loc.render()} "
-                        "has no inferred subject type"
-                    )
-
-                value = self.ast.pars(
-                    self.ast.XCall(
-                        "==",
-                        args=[
-                            args[0],
-                            self._expression_enum_value(source_type, expr.str_val),
-                        ],
-                    )
-                )
+                value = self._gen_expression_enum_is(expr, args)
 
             case OpId.NTH_GET:
                 assert expr.int_val is not None
@@ -1184,6 +787,461 @@ class CheckGen:
                 )
 
         return self._expression_local(value, statements)
+
+    def _gen_expression_eval_logic(
+        self,
+        expr: ExprNode,
+        this_expr: BlockId,
+        bindings: dict[str, BlockId],
+    ) -> ExpressionEvaluation:
+        name = self._expression_name("condition")
+        result = self.ast.string(name)
+        is_and = expr.op == OpId.AND
+
+        statements = [
+            self.ast.VarDecl(
+                cpp.ParmVarParams(
+                    type=QualType(Name="bool"),
+                    name=name,
+                    defArg=self.ast.string("true" if is_and else "false"),
+                )
+            )
+        ]
+
+        for arg in expr.args:
+            lowered = self._gen_expression_eval(
+                arg,
+                this_expr,
+                bindings,
+            )
+
+            condition = (
+                result if is_and else self.ast.XCall("!", args=[self.ast.pars(result)])
+            )
+
+            statements.append(
+                self.ast.IfStmt(
+                    cpp.IfStmtParams(
+                        Branches=[
+                            cpp.IfStmtParams.Branch(
+                                Cond=condition,
+                                Then=self.ast.stack(
+                                    [
+                                        *lowered.statements,
+                                        self.ast.Trail(
+                                            self.ast.XCall(
+                                                "=", args=[result, lowered.value]
+                                            ),
+                                            self.ast.string(";"),
+                                            space="",
+                                        ),
+                                    ]
+                                ),
+                            )
+                        ]
+                    )
+                )
+            )
+
+        return ExpressionEvaluation(statements, result)
+
+    def _gen_expression_eval_cond(
+        self,
+        expr: ExprNode,
+        this_expr: BlockId,
+        bindings: dict[str, BlockId],
+    ) -> ExpressionEvaluation:
+        condition = self._gen_expression_eval(
+            expr.args[0],
+            this_expr,
+            bindings,
+        )
+        then_value = self._gen_expression_eval(
+            expr.args[1],
+            this_expr,
+            bindings,
+        )
+        else_value = self._gen_expression_eval(
+            expr.args[2],
+            this_expr,
+            bindings,
+        )
+
+        slot, declaration = self._expression_slot(self._expression_result_type(expr))
+
+        branch = self.ast.IfStmt(
+            cpp.IfStmtParams(
+                Branches=[
+                    cpp.IfStmtParams.Branch(
+                        Cond=condition.value,
+                        Then=self.ast.stack(
+                            [
+                                *then_value.statements,
+                                self.ast.XCallRef(
+                                    slot,
+                                    "emplace",
+                                    args=[then_value.value],
+                                    Stmt=True,
+                                ),
+                            ]
+                        ),
+                    ),
+                    cpp.IfStmtParams.Branch(
+                        Then=self.ast.stack(
+                            [
+                                *else_value.statements,
+                                self.ast.XCallRef(
+                                    slot,
+                                    "emplace",
+                                    args=[else_value.value],
+                                    Stmt=True,
+                                ),
+                            ]
+                        )
+                    ),
+                ]
+            )
+        )
+
+        return ExpressionEvaluation(
+            [
+                *condition.statements,
+                declaration,
+                branch,
+            ],
+            self.ast.XCallRef(slot, "value"),
+        )
+
+    def _gen_expression_eval_let(
+        self,
+        expr: ExprNode,
+        this_expr: BlockId,
+        bindings: dict[str, BlockId],
+    ) -> ExpressionEvaluation:
+        value = self._gen_expression_eval(
+            expr.args[0],
+            this_expr,
+            bindings,
+        )
+
+        local_bindings = dict(bindings)
+        local_bindings[expr.binders[0]] = value.value
+
+        body = self._gen_expression_eval(
+            expr.args[1],
+            this_expr,
+            local_bindings,
+        )
+
+        return ExpressionEvaluation(
+            [*value.statements, *body.statements],
+            body.value,
+        )
+
+    def _gen_expression_eval_type_cond(
+        self,
+        expr: ExprNode,
+        this_expr: BlockId,
+        bindings: dict[str, BlockId],
+    ) -> ExpressionEvaluation:
+        subject = self._gen_expression_eval(
+            expr.args[0],
+            this_expr,
+            bindings,
+        )
+
+        ignore_unhandled = bool(expr.bool_val)
+
+        if ignore_unhandled:
+            if not isinstance(expr.typed_as, OptT):
+                raise TypeError(
+                    f"Optional type dispatch at {expr.loc.render()} "
+                    f"must have an optional result, got {expr.typed_as!r}"
+                )
+
+            value_type = self._expression_native_type(expr.typed_as.elem)
+        else:
+            value_type = self._expression_result_type(expr)
+
+        slot, declaration = self._expression_slot(value_type)
+        statements = [*subject.statements, declaration]
+
+        for case in expr.args[1:]:
+            if case.op != OpId.TYPE_CASE or case.type_val is None:
+                raise ValueError(
+                    f"Invalid type-dispatch branch at "
+                    f"{case.loc.render()}: expected TYPE_CASE with "
+                    f"a target type, got {case.op.value}"
+                )
+
+            candidate_name = self._expression_name("candidate")
+            candidate = self.ast.string(candidate_name)
+
+            candidate_declaration = self.ast.VarDecl(
+                cpp.ParmVarParams(
+                    type=QualType(Name="auto").asConstPtr(),
+                    name=candidate_name,
+                    defArg=self._expression_runtime_call(
+                        "try_as",
+                        args=[subject.value],
+                        params=[self._expression_native_type(case.type_val)],
+                    ),
+                )
+            )
+
+            local_bindings = dict(bindings)
+            local_bindings[case.binders[0]] = self.ast.pars(
+                self.ast.XCall("*", args=[candidate])
+            )
+
+            body = self._gen_expression_eval(
+                case.args[0],
+                this_expr,
+                local_bindings,
+            )
+
+            match_branch = self.ast.IfStmt(
+                cpp.IfStmtParams(
+                    Branches=[
+                        cpp.IfStmtParams.Branch(
+                            Cond=self.ast.XCall(
+                                "!=",
+                                args=[candidate, self.ast.string("nullptr")],
+                            ),
+                            Then=self.ast.stack(
+                                [
+                                    *body.statements,
+                                    self.ast.XCallRef(
+                                        slot,
+                                        "emplace",
+                                        args=[body.value],
+                                        Stmt=True,
+                                    ),
+                                ]
+                            ),
+                        )
+                    ]
+                )
+            )
+
+            statements.append(
+                self.ast.IfStmt(
+                    cpp.IfStmtParams(
+                        Branches=[
+                            cpp.IfStmtParams.Branch(
+                                Cond=self.ast.XCall(
+                                    "!",
+                                    args=[
+                                        self.ast.pars(
+                                            self.ast.XCallRef(slot, "has_value")
+                                        )
+                                    ],
+                                ),
+                                Then=self.ast.stack(
+                                    [
+                                        candidate_declaration,
+                                        match_branch,
+                                    ]
+                                ),
+                            )
+                        ]
+                    )
+                )
+            )
+
+        if not ignore_unhandled:
+            expected = ", ".join(
+                type_text(case.type_val)
+                for case in expr.args[1:]
+                if case.type_val is not None
+            )
+
+            message = (
+                f"No type case matched at {expr.loc.render()}; "
+                f"expected one of: {expected}"
+            )
+
+            statements.append(
+                self.ast.IfStmt(
+                    cpp.IfStmtParams(
+                        Branches=[
+                            cpp.IfStmtParams.Branch(
+                                Cond=self.ast.XCall(
+                                    "!",
+                                    args=[
+                                        self.ast.pars(
+                                            self.ast.XCallRef(slot, "has_value")
+                                        )
+                                    ],
+                                ),
+                                Then=self.ast.Throw(
+                                    self.ast.XConstructObj(
+                                        self.ast.string("std::runtime_error"),
+                                        Args=[self.ast.StringLiteral(message)],
+                                    )
+                                ),
+                            )
+                        ]
+                    )
+                )
+            )
+
+        return ExpressionEvaluation(
+            statements,
+            slot if ignore_unhandled else self.ast.XCallRef(slot, "value"),
+        )
+
+    def _gen_expression_eval_collection(
+        self,
+        expr: ExprNode,
+        this_expr: BlockId,
+        bindings: dict[str, BlockId],
+    ) -> ExpressionEvaluation:
+        collection = self._gen_expression_eval(
+            expr.args[0],
+            this_expr,
+            bindings,
+        )
+
+        callback = self._expression_callback(
+            expr.args[1],
+            expr.binders,
+            this_expr,
+            bindings,
+        )
+
+        callback_name = self._expression_name("callback")
+        callback_value = self.ast.string(callback_name)
+
+        declaration = self.ast.VarDecl(
+            cpp.ParmVarParams(
+                type=QualType(Name="auto"),
+                name=callback_name,
+                defArg=callback,
+            )
+        )
+
+        function = {
+            OpId.ALL: "eval_all",
+            OpId.EXISTS: "eval_exists",
+            OpId.EXISTS_ONE: "eval_exists_one",
+            OpId.MAP: "eval_map",
+            OpId.FILTER: "eval_filter",
+            OpId.FILTER_MAP: "eval_filter_map",
+            OpId.TAKE_WHILE: "eval_take_while",
+            OpId.GROUP_BY: "eval_group_by",
+        }[expr.op]
+
+        match expr.op:
+            case OpId.ALL | OpId.EXISTS | OpId.EXISTS_ONE:
+                params = []
+
+            case OpId.MAP | OpId.FILTER:
+                params = [self._expression_result_type(expr).par0()]
+
+            case _:
+                params = [self._expression_result_type(expr)]
+
+        return self._expression_local(
+            self._expression_call(
+                function,
+                args=[collection.value, callback_value],
+                params=params,
+            ),
+            [*collection.statements, declaration],
+        )
+
+    def _gen_expression_eval_fold(
+        self,
+        expr: ExprNode,
+        this_expr: BlockId,
+        bindings: dict[str, BlockId],
+    ) -> ExpressionEvaluation:
+        statements, args = self._expression_args(
+            expr.args[:2],
+            this_expr,
+            bindings,
+        )
+
+        callback_name = self._expression_name("callback")
+        callback = self._expression_callback(
+            expr.args[2],
+            expr.binders,
+            this_expr,
+            bindings,
+        )
+
+        statements.append(
+            self.ast.VarDecl(
+                cpp.ParmVarParams(
+                    type=QualType(Name="auto"),
+                    name=callback_name,
+                    defArg=callback,
+                )
+            )
+        )
+
+        return self._expression_local(
+            self._expression_call(
+                "eval_fold",
+                args=[
+                    *args,
+                    self.ast.string(callback_name),
+                ],
+                params=[self._expression_result_type(expr)],
+            ),
+            statements,
+        )
+
+    def _gen_expression_arithmetic(
+        self,
+        expr: ExprNode,
+        args: list[BlockId],
+    ) -> BlockId:
+        operator = {
+            OpId.ADD: "+",
+            OpId.SUB: "-",
+            OpId.MUL: "*",
+            OpId.DIV: "/",
+        }[expr.op]
+
+        result_type = self._expression_result_type(expr)
+
+        left = args[0]
+        right = args[1]
+
+        if expr.op == OpId.DIV:
+            left = self.ast.XCall("static_cast", args=[left], Params=[result_type])
+            right = self.ast.XCall("static_cast", args=[right], Params=[result_type])
+
+        return self.ast.XCall(
+            "static_cast",
+            args=[self.ast.pars(self.ast.XCall(operator, args=[left, right]))],
+            Params=[result_type],
+        )
+
+    def _gen_expression_enum_is(
+        self,
+        expr: ExprNode,
+        args: list[BlockId],
+    ) -> BlockId:
+        assert expr.str_val is not None
+        source_type = expr.args[0].typed_as
+
+        if source_type is None:
+            raise ValueError(
+                f"Enum comparison at {expr.loc.render()} has no inferred subject type"
+            )
+
+        return self.ast.pars(
+            self.ast.XCall(
+                "==",
+                args=[
+                    args[0],
+                    self._expression_enum_value(source_type, expr.str_val),
+                ],
+            )
+        )
 
     def _expression_needs_runtime(self, expr: ExprNode) -> bool:
         match expr.op:

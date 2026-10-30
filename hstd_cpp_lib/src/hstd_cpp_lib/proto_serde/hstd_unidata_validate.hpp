@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hstd_cpp_lib/system/exceptions.hpp"
+#include <cstring>
 #include <functional>
 #include <hstd_cpp_lib/stdlib/Func.hpp>
 #include <hstd_cpp_lib/stdlib/Str.hpp>
@@ -16,6 +18,7 @@
 #include <string>
 #include <type_traits>
 #include <typeinfo>
+#include <variant>
 
 namespace hstd::ext::unidata {
 struct QName {
@@ -222,6 +225,28 @@ consteval str_format_pattern eval_str_pattern(char const* pattern) {
 
 template <typename... Args>
 bool eval_str_format(str_format_pattern const& pattern, Args&&... args) {}
+
+template <typename T, typename Value>
+T const& eval_get_field(Value const& value, char const* field_name) {
+    T const* result = nullptr;
+    // FIXME: Not verify efficient, but good enough for the initial POC solution
+    hstd::for_each_field_no_base<T>([&](auto const& field) {
+        if (std::strcmp(field.name, field_name) == 0) {
+            result = &(value.*field.pointer);
+        }
+    });
+
+    LOGIC_ASSERTION_CHECK(
+        result != nullptr, "Runtime logic error, could not find target field");
+
+    return *result;
+}
+
+template <typename T, typename... Args>
+T const& eval_get_field(std::variant<Args...> const& variant, char const* field) {
+    return std::visit(
+        [&](auto const& item) { return eval_get_field<T>(item, field); }, variant);
+}
 
 template <typename Collection, typename Callback>
 bool eval_all(Collection const& collection, Callback const& callback) {
