@@ -47,6 +47,8 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
     normalize_ident,
 )
 
+GEN_EXPRESSION_COMMENTS = False
+
 
 @beartype
 class CheckGen:
@@ -87,7 +89,7 @@ class CheckGen:
 
         result_statements = list(statements)
 
-        if expr is not None:
+        if expr is not None and GEN_EXPRESSION_COMMENTS:
             result_statements.append(
                 self.ast.Comment(
                     format_expr_repr(expr).splitlines(),

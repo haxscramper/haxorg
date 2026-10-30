@@ -13,6 +13,7 @@
 #include <hstd_cpp_lib/stdlib/formatting/specializations/PairFormatter.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>
 #include <hstd_cpp_lib/system/reflection.hpp>
+#include <memory>
 #include <optional>
 #include <regex>
 #include <string>
@@ -154,6 +155,10 @@ struct ::hstd::ReflTypeTraits<hstd::ext::unidata::UnidataTag> {
 
 namespace hstd::ext::unidata {
 
+using UniAccessStep      = hstd::ReflAccessStep<UnidataTag>;
+using UniValueAccessPath = hstd::ReflValueAccessPath<UnidataTag>;
+
+
 template <typename T>
 VerifyResultCollection verify_all(T const& data) {
     VerifyResultCollection result;
@@ -173,17 +178,115 @@ VerifyResultCollection verify_all(T const& data) {
     return result;
 }
 
-struct EvalDynamic {
-    void const*    data;
-    std::type_info type;
+struct DynamicT;
 
-    template <typename T>
-    static EvalDynamic FromValue(T const& value) {
-        return EvalDynamic{.data = &value, .type = typeid(std::remove_cvref_t<T>)};
+template <typename T>
+struct IsStaticT : std::false_type {};
+
+template <typename T>
+concept NonWrapperArg = !IsStaticT<std::remove_cvref_t<T>>::value
+                     && !std::same_as<std::remove_cvref_t<T>, DynamicT>;
+
+template <NonWrapperArg T>
+struct StaticT;
+
+template <NonWrapperArg T>
+struct IsStaticT<StaticT<T>> : std::true_type {};
+
+template <typename T>
+concept IsWrapperArg = IsStaticT<std::remove_cvref_t<T>>::value
+                    || std::same_as<std::remove_cvref_t<T>, DynamicT>;
+
+struct DynamicT {
+    void const*        data;
+    std::type_info     type;
+    UniValueAccessPath path;
+
+    using value_type = DynamicT;
+
+    template <typename Res>
+    Res const* get_as() const {
+        LOGIC_ASSERTION_CHECK(typeid(std::remove_cvref_t<Res>) == type, "");
+        return static_cast<Res const*>(data);
     }
 
-    DESC_FIELDS(EvalDynamic, (data, type));
+    template <typename T>
+    static DynamicT FromValue(T const& value) {
+        return DynamicT{.data = &value, .type = typeid(std::remove_cvref_t<T>)};
+    }
+
+    DESC_FIELDS(DynamicT, (data, type, path));
 };
+
+template <NonWrapperArg T>
+struct StaticT {
+  private:
+    std::shared_ptr<T> value;
+    StaticT(std::shared_ptr<T> const& value) : value{value} {}
+
+  public:
+    static StaticT<T> FromLValue(T const* value) {
+        return std::shared_ptr<T>(value, [](T const*) {});
+    }
+
+    static StaticT<T> FromRValue(T const& value) { return std::shared_ptr<T>(value); }
+
+    using value_type = T;
+
+    template <typename Res>
+    Res const* get_as() const {
+        return value.get();
+    }
+};
+
+
+/// \brief Single materialized value with additional path context
+template <IsWrapperArg T>
+struct UniValue {
+    T                  value;
+    UniValueAccessPath path;
+    DESC_FIELDS(UniValue, (value, path));
+
+    template <typename Res>
+    Res const* get_as() const {
+        return value.template get_as<Res>();
+    }
+
+    T::value_type const* get() const {
+        if constexpr (std::is_same_v<T, DynamicT>) {
+            return &value;
+        } else {
+            return value.template get_as<typename T::value_type>();
+        }
+    }
+
+    template <NonWrapperArg SubItem>
+    UniValue<SubItem> CallResult(SubItem const& value, std::string const& func_name) {
+        return UniValue<SubItem>(
+            value, path.add(UniAccessStep::FieldName(hstd::fmt("{}()", func_name))));
+    }
+
+    template <NonWrapperArg SubItem>
+    UniValue<SubItem> Field(SubItem const* value, char const* field) {
+        return UniValue<SubItem>(value, path.add(UniAccessStep::FieldName(field)));
+    }
+
+    template <NonWrapperArg SubItem>
+    UniValue<SubItem> Path(SubItem const* value, UniValueAccessPath const& supath) {
+        return UniValue<SubItem>(value, path.add(supath));
+    }
+};
+
+template <typename K, typename V>
+using UniMap = hstd::UnorderedMap<K, V>;
+
+using UniStr = std::string;
+
+template <typename T>
+using UniVec = hstd::Vec<T>;
+
+template <typename T>
+using UniOpt = hstd::Opt<T>;
 
 struct EvalRuntime {
     VerifyContext const* ctx;
@@ -195,8 +298,10 @@ struct EvalRuntime {
 };
 
 template <typename T>
-hstd::Vec<EvalDynamic> eval_walk(EvalRuntime const& runtime, T const& data) {
-    hstd::Vec<EvalDynamic> result;
+hstd::Vec<UniValue<DynamicT>> eval_walk(
+    EvalRuntime const& runtime,
+    UniValue<T> const& data) {
+    hstd::Vec<UniValue<DynamicT>> result;
 
     ReflRecursiveVisitContext ctx;
     reflVisitAll<T, UnidataTag>(
@@ -205,16 +310,20 @@ hstd::Vec<EvalDynamic> eval_walk(EvalRuntime const& runtime, T const& data) {
         ctx,
         [&]<typename FieldType>(
             ReflValueAccessPath<UnidataTag>::VisitCtx const& path,
-            FieldType const& field) { result.push_back(EvalDynamic::FromValue(field)); });
+            FieldType const&                                 field) {
+            result.push_back(data.Path(DynamicT::FromValue(field), path.toPath()));
+        });
 
     return result;
 }
 
-inline int eval_str_size(std::string const* str) { return static_cast<int>(str->size()); }
+inline int eval_str_size(UniValue<StaticT<UniStr>> const& value) {
+    return static_cast<int>(value.get()->size());
+}
 
 template <typename T1, typename T2>
-bool eval_equal(T1 const& lhs, T2 const& rhs) {
-    return lhs == rhs;
+bool eval_equal(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return *lhs.get() == *rhs.get();
 }
 
 struct str_format_pattern {};
@@ -227,54 +336,65 @@ template <typename... Args>
 bool eval_str_format(str_format_pattern const& pattern, Args&&... args) {}
 
 template <typename T, typename Value>
-T const& eval_get_field(Value const& value, char const* field_name) {
-    T const* result = nullptr;
+UniValue<T> const& eval_get_field(UniValue<Value> const& value, char const* field_name) {
+    UniValue<T> result = nullptr;
     // FIXME: Not verify efficient, but good enough for the initial POC solution
     hstd::for_each_field_no_base<T>([&](auto const& field) {
-        if (std::strcmp(field.name, field_name) == 0) {
-            result = &(value.*field.pointer);
+        using F = DESC_FIELD_TYPE(field);
+        if constexpr (std::is_same_v<T, F>) {
+            if (std::strcmp(field.name, field_name) == 0) {
+                result = value.Field(&(value.*field.pointer), field_name);
+            }
         }
     });
 
     LOGIC_ASSERTION_CHECK(
-        result != nullptr, "Runtime logic error, could not find target field");
+        result.value != nullptr, "Runtime logic error, could not find target field");
 
-    return *result;
+    return result;
 }
 
 template <typename T, typename... Args>
-T const& eval_get_field(std::variant<Args...> const& variant, char const* field) {
+UniValue<T> eval_get_field(
+    UniValue<std::variant<Args...>> const& variant,
+    char const*                            field) {
     return std::visit(
         [&](auto const& item) { return eval_get_field<T>(item, field); }, variant);
 }
 
 template <typename Collection, typename Callback>
-bool eval_all(Collection const& collection, Callback const& callback) {
+UniValue<StaticT<bool>> eval_all(
+    UniValue<Collection> const& collection,
+    Callback const&             callback) {
     for (auto const& it : collection) {
-        if (!callback(it)) { return false; }
+        if (!callback(it)) { return collection.CallResult(false, "all"); }
     }
 
-    return true;
+    return collection.CallResult(true, "all");
 }
 
 template <typename Collection, typename Callback>
-bool eval_exists(Collection const& collection, Callback const& callback) {
+UniValue<StaticT<bool>> eval_exists(
+    Collection const& collection,
+    Callback const&   callback) {
     for (auto const& it : collection) {
-        if (callback(it)) { return true; }
+        if (callback(it)) { return collection.CallResult(true, "exists"); }
     }
 
-    return false;
+    return collection.CallResult(false, "exists");
 }
 
 template <typename Collection, typename Callback>
-bool eval_exists_one(Collection const& collection, Callback const& callback) {
+UniValue<StaticT<bool>> eval_exists_one(
+    Collection const& collection,
+    Callback const&   callback) {
     int counter = 0;
     for (auto const& it : collection) {
         if (callback(it)) { ++counter; }
-        if (1 < counter) { return false; }
+        if (1 < counter) { return collection.CallResult(false, "exists_one"); }
     }
 
-    return counter == 1;
+    return collection.CallResult(counter == 1, "exists_one");
 }
 
 template <typename ResultType, typename T, typename Callback>
