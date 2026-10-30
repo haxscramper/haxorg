@@ -1335,6 +1335,11 @@ class ASTBuilder(base.AstbuilderBase):
     def Arrow(self, lhs: BlockId, rhs: BlockId) -> BlockId:
         return self.line([lhs, self.string("->"), rhs])
 
+    def Assign(self, lhs: BlockId, rhs: BlockId, IsStmt: bool = True) -> BlockId:
+        return self.line(
+            [lhs, self.string(" = "), rhs] + [self.string(";")] if IsStmt else []
+        )
+
     def Deref(self, lhs: BlockId, count: int = 1) -> BlockId:
         result = self.line([self.string("*"), lhs])
         for _ in range(1, count):

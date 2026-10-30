@@ -34,6 +34,7 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
     CPP_CONTEXT_T,
     CPP_RESULT_T,
     CPP_SPACE_T,
+    CPP_UNI_STATIC_T,
     ExpressionEvaluation,
     TypeTranslation,
     cpp_config,
@@ -41,7 +42,6 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
     format_expr_repr,
     named_cpp_type,
     normalize_ident,
-    uni_static_t,
 )
 
 GEN_EXPRESSION_COMMENTS = False
@@ -68,7 +68,7 @@ class CheckGen:
         return self.ast.XCallRef(value, "get")
 
     def _get_uni_value_ref(self, value: BlockId) -> BlockId:
-        return self.ast.Deref(self._get_uni_value_ptr(value))
+        return self.ast.pars(self.ast.Deref(self._get_uni_value_ptr(value)))
 
     def _expression_name(self, stem: str = "expr") -> str:
         result = f"{stem}{self.expression_counter}"
@@ -86,9 +86,12 @@ class CheckGen:
 
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=self.type_map.type(
-                    expr.typed_as,
-                    self.model.package,
+                type=CPP_UNI_STATIC_T(
+                    self.type_map.type(
+                        expr.typed_as,
+                        self.model.package,
+                        space=CPP_SHORT_SPACE_T,
+                    ),
                     space=CPP_SHORT_SPACE_T,
                 ).asConstRef()
                 if expr
@@ -120,12 +123,14 @@ class CheckGen:
         name: str,
         args: Sequence[BlockId] = (),
         params: Sequence[QualType] = (),
+        is_stmt: bool = False,
     ) -> BlockId:
         return self.ast.CallStatic(
             CPP_SHORT_SPACE_T,
             name,
             Args=list(args),
             Params=list(params) if params else None,
+            Stmt=is_stmt,
         )
 
     def _expression_native_type(
@@ -150,6 +155,9 @@ class CheckGen:
         else:
             return self._expression_native_type(expr.typed_as, space=space)
 
+    def _set_slot(self, slot: BlockId, value: BlockId) -> BlockId:
+        return self._expression_call("set_value", args=[slot, value], is_stmt=True)
+
     def _expression_slot(
         self,
         typ: QualType,
@@ -157,11 +165,23 @@ class CheckGen:
         name = self._expression_name("result")
         value = self.ast.string(name)
 
+        slot_type = CPP_UNI_STATIC_T(
+            named_cpp_type("UniOpt", [typ]).withChangedSpace(CPP_SHORT_SPACE_T),
+            space=CPP_SHORT_SPACE_T,
+        )
+
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=named_cpp_type("std::optional", [typ]),
+                type=slot_type,
                 name=name,
-                defArg=self.ast.string("std::nullopt"),
+                defArg=self.ast.CallStatic(
+                    slot_type,
+                    "FromConst",
+                    [
+                        self.ast.string("std::nullopt"),
+                        self.ast.StringLiteral("std::nullopt"),
+                    ],
+                ),
             )
         )
 
@@ -480,7 +500,7 @@ class CheckGen:
         def from_const(value: BlockId, expr_str: str):
             return self._expression_local(
                 self.ast.CallStatic(
-                    typ=uni_static_t(
+                    typ=CPP_UNI_STATIC_T(
                         self._expression_result_type(expr),
                         space=CPP_SHORT_SPACE_T,
                     ),
@@ -686,10 +706,11 @@ class CheckGen:
                     f"eval_{expr.op}",
                     args=[args[0]],
                     params=[
+                        self._expression_result_type(expr),
                         QualType(
                             Kind=QualTypeKind.TypeExpr,
                             Expr=str(expr.int_val),
-                        )
+                        ),
                     ],
                 )
 
@@ -731,7 +752,6 @@ class CheckGen:
     ) -> ExpressionEvaluation:
         name = self._expression_name("condition")
         result = self.ast.string(name)
-        result_read_bool = self._get_uni_value_ref(self.ast.string(name))
 
         is_and = expr.op == OpId.AND
 
@@ -741,7 +761,7 @@ class CheckGen:
                     type=CPP_AUTO_T(),
                     name=name,
                     defArg=self.ast.CallStatic(
-                        uni_static_t(
+                        CPP_UNI_STATIC_T(
                             QualType(Name="bool"),
                             space=CPP_SHORT_SPACE_T,
                         ),
@@ -763,9 +783,11 @@ class CheckGen:
             )
 
             condition = (
-                result_read_bool
+                self._get_uni_value_ref(result)
                 if is_and
-                else self.ast.XCall("!", args=[self.ast.pars(result_read_bool)])
+                else self.ast.XCall(
+                    "!", args=[self.ast.pars(self._get_uni_value_ref(result))]
+                )
             )
 
             statements.append(
@@ -792,7 +814,7 @@ class CheckGen:
                 )
             )
 
-        return ExpressionEvaluation(statements, result_read_bool)
+        return ExpressionEvaluation(statements, result)
 
     def _gen_expression_eval_cond(
         self,
@@ -822,16 +844,11 @@ class CheckGen:
             cpp.IfStmtParams(
                 Branches=[
                     cpp.IfStmtParams.Branch(
-                        Cond=condition.value,
+                        Cond=self._get_uni_value_ref(condition.value),
                         Then=self.ast.stack(
                             [
                                 *then_value.statements,
-                                self.ast.XCallRef(
-                                    slot,
-                                    "emplace",
-                                    args=[then_value.value],
-                                    Stmt=True,
-                                ),
+                                self._set_slot(slot, then_value.value),
                             ]
                         ),
                     ),
@@ -839,12 +856,7 @@ class CheckGen:
                         Then=self.ast.stack(
                             [
                                 *else_value.statements,
-                                self.ast.XCallRef(
-                                    slot,
-                                    "emplace",
-                                    args=[else_value.value],
-                                    Stmt=True,
-                                ),
+                                self._set_slot(slot, else_value.value),
                             ]
                         )
                     ),
@@ -858,7 +870,7 @@ class CheckGen:
                 declaration,
                 branch,
             ],
-            self.ast.XCallRef(slot, "value"),
+            slot,
         )
 
     def _gen_expression_eval_let(
@@ -960,12 +972,7 @@ class CheckGen:
                             Then=self.ast.stack(
                                 [
                                     *body.statements,
-                                    self.ast.XCallRef(
-                                        slot,
-                                        "emplace",
-                                        args=[body.value],
-                                        Stmt=True,
-                                    ),
+                                    self._set_slot(slot, body.value),
                                 ]
                             ),
                         )
@@ -1314,7 +1321,7 @@ class CheckGen:
                 cpp.IfStmtParams(
                     Branches=[
                         cpp.IfStmtParams.Branch(
-                            Cond=condition.value,
+                            Cond=self._get_uni_value_ref(condition.value),
                             Then=self.ast.Return(
                                 self.ast.CallStatic(
                                     CPP_RESULT_T(CPP_SHORT_SPACE_T),
@@ -1372,7 +1379,7 @@ class CheckGen:
                     type=CPP_AUTO_T(),
                     name="this_obj",
                     defArg=self.ast.CallStatic(
-                        typ=uni_static_t(
+                        typ=CPP_UNI_STATIC_T(
                             self.type_map.declaration_type(
                                 self.model.package, owner.qname
                             ),

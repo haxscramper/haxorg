@@ -326,27 +326,34 @@ struct UniValue {
             StaticT<SubItem>::FromLValue(value), path.add(supath));
     }
 
-    template <NonWrapperArg Item>
-    static UniValue<StaticT<Item>> FromConst(
-        Item const&        value,
-        std::string const& expr_value) {
-        return UniValue<StaticT<Item>>(
+    static UniValue<T> FromConst(
+        T::value_type const& value,
+        std::string const&   expr_value) {
+        return UniValue<T>(
             value, UniAccessStep::FieldName(hstd::fmt("<{}>", expr_value)));
     }
 };
+
+template <typename... Args>
+using UniTuple = hstd::Tuple<Args...>;
 
 using UniPath = UniValueAccessPath;
 
 template <typename K, typename V>
 using UniMap = hstd::UnorderedMap<K, V>;
 
-using UniStr = std::string;
+using UniStr = hstd::Str;
 
 template <typename T>
 using UniVec = hstd::Vec<T>;
 
 template <typename T>
 using UniOpt = hstd::Opt<T>;
+
+template <typename T>
+using UniStatic = UniValue<StaticT<T>>;
+
+using UniDynamic = UniValue<DynamicT>;
 
 struct EvalRuntime {
     VerifyContext const* ctx;
@@ -356,6 +363,16 @@ struct EvalRuntime {
         return dynamic_cast<Base const*>(&value);
     }
 };
+
+template <typename Target, typename Source>
+void set_value(UniStatic<Target>& target, UniStatic<Source> const& source) {
+    target = source;
+}
+
+template <typename Target, typename Source>
+void set_value(UniStatic<UniOpt<Target>>& target, UniStatic<Source> const& source) {
+    LOGIC_ASSERTION_CHECK(false, "TODO, ASSIGN TO OPT implement");
+}
 
 template <typename T>
 hstd::Vec<UniValue<DynamicT>> eval_walk(
@@ -377,100 +394,146 @@ hstd::Vec<UniValue<DynamicT>> eval_walk(
     return result;
 }
 
+
 template <typename Res>
-UniValue<StaticT<Res>> eval_str_size(UniValue<StaticT<UniStr>> const& value) {
-    return UniValue<StaticT<UniStr>>::SubExprNoContext(
+UniStatic<Res> eval_str_size(UniStatic<UniStr> const& value) {
+    return UniStatic<UniStr>::SubExprNoContext(
         static_cast<int>(value.get()->size()), "str_size");
 }
 
 template <typename Res, typename T>
-UniValue<StaticT<UniPath>> eval_path_of(UniValue<T> const& value) {
-    return UniValue<StaticT<UniPath>>::SubExprNoContext(value.path, "path");
+UniStatic<UniPath> eval_path_of(UniValue<T> const& value) {
+    return UniStatic<UniPath>::SubExprNoContext(value.path, "path");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_eq(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
-    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() == *rhs.get(), "==");
+UniStatic<Res> eval_eq(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniStatic<bool>::SubExprNoContext(*lhs.get() == *rhs.get(), "==");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_eq(UniValue<T1> const& lhs, T2 const& rhs) {
-    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() == rhs, "==");
+UniStatic<Res> eval_eq(UniValue<T1> const& lhs, T2 const& rhs) {
+    return UniStatic<bool>::SubExprNoContext(*lhs.get() == rhs, "==");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_lt(UniValue<T1> const& lhs, T2 const& rhs) {
-    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() < rhs, "<");
+UniStatic<Res> eval_lt(UniValue<T1> const& lhs, T2 const& rhs) {
+    return UniStatic<bool>::SubExprNoContext(*lhs.get() < rhs, "<");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_le(UniValue<T1> const& lhs, T2 const& rhs) {
-    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() <= rhs, "<=");
+UniStatic<Res> eval_le(UniValue<T1> const& lhs, T2 const& rhs) {
+    return UniStatic<bool>::SubExprNoContext(*lhs.get() <= rhs, "<=");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_ne(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
-    return UniValue<StaticT<bool>>::SubExprNoContext(!(*lhs.get() == *rhs.get()), "!=");
+UniStatic<Res> eval_ne(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniStatic<bool>::SubExprNoContext(!(*lhs.get() == *rhs.get()), "!=");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_add(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
-    return UniValue<StaticT<Res>>::SubExprNoContext(
+UniStatic<Res> eval_add(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniStatic<Res>::SubExprNoContext(
         static_cast<Res>(*lhs.get()) + static_cast<Res>(*rhs.get()), "+");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_sub(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
-    return UniValue<StaticT<Res>>::SubExprNoContext(
+UniStatic<Res> eval_sub(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniStatic<Res>::SubExprNoContext(
         static_cast<Res>(*lhs.get()) - static_cast<Res>(*rhs.get()), "+");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_div(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
-    return UniValue<StaticT<Res>>::SubExprNoContext(
+UniStatic<Res> eval_div(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniStatic<Res>::SubExprNoContext(
         static_cast<Res>(*lhs.get()) / static_cast<Res>(*rhs.get()), "/");
 }
 
 template <typename Res, typename T1, typename T2>
-UniValue<StaticT<Res>> eval_mul(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
-    return UniValue<StaticT<Res>>::SubExprNoContext(
+UniStatic<Res> eval_mul(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniStatic<Res>::SubExprNoContext(
         static_cast<Res>(*lhs.get()) * static_cast<Res>(*rhs.get()), "*");
 }
 
-template <typename Res, typename K, typename V>
-UniValue<StaticT<Res>> eval_map_get(
-    UniValue<StaticT<UniMap<K, V>>> const& lhs,
-    UniValue<StaticT<K>> const&            rhs) {
-    return UniValue<StaticT<Res>>::AtMap(lhs.get()->at(*rhs.get()), rhs.get());
+template <typename Res, typename T>
+UniStatic<Res> eval_list_size(UniStatic<T> const& lhs) {
+    return UniStatic<Res>::SubExprNoContext(lhs.get()->size(), "list_size");
 }
 
 template <typename Res, typename T>
-UniValue<StaticT<Res>> eval_list_size(UniValue<StaticT<T>> const& lhs) {
-    return UniValue<StaticT<Res>>::SubExprNoContext(lhs.get()->size(), "list_size");
+UniStatic<Res> eval_map_size(UniStatic<T> const& lhs) {
+    return UniStatic<Res>::SubExprNoContext(lhs.get()->size(), "map_size");
+}
+
+template <typename Res>
+UniStatic<Res> eval_map_empty() {
+    Res res{};
+    return UniStatic<Res>::SubExprNoContext(res, "map_empty");
+}
+
+template <typename Res>
+UniStatic<Res> eval_list_empty() {
+    Res res{};
+    return UniStatic<Res>::SubExprNoContext(res, "list_empty");
+}
+
+
+template <typename Res, typename K, typename V>
+UniStatic<bool> eval_map_contains(
+    UniStatic<UniMap<K, V>> const& lhs,
+    UniStatic<K> const&            rhs) {
+    return UniStatic<Res>::SubExprNoContext(lhs.get()->contains(*rhs.get()), "contains");
+}
+
+template <typename Res, typename K, typename V>
+UniStatic<Res> eval_map_get(UniStatic<UniMap<K, V>> const& lhs, UniStatic<K> const& rhs) {
+    return UniStatic<V>::SubExprNoContext(lhs.get()->at(*rhs.get()), "get");
+}
+
+template <typename Res, int index, typename... Args>
+UniStatic<Res> eval_nth_get(UniStatic<UniTuple<Args...>> const& lhs) {
+    return lhs.AtIndex(std::get<index>(*lhs.get()), index);
+}
+
+
+template <typename Res, typename T>
+UniStatic<bool> eval_opt_has_value(UniStatic<T> const& lhs) {
+    return UniStatic<Res>::SubExprNoContext(lhs.get()->has_value(), "opt_has_value");
+}
+
+template <typename Res, typename T>
+UniStatic<Res> eval_opt_value(UniStatic<UniOpt<T>> const& lhs) {
+    return UniStatic<Res>::CallResult(lhs.get()->has_value(), "value");
+}
+
+template <typename Res, typename T>
+UniStatic<bool> eval_is_derived(UniStatic<T> const& lhs) {
+    return UniStatic<bool>::SubExprNoContext(
+        dynamic_cast<Res>(lhs.get()) != nullptr, "is_derived");
 }
 
 template <typename Res, typename T, typename IntType>
-UniValue<StaticT<Res>> eval_list_at(
-    UniValue<StaticT<UniVec<T>>> const& lhs,
-    UniValue<StaticT<IntType>> const&   rhs) {
-    return UniValue<StaticT<Res>>::AtMap(lhs.get()->at(*rhs.get()), rhs.get());
+UniStatic<Res> eval_list_at(
+    UniStatic<UniVec<T>> const& lhs,
+    UniStatic<IntType> const&   rhs) {
+    return UniStatic<Res>::AtIndex(lhs.get()->at(*rhs.get()), *rhs.get());
 }
 
 
 template <typename Res, typename T>
-UniValue<StaticT<Res>> eval_list_concat(
-    UniValue<StaticT<UniVec<T>>> const& lhs,
-    UniValue<StaticT<UniVec<T>>> const& rhs) {
+UniStatic<Res> eval_list_concat(
+    UniStatic<UniVec<T>> const& lhs,
+    UniStatic<UniVec<T>> const& rhs) {
     UniVec<T> result;
     result.append(lhs);
     result.append(rhs);
-    return UniValue<StaticT<Res>>::SubExprNoContext(result, "list_concat");
+    return UniStatic<Res>::SubExprNoContext(result, "list_concat");
 }
 
 
 template <typename Res>
-UniValue<StaticT<bool>> eval_not(UniValue<StaticT<bool>> const& lhs) {
-    return UniValue<StaticT<bool>>::SubExprNoContext(!(*lhs.get()), "!");
+UniStatic<bool> eval_not(UniStatic<bool> const& lhs) {
+    return UniStatic<bool>::SubExprNoContext(!(*lhs.get()), "!");
 }
 
 
@@ -481,7 +544,9 @@ consteval str_format_pattern eval_str_pattern(char const* pattern) {
 }
 
 template <typename... Args>
-bool eval_str_format(str_format_pattern const& pattern, Args&&... args) {}
+UniStatic<UniStr> eval_str_format(str_format_pattern const& pattern, Args&&... args) {
+    logic_todo_impl();
+}
 
 template <typename T, typename Value>
 UniValue<T> const& eval_get_field(UniValue<Value> const& value, char const* field_name) {
@@ -546,43 +611,50 @@ UniValue<StaticT<bool>> eval_exists_one(
 }
 
 template <typename ResultType, typename T, typename Callback>
-hstd::Vec<ResultType> eval_map(hstd::Vec<T> const& collection, Callback const& callback) {
+UniStatic<hstd::Vec<ResultType>> eval_map(
+    UniStatic<hstd::Vec<T>> const& collection,
+    Callback const&                callback) {
     hstd::Vec<ResultType> res;
     for (auto const& it : collection) { res.push_back(callback(it)); }
 
-    return res;
+    return UniStatic<hstd::Vec<ResultType>>::SubExprNoContext(res, "map");
 }
 
 template <typename T, typename Callback>
-hstd::Vec<T> eval_filter(hstd::Vec<T> const& collection, Callback const& callback) {
+UniStatic<hstd::Vec<T>> eval_filter(
+    UniStatic<hstd::Vec<T>> const& collection,
+    Callback const&                callback) {
     hstd::Vec<T> res;
     for (auto const& it : collection) {
         if (callback(it)) { res.push_back(it); }
     }
 
-    return res;
+    return UniStatic<hstd::Vec<T>>::SubExprNoContext(res, "filter");
 }
 
-
-inline bool eval_str_matches(std::string const& value, std::string const& pattern) {
-    return std::regex_search(value, std::regex{pattern});
+template <typename Result>
+UniStatic<bool> eval_str_matches(std::string const& value, std::string const& pattern) {
+    return UniStatic<Result>::SubExprNoContext(
+        std::regex_search(value, std::regex{pattern}), "str_matches");
 }
 
-template <typename Collection, typename T>
-bool eval_list_contains(Collection const& collection, T const& value) {
+template <typename Result, typename Collection, typename T>
+UniStatic<bool> eval_list_contains(Collection const& collection, T const& value) {
     for (auto const& item : collection) {
-        if (item == value) { return true; }
+        if (item == value) {
+            return UniStatic<Result>::SubExprNoContext(true, "list_contains");
+        }
     }
 
-    return false;
+    return UniStatic<Result>::SubExprNoContext(false, "list_contains");
 }
 
 /// Return the half-open slice [start, end).
-template <typename Result, typename Collection>
-Result eval_list_slice(
-    Collection const& collection,
-    std::ptrdiff_t    start,
-    std::ptrdiff_t    end) {
+template <typename Result, typename Collection, typename I1, typename I2>
+UniStatic<Result> eval_list_slice(
+    UniStatic<Collection> const& collection,
+    UniStatic<I1>                start,
+    UniStatic<I2>                end) {
     if (start < 0 || end < start || std::cmp_greater(end, collection.size())) {
         throw std::out_of_range{"Invalid list slice bounds"};
     }
@@ -591,86 +663,99 @@ Result eval_list_slice(
     auto   it = std::next(std::begin(collection), start);
     for (auto index = start; index < end; ++index, ++it) { result.push_back(*it); }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "list_slice");
 }
 
 template <typename Result, typename First, typename Second>
-Result eval_list_concat(First const& first, Second const& second) {
+UniStatic<Result> eval_list_concat(First const& first, Second const& second) {
     Result result;
     for (auto const& item : first) { result.push_back(item); }
     for (auto const& item : second) { result.push_back(item); }
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "list_concat");
 }
 
 template <typename Result, typename Map, typename Key, typename Value>
-Result eval_map_insert(Map const& map, Key const& key, Value const& value) {
+UniStatic<Result> eval_map_insert(Map const& map, Key const& key, Value const& value) {
+    // FIXME: This will perform a full copy of the map on each insert -- if this is used
+    // with operation that iterates over the whole tree, or used to collect the return
+    // into the list (e.g. map+fold+insert), this can easily lead to the O(N^2) copies
+    // for the POC/tests this implementation is good enough, but later on all of this
+    // should be replaced with the immer types. No operation/expression mutates the values
     Result result{map};
     result.insert_or_assign(key, value);
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "map_insert");
 }
 
 template <typename Result, typename Map>
-Result eval_map_keys(Map const& map) {
+UniStatic<Result> eval_map_keys(Map const& map) {
     Result result;
     for (auto const& entry : map) { result.push_back(entry.first); }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "map_keys");
 }
 
+
 template <typename Result, typename Map>
-Result eval_map_values(Map const& map) {
+UniStatic<Result> eval_map_values(Map const& map) {
     Result result;
     for (auto const& entry : map) { result.push_back(entry.second); }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "map_values");
 }
 
 template <typename Result, typename Collection, typename Callback>
-Result eval_filter_map(Collection const& collection, Callback const& callback) {
+UniStatic<Result> eval_filter_map(
+    Collection const& collection,
+    Callback const&   callback) {
     Result result;
     for (auto const& item : collection) {
         auto mapped = callback(item);
         if (mapped) { result.push_back(std::move(*mapped)); }
     }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "filter_map");
 }
 
 template <typename Result, typename Collection, typename Callback>
-Result eval_take_while(Collection const& collection, Callback const& callback) {
+UniStatic<Result> eval_take_while(
+    Collection const& collection,
+    Callback const&   callback) {
     Result result;
     for (auto const& item : collection) {
         if (!callback(item)) { break; }
         result.push_back(item);
     }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "take_while");
 }
 
 template <typename Result, typename Collection, typename Callback>
-Result eval_group_by(Collection const& collection, Callback const& callback) {
+UniStatic<Result> eval_group_by(Collection const& collection, Callback const& callback) {
     Result result;
     for (auto const& item : collection) { result[callback(item)].push_back(item); }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "group_by");
 }
 
 template <typename Result, typename Collection, typename Callback>
-Result eval_fold(Collection const& collection, Result initial, Callback const& callback) {
+UniStatic<Result> eval_fold(
+    Collection const& collection,
+    Result            initial,
+    Callback const&   callback) {
     for (auto const& item : collection) { initial = callback(std::move(initial), item); }
 
-    return initial;
+    return UniStatic<Result>::SubExprNoContext(initial, "fold");
 }
 
 template <typename Result, typename Collection>
-Result eval_sum(Collection const& collection) {
+UniStatic<Result> eval_sum(Collection const& collection) {
     Result result{};
     for (auto const& item : collection) { result += item; }
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "sum");
 }
 
 template <typename Result, typename Collection>
-Result eval_min(Collection const& collection) {
+UniStatic<Result> eval_min(Collection const& collection) {
     auto it  = std::begin(collection);
     auto end = std::end(collection);
     if (it == end) {
@@ -682,11 +767,11 @@ Result eval_min(Collection const& collection) {
         if (*it < result) { result = *it; }
     }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "min");
 }
 
 template <typename Result, typename Collection>
-Result eval_max(Collection const& collection) {
+UniStatic<Result> eval_max(Collection const& collection) {
     auto it  = std::begin(collection);
     auto end = std::end(collection);
     if (it == end) {
@@ -698,7 +783,7 @@ Result eval_max(Collection const& collection) {
         if (result < *it) { result = *it; }
     }
 
-    return result;
+    return UniStatic<Result>::SubExprNoContext(result, "max");
 }
 
 }; // namespace hstd::ext::unidata

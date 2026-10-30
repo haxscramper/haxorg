@@ -84,10 +84,8 @@ def CPP_AUTO_T() -> QualType:
     return QualType(Name="auto")
 
 
-def uni_static_t(param: QualType, space: QualType = CPP_SPACE_T):
-    return CPP_UNI_T(space).withTemplateParams(
-        [CPP_STATIC_T(space).withTemplateParams([param])]
-    )
+def CPP_UNI_STATIC_T(param: QualType, space: QualType = CPP_SPACE_T):
+    return QualType(Name="UniStatic", Params=[param], Spaces=[space])
 
 
 @beartype
@@ -408,7 +406,7 @@ class TypeTranslation:
                 )
 
             case DynT():
-                return wrap_result(named_cpp_type("DynamicT"))
+                return wrap_result(head)
 
             case UnresolvedT():
                 raise ValueError(
