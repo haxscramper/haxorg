@@ -927,6 +927,21 @@ class CheckGen:
         slot, declaration = self._expression_slot(value_type)
         statements = [*subject.statements, declaration]
 
+        def _gen_check_slot() -> BlockId:
+            return self._get_uni_value_ref(
+                self._expression_call(
+                    "eval_not",
+                    args=[
+                        self._expression_call(
+                            "eval_opt_has_value",
+                            [slot],
+                            params=[QualType(Name="bool")],
+                        )
+                    ],
+                    params=[QualType(Name="bool")],
+                )
+            )
+
         for case in expr.args[1:]:
             if case.op != OpId.TYPE_CASE or case.type_val is None:
                 raise ValueError(
@@ -985,14 +1000,7 @@ class CheckGen:
                     cpp.IfStmtParams(
                         Branches=[
                             cpp.IfStmtParams.Branch(
-                                Cond=self.ast.XCall(
-                                    "!",
-                                    args=[
-                                        self.ast.pars(
-                                            self.ast.XCallRef(slot, "has_value")
-                                        )
-                                    ],
-                                ),
+                                Cond=_gen_check_slot(),
                                 Then=self.ast.stack(
                                     [
                                         candidate_declaration,
@@ -1022,14 +1030,7 @@ class CheckGen:
                     cpp.IfStmtParams(
                         Branches=[
                             cpp.IfStmtParams.Branch(
-                                Cond=self.ast.XCall(
-                                    "!",
-                                    args=[
-                                        self.ast.pars(
-                                            self.ast.XCallRef(slot, "has_value")
-                                        )
-                                    ],
-                                ),
+                                Cond=_gen_check_slot(),
                                 Then=self.ast.Throw(
                                     self.ast.XConstructObj(
                                         self.ast.string("std::runtime_error"),
@@ -1042,10 +1043,7 @@ class CheckGen:
                 )
             )
 
-        return ExpressionEvaluation(
-            statements,
-            slot if ignore_unhandled else self.ast.XCallRef(slot, "value"),
-        )
+        return ExpressionEvaluation(statements, slot)
 
     def _gen_expression_eval_collection(
         self,

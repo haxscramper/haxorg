@@ -740,11 +740,12 @@ UniStatic<Result> eval_group_by(Collection const& collection, Callback const& ca
 template <typename Result, typename Collection, typename Callback>
 UniStatic<Result> eval_fold(
     Collection const& collection,
-    Result            initial,
+    UniStatic<Result> initial,
     Callback const&   callback) {
-    for (auto const& item : collection) { initial = callback(std::move(initial), item); }
+    Result start = *initial.get();
+    for (auto const& item : collection) { start = callback(std::move(start), item); }
 
-    return UniStatic<Result>::SubExprNoContext(initial, "fold");
+    return UniStatic<Result>::SubExprNoContext(start, "fold");
 }
 
 template <typename Result, typename Collection>
