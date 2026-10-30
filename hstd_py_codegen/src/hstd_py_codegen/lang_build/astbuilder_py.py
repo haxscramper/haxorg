@@ -77,11 +77,11 @@ class ASTBuilder(base.AstbuilderBase):
         self.b = in_b
 
     def Decorator(self, p: DecoratorParams) -> BlockId:
-        return self.b.line([self.string("@"), self.string(p.Name)])
+        return self.line([self.string("@"), self.string(p.Name)])
 
     def Type(self, p: QualType) -> BlockId:
         if p.Params:
-            return self.b.line(
+            return self.line(
                 [
                     self.string(p.Name),
                     self.string("["),
@@ -94,7 +94,7 @@ class ASTBuilder(base.AstbuilderBase):
             return self.string(p.Name)
 
     def Arg(self, p: IdentParams) -> BlockId:
-        return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])
+        return self.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])
 
     def FuncHead(
         self,
@@ -157,7 +157,7 @@ class ASTBuilder(base.AstbuilderBase):
             return result
 
     def Field(self, p: FieldParams) -> BlockId:
-        return self.b.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])
+        return self.line([self.string(p.Name), self.string(": "), self.Type(p.Type)])
 
     def Enum(self, p: EnumParams) -> BlockId:
         b = self.b
@@ -177,7 +177,7 @@ class ASTBuilder(base.AstbuilderBase):
         if len(methods) == 0 and len(fields) == 0:
             methods = [b.text("pass")]
 
-        return self.b.stack(
+        return self.stack(
             [
                 b.line(
                     [

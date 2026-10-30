@@ -425,9 +425,7 @@ class NbEnum:
                                 Func=GenTuFunction(Name="", ReturnType=iter_type),
                                 Body=[
                                     ast.Return(
-                                        ast.b.line(
-                                            [ast.Type(iter_type), ast.string("()")]
-                                        )
+                                        ast.line([ast.Type(iter_type), ast.string("()")])
                                     ),
                                 ],
                             ).build_bind(self.Enum.Name, ast),
@@ -692,7 +690,7 @@ class NbClass:
 
         if is_factory_type:
             body_impl.append(
-                ast.b.line(
+                ast.line(
                     [
                         ast.Type(result_type),
                         ast.string(" result;"),
@@ -1211,7 +1209,7 @@ class ImmAdapterTBase[T](ImmAdapter):
 
                 case NbTypedefPass():
                     passes.append(
-                        ast.b.line(
+                        ast.line(
                             [
                                 ast.Type(item.name),
                                 ast.b.text(" = "),
@@ -1226,7 +1224,7 @@ class ImmAdapterTBase[T](ImmAdapter):
                 case _:
                     assert False, type(item)
 
-        return ast.b.stack(passes)
+        return ast.stack(passes)
 
     def build_bind(self, ast: cpp.ASTBuilder) -> BlockId:
         "Generate full binding for the module"

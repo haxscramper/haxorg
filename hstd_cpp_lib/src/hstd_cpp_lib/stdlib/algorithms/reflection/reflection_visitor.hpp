@@ -734,6 +734,9 @@ template <typename Tag>
 struct ReflVisitor<int, Tag> : ReflVisitorLeafType<int, Tag> {};
 
 template <typename Tag>
+struct ReflVisitor<long, Tag> : ReflVisitorLeafType<long, Tag> {};
+
+template <typename Tag>
 struct ReflVisitor<hstd::u32, Tag> : ReflVisitorLeafType<hstd::u32, Tag> {};
 
 template <typename Tag>

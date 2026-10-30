@@ -1,6 +1,5 @@
 #pragma once
 
-#include "hstd_cpp_lib/stdlib/formatting/Debug.hpp"
 #include <functional>
 #include <hstd_cpp_lib/stdlib/Func.hpp>
 #include <hstd_cpp_lib/stdlib/Str.hpp>
@@ -13,7 +12,10 @@
 #include <hstd_cpp_lib/system/macros.hpp>
 #include <hstd_cpp_lib/system/reflection.hpp>
 #include <optional>
+#include <regex>
 #include <string>
+#include <type_traits>
+#include <typeinfo>
 
 namespace hstd::ext::unidata {
 struct QName {
@@ -168,8 +170,242 @@ VerifyResultCollection verify_all(T const& data) {
     return result;
 }
 
+struct EvalDynamic {
+    void const*    data;
+    std::type_info type;
+
+    template <typename T>
+    static EvalDynamic FromValue(T const& value) {
+        return EvalDynamic{.data = &value, .type = typeid(std::remove_cvref_t<T>)};
+    }
+
+    DESC_FIELDS(EvalDynamic, (data, type));
+};
+
+struct EvalRuntime {
+    VerifyContext const* ctx;
+
+    template <typename Base, typename Derived>
+    Base const* try_as(Derived const& value) {
+        return dynamic_cast<Base const*>(&value);
+    }
+};
+
+template <typename T>
+hstd::Vec<EvalDynamic> eval_walk(EvalRuntime const& runtime, T const& data) {
+    hstd::Vec<EvalDynamic> result;
+
+    ReflRecursiveVisitContext ctx;
+    reflVisitAll<T, UnidataTag>(
+        data,
+        {},
+        ctx,
+        [&]<typename FieldType>(
+            ReflValueAccessPath<UnidataTag>::VisitCtx const& path,
+            FieldType const& field) { result.push_back(EvalDynamic::FromValue(field)); });
+
+    return result;
+}
 
 inline int eval_str_size(std::string const* str) { return static_cast<int>(str->size()); }
 
+template <typename T1, typename T2>
+bool eval_equal(T1 const& lhs, T2 const& rhs) {
+    return lhs == rhs;
+}
+
+struct str_format_pattern {};
+
+consteval str_format_pattern eval_str_pattern(char const* pattern) {
+    return str_format_pattern{};
+}
+
+template <typename... Args>
+bool eval_str_format(str_format_pattern const& pattern, Args&&... args) {}
+
+template <typename Collection, typename Callback>
+bool eval_all(Collection const& collection, Callback const& callback) {
+    for (auto const& it : collection) {
+        if (!callback(it)) { return false; }
+    }
+
+    return true;
+}
+
+template <typename Collection, typename Callback>
+bool eval_exists(Collection const& collection, Callback const& callback) {
+    for (auto const& it : collection) {
+        if (callback(it)) { return true; }
+    }
+
+    return false;
+}
+
+template <typename Collection, typename Callback>
+bool eval_exists_one(Collection const& collection, Callback const& callback) {
+    int counter = 0;
+    for (auto const& it : collection) {
+        if (callback(it)) { ++counter; }
+        if (1 < counter) { return false; }
+    }
+
+    return counter == 1;
+}
+
+template <typename ResultType, typename T, typename Callback>
+hstd::Vec<ResultType> eval_map(hstd::Vec<T> const& collection, Callback const& callback) {
+    hstd::Vec<ResultType> res;
+    for (auto const& it : collection) { res.push_back(callback(it)); }
+
+    return res;
+}
+
+template <typename T, typename Callback>
+hstd::Vec<T> eval_filter(hstd::Vec<T> const& collection, Callback const& callback) {
+    hstd::Vec<T> res;
+    for (auto const& it : collection) {
+        if (callback(it)) { res.push_back(it); }
+    }
+
+    return res;
+}
+
+
+inline bool eval_str_matches(std::string const& value, std::string const& pattern) {
+    return std::regex_search(value, std::regex{pattern});
+}
+
+template <typename Collection, typename T>
+bool eval_list_contains(Collection const& collection, T const& value) {
+    for (auto const& item : collection) {
+        if (item == value) { return true; }
+    }
+
+    return false;
+}
+
+/// Return the half-open slice [start, end).
+template <typename Result, typename Collection>
+Result eval_list_slice(
+    Collection const& collection,
+    std::ptrdiff_t    start,
+    std::ptrdiff_t    end) {
+    if (start < 0 || end < start || std::cmp_greater(end, collection.size())) {
+        throw std::out_of_range{"Invalid list slice bounds"};
+    }
+
+    Result result;
+    auto   it = std::next(std::begin(collection), start);
+    for (auto index = start; index < end; ++index, ++it) { result.push_back(*it); }
+
+    return result;
+}
+
+template <typename Result, typename First, typename Second>
+Result eval_list_concat(First const& first, Second const& second) {
+    Result result;
+    for (auto const& item : first) { result.push_back(item); }
+    for (auto const& item : second) { result.push_back(item); }
+    return result;
+}
+
+template <typename Result, typename Map, typename Key, typename Value>
+Result eval_map_insert(Map const& map, Key const& key, Value const& value) {
+    Result result{map};
+    result.insert_or_assign(key, value);
+    return result;
+}
+
+template <typename Result, typename Map>
+Result eval_map_keys(Map const& map) {
+    Result result;
+    for (auto const& entry : map) { result.push_back(entry.first); }
+
+    return result;
+}
+
+template <typename Result, typename Map>
+Result eval_map_values(Map const& map) {
+    Result result;
+    for (auto const& entry : map) { result.push_back(entry.second); }
+
+    return result;
+}
+
+template <typename Result, typename Collection, typename Callback>
+Result eval_filter_map(Collection const& collection, Callback const& callback) {
+    Result result;
+    for (auto const& item : collection) {
+        auto mapped = callback(item);
+        if (mapped) { result.push_back(std::move(*mapped)); }
+    }
+
+    return result;
+}
+
+template <typename Result, typename Collection, typename Callback>
+Result eval_take_while(Collection const& collection, Callback const& callback) {
+    Result result;
+    for (auto const& item : collection) {
+        if (!callback(item)) { break; }
+        result.push_back(item);
+    }
+
+    return result;
+}
+
+template <typename Result, typename Collection, typename Callback>
+Result eval_group_by(Collection const& collection, Callback const& callback) {
+    Result result;
+    for (auto const& item : collection) { result[callback(item)].push_back(item); }
+
+    return result;
+}
+
+template <typename Result, typename Collection, typename Callback>
+Result eval_fold(Collection const& collection, Result initial, Callback const& callback) {
+    for (auto const& item : collection) { initial = callback(std::move(initial), item); }
+
+    return initial;
+}
+
+template <typename Result, typename Collection>
+Result eval_sum(Collection const& collection) {
+    Result result{};
+    for (auto const& item : collection) { result += item; }
+    return result;
+}
+
+template <typename Result, typename Collection>
+Result eval_min(Collection const& collection) {
+    auto it  = std::begin(collection);
+    auto end = std::end(collection);
+    if (it == end) {
+        throw std::invalid_argument{"eval_min requires a nonempty collection"};
+    }
+
+    Result result{*it};
+    for (++it; it != end; ++it) {
+        if (*it < result) { result = *it; }
+    }
+
+    return result;
+}
+
+template <typename Result, typename Collection>
+Result eval_max(Collection const& collection) {
+    auto it  = std::begin(collection);
+    auto end = std::end(collection);
+    if (it == end) {
+        throw std::invalid_argument{"eval_max requires a nonempty collection"};
+    }
+
+    Result result{*it};
+    for (++it; it != end; ++it) {
+        if (result < *it) { result = *it; }
+    }
+
+    return result;
+}
 
 }; // namespace hstd::ext::unidata

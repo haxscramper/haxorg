@@ -178,7 +178,7 @@ def gen_pyhaxorg_field_iteration_macros(
 
     for group in field_groups.types:
         for with_base_fields in [True, False]:
-            def_stack = ast.b.stack([])
+            def_stack = ast.stack([])
 
             if with_base_fields:
                 ast.b.add_at(
@@ -200,7 +200,7 @@ def gen_pyhaxorg_field_iteration_macros(
                 "nodoc"
                 ast.b.add_at(
                     def_stack,
-                    ast.b.line(
+                    ast.line(
                         [
                             ast.string("    "),
                             ast.XCall(
@@ -233,7 +233,7 @@ def gen_pyhaxorg_field_iteration_macros(
                 for base in group.bases:
                     ast.b.add_at(
                         def_stack,
-                        ast.b.line(
+                        ast.line(
                             [
                                 ast.string("    "),
                                 ast.XCall(

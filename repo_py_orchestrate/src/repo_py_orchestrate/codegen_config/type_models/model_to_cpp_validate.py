@@ -4,7 +4,6 @@ from typing import Sequence
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
 from beartype import beartype
 from beartype.typing import Dict, List, Optional, Tuple
-from haxorg_py_lib.pyhaxorg_utils import normalize
 from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuFunction,
     GenTuIdent,
@@ -44,6 +43,7 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
     cpp_config,
     enum_member_name,
     named_cpp_type,
+    normalize_ident,
 )
 
 
@@ -361,6 +361,8 @@ class CheckGen:
                         source,
                         self.ast.string(cpp_name),
                     )
+
+        # return self.ast.Dot(source, self.ast.string(expr.str_val))
 
         return self._expression_call(
             "eval_get_field",
@@ -890,11 +892,15 @@ class CheckGen:
                     OpId.GROUP_BY: "eval_group_by",
                 }[expr.op]
 
-                params = (
-                    []
-                    if expr.op in {OpId.ALL, OpId.EXISTS, OpId.EXISTS_ONE}
-                    else [self._expression_result_type(expr)]
-                )
+                match expr.op:
+                    case OpId.ALL | OpId.EXISTS | OpId.EXISTS_ONE:
+                        params = []
+
+                    case OpId.MAP | OpId.FILTER:
+                        params = [self._expression_result_type(expr).par0()]
+
+                    case _:
+                        params = [self._expression_result_type(expr)]
 
                 return self._expression_local(
                     self._expression_call(
@@ -1029,7 +1035,10 @@ class CheckGen:
                 value = self._expression_call(
                     "eval_str_format",
                     args=[
-                        self.ast.StringLiteral(expr.str_val),
+                        self._expression_call(
+                            "eval_str_pattern",
+                            args=[self.ast.StringLiteral(expr.str_val)],
+                        ),
                         *args,
                     ],
                 )
@@ -1133,7 +1142,6 @@ class CheckGen:
                         self.ast.string("expression_runtime"),
                         args[0],
                     ],
-                    params=[self._expression_result_type(expr)],
                 )
 
             case OpId.IS_DERIVED:
@@ -1209,59 +1217,64 @@ class CheckGen:
             )
         ]
 
-        for package, model in self.type_map.models.items():
-            for declaration in (*model.records, *model.enums):
-                statements.append(
-                    self.ast.XCallRef(
-                        runtime,
-                        "register_type",
-                        args=[self.ast.StringLiteral(declaration.qname.to_id())],
-                        Params=[
-                            self.type_map.declaration_type(
-                                package,
-                                declaration.qname,
-                            )
-                        ],
-                        Stmt=True,
-                    )
-                )
+        gen_registration = False
 
-            index = self.indexes[package]
-
-            for record in model.records:
-                for base in model.records:
-                    if record.qname != base.qname and index.derived_from(
-                        record.qname,
-                        base.qname,
-                    ):
-                        statements.append(
-                            self.ast.XCallRef(
-                                runtime,
-                                "register_base",
-                                Params=[
-                                    self.type_map.declaration_type(
-                                        package,
-                                        record.qname,
-                                    ),
-                                    self.type_map.declaration_type(
-                                        package,
-                                        base.qname,
-                                    ),
-                                ],
-                                Stmt=True,
-                            )
+        if gen_registration:
+            for package, model in self.type_map.models.items():
+                for declaration in (*model.records, *model.enums):
+                    statements.append(
+                        self.ast.XCallRef(
+                            runtime,
+                            "register_type",
+                            args=[self.ast.StringLiteral(declaration.qname.to_id())],
+                            Params=[
+                                self.type_map.declaration_type(
+                                    package,
+                                    declaration.qname,
+                                )
+                            ],
+                            Stmt=True,
                         )
+                    )
 
-        statements.append(
-            self.ast.XCallRef(
-                runtime,
-                "index",
-                args=[
-                    self.ast.pars(self.ast.XCall("*", args=[self.ast.string("this_obj")]))
-                ],
-                Stmt=True,
+                index = self.indexes[package]
+
+                for record in model.records:
+                    for base in model.records:
+                        if record.qname != base.qname and index.derived_from(
+                            record.qname,
+                            base.qname,
+                        ):
+                            statements.append(
+                                self.ast.XCallRef(
+                                    runtime,
+                                    "register_base",
+                                    Params=[
+                                        self.type_map.declaration_type(
+                                            package,
+                                            record.qname,
+                                        ),
+                                        self.type_map.declaration_type(
+                                            package,
+                                            base.qname,
+                                        ),
+                                    ],
+                                    Stmt=True,
+                                )
+                            )
+
+            statements.append(
+                self.ast.XCallRef(
+                    runtime,
+                    "index",
+                    args=[
+                        self.ast.pars(
+                            self.ast.XCall("*", args=[self.ast.string("this_obj")])
+                        )
+                    ],
+                    Stmt=True,
+                )
             )
-        )
 
         return statements
 
@@ -1332,7 +1345,7 @@ class CheckGen:
         parentClass: QualType,
     ) -> GenTuFunction:
         return GenTuFunction(
-            Name=f"__check_record_{normalize(check.id)}",
+            Name=f"__check_record_{normalize_ident(check.id)}",
             ReturnType=CPP_RESULT_T,
             Args=[
                 GenTuIdent(Type=CPP_CONTEXT_T.asConstPtr(), Name="ctx"),
@@ -1392,7 +1405,7 @@ class CheckGen:
         )
 
         return GenTuFunction(
-            Name=f"__check_{field.name}_{normalize(check.id)}",
+            Name=f"__check_{field.name}_{normalize_ident(check.id)}",
             ReturnType=CPP_RESULT_T,
             Args=[
                 GenTuIdent(Type=CPP_CONTEXT_T.asConstPtr(), Name="ctx"),

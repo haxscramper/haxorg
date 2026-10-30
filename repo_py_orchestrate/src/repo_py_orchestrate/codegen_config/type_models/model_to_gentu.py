@@ -20,7 +20,10 @@ from hstd_py_codegen.gen_cpp.codegen_ir import (
     GenTuTypeGroup,
     QualType,
 )
-from hstd_py_codegen.gen_cpp.codegen_type_order import expand_type_groups
+from hstd_py_codegen.gen_cpp.codegen_type_order import (
+    expand_type_groups,
+    rec_expand_group,
+)
 from hstd_py_text_layout.base.wrap import TextLayout
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
@@ -382,8 +385,22 @@ class ModelToGenTu:
             if enum.qname.scope == item.qname and enum.qname not in variant_enums:
                 nested.append(self.enum(enum))
 
+        DeclClass = self.type_map.declaration_type(package, item.qname)
+        fields: List[GenTuField] = list()
+        impl_functions: List[GenTuFunction] = list()
+
         for variant in item.variants:
-            nested.append(self.variant(item, variant))
+            type_group = self.variant(item, variant)
+            for entry in rec_expand_group(self.ast, type_group, parent_class=DeclClass):
+                match entry:
+                    case GenTuField():
+                        fields.append(entry)
+
+                    case GenTuFunction():
+                        impl_functions.append(entry)
+
+                    case _:
+                        nested.append(entry)
 
         # Section code follows generated variants, so constructors can refer
         # to generated aliases such as NamedProperty::Data.
@@ -395,11 +412,8 @@ class ModelToGenTu:
                 )
             nested.append(GenTuPass(section["text"]))
 
-        DeclClass = self.type_map.declaration_type(package, item.qname)
-
-        fields: List[GenTuField]
         check_functions: List[CheckFunction]
-        fields, check_functions = glom.glom(
+        model_fields, check_functions = glom.glom(
             cast(
                 List[Tuple[GenTuField, List[Optional[CheckFunction]]]],
                 [
@@ -418,6 +432,8 @@ class ModelToGenTu:
                 )[-1],
             ),
         )
+
+        fields.extend(model_fields)
 
         fields.append(
             GenTuField(
@@ -445,8 +461,6 @@ class ModelToGenTu:
                     ],
                 )
             )
-
-        impl_functions: List[GenTuFunction] = list()
 
         if 0 < len(check_functions):
             assign_stack = list()

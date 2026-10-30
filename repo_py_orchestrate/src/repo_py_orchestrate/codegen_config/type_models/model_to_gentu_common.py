@@ -129,7 +129,7 @@ def cpp_config(declaration: RecordDef | EnumDef | MethodDef) -> dict[str, Any]:
 
 
 @beartype
-def normalize(text: str) -> str:
+def normalize_ident(text: str) -> str:
     return "".join(char if char.isalnum() else "_" for char in text)
 
 

@@ -2,7 +2,7 @@
 #include "tUnidataDSLModel.hpp"
 
 
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::TrivialText::__check_text_textcheck(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::TrivialText::__check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::TrivialText const*>(value);
   auto const& expr0 = (*(&this_obj->text));
   auto const& expr1 = static_cast<int64_t>(0);
@@ -18,11 +18,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::TrivialText::__check_t
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::TrivialText::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
    = {{
-      {hstd::ext::unidata::VerifyKey{"TrivialText", "text"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_text_textcheck}}}
+      {hstd::ext::unidata::VerifyKey{"TrivialText", "text"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_text_text_check}}}
       }};
   return &checks;
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Base::__check_record_basepositiveid(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Base::__check_record_base_positive_id(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::Base const*>(value);
   auto const& expr0 = (*(this_obj));
   auto const& expr1 = static_cast<int64_t>(0);
@@ -38,11 +38,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Base::__check_record_b
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Base::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
    = {{
-      {hstd::ext::unidata::VerifyKey{"Base", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_basepositiveid}}}
+      {hstd::ext::unidata::VerifyKey{"Base", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_base_positive_id}}}
       }};
   return &checks;
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Derived::__check_record_derivedpositiveweight(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Derived::__check_record_derived_positive_weight(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::Derived const*>(value);
   auto const& expr0 = (*(this_obj));
   auto const& expr1 = static_cast<int64_t>(0);
@@ -58,11 +58,44 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Derived::__check_recor
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Derived::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
    = {{
-      {hstd::ext::unidata::VerifyKey{"Derived", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_derivedpositiveweight}}}
+      {hstd::ext::unidata::VerifyKey{"Derived", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_derived_positive_weight}}}
       }};
   return &checks;
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.eq(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+bool hstd::unidata_dsl::test::Choice::isFirst() const {
+  return getKind() == Kind::First;
+}
+hstd::unidata_dsl::test::Choice::First const& hstd::unidata_dsl::test::Choice::getFirst() const {
+  return hstd::variant_get<0>(data);
+}
+hstd::unidata_dsl::test::Choice::First& hstd::unidata_dsl::test::Choice::getFirst() {
+  return hstd::variant_get<0>(data);
+}
+bool hstd::unidata_dsl::test::Choice::isSecond() const {
+  return getKind() == Kind::Second;
+}
+hstd::unidata_dsl::test::Choice::Second const& hstd::unidata_dsl::test::Choice::getSecond() const {
+  return hstd::variant_get<1>(data);
+}
+hstd::unidata_dsl::test::Choice::Second& hstd::unidata_dsl::test::Choice::getSecond() {
+  return hstd::variant_get<1>(data);
+}
+hstd::unidata_dsl::test::Choice::Kind hstd::unidata_dsl::test::Choice::getKind(hstd::unidata_dsl::test::Choice::Data const& __input) {
+  return static_cast<hstd::unidata_dsl::test::Choice::Kind>(__input.index());
+}
+hstd::unidata_dsl::test::Choice::Kind hstd::unidata_dsl::test::Choice::getKind() const {
+  return getKind(data);
+}
+char const* hstd::unidata_dsl::test::Choice::sub_variant_get_name() const {
+  return "data";
+}
+hstd::unidata_dsl::test::Choice::Data const& hstd::unidata_dsl::test::Choice::sub_variant_get_data() const {
+  return data;
+}
+hstd::unidata_dsl::test::Choice::Kind hstd::unidata_dsl::test::Choice::sub_variant_get_kind() const {
+  return getKind();
+}
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Eq(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -85,7 +118,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.ne(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Ne(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -108,7 +141,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.lt(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Lt(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -131,7 +164,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.le(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Le(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -154,7 +187,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.add(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Add(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -179,7 +212,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr10);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.sub(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Sub(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -204,7 +237,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr10);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mul(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Mul(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -229,7 +262,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr10);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.div(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Div(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -254,7 +287,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr10);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.constfloat(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ConstFloat(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -313,7 +346,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr29);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.constbool(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ConstBool(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -336,7 +369,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.and(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_And(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -375,7 +408,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.or(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Or(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -414,7 +447,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.not(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Not(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -438,7 +471,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.cond(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Cond(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -458,7 +491,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       result11.emplace(expr8);
     } else {
       auto const& expr9 = expr0.number;
-      auto const& expr10 = hstd::ext::unidata::eval_str_format("other-%d", expr9);
+      auto const& expr10 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("other-%d"), expr9);
       result11.emplace(expr10);
     }
     auto const& expr12 = hstd::Str{"six"};
@@ -472,7 +505,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr14);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.condlazy(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_CondLazy(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -507,7 +540,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.all(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_All(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -534,7 +567,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr11);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.exists(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Exists(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -561,7 +594,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr11);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.existsone(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ExistsOne(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -588,7 +621,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr11);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.map(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Map(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -605,7 +638,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      auto const& expr8 = static_cast<int64_t>((item6 * expr7));
                      return expr8;
                      };
-    auto const& expr10 = hstd::ext::unidata::eval_map<hstd::Vec<int64_t>>(expr5, callback9);
+    auto const& expr10 = hstd::ext::unidata::eval_map<int64_t>(expr5, callback9);
     auto const& expr11 = static_cast<int64_t>(2);
     auto const& expr12 = expr10.at(expr11);
     auto const& expr13 = static_cast<int64_t>(6);
@@ -619,7 +652,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.filter(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Filter(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -636,7 +669,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      auto const& expr8 = (expr7 < item6);
                      return expr8;
                      };
-    auto const& expr10 = hstd::ext::unidata::eval_filter<hstd::Vec<int64_t>>(expr5, callback9);
+    auto const& expr10 = hstd::ext::unidata::eval_filter<int64_t>(expr5, callback9);
     auto const& expr11 = static_cast<int64_t>(expr10.size());
     auto const& expr12 = static_cast<int64_t>(2);
     auto const& expr13 = hstd::ext::unidata::eval_equal(expr11, expr12);
@@ -649,7 +682,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr14);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.filtermap(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_FilterMap(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -695,7 +728,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr21);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.takewhile(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_TakeWhile(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -725,7 +758,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr14);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.groupby(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_GroupBy(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -771,7 +804,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr24);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.fold(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Fold(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -800,26 +833,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr14);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.walk(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Walk(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
   if (!(condition1)) {
@@ -830,7 +846,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!(condition1)) {
     auto const& expr5 = expr0.derived;
-    auto const& expr6 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr5);
+    auto const& expr6 = hstd::ext::unidata::eval_walk(expression_runtime, expr5);
     auto callback11 = [&](auto const& item7) {
                       std::optional<int64_t> result8 = std::nullopt;
                       if (!(result8.has_value())) {
@@ -866,7 +882,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr21);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.sum(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Sum(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -890,7 +906,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.min(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Min(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -914,7 +930,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.max(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Max(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -938,7 +954,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.strsize(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_StrSize(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -962,7 +978,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.strmatches(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_StrMatches(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -984,7 +1000,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr7);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.strformat(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_StrFormat(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -997,7 +1013,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!(condition1)) {
     auto const& expr5 = expr0.text;
     auto const& expr6 = expr0.number;
-    auto const& expr7 = hstd::ext::unidata::eval_str_format("%s:%d", expr5, expr6);
+    auto const& expr7 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("%s:%d"), expr5, expr6);
     auto const& expr8 = hstd::Str{"six:6"};
     auto const& expr9 = hstd::ext::unidata::eval_equal(expr7, expr8);
     condition1 = expr9;
@@ -1009,7 +1025,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr10);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.listsize(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ListSize(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1033,7 +1049,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.listcontains(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ListContains(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1056,7 +1072,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.listat(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ListAt(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1081,7 +1097,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr10);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.listslice(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ListSlice(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1126,7 +1142,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr21);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.listslicebounds(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ListSliceBounds(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1171,7 +1187,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr21);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.listconcat(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ListConcat(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1210,7 +1226,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr18);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.listempty(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_ListEmpty(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1234,7 +1250,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapsize(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapSize(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1258,7 +1274,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapcontains(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapContains(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1281,7 +1297,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapget(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapGet(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1306,7 +1322,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr10);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapinsert(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapInsert(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1351,7 +1367,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr21);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapreplace(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapReplace(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1398,7 +1414,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr23);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapkeys(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapKeys(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1437,7 +1453,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapvalues(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapValues(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1476,7 +1492,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.mapempty(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_MapEmpty(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1500,7 +1516,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.opthasvalue(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_OptHasValue(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1522,7 +1538,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr7);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.optvalue(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_OptValue(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1555,7 +1571,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr12);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.caseis(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_CaseIs(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1578,7 +1594,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr8);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.casewhich(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_CaseWhich(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1602,7 +1618,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr9);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.casefield(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_CaseField(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1637,7 +1653,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.enumis(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_EnumIs(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1659,7 +1675,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr7);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.nthget(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_NthGet(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -1694,26 +1710,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr14);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.isderived(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_IsDerived(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
   if (!(condition1)) {
@@ -1744,26 +1743,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr11);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.typecond(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_TypeCond(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
   if (!(condition1)) {
@@ -1774,7 +1756,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!(condition1)) {
     auto const& expr5 = expr0.derived;
-    auto const& expr6 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr5);
+    auto const& expr6 = hstd::ext::unidata::eval_walk(expression_runtime, expr5);
     auto const& expr7 = static_cast<int64_t>(0);
     auto const& expr8 = expr6.at(expr7);
     std::optional<int64_t> result9 = std::nullopt;
@@ -1806,26 +1788,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr16);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.typecondoptional(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_TypeCondOptional(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
   if (!(condition1)) {
@@ -1838,7 +1803,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     bool condition5 = true;
     if (condition5) {
       auto const& expr6 = expr0.base;
-      auto const& expr7 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr6);
+      auto const& expr7 = hstd::ext::unidata::eval_walk(expression_runtime, expr6);
       auto const& expr8 = static_cast<int64_t>(0);
       auto const& expr9 = expr7.at(expr8);
       std::optional<int64_t> result10 = std::nullopt;
@@ -1855,7 +1820,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if (condition5) {
       auto const& expr15 = expr0.derived;
-      auto const& expr16 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr15);
+      auto const& expr16 = hstd::ext::unidata::eval_walk(expression_runtime, expr15);
       auto const& expr17 = static_cast<int64_t>(0);
       auto const& expr18 = expr16.at(expr17);
       std::optional<int64_t> result19 = std::nullopt;
@@ -1880,26 +1845,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr25);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.typeof(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_TypeOf(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
   if (!(condition1)) {
@@ -1910,7 +1858,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!(condition1)) {
     auto const& expr5 = expr0.derived;
-    auto const& expr6 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr5);
+    auto const& expr6 = hstd::ext::unidata::eval_walk(expression_runtime, expr5);
     auto const& expr7 = static_cast<int64_t>(0);
     auto const& expr8 = expr6.at(expr7);
     std::optional<hstd::Str> result9 = std::nullopt;
@@ -1935,26 +1883,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr14);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.pathof(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_PathOf(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
   if (!(condition1)) {
@@ -1968,7 +1899,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     if (condition5) {
       auto const& expr6 = expr0.number;
       auto const& expr7 = expression_runtime.path_of(expr6);
-      auto const& expr8 = hstd::ext::unidata::eval_str_format("%s", expr7);
+      auto const& expr8 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("%s"), expr7);
       auto const& expr9 = hstd::Str{"/number"};
       auto const& expr10 = hstd::ext::unidata::eval_equal(expr8, expr9);
       condition5 = expr10;
@@ -1977,10 +1908,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       auto const& expr11 = expr0.numbers;
       auto callback15 = [&](auto const& item12) {
                         auto const& expr13 = expression_runtime.path_of(item12);
-                        auto const& expr14 = hstd::ext::unidata::eval_str_format("%s", expr13);
+                        auto const& expr14 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("%s"), expr13);
                         return expr14;
                         };
-      auto const& expr16 = hstd::ext::unidata::eval_map<hstd::Vec<hstd::Str>>(expr11, callback15);
+      auto const& expr16 = hstd::ext::unidata::eval_map<hstd::Str>(expr11, callback15);
       auto const& expr17 = static_cast<int64_t>(0);
       auto const& expr18 = expr16.at(expr17);
       auto const& expr19 = hstd::Str{"/numbers/0"};
@@ -1989,7 +1920,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if (condition5) {
       auto const& expr21 = expr0.derived;
-      auto const& expr22 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr21);
+      auto const& expr22 = hstd::ext::unidata::eval_walk(expression_runtime, expr21);
       auto const& expr23 = static_cast<int64_t>(0);
       auto const& expr24 = expr22.at(expr23);
       std::optional<hstd::Str> result25 = std::nullopt;
@@ -1997,7 +1928,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
         auto const* candidate26 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr24);
         if (candidate26 != nullptr) {
           auto const& expr27 = expression_runtime.path_of((*candidate26));
-          auto const& expr28 = hstd::ext::unidata::eval_str_format("%s", expr27);
+          auto const& expr28 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("%s"), expr27);
           result25.emplace(expr28);
         }
       }
@@ -2017,7 +1948,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     return hstd::ext::unidata::VerifyResult::Error(expr31);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc.emptycollections(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_EmptyCollections(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   bool condition1 = false;
@@ -2076,7 +2007,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         auto const& expr34 = expr32.at(expr33);
                         return expr34;
                         };
-      auto const& expr36 = hstd::ext::unidata::eval_map<hstd::Vec<int64_t>>(expr30, callback35);
+      auto const& expr36 = hstd::ext::unidata::eval_map<int64_t>(expr30, callback35);
       auto const& expr37 = static_cast<int64_t>(expr36.size());
       auto const& expr38 = static_cast<int64_t>(0);
       auto const& expr39 = hstd::ext::unidata::eval_equal(expr37, expr38);
@@ -2091,7 +2022,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         auto const& expr45 = hstd::ext::unidata::eval_equal(expr43, expr44);
                         return expr45;
                         };
-      auto const& expr47 = hstd::ext::unidata::eval_filter<hstd::Vec<int64_t>>(expr40, callback46);
+      auto const& expr47 = hstd::ext::unidata::eval_filter<int64_t>(expr40, callback46);
       auto const& expr48 = static_cast<int64_t>(expr47.size());
       auto const& expr49 = static_cast<int64_t>(0);
       auto const& expr50 = hstd::ext::unidata::eval_equal(expr48, expr49);
@@ -2203,11 +2134,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::OperationChecks::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
    = {{
-      {hstd::ext::unidata::VerifyKey{"OperationChecks", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_poc.eq}, hstd::ext::unidata::VerifyCb{&__check_record_poc.ne}, hstd::ext::unidata::VerifyCb{&__check_record_poc.lt}, hstd::ext::unidata::VerifyCb{&__check_record_poc.le}, hstd::ext::unidata::VerifyCb{&__check_record_poc.add}, hstd::ext::unidata::VerifyCb{&__check_record_poc.sub}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mul}, hstd::ext::unidata::VerifyCb{&__check_record_poc.div}, hstd::ext::unidata::VerifyCb{&__check_record_poc.constfloat}, hstd::ext::unidata::VerifyCb{&__check_record_poc.constbool}, hstd::ext::unidata::VerifyCb{&__check_record_poc.and}, hstd::ext::unidata::VerifyCb{&__check_record_poc.or}, hstd::ext::unidata::VerifyCb{&__check_record_poc.not}, hstd::ext::unidata::VerifyCb{&__check_record_poc.cond}, hstd::ext::unidata::VerifyCb{&__check_record_poc.condlazy}, hstd::ext::unidata::VerifyCb{&__check_record_poc.all}, hstd::ext::unidata::VerifyCb{&__check_record_poc.exists}, hstd::ext::unidata::VerifyCb{&__check_record_poc.existsone}, hstd::ext::unidata::VerifyCb{&__check_record_poc.map}, hstd::ext::unidata::VerifyCb{&__check_record_poc.filter}, hstd::ext::unidata::VerifyCb{&__check_record_poc.filtermap}, hstd::ext::unidata::VerifyCb{&__check_record_poc.takewhile}, hstd::ext::unidata::VerifyCb{&__check_record_poc.groupby}, hstd::ext::unidata::VerifyCb{&__check_record_poc.fold}, hstd::ext::unidata::VerifyCb{&__check_record_poc.walk}, hstd::ext::unidata::VerifyCb{&__check_record_poc.sum}, hstd::ext::unidata::VerifyCb{&__check_record_poc.min}, hstd::ext::unidata::VerifyCb{&__check_record_poc.max}, hstd::ext::unidata::VerifyCb{&__check_record_poc.strsize}, hstd::ext::unidata::VerifyCb{&__check_record_poc.strmatches}, hstd::ext::unidata::VerifyCb{&__check_record_poc.strformat}, hstd::ext::unidata::VerifyCb{&__check_record_poc.listsize}, hstd::ext::unidata::VerifyCb{&__check_record_poc.listcontains}, hstd::ext::unidata::VerifyCb{&__check_record_poc.listat}, hstd::ext::unidata::VerifyCb{&__check_record_poc.listslice}, hstd::ext::unidata::VerifyCb{&__check_record_poc.listslicebounds}, hstd::ext::unidata::VerifyCb{&__check_record_poc.listconcat}, hstd::ext::unidata::VerifyCb{&__check_record_poc.listempty}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapsize}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapcontains}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapget}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapinsert}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapreplace}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapkeys}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapvalues}, hstd::ext::unidata::VerifyCb{&__check_record_poc.mapempty}, hstd::ext::unidata::VerifyCb{&__check_record_poc.opthasvalue}, hstd::ext::unidata::VerifyCb{&__check_record_poc.optvalue}, hstd::ext::unidata::VerifyCb{&__check_record_poc.caseis}, hstd::ext::unidata::VerifyCb{&__check_record_poc.casewhich}, hstd::ext::unidata::VerifyCb{&__check_record_poc.casefield}, hstd::ext::unidata::VerifyCb{&__check_record_poc.enumis}, hstd::ext::unidata::VerifyCb{&__check_record_poc.nthget}, hstd::ext::unidata::VerifyCb{&__check_record_poc.isderived}, hstd::ext::unidata::VerifyCb{&__check_record_poc.typecond}, hstd::ext::unidata::VerifyCb{&__check_record_poc.typecondoptional}, hstd::ext::unidata::VerifyCb{&__check_record_poc.typeof}, hstd::ext::unidata::VerifyCb{&__check_record_poc.pathof}, hstd::ext::unidata::VerifyCb{&__check_record_poc.emptycollections}}}
+      {hstd::ext::unidata::VerifyKey{"OperationChecks", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_poc_Eq}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Ne}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Lt}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Le}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Add}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Sub}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Mul}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Div}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ConstFloat}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ConstBool}, hstd::ext::unidata::VerifyCb{&__check_record_poc_And}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Or}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Not}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Cond}, hstd::ext::unidata::VerifyCb{&__check_record_poc_CondLazy}, hstd::ext::unidata::VerifyCb{&__check_record_poc_All}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Exists}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ExistsOne}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Map}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Filter}, hstd::ext::unidata::VerifyCb{&__check_record_poc_FilterMap}, hstd::ext::unidata::VerifyCb{&__check_record_poc_TakeWhile}, hstd::ext::unidata::VerifyCb{&__check_record_poc_GroupBy}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Fold}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Walk}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Sum}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Min}, hstd::ext::unidata::VerifyCb{&__check_record_poc_Max}, hstd::ext::unidata::VerifyCb{&__check_record_poc_StrSize}, hstd::ext::unidata::VerifyCb{&__check_record_poc_StrMatches}, hstd::ext::unidata::VerifyCb{&__check_record_poc_StrFormat}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSize}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ListContains}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ListAt}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSlice}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSliceBounds}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ListConcat}, hstd::ext::unidata::VerifyCb{&__check_record_poc_ListEmpty}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapSize}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapContains}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapGet}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapInsert}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapReplace}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapKeys}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapValues}, hstd::ext::unidata::VerifyCb{&__check_record_poc_MapEmpty}, hstd::ext::unidata::VerifyCb{&__check_record_poc_OptHasValue}, hstd::ext::unidata::VerifyCb{&__check_record_poc_OptValue}, hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseIs}, hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseWhich}, hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseField}, hstd::ext::unidata::VerifyCb{&__check_record_poc_EnumIs}, hstd::ext::unidata::VerifyCb{&__check_record_poc_NthGet}, hstd::ext::unidata::VerifyCb{&__check_record_poc_IsDerived}, hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeCond}, hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeCondOptional}, hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeOf}, hstd::ext::unidata::VerifyCb{&__check_record_poc_PathOf}, hstd::ext::unidata::VerifyCb{&__check_record_poc_EmptyCollections}}}
       }};
   return &checks;
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_text_textcheck(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::FieldChecks const*>(value);
   auto const& expr0 = (*(&this_obj->text));
   auto const& expr1 = static_cast<int64_t>(0);
@@ -2217,11 +2148,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_t
     return hstd::ext::unidata::VerifyResult::Ok();
   } else {
     auto const& expr4 = hstd::ext::unidata::eval_str_size(&expr0);
-    auto const& expr5 = hstd::ext::unidata::eval_str_format("text length is %d", expr4);
+    auto const& expr5 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("text length is %d"), expr4);
     return hstd::ext::unidata::VerifyResult::Error(expr5);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_numbers_numberscheck(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_numbers_numbers_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::FieldChecks const*>(value);
   auto const& expr0 = (*(&this_obj->numbers));
   auto callback4 = [&](auto const& item1) {
@@ -2233,19 +2164,19 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_n
   if (expr5) {
     return hstd::ext::unidata::VerifyResult::Ok();
   } else {
-    auto const& expr6 = hstd::ext::unidata::eval_str_format("values=%s", expr0);
+    auto const& expr6 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("values=%s"), expr0);
     return hstd::ext::unidata::VerifyResult::Error(expr6);
   }
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::FieldChecks::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
    = {{
-      {hstd::ext::unidata::VerifyKey{"FieldChecks", "text"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_text_textcheck}}},
-      {hstd::ext::unidata::VerifyKey{"FieldChecks", "numbers"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_numbers_numberscheck}}}
+      {hstd::ext::unidata::VerifyKey{"FieldChecks", "text"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_text_text_check}}},
+      {hstd::ext::unidata::VerifyKey{"FieldChecks", "numbers"}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_numbers_numbers_check}}}
       }};
   return &checks;
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::MessageChecks::__check_record_formatmessage(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::MessageChecks::__check_record_format_message(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::MessageChecks const*>(value);
   auto const& expr0 = (*(this_obj));
   auto const& expr1 = expr0.number;
@@ -2265,39 +2196,22 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::MessageChecks::__check
     auto const& expr12 = expr0.details;
     auto const& expr13 = hstd::Str{"detail"};
     auto const& expr14 = expr12.at(expr13);
-    auto const& expr15 = hstd::ext::unidata::eval_str_format("n=%d real=%f sci=%e hex=%x oct=%o flag=%b text=%s list=%s lookup=%d %%", expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
+    auto const& expr15 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("n=%d real=%f sci=%e hex=%x oct=%o flag=%b text=%s list=%s lookup=%d %%"), expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
     return hstd::ext::unidata::VerifyResult::Error(expr15);
   }
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::MessageChecks::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
    = {{
-      {hstd::ext::unidata::VerifyKey{"MessageChecks", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_formatmessage}}}
+      {hstd::ext::unidata::VerifyKey{"MessageChecks", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_format_message}}}
       }};
   return &checks;
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_graphuniquenodeids(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_graph_unique_node_ids(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::Graph const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
-  auto const& expr1 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr0);
+  auto const& expr1 = hstd::ext::unidata::eval_walk(expression_runtime, expr0);
   auto callback5 = [&](auto const& item2) {
                    std::optional<hstd::unidata_dsl::test::Node> result3 = std::nullopt;
                    if (!(result3.has_value())) {
@@ -2325,7 +2239,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   if (expr17) {
     return hstd::ext::unidata::VerifyResult::Ok();
   } else {
-    auto const& expr18 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr0);
+    auto const& expr18 = hstd::ext::unidata::eval_walk(expression_runtime, expr0);
     auto callback22 = [&](auto const& item19) {
                       std::optional<hstd::unidata_dsl::test::Node> result20 = std::nullopt;
                       if (!(result20.has_value())) {
@@ -2349,42 +2263,25 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       auto const& expr32 = (expr30 < expr31);
                       return expr32;
                       };
-    auto const& expr34 = hstd::ext::unidata::eval_filter<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>>(expr28, callback33);
+    auto const& expr34 = hstd::ext::unidata::eval_filter<hstd::Vec<hstd::unidata_dsl::test::Node>>(expr28, callback33);
     auto callback40 = [&](auto const& item35) {
                       auto callback38 = [&](auto const& item36) {
                                         auto const& expr37 = expression_runtime.path_of(item36);
                                         return expr37;
                                         };
-                      auto const& expr39 = hstd::ext::unidata::eval_map<hstd::Vec<std::filesystem::path>>(item35, callback38);
+                      auto const& expr39 = hstd::ext::unidata::eval_map<std::filesystem::path>(item35, callback38);
                       return expr39;
                       };
-    auto const& expr41 = hstd::ext::unidata::eval_map<hstd::Vec<hstd::Vec<std::filesystem::path>>>(expr34, callback40);
-    auto const& expr42 = hstd::ext::unidata::eval_str_format("duplicate node ids at %s", expr41);
+    auto const& expr41 = hstd::ext::unidata::eval_map<hstd::Vec<std::filesystem::path>>(expr34, callback40);
+    auto const& expr42 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("duplicate node ids at %s"), expr41);
     return hstd::ext::unidata::VerifyResult::Error(expr42);
   }
 }
-hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_graphnodanglingedges(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
+hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_graph_no_dangling_edges(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj = static_cast<hstd::unidata_dsl::test::Graph const*>(value);
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
-  expression_runtime.index((*this_obj));
   auto const& expr0 = (*(this_obj));
-  auto const& expr1 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr0);
+  auto const& expr1 = hstd::ext::unidata::eval_walk(expression_runtime, expr0);
   auto callback5 = [&](auto const& item2) {
                    std::optional<hstd::unidata_dsl::test::Node> result3 = std::nullopt;
                    if (!(result3.has_value())) {
@@ -2400,7 +2297,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    auto const& expr8 = item7.id;
                    return expr8;
                    };
-  auto const& expr10 = hstd::ext::unidata::eval_map<hstd::Vec<hstd::Str>>(expr6, callback9);
+  auto const& expr10 = hstd::ext::unidata::eval_map<hstd::Str>(expr6, callback9);
   auto const& expr11 = expr0.edges;
   auto callback18 = [&](auto const& item12) {
                     bool condition13 = true;
@@ -2420,7 +2317,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   if (expr19) {
     return hstd::ext::unidata::VerifyResult::Ok();
   } else {
-    auto const& expr20 = hstd::ext::unidata::eval_walk<hstd::Vec<hstd::ext::unidata::EvalDynamic>>(expression_runtime, expr0);
+    auto const& expr20 = hstd::ext::unidata::eval_walk(expression_runtime, expr0);
     auto callback24 = [&](auto const& item21) {
                       std::optional<hstd::unidata_dsl::test::Node> result22 = std::nullopt;
                       if (!(result22.has_value())) {
@@ -2436,7 +2333,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       auto const& expr27 = item26.id;
                       return expr27;
                       };
-    auto const& expr29 = hstd::ext::unidata::eval_map<hstd::Vec<hstd::Str>>(expr25, callback28);
+    auto const& expr29 = hstd::ext::unidata::eval_map<hstd::Str>(expr25, callback28);
     auto const& expr30 = expr0.edges;
     auto callback38 = [&](auto const& item31) {
                       bool condition32 = true;
@@ -2453,20 +2350,20 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       auto const& expr37 = !(condition32);
                       return expr37;
                       };
-    auto const& expr39 = hstd::ext::unidata::eval_filter<hstd::Vec<hstd::unidata_dsl::test::Edge>>(expr30, callback38);
+    auto const& expr39 = hstd::ext::unidata::eval_filter<hstd::unidata_dsl::test::Edge>(expr30, callback38);
     auto callback42 = [&](auto const& item40) {
                       auto const& expr41 = expression_runtime.path_of(item40);
                       return expr41;
                       };
-    auto const& expr43 = hstd::ext::unidata::eval_map<hstd::Vec<std::filesystem::path>>(expr39, callback42);
-    auto const& expr44 = hstd::ext::unidata::eval_str_format("dangling edges at %s", expr43);
+    auto const& expr43 = hstd::ext::unidata::eval_map<std::filesystem::path>(expr39, callback42);
+    auto const& expr44 = hstd::ext::unidata::eval_str_format(hstd::ext::unidata::eval_str_pattern("dangling edges at %s"), expr43);
     return hstd::ext::unidata::VerifyResult::Error(expr44);
   }
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Graph::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
    = {{
-      {hstd::ext::unidata::VerifyKey{"Graph", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_graphuniquenodeids}, hstd::ext::unidata::VerifyCb{&__check_record_graphnodanglingedges}}}
+      {hstd::ext::unidata::VerifyKey{"Graph", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_graph_unique_node_ids}, hstd::ext::unidata::VerifyCb{&__check_record_graph_no_dangling_edges}}}
       }};
   return &checks;
 }

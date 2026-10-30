@@ -158,12 +158,12 @@ class GenConverter:
 
             for nested in record.Nested:
                 assert not isinstance(nested, codegen_ir.GenTuTypeGroup), (
-                    "Nested type group expansion was not completed"
+                    f"Nested type group expansion was not completed: {[t.Name.format() for t in nested.types]}"
                 )
 
             fields = [self.ast.string(field.Name) for field in record.Fields]
             methods = [
-                self.ast.b.line(
+                self.ast.line(
                     [
                         self.ast.string("("),
                         self.ast.Type(method.ReturnType),
@@ -347,7 +347,7 @@ class GenConverter:
             FromDefinition = FromParams
             ToDefininition = ToParams
 
-            res = self.ast.b.stack(
+            res = self.ast.stack(
                 [
                     self.ast.Enum(params),
                     self.ast.stack(Describe),
@@ -360,7 +360,7 @@ class GenConverter:
                 self.ast.string(Field.Name) for Field in entry.Fields
             ]
 
-            return self.ast.b.stack(
+            return self.ast.stack(
                 [
                     self.ast.Enum(params),
                     self.ast.XCall("BOOST_DESCRIBE_NESTED_ENUM", arguments),
@@ -368,11 +368,11 @@ class GenConverter:
             )
 
     def convertNamespace(self, space: codegen_ir.GenTuNamespace) -> BlockId:
-        result = self.ast.b.stack([])
+        result = self.ast.stack([])
         with codegen_cpp.GenConverterWithContext(self, space.name.asNamespace()):
             self.ast.b.add_at(
                 result,
-                self.ast.b.line(
+                self.ast.line(
                     [
                         self.ast.string("namespace "),
                         self.ast.Type(space.name),

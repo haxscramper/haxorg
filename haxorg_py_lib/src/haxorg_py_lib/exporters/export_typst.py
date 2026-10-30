@@ -209,7 +209,7 @@ class ExporterTypst(ExporterBase):
                 args={
                     a.varname: typ.RawLiteral(a.getString()) for a in node.getAttrs("arg")
                 },
-                body=[typ.RawBlock(self.t.b.stack([(self.eval(it)) for it in node]))],
+                body=[typ.RawBlock(self.t.stack([(self.eval(it)) for it in node]))],
             )
 
         else:

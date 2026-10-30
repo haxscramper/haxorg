@@ -24,7 +24,7 @@ class AstLineCtx:
         return self
 
     def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
-        line_id = self.builder.b.line(self.block_ids)
+        line_id = self.builder.line(self.block_ids)
         self.builder.last_result = line_id
         self.builder.context_stack.pop()
         if self.builder.context_stack:
@@ -43,7 +43,7 @@ class AstIndentCtx:
 
     def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         Indent_id = self.builder.b.indent(
-            self.indent_size, self.builder.b.stack(self.block_ids)
+            self.indent_size, self.builder.stack(self.block_ids)
         )
         self.builder.last_result = Indent_id
         self.builder.context_stack.pop()
@@ -61,7 +61,7 @@ class AstStackCtx:
         return self
 
     def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
-        stack_id = self.builder.b.stack(self.block_ids)
+        stack_id = self.builder.stack(self.block_ids)
         self.builder.last_result = stack_id
         self.builder.context_stack.pop()
         if self.builder.context_stack:
@@ -147,7 +147,7 @@ class AstbuilderBase:
             return self.stack(*args)
 
     def indent(self, indent: int, *args: BlockId) -> BlockId:
-        return self.b.indent(indent, self.b.stack(args))
+        return self.b.indent(indent, self.stack(args))
 
     def init_list(self, elements: List[BlockId], isLine: bool = True) -> BlockId:
         return self.brace([self.csv(elements, isLine=isLine)], IsLine=isLine)
@@ -161,18 +161,18 @@ class AstbuilderBase:
     ) -> BlockId:
         body = [
             self.string(left),
-            self.b.stack(elements),
+            self.stack(elements),
             self.string(right),
         ]
 
         if IsLine:
-            return self.b.line(body)
+            return self.line(body)
 
         else:
-            return self.b.stack(body)
+            return self.stack(body)
 
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
-        return self.b.line([self.string(left), arg, self.string(right)])
+        return self.line([self.string(left), arg, self.string(right)])
 
     def sep_stack(self, args: List[BlockId]) -> BlockId:
         res: List[BlockId] = []
@@ -182,7 +182,7 @@ class AstbuilderBase:
 
             res.append(value)
 
-        return self.b.stack(res)
+        return self.stack(res)
 
     def csv(
         self,

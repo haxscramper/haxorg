@@ -145,13 +145,13 @@ class ASTBuilder(base.AstbuilderBase):
     def Type(self, t: Type) -> BlockId:
         match t.Kind:
             case TypeKind.Function:
-                return self.b.line(
+                return self.line(
                     [
                         self.string("proc "),
                         self.pars(
                             self.csv(
                                 [
-                                    self.b.line(
+                                    self.line(
                                         [
                                             self.string("a" + str(idx)),
                                             self.string(": "),
@@ -179,12 +179,12 @@ class ASTBuilder(base.AstbuilderBase):
 
                 if 0 < len(t.Parameters):
                     if t.Name == "ptr":
-                        return self.b.line(
+                        return self.line(
                             [head, self.string(" "), self.Type(t.Parameters[0])]
                         )
 
                     else:
-                        return self.b.line(
+                        return self.line(
                             [
                                 head,
                                 self.pars(
@@ -199,7 +199,7 @@ class ASTBuilder(base.AstbuilderBase):
                     return head
 
     def Typedef(self, typedef: TypedefParams) -> BlockId:
-        return self.b.line(
+        return self.line(
             [
                 self.string(typedef.Name),
                 self.string("*" if typedef.Exported else ""),
@@ -209,7 +209,7 @@ class ASTBuilder(base.AstbuilderBase):
         )
 
     def EnumField(self, f: EnumFieldParams, padTo: int = 0) -> BlockId:
-        return self.b.line(
+        return self.line(
             [
                 self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
                 *([] if f.Value is None else [self.string(" = "), f.Value]),
@@ -225,7 +225,7 @@ class ASTBuilder(base.AstbuilderBase):
                 return self.string(str(value))
 
     def Enum(self, enum: EnumParams) -> BlockId:
-        head = self.b.line(
+        head = self.line(
             [
                 self.string(self.conf.getSanitizedIdent(enum.Name)),
                 self.string("*" if enum.Exported else ""),
@@ -239,12 +239,12 @@ class ASTBuilder(base.AstbuilderBase):
             [len(self.conf.getSanitizedIdent(f.Name)) for f in enum.Fields] + [0]
         )
 
-        return self.b.stack(
+        return self.stack(
             [
                 head,
                 self.b.indent(
                     2,
-                    self.b.stack(
+                    self.stack(
                         [self.EnumField(f, padTo=field_widths) for f in enum.Fields]
                     ),
                 ),
@@ -252,7 +252,7 @@ class ASTBuilder(base.AstbuilderBase):
         )
 
     def Function(self, func: FunctionParams) -> BlockId:
-        head = self.b.line(
+        head = self.line(
             [
                 self.string(str(func.Kind.name).lower() + " "),
                 self.string(self.conf.getSanitizedIdent(func.Name)),
@@ -304,7 +304,7 @@ class ASTBuilder(base.AstbuilderBase):
         return self.Result()
 
     def Field(self, f: IdentParams, padTo: int = 0) -> BlockId:
-        return self.b.line(
+        return self.line(
             [
                 self.string(self.conf.getSanitizedIdent(f.Name).ljust(padTo)),
                 self.string("*" if f.Exported else ""),
@@ -315,7 +315,7 @@ class ASTBuilder(base.AstbuilderBase):
         )
 
     def Pragma(self, p: PragmaParams) -> BlockId:
-        return self.b.line(
+        return self.line(
             [
                 self.string(self.conf.getSanitizedIdent(p.Name)),
                 *(
@@ -353,9 +353,9 @@ class ASTBuilder(base.AstbuilderBase):
 
         match p.FormatMode:
             case ImportParamsMode.Single:
-                return self.b.stack(
+                return self.stack(
                     [
-                        self.b.line(
+                        self.line(
                             [self.string("import "), quot(it.Name), comm(it.Comment)]
                         )
                         for it in p.Imported
@@ -363,12 +363,12 @@ class ASTBuilder(base.AstbuilderBase):
                 )
 
             case ImportParamsMode.Oneline:
-                return self.b.line(
+                return self.line(
                     [
                         self.string("import "),
                         self.csv(
                             [
-                                self.b.line([quot(it.Name), comm(it.Comment)])
+                                self.line([quot(it.Name), comm(it.Comment)])
                                 for it in p.Imported
                             ]
                         ),
@@ -377,7 +377,7 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Pragmas(self, pragmas: List[PragmaParams]) -> BlockId:
         return (
-            self.b.line(
+            self.line(
                 [
                     self.string(" {."),
                     self.csv([self.Pragma(p) for p in pragmas]),
@@ -389,7 +389,7 @@ class ASTBuilder(base.AstbuilderBase):
         )
 
     def Object(self, Obj: ObjectParams) -> BlockId:
-        head = self.b.line(
+        head = self.line(
             [
                 self.string(Obj.Name),
                 self.string("*" if Obj.Exported else ""),
@@ -403,12 +403,12 @@ class ASTBuilder(base.AstbuilderBase):
             max([len(self.conf.getSanitizedIdent(f.Name)) for f in Obj.Fields] + [0]) + 1
         )
 
-        return self.b.stack(
+        return self.stack(
             [
                 head,
                 self.b.indent(
                     2,
-                    self.b.stack([self.Field(f, padTo=field_widths) for f in Obj.Fields]),
+                    self.stack([self.Field(f, padTo=field_widths) for f in Obj.Fields]),
                 ),
             ]
         )

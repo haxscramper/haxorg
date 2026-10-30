@@ -609,7 +609,7 @@ class WasmModule:
         )
 
     def build_bind(self, ast: cpp.ASTBuilder, b: cpp.ASTBuilder) -> BlockId:
-        Result = b.b.stack()
+        Result = b.stack()
 
         Body = []
         SubdivideBody: List[BlockId] = []

@@ -196,7 +196,7 @@ class ASTBuilder(base.AstbuilderBase):
             if isinstance(values, list):
                 for it in values:
                     arglist.append(
-                        self.b.line(
+                        self.line(
                             [
                                 self.expr(it),
                                 self.string(cond(isLine, ", ", ",")),
@@ -211,7 +211,7 @@ class ASTBuilder(base.AstbuilderBase):
 
         for key in sorted(args.keys()):
             arglist.append(
-                self.b.line(
+                self.line(
                     [
                         self.string(key),
                         self.string(": "),
@@ -236,11 +236,11 @@ class ASTBuilder(base.AstbuilderBase):
                 ),
                 *maybe_splice(
                     arglist,
-                    self.b.line(arglist)
+                    self.line(arglist)
                     if isLine
                     else self.b.indent(
                         2,
-                        self.b.stack(arglist),
+                        self.stack(arglist),
                     ),
                 ),
                 *maybe_splice(
@@ -322,7 +322,7 @@ class ASTBuilder(base.AstbuilderBase):
                 return self.b.pars(
                     self.b.csv(
                         [
-                            self.b.line(
+                            self.line(
                                 [
                                     self.string(key),
                                     self.string(": "),

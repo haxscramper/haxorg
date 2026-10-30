@@ -166,7 +166,7 @@ def _gen_sem_org_serde(
                 GenTuPass(ast.Macro(proto.get_any_node_field_mapping())),
             ]
             + [
-                GenTuPass(ast.b.stack([ast.Any(rec), ast.b.text("")]))
+                GenTuPass(ast.stack([ast.Any(rec), ast.b.text("")]))
                 for rec in protobuf_writer_declarations
             ]
             + [
@@ -183,7 +183,7 @@ def _gen_sem_org_serde(
                 ),
             ]
             + [
-                GenTuPass(ast.b.stack([ast.Any(rec), ast.b.text("")]))
+                GenTuPass(ast.stack([ast.Any(rec), ast.b.text("")]))
                 for rec in protobuf_writer_implementation
             ]
             + [

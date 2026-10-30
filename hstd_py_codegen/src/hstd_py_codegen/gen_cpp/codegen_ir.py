@@ -1266,7 +1266,7 @@ class GenTuStruct:
     Methods: List[GenTuFunction] = field(default_factory=list)
     "List of methods directly in the structure"
     Bases: List[QualType] = field(default_factory=list)
-    Nested: List[
+    Nested: Sequence[
         Union[
             GenTuEnum,
             "GenTuStruct",
