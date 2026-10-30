@@ -567,12 +567,15 @@ for model_cls in (
 
 
 @beartype
-def expr_tree_repr(expr: ExprNode) -> IndentedTree:
+def expr_tree_repr(
+    expr: ExprNode,
+    with_expr_id: bool = True,
+) -> IndentedTree:
     @beartype
     def label(node: ExprNode) -> Text:
         parts = []
 
-        if node.expr_id is not None:
+        if node.expr_id is not None and with_expr_id:
             parts.append(f"{node.op}:{node.expr_id!r}")
 
         else:

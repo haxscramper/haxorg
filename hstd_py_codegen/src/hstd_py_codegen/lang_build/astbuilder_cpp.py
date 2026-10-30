@@ -496,7 +496,11 @@ class ASTBuilder(base.AstbuilderBase):
         self, text: List[str] | str, Inline: bool = True, Doc: bool = False
     ) -> BlockId:
         if isinstance(text, str):
-            text = [text]
+            if "\n" in text:
+                text = text.split("\n")
+
+            else:
+                text = [text]
 
         if Inline:
             content = self.stack([])
@@ -508,8 +512,10 @@ class ASTBuilder(base.AstbuilderBase):
             )
         else:
             result = self.stack([])
+
             for line in text:
                 self.b.add_at(result, self.string(f"/// {line}" if Doc else f"// {line}"))
+
             return result
 
     def StringLiteral(
@@ -1328,6 +1334,13 @@ class ASTBuilder(base.AstbuilderBase):
 
     def Arrow(self, lhs: BlockId, rhs: BlockId) -> BlockId:
         return self.line([lhs, self.string("->"), rhs])
+
+    def Deref(self, lhs: BlockId, count: int = 1) -> BlockId:
+        result = self.line([self.string("*"), lhs])
+        for _ in range(1, count):
+            result = self.pars(self.line([self.string("*"), result]))
+
+        return result
 
     def Doc(self, doc: DocParams) -> BlockId:
         content: List[str] = []

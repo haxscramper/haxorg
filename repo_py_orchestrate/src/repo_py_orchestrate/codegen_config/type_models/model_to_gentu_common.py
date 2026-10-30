@@ -53,6 +53,13 @@ CPP_CB_T = QualType(Name="VerifyCb", Spaces=[CPP_SPACE_T])
 CPP_CB_LIST_T = QualType(Name="VerifyCbList", Spaces=[CPP_SPACE_T])
 CPP_KEY_T = QualType(Name="VerifyKey", Spaces=[CPP_SPACE_T])
 CPP_VERIFY_COLLECTION_T = QualType(Name="VerifyCheckCollection", Spaces=[CPP_SPACE_T])
+CPP_UNI_T = QualType(Name="UniValue", Spaces=[CPP_SPACE_T])
+CPP_STATIC_T = QualType(Name="StaticT", Spaces=[CPP_SPACE_T])
+CPP_AUTO_T = QualType(Name="auto")
+
+
+def uni_static_t(param: QualType):
+    return CPP_UNI_T.withTemplateParams([CPP_STATIC_T.withTemplateParams([param])])
 
 
 @beartype
@@ -227,8 +234,11 @@ class TypeTranslation:
         name = options.get("variant_name", "Data")
         return self.declaration_type(package, owner.nested(name))
 
-    def type(self, typ: TypeRef, package: str) -> QualType:
-        def wrap_annotation(result: QualType) -> QualType:
+    def type(self, typ: TypeRef, package: str, space: QualType = CPP_SPACE_T) -> QualType:
+        def wrap_result(result: QualType, container: bool = True) -> QualType:
+            if container:
+                result = result.withChangedSpace(space)
+
             if glom.glom(typ, "annotation.backend.cpp.is_ref", default=None):
                 logger.info("Got ref annotation")
                 return result.asConstRef()
@@ -252,35 +262,35 @@ class TypeTranslation:
                     PrimKind.STRING: "hstd::Str",
                     PrimKind.BOOL: "bool",
                     PrimKind.NONE: "void",
-                    PrimKind.PATH: "std::filesystem::path",
+                    PrimKind.PATH: "hstd::ext::unidata::UniPath",
                 }
                 if typ.prim == PrimKind.ANY:
                     raise NotImplementedError(
                         "PrimKind.ANY requires an explicit C++ type mapping",
                     )
 
-                return wrap_annotation(named_cpp_type(primitive_types[typ.prim]))
+                return wrap_result(named_cpp_type(primitive_types[typ.prim]))
 
             case NamedT():
-                return wrap_annotation(self.reference_type(package, typ.qname))
+                return wrap_result(self.reference_type(package, typ.qname))
 
             case ExternalT():
-                return wrap_annotation(self.reference_type(typ.package, typ.qname))
+                return wrap_result(self.reference_type(typ.package, typ.qname))
 
             case ListT():
-                return wrap_annotation(
+                return wrap_result(
                     named_cpp_type(
-                        "hstd::Vec",
-                        [self.type(typ.elem, package)],
+                        "UniVec",
+                        [self.type(typ.elem, package, space=space)],
                     )
                 )
 
             case ArrayT():
-                return wrap_annotation(
+                return wrap_result(
                     named_cpp_type(
-                        "std::array",
+                        "UniArray",
                         [
-                            self.type(typ.elem, package),
+                            self.type(typ.elem, package, space=space),
                             QualType(
                                 Kind=QualTypeKind.TypeExpr,
                                 Expr=str(typ.size),
@@ -290,47 +300,46 @@ class TypeTranslation:
                 )
 
             case MapT():
-                return wrap_annotation(
+                return wrap_result(
                     named_cpp_type(
-                        "hstd::UnorderedMap",
+                        "UniMap",
                         [
-                            self.type(typ.key, package),
-                            self.type(typ.value, package),
+                            self.type(typ.key, package, space=space),
+                            self.type(typ.value, package, space=space),
                         ],
                     )
                 )
 
             case OptT():
-                return wrap_annotation(
+                return wrap_result(
                     named_cpp_type(
-                        "hstd::Opt",
-                        [self.type(typ.elem, package)],
+                        "UniOpt",
+                        [self.type(typ.elem, package, space=space)],
                     )
                 )
 
             case TupleT():
-                return wrap_annotation(
+                return wrap_result(
                     named_cpp_type(
-                        "std::tuple",
-                        [self.type(elem, package) for elem in typ.elems],
+                        "UniTuple",
+                        [self.type(elem, package, space=space) for elem in typ.elems],
                     )
                 )
 
             case VariantT():
-                return wrap_annotation(self.variant_type(package, typ.owner, typ.field))
+                return wrap_result(self.variant_type(package, typ.owner, typ.field))
 
             case TypeParamT():
-                return wrap_annotation(
+                return wrap_result(
                     QualType(
                         Name=typ.name,
                         IsTemplateTypeParam=True,
-                    )
+                    ),
+                    container=False,
                 )
 
             case DynT():
-                raise NotImplementedError(
-                    "DynT has no fixed C++ storage representation",
-                )
+                return wrap_result(named_cpp_type("DynamicT"))
 
             case UnresolvedT():
                 raise ValueError(

@@ -70,7 +70,6 @@ struct VerifyCheckCollection {
     hstd::UnorderedMap<VerifyKey, VerifyCbList> checks;
 };
 
-struct VerifyContext {};
 
 struct VerifyResultCollection {
     hstd::Vec<VerifyResult> results;
@@ -94,34 +93,6 @@ concept IsUnidataClass = requires(T& value) {
     requires std::is_pointer_v<decltype(&T::unidata_id)>;
 };
 
-template <typename T>
-hstd::Vec<VerifyResult> verify_one_with_bases(VerifyContext const& ctx, T const& data) {
-    if constexpr (IsUnidataClass<std::remove_cvref_t<T>>) {
-        std::string const&      class_id{T::unidata_id};
-        hstd::Vec<VerifyResult> result;
-        VerifyKey               class_key{class_id, std::nullopt};
-        auto const&             check_map = data.get_unidata_checks()->checks;
-        if (check_map.contains(class_key)) {
-            for (VerifyCb const& check : check_map.at(class_key)) {
-                result.push_back(check(&ctx, (void const*)&data));
-            }
-        }
-
-        hstd::for_each_field_no_base<T>([&](auto const& field) {
-            VerifyKey field_key{class_id, field.name};
-            if (check_map.contains(field_key)) {
-                for (VerifyCb const& check : check_map.at(field_key)) {
-                    result.push_back(check(&ctx, (void const*)&data));
-                }
-            }
-        });
-
-        return result;
-
-    } else {
-        return {};
-    }
-}
 
 struct UnidataTag {
     // TODO: string for now, later might use faster solution from the immutable AST
@@ -159,10 +130,46 @@ using UniAccessStep      = hstd::ReflAccessStep<UnidataTag>;
 using UniValueAccessPath = hstd::ReflValueAccessPath<UnidataTag>;
 
 
+struct VerifyContext {
+    UniValueAccessPath const* active_path;
+
+    UniValueAccessPath const& getPath() const { return *active_path; }
+};
+
+
+template <typename T>
+hstd::Vec<VerifyResult> verify_one_with_bases(VerifyContext const& ctx, T const& data) {
+    if constexpr (IsUnidataClass<std::remove_cvref_t<T>>) {
+        std::string const&      class_id{T::unidata_id};
+        hstd::Vec<VerifyResult> result;
+        VerifyKey               class_key{class_id, std::nullopt};
+        auto const&             check_map = data.get_unidata_checks()->checks;
+        if (check_map.contains(class_key)) {
+            for (VerifyCb const& check : check_map.at(class_key)) {
+                result.push_back(check(&ctx, (void const*)&data));
+            }
+        }
+
+        hstd::for_each_field_no_base<T>([&](auto const& field) {
+            VerifyKey field_key{class_id, field.name};
+            if (check_map.contains(field_key)) {
+                for (VerifyCb const& check : check_map.at(field_key)) {
+                    result.push_back(check(&ctx, (void const*)&data));
+                }
+            }
+        });
+
+        return result;
+
+    } else {
+        return {};
+    }
+}
+
 template <typename T>
 VerifyResultCollection verify_all(T const& data) {
     VerifyResultCollection result;
-    VerifyContext          verfiy_ctx;
+
 
     ReflRecursiveVisitContext ctx;
     reflVisitAll<T, UnidataTag>(
@@ -172,6 +179,9 @@ VerifyResultCollection verify_all(T const& data) {
         [&]<typename FieldType>(
             ReflValueAccessPath<UnidataTag>::VisitCtx const& path,
             FieldType const&                                 field) {
+            UniValueAccessPath active_path = path.toPath();
+            VerifyContext      verfiy_ctx;
+            verfiy_ctx.active_path = &active_path;
             result.results.append(verify_one_with_bases(verfiy_ctx, field));
         });
 
@@ -221,15 +231,17 @@ struct DynamicT {
 template <NonWrapperArg T>
 struct StaticT {
   private:
-    std::shared_ptr<T> value;
-    StaticT(std::shared_ptr<T> const& value) : value{value} {}
+    std::shared_ptr<T const> value;
+    StaticT(std::shared_ptr<T const> const& value) : value{value} {}
 
   public:
     static StaticT<T> FromLValue(T const* value) {
-        return std::shared_ptr<T>(value, [](T const*) {});
+        return std::shared_ptr<T const>(value, [](T const*) {});
     }
 
-    static StaticT<T> FromRValue(T const& value) { return std::shared_ptr<T>(value); }
+    static StaticT<T> FromRValue(T const& value) {
+        return std::make_shared<T const>(value);
+    }
 
     using value_type = T;
 
@@ -261,21 +273,69 @@ struct UniValue {
     }
 
     template <NonWrapperArg SubItem>
-    UniValue<SubItem> CallResult(SubItem const& value, std::string const& func_name) {
+    static UniValue<StaticT<SubItem>> RootValue(
+        SubItem const*            value,
+        UniValueAccessPath const& supath) {
+        return UniValue<StaticT<SubItem>>(value, supath);
+    }
+
+    template <NonWrapperArg SubItem>
+    static UniValue<StaticT<SubItem>> SubExprNoContext(
+        SubItem const&     value,
+        std::string const& func_name) {
+        return UniValue<StaticT<SubItem>>(
+            StaticT<SubItem>::FromRValue(value),
+            UniValueAccessPath(UniAccessStep::FieldName(func_name)));
+    }
+
+
+    template <NonWrapperArg SubItem>
+    UniValue<StaticT<SubItem>> CallResult(
+        SubItem const&     value,
+        std::string const& func_name) const {
         return UniValue<SubItem>(
-            value, path.add(UniAccessStep::FieldName(hstd::fmt("{}()", func_name))));
+            StaticT<SubItem>::FromLValue(value),
+            path.add(UniAccessStep::FieldName(hstd::fmt("{}()", func_name))));
     }
 
     template <NonWrapperArg SubItem>
-    UniValue<SubItem> Field(SubItem const* value, char const* field) {
-        return UniValue<SubItem>(value, path.add(UniAccessStep::FieldName(field)));
+    UniValue<StaticT<SubItem>> Field(SubItem const* value, char const* field) const {
+        return UniValue<StaticT<SubItem>>(
+            StaticT<SubItem>::FromLValue(value),
+            path.add(UniAccessStep::FieldName(field)));
+    }
+
+    template <NonWrapperArg SubItem, NonWrapperArg Key>
+    UniValue<StaticT<SubItem>> AtMap(SubItem const* value, Key const* key) const {
+        return UniValue<StaticT<SubItem>>(
+            StaticT<SubItem>::FromLValue(value),
+            path.add(UniAccessStep::AnyKey(hstd::fmt1(*key))));
+    }
+
+    template <NonWrapperArg SubItem, NonWrapperArg Key>
+    UniValue<StaticT<SubItem>> AtIndex(SubItem const* value, Key const* key) const {
+        return UniValue<StaticT<SubItem>>(
+            StaticT<SubItem>::FromLValue(value), path.add(UniAccessStep::Index(key)));
     }
 
     template <NonWrapperArg SubItem>
-    UniValue<SubItem> Path(SubItem const* value, UniValueAccessPath const& supath) {
-        return UniValue<SubItem>(value, path.add(supath));
+    UniValue<StaticT<SubItem>> Path(
+        SubItem const*            value,
+        UniValueAccessPath const& supath) const {
+        return UniValue<StaticT<SubItem>>(
+            StaticT<SubItem>::FromLValue(value), path.add(supath));
+    }
+
+    template <NonWrapperArg Item>
+    static UniValue<StaticT<Item>> FromConst(
+        Item const&        value,
+        std::string const& expr_value) {
+        return UniValue<StaticT<Item>>(
+            value, UniAccessStep::FieldName(hstd::fmt("<{}>", expr_value)));
     }
 };
+
+using UniPath = UniValueAccessPath;
 
 template <typename K, typename V>
 using UniMap = hstd::UnorderedMap<K, V>;
@@ -317,14 +377,102 @@ hstd::Vec<UniValue<DynamicT>> eval_walk(
     return result;
 }
 
-inline int eval_str_size(UniValue<StaticT<UniStr>> const& value) {
-    return static_cast<int>(value.get()->size());
+template <typename Res>
+UniValue<StaticT<Res>> eval_str_size(UniValue<StaticT<UniStr>> const& value) {
+    return UniValue<StaticT<UniStr>>::SubExprNoContext(
+        static_cast<int>(value.get()->size()), "str_size");
 }
 
-template <typename T1, typename T2>
-bool eval_equal(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
-    return *lhs.get() == *rhs.get();
+template <typename Res, typename T>
+UniValue<StaticT<UniPath>> eval_path_of(UniValue<T> const& value) {
+    return UniValue<StaticT<UniPath>>::SubExprNoContext(value.path, "path");
 }
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_eq(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() == *rhs.get(), "==");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_eq(UniValue<T1> const& lhs, T2 const& rhs) {
+    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() == rhs, "==");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_lt(UniValue<T1> const& lhs, T2 const& rhs) {
+    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() < rhs, "<");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_le(UniValue<T1> const& lhs, T2 const& rhs) {
+    return UniValue<StaticT<bool>>::SubExprNoContext(*lhs.get() <= rhs, "<=");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_ne(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniValue<StaticT<bool>>::SubExprNoContext(!(*lhs.get() == *rhs.get()), "!=");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_add(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniValue<StaticT<Res>>::SubExprNoContext(
+        static_cast<Res>(*lhs.get()) + static_cast<Res>(*rhs.get()), "+");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_sub(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniValue<StaticT<Res>>::SubExprNoContext(
+        static_cast<Res>(*lhs.get()) - static_cast<Res>(*rhs.get()), "+");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_div(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniValue<StaticT<Res>>::SubExprNoContext(
+        static_cast<Res>(*lhs.get()) / static_cast<Res>(*rhs.get()), "/");
+}
+
+template <typename Res, typename T1, typename T2>
+UniValue<StaticT<Res>> eval_mul(UniValue<T1> const& lhs, UniValue<T2> const& rhs) {
+    return UniValue<StaticT<Res>>::SubExprNoContext(
+        static_cast<Res>(*lhs.get()) * static_cast<Res>(*rhs.get()), "*");
+}
+
+template <typename Res, typename K, typename V>
+UniValue<StaticT<Res>> eval_map_get(
+    UniValue<StaticT<UniMap<K, V>>> const& lhs,
+    UniValue<StaticT<K>> const&            rhs) {
+    return UniValue<StaticT<Res>>::AtMap(lhs.get()->at(*rhs.get()), rhs.get());
+}
+
+template <typename Res, typename T>
+UniValue<StaticT<Res>> eval_list_size(UniValue<StaticT<T>> const& lhs) {
+    return UniValue<StaticT<Res>>::SubExprNoContext(lhs.get()->size(), "list_size");
+}
+
+template <typename Res, typename T, typename IntType>
+UniValue<StaticT<Res>> eval_list_at(
+    UniValue<StaticT<UniVec<T>>> const& lhs,
+    UniValue<StaticT<IntType>> const&   rhs) {
+    return UniValue<StaticT<Res>>::AtMap(lhs.get()->at(*rhs.get()), rhs.get());
+}
+
+
+template <typename Res, typename T>
+UniValue<StaticT<Res>> eval_list_concat(
+    UniValue<StaticT<UniVec<T>>> const& lhs,
+    UniValue<StaticT<UniVec<T>>> const& rhs) {
+    UniVec<T> result;
+    result.append(lhs);
+    result.append(rhs);
+    return UniValue<StaticT<Res>>::SubExprNoContext(result, "list_concat");
+}
+
+
+template <typename Res>
+UniValue<StaticT<bool>> eval_not(UniValue<StaticT<bool>> const& lhs) {
+    return UniValue<StaticT<bool>>::SubExprNoContext(!(*lhs.get()), "!");
+}
+
 
 struct str_format_pattern {};
 
