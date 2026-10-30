@@ -98,13 +98,19 @@ class ModelToGenTu:
             namespaces=DEFAULT_NAMESPACES,
             indexes=self.indexes,
             models=self.models,
+            is_internal_codegen=False,
         )
 
         self.check_gen = CheckGen(
             ast=self.ast,
             model=self.model,
             indexes=self.indexes,
-            type_map=self.type_map,
+            type_map=TypeTranslation(
+                namespaces=self.type_map.namespaces,
+                indexes=self.type_map.indexes,
+                models=self.type_map.models,
+                is_internal_codegen=self.type_map.is_internal_codegen,
+            ),
         )
 
     def field(
@@ -473,7 +479,7 @@ class ModelToGenTu:
                     self.ast.init_list(
                         [
                             self.ast.XConstructObj(
-                                CPP_KEY_T,
+                                CPP_KEY_T(),
                                 [
                                     self.ast.StringLiteral(check.class_type_name),
                                     self.ast.StringLiteral(check.class_field)
@@ -482,10 +488,10 @@ class ModelToGenTu:
                                 ],
                             ),
                             self.ast.XConstructObj(
-                                CPP_CB_LIST_T,
+                                CPP_CB_LIST_T(),
                                 Args=[
                                     self.ast.XConstructObj(
-                                        CPP_CB_T,
+                                        CPP_CB_T(),
                                         Args=[self.ast.Addr(self.ast.string(impl.Name))],
                                     )
                                     for impl in check.impl
@@ -500,12 +506,12 @@ class ModelToGenTu:
                     Name="get_unidata_checks",
                     ParentClass=DeclClass,
                     IsStatic=True,
-                    ReturnType=CPP_VERIFY_COLLECTION_T.asConstPtr(),
+                    ReturnType=CPP_VERIFY_COLLECTION_T().asConstPtr(),
                     Body=self.ast.stack(
                         [
                             self.ast.VarDecl(
                                 cpp.ParmVarParams(
-                                    type=CPP_VERIFY_COLLECTION_T,
+                                    type=CPP_VERIFY_COLLECTION_T(),
                                     name="checks",
                                     storage=cpp.StorageClass.Static,
                                     defArg=self.ast.init_list(

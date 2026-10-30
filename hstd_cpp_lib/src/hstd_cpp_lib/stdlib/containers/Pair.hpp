@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hstd_cpp_lib/system/reflection.hpp>
+#include <tuple>
 #include <utility>
 
 
@@ -8,6 +9,9 @@ namespace hstd {
 
 template <typename A, typename B>
 using Pair = std::pair<A, B>;
+
+template <typename... Args>
+using Tuple = std::tuple<Args...>;
 
 
 template <typename T>

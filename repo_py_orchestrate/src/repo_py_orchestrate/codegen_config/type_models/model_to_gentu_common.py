@@ -47,19 +47,47 @@ CPP_SPACE_T = QualType(
     ],
 )
 
-CPP_RESULT_T = QualType(Name="VerifyResult", Spaces=[CPP_SPACE_T])
-CPP_CONTEXT_T = QualType(Name="VerifyContext", Spaces=[CPP_SPACE_T])
-CPP_CB_T = QualType(Name="VerifyCb", Spaces=[CPP_SPACE_T])
-CPP_CB_LIST_T = QualType(Name="VerifyCbList", Spaces=[CPP_SPACE_T])
-CPP_KEY_T = QualType(Name="VerifyKey", Spaces=[CPP_SPACE_T])
-CPP_VERIFY_COLLECTION_T = QualType(Name="VerifyCheckCollection", Spaces=[CPP_SPACE_T])
-CPP_UNI_T = QualType(Name="UniValue", Spaces=[CPP_SPACE_T])
-CPP_STATIC_T = QualType(Name="StaticT", Spaces=[CPP_SPACE_T])
-CPP_AUTO_T = QualType(Name="auto")
+
+def CPP_RESULT_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="VerifyResult", Spaces=[space])
 
 
-def uni_static_t(param: QualType):
-    return CPP_UNI_T.withTemplateParams([CPP_STATIC_T.withTemplateParams([param])])
+def CPP_CONTEXT_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="VerifyContext", Spaces=[space])
+
+
+def CPP_CB_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="VerifyCb", Spaces=[space])
+
+
+def CPP_CB_LIST_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="VerifyCbList", Spaces=[space])
+
+
+def CPP_KEY_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="VerifyKey", Spaces=[space])
+
+
+def CPP_VERIFY_COLLECTION_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="VerifyCheckCollection", Spaces=[space])
+
+
+def CPP_UNI_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="UniValue", Spaces=[space])
+
+
+def CPP_STATIC_T(space: QualType = CPP_SPACE_T) -> QualType:
+    return QualType(Name="StaticT", Spaces=[space])
+
+
+def CPP_AUTO_T() -> QualType:
+    return QualType(Name="auto")
+
+
+def uni_static_t(param: QualType, space: QualType = CPP_SPACE_T):
+    return CPP_UNI_T(space).withTemplateParams(
+        [CPP_STATIC_T(space).withTemplateParams([param])]
+    )
 
 
 @beartype
@@ -151,10 +179,12 @@ class TypeTranslation:
         namespaces: dict[str, tuple[str, ...]],
         indexes: Dict[str, ModelIndex],
         models: dict[str, ModelDef],
+        is_internal_codegen: bool,
     ) -> None:
         self.namespaces = namespaces
         self.indexes = indexes
         self.models = models
+        self.is_internal_codegen = is_internal_codegen
 
         self.ast_records: set[tuple[str, QName]] = set()
 
@@ -234,18 +264,9 @@ class TypeTranslation:
         name = options.get("variant_name", "Data")
         return self.declaration_type(package, owner.nested(name))
 
-    def type(self, typ: TypeRef, package: str, space: QualType = CPP_SPACE_T) -> QualType:
-        def wrap_result(result: QualType, container: bool = True) -> QualType:
-            if container:
-                result = result.withChangedSpace(space)
-
-            if glom.glom(typ, "annotation.backend.cpp.is_ref", default=None):
-                logger.info("Got ref annotation")
-                return result.asConstRef()
-
-            else:
-                return result
-
+    def get_type_name(
+        self, typ: TypeRef, package: str, space: QualType = CPP_SPACE_T
+    ) -> QualType:
         match typ:
             case PrimT():
                 primitive_types = {
@@ -269,26 +290,78 @@ class TypeTranslation:
                         "PrimKind.ANY requires an explicit C++ type mapping",
                     )
 
-                return wrap_result(named_cpp_type(primitive_types[typ.prim]))
+                return named_cpp_type(primitive_types[typ.prim])
 
             case NamedT():
-                return wrap_result(self.reference_type(package, typ.qname))
+                return self.reference_type(package, typ.qname)
 
             case ExternalT():
-                return wrap_result(self.reference_type(typ.package, typ.qname))
+                return self.reference_type(typ.package, typ.qname)
+
+            case ListT():
+                if self.is_internal_codegen:
+                    return named_cpp_type("UniVec").withChangedSpace(space)
+
+                else:
+                    return named_cpp_type("hstd::Vec")
+
+            case ArrayT():
+                if self.is_internal_codegen:
+                    return named_cpp_type("UniArray").withChangedSpace(space)
+                else:
+                    return named_cpp_type("hstd::Array")
+
+            case MapT():
+                if self.is_internal_codegen:
+                    return named_cpp_type("UniMap").withChangedSpace(space)
+                else:
+                    return named_cpp_type("hstd::UnorderedMap")
+
+            case OptT():
+                if self.is_internal_codegen:
+                    return named_cpp_type("UniOpt").withChangedSpace(space)
+                else:
+                    return named_cpp_type("hstd::Opt")
+
+            case TupleT():
+                if self.is_internal_codegen:
+                    return named_cpp_type("UniTuple").withChangedSpace(space)
+
+                else:
+                    return named_cpp_type("hstd::Tuple")
+
+            case DynT():
+                return named_cpp_type("DynamicT").withChangedSpace(space)
+
+            case VariantT():
+                return self.variant_type(package, typ.owner, typ.field)
+
+            case _:
+                raise TypeError(f"TODO: {type(typ)}")
+
+    def type(self, typ: TypeRef, package: str, space: QualType = CPP_SPACE_T) -> QualType:
+        def wrap_result(result: QualType) -> QualType:
+            if glom.glom(typ, "annotation.backend.cpp.is_ref", default=None):
+                logger.info("Got ref annotation")
+                return result.asConstRef()
+
+            else:
+                return result
+
+        head = self.get_type_name(typ, package)
+
+        match typ:
+            case PrimT() | NamedT() | ExternalT():
+                return wrap_result(head)
 
             case ListT():
                 return wrap_result(
-                    named_cpp_type(
-                        "UniVec",
-                        [self.type(typ.elem, package, space=space)],
-                    )
+                    head.withTemplateParams([self.type(typ.elem, package, space=space)])
                 )
 
             case ArrayT():
                 return wrap_result(
-                    named_cpp_type(
-                        "UniArray",
+                    head.withTemplateParams(
                         [
                             self.type(typ.elem, package, space=space),
                             QualType(
@@ -301,8 +374,7 @@ class TypeTranslation:
 
             case MapT():
                 return wrap_result(
-                    named_cpp_type(
-                        "UniMap",
+                    head.withTemplateParams(
                         [
                             self.type(typ.key, package, space=space),
                             self.type(typ.value, package, space=space),
@@ -312,22 +384,20 @@ class TypeTranslation:
 
             case OptT():
                 return wrap_result(
-                    named_cpp_type(
-                        "UniOpt",
+                    head.withTemplateParams(
                         [self.type(typ.elem, package, space=space)],
                     )
                 )
 
             case TupleT():
                 return wrap_result(
-                    named_cpp_type(
-                        "UniTuple",
+                    head.withTemplateParams(
                         [self.type(elem, package, space=space) for elem in typ.elems],
                     )
                 )
 
             case VariantT():
-                return wrap_result(self.variant_type(package, typ.owner, typ.field))
+                return wrap_result(head)
 
             case TypeParamT():
                 return wrap_result(
@@ -335,7 +405,6 @@ class TypeTranslation:
                         Name=typ.name,
                         IsTemplateTypeParam=True,
                     ),
-                    container=False,
                 )
 
             case DynT():

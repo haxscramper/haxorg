@@ -14,21 +14,16 @@ from hstd_py_lib.external_packages.rich_utils import render_rich
 from hstd_py_text_layout.base.wrap import BlockId
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
-    ArrayT,
     CheckDef,
-    DynT,
     ExprNode,
     ExternalT,
     FieldDef,
-    ListT,
-    MapT,
     ModelDef,
     NamedT,
     OpId,
     OptT,
     QName,
     RecordDef,
-    TupleT,
     TypeRef,
     VariantT,
     expr_tree_repr,
@@ -97,7 +92,7 @@ class CheckGen:
                     space=CPP_SHORT_SPACE_T,
                 ).asConstRef()
                 if expr
-                else CPP_AUTO_T.asConstRef(),
+                else CPP_AUTO_T().asConstRef(),
                 name=name,
                 defArg=value,
             )
@@ -127,7 +122,7 @@ class CheckGen:
         params: Sequence[QualType] = (),
     ) -> BlockId:
         return self.ast.CallStatic(
-            CPP_SPACE_T,
+            CPP_SHORT_SPACE_T,
             name,
             Args=list(args),
             Params=list(params) if params else None,
@@ -137,56 +132,14 @@ class CheckGen:
         self,
         typ: TypeRef,
         package: Optional[str] = None,
+        space: QualType = CPP_SHORT_SPACE_T,
     ) -> QualType:
         package = self.model.package if package is None else package
+        return self.type_map.type(typ, package, space=space)
 
-        match typ:
-            case DynT():
-                return QualType(Name="EvalDynamic", Spaces=[CPP_SPACE_T])
-
-            case ListT():
-                return named_cpp_type(
-                    "hstd::Vec",
-                    [self._expression_native_type(typ.elem, package)],
-                )
-
-            case ArrayT():
-                return named_cpp_type(
-                    "std::array",
-                    [
-                        self._expression_native_type(typ.elem, package),
-                        QualType(
-                            Kind=QualTypeKind.TypeExpr,
-                            Expr=str(typ.size),
-                        ),
-                    ],
-                )
-
-            case MapT():
-                return named_cpp_type(
-                    "hstd::UnorderedMap",
-                    [
-                        self._expression_native_type(typ.key, package),
-                        self._expression_native_type(typ.value, package),
-                    ],
-                )
-
-            case OptT():
-                return named_cpp_type(
-                    "hstd::Opt",
-                    [self._expression_native_type(typ.elem, package)],
-                )
-
-            case TupleT():
-                return named_cpp_type(
-                    "std::tuple",
-                    [self._expression_native_type(elem, package) for elem in typ.elems],
-                )
-
-            case _:
-                return self.type_map.type(typ, package)
-
-    def _expression_result_type(self, expr: ExprNode) -> QualType:
+    def _expression_result_type(
+        self, expr: ExprNode, space: QualType = CPP_SHORT_SPACE_T
+    ) -> QualType:
         if expr.typed_as is None:
             raise ValueError(
                 f"Cannot lower '{expr.op.value}' at {expr.loc.render()}: "
@@ -195,7 +148,7 @@ class CheckGen:
             )
 
         else:
-            return self._expression_native_type(expr.typed_as)
+            return self._expression_native_type(expr.typed_as, space=space)
 
     def _expression_slot(
         self,
@@ -244,7 +197,7 @@ class CheckGen:
             name = self._expression_name("item")
             parameters.append(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T.asConstRef(),
+                    type=CPP_AUTO_T().asConstRef(),
                     name=name,
                 )
             )
@@ -527,7 +480,10 @@ class CheckGen:
         def from_const(value: BlockId, expr_str: str):
             return self._expression_local(
                 self.ast.CallStatic(
-                    typ=uni_static_t(self._expression_result_type(expr)),
+                    typ=uni_static_t(
+                        self._expression_result_type(expr),
+                        space=CPP_SHORT_SPACE_T,
+                    ),
                     opc="FromConst",
                     Args=[
                         self.ast.XCall(
@@ -782,10 +738,13 @@ class CheckGen:
         statements = [
             self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T,
+                    type=CPP_AUTO_T(),
                     name=name,
                     defArg=self.ast.CallStatic(
-                        uni_static_t(QualType(Name="bool")),
+                        uni_static_t(
+                            QualType(Name="bool"),
+                            space=CPP_SHORT_SPACE_T,
+                        ),
                         "FromConst",
                         Args=[
                             self.ast.string("true" if is_and else "false"),
@@ -969,7 +928,7 @@ class CheckGen:
 
             candidate_declaration = self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T.asConstPtr(),
+                    type=CPP_AUTO_T().asConstPtr(),
                     name=candidate_name,
                     defArg=self._expression_runtime_call(
                         "try_as",
@@ -1105,7 +1064,7 @@ class CheckGen:
 
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=CPP_AUTO_T,
+                type=CPP_AUTO_T(),
                 name=callback_name,
                 defArg=callback,
             )
@@ -1165,7 +1124,7 @@ class CheckGen:
         statements.append(
             self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T,
+                    type=CPP_AUTO_T(),
                     name=callback_name,
                     defArg=callback,
                 )
@@ -1358,7 +1317,7 @@ class CheckGen:
                             Cond=condition.value,
                             Then=self.ast.Return(
                                 self.ast.CallStatic(
-                                    CPP_RESULT_T,
+                                    CPP_RESULT_T(CPP_SHORT_SPACE_T),
                                     "Ok",
                                 )
                             ),
@@ -1369,7 +1328,7 @@ class CheckGen:
                                     *message.statements,
                                     self.ast.Return(
                                         self.ast.CallStatic(
-                                            CPP_RESULT_T,
+                                            CPP_RESULT_T(CPP_SHORT_SPACE_T),
                                             "Error",
                                             Args=[self._get_uni_value_ref(message.value)],
                                         )
@@ -1386,7 +1345,7 @@ class CheckGen:
 
     def _get_check_args(self) -> List[GenTuIdent]:
         return [
-            GenTuIdent(Type=CPP_CONTEXT_T.asConstPtr(), Name="ctx"),
+            GenTuIdent(Type=CPP_CONTEXT_T().asConstPtr(), Name="ctx"),
             GenTuIdent(Type=QualType(Name="void").asConstPtr(), Name="value"),
         ]
 
@@ -1394,7 +1353,7 @@ class CheckGen:
         return [
             self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T.asConstPtr(),
+                    type=CPP_AUTO_T().asConstPtr(),
                     name="this_obj_ptr",
                     defArg=self.ast.XCall(
                         "static_cast",
@@ -1410,13 +1369,14 @@ class CheckGen:
             ),
             self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T,
+                    type=CPP_AUTO_T(),
                     name="this_obj",
                     defArg=self.ast.CallStatic(
                         typ=uni_static_t(
                             self.type_map.declaration_type(
                                 self.model.package, owner.qname
-                            )
+                            ),
+                            space=CPP_SHORT_SPACE_T,
                         ),
                         opc="RootValue",
                         Args=[
@@ -1436,7 +1396,7 @@ class CheckGen:
     ) -> GenTuFunction:
         return GenTuFunction(
             Name=f"__check_record_{normalize_ident(check.id)}",
-            ReturnType=CPP_RESULT_T,
+            ReturnType=CPP_RESULT_T(),
             Args=self._get_check_args(),
             IsStatic=True,
             ParentClass=parentClass,
@@ -1485,7 +1445,7 @@ class CheckGen:
 
         return GenTuFunction(
             Name=f"__check_{field.name}_{normalize_ident(check.id)}",
-            ReturnType=CPP_RESULT_T,
+            ReturnType=CPP_RESULT_T(),
             Args=self._get_check_args(),
             IsStatic=True,
             ParentClass=parentClass,

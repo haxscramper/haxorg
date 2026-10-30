@@ -77,7 +77,7 @@ BOOST_DESCRIBE_ENUM_BEGIN(hstd::unidata_dsl::test::CheckKind)
 BOOST_DESCRIBE_ENUM_END(hstd::unidata_dsl::test::CheckKind)
 struct TrivialText {
   BOOST_DESCRIBE_CLASS(TrivialText, (), (), (), (text, unidata_id));
-  hstd::ext::unidata::Str text;
+  hstd::Str text;
   static constexpr std::string const unidata_id = "TrivialText";
   static hstd::ext::unidata::VerifyResult __check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
@@ -85,7 +85,7 @@ struct TrivialText {
 
 struct Base {
   BOOST_DESCRIBE_CLASS(Base, (), (), (), (id, unidata_id));
-  hstd::ext::unidata::int64_t id;
+  int64_t id;
   static constexpr std::string const unidata_id = "Base";
   static hstd::ext::unidata::VerifyResult __check_record_base_positive_id(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
@@ -93,7 +93,7 @@ struct Base {
 
 struct Derived : public hstd::unidata_dsl::test::Base {
   BOOST_DESCRIBE_CLASS(Derived, (Base), (), (), (weight, unidata_id));
-  hstd::ext::unidata::int64_t weight;
+  int64_t weight;
   static constexpr std::string const unidata_id = "Derived";
   static hstd::ext::unidata::VerifyResult __check_record_derived_positive_weight(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
@@ -102,13 +102,13 @@ struct Derived : public hstd::unidata_dsl::test::Base {
 struct Choice {
   struct First {
     BOOST_DESCRIBE_CLASS(First, (), (), (), (value, unidata_id));
-    hstd::ext::unidata::int64_t value;
+    int64_t value;
     static constexpr std::string const unidata_id = "Choice::First";
   };
 
   struct Second {
     BOOST_DESCRIBE_CLASS(Second, (), (), (), (label, unidata_id));
-    hstd::ext::unidata::Str label;
+    hstd::Str label;
     static constexpr std::string const unidata_id = "Choice::Second";
   };
 
@@ -149,20 +149,20 @@ struct OperationChecks {
                                                      derived,
                                                      choice,
                                                      unidata_id));
-  hstd::ext::unidata::CheckKind operation;
-  hstd::ext::unidata::int64_t number;
-  hstd::ext::unidata::double real;
-  hstd::ext::unidata::bool flag;
-  hstd::ext::unidata::Str text;
-  hstd::ext::unidata::UniVec<hstd::ext::unidata::int64_t> numbers;
-  hstd::ext::unidata::UniVec<hstd::ext::unidata::UniOpt<hstd::ext::unidata::int64_t>> optionals;
-  hstd::ext::unidata::UniMap<hstd::ext::unidata::Str, hstd::ext::unidata::int64_t> mapping;
-  hstd::ext::unidata::UniOpt<hstd::ext::unidata::int64_t> optional;
-  hstd::ext::unidata::UniTuple<hstd::ext::unidata::int64_t, hstd::ext::unidata::Str> coords;
-  hstd::ext::unidata::Status status;
-  hstd::ext::unidata::Base base;
-  hstd::ext::unidata::Derived derived;
-  hstd::ext::unidata::Choice choice;
+  hstd::unidata_dsl::test::CheckKind operation;
+  int64_t number;
+  double real;
+  bool flag;
+  hstd::Str text;
+  hstd::Vec<int64_t> numbers;
+  hstd::Vec<hstd::Opt<int64_t>> optionals;
+  hstd::UnorderedMap<hstd::Str, int64_t> mapping;
+  hstd::Opt<int64_t> optional;
+  hstd::Tuple<int64_t, hstd::Str> coords;
+  hstd::unidata_dsl::test::Status status;
+  hstd::unidata_dsl::test::Base base;
+  hstd::unidata_dsl::test::Derived derived;
+  hstd::unidata_dsl::test::Choice choice;
   static constexpr std::string const unidata_id = "OperationChecks";
   static hstd::ext::unidata::VerifyResult __check_record_poc_Eq(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_Ne(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
@@ -228,9 +228,9 @@ struct OperationChecks {
 
 struct FieldChecks {
   BOOST_DESCRIBE_CLASS(FieldChecks, (), (), (), (padding, text, numbers, unidata_id));
-  hstd::ext::unidata::int64_t padding;
-  hstd::ext::unidata::Str text;
-  hstd::ext::unidata::UniVec<hstd::ext::unidata::int64_t> numbers;
+  int64_t padding;
+  hstd::Str text;
+  hstd::Vec<int64_t> numbers;
   static constexpr std::string const unidata_id = "FieldChecks";
   static hstd::ext::unidata::VerifyResult __check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_numbers_numbers_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
@@ -245,12 +245,12 @@ struct MessageChecks {
                                                    numbers,
                                                    details,
                                                    unidata_id));
-  hstd::ext::unidata::int64_t number;
-  hstd::ext::unidata::double real;
-  hstd::ext::unidata::bool flag;
-  hstd::ext::unidata::Str text;
-  hstd::ext::unidata::UniVec<hstd::ext::unidata::int64_t> numbers;
-  hstd::ext::unidata::UniMap<hstd::ext::unidata::Str, hstd::ext::unidata::int64_t> details;
+  int64_t number;
+  double real;
+  bool flag;
+  hstd::Str text;
+  hstd::Vec<int64_t> numbers;
+  hstd::UnorderedMap<hstd::Str, int64_t> details;
   static constexpr std::string const unidata_id = "MessageChecks";
   static hstd::ext::unidata::VerifyResult __check_record_format_message(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
@@ -258,21 +258,21 @@ struct MessageChecks {
 
 struct Node {
   BOOST_DESCRIBE_CLASS(Node, (), (), (), (id, unidata_id));
-  hstd::ext::unidata::Str id;
+  hstd::Str id;
   static constexpr std::string const unidata_id = "Node";
 };
 
 struct Edge {
   BOOST_DESCRIBE_CLASS(Edge, (), (), (), (source, target, unidata_id));
-  hstd::ext::unidata::Str source;
-  hstd::ext::unidata::Str target;
+  hstd::Str source;
+  hstd::Str target;
   static constexpr std::string const unidata_id = "Edge";
 };
 
 struct Graph {
   BOOST_DESCRIBE_CLASS(Graph, (), (), (), (nodes, edges, unidata_id));
-  hstd::ext::unidata::UniVec<hstd::ext::unidata::Node> nodes;
-  hstd::ext::unidata::UniVec<hstd::ext::unidata::Edge> edges;
+  hstd::Vec<hstd::unidata_dsl::test::Node> nodes;
+  hstd::Vec<hstd::unidata_dsl::test::Edge> edges;
   static constexpr std::string const unidata_id = "Graph";
   static hstd::ext::unidata::VerifyResult __check_record_graph_unique_node_ids(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_graph_no_dangling_edges(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
