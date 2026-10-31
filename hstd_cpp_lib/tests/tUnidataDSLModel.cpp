@@ -3529,7 +3529,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::MessageChecks::__check
     ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr12 = expr0.Field(&expr0.get()->details, "details");
     ud::UniStatic<hstd::Str> const& expr13 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("detail"), "detail");
     ud::UniStatic<int64_t> const& expr14 = ud::eval_map_get<ud::UniStatic<int64_t>>(expr12, expr13);
-    ud::UniStatic<hstd::Str> const& expr15 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("n={} real={} sci={} hex={} oct={} flag={} text={} list={} lookup={}"), expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
+    ud::UniStatic<hstd::Str> const& expr15 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("n={} real={} sci={:e} hex={} oct={} flag={} text={} list={} lookup={}"), expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
     return ud::VerifyResult::Error((*expr15.get()));
   }
 }

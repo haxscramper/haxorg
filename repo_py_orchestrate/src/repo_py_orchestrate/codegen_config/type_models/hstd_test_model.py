@@ -683,7 +683,7 @@ class MessageChecks(M.Class):
         id="format-message",
         cond=M.This["number"] == 6,
         message=op_format(
-            "n={} real={} sci={} hex={} oct={} flag={} text={} list={} lookup={}",
+            "n={} real={} sci={:e} hex={} oct={} flag={} text={} list={} lookup={}",
             M.This["number"],
             M.This["real"],
             M.This["real"],

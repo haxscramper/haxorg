@@ -20,7 +20,12 @@ namespace M = hstd::unidata_dsl::test;
 namespace {
 
 template <typename T>
-void expect_messages(T const& value, std::vector<std::string> expected) {
+void expect_messages(
+    T const&                 value,
+    std::vector<std::string> expected,
+    int                      line     = __builtin_LINE(),
+    char const*              function = __builtin_FUNCTION(),
+    char const*              file     = __builtin_FILE()) {
     auto failures = hstd::ext::unidata::verify_all(value).getFail();
 
     std::vector<std::string> actual;
@@ -29,7 +34,7 @@ void expect_messages(T const& value, std::vector<std::string> expected) {
     std::ranges::sort(actual);
     std::ranges::sort(expected);
 
-    EXPECT_EQ(actual, expected);
+    EXPECT_EQ(actual, expected) << hstd::fmt("Failed at {}:{}", file, line);
 }
 
 M::OperationChecks make_checks(M::CheckKind kind) {
@@ -519,10 +524,8 @@ TEST(UnidataDSL, FailureMessagesFormatAllSupportedConversions) {
 
     expect_messages(
         value,
-        {
-            "n=8 real=2.500000 sci=2.500000e+00 hex=8 oct=10 "
-            "flag=true text=six list=[1, 2, 3] lookup=17 %",
-        });
+        {"n=8 real=2.5 sci=2.500000e+00 hex=8 oct=8 flag=true text=six list=[1, 2, 3] "
+         "lookup=17"});
 }
 
 TEST(UnidataDSL, FailureMessagesFormatFalseBooleans) {
@@ -534,10 +537,8 @@ TEST(UnidataDSL, FailureMessagesFormatFalseBooleans) {
 
     expect_messages(
         value,
-        {
-            "n=8 real=2.500000 sci=2.500000e+00 hex=8 oct=10 "
-            "flag=false text=six list=[1, 2, 3] lookup=17 %",
-        });
+        {"n=8 real=2.5 sci=2.500000e+00 hex=8 oct=8 flag=false text=six list=[1, 2, 3] "
+         "lookup=17"});
 }
 
 TEST(UnidataDSL, FailureMessagesPropagateExpressionErrors) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd_cpp_lib/stdlib/formatting/Formatter.hpp"
 #include "hstd_cpp_lib/system/exceptions.hpp"
 #include <cstring>
 #include <functional>
@@ -106,6 +107,9 @@ struct UnidataTag {
     using field_name_type = std::string;
 };
 
+using UniAccessStep      = hstd::ReflAccessStep<UnidataTag>;
+using UniValueAccessPath = hstd::ReflValueAccessPath<UnidataTag>;
+
 } // namespace hstd::ext::unidata
 
 template <>
@@ -130,12 +134,54 @@ struct ::hstd::ReflTypeTraits<hstd::ext::unidata::UnidataTag> {
     }
 };
 
+template <>
+struct fmt::formatter<hstd::ext::unidata::UniAccessStep::FieldName> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::unidata::UniAccessStep::FieldName const& path,
+        fmt::format_context&                                ctx) const {
+        return hstd::fmt_ctx(path.name, ctx);
+    }
+};
+
+
+template <>
+struct fmt::formatter<hstd::ext::unidata::UniAccessStep::Index> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::unidata::UniAccessStep::Index const& path,
+        fmt::format_context&                            ctx) const {
+        return hstd::fmt_ctx(path.index, ctx);
+    }
+};
+
+
+template <>
+struct fmt::formatter<hstd::ext::unidata::UniAccessStep::Deref> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::unidata::UniAccessStep::Deref const& path,
+        fmt::format_context&                            ctx) const {
+        return hstd::fmt_ctx("*", ctx);
+    }
+};
+
+template <>
+struct fmt::formatter<hstd::ext::unidata::UniValueAccessPath> {
+    constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+    hstd::fmt_iter format(
+        hstd::ext::unidata::UniValueAccessPath const& path,
+        fmt::format_context&                          ctx) const {
+        for (auto const& it : path.path) {
+            ::hstd::fmt_ctx("/", ctx);
+            ::hstd::fmt_ctx(it, ctx);
+        }
+        return ::hstd::fmt_ctx("", ctx);
+    }
+};
+
 
 namespace hstd::ext::unidata {
-
-using UniAccessStep      = hstd::ReflAccessStep<UnidataTag>;
-using UniValueAccessPath = hstd::ReflValueAccessPath<UnidataTag>;
-
 
 struct VerifyContext {
     UniValueAccessPath const* active_path;
