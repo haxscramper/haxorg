@@ -349,6 +349,8 @@ class ExprNode(FrozenModel):
     "Instance of the type value, e.g. for `type_case` node"
     typed_as: Optional[TypeRef] = None
     "Inferred type of this expression occurrence."
+    binder_types: Tuple[TypeRef, ...] = ()
+    "Inferred types of the binder variables introduced by the expression"
     expr_id: Optional[int] = None
     "Expression ID used in the type checking"
     loc: SourceLoc
@@ -597,7 +599,17 @@ def expr_tree_repr(
                 parts.append(f"{name}={value!r}")
 
         if node.binders:
-            parts.append(f"binders={node.binders!r}")
+            if node.binder_types:
+                joined = ", ".join(
+                    [
+                        f"{b!r}[{type_text(t)}]"
+                        for b, t in zip(node.binders, node.binder_types)
+                    ]
+                )
+                parts.append(f"binders={joined}")
+
+            else:
+                parts.append(f"binders={node.binders!r}")
 
         return Text(" ".join(parts))
 

@@ -1,6 +1,11 @@
 .decl inferred_type(e: ExprId, t: Type)
 inferred_type(E, T) :- expr_type(E, T).
+
 .output inferred_type
+
+.decl inferred_binder_type(e: ExprId, slot: number, t: Type)
+inferred_binder_type(E, S, T) :- binds(E, S, B), binder_type(B, T).
+.output inferred_binder_type
 
 .decl inferred_type_shape(
     t: Type,

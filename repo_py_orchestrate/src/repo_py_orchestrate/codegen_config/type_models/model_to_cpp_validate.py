@@ -76,6 +76,21 @@ class CheckGen:
         self.expression_counter += 1
         return result
 
+    def _get_expression_result_type(self, type: TypeRef) -> QualType:
+        initial_res = self.type_map.type(
+            type,
+            self.model.package,
+            space=CPP_SHORT_SPACE_T,
+        )
+
+        if not isinstance(type, DynT):
+            initial_res = CPP_UNI_STATIC_T(
+                initial_res,
+                space=CPP_SHORT_SPACE_T,
+            )
+
+        return initial_res
+
     def _expression_local(
         self,
         value: BlockId,
@@ -85,24 +100,9 @@ class CheckGen:
     ) -> ExpressionEvaluation:
         name = self._expression_name()
 
-        def get_expression_result_type(expr: ExprNode) -> QualType:
-            initial_res = self.type_map.type(
-                expr.typed_as,
-                self.model.package,
-                space=CPP_SHORT_SPACE_T,
-            )
-
-            if not isinstance(expr.typed_as, DynT):
-                initial_res = CPP_UNI_STATIC_T(
-                    initial_res,
-                    space=CPP_SHORT_SPACE_T,
-                )
-
-            return initial_res
-
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=get_expression_result_type(expr).asConstRef()
+                type=self._get_expression_result_type(expr.typed_as).asConstRef()
                 if expr
                 else CPP_AUTO_T().asConstRef(),
                 name=name,
@@ -218,15 +218,16 @@ class CheckGen:
         binders: Sequence[str],
         this_expr: BlockId,
         bindings: dict[str, BlockId],
+        binder_types: Sequence[TypeRef],
     ) -> BlockId:
         local_bindings = dict(bindings)
         parameters: List[cpp.ParmVarParams] = []
 
-        for binder in binders:
+        for binder, binder_type in zip(binders, binder_types):
             name = self._expression_name("item")
             parameters.append(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T().asConstRef(),
+                    type=self._get_expression_result_type(binder_type).asConstRef(),
                     name=name,
                 )
             )
@@ -1073,6 +1074,7 @@ class CheckGen:
             expr.binders,
             this_expr,
             bindings,
+            binder_types=expr.binder_types,
         )
 
         callback_name = self._expression_name("callback")
@@ -1135,6 +1137,7 @@ class CheckGen:
             expr.binders,
             this_expr,
             bindings,
+            binder_types=expr.binder_types,
         )
 
         statements.append(

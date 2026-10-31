@@ -7,7 +7,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from beartype import beartype
-from beartype.typing import Dict, List, Optional, Set, Union
+from beartype.typing import Dict, List, Optional, Set, Tuple, Union
 from hstd_py_lib.external_packages.rich_utils import render_rich
 from loguru import logger
 from plumbum import local
@@ -408,8 +408,8 @@ def read_inferred_types(
     directory: Path,
     index: ModelIndex,
     program: LoweredProgram,
-) -> Dict[int, TypeRef]:
-    """Reconstruct inferred types from structural Souffle relations."""
+) -> Tuple[Dict[int, TypeRef], Dict[int, Tuple[TypeRef, ...]]]:
+    """Reconstruct expression and binder types from structural Souffle relations."""
     qnames = dict(index.by_id)
     external: Set[QName] = set()
 
@@ -523,7 +523,45 @@ def read_inferred_types(
             )
         result[eid] = build(key)
 
-    return result
+    binder_slots: Dict[int, Dict[int, TypeRef]] = {}
+    for expression, slot_text, key in read_rows(
+        directory / "inferred_binder_type.csv", 3
+    ):
+        eid = int(expression)
+        slot = int(slot_text)
+
+        if eid not in program.occurrences:
+            raise SouffleProtocolError(
+                f"Inferred binder type {key!r} refers to expression {eid}, "
+                "which was never lowered"
+            )
+
+        node = program.occurrences[eid].node
+        if not 0 <= slot < len(node.binders):
+            raise SouffleProtocolError(
+                f"Inferred binder type {key!r} refers to slot {slot} "
+                f"of expression {eid}, which has {len(node.binders)} binders"
+            )
+
+        slots = binder_slots.setdefault(eid, {})
+        if slot in slots:
+            raise SouffleProtocolError(
+                f"Binder slot {slot} of expression {eid} has multiple "
+                f"inferred types: {slots[slot]!r} and {build(key)!r}; "
+                "ExprNode.binder_types requires a single type per binder"
+            )
+
+        slots[slot] = build(key)
+
+    binder_types: Dict[int, Tuple[TypeRef, ...]] = {}
+    for eid, occurrence in program.occurrences.items():
+        slots = binder_slots.get(eid, {})
+        count = len(occurrence.node.binders)
+        binder_types[eid] = (
+            tuple(slots[slot] for slot in range(count)) if len(slots) == count else ()
+        )
+
+    return result, binder_types
 
 
 def _run_for_diagnostics(
@@ -547,9 +585,9 @@ def _run_for_diagnostics(
     ]
     untyped = {int(r[0]) for r in read_rows(tmp / "untyped.csv", 1)}
     typed_as = {int(r[0]): r[1] for r in read_rows(tmp / "typed_as.csv", 2)}
-    inferred_types = read_inferred_types(tmp, index, program)
+    inferred_types, binder_types = read_inferred_types(tmp, index, program)
 
-    return diags, untyped, typed_as, inferred_types
+    return diags, untyped, typed_as, inferred_types, binder_types
 
 
 @beartype
@@ -561,7 +599,7 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
         source = tmp / "program.dl"
         source.write_text(render_program(program))
 
-        diags, untyped, typed_as, inferred_types = _run_for_diagnostics(
+        diags, untyped, typed_as, inferred_types, binder_types = _run_for_diagnostics(
             tmp, source, index, program
         )
 
@@ -593,6 +631,7 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
                     nodes[slots[slot]] for slot in range(len(occurrence.node.args))
                 ),
                 "typed_as": inferred_types.get(eid),
+                "binder_types": binder_types[eid],
                 "expr_id": eid,
             }
         )

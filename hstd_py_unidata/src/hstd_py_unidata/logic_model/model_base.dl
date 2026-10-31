@@ -190,6 +190,7 @@ expr_type(E, $TPrim($PBool())) :-
 
 .decl type_seen(t: Type)
 type_seen(T) :- expr_type(_, T).
+type_seen(T) :- binder_type(_, T).
 type_seen(T) :- root(_, T).
 type_seen(T) :- expr_type_val(_, T).
 type_seen(T) :- this_type(_, T).
