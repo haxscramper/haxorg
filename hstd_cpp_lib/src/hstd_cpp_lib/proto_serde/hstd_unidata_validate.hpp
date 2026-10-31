@@ -259,6 +259,8 @@ struct UniValue {
     UniValueAccessPath path;
     DESC_FIELDS(UniValue, (value, path));
 
+    using value_type = T::value_type;
+
     template <typename Res>
     Res const* get_as() const {
         return value.template get_as<Res>();
@@ -436,9 +438,9 @@ UniStatic<Res> eval_variant_index(UniStatic<UniVariant<Args...>> const& values) 
 }
 
 template <typename Res>
-UniStatic<Res> eval_str_size(UniStatic<UniStr> const& value) {
-    return UniStatic<Res>::SubExprNoContext(
-        static_cast<Res>(value.get()->size()), "str_size");
+Res eval_str_size(UniStatic<UniStr> const& value) {
+    return Res::SubExprNoContext(
+        static_cast<Res::value_type>(value.get()->size()), "str_size");
 }
 
 template <typename Res, typename T>
@@ -516,77 +518,77 @@ struct TypeText<UniVariant<Elements...>>
 };
 
 template <typename Res, typename T>
-UniStatic<Res> eval_type_of(UniStatic<T> const& value) {}
+Res eval_type_of(UniStatic<T> const& value) {}
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_eq(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+Res eval_eq(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return UniStatic<bool>::SubExprNoContext(*lhs.get() == *rhs.get(), "==");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_eq(UniStatic<T1> const& lhs, T2 const& rhs) {
+Res eval_eq(UniStatic<T1> const& lhs, T2 const& rhs) {
     return UniStatic<bool>::SubExprNoContext(*lhs.get() == rhs, "==");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_lt(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+Res eval_lt(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return UniStatic<bool>::SubExprNoContext(*lhs.get() < *rhs.get(), "<");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_le(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+Res eval_le(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return UniStatic<bool>::SubExprNoContext(*lhs.get() <= *rhs.get(), "<=");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_ne(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+Res eval_ne(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return UniStatic<bool>::SubExprNoContext(!(*lhs.get() == *rhs.get()), "!=");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_add(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
-    return UniStatic<Res>::SubExprNoContext(
+Res eval_add(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+    return Res::SubExprNoContext(
         static_cast<Res>(*lhs.get()) + static_cast<Res>(*rhs.get()), "+");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_sub(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
-    return UniStatic<Res>::SubExprNoContext(
+Res eval_sub(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+    return Res::SubExprNoContext(
         static_cast<Res>(*lhs.get()) - static_cast<Res>(*rhs.get()), "+");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_div(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
-    return UniStatic<Res>::SubExprNoContext(
+Res eval_div(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+    return Res::SubExprNoContext(
         static_cast<Res>(*lhs.get()) / static_cast<Res>(*rhs.get()), "/");
 }
 
 template <typename Res, typename T1, typename T2>
-UniStatic<Res> eval_mul(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
-    return UniStatic<Res>::SubExprNoContext(
+Res eval_mul(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
+    return Res::SubExprNoContext(
         static_cast<Res>(*lhs.get()) * static_cast<Res>(*rhs.get()), "*");
 }
 
 template <typename Res, typename T>
-UniStatic<Res> eval_list_size(UniStatic<T> const& lhs) {
-    return UniStatic<Res>::SubExprNoContext(lhs.get()->size(), "list_size");
+Res eval_list_size(UniStatic<T> const& lhs) {
+    return Res::SubExprNoContext(lhs.get()->size(), "list_size");
 }
 
 template <typename Res, typename T>
-UniStatic<Res> eval_map_size(UniStatic<T> const& lhs) {
-    return UniStatic<Res>::SubExprNoContext(lhs.get()->size(), "map_size");
+Res eval_map_size(UniStatic<T> const& lhs) {
+    return Res::SubExprNoContext(lhs.get()->size(), "map_size");
 }
 
 template <typename Res>
-UniStatic<Res> eval_map_empty() {
+Res eval_map_empty() {
     Res res{};
-    return UniStatic<Res>::SubExprNoContext(res, "map_empty");
+    return Res::SubExprNoContext(res, "map_empty");
 }
 
 template <typename Res>
-UniStatic<Res> eval_list_empty() {
+Res eval_list_empty() {
     Res res{};
-    return UniStatic<Res>::SubExprNoContext(res, "list_empty");
+    return Res::SubExprNoContext(res, "list_empty");
 }
 
 
@@ -594,22 +596,22 @@ template <typename Res, typename K, typename V>
 UniStatic<bool> eval_map_contains(
     UniStatic<UniMap<K, V>> const& lhs,
     UniStatic<K> const&            rhs) {
-    return UniStatic<Res>::SubExprNoContext(lhs.get()->contains(*rhs.get()), "contains");
+    return Res::SubExprNoContext(lhs.get()->contains(*rhs.get()), "contains");
 }
 
 template <typename Res, typename K, typename V>
-UniStatic<Res> eval_map_get(UniStatic<UniMap<K, V>> const& lhs, UniStatic<K> const& rhs) {
+Res eval_map_get(UniStatic<UniMap<K, V>> const& lhs, UniStatic<K> const& rhs) {
     return UniStatic<V>::SubExprNoContext(lhs.get()->at(*rhs.get()), "get");
 }
 
 template <typename Res, int index, typename... Args>
-UniStatic<Res> eval_nth_get(UniStatic<UniTuple<Args...>> const& lhs) {
+Res eval_nth_get(UniStatic<UniTuple<Args...>> const& lhs) {
     return lhs.AtIndex(std::get<index>(*lhs.get()), index);
 }
 
 
 template <typename Res, typename T>
-UniStatic<bool> eval_opt_has_value(UniStatic<T> const& lhs) {
+Res eval_opt_has_value(UniStatic<T> const& lhs) {
     return UniStatic<Res>::SubExprNoContext(lhs.get()->has_value(), "opt_has_value");
 }
 
@@ -619,9 +621,8 @@ UniStatic<Res> eval_opt_value(UniStatic<UniOpt<T>> const& lhs) {
 }
 
 template <typename Res, typename T>
-UniStatic<bool> eval_is_derived(UniStatic<T> const& lhs) {
-    return UniStatic<bool>::SubExprNoContext(
-        dynamic_cast<Res>(lhs.get()) != nullptr, "is_derived");
+Res eval_is_derived(UniStatic<T> const& lhs) {
+    return Res::SubExprNoContext(dynamic_cast<Res>(lhs.get()) != nullptr, "is_derived");
 }
 
 template <typename Res, typename T, typename IntType>

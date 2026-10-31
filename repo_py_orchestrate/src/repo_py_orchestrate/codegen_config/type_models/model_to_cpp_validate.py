@@ -19,6 +19,7 @@ from hstd_py_unidata.model_ir import (
     ExprNode,
     ExternalT,
     FieldDef,
+    ListT,
     ModelDef,
     NamedT,
     OpId,
@@ -77,6 +78,10 @@ class CheckGen:
         return result
 
     def _map_model_type(self, type: TypeRef) -> QualType:
+        """
+        Given an input model type, how the resulting C++ type would
+        be represented in the generated C++ code, when used as a value?
+        """
         initial_res = self.type_map.type(
             type,
             self.model.package,
@@ -97,15 +102,11 @@ class CheckGen:
         statements: Sequence[BlockId] = (),
         *,
         expr: Optional[ExprNode] = None,
-        expr_type_override: Optional[QualType] = None,
     ) -> ExpressionEvaluation:
         name = self._expression_name()
 
-        if expr_type_override:
-            var_type = expr_type_override
-
-        elif expr:
-            var_type = self._map_model_type(expr.typed_as)
+        if expr:
+            var_type = self._expression_result_type(expr)
 
         else:
             var_type = CPP_AUTO_T()
@@ -156,12 +157,21 @@ class CheckGen:
         package: Optional[str] = None,
         space: QualType = CPP_SHORT_SPACE_T,
     ) -> QualType:
+        """
+        Given a model type, map it directly to the C++ type, without adding
+        any extra wrappers or rewriting this result. This performs direct
+        1:1 translation of the type as-is.
+        """
         package = self.model.package if package is None else package
         return self.type_map.type(typ, package, space=space)
 
     def _expression_result_type(
         self, expr: ExprNode, space: QualType = CPP_SHORT_SPACE_T
     ) -> QualType:
+        """
+        Given an expression `expr`, what is the full C++ type that the
+        generated code would instantiate?
+        """
         if expr.typed_as is None:
             raise ValueError(
                 f"Cannot lower '{expr.op.value}' at {expr.loc.render()}: "
@@ -171,6 +181,23 @@ class CheckGen:
 
         else:
             result = self._expression_native_type(expr.typed_as, space=space)
+
+            if expr.op in [OpId.MAP, OpId.FILTER]:
+                assert isinstance(expr.typed_as, ListT)
+                # Unwrap the `Vec<T>` type that is natively mapped and insert the
+                # `UniStatic<T>` intermediate layer.
+                result = result.withTemplateParams(
+                    [self._map_model_type(expr.typed_as.elem)]
+                )
+
+            elif isinstance(expr.typed_as, DynT):
+                pass
+
+            else:
+                result = CPP_UNI_STATIC_T(
+                    result,
+                    space=CPP_SHORT_SPACE_T,
+                )
 
             return result
 
@@ -521,16 +548,13 @@ class CheckGen:
         def from_const(value: BlockId, expr_str: str):
             return self._expression_local(
                 self.ast.CallStatic(
-                    typ=CPP_UNI_STATIC_T(
-                        self._expression_result_type(expr),
-                        space=CPP_SHORT_SPACE_T,
-                    ),
+                    typ=self._expression_result_type(expr),
                     opc="FromConst",
                     Args=[
                         self.ast.XCall(
                             "static_cast",
                             args=[value],
-                            Params=[self._expression_result_type(expr)],
+                            Params=[self._expression_native_type(expr.typed_as)],
                         ),
                         self.ast.StringLiteral(expr_str),
                     ],
