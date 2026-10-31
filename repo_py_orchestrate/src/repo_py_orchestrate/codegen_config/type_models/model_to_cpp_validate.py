@@ -171,6 +171,22 @@ class CheckGen:
             value=self.ast.string(name),
         )
 
+    def _op_call(
+        self,
+        op: OpId,
+        args: Sequence[BlockId] = (),
+        params: Sequence[QualType] = (),
+        is_stmt: bool = False,
+    ) -> BlockId:
+        return self.ast.CallStatic(
+            CPP_SHORT_SPACE_T,
+            "eval_op",
+            Args=list(args),
+            Params=[QualType(Name=f"OpId::{op.name}", Spaces=[CPP_SHORT_SPACE_T])]
+            + (list(params) if params else []),
+            Stmt=is_stmt,
+        )
+
     def _expression_call(
         self,
         name: str,
@@ -454,8 +470,8 @@ class CheckGen:
 
         # return self.ast.Dot(source, self.ast.string(expr.str_val))
 
-        return self._expression_call(
-            "eval_get_field",
+        return self._op_call(
+            expr.op,
             args=[
                 self._expr_context_gen(expr),
                 source,
@@ -495,10 +511,11 @@ class CheckGen:
                         f"{expr.loc.render()}; expected one of: {expected}"
                     )
 
-                return self._expression_call(
-                    "eval_holds_alternative",
-                    args=[source],
+                return self._op_call(
+                    expr.op,
+                    args=[self._expr_context_gen(expr), source],
                     params=[
+                        self._expression_result_type(expr),
                         self.type_map.declaration_type(package, case.case),
                     ],
                 )
@@ -524,8 +541,8 @@ class CheckGen:
 
         match source_type:
             case VariantT():
-                return self._expression_call(
-                    "eval_variant_index",
+                return self._op_call(
+                    expr.op,
                     args=[
                         self._expr_context_gen(expr),
                         source,
@@ -659,8 +676,8 @@ class CheckGen:
                 )
 
                 return self._expression_local(
-                    self._expression_call(
-                        "eval_not",
+                    self._op_call(
+                        expr.op,
                         args=[self._expr_context_gen(expr), self.ast.pars(arg.value)],
                         params=[self._expression_result_type(expr)],
                     ),
@@ -719,8 +736,8 @@ class CheckGen:
 
             case OpId.STR_MATCHES:
                 assert expr.str_val is not None
-                value = self._expression_call(
-                    "eval_str_matches",
+                value = self._op_call(
+                    expr.op,
                     args=[
                         self._expr_context_gen(expr),
                         args[0],
@@ -731,8 +748,8 @@ class CheckGen:
 
             case OpId.STR_FORMAT:
                 assert expr.str_val is not None
-                value = self._expression_call(
-                    "eval_str_format",
+                value = self._op_call(
+                    expr.op,
                     args=[
                         self._expr_context_gen(expr),
                         self.ast.XCall(
@@ -780,8 +797,8 @@ class CheckGen:
 
                 args.insert(0, self._expr_context_gen(expr))
 
-                value = self._expression_call(
-                    f"eval_{expr.op}",
+                value = self._op_call(
+                    expr.op,
                     args=args,
                     params=[self._expression_result_type(expr)],
                 )
@@ -797,8 +814,8 @@ class CheckGen:
 
             case OpId.NTH_GET:
                 assert expr.int_val is not None
-                value = self._expression_call(
-                    f"eval_{expr.op}",
+                value = self._op_call(
+                    expr.op,
                     args=[self._expr_context_gen(expr), args[0]],
                     params=[
                         self._expression_result_type(expr),
@@ -810,13 +827,14 @@ class CheckGen:
                 )
 
             case OpId.WALK:
-                value = self._expression_call(
-                    "eval_walk",
+                value = self._op_call(
+                    expr.op,
                     args=[
                         self._expr_context_gen(expr),
                         self.ast.string("expression_runtime"),
                         args[0],
                     ],
+                    params=[self._expression_result_type(expr)],
                 )
 
             case OpId.IS_DERIVED:
@@ -825,8 +843,8 @@ class CheckGen:
                         f"Derived-type test at {expr.loc.render()} has no target type"
                     )
 
-                value = self._expression_call(
-                    "eval_is_derived",
+                value = self._op_call(
+                    expr.op,
                     args=[
                         self._expr_context_gen(expr),
                         self.ast.string("expression_runtime"),
@@ -1164,8 +1182,8 @@ class CheckGen:
         )
 
         return self._expression_local(
-            self._expression_call(
-                f"eval_{expr.op}",
+            self._op_call(
+                expr.op,
                 args=[self._expr_context_gen(expr), collection.value, callback_value],
                 params=[self._expression_result_type(expr)],
             ),
@@ -1205,8 +1223,8 @@ class CheckGen:
         )
 
         return self._expression_local(
-            self._expression_call(
-                "eval_fold",
+            self._op_call(
+                expr.op,
                 args=[
                     self._expr_context_gen(expr),
                     *args,
@@ -1245,8 +1263,8 @@ class CheckGen:
                 f"Enum comparison at {expr.loc.render()} has no inferred subject type"
             )
 
-        return self._expression_call(
-            "eval_eq",
+        return self._op_call(
+            OpId.EQ,
             args=[
                 self._expr_context_gen(expr),
                 args[0],

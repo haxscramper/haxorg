@@ -812,5 +812,31 @@ inline ExprContext get_context(
     };
 }
 
+template <typename T>
+struct rec_unpack_value {};
+
+template <typename T>
+auto get_unpack(T const& value) {
+    return rec_unpack_value<T>::get(value);
+}
+
+template <typename T>
+struct rec_unpack_value<UniStatic<T>> {
+    static T get(UniStatic<T> const& value) { return get_stored_value(value); }
+};
+
+template <typename T>
+struct rec_unpack_value<UniStatic<UniVec<T>>> {
+    static auto get(UniStatic<UniVec<T>> const& value) {
+        using Element = decltype(get_unpack(std::declval<T const&>()));
+
+        UniVec<Element> result;
+        for (auto const& it : get_stored_value(value)) {
+            result.push_back(get_unpack(it));
+        }
+        return result;
+    }
+};
+
 
 }; // namespace hstd::ext::unidata
