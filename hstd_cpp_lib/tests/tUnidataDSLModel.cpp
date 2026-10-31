@@ -2953,7 +2953,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     if (!ud::get_stored_as_bool(result9)) {
       hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate10 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr8);
       if (candidate10.has_value()) {
-        ud::UniStatic<hstd::Str> const& expr11 = ud::eval_type_of<ud::UniStatic<hstd::Str>>((*candidate10));
+        ud::UniStatic<hstd::Str> const& expr11 = ud::eval_type_of<ud::UniStatic<hstd::Str>>(expression_runtime, (*candidate10));
         ud::set_value(result9, expr11);
       }
     }
@@ -3023,7 +3023,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if ((*condition5.get())) {
       ud::UniStatic<int64_t> const& expr6 = expr0.Field(&expr0.get()->number, "number");
-      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr7 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expr6);
+      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr7 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, expr6);
       ud::UniStatic<hstd::Str> const& expr8 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("%s"), expr7);
       ud::UniStatic<hstd::Str> const& expr9 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("/number"), "/number");
       ud::UniStatic<bool> const& expr10 = ud::eval_eq<ud::UniStatic<bool>>(expr8, expr9);
@@ -3036,7 +3036,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         //     path_of typed_as='path'
                         //         var typed_as='int64' str_val='number'
                         //
-                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr13 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(item12);
+                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr13 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, item12);
                         ud::UniStatic<hstd::Str> const& expr14 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("%s"), expr13);
                         return expr14;
                         };
@@ -3056,7 +3056,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       if (!ud::get_stored_as_bool(result25)) {
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate26 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr24);
         if (candidate26.has_value()) {
-          ud::UniStatic<hstd::ext::unidata::UniPath> const& expr27 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>((*candidate26));
+          ud::UniStatic<hstd::ext::unidata::UniPath> const& expr27 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, (*candidate26));
           ud::UniStatic<hstd::Str> const& expr28 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("%s"), expr27);
           ud::set_value(result25, expr28);
         }
@@ -3670,7 +3670,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                                         // path_of typed_as='path'
                                         //     var typed_as='Node' str_val='node'
                                         //
-                                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr37 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(item36);
+                                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr37 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, item36);
                                         return expr37;
                                         };
                       ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> const& expr39 = ud::eval_map<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>(item35, callback38);
@@ -3822,7 +3822,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       // path_of typed_as='path'
                       //     var typed_as='Edge' str_val='edge'
                       //
-                      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr41 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(item40);
+                      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr41 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, item40);
                       return expr41;
                       };
     ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> const& expr43 = ud::eval_map<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>(expr39, callback42);

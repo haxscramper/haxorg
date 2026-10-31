@@ -50,6 +50,13 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
 
 GEN_EXPRESSION_COMMENTS = False
 GEN_EXPRESSION_OP_NAME = False
+RUNTIME_DEPENDANT_KINDS = [
+    OpId.WALK,
+    OpId.TYPE_COND,
+    OpId.IS_DERIVED,
+    OpId.PATH_OF,
+    OpId.TYPE_OF,
+]
 
 CPP_SHORT_SPACE_T = QualType(Name="ud", IsNamespace=True)
 
@@ -748,6 +755,9 @@ class CheckGen:
                 | OpId.LIST_EMPTY
                 | OpId.MAP_EMPTY
             ):
+                if expr.op in RUNTIME_DEPENDANT_KINDS:
+                    args.insert(0, self.ast.string("expression_runtime"))
+
                 value = self._expression_call(
                     f"eval_{expr.op}",
                     args=args,
@@ -1220,14 +1230,9 @@ class CheckGen:
         )
 
     def _expression_needs_runtime(self, expr: ExprNode) -> bool:
-        match expr.op:
-            case (
-                OpId.WALK | OpId.TYPE_COND | OpId.IS_DERIVED | OpId.PATH_OF | OpId.TYPE_OF
-            ):
-                return True
-
-            case _:
-                return any(self._expression_needs_runtime(arg) for arg in expr.args)
+        return expr.op in RUNTIME_DEPENDANT_KINDS or any(
+            self._expression_needs_runtime(arg) for arg in expr.args
+        )
 
     def _gen_expression_runtime(self) -> List[BlockId]:
         runtime_type = QualType(
