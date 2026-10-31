@@ -752,17 +752,17 @@ UniStatic<hstd::Vec<ResultType>> eval_map(
     return UniStatic<hstd::Vec<ResultType>>::SubExprNoContext(res, "map");
 }
 
-template <typename T, typename Callback>
-UniStatic<hstd::Vec<T>> eval_filter(
+template <typename ResultType, typename T, typename Callback>
+UniStatic<hstd::Vec<ResultType>> eval_filter(
     UniStatic<hstd::Vec<T>> const& collection,
     Callback const&                callback) {
-    hstd::Vec<T> res;
+    hstd::Vec<ResultType> res;
     for (auto const& it : iterate_list(collection)) {
         auto cb_res = callback(it);
         if (*cb_res.get()) { res.push_back(it); }
     }
 
-    return UniStatic<hstd::Vec<T>>::SubExprNoContext(res, "filter");
+    return UniStatic<hstd::Vec<ResultType>>::SubExprNoContext(res, "filter");
 }
 
 template <typename Result>

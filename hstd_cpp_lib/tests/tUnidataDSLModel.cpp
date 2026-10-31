@@ -962,7 +962,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      ud::UniStatic<int64_t> const& expr8 = ud::eval_mul<int64_t>(item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<hstd::Vec<int64_t>> const& expr10 = ud::eval_map<int64_t>(expr5, callback9);
+    ud::UniStatic<hstd::Vec<int64_t>> const& expr10 = ud::eval_map<hstd::Vec<int64_t>>(expr5, callback9);
     ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
     ud::UniStatic<int64_t> const& expr12 = ud::eval_list_at<int64_t>(expr10, expr11);
     ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
@@ -1013,7 +1013,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      ud::UniStatic<bool> const& expr8 = ud::eval_lt<bool>(expr7, item6);
                      return expr8;
                      };
-    ud::UniStatic<hstd::Vec<int64_t>> const& expr10 = ud::eval_filter<int64_t>(expr5, callback9);
+    ud::UniStatic<hstd::Vec<int64_t>> const& expr10 = ud::eval_filter<hstd::Vec<int64_t>>(expr5, callback9);
     ud::UniStatic<int64_t> const& expr11 = ud::eval_list_size<int64_t>(expr10);
     ud::UniStatic<int64_t> const& expr12 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
     ud::UniStatic<bool> const& expr13 = ud::eval_eq<bool>(expr11, expr12);
@@ -2962,7 +2962,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         ud::UniStatic<hstd::Str> const& expr14 = ud::eval_str_format<hstd::Str>(ud::eval_str_pattern("%s"), expr13);
                         return expr14;
                         };
-      ud::UniStatic<hstd::Vec<hstd::Str>> const& expr16 = ud::eval_map<hstd::Str>(expr11, callback15);
+      ud::UniStatic<hstd::Vec<hstd::Str>> const& expr16 = ud::eval_map<hstd::Vec<hstd::Str>>(expr11, callback15);
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
       ud::UniStatic<hstd::Str> const& expr18 = ud::eval_list_at<hstd::Str>(expr16, expr17);
       ud::UniStatic<hstd::Str> const& expr19 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("/numbers/0"), "/numbers/0");
@@ -3178,7 +3178,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         ud::UniStatic<int64_t> const& expr34 = ud::eval_map_get<int64_t>(expr32, expr33);
                         return expr34;
                         };
-      ud::UniStatic<hstd::Vec<int64_t>> const& expr36 = ud::eval_map<int64_t>(expr30, callback35);
+      ud::UniStatic<hstd::Vec<int64_t>> const& expr36 = ud::eval_map<hstd::Vec<int64_t>>(expr30, callback35);
       ud::UniStatic<int64_t> const& expr37 = ud::eval_list_size<int64_t>(expr36);
       ud::UniStatic<int64_t> const& expr38 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
       ud::UniStatic<bool> const& expr39 = ud::eval_eq<bool>(expr37, expr38);
@@ -3199,7 +3199,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         ud::UniStatic<bool> const& expr45 = ud::eval_eq<bool>(expr43, expr44);
                         return expr45;
                         };
-      ud::UniStatic<hstd::Vec<int64_t>> const& expr47 = ud::eval_filter<int64_t>(expr40, callback46);
+      ud::UniStatic<hstd::Vec<int64_t>> const& expr47 = ud::eval_filter<hstd::Vec<int64_t>>(expr40, callback46);
       ud::UniStatic<int64_t> const& expr48 = ud::eval_list_size<int64_t>(expr47);
       ud::UniStatic<int64_t> const& expr49 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
       ud::UniStatic<bool> const& expr50 = ud::eval_eq<bool>(expr48, expr49);
@@ -3526,7 +3526,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       ud::UniStatic<bool> const& expr32 = ud::eval_lt<bool>(expr30, expr31);
                       return expr32;
                       };
-    ud::UniStatic<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>> const& expr34 = ud::eval_filter<hstd::Vec<hstd::unidata_dsl::test::Node>>(expr28, callback33);
+    ud::UniStatic<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>> const& expr34 = ud::eval_filter<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>>(expr28, callback33);
     auto callback40 = [&](ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& item35) -> ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniPath>> {
                       // map typed_as='list<path>' binders='node'[Node]
                       //     var typed_as='list<Node>' str_val='group'
@@ -3540,10 +3540,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                                         ud::UniStatic<hstd::ext::unidata::UniPath> const& expr37 = ud::eval_path_of<hstd::ext::unidata::UniPath>(item36);
                                         return expr37;
                                         };
-                      ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniPath>> const& expr39 = ud::eval_map<hstd::ext::unidata::UniPath>(item35, callback38);
+                      ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniPath>> const& expr39 = ud::eval_map<hstd::Vec<hstd::ext::unidata::UniPath>>(item35, callback38);
                       return expr39;
                       };
-    ud::UniStatic<hstd::Vec<hstd::Vec<hstd::ext::unidata::UniPath>>> const& expr41 = ud::eval_map<hstd::Vec<hstd::ext::unidata::UniPath>>(expr34, callback40);
+    ud::UniStatic<hstd::Vec<hstd::Vec<hstd::ext::unidata::UniPath>>> const& expr41 = ud::eval_map<hstd::Vec<hstd::Vec<hstd::ext::unidata::UniPath>>>(expr34, callback40);
     ud::UniStatic<hstd::Str> const& expr42 = ud::eval_str_format<hstd::Str>(ud::eval_str_pattern("duplicate node ids at %s"), expr41);
     return ud::VerifyResult::Error((*expr42.get()));
   }
@@ -3601,7 +3601,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    ud::UniStatic<hstd::Str> const& expr8 = item7.Field(&item7.get()->id, "id");
                    return expr8;
                    };
-  ud::UniStatic<hstd::Vec<hstd::Str>> const& expr10 = ud::eval_map<hstd::Str>(expr6, callback9);
+  ud::UniStatic<hstd::Vec<hstd::Str>> const& expr10 = ud::eval_map<hstd::Vec<hstd::Str>>(expr6, callback9);
   ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Edge>> const& expr11 = expr0.Field(&expr0.get()->edges, "edges");
   auto callback18 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item12) -> ud::UniStatic<bool> {
                     // and typed_as='bool'
@@ -3655,7 +3655,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       ud::UniStatic<hstd::Str> const& expr27 = item26.Field(&item26.get()->id, "id");
                       return expr27;
                       };
-    ud::UniStatic<hstd::Vec<hstd::Str>> const& expr29 = ud::eval_map<hstd::Str>(expr25, callback28);
+    ud::UniStatic<hstd::Vec<hstd::Str>> const& expr29 = ud::eval_map<hstd::Vec<hstd::Str>>(expr25, callback28);
     ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Edge>> const& expr30 = expr0.Field(&expr0.get()->edges, "edges");
     auto callback38 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item31) -> ud::UniStatic<bool> {
                       // not typed_as='bool'
@@ -3683,7 +3683,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       ud::UniStatic<bool> const& expr37 = ud::eval_not<bool>((condition32));
                       return expr37;
                       };
-    ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Edge>> const& expr39 = ud::eval_filter<hstd::unidata_dsl::test::Edge>(expr30, callback38);
+    ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Edge>> const& expr39 = ud::eval_filter<hstd::Vec<hstd::unidata_dsl::test::Edge>>(expr30, callback38);
     auto callback42 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item40) -> ud::UniStatic<hstd::ext::unidata::UniPath> {
                       // path_of typed_as='path'
                       //     var typed_as='Edge' str_val='edge'
@@ -3691,7 +3691,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       ud::UniStatic<hstd::ext::unidata::UniPath> const& expr41 = ud::eval_path_of<hstd::ext::unidata::UniPath>(item40);
                       return expr41;
                       };
-    ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniPath>> const& expr43 = ud::eval_map<hstd::ext::unidata::UniPath>(expr39, callback42);
+    ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniPath>> const& expr43 = ud::eval_map<hstd::Vec<hstd::ext::unidata::UniPath>>(expr39, callback42);
     ud::UniStatic<hstd::Str> const& expr44 = ud::eval_str_format<hstd::Str>(ud::eval_str_pattern("dangling edges at %s"), expr43);
     return ud::VerifyResult::Error((*expr44.get()));
   }

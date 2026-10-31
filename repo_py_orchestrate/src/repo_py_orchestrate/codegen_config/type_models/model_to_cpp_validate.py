@@ -97,14 +97,22 @@ class CheckGen:
         statements: Sequence[BlockId] = (),
         *,
         expr: Optional[ExprNode] = None,
+        expr_type_override: Optional[QualType] = None,
     ) -> ExpressionEvaluation:
         name = self._expression_name()
 
+        if expr_type_override:
+            var_type = expr_type_override
+
+        elif expr:
+            var_type = self._map_model_type(expr.typed_as)
+
+        else:
+            var_type = CPP_AUTO_T()
+
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=self._map_model_type(expr.typed_as).asConstRef()
-                if expr
-                else CPP_AUTO_T().asConstRef(),
+                type=var_type.asConstRef(),
                 name=name,
                 defArg=value,
             )
@@ -162,7 +170,9 @@ class CheckGen:
             )
 
         else:
-            return self._expression_native_type(expr.typed_as, space=space)
+            result = self._expression_native_type(expr.typed_as, space=space)
+
+            return result
 
     def _set_slot(self, slot: BlockId, value: BlockId) -> BlockId:
         return self._expression_call("set_value", args=[slot, value], is_stmt=True)
@@ -1089,18 +1099,11 @@ class CheckGen:
             )
         )
 
-        match expr.op:
-            case OpId.MAP | OpId.FILTER:
-                params = [self._expression_result_type(expr).par0()]
-
-            case _:
-                params = [self._expression_result_type(expr)]
-
         return self._expression_local(
             self._expression_call(
                 f"eval_{expr.op}",
                 args=[collection.value, callback_value],
-                params=params,
+                params=[self._expression_result_type(expr)],
             ),
             [*collection.statements, declaration],
             expr=expr,
