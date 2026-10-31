@@ -15,6 +15,7 @@ from hstd_py_text_layout.base.wrap import BlockId
 from hstd_py_unidata.model_index import ModelIndex
 from hstd_py_unidata.model_ir import (
     CheckDef,
+    DynT,
     ExprNode,
     ExternalT,
     FieldDef,
@@ -84,16 +85,24 @@ class CheckGen:
     ) -> ExpressionEvaluation:
         name = self._expression_name()
 
+        def get_expression_result_type(expr: ExprNode) -> QualType:
+            initial_res = self.type_map.type(
+                expr.typed_as,
+                self.model.package,
+                space=CPP_SHORT_SPACE_T,
+            )
+
+            if not isinstance(expr.typed_as, DynT):
+                initial_res = CPP_UNI_STATIC_T(
+                    initial_res,
+                    space=CPP_SHORT_SPACE_T,
+                )
+
+            return initial_res
+
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=CPP_UNI_STATIC_T(
-                    self.type_map.type(
-                        expr.typed_as,
-                        self.model.package,
-                        space=CPP_SHORT_SPACE_T,
-                    ),
-                    space=CPP_SHORT_SPACE_T,
-                ).asConstRef()
+                type=get_expression_result_type(expr).asConstRef()
                 if expr
                 else CPP_AUTO_T().asConstRef(),
                 name=name,
@@ -409,10 +418,10 @@ class CheckGen:
                         f"{expr.loc.render()}; expected one of: {expected}"
                     )
 
-                return self.ast.XCall(
-                    "std::holds_alternative",
+                return self._expression_call(
+                    "eval_holds_alternative",
                     args=[source],
-                    Params=[
+                    params=[
                         self.type_map.declaration_type(package, case.case),
                     ],
                 )
@@ -438,10 +447,10 @@ class CheckGen:
 
         match source_type:
             case VariantT():
-                return self.ast.XCall(
-                    "static_cast",
-                    args=[self.ast.XCallRef(source, "index")],
-                    Params=[self._expression_result_type(expr)],
+                return self._expression_call(
+                    "eval_variant_index",
+                    args=[source],
+                    params=[self._expression_result_type(expr)],
                 )
 
             case NamedT() | ExternalT():
@@ -639,6 +648,7 @@ class CheckGen:
                         args[0],
                         self.ast.StringLiteral(expr.str_val),
                     ],
+                    params=[self._expression_result_type(expr)],
                 )
 
             case OpId.STR_FORMAT:
@@ -652,6 +662,7 @@ class CheckGen:
                         ),
                         *args,
                     ],
+                    params=[self._expression_result_type(expr)],
                 )
 
             case (
@@ -955,7 +966,10 @@ class CheckGen:
 
             candidate_declaration = self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=CPP_AUTO_T().asConstPtr(),
+                    type=CPP_UNI_STATIC_T(
+                        self._expression_native_type(case.type_val),
+                        space=CPP_SHORT_SPACE_T,
+                    ).withWrapperType(QualType(Name="hstd::Opt")),
                     name=candidate_name,
                     defArg=self._expression_runtime_call(
                         "try_as",
@@ -980,10 +994,7 @@ class CheckGen:
                 cpp.IfStmtParams(
                     Branches=[
                         cpp.IfStmtParams.Branch(
-                            Cond=self.ast.XCall(
-                                "!=",
-                                args=[candidate, self.ast.string("nullptr")],
-                            ),
+                            Cond=self.ast.XCallRef(candidate, "has_value", args=[]),
                             Then=self.ast.stack(
                                 [
                                     *body.statements,

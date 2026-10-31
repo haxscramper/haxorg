@@ -468,6 +468,8 @@ class OperationChecks(M.Class):
         # or it should instead be hidden. Right now using `["choice"]` with
         # `.is_case` directly fails with typing error because the
         # OperationChecks.choice has a type of `Choice`
+        #
+        # <<unidata/direct-variant-data-field-access>>
         ("CaseIs", M.This["choice"]["data"]._Case.is_case("First")),
         (
             "CaseWhich",

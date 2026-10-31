@@ -329,7 +329,7 @@ class TypeTranslation:
                     return named_cpp_type("hstd::Tuple")
 
             case DynT():
-                return named_cpp_type("DynamicT").withChangedSpace(space)
+                return named_cpp_type("UniDynamic").withChangedSpace(space)
 
             case VariantT():
                 return self.variant_type(package, typ.owner, typ.field)
