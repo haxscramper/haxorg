@@ -3,6 +3,24 @@
 namespace ud = hstd::ext::unidata;
 
 
+void hstd::unidata_dsl::test::TrivialText::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
+  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
+  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
+  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
+  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+}
 hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::TrivialText::__check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj_ptr = static_cast<hstd::unidata_dsl::test::TrivialText const*>(value);
   auto this_obj = ud::UniStatic<hstd::unidata_dsl::test::TrivialText>::RootValue(this_obj_ptr, ctx->getPath());
@@ -29,6 +47,24 @@ hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Trivia
       }};
   return &checks;
 }
+void hstd::unidata_dsl::test::Base::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
+  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
+  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
+  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
+  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+}
 hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Base::__check_record_base_positive_id(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj_ptr = static_cast<hstd::unidata_dsl::test::Base const*>(value);
   auto this_obj = ud::UniStatic<hstd::unidata_dsl::test::Base>::RootValue(this_obj_ptr, ctx->getPath());
@@ -54,6 +90,24 @@ hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Base::
       {hstd::ext::unidata::VerifyKey{"Base", std::nullopt}, hstd::ext::unidata::VerifyCbList{hstd::ext::unidata::VerifyCb{&__check_record_base_positive_id}}}
       }};
   return &checks;
+}
+void hstd::unidata_dsl::test::Derived::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
+  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
+  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
+  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
+  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
 }
 hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Derived::__check_record_derived_positive_weight(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj_ptr = static_cast<hstd::unidata_dsl::test::Derived const*>(value);
@@ -113,6 +167,24 @@ hstd::unidata_dsl::test::Choice::Data const& hstd::unidata_dsl::test::Choice::su
 }
 hstd::unidata_dsl::test::Choice::Kind hstd::unidata_dsl::test::Choice::sub_variant_get_kind() const {
   return getKind();
+}
+void hstd::unidata_dsl::test::OperationChecks::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
+  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
+  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
+  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
+  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
 }
 hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__check_record_poc_Eq(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj_ptr = static_cast<hstd::unidata_dsl::test::OperationChecks const*>(value);
@@ -1310,22 +1382,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //                 const_int typed_as='int64' int_val=6
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   auto condition1 = ud::UniStatic<bool>::FromConst(false, "false");
   if (!((*condition1.get()))) {
@@ -2671,22 +2728,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //                     this typed_as='OperationChecks'
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   auto condition1 = ud::UniStatic<bool>::FromConst(false, "false");
   if (!((*condition1.get()))) {
@@ -2740,22 +2782,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //         const_int typed_as='int64' int_val=6
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   auto condition1 = ud::UniStatic<bool>::FromConst(false, "false");
   if (!((*condition1.get()))) {
@@ -2832,22 +2859,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //             const_int typed_as='int64' int_val=6
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   auto condition1 = ud::UniStatic<bool>::FromConst(false, "false");
   if (!((*condition1.get()))) {
@@ -2923,22 +2935,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //         const_str typed_as='string' str_val='Derived'
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   auto condition1 = ud::UniStatic<bool>::FromConst(false, "false");
   if (!((*condition1.get()))) {
@@ -3013,22 +3010,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //             const_str typed_as='string' str_val='/derived'
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   auto condition1 = ud::UniStatic<bool>::FromConst(false, "false");
   if (!((*condition1.get()))) {
@@ -3430,6 +3412,24 @@ hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Operat
       }};
   return &checks;
 }
+void hstd::unidata_dsl::test::FieldChecks::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
+  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
+  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
+  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
+  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+}
 hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj_ptr = static_cast<hstd::unidata_dsl::test::FieldChecks const*>(value);
   auto this_obj = ud::UniStatic<hstd::unidata_dsl::test::FieldChecks>::RootValue(this_obj_ptr, ctx->getPath());
@@ -3485,6 +3485,24 @@ hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::FieldC
       }};
   return &checks;
 }
+void hstd::unidata_dsl::test::MessageChecks::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
+  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
+  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
+  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
+  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+}
 hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::MessageChecks::__check_record_format_message(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj_ptr = static_cast<hstd::unidata_dsl::test::MessageChecks const*>(value);
   auto this_obj = ud::UniStatic<hstd::unidata_dsl::test::MessageChecks>::RootValue(this_obj_ptr, ctx->getPath());
@@ -3522,6 +3540,24 @@ hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Messag
       }};
   return &checks;
 }
+void hstd::unidata_dsl::test::Graph::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
+  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
+  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
+  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
+  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
+  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+}
 hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_graph_unique_node_ids(hstd::ext::unidata::VerifyContext const* ctx, void const* value) {
   auto const* this_obj_ptr = static_cast<hstd::unidata_dsl::test::Graph const*>(value);
   auto this_obj = ud::UniStatic<hstd::unidata_dsl::test::Graph>::RootValue(this_obj_ptr, ctx->getPath());
@@ -3543,22 +3579,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   //         const_int typed_as='int64' int_val=1
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr1 = ud::eval_walk(expression_runtime, expr0);
   auto callback5 = [&](ud::UniDynamic const& item2) -> ud::UniStatic<hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>>> {
@@ -3688,22 +3709,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   //                     var typed_as='Edge' str_val='edge'
   //
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
-  expression_runtime.register_type<hstd::unidata_dsl::test::TrivialText>("TrivialText");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Base>("Base");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Derived>("Derived");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::First>("Choice::First");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Second>("Choice::Second");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice>("Choice");
-  expression_runtime.register_type<hstd::unidata_dsl::test::OperationChecks>("OperationChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::FieldChecks>("FieldChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::MessageChecks>("MessageChecks");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Node>("Node");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Edge>("Edge");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Graph>("Graph");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Status>("Status");
-  expression_runtime.register_type<hstd::unidata_dsl::test::CheckKind>("CheckKind");
-  expression_runtime.register_type<hstd::unidata_dsl::test::Choice::Kind>("Choice::Kind");
-  expression_runtime.register_base<hstd::unidata_dsl::test::Derived, hstd::unidata_dsl::test::Base>();
+  __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
   ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr1 = ud::eval_walk(expression_runtime, expr0);
   auto callback5 = [&](ud::UniDynamic const& item2) -> ud::UniStatic<hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>>> {

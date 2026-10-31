@@ -469,6 +469,12 @@ class ModelToGenTu:
             )
 
         if 0 < len(check_functions):
+            impl_functions.append(
+                self.check_gen.gen_populate_expression_runtime(
+                    parentClass=DeclClass,
+                )
+            )
+
             assign_stack = list()
 
             for check in check_functions:

@@ -79,6 +79,7 @@ struct TrivialText {
   BOOST_DESCRIBE_CLASS(TrivialText, (), (), (), (text, unidata_id));
   hstd::Str text;
   static constexpr std::string const unidata_id = "TrivialText";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
   static hstd::ext::unidata::VerifyResult __check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
 };
@@ -87,6 +88,7 @@ struct Base {
   BOOST_DESCRIBE_CLASS(Base, (), (), (), (id, unidata_id));
   int64_t id;
   static constexpr std::string const unidata_id = "Base";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
   static hstd::ext::unidata::VerifyResult __check_record_base_positive_id(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
 };
@@ -95,6 +97,7 @@ struct Derived : public hstd::unidata_dsl::test::Base {
   BOOST_DESCRIBE_CLASS(Derived, (Base), (), (), (weight, unidata_id));
   int64_t weight;
   static constexpr std::string const unidata_id = "Derived";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
   static hstd::ext::unidata::VerifyResult __check_record_derived_positive_weight(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
 };
@@ -164,6 +167,7 @@ struct OperationChecks {
   hstd::unidata_dsl::test::Derived derived;
   hstd::unidata_dsl::test::Choice choice;
   static constexpr std::string const unidata_id = "OperationChecks";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
   static hstd::ext::unidata::VerifyResult __check_record_poc_Eq(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_Ne(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_Lt(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
@@ -232,6 +236,7 @@ struct FieldChecks {
   hstd::Str text;
   hstd::Vec<int64_t> numbers;
   static constexpr std::string const unidata_id = "FieldChecks";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
   static hstd::ext::unidata::VerifyResult __check_text_text_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_numbers_numbers_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
@@ -252,6 +257,7 @@ struct MessageChecks {
   hstd::Vec<int64_t> numbers;
   hstd::UnorderedMap<hstd::Str, int64_t> details;
   static constexpr std::string const unidata_id = "MessageChecks";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
   static hstd::ext::unidata::VerifyResult __check_record_format_message(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
 };
@@ -274,6 +280,7 @@ struct Graph {
   hstd::Vec<hstd::unidata_dsl::test::Node> nodes;
   hstd::Vec<hstd::unidata_dsl::test::Edge> edges;
   static constexpr std::string const unidata_id = "Graph";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
   static hstd::ext::unidata::VerifyResult __check_record_graph_unique_node_ids(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_graph_no_dangling_edges(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();

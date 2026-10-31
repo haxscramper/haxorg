@@ -1230,26 +1230,54 @@ class CheckGen:
                 return any(self._expression_needs_runtime(arg) for arg in expr.args)
 
     def _gen_expression_runtime(self) -> List[BlockId]:
-        runtime = self.ast.string("expression_runtime")
+        runtime_type = QualType(
+            Name="EvalRuntime",
+            Spaces=[CPP_SPACE_T],
+        )
 
-        statements = [
+        return [
             self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=QualType(
-                        Name="EvalRuntime",
-                        Spaces=[CPP_SPACE_T],
-                    ),
+                    type=runtime_type,
                     name="expression_runtime",
                     defArg=self.ast.XConstructObj(
-                        QualType(
-                            Name="EvalRuntime",
-                            Spaces=[CPP_SPACE_T],
-                        ),
+                        runtime_type,
                         Args=[self.ast.string("ctx")],
                     ),
                 )
-            )
+            ),
+            self.ast.XCall(
+                "__populate_expression_runtime",
+                args=[self.ast.string("expression_runtime")],
+                Stmt=True,
+            ),
         ]
+
+    def gen_populate_expression_runtime(
+        self,
+        parentClass: QualType,
+    ) -> GenTuFunction:
+        return GenTuFunction(
+            Name="__populate_expression_runtime",
+            ReturnType=QualType(Name="void"),
+            Args=[
+                GenTuIdent(
+                    Type=QualType(
+                        Name="EvalRuntime",
+                        Spaces=[CPP_SPACE_T],
+                    ).asRef(),
+                    Name="expression_runtime",
+                )
+            ],
+            IsStatic=True,
+            ParentClass=parentClass,
+            Body=self.ast.stack(self._gen_expression_runtime_registrations()),
+        )
+
+    def _gen_expression_runtime_registrations(self) -> List[BlockId]:
+        runtime = self.ast.string("expression_runtime")
+
+        statements: List[BlockId] = []
 
         gen_registration = True
 
