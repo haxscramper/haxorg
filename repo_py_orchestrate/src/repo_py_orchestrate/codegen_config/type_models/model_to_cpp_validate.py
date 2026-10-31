@@ -77,6 +77,9 @@ class CheckGen:
         self.expression_counter += 1
         return result
 
+    def _wrap_uni_static(self, type: QualType) -> QualType:
+        return CPP_UNI_STATIC_T(type, space=CPP_SHORT_SPACE_T)
+
     def _map_model_type(self, type: TypeRef) -> QualType:
         """
         Given an input model type, how the resulting C++ type would
@@ -89,10 +92,7 @@ class CheckGen:
         )
 
         if not isinstance(type, DynT):
-            initial_res = CPP_UNI_STATIC_T(
-                initial_res,
-                space=CPP_SHORT_SPACE_T,
-            )
+            initial_res = self._wrap_uni_static(initial_res)
 
         return initial_res
 
@@ -190,14 +190,11 @@ class CheckGen:
                     [self._map_model_type(expr.typed_as.elem)]
                 )
 
-            elif isinstance(expr.typed_as, DynT):
+            if isinstance(expr.typed_as, DynT):
                 pass
 
             else:
-                result = CPP_UNI_STATIC_T(
-                    result,
-                    space=CPP_SHORT_SPACE_T,
-                )
+                result = self._wrap_uni_static(result)
 
             return result
 
@@ -211,9 +208,8 @@ class CheckGen:
         name = self._expression_name("result")
         value = self.ast.string(name)
 
-        slot_type = CPP_UNI_STATIC_T(
-            named_cpp_type("UniOpt", [typ]).withChangedSpace(CPP_SHORT_SPACE_T),
-            space=CPP_SHORT_SPACE_T,
+        slot_type = self._wrap_uni_static(
+            named_cpp_type("UniOpt", [typ]).withChangedSpace(CPP_SHORT_SPACE_T)
         )
 
         declaration = self.ast.VarDecl(
@@ -279,7 +275,7 @@ class CheckGen:
         return self.ast.Lambda(
             cpp.LambdaParams(
                 Args=parameters,
-                ResultTy=self._map_model_type(body.typed_as),
+                ResultTy=self._expression_result_type(body),
                 CaptureList=[cpp.LambdaCapture(ByRef=True)],
                 Body=[
                     self._gen_expr_comment_tree(body),
@@ -779,7 +775,7 @@ class CheckGen:
                 value = self._expression_call(
                     f"eval_{expr.op}",
                     args=[args[0]],
-                    params=[self._expression_native_type(expr.type_val)],
+                    params=[self._expression_result_type(expr)],
                 )
 
             case _:
@@ -808,10 +804,7 @@ class CheckGen:
                     type=CPP_AUTO_T(),
                     name=name,
                     defArg=self.ast.CallStatic(
-                        CPP_UNI_STATIC_T(
-                            QualType(Name="bool"),
-                            space=CPP_SHORT_SPACE_T,
-                        ),
+                        self._wrap_uni_static(QualType(Name="bool")),
                         "FromConst",
                         Args=[
                             self.ast.string("true" if is_and else "false"),
@@ -982,7 +975,11 @@ class CheckGen:
                         self._expression_call(
                             "eval_opt_has_value",
                             [slot],
-                            params=[QualType(Name="bool")],
+                            params=[
+                                CPP_UNI_STATIC_T(
+                                    QualType(Name="bool"), space=CPP_SHORT_SPACE_T
+                                )
+                            ],
                         )
                     ],
                     params=[QualType(Name="bool")],
@@ -1002,9 +999,8 @@ class CheckGen:
 
             candidate_declaration = self.ast.VarDecl(
                 cpp.ParmVarParams(
-                    type=CPP_UNI_STATIC_T(
-                        self._expression_native_type(case.type_val),
-                        space=CPP_SHORT_SPACE_T,
+                    type=self._wrap_uni_static(
+                        self._expression_native_type(case.type_val)
                     ).withWrapperType(QualType(Name="hstd::Opt")),
                     name=candidate_name,
                     defArg=self._expression_runtime_call(
@@ -1406,11 +1402,10 @@ class CheckGen:
                     type=CPP_AUTO_T(),
                     name="this_obj",
                     defArg=self.ast.CallStatic(
-                        typ=CPP_UNI_STATIC_T(
+                        typ=self._wrap_uni_static(
                             self.type_map.declaration_type(
                                 self.model.package, owner.qname
-                            ),
-                            space=CPP_SHORT_SPACE_T,
+                            )
                         ),
                         opc="RootValue",
                         Args=[

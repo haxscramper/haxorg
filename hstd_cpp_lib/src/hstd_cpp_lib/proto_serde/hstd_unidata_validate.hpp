@@ -333,6 +333,13 @@ struct UniValue {
             StaticT<SubItem>::FromLValue(value), path.add(UniAccessStep::Index(key)));
     }
 
+    template <NonWrapperArg SubItem, NonWrapperArg Key>
+    UniValue<StaticT<SubItem>> AtIndex(StaticT<SubItem> const& value, Key const& key)
+        const {
+        return UniValue<StaticT<SubItem>>(value, path.add(UniAccessStep::Index(key)));
+    }
+
+
     template <NonWrapperArg Key>
     UniValue<DynamicT> AtIndex(DynamicT const& value, Key const& key) const {
         return UniValue<DynamicT>(value, path.add(UniAccessStep::Index(key)));
@@ -430,11 +437,12 @@ UniStatic<bool> eval_holds_alternative(UniStatic<UniVariant<Args...>> const& val
 }
 
 template <typename Res, typename... Args>
-UniStatic<Res> eval_variant_index(UniStatic<UniVariant<Args...>> const& values) {
+Res eval_variant_index(UniStatic<UniVariant<Args...>> const& values) {
     // TODO: variant enums are always generated to match the index -- for now,
     // but in the future this part of the code might need reworking. See
     // [[unidata/direct-variant-data-field-access]] in the test model.
-    return values.CallResult(static_cast<Res>(values.get()->index()), "index");
+    return values.CallResult(
+        static_cast<Res::value_type>(values.get()->index()), "index");
 }
 
 template <typename Res>
@@ -548,25 +556,33 @@ Res eval_ne(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
 template <typename Res, typename T1, typename T2>
 Res eval_add(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return Res::SubExprNoContext(
-        static_cast<Res>(*lhs.get()) + static_cast<Res>(*rhs.get()), "+");
+        static_cast<Res::value_type>(*lhs.get())
+            + static_cast<Res::value_type>(*rhs.get()),
+        "+");
 }
 
 template <typename Res, typename T1, typename T2>
 Res eval_sub(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return Res::SubExprNoContext(
-        static_cast<Res>(*lhs.get()) - static_cast<Res>(*rhs.get()), "+");
+        static_cast<Res::value_type>(*lhs.get())
+            - static_cast<Res::value_type>(*rhs.get()),
+        "+");
 }
 
 template <typename Res, typename T1, typename T2>
 Res eval_div(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return Res::SubExprNoContext(
-        static_cast<Res>(*lhs.get()) / static_cast<Res>(*rhs.get()), "/");
+        static_cast<Res::value_type>(*lhs.get())
+            / static_cast<Res::value_type>(*rhs.get()),
+        "/");
 }
 
 template <typename Res, typename T1, typename T2>
 Res eval_mul(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
     return Res::SubExprNoContext(
-        static_cast<Res>(*lhs.get()) * static_cast<Res>(*rhs.get()), "*");
+        static_cast<Res::value_type>(*lhs.get())
+            * static_cast<Res::value_type>(*rhs.get()),
+        "*");
 }
 
 template <typename Res, typename T>
@@ -609,26 +625,24 @@ Res eval_nth_get(UniStatic<UniTuple<Args...>> const& lhs) {
     return lhs.AtIndex(std::get<index>(*lhs.get()), index);
 }
 
-
 template <typename Res, typename T>
 Res eval_opt_has_value(UniStatic<T> const& lhs) {
-    return UniStatic<Res>::SubExprNoContext(lhs.get()->has_value(), "opt_has_value");
+    return Res::SubExprNoContext(lhs.get()->has_value(), "opt_has_value");
 }
 
 template <typename Res, typename T>
-UniStatic<Res> eval_opt_value(UniStatic<UniOpt<T>> const& lhs) {
-    return UniStatic<Res>::CallResult(lhs.get()->has_value(), "value");
+Res eval_opt_value(UniStatic<UniOpt<T>> const& lhs) {
+    return Res::CallResult(lhs.get()->has_value(), "value");
 }
 
 template <typename Res, typename T>
 Res eval_is_derived(UniStatic<T> const& lhs) {
-    return Res::SubExprNoContext(dynamic_cast<Res>(lhs.get()) != nullptr, "is_derived");
+    return Res::SubExprNoContext(
+        dynamic_cast<Res::value_type>(lhs.get()) != nullptr, "is_derived");
 }
 
 template <typename Res, typename T, typename IntType>
-UniStatic<Res> eval_list_at(
-    UniStatic<UniVec<T>> const& lhs,
-    UniStatic<IntType> const&   rhs) {
+Res eval_list_at(UniStatic<UniVec<T>> const& lhs, UniStatic<IntType> const& rhs) {
     return lhs.AtIndex(&lhs.get()->at(*rhs.get()), *rhs.get());
 }
 
@@ -641,13 +655,11 @@ Res eval_list_at(
 
 
 template <typename Res, typename T>
-UniStatic<Res> eval_list_concat(
-    UniStatic<UniVec<T>> const& lhs,
-    UniStatic<UniVec<T>> const& rhs) {
+Res eval_list_concat(UniStatic<UniVec<T>> const& lhs, UniStatic<UniVec<T>> const& rhs) {
     UniVec<T> result;
     result.append(lhs);
     result.append(rhs);
-    return UniStatic<Res>::SubExprNoContext(result, "list_concat");
+    return Res::SubExprNoContext(result, "list_concat");
 }
 
 
@@ -664,19 +676,17 @@ consteval str_format_pattern eval_str_pattern(char const* pattern) {
 }
 
 template <typename Result, typename... Args>
-UniStatic<UniStr> eval_str_format(str_format_pattern const& pattern, Args&&... args) {
+Result eval_str_format(str_format_pattern const& pattern, Args&&... args) {
     logic_todo_impl();
 }
 
-template <typename T, typename Value>
-UniStatic<T> const& eval_get_field(
-    UniStatic<Value> const& value,
-    char const*             field_name) {
-    UniStatic<T> result = nullptr;
+template <typename Result, typename Value>
+Result const& eval_get_field(UniStatic<Value> const& value, char const* field_name) {
+    hstd::Opt<Result> result;
     // FIXME: Not verify efficient, but good enough for the initial POC solution
-    hstd::for_each_field_no_base<T>([&](auto const& field) {
+    hstd::for_each_field_no_base<Result::value_type>([&](auto const& field) {
         using F = DESC_FIELD_TYPE(field);
-        if constexpr (std::is_same_v<T, F>) {
+        if constexpr (std::is_same_v<typename Result::value_type, F>) {
             if (std::strcmp(field.name, field_name) == 0) {
                 result = value.Field(&(value.*field.pointer), field_name);
             }
@@ -684,17 +694,16 @@ UniStatic<T> const& eval_get_field(
     });
 
     LOGIC_ASSERTION_CHECK(
-        result.value != nullptr, "Runtime logic error, could not find target field");
+        result.has_value(), "Runtime logic error, could not find target field");
 
-    return result;
+    return result.value();
 }
 
-template <typename T, typename... Args>
-UniStatic<T> eval_get_field(
-    UniStatic<UniVariant<Args...>> const& variant,
-    char const*                           field) {
+template <typename Result, typename... Args>
+Result eval_get_field(UniStatic<UniVariant<Args...>> const& variant, char const* field) {
     return std::visit(
-        [&](auto const& item) { return eval_get_field<T>(item, field); }, *variant.get());
+        [&](auto const& item) -> Result { return eval_get_field<Result>(item, field); },
+        *variant.get());
 }
 
 
@@ -744,144 +753,126 @@ UniValue<StaticT<bool>> eval_exists_one(
 }
 
 template <typename ResultType, typename T, typename Callback>
-UniStatic<hstd::Vec<ResultType>> eval_map(
-    UniStatic<hstd::Vec<T>> const& collection,
-    Callback const&                callback) {
-    hstd::Vec<ResultType> res;
+ResultType eval_map(UniStatic<hstd::Vec<T>> const& collection, Callback const& callback) {
+    hstd::Vec<typename ResultType::value_type> res;
     for (auto const& it : iterate_list(collection)) { res.push_back(callback(it)); }
-
-    return UniStatic<hstd::Vec<ResultType>>::SubExprNoContext(res, "map");
+    return ResultType::SubExprNoContext(res, "map");
 }
 
 template <typename ResultType, typename T, typename Callback>
-UniStatic<hstd::Vec<ResultType>> eval_filter(
+ResultType eval_filter(
     UniStatic<hstd::Vec<T>> const& collection,
     Callback const&                callback) {
-    hstd::Vec<ResultType> res;
+    hstd::Vec<typename ResultType::value_type> res;
     for (auto const& it : iterate_list(collection)) {
         auto cb_res = callback(it);
         if (*cb_res.get()) { res.push_back(it); }
     }
 
-    return UniStatic<hstd::Vec<ResultType>>::SubExprNoContext(res, "filter");
+    return ResultType::SubExprNoContext(res, "filter");
 }
 
 template <typename Result>
-UniStatic<bool> eval_str_matches(
-    UniStatic<UniStr> const& value,
-    std::string const&       pattern) {
-    return UniStatic<Result>::SubExprNoContext(
+Result eval_str_matches(UniStatic<UniStr> const& value, std::string const& pattern) {
+    return Result::SubExprNoContext(
         std::regex_search(*value.get(), std::regex{pattern}), "str_matches");
 }
 
 template <typename Result, typename Collection, typename T>
-UniStatic<bool> eval_list_contains(
-    UniStatic<Collection> const& collection,
-    T const&                     value) {
+Result eval_list_contains(UniStatic<Collection> const& collection, T const& value) {
     for (auto const& item : iterate_list(collection)) {
-        if (item == value) {
-            return UniStatic<Result>::SubExprNoContext(true, "list_contains");
-        }
+        if (item == value) { return Result::SubExprNoContext(true, "list_contains"); }
     }
 
-    return UniStatic<Result>::SubExprNoContext(false, "list_contains");
+    return Result::SubExprNoContext(false, "list_contains");
 }
 
 template <typename Result, typename First, typename Second>
-UniStatic<Result> eval_list_concat(First const& first, Second const& second) {
+Result eval_list_concat(First const& first, Second const& second) {
     Result result;
     for (auto const& item : iterate_list(first)) { result.push_back(item); }
     for (auto const& item : iterate_list(second)) { result.push_back(item); }
-    return UniStatic<Result>::SubExprNoContext(result, "list_concat");
+    return Result::SubExprNoContext(result, "list_concat");
 }
 
 template <typename Result, typename Map, typename Key, typename Value>
-UniStatic<Result> eval_map_insert(Map const& map, Key const& key, Value const& value) {
+Result eval_map_insert(Map const& map, Key const& key, Value const& value) {
     // FIXME: This will perform a full copy of the map on each insert -- if this is used
     // with operation that iterates over the whole tree, or used to collect the return
     // into the list (e.g. map+fold+insert), this can easily lead to the O(N^2) copies
     // for the POC/tests this implementation is good enough, but later on all of this
     // should be replaced with the immer types. No operation/expression mutates the values
-    Result result{map};
+    typename Result::value_type result{map};
     result.insert_or_assign(key, value);
-    return UniStatic<Result>::SubExprNoContext(result, "map_insert");
+    return Result::SubExprNoContext(result, "map_insert");
 }
 
-template <typename Result, typename Map>
-UniStatic<Result> eval_map_keys(Map const& map) {
-    Result result;
+template <typename Result, typename K, typename V>
+Result eval_map_keys(UniStatic<UniMap<K, V>> const& map) {
+    hstd::Vec<UniStatic<K>> result;
     for (auto const& entry : iterate_map(map)) { result.push_back(entry.first); }
-
-    return UniStatic<Result>::SubExprNoContext(result, "map_keys");
+    return Result::SubExprNoContext(result, "map_keys");
 }
 
 
-template <typename Result, typename Map>
-UniStatic<Result> eval_map_values(Map const& map) {
-    Result result;
+template <typename Result, typename K, typename V>
+Result eval_map_values(UniStatic<UniMap<K, V>> const& map) {
+    hstd::Vec<UniStatic<V>> result;
     for (auto const& entry : iterate_map(map)) { result.push_back(entry.second); }
-
-    return UniStatic<Result>::SubExprNoContext(result, "map_values");
+    return Result::SubExprNoContext(result, "map_values");
 }
 
 template <typename Result, typename Collection, typename Callback>
-UniStatic<Result> eval_filter_map(
-    Collection const& collection,
-    Callback const&   callback) {
-    Result result;
+Result eval_filter_map(Collection const& collection, Callback const& callback) {
+    hstd::Vec<typename Result::value_type> res;
     for (auto const& item : iterate_list(collection)) {
         auto mapped = callback(item);
-        if (mapped) { result.push_back(std::move(*mapped)); }
+        if (mapped) { res.push_back(std::move(*mapped)); }
     }
 
-    return UniStatic<Result>::SubExprNoContext(result, "filter_map");
+    return Result::SubExprNoContext(res, "filter_map");
 }
 
 template <typename Result, typename Collection, typename Callback>
-UniStatic<Result> eval_take_while(
-    Collection const& collection,
-    Callback const&   callback) {
+Result eval_take_while(Collection const& collection, Callback const& callback) {
     Result result;
     for (auto const& item : iterate_list(collection)) {
         if (!callback(item)) { break; }
         result.push_back(item);
     }
 
-    return UniStatic<Result>::SubExprNoContext(result, "take_while");
+    return Result::SubExprNoContext(result, "take_while");
 }
 
 template <typename Result, typename Collection, typename Callback>
-UniStatic<Result> eval_group_by(Collection const& collection, Callback const& callback) {
+Result eval_group_by(Collection const& collection, Callback const& callback) {
     Result result;
     for (auto const& item : iterate_list(collection)) {
         result[callback(item)].push_back(item);
     }
 
-    return UniStatic<Result>::SubExprNoContext(result, "group_by");
+    return Result::SubExprNoContext(result, "group_by");
 }
 
 template <typename Result, typename Collection, typename Callback>
-UniStatic<Result> eval_fold(
-    Collection const& collection,
-    UniStatic<Result> initial,
-    Callback const&   callback) {
+Result eval_fold(Collection const& collection, Result initial, Callback const& callback) {
     Result start = *initial.get();
     for (auto const& item : iterate_list(collection)) {
         start = callback(std::move(start), item);
     }
 
-    return UniStatic<Result>::SubExprNoContext(start, "fold");
+    return Result::SubExprNoContext(start, "fold");
 }
 
 template <typename Result, typename Collection>
-UniStatic<Result> eval_sum(Collection const& collection) {
+Result eval_sum(Collection const& collection) {
     Result result{};
     for (auto const& item : iterate_list(collection)) { result += item; }
-    return UniStatic<Result>::SubExprNoContext(result, "sum");
+    return Result::SubExprNoContext(result, "sum");
 }
 
 template <typename Result, typename Collection>
-UniStatic<Result> eval_min(UniStatic<Collection> const& collection) {
+Result eval_min(UniStatic<Collection> const& collection) {
     auto values = iterate_list(collection);
     auto it     = values.begin();
     auto end    = values.end();
@@ -895,11 +886,11 @@ UniStatic<Result> eval_min(UniStatic<Collection> const& collection) {
         if (value < result) { result = value; }
     }
 
-    return UniStatic<Result>::SubExprNoContext(result, "min");
+    return Result::SubExprNoContext(result, "min");
 }
 
 template <typename Result, typename Collection>
-UniStatic<Result> eval_max(UniStatic<Collection> const& collection) {
+Result eval_max(UniStatic<Collection> const& collection) {
     auto values = iterate_list(collection);
     auto it     = values.begin();
     auto end    = values.end();
@@ -913,12 +904,12 @@ UniStatic<Result> eval_max(UniStatic<Collection> const& collection) {
         if (result < value) { result = value; }
     }
 
-    return UniStatic<Result>::SubExprNoContext(result, "max");
+    return Result::SubExprNoContext(result, "max");
 }
 
 /// Return the half-open slice [start, end).
 template <typename Result, typename Collection, typename I1, typename I2>
-UniStatic<Result> eval_list_slice(
+Result eval_list_slice(
     UniStatic<Collection> const& collection,
     UniStatic<I1>                start,
     UniStatic<I2>                end) {
@@ -937,7 +928,7 @@ UniStatic<Result> eval_list_slice(
         ++index;
     }
 
-    return UniStatic<Result>::SubExprNoContext(result, "list_slice");
+    return Result::SubExprNoContext(result, "list_slice");
 }
 
 
