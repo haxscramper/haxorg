@@ -1,8 +1,11 @@
 #pragma once
 
+#include <hstd_cpp_lib/logger/TraceBase.hpp>
 #include <hstd_cpp_lib/proto_serde/hstd_unidata_validate.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>
-
 
 namespace hstd::ext::unidata {
 
@@ -74,15 +77,39 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 template <OpId Kind>
 struct OpImpl {};
 
+template <OpId Kind, typename Res, typename Eval>
+Res eval_op_traced(ExprContext const& expr_ctx, Eval&& eval) {
+    OP_TRACER_MESSAGE_SCOPE(
+        expr_ctx.ctx,
+        "Eval {} at {}:{} via {}:{}",
+        Kind,
+        expr_ctx.file_basename,
+        expr_ctx.file_line,
+        expr_ctx.call_function,
+        expr_ctx.call_line);
+
+    auto result = std::forward<Eval>(eval)();
+
+    OP_TRACER_MESSAGE(expr_ctx.ctx, "-> {}", get_unpack(result));
+
+    return result;
+}
+
 template <OpId Kind, typename Res, typename... TemplateArgs, typename... Args>
 Res eval_op(ExprContext const& expr_ctx, Args&&... args) {
-    return OpImpl<Kind>::template eval<Res, TemplateArgs...>(std::forward<Args>(args)...);
+    return eval_op_traced<Kind, Res>(expr_ctx, [&]() {
+        return OpImpl<Kind>::template eval<Res, TemplateArgs...>(
+            std::forward<Args>(args)...);
+    });
 }
 
 template <OpId Kind, typename Res, int Index, typename... Args>
 Res eval_op(ExprContext const& expr_ctx, Args&&... args) {
-    return OpImpl<Kind>::template eval<Res, Index>(std::forward<Args>(args)...);
+    return eval_op_traced<Kind, Res>(expr_ctx, [&]() {
+        return OpImpl<Kind>::template eval<Res, Index>(std::forward<Args>(args)...);
+    });
 }
+
 
 template <>
 struct OpImpl<OpId::WALK> {
@@ -427,14 +454,16 @@ struct OpImpl<OpId::NOT> {
 
 // Formatting expressions used in the DSL are a subset of C++ fmt expressions,
 // so this backend can pass them through as a reference implementation.
-#define eval_str_pattern(arg) FMT_STRING(arg)
+#define eval_str_pattern(arg) ([]() constexpr { return fmt::string_view{arg}; })
 
 template <>
 struct OpImpl<OpId::STR_FORMAT> {
-    template <typename Res, typename... Args>
-    [[nodiscard]] static Res eval(
-        fmt::format_string<decltype(get_unpack(std::declval<Args&>()))...> format,
-        Args&&... args) {
+    template <typename Res, typename Pattern, typename... Args>
+    [[nodiscard]] static Res eval(Pattern, Args&&... args) {
+        constexpr auto
+            format = fmt::format_string<decltype(get_unpack(std::declval<Args&>()))...>{
+                Pattern{}()};
+
         auto unpacked = std::make_tuple(get_unpack(args)...);
 
         return std::apply(

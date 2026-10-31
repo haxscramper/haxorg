@@ -799,16 +799,25 @@ struct ExprContext {
     VerifyContext const* ctx;
     char const*          file_basename;
     int                  file_line;
+    int                  call_line;
+    char const*          call_function;
+    char const*          call_file;
 };
 
 inline ExprContext get_context(
     VerifyContext const* ctx,
     char const*          file_basename,
-    int                  file_line) {
+    int                  file_line,
+    int                  line     = __builtin_LINE(),
+    char const*          function = __builtin_FUNCTION(),
+    char const*          file     = __builtin_FILE()) {
     return ExprContext{
         .ctx           = ctx,
         .file_basename = file_basename,
         .file_line     = file_line,
+        .call_line     = line,
+        .call_function = function,
+        .call_file     = file,
     };
 }
 
@@ -819,6 +828,11 @@ template <typename T>
 auto get_unpack(T const& value) {
     return rec_unpack_value<T>::get(value);
 }
+
+template <>
+struct rec_unpack_value<UniDynamic> {
+    static UniStr get(UniDynamic const& value) { return UniStr{value.value.type.name()}; }
+};
 
 template <typename T>
 struct rec_unpack_value<UniStatic<T>> {
@@ -835,6 +849,65 @@ struct rec_unpack_value<UniStatic<UniVec<T>>> {
             result.push_back(get_unpack(it));
         }
         return result;
+    }
+};
+
+template <typename K, typename V>
+struct rec_unpack_value<UniStatic<UniMap<K, V>>> {
+    static auto get(UniStatic<UniMap<K, V>> const& value) {
+        using ResKey = decltype(get_unpack(std::declval<K const&>()));
+        using ResVal = decltype(get_unpack(std::declval<V const&>()));
+
+        UniMap<ResKey, ResVal> result;
+        for (auto const& it : get_stored_value(value)) {
+            result.insert_or_assign(get_unpack(it.first), get_unpack(it.second));
+        }
+        return result;
+    }
+};
+
+template <typename T>
+struct rec_unpack_value<UniStatic<UniOpt<T>>> {
+    static auto get(UniStatic<UniOpt<T>> const& value) {
+        using Element = decltype(get_unpack(std::declval<T const&>()));
+
+        auto const& stored = get_stored_value(value);
+        if (stored.has_value()) { return UniOpt<Element>{get_unpack(*stored)}; }
+        return UniOpt<Element>{};
+    }
+};
+
+template <typename... Ts>
+struct rec_unpack_value<UniStatic<UniTuple<Ts...>>> {
+    using Result = UniTuple<decltype(get_unpack(std::declval<Ts const&>()))...>;
+
+    static Result get(UniStatic<UniTuple<Ts...>> const& value) {
+        return std::apply(
+            [](auto const&... items) -> Result { return Result{get_unpack(items)...}; },
+            get_stored_value(value));
+    }
+};
+
+template <typename... Ts>
+struct rec_unpack_value<UniStatic<UniVariant<Ts...>>> {
+    using Source = UniVariant<Ts...>;
+    using Result = UniVariant<decltype(get_unpack(std::declval<Ts const&>()))...>;
+
+    template <std::size_t Index = 0>
+    static Result unpack(Source const& value) {
+        if constexpr (Index < sizeof...(Ts)) {
+            if (value.index() == Index) {
+                return Result{
+                    std::in_place_index<Index>, get_unpack(std::get<Index>(value))};
+            }
+            return unpack<Index + 1>(value);
+        } else {
+            throw std::bad_variant_access{};
+        }
+    }
+
+    static Result get(UniStatic<Source> const& value) {
+        return unpack(get_stored_value(value));
     }
 };
 
