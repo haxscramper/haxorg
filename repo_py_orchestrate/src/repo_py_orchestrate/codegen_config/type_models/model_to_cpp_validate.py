@@ -76,7 +76,7 @@ class CheckGen:
         self.expression_counter += 1
         return result
 
-    def _get_expression_result_type(self, type: TypeRef) -> QualType:
+    def _map_model_type(self, type: TypeRef) -> QualType:
         initial_res = self.type_map.type(
             type,
             self.model.package,
@@ -102,7 +102,7 @@ class CheckGen:
 
         declaration = self.ast.VarDecl(
             cpp.ParmVarParams(
-                type=self._get_expression_result_type(expr.typed_as).asConstRef()
+                type=self._map_model_type(expr.typed_as).asConstRef()
                 if expr
                 else CPP_AUTO_T().asConstRef(),
                 name=name,
@@ -227,7 +227,7 @@ class CheckGen:
             name = self._expression_name("item")
             parameters.append(
                 cpp.ParmVarParams(
-                    type=self._get_expression_result_type(binder_type).asConstRef(),
+                    type=self._map_model_type(binder_type).asConstRef(),
                     name=name,
                 )
             )
@@ -242,9 +242,10 @@ class CheckGen:
         return self.ast.Lambda(
             cpp.LambdaParams(
                 Args=parameters,
-                ResultTy=None,
+                ResultTy=self._map_model_type(body.typed_as),
                 CaptureList=[cpp.LambdaCapture(ByRef=True)],
                 Body=[
+                    self._gen_expr_comment_tree(body),
                     *lowered.statements,
                     self.ast.Return(lowered.value),
                 ],
@@ -1278,22 +1279,23 @@ class CheckGen:
 
         return statements
 
+    def _gen_expr_comment_tree(self, expr: ExprNode) -> BlockId:
+        return self.ast.Comment(
+            render_rich(
+                expr_tree_repr(
+                    expr,
+                    with_expr_id=False,
+                )
+            ),
+            Inline=False,
+        )
+
     def _gen_check_eval(self, check: CheckDef, this_expr: BlockId) -> BlockId:
         self.expression_counter = 0
 
         statements: List[BlockId] = []
 
-        statements.append(
-            self.ast.Comment(
-                render_rich(
-                    expr_tree_repr(
-                        check.cond,
-                        with_expr_id=False,
-                    )
-                ),
-                Inline=False,
-            )
-        )
+        statements.append(self._gen_expr_comment_tree(check.cond))
 
         if self._expression_needs_runtime(check.cond) or self._expression_needs_runtime(
             check.message

@@ -817,7 +817,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
-    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) {
+    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
+                     // lt typed_as='bool'
+                     //     var typed_as='int64' str_val='number'
+                     //     const_int typed_as='int64' int_val=4
+                     //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(4), "4");
                      ud::UniStatic<bool> const& expr8 = ud::eval_lt<bool>(item6, expr7);
                      return expr8;
@@ -857,7 +861,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
-    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) {
+    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
+                     // eq typed_as='bool'
+                     //     var typed_as='int64' str_val='number'
+                     //     const_int typed_as='int64' int_val=3
+                     //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
                      ud::UniStatic<bool> const& expr8 = ud::eval_eq<bool>(item6, expr7);
                      return expr8;
@@ -897,7 +905,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
-    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) {
+    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
+                     // eq typed_as='bool'
+                     //     var typed_as='int64' str_val='number'
+                     //     const_int typed_as='int64' int_val=3
+                     //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
                      ud::UniStatic<bool> const& expr8 = ud::eval_eq<bool>(item6, expr7);
                      return expr8;
@@ -941,7 +953,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
-    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) {
+    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<int64_t> {
+                     // mul typed_as='int64'
+                     //     var typed_as='int64' str_val='number'
+                     //     const_int typed_as='int64' int_val=2
+                     //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
                      ud::UniStatic<int64_t> const& expr8 = ud::eval_mul<int64_t>(item6, expr7);
                      return expr8;
@@ -988,7 +1004,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
-    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) {
+    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
+                     // lt typed_as='bool'
+                     //     const_int typed_as='int64' int_val=1
+                     //     var typed_as='int64' str_val='number'
+                     //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
                      ud::UniStatic<bool> const& expr8 = ud::eval_lt<bool>(expr7, item6);
                      return expr8;
@@ -1045,7 +1065,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<hstd::Opt<int64_t>>> const& expr5 = expr0.Field(&expr0.get()->optionals, "optionals");
-    auto callback7 = [&](ud::UniStatic<hstd::Opt<int64_t>> const& item6) {
+    auto callback7 = [&](ud::UniStatic<hstd::Opt<int64_t>> const& item6) -> ud::UniStatic<hstd::Opt<int64_t>> {
+                     // var typed_as='optional<int64>' str_val='optional'
+                     //
                      return item6;
                      };
     ud::UniStatic<hstd::Vec<int64_t>> const& expr8 = ud::eval_filter_map<hstd::Vec<int64_t>>(expr5, callback7);
@@ -1107,7 +1129,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
-    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) {
+    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
+                     // lt typed_as='bool'
+                     //     var typed_as='int64' str_val='number'
+                     //     const_int typed_as='int64' int_val=3
+                     //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
                      ud::UniStatic<bool> const& expr8 = ud::eval_lt<bool>(item6, expr7);
                      return expr8;
@@ -1167,7 +1193,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   }
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
-    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) {
+    auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
+                     // lt typed_as='bool'
+                     //     var typed_as='int64' str_val='number'
+                     //     const_int typed_as='int64' int_val=3
+                     //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
                      ud::UniStatic<bool> const& expr8 = ud::eval_lt<bool>(item6, expr7);
                      return expr8;
@@ -1230,7 +1260,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Vec<int64_t>> const& expr5 = expr0.Field(&expr0.get()->numbers, "numbers");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-    auto callback7 = [&](ud::UniStatic<int64_t> const& item8, ud::UniStatic<int64_t> const& item9) {
+    auto callback7 = [&](ud::UniStatic<int64_t> const& item8, ud::UniStatic<int64_t> const& item9) -> ud::UniStatic<int64_t> {
+                     // add typed_as='int64'
+                     //     var typed_as='int64' str_val='acc'
+                     //     var typed_as='int64' str_val='number'
+                     //
                      ud::UniStatic<int64_t> const& expr10 = ud::eval_add<int64_t>(item8, item9);
                      return expr10;
                      };
@@ -1287,7 +1321,13 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr5 = expr0.Field(&expr0.get()->derived, "derived");
     ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniDynamic>> const& expr6 = ud::eval_walk(expression_runtime, expr5);
-    auto callback11 = [&](hstd::ext::unidata::UniDynamic const& item7) {
+    auto callback11 = [&](hstd::ext::unidata::UniDynamic const& item7) -> ud::UniStatic<hstd::Opt<int64_t>> {
+                      // type_cond typed_as='optional<int64>' bool_val=True
+                      //     var typed_as='dyn<Derived>' str_val='walk_value'
+                      //     type_case typed_as='int64' type_val='Derived' binders='derived'[Derived]
+                      //         get_field typed_as='int64' str_val='id'
+                      //             var typed_as='Derived' str_val='derived'
+                      //
                       ud::UniStatic<ud::UniOpt<int64_t>> result8 = ud::UniStatic<ud::UniOpt<int64_t>>::FromConst(std::nullopt, "std::nullopt");
                       if ((*ud::eval_not<bool>(ud::eval_opt_has_value<bool>(result8)).get())) {
                         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Derived>> candidate9 = expression_runtime.try_as<hstd::unidata_dsl::test::Derived>(item7);
@@ -2913,7 +2953,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr11 = expr0.Field(&expr0.get()->numbers, "numbers");
-      auto callback15 = [&](ud::UniStatic<int64_t> const& item12) {
+      auto callback15 = [&](ud::UniStatic<int64_t> const& item12) -> ud::UniStatic<hstd::Str> {
+                        // str_format typed_as='string' str_val='%s'
+                        //     path_of typed_as='path'
+                        //         var typed_as='int64' str_val='number'
+                        //
                         ud::UniStatic<hstd::ext::unidata::UniPath> const& expr13 = ud::eval_path_of<hstd::ext::unidata::UniPath>(item12);
                         ud::UniStatic<hstd::Str> const& expr14 = ud::eval_str_format<hstd::Str>(ud::eval_str_pattern("%s"), expr13);
                         return expr14;
@@ -3072,7 +3116,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr6 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback10 = [&](ud::UniStatic<int64_t> const& item7) {
+      auto callback10 = [&](ud::UniStatic<int64_t> const& item7) -> ud::UniStatic<bool> {
+                        // lt typed_as='bool'
+                        //     const_int typed_as='int64' int_val=0
+                        //     var typed_as='int64' str_val='number'
+                        //
                         ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
                         ud::UniStatic<bool> const& expr9 = ud::eval_lt<bool>(expr8, item7);
                         return expr9;
@@ -3082,7 +3130,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr12 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback16 = [&](ud::UniStatic<int64_t> const& item13) {
+      auto callback16 = [&](ud::UniStatic<int64_t> const& item13) -> ud::UniStatic<bool> {
+                        // lt typed_as='bool'
+                        //     const_int typed_as='int64' int_val=0
+                        //     var typed_as='int64' str_val='number'
+                        //
                         ud::UniStatic<int64_t> const& expr14 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
                         ud::UniStatic<bool> const& expr15 = ud::eval_lt<bool>(expr14, item13);
                         return expr15;
@@ -3093,7 +3145,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr19 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback23 = [&](ud::UniStatic<int64_t> const& item20) {
+      auto callback23 = [&](ud::UniStatic<int64_t> const& item20) -> ud::UniStatic<bool> {
+                        // lt typed_as='bool'
+                        //     const_int typed_as='int64' int_val=0
+                        //     var typed_as='int64' str_val='number'
+                        //
                         ud::UniStatic<int64_t> const& expr21 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
                         ud::UniStatic<bool> const& expr22 = ud::eval_lt<bool>(expr21, item20);
                         return expr22;
@@ -3111,7 +3167,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr30 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback35 = [&](ud::UniStatic<int64_t> const& item31) {
+      auto callback35 = [&](ud::UniStatic<int64_t> const& item31) -> ud::UniStatic<int64_t> {
+                        // map_get typed_as='int64'
+                        //     get_field typed_as='map<string, int64>' str_val='mapping'
+                        //         this typed_as='OperationChecks'
+                        //     const_str typed_as='string' str_val='absent'
+                        //
                         ud::UniStatic<hstd::UnorderedMap<hstd::Str, int64_t>> const& expr32 = expr0.Field(&expr0.get()->mapping, "mapping");
                         ud::UniStatic<hstd::Str> const& expr33 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("absent"), "absent");
                         ud::UniStatic<int64_t> const& expr34 = ud::eval_map_get<int64_t>(expr32, expr33);
@@ -3125,7 +3186,13 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr40 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback46 = [&](ud::UniStatic<int64_t> const& item41) {
+      auto callback46 = [&](ud::UniStatic<int64_t> const& item41) -> ud::UniStatic<bool> {
+                        // eq typed_as='bool'
+                        //     opt_value typed_as='int64'
+                        //         get_field typed_as='optional<int64>' str_val='optional'
+                        //             this typed_as='OperationChecks'
+                        //     const_int typed_as='int64' int_val=0
+                        //
                         ud::UniStatic<hstd::Opt<int64_t>> const& expr42 = expr0.Field(&expr0.get()->optional, "optional");
                         ud::UniStatic<int64_t> const& expr43 = ud::eval_opt_value<int64_t>(expr42);
                         ud::UniStatic<int64_t> const& expr44 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
@@ -3140,7 +3207,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr51 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback54 = [&](ud::UniStatic<int64_t> const& item52) {
+      auto callback54 = [&](ud::UniStatic<int64_t> const& item52) -> ud::UniStatic<hstd::Opt<int64_t>> {
+                        // get_field typed_as='optional<int64>' str_val='optional'
+                        //     this typed_as='OperationChecks'
+                        //
                         ud::UniStatic<hstd::Opt<int64_t>> const& expr53 = expr0.Field(&expr0.get()->optional, "optional");
                         return expr53;
                         };
@@ -3152,7 +3222,13 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr59 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback65 = [&](ud::UniStatic<int64_t> const& item60) {
+      auto callback65 = [&](ud::UniStatic<int64_t> const& item60) -> ud::UniStatic<bool> {
+                        // eq typed_as='bool'
+                        //     opt_value typed_as='int64'
+                        //         get_field typed_as='optional<int64>' str_val='optional'
+                        //             this typed_as='OperationChecks'
+                        //     const_int typed_as='int64' int_val=0
+                        //
                         ud::UniStatic<hstd::Opt<int64_t>> const& expr61 = expr0.Field(&expr0.get()->optional, "optional");
                         ud::UniStatic<int64_t> const& expr62 = ud::eval_opt_value<int64_t>(expr61);
                         ud::UniStatic<int64_t> const& expr63 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
@@ -3167,7 +3243,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     }
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr70 = ud::eval_list_empty<hstd::Vec<int64_t>>();
-      auto callback75 = [&](ud::UniStatic<int64_t> const& item71) {
+      auto callback75 = [&](ud::UniStatic<int64_t> const& item71) -> ud::UniStatic<int64_t> {
+                        // map_get typed_as='int64'
+                        //     get_field typed_as='map<string, int64>' str_val='mapping'
+                        //         this typed_as='OperationChecks'
+                        //     const_str typed_as='string' str_val='absent'
+                        //
                         ud::UniStatic<hstd::UnorderedMap<hstd::Str, int64_t>> const& expr72 = expr0.Field(&expr0.get()->mapping, "mapping");
                         ud::UniStatic<hstd::Str> const& expr73 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("absent"), "absent");
                         ud::UniStatic<int64_t> const& expr74 = ud::eval_map_get<int64_t>(expr72, expr73);
@@ -3182,7 +3263,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<int64_t>> const& expr80 = ud::eval_list_empty<hstd::Vec<int64_t>>();
       ud::UniStatic<int64_t> const& expr81 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(9), "9");
-      auto callback82 = [&](ud::UniStatic<int64_t> const& item83, ud::UniStatic<int64_t> const& item84) {
+      auto callback82 = [&](ud::UniStatic<int64_t> const& item83, ud::UniStatic<int64_t> const& item84) -> ud::UniStatic<int64_t> {
+                        // map_get typed_as='int64'
+                        //     get_field typed_as='map<string, int64>' str_val='mapping'
+                        //         this typed_as='OperationChecks'
+                        //     const_str typed_as='string' str_val='absent'
+                        //
                         ud::UniStatic<hstd::UnorderedMap<hstd::Str, int64_t>> const& expr85 = expr0.Field(&expr0.get()->mapping, "mapping");
                         ud::UniStatic<hstd::Str> const& expr86 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("absent"), "absent");
                         ud::UniStatic<int64_t> const& expr87 = ud::eval_map_get<int64_t>(expr85, expr86);
@@ -3278,7 +3364,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_n
   //         var typed_as='int64' str_val='number'
   //
   auto const& expr0 = (this_obj.Field(&this_obj.get()->numbers, "numbers"));
-  auto callback4 = [&](ud::UniStatic<int64_t> const& item1) {
+  auto callback4 = [&](ud::UniStatic<int64_t> const& item1) -> ud::UniStatic<bool> {
+                   // lt typed_as='bool'
+                   //     const_int typed_as='int64' int_val=0
+                   //     var typed_as='int64' str_val='number'
+                   //
                    ud::UniStatic<int64_t> const& expr2 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
                    ud::UniStatic<bool> const& expr3 = ud::eval_lt<bool>(expr2, item1);
                    return expr3;
@@ -3359,7 +3449,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
   auto const& expr0 = (this_obj);
   ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniDynamic>> const& expr1 = ud::eval_walk(expression_runtime, expr0);
-  auto callback5 = [&](hstd::ext::unidata::UniDynamic const& item2) {
+  auto callback5 = [&](hstd::ext::unidata::UniDynamic const& item2) -> ud::UniStatic<hstd::Opt<hstd::unidata_dsl::test::Node>> {
+                   // type_cond typed_as='optional<Node>' bool_val=True
+                   //     var typed_as='dyn<Graph>' str_val='node_any'
+                   //     type_case typed_as='Node' type_val='Node' binders='node'[Node]
+                   //         var typed_as='Node' str_val='node'
+                   //
                    ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result3 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
                    if ((*ud::eval_not<bool>(ud::eval_opt_has_value<bool>(result3)).get())) {
                      hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate4 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item2);
@@ -3370,13 +3465,21 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    return result3;
                    };
   ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& expr6 = ud::eval_filter_map<hstd::Vec<hstd::unidata_dsl::test::Node>>(expr1, callback5);
-  auto callback9 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item7) {
+  auto callback9 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item7) -> ud::UniStatic<hstd::Str> {
+                   // get_field typed_as='string' str_val='id'
+                   //     var typed_as='Node' str_val='node'
+                   //
                    ud::UniStatic<hstd::Str> const& expr8 = item7.Field(&item7.get()->id, "id");
                    return expr8;
                    };
   ud::UniStatic<hstd::UnorderedMap<hstd::Str, hstd::Vec<hstd::unidata_dsl::test::Node>>> const& expr10 = ud::eval_group_by<hstd::UnorderedMap<hstd::Str, hstd::Vec<hstd::unidata_dsl::test::Node>>>(expr6, callback9);
   ud::UniStatic<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>> const& expr11 = ud::eval_map_values<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>>(expr10);
-  auto callback16 = [&](ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& item12) {
+  auto callback16 = [&](ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& item12) -> ud::UniStatic<bool> {
+                    // le typed_as='bool'
+                    //     list_size typed_as='int64'
+                    //         var typed_as='list<Node>' str_val='group'
+                    //     const_int typed_as='int64' int_val=1
+                    //
                     ud::UniStatic<int64_t> const& expr13 = ud::eval_list_size<int64_t>(item12);
                     ud::UniStatic<int64_t> const& expr14 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
                     ud::UniStatic<bool> const& expr15 = ud::eval_le<bool>(expr13, expr14);
@@ -3387,7 +3490,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
     return ud::VerifyResult::Ok();
   } else {
     ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniDynamic>> const& expr18 = ud::eval_walk(expression_runtime, expr0);
-    auto callback22 = [&](hstd::ext::unidata::UniDynamic const& item19) {
+    auto callback22 = [&](hstd::ext::unidata::UniDynamic const& item19) -> ud::UniStatic<hstd::Opt<hstd::unidata_dsl::test::Node>> {
+                      // type_cond typed_as='optional<Node>' bool_val=True
+                      //     var typed_as='dyn<Graph>' str_val='node_any'
+                      //     type_case typed_as='Node' type_val='Node' binders='node'[Node]
+                      //         var typed_as='Node' str_val='node'
+                      //
                       ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result20 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
                       if ((*ud::eval_not<bool>(ud::eval_opt_has_value<bool>(result20)).get())) {
                         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate21 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item19);
@@ -3398,21 +3506,37 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       return result20;
                       };
     ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& expr23 = ud::eval_filter_map<hstd::Vec<hstd::unidata_dsl::test::Node>>(expr18, callback22);
-    auto callback26 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item24) {
+    auto callback26 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item24) -> ud::UniStatic<hstd::Str> {
+                      // get_field typed_as='string' str_val='id'
+                      //     var typed_as='Node' str_val='node'
+                      //
                       ud::UniStatic<hstd::Str> const& expr25 = item24.Field(&item24.get()->id, "id");
                       return expr25;
                       };
     ud::UniStatic<hstd::UnorderedMap<hstd::Str, hstd::Vec<hstd::unidata_dsl::test::Node>>> const& expr27 = ud::eval_group_by<hstd::UnorderedMap<hstd::Str, hstd::Vec<hstd::unidata_dsl::test::Node>>>(expr23, callback26);
     ud::UniStatic<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>> const& expr28 = ud::eval_map_values<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>>(expr27);
-    auto callback33 = [&](ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& item29) {
+    auto callback33 = [&](ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& item29) -> ud::UniStatic<bool> {
+                      // lt typed_as='bool'
+                      //     const_int typed_as='int64' int_val=1
+                      //     list_size typed_as='int64'
+                      //         var typed_as='list<Node>' str_val='group'
+                      //
                       ud::UniStatic<int64_t> const& expr30 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
                       ud::UniStatic<int64_t> const& expr31 = ud::eval_list_size<int64_t>(item29);
                       ud::UniStatic<bool> const& expr32 = ud::eval_lt<bool>(expr30, expr31);
                       return expr32;
                       };
     ud::UniStatic<hstd::Vec<hstd::Vec<hstd::unidata_dsl::test::Node>>> const& expr34 = ud::eval_filter<hstd::Vec<hstd::unidata_dsl::test::Node>>(expr28, callback33);
-    auto callback40 = [&](ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& item35) {
-                      auto callback38 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item36) {
+    auto callback40 = [&](ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& item35) -> ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniPath>> {
+                      // map typed_as='list<path>' binders='node'[Node]
+                      //     var typed_as='list<Node>' str_val='group'
+                      //     path_of typed_as='path'
+                      //         var typed_as='Node' str_val='node'
+                      //
+                      auto callback38 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item36) -> ud::UniStatic<hstd::ext::unidata::UniPath> {
+                                        // path_of typed_as='path'
+                                        //     var typed_as='Node' str_val='node'
+                                        //
                                         ud::UniStatic<hstd::ext::unidata::UniPath> const& expr37 = ud::eval_path_of<hstd::ext::unidata::UniPath>(item36);
                                         return expr37;
                                         };
@@ -3454,7 +3578,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
   auto const& expr0 = (this_obj);
   ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniDynamic>> const& expr1 = ud::eval_walk(expression_runtime, expr0);
-  auto callback5 = [&](hstd::ext::unidata::UniDynamic const& item2) {
+  auto callback5 = [&](hstd::ext::unidata::UniDynamic const& item2) -> ud::UniStatic<hstd::Opt<hstd::unidata_dsl::test::Node>> {
+                   // type_cond typed_as='optional<Node>' bool_val=True
+                   //     var typed_as='dyn<Graph>' str_val='node_any'
+                   //     type_case typed_as='Node' type_val='Node' binders='node'[Node]
+                   //         var typed_as='Node' str_val='node'
+                   //
                    ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result3 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
                    if ((*ud::eval_not<bool>(ud::eval_opt_has_value<bool>(result3)).get())) {
                      hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate4 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item2);
@@ -3465,13 +3594,26 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    return result3;
                    };
   ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& expr6 = ud::eval_filter_map<hstd::Vec<hstd::unidata_dsl::test::Node>>(expr1, callback5);
-  auto callback9 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item7) {
+  auto callback9 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item7) -> ud::UniStatic<hstd::Str> {
+                   // get_field typed_as='string' str_val='id'
+                   //     var typed_as='Node' str_val='node'
+                   //
                    ud::UniStatic<hstd::Str> const& expr8 = item7.Field(&item7.get()->id, "id");
                    return expr8;
                    };
   ud::UniStatic<hstd::Vec<hstd::Str>> const& expr10 = ud::eval_map<hstd::Str>(expr6, callback9);
   ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Edge>> const& expr11 = expr0.Field(&expr0.get()->edges, "edges");
-  auto callback18 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item12) {
+  auto callback18 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item12) -> ud::UniStatic<bool> {
+                    // and typed_as='bool'
+                    //     list_contains typed_as='bool'
+                    //         var typed_as='list<string>' str_val='ids'
+                    //         get_field typed_as='string' str_val='source'
+                    //             var typed_as='Edge' str_val='edge'
+                    //     list_contains typed_as='bool'
+                    //         var typed_as='list<string>' str_val='ids'
+                    //         get_field typed_as='string' str_val='target'
+                    //             var typed_as='Edge' str_val='edge'
+                    //
                     auto condition13 = ud::UniStatic<bool>::FromConst(true, "true");
                     if ((*condition13.get())) {
                       ud::UniStatic<hstd::Str> const& expr14 = item12.Field(&item12.get()->source, "source");
@@ -3490,7 +3632,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
     return ud::VerifyResult::Ok();
   } else {
     ud::UniStatic<hstd::Vec<hstd::ext::unidata::UniDynamic>> const& expr20 = ud::eval_walk(expression_runtime, expr0);
-    auto callback24 = [&](hstd::ext::unidata::UniDynamic const& item21) {
+    auto callback24 = [&](hstd::ext::unidata::UniDynamic const& item21) -> ud::UniStatic<hstd::Opt<hstd::unidata_dsl::test::Node>> {
+                      // type_cond typed_as='optional<Node>' bool_val=True
+                      //     var typed_as='dyn<Graph>' str_val='node_any'
+                      //     type_case typed_as='Node' type_val='Node' binders='node'[Node]
+                      //         var typed_as='Node' str_val='node'
+                      //
                       ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result22 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
                       if ((*ud::eval_not<bool>(ud::eval_opt_has_value<bool>(result22)).get())) {
                         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate23 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item21);
@@ -3501,13 +3648,27 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       return result22;
                       };
     ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Node>> const& expr25 = ud::eval_filter_map<hstd::Vec<hstd::unidata_dsl::test::Node>>(expr20, callback24);
-    auto callback28 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item26) {
+    auto callback28 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item26) -> ud::UniStatic<hstd::Str> {
+                      // get_field typed_as='string' str_val='id'
+                      //     var typed_as='Node' str_val='node'
+                      //
                       ud::UniStatic<hstd::Str> const& expr27 = item26.Field(&item26.get()->id, "id");
                       return expr27;
                       };
     ud::UniStatic<hstd::Vec<hstd::Str>> const& expr29 = ud::eval_map<hstd::Str>(expr25, callback28);
     ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Edge>> const& expr30 = expr0.Field(&expr0.get()->edges, "edges");
-    auto callback38 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item31) {
+    auto callback38 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item31) -> ud::UniStatic<bool> {
+                      // not typed_as='bool'
+                      //     and typed_as='bool'
+                      //         list_contains typed_as='bool'
+                      //             var typed_as='list<string>' str_val='ids'
+                      //             get_field typed_as='string' str_val='source'
+                      //                 var typed_as='Edge' str_val='edge'
+                      //         list_contains typed_as='bool'
+                      //             var typed_as='list<string>' str_val='ids'
+                      //             get_field typed_as='string' str_val='target'
+                      //                 var typed_as='Edge' str_val='edge'
+                      //
                       auto condition32 = ud::UniStatic<bool>::FromConst(true, "true");
                       if ((*condition32.get())) {
                         ud::UniStatic<hstd::Str> const& expr33 = item31.Field(&item31.get()->source, "source");
@@ -3523,7 +3684,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       return expr37;
                       };
     ud::UniStatic<hstd::Vec<hstd::unidata_dsl::test::Edge>> const& expr39 = ud::eval_filter<hstd::unidata_dsl::test::Edge>(expr30, callback38);
-    auto callback42 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item40) {
+    auto callback42 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item40) -> ud::UniStatic<hstd::ext::unidata::UniPath> {
+                      // path_of typed_as='path'
+                      //     var typed_as='Edge' str_val='edge'
+                      //
                       ud::UniStatic<hstd::ext::unidata::UniPath> const& expr41 = ud::eval_path_of<hstd::ext::unidata::UniPath>(item40);
                       return expr41;
                       };
