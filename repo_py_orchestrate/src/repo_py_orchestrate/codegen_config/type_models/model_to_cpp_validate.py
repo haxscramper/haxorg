@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Sequence
 
 import hstd_py_codegen.lang_build.astbuilder_cpp as cpp
@@ -183,6 +184,16 @@ class CheckGen:
             Args=list(args),
             Params=list(params) if params else None,
             Stmt=is_stmt,
+        )
+
+    def _expr_context_gen(self, expr: ExprNode) -> BlockId:
+        return self._expression_call(
+            "get_context",
+            args=[
+                self.ast.string("ctx"),
+                self.ast.StringLiteral(Path(expr.loc.file).name),
+                self.ast.Literal(expr.loc.line),
+            ],
         )
 
     def _expression_native_type(
@@ -445,7 +456,11 @@ class CheckGen:
 
         return self._expression_call(
             "eval_get_field",
-            args=[source, self.ast.StringLiteral(expr.str_val)],
+            args=[
+                self._expr_context_gen(expr),
+                source,
+                self.ast.StringLiteral(expr.str_val),
+            ],
             params=[self._expression_result_type(expr)],
         )
 
@@ -511,7 +526,10 @@ class CheckGen:
             case VariantT():
                 return self._expression_call(
                     "eval_variant_index",
-                    args=[source],
+                    args=[
+                        self._expr_context_gen(expr),
+                        source,
+                    ],
                     params=[self._expression_result_type(expr)],
                 )
 
@@ -643,7 +661,7 @@ class CheckGen:
                 return self._expression_local(
                     self._expression_call(
                         "eval_not",
-                        args=[self.ast.pars(arg.value)],
+                        args=[self._expr_context_gen(expr), self.ast.pars(arg.value)],
                         params=[self._expression_result_type(expr)],
                     ),
                     arg.statements,
@@ -704,6 +722,7 @@ class CheckGen:
                 value = self._expression_call(
                     "eval_str_matches",
                     args=[
+                        self._expr_context_gen(expr),
                         args[0],
                         self.ast.StringLiteral(expr.str_val),
                     ],
@@ -715,6 +734,7 @@ class CheckGen:
                 value = self._expression_call(
                     "eval_str_format",
                     args=[
+                        self._expr_context_gen(expr),
                         self.ast.XCall(
                             "eval_str_pattern",
                             args=[self.ast.StringLiteral(expr.str_val)],
@@ -758,6 +778,8 @@ class CheckGen:
                 if expr.op in RUNTIME_DEPENDANT_KINDS:
                     args.insert(0, self.ast.string("expression_runtime"))
 
+                args.insert(0, self._expr_context_gen(expr))
+
                 value = self._expression_call(
                     f"eval_{expr.op}",
                     args=args,
@@ -777,7 +799,7 @@ class CheckGen:
                 assert expr.int_val is not None
                 value = self._expression_call(
                     f"eval_{expr.op}",
-                    args=[args[0]],
+                    args=[self._expr_context_gen(expr), args[0]],
                     params=[
                         self._expression_result_type(expr),
                         QualType(
@@ -791,6 +813,7 @@ class CheckGen:
                 value = self._expression_call(
                     "eval_walk",
                     args=[
+                        self._expr_context_gen(expr),
                         self.ast.string("expression_runtime"),
                         args[0],
                     ],
@@ -805,6 +828,7 @@ class CheckGen:
                 value = self._expression_call(
                     "eval_is_derived",
                     args=[
+                        self._expr_context_gen(expr),
                         self.ast.string("expression_runtime"),
                         args[0],
                     ],
@@ -1142,7 +1166,7 @@ class CheckGen:
         return self._expression_local(
             self._expression_call(
                 f"eval_{expr.op}",
-                args=[collection.value, callback_value],
+                args=[self._expr_context_gen(expr), collection.value, callback_value],
                 params=[self._expression_result_type(expr)],
             ),
             [*collection.statements, declaration],
@@ -1184,6 +1208,7 @@ class CheckGen:
             self._expression_call(
                 "eval_fold",
                 args=[
+                    self._expr_context_gen(expr),
                     *args,
                     self.ast.string(callback_name),
                 ],
@@ -1223,6 +1248,7 @@ class CheckGen:
         return self._expression_call(
             "eval_eq",
             args=[
+                self._expr_context_gen(expr),
                 args[0],
                 self._expression_enum_value(source_type, expr.str_val),
             ],

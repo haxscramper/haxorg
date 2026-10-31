@@ -202,6 +202,7 @@ struct [[refl]] OperationsTracer {
         char const*      file         = __builtin_FILE()) const;
 
 
+    void      setTraceToBuffer(bool colored = false);
     void      setTraceFile(SPtr<std::ostream> stream);
     void      setTraceFile(fs::path const& outfile, bool overwrite = true);
     ColStream getStream() const;
@@ -210,7 +211,7 @@ struct [[refl]] OperationsTracer {
     void      stacktraceMessage() const;
 
     /// \brief Helper method for reflection
-    [[refl]] void setTraceFileStr(std::string const& outfile, bool overwrite) {
+    [[refl]] void setTraceFileStr(std::string const& outfile, bool overwrite = true) {
         setTraceFile(outfile, overwrite);
     }
 

@@ -67,6 +67,13 @@ void OperationsTracer::setTraceFile(SPtr<std::ostream> stream) {
     this->stream = stream;
 }
 
+void OperationsTracer::setTraceToBuffer(bool colored) {
+    TraceState   = true;
+    traceToFile  = false;
+    traceColored = colored;
+}
+
+
 void OperationsTracer::setTraceFile(fs::path const& outfile, bool overwrite) {
     LOGIC_ASSERTION_CHECK(
         outfile.native().size() != 0, "Expected non-empty filename for the output");

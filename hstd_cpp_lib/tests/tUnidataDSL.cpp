@@ -26,7 +26,9 @@ void expect_messages(
     int                      line     = __builtin_LINE(),
     char const*              function = __builtin_FUNCTION(),
     char const*              file     = __builtin_FILE()) {
-    auto failures = hstd::ext::unidata::verify_all(value).getFail();
+    auto failures = hstd::ext::unidata::verify_all(
+                        value, getDebugFile("verify_trace.log"))
+                        .getFail();
 
     std::vector<std::string> actual;
     for (auto const& failure : failures) { actual.push_back(failure.message); }
