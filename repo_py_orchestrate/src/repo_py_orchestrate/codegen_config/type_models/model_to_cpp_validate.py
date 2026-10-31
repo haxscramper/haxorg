@@ -20,12 +20,14 @@ from hstd_py_unidata.model_ir import (
     ExternalT,
     FieldDef,
     ListT,
+    MapT,
     ModelDef,
     NamedT,
     OpId,
     OptT,
     QName,
     RecordDef,
+    TupleT,
     TypeRef,
     VariantT,
     expr_tree_repr,
@@ -83,19 +85,40 @@ class CheckGen:
 
     def _map_model_type(self, type: TypeRef) -> QualType:
         """
-        Given an input model type, how the resulting C++ type would
-        be represented in the generated C++ code, when used as a value?
+        Map a model type to its materialized expression representation.
+
+        Container elements are expression values themselves, allowing
+        rearrangement without losing their original access paths.
         """
-        initial_res = self.type_map.type(
-            type,
-            self.model.package,
-            space=CPP_SHORT_SPACE_T,
-        )
+        result = self._expression_native_type(type)
 
-        if not isinstance(type, DynT):
-            initial_res = self._wrap_uni_static(initial_res)
+        match type:
+            case DynT():
+                return result
 
-        return initial_res
+            case ListT():
+                result = result.withTemplateParams([self._map_model_type(type.elem)])
+
+            case MapT():
+                result = result.withTemplateParams(
+                    [
+                        self._map_model_type(type.key),
+                        self._map_model_type(type.value),
+                    ]
+                )
+
+            case OptT():
+                result = result.withTemplateParams([self._map_model_type(type.elem)])
+
+            case TupleT():
+                result = result.withTemplateParams(
+                    [self._map_model_type(elem) for elem in type.elems]
+                )
+
+            case _:
+                pass
+
+        return self._wrap_uni_static(result)
 
     def _expression_local(
         self,
@@ -184,27 +207,7 @@ class CheckGen:
             )
 
         else:
-            result = self._expression_native_type(expr.typed_as, space=space)
-
-            if expr.op in [
-                OpId.MAP,
-                OpId.FILTER,
-                OpId.TAKE_WHILE,
-            ]:
-                assert isinstance(expr.typed_as, ListT)
-                # Unwrap the `Vec<T>` type that is natively mapped and insert the
-                # `UniStatic<T>` intermediate layer.
-                result = result.withTemplateParams(
-                    [self._map_model_type(expr.typed_as.elem)]
-                )
-
-            if isinstance(expr.typed_as, DynT):
-                pass
-
-            else:
-                result = self._wrap_uni_static(result)
-
-            return result
+            return self._map_model_type(expr.typed_as)
 
     def _set_slot(self, slot: BlockId, value: BlockId) -> BlockId:
         return self._expression_call("set_value", args=[slot, value], is_stmt=True)
@@ -790,9 +793,15 @@ class CheckGen:
                     )
 
                 value = self._expression_call(
-                    f"eval_{expr.op}",
-                    args=[args[0]],
-                    params=[self._expression_result_type(expr)],
+                    "eval_is_derived",
+                    args=[
+                        self.ast.string("expression_runtime"),
+                        args[0],
+                    ],
+                    params=[
+                        self._expression_result_type(expr),
+                        self._expression_native_type(expr.type_val),
+                    ],
                 )
 
             case _:
@@ -977,7 +986,7 @@ class CheckGen:
                     f"must have an optional result, got {expr.typed_as!r}"
                 )
 
-            value_type = self._expression_native_type(expr.typed_as.elem)
+            value_type = self._map_model_type(expr.typed_as.elem)
         else:
             value_type = self._expression_result_type(expr)
 
@@ -1084,7 +1093,10 @@ class CheckGen:
                 )
             )
 
-        return ExpressionEvaluation(statements, slot)
+        return ExpressionEvaluation(
+            statements,
+            slot if ignore_unhandled else self._read_slot(slot),
+        )
 
     def _gen_expression_eval_collection(
         self,
@@ -1239,7 +1251,7 @@ class CheckGen:
             )
         ]
 
-        gen_registration = False
+        gen_registration = True
 
         if gen_registration:
             for package, model in self.type_map.models.items():
@@ -1284,19 +1296,6 @@ class CheckGen:
                                     Stmt=True,
                                 )
                             )
-
-            statements.append(
-                self.ast.XCallRef(
-                    runtime,
-                    "index",
-                    args=[
-                        self.ast.pars(
-                            self.ast.XCall("*", args=[self.ast.string("this_obj")])
-                        )
-                    ],
-                    Stmt=True,
-                )
-            )
 
         return statements
 

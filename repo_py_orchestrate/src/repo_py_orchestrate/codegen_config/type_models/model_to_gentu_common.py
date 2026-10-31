@@ -346,7 +346,7 @@ class TypeTranslation:
             else:
                 return result
 
-        head = self.get_type_name(typ, package)
+        head = self.get_type_name(typ, package, space=space)
 
         match typ:
             case PrimT() | NamedT() | ExternalT():
