@@ -822,7 +822,9 @@ inline ExprContext get_context(
 }
 
 template <typename T>
-struct rec_unpack_value {};
+struct rec_unpack_value {
+    static T get(T const& value) { return value; }
+};
 
 template <typename T>
 auto get_unpack(T const& value) {

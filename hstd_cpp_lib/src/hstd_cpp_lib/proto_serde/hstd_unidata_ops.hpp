@@ -4,6 +4,7 @@
 #include <hstd_cpp_lib/proto_serde/hstd_unidata_validate.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/OptFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VariantFormatter.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>
 

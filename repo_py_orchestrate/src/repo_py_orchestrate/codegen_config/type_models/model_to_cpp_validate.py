@@ -454,21 +454,15 @@ class CheckGen:
                         .get(member.name, member.name)
                     )
 
-                    field_value = self.ast.Arrow(
-                        self._get_uni_value_ptr(source),
-                        self.ast.string(cpp_name),
-                    )
-
-                    return self.ast.XCallRef(
-                        source,
-                        "Field",
+                    return self._op_call(
+                        OpId.GET_FIELD,
                         args=[
-                            self.ast.Addr(field_value),
+                            self._expr_context_gen(expr),
+                            source,
                             self.ast.StringLiteral(cpp_name),
                         ],
+                        params=[self._expression_result_type(expr)],
                     )
-
-        # return self.ast.Dot(source, self.ast.string(expr.str_val))
 
         return self._op_call(
             expr.op,
