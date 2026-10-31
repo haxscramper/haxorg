@@ -11,6 +11,7 @@
 #include <hstd_cpp_lib/stdlib/containers/Pair.hpp>
 #include <hstd_cpp_lib/stdlib/containers/Vec.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/PairFormatter.hpp>
+#include <hstd_cpp_lib/stdlib/formatting/specializations/VecFormatter.hpp>
 #include <hstd_cpp_lib/system/macros.hpp>
 #include <hstd_cpp_lib/system/reflection.hpp>
 #include <memory>
@@ -1009,17 +1010,55 @@ UniStatic<bool> eval_not(UniStatic<bool> const& lhs) {
     return UniStatic<bool>::SubExprNoContext(!(*lhs.get()), "!");
 }
 
+template <typename T>
+struct rec_unpack_value {};
 
-struct str_format_pattern {};
-
-consteval str_format_pattern eval_str_pattern(char const* pattern) {
-    return str_format_pattern{};
+template <typename T>
+auto get_unpack(T const& value) {
+    return rec_unpack_value<T>::get(value);
 }
 
-template <typename Result, typename... Args>
-Result eval_str_format(str_format_pattern const& pattern, Args&&... args) {
-    logic_todo_impl();
+template <typename T>
+struct rec_unpack_value<UniStatic<T>> {
+    static T get(UniStatic<T> const& value) { return get_stored_value(value); }
+};
+
+
+template <typename T>
+struct rec_unpack_value<UniStatic<UniVec<T>>> {
+    static auto get(UniStatic<UniVec<T>> const& value) {
+        using Element = decltype(get_unpack(std::declval<T const&>()));
+
+        UniVec<Element> result;
+        for (auto const& it : get_stored_value(value)) {
+            result.push_back(get_unpack(it));
+        }
+        return result;
+    }
+};
+
+
+// formatting expression used in the DSL is a subset of the C++ fmt
+// expression, so for this backend it is possible to just pass it through
+// as is, and use it as a reference formatting implemenetation that is
+// not dependant on my specific internal bugs.
+#define eval_str_pattern(arg) FMT_STRING(arg)
+
+template <typename Res, typename... Args>
+[[nodiscard]] Res eval_str_format(
+    fmt::format_string<decltype(get_unpack(std::declval<Args&>()))...> format,
+    Args&&... args) {
+    auto unpacked = std::make_tuple(get_unpack(args)...);
+
+    return std::apply(
+        [&](auto&... values) {
+            return Res::SubExprNoContext(
+                UniStr{fmt::vformat(format.get(), fmt::make_format_args(values...))},
+                "format");
+        },
+        unpacked);
 }
+
 
 template <typename Result, typename Value>
 Result eval_get_field(UniStatic<Value> const& value, char const* field_name) {

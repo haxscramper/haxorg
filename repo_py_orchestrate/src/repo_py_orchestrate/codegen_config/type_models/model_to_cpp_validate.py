@@ -715,7 +715,7 @@ class CheckGen:
                 value = self._expression_call(
                     "eval_str_format",
                     args=[
-                        self._expression_call(
+                        self.ast.XCall(
                             "eval_str_pattern",
                             args=[self.ast.StringLiteral(expr.str_val)],
                         ),

@@ -18,7 +18,6 @@ from beartype.typing import (
     Sequence,
     Tuple,
     Union,
-    cast,
 )
 
 from hstd_py_unidata.model_index import ModelIndex
@@ -33,6 +32,7 @@ from hstd_py_unidata.model_ir import (
     numeric_join,
     type_text,
 )
+from hstd_py_unidata.model_ops_str_format import apply_format, parse_format
 from hstd_py_unidata.model_value import (
     EnumValue,
     ListValue,
@@ -158,87 +158,6 @@ class EvalHost(ABC):
 
     @abstractmethod
     def matches_type(self, value: Value, t: TypeRef) -> bool: ...
-
-
-FORMAT_DIRECTIVE = re.compile(r"%(\.\d+)?([sdfexob%])")
-
-FORMAT_CLASSES: Dict[str, TypeClass] = {
-    "s": TypeClass.ANY,
-    "d": TypeClass.INTEGER,
-    "x": TypeClass.INTEGER,
-    "o": TypeClass.INTEGER,
-    "b": TypeClass.BOOL,
-    "f": TypeClass.NUMERIC,
-    "e": TypeClass.NUMERIC,
-}
-
-
-@beartype
-@dataclass(frozen=True)
-class FormatSpec:
-    """Single CEL-style format directive with its offset in the format string."""
-
-    conv: str
-    precision: Optional[int]
-    start: int
-    end: int
-
-
-@beartype
-def parse_format(fmt: str) -> List[FormatSpec]:
-    """Parses CEL-style directives `%s %d %f %e %x %o %b %%` with optional `.precision`."""
-    result: List[FormatSpec] = []
-    pos = 0
-    while True:
-        idx = fmt.find("%", pos)
-        if idx == -1:
-            return result
-        match = FORMAT_DIRECTIVE.match(fmt, idx)
-        if match is None:
-            raise ValueError(
-                f"Invalid format directive {fmt[idx : idx + 3]!r} at offset {idx} in format string {fmt!r}; "
-                f"supported directives: %s %d %f %e %x %o %b %% with optional precision like %.3f"
-            )
-        if match.group(2) != "%":
-            precision = int(match.group(1)[1:]) if match.group(1) else None
-            result.append(
-                FormatSpec(
-                    conv=match.group(2), precision=precision, start=idx, end=match.end()
-                )
-            )
-        pos = match.end()
-
-
-@beartype
-def apply_format(fmt: str, values: Sequence[Value]) -> str:
-    specs = parse_format(fmt)
-    parts: List[str] = []
-    pos = 0
-    for spec, value in zip(specs, values):
-        parts.append(fmt[pos : spec.start].replace("%%", "%"))
-        number = value.value if isinstance(value, ScalarValue) else None
-        match spec.conv:
-            case "s":
-                parts.append(value_text(value))
-            case "d":
-                parts.append(str(number))
-            case "x":
-                parts.append(format(number, "x"))
-            case "o":
-                parts.append(format(number, "o"))
-            case "b":
-                parts.append(format(number, "b"))
-            case "f":
-                parts.append(
-                    f"{float(cast(float, number)):.{6 if spec.precision is None else spec.precision}f}"
-                )
-            case "e":
-                parts.append(
-                    f"{float(cast(float, number)):.{6 if spec.precision is None else spec.precision}e}"
-                )
-        pos = spec.end
-    parts.append(fmt[pos:].replace("%%", "%"))
-    return "".join(parts)
 
 
 @beartype
@@ -955,8 +874,8 @@ class StrFormatOp(Operator):
     def arg_class_facts(self, node: ExprNode) -> List[Tuple[int, TypeClass]]:
         assert node.str_val is not None
         return [
-            (i, FORMAT_CLASSES[spec.conv])
-            for i, spec in enumerate(parse_format(node.str_val))
+            (i, TypeClass.ANY)
+            for i, spec in enumerate(parse_format(node.str_val).get_specs())
         ]
 
     def render(self, node: ExprNode, args: List[str]) -> str:
@@ -965,13 +884,6 @@ class StrFormatOp(Operator):
     def evaluate(self, host: EvalHost, node: ExprNode, env: Env) -> Value:
         assert node.str_val is not None
         values = [host.eval(a, env) for a in node.args]
-        for spec, value, arg in zip(parse_format(node.str_val), values, node.args):
-            if spec.conv != "s" and not is_numeric_value(value):
-                host.fail(
-                    arg,
-                    f"format directive %{spec.conv} requires a number, got {concrete_type_text(value)}",
-                    value,
-                )
         return ScalarValue(prim=PrimKind.STRING, value=apply_format(node.str_val, values))
 
 

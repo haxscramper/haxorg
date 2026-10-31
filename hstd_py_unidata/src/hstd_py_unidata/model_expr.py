@@ -11,7 +11,7 @@ from beartype import beartype
 from beartype.typing import Any, Callable, Optional, Tuple, TypeVar
 
 from hstd_py_unidata.model_ir import ExprNode, OpId, SourceLoc, TypeRef
-from hstd_py_unidata.model_ops import parse_format
+from hstd_py_unidata.model_ops_str_format import parse_format
 from hstd_py_unidata.model_resolve import AnnotationResolver
 
 IMPLEMENTATION_FILES = frozenset(
@@ -609,11 +609,11 @@ def op_empty_map(key_type: Any, value_type: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_format(fmt: str, *args: Any) -> Expr:
-    """CEL-style string formatting with `%s %d %f %e %x %o %b`."""
-    specs = parse_format(fmt)
+    """F-string formatting"""
+    specs = parse_format(fmt).get_specs()
     if len(specs) != len(args):
         raise ValueError(
-            f"Format string {fmt!r} has {len(specs)} directive(s) ({', '.join('%' + s.conv for s in specs) or 'none'}) but {len(args)} argument(s) were given"
+            f"Format string {fmt!r} has {len(specs)} directive(s) ({', '.join(str(s) for s in specs) or 'none'}) but {len(args)} argument(s) were given"
         )
     return make_node(OpId.STR_FORMAT, tuple(to_node(a) for a in args), str_val=fmt)
 

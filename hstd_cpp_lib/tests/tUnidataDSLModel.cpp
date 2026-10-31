@@ -772,7 +772,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //                 const_int typed_as='int64' int_val=6
   //             get_field typed_as='string' str_val='text'
   //                 this typed_as='OperationChecks'
-  //             str_format typed_as='string' str_val='other-%d'
+  //             str_format typed_as='string' str_val='other-{}'
   //                 get_field typed_as='int64' str_val='number'
   //                     this typed_as='OperationChecks'
   //         const_str typed_as='string' str_val='six'
@@ -795,7 +795,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       ud::set_value(result11, expr8);
     } else {
       ud::UniStatic<int64_t> const& expr9 = expr0.Field(&expr0.get()->number, "number");
-      ud::UniStatic<hstd::Str> const& expr10 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("other-%d"), expr9);
+      ud::UniStatic<hstd::Str> const& expr10 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("other-{}"), expr9);
       ud::set_value(result11, expr10);
     }
     ud::UniStatic<hstd::Str> const& expr12 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("six"), "six");
@@ -1620,7 +1620,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //             get_field typed_as='CheckKind' str_val='operation'
   //                 this typed_as='OperationChecks'
   //     eq typed_as='bool'
-  //         str_format typed_as='string' str_val='%s:%d'
+  //         str_format typed_as='string' str_val='{}:{}'
   //             get_field typed_as='string' str_val='text'
   //                 this typed_as='OperationChecks'
   //             get_field typed_as='int64' str_val='number'
@@ -1638,7 +1638,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!((*condition1.get()))) {
     ud::UniStatic<hstd::Str> const& expr5 = expr0.Field(&expr0.get()->text, "text");
     ud::UniStatic<int64_t> const& expr6 = expr0.Field(&expr0.get()->number, "number");
-    ud::UniStatic<hstd::Str> const& expr7 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("%s:%d"), expr5, expr6);
+    ud::UniStatic<hstd::Str> const& expr7 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("{}:{}"), expr5, expr6);
     ud::UniStatic<hstd::Str> const& expr8 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("six:6"), "six:6");
     ud::UniStatic<bool> const& expr9 = ud::eval_eq<ud::UniStatic<bool>>(expr7, expr8);
     condition1 = expr9;
@@ -2981,7 +2981,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //                 this typed_as='OperationChecks'
   //     and typed_as='bool'
   //         eq typed_as='bool'
-  //             str_format typed_as='string' str_val='%s'
+  //             str_format typed_as='string' str_val='{}'
   //                 path_of typed_as='path'
   //                     get_field typed_as='int64' str_val='number'
   //                         this typed_as='OperationChecks'
@@ -2991,7 +2991,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //                 map typed_as='list<string>' binders='number'[int64]
   //                     get_field typed_as='list<int64>' str_val='numbers'
   //                         this typed_as='OperationChecks'
-  //                     str_format typed_as='string' str_val='%s'
+  //                     str_format typed_as='string' str_val='{}'
   //                         path_of typed_as='path'
   //                             var typed_as='int64' str_val='number'
   //                 const_int typed_as='int64' int_val=0
@@ -3004,7 +3004,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //                             this typed_as='OperationChecks'
   //                     const_int typed_as='int64' int_val=0
   //                 type_case typed_as='string' type_val='Base' binders='record'[Base]
-  //                     str_format typed_as='string' str_val='%s'
+  //                     str_format typed_as='string' str_val='{}'
   //                         path_of typed_as='path'
   //                             var typed_as='Base' str_val='record'
   //             const_str typed_as='string' str_val='/derived'
@@ -3024,7 +3024,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     if ((*condition5.get())) {
       ud::UniStatic<int64_t> const& expr6 = expr0.Field(&expr0.get()->number, "number");
       ud::UniStatic<hstd::ext::unidata::UniPath> const& expr7 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, expr6);
-      ud::UniStatic<hstd::Str> const& expr8 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("%s"), expr7);
+      ud::UniStatic<hstd::Str> const& expr8 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("{}"), expr7);
       ud::UniStatic<hstd::Str> const& expr9 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("/number"), "/number");
       ud::UniStatic<bool> const& expr10 = ud::eval_eq<ud::UniStatic<bool>>(expr8, expr9);
       condition5 = expr10;
@@ -3032,12 +3032,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     if ((*condition5.get())) {
       ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr11 = expr0.Field(&expr0.get()->numbers, "numbers");
       auto callback15 = [&](ud::UniStatic<int64_t> const& item12) -> ud::UniStatic<hstd::Str> {
-                        // str_format typed_as='string' str_val='%s'
+                        // str_format typed_as='string' str_val='{}'
                         //     path_of typed_as='path'
                         //         var typed_as='int64' str_val='number'
                         //
                         ud::UniStatic<hstd::ext::unidata::UniPath> const& expr13 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, item12);
-                        ud::UniStatic<hstd::Str> const& expr14 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("%s"), expr13);
+                        ud::UniStatic<hstd::Str> const& expr14 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("{}"), expr13);
                         return expr14;
                         };
       ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr16 = ud::eval_map<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(expr11, callback15);
@@ -3057,7 +3057,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate26 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr24);
         if (candidate26.has_value()) {
           ud::UniStatic<hstd::ext::unidata::UniPath> const& expr27 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>(expression_runtime, (*candidate26));
-          ud::UniStatic<hstd::Str> const& expr28 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("%s"), expr27);
+          ud::UniStatic<hstd::Str> const& expr28 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("{}"), expr27);
           ud::set_value(result25, expr28);
         }
       }
@@ -3446,7 +3446,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_t
     return ud::VerifyResult::Ok();
   } else {
     ud::UniStatic<int64_t> const& expr4 = ud::eval_str_size<ud::UniStatic<int64_t>>(expr0);
-    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("text length is %d"), expr4);
+    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("text length is {}"), expr4);
     return ud::VerifyResult::Error((*expr5.get()));
   }
 }
@@ -3473,7 +3473,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_n
   if ((*expr5.get())) {
     return ud::VerifyResult::Ok();
   } else {
-    ud::UniStatic<hstd::Str> const& expr6 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("values=%s"), expr0);
+    ud::UniStatic<hstd::Str> const& expr6 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("values={}"), expr0);
     return ud::VerifyResult::Error((*expr6.get()));
   }
 }
@@ -3529,7 +3529,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::MessageChecks::__check
     ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr12 = expr0.Field(&expr0.get()->details, "details");
     ud::UniStatic<hstd::Str> const& expr13 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("detail"), "detail");
     ud::UniStatic<int64_t> const& expr14 = ud::eval_map_get<ud::UniStatic<int64_t>>(expr12, expr13);
-    ud::UniStatic<hstd::Str> const& expr15 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("n=%d real=%f sci=%e hex=%x oct=%o flag=%b text=%s list=%s lookup=%d %%"), expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
+    ud::UniStatic<hstd::Str> const& expr15 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("n={} real={} sci={} hex={} oct={} flag={} text={} list={} lookup={}"), expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
     return ud::VerifyResult::Error((*expr15.get()));
   }
 }
@@ -3677,7 +3677,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       return expr39;
                       };
     ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>> const& expr41 = ud::eval_map<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>>>(expr34, callback40);
-    ud::UniStatic<hstd::Str> const& expr42 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("duplicate node ids at %s"), expr41);
+    ud::UniStatic<hstd::Str> const& expr42 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("duplicate node ids at {}"), expr41);
     return ud::VerifyResult::Error((*expr42.get()));
   }
 }
@@ -3826,7 +3826,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       return expr41;
                       };
     ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> const& expr43 = ud::eval_map<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>(expr39, callback42);
-    ud::UniStatic<hstd::Str> const& expr44 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(ud::eval_str_pattern("dangling edges at %s"), expr43);
+    ud::UniStatic<hstd::Str> const& expr44 = ud::eval_str_format<ud::UniStatic<hstd::Str>>(eval_str_pattern("dangling edges at {}"), expr43);
     return ud::VerifyResult::Error((*expr44.get()));
   }
 }

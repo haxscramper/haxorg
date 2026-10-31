@@ -222,7 +222,7 @@ class OperationChecks(M.Class):
             "Cond",
             op_cond(
                 (M.This["number"] == 6, M.This["text"]),
-                default=op_format("other-%d", M.This["number"]),
+                default=op_format("other-{}", M.This["number"]),
             )
             == "six",
         ),
@@ -361,7 +361,7 @@ class OperationChecks(M.Class):
         ("StrMatches", M.This["text"]._Str.matches("^s[a-z]{2}$")),
         (
             "StrFormat",
-            op_format("%s:%d", M.This["text"], M.This["number"]) == "six:6",
+            op_format("{}:{}", M.This["text"], M.This["number"]) == "six:6",
         ),
         ("ListSize", M.This["numbers"]._List.size() == 3),
         ("ListContains", M.This["numbers"]._List.contains(3)),
@@ -557,11 +557,11 @@ class OperationChecks(M.Class):
         (
             "PathOf",
             op_and(
-                op_format("%s", op_path_of(M.This["number"])) == "/number",
+                op_format("{}", op_path_of(M.This["number"])) == "/number",
                 op_map(
                     M.This["numbers"],
                     "number",
-                    op_format("%s", op_path_of(M.Iter("number"))),
+                    op_format("{}", op_path_of(M.Iter("number"))),
                 )._List.at(0)
                 == "/numbers/0",
                 type_cond(
@@ -569,7 +569,7 @@ class OperationChecks(M.Class):
                     type_case(
                         M._T["Base"],
                         "record",
-                        op_format("%s", op_path_of(M.Iter("record"))),
+                        op_format("{}", op_path_of(M.Iter("record"))),
                     ),
                 )
                 == "/derived",
@@ -663,11 +663,11 @@ class FieldChecks(M.Class):
     padding: int
     text: str = M.Field(
         check=0 < M.This._Str.size(),
-        message=op_format("text length is %d", M.This._Str.size()),
+        message=op_format("text length is {}", M.This._Str.size()),
     )
     numbers: list[int] = M.Field(
         check=op_all(M.This, "number", 0 < M.Iter("number")),
-        message=op_format("values=%s", M.This),
+        message=op_format("values={}", M.This),
     )
 
 
@@ -683,7 +683,7 @@ class MessageChecks(M.Class):
         id="format-message",
         cond=M.This["number"] == 6,
         message=op_format(
-            "n=%d real=%f sci=%e hex=%x oct=%o flag=%b text=%s list=%s lookup=%d %%",
+            "n={} real={} sci={} hex={} oct={} flag={} text={} list={} lookup={}",
             M.This["number"],
             M.This["real"],
             M.This["real"],
@@ -766,7 +766,7 @@ class Graph(M.Class):
             M.Iter("group")._List.size() <= 1,
         ),
         message=op_format(
-            "duplicate node ids at %s",
+            "duplicate node ids at {}",
             op_map(
                 duplicate_groups(M.This),
                 "group",
@@ -794,7 +794,7 @@ class Graph(M.Class):
             "ids",
             node_ids(M.This),
             op_format(
-                "dangling edges at %s",
+                "dangling edges at {}",
                 op_map(
                     op_filter(
                         M.This["edges"],
