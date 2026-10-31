@@ -1,5 +1,6 @@
 /* clang-format off */
 #include "tUnidataDSLModel.hpp"
+#include <hstd_cpp_lib/proto_serde/hstd_unidata_ops.hpp>
 namespace ud = hstd::ext::unidata;
 
 

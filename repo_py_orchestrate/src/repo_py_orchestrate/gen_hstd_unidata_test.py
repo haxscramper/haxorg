@@ -53,6 +53,9 @@ def main(root_dir: Path):
                     root_dir / "hstd_cpp_lib/tests/tUnidataDSLModel.cpp",
                     [
                         GenTuPass('#include "tUnidataDSLModel.hpp"'),
+                        GenTuPass(
+                            "#include <hstd_cpp_lib/proto_serde/hstd_unidata_ops.hpp>"
+                        ),
                         GenTuPass("namespace ud = hstd::ext::unidata;"),
                         *types,
                     ],
