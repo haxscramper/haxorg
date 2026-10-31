@@ -23,7 +23,7 @@ graphviz/*:tools.build:sharedlinkflags=["-Wl,--trace-symbol=sysprof_clock"]
 pango/*:tools.build:compiler_executables={"c": "gcc", "cpp": "g++"}
 
 user.haxorg:ninja_args={{ os.getenv("HAXORG_CONAN_BUILD_NINJA_ARGS", "[]") }}
-
+tools.build:cxxflags=["-ferror-limit=0"]
 
 [options]
 # required for onetbb dependency for the haxdex target

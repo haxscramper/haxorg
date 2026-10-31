@@ -47,6 +47,7 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
 )
 
 GEN_EXPRESSION_COMMENTS = False
+GEN_EXPRESSION_OP_NAME = False
 
 CPP_SHORT_SPACE_T = QualType(Name="ud", IsNamespace=True)
 
@@ -121,13 +122,16 @@ class CheckGen:
 
         result_statements = list(statements)
 
-        if expr is not None and GEN_EXPRESSION_COMMENTS:
-            result_statements.append(
-                self.ast.Comment(
-                    format_expr_repr(expr).splitlines(),
-                    Inline=False,
+        if expr is not None:
+            if GEN_EXPRESSION_COMMENTS:
+                result_statements.append(
+                    self.ast.Comment(
+                        format_expr_repr(expr).splitlines(),
+                        Inline=False,
+                    )
                 )
-            )
+            elif GEN_EXPRESSION_OP_NAME:
+                result_statements.append(self.ast.Comment(str(expr.op), Inline=False))
 
         result_statements.append(declaration)
 
@@ -182,7 +186,11 @@ class CheckGen:
         else:
             result = self._expression_native_type(expr.typed_as, space=space)
 
-            if expr.op in [OpId.MAP, OpId.FILTER]:
+            if expr.op in [
+                OpId.MAP,
+                OpId.FILTER,
+                OpId.TAKE_WHILE,
+            ]:
                 assert isinstance(expr.typed_as, ListT)
                 # Unwrap the `Vec<T>` type that is natively mapped and insert the
                 # `UniStatic<T>` intermediate layer.
@@ -200,6 +208,15 @@ class CheckGen:
 
     def _set_slot(self, slot: BlockId, value: BlockId) -> BlockId:
         return self._expression_call("set_value", args=[slot, value], is_stmt=True)
+
+    def _read_slot(self, slot: BlockId) -> BlockId:
+        return self._expression_call("get_value_ref", args=[slot])
+
+    def _read_slot_as_bool(self, slot: BlockId) -> BlockId:
+        return self.ast.XCall(
+            "!",
+            args=[self._expression_call("get_stored_as_bool", [slot])],
+        )
 
     def _expression_slot(
         self,
@@ -910,7 +927,7 @@ class CheckGen:
                 declaration,
                 branch,
             ],
-            slot,
+            self._read_slot(slot),
         )
 
     def _gen_expression_eval_let(
@@ -966,25 +983,6 @@ class CheckGen:
 
         slot, declaration = self._expression_slot(value_type)
         statements = [*subject.statements, declaration]
-
-        def _gen_check_slot() -> BlockId:
-            return self._get_uni_value_ref(
-                self._expression_call(
-                    "eval_not",
-                    args=[
-                        self._expression_call(
-                            "eval_opt_has_value",
-                            [slot],
-                            params=[
-                                CPP_UNI_STATIC_T(
-                                    QualType(Name="bool"), space=CPP_SHORT_SPACE_T
-                                )
-                            ],
-                        )
-                    ],
-                    params=[QualType(Name="bool")],
-                )
-            )
 
         for case in expr.args[1:]:
             if case.op != OpId.TYPE_CASE or case.type_val is None:
@@ -1043,7 +1041,7 @@ class CheckGen:
                     cpp.IfStmtParams(
                         Branches=[
                             cpp.IfStmtParams.Branch(
-                                Cond=_gen_check_slot(),
+                                Cond=self._read_slot_as_bool(slot),
                                 Then=self.ast.stack(
                                     [
                                         candidate_declaration,
@@ -1073,7 +1071,7 @@ class CheckGen:
                     cpp.IfStmtParams(
                         Branches=[
                             cpp.IfStmtParams.Branch(
-                                Cond=_gen_check_slot(),
+                                Cond=self._read_slot_as_bool(slot),
                                 Then=self.ast.Throw(
                                     self.ast.XConstructObj(
                                         self.ast.string("std::runtime_error"),

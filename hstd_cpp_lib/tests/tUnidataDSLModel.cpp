@@ -727,7 +727,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       ud::set_value(result11, expr10);
     }
     ud::UniStatic<hstd::Str> const& expr12 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("six"), "six");
-    ud::UniStatic<bool> const& expr13 = ud::eval_eq<ud::UniStatic<bool>>(result11, expr12);
+    ud::UniStatic<bool> const& expr13 = ud::eval_eq<ud::UniStatic<bool>>(ud::get_value_ref(result11), expr12);
     condition1 = expr13;
   }
   if ((*condition1.get())) {
@@ -782,7 +782,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       ud::set_value(result12, expr11);
     }
     ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-    ud::UniStatic<bool> const& expr14 = ud::eval_eq<ud::UniStatic<bool>>(result12, expr13);
+    ud::UniStatic<bool> const& expr14 = ud::eval_eq<ud::UniStatic<bool>>(ud::get_value_ref(result12), expr13);
     condition1 = expr14;
   }
   if ((*condition1.get())) {
@@ -1138,7 +1138,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      ud::UniStatic<bool> const& expr8 = ud::eval_lt<ud::UniStatic<bool>>(item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<hstd::Vec<int64_t>> const& expr10 = ud::eval_take_while<ud::UniStatic<hstd::Vec<int64_t>>>(expr5, callback9);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr10 = ud::eval_take_while<ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(expr5, callback9);
     ud::UniStatic<int64_t> const& expr11 = ud::eval_list_size<ud::UniStatic<int64_t>>(expr10);
     ud::UniStatic<int64_t> const& expr12 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
     ud::UniStatic<bool> const& expr13 = ud::eval_eq<ud::UniStatic<bool>>(expr11, expr12);
@@ -1329,7 +1329,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                       //             var typed_as='Derived' str_val='derived'
                       //
                       ud::UniStatic<ud::UniOpt<int64_t>> result8 = ud::UniStatic<ud::UniOpt<int64_t>>::FromConst(std::nullopt, "std::nullopt");
-                      if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result8)).get())) {
+                      if (!ud::get_stored_as_bool(result8)) {
                         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Derived>> candidate9 = expression_runtime.try_as<hstd::unidata_dsl::test::Derived>(item7);
                         if (candidate9.has_value()) {
                           ud::UniStatic<int64_t> const& expr10 = (*candidate9).Field(&(*candidate9).get()->id, "id");
@@ -2542,7 +2542,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       ud::set_value(result12, expr11);
     }
     ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr14 = ud::eval_eq<ud::UniStatic<bool>>(result12, expr13);
+    ud::UniStatic<bool> const& expr14 = ud::eval_eq<ud::UniStatic<bool>>(ud::get_value_ref(result12), expr13);
     condition1 = expr14;
   }
   if ((*condition1.get())) {
@@ -2722,21 +2722,21 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
     hstd::ext::unidata::UniDynamic const& expr8 = ud::eval_list_at<hstd::ext::unidata::UniDynamic>(expr6, expr7);
     ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>> result9 = ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>>::FromConst(std::nullopt, "std::nullopt");
-    if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result9)).get())) {
+    if (!ud::get_stored_as_bool(result9)) {
       hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate10 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr8);
       if (candidate10.has_value()) {
         ud::UniStatic<int64_t> const& expr11 = (*candidate10).Field(&(*candidate10).get()->id, "id");
         ud::set_value(result9, expr11);
       }
     }
-    if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result9)).get())) {
+    if (!ud::get_stored_as_bool(result9)) {
       hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Derived>> candidate12 = expression_runtime.try_as<hstd::unidata_dsl::test::Derived>(expr8);
       if (candidate12.has_value()) {
         ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(-1), "-1");
         ud::set_value(result9, expr13);
       }
     }
-    if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result9)).get())) {
+    if (!ud::get_stored_as_bool(result9)) {
       throw std::runtime_error{"No type case matched at hstd_test_model.py:506; expected one of: Base, Derived"};
     }
     ud::UniStatic<int64_t> const& expr14 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
@@ -2800,7 +2800,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
       hstd::ext::unidata::UniDynamic const& expr9 = ud::eval_list_at<hstd::ext::unidata::UniDynamic>(expr7, expr8);
       ud::UniStatic<ud::UniOpt<int64_t>> result10 = ud::UniStatic<ud::UniOpt<int64_t>>::FromConst(std::nullopt, "std::nullopt");
-      if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result10)).get())) {
+      if (!ud::get_stored_as_bool(result10)) {
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Derived>> candidate11 = expression_runtime.try_as<hstd::unidata_dsl::test::Derived>(expr9);
         if (candidate11.has_value()) {
           ud::UniStatic<int64_t> const& expr12 = (*candidate11).Field(&(*candidate11).get()->id, "id");
@@ -2817,7 +2817,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
       hstd::ext::unidata::UniDynamic const& expr18 = ud::eval_list_at<hstd::ext::unidata::UniDynamic>(expr16, expr17);
       ud::UniStatic<ud::UniOpt<int64_t>> result19 = ud::UniStatic<ud::UniOpt<int64_t>>::FromConst(std::nullopt, "std::nullopt");
-      if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result19)).get())) {
+      if (!ud::get_stored_as_bool(result19)) {
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Derived>> candidate20 = expression_runtime.try_as<hstd::unidata_dsl::test::Derived>(expr18);
         if (candidate20.has_value()) {
           ud::UniStatic<int64_t> const& expr21 = (*candidate20).Field(&(*candidate20).get()->id, "id");
@@ -2873,14 +2873,14 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
     hstd::ext::unidata::UniDynamic const& expr8 = ud::eval_list_at<hstd::ext::unidata::UniDynamic>(expr6, expr7);
     ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>> result9 = ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>>::FromConst(std::nullopt, "std::nullopt");
-    if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result9)).get())) {
+    if (!ud::get_stored_as_bool(result9)) {
       hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate10 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr8);
       if (candidate10.has_value()) {
         ud::UniStatic<hstd::Str> const& expr11 = ud::eval_type_of<ud::UniStatic<hstd::Str>>((*candidate10));
         ud::set_value(result9, expr11);
       }
     }
-    if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result9)).get())) {
+    if (!ud::get_stored_as_bool(result9)) {
       throw std::runtime_error{"No type case matched at hstd_test_model.py:547; expected one of: Base"};
     }
     ud::UniStatic<hstd::Str> const& expr12 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("Derived"), "Derived");
@@ -2975,7 +2975,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       ud::UniStatic<int64_t> const& expr23 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
       hstd::ext::unidata::UniDynamic const& expr24 = ud::eval_list_at<hstd::ext::unidata::UniDynamic>(expr22, expr23);
       ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>> result25 = ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>>::FromConst(std::nullopt, "std::nullopt");
-      if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result25)).get())) {
+      if (!ud::get_stored_as_bool(result25)) {
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate26 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr24);
         if (candidate26.has_value()) {
           ud::UniStatic<hstd::ext::unidata::UniPath> const& expr27 = ud::eval_path_of<ud::UniStatic<hstd::ext::unidata::UniPath>>((*candidate26));
@@ -2983,7 +2983,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
           ud::set_value(result25, expr28);
         }
       }
-      if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result25)).get())) {
+      if (!ud::get_stored_as_bool(result25)) {
         throw std::runtime_error{"No type case matched at hstd_test_model.py:567; expected one of: Base"};
       }
       ud::UniStatic<hstd::Str> const& expr29 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("/derived"), "/derived");
@@ -3235,7 +3235,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         ud::UniStatic<bool> const& expr64 = ud::eval_eq<ud::UniStatic<bool>>(expr62, expr63);
                         return expr64;
                         };
-      ud::UniStatic<hstd::Vec<int64_t>> const& expr66 = ud::eval_take_while<ud::UniStatic<hstd::Vec<int64_t>>>(expr59, callback65);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr66 = ud::eval_take_while<ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(expr59, callback65);
       ud::UniStatic<int64_t> const& expr67 = ud::eval_list_size<ud::UniStatic<int64_t>>(expr66);
       ud::UniStatic<int64_t> const& expr68 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
       ud::UniStatic<bool> const& expr69 = ud::eval_eq<ud::UniStatic<bool>>(expr67, expr68);
@@ -3300,7 +3300,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
         ud::set_value(result101, expr100);
       }
       ud::UniStatic<int64_t> const& expr102 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(42), "42");
-      ud::UniStatic<bool> const& expr103 = ud::eval_eq<ud::UniStatic<bool>>(result101, expr102);
+      ud::UniStatic<bool> const& expr103 = ud::eval_eq<ud::UniStatic<bool>>(ud::get_value_ref(result101), expr102);
       condition5 = expr103;
     }
     if ((*condition5.get())) {
@@ -3315,7 +3315,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
         ud::set_value(result108, expr107);
       }
       ud::UniStatic<int64_t> const& expr109 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(42), "42");
-      ud::UniStatic<bool> const& expr110 = ud::eval_eq<ud::UniStatic<bool>>(result108, expr109);
+      ud::UniStatic<bool> const& expr110 = ud::eval_eq<ud::UniStatic<bool>>(ud::get_value_ref(result108), expr109);
       condition5 = expr110;
     }
     condition1 = condition5;
@@ -3456,7 +3456,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    //         var typed_as='Node' str_val='node'
                    //
                    ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result3 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
-                   if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result3)).get())) {
+                   if (!ud::get_stored_as_bool(result3)) {
                      hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate4 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item2);
                      if (candidate4.has_value()) {
                        ud::set_value(result3, (*candidate4));
@@ -3497,7 +3497,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       //         var typed_as='Node' str_val='node'
                       //
                       ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result20 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
-                      if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result20)).get())) {
+                      if (!ud::get_stored_as_bool(result20)) {
                         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate21 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item19);
                         if (candidate21.has_value()) {
                           ud::set_value(result20, (*candidate21));
@@ -3585,7 +3585,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    //         var typed_as='Node' str_val='node'
                    //
                    ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result3 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
-                   if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result3)).get())) {
+                   if (!ud::get_stored_as_bool(result3)) {
                      hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate4 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item2);
                      if (candidate4.has_value()) {
                        ud::set_value(result3, (*candidate4));
@@ -3639,7 +3639,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       //         var typed_as='Node' str_val='node'
                       //
                       ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>> result22 = ud::UniStatic<ud::UniOpt<hstd::unidata_dsl::test::Node>>::FromConst(std::nullopt, "std::nullopt");
-                      if ((*ud::eval_not<bool>(ud::eval_opt_has_value<ud::UniStatic<bool>>(result22)).get())) {
+                      if (!ud::get_stored_as_bool(result22)) {
                         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>> candidate23 = expression_runtime.try_as<hstd::unidata_dsl::test::Node>(item21);
                         if (candidate23.has_value()) {
                           ud::set_value(result22, (*candidate23));

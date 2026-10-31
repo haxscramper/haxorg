@@ -410,6 +410,30 @@ void set_value(UniStatic<UniOpt<Target>>& target, UniStatic<Source> const& sourc
     LOGIC_ASSERTION_CHECK(false, "TODO, ASSIGN TO OPT implement");
 }
 
+template <typename Target>
+UniStatic<Target> get_value_ref(UniStatic<Target>& target) {
+    return target;
+}
+
+template <typename Target>
+Target const& get_value_ref(UniStatic<UniOpt<Target>>& target) {
+    return target.get()->value();
+}
+
+template <typename Target>
+Target const& get_stored_value(UniStatic<Target> const& target) {
+    return *target.get();
+}
+
+bool get_stored_as_bool(UniStatic<bool> const& target) {
+    return get_stored_value(target);
+}
+
+template <typename Target>
+bool get_stored_as_bool(UniStatic<UniOpt<Target>> const& target) {
+    return get_stored_value(target).has_value();
+}
+
 template <typename T>
 UniStatic<hstd::Vec<UniDynamic>> eval_walk(
     EvalRuntime const& runtime,
@@ -587,7 +611,8 @@ Res eval_mul(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {
 
 template <typename Res, typename T>
 Res eval_list_size(UniStatic<T> const& lhs) {
-    return Res::SubExprNoContext(lhs.get()->size(), "list_size");
+    return Res::SubExprNoContext(
+        static_cast<Res::value_type>(lhs.get()->size()), "list_size");
 }
 
 template <typename Res, typename T>
@@ -645,6 +670,14 @@ template <typename Res, typename T, typename IntType>
 Res eval_list_at(UniStatic<UniVec<T>> const& lhs, UniStatic<IntType> const& rhs) {
     return lhs.AtIndex(&lhs.get()->at(*rhs.get()), *rhs.get());
 }
+
+template <typename Res, typename T, typename IntType>
+Res eval_list_at(
+    UniStatic<UniVec<UniStatic<T>>> const& lhs,
+    UniStatic<IntType> const&              rhs) {
+    return lhs.get()->at(*rhs.get());
+}
+
 
 template <typename Res, typename IntType>
 Res eval_list_at(
@@ -710,14 +743,15 @@ Result eval_get_field(UniStatic<UniVariant<Args...>> const& variant, char const*
 template <typename T>
 hstd::generator<UniStatic<T>> iterate_list(UniStatic<UniVec<T>> const& collection) {
     for (int i = 0; i < collection.get()->size(); ++i) {
-        co_yield eval_list_at<T>(collection, UniStatic<int>::SubExprTemporaryPass(i));
+        co_yield eval_list_at<UniStatic<T>>(
+            collection, UniStatic<int>::SubExprTemporaryPass(i));
     }
 }
 
 template <typename Res, typename Collection, typename Callback>
-UniValue<StaticT<bool>> eval_all(
-    UniValue<Collection> const& collection,
-    Callback const&             callback) {
+UniStatic<bool> eval_all(
+    UniStatic<Collection> const& collection,
+    Callback const&              callback) {
     for (auto const& it : iterate_list(collection)) {
         auto cb_res = callback(it);
         if (!(*cb_res.get())) { return collection.CallResult(false, "all"); }
@@ -727,9 +761,7 @@ UniValue<StaticT<bool>> eval_all(
 }
 
 template <typename Res, typename Collection, typename Callback>
-UniValue<StaticT<bool>> eval_exists(
-    Collection const& collection,
-    Callback const&   callback) {
+UniStatic<bool> eval_exists(Collection const& collection, Callback const& callback) {
     for (auto const& it : iterate_list(collection)) {
         auto cb_res = callback(it);
         if (*cb_res.get()) { return collection.CallResult(true, "exists"); }
@@ -739,9 +771,7 @@ UniValue<StaticT<bool>> eval_exists(
 }
 
 template <typename Res, typename Collection, typename Callback>
-UniValue<StaticT<bool>> eval_exists_one(
-    Collection const& collection,
-    Callback const&   callback) {
+UniStatic<bool> eval_exists_one(Collection const& collection, Callback const& callback) {
     int counter = 0;
     for (auto const& it : iterate_list(collection)) {
         auto cb_res = callback(it);
@@ -754,7 +784,7 @@ UniValue<StaticT<bool>> eval_exists_one(
 
 template <typename ResultType, typename T, typename Callback>
 ResultType eval_map(UniStatic<hstd::Vec<T>> const& collection, Callback const& callback) {
-    hstd::Vec<typename ResultType::value_type> res;
+    typename ResultType::value_type res;
     for (auto const& it : iterate_list(collection)) { res.push_back(callback(it)); }
     return ResultType::SubExprNoContext(res, "map");
 }
@@ -763,7 +793,7 @@ template <typename ResultType, typename T, typename Callback>
 ResultType eval_filter(
     UniStatic<hstd::Vec<T>> const& collection,
     Callback const&                callback) {
-    hstd::Vec<typename ResultType::value_type> res;
+    typename ResultType::value_type res;
     for (auto const& it : iterate_list(collection)) {
         auto cb_res = callback(it);
         if (*cb_res.get()) { res.push_back(it); }
@@ -824,10 +854,13 @@ Result eval_map_values(UniStatic<UniMap<K, V>> const& map) {
 
 template <typename Result, typename Collection, typename Callback>
 Result eval_filter_map(Collection const& collection, Callback const& callback) {
-    hstd::Vec<typename Result::value_type> res;
+    typename Result::value_type res;
     for (auto const& item : iterate_list(collection)) {
         auto mapped = callback(item);
-        if (mapped) { res.push_back(std::move(*mapped)); }
+        if (get_stored_as_bool(mapped)) {
+            // unpack optional value
+            res.push_back(get_value_ref(mapped));
+        }
     }
 
     return Result::SubExprNoContext(res, "filter_map");
@@ -835,9 +868,9 @@ Result eval_filter_map(Collection const& collection, Callback const& callback) {
 
 template <typename Result, typename Collection, typename Callback>
 Result eval_take_while(Collection const& collection, Callback const& callback) {
-    Result result;
+    typename Result::value_type result;
     for (auto const& item : iterate_list(collection)) {
-        if (!callback(item)) { break; }
+        if (!get_stored_as_bool(callback(item))) { break; }
         result.push_back(item);
     }
 
@@ -846,7 +879,7 @@ Result eval_take_while(Collection const& collection, Callback const& callback) {
 
 template <typename Result, typename Collection, typename Callback>
 Result eval_group_by(Collection const& collection, Callback const& callback) {
-    Result result;
+    typename Result::value_type result;
     for (auto const& item : iterate_list(collection)) {
         result[callback(item)].push_back(item);
     }
@@ -856,7 +889,7 @@ Result eval_group_by(Collection const& collection, Callback const& callback) {
 
 template <typename Result, typename Collection, typename Callback>
 Result eval_fold(Collection const& collection, Result initial, Callback const& callback) {
-    Result start = *initial.get();
+    Result start = get_stored_value(initial);
     for (auto const& item : iterate_list(collection)) {
         start = callback(std::move(start), item);
     }
