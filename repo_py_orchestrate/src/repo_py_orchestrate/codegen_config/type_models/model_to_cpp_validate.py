@@ -1088,21 +1088,7 @@ class CheckGen:
             )
         )
 
-        function = {
-            OpId.ALL: "eval_all",
-            OpId.EXISTS: "eval_exists",
-            OpId.EXISTS_ONE: "eval_exists_one",
-            OpId.MAP: "eval_map",
-            OpId.FILTER: "eval_filter",
-            OpId.FILTER_MAP: "eval_filter_map",
-            OpId.TAKE_WHILE: "eval_take_while",
-            OpId.GROUP_BY: "eval_group_by",
-        }[expr.op]
-
         match expr.op:
-            case OpId.ALL | OpId.EXISTS | OpId.EXISTS_ONE:
-                params = []
-
             case OpId.MAP | OpId.FILTER:
                 params = [self._expression_result_type(expr).par0()]
 
@@ -1111,7 +1097,7 @@ class CheckGen:
 
         return self._expression_local(
             self._expression_call(
-                function,
+                f"eval_{expr.op}",
                 args=[collection.value, callback_value],
                 params=params,
             ),

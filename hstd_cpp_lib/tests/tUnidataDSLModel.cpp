@@ -822,7 +822,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      ud::UniStatic<bool> const& expr8 = ud::eval_lt<bool>(item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<bool> const& expr10 = ud::eval_all(expr5, callback9);
+    ud::UniStatic<bool> const& expr10 = ud::eval_all<bool>(expr5, callback9);
     condition1 = expr10;
   }
   if ((*condition1.get())) {
@@ -862,7 +862,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      ud::UniStatic<bool> const& expr8 = ud::eval_eq<bool>(item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<bool> const& expr10 = ud::eval_exists(expr5, callback9);
+    ud::UniStatic<bool> const& expr10 = ud::eval_exists<bool>(expr5, callback9);
     condition1 = expr10;
   }
   if ((*condition1.get())) {
@@ -902,7 +902,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                      ud::UniStatic<bool> const& expr8 = ud::eval_eq<bool>(item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<bool> const& expr10 = ud::eval_exists_one(expr5, callback9);
+    ud::UniStatic<bool> const& expr10 = ud::eval_exists_one<bool>(expr5, callback9);
     condition1 = expr10;
   }
   if ((*condition1.get())) {
@@ -3077,7 +3077,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         ud::UniStatic<bool> const& expr9 = ud::eval_lt<bool>(expr8, item7);
                         return expr9;
                         };
-      ud::UniStatic<bool> const& expr11 = ud::eval_all(expr6, callback10);
+      ud::UniStatic<bool> const& expr11 = ud::eval_all<bool>(expr6, callback10);
       condition5 = expr11;
     }
     if ((*condition5.get())) {
@@ -3087,7 +3087,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         ud::UniStatic<bool> const& expr15 = ud::eval_lt<bool>(expr14, item13);
                         return expr15;
                         };
-      ud::UniStatic<bool> const& expr17 = ud::eval_exists(expr12, callback16);
+      ud::UniStatic<bool> const& expr17 = ud::eval_exists<bool>(expr12, callback16);
       ud::UniStatic<bool> const& expr18 = ud::eval_not<bool>((expr17));
       condition5 = expr18;
     }
@@ -3098,7 +3098,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         ud::UniStatic<bool> const& expr22 = ud::eval_lt<bool>(expr21, item20);
                         return expr22;
                         };
-      ud::UniStatic<bool> const& expr24 = ud::eval_exists_one(expr19, callback23);
+      ud::UniStatic<bool> const& expr24 = ud::eval_exists_one<bool>(expr19, callback23);
       ud::UniStatic<bool> const& expr25 = ud::eval_not<bool>((expr24));
       condition5 = expr25;
     }
@@ -3283,7 +3283,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_n
                    ud::UniStatic<bool> const& expr3 = ud::eval_lt<bool>(expr2, item1);
                    return expr3;
                    };
-  ud::UniStatic<bool> const& expr5 = ud::eval_all(expr0, callback4);
+  ud::UniStatic<bool> const& expr5 = ud::eval_all<bool>(expr0, callback4);
   if ((*expr5.get())) {
     return ud::VerifyResult::Ok();
   } else {
@@ -3382,7 +3382,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                     ud::UniStatic<bool> const& expr15 = ud::eval_le<bool>(expr13, expr14);
                     return expr15;
                     };
-  ud::UniStatic<bool> const& expr17 = ud::eval_all(expr11, callback16);
+  ud::UniStatic<bool> const& expr17 = ud::eval_all<bool>(expr11, callback16);
   if ((*expr17.get())) {
     return ud::VerifyResult::Ok();
   } else {
@@ -3485,7 +3485,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                     }
                     return condition13;
                     };
-  ud::UniStatic<bool> const& expr19 = ud::eval_all(expr11, callback18);
+  ud::UniStatic<bool> const& expr19 = ud::eval_all<bool>(expr11, callback18);
   if ((*expr19.get())) {
     return ud::VerifyResult::Ok();
   } else {

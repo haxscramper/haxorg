@@ -288,6 +288,12 @@ struct UniValue {
             UniValueAccessPath(UniAccessStep::FieldName(func_name)));
     }
 
+    template <NonWrapperArg SubItem>
+    static UniValue<StaticT<SubItem>> SubExprTemporaryPass(SubItem const& value) {
+        return UniValue<StaticT<SubItem>>(
+            StaticT<SubItem>::FromRValue(value), UniValueAccessPath());
+    }
+
 
     UniValue<DynamicT> FromDynamic(
         DynamicT const&           value,
@@ -300,8 +306,8 @@ struct UniValue {
     UniValue<StaticT<SubItem>> CallResult(
         SubItem const&     value,
         std::string const& func_name) const {
-        return UniValue<SubItem>(
-            StaticT<SubItem>::FromLValue(value),
+        return UniValue<StaticT<SubItem>>(
+            StaticT<SubItem>::FromRValue(value),
             path.add(UniAccessStep::FieldName(hstd::fmt("{}()", func_name))));
     }
 
@@ -622,7 +628,7 @@ template <typename Res, typename T, typename IntType>
 UniStatic<Res> eval_list_at(
     UniStatic<UniVec<T>> const& lhs,
     UniStatic<IntType> const&   rhs) {
-    return lhs.AtIndex(lhs.get()->at(*rhs.get()), *rhs.get());
+    return lhs.AtIndex(&lhs.get()->at(*rhs.get()), *rhs.get());
 }
 
 template <typename Res, typename IntType>
@@ -690,35 +696,46 @@ UniStatic<T> eval_get_field(
         [&](auto const& item) { return eval_get_field<T>(item, field); }, *variant.get());
 }
 
-template <typename Collection, typename Callback>
+
+template <typename T>
+hstd::generator<UniStatic<T>> iterate_list(UniStatic<UniVec<T>> const& collection) {
+    for (int i = 0; i < collection.get()->size(); ++i) {
+        co_yield eval_list_at<T>(collection, UniStatic<int>::SubExprTemporaryPass(i));
+    }
+}
+
+template <typename Res, typename Collection, typename Callback>
 UniValue<StaticT<bool>> eval_all(
     UniValue<Collection> const& collection,
     Callback const&             callback) {
-    for (auto const& it : *collection.get()) {
-        if (!callback(it)) { return collection.CallResult(false, "all"); }
+    for (auto const& it : iterate_list(collection)) {
+        auto cb_res = callback(it);
+        if (!(*cb_res.get())) { return collection.CallResult(false, "all"); }
     }
 
     return collection.CallResult(true, "all");
 }
 
-template <typename Collection, typename Callback>
+template <typename Res, typename Collection, typename Callback>
 UniValue<StaticT<bool>> eval_exists(
     Collection const& collection,
     Callback const&   callback) {
-    for (auto const& it : *collection.get()) {
-        if (callback(it)) { return collection.CallResult(true, "exists"); }
+    for (auto const& it : iterate_list(collection)) {
+        auto cb_res = callback(it);
+        if (*cb_res.get()) { return collection.CallResult(true, "exists"); }
     }
 
     return collection.CallResult(false, "exists");
 }
 
-template <typename Collection, typename Callback>
+template <typename Res, typename Collection, typename Callback>
 UniValue<StaticT<bool>> eval_exists_one(
     Collection const& collection,
     Callback const&   callback) {
     int counter = 0;
-    for (auto const& it : *collection.get()) {
-        if (callback(it)) { ++counter; }
+    for (auto const& it : iterate_list(collection)) {
+        auto cb_res = callback(it);
+        if (*cb_res.get()) { ++counter; }
         if (1 < counter) { return collection.CallResult(false, "exists_one"); }
     }
 
@@ -730,7 +747,7 @@ UniStatic<hstd::Vec<ResultType>> eval_map(
     UniStatic<hstd::Vec<T>> const& collection,
     Callback const&                callback) {
     hstd::Vec<ResultType> res;
-    for (auto const& it : *collection.get()) { res.push_back(callback(it)); }
+    for (auto const& it : iterate_list(collection)) { res.push_back(callback(it)); }
 
     return UniStatic<hstd::Vec<ResultType>>::SubExprNoContext(res, "map");
 }
@@ -740,8 +757,9 @@ UniStatic<hstd::Vec<T>> eval_filter(
     UniStatic<hstd::Vec<T>> const& collection,
     Callback const&                callback) {
     hstd::Vec<T> res;
-    for (auto const& it : *collection.get()) {
-        if (callback(it)) { res.push_back(it); }
+    for (auto const& it : iterate_list(collection)) {
+        auto cb_res = callback(it);
+        if (*cb_res.get()) { res.push_back(it); }
     }
 
     return UniStatic<hstd::Vec<T>>::SubExprNoContext(res, "filter");
@@ -759,7 +777,7 @@ template <typename Result, typename Collection, typename T>
 UniStatic<bool> eval_list_contains(
     UniStatic<Collection> const& collection,
     T const&                     value) {
-    for (auto const& item : *collection.get()) {
+    for (auto const& item : iterate_list(collection)) {
         if (item == value) {
             return UniStatic<Result>::SubExprNoContext(true, "list_contains");
         }
@@ -768,28 +786,11 @@ UniStatic<bool> eval_list_contains(
     return UniStatic<Result>::SubExprNoContext(false, "list_contains");
 }
 
-/// Return the half-open slice [start, end).
-template <typename Result, typename Collection, typename I1, typename I2>
-UniStatic<Result> eval_list_slice(
-    UniStatic<Collection> const& collection,
-    UniStatic<I1>                start,
-    UniStatic<I2>                end) {
-    if (start < 0 || end < start || std::cmp_greater(end, collection.size())) {
-        throw std::out_of_range{"Invalid list slice bounds"};
-    }
-
-    Result result;
-    auto   it = std::next(std::begin(collection), start);
-    for (auto index = start; index < end; ++index, ++it) { result.push_back(*it); }
-
-    return UniStatic<Result>::SubExprNoContext(result, "list_slice");
-}
-
 template <typename Result, typename First, typename Second>
 UniStatic<Result> eval_list_concat(First const& first, Second const& second) {
     Result result;
-    for (auto const& item : first) { result.push_back(item); }
-    for (auto const& item : second) { result.push_back(item); }
+    for (auto const& item : iterate_list(first)) { result.push_back(item); }
+    for (auto const& item : iterate_list(second)) { result.push_back(item); }
     return UniStatic<Result>::SubExprNoContext(result, "list_concat");
 }
 
@@ -808,7 +809,7 @@ UniStatic<Result> eval_map_insert(Map const& map, Key const& key, Value const& v
 template <typename Result, typename Map>
 UniStatic<Result> eval_map_keys(Map const& map) {
     Result result;
-    for (auto const& entry : map) { result.push_back(entry.first); }
+    for (auto const& entry : iterate_map(map)) { result.push_back(entry.first); }
 
     return UniStatic<Result>::SubExprNoContext(result, "map_keys");
 }
@@ -817,7 +818,7 @@ UniStatic<Result> eval_map_keys(Map const& map) {
 template <typename Result, typename Map>
 UniStatic<Result> eval_map_values(Map const& map) {
     Result result;
-    for (auto const& entry : map) { result.push_back(entry.second); }
+    for (auto const& entry : iterate_map(map)) { result.push_back(entry.second); }
 
     return UniStatic<Result>::SubExprNoContext(result, "map_values");
 }
@@ -827,7 +828,7 @@ UniStatic<Result> eval_filter_map(
     Collection const& collection,
     Callback const&   callback) {
     Result result;
-    for (auto const& item : collection) {
+    for (auto const& item : iterate_list(collection)) {
         auto mapped = callback(item);
         if (mapped) { result.push_back(std::move(*mapped)); }
     }
@@ -840,7 +841,7 @@ UniStatic<Result> eval_take_while(
     Collection const& collection,
     Callback const&   callback) {
     Result result;
-    for (auto const& item : collection) {
+    for (auto const& item : iterate_list(collection)) {
         if (!callback(item)) { break; }
         result.push_back(item);
     }
@@ -851,7 +852,9 @@ UniStatic<Result> eval_take_while(
 template <typename Result, typename Collection, typename Callback>
 UniStatic<Result> eval_group_by(Collection const& collection, Callback const& callback) {
     Result result;
-    for (auto const& item : collection) { result[callback(item)].push_back(item); }
+    for (auto const& item : iterate_list(collection)) {
+        result[callback(item)].push_back(item);
+    }
 
     return UniStatic<Result>::SubExprNoContext(result, "group_by");
 }
@@ -862,7 +865,9 @@ UniStatic<Result> eval_fold(
     UniStatic<Result> initial,
     Callback const&   callback) {
     Result start = *initial.get();
-    for (auto const& item : collection) { start = callback(std::move(start), item); }
+    for (auto const& item : iterate_list(collection)) {
+        start = callback(std::move(start), item);
+    }
 
     return UniStatic<Result>::SubExprNoContext(start, "fold");
 }
@@ -870,40 +875,69 @@ UniStatic<Result> eval_fold(
 template <typename Result, typename Collection>
 UniStatic<Result> eval_sum(Collection const& collection) {
     Result result{};
-    for (auto const& item : collection) { result += item; }
+    for (auto const& item : iterate_list(collection)) { result += item; }
     return UniStatic<Result>::SubExprNoContext(result, "sum");
 }
 
 template <typename Result, typename Collection>
-UniStatic<Result> eval_min(Collection const& collection) {
-    auto it  = std::begin(collection);
-    auto end = std::end(collection);
+UniStatic<Result> eval_min(UniStatic<Collection> const& collection) {
+    auto values = iterate_list(collection);
+    auto it     = values.begin();
+    auto end    = values.end();
     if (it == end) {
         throw std::invalid_argument{"eval_min requires a nonempty collection"};
     }
 
-    Result result{*it};
+    Result result{*(*it).get()};
     for (++it; it != end; ++it) {
-        if (*it < result) { result = *it; }
+        auto const& value = *(*it).get();
+        if (value < result) { result = value; }
     }
 
     return UniStatic<Result>::SubExprNoContext(result, "min");
 }
 
 template <typename Result, typename Collection>
-UniStatic<Result> eval_max(Collection const& collection) {
-    auto it  = std::begin(collection);
-    auto end = std::end(collection);
+UniStatic<Result> eval_max(UniStatic<Collection> const& collection) {
+    auto values = iterate_list(collection);
+    auto it     = values.begin();
+    auto end    = values.end();
     if (it == end) {
         throw std::invalid_argument{"eval_max requires a nonempty collection"};
     }
 
-    Result result{*it};
+    Result result{*(*it).get()};
     for (++it; it != end; ++it) {
-        if (result < *it) { result = *it; }
+        auto const& value = *(*it).get();
+        if (result < value) { result = value; }
     }
 
     return UniStatic<Result>::SubExprNoContext(result, "max");
 }
+
+/// Return the half-open slice [start, end).
+template <typename Result, typename Collection, typename I1, typename I2>
+UniStatic<Result> eval_list_slice(
+    UniStatic<Collection> const& collection,
+    UniStatic<I1>                start,
+    UniStatic<I2>                end) {
+    auto const first = *start.get();
+    auto const last  = *end.get();
+    if (std::cmp_less(first, 0) || std::cmp_less(last, first)
+        || std::cmp_greater(last, collection.get()->size())) {
+        throw std::out_of_range{"Invalid list slice bounds"};
+    }
+
+    Result      result;
+    std::size_t index = 0;
+    for (auto const& value : iterate_list(collection)) {
+        if (std::cmp_equal(index, last)) { break; }
+        if (!std::cmp_less(index, first)) { result.push_back(*value.get()); }
+        ++index;
+    }
+
+    return UniStatic<Result>::SubExprNoContext(result, "list_slice");
+}
+
 
 }; // namespace hstd::ext::unidata
