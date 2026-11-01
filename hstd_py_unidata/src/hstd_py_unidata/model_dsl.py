@@ -617,7 +617,15 @@ class DslModel:
         return self.finalize().model_dump(mode="json")
 
     def type_of(self, target: Any) -> TypeRef:
-        """Model type of a declaration class or of any annotation-like type expression."""
+        """
+        Model type of a declaration class or of any annotation-like type expression.
+
+        This function returns a static type of the expression or unwraps the stored
+        static type from the `DynT` (e.g. from op_walk). It does not provide dynamic
+        sub-typing support. So if the `type_case()` has a type pattern matching the
+        base class, the binding will have `type_of()` for the base class, it will
+        not evaluate to the actual runtime clas of the derived.
+        """
         index = self.index
         lookup = NameLookup()
         for rec in index.model.records:

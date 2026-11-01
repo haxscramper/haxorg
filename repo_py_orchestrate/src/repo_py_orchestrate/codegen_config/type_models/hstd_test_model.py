@@ -532,11 +532,7 @@ class OperationChecks(M.Class):
                 )._Opt.has_value(),
                 type_cond(
                     op_walk(M.This["derived"])._List.at(0),
-                    type_case(
-                        M._T["Derived"],
-                        "record",
-                        M.Iter("record")["id"],
-                    ),
+                    type_case(M._T["Derived"], "record", M.Iter("record")["id"]),
                     unhandled_ignore=True,
                 )._Opt.value()
                 == 6,
@@ -544,15 +540,15 @@ class OperationChecks(M.Class):
         ),
         (
             "TypeOf",
+            # the DSL does not support runtime subtyping,
+            # every type is either explicitly static or is
+            # explicitly DynT(), in which case it can only
+            # be "unpacked" for the static case.
             type_cond(
                 op_walk(M.This["derived"])._List.at(0),
-                type_case(
-                    M._T["Base"],
-                    "record",
-                    op_typeof(M.Iter("record")),
-                ),
+                type_case(M._T["Base"], "record", op_typeof(M.Iter("record"))),
             )
-            == "Derived",
+            == "Base",
         ),
         (
             "PathOf",

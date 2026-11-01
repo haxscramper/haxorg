@@ -60,6 +60,13 @@ using VerifyCb = hstd::Func<VerifyResult(VerifyContext const* ctx, void const* v
 using VerifyCbList = hstd::Vec<VerifyCb>;
 using VerifyKey    = hstd::Pair<QName, hstd::Opt<std::string>>;
 
+/// \brief Some operations can have a failure caused by the completely
+/// malformed arguments, such as `min([])` and the like. These calls
+/// trigger a fatal exception that is re-raised as fatal_expression_error
+/// are further propagated outside of the validation range, aborting
+/// the whole validation immediately.
+struct fatal_expression_error : CRTP_hexception<fatal_expression_error> {};
+
 } // namespace hstd::ext::unidata
 
 template <>

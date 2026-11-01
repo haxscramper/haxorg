@@ -90,22 +90,57 @@ Res eval_op_traced(ExprContext const& expr_ctx, Eval&& eval, Args&&... args) {
         expr_ctx.call_function,
         expr_ctx.call_line);
 
-    std::size_t index     = 0;
-    auto        trace_arg = [&](auto&& arg) {
-        OP_TRACER_MESSAGE(
-            expr_ctx.ctx,
-            "[{}] @ {} = {}",
-            index++,
-            get_path(arg),
-            hstd::fmt1_maybe(get_unpack(arg)));
-    };
-    (trace_arg(args), ...);
+    {
+        int  index     = 0;
+        auto trace_arg = [&](auto&& arg) {
+            OP_TRACER_MESSAGE(
+                expr_ctx.ctx,
+                "[{}] @ {} = {}",
+                index++,
+                get_path(arg),
+                hstd::fmt1_maybe(get_unpack(arg)));
+        };
+        (trace_arg(args), ...);
+    }
 
-    auto result = std::forward<Eval>(eval)();
+    try {
+        auto result = std::forward<Eval>(eval)();
 
-    OP_TRACER_MESSAGE(expr_ctx.ctx, "-> {}", get_unpack(result));
+        OP_TRACER_MESSAGE(expr_ctx.ctx, "-> {}", get_unpack(result));
 
-    return result;
+        return result;
+    } catch (std::exception const& err) {
+        hstd::Str buf;
+        int       index     = 0;
+        auto      trace_arg = [&](auto&& arg) {
+            buf.append(
+                hstd::fmt(
+                    "\n[{}] @ {} = {}",
+                    index++,
+                    get_path(arg),
+                    hstd::fmt1_maybe(get_unpack(arg))));
+        };
+        (trace_arg(args), ...);
+
+
+        throw fatal_expression_error::init(
+            hstd::fmt(
+                "Evaluation of operation {0} at {1}:{2} (codegen location {3}:{4}) "
+                "failed with internal error {5} "
+                "on provided arguments. This is a fatal error, validation was "
+                "terminated, no model diagnostics provided. This is an issue with the "
+                "structure of the validation checks; update the validation expression to "
+                "perform guard check against malformed data in the `cond` validation. "
+                "Args:{6}",
+                /*1=*/Kind,
+                /*2=*/expr_ctx.file_basename,
+                /*3=*/expr_ctx.file_line,
+                /*4=*/expr_ctx.call_function,
+                /*5=*/expr_ctx.call_line,
+                /*6=*/err.what(),
+                /*7=*/buf //
+                ));
+    }
 }
 
 template <OpId Kind, typename Res, typename... TemplateArgs, typename... Args>
@@ -815,29 +850,42 @@ struct OpImpl<OpId::MAX> {
 
 template <>
 struct OpImpl<OpId::LIST_SLICE> {
-    /// Return the half-open slice [start, end).
+    /// Return the half-open slice [start, end), using Python slice bounds.
     template <typename Result, typename Collection, typename I1, typename I2>
     static Result eval(
         UniStatic<Collection> const& collection,
         UniStatic<I1>                start,
         UniStatic<I2>                end) {
-        auto const first = *start.get();
-        auto const last  = *end.get();
-        if (std::cmp_less(first, 0) || std::cmp_less(last, first)
-            || std::cmp_greater(last, collection.get()->size())) {
-            throw std::out_of_range{"Invalid list slice bounds"};
-        }
+        auto const size = collection.get()->size();
+
+        auto normalize = [size](auto bound) -> std::size_t {
+            if (std::cmp_less(bound, 0)) {
+                // Avoid overflowing when bound is the minimum signed value.
+                auto const offset = -(bound + 1);
+                if (std::cmp_greater_equal(offset, size)) { return 0; }
+                return size - static_cast<std::size_t>(offset) - 1;
+            }
+
+            if (std::cmp_greater_equal(bound, size)) { return size; }
+            return static_cast<std::size_t>(bound);
+        };
+
+        auto const first = normalize(*start.get());
+        auto const last  = normalize(*end.get());
 
         typename Result::value_type result;
-        std::size_t                 index = 0;
-        for (auto const& value : iterate_list(collection)) {
-            if (std::cmp_equal(index, last)) { break; }
-            if (!std::cmp_less(index, first)) { result.push_back(value); }
-            ++index;
+        if (first < last) {
+            std::size_t index = 0;
+            for (auto const& value : iterate_list(collection)) {
+                if (index == last) { break; }
+                if (first <= index) { result.push_back(value); }
+                ++index;
+            }
         }
 
         return Result::SubExprNoContext(result, "list_slice");
     }
 };
+
 
 } // namespace hstd::ext::unidata

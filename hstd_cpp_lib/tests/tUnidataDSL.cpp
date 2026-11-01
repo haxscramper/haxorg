@@ -82,7 +82,10 @@ struct OperationCase {
 OperationCase operation_case(
     M::CheckKind                             kind,
     std::string                              name,
-    std::function<void(M::OperationChecks&)> invalidate = {}) {
+    std::function<void(M::OperationChecks&)> invalidate = {},
+    int                                      line       = __builtin_LINE(),
+    char const*                              function   = __builtin_FUNCTION(),
+    char const*                              file       = __builtin_FILE()) {
     return OperationCase{
         .kind       = kind,
         .name       = std::move(name),
