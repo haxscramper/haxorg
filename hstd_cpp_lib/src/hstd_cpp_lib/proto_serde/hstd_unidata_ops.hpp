@@ -367,6 +367,21 @@ struct OpImpl<OpId::NE> {
 };
 
 template <>
+struct OpImpl<OpId::COND> {
+    template <typename Res, typename CondFunc, typename ThenFunc, typename ElseFunc>
+    static Res eval(
+        CondFunc const& cond_func,
+        ThenFunc const& then_func,
+        ElseFunc const& else_func) {
+        if (get_stored_as_bool(cond_func())) {
+            return then_func();
+        } else {
+            return else_func();
+        }
+    }
+};
+
+template <>
 struct OpImpl<OpId::AND> {
     template <typename Res, typename... ArgFuncs>
     static Res eval(ArgFuncs&&... args) {

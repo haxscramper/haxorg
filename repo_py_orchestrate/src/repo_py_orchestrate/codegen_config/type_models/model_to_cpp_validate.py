@@ -921,55 +921,17 @@ class CheckGen:
         this_expr: BlockId,
         bindings: dict[str, BlockId],
     ) -> ExpressionEvaluation:
-        condition = self._gen_expression_eval(
-            expr.args[0],
-            this_expr,
-            bindings,
-        )
-        then_value = self._gen_expression_eval(
-            expr.args[1],
-            this_expr,
-            bindings,
-        )
-        else_value = self._gen_expression_eval(
-            expr.args[2],
-            this_expr,
-            bindings,
-        )
-
-        slot, declaration = self._expression_slot(self._expression_result_type(expr))
-
-        branch = self.ast.IfStmt(
-            cpp.IfStmtParams(
-                Branches=[
-                    cpp.IfStmtParams.Branch(
-                        Cond=self._get_uni_value_ref(condition.value),
-                        Then=self.ast.stack(
-                            [
-                                *then_value.statements,
-                                self._set_slot(slot, then_value.value),
-                            ]
-                        ),
-                    ),
-                    cpp.IfStmtParams.Branch(
-                        Then=self.ast.stack(
-                            [
-                                *else_value.statements,
-                                self._set_slot(slot, else_value.value),
-                            ]
-                        )
-                    ),
-                ]
+        return self._expression_local(
+            self._op_call(
+                expr.op,
+                args=[self._expr_context_gen(expr)]
+                + [
+                    self._expression_as_iife(arg, this_expr, bindings)
+                    for arg in expr.args
+                ],
+                params=[self._expression_result_type(expr)],
+                Line=False,
             )
-        )
-
-        return ExpressionEvaluation(
-            [
-                *condition.statements,
-                declaration,
-                branch,
-            ],
-            self._read_slot(slot),
         )
 
     def _gen_expression_eval_let(
