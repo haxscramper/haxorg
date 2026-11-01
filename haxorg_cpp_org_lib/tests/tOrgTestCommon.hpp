@@ -69,6 +69,7 @@ std::string maybe_format(T const& value) {
     return fmt::format("{}", value);
 }
 
+// FIXME: deprecated, `fmt1_maybe` does the same thing.
 template <typename T>
     requires(!fmt::formattable<T, char>)
 std::string maybe_format(T const&) {

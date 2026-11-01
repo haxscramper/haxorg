@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hstd_cpp_lib/stdlib/formatting/Formatter.hpp"
 #include <hstd_cpp_lib/logger/TraceBase.hpp>
 #include <hstd_cpp_lib/proto_serde/hstd_unidata_validate.hpp>
 #include <hstd_cpp_lib/stdlib/formatting/specializations/MapFormatter.hpp>
@@ -78,8 +79,8 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 template <OpId Kind>
 struct OpImpl {};
 
-template <OpId Kind, typename Res, typename Eval>
-Res eval_op_traced(ExprContext const& expr_ctx, Eval&& eval) {
+template <OpId Kind, typename Res, typename Eval, typename... Args>
+Res eval_op_traced(ExprContext const& expr_ctx, Eval&& eval, Args&&... args) {
     OP_TRACER_MESSAGE_SCOPE(
         expr_ctx.ctx,
         "Eval {} at {}:{} via {}:{}",
@@ -88,6 +89,17 @@ Res eval_op_traced(ExprContext const& expr_ctx, Eval&& eval) {
         expr_ctx.file_line,
         expr_ctx.call_function,
         expr_ctx.call_line);
+
+    std::size_t index     = 0;
+    auto        trace_arg = [&](auto&& arg) {
+        OP_TRACER_MESSAGE(
+            expr_ctx.ctx,
+            "[{}] @ {} = {}",
+            index++,
+            get_path(arg),
+            hstd::fmt1_maybe(get_unpack(arg)));
+    };
+    (trace_arg(args), ...);
 
     auto result = std::forward<Eval>(eval)();
 
@@ -98,17 +110,23 @@ Res eval_op_traced(ExprContext const& expr_ctx, Eval&& eval) {
 
 template <OpId Kind, typename Res, typename... TemplateArgs, typename... Args>
 Res eval_op(ExprContext const& expr_ctx, Args&&... args) {
-    return eval_op_traced<Kind, Res>(expr_ctx, [&]() {
-        return OpImpl<Kind>::template eval<Res, TemplateArgs...>(
-            std::forward<Args>(args)...);
-    });
+    return eval_op_traced<Kind, Res>(
+        expr_ctx,
+        [&]() {
+            return OpImpl<Kind>::template eval<Res, TemplateArgs...>(
+                std::forward<Args>(args)...);
+        },
+        args...);
 }
 
 template <OpId Kind, typename Res, int Index, typename... Args>
 Res eval_op(ExprContext const& expr_ctx, Args&&... args) {
-    return eval_op_traced<Kind, Res>(expr_ctx, [&]() {
-        return OpImpl<Kind>::template eval<Res, Index>(std::forward<Args>(args)...);
-    });
+    return eval_op_traced<Kind, Res>(
+        expr_ctx,
+        [&]() {
+            return OpImpl<Kind>::template eval<Res, Index>(std::forward<Args>(args)...);
+        },
+        args...);
 }
 
 

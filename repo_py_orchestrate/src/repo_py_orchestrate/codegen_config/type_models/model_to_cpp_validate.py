@@ -81,7 +81,7 @@ class CheckGen:
         return self.ast.XCallRef(value, "get")
 
     def _get_uni_value_ref(self, value: BlockId) -> BlockId:
-        return self.ast.pars(self.ast.Deref(self._get_uni_value_ptr(value)))
+        return self._expression_call("get_stored_value", [value])
 
     def _expression_name(self, stem: str = "expr") -> str:
         result = f"{stem}{self.expression_counter}"

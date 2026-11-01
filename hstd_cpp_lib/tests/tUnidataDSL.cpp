@@ -484,16 +484,17 @@ TEST(UnidataDSL, MultipleFieldFailuresHaveIndependentMessages) {
         });
 }
 
-TEST(UnidataDSL, BaseChecksRunForDerivedObjects) {
+TEST(UnidataDSL, BaseChecksRunForDerivedObjectsValid) {
     M::Derived value{};
-
     value.id     = 6;
     value.weight = 3;
-
     expect_messages(value, {});
+}
 
-    value.id = 0;
-
+TEST(UnidataDSL, BaseChecksRunForDerivedObjectsInvalid) {
+    M::Derived value{};
+    value.weight = 3;
+    value.id     = 0;
     expect_messages(value, {"base id must be positive"});
 }
 

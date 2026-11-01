@@ -70,4 +70,8 @@ struct is_in_pack<V> {
 template <typename T, typename... Pack>
 inline constexpr bool is_in_pack_v = is_in_pack<T, Pack...>::value;
 
+template <typename T>
+concept LambdaLike = requires { &std::remove_cvref_t<T>::operator(); };
+
+
 } // namespace hstd

@@ -194,10 +194,17 @@ struct VerifyContext : public OperationsTracer {
 template <typename T>
 hstd::Vec<VerifyResult> verify_one_with_bases(VerifyContext const& ctx, T const& data) {
     if constexpr (IsUnidataClass<std::remove_cvref_t<T>>) {
-        std::string const&      class_id{T::unidata_id};
         hstd::Vec<VerifyResult> result;
-        VerifyKey               class_key{class_id, std::nullopt};
-        auto const&             check_map = data.get_unidata_checks()->checks;
+        ::boost::mp11::mp_for_each<
+            ::boost::describe::describe_bases<T, ::boost::describe::mod_any_access>>(
+            [&](auto Base) {
+                result.append(
+                    verify_one_with_bases<typename decltype(Base)::type>(ctx, data));
+            });
+
+        std::string const& class_id{T::unidata_id};
+        VerifyKey          class_key{class_id, std::nullopt};
+        auto const&        check_map = data.get_unidata_checks()->checks;
         if (check_map.contains(class_key)) {
             for (VerifyCb const& check : check_map.at(class_key)) {
                 result.push_back(check(&ctx, (void const*)&data));
@@ -821,9 +828,35 @@ inline ExprContext get_context(
     };
 }
 
+
+template <typename T>
+UniPath get_path(UniStatic<T> const& value) {
+    return value.path;
+}
+
+inline UniPath get_path(UniDynamic const& value) { return value.path; }
+
+
+template <typename T>
+UniPath get_path(T const& value) {
+    return UniPath();
+}
+
+
 template <typename T>
 struct rec_unpack_value {
     static T get(T const& value) { return value; }
+};
+
+template <int Size>
+struct rec_unpack_value<char[Size]> {
+    static std::string get(char value[Size]) { return std::string{value}; }
+    static std::string get(char const* value) { return std::string{value}; }
+};
+
+template <>
+struct rec_unpack_value<char const*> {
+    static std::string get(char const* value) { return std::string{value}; }
 };
 
 template <typename T>
