@@ -43,9 +43,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::TrivialText::__check_t
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::TrivialText::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
-   = {{{hstd::ext::unidata::VerifyKey{"TrivialText", "text"}, hstd::ext::unidata::VerifyCbList{
-                                                              hstd::ext::unidata::VerifyCb{&__check_text_text_check}
-                                                              }}}};
+   = {{{hstd::ext::unidata::VerifyKey{"TrivialText", "text"},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_text_text_check}
+        }}}};
   return &checks;
 }
 void hstd::unidata_dsl::test::Base::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
@@ -87,9 +88,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Base::__check_record_b
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Base::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
-   = {{{hstd::ext::unidata::VerifyKey{"Base", std::nullopt}, hstd::ext::unidata::VerifyCbList{
-                                                             hstd::ext::unidata::VerifyCb{&__check_record_base_positive_id}
-                                                             }}}};
+   = {{{hstd::ext::unidata::VerifyKey{"Base", std::nullopt},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_record_base_positive_id}
+        }}}};
   return &checks;
 }
 void hstd::unidata_dsl::test::Derived::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
@@ -131,9 +133,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Derived::__check_recor
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Derived::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
-   = {{{hstd::ext::unidata::VerifyKey{"Derived", std::nullopt}, hstd::ext::unidata::VerifyCbList{
-                                                                hstd::ext::unidata::VerifyCb{&__check_record_derived_positive_weight}
-                                                                }}}};
+   = {{{hstd::ext::unidata::VerifyKey{"Derived", std::nullopt},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_record_derived_positive_weight}
+        }}}};
   return &checks;
 }
 bool hstd::unidata_dsl::test::Choice::isFirst() const {
@@ -699,17 +702,17 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       condition5 = expr6;
     }
     if (!(ud::get_stored_value(condition5))) {
-      ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 216), expr0, "number");
+      ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 214), expr0, "number");
       ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-      ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 216), expr7, expr8);
+      ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 214), expr7, expr8);
       condition5 = expr9;
     }
     if (!(ud::get_stored_value(condition5))) {
-      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 217), expr0, "mapping");
+      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 214), expr0, "mapping");
       ud::UniStatic<hstd::Str> const& expr11 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
-      ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 217), expr10, expr11);
+      ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 214), expr10, expr11);
       ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(99), "99");
-      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 217), expr12, expr13);
+      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 214), expr12, expr13);
       condition5 = expr14;
     }
     condition1 = condition5;
@@ -744,10 +747,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<int64_t> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 220), expr0, "number");
+    ud::UniStatic<int64_t> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 216), expr0, "number");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::NE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 220), expr5, expr6);
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 220), (expr7));
+    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::NE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 216), expr5, expr6);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 216), (expr7));
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -787,20 +790,20 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<int64_t> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 224), expr0, "number");
+    ud::UniStatic<int64_t> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 220), expr0, "number");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 224), expr5, expr6);
+    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 220), expr5, expr6);
     ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>> result11 = ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>>::FromConst(std::nullopt, "std::nullopt");
     if (ud::get_stored_value(expr7)) {
-      ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 224), expr0, "text");
+      ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 220), expr0, "text");
       ud::set_value(result11, expr8);
     } else {
-      ud::UniStatic<int64_t> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 225), expr0, "number");
-      ud::UniStatic<hstd::Str> const& expr10 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 225), eval_str_pattern("other-{}"), expr9);
+      ud::UniStatic<int64_t> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 221), expr0, "number");
+      ud::UniStatic<hstd::Str> const& expr10 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 221), eval_str_pattern("other-{}"), expr9);
       ud::set_value(result11, expr10);
     }
     ud::UniStatic<hstd::Str> const& expr12 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("six"), "six");
-    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 223), ud::get_value_ref(result11), expr12);
+    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 219), ud::get_value_ref(result11), expr12);
     condition1 = expr13;
   }
   if (ud::get_stored_value(condition1)) {
@@ -841,21 +844,21 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<bool> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 232), expr0, "flag");
+    ud::UniStatic<bool> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 228), expr0, "flag");
     ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>> result12 = ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>>::FromConst(std::nullopt, "std::nullopt");
     if (ud::get_stored_value(expr5)) {
-      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 232), expr0, "mapping");
+      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 228), expr0, "mapping");
       ud::UniStatic<hstd::Str> const& expr7 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
-      ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 232), expr6, expr7);
+      ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 228), expr6, expr7);
       ud::set_value(result12, expr8);
     } else {
-      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 233), expr0, "mapping");
+      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 229), expr0, "mapping");
       ud::UniStatic<hstd::Str> const& expr10 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("absent"), "absent");
-      ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 233), expr9, expr10);
+      ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 229), expr9, expr10);
       ud::set_value(result12, expr11);
     }
     ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-    ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 231), ud::get_value_ref(result12), expr13);
+    ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 227), ud::get_value_ref(result12), expr13);
     condition1 = expr14;
   }
   if (ud::get_stored_value(condition1)) {
@@ -881,7 +884,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   //                 add typed_as='int64'
   //                     var typed_as='int64' str_val='bound'
   //                     const_int typed_as='int64' int_val=1
-  //                 var typed_as='int64' str_val='bound'
+  //                 var typed_as='int64' str_val='bound2'
   //         const_int typed_as='int64' int_val=7
   //
   auto const& expr0 = (this_obj);
@@ -893,11 +896,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<int64_t> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 241), expr0, "number");
+    ud::UniStatic<int64_t> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 237), expr0, "number");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::ADD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 244), expr5, expr6);
+    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::ADD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 240), expr5, expr6);
     ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(7), "7");
-    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 239), expr5, expr8);
+    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 235), expr7, expr8);
     condition1 = expr9;
   }
   if (ud::get_stored_value(condition1)) {
@@ -931,17 +934,17 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 253), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 246), expr0, "numbers");
     auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
                      // lt typed_as='bool'
                      //     var typed_as='int64' str_val='number'
                      //     const_int typed_as='int64' int_val=4
                      //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(4), "4");
-                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 255), item6, expr7);
+                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 246), item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 252), expr5, callback9);
+    ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 246), expr5, callback9);
     condition1 = expr10;
   }
   if (ud::get_stored_value(condition1)) {
@@ -975,17 +978,17 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 261), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 247), expr0, "numbers");
     auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
                      // eq typed_as='bool'
                      //     var typed_as='int64' str_val='number'
                      //     const_int typed_as='int64' int_val=3
                      //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 263), item6, expr7);
+                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 247), item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EXISTS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 260), expr5, callback9);
+    ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EXISTS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 247), expr5, callback9);
     condition1 = expr10;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1019,17 +1022,17 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 269), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 248), expr0, "numbers");
     auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
                      // eq typed_as='bool'
                      //     var typed_as='int64' str_val='number'
                      //     const_int typed_as='int64' int_val=3
                      //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 271), item6, expr7);
+                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 248), item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EXISTS_ONE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 268), expr5, callback9);
+    ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EXISTS_ONE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 248), expr5, callback9);
     condition1 = expr10;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1067,21 +1070,21 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 277), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 251), expr0, "numbers");
     auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<int64_t> {
                      // mul typed_as='int64'
                      //     var typed_as='int64' str_val='number'
                      //     const_int typed_as='int64' int_val=2
                      //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-                     ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::MUL, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 279), item6, expr7);
+                     ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::MUL, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 251), item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 276), expr5, callback9);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 251), expr5, callback9);
     ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-    ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 280), expr10, expr11);
+    ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 251), expr10, expr11);
     ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 276), expr12, expr13);
+    ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 251), expr12, expr13);
     condition1 = expr14;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1118,20 +1121,20 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 286), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 255), expr0, "numbers");
     auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
                      // lt typed_as='bool'
                      //     const_int typed_as='int64' int_val=1
                      //     var typed_as='int64' str_val='number'
                      //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 288), expr7, item6);
+                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 255), expr7, item6);
                      return expr8;
                      };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 285), expr5, callback9);
-    ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 289), expr10);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 255), expr5, callback9);
+    ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 255), expr10);
     ud::UniStatic<int64_t> const& expr12 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 285), expr11, expr12);
+    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 255), expr11, expr12);
     condition1 = expr13;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1179,32 +1182,32 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 297), expr0, "optionals");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 263), expr0, "optionals");
     auto callback7 = [&](ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& item6) -> ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> {
                      // var typed_as='optional<int64>' str_val='optional'
                      //
                      return item6;
                      };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 296), expr5, callback7);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 262), expr5, callback7);
     auto condition9 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition9)) {
-      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 302), expr8);
+      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 268), expr8);
       ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 302), expr10, expr11);
+      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 268), expr10, expr11);
       condition9 = expr12;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 303), expr8, expr13);
+      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 269), expr8, expr13);
       ud::UniStatic<int64_t> const& expr15 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 303), expr14, expr15);
+      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 269), expr14, expr15);
       condition9 = expr16;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 304), expr8, expr17);
+      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 270), expr8, expr17);
       ud::UniStatic<int64_t> const& expr19 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 304), expr18, expr19);
+      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 270), expr18, expr19);
       condition9 = expr20;
     }
     condition1 = condition9;
@@ -1243,20 +1246,20 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 311), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 277), expr0, "numbers");
     auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
                      // lt typed_as='bool'
                      //     var typed_as='int64' str_val='number'
                      //     const_int typed_as='int64' int_val=3
                      //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 313), item6, expr7);
+                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 279), item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::TAKE_WHILE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 310), expr5, callback9);
-    ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 314), expr10);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr10 = ud::eval_op<ud::OpId::TAKE_WHILE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 276), expr5, callback9);
+    ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 280), expr10);
     ud::UniStatic<int64_t> const& expr12 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 310), expr11, expr12);
+    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 276), expr11, expr12);
     condition1 = expr13;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1307,34 +1310,34 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 322), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 288), expr0, "numbers");
     auto callback9 = [&](ud::UniStatic<int64_t> const& item6) -> ud::UniStatic<bool> {
                      // lt typed_as='bool'
                      //     var typed_as='int64' str_val='number'
                      //     const_int typed_as='int64' int_val=3
                      //
                      ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 324), item6, expr7);
+                     ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 290), item6, expr7);
                      return expr8;
                      };
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<bool>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>> const& expr10 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<bool>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 321), expr5, callback9);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<bool>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>> const& expr10 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<bool>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 287), expr5, callback9);
     auto condition11 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition11)) {
-      ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 327), expr10);
+      ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 293), expr10);
       ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 327), expr12, expr13);
+      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 293), expr12, expr13);
       condition11 = expr14;
     }
     if (ud::get_stored_value(condition11)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>> const& expr15 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 328), expr10);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>> const& expr15 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 294), expr10);
       ud::UniStatic<int64_t> const& expr16 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr17 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 328), expr15, expr16);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr17 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 294), expr15, expr16);
       ud::UniStatic<int64_t> const& expr18 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<int64_t> const& expr19 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 328), expr17, expr18);
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr20 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 329), expr0, "numbers");
+      ud::UniStatic<int64_t> const& expr19 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 294), expr17, expr18);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr20 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 295), expr0, "numbers");
       ud::UniStatic<int64_t> const& expr21 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<int64_t> const& expr22 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 329), expr20, expr21);
-      ud::UniStatic<bool> const& expr23 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 328), expr19, expr22);
+      ud::UniStatic<int64_t> const& expr22 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 295), expr20, expr21);
+      ud::UniStatic<bool> const& expr23 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 294), expr19, expr22);
       condition11 = expr23;
     }
     condition1 = condition11;
@@ -1373,19 +1376,19 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 336), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 302), expr0, "numbers");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
     auto callback7 = [&](ud::UniStatic<int64_t> const& item8, ud::UniStatic<int64_t> const& item9) -> ud::UniStatic<int64_t> {
                      // add typed_as='int64'
                      //     var typed_as='int64' str_val='acc'
                      //     var typed_as='int64' str_val='number'
                      //
-                     ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::ADD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 340), item8, item9);
+                     ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::ADD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 306), item8, item9);
                      return expr10;
                      };
-    ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::FOLD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 335), expr5, expr6, callback7);
+    ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::FOLD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 301), expr5, expr6, callback7);
     ud::UniStatic<int64_t> const& expr12 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 335), expr11, expr12);
+    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 301), expr11, expr12);
     condition1 = expr13;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1435,7 +1438,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 348), expr0, "derived");
+    ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 314), expr0, "derived");
     ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr6 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 154), expression_runtime, expr5);
     auto callback11 = [&](ud::UniDynamic const& item7) -> ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> {
                       // type_cond typed_as='optional<int64>' bool_val=True
@@ -1457,16 +1460,16 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr12 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 153), expr6, callback11);
     auto condition13 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition13)) {
-      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 350), expr12);
+      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 316), expr12);
       ud::UniStatic<int64_t> const& expr15 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 350), expr14, expr15);
+      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 316), expr14, expr15);
       condition13 = expr16;
     }
     if (ud::get_stored_value(condition13)) {
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 351), expr12, expr17);
+      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 317), expr12, expr17);
       ud::UniStatic<int64_t> const& expr19 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 351), expr18, expr19);
+      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 317), expr18, expr19);
       condition13 = expr20;
     }
     condition1 = condition13;
@@ -1501,10 +1504,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 355), expr0, "numbers");
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::SUM, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 355), expr5);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 321), expr0, "numbers");
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::SUM, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 321), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 355), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 321), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1537,10 +1540,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 356), expr0, "numbers");
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MIN, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 356), expr5);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 322), expr0, "numbers");
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MIN, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 322), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 356), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 322), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1573,10 +1576,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 357), expr0, "numbers");
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MAX, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 357), expr5);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 323), expr0, "numbers");
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MAX, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 323), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 357), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 323), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1609,10 +1612,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 358), expr0, "text");
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::STR_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 358), expr5);
+    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 324), expr0, "text");
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::STR_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 324), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 358), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 324), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1643,8 +1646,8 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 359), expr0, "text");
-    ud::UniStatic<bool> const& expr6 = ud::eval_op<ud::OpId::STR_MATCHES, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 359), expr5, "^s[a-z]{2}$");
+    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 325), expr0, "text");
+    ud::UniStatic<bool> const& expr6 = ud::eval_op<ud::OpId::STR_MATCHES, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 325), expr5, "^s[a-z]{2}$");
     condition1 = expr6;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1679,11 +1682,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 362), expr0, "text");
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 362), expr0, "number");
-    ud::UniStatic<hstd::Str> const& expr7 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 362), eval_str_pattern("{}:{}"), expr5, expr6);
+    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 328), expr0, "text");
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 328), expr0, "number");
+    ud::UniStatic<hstd::Str> const& expr7 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 328), eval_str_pattern("{}:{}"), expr5, expr6);
     ud::UniStatic<hstd::Str> const& expr8 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("six:6"), "six:6");
-    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 362), expr7, expr8);
+    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 328), expr7, expr8);
     condition1 = expr9;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1716,10 +1719,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 364), expr0, "numbers");
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 364), expr5);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 330), expr0, "numbers");
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 330), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 364), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 330), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1751,9 +1754,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 365), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 331), expr0, "numbers");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 365), expr5, expr6);
+    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 331), expr5, expr6);
     condition1 = expr7;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1787,11 +1790,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 366), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 332), expr0, "numbers");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 366), expr5, expr6);
+    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 332), expr5, expr6);
     ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 366), expr7, expr8);
+    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 332), expr7, expr8);
     condition1 = expr9;
   }
   if (ud::get_stored_value(condition1)) {
@@ -1840,29 +1843,29 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 371), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 337), expr0, "numbers");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::LIST_SLICE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 371), expr5, expr6, expr7);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::LIST_SLICE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 337), expr5, expr6, expr7);
     auto condition9 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition9)) {
-      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 373), expr8);
+      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 339), expr8);
       ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 373), expr10, expr11);
+      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 339), expr10, expr11);
       condition9 = expr12;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 374), expr8, expr13);
+      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 340), expr8, expr13);
       ud::UniStatic<int64_t> const& expr15 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 374), expr14, expr15);
+      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 340), expr14, expr15);
       condition9 = expr16;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 375), expr8, expr17);
+      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 341), expr8, expr17);
       ud::UniStatic<int64_t> const& expr19 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 375), expr18, expr19);
+      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 341), expr18, expr19);
       condition9 = expr20;
     }
     condition1 = condition9;
@@ -1913,29 +1916,29 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 383), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 349), expr0, "numbers");
     ud::UniStatic<int64_t> const& expr6 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(-2), "-2");
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(100), "100");
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::LIST_SLICE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 383), expr5, expr6, expr7);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::LIST_SLICE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 349), expr5, expr6, expr7);
     auto condition9 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition9)) {
-      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 385), expr8);
+      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 351), expr8);
       ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 385), expr10, expr11);
+      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 351), expr10, expr11);
       condition9 = expr12;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 386), expr8, expr13);
+      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 352), expr8, expr13);
       ud::UniStatic<int64_t> const& expr15 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 386), expr14, expr15);
+      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 352), expr14, expr15);
       condition9 = expr16;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 387), expr8, expr17);
+      ud::UniStatic<int64_t> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 353), expr8, expr17);
       ud::UniStatic<int64_t> const& expr19 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 387), expr18, expr19);
+      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 353), expr18, expr19);
       condition9 = expr20;
     }
     condition1 = condition9;
@@ -1984,23 +1987,23 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 395), expr0, "numbers");
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 395), expr0, "numbers");
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr7 = ud::eval_op<ud::OpId::LIST_CONCAT, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 395), expr5, expr6);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 361), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 361), expr0, "numbers");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr7 = ud::eval_op<ud::OpId::LIST_CONCAT, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 361), expr5, expr6);
     auto condition8 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition8)) {
-      ud::UniStatic<int64_t> const& expr9 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 397), expr7);
+      ud::UniStatic<int64_t> const& expr9 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 363), expr7);
       ud::UniStatic<int64_t> const& expr10 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-      ud::UniStatic<bool> const& expr11 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 397), expr9, expr10);
+      ud::UniStatic<bool> const& expr11 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 363), expr9, expr10);
       condition8 = expr11;
     }
     if (ud::get_stored_value(condition8)) {
       ud::UniStatic<int64_t> const& expr12 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-      ud::UniStatic<int64_t> const& expr13 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 398), expr7, expr12);
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr14 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 398), expr0, "numbers");
+      ud::UniStatic<int64_t> const& expr13 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 364), expr7, expr12);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr14 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 364), expr0, "numbers");
       ud::UniStatic<int64_t> const& expr15 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<int64_t> const& expr16 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 398), expr14, expr15);
-      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 398), expr13, expr16);
+      ud::UniStatic<int64_t> const& expr16 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 364), expr14, expr15);
+      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 364), expr13, expr16);
       condition8 = expr17;
     }
     condition1 = condition8;
@@ -2034,10 +2037,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 402));
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 402), expr5);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 368));
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 368), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 402), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 368), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2070,10 +2073,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 403), expr0, "mapping");
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 403), expr5);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 369), expr0, "mapping");
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 369), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 403), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 369), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2105,9 +2108,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 404), expr0, "mapping");
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 370), expr0, "mapping");
     ud::UniStatic<hstd::Str> const& expr6 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
-    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::MAP_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 404), expr5, expr6);
+    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::MAP_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 370), expr5, expr6);
     condition1 = expr7;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2141,11 +2144,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 405), expr0, "mapping");
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 371), expr0, "mapping");
     ud::UniStatic<hstd::Str> const& expr6 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
-    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 405), expr5, expr6);
+    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 371), expr5, expr6);
     ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 405), expr7, expr8);
+    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 371), expr7, expr8);
     condition1 = expr9;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2194,29 +2197,29 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 410), expr0, "mapping");
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 376), expr0, "mapping");
     ud::UniStatic<hstd::Str> const& expr6 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("c"), "c");
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::MAP_INSERT, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 410), expr5, expr6, expr7);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::MAP_INSERT, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 376), expr5, expr6, expr7);
     auto condition9 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition9)) {
-      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 412), expr8);
+      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 378), expr8);
       ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 412), expr10, expr11);
+      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 378), expr10, expr11);
       condition9 = expr12;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<hstd::Str> const& expr13 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("c"), "c");
-      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 413), expr8, expr13);
+      ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 379), expr8, expr13);
       ud::UniStatic<int64_t> const& expr15 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 413), expr14, expr15);
+      ud::UniStatic<bool> const& expr16 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 379), expr14, expr15);
       condition9 = expr16;
     }
     if (ud::get_stored_value(condition9)) {
-      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr17 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 414), expr0, "mapping");
+      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr17 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 380), expr0, "mapping");
       ud::UniStatic<hstd::Str> const& expr18 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("c"), "c");
-      ud::UniStatic<bool> const& expr19 = ud::eval_op<ud::OpId::MAP_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 414), expr17, expr18);
-      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 414), (expr19));
+      ud::UniStatic<bool> const& expr19 = ud::eval_op<ud::OpId::MAP_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 380), expr17, expr18);
+      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 380), (expr19));
       condition9 = expr20;
     }
     condition1 = condition9;
@@ -2270,31 +2273,31 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 422), expr0, "mapping");
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 388), expr0, "mapping");
     ud::UniStatic<hstd::Str> const& expr6 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(9), "9");
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::MAP_INSERT, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 422), expr5, expr6, expr7);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::MAP_INSERT, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 388), expr5, expr6, expr7);
     auto condition9 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition9)) {
-      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 424), expr8);
-      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 424), expr0, "mapping");
-      ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 424), expr11);
-      ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 424), expr10, expr12);
+      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 390), expr8);
+      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 390), expr0, "mapping");
+      ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 390), expr11);
+      ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 390), expr10, expr12);
       condition9 = expr13;
     }
     if (ud::get_stored_value(condition9)) {
       ud::UniStatic<hstd::Str> const& expr14 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
-      ud::UniStatic<int64_t> const& expr15 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 425), expr8, expr14);
+      ud::UniStatic<int64_t> const& expr15 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 391), expr8, expr14);
       ud::UniStatic<int64_t> const& expr16 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(9), "9");
-      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 425), expr15, expr16);
+      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 391), expr15, expr16);
       condition9 = expr17;
     }
     if (ud::get_stored_value(condition9)) {
-      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr18 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 426), expr0, "mapping");
+      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr18 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 392), expr0, "mapping");
       ud::UniStatic<hstd::Str> const& expr19 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
-      ud::UniStatic<int64_t> const& expr20 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 426), expr18, expr19);
+      ud::UniStatic<int64_t> const& expr20 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 392), expr18, expr19);
       ud::UniStatic<int64_t> const& expr21 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-      ud::UniStatic<bool> const& expr22 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 426), expr20, expr21);
+      ud::UniStatic<bool> const& expr22 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 392), expr20, expr21);
       condition9 = expr22;
     }
     condition1 = condition9;
@@ -2339,23 +2342,23 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 434), expr0, "mapping");
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr6 = ud::eval_op<ud::OpId::MAP_KEYS, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 434), expr5);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 400), expr0, "mapping");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr6 = ud::eval_op<ud::OpId::MAP_KEYS, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 400), expr5);
     auto condition7 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition7)) {
-      ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 436), expr6);
+      ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 402), expr6);
       ud::UniStatic<int64_t> const& expr9 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 436), expr8, expr9);
+      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 402), expr8, expr9);
       condition7 = expr10;
     }
     if (ud::get_stored_value(condition7)) {
       ud::UniStatic<hstd::Str> const& expr11 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("a"), "a");
-      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 437), expr6, expr11);
+      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 403), expr6, expr11);
       condition7 = expr12;
     }
     if (ud::get_stored_value(condition7)) {
       ud::UniStatic<hstd::Str> const& expr13 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("b"), "b");
-      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 438), expr6, expr13);
+      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 404), expr6, expr13);
       condition7 = expr14;
     }
     condition1 = condition7;
@@ -2400,23 +2403,23 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 446), expr0, "mapping");
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 446), expr5);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 412), expr0, "mapping");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 412), expr5);
     auto condition7 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition7)) {
-      ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 448), expr6);
+      ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 414), expr6);
       ud::UniStatic<int64_t> const& expr9 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 448), expr8, expr9);
+      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 414), expr8, expr9);
       condition7 = expr10;
     }
     if (ud::get_stored_value(condition7)) {
       ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 449), expr6, expr11);
+      ud::UniStatic<bool> const& expr12 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 415), expr6, expr11);
       condition7 = expr12;
     }
     if (ud::get_stored_value(condition7)) {
       ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(2), "2");
-      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 450), expr6, expr13);
+      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 416), expr6, expr13);
       condition7 = expr14;
     }
     condition1 = condition7;
@@ -2450,10 +2453,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::MAP_EMPTY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 454));
-    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 454), expr5);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::MAP_EMPTY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 420));
+    ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 420), expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 454), expr6, expr7);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 420), expr6, expr7);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2484,8 +2487,8 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 455), expr0, "optional");
-    ud::UniStatic<bool> const& expr6 = ud::eval_op<ud::OpId::OPT_HAS_VALUE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 455), expr5);
+    ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 421), expr0, "optional");
+    ud::UniStatic<bool> const& expr6 = ud::eval_op<ud::OpId::OPT_HAS_VALUE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 421), expr5);
     condition1 = expr6;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2524,15 +2527,15 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!(ud::get_stored_value(condition1))) {
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 459), expr0, "optional");
-      ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::OPT_HAS_VALUE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 459), expr6);
+      ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 425), expr0, "optional");
+      ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::OPT_HAS_VALUE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 425), expr6);
       condition5 = expr7;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 460), expr0, "optional");
-      ud::UniStatic<int64_t> const& expr9 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 460), expr8);
+      ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 426), expr0, "optional");
+      ud::UniStatic<int64_t> const& expr9 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 426), expr8);
       ud::UniStatic<int64_t> const& expr10 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(3), "3");
-      ud::UniStatic<bool> const& expr11 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 460), expr9, expr10);
+      ud::UniStatic<bool> const& expr11 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 426), expr9, expr10);
       condition5 = expr11;
     }
     condition1 = condition5;
@@ -2566,9 +2569,9 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 471), expr0, "choice");
-    ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 471), expr5, "data");
-    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::CASE_IS, ud::UniStatic<bool>, hstd::unidata_dsl::test::Choice::First>(ud::get_context(ctx, "hstd_test_model.py", 471), expr6);
+    ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 437), expr0, "choice");
+    ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 437), expr5, "data");
+    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::CASE_IS, ud::UniStatic<bool>, hstd::unidata_dsl::test::Choice::First>(ud::get_context(ctx, "hstd_test_model.py", 437), expr6);
     condition1 = expr7;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2601,10 +2604,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 474), expr0, "choice");
-    ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 474), expr5, "data");
-    ud::UniStatic<hstd::unidata_dsl::test::Choice::Kind> const& expr7 = ud::eval_op<ud::OpId::CASE_WHICH, ud::UniStatic<hstd::unidata_dsl::test::Choice::Kind>>(ud::get_context(ctx, "hstd_test_model.py", 474), expr6);
-    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 474), expr7, hstd::unidata_dsl::test::Choice::Kind::First);
+    ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 440), expr0, "choice");
+    ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 440), expr5, "data");
+    ud::UniStatic<hstd::unidata_dsl::test::Choice::Kind> const& expr7 = ud::eval_op<ud::OpId::CASE_WHICH, ud::UniStatic<hstd::unidata_dsl::test::Choice::Kind>>(ud::get_context(ctx, "hstd_test_model.py", 440), expr6);
+    ud::UniStatic<bool> const& expr8 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 440), expr7, hstd::unidata_dsl::test::Choice::Kind::First);
     condition1 = expr8;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2644,21 +2647,21 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 480), expr0, "choice");
-    ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 480), expr5, "data");
-    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::CASE_IS, ud::UniStatic<bool>, hstd::unidata_dsl::test::Choice::First>(ud::get_context(ctx, "hstd_test_model.py", 480), expr6);
+    ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 446), expr0, "choice");
+    ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 446), expr5, "data");
+    ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::CASE_IS, ud::UniStatic<bool>, hstd::unidata_dsl::test::Choice::First>(ud::get_context(ctx, "hstd_test_model.py", 446), expr6);
     ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>> result12 = ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>>::FromConst(std::nullopt, "std::nullopt");
     if (ud::get_stored_value(expr7)) {
-      ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 481), expr0, "choice");
-      ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 481), expr8, "data");
-      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 481), expr9, "value");
+      ud::UniStatic<hstd::unidata_dsl::test::Choice> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice>>(ud::get_context(ctx, "hstd_test_model.py", 447), expr0, "choice");
+      ud::UniStatic<hstd::unidata_dsl::test::Choice::Data> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Choice::Data>>(ud::get_context(ctx, "hstd_test_model.py", 447), expr8, "data");
+      ud::UniStatic<int64_t> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 447), expr9, "value");
       ud::set_value(result12, expr10);
     } else {
       ud::UniStatic<int64_t> const& expr11 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(-1), "-1");
       ud::set_value(result12, expr11);
     }
     ud::UniStatic<int64_t> const& expr13 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 478), ud::get_value_ref(result12), expr13);
+    ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 444), ud::get_value_ref(result12), expr13);
     condition1 = expr14;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2689,8 +2692,8 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::unidata_dsl::test::Status> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Status>>(ud::get_context(ctx, "hstd_test_model.py", 487), expr0, "status");
-    ud::UniStatic<bool> const& expr6 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 487), expr5, hstd::unidata_dsl::test::Status::Ready);
+    ud::UniStatic<hstd::unidata_dsl::test::Status> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Status>>(ud::get_context(ctx, "hstd_test_model.py", 453), expr0, "status");
+    ud::UniStatic<bool> const& expr6 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 453), expr5, hstd::unidata_dsl::test::Status::Ready);
     condition1 = expr6;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2731,17 +2734,17 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!(ud::get_stored_value(condition1))) {
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 491), expr0, "coords");
-      ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::NTH_GET, ud::UniStatic<int64_t>, 0>(ud::get_context(ctx, "hstd_test_model.py", 491), expr6);
+      ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 457), expr0, "coords");
+      ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::NTH_GET, ud::UniStatic<int64_t>, 0>(ud::get_context(ctx, "hstd_test_model.py", 457), expr6);
       ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-      ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 491), expr7, expr8);
+      ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 457), expr7, expr8);
       condition5 = expr9;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 492), expr0, "coords");
-      ud::UniStatic<hstd::Str> const& expr11 = ud::eval_op<ud::OpId::NTH_GET, ud::UniStatic<hstd::Str>, 1>(ud::get_context(ctx, "hstd_test_model.py", 492), expr10);
+      ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Tuple<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 458), expr0, "coords");
+      ud::UniStatic<hstd::Str> const& expr11 = ud::eval_op<ud::OpId::NTH_GET, ud::UniStatic<hstd::Str>, 1>(ud::get_context(ctx, "hstd_test_model.py", 458), expr10);
       ud::UniStatic<hstd::Str> const& expr12 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("six"), "six");
-      ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 492), expr11, expr12);
+      ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 458), expr11, expr12);
       condition5 = expr13;
     }
     condition1 = condition5;
@@ -2783,14 +2786,14 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!(ud::get_stored_value(condition1))) {
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 498), expr0, "derived");
-      ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::IS_DERIVED, ud::UniStatic<bool>, hstd::unidata_dsl::test::Base>(ud::get_context(ctx, "hstd_test_model.py", 498), expression_runtime, expr6);
+      ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 464), expr0, "derived");
+      ud::UniStatic<bool> const& expr7 = ud::eval_op<ud::OpId::IS_DERIVED, ud::UniStatic<bool>, hstd::unidata_dsl::test::Base>(ud::get_context(ctx, "hstd_test_model.py", 464), expression_runtime, expr6);
       condition5 = expr7;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::unidata_dsl::test::Base> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Base>>(ud::get_context(ctx, "hstd_test_model.py", 499), expr0, "base");
-      ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::IS_DERIVED, ud::UniStatic<bool>, hstd::unidata_dsl::test::Derived>(ud::get_context(ctx, "hstd_test_model.py", 499), expression_runtime, expr8);
-      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 499), (expr9));
+      ud::UniStatic<hstd::unidata_dsl::test::Base> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Base>>(ud::get_context(ctx, "hstd_test_model.py", 465), expr0, "base");
+      ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::IS_DERIVED, ud::UniStatic<bool>, hstd::unidata_dsl::test::Derived>(ud::get_context(ctx, "hstd_test_model.py", 465), expression_runtime, expr8);
+      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 465), (expr9));
       condition5 = expr10;
     }
     condition1 = condition5;
@@ -2835,15 +2838,15 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 505), expr0, "derived");
-    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr6 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 505), expression_runtime, expr5);
+    ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 471), expr0, "derived");
+    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr6 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 471), expression_runtime, expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-    ud::UniDynamic const& expr8 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 505), expr6, expr7);
+    ud::UniDynamic const& expr8 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 471), expr6, expr7);
     ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>> result9 = ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>>::FromConst(std::nullopt, "std::nullopt");
     if (!ud::get_stored_as_bool(result9)) {
       hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate10 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr8);
       if (candidate10.has_value()) {
-        ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 509), (*candidate10), "id");
+        ud::UniStatic<int64_t> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 475), (*candidate10), "id");
         ud::set_value(result9, expr11);
       }
     }
@@ -2855,10 +2858,10 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
       }
     }
     if (!ud::get_stored_as_bool(result9)) {
-      throw std::runtime_error{"No type case matched at hstd_test_model.py:504; expected one of: Base, Derived"};
+      throw std::runtime_error{"No type case matched at hstd_test_model.py:470; expected one of: Base, Derived"};
     }
     ud::UniStatic<int64_t> const& expr14 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-    ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 504), ud::get_value_ref(result9), expr14);
+    ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 470), ud::get_value_ref(result9), expr14);
     condition1 = expr15;
   }
   if (ud::get_stored_value(condition1)) {
@@ -2914,38 +2917,38 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!(ud::get_stored_value(condition1))) {
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::unidata_dsl::test::Base> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Base>>(ud::get_context(ctx, "hstd_test_model.py", 523), expr0, "base");
-      ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr7 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 523), expression_runtime, expr6);
+      ud::UniStatic<hstd::unidata_dsl::test::Base> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Base>>(ud::get_context(ctx, "hstd_test_model.py", 489), expr0, "base");
+      ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr7 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 489), expression_runtime, expr6);
       ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniDynamic const& expr9 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 523), expr7, expr8);
+      ud::UniDynamic const& expr9 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 489), expr7, expr8);
       ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>> result10 = ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>>::FromConst(std::nullopt, "std::nullopt");
       if (!ud::get_stored_as_bool(result10)) {
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Derived>> candidate11 = expression_runtime.try_as<hstd::unidata_dsl::test::Derived>(expr9);
         if (candidate11.has_value()) {
-          ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 527), (*candidate11), "id");
+          ud::UniStatic<int64_t> const& expr12 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 493), (*candidate11), "id");
           ud::set_value(result10, expr12);
         }
       }
-      ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::OPT_HAS_VALUE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 530), result10);
-      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 522), (expr13));
+      ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::OPT_HAS_VALUE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 496), result10);
+      ud::UniStatic<bool> const& expr14 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 488), (expr13));
       condition5 = expr14;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr15 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 532), expr0, "derived");
-      ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr16 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 532), expression_runtime, expr15);
+      ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr15 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 498), expr0, "derived");
+      ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr16 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 498), expression_runtime, expr15);
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniDynamic const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 532), expr16, expr17);
+      ud::UniDynamic const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 498), expr16, expr17);
       ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>> result19 = ud::UniStatic<ud::UniOpt<ud::UniStatic<int64_t>>>::FromConst(std::nullopt, "std::nullopt");
       if (!ud::get_stored_as_bool(result19)) {
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Derived>> candidate20 = expression_runtime.try_as<hstd::unidata_dsl::test::Derived>(expr18);
         if (candidate20.has_value()) {
-          ud::UniStatic<int64_t> const& expr21 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 533), (*candidate20), "id");
+          ud::UniStatic<int64_t> const& expr21 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 499), (*candidate20), "id");
           ud::set_value(result19, expr21);
         }
       }
-      ud::UniStatic<int64_t> const& expr22 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 535), result19);
+      ud::UniStatic<int64_t> const& expr22 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 501), result19);
       ud::UniStatic<int64_t> const& expr23 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-      ud::UniStatic<bool> const& expr24 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 531), expr22, expr23);
+      ud::UniStatic<bool> const& expr24 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 497), expr22, expr23);
       condition5 = expr24;
     }
     condition1 = condition5;
@@ -2988,23 +2991,23 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
     condition1 = expr4;
   }
   if (!(ud::get_stored_value(condition1))) {
-    ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 546), expr0, "derived");
-    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr6 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 546), expression_runtime, expr5);
+    ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 512), expr0, "derived");
+    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr6 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 512), expression_runtime, expr5);
     ud::UniStatic<int64_t> const& expr7 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-    ud::UniDynamic const& expr8 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 546), expr6, expr7);
+    ud::UniDynamic const& expr8 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 512), expr6, expr7);
     ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>> result9 = ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>>::FromConst(std::nullopt, "std::nullopt");
     if (!ud::get_stored_as_bool(result9)) {
       hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate10 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr8);
       if (candidate10.has_value()) {
-        ud::UniStatic<hstd::Str> const& expr11 = ud::eval_op<ud::OpId::TYPE_OF, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 547), expression_runtime, (*candidate10));
+        ud::UniStatic<hstd::Str> const& expr11 = ud::eval_op<ud::OpId::TYPE_OF, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 513), expression_runtime, (*candidate10));
         ud::set_value(result9, expr11);
       }
     }
     if (!ud::get_stored_as_bool(result9)) {
-      throw std::runtime_error{"No type case matched at hstd_test_model.py:545; expected one of: Base"};
+      throw std::runtime_error{"No type case matched at hstd_test_model.py:511; expected one of: Base"};
     }
     ud::UniStatic<hstd::Str> const& expr12 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("Base"), "Base");
-    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 545), ud::get_value_ref(result9), expr12);
+    ud::UniStatic<bool> const& expr13 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 511), ud::get_value_ref(result9), expr12);
     condition1 = expr13;
   }
   if (ud::get_stored_value(condition1)) {
@@ -3065,50 +3068,50 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!(ud::get_stored_value(condition1))) {
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 554), expr0, "number");
-      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr7 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 554), expression_runtime, expr6);
-      ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 554), eval_str_pattern("{}"), expr7);
+      ud::UniStatic<int64_t> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 520), expr0, "number");
+      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr7 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 520), expression_runtime, expr6);
+      ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 520), eval_str_pattern("{}"), expr7);
       ud::UniStatic<hstd::Str> const& expr9 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("/number"), "/number");
-      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 554), expr8, expr9);
+      ud::UniStatic<bool> const& expr10 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 520), expr8, expr9);
       condition5 = expr10;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 556), expr0, "numbers");
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 522), expr0, "numbers");
       auto callback15 = [&](ud::UniStatic<int64_t> const& item12) -> ud::UniStatic<hstd::Str> {
                         // str_format typed_as='string' str_val='{}'
                         //     path_of typed_as='path'
                         //         var typed_as='int64' str_val='number'
                         //
-                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr13 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 558), expression_runtime, item12);
-                        ud::UniStatic<hstd::Str> const& expr14 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 558), eval_str_pattern("{}"), expr13);
+                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr13 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 524), expression_runtime, item12);
+                        ud::UniStatic<hstd::Str> const& expr14 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 524), eval_str_pattern("{}"), expr13);
                         return expr14;
                         };
-      ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr16 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 555), expr11, callback15);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr16 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 521), expr11, callback15);
       ud::UniStatic<int64_t> const& expr17 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<hstd::Str> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 559), expr16, expr17);
+      ud::UniStatic<hstd::Str> const& expr18 = ud::eval_op<ud::OpId::LIST_AT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 525), expr16, expr17);
       ud::UniStatic<hstd::Str> const& expr19 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("/numbers/0"), "/numbers/0");
-      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 555), expr18, expr19);
+      ud::UniStatic<bool> const& expr20 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 521), expr18, expr19);
       condition5 = expr20;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr21 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 562), expr0, "derived");
-      ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr22 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 562), expression_runtime, expr21);
+      ud::UniStatic<hstd::unidata_dsl::test::Derived> const& expr21 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::unidata_dsl::test::Derived>>(ud::get_context(ctx, "hstd_test_model.py", 528), expr0, "derived");
+      ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr22 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 528), expression_runtime, expr21);
       ud::UniStatic<int64_t> const& expr23 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniDynamic const& expr24 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 562), expr22, expr23);
+      ud::UniDynamic const& expr24 = ud::eval_op<ud::OpId::LIST_AT, ud::UniDynamic>(ud::get_context(ctx, "hstd_test_model.py", 528), expr22, expr23);
       ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>> result25 = ud::UniStatic<ud::UniOpt<ud::UniStatic<hstd::Str>>>::FromConst(std::nullopt, "std::nullopt");
       if (!ud::get_stored_as_bool(result25)) {
         hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Base>> candidate26 = expression_runtime.try_as<hstd::unidata_dsl::test::Base>(expr24);
         if (candidate26.has_value()) {
-          ud::UniStatic<hstd::ext::unidata::UniPath> const& expr27 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 566), expression_runtime, (*candidate26));
-          ud::UniStatic<hstd::Str> const& expr28 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 566), eval_str_pattern("{}"), expr27);
+          ud::UniStatic<hstd::ext::unidata::UniPath> const& expr27 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 532), expression_runtime, (*candidate26));
+          ud::UniStatic<hstd::Str> const& expr28 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 532), eval_str_pattern("{}"), expr27);
           ud::set_value(result25, expr28);
         }
       }
       if (!ud::get_stored_as_bool(result25)) {
-        throw std::runtime_error{"No type case matched at hstd_test_model.py:561; expected one of: Base"};
+        throw std::runtime_error{"No type case matched at hstd_test_model.py:527; expected one of: Base"};
       }
       ud::UniStatic<hstd::Str> const& expr29 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("/derived"), "/derived");
-      ud::UniStatic<bool> const& expr30 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 561), ud::get_value_ref(result25), expr29);
+      ud::UniStatic<bool> const& expr30 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 527), ud::get_value_ref(result25), expr29);
       condition5 = expr30;
     }
     condition1 = condition5;
@@ -3236,77 +3239,77 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
   if (!(ud::get_stored_value(condition1))) {
     auto condition5 = ud::UniStatic<bool>::FromConst(true, "true");
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 576));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr6 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 542));
       auto callback10 = [&](ud::UniStatic<int64_t> const& item7) -> ud::UniStatic<bool> {
                         // lt typed_as='bool'
                         //     const_int typed_as='int64' int_val=0
                         //     var typed_as='int64' str_val='number'
                         //
                         ud::UniStatic<int64_t> const& expr8 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-                        ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 578), expr8, item7);
+                        ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 544), expr8, item7);
                         return expr9;
                         };
-      ud::UniStatic<bool> const& expr11 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 575), expr6, callback10);
+      ud::UniStatic<bool> const& expr11 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 541), expr6, callback10);
       condition5 = expr11;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr12 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 581));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr12 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 547));
       auto callback16 = [&](ud::UniStatic<int64_t> const& item13) -> ud::UniStatic<bool> {
                         // lt typed_as='bool'
                         //     const_int typed_as='int64' int_val=0
                         //     var typed_as='int64' str_val='number'
                         //
                         ud::UniStatic<int64_t> const& expr14 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-                        ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 583), expr14, item13);
+                        ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 549), expr14, item13);
                         return expr15;
                         };
-      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::EXISTS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 580), expr12, callback16);
-      ud::UniStatic<bool> const& expr18 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 580), (expr17));
+      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::EXISTS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 546), expr12, callback16);
+      ud::UniStatic<bool> const& expr18 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 546), (expr17));
       condition5 = expr18;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr19 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 586));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr19 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 552));
       auto callback23 = [&](ud::UniStatic<int64_t> const& item20) -> ud::UniStatic<bool> {
                         // lt typed_as='bool'
                         //     const_int typed_as='int64' int_val=0
                         //     var typed_as='int64' str_val='number'
                         //
                         ud::UniStatic<int64_t> const& expr21 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-                        ud::UniStatic<bool> const& expr22 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 588), expr21, item20);
+                        ud::UniStatic<bool> const& expr22 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 554), expr21, item20);
                         return expr22;
                         };
-      ud::UniStatic<bool> const& expr24 = ud::eval_op<ud::OpId::EXISTS_ONE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 585), expr19, callback23);
-      ud::UniStatic<bool> const& expr25 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 585), (expr24));
+      ud::UniStatic<bool> const& expr24 = ud::eval_op<ud::OpId::EXISTS_ONE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 551), expr19, callback23);
+      ud::UniStatic<bool> const& expr25 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 551), (expr24));
       condition5 = expr25;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr26 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 590));
-      ud::UniStatic<int64_t> const& expr27 = ud::eval_op<ud::OpId::SUM, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 590), expr26);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr26 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 556));
+      ud::UniStatic<int64_t> const& expr27 = ud::eval_op<ud::OpId::SUM, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 556), expr26);
       ud::UniStatic<int64_t> const& expr28 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<bool> const& expr29 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 590), expr27, expr28);
+      ud::UniStatic<bool> const& expr29 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 556), expr27, expr28);
       condition5 = expr29;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr30 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 592));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr30 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 558));
       auto callback35 = [&](ud::UniStatic<int64_t> const& item31) -> ud::UniStatic<int64_t> {
                         // map_get typed_as='int64'
                         //     get_field typed_as='map<string, int64>' str_val='mapping'
                         //         this typed_as='OperationChecks'
                         //     const_str typed_as='string' str_val='absent'
                         //
-                        ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr32 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 594), expr0, "mapping");
+                        ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr32 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 560), expr0, "mapping");
                         ud::UniStatic<hstd::Str> const& expr33 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("absent"), "absent");
-                        ud::UniStatic<int64_t> const& expr34 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 594), expr32, expr33);
+                        ud::UniStatic<int64_t> const& expr34 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 560), expr32, expr33);
                         return expr34;
                         };
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr36 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 591), expr30, callback35);
-      ud::UniStatic<int64_t> const& expr37 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 595), expr36);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr36 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 557), expr30, callback35);
+      ud::UniStatic<int64_t> const& expr37 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 561), expr36);
       ud::UniStatic<int64_t> const& expr38 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<bool> const& expr39 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 591), expr37, expr38);
+      ud::UniStatic<bool> const& expr39 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 557), expr37, expr38);
       condition5 = expr39;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr40 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 598));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr40 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 564));
       auto callback46 = [&](ud::UniStatic<int64_t> const& item41) -> ud::UniStatic<bool> {
                         // eq typed_as='bool'
                         //     opt_value typed_as='int64'
@@ -3314,35 +3317,35 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         //             this typed_as='OperationChecks'
                         //     const_int typed_as='int64' int_val=0
                         //
-                        ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr42 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 600), expr0, "optional");
-                        ud::UniStatic<int64_t> const& expr43 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 600), expr42);
+                        ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr42 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 566), expr0, "optional");
+                        ud::UniStatic<int64_t> const& expr43 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 566), expr42);
                         ud::UniStatic<int64_t> const& expr44 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-                        ud::UniStatic<bool> const& expr45 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 600), expr43, expr44);
+                        ud::UniStatic<bool> const& expr45 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 566), expr43, expr44);
                         return expr45;
                         };
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr47 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 597), expr40, callback46);
-      ud::UniStatic<int64_t> const& expr48 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 601), expr47);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr47 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 563), expr40, callback46);
+      ud::UniStatic<int64_t> const& expr48 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 567), expr47);
       ud::UniStatic<int64_t> const& expr49 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<bool> const& expr50 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 597), expr48, expr49);
+      ud::UniStatic<bool> const& expr50 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 563), expr48, expr49);
       condition5 = expr50;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr51 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 604));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr51 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 570));
       auto callback54 = [&](ud::UniStatic<int64_t> const& item52) -> ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> {
                         // get_field typed_as='optional<int64>' str_val='optional'
                         //     this typed_as='OperationChecks'
                         //
-                        ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr53 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 606), expr0, "optional");
+                        ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr53 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 572), expr0, "optional");
                         return expr53;
                         };
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr55 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 603), expr51, callback54);
-      ud::UniStatic<int64_t> const& expr56 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 607), expr55);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr55 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 569), expr51, callback54);
+      ud::UniStatic<int64_t> const& expr56 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 573), expr55);
       ud::UniStatic<int64_t> const& expr57 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<bool> const& expr58 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 603), expr56, expr57);
+      ud::UniStatic<bool> const& expr58 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 569), expr56, expr57);
       condition5 = expr58;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr59 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 610));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr59 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 576));
       auto callback65 = [&](ud::UniStatic<int64_t> const& item60) -> ud::UniStatic<bool> {
                         // eq typed_as='bool'
                         //     opt_value typed_as='int64'
@@ -3350,39 +3353,39 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         //             this typed_as='OperationChecks'
                         //     const_int typed_as='int64' int_val=0
                         //
-                        ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr61 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 612), expr0, "optional");
-                        ud::UniStatic<int64_t> const& expr62 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 612), expr61);
+                        ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>> const& expr61 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Opt<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 578), expr0, "optional");
+                        ud::UniStatic<int64_t> const& expr62 = ud::eval_op<ud::OpId::OPT_VALUE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 578), expr61);
                         ud::UniStatic<int64_t> const& expr63 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-                        ud::UniStatic<bool> const& expr64 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 612), expr62, expr63);
+                        ud::UniStatic<bool> const& expr64 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 578), expr62, expr63);
                         return expr64;
                         };
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr66 = ud::eval_op<ud::OpId::TAKE_WHILE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 609), expr59, callback65);
-      ud::UniStatic<int64_t> const& expr67 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 613), expr66);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr66 = ud::eval_op<ud::OpId::TAKE_WHILE, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 575), expr59, callback65);
+      ud::UniStatic<int64_t> const& expr67 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 579), expr66);
       ud::UniStatic<int64_t> const& expr68 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<bool> const& expr69 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 609), expr67, expr68);
+      ud::UniStatic<bool> const& expr69 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 575), expr67, expr68);
       condition5 = expr69;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr70 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 616));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr70 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 582));
       auto callback75 = [&](ud::UniStatic<int64_t> const& item71) -> ud::UniStatic<int64_t> {
                         // map_get typed_as='int64'
                         //     get_field typed_as='map<string, int64>' str_val='mapping'
                         //         this typed_as='OperationChecks'
                         //     const_str typed_as='string' str_val='absent'
                         //
-                        ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr72 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 618), expr0, "mapping");
+                        ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr72 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 584), expr0, "mapping");
                         ud::UniStatic<hstd::Str> const& expr73 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("absent"), "absent");
-                        ud::UniStatic<int64_t> const& expr74 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 618), expr72, expr73);
+                        ud::UniStatic<int64_t> const& expr74 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 584), expr72, expr73);
                         return expr74;
                         };
-      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>> const& expr76 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 615), expr70, callback75);
-      ud::UniStatic<int64_t> const& expr77 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 619), expr76);
+      ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>> const& expr76 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<int64_t>, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 581), expr70, callback75);
+      ud::UniStatic<int64_t> const& expr77 = ud::eval_op<ud::OpId::MAP_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 585), expr76);
       ud::UniStatic<int64_t> const& expr78 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<bool> const& expr79 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 615), expr77, expr78);
+      ud::UniStatic<bool> const& expr79 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 581), expr77, expr78);
       condition5 = expr79;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr80 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 622));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr80 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 588));
       ud::UniStatic<int64_t> const& expr81 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(9), "9");
       auto callback82 = [&](ud::UniStatic<int64_t> const& item83, ud::UniStatic<int64_t> const& item84) -> ud::UniStatic<int64_t> {
                         // map_get typed_as='int64'
@@ -3390,23 +3393,23 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
                         //         this typed_as='OperationChecks'
                         //     const_str typed_as='string' str_val='absent'
                         //
-                        ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr85 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 626), expr0, "mapping");
+                        ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr85 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 592), expr0, "mapping");
                         ud::UniStatic<hstd::Str> const& expr86 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("absent"), "absent");
-                        ud::UniStatic<int64_t> const& expr87 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 626), expr85, expr86);
+                        ud::UniStatic<int64_t> const& expr87 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 592), expr85, expr86);
                         return expr87;
                         };
-      ud::UniStatic<int64_t> const& expr88 = ud::eval_op<ud::OpId::FOLD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 621), expr80, expr81, callback82);
+      ud::UniStatic<int64_t> const& expr88 = ud::eval_op<ud::OpId::FOLD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 587), expr80, expr81, callback82);
       ud::UniStatic<int64_t> const& expr89 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(9), "9");
-      ud::UniStatic<bool> const& expr90 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 621), expr88, expr89);
+      ud::UniStatic<bool> const& expr90 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 587), expr88, expr89);
       condition5 = expr90;
     }
     if (ud::get_stored_value(condition5)) {
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr91 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 630));
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr92 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 631));
-      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr93 = ud::eval_op<ud::OpId::LIST_CONCAT, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 629), expr91, expr92);
-      ud::UniStatic<int64_t> const& expr94 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 632), expr93);
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr91 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 596));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr92 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 597));
+      ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr93 = ud::eval_op<ud::OpId::LIST_CONCAT, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 595), expr91, expr92);
+      ud::UniStatic<int64_t> const& expr94 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 598), expr93);
       ud::UniStatic<int64_t> const& expr95 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-      ud::UniStatic<bool> const& expr96 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 629), expr94, expr95);
+      ud::UniStatic<bool> const& expr96 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 595), expr94, expr95);
       condition5 = expr96;
     }
     if (ud::get_stored_value(condition5)) {
@@ -3416,12 +3419,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
         ud::UniStatic<int64_t> const& expr98 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(42), "42");
         ud::set_value(result101, expr98);
       } else {
-        ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr99 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 636));
-        ud::UniStatic<int64_t> const& expr100 = ud::eval_op<ud::OpId::MIN, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 636), expr99);
+        ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr99 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 602));
+        ud::UniStatic<int64_t> const& expr100 = ud::eval_op<ud::OpId::MIN, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 602), expr99);
         ud::set_value(result101, expr100);
       }
       ud::UniStatic<int64_t> const& expr102 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(42), "42");
-      ud::UniStatic<bool> const& expr103 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 634), ud::get_value_ref(result101), expr102);
+      ud::UniStatic<bool> const& expr103 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 600), ud::get_value_ref(result101), expr102);
       condition5 = expr103;
     }
     if (ud::get_stored_value(condition5)) {
@@ -3431,12 +3434,12 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
         ud::UniStatic<int64_t> const& expr105 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(42), "42");
         ud::set_value(result108, expr105);
       } else {
-        ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr106 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 641));
-        ud::UniStatic<int64_t> const& expr107 = ud::eval_op<ud::OpId::MAX, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 641), expr106);
+        ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr106 = ud::eval_op<ud::OpId::LIST_EMPTY, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 607));
+        ud::UniStatic<int64_t> const& expr107 = ud::eval_op<ud::OpId::MAX, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 607), expr106);
         ud::set_value(result108, expr107);
       }
       ud::UniStatic<int64_t> const& expr109 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(42), "42");
-      ud::UniStatic<bool> const& expr110 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 639), ud::get_value_ref(result108), expr109);
+      ud::UniStatic<bool> const& expr110 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 605), ud::get_value_ref(result108), expr109);
       condition5 = expr110;
     }
     condition1 = condition5;
@@ -3450,68 +3453,69 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::OperationChecks::__che
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::OperationChecks::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
-   = {{{hstd::ext::unidata::VerifyKey{"OperationChecks", std::nullopt}, hstd::ext::unidata::VerifyCbList{
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Eq},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Ne},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Lt},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Le},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Add},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Sub},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Mul},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Div},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ConstFloat},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ConstBool},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_And},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Or},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Not},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Cond},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_CondLazy},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Let},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_All},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Exists},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ExistsOne},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Map},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Filter},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_FilterMap},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_TakeWhile},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_GroupBy},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Fold},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Walk},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Sum},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Min},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_Max},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_StrSize},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_StrMatches},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_StrFormat},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSize},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListContains},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListAt},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSlice},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSliceBounds},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListConcat},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListEmpty},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapSize},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapContains},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapGet},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapInsert},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapReplace},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapKeys},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapValues},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapEmpty},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_OptHasValue},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_OptValue},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseIs},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseWhich},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseField},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_EnumIs},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_NthGet},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_IsDerived},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeCond},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeCondOptional},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeOf},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_PathOf},
-                                                                        hstd::ext::unidata::VerifyCb{&__check_record_poc_EmptyCollections}
-                                                                        }}}};
+   = {{{hstd::ext::unidata::VerifyKey{"OperationChecks", std::nullopt},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Eq},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Ne},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Lt},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Le},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Add},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Sub},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Mul},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Div},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ConstFloat},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ConstBool},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_And},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Or},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Not},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Cond},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_CondLazy},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Let},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_All},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Exists},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ExistsOne},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Map},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Filter},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_FilterMap},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_TakeWhile},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_GroupBy},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Fold},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Walk},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Sum},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Min},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_Max},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_StrSize},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_StrMatches},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_StrFormat},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSize},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListContains},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListAt},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSlice},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListSliceBounds},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListConcat},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_ListEmpty},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapSize},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapContains},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapGet},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapInsert},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapReplace},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapKeys},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapValues},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_MapEmpty},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_OptHasValue},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_OptValue},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseIs},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseWhich},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_CaseField},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_EnumIs},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_NthGet},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_IsDerived},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeCond},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeCondOptional},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_TypeOf},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_PathOf},
+        hstd::ext::unidata::VerifyCb{&__check_record_poc_EmptyCollections}
+        }}}};
   return &checks;
 }
 void hstd::unidata_dsl::test::FieldChecks::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
@@ -3542,13 +3546,13 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_t
   //
   auto const& expr0 = (this_obj.Field(&this_obj.get()->text, "text"));
   ud::UniStatic<int64_t> const& expr1 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-  ud::UniStatic<int64_t> const& expr2 = ud::eval_op<ud::OpId::STR_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 659), expr0);
-  ud::UniStatic<bool> const& expr3 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 659), expr1, expr2);
+  ud::UniStatic<int64_t> const& expr2 = ud::eval_op<ud::OpId::STR_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 625), expr0);
+  ud::UniStatic<bool> const& expr3 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 625), expr1, expr2);
   if (ud::get_stored_value(expr3)) {
     return ud::VerifyResult::Ok();
   } else {
-    ud::UniStatic<int64_t> const& expr4 = ud::eval_op<ud::OpId::STR_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 660), expr0);
-    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 660), eval_str_pattern("text length is {}"), expr4);
+    ud::UniStatic<int64_t> const& expr4 = ud::eval_op<ud::OpId::STR_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 626), expr0);
+    ud::UniStatic<hstd::Str> const& expr5 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 626), eval_str_pattern("text length is {}"), expr4);
     return ud::VerifyResult::Error(ud::get_stored_value(expr5));
   }
 }
@@ -3568,25 +3572,27 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::FieldChecks::__check_n
                    //     var typed_as='int64' str_val='number'
                    //
                    ud::UniStatic<int64_t> const& expr2 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(0), "0");
-                   ud::UniStatic<bool> const& expr3 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 663), expr2, item1);
+                   ud::UniStatic<bool> const& expr3 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 629), expr2, item1);
                    return expr3;
                    };
-  ud::UniStatic<bool> const& expr5 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 663), expr0, callback4);
+  ud::UniStatic<bool> const& expr5 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 629), expr0, callback4);
   if (ud::get_stored_value(expr5)) {
     return ud::VerifyResult::Ok();
   } else {
-    ud::UniStatic<hstd::Str> const& expr6 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 664), eval_str_pattern("values={}"), expr0);
+    ud::UniStatic<hstd::Str> const& expr6 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 630), eval_str_pattern("values={}"), expr0);
     return ud::VerifyResult::Error(ud::get_stored_value(expr6));
   }
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::FieldChecks::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
-   = {{{hstd::ext::unidata::VerifyKey{"FieldChecks", "text"}, hstd::ext::unidata::VerifyCbList{
-                                                              hstd::ext::unidata::VerifyCb{&__check_text_text_check}
-                                                              }}
-       , {hstd::ext::unidata::VerifyKey{"FieldChecks", "numbers"}, hstd::ext::unidata::VerifyCbList{
-                                                                   hstd::ext::unidata::VerifyCb{&__check_numbers_numbers_check}
-                                                                   }}}};
+   = {{{hstd::ext::unidata::VerifyKey{"FieldChecks", "text"},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_text_text_check}
+        }},
+       {hstd::ext::unidata::VerifyKey{"FieldChecks", "numbers"},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_numbers_numbers_check}
+        }}}};
   return &checks;
 }
 void hstd::unidata_dsl::test::MessageChecks::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
@@ -3616,32 +3622,33 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::MessageChecks::__check
   //     const_int typed_as='int64' int_val=6
   //
   auto const& expr0 = (this_obj);
-  ud::UniStatic<int64_t> const& expr1 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 678), expr0, "number");
+  ud::UniStatic<int64_t> const& expr1 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 644), expr0, "number");
   ud::UniStatic<int64_t> const& expr2 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(6), "6");
-  ud::UniStatic<bool> const& expr3 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 678), expr1, expr2);
+  ud::UniStatic<bool> const& expr3 = ud::eval_op<ud::OpId::EQ, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 644), expr1, expr2);
   if (ud::get_stored_value(expr3)) {
     return ud::VerifyResult::Ok();
   } else {
-    ud::UniStatic<int64_t> const& expr4 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 681), expr0, "number");
-    ud::UniStatic<double> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<double>>(ud::get_context(ctx, "hstd_test_model.py", 682), expr0, "real");
-    ud::UniStatic<double> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<double>>(ud::get_context(ctx, "hstd_test_model.py", 683), expr0, "real");
-    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 684), expr0, "number");
-    ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 685), expr0, "number");
-    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 686), expr0, "flag");
-    ud::UniStatic<hstd::Str> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 687), expr0, "text");
-    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 688), expr0, "numbers");
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr12 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 689), expr0, "details");
+    ud::UniStatic<int64_t> const& expr4 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 647), expr0, "number");
+    ud::UniStatic<double> const& expr5 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<double>>(ud::get_context(ctx, "hstd_test_model.py", 648), expr0, "real");
+    ud::UniStatic<double> const& expr6 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<double>>(ud::get_context(ctx, "hstd_test_model.py", 649), expr0, "real");
+    ud::UniStatic<int64_t> const& expr7 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 650), expr0, "number");
+    ud::UniStatic<int64_t> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 651), expr0, "number");
+    ud::UniStatic<bool> const& expr9 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 652), expr0, "flag");
+    ud::UniStatic<hstd::Str> const& expr10 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 653), expr0, "text");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 654), expr0, "numbers");
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>> const& expr12 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<int64_t>>>>(ud::get_context(ctx, "hstd_test_model.py", 655), expr0, "details");
     ud::UniStatic<hstd::Str> const& expr13 = ud::UniStatic<hstd::Str>::FromConst(static_cast<hstd::Str>("detail"), "detail");
-    ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 689), expr12, expr13);
-    ud::UniStatic<hstd::Str> const& expr15 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 679), eval_str_pattern("n={} real={} sci={:e} hex={} oct={} flag={} text={} list={} lookup={}"), expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
+    ud::UniStatic<int64_t> const& expr14 = ud::eval_op<ud::OpId::MAP_GET, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 655), expr12, expr13);
+    ud::UniStatic<hstd::Str> const& expr15 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 645), eval_str_pattern("n={} real={} sci={:e} hex={} oct={} flag={} text={} list={} lookup={}"), expr4, expr5, expr6, expr7, expr8, expr9, expr10, expr11, expr14);
     return ud::VerifyResult::Error(ud::get_stored_value(expr15));
   }
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::MessageChecks::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
-   = {{{hstd::ext::unidata::VerifyKey{"MessageChecks", std::nullopt}, hstd::ext::unidata::VerifyCbList{
-                                                                      hstd::ext::unidata::VerifyCb{&__check_record_format_message}
-                                                                      }}}};
+   = {{{hstd::ext::unidata::VerifyKey{"MessageChecks", std::nullopt},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_record_format_message}
+        }}}};
   return &checks;
 }
 void hstd::unidata_dsl::test::Graph::__populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime) {
@@ -3685,7 +3692,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
   __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
-  ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr1 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 706), expression_runtime, expr0);
+  ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr1 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 672), expression_runtime, expr0);
   auto callback5 = [&](ud::UniDynamic const& item2) -> ud::UniStatic<hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>>> {
                    // type_cond typed_as='optional<Node>' bool_val=True
                    //     var typed_as='dyn<Graph>' str_val='node_any'
@@ -3701,32 +3708,32 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    }
                    return result3;
                    };
-  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr6 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 705), expr1, callback5);
+  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr6 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 671), expr1, callback5);
   auto callback9 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item7) -> ud::UniStatic<hstd::Str> {
                    // get_field typed_as='string' str_val='id'
                    //     var typed_as='Node' str_val='node'
                    //
-                   ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 738), item7, "id");
+                   ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 704), item7, "id");
                    return expr8;
                    };
-  ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr10 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 735), expr6, callback9);
-  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr11 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 739), expr10);
+  ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr10 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 701), expr6, callback9);
+  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr11 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 705), expr10);
   auto callback16 = [&](ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& item12) -> ud::UniStatic<bool> {
                     // le typed_as='bool'
                     //     list_size typed_as='int64'
                     //         var typed_as='list<Node>' str_val='group'
                     //     const_int typed_as='int64' int_val=1
                     //
-                    ud::UniStatic<int64_t> const& expr13 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 760), item12);
+                    ud::UniStatic<int64_t> const& expr13 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 726), item12);
                     ud::UniStatic<int64_t> const& expr14 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-                    ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::LE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 760), expr13, expr14);
+                    ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::LE, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 726), expr13, expr14);
                     return expr15;
                     };
-  ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 757), expr11, callback16);
+  ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 723), expr11, callback16);
   if (ud::get_stored_value(expr17)) {
     return ud::VerifyResult::Ok();
   } else {
-    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr18 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 706), expression_runtime, expr0);
+    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr18 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 672), expression_runtime, expr0);
     auto callback22 = [&](ud::UniDynamic const& item19) -> ud::UniStatic<hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>>> {
                       // type_cond typed_as='optional<Node>' bool_val=True
                       //     var typed_as='dyn<Graph>' str_val='node_any'
@@ -3742,16 +3749,16 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       }
                       return result20;
                       };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr23 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 705), expr18, callback22);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr23 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 671), expr18, callback22);
     auto callback26 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item24) -> ud::UniStatic<hstd::Str> {
                       // get_field typed_as='string' str_val='id'
                       //     var typed_as='Node' str_val='node'
                       //
-                      ud::UniStatic<hstd::Str> const& expr25 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 738), item24, "id");
+                      ud::UniStatic<hstd::Str> const& expr25 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 704), item24, "id");
                       return expr25;
                       };
-    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr27 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 735), expr23, callback26);
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr28 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 739), expr27);
+    ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr27 = ud::eval_op<ud::OpId::GROUP_BY, ud::UniStatic<hstd::UnorderedMap<ud::UniStatic<hstd::Str>, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 701), expr23, callback26);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr28 = ud::eval_op<ud::OpId::MAP_VALUES, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 705), expr27);
     auto callback33 = [&](ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& item29) -> ud::UniStatic<bool> {
                       // lt typed_as='bool'
                       //     const_int typed_as='int64' int_val=1
@@ -3759,11 +3766,11 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       //         var typed_as='list<Node>' str_val='group'
                       //
                       ud::UniStatic<int64_t> const& expr30 = ud::UniStatic<int64_t>::FromConst(static_cast<int64_t>(1), "1");
-                      ud::UniStatic<int64_t> const& expr31 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 747), item29);
-                      ud::UniStatic<bool> const& expr32 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 747), expr30, expr31);
+                      ud::UniStatic<int64_t> const& expr31 = ud::eval_op<ud::OpId::LIST_SIZE, ud::UniStatic<int64_t>>(ud::get_context(ctx, "hstd_test_model.py", 713), item29);
+                      ud::UniStatic<bool> const& expr32 = ud::eval_op<ud::OpId::LT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 713), expr30, expr31);
                       return expr32;
                       };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr34 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 744), expr28, callback33);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>> const& expr34 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 710), expr28, callback33);
     auto callback40 = [&](ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& item35) -> ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> {
                       // map typed_as='list<path>' binders='node'[Node]
                       //     var typed_as='list<Node>' str_val='group'
@@ -3774,14 +3781,14 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                                         // path_of typed_as='path'
                                         //     var typed_as='Node' str_val='node'
                                         //
-                                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr37 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 770), expression_runtime, item36);
+                                        ud::UniStatic<hstd::ext::unidata::UniPath> const& expr37 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 736), expression_runtime, item36);
                                         return expr37;
                                         };
-                      ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> const& expr39 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>(ud::get_context(ctx, "hstd_test_model.py", 767), item35, callback38);
+                      ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> const& expr39 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>(ud::get_context(ctx, "hstd_test_model.py", 733), item35, callback38);
                       return expr39;
                       };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>> const& expr41 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 764), expr34, callback40);
-    ud::UniStatic<hstd::Str> const& expr42 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 762), eval_str_pattern("duplicate node ids at {}"), expr41);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>> const& expr41 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>>>(ud::get_context(ctx, "hstd_test_model.py", 730), expr34, callback40);
+    ud::UniStatic<hstd::Str> const& expr42 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 728), eval_str_pattern("duplicate node ids at {}"), expr41);
     return ud::VerifyResult::Error(ud::get_stored_value(expr42));
   }
 }
@@ -3815,7 +3822,7 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
   hstd::ext::unidata::EvalRuntime expression_runtime = hstd::ext::unidata::EvalRuntime{ctx};
   __populate_expression_runtime(expression_runtime);
   auto const& expr0 = (this_obj);
-  ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr1 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 706), expression_runtime, expr0);
+  ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr1 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 672), expression_runtime, expr0);
   auto callback5 = [&](ud::UniDynamic const& item2) -> ud::UniStatic<hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>>> {
                    // type_cond typed_as='optional<Node>' bool_val=True
                    //     var typed_as='dyn<Graph>' str_val='node_any'
@@ -3831,16 +3838,16 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                    }
                    return result3;
                    };
-  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr6 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 705), expr1, callback5);
+  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr6 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 671), expr1, callback5);
   auto callback9 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item7) -> ud::UniStatic<hstd::Str> {
                    // get_field typed_as='string' str_val='id'
                    //     var typed_as='Node' str_val='node'
                    //
-                   ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 721), item7, "id");
+                   ud::UniStatic<hstd::Str> const& expr8 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 687), item7, "id");
                    return expr8;
                    };
-  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr10 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 718), expr6, callback9);
-  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>>>(ud::get_context(ctx, "hstd_test_model.py", 782), expr0, "edges");
+  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr10 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 684), expr6, callback9);
+  ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>> const& expr11 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>>>(ud::get_context(ctx, "hstd_test_model.py", 748), expr0, "edges");
   auto callback18 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item12) -> ud::UniStatic<bool> {
                     // and typed_as='bool'
                     //     list_contains typed_as='bool'
@@ -3854,22 +3861,22 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                     //
                     auto condition13 = ud::UniStatic<bool>::FromConst(true, "true");
                     if (ud::get_stored_value(condition13)) {
-                      ud::UniStatic<hstd::Str> const& expr14 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 728), item12, "source");
-                      ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 728), expr10, expr14);
+                      ud::UniStatic<hstd::Str> const& expr14 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 694), item12, "source");
+                      ud::UniStatic<bool> const& expr15 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 694), expr10, expr14);
                       condition13 = expr15;
                     }
                     if (ud::get_stored_value(condition13)) {
-                      ud::UniStatic<hstd::Str> const& expr16 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 729), item12, "target");
-                      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 729), expr10, expr16);
+                      ud::UniStatic<hstd::Str> const& expr16 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 695), item12, "target");
+                      ud::UniStatic<bool> const& expr17 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 695), expr10, expr16);
                       condition13 = expr17;
                     }
                     return condition13;
                     };
-  ud::UniStatic<bool> const& expr19 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 781), expr11, callback18);
+  ud::UniStatic<bool> const& expr19 = ud::eval_op<ud::OpId::ALL, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 747), expr11, callback18);
   if (ud::get_stored_value(expr19)) {
     return ud::VerifyResult::Ok();
   } else {
-    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr20 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 706), expression_runtime, expr0);
+    ud::UniStatic<hstd::Vec<ud::UniDynamic>> const& expr20 = ud::eval_op<ud::OpId::WALK, ud::UniStatic<hstd::Vec<ud::UniDynamic>>>(ud::get_context(ctx, "hstd_test_model.py", 672), expression_runtime, expr0);
     auto callback24 = [&](ud::UniDynamic const& item21) -> ud::UniStatic<hstd::Opt<ud::UniStatic<hstd::unidata_dsl::test::Node>>> {
                       // type_cond typed_as='optional<Node>' bool_val=True
                       //     var typed_as='dyn<Graph>' str_val='node_any'
@@ -3885,16 +3892,16 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       }
                       return result22;
                       };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr25 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 705), expr20, callback24);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>> const& expr25 = ud::eval_op<ud::OpId::FILTER_MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Node>>>>(ud::get_context(ctx, "hstd_test_model.py", 671), expr20, callback24);
     auto callback28 = [&](ud::UniStatic<hstd::unidata_dsl::test::Node> const& item26) -> ud::UniStatic<hstd::Str> {
                       // get_field typed_as='string' str_val='id'
                       //     var typed_as='Node' str_val='node'
                       //
-                      ud::UniStatic<hstd::Str> const& expr27 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 721), item26, "id");
+                      ud::UniStatic<hstd::Str> const& expr27 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 687), item26, "id");
                       return expr27;
                       };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr29 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 718), expr25, callback28);
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>> const& expr30 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>>>(ud::get_context(ctx, "hstd_test_model.py", 794), expr0, "edges");
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>> const& expr29 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::Str>>>>(ud::get_context(ctx, "hstd_test_model.py", 684), expr25, callback28);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>> const& expr30 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>>>(ud::get_context(ctx, "hstd_test_model.py", 760), expr0, "edges");
     auto callback38 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item31) -> ud::UniStatic<bool> {
                       // not typed_as='bool'
                       //     and typed_as='bool'
@@ -3909,37 +3916,38 @@ hstd::ext::unidata::VerifyResult hstd::unidata_dsl::test::Graph::__check_record_
                       //
                       auto condition32 = ud::UniStatic<bool>::FromConst(true, "true");
                       if (ud::get_stored_value(condition32)) {
-                        ud::UniStatic<hstd::Str> const& expr33 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 728), item31, "source");
-                        ud::UniStatic<bool> const& expr34 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 728), expr29, expr33);
+                        ud::UniStatic<hstd::Str> const& expr33 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 694), item31, "source");
+                        ud::UniStatic<bool> const& expr34 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 694), expr29, expr33);
                         condition32 = expr34;
                       }
                       if (ud::get_stored_value(condition32)) {
-                        ud::UniStatic<hstd::Str> const& expr35 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 729), item31, "target");
-                        ud::UniStatic<bool> const& expr36 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 729), expr29, expr35);
+                        ud::UniStatic<hstd::Str> const& expr35 = ud::eval_op<ud::OpId::GET_FIELD, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 695), item31, "target");
+                        ud::UniStatic<bool> const& expr36 = ud::eval_op<ud::OpId::LIST_CONTAINS, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 695), expr29, expr35);
                         condition32 = expr36;
                       }
-                      ud::UniStatic<bool> const& expr37 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 796), (condition32));
+                      ud::UniStatic<bool> const& expr37 = ud::eval_op<ud::OpId::NOT, ud::UniStatic<bool>>(ud::get_context(ctx, "hstd_test_model.py", 762), (condition32));
                       return expr37;
                       };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>> const& expr39 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>>>(ud::get_context(ctx, "hstd_test_model.py", 793), expr30, callback38);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>> const& expr39 = ud::eval_op<ud::OpId::FILTER, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::unidata_dsl::test::Edge>>>>(ud::get_context(ctx, "hstd_test_model.py", 759), expr30, callback38);
     auto callback42 = [&](ud::UniStatic<hstd::unidata_dsl::test::Edge> const& item40) -> ud::UniStatic<hstd::ext::unidata::UniPath> {
                       // path_of typed_as='path'
                       //     var typed_as='Edge' str_val='edge'
                       //
-                      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr41 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 799), expression_runtime, item40);
+                      ud::UniStatic<hstd::ext::unidata::UniPath> const& expr41 = ud::eval_op<ud::OpId::PATH_OF, ud::UniStatic<hstd::ext::unidata::UniPath>>(ud::get_context(ctx, "hstd_test_model.py", 765), expression_runtime, item40);
                       return expr41;
                       };
-    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> const& expr43 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>(ud::get_context(ctx, "hstd_test_model.py", 792), expr39, callback42);
-    ud::UniStatic<hstd::Str> const& expr44 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 790), eval_str_pattern("dangling edges at {}"), expr43);
+    ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>> const& expr43 = ud::eval_op<ud::OpId::MAP, ud::UniStatic<hstd::Vec<ud::UniStatic<hstd::ext::unidata::UniPath>>>>(ud::get_context(ctx, "hstd_test_model.py", 758), expr39, callback42);
+    ud::UniStatic<hstd::Str> const& expr44 = ud::eval_op<ud::OpId::STR_FORMAT, ud::UniStatic<hstd::Str>>(ud::get_context(ctx, "hstd_test_model.py", 756), eval_str_pattern("dangling edges at {}"), expr43);
     return ud::VerifyResult::Error(ud::get_stored_value(expr44));
   }
 }
 hstd::ext::unidata::VerifyCheckCollection const* hstd::unidata_dsl::test::Graph::get_unidata_checks() {
   static hstd::ext::unidata::VerifyCheckCollection checks
-   = {{{hstd::ext::unidata::VerifyKey{"Graph", std::nullopt}, hstd::ext::unidata::VerifyCbList{
-                                                              hstd::ext::unidata::VerifyCb{&__check_record_graph_unique_node_ids},
-                                                              hstd::ext::unidata::VerifyCb{&__check_record_graph_no_dangling_edges}
-                                                              }}}};
+   = {{{hstd::ext::unidata::VerifyKey{"Graph", std::nullopt},
+        hstd::ext::unidata::VerifyCbList{
+        hstd::ext::unidata::VerifyCb{&__check_record_graph_unique_node_ids},
+        hstd::ext::unidata::VerifyCb{&__check_record_graph_no_dangling_edges}
+        }}}};
   return &checks;
 }
 /* clang-format on */

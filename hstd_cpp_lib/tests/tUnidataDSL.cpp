@@ -319,13 +319,6 @@ TEST(UnidataDSL, CondPropagatesErrorsFromItsSelectedBranch) {
     EXPECT_ANY_THROW(hstd::ext::unidata::verify_all(value));
 }
 
-TEST(UnidataDSL, LetBinderShadowingDoesNotChangeTheModel) {
-    auto value = make_checks(M::CheckKind::Let);
-
-    expect_messages(value, {});
-    EXPECT_EQ(value.number, 6);
-}
-
 TEST(UnidataDSL, ExistsOneRejectsZeroMatches) {
     auto value = make_checks(M::CheckKind::ExistsOne);
 

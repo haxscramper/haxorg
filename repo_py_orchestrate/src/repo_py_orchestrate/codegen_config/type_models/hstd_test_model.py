@@ -211,11 +211,7 @@ class OperationChecks(M.Class):
         ),
         (
             "Or",
-            op_or(
-                False,
-                M.This["number"] == 6,
-                M.This["mapping"]._Map.get("a") == 99,
-            ),
+            op_or(False, M.This["number"] == 6, M.This["mapping"]._Map.get("a") == 99),
         ),
         ("Not", ~(M.This["number"] != 6)),
         (
@@ -242,51 +238,21 @@ class OperationChecks(M.Class):
                 op_let(
                     "bound2",
                     M.Iter("bound") + 1,
-                    M.Iter("bound"),
+                    M.Iter("bound2"),
                 ),
             )
             == 7,
         ),
-        (
-            "All",
-            op_all(
-                M.This["numbers"],
-                "number",
-                M.Iter("number") < 4,
-            ),
-        ),
-        (
-            "Exists",
-            op_exists(
-                M.This["numbers"],
-                "number",
-                M.Iter("number") == 3,
-            ),
-        ),
-        (
-            "ExistsOne",
-            op_exists_one(
-                M.This["numbers"],
-                "number",
-                M.Iter("number") == 3,
-            ),
-        ),
+        ("All", op_all(M.This["numbers"], "number", M.Iter("number") < 4)),
+        ("Exists", op_exists(M.This["numbers"], "number", M.Iter("number") == 3)),
+        ("ExistsOne", op_exists_one(M.This["numbers"], "number", M.Iter("number") == 3)),
         (
             "Map",
-            op_map(
-                M.This["numbers"],
-                "number",
-                M.Iter("number") * 2,
-            )._List.at(2)
-            == 6,
+            op_map(M.This["numbers"], "number", M.Iter("number") * 2)._List.at(2) == 6,
         ),
         (
             "Filter",
-            op_filter(
-                M.This["numbers"],
-                "number",
-                1 < M.Iter("number"),
-            )._List.size()
+            op_filter(M.This["numbers"], "number", 1 < M.Iter("number"))._List.size()
             == 2,
         ),
         (

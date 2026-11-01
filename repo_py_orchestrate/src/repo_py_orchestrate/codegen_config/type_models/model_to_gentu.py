@@ -504,7 +504,9 @@ class ModelToGenTu:
                                 ],
                                 Line=False,
                             ),
-                        ]
+                        ],
+                        isLine=False,
+                        isTrailing=True,
                     )
                 )
 
