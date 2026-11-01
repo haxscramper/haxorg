@@ -246,5 +246,5 @@ test_dsl_generate:
   #!/usr/bin/env bash
   set -e
   uv run repo_py_orchestrate/src/repo_py_orchestrate/gen_hstd_unidata_test.py {{HAXORG_ROOT}}
-  export GTEST_FILTER="UnidataDSL.*"
+  export GTEST_FILTER="UnidataDSL.*:UnidataDSL/*"
   just conan_validate hstd_cpp_lib --editable

@@ -109,7 +109,7 @@ class ModelToGenTu:
                 namespaces=self.type_map.namespaces,
                 indexes=self.type_map.indexes,
                 models=self.type_map.models,
-                is_internal_codegen=self.type_map.is_internal_codegen,
+                is_internal_codegen=True,
             ),
         )
 

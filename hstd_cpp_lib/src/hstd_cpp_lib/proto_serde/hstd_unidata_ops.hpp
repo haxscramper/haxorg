@@ -367,6 +367,23 @@ struct OpImpl<OpId::NE> {
 };
 
 template <>
+struct OpImpl<OpId::AND> {
+    template <typename Res, typename... ArgFuncs>
+    static Res eval(ArgFuncs&&... args) {
+        return Res::SubExprNoContext((get_stored_as_bool(args()) && ...), "and");
+    }
+};
+
+template <>
+struct OpImpl<OpId::OR> {
+    template <typename Res, typename... ArgFuncs>
+    static Res eval(ArgFuncs&&... args) {
+        return Res::SubExprNoContext((get_stored_as_bool(args()) || ...), "or");
+    }
+};
+
+
+template <>
 struct OpImpl<OpId::ADD> {
     template <typename Res, typename T1, typename T2>
     static Res eval(UniStatic<T1> const& lhs, UniStatic<T2> const& rhs) {

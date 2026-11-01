@@ -176,6 +176,7 @@ class CheckGen:
         args: Sequence[BlockId] = (),
         params: Sequence[QualType] = (),
         is_stmt: bool = False,
+        Line: bool = True,
     ) -> BlockId:
         return self.ast.CallStatic(
             CPP_SHORT_SPACE_T,
@@ -183,6 +184,7 @@ class CheckGen:
             Args=list(args),
             Params=[self._gen_op_id(op)] + (list(params) if params else []),
             Stmt=is_stmt,
+            Line=Line,
         )
 
     def _expression_call(
@@ -311,6 +313,30 @@ class CheckGen:
             values.append(lowered.value)
 
         return statements, values
+
+    def _expression_as_iife(
+        self,
+        body: ExprNode,
+        this_expr: BlockId,
+        bindings: dict[str, BlockId],
+    ) -> BlockId:
+        lowered = self._gen_expression_eval(
+            body,
+            this_expr,
+            bindings,
+        )
+
+        return self.ast.Lambda(
+            cpp.LambdaParams(
+                ResultTy=self._expression_result_type(body),
+                CaptureList=[cpp.LambdaCapture(ByRef=True)],
+                Body=[
+                    *lowered.statements,
+                    self.ast.Return(lowered.value),
+                ],
+                IsLine=False,
+            )
+        )
 
     def _expression_callback(
         self,
@@ -878,63 +904,16 @@ class CheckGen:
         this_expr: BlockId,
         bindings: dict[str, BlockId],
     ) -> ExpressionEvaluation:
-        name = self._expression_name("condition")
-        result = self.ast.string(name)
 
-        is_and = expr.op == OpId.AND
+        op_call_expr = self._op_call(
+            expr.op,
+            args=[self._expr_context_gen(expr)]
+            + [self._expression_as_iife(arg, this_expr, bindings) for arg in expr.args],
+            params=[self._expression_result_type(expr)],
+            Line=False,
+        )
 
-        statements = [
-            self.ast.VarDecl(
-                cpp.ParmVarParams(
-                    type=CPP_AUTO_T(),
-                    name=name,
-                    defArg=self.ast.CallStatic(
-                        self._wrap_uni_static(QualType(Name="bool")),
-                        "FromConst",
-                        Args=[
-                            self.ast.string("true" if is_and else "false"),
-                            self.ast.StringLiteral("true" if is_and else "false"),
-                        ],
-                    ),
-                )
-            )
-        ]
-
-        for arg in expr.args:
-            lowered = self._gen_expression_eval(
-                arg,
-                this_expr,
-                bindings,
-            )
-
-            condition = (
-                self._get_uni_value_ref(result)
-                if is_and
-                else self.ast.XCall(
-                    "!", args=[self.ast.pars(self._get_uni_value_ref(result))]
-                )
-            )
-
-            statements.append(
-                self.ast.IfStmt(
-                    cpp.IfStmtParams(
-                        Branches=[
-                            cpp.IfStmtParams.Branch(
-                                Cond=condition,
-                                Then=self.ast.stack(
-                                    [
-                                        self._expr_scope(arg),
-                                        *lowered.statements,
-                                        self._set_slot(result, lowered.value),
-                                    ]
-                                ),
-                            )
-                        ]
-                    )
-                )
-            )
-
-        return ExpressionEvaluation(statements, result)
+        return self._expression_local(value=op_call_expr)
 
     def _gen_expression_eval_cond(
         self,
