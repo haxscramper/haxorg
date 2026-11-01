@@ -244,27 +244,32 @@ TEST(UnidataDSL, TrivialStringField) {
     expect_messages(M::TrivialText{.text = ""}, {"text must not be empty"});
 }
 
-TEST(UnidataDSL, EveryOperationAcceptsItsValidInput) {
-    for (auto const& entry : operation_cases()) {
-        SCOPED_TRACE(entry.name);
+class UnidataDSLOperationTest : public ::testing::TestWithParam<OperationCase> {};
 
-        auto value = make_checks(entry.kind);
-        expect_messages(value, {});
-    }
+TEST_P(UnidataDSLOperationTest, AcceptsValidInput) {
+    auto const& entry = GetParam();
+
+    auto value = make_checks(entry.kind);
+    expect_messages(value, {});
 }
 
-TEST(UnidataDSL, EveryMutableOperationRejectsItsInvalidInput) {
-    for (auto const& entry : operation_cases()) {
-        if (!entry.invalidate) { continue; }
+TEST_P(UnidataDSLOperationTest, RejectsInvalidInput) {
+    auto const& entry = GetParam();
 
-        SCOPED_TRACE(entry.name);
+    if (!entry.invalidate) { GTEST_SKIP() << "Operation has no invalid-input mutation"; }
 
-        auto value = make_checks(entry.kind);
-        entry.invalidate(value);
+    auto value = make_checks(entry.kind);
+    entry.invalidate(value);
 
-        expect_messages(value, {fmt::format("poc.{}", entry.name)});
-    }
+    expect_messages(value, {fmt::format("poc.{}", entry.name)});
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    UnidataDSL,
+    UnidataDSLOperationTest,
+    ::testing::ValuesIn(operation_cases()),
+    [](auto const& info) { return info.param.name; });
+
 
 TEST(UnidataDSL, AndDoesNotEvaluateLaterOperandsAfterFalse) {
     auto value = make_checks(M::CheckKind::And);
