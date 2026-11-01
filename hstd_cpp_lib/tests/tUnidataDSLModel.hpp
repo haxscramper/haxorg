@@ -137,21 +137,21 @@ struct Choice {
 };
 
 struct OperationChecks {
-  BOOST_DESCRIBE_CLASS(OperationChecks, (), (), (), (operation,
-                                                     number,
-                                                     real,
-                                                     flag,
-                                                     text,
-                                                     numbers,
-                                                     optionals,
-                                                     mapping,
-                                                     optional,
-                                                     coords,
-                                                     status,
-                                                     base,
-                                                     derived,
-                                                     choice,
-                                                     unidata_id));
+  BOOST_DESCRIBE_CLASS(OperationChecks, (), (), (), (operation
+                                                     , number
+                                                     , real
+                                                     , flag
+                                                     , text
+                                                     , numbers
+                                                     , optionals
+                                                     , mapping
+                                                     , optional
+                                                     , coords
+                                                     , status
+                                                     , base
+                                                     , derived
+                                                     , choice
+                                                     , unidata_id));
   hstd::unidata_dsl::test::CheckKind operation;
   int64_t number;
   double real;
@@ -183,6 +183,7 @@ struct OperationChecks {
   static hstd::ext::unidata::VerifyResult __check_record_poc_Not(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_Cond(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_CondLazy(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
+  static hstd::ext::unidata::VerifyResult __check_record_poc_Let(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_All(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_Exists(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
   static hstd::ext::unidata::VerifyResult __check_record_poc_ExistsOne(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
@@ -243,13 +244,13 @@ struct FieldChecks {
 };
 
 struct MessageChecks {
-  BOOST_DESCRIBE_CLASS(MessageChecks, (), (), (), (number,
-                                                   real,
-                                                   flag,
-                                                   text,
-                                                   numbers,
-                                                   details,
-                                                   unidata_id));
+  BOOST_DESCRIBE_CLASS(MessageChecks, (), (), (), (number
+                                                   , real
+                                                   , flag
+                                                   , text
+                                                   , numbers
+                                                   , details
+                                                   , unidata_id));
   int64_t number;
   double real;
   bool flag;

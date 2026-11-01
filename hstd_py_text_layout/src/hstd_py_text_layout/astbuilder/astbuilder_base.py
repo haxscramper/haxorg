@@ -159,17 +159,13 @@ class AstbuilderBase:
         right: str = "}",
         IsLine: bool = False,
     ) -> BlockId:
-        body = [
-            self.string(left),
-            self.stack(elements),
-            self.string(right),
-        ]
-
-        if IsLine:
-            return self.line(body)
-
-        else:
-            return self.stack(body)
+        return self.line(
+            [
+                self.string(left),
+                self.line(elements) if IsLine else self.stack(elements),
+                self.string(right),
+            ]
+        )
 
     def pars(self, arg: BlockId, left: str = "(", right: str = ")") -> BlockId:
         return self.line([self.string(left), arg, self.string(right)])
@@ -195,12 +191,27 @@ class AstbuilderBase:
             self.string(Base) if isinstance(Base, str) else Base for Base in items
         ]
         if 0 < len(filter_list):
-            return self.b.join(
-                filter_list,
-                self.string(sep),
-                isLine,
-                isTrailing,
-            )
+            elements = list()
+            for i, item in enumerate(filter_list):
+                if isTrailing:
+                    if i < len(filter_list) - 1 and 1 < len(filter_list):
+                        elements.append(self.line([item, self.string(sep)]))
+
+                    else:
+                        elements.append(item)
+
+                else:
+                    if i == 0:
+                        elements.append(item)
+
+                    else:
+                        elements.append(self.line([self.string(sep), item]))
+
+            if isLine:
+                return self.line(elements)
+
+            else:
+                return self.stack(elements)
 
         else:
             return self.string("")

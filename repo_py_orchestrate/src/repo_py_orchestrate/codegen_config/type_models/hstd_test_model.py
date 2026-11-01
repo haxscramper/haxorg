@@ -234,21 +234,19 @@ class OperationChecks(M.Class):
             )
             == 1,
         ),
-        # TODO: Fixme: the error and semantics are unclear here, fails
-        # with binder shadowing error.
-        # (
-        #     "Let",
-        #     op_let(
-        #         "bound",
-        #         M.This["number"],
-        #         op_let(
-        #             "bound",
-        #             M.Iter("bound") + 1,
-        #             M.Iter("bound"),
-        #         ),
-        #     )
-        #     == 7,
-        # ),
+        (
+            "Let",
+            op_let(
+                "bound",
+                M.This["number"],
+                op_let(
+                    "bound2",
+                    M.Iter("bound") + 1,
+                    M.Iter("bound"),
+                ),
+            )
+            == 7,
+        ),
         (
             "All",
             op_all(

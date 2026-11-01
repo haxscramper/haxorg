@@ -458,6 +458,10 @@ def op_cond(*branches: Tuple[Any, Any], default: Any) -> Expr:
 @frontend_entry
 @beartype
 def op_let(name: str, value: Any, body: Any) -> Expr:
+    """
+    Introduce a new bound variable `name` into the scope, assigning the expression
+    `value` to it.
+    """
     check_binder_name(name, "op_let")
     return make_node(OpId.LET, (to_node(value), to_node(body)), binders=(name,))
 

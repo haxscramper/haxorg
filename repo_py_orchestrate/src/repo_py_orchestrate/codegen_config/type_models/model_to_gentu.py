@@ -502,6 +502,7 @@ class ModelToGenTu:
                                     )
                                     for impl in check.impl
                                 ],
+                                Line=False,
                             ),
                         ]
                     )
@@ -521,7 +522,11 @@ class ModelToGenTu:
                                     name="checks",
                                     storage=cpp.StorageClass.Static,
                                     defArg=self.ast.init_list(
-                                        [self.ast.init_list(assign_stack, isLine=False)]
+                                        [
+                                            self.ast.init_list(
+                                                assign_stack, isLine=False
+                                            ),
+                                        ]
                                     ),
                                     IsLine=False,
                                 )
