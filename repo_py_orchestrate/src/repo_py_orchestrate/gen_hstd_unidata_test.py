@@ -56,9 +56,6 @@ def main(root_dir: Path):
                         GenTuPass(
                             "#include <hstd_cpp_lib/proto_serde/hstd_unidata_ops.hpp>"
                         ),
-                        GenTuPass(
-                            "#include <hstd_cpp_lib/proto_serde/hstd_unidata_yap.hpp>"
-                        ),
                         GenTuPass("namespace ud = hstd::ext::unidata;"),
                         *types,
                     ],
