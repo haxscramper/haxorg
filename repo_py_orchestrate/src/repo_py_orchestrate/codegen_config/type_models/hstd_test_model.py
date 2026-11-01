@@ -767,3 +767,32 @@ class Graph(M.Class):
             ),
         ),
     )
+
+
+class MultiValueCond(M.Class):
+    field: int = M.Field(
+        check=op_cond(
+            (M.This == 1, True),
+            (M.This != 1, False),
+            default=True,
+        ),
+        message=op_cond(
+            (
+                M.This == 2,
+                "field bad: value two",
+            ),
+            (
+                op_and(2 < M.This, M.This < 10),
+                op_format("mid-range invalid value: {}", M.This),
+            ),
+            (
+                M.This == 10,
+                "10, special-case number",
+            ),
+            (
+                10 < M.This,
+                op_format("very large invalid value: {}", M.This),
+            ),
+            default=op_format("unexpected range of invalid-ness {}", M.This),
+        ),
+    )

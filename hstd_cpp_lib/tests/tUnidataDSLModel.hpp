@@ -287,5 +287,14 @@ struct Graph {
   static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
 };
 
+struct MultiValueCond {
+  BOOST_DESCRIBE_CLASS(MultiValueCond, (), (), (), (field, unidata_id));
+  int64_t field;
+  static constexpr std::string const unidata_id = "MultiValueCond";
+  static void __populate_expression_runtime(hstd::ext::unidata::EvalRuntime& expression_runtime);
+  static hstd::ext::unidata::VerifyResult __check_field_field_check(hstd::ext::unidata::VerifyContext const* ctx, void const* value);
+  static hstd::ext::unidata::VerifyCheckCollection const* get_unidata_checks();
+};
+
 }
 /* clang-format on */

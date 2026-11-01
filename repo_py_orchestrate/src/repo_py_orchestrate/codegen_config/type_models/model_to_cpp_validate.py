@@ -39,7 +39,6 @@ from repo_py_orchestrate.codegen_config.type_models.model_to_gentu_common import
     CPP_CONTEXT_T,
     CPP_RESULT_T,
     CPP_SPACE_T,
-    CPP_UNI_STATIC_T,
     ExpressionEvaluation,
     TypeTranslation,
     cpp_config,
@@ -89,7 +88,7 @@ class CheckGen:
         return result
 
     def _wrap_uni_static(self, type: QualType) -> QualType:
-        return CPP_UNI_STATIC_T(type, space=CPP_SHORT_SPACE_T)
+        return QualType(Name="S", Spaces=[CPP_SHORT_SPACE_T], Params=[type])
 
     def _map_model_type(self, type: TypeRef) -> QualType:
         """
@@ -182,8 +181,7 @@ class CheckGen:
             CPP_SHORT_SPACE_T,
             "eval_op",
             Args=list(args),
-            Params=[QualType(Name=f"OpId::{op.name}", Spaces=[CPP_SHORT_SPACE_T])]
-            + (list(params) if params else []),
+            Params=[self._gen_op_id(op)] + (list(params) if params else []),
             Stmt=is_stmt,
         )
 
@@ -200,6 +198,21 @@ class CheckGen:
             Args=list(args),
             Params=list(params) if params else None,
             Stmt=is_stmt,
+        )
+
+    def _gen_op_id(self, op: OpId) -> QualType:
+        return QualType(Name=f"OpId::{op.name}", Spaces=[CPP_SHORT_SPACE_T])
+
+    def _expr_scope(self, expr: ExprNode) -> BlockId:
+        return self.ast.XCall(
+            "UNIDATA_SCOPE",
+            args=[
+                self.ast.string("ctx"),
+                self.ast.StringLiteral(Path(expr.loc.file).name),
+                self.ast.Literal(expr.loc.line),
+                self.ast.Type(self._gen_op_id(expr.op)),
+            ],
+            Stmt=True,
         )
 
     def _expr_context_gen(self, expr: ExprNode) -> BlockId:
@@ -910,14 +923,9 @@ class CheckGen:
                                 Cond=condition,
                                 Then=self.ast.stack(
                                     [
+                                        self._expr_scope(arg),
                                         *lowered.statements,
-                                        self.ast.Trail(
-                                            self.ast.XCall(
-                                                "=", args=[result, lowered.value]
-                                            ),
-                                            self.ast.string(";"),
-                                            space="",
-                                        ),
+                                        self._set_slot(result, lowered.value),
                                     ]
                                 ),
                             )

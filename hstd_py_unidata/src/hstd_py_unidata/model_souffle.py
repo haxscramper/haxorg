@@ -637,13 +637,16 @@ def run_type_check(index: ModelIndex, table: Dict[OpId, Operator]) -> TypeCheckO
         )
 
     def warn_untyped(expr: ExprNode) -> None:
-        if expr.typed_as is None:
-            logger.warning(
-                f"Expression has no inferred type:\n{render_rich(expr_tree_repr(expr))}"
-            )
+        if len(diags) == 0:
+            # Do not generate warnings if there are any errors -- most likely
+            # the expression is untyped because the earlier error prevented it.
+            if expr.typed_as is None:
+                logger.warning(
+                    f"Expression has no inferred type:\n{render_rich(expr_tree_repr(expr))}"
+                )
 
-        for arg in expr.args:
-            warn_untyped(arg)
+            for arg in expr.args:
+                warn_untyped(arg)
 
     checks: Dict[QName, Dict[str, CheckDef]] = {}
     records: List[RecordDef] = []

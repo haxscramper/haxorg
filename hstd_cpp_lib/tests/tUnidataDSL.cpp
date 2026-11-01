@@ -27,7 +27,7 @@ void expect_messages(
     char const*              function = __builtin_FUNCTION(),
     char const*              file     = __builtin_FILE()) {
     auto failures = hstd::ext::unidata::verify_all(
-                        value, getDebugFile("verify_trace.log"))
+                        value, getDebugFile(hstd::fmt("verify_trace_{}.log", line)))
                         .getFail();
 
     std::vector<std::string> actual;
@@ -613,4 +613,15 @@ TEST(UnidataDSL, CompositeGraphRejectsReferencesWithoutNodes) {
     };
 
     expect_messages(value, {"dangling edges at [/edges/0]"});
+}
+
+TEST(UnidataDSL, MultiValueCondCheck) {
+    using C = M::MultiValueCond;
+    expect_messages(C{.field = 1}, {});
+    expect_messages(C{.field = 2}, {"field bad: value two"});
+    expect_messages(C{.field = 3}, {"mid-range invalid value: 3"});
+    expect_messages(C{.field = 5}, {"mid-range invalid value: 5"});
+    expect_messages(C{.field = 10}, {"10, special-case number"});
+    expect_messages(C{.field = 100}, {"very large invalid value: 100"});
+    expect_messages(C{.field = -1900}, {"unexpected range of invalid-ness -1900"});
 }

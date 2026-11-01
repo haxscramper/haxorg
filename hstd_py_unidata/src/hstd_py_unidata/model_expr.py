@@ -318,7 +318,10 @@ class Expr(ExprAccessors):
     def __bool__(self) -> bool:
         raise TypeError(
             f"DSL expression '{self.node.op.value}' built at {self.node.loc.render()} was used in a Python boolean context "
-            "(if, and, or, not, or a chained comparison); use op_and/op_or/op_not or the &, |, ~ operators instead"
+            "(if, and, or, not, or a chained comparison); use op_and/op_or/op_not or the &, |, ~ operators instead. "
+            ""
+            "This error was likely caused by the pattern like `A < B and B < C` -- rewrite it as `op_and(A < B, B, C)` or "
+            "`(A < B) & (B < C)` to work around python's truth-tests."
         )
 
     @frontend_entry
@@ -447,7 +450,10 @@ def op_not(arg: Any) -> Expr:
 
 @frontend_entry
 @beartype
-def op_cond(*branches: Tuple[Any, Any], default: Any) -> Expr:
+def op_cond(
+    *branches: Tuple[Any, Any],
+    default: Any = None,
+) -> Expr:
     """Lisp-style conditional: the value of the first branch whose condition holds, otherwise the default."""
     result = to_node(default)
     for cond, value in reversed(branches):

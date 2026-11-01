@@ -79,6 +79,12 @@ DECL_DESCRIBED_ENUM_STANDALONE(
 template <OpId Kind>
 struct OpImpl {};
 
+template <typename T>
+using S = UniStatic<T>;
+
+#define UNIDATA_SCOPE(__ctx, __file, __line, __expr_kind)                                \
+    OP_TRACER_MESSAGE_SCOPE(__ctx, "{} {}:{}", __file, __line, __expr_kind);
+
 template <OpId Kind, typename Res, typename Eval, typename... Args>
 Res eval_op_traced(ExprContext const& expr_ctx, Eval&& eval, Args&&... args) {
     OP_TRACER_MESSAGE_SCOPE(
